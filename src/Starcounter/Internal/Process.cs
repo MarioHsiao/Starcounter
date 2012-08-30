@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace Starcounter.Internal
 {
     
@@ -26,6 +28,10 @@ namespace Starcounter.Internal
                         break;
 
                     case sccorelib.CM2_TYPE_REQUEST:
+                        break;
+
+                    case sccorelib_ext.TYPE_PROCESS_PACKAGE:
+                        Package.Process((IntPtr)task_data.Output3);
                         break;
                     };
                 }

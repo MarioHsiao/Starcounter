@@ -102,12 +102,24 @@ namespace Starcounter.Internal
         [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern unsafe uint cm3_get_cpun(void *ignore, byte *pcpun);
 
+        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern unsafe uint cm2_schedule(
+	        void *hsched,
+	        byte cpun,
+            ushort type,
+	        ushort prio,
+	        uint output1,
+            ulong output2,
+	        ulong output3
+        	);
 
         internal const ushort CM2_TYPE_RELEASE = 0x0000;
 
         internal const ushort CM2_TYPE_CLOCK = 0x0001;
 
         internal const ushort CM2_TYPE_REQUEST = 0x0002;
+
+        internal const ushort CM2_TYPE_CALLBACK = 0x0010;
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct CM2_TASK_DATA
@@ -129,4 +141,10 @@ namespace Starcounter.Internal
         [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern void mh4_menv_trim_cache(ulong hmenv, int periodic);
     };
+
+    internal static class sccorelib_ext
+    {
+
+        internal const ushort TYPE_PROCESS_PACKAGE = 0x0100;
+    }
 }

@@ -8,12 +8,12 @@ namespace Starcounter.Internal
     public class Control // TODO: Make internal.
     {
 
-        public static void Run()
+        public static void Main()
         {
             Control c = new Control();
             c.Setup();
             c.Start();
-            c.Join();
+            c.Run();
             c.Stop();
             c.Cleanup();
         }
@@ -75,9 +75,9 @@ namespace Starcounter.Internal
             throw sccoreerr.TranslateErrorCode(e);
         }
 
-        private void Join()
+        private unsafe void Run()
         {
-            System.Threading.Thread.Sleep(-1); // TODO: Wait for the database to be terminated.
+            Loader.RunMessageLoop(hsched_);
         }
 
         private unsafe void Stop()
