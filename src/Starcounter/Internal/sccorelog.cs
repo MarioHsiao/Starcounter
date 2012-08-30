@@ -18,5 +18,8 @@ namespace Starcounter.Internal
 
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         internal static extern uint SCBindLogsToDir(ulong hlogs, string directory);
+
+        [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        internal static extern uint SCNewActivity();
     }
 }

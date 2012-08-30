@@ -34,15 +34,27 @@ namespace Starcounter.Internal
         internal static extern uint sccoredb_disconnect(uint flags);
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint SCEndCreateDatabase();
-
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint SCEndInitializeDatabase();
-
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern uint SCAttachThread(byte scheduler_number, int init);
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern uint SCDetachThread(uint yield_reason);
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern uint SCResetThread();
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern uint SCConfigureVP();
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern uint SCBackgroundTask();
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern uint sccoredb_advance_clock(uint scheduler_index);
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern unsafe uint SCIdleTask(int* pCallAgainIfStillIdle);
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern uint SCLowMemoryAlert(uint lr);
     }
 }

@@ -10,31 +10,17 @@ namespace Starcounter.Internal
 
         public static void Run()
         {
-            Control b;
-            b = new Control();
-            b.Start();
-            b.Join();
-            b.Stop();
+            Control c = new Control();
+            c.Setup();
+            c.Start();
+            c.Join();
+            c.Stop();
+            c.Cleanup();
         }
 
+        private unsafe void *hsched_;
 
-        private void Start()
-        {
-            Setup();
-        }
-
-        private void Join()
-        {
-            // TODO: Wait for the database to be terminated.
-        }
-
-        private void Stop()
-        {
-            Cleanup();
-        }
-
-
-        private void Setup()
+        private unsafe void Setup()
         {
             Configuration configuration = Configuration.Load();
 
@@ -67,23 +53,45 @@ namespace Starcounter.Internal
 	        _pGlobals->hEvent = he;
 #endif
 
-            unsafe
-            {
-                byte* mem = (byte *)Marshal.AllocHGlobal(4096); // TODO: Allocate aligned memory. Evaluate size.
+            byte* mem = (byte*)Marshal.AllocHGlobal(4096); // TODO: Allocate aligned memory. Evaluate size.
 
-                ulong hmenv = ConfigureMemory(configuration, mem);
-                mem += 128;
+            ulong hmenv = ConfigureMemory(configuration, mem);
+            mem += 128;
 
-                ulong hlogs = ConfigureLogging(configuration, hmenv);
+            ulong hlogs = ConfigureLogging(configuration, hmenv);
 
-                void *hsched = ConfigureScheduler(configuration, mem, hmenv);
-                mem += (1024 + 512);
+            hsched_ = ConfigureScheduler(configuration, mem, hmenv);
+            mem += (1024 + 512);
 
-                ConfigureDatabase(configuration);
+            ConfigureDatabase(configuration);
 
-                ConnectDatabase(configuration, hsched, hmenv, hlogs);
-            }
+            ConnectDatabase(configuration, hsched_, hmenv, hlogs);
         }
+
+        private unsafe void Start()
+        {
+            uint e = sccorelib.cm2_start(hsched_);
+            if (e == 0) return;
+            throw sccoreerr.TranslateErrorCode(e);
+        }
+
+        private void Join()
+        {
+            System.Threading.Thread.Sleep(-1); // TODO: Wait for the database to be terminated.
+        }
+
+        private unsafe void Stop()
+        {
+            uint e = sccorelib.cm2_stop(hsched_, 1);
+            if (e == 0) return;
+            throw sccoreerr.TranslateErrorCode(e);
+        }
+
+        private void Cleanup()
+        {
+            DisconnectDatabase();
+        }
+
 
         private unsafe ulong ConfigureMemory(Configuration c, void* mem128)
         {
@@ -114,9 +122,10 @@ namespace Starcounter.Internal
         {
             uint cpuc = 1;
 
-            uint space_needed_for_scheduler = 1024 + (cpuc * 512);
+            orange.orange_setup(hmenv);
 
-            CM2_SETUP setup = new CM2_SETUP();
+            uint space_needed_for_scheduler = 1024 + (cpuc * 512);
+            sccorelib.CM2_SETUP setup = new sccorelib.CM2_SETUP();
             setup.name = (char*)Marshal.StringToHGlobalUni(c.Name);
             setup.server_name = (char*)Marshal.StringToHGlobalUni("PERSONAL");
             setup.db_data_dir_path = (char *)Marshal.StringToHGlobalUni(c.OutputDirectory); // TODO: ?
@@ -125,20 +134,7 @@ namespace Starcounter.Internal
 	        setup.mem_size = space_needed_for_scheduler;
 	        setup.hmenv = hmenv;
 	        setup.cpuc = (byte)cpuc;
-#if false
-	        setup.th_enter = _ThreadEnter;
-	        setup.th_leave = _ThreadLeave;
-	        setup.th_start = _ThreadProc;
-	        setup.th_reset = _ResetThread;
-	        setup.th_yield = _ThreadYield;
-	        setup.vp_bgtask = _BackgroundTask;
-	        setup.vp_ctick = _ClockTick;
-	        setup.vp_idle = _IdleTask;
-	        setup.vp_wait = _YieldBlockedThreadAboutToOrRequestingThePossibilityToBlock;
-	        setup.al_stall = _StallAlert;
-	        setup.al_lowmem = _LowmemAlert;
-        	setup.pex_ctxt = null;
-#endif
+            orange.orange_configure_scheduler_callbacks(ref setup);
 	
             void *hsched;
             uint e = sccorelib.cm2_setup(&setup, &hsched);
@@ -203,15 +199,6 @@ namespace Starcounter.Internal
             if (e != 0) throw sccoreerr.TranslateErrorCode(e);
         }
 
-
-        private void Cleanup()
-        {
-            // TODO:
-            // Stop scheduler and wait for all worker threads to stop. Timeout
-            // that terminates the process if shutdown takes to long.
-
-            DisconnectDatabase();
-        }
 
         private void DisconnectDatabase()
         {
