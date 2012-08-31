@@ -1,6 +1,7 @@
 ﻿
 using Starcounter.Internal;
 using System;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Starcounter
@@ -11,39 +12,81 @@ namespace Starcounter
 
         public static TableDef LookupTable(string name)
         {
-            int b;
-            ulong definition_addr;
-
-            b = sccoredb.Mdb_DefinitionFromCodeClassString(name, out definition_addr);
-            if (b != 0)
+            unsafe
             {
-                if (definition_addr != sccoredb.INVALID_DEFINITION_ADDR)
+                int b;
+                ulong definition_addr;
+
+                b = sccoredb.Mdb_DefinitionFromCodeClassString(name, out definition_addr);
+                if (b != 0)
                 {
-                    sccoredb.Mdb_DefinitionInfo definition_info;
-                    b = sccoredb.Mdb_DefinitionToDefinitionInfo(definition_addr, out definition_info);
-                    if (b != 0)
+                    if (definition_addr != sccoredb.INVALID_DEFINITION_ADDR)
                     {
-                        return new TableDef(name, definition_info.TableID);
+                        sccoredb.Mdb_DefinitionInfo definitionInfo;
+                        b = sccoredb.Mdb_DefinitionToDefinitionInfo(definition_addr, out definitionInfo);
+                        if (b != 0)
+                        {
+                            ushort tableId = definitionInfo.TableID;
+                            ColumnDef[] columns = new ColumnDef[definitionInfo.NumAttributes];
+                            for (ushort i = 0; i < columns.Length; i++)
+                            {
+                                sccoredb.Mdb_AttributeInfo attributeInfo;
+                                b = sccoredb.Mdb_DefinitionAttributeIndexToInfo(definition_addr, i, out attributeInfo);
+                                if (b != 0)
+                                {
+                                    columns[i] = new ColumnDef(
+                                        new string(attributeInfo.PtrName),
+                                        attributeInfo.Type,
+                                        (attributeInfo.Flags & sccoredb.MDB_ATTRFLAG_NULLABLE) != 0
+                                        );
+                                }
+                                else
+                                {
+                                    throw sccoreerr.TranslateErrorCode(sccoredb.Mdb_GetLastError());
+                                }
+                            }
+                            return new TableDef(name, tableId, columns);
+                        }
+                    }
+                    else
+                    {
+                        return null;
                     }
                 }
-                else
-                {
-                    return null;
-                }
+                throw sccoreerr.TranslateErrorCode(sccoredb.Mdb_GetLastError());
             }
-            throw sccoreerr.TranslateErrorCode(sccoredb.Mdb_GetLastError());
         }
 
-        public static void CreateTable(string name)
+        public static void CreateTable(TableDef tableDef)
         {
             unsafe
             {
-                fixed (byte *ascii_name = Encoding.ASCII.GetBytes(name))
+                ColumnDef[] columns = tableDef.Columns;
+                sccoredb.SC_COLUMN_DEFINITION[] column_definitions = new sccoredb.SC_COLUMN_DEFINITION[columns.Length + 1];
+                try
                 {
-                    sccoredb.SC_COLUMN_DEFINITION *column_definitions = stackalloc sccoredb.SC_COLUMN_DEFINITION [1];
-                    column_definitions->type = 0;
-                    uint e = sccoredb.sc_create_table(ascii_name, sccoredb.INVALID_DEFINITION_ADDR, column_definitions);
-                    if (e != 0) throw sccoreerr.TranslateErrorCode(e);
+                    for (int i = 0; i < columns.Length; i++)
+                    {
+                        column_definitions[i].name = (byte*)Marshal.StringToCoTaskMemAnsi(columns[i].Name);
+                        column_definitions[i].type = columns[i].Type;
+                        column_definitions[i].is_nullable = columns[i].IsNullable ? (byte)1 : (byte)0;
+                    }
+                    fixed (byte* fixed_name = Encoding.ASCII.GetBytes(tableDef.Name))
+                    {
+                        fixed (sccoredb.SC_COLUMN_DEFINITION* fixed_column_definitions = column_definitions)
+                        {
+                            uint e = sccoredb.sc_create_table(fixed_name, sccoredb.INVALID_DEFINITION_ADDR, fixed_column_definitions);
+                            if (e != 0) throw sccoreerr.TranslateErrorCode(e);
+                        }
+                    }
+                }
+                finally
+                {
+                    for (int i = 0; i < column_definitions.Length; i++)
+                    {
+                        if (column_definitions[i].name != null)
+                            Marshal.FreeCoTaskMem((IntPtr)column_definitions[i].name);
+                    }
                 }
             }
         }

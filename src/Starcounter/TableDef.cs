@@ -8,14 +8,18 @@ namespace Starcounter
     public sealed class TableDef
     {
 
-        public TableDef(string name, ushort tableId)
+        public string Name;
+
+        public ushort TableId;
+
+        public ColumnDef[] Columns;
+
+        public TableDef(string name, ushort tableId, ColumnDef[] columns)
         {
             Name = name;
             TableId = tableId;
+            Columns = columns;
         }
 
-        public string Name { get; private set; }
-
-        public ushort TableId { get; private set; }
     }
 }

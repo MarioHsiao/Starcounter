@@ -64,7 +64,9 @@ namespace Starcounter.Internal
         internal static extern uint SCLowMemoryAlert(uint lr);
 
 
-        [StructLayout(LayoutKind.Sequential, Pack=8)]
+        internal const ushort MDB_ATTRFLAG_NULLABLE = 0x0040;
+        
+        [StructLayout(LayoutKind.Sequential, Pack = 8)]
         internal unsafe struct Mdb_DefinitionInfo
         {
             internal char* PtrCodeClassName;
@@ -74,18 +76,34 @@ namespace Starcounter.Internal
             internal ushort Flags;
         }
 
+        [StructLayout(LayoutKind.Sequential, Pack=8)]
+        internal unsafe struct Mdb_AttributeInfo
+        {
+            internal ushort Flags;
+            internal char* PtrName;
+            internal ushort Index;
+            internal byte Type;
+            internal ulong RefDef;
+        }
+
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         internal extern static int Mdb_DefinitionFromCodeClassString(
             string name,
             out ulong etiDefinition
             );
 
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal extern static int Mdb_DefinitionToDefinitionInfo(
             UInt64 etiDefinition,
             out Mdb_DefinitionInfo definitionInfo
             );
 
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal extern static int Mdb_DefinitionAttributeIndexToInfo(
+            ulong etiDefinition,
+            ushort index,
+            out Mdb_AttributeInfo attributeInfo
+            );
         
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
         internal unsafe struct SC_COLUMN_DEFINITION
@@ -118,24 +136,32 @@ namespace Starcounter.Internal
             out ulong transaction_id,
             out ulong handle,
             out ulong verify
-        );
+            );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal extern static uint sccoredb_free_transaction(
             ulong handle,
             ulong verify
-        );
+            );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal extern static uint sccoredb_begin_commit(
             out ulong hiter,
             out ulong viter
-        );
+            );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal extern static uint sccoredb_complete_commit(
             int detach_and_free,
             out ulong new_transaction_id
-        );
+            );
+
+        
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal unsafe extern static UInt32 sc_insert(
+            ulong definition_addr,
+            ulong* pnew_oid,
+            ulong* pnew_addr
+            );
     }
 }
