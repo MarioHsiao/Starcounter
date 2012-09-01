@@ -2,9 +2,9 @@
 namespace Starcounter
 {
     
-    internal struct ObjectRef
+    public struct ObjectRef
     {
-        internal ulong ObjectID;
-        internal ulong ETI;
+        public ulong ObjectID;
+        public ulong ETI;
     }
 }

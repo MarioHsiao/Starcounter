@@ -4,7 +4,7 @@ using System;
 namespace Starcounter.Internal
 {
     
-    internal static class Process
+    internal static class Processor
     {
 
         internal static unsafe void RunMessageLoop(void *hsched)

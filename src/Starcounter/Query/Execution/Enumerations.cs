@@ -1,0 +1,98 @@
+using System;
+
+namespace Starcounter.Query.Execution
+{
+    /// <summary>
+    /// Comparison operators.
+    /// </summary>
+    internal enum ComparisonOperator
+    {
+        // The order between the elements (LessThan, GreaterThanOrEqual, LessThanOrEqual, GreaterThan) are important
+        // for methods IndexRangeValue.CompareTo and <Type>RangeValue.CompareTo (in namespace Starcounter.Query.Execution).
+        LessThan = 1, GreaterThanOrEqual = 2, LessThanOrEqual = 3, GreaterThan = 4,
+        Equal, NotEqual, IS, ISNOT, LIKEstatic, LIKEdynamic
+    }
+
+    /// <summary>
+    /// Logical operators, where XOR is "exclusive or".
+    /// </summary>
+    internal enum LogicalOperator
+    {
+        AND, OR, NOT, IS, XOR
+    }
+
+    /// <summary>
+    /// Numerical operators where Addition (X+Y), Subtraction (X-Y), Multiplication (X*Y) and
+    /// Division (X/Y) are binary, while Plus (+X) and Minus (-X) are unary.
+    /// </summary>
+    internal enum NumericalOperator
+    {
+        Addition, Subtraction, Multiplication, Division, Plus, Minus
+    }
+
+    internal enum SetFunctionType
+    {
+        AVG, COUNT, MAX, MIN, SUM
+    }
+
+    /// <summary>
+    /// Sort orderings.
+    /// </summary>
+    internal enum SortOrder
+    {
+        Ascending, Descending
+    }
+
+    /// <summary>
+    /// String operators.
+    /// Operator AppendMaxChar is used to handle upper end-point in "STARTS WITH" intervals.
+    /// </summary>
+    internal enum StringOperator
+    {
+        Concatenation, AppendMaxChar
+    }
+
+    /// <summary>
+    /// Truth values for SQL which is three valued (TRUE, FALSE and UNKNOWN).
+    /// </summary>
+    internal enum TruthValue
+    {
+        UNKNOWN, FALSE, TRUE
+    }
+
+    /// <summary>
+    /// Join types used in the query execution.
+    /// Cross joins are a special case of inner joins.
+    /// </summary>
+    internal enum JoinType
+    {
+        Undecided, Inner, LeftOuter, RightOuter
+    }
+    /// <summary>
+
+    /// Format for key-values used for index ranges.
+    /// </summary>
+    internal enum KeyValueFormat
+    {
+        Fixed, Variable
+    }
+
+    // TODO: Remove?
+    internal enum QueryTypeCode
+    {
+        Binary, Boolean, DateTime, Decimal, Double, Integer, Numerical, Object, String, UInteger
+    }
+
+    internal enum VariableTypeCode
+    {
+        Binary, Boolean, DateTime, Numerical, Object, String
+    }
+
+    [FlagsAttribute]
+    internal enum QueryFlags
+    {
+        None = 0, IncludesLiteral = 1, IncludesAggregation = 2, IncludesLIKEvariable = 4, IncludesSorting = 8, 
+        IncludesFetchLiteral = 16, IncludesFetchVariable = 32, IncludesOffsetKeyLiteral = 64, IncludesOffsetKeyVariable = 128, 
+        SingleObjectProjection = 256
+    }
+}

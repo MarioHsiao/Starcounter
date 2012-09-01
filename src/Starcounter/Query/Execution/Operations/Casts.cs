@@ -1,0 +1,223 @@
+using Starcounter;
+using Starcounter.Query.Optimization;
+using Starcounter.Query.Sql;
+using Sc.Server.Binding;
+using Sc.Server.Internal;
+using System;
+using System.Collections.Generic;
+using System.Collections;
+using System.Text;
+
+namespace Starcounter.Query.Execution
+{
+internal class ObjectCast : IObjectPathItem, IPath
+{
+    ITypeBinding typeBinding;
+    IObjectExpression expression;
+
+    internal ObjectCast(ITypeBinding typeBind, IObjectExpression expr)
+    {
+        if (typeBind == null)
+        {
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect typeBind.");
+        }
+        if (expr == null)
+        {
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect logExpr.");
+        }
+        typeBinding = typeBind;
+        expression = expr;
+    }
+
+    /// <summary>
+    /// The extent number of the extent to which this cast belongs.
+    /// </summary>
+    public Int32 ExtentNumber
+    {
+        get
+        {
+            if (expression is IPath)
+            {
+                return (expression as IPath).ExtentNumber;
+            }
+            return -1;
+        }
+    }
+
+    /// <summary>
+    /// Name to be displayed for example as column header in a result grid.
+    /// </summary>
+    public String Name
+    {
+        get
+        {
+            if (expression is IPath)
+            {
+                return (expression as IPath).Name;
+            }
+            return "";
+        }
+    }
+
+    /// <summary>
+    /// Full name to uniquely identify the path.
+    /// </summary>
+    public String FullName
+    {
+        get
+        {
+            if (expression is IPath)
+            {
+                return "(" + (expression as IPath).FullName + " as " + typeBinding.Name + ")";
+            }
+            return "";
+        }
+    }
+
+    /// <summary>
+    /// The DbTypeCode of the casted path-item.
+    /// </summary>
+    public DbTypeCode DbTypeCode
+    {
+        get
+        {
+            return DbTypeCode.Object;
+        }
+    }
+    public QueryTypeCode QueryTypeCode
+    {
+        get
+        {
+            return QueryTypeCode.Object;
+        }
+    }
+
+    /// <summary>
+    /// The type resultTypeBind of the casted path-item.
+    /// </summary>
+    public ITypeBinding TypeBinding
+    {
+        get
+        {
+            return typeBinding;
+        }
+    }
+
+    /// <summary>
+    /// Appends data of this leaf to the provided filter key.
+    /// </summary>
+    /// <param name="key">Reference to the filter key to which data should be appended.</param>
+    /// <param name="obj">Results object for which evaluation should be performed.</param>
+    public void AppendToKey(ByteArrayBuilder key, IObjectView obj)
+    {
+        key.Append(EvaluateToObject(obj));
+    }
+
+    /// <summary>
+    /// Calculates the value of the cast operation when evaluated on an input object.
+    /// </summary>
+    /// <param name="obj">The object on which to evaluate the cast operation.</param>
+    /// <returns>The value of the cast operation evaluated on the input object.</returns>
+    public IObjectView EvaluateToObject(IObjectView obj)
+    {
+        IObjectView value = expression.EvaluateToObject(obj);
+        if (value != null && (value.TypeBinding is TypeBinding) && (value.TypeBinding as TypeBinding).SubTypeOf(typeBinding as TypeBinding))
+        {
+            return value;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Calculates the value of the cast operation when evaluated on an input object.
+    /// </summary>
+    /// <param name="obj">The object on which to evaluate the cast operation.</param>
+    /// <param name="startObj">The start object of the current path expression.</param>
+    /// <returns>The value of the cast operation evaluated on the input object.</returns>
+    public IObjectView EvaluateToObject(IObjectView obj, IObjectView startObj)
+    {
+        return EvaluateToObject(obj);
+    }
+
+    /// <summary>
+    /// Examines if the value of the cast operation is null when evaluated on an input object.
+    /// </summary>
+    /// <param name="obj">The object on which to evaluate the cast operation.</param>
+    /// <returns>True, if the value of the cast operation when evaluated on the input object
+    /// is null, otherwise false.</returns>
+    public Boolean EvaluatesToNull(IObjectView obj)
+    {
+        return (EvaluateToObject(obj) == null);
+    }
+
+    /// <summary>
+    /// Creates an more instantiated copy of this expression by evaluating it on a result-object.
+    /// </summary>
+    /// <param name="obj">The result-object on which to evaluate the expression.</param>
+    /// <returns>A more instantiated expression.</returns>
+    public IObjectExpression Instantiate_OLD(CompositeObject obj)
+    {
+        IObjectExpression instExpression = expression.Instantiate(obj);
+
+        if (instExpression is ObjectLiteral)
+        {
+            IObjectView value = instExpression.EvaluateToObject(null);
+            if (value != null && (value.TypeBinding is TypeBinding) && (value.TypeBinding as TypeBinding).SubTypeOf(typeBinding as TypeBinding))
+            {
+                return new ObjectLiteral(value);
+            }
+            else
+            {
+                return new ObjectLiteral(typeBinding);
+            }
+        }
+
+        return new ObjectCast(typeBinding, instExpression);
+    }
+
+    public IObjectExpression Instantiate(CompositeObject obj)
+    {
+        return new ObjectCast(typeBinding, expression.Instantiate(obj));
+    }
+
+    public ITypeExpression Clone(VariableArray varArray)
+    {
+        return CloneToObject(varArray);
+    }
+
+    public IObjectExpression CloneToObject(VariableArray varArray)
+    {
+        return new ObjectCast(typeBinding, expression.CloneToObject(varArray));
+    }
+
+    public void InstantiateExtentSet(ExtentSet extentSet)
+    {
+        expression.InstantiateExtentSet(extentSet);
+    }
+
+    public void BuildString(MyStringBuilder stringBuilder, Int32 tabs)
+    {
+        stringBuilder.AppendLine(tabs, "ObjectCast(");
+        expression.BuildString(stringBuilder, tabs + 1);
+        stringBuilder.AppendLine(tabs + 1, typeBinding.Name);
+        stringBuilder.AppendLine(tabs, ")");
+    }
+
+    // No implementation.
+    public UInt32 AppendToInstrAndLeavesList(List<CodeGenFilterNode> dataLeaves, CodeGenFilterInstrArray instrArray, Int32 currentExtent, StringBuilder filterText)
+    {
+        throw new NotImplementedException("AppendToInstrAndLeavesList is not implemented for Casts");
+    }
+
+    /// <summary>
+    /// Generates compilable code representation of this data structure.
+    /// </summary>
+    public void GenerateCompilableCode(CodeGenStringGenerator stringGen)
+    {
+        expression.GenerateCompilableCode(stringGen);
+    }
+}
+}
