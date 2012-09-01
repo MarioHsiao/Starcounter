@@ -105,6 +105,19 @@ namespace Starcounter
             throw sccoreerr.TranslateErrorCode(e);
         }
 
+        public static void CreateIndex(ulong definitionAddr, string name, short columnIndex) // TODO:
+        {
+            unsafe
+            {
+                short* column_indexes = stackalloc short[2];
+                column_indexes[0] = columnIndex;
+                column_indexes[1] = -1;
+                uint e = sccoredb.sc_create_index(definitionAddr, name, 0, column_indexes, 0);
+                if (e == 0) return;
+                throw sccoreerr.TranslateErrorCode(e);
+            }
+        }
+
         public static void Transaction(Action action)
         {
             uint e;

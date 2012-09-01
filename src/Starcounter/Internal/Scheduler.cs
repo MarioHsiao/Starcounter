@@ -9,17 +9,12 @@ using System.Collections.Generic;
 
 namespace Starcounter
 {
-    /// <summary>
-    /// This class represents the virtual processor,
-    /// which can schedule tasks(jobs) for threads.
-    /// The number of virtual processors normally is the number
-    /// of physical CPUs/cores on execution machine.
-    /// </summary>
-    internal sealed class VPContext : Object
+ 
+    internal sealed class Scheduler
     {
         // Contains all virtual processor instances
         // (up to number of logical cores on a machine).
-        static VPContext[] _instances;
+        static Scheduler[] _instances;
 
         // Contains a list of last error messages.
         static LinkedList<String> _lastErrorMessages = new LinkedList<String>();
@@ -32,35 +27,39 @@ namespace Starcounter
             get { return _globalCache; }
         }
 
-        internal static VPContext GetInstance(Boolean nullIfNotAttached)
+        internal static Scheduler GetInstance(Boolean nullIfNotAttached)
         {
-            throw new System.NotImplementedException();
+            ThreadData thread;
+            thread = ThreadData.GetCurrentIfAttachedAndReattachIfAutoDetached();
+            if (thread != null)
+            {
+                return thread.Scheduler;
+            }
+            if (nullIfNotAttached)
+            {
+                return null;
+            }
+            throw ErrorCode.ToException(Error.SCERRTHREADNOTATTACHED);
         }
 
-        internal static VPContext GetInstance()
+        internal static Scheduler GetInstance()
         {
             return GetInstance(false);
         }
 
-        internal static VPContext GetInstance(Byte cpuNumber)
+        internal static Scheduler GetInstance(Byte cpuNumber)
         {
-            if (_instances == null)
-            {
-                return null;
-            }
             return _instances[cpuNumber];
         }
 
         internal static void Setup(Byte cpuCount)
         {
-            Console.WriteLine("Number of schedulers: " + cpuCount);
-
-            VPContext[] instances;
+            Scheduler[] instances;
             Int32 i;
-            instances = new VPContext[cpuCount];
+            instances = new Scheduler[cpuCount];
             for (i = 0; i < instances.Length; i++)
             {
-                instances[i] = new VPContext(i);
+                instances[i] = new Scheduler(i);
             }
 
             _instances = instances;
@@ -107,16 +106,11 @@ namespace Starcounter
         }
 
         // Returns number of virtual processors.
-        internal static Byte VPCount
+        internal static byte SchedulerCount
         {
             get
             {
-                if (_instances != null)
-                {
-                    return (Byte)_instances.Length;
-                }
-
-                return 0;
+                return (byte)_instances.Length;
             }
         }
 
@@ -145,7 +139,7 @@ namespace Starcounter
 
         internal PrologSession PrologSession;
 
-        private VPContext(Int32 vpContextID)
+        private Scheduler(Int32 vpContextID)
             : base()
         {
             _sqlEnumCache = new SqlEnumCache();

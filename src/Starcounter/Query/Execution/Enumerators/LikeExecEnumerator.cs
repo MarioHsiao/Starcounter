@@ -116,7 +116,7 @@ namespace Starcounter.Query.Execution
                     convertedQueries[i] += likeAndStartWith[combBits[k]] + splittedQuery[k + 1];
 
                 // Creating query in cache and obtaining enumerator.
-                subExecEnums[i] = VPContext.GetInstance().SqlEnumCache.GetCachedEnumerator(convertedQueries[i]);
+                subExecEnums[i] = Scheduler.GetInstance().SqlEnumCache.GetCachedEnumerator(convertedQueries[i]);
             }
 
             // Setting variable array to reference most efficient execution enumerator.

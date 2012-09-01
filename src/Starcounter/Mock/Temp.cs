@@ -12,7 +12,7 @@ namespace Starcounter
 
     public class LogSources
     {
-        public static LogSource Sql;
+        public static LogSource Sql = new LogSource("Sql");
     }
 
     public static class StarcounterEnvironment

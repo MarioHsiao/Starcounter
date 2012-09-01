@@ -33,25 +33,14 @@ internal static class IndexRepository
     // Called during startup.
     internal static void Initiate()
     {
-#if false // TODO EOH:
-        Transaction t = null;
-        if (Transaction.Current == null)
-            t = Transaction.NewCurrent();
-
-        try
+        Db.Transaction(() =>
         {
             // Create index dictionary for optimization by removing sorting.
             IndexRepository.CreateIndexDictionaryBySortSpecification();
 
             // Create index dictionary for finding an index by name.
             IndexRepository.CreateIndexDictionaryByName();
-        }
-        finally
-        {
-            if (t != null) 
-                t.Dispose();
-        }
-#endif
+        });
     }
 
     internal static void CreateIndexDictionaryBySortSpecification()
@@ -66,9 +55,7 @@ internal static class IndexRepository
         {
             if ((typeof(TypeOrExtensionBinding).IsAssignableFrom(enumerator.Current.GetType())))
             {
-#if false // TODO EOH:
                 indexInfoArray = (enumerator.Current as TypeOrExtensionBinding).GetAllIndexInfos();
-#endif
                 for (Int32 i = 0; i < indexInfoArray.Length; i++)
                 {
                     for (Int32 j = 1; j <= indexInfoArray[i].AttributeCount; j++)

@@ -162,7 +162,7 @@ namespace Starcounter.Query.Sql
                     try
                     {
                         process = new Process();
-                        process.StartInfo.FileName = processFolder + processFileName;
+                        process.StartInfo.FileName = Environment.CurrentDirectory + processFolder + processFileName;
                         process.StartInfo.CreateNoWindow = true;
                         process.StartInfo.UseShellExecute = true;
                         process.StartInfo.Arguments = processPort.ToString() + " " + schemaFileEncoded;
@@ -205,7 +205,7 @@ namespace Starcounter.Query.Sql
 
         private static void VerifyProcess(Boolean controlSchemaTime)
         {
-            VPContext vpContext = VPContext.GetInstance(true);
+            Scheduler vpContext = Scheduler.GetInstance(true);
             PrologSession session = null;
 
             try
@@ -266,7 +266,7 @@ namespace Starcounter.Query.Sql
         }
 
         [PermissionSet(SecurityAction.Assert, Unrestricted = true)]
-        internal static IExecutionEnumerator ProcessSqlQuery(VPContext vproc, String query)
+        internal static IExecutionEnumerator ProcessSqlQuery(Scheduler vproc, String query)
         {
             //  Since the Prolog session is shared between all the threads
             //  managed by the same scheduler, this method must be called within
@@ -311,7 +311,7 @@ namespace Starcounter.Query.Sql
                             {
                                 session.connect();
                             }
-                            Bindings bindings = new Bindings();
+                            se.sics.prologbeans.Bindings bindings = new se.sics.prologbeans.Bindings();
                             bindings.bind("Query", query);
                             answer = session.executeQuery("sql_prolog(Query,TypeDef,ExecInfo,VarNum,ErrList)", bindings);
                         }
@@ -422,9 +422,9 @@ namespace Starcounter.Query.Sql
         private static void DisconnectPrologSessions()
         {
             PrologSession prologSession = null;
-            for (Byte cpuNumber = 0; cpuNumber < VPContext.VPCount; cpuNumber++)
+            for (Byte cpuNumber = 0; cpuNumber < Scheduler.SchedulerCount; cpuNumber++)
             {
-                prologSession = VPContext.GetInstance(cpuNumber).PrologSession;
+                prologSession = Scheduler.GetInstance(cpuNumber).PrologSession;
                 if (prologSession != null)
                 {
                     prologSession.disconnect();
@@ -434,11 +434,11 @@ namespace Starcounter.Query.Sql
 
         private static void ConnectPrologSessions()
         {
-            VPContext vpContext = null;
+            Scheduler vpContext = null;
             PrologSession prologSession = null;
-            for (Byte cpuNumber = 0; cpuNumber < VPContext.VPCount; cpuNumber++)
+            for (Byte cpuNumber = 0; cpuNumber < Scheduler.SchedulerCount; cpuNumber++)
             {
-                vpContext = VPContext.GetInstance(cpuNumber);
+                vpContext = Scheduler.GetInstance(cpuNumber);
                 prologSession = vpContext.PrologSession;
                 if (prologSession == null)
                 {

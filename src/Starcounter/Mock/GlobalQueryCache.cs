@@ -45,7 +45,7 @@ internal sealed class GlobalQueryCache
             try
             {
                 Starcounter.ThreadHelper.SetYieldBlock();
-                VPContext vproc = VPContext.GetInstance();
+                Scheduler vproc = Scheduler.GetInstance();
 
                 // Creating enumerator from scratch.
                 newEnum = PrologManager.ProcessSqlQuery(vproc, query);

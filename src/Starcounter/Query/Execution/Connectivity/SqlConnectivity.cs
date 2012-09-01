@@ -38,7 +38,7 @@ internal static class SqlConnectivity
         }
 
         // Saving current exception message.
-        VPContext.AddErrorMessage(excMessage + Environment.NewLine + exc.StackTrace);
+        Scheduler.AddErrorMessage(excMessage + Environment.NewLine + exc.StackTrace);
 
         // Trying to return the embedded error code.
         UInt32 errCode;
@@ -88,7 +88,7 @@ internal static class SqlConnectivity
             //SqlDebugHelper.PrintDelimiter("Processing: \"" + _query + "\"");
 
             // Creating enumerator for current virtual processor.
-            using(IExecutionEnumerator sqlEnum = VPContext.GetInstance().SqlEnumCache.GetCachedEnumerator(_query))
+            using (IExecutionEnumerator sqlEnum = Scheduler.GetInstance().SqlEnumCache.GetCachedEnumerator(_query))
             {
                 // Getting needed fields.
                 *uniqueQueryId = sqlEnum.UniqueQueryID;
@@ -142,7 +142,7 @@ internal static class SqlConnectivity
             Int32 queryId = (Int32)(uniqueQueryId & 0xFFFFFF);
 
             // Getting the enumerator from cache.
-            IExecutionEnumerator sqlEnum = VPContext.GetInstance(schedId).SqlEnumCache.GetCachedEnumerator(queryId);
+            IExecutionEnumerator sqlEnum = Scheduler.GetInstance(schedId).SqlEnumCache.GetCachedEnumerator(queryId);
 
 #if false // TODO EOH2: Transaction id
             // Attaching to current transaction.
@@ -330,7 +330,7 @@ internal static class SqlConnectivity
             case SqlConnectivityInterface.GET_LAST_ERROR:
             {
                 // Copying the error message.
-                CopyStringToCharBuffer(VPContext.GetErrorMessages(),
+                CopyStringToCharBuffer(Scheduler.GetErrorMessages(),
                     (Char *)results,
                     maxBytes,
                     outLenBytes);
@@ -343,12 +343,12 @@ internal static class SqlConnectivity
                 StringBuilder allCachesStatus = new StringBuilder();
 
                 // Getting state of the global query cache.
-                allCachesStatus.AppendLine(VPContext.GlobalCache.SQLCacheStatus());
+                allCachesStatus.AppendLine(Scheduler.GlobalCache.SQLCacheStatus());
 
                 // Iterating through all virtual processors.
-                for (Byte i = 0; i < VPContext.VPCount; i++)
+                for (Byte i = 0; i < Scheduler.SchedulerCount; i++)
                 {
-                    allCachesStatus.AppendLine(VPContext.GetInstance(i).SqlEnumCache.SQLCacheStatus());
+                    allCachesStatus.AppendLine(Scheduler.GetInstance(i).SqlEnumCache.SQLCacheStatus());
                 }
 
                 // Copying string to output.
@@ -362,7 +362,7 @@ internal static class SqlConnectivity
             case SqlConnectivityInterface.GET_RECREATION_KEY_VARIABLE:
             {
                 // Getting the enumerator from cache.
-                using(IExecutionEnumerator sqlEnum = VPContext.GetInstance().SqlEnumCache.GetCachedEnumerator((Int32)param))
+                using (IExecutionEnumerator sqlEnum = Scheduler.GetInstance().SqlEnumCache.GetCachedEnumerator((Int32)param))
                 {
                     if (infoType == SqlConnectivityInterface.GET_ENUMERATOR_EXEC_PLAN)
                     {

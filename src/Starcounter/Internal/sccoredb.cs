@@ -133,6 +133,46 @@ namespace Starcounter.Internal
 
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal unsafe extern static UInt32 SCSchemaGetIndexes(
+            UInt64 definitionAddr,
+            UInt32* pic,
+            SC_INDEX_INFO* piis
+        );
+
+        [StructLayout(LayoutKind.Sequential, Pack=8)]
+        internal unsafe struct SC_INDEX_INFO
+        {
+            internal UInt64 handle;
+            internal UInt64 definitionAddr;
+            internal Char* name;
+            internal Int16 attributeCount;
+            internal UInt16 sortMask;
+            internal Int16 attrIndexArr_0;
+            internal Int16 attrIndexArr_1;
+            internal Int16 attrIndexArr_2;
+            internal Int16 attrIndexArr_3;
+            internal Int16 attrIndexArr_4;
+            internal Int16 attrIndexArr_5;
+            internal Int16 attrIndexArr_6;
+            internal Int16 attrIndexArr_7;
+            internal Int16 attrIndexArr_8;
+            internal Int16 attrIndexArr_9;
+            internal Int16 attrIndexArr_10;
+        };
+
+        internal const UInt32 SC_INDEXCREATE_UNIQUE_CONSTRAINT = 0x00000001;
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        internal extern unsafe static UInt32 sc_create_index(
+            ulong definition_addr,
+            string name,
+            ushort sort_mask,
+            short* column_indexes,
+            uint flags
+            );
+
+        
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal extern static uint sccoredb_create_transaction_and_set_current(
             uint flags,
             out ulong transaction_id,

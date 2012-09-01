@@ -70,7 +70,7 @@ namespace Starcounter
         {
 #if true // TODO EOH2: Lucent objects.
             IExecutionEnumerator execEnum = null;
-            execEnum = VPContext.GetInstance().SqlEnumCache.GetCachedEnumerator(query);
+            execEnum = Scheduler.GetInstance().SqlEnumCache.GetCachedEnumerator(query);
 #else
             // Obtaining enumerator from query cache or creating it from scratch.
             IExecutionEnumerator execEnum = null;
@@ -80,8 +80,8 @@ namespace Starcounter
             if (isRunningOnClient)
                 execEnum = LucentObjectsRuntime.ClientQueryCache.GetCachedEnumerator(query);
             else
-                execEnum = VPContext.GetInstance().SqlEnumCache.GetCachedEnumerator(query);
-                //execEnum = VPContext.GetInstance().ClientExecEnumCache.GetCachedEnumerator(query);
+                execEnum = Scheduler.GetInstance().SqlEnumCache.GetCachedEnumerator(query);
+                //execEnum = Scheduler.GetInstance().ClientExecEnumCache.GetCachedEnumerator(query);
 #endif
 
             // Check if the query includes anything non-supported.

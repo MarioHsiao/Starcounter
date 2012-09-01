@@ -161,7 +161,7 @@ namespace Starcounter
             if (previousCCI == currentCCI)
                 goto attach;
 
-            typeBinding = TypeRepository.TypeBindingsByIndex[currentCCI];
+            typeBinding = TypeRepository.GetTypeBinding(currentCCI);
             current = (typeBinding.NewInstanceUninit() as T);
             if (current == null)
             {
@@ -193,7 +193,7 @@ namespace Starcounter
 
         public Boolean CreateProxyObject(UInt64 eti, UInt64 oid, UInt16 currentCCI)
         {
-            _current = TypeRepository.TypeBindingsByIndex[currentCCI].NewInstance(eti, oid) as T;
+            _current = TypeRepository.GetTypeBinding(currentCCI).NewInstance(eti, oid) as T;
             return true;
         }
 

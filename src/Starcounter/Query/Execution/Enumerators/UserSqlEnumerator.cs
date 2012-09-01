@@ -438,7 +438,7 @@ namespace Starcounter.Query.Execution
             if ((eti == 0) && (oid == 0))
                 return null;
 
-            TypeBinding binding = TypeRepository.TypeBindingsByIndex[currentCCI];
+            TypeBinding binding = TypeRepository.GetTypeBinding(currentCCI);
             try
             {
                 return binding.NewInstance(eti, oid) as Entity;

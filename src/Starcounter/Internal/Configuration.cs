@@ -22,7 +22,7 @@ namespace Starcounter.Internal
 
         internal string CompilerPath
         {
-            get { return @"C:/Test/MinGW"; }
+            get { return @"C:/Test/MinGW/bin/x86_64-w64-mingw32-gcc.exe"; }
         }
 
         internal string DatabaseDirectory
