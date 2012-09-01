@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.Internal;
 using System;
 
 namespace Starcounter.Internal
@@ -9,6 +10,8 @@ namespace Starcounter.Internal
 
         internal static unsafe void RunMessageLoop(void *hsched)
         {
+            ThreadData.Current = new ThreadData(sccorelib.GetCpuNumber(), sccorelib.GetStateShare());
+
             for (; ; )
             {
                 sccorelib.CM2_TASK_DATA task_data;

@@ -1,23 +1,28 @@
 ﻿
+using Starcounter;
+
 namespace Sc.Server.Binding
 {
     
-    public static class TypeRepository
+    internal static class TypeRepository
     {
 
-        public static TypeBinding[] TypeBindingsByIndex;
-
-        public static TypeBinding GetTypeBinding(string name)
+        internal static TypeBinding GetTypeBinding(ushort tableId)
         {
-            throw new System.NotImplementedException();
+            return Bindings.GetTypeBinding(tableId);
         }
 
-        public static System.Collections.Generic.IEnumerator<TypeBinding> GetAllTypeBindings()
+        internal static TypeBinding GetTypeBinding(string name)
         {
-            throw new System.NotImplementedException();
+            return Bindings.GetTypeBinding(name);
         }
 
-        public static int TryGetTypeBindingByShortName(string name, out TypeBinding typeBind)
+        internal static System.Collections.Generic.IEnumerator<TypeBinding> GetAllTypeBindings()
+        {
+            return Bindings.GetAllTypeBindings();
+        }
+
+        internal static int TryGetTypeBindingByShortName(string name, out TypeBinding typeBind)
         {
             throw new System.NotImplementedException();
         }

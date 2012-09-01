@@ -4,6 +4,17 @@ namespace Sc.Server.Binding
 {
     public class PropertyBinding : IPropertyBinding
     {
+
+        public readonly ColumnDef ColumnDef;
+
+        private readonly int index_;
+
+        public PropertyBinding(ColumnDef columnDef, int index)
+        {
+            ColumnDef = columnDef;
+            index_ = index;
+        }
+
         public int GetDataIndex()
         {
             throw new System.NotImplementedException();
@@ -16,7 +27,7 @@ namespace Sc.Server.Binding
 
         public int Index
         {
-            get { throw new System.NotImplementedException(); }
+            get { return index_; }
         }
 
         public IPropertyBinding InversePropertyBinding
@@ -31,7 +42,7 @@ namespace Sc.Server.Binding
 
         public string Name
         {
-            get { throw new System.NotImplementedException(); }
+            get { return ColumnDef.Name; }
         }
 
         public ITypeBinding TypeBinding
@@ -41,7 +52,7 @@ namespace Sc.Server.Binding
 
         public DbTypeCode TypeCode
         {
-            get { throw new System.NotImplementedException(); }
+            get { return DbTypeCode.Int64; } // TODO: 
         }
     }
 }

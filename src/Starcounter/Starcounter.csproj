@@ -44,9 +44,12 @@
   <ItemGroup>
     <Compile Include="Binary.cs" />
     <Compile Include="ColumnDef.cs" />
-    <Compile Include="BindingRegistry.cs" />
+    <Compile Include="Bindings.cs" />
     <Compile Include="Error.cs" />
+    <Compile Include="Internal\Fix.cs" />
     <Compile Include="Internal\Kernel32.cs" />
+    <Compile Include="Internal\Scheduler.cs" />
+    <Compile Include="Internal\ThreadData.cs" />
     <Compile Include="Mock\Db.cs" />
     <Compile Include="Mock\DbHelper.cs" />
     <Compile Include="Mock\Enumerator.cs" />
@@ -70,7 +73,6 @@
     <Compile Include="Mock\Temp.cs" />
     <Compile Include="Mock\ThreadHelper.cs" />
     <Compile Include="Mock\TypeRepository.cs" />
-    <Compile Include="Mock\VPContext.cs" />
     <Compile Include="Query\Execution\CodeGeneration\CodeGenFilterCache.cs" />
     <Compile Include="Query\Execution\CodeGeneration\CodeGenFilterInstrCodes.cs" />
     <Compile Include="Query\Execution\CodeGeneration\CodeGenFilterNode.cs" />

@@ -134,12 +134,63 @@ namespace Starcounter.Internal
         [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern unsafe uint cm2_standby(void* hsched, CM2_TASK_DATA* ptask_data);
 
+        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        private unsafe extern static UInt32 cm2_get_cpuc(IntPtr h, Byte* pcpuc);
+
+        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        private unsafe extern static UInt32 cm2_get_cpun(IntPtr h, Byte* pcpun);
+
+#if false
+        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        internal extern static UInt32 cm3_bdetach(IntPtr h_opt);
+
+        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        internal extern static UInt32 cm3_edetach(IntPtr h_opt);
+#endif
+
+        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        internal extern static UInt32 cm3_eautodet(IntPtr h_opt);
+
+#if false
+        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        internal extern static UInt32 cm3_set_yblk(IntPtr h_opt);
+
+        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        internal extern static UInt32 cm3_rel_yblk(IntPtr h_opt);
+#endif
+
+        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        internal extern static unsafe UInt32 cm3_get_stash(void *ignore, UInt32** ppstash);
 
         [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern unsafe ulong mh4_menv_create(void* mem128, uint slabs);
 
         [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern void mh4_menv_trim_cache(ulong hmenv, int periodic);
+
+        internal unsafe static Byte GetCpuCount(IntPtr handle)
+        {
+            byte cpuc;
+            uint e = sccorelib.cm2_get_cpuc(handle, &cpuc);
+            if (e == 0) return cpuc;
+            throw ErrorCode.ToException(e);
+        }
+
+        internal unsafe static byte GetCpuNumber()
+        {
+            byte cpun;
+            uint e = sccorelib.cm3_get_cpun(null, &cpun);
+            if (e == 0) return cpun;
+            throw ErrorCode.ToException(e);
+        }
+
+        internal unsafe static uint* GetStateShare()
+        {
+            uint* pstash;
+            uint e = sccorelib.cm3_get_stash(null, &pstash);
+            if (e == 0) return pstash;
+            throw ErrorCode.ToException(e);
+        }
     };
 
     internal static class sccorelib_ext

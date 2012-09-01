@@ -21,9 +21,11 @@ namespace Starcounter.LucentObjects
                 if (typeof(Entity).IsAssignableFrom(fieldType))
                 {
                     string typeName = fieldType.FullName;
-                    TypeBinding tb = BindingRegistry.GetTypeBinding(fieldType.FullName);
+                    TypeBinding tb = Bindings.GetTypeBinding(fieldType.FullName);
                     if (tb != null)
                     {
+                        tb.Type = fieldType;
+
                         field = type.GetField(typeName + "__typeAddress", BindingFlags.Static | BindingFlags.NonPublic);
                         field.SetValue(null, tb.TableDef.DefinitionAddr);
                         field = type.GetField(typeName + "__typeBinding", BindingFlags.Static | BindingFlags.NonPublic);

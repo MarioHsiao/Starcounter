@@ -46,7 +46,7 @@ public sealed class SqlEnumCache
             if (enumList.Count == 0)
             {
                 // Always using first cached enumerator for cloning (because of dynamic ranges).
-                execEnum = VPContext.GlobalCache.GetEnumClone(uniqueQueryId);
+                execEnum = Scheduler.GlobalCache.GetEnumClone(uniqueQueryId);
 
                 // Increasing the number of enumerators.
                 totalCachedEnum++;
@@ -64,7 +64,7 @@ public sealed class SqlEnumCache
         else
         {
             // Fetching existing enumerator from the global cache.
-            execEnum = VPContext.GlobalCache.GetEnumClone(uniqueQueryId);
+            execEnum = Scheduler.GlobalCache.GetEnumClone(uniqueQueryId);
 
             // Increasing the number of enumerators
             totalCachedEnum++;
@@ -135,18 +135,18 @@ public sealed class SqlEnumCache
     internal IExecutionEnumerator GetCachedEnumerator(String query)
     {
         // Trying last used enumerator.
-        if (query == VPContext.GlobalCache.GetQueryString(lastUsedEnumIndex))
+        if (query == Scheduler.GlobalCache.GetQueryString(lastUsedEnumIndex))
         {
             return GetCachedEnumerator(lastUsedEnumIndex);
         }
 
         // We have to ask dictionary for the index.
-        Int32 enumIndex = VPContext.GlobalCache.GetEnumIndex(query);
+        Int32 enumIndex = Scheduler.GlobalCache.GetEnumIndex(query);
 
         // Checking if its completely new query.
         if (enumIndex < 0)
         {
-            enumIndex = VPContext.GlobalCache.AddNewQuery(query);
+            enumIndex = Scheduler.GlobalCache.AddNewQuery(query);
         }
 
         // Fetching existing enumerator using index.

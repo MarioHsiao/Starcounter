@@ -245,7 +245,7 @@ internal abstract class ExecutionEnumerator
         globalOffset = ((leavesNum << 3) + IteratorHelper.RK_HEADER_LEN);
 
         // Using cache temp buffer.
-        Byte[] tempBuffer = VPContext.GetInstance().SqlEnumCache.TempBuffer;
+        Byte[] tempBuffer = Scheduler.GetInstance().SqlEnumCache.TempBuffer;
 
         unsafe
         {

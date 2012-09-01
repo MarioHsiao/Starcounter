@@ -66,6 +66,9 @@ namespace Starcounter.Internal
             ConfigureDatabase(configuration);
 
             ConnectDatabase(configuration, hsched_, hmenv, hlogs);
+
+            // Query module.
+            Scheduler.Setup(1);
         }
 
         private unsafe void Start()
