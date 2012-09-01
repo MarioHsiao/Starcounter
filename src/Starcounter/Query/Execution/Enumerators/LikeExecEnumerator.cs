@@ -1,0 +1,304 @@
+﻿using System;
+using System.Collections;
+using Sc.Server.Internal;
+using Starcounter.Internal;
+
+namespace Starcounter.Query.Execution
+{
+    internal class LikeExecEnumerator : ExecutionEnumerator, IExecutionEnumerator
+    {
+        IExecutionEnumerator[] subExecEnums = null; // Execution enumerators of converted queries.
+        IExecutionEnumerator currentExecEnum = null; // Current underlying converted execution enumerator.
+        Int32[] likeVarIndexes = null; // Indexes of query variables belonging to LIKE statements.
+        Int32 bestEnumIndex = 0; // Indicates best possible execution enumerator variant.
+        Boolean enumeratorCreated = false; // Indicates if enumerator was already created.
+
+        internal LikeExecEnumerator(String sqlQuery,
+            IExecutionEnumerator[] subExecEnumsClone,
+            Int32[] likeVarIndexRef) : base(null)
+        {
+            query = sqlQuery;
+            subExecEnums = subExecEnumsClone;
+            likeVarIndexes = likeVarIndexRef;
+
+            if (subExecEnums != null)
+            {
+                bestEnumIndex = subExecEnums.Length - 1;
+
+                // Setting variable array to reference the most efficient execution enumerator.
+                variableArray = subExecEnums[bestEnumIndex].VarArray;
+
+                // Selecting appropriate execution enumerator.
+                currentExecEnum = subExecEnums[bestEnumIndex];
+            }
+            else
+            {
+                // Just creating an empty array.
+                variableArray = new VariableArray(0);
+            }
+        }
+
+        /// <summary>
+        /// Checks if string conforms to STARTS WITH syntax.
+        /// </summary>
+        String IsStartWith(String str)
+        {
+            Int32 strLastCharIndex = str.Length - 1;
+            if (str[strLastCharIndex] == '%')
+            {
+                String subStr = str.Substring(0, strLastCharIndex);
+                foreach (Char c in subStr)
+                {
+                    if (c == '_' || c == '%')
+                        return null;
+                }
+                return subStr;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Creates an array of converted START WITH strings.
+        /// </summary>
+        internal void CreateLikeCombinations()
+        {
+            String[] likeAndStartWith = { " like ", " starts with " };
+            String lowerQuery = query.ToLower();
+            String[] splittedQuery = lowerQuery.Split(new String[] { likeAndStartWith[0] }, StringSplitOptions.RemoveEmptyEntries);
+
+            Int32 expectedLikesNum = splittedQuery.Length - 1;
+            likeVarIndexes = new Int32[expectedLikesNum];
+            Int32 likeVarNum = 0, curVarNum = 0;
+
+            // Going through all question marks and identifying those that belong to LIKE.
+            foreach (String s in splittedQuery)
+            {
+                Boolean varFound = false;
+                foreach (Char c in s)
+                {
+                    if (c == '?')
+                    {
+                        if ((!varFound) && (s != splittedQuery[0]))
+                        {
+                            varFound = true;
+                            likeVarIndexes[likeVarNum] = curVarNum;
+                            likeVarNum++;
+                        }
+                        curVarNum++;
+                    }
+                }
+            }
+
+            // Testing if everything is correct with variable numbers.
+            if (likeVarNum != expectedLikesNum)
+                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Unwanted behavior in LIKE enumerator");
+
+            // Calculating number of LIKE/STARTWITH combinations.
+            Int32 combNum = 1;
+            for (Int32 i = 0; i < expectedLikesNum; i++)
+                combNum = combNum << 1;
+
+            // Allocating strings to cover all combinations.
+            String[] convertedQueries = new String[combNum];
+            subExecEnums = new IExecutionEnumerator[combNum];
+
+            // Creating combined strings.
+            for (Int32 i = 0; i < combNum; i++)
+            {
+                // Creating bit representation of combination.
+                Int32[] combBits = new Int32[expectedLikesNum];
+                for (Int32 k = 0; k < expectedLikesNum; k++)
+                    combBits[k] = (i >> k) & 1;
+
+                // Combining final converted string.
+                convertedQueries[i] = " " + splittedQuery[0];
+                for (Int32 k = 0; k < expectedLikesNum; k++)
+                    convertedQueries[i] += likeAndStartWith[combBits[k]] + splittedQuery[k + 1];
+
+                // Creating query in cache and obtaining enumerator.
+                subExecEnums[i] = VPContext.GetInstance().SqlEnumCache.GetCachedEnumerator(convertedQueries[i]);
+            }
+
+            // Setting variable array to reference most efficient execution enumerator.
+            bestEnumIndex = combNum - 1;
+            variableArray = subExecEnums[bestEnumIndex].VarArray;
+
+            // Selecting appropriate execution enumerator.
+            currentExecEnum = subExecEnums[bestEnumIndex];
+        }
+
+        /// <summary>
+        /// Gets the type binding of the composite object.
+        /// </summary>
+        override public CompositeTypeBinding CompositeTypeBinding
+        {
+            get
+            {
+                return currentExecEnum.CompositeTypeBinding;
+            }
+        }
+
+        /// <summary>
+        /// The type binding of the resulting objects of the query.
+        /// </summary>
+        public ITypeBinding TypeBinding
+        {
+            get
+            {
+                return currentExecEnum.TypeBinding;
+            }
+        }
+
+        public Int32 Depth
+        {
+            get
+            {
+                return currentExecEnum.Depth;
+            }
+        }
+
+        Object IEnumerator.Current
+        {
+            get
+            {
+                return Current;
+            }
+        }
+
+        // Returns current proxy object.
+        public dynamic Current
+        {
+            get
+            {
+                return currentExecEnum.Current;
+            }
+        }
+
+        public CompositeObject CurrentCompositeObject
+        {
+            get
+            {
+                return currentExecEnum.CurrentCompositeObject;
+            }
+        }
+
+        public Boolean MoveNext()
+        {
+            if (!enumeratorCreated)
+            {
+                Int32 convQueryNum = 0;
+
+                // Check string variables for being LIKE parameters.
+                for (Int32 i = 0; i < likeVarIndexes.Length; i++)
+                {
+                    StringVariable strVar = variableArray.GetElement(likeVarIndexes[i]) as StringVariable;
+                    String startWith = IsStartWith(strVar.Value);
+
+                    // Checking if variable conforms the 'STARTS WITH' rules.
+                    if (startWith != null)
+                    {
+                        strVar.Value = startWith;
+                        convQueryNum |= (1 << i);
+                    }
+                }
+
+                // Selecting appropriate execution enumerator.
+                currentExecEnum = subExecEnums[convQueryNum];
+
+                // Checking if we jumped from the best case.
+                if (convQueryNum != bestEnumIndex)
+                {
+                    // Prolonging query parameters.
+                    variableArray.ProlongValues(currentExecEnum);
+                }
+
+                // Setting the recreation key and recreation flag.
+                unsafe { currentExecEnum.VarArray.RecreationKeyData = variableArray.RecreationKeyData; }
+                currentExecEnum.VarArray.FailedToRecreateObject = variableArray.FailedToRecreateObject;
+
+                // Attaching to current transaction.
+                currentExecEnum.TransactionId = variableArray.TransactionId;
+
+                // We created the enumerator.
+                enumeratorCreated = true;
+            }
+
+            return currentExecEnum.MoveNext();
+        }
+
+        public Boolean MoveNextSpecial(Boolean force)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Saves the underlying enumerator state.
+        /// </summary>
+        public unsafe Int32 SaveEnumerator(Byte* keysData, Int32 globalOffset, Boolean saveDynamicDataOnly)
+        {
+            return currentExecEnum.SaveEnumerator(keysData, globalOffset, saveDynamicDataOnly);
+        }
+
+        /// <summary>
+        /// Depending on query flags, populates the flags value.
+        /// </summary>
+        public unsafe override void PopulateQueryFlags(UInt32* flags)
+        {
+            currentExecEnum.PopulateQueryFlags(flags);
+
+            // Like enumerator can always have a post filter.
+            (*flags) |= SqlConnectivityInterface.FLAG_POST_MANAGED_FILTER;
+        }
+
+        /// <summary>
+        /// Resets the enumerator with a context object.
+        /// </summary>
+        /// <param name="obj">Context object from another enumerator.</param>
+        public override void Reset(CompositeObject obj)
+        {
+            // Resetting but not disposing (so its not returned back to cache).
+            currentExecEnum.Reset(null);
+            counter = 0;
+
+            // Setting variable array to reference the most efficient execution enumerator.
+            variableArray = subExecEnums[bestEnumIndex].VarArray;
+
+            enumeratorCreated = false;
+        }
+
+        public override IExecutionEnumerator Clone(CompositeTypeBinding typeBindingClone, VariableArray varArrClone)
+        {
+            IExecutionEnumerator[] subExecEnumsClone = null;
+            if (subExecEnums != null)
+            {
+                Int32 combNum = subExecEnums.Length;
+                subExecEnumsClone = new IExecutionEnumerator[combNum];
+                for (Int32 i = 0; i < combNum; i++)
+                    subExecEnumsClone[i] = subExecEnums[i].CloneCached();
+            }
+
+            return new LikeExecEnumerator(query, subExecEnumsClone, likeVarIndexes);
+        }
+
+        public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs)
+        {
+            currentExecEnum.BuildString(stringBuilder, tabs);
+        }
+
+        /// <summary>
+        /// Generates compilable code representation of this data structure.
+        /// </summary>
+        public void GenerateCompilableCode(CodeGenStringGenerator stringGen)
+        {
+            currentExecEnum.GenerateCompilableCode(stringGen);
+        }
+
+        /// <summary>
+        /// Gets the unique name for this enumerator.
+        /// </summary>
+        public String GetUniqueName(UInt64 seqNumber)
+        {
+            return currentExecEnum.GetUniqueName(seqNumber);
+        }
+    }
+}

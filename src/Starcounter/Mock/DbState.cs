@@ -32,7 +32,7 @@ namespace Sc.Server.Internal
                 catch (Exception exception)
                 {
                     if (exception is ThreadAbortException) throw;
-                    throw ErrorCode.ToException(ErrorCode.SCERRERRORINHOOKCALLBACK, exception);
+                    throw ErrorCode.ToException(Error.SCERRERRORINHOOKCALLBACK, exception);
                 }
 #endif
                 return;

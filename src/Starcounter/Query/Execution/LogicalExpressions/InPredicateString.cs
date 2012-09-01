@@ -1,0 +1,193 @@
+
+using Starcounter;
+using Starcounter.Query.Optimization;
+using Starcounter.Query.Sql;
+using Sc.Server.Binding;
+using Sc.Server.Internal;
+using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using System.Collections;
+using System.Text;
+
+
+namespace Starcounter.Query.Execution
+{
+// TODO: Test this class. Not in use.
+
+/// <summary>
+/// Class that holds information about an in-predicate where the left argument is
+/// a String expression and the right argument is a set of String expressions.
+/// </summary>
+internal class InPredicateString : ILogicalExpression
+{
+    IStringExpression expression;
+    List<IStringExpression> exprList;
+
+    /// <summary>
+    /// The DbTypeCode of the value of the expression or the property.
+    /// </summary>
+    public DbTypeCode DbTypeCode
+    {
+        get
+        {
+            throw new NotImplementedException("DbTypeCode is not implemented for InPredicateString");
+        }
+    }
+
+    /// <summary>
+    /// Examines if the value of the expression is null when evaluated on an input object.
+    /// </summary>
+    /// <param name="obj">The object on which to evaluate the expression.</param>
+    /// <returns>True, if the value of the expression when evaluated on the input object
+    /// is null, otherwise false.</returns>
+    public Boolean EvaluatesToNull(IObjectView obj)
+    {
+        throw new NotImplementedException("EvaluatesToNull is not implemented for InPredicateString");
+    }
+
+    // Append this node to filter instructions and leaves.
+    // Called statically so no need to worry about performance.
+    // Need to redefine for leaves (this implementation is for intermediate nodes).
+    public UInt32 AppendToInstrAndLeavesList(List<CodeGenFilterNode> dataLeaves,
+                                             CodeGenFilterInstrArray instrArray,
+                                             Int32 currentExtent,
+                                             StringBuilder filterText)
+    {
+        throw new NotImplementedException("AppendToInstrAndLeavesList is not implemented for InPredicateString");
+    }
+
+    /// <summary>
+    /// Constructor.
+    /// </summary>
+    /// <param name="logExpr">The left argument to the in-predicate.</param>
+    /// <param name="currentLogExprList">The right argument to the in-predicate.</param>
+    internal InPredicateString(IStringExpression expr, List<IStringExpression> list)
+    : base()
+    {
+        if (expr == null)
+        {
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect logExpr.");
+        }
+        if (list == null)
+        {
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect currentLogExprList.");
+        }
+        expression = expr;
+        exprList = list;
+    }
+
+    /// <summary>
+    /// Calculates the truth value of this in-predicate when evaluated on an input object.
+    /// All properties in this in-predicate are evaluated on the input object.
+    /// </summary>
+    /// <param name="obj">The object on which to evaluate this in-predicate.</param>
+    /// <returns>The truth value of this in-predicate when evaluated on the input object.</returns>
+    public TruthValue Evaluate(IObjectView obj)
+    {
+        String value1 = expression.EvaluateToString(obj);
+        TruthValue totalTruthValue = TruthValue.FALSE;
+        Int32 i = 0;
+        while (i < exprList.Count && totalTruthValue != TruthValue.TRUE)
+        {
+            String value2 = exprList[i].EvaluateToString(obj);
+            TruthValue truthValue = TruthValue.FALSE;
+            if (value1 == null || value2 == null)
+            {
+                truthValue = TruthValue.UNKNOWN;
+            }
+            else if (value1.CompareTo(value2) == 0)
+            {
+                truthValue = TruthValue.TRUE;
+            }
+            if (totalTruthValue == TruthValue.TRUE || truthValue == TruthValue.TRUE)
+            {
+                totalTruthValue = TruthValue.TRUE;
+            }
+            else if (totalTruthValue == TruthValue.UNKNOWN || truthValue == TruthValue.UNKNOWN)
+            {
+                totalTruthValue = TruthValue.UNKNOWN;
+            }
+            else
+            {
+                totalTruthValue = TruthValue.FALSE;
+            }
+            i++;
+        }
+        return totalTruthValue;
+    }
+
+    /// <summary>
+    /// Calculates the Boolean value of this in-predicate when evaluated on an input object.
+    /// All properties in this in-predicate are evaluated on the input object.
+    /// </summary>
+    /// <param name="obj">The object on which to evaluate this in-predicate.</param>
+    /// <returns>The Boolean value of this in-predicate when evaluated on the input object.</returns>
+    public Boolean Filtrate(IObjectView obj)
+    {
+        return Evaluate(obj) == TruthValue.TRUE;
+    }
+
+    /// <summary>
+    /// Creates an more instantiated copy of this expression by evaluating it on a result-object.
+    /// Properties, with extent numbers for which there exist objects attached to the result-object,
+    /// are evaluated and instantiated to literals, other properties are not changed.
+    /// </summary>
+    /// <param name="obj">The result-object on which to evaluate the expression.</param>
+    /// <returns>A more instantiated expression.</returns>
+    public ILogicalExpression Instantiate(CompositeObject obj)
+    {
+        IStringExpression instExpr = null;
+        List<IStringExpression> instExprList = new List<IStringExpression>();
+        instExpr = expression.Instantiate(obj);
+        for (Int32 i = 0; i < exprList.Count; i++)
+        {
+            instExprList.Add(exprList[i].Instantiate(obj));
+        }
+        if (instExpr != null && instExprList != null)
+        {
+            return new InPredicateString(instExpr, instExprList);
+        }
+        else
+        {
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect expression.");
+        }
+    }
+
+    public ILogicalExpression Clone(VariableArray varArray)
+    {
+        List<IStringExpression> exprListClone = new List<IStringExpression>();
+        for (Int32 i = 0; i < exprList.Count; i++)
+        {
+            exprListClone.Add(exprList[i].CloneToString(varArray));
+        }
+        return new InPredicateString(expression.CloneToString(varArray), exprListClone);
+    }
+
+    public void InstantiateExtentSet(ExtentSet extentSet)
+    {
+        expression.InstantiateExtentSet(extentSet);
+    }
+
+    public void BuildString(MyStringBuilder stringBuilder, Int32 tabs)
+    {
+        stringBuilder.AppendLine(tabs, "InPredicateString(");
+        expression.BuildString(stringBuilder, tabs + 1);
+        stringBuilder.AppendLine(tabs + 1, "[");
+        for (Int32 i = 0; i < exprList.Count; i++)
+        {
+            exprList[i].BuildString(stringBuilder, tabs + 2);
+        }
+        stringBuilder.AppendLine(tabs + 1, "]");
+        stringBuilder.AppendLine(tabs, ")");
+    }
+
+    /// <summary>
+    /// Generates compilable code representation of this data structure.
+    /// </summary>
+    public void GenerateCompilableCode(CodeGenStringGenerator stringGen)
+    {
+        expression.GenerateCompilableCode(stringGen);
+    }
+}
+}

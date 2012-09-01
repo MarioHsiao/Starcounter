@@ -13,5 +13,10 @@ namespace Starcounter
         {
             DbState.Insert(this, typeAddr, typeBinding);
         }
+
+        public void Delete()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

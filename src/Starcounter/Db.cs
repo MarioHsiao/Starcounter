@@ -7,7 +7,7 @@ using System.Text;
 namespace Starcounter
 {
 
-    public static class Db
+    public static partial class Db
     {
 
         public static TableDef LookupTable(string name)
