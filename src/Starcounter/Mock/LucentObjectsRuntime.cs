@@ -14,9 +14,9 @@ namespace Starcounter.LucentObjects
         public static void InitializeClientAssembly(Type type)
         {
             FieldInfo[] fields = type.GetFields(BindingFlags.Static | BindingFlags.NonPublic);
-            for (int i = 0; i < fields.Length; i++)
+            for (int fi = 0; fi < fields.Length; fi++)
             {
-                FieldInfo field = fields[i];
+                FieldInfo field = fields[fi];
                 Type fieldType = field.FieldType;
                 if (typeof(Entity).IsAssignableFrom(fieldType))
                 {
@@ -28,6 +28,13 @@ namespace Starcounter.LucentObjects
                         field.SetValue(null, tb.TableDef.DefinitionAddr);
                         field = type.GetField(typeName + "__typeBinding", BindingFlags.Static | BindingFlags.NonPublic);
                         field.SetValue(null, tb);
+
+                        ColumnDef[] columns = tb.TableDef.Columns;
+                        for (int ci = 0; ci < columns.Length; ci++)
+                        {
+                            field = fieldType.GetField("<>0" + columns[ci].Name + "000", BindingFlags.Static | BindingFlags.NonPublic);
+                            field.SetValue(null, ci);
+                        }
                     }
                     else
                     {
