@@ -16,6 +16,8 @@ namespace hello
             Db.Transaction(() =>
             {
                 MyMusic.Mucho m = new MyMusic.Mucho();
+                m.Name = "Nisse";
+                m.Number = 7;
                 m = null;
             });
 #endif
