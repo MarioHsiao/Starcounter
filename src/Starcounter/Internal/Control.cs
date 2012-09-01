@@ -98,7 +98,7 @@ namespace Starcounter.Internal
             uint slabs = (0xFFFFF000 - 4096) / 4096;  // 4 GB - 4 KB
             ulong hmenv = sccorelib.mh4_menv_create(mem128, slabs);
             if (hmenv != 0) return hmenv;
-            throw sccoreerr.TranslateErrorCode(scerrres.SCERROUTOFMEMORY);
+            throw sccoreerr.TranslateErrorCode(Error.SCERROUTOFMEMORY);
         }
 
         private unsafe ulong ConfigureLogging(Configuration c, ulong hmenv)

@@ -31,7 +31,7 @@ namespace Starcounter.LucentObjects
                     }
                     else
                     {
-//                        throw sccoreerr.TranslateErrorCode(scerrres.SCERRUNSPECIFIED);
+//                        throw sccoreerr.TranslateErrorCode(Error.SCERRUNSPECIFIED);
                     }
                 }
             }
