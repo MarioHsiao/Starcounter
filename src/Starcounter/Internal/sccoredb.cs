@@ -163,5 +163,52 @@ namespace Starcounter.Internal
             ulong* pnew_oid,
             ulong* pnew_addr
             );
+
+
+        internal const ushort Mdb_DataValueFlag_Null = 0x0001;
+
+        internal const ushort Mdb_DataValueFlag_Transactional = 0x0002;
+
+        internal const ushort Mdb_DataValueFlag_Error = 0x1000;
+
+        internal const ushort Mdb_DataValueFlag_WouldBlock = 0x2000;
+
+        internal const ushort Mdb_DataValueFlag_DeletedVersion = 0x0010;
+
+        internal const ushort Mdb_DataValueFlag_DeletedPublic = 0x0020;
+
+        internal const ushort Mdb_DataValueFlag_Exceptional = 0x1030; // (Mdb_DataValueFlag_Error | Mdb_DataValueFlag_DeletedVersion | Mdb_DataValueFlag_DeletedPublic);
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal unsafe extern static ushort Mdb_ObjectReadInt64(
+            ulong objectOID,
+            ulong objectETI,
+            int index,
+            long* pReturnValue
+            );
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal unsafe extern static ushort SCObjectReadStringW2(
+            ulong objectOID,
+            ulong objectETI,
+            int index,
+            byte** pReturnValue
+            );
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        internal extern static int Mdb_ObjectWriteInt64(
+            ulong objectOID,
+            ulong objectETI,
+            int index,
+            long value
+            );
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        internal unsafe extern static int Mdb_ObjectWriteString16(
+            ulong objectOID,
+            ulong objectETI,
+            int index,
+            char* pValue
+            );
     }
 }

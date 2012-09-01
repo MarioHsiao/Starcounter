@@ -52,8 +52,6 @@ namespace Sc.Server.Internal
 
         public static Int64 ReadInt64(DbObject obj, Int32 index)
         {
-            return 0;
-#if false
             Int64 value;
             UInt16 flags;
             ObjectRef thisRef;
@@ -68,14 +66,11 @@ namespace Sc.Server.Internal
                 return value;
             }
             ec = sccoredb.Mdb_GetLastError();
-            throw ErrorCode.ToException(ec);
-#endif
+            throw sccoreerr.TranslateErrorCode(ec);
         }
 
         public static String ReadString(DbObject obj, Int32 index)
         {
-            return null;
-#if false
             unsafe
             {
                 ObjectRef thisRef;
@@ -104,9 +99,8 @@ namespace Sc.Server.Internal
                 }
 
                 ec = sccoredb.Mdb_GetLastError();
-                throw ErrorCode.ToException(ec);
+                throw sccoreerr.TranslateErrorCode(ec);
             }
-#endif
         }
 
         public static void WriteInt16(DbObject obj, Int32 index, Int16 value)
@@ -121,24 +115,21 @@ namespace Sc.Server.Internal
 
         public static void WriteInt64(DbObject obj, Int32 index, Int64 value)
         {
-#if false
             ObjectRef thisRef;
-            Boolean br;
+            int br;
             thisRef = obj.ThisRef;
             br = sccoredb.Mdb_ObjectWriteInt64(thisRef.ObjectID, thisRef.ETI, index, value);
-            if (br)
+            if (br != 0)
             {
                 return;
             }
-            throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
-#endif
+            throw sccoreerr.TranslateErrorCode(sccoredb.Mdb_GetLastError());
         }
 
         public static void WriteString(DbObject obj, Int32 index, String value)
         {
-#if false
             ObjectRef thisRef;
-            Boolean br;
+            int br;
             thisRef = obj.ThisRef;
             unsafe
             {
@@ -152,12 +143,11 @@ namespace Sc.Server.Internal
                     );
                 }
             }
-            if (br)
+            if (br != 0)
             {
                 return;
             }
-            throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
-#endif
+            throw sccoreerr.TranslateErrorCode(sccoredb.Mdb_GetLastError());
         }
     }
 }
