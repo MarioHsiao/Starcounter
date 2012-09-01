@@ -12,14 +12,18 @@ namespace Starcounter
 
         public ushort TableId;
 
+        public ulong DefinitionAddr;
+
         public ColumnDef[] Columns;
 
-        public TableDef(string name, ushort tableId, ColumnDef[] columns)
+        public TableDef(string name, ColumnDef[] columns) : this(name, 0xFFFF, sccoredb.INVALID_DEFINITION_ADDR, columns) { }
+
+        public TableDef(string name, ushort tableId, ulong definitionAddr, ColumnDef[] columns)
         {
             Name = name;
             TableId = tableId;
+            DefinitionAddr = definitionAddr;
             Columns = columns;
         }
-
     }
 }

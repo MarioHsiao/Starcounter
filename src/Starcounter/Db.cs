@@ -45,7 +45,7 @@ namespace Starcounter
                                     throw sccoreerr.TranslateErrorCode(sccoredb.Mdb_GetLastError());
                                 }
                             }
-                            return new TableDef(name, tableId, columns);
+                            return new TableDef(name, tableId, definition_addr, columns);
                         }
                     }
                     else

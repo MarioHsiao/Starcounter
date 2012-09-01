@@ -8,10 +8,21 @@ namespace hello
     {
         static void Main(string[] args)
         {
-//            MyMusic.Mucho m = new MyMusic.Mucho();
-
             Console.WriteLine("Hello world (on database thread in database process)!");
 
+            UpdateSchema();
+
+#if false
+            Db.Transaction(() =>
+            {
+                MyMusic.Mucho m = new MyMusic.Mucho();
+                m = null;
+            });
+#endif
+        }
+
+        private static void UpdateSchema()
+        {
             TableDef t = null;
 
             Db.Transaction(() =>
@@ -23,7 +34,6 @@ namespace hello
             {
                 t = new TableDef(
                     "MyMusic.Mucho",
-                    0xFFFF,
                     new ColumnDef[] {
                         new ColumnDef("Name", ColumnDef.TYPE_STRING, true),
                         new ColumnDef("Number", ColumnDef.TYPE_INT64, false)
@@ -31,6 +41,13 @@ namespace hello
                     );
                 Db.CreateTable(t);
             }
+
+            Db.Transaction(() =>
+            {
+                t = Db.LookupTable("MyMusic.Mucho");
+            });
+
+            BindingRegistry.BuildAndAddTypeBinding(t);
         }
     }
 }

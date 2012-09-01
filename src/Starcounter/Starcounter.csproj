@@ -39,6 +39,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ColumnDef.cs" />
+    <Compile Include="BindingRegistry.cs" />
     <Compile Include="Mock\ObjectRef.cs" />
     <Compile Include="Mock\DbObject.cs" />
     <Compile Include="Mock\DbState.cs" />
