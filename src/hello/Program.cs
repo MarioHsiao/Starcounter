@@ -13,11 +13,22 @@ namespace hello
             UpdateSchema();
 
 #if false
+            try
+            {
+                new MyMusic.Mucho();
+            }
+            catch (Exception) { }
+
             Db.Transaction(() =>
             {
-                MyMusic.Mucho m = new MyMusic.Mucho();
-                m.Name = "Nisse";
-                m.Number = 7;
+                MyMusic.Mucho m;
+                m = (MyMusic.Mucho)Db.SQL("SELECT m FROM MyMusic.Mucho m WHERE m.Number = ?", 7).First;
+                if (m == null)
+                {
+                    m = new MyMusic.Mucho();
+                    m.Name = "Nisse";
+                    m.Number = 7;
+                }
                 m = null;
             });
 #endif
@@ -32,6 +43,14 @@ namespace hello
                 t = Db.LookupTable("MyMusic.Mucho");
             });
 
+#if false
+            if (t != null)
+            {
+                Db.DropTable(t.TableId);
+                t = null;
+            }
+#endif
+
             if (t == null)
             {
                 t = new TableDef(
@@ -42,14 +61,18 @@ namespace hello
                         }
                     );
                 Db.CreateTable(t);
+
+                Db.Transaction(() =>
+                {
+                    t = Db.LookupTable("MyMusic.Mucho");
+                });
+
+                Db.CreateIndex(t.DefinitionAddr, "Mucho1", 1); // Index on Mucho.Number
             }
 
-            Db.Transaction(() =>
-            {
-                t = Db.LookupTable("MyMusic.Mucho");
-            });
+            Bindings.BuildAndAddTypeBinding(t);
 
-            BindingRegistry.BuildAndAddTypeBinding(t);
+            Starcounter.Internal.Fix.ResetTheQueryModule();
         }
     }
 }
