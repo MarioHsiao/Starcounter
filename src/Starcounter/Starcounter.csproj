@@ -43,8 +43,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Binary.cs" />
-    <Compile Include="ColumnDef.cs" />
-    <Compile Include="Bindings.cs" />
+    <Compile Include="Binding\ColumnDef.cs" />
+    <Compile Include="Binding\Bindings.cs" />
+    <Compile Include="Binding\BindingHelper.cs" />
+    <Compile Include="Binding\PropertyDef.cs" />
+    <Compile Include="Binding\DbTypeCode.cs" />
+    <Compile Include="Binding\TypeDef.cs" />
+    <Compile Include="Binding\TypeLoader.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="Internal\Fix.cs" />
     <Compile Include="Internal\Kernel32.cs" />
@@ -59,7 +64,6 @@
     <Compile Include="Mock\IteratorHelper.cs" />
     <Compile Include="Mock\LogSource2.cs" />
     <Compile Include="Mock\DatabaseEngineInstanceConfiguration.cs" />
-    <Compile Include="Mock\DbTypeCode.cs" />
     <Compile Include="Mock\ErrorCode.cs" />
     <Compile Include="Mock\IObjectView.cs" />
     <Compile Include="Mock\IPropertyBinding.cs" />
@@ -265,7 +269,7 @@
     <Compile Include="Query\SQL\_SqlProcessor.cs" />
     <Compile Include="Query\SQL\_Tokenizer.cs" />
     <Compile Include="Query\_QueryModule.cs" />
-    <Compile Include="TableDef.cs" />
+    <Compile Include="Binding\TableDef.cs" />
     <Compile Include="Db.cs" />
     <Compile Include="Internal\Control.cs" />
     <Compile Include="Internal\Configuration.cs" />

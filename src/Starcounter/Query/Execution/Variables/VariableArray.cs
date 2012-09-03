@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Starcounter.Query.Execution;
+using Starcounter.Binding;
 
 namespace Starcounter.Query.Execution
 {

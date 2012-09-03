@@ -1,5 +1,11 @@
-﻿namespace Starcounter
+﻿
+namespace Starcounter.Binding
 {
+    //
+    // Since the internal type codes are not very jump table friendly we
+    // convert between the binding type code and internal type code rather then
+    // mapping them directly.
+    //
 
     public enum DbTypeCode
     {
@@ -13,7 +19,7 @@
         Int32,
         Int16,
         Object,
-        Objects,
+        Objects, // TODO:
         SByte,
         String,
         UInt64,

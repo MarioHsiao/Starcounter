@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 //using Starcounter.Management.Win32;
 using Sc.Query.Execution;
 using Starcounter.Internal;
+using Starcounter.Binding;
 
 namespace Starcounter.Query.Execution
 {

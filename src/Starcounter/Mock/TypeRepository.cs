@@ -1,5 +1,5 @@
 ﻿
-using Starcounter;
+using Starcounter.Binding;
 
 namespace Sc.Server.Binding
 {
@@ -15,11 +15,6 @@ namespace Sc.Server.Binding
         internal static TypeBinding GetTypeBinding(string name)
         {
             return Bindings.GetTypeBinding(name);
-        }
-
-        internal static System.Collections.Generic.IEnumerator<TypeBinding> GetAllTypeBindings()
-        {
-            return Bindings.GetAllTypeBindings();
         }
 
         internal static int TryGetTypeBindingByShortName(string name, out TypeBinding typeBind)

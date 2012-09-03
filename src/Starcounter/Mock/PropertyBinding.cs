@@ -1,17 +1,19 @@
 ﻿
 using Starcounter;
+using Starcounter.Binding;
+
 namespace Sc.Server.Binding
 {
     public class PropertyBinding : IPropertyBinding
     {
 
-        public readonly ColumnDef ColumnDef;
+        public readonly PropertyDef PropertyDef;
 
         private readonly int index_;
 
-        public PropertyBinding(ColumnDef columnDef, int index)
+        public PropertyBinding(PropertyDef propertyDef, int index)
         {
-            ColumnDef = columnDef;
+            PropertyDef = propertyDef;
             index_ = index;
         }
 
@@ -42,7 +44,7 @@ namespace Sc.Server.Binding
 
         public string Name
         {
-            get { return ColumnDef.Name; }
+            get { return PropertyDef.Name; }
         }
 
         public ITypeBinding TypeBinding
@@ -52,7 +54,7 @@ namespace Sc.Server.Binding
 
         public DbTypeCode TypeCode
         {
-            get { return DbTypeCode.Int64; } // TODO: 
+            get { return PropertyDef.Type; }
         }
     }
 }

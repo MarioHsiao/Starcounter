@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.Binding;
 using Starcounter.Query.Execution;
 using Starcounter.Query.Optimization;
 using Sc.Server.Binding;
@@ -46,34 +47,31 @@ internal static class IndexRepository
     internal static void CreateIndexDictionaryBySortSpecification()
     {
         indexDictionaryBySortSpecification = new Dictionary<String, IndexUseInfo>();
-        IEnumerator<TypeBinding> enumerator = TypeRepository.GetAllTypeBindings();
+        IEnumerator<TypeDef> enumerator = Starcounter.Binding.Bindings.GetAllTypeDefs().GetEnumerator();
         IndexInfo[] indexInfoArray = null;
         IndexUseInfo indexUseInfo = null;
         String key = null;
 
         while (enumerator.MoveNext())
         {
-            if ((typeof(TypeOrExtensionBinding).IsAssignableFrom(enumerator.Current.GetType())))
+            indexInfoArray = enumerator.Current.TableDef.GetAllIndexInfos();
+            for (Int32 i = 0; i < indexInfoArray.Length; i++)
             {
-                indexInfoArray = (enumerator.Current as TypeOrExtensionBinding).GetAllIndexInfos();
-                for (Int32 i = 0; i < indexInfoArray.Length; i++)
+                for (Int32 j = 1; j <= indexInfoArray[i].AttributeCount; j++)
                 {
-                    for (Int32 j = 1; j <= indexInfoArray[i].AttributeCount; j++)
+                    // Create entry for using index ascending.
+                    indexUseInfo = new IndexUseInfo(indexInfoArray[i], SortOrder.Ascending);
+                    key = SortSpecification.CreateIndexDictionaryKey(enumerator.Current, indexInfoArray[i], j);
+                    if (!indexDictionaryBySortSpecification.ContainsKey(key))
                     {
-                        // Create entry for using index ascending.
-                        indexUseInfo = new IndexUseInfo(indexInfoArray[i], SortOrder.Ascending);
-                        key = SortSpecification.CreateIndexDictionaryKey(enumerator.Current, indexInfoArray[i], j);
-                        if (!indexDictionaryBySortSpecification.ContainsKey(key))
-                        {
-                            indexDictionaryBySortSpecification.Add(key, indexUseInfo);
-                        }
-                        // Create entry for iusing index descending.
-                        indexUseInfo = new IndexUseInfo(indexInfoArray[i], SortOrder.Descending);
-                        key = SortSpecification.CreateReversedIndexDictionaryKey(enumerator.Current, indexInfoArray[i], j);
-                        if (!indexDictionaryBySortSpecification.ContainsKey(key))
-                        {
-                            indexDictionaryBySortSpecification.Add(key, indexUseInfo);
-                        }
+                        indexDictionaryBySortSpecification.Add(key, indexUseInfo);
+                    }
+                    // Create entry for iusing index descending.
+                    indexUseInfo = new IndexUseInfo(indexInfoArray[i], SortOrder.Descending);
+                    key = SortSpecification.CreateReversedIndexDictionaryKey(enumerator.Current, indexInfoArray[i], j);
+                    if (!indexDictionaryBySortSpecification.ContainsKey(key))
+                    {
+                        indexDictionaryBySortSpecification.Add(key, indexUseInfo);
                     }
                 }
             }
@@ -93,21 +91,18 @@ internal static class IndexRepository
     internal static void CreateIndexDictionaryByName()
     {
         indexDictionaryByName = new Dictionary<String, IndexInfo>();
-        IEnumerator<TypeBinding> enumerator = TypeRepository.GetAllTypeBindings();
+        IEnumerator<TypeDef> enumerator = Starcounter.Binding.Bindings.GetAllTypeDefs().GetEnumerator();
         IndexInfo[] indexInfoArray = null;
         while (enumerator.MoveNext())
         {
-            if ((typeof(TypeOrExtensionBinding).IsAssignableFrom(enumerator.Current.GetType())))
+            indexInfoArray = enumerator.Current.TableDef.GetAllIndexInfos();
+            for (Int32 i = 0; i < indexInfoArray.Length; i++)
             {
-                indexInfoArray = (enumerator.Current as TypeOrExtensionBinding).GetAllIndexInfos();
-                for (Int32 i = 0; i < indexInfoArray.Length; i++)
+                if (indexDictionaryByName.ContainsKey(indexInfoArray[i].Name))
                 {
-                    if (indexDictionaryByName.ContainsKey(indexInfoArray[i].Name))
-                    {
-                        throw ErrorCode.ToException(Error.SCERRSQLDUPLICATEDIDENTIFIER, "An index with the same name already exists: " + indexInfoArray[i].Name);
-                    }
-                    indexDictionaryByName.Add(indexInfoArray[i].Name, indexInfoArray[i]);
+                    throw ErrorCode.ToException(Error.SCERRSQLDUPLICATEDIDENTIFIER, "An index with the same name already exists: " + indexInfoArray[i].Name);
                 }
+                indexDictionaryByName.Add(indexInfoArray[i].Name, indexInfoArray[i]);
             }
         }
     }

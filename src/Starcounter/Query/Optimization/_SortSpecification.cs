@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.Binding;
 using Starcounter.Query.Execution;
 using Sc.Server.Binding;
 using Sc.Server.Internal;
@@ -146,7 +147,7 @@ internal class SortSpecification
         return key;
     }
 
-    internal static String CreateIndexDictionaryKey(TypeBinding typeBind, IndexInfo indexInfo, Int32 usedArity)
+    internal static String CreateIndexDictionaryKey(TypeDef typeBind, IndexInfo indexInfo, Int32 usedArity)
     {
         if (usedArity < 1 || usedArity > indexInfo.AttributeCount)
         {
@@ -167,7 +168,7 @@ internal class SortSpecification
         return SortOrder.Ascending;
     }
 
-    internal static String CreateReversedIndexDictionaryKey(TypeBinding typeBind, IndexInfo indexInfo, Int32 usedArity)
+    internal static String CreateReversedIndexDictionaryKey(TypeDef typeBind, IndexInfo indexInfo, Int32 usedArity)
     {
         if (usedArity < 1 || usedArity > indexInfo.AttributeCount)
         {

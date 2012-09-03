@@ -4,6 +4,7 @@ using Sc.Server.Binding;
 using Sc.Server.Internal;
 using System;
 using System.Globalization;
+using Starcounter.Binding;
 
 
 namespace Starcounter.Query.Execution
