@@ -124,6 +124,15 @@ namespace Starcounter.Binding
 
                 switch (propertyDef.Type)
                 {
+                case DbTypeCode.SByte:
+                    propertyBinding = CreateSBytePropertyBinding(propertyDef, type);
+                    break;
+                case DbTypeCode.Int16:
+                    propertyBinding = CreateInt16PropertyBinding(propertyDef, type);
+                    break;
+                case DbTypeCode.Int32:
+                    propertyBinding = CreateInt32PropertyBinding(propertyDef, type);
+                    break;
                 case DbTypeCode.Int64:
                     propertyBinding = CreateInt64PropertyBinding(propertyDef, type);
                     break;
@@ -142,6 +151,48 @@ namespace Starcounter.Binding
             }
 
             typeBinding.SetPropertyBindings(propertyBindingsByName);
+        }
+
+        private static Type int8PropertyBindingBaseType = typeof(SBytePropertyBinding);
+        private static Type int8PropertyBindingReturnType = typeof(SByte);
+
+        private PropertyBinding CreateSBytePropertyBinding(PropertyDef propertyDef, Type thisType)
+        {
+            return GeneratePropertyBindingDefault(
+                propertyDef,
+                int8PropertyBindingBaseType,
+                "DoGetSByte",
+                int8PropertyBindingReturnType,
+                thisType
+                );
+        }
+
+        private static Type int16PropertyBindingBaseType = typeof(Int16PropertyBinding);
+        private static Type int16PropertyBindingReturnType = typeof(Int16);
+
+        private PropertyBinding CreateInt16PropertyBinding(PropertyDef propertyDef, Type thisType)
+        {
+            return GeneratePropertyBindingDefault(
+                propertyDef,
+                int16PropertyBindingBaseType,
+                "DoGetInt16",
+                int16PropertyBindingReturnType,
+                thisType
+                );
+        }
+
+        private static Type int32PropertyBindingBaseType = typeof(Int32PropertyBinding);
+        private static Type int32PropertyBindingReturnType = typeof(Int32);
+
+        private PropertyBinding CreateInt32PropertyBinding(PropertyDef propertyDef, Type thisType)
+        {
+            return GeneratePropertyBindingDefault(
+                propertyDef,
+                int32PropertyBindingBaseType,
+                "DoGetInt32",
+                int32PropertyBindingReturnType,
+                thisType
+                );
         }
 
         private static Type int64PropertyBindingBaseType = typeof(Int64PropertyBinding);
