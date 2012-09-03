@@ -12,54 +12,48 @@ using System.Reflection;
 namespace Sc.Server.Binding //namespace Starcounter.Binding
 {
 
-    public class TypeBinding : ITypeBinding
+    public abstract class TypeBinding : ITypeBinding
     {
 
-        public readonly TypeDef TypeDef;
+        public TypeBinding Base; // TODO:
 
-        public TypeBinding Base;
+        internal TypeDef TypeDef;
 
-        private readonly Type type_;
+        public string Name { get { return TypeDef.Name; } }
 
-        public TypeBinding(TypeDef typeDef, Type type)
+        protected abstract Entity NewUninitializedInst();
+
+        internal Entity NewInstanceUninit()
         {
-            TypeDef = typeDef;
-            type_ = type;
+            return NewUninitializedInst();
         }
 
-        public Entity NewInstanceUninit()
+        internal Entity NewInstance(ulong addr, ulong oid)
         {
-            ConstructorInfo ctor = type_.GetConstructor(new Type[] { typeof(Sc.Server.Internal.Uninitialized) });
-            Entity obj = (Entity)ctor.Invoke(new object[] { null });
-            return obj;
-        }
-
-        public Entity NewInstance(ulong addr, ulong oid)
-        {
-            Entity obj = NewInstanceUninit();
+            Entity obj = NewUninitializedInst();
             obj.Attach(addr, oid, this);
             return obj;
         }
 
-        public bool SubTypeOf(TypeBinding tb)
+        internal bool SubTypeOf(TypeBinding tb)
         {
             throw new System.NotImplementedException();
         }
 
-        public ulong DefHandle { get { return TypeDef.TableDef.DefinitionAddr; } }
+        internal ulong DefHandle { get { return TypeDef.TableDef.DefinitionAddr; } }
 
-        public string Name
-        {
-            get { return TypeDef.Name; }
-        }
-
-        public PropertyBinding GetPropertyBinding(string name)
+        internal PropertyBinding GetPropertyBinding(string name)
         {
             for (int i = 0; i < TypeDef.PropertyDefs.Length; i++)
             {
                 if (TypeDef.PropertyDefs[i].Name == name)
                 {
-                    return new PropertyBinding(TypeDef.PropertyDefs[i], i);
+                    // TODO:
+                    PropertyBinding pb = new TestPropertyBinding();
+                    pb.SetName(TypeDef.PropertyDefs[i].Name);
+                    pb.SetIndex(i);
+                    pb.SetDataIndex(i);
+                    return pb;
                 }
             }
             return null;

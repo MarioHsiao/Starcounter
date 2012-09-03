@@ -88,7 +88,9 @@ namespace Starcounter.Binding
         {
             if (typeDef == null) return null; // TODO: Type not loaded. Detect by way of exception.
 
-            TypeBinding tb = new TypeBinding(typeDef, typeDef.TypeLoader.Load());
+            BindingBuilder builder = new BindingBuilder();
+            TypeBinding tb = builder.CreateTypeBinding(typeDef);
+            builder.BuildCompleted();
             AddTypeBinding(tb);
             return tb;
         }

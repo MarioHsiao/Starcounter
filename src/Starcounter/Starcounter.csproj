@@ -43,13 +43,22 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Binary.cs" />
+    <Compile Include="Binding\BindingBuilder.cs" />
     <Compile Include="Binding\ColumnDef.cs" />
     <Compile Include="Binding\Bindings.cs" />
     <Compile Include="Binding\BindingHelper.cs" />
+    <Compile Include="Binding\SBytePropertyBinding.cs" />
+    <Compile Include="Binding\Int16PropertyBinding.cs" />
+    <Compile Include="Binding\Int32PropertyBinding.cs" />
+    <Compile Include="Binding\Int64PropertyBinding.cs" />
+    <Compile Include="Binding\IntPropertyBinding.cs" />
+    <Compile Include="Binding\PrimitivePropertyBinding.cs" />
     <Compile Include="Binding\PropertyDef.cs" />
     <Compile Include="Binding\DbTypeCode.cs" />
+    <Compile Include="Binding\StringPropertyBinding.cs" />
     <Compile Include="Binding\TypeDef.cs" />
     <Compile Include="Binding\TypeLoader.cs" />
+    <Compile Include="LargeBinary.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="Internal\Fix.cs" />
     <Compile Include="Internal\Kernel32.cs" />
