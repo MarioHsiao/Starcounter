@@ -1,5 +1,5 @@
 ﻿
-using Sc.Server.Binding;
+using Starcounter.Binding;
 
 namespace Starcounter
 {
@@ -9,13 +9,13 @@ namespace Starcounter
 
         public ObjectRef ThisRef;
 
-        public void Attach(ObjectRef objectRef, TypeBinding typeBinding)
+        public void Attach(ObjectRef objectRef, Sc.Server.Binding.TypeBinding typeBinding)
         {
             ThisRef.ETI = objectRef.ETI;
             ThisRef.ObjectID = objectRef.ObjectID;
         }
 
-        public void Attach(ulong addr, ulong oid, TypeBinding typeBinding)
+        public void Attach(ulong addr, ulong oid, Sc.Server.Binding.TypeBinding typeBinding)
         {
             ThisRef.ETI = addr;
             ThisRef.ObjectID = oid;

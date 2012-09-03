@@ -1,13 +1,15 @@
 ﻿
 using Starcounter;
 using Starcounter.Binding;
-using Starcounter.Query.Execution;
-using Starcounter.Internal;
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 
-namespace Sc.Server.Binding
+// TODO:
+// We must keep TypeBinding in namespace Sc.Server.Binding for now because
+// generated code links to this code. To be moved to namespace
+// Starcounter.Binding as soon as code generation has been updated.
+
+namespace Sc.Server.Binding //namespace Starcounter.Binding
 {
 
     public class TypeBinding : ITypeBinding
@@ -63,7 +65,7 @@ namespace Sc.Server.Binding
             return null;
         }
 
-        internal IndexInfo[] GetAllIndexInfos()
+        internal Sc.Server.Binding.IndexInfo[] GetAllIndexInfos()
         {
             return TypeDef.TableDef.GetAllIndexInfos();
         }

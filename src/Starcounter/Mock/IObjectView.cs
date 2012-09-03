@@ -1,5 +1,5 @@
 ﻿
-using Sc.Server.Binding;
+using Starcounter.Binding;
 using System;
 
 namespace Starcounter

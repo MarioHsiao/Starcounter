@@ -1,7 +1,6 @@
 ﻿
-using System;
 
-namespace Starcounter
+namespace Starcounter.Binding
 {
 
     public interface ITypeBinding
@@ -10,7 +9,7 @@ namespace Starcounter
         /// <summary>
         /// Type binding name.
         /// </summary>
-        String Name { get; }
+        string Name { get; }
 
         /// <summary>
         /// Gets the property binding for the property with the specified name.
@@ -19,6 +18,6 @@ namespace Starcounter
         /// A property binding. Returns null is no property with the specified
         /// name exists.
         /// </returns>
-        IPropertyBinding GetPropertyBinding(String name);
+        IPropertyBinding GetPropertyBinding(string name);
     }
 }

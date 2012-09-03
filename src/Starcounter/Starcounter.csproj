@@ -66,13 +66,13 @@
     <Compile Include="Mock\DatabaseEngineInstanceConfiguration.cs" />
     <Compile Include="Mock\ErrorCode.cs" />
     <Compile Include="Mock\IObjectView.cs" />
-    <Compile Include="Mock\IPropertyBinding.cs" />
-    <Compile Include="Mock\ITypeBinding.cs" />
+    <Compile Include="Binding\IPropertyBinding.cs" />
+    <Compile Include="Binding\ITypeBinding.cs" />
     <Compile Include="Mock\LogSource.cs" />
     <Compile Include="Mock\ObjectRef.cs" />
     <Compile Include="Mock\DbObject.cs" />
     <Compile Include="Mock\DbState.cs" />
-    <Compile Include="Mock\PropertyBinding.cs" />
+    <Compile Include="Binding\PropertyBinding.cs" />
     <Compile Include="Mock\RangeFlags.cs" />
     <Compile Include="Mock\Temp.cs" />
     <Compile Include="Mock\ThreadHelper.cs" />
@@ -284,7 +284,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Mock\Entity.cs" />
     <Compile Include="Mock\LucentObjectsRuntime.cs" />
-    <Compile Include="Mock\TypeBinding.cs" />
+    <Compile Include="Binding\TypeBinding.cs" />
     <Compile Include="Mock\Uninitialized.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -1,6 +1,6 @@
 ﻿
-using Sc.Server.Binding;
 using Starcounter;
+using Starcounter.Binding;
 using Starcounter.Internal;
 using System;
 
@@ -11,7 +11,7 @@ namespace Sc.Server.Internal
     public static class DbState
     {
 
-        public static void Insert(Entity proxy, ulong typeAddr, TypeBinding typeBinding)
+        public static void Insert(Entity proxy, ulong typeAddr, Sc.Server.Binding.TypeBinding typeBinding)
         {
             uint e;
             ulong oid;
