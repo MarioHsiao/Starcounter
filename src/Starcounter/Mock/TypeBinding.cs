@@ -51,23 +51,7 @@ namespace Sc.Server.Binding
             get { return TypeDef.Name; }
         }
 
-        public int PropertyCount
-        {
-            get { return TypeDef.PropertyDefs.Length; }
-        }
-
-        public int GetPropertyIndex(string name)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public IPropertyBinding GetPropertyBinding(int index)
-        {
-            PropertyDef propertyDef = TypeDef.PropertyDefs[index];
-            return new PropertyBinding(propertyDef, index);
-        }
-
-        public IPropertyBinding GetPropertyBinding(string name)
+        public PropertyBinding GetPropertyBinding(string name)
         {
             for (int i = 0; i < TypeDef.PropertyDefs.Length; i++)
             {
@@ -82,6 +66,11 @@ namespace Sc.Server.Binding
         internal IndexInfo[] GetAllIndexInfos()
         {
             return TypeDef.TableDef.GetAllIndexInfos();
+        }
+
+        IPropertyBinding ITypeBinding.GetPropertyBinding(string name)
+        {
+            return GetPropertyBinding(name);
         }
     }
 }

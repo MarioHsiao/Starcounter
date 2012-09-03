@@ -51,35 +51,11 @@ internal class TemporaryProperty : IPropertyBinding
         typeBinding = typeBind;
     }
 
-    public Int32 AccessCost
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     public Int32 Index
     {
         get
         {
             return propIndex;
-        }
-    }
-
-    public IPropertyBinding InversePropertyBinding
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public Int32 MutateCost
-    {
-        get
-        {
-            throw new NotImplementedException();
         }
     }
 

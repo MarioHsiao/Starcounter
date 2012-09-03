@@ -14,10 +14,7 @@ namespace Starcounter
         /// <summary>
         /// View type binding.
         /// </summary>
-        ITypeBinding TypeBinding
-        {
-            get;
-        }
+        ITypeBinding TypeBinding { get; }
 
         /// <summary>
         /// Determines if the current object is equal to or derived from the

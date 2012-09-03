@@ -777,6 +777,7 @@ namespace Starcounter
         }
 #endif
 
+#if false
         internal static String CreateObjectString(ITypeBinding typeBind, IObjectView currentObj)
         {
             IPropertyBinding propBind = null;
@@ -926,5 +927,6 @@ namespace Starcounter
             }
             return result;
         }
+#endif
     }
 }
