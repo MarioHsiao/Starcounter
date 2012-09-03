@@ -9,7 +9,7 @@ namespace Starcounter.Binding
         public DbTypeCode Type;
         public bool IsNullable;
 
-        public TypeDef TypeDef;
+        public TypeDef TargetTypeDef;
 
         public PropertyDef(string name, DbTypeCode type, bool isNullable)
         {
