@@ -4,11 +4,21 @@ using Starcounter.Binding;
 
 namespace Starcounter
 {
+
+
+    // TODO:
+    // We must keep DbObject around because generated code links to DbState
+    // methods with this type are parameter. Remove class and change all
+    // references to Entity once the generated code has been changed.
     
-    public abstract class Entity : IObjectView
+    public class DbObject
     {
 
         internal ObjectRef ThisRef;
+    }
+    
+    public abstract class Entity : DbObject, IObjectView
+    {
 
         public Entity(Sc.Server.Internal.Uninitialized u) { }
 
