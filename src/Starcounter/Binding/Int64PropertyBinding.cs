@@ -30,13 +30,4 @@ namespace Starcounter.Binding
             );
         }
     };
-
-    public class TestPropertyBinding : Int64PropertyBinding // TODO: Remove!
-    {
-
-        protected override sealed Int64 DoGetInt64(object obj, out Boolean isNull)
-        {
-            throw new NotImplementedException();
-        }
-    }
 }

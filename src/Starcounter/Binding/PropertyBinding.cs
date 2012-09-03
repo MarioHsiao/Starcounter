@@ -214,17 +214,5 @@ namespace Starcounter.Binding
         {
             _name = name;
         }
-
-        ///<summary>
-        /// Re-creates the current property binding when creating a list of
-        /// property bindings for an inherited type.
-        ///</summary>
-        internal virtual PropertyBinding ReCreate()
-        {
-            // Since the simple property binding hasn't any different state
-            // if part of one type binding or another we can simply reuse
-            // the same instance.
-            return this;
-        }
     }
 }
