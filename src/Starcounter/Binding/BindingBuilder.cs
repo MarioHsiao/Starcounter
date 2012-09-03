@@ -104,6 +104,7 @@ namespace Starcounter.Binding
             
             typeBindingType = typeBuilder.CreateType();
             typeBinding = (TypeBinding)(typeBindingType.GetConstructor(Type.EmptyTypes).Invoke(null));
+            typeBinding.Name = typeDef.Name;
             typeBinding.TypeDef = typeDef;
 
             BuildPropertyBindingList(typeBinding, type);
