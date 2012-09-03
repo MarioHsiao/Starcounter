@@ -143,7 +143,7 @@ namespace Starcounter.Binding
                     throw new NotImplementedException();
                 }
 
-                propertyBinding.SetDataIndex(i); // TODO:
+                propertyBinding.SetDataIndex(propertyDef.ColumnIndex);
                 propertyBinding.SetIndex(i);
                 propertyBinding.SetName(propertyDef.Name);
 

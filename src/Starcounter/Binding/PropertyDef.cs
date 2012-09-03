@@ -9,13 +9,19 @@ namespace Starcounter.Binding
         public DbTypeCode Type;
         public bool IsNullable;
 
+        /// <summary>
+        /// Index of column if representing a database column. -1 otherwise.
+        /// </summary>
+        public int ColumnIndex;
+
         public TypeDef TargetTypeDef;
 
-        public PropertyDef(string name, DbTypeCode type, bool isNullable)
+        public PropertyDef(string name, DbTypeCode type, bool isNullable, int columnIndex)
         {
             Name = name;
             Type = type;
             IsNullable = isNullable;
+            ColumnIndex = columnIndex;
         }
     }
 }
