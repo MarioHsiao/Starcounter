@@ -405,7 +405,7 @@ internal abstract class ExecutionEnumerator
         //Application.Profiler.Start("Cycled MoveNext", 5);
         while ((slotsNum > 0) && (thisEnum.MoveNext()))
         {
-            DbObject dbObject = thisEnum.Current as DbObject;
+            Entity dbObject = thisEnum.Current as Entity;
 
             // Checking if object is not null.
             if (dbObject != null)

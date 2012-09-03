@@ -27,16 +27,16 @@ namespace Sc.Server.Binding //namespace Starcounter.Binding
             type_ = type;
         }
 
-        public DbObject NewInstanceUninit()
+        public Entity NewInstanceUninit()
         {
             ConstructorInfo ctor = type_.GetConstructor(new Type[] { typeof(Sc.Server.Internal.Uninitialized) });
-            DbObject obj = (DbObject)ctor.Invoke(new object[] { null });
+            Entity obj = (Entity)ctor.Invoke(new object[] { null });
             return obj;
         }
 
-        public DbObject NewInstance(ulong addr, ulong oid)
+        public Entity NewInstance(ulong addr, ulong oid)
         {
-            DbObject obj = NewInstanceUninit();
+            Entity obj = NewInstanceUninit();
             obj.Attach(addr, oid, this);
             return obj;
         }

@@ -455,7 +455,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             if (enableRecreateObjectCheck)
             {
                 // Fetching new object information.
-                DbObject dbObject = enumerator.Current;
+                Entity dbObject = enumerator.Current;
 
                 // Checking if its the same object.
                 if ((keyOID != dbObject.ThisRef.ObjectID) && (keyETI != dbObject.ThisRef.ETI))
@@ -567,7 +567,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             }
             else
             {
-                DbObject dbObject = enumerator.CurrentRaw;
+                Entity dbObject = enumerator.CurrentRaw;
                 if (dbObject != null)
                 {
                     // Getting current position of the object in iterator.
