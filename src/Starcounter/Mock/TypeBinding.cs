@@ -10,21 +10,19 @@ using System.Reflection;
 namespace Sc.Server.Binding
 {
 
-    public class TypeBinding : TypeOrExtensionBinding
+    public class TypeBinding : ITypeBinding
     {
+
+        public readonly TypeDef TypeDef;
 
         public TypeBinding Base;
 
         private readonly Type type_;
 
-        public TypeBinding(TypeDef typeDef, Type type) : base(typeDef)
+        public TypeBinding(TypeDef typeDef, Type type)
         {
+            TypeDef = typeDef;
             type_ = type;
-        }
-
-        public ExtensionBinding GetExtensionBinding(string name)
-        {
-            throw new System.NotImplementedException();
         }
 
         public DbObject NewInstanceUninit()
@@ -44,25 +42,6 @@ namespace Sc.Server.Binding
         public bool SubTypeOf(TypeBinding tb)
         {
             throw new System.NotImplementedException();
-        }
-    }
-
-    public class ExtensionBinding : TypeOrExtensionBinding
-    {
-
-        public int Index;
-
-        public ExtensionBinding(TypeDef typeDef) : base(typeDef) { }
-    }
-    
-    public class TypeOrExtensionBinding : ITypeBinding
-    {
-
-        public readonly TypeDef TypeDef;
-
-        public TypeOrExtensionBinding(TypeDef typeDef)
-        {
-            TypeDef = typeDef;
         }
 
         public ulong DefHandle { get { return TypeDef.TableDef.DefinitionAddr; } }
