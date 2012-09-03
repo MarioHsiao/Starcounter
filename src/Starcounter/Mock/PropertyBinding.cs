@@ -22,24 +22,9 @@ namespace Sc.Server.Binding
             throw new System.NotImplementedException();
         }
 
-        public int AccessCost
-        {
-            get { throw new System.NotImplementedException(); }
-        }
-
         public int Index
         {
             get { return index_; }
-        }
-
-        public IPropertyBinding InversePropertyBinding
-        {
-            get { throw new System.NotImplementedException(); }
-        }
-
-        public int MutateCost
-        {
-            get { throw new System.NotImplementedException(); }
         }
 
         public string Name

@@ -16,48 +16,14 @@ namespace Starcounter
     {
 
         /// <summary>
-        /// Estimates relative cost to access the property where 0 representing
-        /// a direct access property and the best in terms of performance
-        /// (simple database object access with no code).
-        /// </summary>
-        Int32 AccessCost
-        {
-            get;
-        }
-
-        /// <summary>
         /// Property index.
         /// </summary>
-        Int32 Index
-        {
-            get;
-        }
-
-        /// <summary>
-        /// Inverse property if any.
-        /// </summary>
-        IPropertyBinding InversePropertyBinding
-        {
-            get;
-        }
-
-        /// <summary>
-        /// Estimates relative cost to mutate the property where 0 representing
-        /// a direct access property and the best in terms of performance
-        /// (simple database object access with no code).
-        /// </summary>
-        Int32 MutateCost
-        {
-            get;
-        }
+        Int32 Index { get; }
 
         /// <summary>
         /// Property name.
         /// </summary>
-        String Name
-        {
-            get;
-        }
+        String Name { get; }
 
         /// <summary>
         /// Binding used by the property type if any.
@@ -66,17 +32,11 @@ namespace Starcounter
         /// A type binding. Null if the target is a literal, only set if a
         /// reference property.
         /// </returns>
-        ITypeBinding TypeBinding
-        {
-            get;
-        }
+        ITypeBinding TypeBinding { get; }
 
         /// <summary>
         /// Property value type code.
         /// </summary>
-        DbTypeCode TypeCode
-        {
-            get;
-        }
+        DbTypeCode TypeCode { get; }
     }
 }
