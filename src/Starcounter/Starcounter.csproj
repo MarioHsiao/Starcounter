@@ -70,7 +70,6 @@
     <Compile Include="Binding\ITypeBinding.cs" />
     <Compile Include="Mock\LogSource.cs" />
     <Compile Include="Mock\ObjectRef.cs" />
-    <Compile Include="Mock\DbObject.cs" />
     <Compile Include="Mock\DbState.cs" />
     <Compile Include="Binding\PropertyBinding.cs" />
     <Compile Include="Mock\RangeFlags.cs" />

@@ -40,17 +40,17 @@ namespace Sc.Server.Internal
             throw sccoreerr.TranslateErrorCode(e);
         }
 
-        public static Int16 ReadInt16(DbObject obj, Int32 index)
+        public static Int16 ReadInt16(Entity obj, Int32 index)
         {
             return (Int16)ReadInt64(obj, index);
         }
 
-        public static Int32 ReadInt32(DbObject obj, Int32 index)
+        public static Int32 ReadInt32(Entity obj, Int32 index)
         {
             return (Int32)ReadInt64(obj, index);
         }
 
-        public static Int64 ReadInt64(DbObject obj, Int32 index)
+        public static Int64 ReadInt64(Entity obj, Int32 index)
         {
             Int64 value;
             UInt16 flags;
@@ -69,7 +69,7 @@ namespace Sc.Server.Internal
             throw sccoreerr.TranslateErrorCode(ec);
         }
 
-        public static String ReadString(DbObject obj, Int32 index)
+        public static String ReadString(Entity obj, Int32 index)
         {
             unsafe
             {
@@ -103,17 +103,17 @@ namespace Sc.Server.Internal
             }
         }
 
-        public static void WriteInt16(DbObject obj, Int32 index, Int16 value)
+        public static void WriteInt16(Entity obj, Int32 index, Int16 value)
         {
             WriteInt64(obj, index, value);
         }
 
-        public static void WriteInt32(DbObject obj, Int32 index, Int32 value)
+        public static void WriteInt32(Entity obj, Int32 index, Int32 value)
         {
             WriteInt64(obj, index, value);
         }
 
-        public static void WriteInt64(DbObject obj, Int32 index, Int64 value)
+        public static void WriteInt64(Entity obj, Int32 index, Int64 value)
         {
             ObjectRef thisRef;
             int br;
@@ -126,7 +126,7 @@ namespace Sc.Server.Internal
             throw sccoreerr.TranslateErrorCode(sccoredb.Mdb_GetLastError());
         }
 
-        public static void WriteString(DbObject obj, Int32 index, String value)
+        public static void WriteString(Entity obj, Int32 index, String value)
         {
             ObjectRef thisRef;
             int br;
