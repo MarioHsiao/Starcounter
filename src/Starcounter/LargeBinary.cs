@@ -1,5 +1,4 @@
 ﻿
-using Sc.Server.Internal;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -8,44 +7,45 @@ namespace Starcounter
 {
 
     /// <summary>
-    /// Represents an immutable relatively small block of binary data.
+    /// Represents an immutable large block of binary data.
     /// </summary>
-    public struct Binary
+    public struct LargeBinary
     {
-        public static readonly Binary Null = new Binary();
 
-        public static Boolean Equals(Binary lb1, Binary lb2)
+        public static readonly LargeBinary Null = new LargeBinary();
+
+        public static Boolean Equals(LargeBinary lb1, LargeBinary lb2)
         {
             return DoCompare(lb1, lb2);
         }
 
-        public static Boolean operator ==(Binary lb1, Binary lb2)
+        public static Boolean operator ==(LargeBinary lb1, LargeBinary lb2)
         {
             return DoCompare(lb1, lb2);
         }
 
-        public static Boolean operator !=(Binary lb1, Binary lb2)
+        public static Boolean operator !=(LargeBinary lb1, LargeBinary lb2)
         {
             return !DoCompare(lb1, lb2);
         }
 
-        internal static unsafe Binary FromNative(Byte* buffer)
+        internal static unsafe LargeBinary FromNative(Byte* buffer)
         {
             Int32 len;
             Byte[] buffer2;
-            Binary ret;
-            len = (*((Int32*)buffer)) + 4;
+            LargeBinary ret;
+            len = *((Int32*)buffer) + 4;
             buffer2 = new Byte[len];
             Marshal.Copy((IntPtr)buffer, buffer2, 0, len);
-            ret = new Binary();
+            ret = new LargeBinary();
             ret._buffer = buffer2;
             return ret;
         }
 
-        internal static Binary FromStream(Byte[] buffer, Int32 usage)
+        internal static LargeBinary FromStream(Byte[] buffer, Int32 usage)
         {
             Int32 len;
-            Binary ret;
+            LargeBinary ret;
             // [usage] is the usage in the stream which includes the space
             // reserved for storing the length of the binary contents.
             len = (usage - 4);
@@ -53,12 +53,12 @@ namespace Starcounter
             buffer[1] = (Byte)(len >> 8);
             buffer[2] = (Byte)(len >> 16);
             buffer[3] = (Byte)(len >> 24);
-            ret = new Binary();
+            ret = new LargeBinary();
             ret._buffer = buffer;
             return ret;
         }
 
-        private static Boolean DoCompare(Binary lb1, Binary lb2)
+        private static Boolean DoCompare(LargeBinary lb1, LargeBinary lb2)
         {
             Byte[] bc1;
             Byte[] bc2;
@@ -95,7 +95,7 @@ namespace Starcounter
         //
         private Byte[] _buffer;
 
-        public Binary(Byte[] data)
+        public LargeBinary(Byte[] data)
             : this()
         {
             Int32 len;
@@ -121,7 +121,7 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Gets the length of the Binary.
+        /// Gets the length of the <code>LargeBinary</code>.
         /// </summary>
         public Int32 Length
         {
@@ -132,27 +132,15 @@ namespace Starcounter
             }
         }
 
-        /// <summary>
-        /// Gets the internal length of the Binary buffer.
-        /// </summary>
-        public Int32 InternalLength
-        {
-            get
-            {
-                VerifyNotNull();
-                return _buffer.Length;
-            }
-        }
-
         public override Boolean Equals(Object obj)
         {
             if (obj == null)
             {
-                return DoCompare(this, Binary.Null);
+                return DoCompare(this, LargeBinary.Null);
             }
-            if (obj is Binary)
+            if (obj is LargeBinary)
             {
-                return DoCompare(this, ((Binary)obj));
+                return DoCompare(this, ((LargeBinary)obj));
             }
             return false;
         }
@@ -191,174 +179,33 @@ namespace Starcounter
             return ret;
         }
 
-        public int CompareTo(object obj)
-        {
-            if (obj == null)
-            {
-                return CompareTo(Binary.Null);
-            }
-            if (obj is Binary)
-            {
-                return CompareTo((Binary)obj);
-            }
-            if (obj is Byte[])
-            {
-                return CompareTo((Byte[])obj);
-            }
-            throw new ArgumentException("Can only compare Binary or Byte[]");
-        }
-
-        public int CompareTo(Binary other)
-        {
-            Byte[] bc1;
-            Byte[] bc2;
-            Int32 l1;
-            Int32 l2;
-            Int32 shtLength;
-            bc1 = _buffer;
-            bc2 = other._buffer;
-            if ((bc1 == null) && (bc2 == null))
-            {
-                return 0;
-            }
-            if ((bc1 == null) && (bc2 != null))
-            {
-                return -1;
-            }
-            if ((bc1 != null) && (bc2 == null))
-            {
-                return 1;
-            }
-            l1 = GetLength();
-            l2 = other.GetLength();
-            shtLength = (l1 < l2) ? l1 : l2;
-            shtLength += 4;
-            for (Int32 i = 4; i < shtLength; i++)
-            {
-                if (bc1[i] == bc2[i])
-                {
-                    continue;
-                }
-                if (bc1[i] < bc2[i])
-                {
-                    return -1;
-                }
-                return 1;
-            }
-            if (l1 == l2)
-            {
-                return 0;
-            }
-            if (l1 < l2)
-            {
-                return -1;
-            }
-            return 1;
-        }
-
-        public int CompareTo(byte[] other)
-        {
-            Byte[] bc1;
-            Int32 l1;
-            Int32 l2;
-            Int32 shtLength;
-            bc1 = _buffer;
-            if ((bc1 == null) && (other == null))
-            {
-                return 0;
-            }
-            if ((bc1 == null) && (other != null))
-            {
-                return -1;
-            }
-            if ((bc1 != null) && (other == null))
-            {
-                return 1;
-            }
-            l1 = GetLength();
-            l2 = other.Length;
-            shtLength = (l1 < l2) ? l1 : l2;
-            for (Int32 i = 0; i < shtLength; i++)
-            {
-                if (bc1[i + 4] == other[i])
-                {
-                    continue;
-                }
-                if (bc1[i + 4] < other[i])
-                {
-                    return -1;
-                }
-                return 1;
-            }
-            if (l1 == l2)
-            {
-                return 0;
-            }
-            if (l1 < l2)
-            {
-                return -1;
-            }
-            return 1;
-        }
-
-        public Boolean Equals(Binary lb)
+        public Boolean Equals(LargeBinary lb)
         {
             return DoCompare(this, lb);
         }
 
         /// <summary>
-        /// Creates and returns a read-only stream based on the Binary.
+        /// Creates and returns a read-only stream based on the LargeBinary.
         /// </summary>
-        public BinaryStream GetStream()
+        public LargeBinaryStream GetStream()
         {
             VerifyNotNull();
-            return new BinaryStream(this);
+            return new LargeBinaryStream(this);
         }
 
-        /// <summary>
-        /// Returns the byte at the specified index.
-        /// </summary>
-        public Byte GetByte(Int32 index)
-        {
-            VerifyNotNull();
-            if (index < 0 || index >= GetLength())
-            {
-                throw new ArgumentOutOfRangeException("index");
-            }
-
-            return _buffer[index + 4];
-        }
-
-        /// <summary>
-        /// Returns a copy of the Binary as a byte-array.
-        /// </summary>
-        public Byte[] ToArray()
-        {
-            Int32 len;
-            Byte[] ret;
-            if (_buffer != null)
-            {
-                len = GetLength();
-                ret = new Byte[len];
-                Buffer.BlockCopy(_buffer, 4, ret, 0, len);
-                return ret;
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Returns the reference to internal byte buffer.
-        /// </summary>
-        internal Byte[] GetInternalBuffer()
+        internal Byte[] GetBuffer()
         {
             return _buffer;
         }
 
         internal Int32 GetLength()
         {
-            // The length is actually 4 bytes but byte 2 and 3 always contain
-            // 0.
-            return ((((Int32)_buffer[1]) << 8) | _buffer[0]);
+            return (
+                       (((Int32)_buffer[3]) << 24) |
+                       (((Int32)_buffer[2]) << 16) |
+                       (((Int32)_buffer[1]) << 8) |
+                       _buffer[0]
+                   );
         }
 
         private void VerifyNotNull()
@@ -371,8 +218,9 @@ namespace Starcounter
         }
     }
 
-    public sealed class BinaryStream : Stream
+    public sealed class LargeBinaryStream : Stream
     {
+
         private const Int32 DEFAULT_CAPACITY = (4096 - 4);
 
         private Byte[] _buffer;
@@ -382,9 +230,9 @@ namespace Starcounter
         private Boolean _isWritable;
         private Boolean _isFrozen;
 
-        public BinaryStream() : this(DEFAULT_CAPACITY) { }
+        public LargeBinaryStream() : this(DEFAULT_CAPACITY) { }
 
-        public BinaryStream(Int32 initialCapacity)
+        public LargeBinaryStream(Int32 initialCapacity)
         {
             _buffer = new Byte[AdjustInput(initialCapacity)];
             _position = 4;
@@ -394,11 +242,11 @@ namespace Starcounter
             _isFrozen = false;
         }
 
-        internal BinaryStream(Binary binary)
+        internal LargeBinaryStream(LargeBinary binary)
         {
             // The large binary has already been verified not to be null before
             // the stream is created.
-            _buffer = binary.GetInternalBuffer();
+            _buffer = binary.GetBuffer();
             _position = 4;
             _length = (binary.GetLength() + 4);
             _isOpen = true;
@@ -663,7 +511,7 @@ namespace Starcounter
             _position += count;
         }
 
-        public void Write(Binary lb)
+        public void Write(LargeBinary lb)
         {
             Byte[] buffer;
             Int32 count;
@@ -676,7 +524,7 @@ namespace Starcounter
             {
                 ThrowReadonlyException();
             }
-            buffer = lb.GetInternalBuffer();
+            buffer = lb.GetBuffer();
             if (buffer == null)
             {
                 throw new ArgumentNullException("binary");
@@ -693,10 +541,10 @@ namespace Starcounter
             _position += count;
         }
 
-        public Binary ToBinary()
+        public LargeBinary ToLargeBinary()
         {
             _isFrozen = true;
-            return Binary.FromStream(_buffer, _length);
+            return LargeBinary.FromStream(_buffer, _length);
         }
 
         protected override void Dispose(Boolean disposing)
