@@ -2,6 +2,7 @@
 using Starcounter.Query.Optimization;
 using Sc.Server.Internal;
 using System;
+using Starcounter.Binding;
 
 
 namespace Starcounter.Query.Execution

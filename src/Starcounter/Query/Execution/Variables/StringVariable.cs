@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Text;
 using System.Runtime.InteropServices;
 using Starcounter.Internal;
+using Starcounter.Binding;
 
 namespace Starcounter.Query.Execution
 {

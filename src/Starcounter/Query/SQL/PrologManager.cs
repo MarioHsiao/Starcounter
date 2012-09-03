@@ -14,6 +14,7 @@ using System.Security.Permissions;
 using System.Threading;
 //using System.Xml;
 using Starcounter.Query.Execution;
+using Starcounter.Binding;
 
 namespace Starcounter.Query.Sql
 {
@@ -466,11 +467,9 @@ namespace Starcounter.Query.Sql
         private static void ExportSchemaFile(String schemaFile)
         {
             StreamWriter streamWriter = null;
-            IEnumerator<TypeBinding> typeEnumerator = null;
-            IEnumerator<ExtensionBinding> extEnumerator = null;
-            TypeBinding typeBind = null;
-            ExtensionBinding extBind = null;
-            IPropertyBinding propBind = null;
+            IEnumerator<TypeDef> typeEnumerator = null;
+            TypeDef typeBind = null;
+            PropertyDef propBind = null;
 
             schemaFilePath = schemaFile;
 
@@ -492,7 +491,7 @@ namespace Starcounter.Query.Sql
                 streamWriter.WriteLine("class(shortClassNameUpper,fullClassName,baseClassName).");
                 String fullClassNameUpper = null;
                 String shortClassNameUpper = null;
-                typeEnumerator = TypeRepository.GetAllTypeBindings();
+                typeEnumerator = Starcounter.Binding.Bindings.GetAllTypeDefs().GetEnumerator();
                 while (typeEnumerator.MoveNext())
                 {
                     typeBind = typeEnumerator.Current;
@@ -512,45 +511,21 @@ namespace Starcounter.Query.Sql
                     }
                 }
 
-                // Export information about extensions.
-                streamWriter.WriteLine("extension(fullClassName,fullExtensionNameUpper,fullExtensionName).");
-                streamWriter.WriteLine("extension(fullClassName,shortExtensionNameUpper,fullExtensionName).");
-                String fullExtensionNameUpper = null;
-                String shortExtensionNameUpper = null;
-                typeEnumerator.Reset();
-                while (typeEnumerator.MoveNext())
-                {
-                    typeBind = typeEnumerator.Current;
-                    extEnumerator = typeBind.GetAllExtensionBindings();
-                    if (extEnumerator != null)
-                    {
-                        while (extEnumerator.MoveNext())
-                        {
-                            extBind = extEnumerator.Current;
-                            fullExtensionNameUpper = extBind.Name.ToUpperInvariant();
-                            shortExtensionNameUpper = GetShortName(extBind.Name).ToUpperInvariant();
-                            streamWriter.WriteLine("extension('" + typeBind.Name + "','" + fullExtensionNameUpper + "','" + extBind.Name + "').");
-                            if (shortExtensionNameUpper != fullExtensionNameUpper)
-                                streamWriter.WriteLine("extension('" + typeBind.Name + "','" + shortExtensionNameUpper + "','" + extBind.Name + "').");
-                        }
-                    }
-                }
-
                 // Export information about properties (columns).
                 streamWriter.WriteLine("property(fullClassName,propertyNameUpper,propertyName,propertyType).");
                 typeEnumerator.Reset();
                 while (typeEnumerator.MoveNext())
                 {
                     typeBind = typeEnumerator.Current;
-                    for (Int32 i = 0; i < typeBind.PropertyCount; i++)
+                    for (Int32 i = 0; i < typeBind.PropertyDefs.Length; i++)
                     {
-                        propBind = typeBind.GetPropertyBinding(i);
-                        if (propBind.TypeCode == DbTypeCode.Object)
+                        propBind = typeBind.PropertyDefs[i];
+                        if (propBind.Type == DbTypeCode.Object)
                         {
-                            if (propBind.TypeBinding != null)
+                            if (propBind.TypeDef != null)
                             {
                                 streamWriter.WriteLine("property('" + typeBind.Name + "','" + propBind.Name.ToUpperInvariant() + "','" +
-                                    propBind.Name + "','" + propBind.TypeBinding.Name + "').");
+                                    propBind.Name + "','" + propBind.TypeDef.Name + "').");
                             }
                             else
                             {
@@ -560,47 +535,12 @@ namespace Starcounter.Query.Sql
                         else
                         {
                             streamWriter.WriteLine("property('" + typeBind.Name + "','" + propBind.Name.ToUpperInvariant() + "','" +
-                                propBind.Name + "','" + propBind.TypeCode.ToString() + "').");
+                                propBind.Name + "','" + propBind.Type.ToString() + "').");
                         }
                     }
                 }
 
-                // Export information about extension properties (columns).
-                typeEnumerator.Reset();
-                while (typeEnumerator.MoveNext())
-                {
-                    typeBind = typeEnumerator.Current;
-                    extEnumerator = typeBind.GetAllExtensionBindings();
-                    if (extEnumerator != null)
-                    {
-                        while (extEnumerator.MoveNext())
-                        {
-                            extBind = extEnumerator.Current;
-                            for (Int32 i = 0; i < extBind.PropertyCount; i++)
-                            {
-                                propBind = extBind.GetPropertyBinding(i);
-                                if (propBind.TypeCode == DbTypeCode.Object)
-                                {
-                                    if (propBind.TypeBinding != null)
-                                    {
-                                        streamWriter.WriteLine("property('" + extBind.Name + "','" + propBind.Name.ToUpperInvariant() + "','" +
-                                            propBind.Name + "','" + propBind.TypeBinding.Name + "').");
-                                    }
-                                    else
-                                    {
-                                        throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Object reference type without type binding.");
-                                    }
-                                }
-                                else
-                                {
-                                    streamWriter.WriteLine("property('" + extBind.Name + "','" + propBind.Name.ToUpperInvariant() + "','" +
-                                        propBind.Name + "','" + propBind.TypeCode.ToString() + "').");
-                                }
-                            }
-                        }
-                    }
-                }
-
+#if false // TODO EOH2:
                 // Export information about method EqualsOrIsDerivedFrom(Object).
                 streamWriter.WriteLine("method(fullClassName,methodNameUpper,methodName,argumentTypes,returnType).");
                 typeEnumerator.Reset();
@@ -609,7 +549,9 @@ namespace Starcounter.Query.Sql
                     typeBind = typeEnumerator.Current;
                     streamWriter.WriteLine("method('" + typeBind.Name + "','EQUALSORISDERIVEDFROM','EqualsOrIsDerivedFrom',['Starcounter.IObjectView'],'Boolean').");
                 }
+#endif
 
+#if false // TODO EOH2:
                 // Export information about generic method GetExtension<Type>().
                 streamWriter.WriteLine("gmethod(fullClassName,methodNameUpper,methodName,typeParameters,argumentTypes,returnType).");
                 typeEnumerator.Reset();
@@ -624,6 +566,7 @@ namespace Starcounter.Query.Sql
                             extBind.Name + "'],[],'" + extBind.Name + "').");
                     }
                 }
+#endif
 
                 tickCount = Environment.TickCount - tickCount;
                 // logSource.Debug("Exported SQL schema to " + schemaFilePath + " in " + tickCount.ToString() + " ms.");

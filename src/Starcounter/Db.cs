@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.Binding;
 using Starcounter.Internal;
 using System;
 using System.Runtime.InteropServices;
@@ -36,7 +37,7 @@ namespace Starcounter
                                 {
                                     columns[i] = new ColumnDef(
                                         new string(attributeInfo.PtrName),
-                                        attributeInfo.Type,
+                                        BindingHelper.ConvertScTypeCodeToDbTypeCode(attributeInfo.Type),
                                         (attributeInfo.Flags & sccoredb.MDB_ATTRFLAG_NULLABLE) != 0
                                         );
                                 }
@@ -61,14 +62,14 @@ namespace Starcounter
         {
             unsafe
             {
-                ColumnDef[] columns = tableDef.Columns;
+                ColumnDef[] columns = tableDef.ColumnDefs;
                 sccoredb.SC_COLUMN_DEFINITION[] column_definitions = new sccoredb.SC_COLUMN_DEFINITION[columns.Length + 1];
                 try
                 {
                     for (int i = 0; i < columns.Length; i++)
                     {
                         column_definitions[i].name = (byte*)Marshal.StringToCoTaskMemAnsi(columns[i].Name);
-                        column_definitions[i].type = columns[i].Type;
+                        column_definitions[i].type = BindingHelper.ConvertDbTypeCodeToScTypeCode(columns[i].Type);
                         column_definitions[i].is_nullable = columns[i].IsNullable ? (byte)1 : (byte)0;
                     }
                     fixed (byte* fixed_name = Encoding.ASCII.GetBytes(tableDef.Name))

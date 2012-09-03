@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Starcounter.Internal;
+using Starcounter.Binding;
 
 namespace Starcounter.Query.Optimization
 {

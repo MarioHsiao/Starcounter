@@ -5,6 +5,7 @@ using System;
 using Sc.Server.Binding;
 using System.Collections.Generic;
 using System.Text;
+using Starcounter.Binding;
 
 namespace Starcounter.Query.Execution
 {

@@ -1,5 +1,6 @@
 ﻿
 using Starcounter;
+using Starcounter.Binding;
 using System;
 
 namespace hello
@@ -13,12 +14,6 @@ namespace hello
             UpdateSchema();
 
 #if false
-            try
-            {
-                new MyMusic.Mucho();
-            }
-            catch (Exception) { }
-
             Db.Transaction(() =>
             {
                 MyMusic.Mucho m;
@@ -56,8 +51,8 @@ namespace hello
                 t = new TableDef(
                     "MyMusic.Mucho",
                     new ColumnDef[] {
-                        new ColumnDef("Name", ColumnDef.TYPE_STRING, true),
-                        new ColumnDef("Number", ColumnDef.TYPE_INT64, false)
+                        new ColumnDef("Name", DbTypeCode.String, true),
+                        new ColumnDef("Number", DbTypeCode.Int64, false)
                         }
                     );
                 Db.CreateTable(t);
@@ -70,7 +65,16 @@ namespace hello
                 Db.CreateIndex(t.DefinitionAddr, "Mucho1", 1); // Index on Mucho.Number
             }
 
-            Bindings.BuildAndAddTypeBinding(t);
+            TypeDef typeDef = new TypeDef(
+                "MyMusic.Mucho",
+                new PropertyDef[] {
+                    new PropertyDef("Name", DbTypeCode.String, true),
+                    new PropertyDef("Number", DbTypeCode.Int64, false)
+                    },
+                new TypeLoader(AppDomain.CurrentDomain.BaseDirectory + "MyMusic.dll", "MyMusic.Mucho"),
+                t
+                );
+            Bindings.RegisterTypeDef(typeDef);
 
             Starcounter.Internal.Fix.ResetTheQueryModule();
         }

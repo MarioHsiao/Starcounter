@@ -3,6 +3,7 @@ using Starcounter;
 using Starcounter.Query.Execution;
 using Sc.Server.Internal;
 using System;
+using Starcounter.Binding;
 
 namespace Sc.Server.Binding
 {
@@ -11,8 +12,7 @@ namespace Sc.Server.Binding
         private UInt64 _handle;
         private String _name;
         //private IndexType _indexType;
-        private TypeOrExtensionBinding _typeBinding;
-        private PropertyBinding[] _propertyBindings;
+        private ColumnDef[] _columnDefs;
         private SortOrder[] _sortOrderings;
 
         //internal IndexInfo(Int64 handle, IndexType indexType, TypeOrExtensionBinding typeBinding, PropertyBinding propertyBinding)
@@ -25,16 +25,15 @@ namespace Sc.Server.Binding
         //}
 
         // New constructor to support combined indexes.
-        internal IndexInfo(UInt64 handle, String name, TypeOrExtensionBinding typeBinding, PropertyBinding[] propertyBindings, SortOrder[] sortOrderings)
+        internal IndexInfo(UInt64 handle, String name, ColumnDef[] columnDefs, SortOrder[] sortOrderings)
         {
-            if (propertyBindings.Length != sortOrderings.Length)
+            if (columnDefs.Length != sortOrderings.Length)
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incompatible propertyBindings and sortOrderings.");
             }
             _handle = handle;
             _name = name;
-            _typeBinding = typeBinding;
-            _propertyBindings = propertyBindings;
+            _columnDefs = columnDefs;
             _sortOrderings = sortOrderings;
         }
 
@@ -60,16 +59,6 @@ namespace Sc.Server.Binding
             }
         }
 
-        ///// <summary>
-        ///// Type of index.
-        ///// </summary>
-        //public IndexType IndexType {get {return _indexType;}}
-
-        ///// <summary>
-        ///// Indexed path.
-        ///// </summary>
-        //public String Path {get {return _propertyBinding.Name;}}
-
         /// <summary>
         /// The number of attributes (paths) in the (combined) index.
         /// </summary>
@@ -77,7 +66,7 @@ namespace Sc.Server.Binding
         {
             get
             {
-                return _propertyBindings.Length;
+                return _columnDefs.Length;
             }
         }
 
@@ -88,7 +77,7 @@ namespace Sc.Server.Binding
         /// <returns>The name of the path with the input index number.</returns>
         public String GetPathName(Int32 index)
         {
-            return _propertyBindings[index].Name;
+            return _columnDefs[index].Name;
         }
 
         /// <summary>
@@ -108,23 +97,7 @@ namespace Sc.Server.Binding
         /// <returns>The type code of the path with the input index number.</returns>
         public DbTypeCode GetTypeCode(Int32 index)
         {
-            return _propertyBindings[index].TypeCode;
+            return _columnDefs[index].Type;
         }
-
-        /// <summary>
-        /// Type binding.
-        /// </summary>
-        public TypeOrExtensionBinding TypeBinding
-        {
-            get
-            {
-                return _typeBinding;
-            }
-        }
-
-        ///// <summary>
-        ///// Value type code. Specifies the type of the indexed path.
-        ///// </summary>
-        //public DbTypeCode ValueType {get {return _propertyBinding.TypeCode;}}
     }
 }

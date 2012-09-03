@@ -5,6 +5,7 @@ using Sc.Server.Binding;
 using Sc.Server.Internal;
 using Starcounter.Query.Execution;
 //using Sc.Server.Weaver.Schema;
+using Starcounter.Binding;
 
 namespace Starcounter.Query.Sql
 {

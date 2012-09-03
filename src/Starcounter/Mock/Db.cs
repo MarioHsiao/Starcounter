@@ -8,6 +8,8 @@ using Starcounter.LucentObjects;
 using Starcounter.Query.Execution;
 using Starcounter.Query.Sql;
 using Sc.Server.Binding;
+using Starcounter.Binding;
+
 
 namespace Starcounter
 {

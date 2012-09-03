@@ -1,6 +1,7 @@
 ﻿
 using Sc.Server.Binding;
 using Starcounter;
+using Starcounter.Binding;
 using Starcounter.Internal;
 using System;
 using System.Reflection;
@@ -21,17 +22,17 @@ namespace Starcounter.LucentObjects
                 if (typeof(Entity).IsAssignableFrom(fieldType))
                 {
                     string typeName = fieldType.FullName;
-                    TypeBinding tb = Bindings.GetTypeBinding(fieldType.FullName);
-                    if (tb != null)
+                    TypeDef typeDef = Bindings.GetTypeDef(typeName);
+                    if (typeDef != null)
                     {
-                        tb.Type = fieldType;
+                        TypeBinding tb = Bindings.GetTypeBinding(fieldType.FullName);
 
                         field = type.GetField(typeName + "__typeAddress", BindingFlags.Static | BindingFlags.NonPublic);
-                        field.SetValue(null, tb.TableDef.DefinitionAddr);
+                        field.SetValue(null, tb.DefHandle);
                         field = type.GetField(typeName + "__typeBinding", BindingFlags.Static | BindingFlags.NonPublic);
                         field.SetValue(null, tb);
 
-                        ColumnDef[] columns = tb.TableDef.Columns;
+                        ColumnDef[] columns = tb.TypeDef.TableDef.ColumnDefs;
                         for (int ci = 0; ci < columns.Length; ci++)
                         {
                             field = fieldType.GetField("<>0" + columns[ci].Name + "000", BindingFlags.Static | BindingFlags.NonPublic);

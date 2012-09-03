@@ -14,6 +14,37 @@ namespace Starcounter.Internal
 
         internal const ulong INVALID_DEFINITION_ADDR = 0xFFFFFFFFFF;
 
+
+        internal const byte SC_BASETYPE_UINT64 = 0x01;
+        internal const byte SC_BASETYPE_SINT64 = 0x02;
+        internal const byte SC_BASETYPE_SINGLE = 0x03;
+        internal const byte SC_BASETYPE_DOUBLE = 0x04;
+        internal const byte SC_BASETYPE_BINARY = 0x05;
+        internal const byte SC_BASETYPE_STRING = 0x06;
+        internal const byte SC_BASETYPE_DECIMAL = 0x07;
+        internal const byte SC_BASETYPE_OBJREF = 0x08;
+        internal const byte SC_BASETYPE_LBINARY = 0x09;
+
+        internal const byte Mdb_Type_Boolean = (0x10 | SC_BASETYPE_UINT64);
+        internal const byte Mdb_Type_Byte = (0x20 | SC_BASETYPE_UINT64);
+        internal const byte Mdb_Type_UInt16 = (0x30 | SC_BASETYPE_UINT64);
+        internal const byte Mdb_Type_UInt32 = (0x40 | SC_BASETYPE_UINT64);
+        internal const byte Mdb_Type_UInt64 = (0x50 | SC_BASETYPE_UINT64);
+        internal const byte Mdb_Type_DateTime = (0x60 | SC_BASETYPE_UINT64);
+        internal const byte Mdb_Type_TimeSpan = (0x70 | SC_BASETYPE_UINT64);
+        internal const byte Mdb_Type_SByte = (0x10 | SC_BASETYPE_SINT64);
+        internal const byte Mdb_Type_Int16 = (0x20 | SC_BASETYPE_SINT64);
+        internal const byte Mdb_Type_Int32 = (0x30 | SC_BASETYPE_SINT64);
+        internal const byte Mdb_Type_Int64 = (0x40 | SC_BASETYPE_SINT64);
+        internal const byte Mdb_Type_Single = (0x10 | SC_BASETYPE_SINGLE);
+        internal const byte Mdb_Type_Double = (0x10 | SC_BASETYPE_DOUBLE);
+        internal const byte Mdb_Type_Binary = (0x10 | SC_BASETYPE_BINARY);
+        internal const byte Mdb_Type_String = (0x10 | SC_BASETYPE_STRING);
+        internal const byte Mdb_Type_Decimal = (0x10 | SC_BASETYPE_DECIMAL);
+        internal const byte Mdb_Type_ObjectID = (0x10 | SC_BASETYPE_OBJREF);
+        internal const byte Mdb_Type_LargeBinary = (0x10 | SC_BASETYPE_LBINARY);
+
+
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal extern static uint Mdb_GetLastError();
 

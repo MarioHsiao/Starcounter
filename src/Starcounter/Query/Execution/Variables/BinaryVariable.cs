@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Starcounter.Internal;
+using Starcounter.Binding;
 
 namespace Starcounter.Query.Execution
 {
