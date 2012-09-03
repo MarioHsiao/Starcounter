@@ -1,4 +1,5 @@
 
+#if false
 using Starcounter;
 using Starcounter.Query.Optimization;
 using Starcounter.Query.Sql;
@@ -237,3 +238,4 @@ internal class ObjectGenericMethod : IObjectPathItem, IMethod
     }
 }
 }
+#endif

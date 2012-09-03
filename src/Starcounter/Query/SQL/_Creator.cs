@@ -2965,15 +2965,18 @@ namespace Starcounter.Query.Sql
         private static IMethod CreateGenericMethod(CompositeTypeBinding resultTypeBind, Int32 extNum, ITypeBinding typeBind, Term typeTerm,
                                                    Term nameTerm, Term argListTerm, Term typeParamListTerm, VariableArray varArray)
         {
+#if false
             // gmethod(Type,Name,TypeParamList,ArgList).
             if (typeTerm.Name == "object")
             {
                 return CreateObjectGenericMethod(resultTypeBind, extNum, typeBind, nameTerm, argListTerm, typeParamListTerm, varArray);
             }
+#endif
             // else
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect typeTerm: " + typeTerm);
         }
 
+#if false
         private static ObjectGenericMethod CreateObjectGenericMethod(CompositeTypeBinding resultTypeBind, Int32 extNum, ITypeBinding typeBind,
                 Term nameTerm, Term typeParamListTerm, Term argListTerm, VariableArray varArray)
         {
@@ -2994,6 +2997,7 @@ namespace Starcounter.Query.Sql
             ExtensionBinding extBind = (typeBind as TypeBinding).GetExtensionBinding(typeParamTerm.Name);
             return new ObjectGenericMethod(extNum, typeBind, extBind);
         }
+#endif
 
         private static IOperation CreateOperation(CompositeTypeBinding resultTypeBind, Term typeTerm, Term opTerm, Term exprTerm1, Term exprTerm2,
                                                   VariableArray varArray)

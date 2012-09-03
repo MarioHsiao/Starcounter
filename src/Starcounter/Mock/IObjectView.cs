@@ -65,18 +65,6 @@ namespace Starcounter
         Nullable<Double> GetDouble(Int32 index);
 
         /// <summary>
-        /// Gets a reference to an object representing the extension of the
-        /// current object with the specified index.
-        /// </summary>
-        /// <param name="index"></param>
-        /// <returns>
-        /// The extension with the specified index. Never null, the method
-        /// throws an exception if no extension with the specified index
-        /// exists.
-        /// </returns>
-        IObjectView GetExtension(Int32 index);
-
-        /// <summary>
         /// Gets the value of an integer attribute as a signed 16-bits integer.
         /// </summary>
         Nullable<Int16> GetInt16(Int32 index);
