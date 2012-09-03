@@ -2,6 +2,7 @@
 using Starcounter;
 using Starcounter.Binding;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 // TODO:
@@ -19,7 +20,11 @@ namespace Sc.Server.Binding //namespace Starcounter.Binding
 
         internal TypeDef TypeDef;
 
-        public string Name { get { return TypeDef.Name; } }
+        private Dictionary<string, PropertyBinding> propertyBindingsByName_;
+
+        private string name_;
+
+        public string Name { get { return name_; } internal set { name_ = value; } }
 
         protected abstract Entity NewUninitializedInst();
 
@@ -44,24 +49,19 @@ namespace Sc.Server.Binding //namespace Starcounter.Binding
 
         internal PropertyBinding GetPropertyBinding(string name)
         {
-            for (int i = 0; i < TypeDef.PropertyDefs.Length; i++)
-            {
-                if (TypeDef.PropertyDefs[i].Name == name)
-                {
-                    // TODO:
-                    PropertyBinding pb = new TestPropertyBinding();
-                    pb.SetName(TypeDef.PropertyDefs[i].Name);
-                    pb.SetIndex(i);
-                    pb.SetDataIndex(i);
-                    return pb;
-                }
-            }
-            return null;
+            PropertyBinding pb;
+            propertyBindingsByName_.TryGetValue(name, out pb);
+            return pb;
         }
 
         internal Sc.Server.Binding.IndexInfo[] GetAllIndexInfos()
         {
             return TypeDef.TableDef.GetAllIndexInfos();
+        }
+
+        internal void SetPropertyBindings(Dictionary<string, PropertyBinding> propertyBindingsByName)
+        {
+            propertyBindingsByName_ = propertyBindingsByName;
         }
 
         IPropertyBinding ITypeBinding.GetPropertyBinding(string name)

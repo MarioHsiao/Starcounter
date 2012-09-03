@@ -2,6 +2,7 @@
 using Sc.Server.Binding;
 using Sc.Server.Internal;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -56,7 +57,7 @@ namespace Starcounter.Binding
             typeBindingTypeName = String.Concat(
                                       _assemblyName,
                                       ".",
-                                      typeDef.Name,
+                                      type.FullName,
                                       "_Binding"
                                   );
             bindingBase = typeof(TypeBinding);
@@ -104,10 +105,189 @@ namespace Starcounter.Binding
             typeBindingType = typeBuilder.CreateType();
             typeBinding = (TypeBinding)(typeBindingType.GetConstructor(Type.EmptyTypes).Invoke(null));
             typeBinding.TypeDef = typeDef;
-            
-//            BuildPropertyBindingList(dpc, typeBinding, baseBinding);
+
+            BuildPropertyBindingList(typeBinding, type);
 
             return typeBinding;
+        }
+
+        private void BuildPropertyBindingList(TypeBinding typeBinding, Type type)
+        {
+            PropertyDef[] propertyDefs = typeBinding.TypeDef.PropertyDefs;
+
+            Dictionary<string, PropertyBinding> propertyBindingsByName = new Dictionary<string, PropertyBinding>(propertyDefs.Length);
+            
+            for (int i = 0; i < propertyDefs.Length; i++)
+            {
+                PropertyDef propertyDef = propertyDefs[i];
+                PropertyBinding propertyBinding = null;
+
+                switch (propertyDef.Type)
+                {
+                case DbTypeCode.Int64:
+                    propertyBinding = CreateInt64PropertyBinding(propertyDef, type);
+                    break;
+                case DbTypeCode.String:
+                    propertyBinding = CreateStringPropertyBinding(propertyDef, type);
+                    break;
+                default:
+                    throw new NotImplementedException();
+                }
+
+                propertyBinding.SetDataIndex(i); // TODO:
+                propertyBinding.SetIndex(i);
+                propertyBinding.SetName(propertyDef.Name);
+
+                propertyBindingsByName.Add(propertyDef.Name, propertyBinding);
+            }
+
+            typeBinding.SetPropertyBindings(propertyBindingsByName);
+        }
+
+        private static Type int64PropertyBindingBaseType = typeof(Int64PropertyBinding);
+        private static Type int64PropertyBindingReturnType = typeof(Int64);
+
+        private PropertyBinding CreateInt64PropertyBinding(PropertyDef propertyDef, Type thisType)
+        {
+            return GeneratePropertyBindingDefault(
+                propertyDef,
+                int64PropertyBindingBaseType,
+                "DoGetInt64",
+                int64PropertyBindingReturnType,
+                thisType
+                );
+        }
+
+        private static Type stringPropertyBindingBaseType = typeof(StringPropertyBinding);
+        private static Type stringPropertyBindingReturnType = typeof(String);
+
+        private PropertyBinding CreateStringPropertyBinding(PropertyDef propertyDef, Type thisType)
+        {
+            return GeneratePropertyBindingNoNullOut(
+                propertyDef,
+                stringPropertyBindingBaseType,
+                "DoGetString",
+                stringPropertyBindingReturnType,
+                thisType
+                );
+        }
+
+        private PropertyBinding GeneratePropertyBindingDefault(PropertyDef propertyDef, Type bindingBaseType, String methodName, Type returnType, Type thisType)
+        {
+            PropertyInfo propertyInfo;
+            String propBindingTypeName;
+            TypeBuilder typeBuilder;
+            Type propBindingType;
+
+            // TODO: Handle nullable.
+
+            propertyInfo = thisType.GetProperty(propertyDef.Name, BindingFlags.Public | BindingFlags.Instance);
+            // TODO: Verify property (exists, readable, correct return type etc.).
+
+            propBindingTypeName = String.Concat(
+                                      _assemblyName,
+                                      ".",
+                                      thisType.FullName,
+                                      "_",
+                                      propertyInfo.Name,
+                                      "_Binding"
+                                  );
+            typeBuilder = _moduleBuilder.DefineType(
+                              propBindingTypeName,
+                              (TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.Sealed),
+                              bindingBaseType
+                          );
+            GeneratePropertyBindingDefault(typeBuilder, methodName, returnType, thisType, propertyInfo);
+            propBindingType = typeBuilder.CreateType();
+            return (PropertyBinding)(propBindingType.GetConstructor(Type.EmptyTypes).Invoke(null));
+        }
+
+        private void GeneratePropertyBindingDefault(TypeBuilder typeBuilder, String methodName, Type returnType, Type thisType, PropertyInfo propertyInfo)
+        {
+            MethodInfo methodInfo;
+            MethodBuilder methodBuilder;
+            ILGenerator ilGenerator;
+            Type[] paramTypeArray;
+            paramTypeArray = new Type[2];
+            paramTypeArray[0] = typeof(Object);
+            paramTypeArray[1] = typeof(Boolean).MakeByRefType();
+            methodInfo = typeof(PropertyBinding).GetMethod(
+                             methodName,
+                             (BindingFlags.Instance | BindingFlags.NonPublic)
+                         );
+            methodBuilder = typeBuilder.DefineMethod(
+                                methodName,
+                                (MethodAttributes.HideBySig | MethodAttributes.Final | MethodAttributes.NewSlot | MethodAttributes.Family | MethodAttributes.Virtual),
+                                returnType,
+                                paramTypeArray
+                            );
+            typeBuilder.DefineMethodOverride(methodBuilder, methodInfo);
+            ilGenerator = methodBuilder.GetILGenerator();
+            ilGenerator.BeginScope();
+            ilGenerator.Emit(OpCodes.Ldarg_2);
+            ilGenerator.Emit(OpCodes.Ldc_I4_0);
+            ilGenerator.Emit(OpCodes.Stind_I1);
+            ilGenerator.Emit(OpCodes.Ldarg_1);
+            ilGenerator.Emit(OpCodes.Castclass, thisType);
+            ilGenerator.Emit(OpCodes.Callvirt, propertyInfo.GetGetMethod());
+            ilGenerator.Emit(OpCodes.Ret);
+            ilGenerator.EndScope();
+        }
+
+        private PropertyBinding GeneratePropertyBindingNoNullOut(PropertyDef propertyDef, Type bindingBaseType, String methodName, Type returnType, Type thisType)
+        {
+            PropertyInfo propertyInfo;
+            String propBindingTypeName;
+            TypeBuilder typeBuilder;
+            Type propBindingType;
+
+            propertyInfo = thisType.GetProperty(propertyDef.Name, BindingFlags.Public | BindingFlags.Instance);
+            // TODO: Verify property (exists, readable, correct return type etc.).
+
+            propBindingTypeName = String.Concat(
+                                      _assemblyName,
+                                      ".",
+                                      thisType.FullName,
+                                      "_",
+                                      propertyInfo.Name,
+                                      "_Binding"
+                                  );
+            typeBuilder = _moduleBuilder.DefineType(
+                              propBindingTypeName,
+                              (TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.Sealed),
+                              bindingBaseType
+                          );
+            GeneratePropertyBindingNoNullOut(typeBuilder, methodName, returnType, thisType, propertyInfo);
+            propBindingType = typeBuilder.CreateType();
+            return (PropertyBinding)(propBindingType.GetConstructor(Type.EmptyTypes).Invoke(null));
+        }
+
+        private void GeneratePropertyBindingNoNullOut(TypeBuilder typeBuilder, String methodName, Type returnType, Type thisType, PropertyInfo propertyInfo)
+        {
+            MethodInfo methodInfo;
+            MethodBuilder methodBuilder;
+            ILGenerator ilGenerator;
+            Type[] paramTypeArray;
+            paramTypeArray = new Type[1];
+            paramTypeArray[0] = typeof(Object);
+            methodInfo = typeof(PropertyBinding).GetMethod(
+                             methodName,
+                             (BindingFlags.Instance | BindingFlags.NonPublic)
+                         );
+            methodBuilder = typeBuilder.DefineMethod(
+                                methodName,
+                                (MethodAttributes.HideBySig | MethodAttributes.Final | MethodAttributes.NewSlot | MethodAttributes.Family | MethodAttributes.Virtual),
+                                returnType,
+                                paramTypeArray
+                            );
+            typeBuilder.DefineMethodOverride(methodBuilder, methodInfo);
+            ilGenerator = methodBuilder.GetILGenerator();
+            ilGenerator.BeginScope();
+            ilGenerator.Emit(OpCodes.Ldarg_1);
+            ilGenerator.Emit(OpCodes.Castclass, thisType);
+            ilGenerator.Emit(OpCodes.Callvirt, propertyInfo.GetGetMethod());
+            ilGenerator.Emit(OpCodes.Ret);
+            ilGenerator.EndScope();
         }
     }
 }
