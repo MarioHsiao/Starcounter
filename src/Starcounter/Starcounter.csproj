@@ -47,6 +47,10 @@
     <Compile Include="Binding\ColumnDef.cs" />
     <Compile Include="Binding\Bindings.cs" />
     <Compile Include="Binding\BindingHelper.cs" />
+    <Compile Include="Binding\BytePropertyBinding.cs" />
+    <Compile Include="Binding\UInt16PropertyBinding.cs" />
+    <Compile Include="Binding\UInt32PropertyBinding.cs" />
+    <Compile Include="Binding\UInt64PropertyBinding.cs" />
     <Compile Include="Binding\SBytePropertyBinding.cs" />
     <Compile Include="Binding\Int16PropertyBinding.cs" />
     <Compile Include="Binding\Int32PropertyBinding.cs" />
@@ -58,6 +62,7 @@
     <Compile Include="Binding\StringPropertyBinding.cs" />
     <Compile Include="Binding\TypeDef.cs" />
     <Compile Include="Binding\TypeLoader.cs" />
+    <Compile Include="Binding\UIntPropertyBinding.cs" />
     <Compile Include="LargeBinary.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="Internal\Fix.cs" />

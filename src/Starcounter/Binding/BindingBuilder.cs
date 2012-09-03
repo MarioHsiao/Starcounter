@@ -125,23 +125,51 @@ namespace Starcounter.Binding
 
                 switch (propertyDef.Type)
                 {
-                case DbTypeCode.SByte:
-                    propertyBinding = CreateSBytePropertyBinding(propertyDef, type);
+                case DbTypeCode.Boolean:
+                    throw new NotImplementedException();
+                case DbTypeCode.Byte:
+                    propertyBinding = CreateBytePropertyBinding(propertyDef, type);
                     break;
-                case DbTypeCode.Int16:
-                    propertyBinding = CreateInt16PropertyBinding(propertyDef, type);
+                case DbTypeCode.DateTime:
+                    throw new NotImplementedException();
+                case DbTypeCode.Decimal:
+                    throw new NotImplementedException();
+                case DbTypeCode.Single:
+                    throw new NotImplementedException();
+                case DbTypeCode.Double:
+                    throw new NotImplementedException();
+                case DbTypeCode.Int64:
+                    propertyBinding = CreateInt64PropertyBinding(propertyDef, type);
                     break;
                 case DbTypeCode.Int32:
                     propertyBinding = CreateInt32PropertyBinding(propertyDef, type);
                     break;
-                case DbTypeCode.Int64:
-                    propertyBinding = CreateInt64PropertyBinding(propertyDef, type);
+                case DbTypeCode.Int16:
+                    propertyBinding = CreateInt16PropertyBinding(propertyDef, type);
+                    break;
+                case DbTypeCode.Object:
+                    throw new NotImplementedException();
+                case DbTypeCode.SByte:
+                    propertyBinding = CreateSBytePropertyBinding(propertyDef, type);
                     break;
                 case DbTypeCode.String:
                     propertyBinding = CreateStringPropertyBinding(propertyDef, type);
                     break;
-                default:
+                case DbTypeCode.UInt64:
+                    propertyBinding = CreateUInt64PropertyBinding(propertyDef, type);
+                    break;
+                case DbTypeCode.UInt32:
+                    propertyBinding = CreateUInt32PropertyBinding(propertyDef, type);
+                    break;
+                case DbTypeCode.UInt16:
+                    propertyBinding = CreateUInt16PropertyBinding(propertyDef, type);
+                    break;
+                case DbTypeCode.Binary:
                     throw new NotImplementedException();
+                case DbTypeCode.LargeBinary:
+                    throw new NotImplementedException();
+                default:
+                    throw new NotSupportedException();
                 }
 
                 propertyBinding.SetDataIndex(propertyDef.ColumnIndex);
@@ -220,6 +248,62 @@ namespace Starcounter.Binding
                 stringPropertyBindingBaseType,
                 "DoGetString",
                 stringPropertyBindingReturnType,
+                thisType
+                );
+        }
+
+        private static Type uint8PropertyBindingBaseType = typeof(BytePropertyBinding);
+        private static Type uint8PropertyBindingReturnType = typeof(Byte);
+
+        private PropertyBinding CreateBytePropertyBinding(PropertyDef propertyDef, Type thisType)
+        {
+            return GeneratePropertyBindingDefault(
+                propertyDef,
+                uint8PropertyBindingBaseType,
+                "DoGetByte",
+                uint8PropertyBindingReturnType,
+                thisType
+                );
+        }
+
+        private static Type uint16PropertyBindingBaseType = typeof(UInt16PropertyBinding);
+        private static Type uint16PropertyBindingReturnType = typeof(UInt16);
+
+        private PropertyBinding CreateUInt16PropertyBinding(PropertyDef propertyDef, Type thisType)
+        {
+            return GeneratePropertyBindingDefault(
+                propertyDef,
+                uint16PropertyBindingBaseType,
+                "DoGetUInt16",
+                uint16PropertyBindingReturnType,
+                thisType
+                );
+        }
+
+        private static Type uint32PropertyBindingBaseType = typeof(UInt32PropertyBinding);
+        private static Type uint32PropertyBindingReturnType = typeof(UInt32);
+
+        private PropertyBinding CreateUInt32PropertyBinding(PropertyDef propertyDef, Type thisType)
+        {
+            return GeneratePropertyBindingDefault(
+                propertyDef,
+                uint32PropertyBindingBaseType,
+                "DoGetUInt32",
+                uint32PropertyBindingReturnType,
+                thisType
+                );
+        }
+
+        private static Type uint64PropertyBindingBaseType = typeof(UInt64PropertyBinding);
+        private static Type uint64PropertyBindingReturnType = typeof(UInt64);
+
+        private PropertyBinding CreateUInt64PropertyBinding(PropertyDef propertyDef, Type thisType)
+        {
+            return GeneratePropertyBindingDefault(
+                propertyDef,
+                uint64PropertyBindingBaseType,
+                "DoGetUInt64",
+                uint64PropertyBindingReturnType,
                 thisType
                 );
         }
