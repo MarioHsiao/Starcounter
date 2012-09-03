@@ -233,7 +233,7 @@ namespace Starcounter.Binding
             // TODO: Handle nullable.
 
             propertyInfo = thisType.GetProperty(propertyDef.Name, BindingFlags.Public | BindingFlags.Instance);
-            // TODO: Verify property (exists, readable, correct return type etc.).
+            VerifyProperty(propertyInfo, returnType);
 
             propBindingTypeName = String.Concat(
                                       _assemblyName,
@@ -293,7 +293,7 @@ namespace Starcounter.Binding
             Type propBindingType;
 
             propertyInfo = thisType.GetProperty(propertyDef.Name, BindingFlags.Public | BindingFlags.Instance);
-            // TODO: Verify property (exists, readable, correct return type etc.).
+            VerifyProperty(propertyInfo, returnType);
 
             propBindingTypeName = String.Concat(
                                       _assemblyName,
@@ -339,6 +339,17 @@ namespace Starcounter.Binding
             ilGenerator.Emit(OpCodes.Callvirt, propertyInfo.GetGetMethod());
             ilGenerator.Emit(OpCodes.Ret);
             ilGenerator.EndScope();
+        }
+
+        private void VerifyProperty(PropertyInfo propertyInfo, Type returnType)
+        {
+            if (
+                propertyInfo != null &&
+                propertyInfo.CanRead &&
+                propertyInfo.PropertyType == returnType
+                )
+                return;
+            throw new Exception("VerifyProperty failed."); // TODO:
         }
     }
 }
