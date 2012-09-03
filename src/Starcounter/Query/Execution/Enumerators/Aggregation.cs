@@ -1,4 +1,5 @@
 using Starcounter;
+using Starcounter.Binding;
 using Starcounter.Query.Sql;
 using Starcounter.Query.Execution;
 using Sc.Server.Binding;

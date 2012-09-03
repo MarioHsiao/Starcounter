@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Sc.Server.Internal;
 using se.sics.prologbeans;
+using Starcounter.Binding;
 using Starcounter.Query.Execution;
 using Starcounter.Query.Sql;
 

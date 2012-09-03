@@ -1,9 +1,8 @@
 ﻿
 using Starcounter;
 using System;
-using Starcounter.Binding;
 
-namespace Starcounter
+namespace Starcounter.Binding
 {
 
     /// <summary>

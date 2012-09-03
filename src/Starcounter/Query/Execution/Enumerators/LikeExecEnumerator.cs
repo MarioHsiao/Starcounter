@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using Sc.Server.Internal;
+using Starcounter.Binding;
 using Starcounter.Internal;
 
 namespace Starcounter.Query.Execution
