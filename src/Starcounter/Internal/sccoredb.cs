@@ -570,6 +570,13 @@ namespace Starcounter.Internal
             String str2,
             out Int32 result
             );
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal unsafe extern static Boolean Mdb_OIDToETIEx(
+            UInt64 objID,
+            UInt64* pEtiPubl,
+            UInt16* pCodeClassIndex
+        );
     }
 
     [SuppressUnmanagedCodeSecurity]
