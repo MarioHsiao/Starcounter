@@ -1,5 +1,6 @@
 ﻿
 using Sc.Server.Internal;
+using Sc.Server.Binding;
 using Starcounter.Binding;
 
 namespace Starcounter
@@ -20,6 +21,8 @@ namespace Starcounter
     public abstract class Entity : DbObject, IObjectView
     {
 
+        private TypeBinding typeBinding_;
+
         public Entity(Sc.Server.Internal.Uninitialized u) { }
 
         public Entity(ulong typeAddr, Sc.Server.Binding.TypeBinding typeBinding, Sc.Server.Internal.Uninitialized u)
@@ -32,16 +35,18 @@ namespace Starcounter
             throw new System.NotImplementedException();
         }
 
-        internal void Attach(ObjectRef objectRef, Sc.Server.Binding.TypeBinding typeBinding)
+        internal void Attach(ObjectRef objectRef, TypeBinding typeBinding)
         {
             ThisRef.ETI = objectRef.ETI;
             ThisRef.ObjectID = objectRef.ObjectID;
+            typeBinding_ = typeBinding;
         }
 
-        internal void Attach(ulong addr, ulong oid, Sc.Server.Binding.TypeBinding typeBinding)
+        internal void Attach(ulong addr, ulong oid, TypeBinding typeBinding)
         {
             ThisRef.ETI = addr;
             ThisRef.ObjectID = oid;
+            typeBinding_ = typeBinding;
         }
 
         internal ushort TableId
@@ -49,94 +54,91 @@ namespace Starcounter
             get { throw new System.NotImplementedException(); }
         }
 
-        ITypeBinding IObjectView.TypeBinding
-        {
-            get { throw new System.NotImplementedException(); }
-        }
+        ITypeBinding IObjectView.TypeBinding { get { return typeBinding_; } }
 
         bool IObjectView.EqualsOrIsDerivedFrom(IObjectView obj)
         {
-            throw new System.NotImplementedException();
+            throw new System.NotSupportedException();
         }
 
         Binary? IObjectView.GetBinary(int index)
         {
-            throw new System.NotImplementedException();
+            return typeBinding_.GetPropertyBinding(index).GetBinary(this);
         }
 
         bool? IObjectView.GetBoolean(int index)
         {
-            throw new System.NotImplementedException();
+            return typeBinding_.GetPropertyBinding(index).GetBoolean(this);
         }
 
         byte? IObjectView.GetByte(int index)
         {
-            throw new System.NotImplementedException();
+            return typeBinding_.GetPropertyBinding(index).GetByte(this);
         }
 
         System.DateTime? IObjectView.GetDateTime(int index)
         {
-            throw new System.NotImplementedException();
+            return typeBinding_.GetPropertyBinding(index).GetDateTime(this);
         }
 
         decimal? IObjectView.GetDecimal(int index)
         {
-            throw new System.NotImplementedException();
+            return typeBinding_.GetPropertyBinding(index).GetDecimal(this);
         }
 
         double? IObjectView.GetDouble(int index)
         {
-            throw new System.NotImplementedException();
+            return typeBinding_.GetPropertyBinding(index).GetDouble(this);
         }
 
         short? IObjectView.GetInt16(int index)
         {
-            throw new System.NotImplementedException();
+            return typeBinding_.GetPropertyBinding(index).GetInt16(this);
         }
 
         int? IObjectView.GetInt32(int index)
         {
-            throw new System.NotImplementedException();
+            return typeBinding_.GetPropertyBinding(index).GetInt32(this);
         }
 
         long? IObjectView.GetInt64(int index)
         {
-            throw new System.NotImplementedException();
+            return typeBinding_.GetPropertyBinding(index).GetInt64(this);
         }
 
         IObjectView IObjectView.GetObject(int index)
         {
-            throw new System.NotImplementedException();
+            return typeBinding_.GetPropertyBinding(index).GetObject(this);
         }
 
         sbyte? IObjectView.GetSByte(int index)
         {
-            throw new System.NotImplementedException();
+            return typeBinding_.GetPropertyBinding(index).GetSByte(this);
         }
 
         float? IObjectView.GetSingle(int index)
         {
-            throw new System.NotImplementedException();
+            return typeBinding_.GetPropertyBinding(index).GetSingle(this);
         }
 
         string IObjectView.GetString(int index)
         {
-            throw new System.NotImplementedException();
+            return typeBinding_.GetPropertyBinding(index).GetString(this);
         }
 
         ushort? IObjectView.GetUInt16(int index)
         {
-            throw new System.NotImplementedException();
+            return typeBinding_.GetPropertyBinding(index).GetUInt16(this);
         }
 
         uint? IObjectView.GetUInt32(int index)
         {
-            throw new System.NotImplementedException();
+            return typeBinding_.GetPropertyBinding(index).GetUInt32(this);
         }
 
         ulong? IObjectView.GetUInt64(int index)
         {
-            throw new System.NotImplementedException();
+            return typeBinding_.GetPropertyBinding(index).GetUInt64(this);
         }
     }
 }

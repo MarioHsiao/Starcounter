@@ -20,6 +20,7 @@ namespace Sc.Server.Binding //namespace Starcounter.Binding
 
         internal TypeDef TypeDef;
 
+        private PropertyBinding[] propertyBindings_;
         private Dictionary<string, PropertyBinding> propertyBindingsByName_;
 
         private string name_;
@@ -47,6 +48,11 @@ namespace Sc.Server.Binding //namespace Starcounter.Binding
 
         internal ulong DefHandle { get { return TypeDef.TableDef.DefinitionAddr; } }
 
+        internal PropertyBinding GetPropertyBinding(int index)
+        {
+            return propertyBindings_[index];
+        }
+
         internal PropertyBinding GetPropertyBinding(string name)
         {
             PropertyBinding pb;
@@ -59,9 +65,16 @@ namespace Sc.Server.Binding //namespace Starcounter.Binding
             return TypeDef.TableDef.GetAllIndexInfos();
         }
 
-        internal void SetPropertyBindings(Dictionary<string, PropertyBinding> propertyBindingsByName)
+        internal void SetPropertyBindings(PropertyBinding[] propertyBindings)
         {
-            propertyBindingsByName_ = propertyBindingsByName;
+            propertyBindings_ = propertyBindings;
+
+            propertyBindingsByName_ = new Dictionary<string, PropertyBinding>(propertyBindings.Length);
+            for (int i = 0; i < propertyBindings.Length; i++)
+            {
+                PropertyBinding pb = propertyBindings[i];
+                propertyBindingsByName_.Add(pb.Name, pb);
+            }
         }
 
         IPropertyBinding ITypeBinding.GetPropertyBinding(string name)

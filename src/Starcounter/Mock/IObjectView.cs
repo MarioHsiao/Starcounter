@@ -27,7 +27,7 @@ namespace Starcounter
         /// True if the current object equals or is directly or indirectly
         /// derived from the specified object.
         /// </returns>
-        Boolean EqualsOrIsDerivedFrom(IObjectView obj); // TODO: Working name!
+        Boolean EqualsOrIsDerivedFrom(IObjectView obj); // TODO: Not supported!
 
         /// <summary>
         /// Gets the value of a Binary field.
