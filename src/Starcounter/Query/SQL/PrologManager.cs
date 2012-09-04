@@ -522,10 +522,10 @@ namespace Starcounter.Query.Sql
                         propBind = typeBind.PropertyDefs[i];
                         if (propBind.Type == DbTypeCode.Object)
                         {
-                            if (propBind.TargetTypeDef != null)
+                            if (propBind.TargetTypeName != null)
                             {
                                 streamWriter.WriteLine("property('" + typeBind.Name + "','" + propBind.Name.ToUpperInvariant() + "','" +
-                                    propBind.Name + "','" + propBind.TargetTypeDef.Name + "').");
+                                    propBind.Name + "','" + propBind.TargetTypeName + "').");
                             }
                             else
                             {

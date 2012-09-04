@@ -14,7 +14,7 @@ namespace Starcounter.Binding
         /// </summary>
         public int ColumnIndex;
 
-        public TypeDef TargetTypeDef;
+        public string TargetTypeName;
 
         public PropertyDef(string name, DbTypeCode type, bool isNullable, int columnIndex)
         {
