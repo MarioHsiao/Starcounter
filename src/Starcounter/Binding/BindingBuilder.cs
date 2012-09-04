@@ -12,13 +12,16 @@ namespace Starcounter.Binding
     internal sealed class BindingBuilder
     {
 
-        string _assemblyName;
-        AssemblyBuilder _assemblyBuilder;
-        ModuleBuilder _moduleBuilder;
+        private readonly TypeDef _typeDef;
+        private readonly string _assemblyName;
+        private readonly AssemblyBuilder _assemblyBuilder;
+        private readonly ModuleBuilder _moduleBuilder;
 
-        internal BindingBuilder()
+        internal BindingBuilder(TypeDef typeDef)
         {
-            _assemblyName = "kalle";
+            _typeDef = typeDef;
+
+            _assemblyName = string.Concat("gen.", typeDef.Name);
 
             string builderOutputDir = AppDomain.CurrentDomain.BaseDirectory;
             
@@ -30,15 +33,14 @@ namespace Starcounter.Binding
             _moduleBuilder = _assemblyBuilder.DefineDynamicModule(string.Concat(_assemblyName, ".dll"), string.Concat(_assemblyName, ".dll"));
         }
 
-        internal void BuildCompleted()
+        internal void WriteAssemblyToDisk()
         {
-#if true
             _assemblyBuilder.Save(String.Concat(_assemblyBuilder.GetName().Name, ".dll"));
-#endif
         }
 
-        internal TypeBinding CreateTypeBinding(TypeDef typeDef)
+        internal TypeBinding CreateTypeBinding()
         {
+            TypeDef typeDef;
             Type type;
             String typeBindingTypeName;
             TypeBuilder typeBuilder;
@@ -52,6 +54,7 @@ namespace Starcounter.Binding
             Type bindingBase;
             ConstructorInfo ctor;
 
+            typeDef = _typeDef;
             type = typeDef.TypeLoader.Load();
 
             typeBindingTypeName = String.Concat(
@@ -448,14 +451,18 @@ namespace Starcounter.Binding
         private PropertyBinding GeneratePropertyBindingDefault(PropertyDef propertyDef, Type bindingBaseType, String methodName, Type returnType, Type thisType)
         {
             PropertyInfo propertyInfo;
+            bool isNullable;
             String propBindingTypeName;
             TypeBuilder typeBuilder;
             Type propBindingType;
 
-            // TODO: Handle nullable.
-
             propertyInfo = thisType.GetProperty(propertyDef.Name, BindingFlags.Public | BindingFlags.Instance);
-            VerifyProperty(propertyInfo, returnType);
+
+            isNullable = propertyDef.IsNullable;
+
+            Type implReturnType = typeof(Nullable<>).MakeGenericType(returnType); // TODO: Constant!
+            Type targetReturnType = !isNullable ? returnType : implReturnType;
+            VerifyProperty(propertyInfo, targetReturnType);
 
             propBindingTypeName = String.Concat(
                                       _assemblyName,
@@ -470,20 +477,63 @@ namespace Starcounter.Binding
                               (TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.Sealed),
                               bindingBaseType
                           );
-            GeneratePropertyBindingDefault(typeBuilder, methodName, returnType, thisType, propertyInfo);
+            if (!isNullable)
+            {
+                GeneratePropertyBindingDefault(typeBuilder, methodName, implReturnType, targetReturnType, thisType, propertyInfo);
+            }
+            else
+            {
+                GeneratePropertyBindingDefaultNullable(typeBuilder, methodName, targetReturnType, thisType, propertyInfo);
+            }
             propBindingType = typeBuilder.CreateType();
             return (PropertyBinding)(propBindingType.GetConstructor(Type.EmptyTypes).Invoke(null));
         }
 
-        private void GeneratePropertyBindingDefault(TypeBuilder typeBuilder, String methodName, Type returnType, Type thisType, PropertyInfo propertyInfo)
+        private void GeneratePropertyBindingDefault(TypeBuilder typeBuilder, String methodName, Type implReturnType, Type targetReturnType, Type thisType, PropertyInfo propertyInfo)
         {
             MethodInfo methodInfo;
             MethodBuilder methodBuilder;
             ILGenerator ilGenerator;
             Type[] paramTypeArray;
-            paramTypeArray = new Type[2];
+
+            ConstructorInfo implReturnTypeCtor = implReturnType.GetConstructor(new Type[] { targetReturnType });
+
+            // TODO: Constant!
+            paramTypeArray = new Type[1];
             paramTypeArray[0] = typeof(Object);
-            paramTypeArray[1] = typeof(Boolean).MakeByRefType();
+            
+            methodInfo = typeof(PropertyBinding).GetMethod(
+                             methodName,
+                             (BindingFlags.Instance | BindingFlags.NonPublic)
+                         );
+            methodBuilder = typeBuilder.DefineMethod(
+                                methodName,
+                                (MethodAttributes.HideBySig | MethodAttributes.Final | MethodAttributes.NewSlot | MethodAttributes.Family | MethodAttributes.Virtual),
+                                implReturnType,
+                                paramTypeArray
+                            );
+            typeBuilder.DefineMethodOverride(methodBuilder, methodInfo);
+            ilGenerator = methodBuilder.GetILGenerator();
+            ilGenerator.BeginScope();
+            ilGenerator.Emit(OpCodes.Ldarg_1);
+            ilGenerator.Emit(OpCodes.Castclass, thisType);
+            ilGenerator.Emit(OpCodes.Callvirt, propertyInfo.GetGetMethod());
+            ilGenerator.Emit(OpCodes.Newobj, implReturnTypeCtor);
+            ilGenerator.Emit(OpCodes.Ret);
+            ilGenerator.EndScope();
+        }
+
+        private void GeneratePropertyBindingDefaultNullable(TypeBuilder typeBuilder, String methodName, Type returnType, Type thisType, PropertyInfo propertyInfo)
+        {
+            MethodInfo methodInfo;
+            MethodBuilder methodBuilder;
+            ILGenerator ilGenerator;
+            
+            // TODO: Constant!
+            Type[] paramTypeArray;
+            paramTypeArray = new Type[1];
+            paramTypeArray[0] = typeof(Object);
+
             methodInfo = typeof(PropertyBinding).GetMethod(
                              methodName,
                              (BindingFlags.Instance | BindingFlags.NonPublic)
@@ -497,9 +547,6 @@ namespace Starcounter.Binding
             typeBuilder.DefineMethodOverride(methodBuilder, methodInfo);
             ilGenerator = methodBuilder.GetILGenerator();
             ilGenerator.BeginScope();
-            ilGenerator.Emit(OpCodes.Ldarg_2);
-            ilGenerator.Emit(OpCodes.Ldc_I4_0);
-            ilGenerator.Emit(OpCodes.Stind_I1);
             ilGenerator.Emit(OpCodes.Ldarg_1);
             ilGenerator.Emit(OpCodes.Castclass, thisType);
             ilGenerator.Emit(OpCodes.Callvirt, propertyInfo.GetGetMethod());

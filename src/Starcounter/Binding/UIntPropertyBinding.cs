@@ -15,22 +15,24 @@ namespace Starcounter.Binding
             throw ExceptionForInvalidType();
         }
 
-        protected override sealed Boolean DoGetBoolean(object obj, out Boolean isNull)
+        protected override sealed Boolean? DoGetBoolean(object obj)
         {
             throw ExceptionForInvalidType();
         }
 
-        protected override sealed DateTime DoGetDateTime(object obj, out Boolean isNull)
+        protected override sealed DateTime? DoGetDateTime(object obj)
         {
             throw ExceptionForInvalidType();
         }
 
-        protected override sealed Decimal DoGetDecimal(object obj, out Boolean isNull)
+        protected override sealed Decimal? DoGetDecimal(object obj)
         {
-            return new Decimal(DoGetUInt64(obj, out isNull));
+            UInt64? value;
+            value = DoGetUInt64(obj);
+            return value.HasValue ? new Decimal?(value.Value) : null;
         }
 
-        protected override sealed Double DoGetDouble(object obj, out Boolean isNull)
+        protected override sealed Double? DoGetDouble(object obj)
         {
             throw ExceptionForInvalidType();
         }
@@ -40,26 +42,21 @@ namespace Starcounter.Binding
             throw ExceptionForInvalidType();
         }
 
-        protected override sealed SByte DoGetSByte(object obj, out Boolean isNull)
+        protected override sealed SByte? DoGetSByte(object obj)
         {
             throw ExceptionForInvalidType();
         }
 
-        protected override sealed Single DoGetSingle(object obj, out Boolean isNull)
+        protected override sealed Single? DoGetSingle(object obj)
         {
             throw ExceptionForInvalidType();
         }
 
         protected override sealed String DoGetString(object obj)
         {
-            UInt64 value;
-            Boolean isNull;
-            value = DoGetUInt64(obj, out isNull);
-            if (isNull)
-            {
-                return null;
-            }
-            return value.ToString();
+            UInt64? value;
+            value = DoGetUInt64(obj);
+            return value.HasValue ? value.Value.ToString() : null;
         }
 
         internal Exception ExceptionForInvalidType()
