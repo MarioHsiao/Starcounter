@@ -126,18 +126,23 @@ namespace Starcounter.Binding
                 switch (propertyDef.Type)
                 {
                 case DbTypeCode.Boolean:
-                    throw new NotImplementedException();
+                    propertyBinding = CreateBooleanPropertyBinding(propertyDef, type);
+                    break;
                 case DbTypeCode.Byte:
                     propertyBinding = CreateBytePropertyBinding(propertyDef, type);
                     break;
                 case DbTypeCode.DateTime:
-                    throw new NotImplementedException();
+                    propertyBinding = CreateDateTimePropertyBinding(propertyDef, type);
+                    break;
                 case DbTypeCode.Decimal:
-                    throw new NotImplementedException();
+                    propertyBinding = CreateDecimalPropertyBinding(propertyDef, type);
+                    break;
                 case DbTypeCode.Single:
-                    throw new NotImplementedException();
+                    propertyBinding = CreateSinglePropertyBinding(propertyDef, type);
+                    break;
                 case DbTypeCode.Double:
-                    throw new NotImplementedException();
+                    propertyBinding = CreateDoublePropertyBinding(propertyDef, type);
+                    break;
                 case DbTypeCode.Int64:
                     propertyBinding = CreateInt64PropertyBinding(propertyDef, type);
                     break;
@@ -148,7 +153,8 @@ namespace Starcounter.Binding
                     propertyBinding = CreateInt16PropertyBinding(propertyDef, type);
                     break;
                 case DbTypeCode.Object:
-                    throw new NotImplementedException();
+                    propertyBinding = CreateObjectPropertyBinding(propertyDef, type);
+                    break;
                 case DbTypeCode.SByte:
                     propertyBinding = CreateSBytePropertyBinding(propertyDef, type);
                     break;
@@ -165,9 +171,11 @@ namespace Starcounter.Binding
                     propertyBinding = CreateUInt16PropertyBinding(propertyDef, type);
                     break;
                 case DbTypeCode.Binary:
-                    throw new NotImplementedException();
+                    propertyBinding = CreateBinaryPropertyBinding(propertyDef, type);
+                    break;
                 case DbTypeCode.LargeBinary:
-                    throw new NotImplementedException();
+                    propertyBinding = CreateLargeBinaryPropertyBinding(propertyDef, type);
+                    break;
                 default:
                     throw new NotSupportedException();
                 }
@@ -180,6 +188,112 @@ namespace Starcounter.Binding
             }
 
             typeBinding.SetPropertyBindings(propertyBindingsByName);
+        }
+
+        private static Type boolPropertyBindingBaseType = typeof(BooleanPropertyBinding);
+        private static Type boolPropertyBindingReturnType = typeof(Boolean);
+
+        private PropertyBinding CreateBooleanPropertyBinding(PropertyDef propertyDef, Type thisType)
+        {
+            return GeneratePropertyBindingDefault(
+                propertyDef,
+                boolPropertyBindingBaseType,
+                "DoGetBoolean",
+                boolPropertyBindingReturnType,
+                thisType
+                );
+        }
+
+        private static Type datetimePropertyBindingBaseType = typeof(DateTimePropertyBinding);
+        private static Type datetimePropertyBindingReturnType = typeof(DateTime);
+
+        private PropertyBinding CreateDateTimePropertyBinding(PropertyDef propertyDef, Type thisType)
+        {
+            return GeneratePropertyBindingDefault(
+                propertyDef,
+                datetimePropertyBindingBaseType,
+                "DoGetDateTime",
+                datetimePropertyBindingReturnType,
+                thisType
+                );
+        }
+
+        private static Type decimalPropertyBindingBaseType = typeof(DecimalPropertyBinding);
+        private static Type decimalPropertyBindingReturnType = typeof(Decimal);
+
+        private PropertyBinding CreateDecimalPropertyBinding(PropertyDef propertyDef, Type thisType)
+        {
+            return GeneratePropertyBindingDefault(
+                propertyDef,
+                decimalPropertyBindingBaseType,
+                "DoDecimalTime",
+                decimalPropertyBindingReturnType,
+                thisType
+                );
+        }
+
+        private static Type doublePropertyBindingBaseType = typeof(DoublePropertyBinding);
+        private static Type doublePropertyBindingReturnType = typeof(Double);
+
+        private PropertyBinding CreateDoublePropertyBinding(PropertyDef propertyDef, Type thisType)
+        {
+            return GeneratePropertyBindingDefault(
+                propertyDef,
+                decimalPropertyBindingBaseType,
+                "DoDoubleTime",
+                decimalPropertyBindingReturnType,
+                thisType
+                );
+        }
+
+        private static Type singlePropertyBindingBaseType = typeof(SinglePropertyBinding);
+        private static Type singlePropertyBindingReturnType = typeof(Single);
+
+        private PropertyBinding CreateSinglePropertyBinding(PropertyDef propertyDef, Type thisType)
+        {
+            return GeneratePropertyBindingDefault(
+                propertyDef,
+                singlePropertyBindingBaseType,
+                "DoSingleTime",
+                singlePropertyBindingReturnType,
+                thisType
+                );
+        }
+
+        private static Type objectPropertyBindingBaseType = typeof(ObjectPropertyBinding);
+        private static Type objectPropertyBindingReturnType = typeof(Entity);
+
+        private PropertyBinding CreateObjectPropertyBinding(PropertyDef propertyDef, Type thisType)
+        {
+            PropertyInfo propertyInfo;
+            String propBindingTypeName;
+            TypeBuilder typeBuilder;
+            Type propBindingType;
+            ObjectPropertyBinding propertyBinding;
+
+            propertyInfo = thisType.GetProperty(propertyDef.Name, BindingFlags.Public | BindingFlags.Instance);
+            VerifyObjectProperty(propertyInfo);
+
+            propBindingTypeName = String.Concat(
+                                      _assemblyName,
+                                      ".",
+                                      thisType.FullName,
+                                      "_",
+                                      propertyInfo.Name,
+                                      "_Binding"
+                                  );
+            typeBuilder = _moduleBuilder.DefineType(
+                              propBindingTypeName,
+                              (TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.Sealed),
+                              objectPropertyBindingBaseType
+                          );
+            GeneratePropertyBindingNoNullOut(typeBuilder, "DoGetObject", objectPropertyBindingReturnType, thisType, propertyInfo);
+            propBindingType = typeBuilder.CreateType();
+            propertyBinding = (ObjectPropertyBinding)(propBindingType.GetConstructor(Type.EmptyTypes).Invoke(null));
+
+            propertyBinding.SetTargetTypeName(propertyDef.TargetTypeName);
+
+            return propertyBinding;
         }
 
         private static Type int8PropertyBindingBaseType = typeof(SBytePropertyBinding);
@@ -308,6 +422,29 @@ namespace Starcounter.Binding
                 );
         }
 
+        private static Type binaryPropertyBindingBaseType = typeof(BinaryPropertyBinding);
+        private static Type binaryPropertyBindingReturnType = typeof(Binary);
+
+        private PropertyBinding CreateBinaryPropertyBinding(PropertyDef propertyDef, Type thisType)
+        {
+            return GeneratePropertyBindingNoNullOut(
+                propertyDef,
+                binaryPropertyBindingBaseType,
+                "DoGetBinary",
+                binaryPropertyBindingReturnType,
+                thisType
+                );
+        }
+
+        private static Type largebinaryPropertyBindingReturnType = typeof(LargeBinary);
+
+        private PropertyBinding CreateLargeBinaryPropertyBinding(PropertyDef propertyDef, Type thisType)
+        {
+            PropertyInfo propertyInfo = thisType.GetProperty(propertyDef.Name, BindingFlags.Public | BindingFlags.Instance);
+            VerifyProperty(propertyInfo, largebinaryPropertyBindingReturnType);
+            return new LargeBinaryPropertyBinding();
+        }
+
         private PropertyBinding GeneratePropertyBindingDefault(PropertyDef propertyDef, Type bindingBaseType, String methodName, Type returnType, Type thisType)
         {
             PropertyInfo propertyInfo;
@@ -432,6 +569,17 @@ namespace Starcounter.Binding
                 propertyInfo != null &&
                 propertyInfo.CanRead &&
                 propertyInfo.PropertyType == returnType
+                )
+                return;
+            throw new Exception("VerifyProperty failed."); // TODO:
+        }
+
+        private void VerifyObjectProperty(PropertyInfo propertyInfo)
+        {
+            if (
+                propertyInfo != null &&
+                propertyInfo.CanRead &&
+                objectPropertyBindingReturnType.IsAssignableFrom(propertyInfo.PropertyType)
                 )
                 return;
             throw new Exception("VerifyProperty failed."); // TODO:

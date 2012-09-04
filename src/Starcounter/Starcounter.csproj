@@ -43,11 +43,20 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Binary.cs" />
+    <Compile Include="Binding\BinaryPropertyBinding.cs" />
     <Compile Include="Binding\BindingBuilder.cs" />
+    <Compile Include="Binding\BooleanPropertyBinding.cs" />
     <Compile Include="Binding\ColumnDef.cs" />
     <Compile Include="Binding\Bindings.cs" />
     <Compile Include="Binding\BindingHelper.cs" />
     <Compile Include="Binding\BytePropertyBinding.cs" />
+    <Compile Include="Binding\LargeBinaryPropertyBinding.cs" />
+    <Compile Include="Binding\ObjectPropertyBinding.cs" />
+    <Compile Include="Binding\SinglePropertyBinding.cs" />
+    <Compile Include="Binding\DateTimePropertyBinding.cs" />
+    <Compile Include="Binding\DecimalPropertyBinding.cs" />
+    <Compile Include="Binding\DoublePropertyBinding.cs" />
+    <Compile Include="Binding\RealPropertyBinding.cs" />
     <Compile Include="Binding\UInt16PropertyBinding.cs" />
     <Compile Include="Binding\UInt32PropertyBinding.cs" />
     <Compile Include="Binding\UInt64PropertyBinding.cs" />
