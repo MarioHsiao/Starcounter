@@ -31,7 +31,7 @@ namespace Starcounter.Binding
         /// A type binding. Null if the target is a literal, only set if a
         /// reference property.
         /// </returns>
-        ITypeBinding TypeBinding { get; }
+        ITypeBinding TypeBinding { get; } // TODO: Rename: TargetTypeBinding
 
         /// <summary>
         /// Property value type code.
