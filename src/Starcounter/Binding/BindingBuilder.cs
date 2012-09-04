@@ -2,7 +2,6 @@
 using Sc.Server.Binding;
 using Sc.Server.Internal;
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -119,7 +118,7 @@ namespace Starcounter.Binding
         {
             PropertyDef[] propertyDefs = typeBinding.TypeDef.PropertyDefs;
 
-            Dictionary<string, PropertyBinding> propertyBindingsByName = new Dictionary<string, PropertyBinding>(propertyDefs.Length);
+            PropertyBinding[] propertyBindings = new PropertyBinding[propertyDefs.Length];
             
             for (int i = 0; i < propertyDefs.Length; i++)
             {
@@ -187,10 +186,10 @@ namespace Starcounter.Binding
                 propertyBinding.SetIndex(i);
                 propertyBinding.SetName(propertyDef.Name);
 
-                propertyBindingsByName.Add(propertyDef.Name, propertyBinding);
+                propertyBindings[i] = propertyBinding;
             }
 
-            typeBinding.SetPropertyBindings(propertyBindingsByName);
+            typeBinding.SetPropertyBindings(propertyBindings);
         }
 
         private static Type boolPropertyBindingBaseType = typeof(BooleanPropertyBinding);
