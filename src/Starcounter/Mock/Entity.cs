@@ -49,10 +49,7 @@ namespace Starcounter
             typeBinding_ = typeBinding;
         }
 
-        internal ushort TableId
-        {
-            get { throw new System.NotImplementedException(); }
-        }
+        internal ushort TableId { get { return typeBinding_.TableId; } }
 
         ITypeBinding IObjectView.TypeBinding { get { return typeBinding_; } }
 

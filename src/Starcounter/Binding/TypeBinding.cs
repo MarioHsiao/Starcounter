@@ -27,6 +27,10 @@ namespace Sc.Server.Binding //namespace Starcounter.Binding
 
         public string Name { get { return name_; } internal set { name_ = value; } }
 
+        private ushort tableId_;
+
+        public ushort TableId { get { return tableId_; } internal set { tableId_ = value; } }
+
         protected abstract Entity NewUninitializedInst();
 
         internal Entity NewInstanceUninit()
