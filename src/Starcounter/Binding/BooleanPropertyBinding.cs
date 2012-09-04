@@ -15,37 +15,37 @@ namespace Starcounter.Binding
             throw ExceptionForInvalidType();
         }
 
-        protected override sealed Byte DoGetByte(object obj, out Boolean isNull)
+        protected override sealed Byte? DoGetByte(object obj)
         {
             throw ExceptionForInvalidType();
         }
 
-        protected override sealed DateTime DoGetDateTime(object obj, out Boolean isNull)
+        protected override sealed DateTime? DoGetDateTime(object obj)
         {
             throw ExceptionForInvalidType();
         }
 
-        protected override sealed Decimal DoGetDecimal(object obj, out Boolean isNull)
+        protected override sealed Decimal? DoGetDecimal(object obj)
         {
             throw ExceptionForInvalidType();
         }
 
-        protected override sealed Double DoGetDouble(object obj, out Boolean isNull)
+        protected override sealed Double? DoGetDouble(object obj)
         {
             throw ExceptionForInvalidType();
         }
 
-        protected override sealed Int16 DoGetInt16(object obj, out Boolean isNull)
+        protected override sealed Int16? DoGetInt16(object obj)
         {
             throw ExceptionForInvalidType();
         }
 
-        protected override sealed Int32 DoGetInt32(object obj, out Boolean isNull)
+        protected override sealed Int32? DoGetInt32(object obj)
         {
             throw ExceptionForInvalidType();
         }
 
-        protected override sealed Int64 DoGetInt64(object obj, out Boolean isNull)
+        protected override sealed Int64? DoGetInt64(object obj)
         {
             throw ExceptionForInvalidType();
         }
@@ -55,39 +55,34 @@ namespace Starcounter.Binding
             throw ExceptionForInvalidType();
         }
 
-        protected override sealed SByte DoGetSByte(object obj, out Boolean isNull)
+        protected override sealed SByte? DoGetSByte(object obj)
         {
             throw ExceptionForInvalidType();
         }
 
-        protected override sealed Single DoGetSingle(object obj, out Boolean isNull)
+        protected override sealed Single? DoGetSingle(object obj)
         {
             throw ExceptionForInvalidType();
         }
 
         protected override sealed String DoGetString(object obj)
         {
-            Boolean value;
-            Boolean isNull;
-            value = DoGetBoolean(obj, out isNull);
-            if (isNull)
-            {
-                return null;
-            }
-            return value.ToString();
+            Boolean? value;
+            value = DoGetBoolean(obj);
+            return value.HasValue ? value.Value.ToString() : null;
         }
 
-        protected override sealed UInt16 DoGetUInt16(object obj, out Boolean isNull)
+        protected override sealed UInt16? DoGetUInt16(object obj)
         {
             throw ExceptionForInvalidType();
         }
 
-        protected override sealed UInt32 DoGetUInt32(object obj, out Boolean isNull)
+        protected override sealed UInt32? DoGetUInt32(object obj)
         {
             throw ExceptionForInvalidType();
         }
 
-        protected override sealed UInt64 DoGetUInt64(object obj, out Boolean isNull)
+        protected override sealed UInt64? DoGetUInt64(object obj)
         {
             throw ExceptionForInvalidType();
         }

@@ -9,9 +9,9 @@ namespace Starcounter.Binding
 
         public override sealed DbTypeCode TypeCode { get { return DbTypeCode.Single; } }
 
-        protected override sealed Double DoGetDouble(object obj, out Boolean isNull)
+        protected override sealed Double? DoGetDouble(object obj)
         {
-            return DoGetSingle(obj, out isNull);
+            return DoGetSingle(obj);
         }
     }
 }

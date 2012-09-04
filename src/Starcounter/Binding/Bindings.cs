@@ -22,7 +22,7 @@ namespace Starcounter.Binding
             typeDefsByName_.Add(typeDef.Name, typeDef);
 
             TableDef tableDef = typeDef.TableDef;
-            while (typeBindingsById_.Count <= tableDef.TableId) typeBindingsById_.Add(null); // TODO:
+            while (typeDefsById_.Count <= tableDef.TableId) typeDefsById_.Add(null); // TODO:
             typeDefsById_.Insert(tableDef.TableId, typeDef);
         }
 
@@ -92,9 +92,12 @@ namespace Starcounter.Binding
         {
             if (typeDef == null) return null; // TODO: Type not loaded. Detect by way of exception.
 
-            BindingBuilder builder = new BindingBuilder();
-            TypeBinding tb = builder.CreateTypeBinding(typeDef);
-            builder.BuildCompleted();
+            BindingBuilder builder = new BindingBuilder(typeDef);
+            TypeBinding tb = builder.CreateTypeBinding();
+#if false
+            builder.WriteAssemblyToDisk();
+#endif
+
             AddTypeBinding(tb);
             return tb;
         }
