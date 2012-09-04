@@ -5,7 +5,6 @@ using System.Text;
 // TODO:
 using Sc.Server.Binding;
 using System;
-using System.Collections.Generic;
 using Starcounter.Query.Execution;
 
 
@@ -36,20 +35,18 @@ namespace Starcounter.Binding
             ColumnDefs = columnsDefs;
         }
 
-        // TODO: Work with index definitions (IndexDef).
         internal IndexInfo[] GetAllIndexInfos()
         {
             UInt32 ec;
             UInt32 ic;
             sccoredb.SC_INDEX_INFO[] iis;
-            List<IndexInfo> iil;
+            IndexInfo[] iil;
             Int32 i;
             String name;
             Int16 attributeCount;
             UInt16 tempSortMask;
             SortOrder[] sortOrderings;
             ColumnDef[] columnDefs;
-            Boolean nonBelongingPropertyBinding;
 
             unsafe
             {
@@ -85,23 +82,10 @@ namespace Starcounter.Binding
                     throw ErrorCode.ToException(ec);
                 }
 
-                iil = new List<IndexInfo>((Int32)ic);
+                iil = new IndexInfo[ic];
 
                 for (i = 0; i < ic; i++)
                 {
-                    // Filter combined indexes, this binding only handles
-                    // simple indexes.
-                    //if (iis[i].attrIndexArr_1 != -1) continue;
-                    //pb = GetPropertyBindingByDataIndex(iis[i].attrIndexArr_0);
-                    // Check that the index is attached to the bound type and
-                    // not an exstension or the extended type.
-                    //if (pb._belongsTo != this) continue;
-                    // If reference index we can't query on defined values, so
-                    // we declare the index as containing only defined values.
-                    //it = IndexType.Plain;
-                    //if (pb.TypeCode == DbTypeCode.Object)
-                    //    it = IndexType.Plain_OnlyDefined;
-                    // ***
                     name = new String(iis[i].name);
                     // Get the number of attributes.
                     attributeCount = iis[i].attributeCount;
@@ -124,10 +108,8 @@ namespace Starcounter.Binding
                         }
                         tempSortMask = (UInt16)(tempSortMask >> 1);
                     }
-                    // TODO: Check it is okay to use attributeCount instead of termination by value -1.
-                    // Get the property bindings.
+                    // Get the column definitions.
                     columnDefs = new ColumnDef[attributeCount];
-                    nonBelongingPropertyBinding = false;
                     for (Int32 j = 0; j < attributeCount; j++)
                     {
                         switch (j)
@@ -166,21 +148,11 @@ namespace Starcounter.Binding
                                 columnDefs[j] = ColumnDefs[iis[i].attrIndexArr_10];
                                 break;
                         }
-#if false // TODO:
-                        if (propertyBindings[j]._belongsTo != this)
-                        {
-                            nonBelongingPropertyBinding = true;
-                            break;
-                        }
-#endif
                     }
-                    if (!nonBelongingPropertyBinding)
-                    {
-                        iil.Add(new IndexInfo(iis[i].handle, name, columnDefs, sortOrderings));
-                    }
+                    iil[i] = new IndexInfo(iis[i].handle, name, columnDefs, sortOrderings);
                 }
 
-                return iil.ToArray();
+                return iil;
             }
         }
     }

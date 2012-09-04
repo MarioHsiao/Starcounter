@@ -11,26 +11,17 @@ namespace Sc.Server.Binding
     {
         private UInt64 _handle;
         private String _name;
-        //private IndexType _indexType;
         private ColumnDef[] _columnDefs;
         private SortOrder[] _sortOrderings;
 
-        //internal IndexInfo(Int64 handle, IndexType indexType, TypeOrExtensionBinding typeBinding, PropertyBinding propertyBinding)
-        //    : base()
-        //{
-        //    _handle = handle;
-        //    _indexType = indexType;
-        //    _typeBinding = typeBinding;
-        //    _propertyBinding = propertyBinding;
-        //}
-
-        // New constructor to support combined indexes.
         internal IndexInfo(UInt64 handle, String name, ColumnDef[] columnDefs, SortOrder[] sortOrderings)
         {
+#if false
             if (columnDefs.Length != sortOrderings.Length)
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incompatible propertyBindings and sortOrderings.");
             }
+#endif
             _handle = handle;
             _name = name;
             _columnDefs = columnDefs;
