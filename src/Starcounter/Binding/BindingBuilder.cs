@@ -110,36 +110,33 @@ namespace Starcounter.Binding
             typeBinding.TableId = typeDef.TableDef.TableId;
             typeBinding.TypeDef = typeDef;
 
-            SetTypeBindingFlags(typeBinding, null, type);
+            SetTypeBindingFlags(typeBinding, type);
 
             BuildPropertyBindingList(typeBinding, type);
 
             return typeBinding;
         }
 
-        private void SetTypeBindingFlags(TypeBinding binding, TypeBinding baseBinding, Type type)
+        private static Type entityType = typeof(Entity);
+
+        private void SetTypeBindingFlags(TypeBinding binding, Type type)
         {
-            TypeBindingFlags baseBindingFlags;
-            TypeBindingFlags bindingFlags;
-            MethodInfo callbackMethod;
+            TypeBindingFlags bindingFlags = 0;
 
-            baseBindingFlags = 0;
-            if (baseBinding != null)
+            while (type != entityType)
             {
-                baseBindingFlags = baseBinding.Flags;
-            }
-
-            bindingFlags = baseBindingFlags;
-
-            if ((bindingFlags & TypeBindingFlags.Callback_OnDelete) == 0)
-            {
-                callbackMethod = type.GetMethod(
+                MethodInfo callbackMethod = type.GetMethod(
                                      "OnDelete",
                                      (BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.NonPublic)
                                  );
-                if (callbackMethod != null)
+                if (callbackMethod == null)
+                {
+                    type = type.BaseType;
+                }
+                else
                 {
                     bindingFlags |= TypeBindingFlags.Callback_OnDelete;
+                    break;
                 }
             }
 
