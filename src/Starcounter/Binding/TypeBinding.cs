@@ -23,8 +23,6 @@ namespace Sc.Server.Binding //namespace Starcounter.Binding
     public abstract class TypeBinding : ITypeBinding
     {
 
-        public TypeBinding Base; // TODO:
-
         internal TypeBindingFlags Flags;
 
         internal TypeDef TypeDef;
