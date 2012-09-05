@@ -1,7 +1,9 @@
 ﻿
-using Sc.Server.Internal;
 using Sc.Server.Binding;
+using Sc.Server.Internal;
 using Starcounter.Binding;
+using Starcounter.Internal;
+using System;
 
 namespace Starcounter
 {
@@ -86,7 +88,49 @@ namespace Starcounter
 
         public void Delete()
         {
-            throw new System.NotImplementedException();
+            int br;
+            uint e;
+            ObjectRef thisRef = ThisRef;
+            // Issue the delete
+            br = sccoredb.Mdb_ObjectIssueDelete(thisRef.ObjectID, thisRef.ETI);
+            if (br == 0)
+            {
+                // If the error is because the delete already was issued then
+                // we ignore it and just return. We are processing the delete
+                // of this object so it will be deleted eventually.
+                e = sccoredb.Mdb_GetLastError();
+                if (e == Error.SCERRDELETEPENDING)
+                {
+                    return;
+                }
+                throw ErrorCode.ToException(e);
+            }
+            // Invoke all callbacks. If any of theese throws an exception then
+            // we rollback the issued delete and pass on the thrown exception
+            // to the caller.
+            try
+            {
+                InvokeOnDelete();
+            }
+            catch (Exception ex)
+            {
+                // We can't generate an exception from an error in this
+                // function since this will hide the original error.
+                //
+                // We can handle any error that can occur except for a fatal
+                // error (and this will kill the process) and that the thread
+                // has been detached (shouldn't occur). The most important
+                // thing is that the transaction lock set when the delete was
+                // issued is released and this will be the case as long as none
+                // of the above errors occur.
+                sccoredb.Mdb_ObjectDelete(thisRef.ObjectID, thisRef.ETI, 0);
+                if (ex is System.Threading.ThreadAbortException) throw;
+                throw ErrorCode.ToException(Error.SCERRERRORINHOOKCALLBACK, ex);
+            }
+            // Commit the delete.
+            br = sccoredb.Mdb_ObjectDelete(thisRef.ObjectID, thisRef.ETI, 1);
+            if (br != 0) return;
+            throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
         /// <summary>
@@ -136,6 +180,30 @@ namespace Starcounter
             return string.Format("{0}({1})", GetType().Name, ThisRef.ObjectID.ToString());
         }
 
+        /// <summary>
+        /// Called when a delete is issued.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// For better performance; this method isn't called if not overridden
+        /// in a base class.
+        /// </para>
+        /// <para>
+        /// The transaction is locked on the thread during the call to this
+        /// method (as long as called from Delete that is). Implementation is
+        /// not allowed to change the current transaction or modify the state
+        /// of the current transaction (like committing or rolling back the
+        /// transaction). If the state of the transaction is changed by another
+        /// thread the delete operation will be aborted.
+        /// </para>
+        /// </remarks>
+        protected internal virtual void OnDelete()
+        {
+            // Note that this method isn't called unless overriden in a base
+            // class and that override calls the base implementation. No use
+            // putting any code here in other words.
+        }
+
         internal void Attach(ObjectRef objectRef, TypeBinding typeBinding)
         {
             ThisRef.ETI = objectRef.ETI;
@@ -151,6 +219,15 @@ namespace Starcounter
         }
 
         internal ushort TableId { get { return typeBinding_.TableId; } }
+
+        private void InvokeOnDelete()
+        {
+            TypeBindingFlags typeBindingFlags = typeBinding_.Flags;
+            if ((typeBindingFlags & TypeBindingFlags.Callback_OnDelete) != 0)
+            {
+                OnDelete();
+            }
+        }
 
         ITypeBinding IObjectView.TypeBinding { get { return typeBinding_; } }
 

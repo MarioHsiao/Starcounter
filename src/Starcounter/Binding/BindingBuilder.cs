@@ -110,10 +110,42 @@ namespace Starcounter.Binding
             typeBinding.TableId = typeDef.TableDef.TableId;
             typeBinding.TypeDef = typeDef;
 
+            SetTypeBindingFlags(typeBinding, null, type);
+
             BuildPropertyBindingList(typeBinding, type);
 
             return typeBinding;
         }
+
+        private void SetTypeBindingFlags(TypeBinding binding, TypeBinding baseBinding, Type type)
+        {
+            TypeBindingFlags baseBindingFlags;
+            TypeBindingFlags bindingFlags;
+            MethodInfo callbackMethod;
+
+            baseBindingFlags = 0;
+            if (baseBinding != null)
+            {
+                baseBindingFlags = baseBinding.Flags;
+            }
+
+            bindingFlags = baseBindingFlags;
+
+            if ((bindingFlags & TypeBindingFlags.Callback_OnDelete) == 0)
+            {
+                callbackMethod = type.GetMethod(
+                                     "OnDelete",
+                                     (BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.NonPublic)
+                                 );
+                if (callbackMethod != null)
+                {
+                    bindingFlags |= TypeBindingFlags.Callback_OnDelete;
+                }
+            }
+
+            binding.Flags = bindingFlags;
+        }
+
 
         private void BuildPropertyBindingList(TypeBinding typeBinding, Type type)
         {

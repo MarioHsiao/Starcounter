@@ -13,10 +13,19 @@ using System.Reflection;
 namespace Sc.Server.Binding //namespace Starcounter.Binding
 {
 
+    [Flags]
+    internal enum TypeBindingFlags
+    {
+
+        Callback_OnDelete
+    }
+    
     public abstract class TypeBinding : ITypeBinding
     {
 
         public TypeBinding Base; // TODO:
+
+        internal TypeBindingFlags Flags;
 
         internal TypeDef TypeDef;
 

@@ -577,6 +577,19 @@ namespace Starcounter.Internal
             UInt64* pEtiPubl,
             UInt16* pCodeClassIndex
         );
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal extern static int Mdb_ObjectIssueDelete(
+            UInt64 objectOID,
+            UInt64 objectETI
+        );
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal extern static int Mdb_ObjectDelete(
+            UInt64 objectOID,
+            UInt64 objectETI,
+            int execute
+        );
     }
 
     [SuppressUnmanagedCodeSecurity]
