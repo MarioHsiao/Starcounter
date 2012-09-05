@@ -28,25 +28,40 @@ namespace Starcounter
                         if (b != 0)
                         {
                             ushort tableId = definitionInfo.TableID;
-                            ColumnDef[] columns = new ColumnDef[definitionInfo.NumAttributes];
-                            for (ushort i = 0; i < columns.Length; i++)
+                            int columnCount = definitionInfo.NumAttributes;
+                            string baseName = null;
+
+                            if (definitionInfo.ETIBasedOn != sccoredb.INVALID_DEFINITION_ADDR)
                             {
-                                sccoredb.Mdb_AttributeInfo attributeInfo;
-                                b = sccoredb.Mdb_DefinitionAttributeIndexToInfo(definition_addr, i, out attributeInfo);
+                                b = sccoredb.Mdb_DefinitionToDefinitionInfo(definitionInfo.ETIBasedOn, out definitionInfo);
                                 if (b != 0)
                                 {
-                                    columns[i] = new ColumnDef(
-                                        new string(attributeInfo.PtrName),
-                                        BindingHelper.ConvertScTypeCodeToDbTypeCode(attributeInfo.Type),
-                                        (attributeInfo.Flags & sccoredb.MDB_ATTRFLAG_NULLABLE) != 0
-                                        );
-                                }
-                                else
-                                {
-                                    throw sccoreerr.TranslateErrorCode(sccoredb.Mdb_GetLastError());
+                                    baseName = new String(definitionInfo.PtrCodeClassName);
                                 }
                             }
-                            return new TableDef(name, tableId, definition_addr, columns);
+
+                            if (b != 0)
+                            {
+                                ColumnDef[] columns = new ColumnDef[columnCount];
+                                for (ushort i = 0; i < columns.Length; i++)
+                                {
+                                    sccoredb.Mdb_AttributeInfo attributeInfo;
+                                    b = sccoredb.Mdb_DefinitionAttributeIndexToInfo(definition_addr, i, out attributeInfo);
+                                    if (b != 0)
+                                    {
+                                        columns[i] = new ColumnDef(
+                                            new string(attributeInfo.PtrName),
+                                            BindingHelper.ConvertScTypeCodeToDbTypeCode(attributeInfo.Type),
+                                            (attributeInfo.Flags & sccoredb.MDB_ATTRFLAG_NULLABLE) != 0
+                                            );
+                                    }
+                                    else
+                                    {
+                                        throw sccoreerr.TranslateErrorCode(sccoredb.Mdb_GetLastError());
+                                    }
+                                }
+                                return new TableDef(name, baseName, columns, tableId, definition_addr);
+                            }
                         }
                     }
                     else
@@ -60,23 +75,40 @@ namespace Starcounter
 
         public static void CreateTable(TableDef tableDef)
         {
+            CreateTable(tableDef, null);
+        }
+
+        public static void CreateTable(TableDef tableDef, TableDef inheritedTableDef)
+        {
             unsafe
             {
+                int inheritedColumnCount = 0;
+                ulong inheritedDefinitionAddr = sccoredb.INVALID_DEFINITION_ADDR;
+                if (inheritedTableDef != null)
+                {
+                    // TODO:
+                    // We're assume that the base table definition is complete
+                    // (has definition address) and that the current table
+                    // definition and the inherited table definition matches.
+                    
+                    inheritedColumnCount = inheritedTableDef.ColumnDefs.Length;
+                    inheritedDefinitionAddr = inheritedTableDef.DefinitionAddr;
+                }
                 ColumnDef[] columns = tableDef.ColumnDefs;
-                sccoredb.SC_COLUMN_DEFINITION[] column_definitions = new sccoredb.SC_COLUMN_DEFINITION[columns.Length + 1];
+                sccoredb.SC_COLUMN_DEFINITION[] column_definitions = new sccoredb.SC_COLUMN_DEFINITION[columns.Length - inheritedColumnCount + 1];
                 try
                 {
-                    for (int i = 0; i < columns.Length; i++)
+                    for (int cc = column_definitions.Length - 1, ci = inheritedColumnCount, di = 0; di < cc; di++)
                     {
-                        column_definitions[i].name = (byte*)Marshal.StringToCoTaskMemAnsi(columns[i].Name);
-                        column_definitions[i].type = BindingHelper.ConvertDbTypeCodeToScTypeCode(columns[i].Type);
-                        column_definitions[i].is_nullable = columns[i].IsNullable ? (byte)1 : (byte)0;
+                        column_definitions[di].name = (byte*)Marshal.StringToCoTaskMemAnsi(columns[ci].Name);
+                        column_definitions[di].type = BindingHelper.ConvertDbTypeCodeToScTypeCode(columns[ci].Type);
+                        column_definitions[di].is_nullable = columns[ci].IsNullable ? (byte)1 : (byte)0;
                     }
                     fixed (byte* fixed_name = Encoding.ASCII.GetBytes(tableDef.Name))
                     {
                         fixed (sccoredb.SC_COLUMN_DEFINITION* fixed_column_definitions = column_definitions)
                         {
-                            uint e = sccoredb.sc_create_table(fixed_name, sccoredb.INVALID_DEFINITION_ADDR, fixed_column_definitions);
+                            uint e = sccoredb.sc_create_table(fixed_name, inheritedDefinitionAddr, fixed_column_definitions);
                             if (e != 0) throw sccoreerr.TranslateErrorCode(e);
                         }
                     }

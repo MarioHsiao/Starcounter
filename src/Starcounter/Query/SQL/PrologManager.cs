@@ -497,11 +497,11 @@ namespace Starcounter.Query.Sql
                     typeBind = typeEnumerator.Current;
                     fullClassNameUpper = typeBind.Name.ToUpperInvariant();
                     shortClassNameUpper = GetShortName(typeBind.Name).ToUpperInvariant();
-                    if (typeBind.Base != null)
+                    if (typeBind.BaseName != null)
                     {
-                        streamWriter.WriteLine("class('" + fullClassNameUpper + "','" + typeBind.Name + "','" + typeBind.Base.Name + "').");
+                        streamWriter.WriteLine("class('" + fullClassNameUpper + "','" + typeBind.Name + "','" + typeBind.BaseName + "').");
                         if (shortClassNameUpper != fullClassNameUpper)
-                            streamWriter.WriteLine("class('" + shortClassNameUpper + "','" + typeBind.Name + "','" + typeBind.Base.Name + "').");
+                            streamWriter.WriteLine("class('" + shortClassNameUpper + "','" + typeBind.Name + "','" + typeBind.BaseName + "').");
                     }
                     else
                     {

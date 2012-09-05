@@ -7,7 +7,7 @@ namespace Starcounter.Binding
 
         public string Name;
 
-        public TypeDef Base; // TODO:
+        public string BaseName;
 
         public PropertyDef[] PropertyDefs;
 

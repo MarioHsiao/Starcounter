@@ -19,20 +19,26 @@ namespace Starcounter.Binding
 
         public string Name;
 
+        public string BaseName;
+
+        public ColumnDef[] ColumnDefs;
+
         public ushort TableId;
 
         public ulong DefinitionAddr;
 
-        public ColumnDef[] ColumnDefs;
+        public TableDef(string name, ColumnDef[] columnsDefs) : this(name, null, columnsDefs, 0xFFFF, sccoredb.INVALID_DEFINITION_ADDR) { }
 
-        public TableDef(string name, ColumnDef[] columnsDefs) : this(name, 0xFFFF, sccoredb.INVALID_DEFINITION_ADDR, columnsDefs) { }
+        public TableDef(string name, string baseName, ColumnDef[] columnsDefs) : this(name, baseName, columnsDefs, 0xFFFF, sccoredb.INVALID_DEFINITION_ADDR) { }
 
-        public TableDef(string name, ushort tableId, ulong definitionAddr, ColumnDef[] columnsDefs)
+        public TableDef(string name, string baseName, ColumnDef[] columnsDefs, ushort tableId, ulong definitionAddr)
         {
             Name = name;
+            BaseName = baseName;
+            ColumnDefs = columnsDefs;
+
             TableId = tableId;
             DefinitionAddr = definitionAddr;
-            ColumnDefs = columnsDefs;
         }
 
         internal IndexInfo[] GetAllIndexInfos()
