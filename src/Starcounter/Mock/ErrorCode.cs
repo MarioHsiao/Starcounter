@@ -17,6 +17,11 @@ namespace Starcounter
             return new System.Exception(e.ToString());
         }
 
+        public static System.Exception ToException(uint e, System.Exception ex)
+        {
+            return new System.Exception(e.ToString());
+        }
+
         public static System.Exception ToException(uint e, System.Exception ex, string message)
         {
             return new System.Exception(e.ToString());
