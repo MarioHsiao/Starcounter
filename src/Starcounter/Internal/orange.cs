@@ -14,19 +14,31 @@ namespace Starcounter.Internal
             hmenv_ = hmenv;
         }
 
+        private static unsafe sccorelib.THREAD_ENTER th_enter = new sccorelib.THREAD_ENTER(orange_thread_enter);
+        private static unsafe sccorelib.THREAD_LEAVE th_leave = new sccorelib.THREAD_LEAVE(orange_thread_leave);
+        private static unsafe sccorelib.THREAD_START th_start = new sccorelib.THREAD_START(orange_thread_start);
+        private static unsafe sccorelib.THREAD_RESET th_reset = new sccorelib.THREAD_RESET(orange_thread_reset);
+        private static unsafe sccorelib.THREAD_YIELD th_yield = new sccorelib.THREAD_YIELD(orange_thread_yield);
+        private static unsafe sccorelib.VPROC_BGTASK vp_bgtask = new sccorelib.VPROC_BGTASK(orange_vproc_bgtask);
+        private static unsafe sccorelib.VPROC_CTICK vp_ctick = new sccorelib.VPROC_CTICK(orange_vproc_ctick);
+        private static unsafe sccorelib.VPROC_IDLE vp_idle = new sccorelib.VPROC_IDLE(orange_vproc_idle);
+        private static unsafe sccorelib.VPROC_WAIT vp_wait = new sccorelib.VPROC_WAIT(orange_vproc_wait);
+        private static unsafe sccorelib.ALERT_STALL al_stall = new sccorelib.ALERT_STALL(orange_alert_stall);
+        private static unsafe sccorelib.ALERT_LOWMEM al_lowmem = new sccorelib.ALERT_LOWMEM(orange_alert_lowmem);
+
         internal static unsafe void orange_configure_scheduler_callbacks(ref sccorelib.CM2_SETUP setup)
         {
-            setup.th_enter = (void*)Marshal.GetFunctionPointerForDelegate(new sccorelib.THREAD_ENTER(orange_thread_enter));
-            setup.th_leave = (void*)Marshal.GetFunctionPointerForDelegate(new sccorelib.THREAD_LEAVE(orange_thread_leave));
-            setup.th_start = (void*)Marshal.GetFunctionPointerForDelegate(new sccorelib.THREAD_START(orange_thread_start));
-            setup.th_reset = (void*)Marshal.GetFunctionPointerForDelegate(new sccorelib.THREAD_RESET(orange_thread_reset));
-            setup.th_yield = (void*)Marshal.GetFunctionPointerForDelegate(new sccorelib.THREAD_YIELD(orange_thread_yield));
-            setup.vp_bgtask = (void*)Marshal.GetFunctionPointerForDelegate(new sccorelib.VPROC_BGTASK(orange_vproc_bgtask));
-            setup.vp_ctick = (void*)Marshal.GetFunctionPointerForDelegate(new sccorelib.VPROC_CTICK(orange_vproc_ctick));
-            setup.vp_idle = (void*)Marshal.GetFunctionPointerForDelegate(new sccorelib.VPROC_IDLE(orange_vproc_idle));
-            setup.vp_wait = (void*)Marshal.GetFunctionPointerForDelegate(new sccorelib.VPROC_WAIT(orange_vproc_wait));
-            setup.al_stall = (void*)Marshal.GetFunctionPointerForDelegate(new sccorelib.ALERT_STALL(orange_alert_stall));
-            setup.al_lowmem = (void*)Marshal.GetFunctionPointerForDelegate(new sccorelib.ALERT_LOWMEM(orange_alert_lowmem));
+            setup.th_enter = (void*)Marshal.GetFunctionPointerForDelegate(th_enter);
+            setup.th_leave = (void*)Marshal.GetFunctionPointerForDelegate(th_leave);
+            setup.th_start = (void*)Marshal.GetFunctionPointerForDelegate(th_start);
+            setup.th_reset = (void*)Marshal.GetFunctionPointerForDelegate(th_reset);
+            setup.th_yield = (void*)Marshal.GetFunctionPointerForDelegate(th_yield);
+            setup.vp_bgtask = (void*)Marshal.GetFunctionPointerForDelegate(vp_bgtask);
+            setup.vp_ctick = (void*)Marshal.GetFunctionPointerForDelegate(vp_ctick);
+            setup.vp_idle = (void*)Marshal.GetFunctionPointerForDelegate(vp_idle);
+            setup.vp_wait = (void*)Marshal.GetFunctionPointerForDelegate(vp_wait);
+            setup.al_stall = (void*)Marshal.GetFunctionPointerForDelegate(al_stall);
+            setup.al_lowmem = (void*)Marshal.GetFunctionPointerForDelegate(al_lowmem);
 //            setup.pex_ctxt = null;
 
         }
