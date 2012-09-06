@@ -17,6 +17,10 @@ namespace Starcounter.Binding
         private static List<TypeDef> typeDefsById_ = new List<TypeDef>();
         private static Dictionary<string, TypeDef> typeDefsByName_ = new Dictionary<string, TypeDef>();
 
+        //
+        // Note that a type definition must not be registered until the table
+        // definition has been synchronized with the database.
+        //
         public static void RegisterTypeDef(TypeDef typeDef)
         {
             typeDefsByName_.Add(typeDef.Name, typeDef);
