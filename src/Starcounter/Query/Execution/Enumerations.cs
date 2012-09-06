@@ -38,9 +38,10 @@ namespace Starcounter.Query.Execution
     /// <summary>
     /// Sort orderings.
     /// </summary>
-    internal enum SortOrder
+    internal enum SortOrder : int
     {
-        Ascending, Descending
+        Ascending = 0,
+        Descending = 1
     }
 
     /// <summary>

@@ -307,6 +307,26 @@
     <Compile Include="Mock\LucentObjectsRuntime.cs" />
     <Compile Include="Binding\TypeBinding.cs" />
     <Compile Include="Mock\Uninitialized.cs" />
+    <Compile Include="Mock\Schema\DatabaseArrayType.cs" />
+    <Compile Include="Mock\Schema\DatabaseAssembly.cs" />
+    <Compile Include="Mock\Schema\DatabaseAttribute.cs" />
+    <Compile Include="Mock\Schema\DatabaseAttributeRef.cs" />
+    <Compile Include="Mock\Schema\DatabaseClass.cs" />
+    <Compile Include="Mock\Schema\DatabaseClassRef.cs" />
+    <Compile Include="Mock\Schema\DatabaseEntityClass.cs" />
+    <Compile Include="Mock\Schema\DatabaseEnumerableType.cs" />
+    <Compile Include="Mock\Schema\DatabaseEnumType.cs" />
+    <Compile Include="Mock\Schema\DatabaseEnumValue.cs" />
+    <Compile Include="Mock\Schema\DatabaseExtensionClass.cs" />
+    <Compile Include="Mock\Schema\DatabaseIndex.cs" />
+    <Compile Include="Mock\Schema\DatabaseKindClass.cs" />
+    <Compile Include="Mock\Schema\DatabasePrimitive.cs" />
+    <Compile Include="Mock\Schema\DatabasePrimitiveType.cs" />
+    <Compile Include="Mock\Schema\DatabaseSchema.cs" />
+    <Compile Include="Mock\Schema\DatabaseSchemaElement.cs" />
+    <Compile Include="Mock\Schema\DatabaseSocietyClass.cs" />
+    <Compile Include="Mock\Schema\DatabaseUnsupportedType.cs" />
+    <Compile Include="Mock\Schema\IDatabasePropertyType.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -315,7 +335,6 @@
   <ItemGroup>
     <None Include="Starcounter.snk" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>..\..\..\Grey\src\ErrorCodeCompiler\scerrcc.exe ..\..\..\Grey\src\errorcodes.xml -cs2 $(ProjectDir)Error.cs</PreBuildEvent>
