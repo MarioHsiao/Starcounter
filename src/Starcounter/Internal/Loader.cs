@@ -14,45 +14,72 @@ namespace Starcounter.Internal
     internal static class SchemaLoader
     {
 
+        private const string rootClassName = "Starcounter.Entity";
+
         internal static List<TypeDef> LoadAndConvertSchema(DirectoryInfo inputDir)
         {
             var schemaFiles = inputDir.GetFiles("*.schema");
 
             var databaseSchema = new DatabaseSchema();
-            var databaseAssemblies = new DatabaseAssembly[schemaFiles.Length];
             var typeDefs = new List<TypeDef>();
+
+            var databaseAssembly = new DatabaseAssembly("Starcounter");
+            databaseSchema.Assemblies.Add(databaseAssembly);
+            databaseAssembly.DatabaseClasses.Add(new DatabaseEntityClass(databaseAssembly, rootClassName));
 
             for (int i = 0; i < schemaFiles.Length; i++)
             {
-                var databaseAssembly = DatabaseAssembly.Deserialize(schemaFiles[i].FullName);
-                databaseAssemblies[i] = databaseAssembly;
+                databaseAssembly = DatabaseAssembly.Deserialize(schemaFiles[i].FullName);
                 databaseSchema.Assemblies.Add(databaseAssembly);
             }
 
-            for (int i = 0; i < schemaFiles.Length; i++)
+            databaseSchema.AfterDeserialization();
+
+            var databaseClasses = new List<DatabaseEntityClass>();
+            databaseSchema.PopulateDatabaseEntityClasses(databaseClasses);
+            
+            var databaseClassCount = databaseClasses.Count;
+            for (int i = 0; i < databaseClassCount; i++)
             {
-                var schemaFileName = schemaFiles[i].FullName;
+                var databaseClass = databaseClasses[i];
                 var assemblyString = string.Concat(
-                    schemaFileName.Substring(0, schemaFileName.Length - 7),
+                    inputDir.FullName,
+                    "\\",
+                    databaseClass.Assembly.Name,
                     ".dll"
                     );
-                foreach (DatabaseEntityClass databaseClass in databaseAssemblies[i].DatabaseClasses)
-                {
-                    typeDefs.Add(EntityClassToTypeDef(assemblyString, databaseClass));
-                }
+                typeDefs.Add(EntityClassToTypeDef(assemblyString, databaseClass));
             }
-
-            // TODO: Sort dependencies.
 
             return typeDefs;
         }
 
         private static TypeDef EntityClassToTypeDef(string assemblyString, DatabaseEntityClass databaseClass)
         {
-            var databaseAttributes = databaseClass.Attributes;
+            var columnDefs = new List<ColumnDef>();
+            var propertyDefs = new List<PropertyDef>();
 
-            var columnDefs = new List<ColumnDef>(databaseAttributes.Count);
-            var propertyDefs = new List<PropertyDef>(databaseAttributes.Count);
+            string baseName = databaseClass.BaseClass == null ? null : databaseClass.BaseClass.Name;
+            if (baseName == rootClassName) baseName = null;
+
+            GatherColumnAndPropertyDefs(databaseClass, columnDefs, propertyDefs);
+
+            var tableDef = new TableDef(databaseClass.Name, baseName, columnDefs.ToArray());
+            TypeLoader typeLoader = new TypeLoader(assemblyString, databaseClass.Name);
+            var typeDef = new TypeDef(databaseClass.Name, baseName, propertyDefs.ToArray(), typeLoader, tableDef);
+
+            return typeDef;
+        }
+
+        private static void GatherColumnAndPropertyDefs(DatabaseEntityClass databaseClass, List<ColumnDef> columnDefs, List<PropertyDef> propertyDefs)
+        {
+            var baseDatabaseClass = databaseClass.BaseClass as DatabaseEntityClass;
+            if (baseDatabaseClass != null)
+            {
+                GatherColumnAndPropertyDefs(baseDatabaseClass, columnDefs, propertyDefs);
+            }
+
+            var databaseAttributes = databaseClass.Attributes;
 
             for (int i = 0; i < databaseAttributes.Count; i++)
             {
@@ -120,13 +147,6 @@ namespace Starcounter.Internal
                     // TODO:
                 }
             }
-
-            var tableDef = new TableDef(databaseClass.Name, columnDefs.ToArray());
-            
-            TypeLoader typeLoader = new TypeLoader(assemblyString, databaseClass.Name);
-            var typeDef = new TypeDef(databaseClass.Name, propertyDefs.ToArray(), typeLoader, tableDef);
-
-            return typeDef;
         }
 
         internal static DbTypeCode PrimitiveToTypeCode(DatabasePrimitive primitive)

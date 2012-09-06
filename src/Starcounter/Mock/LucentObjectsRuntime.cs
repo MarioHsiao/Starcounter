@@ -36,7 +36,11 @@ namespace Starcounter.LucentObjects
                         for (int ci = 0; ci < columns.Length; ci++)
                         {
                             field = fieldType.GetField("<>0" + columns[ci].Name + "000", BindingFlags.Static | BindingFlags.NonPublic);
-                            field.SetValue(null, ci);
+
+                            // Field for attribute does not exist (field ==
+                            // null) if the column is inherited.
+
+                            if (field != null) field.SetValue(null, ci);
                         }
                     }
                     else

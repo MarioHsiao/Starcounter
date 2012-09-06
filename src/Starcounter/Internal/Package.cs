@@ -77,8 +77,6 @@ namespace Starcounter.Internal
 
         private TableDef CreateOrUpdateDatabaseTable(TableDef tableDef)
         {
-            // TODO: Handle inheritence.
-
             TableDef storedTableDef = null;
 
             Db.Transaction(() =>
@@ -88,7 +86,23 @@ namespace Starcounter.Internal
 
             if (storedTableDef == null)
             {
-                Db.CreateTable(tableDef);
+                TableDef inheritedTableDef = null;
+
+                if (tableDef.BaseName != null)
+                {
+                    Db.Transaction(() =>
+                    {
+                        inheritedTableDef = Db.LookupTable(tableDef.BaseName);
+                    });
+
+                    if (inheritedTableDef == null) throw new Exception(); // TODO:
+                }
+
+                // TODO:
+                // Check that the first columns of the table definition matches
+                // that of the inherited table. Do this in Db.CreateTable?
+
+                Db.CreateTable(tableDef, inheritedTableDef);
 
                 Db.Transaction(() =>
                 {
@@ -100,7 +114,7 @@ namespace Starcounter.Internal
                 Db.CreateIndex(
                     storedTableDef.DefinitionAddr,
                     string.Concat(storedTableDef.Name, "_AUTO"),
-                    1
+                    0
                     );
             }
             else
