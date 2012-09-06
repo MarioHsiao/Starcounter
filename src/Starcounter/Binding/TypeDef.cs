@@ -15,9 +15,10 @@ namespace Starcounter.Binding
 
         public TableDef TableDef;
 
-        public TypeDef(string name, PropertyDef[] propertyDefs, TypeLoader typeLoader, TableDef tableDef)
+        public TypeDef(string name, string baseName, PropertyDef[] propertyDefs, TypeLoader typeLoader, TableDef tableDef)
         {
             Name = name;
+            BaseName = baseName;
             PropertyDefs = propertyDefs;
             TypeLoader = typeLoader;
             TableDef = tableDef;
