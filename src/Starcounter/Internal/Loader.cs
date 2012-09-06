@@ -1,24 +1,228 @@
 ﻿
+using Starcounter.Binding;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
+using Sc.Server.Weaver.Schema;
+
 namespace Starcounter.Internal
 {
+
+    internal static class SchemaLoader
+    {
+
+        internal static List<TypeDef> LoadAndConvertSchema(DirectoryInfo inputDir)
+        {
+            var schemaFiles = inputDir.GetFiles("*.schema");
+
+            var databaseSchema = new DatabaseSchema();
+            var databaseAssemblies = new DatabaseAssembly[schemaFiles.Length];
+            var typeDefs = new List<TypeDef>();
+
+            for (int i = 0; i < schemaFiles.Length; i++)
+            {
+                var databaseAssembly = DatabaseAssembly.Deserialize(schemaFiles[i].FullName);
+                databaseAssemblies[i] = databaseAssembly;
+                databaseSchema.Assemblies.Add(databaseAssembly);
+            }
+
+            for (int i = 0; i < schemaFiles.Length; i++)
+            {
+                var schemaFileName = schemaFiles[i].FullName;
+                var assemblyString = string.Concat(
+                    schemaFileName.Substring(0, schemaFileName.Length - 7),
+                    ".dll"
+                    );
+                foreach (DatabaseEntityClass databaseClass in databaseAssemblies[i].DatabaseClasses)
+                {
+                    typeDefs.Add(EntityClassToTypeDef(assemblyString, databaseClass));
+                }
+            }
+
+            // TODO: Sort dependencies.
+
+            return typeDefs;
+        }
+
+        private static TypeDef EntityClassToTypeDef(string assemblyString, DatabaseEntityClass databaseClass)
+        {
+            var databaseAttributes = databaseClass.Attributes;
+
+            var columnDefs = new List<ColumnDef>(databaseAttributes.Count);
+            var propertyDefs = new List<PropertyDef>(databaseAttributes.Count);
+
+            for (int i = 0; i < databaseAttributes.Count; i++)
+            {
+                var databaseAttribute = databaseAttributes[i];
+
+                if (databaseAttribute.AttributeKind == DatabaseAttributeKind.PersistentField)
+                {
+                    DbTypeCode type;
+                    string targetTypeName;
+
+                    var databaseAttributeType = databaseAttribute.AttributeType;
+                    var databasePrimitiveType = databaseAttributeType as DatabasePrimitiveType;
+                    if (databasePrimitiveType != null)
+                    {
+                        type = PrimitiveToTypeCode(databasePrimitiveType.Primitive);
+                        targetTypeName = null;
+                    }
+                    else
+                    {
+                        var databaseEntityClass = databaseAttributeType as DatabaseEntityClass;
+                        if (databaseEntityClass != null)
+                        {
+                            type = DbTypeCode.Object;
+                            targetTypeName = databaseEntityClass.Name;
+                        }
+                        else
+                        {
+                            throw new NotSupportedException(); // TODO:
+                        }
+                    }
+
+                    var isNullable = databaseAttribute.IsNullable;
+
+                    // Fix handling that always nullable types are correcly
+                    // tagged as nullable in the schema file.
+
+                    switch (type)
+                    {
+                        case DbTypeCode.Object:
+                        case DbTypeCode.String:
+                        case DbTypeCode.Binary:
+                        case DbTypeCode.LargeBinary:
+                            isNullable = true;
+                            break;
+                    }
+
+                    var columnIndex = columnDefs.Count;
+
+                    columnDefs.Add(new ColumnDef(
+                        databaseAttribute.Name,
+                        type,
+                        isNullable
+                        ));
+
+                    propertyDefs.Add(new PropertyDef(
+                        databaseAttribute.Name,
+                        type,
+                        isNullable,
+                        targetTypeName,
+                        columnIndex
+                        ));
+                }
+                else
+                {
+                    // TODO:
+                }
+            }
+
+            var tableDef = new TableDef(databaseClass.Name, columnDefs.ToArray());
+            
+            TypeLoader typeLoader = new TypeLoader(assemblyString, databaseClass.Name);
+            var typeDef = new TypeDef(databaseClass.Name, propertyDefs.ToArray(), typeLoader, tableDef);
+
+            return typeDef;
+        }
+
+        internal static DbTypeCode PrimitiveToTypeCode(DatabasePrimitive primitive)
+        {
+            switch (primitive)
+            {
+            case DatabasePrimitive.Boolean:
+                return DbTypeCode.Boolean;
+            case DatabasePrimitive.Byte:
+                return DbTypeCode.Byte;
+            case DatabasePrimitive.DateTime:
+                return DbTypeCode.DateTime;
+            case DatabasePrimitive.Decimal:
+                return DbTypeCode.Decimal;
+            case DatabasePrimitive.Double:
+                return DbTypeCode.Double;
+            case DatabasePrimitive.Int16:
+                return DbTypeCode.Int16;
+            case DatabasePrimitive.Int32:
+                return DbTypeCode.Int32;
+            case DatabasePrimitive.Int64:
+                return DbTypeCode.Int64;
+            case DatabasePrimitive.SByte:
+                return DbTypeCode.SByte;
+            case DatabasePrimitive.Single:
+                return DbTypeCode.Single;
+            case DatabasePrimitive.String:
+                return DbTypeCode.String;
+            case DatabasePrimitive.TimeSpan:
+                throw new NotSupportedException();
+            case DatabasePrimitive.UInt16:
+                return DbTypeCode.UInt16;
+            case DatabasePrimitive.UInt32:
+                return DbTypeCode.UInt32;
+            case DatabasePrimitive.UInt64:
+                return DbTypeCode.UInt64;
+            case DatabasePrimitive.Binary:
+                return DbTypeCode.Binary;;
+            case DatabasePrimitive.LargeBinary:
+                return DbTypeCode.LargeBinary;
+            case DatabasePrimitive.None:
+            default:
+                throw new NotSupportedException();
+            }
+        }
+    }
     
     internal static class Loader
     {
 
+        internal static Assembly ResolveAssembly(object sender, ResolveEventArgs args)
+        {
+            var requestingAssembly = args.RequestingAssembly;
+            var requestingAssemblyFile = new FileInfo(requestingAssembly.Location);
+
+            var assemblyName = args.Name;
+            var assemblyNameElems = assemblyName.Split(',');
+            var assemblyFileName = string.Concat(requestingAssemblyFile.Directory, "\\", assemblyNameElems[0], ".dll");
+
+            var assembly = Assembly.LoadFile(assemblyFileName);
+
+            return assembly;
+        }
+
         internal static unsafe void RunMessageLoop(void* hsched)
         {
+            var appDomain = AppDomain.CurrentDomain;
+            appDomain.AssemblyResolve += new ResolveEventHandler(ResolveAssembly);
+
             for (; ; )
             {
                 string input = Console.ReadLine();
 
-                input = Environment.CurrentDirectory + "\\" + input; // TODO:
+                var inputFile = new FileInfo(input);
 
-                Assembly assembly = Assembly.LoadFile(input);
-                Package package = new Package(assembly);
+                var typeDefs = SchemaLoader.LoadAndConvertSchema(inputFile.Directory);
+                var unregisteredTypeDefs = new List<TypeDef>(typeDefs.Count);
+                for (int i = 0; i < typeDefs.Count; i++)
+                {
+                    var typeDef = typeDefs[i];
+                    var alreadyRegisteredTypeDef = Bindings.GetTypeDef(typeDef.Name);
+                    if (alreadyRegisteredTypeDef == null)
+                    {
+                        unregisteredTypeDefs.Add(typeDef);
+                    }
+                    else
+                    {
+                        // TODO:
+                        // Assure that the already loaded type definition has
+                        // the same structure.
+                    }
+                }
+
+                var assembly = Assembly.LoadFile(inputFile.FullName);
+
+                Package package = new Package(unregisteredTypeDefs.ToArray(), assembly);
                 IntPtr hPackage = (IntPtr)GCHandle.Alloc(package, GCHandleType.Normal);
 
                 uint e = sccorelib.cm2_schedule(
@@ -31,6 +235,15 @@ namespace Starcounter.Internal
                     (ulong)hPackage
                     );
                 if (e != 0) throw sccoreerr.TranslateErrorCode(e);
+
+                // We only process one package at a time. Wait for the package
+                // to be processed before accepting more input.
+                //
+                // (We can only handle one package at a time or we can not
+                // evaluate if a type definition has already been loaded.)
+
+                package.WaitUntilProcessed();
+                package.Dispose();
             }
         }
     }
