@@ -117,6 +117,10 @@ public partial class DatabaseAttribute : DatabaseSchemaElement
         }
     }
 
+    public bool IsPublicRead { get; set; }
+
+//    public bool IsPublicWrite { get; set; }
+
     /// <summary>
     /// Gets the type of the attribute.
     /// </summary>
