@@ -16,15 +16,15 @@ namespace Starcounter.Binding
         /// </summary>
         public int ColumnIndex;
 
-        public PropertyDef(string name, DbTypeCode type, bool isNullable, int columnIndex) : this(name, type, isNullable, null, columnIndex) { }
+        public PropertyDef(string name, DbTypeCode type, bool isNullable) : this(name, type, isNullable, null) { }
         
-        public PropertyDef(string name, DbTypeCode type, bool isNullable, string targetTypeName, int columnIndex)
+        public PropertyDef(string name, DbTypeCode type, bool isNullable, string targetTypeName)
         {
             Name = name;
             Type = type;
             IsNullable = isNullable;
             TargetTypeName = targetTypeName;
-            ColumnIndex = columnIndex;
+            ColumnIndex = -1;
         }
     }
 }
