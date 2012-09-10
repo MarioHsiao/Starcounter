@@ -27,7 +27,7 @@ namespace Starcounter.Binding
 
             TableDef tableDef = typeDef.TableDef;
             while (typeDefsById_.Count <= tableDef.TableId) typeDefsById_.Add(null); // TODO:
-            typeDefsById_.Insert(tableDef.TableId, typeDef);
+            typeDefsById_[tableDef.TableId] = typeDef;
         }
 
         internal static TypeDef GetTypeDef(string name)
@@ -112,7 +112,7 @@ namespace Starcounter.Binding
 
             TableDef tableDef = typeBinding.TypeDef.TableDef;
             while (typeBindingsById_.Count <= tableDef.TableId) typeBindingsById_.Add(null); // TODO:
-            typeBindingsById_.Insert(tableDef.TableId, typeBinding);
+            typeBindingsById_[tableDef.TableId] = typeBinding;
         }
     }
 }
