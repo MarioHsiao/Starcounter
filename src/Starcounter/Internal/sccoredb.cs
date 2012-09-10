@@ -97,6 +97,7 @@ namespace Starcounter.Internal
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern uint SCLowMemoryAlert(uint lr);
 
+        internal const ushort MDB_ATTRFLAG_DERIVED = 0x0002;
 
         internal const ushort MDB_ATTRFLAG_NULLABLE = 0x0040;
         

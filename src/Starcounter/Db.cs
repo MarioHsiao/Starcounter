@@ -52,7 +52,8 @@ namespace Starcounter
                                         columns[i] = new ColumnDef(
                                             new string(attributeInfo.PtrName),
                                             BindingHelper.ConvertScTypeCodeToDbTypeCode(attributeInfo.Type),
-                                            (attributeInfo.Flags & sccoredb.MDB_ATTRFLAG_NULLABLE) != 0
+                                            (attributeInfo.Flags & sccoredb.MDB_ATTRFLAG_NULLABLE) != 0,
+                                            (attributeInfo.Flags & sccoredb.MDB_ATTRFLAG_DERIVED) != 0
                                             );
                                     }
                                     else
