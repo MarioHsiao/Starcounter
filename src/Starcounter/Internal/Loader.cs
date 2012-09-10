@@ -23,7 +23,12 @@ namespace Starcounter.Internal
             var databaseSchema = new DatabaseSchema();
             var typeDefs = new List<TypeDef>();
 
-            var databaseAssembly = new DatabaseAssembly("Starcounter");
+            DatabaseAssembly databaseAssembly;
+
+            // Workaround for DatabaseSchema.PopulateDatabaseEntityClasses to
+            // work.
+
+            databaseAssembly = new DatabaseAssembly("Starcounter", Assembly.GetExecutingAssembly().FullName);
             databaseSchema.Assemblies.Add(databaseAssembly);
             databaseAssembly.DatabaseClasses.Add(new DatabaseEntityClass(databaseAssembly, rootClassName));
 
@@ -42,19 +47,16 @@ namespace Starcounter.Internal
             for (int i = 0; i < databaseClassCount; i++)
             {
                 var databaseClass = databaseClasses[i];
-                var assemblyString = string.Concat(
-                    inputDir.FullName,
-                    "\\",
-                    databaseClass.Assembly.Name,
-                    ".dll"
-                    );
-                typeDefs.Add(EntityClassToTypeDef(assemblyString, databaseClass));
+                databaseAssembly = databaseClass.Assembly;
+                var assemblyName = new AssemblyName(databaseAssembly.FullName);
+                var typeLoader = new TypeLoader(assemblyName, databaseClass.Name);
+                typeDefs.Add(EntityClassToTypeDef(databaseClass, typeLoader));
             }
 
             return typeDefs;
         }
 
-        private static TypeDef EntityClassToTypeDef(string assemblyString, DatabaseEntityClass databaseClass)
+        private static TypeDef EntityClassToTypeDef(DatabaseEntityClass databaseClass, TypeLoader typeLoader)
         {
             var columnDefs = new List<ColumnDef>();
             var propertyDefs = new List<PropertyDef>();
@@ -69,7 +71,6 @@ namespace Starcounter.Internal
             if (baseName == rootClassName) baseName = null;
 
             var tableDef = new TableDef(databaseClass.Name, baseName, columnDefArray);
-            TypeLoader typeLoader = new TypeLoader(assemblyString, databaseClass.Name);
             var typeDef = new TypeDef(databaseClass.Name, baseName, propertyDefArray, typeLoader, tableDef);
 
             return typeDef;
@@ -265,20 +266,56 @@ namespace Starcounter.Internal
             }
         }
     }
-    
+
+    internal class BinBriefcase
+    {
+
+        private Dictionary<string, FileInfo> assemblyFileInfosByName_ = new Dictionary<string, FileInfo>();
+
+        internal void AddFromDirectory(DirectoryInfo inputDir)
+        {
+            FileInfo[] fileInfos = inputDir.GetFiles("*.dll");
+            for (int i = 0; i < fileInfos.Length; i++)
+            {
+                var fileInfo = fileInfos[i];
+                var fileName = fileInfo.Name;
+                FileInfo previouslyAddedFileInfo;
+                if (!assemblyFileInfosByName_.TryGetValue(fileName, out previouslyAddedFileInfo))
+                {
+                    assemblyFileInfosByName_.Add(fileName, fileInfo);
+                }
+                else
+                {
+                    // TODO: Make sure that the files are the same. Checksum?
+                }
+            }
+        }
+
+        internal FileInfo GetAssemblyFile(string assemblyFileName)
+        {
+            FileInfo ret;
+            assemblyFileInfosByName_.TryGetValue(assemblyFileName, out ret);
+            return ret;
+        }
+    }
+
     internal static class Loader
     {
 
+        private static readonly BinBriefcase privateBinBriefcase_ = new BinBriefcase();
+
         internal static Assembly ResolveAssembly(object sender, ResolveEventArgs args)
         {
-            var requestingAssembly = args.RequestingAssembly;
-            var requestingAssemblyFile = new FileInfo(requestingAssembly.Location);
+            Assembly assembly = null;
 
             var assemblyName = args.Name;
             var assemblyNameElems = assemblyName.Split(',');
-            var assemblyFileName = string.Concat(requestingAssemblyFile.Directory, "\\", assemblyNameElems[0], ".dll");
-
-            var assembly = Assembly.LoadFile(assemblyFileName);
+            var assemblyFileName = string.Concat(assemblyNameElems[0], ".dll");
+            var assemblyFileInfo = privateBinBriefcase_.GetAssemblyFile(assemblyFileName);
+            if (assemblyFileInfo != null)
+            {
+                assembly = Assembly.LoadFile(assemblyFileInfo.FullName);
+            }
 
             return assembly;
         }
@@ -293,6 +330,10 @@ namespace Starcounter.Internal
                 string input = Console.ReadLine();
 
                 var inputFile = new FileInfo(input);
+
+                // TODO: Handle duplicates.
+
+                privateBinBriefcase_.AddFromDirectory(inputFile.Directory);
 
                 var typeDefs = SchemaLoader.LoadAndConvertSchema(inputFile.Directory);
                 var unregisteredTypeDefs = new List<TypeDef>(typeDefs.Count);
