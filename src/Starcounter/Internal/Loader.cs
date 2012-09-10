@@ -60,7 +60,7 @@ namespace Starcounter.Internal
             var propertyDefs = new List<PropertyDef>();
             var propertyMappings = new List<string>();
 
-            GatherColumnAndPropertyDefs(databaseClass, columnDefs, propertyDefs, propertyMappings);
+            GatherColumnAndPropertyDefs(databaseClass, columnDefs, propertyDefs, propertyMappings, false);
             var columnDefArray = columnDefs.ToArray();
             var propertyDefArray = propertyDefs.ToArray();
             MapPropertyDefsToColumnDefs(columnDefArray, propertyDefArray, propertyMappings);
@@ -75,12 +75,12 @@ namespace Starcounter.Internal
             return typeDef;
         }
 
-        private static void GatherColumnAndPropertyDefs(DatabaseEntityClass databaseClass, List<ColumnDef> columnDefs, List<PropertyDef> propertyDefs, List<string> propertyMappings)
+        private static void GatherColumnAndPropertyDefs(DatabaseEntityClass databaseClass, List<ColumnDef> columnDefs, List<PropertyDef> propertyDefs, List<string> propertyMappings, bool subClass)
         {
             var baseDatabaseClass = databaseClass.BaseClass as DatabaseEntityClass;
             if (baseDatabaseClass != null)
             {
-                GatherColumnAndPropertyDefs(baseDatabaseClass, columnDefs, propertyDefs, propertyMappings);
+                GatherColumnAndPropertyDefs(baseDatabaseClass, columnDefs, propertyDefs, propertyMappings, true);
             }
 
             var databaseAttributes = databaseClass.Attributes;
@@ -139,7 +139,8 @@ namespace Starcounter.Internal
                     columnDefs.Add(new ColumnDef(
                         databaseAttribute.Name,
                         type,
-                        isNullable
+                        isNullable,
+                        subClass
                         ));
 
                     if (databaseAttribute.IsPublicRead)

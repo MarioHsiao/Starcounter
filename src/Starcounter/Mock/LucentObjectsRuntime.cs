@@ -29,17 +29,32 @@ namespace Starcounter.LucentObjects
                 ColumnDef[] columns = tb.TypeDef.TableDef.ColumnDefs;
                 for (int ci = 0; ci < columns.Length; ci++)
                 {
-                    field = type.GetField("<>0" + columns[ci].Name + "000", BindingFlags.Static | BindingFlags.NonPublic);
+                    ColumnDef column = columns[ci];
 
-                    // Field for attribute does not exist (field ==
-                    // null) if the column is inherited.
+                    field = type.GetField("<>0" + column.Name + "000", BindingFlags.Static | BindingFlags.NonPublic);
+                    if (!column.IsInherited)
+                    {
+                        try
+                        {
+                            field.SetValue(null, ci);
+                        }
+                        catch (NullReferenceException)
+                        {
+                            throw sccoreerr.TranslateErrorCode(Error.SCERRSCHEMACODEMISMATCH);
+                        }
+                    }
+                    else if (field != null)
+                    {
+                        // If inherited column there should be no field to
+                        // store the column index.
 
-                    if (field != null) field.SetValue(null, ci);
+                        throw sccoreerr.TranslateErrorCode(Error.SCERRSCHEMACODEMISMATCH);
+                    }
                 }
             }
             else
             {
-                throw sccoreerr.TranslateErrorCode(Error.SCERRUNSPECIFIED); // TODO:
+                throw sccoreerr.TranslateErrorCode(Error.SCERRSCHEMACODEMISMATCH);
             }
         }
     }
