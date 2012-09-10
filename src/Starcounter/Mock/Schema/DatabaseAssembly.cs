@@ -26,6 +26,7 @@ public sealed class DatabaseAssembly : DatabaseSchemaElement
     // be serialized separately.
     [NonSerialized] private DatabaseSchema schema;
     private readonly string name;
+    private readonly string fullName;
     private readonly DatabaseClassCollection databaseClasses;
     private bool isCached;
     private bool isTransformed;
@@ -36,9 +37,10 @@ public sealed class DatabaseAssembly : DatabaseSchemaElement
     /// Initializes a new <see cref="DatabaseAssembly"/>.
     /// </summary>
     /// <param name="name">Assembly name.</param>
-    public DatabaseAssembly(string name)
+    public DatabaseAssembly(string name, string fullName)
     {
         this.name = name;
+        this.fullName = fullName;
         this.databaseClasses = new DatabaseClassCollection(this);
     }
 
@@ -61,13 +63,12 @@ public sealed class DatabaseAssembly : DatabaseSchemaElement
     /// <summary>
     /// Gets the assembly name.
     /// </summary>
-    public string Name
-    {
-        get
-        {
-            return name;
-        }
-    }
+    public string Name { get { return name; } }
+
+    /// <summary>
+    /// Gets the assembly full name.
+    /// </summary>
+    public string FullName { get { return fullName; } }
 
     /// <summary>
     /// Gets the collection of database classes contained in this assembly.

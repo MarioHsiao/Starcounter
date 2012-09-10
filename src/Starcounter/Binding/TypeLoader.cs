@@ -8,19 +8,19 @@ namespace Starcounter.Binding
     public class TypeLoader
     {
 
-        private readonly string assemblyString_;
+        private readonly AssemblyName assemblyName_;
         private readonly string typeName_;
 
-        public TypeLoader(string assemblyString, string typeName)
+        public TypeLoader(AssemblyName assemblyName, string typeName)
         {
-            assemblyString_ = assemblyString;
+            assemblyName_ = assemblyName;
             typeName_ = typeName;
         }
 
         public Type Load()
         {
-            Assembly a = Assembly.LoadFile(assemblyString_);
-            Type t = a.GetType(typeName_);
+            Assembly a = Assembly.Load(assemblyName_);
+            Type t = a.GetType(typeName_, true);
             return t;
         }
     }
