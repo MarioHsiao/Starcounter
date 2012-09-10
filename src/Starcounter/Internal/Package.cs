@@ -72,7 +72,7 @@ namespace Starcounter.Internal
                 Bindings.RegisterTypeDef(typeDefs[i]);
             }
 
-            Fix.ResetTheQueryModule();
+            if (typeDefs.Length != 0) Fix.ResetTheQueryModule();
         }
 
         private TableDef CreateOrUpdateDatabaseTable(TableDef tableDef)
