@@ -337,6 +337,7 @@
     <Compile Include="Mock\Schema\IDatabasePropertyType.cs" />
     <Compile Include="TransactionAbortedException.cs" />
     <Compile Include="TransactionConflictDbException.cs" />
+    <Compile Include="TransactionConflictException.cs" />
     <Compile Include="UnhandledTransactionConflictException.cs" />
   </ItemGroup>
   <ItemGroup>
