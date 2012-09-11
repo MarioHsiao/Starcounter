@@ -333,6 +333,7 @@
     <Compile Include="Mock\Schema\DatabaseSocietyClass.cs" />
     <Compile Include="Mock\Schema\DatabaseUnsupportedType.cs" />
     <Compile Include="Mock\Schema\IDatabasePropertyType.cs" />
+    <Compile Include="TransactionConflictDbException.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
