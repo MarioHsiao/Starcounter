@@ -72,6 +72,22 @@
     <Compile Include="Binding\TypeDef.cs" />
     <Compile Include="Binding\TypeLoader.cs" />
     <Compile Include="Binding\UIntPropertyBinding.cs" />
+    <Compile Include="CommandLine\ApplicationArguments.cs" />
+    <Compile Include="CommandLine\CommandLineSection.cs" />
+    <Compile Include="CommandLine\GivenOption.cs" />
+    <Compile Include="CommandLine\IApplicationInput.cs" />
+    <Compile Include="CommandLine\InvalidCommandLineException.cs" />
+    <Compile Include="CommandLine\Parser.cs" />
+    <Compile Include="CommandLine\Syntax\ApplicationSyntaxDefinition.cs" />
+    <Compile Include="CommandLine\Syntax\CommandSyntaxDefinition.cs" />
+    <Compile Include="CommandLine\Syntax\FlagDefinition.cs" />
+    <Compile Include="CommandLine\Syntax\IApplicationSyntax.cs" />
+    <Compile Include="CommandLine\Syntax\ICommandSyntax.cs" />
+    <Compile Include="CommandLine\Syntax\OptionAttributes.cs" />
+    <Compile Include="CommandLine\Syntax\OptionDefinition.cs" />
+    <Compile Include="CommandLine\Syntax\OptionInfo.cs" />
+    <Compile Include="CommandLine\Syntax\PropertyDefinition.cs" />
+    <Compile Include="CommandLine\Syntax\SyntaxDefinition.cs" />
     <Compile Include="ConstraintViolationException.cs" />
     <Compile Include="DbException.cs" />
     <Compile Include="Internal\DatabaseExceptionFactory.cs">
@@ -83,6 +99,7 @@
     <Compile Include="Internal\ErrorHandling\ErrorMessage.cs" />
     <Compile Include="Internal\ErrorHandling\ExceptionFactory.cs" />
     <Compile Include="Internal\ErrorHandling\ParsedErrorMessage.cs" />
+    <Compile Include="Internal\ProgramCommandLine.cs" />
     <Compile Include="ITransactionConflictException.cs" />
     <Compile Include="LargeBinary.cs" />
     <Compile Include="Error.cs" />
@@ -350,6 +367,7 @@
   <ItemGroup>
     <None Include="Starcounter.snk" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>..\..\..\Grey\src\ErrorCodeCompiler\scerrcc.exe ..\..\..\Grey\src\errorcodes.xml -cs2 $(ProjectDir)Error.cs</PreBuildEvent>
