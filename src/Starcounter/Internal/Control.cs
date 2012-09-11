@@ -22,6 +22,8 @@ namespace Starcounter.Internal
 
         private unsafe void Setup()
         {
+            DatabaseExceptionFactory.InstallInCurrentAppDomain();
+
             Configuration configuration = Configuration.Load();
 
 #if false // TODO:
