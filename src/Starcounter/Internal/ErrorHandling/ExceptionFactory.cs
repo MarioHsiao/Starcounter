@@ -2,10 +2,7 @@
 using System;
 using System.IO;
 using System.Security;
-
-// Soon to be incorporated
-// TODO:
-// using Starcounter.Internal.CommandLine;
+using Starcounter.CommandLine;
 
 namespace Starcounter.Internal {
 
@@ -101,9 +98,7 @@ namespace Starcounter.Internal {
                             break;
                         case Error.SCERRBADCOMMANDLINESYNTAX:
                         case Error.SCERRBADCOMMANDLINEFORMAT:
-                            // Soon to be incorporated.
-                            // TODO:
-                            // ex = new InvalidCommandLineException(msg, innerException) { ErrorCode = errorCode };
+                            ex = new InvalidCommandLineException(msg, innerException) { ErrorCode = errorCode };
                             break;
                         case Error.SCERRWRONGERRORMESSAGEFORMAT:
                             ex = new FormatException(msg, innerException);

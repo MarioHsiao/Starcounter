@@ -8,7 +8,7 @@ namespace boot
         
         static void Main(string[] args)
         {
-            Control.Main();
+            Control.Main(args);
         }
     }
 }
