@@ -40,7 +40,7 @@ namespace Starcounter.LucentObjects
                         }
                         catch (NullReferenceException)
                         {
-                            throw sccoreerr.TranslateErrorCode(Error.SCERRSCHEMACODEMISMATCH);
+                            throw ErrorCode.ToException(Error.SCERRSCHEMACODEMISMATCH);
                         }
                     }
                     else if (field != null)
@@ -48,13 +48,13 @@ namespace Starcounter.LucentObjects
                         // If inherited column there should be no field to
                         // store the column index.
 
-                        throw sccoreerr.TranslateErrorCode(Error.SCERRSCHEMACODEMISMATCH);
+                        throw ErrorCode.ToException(Error.SCERRSCHEMACODEMISMATCH);
                     }
                 }
             }
             else
             {
-                throw sccoreerr.TranslateErrorCode(Error.SCERRSCHEMACODEMISMATCH);
+                throw ErrorCode.ToException(Error.SCERRSCHEMACODEMISMATCH);
             }
         }
     }
