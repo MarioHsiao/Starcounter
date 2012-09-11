@@ -8,7 +8,7 @@ namespace Starcounter.Internal
     public class Control // TODO: Make internal.
     {
 
-        public static void Main()
+        public static void Main(string[] args)
         {
             Control c = new Control();
             c.Setup();
