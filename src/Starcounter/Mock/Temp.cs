@@ -3,15 +3,6 @@ using System;
 
 namespace Starcounter
 {
-
-    public class DbException : System.Exception
-    {
-
-        public DbException(uint e, string message) { }
-
-        public uint ErrorCode { get { throw new System.NotImplementedException(); } }
-    }
-
     public class LogSources
     {
         public static LogSource Sql = new LogSource("Sql");
