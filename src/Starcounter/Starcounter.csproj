@@ -304,7 +304,6 @@
     <Compile Include="Internal\Package.cs" />
     <Compile Include="Internal\Processor.cs" />
     <Compile Include="Internal\sccoredb.cs" />
-    <Compile Include="Internal\sccoreerr.cs" />
     <Compile Include="Internal\sccorelib.cs" />
     <Compile Include="Internal\sccorelog.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

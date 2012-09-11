@@ -75,7 +75,7 @@ namespace Starcounter.Internal
         {
             uint e = sccorelib.cm2_start(hsched_);
             if (e == 0) return;
-            throw sccoreerr.TranslateErrorCode(e);
+            throw ErrorCode.ToException(e);
         }
 
         private unsafe void Run()
@@ -87,7 +87,7 @@ namespace Starcounter.Internal
         {
             uint e = sccorelib.cm2_stop(hsched_, 1);
             if (e == 0) return;
-            throw sccoreerr.TranslateErrorCode(e);
+            throw ErrorCode.ToException(e);
         }
 
         private void Cleanup()
@@ -101,7 +101,7 @@ namespace Starcounter.Internal
             uint slabs = (0xFFFFF000 - 4096) / 4096;  // 4 GB - 4 KB
             ulong hmenv = sccorelib.mh4_menv_create(mem128, slabs);
             if (hmenv != 0) return hmenv;
-            throw sccoreerr.TranslateErrorCode(Error.SCERROUTOFMEMORY);
+            throw ErrorCode.ToException(Error.SCERROUTOFMEMORY);
         }
 
         private unsafe ulong ConfigureLogging(Configuration c, ulong hmenv)
@@ -109,14 +109,14 @@ namespace Starcounter.Internal
             uint e;
 
             e = sccorelog.SCInitModule_LOG(hmenv);
-            if (e != 0) throw sccoreerr.TranslateErrorCode(e);
+            if (e != 0) throw ErrorCode.ToException(e);
 
             ulong hlogs;
             e = sccorelog.SCConnectToLogs(c.Name, null, null, &hlogs);
-            if (e != 0) throw sccoreerr.TranslateErrorCode(e);
+            if (e != 0) throw ErrorCode.ToException(e);
 
             e = sccorelog.SCBindLogsToDir(hlogs, c.OutputDirectory);
-            if (e != 0) throw sccoreerr.TranslateErrorCode(e);
+            if (e != 0) throw ErrorCode.ToException(e);
 
             return hlogs;
         }
@@ -147,7 +147,7 @@ namespace Starcounter.Internal
             Marshal.FreeHGlobal((IntPtr)setup.db_data_dir_path);
 
             if (e == 0) return hsched;
-            throw sccoreerr.TranslateErrorCode(e);
+            throw ErrorCode.ToException(e);
         }
 
         private unsafe void ConfigureDatabase(Configuration c)
@@ -155,32 +155,32 @@ namespace Starcounter.Internal
             uint e;
 
 	        e = sccoredb.SCConfigSetValue("NAME", c.Name);
-            if (e != 0) throw sccoreerr.TranslateErrorCode(e);
+            if (e != 0) throw ErrorCode.ToException(e);
 	        
             e = sccoredb.SCConfigSetValue("LONGNAME", c.Name);
-            if (e != 0) throw sccoreerr.TranslateErrorCode(e);
+            if (e != 0) throw ErrorCode.ToException(e);
 	        
             e = sccoredb.SCConfigSetValue("IMAGEDIR", c.DatabaseDirectory);
-            if (e != 0) throw sccoreerr.TranslateErrorCode(e);
+            if (e != 0) throw ErrorCode.ToException(e);
 	        
             e = sccoredb.SCConfigSetValue("OLOGDIR", c.DatabaseDirectory);
-            if (e != 0) throw sccoreerr.TranslateErrorCode(e);
+            if (e != 0) throw ErrorCode.ToException(e);
 	        
             e = sccoredb.SCConfigSetValue("TLOGDIR", c.DatabaseDirectory);
-            if (e != 0) throw sccoreerr.TranslateErrorCode(e);
+            if (e != 0) throw ErrorCode.ToException(e);
 	        
             e = sccoredb.SCConfigSetValue("TEMPDIR", c.TempDirectory);
-            if (e != 0) throw sccoreerr.TranslateErrorCode(e);
+            if (e != 0) throw ErrorCode.ToException(e);
 	        
             e = sccoredb.SCConfigSetValue("COMPPATH", c.CompilerPath);
-            if (e != 0) throw sccoreerr.TranslateErrorCode(e);
+            if (e != 0) throw ErrorCode.ToException(e);
 
             e = sccoredb.SCConfigSetValue("OUTDIR", c.OutputDirectory);
-            if (e != 0) throw sccoreerr.TranslateErrorCode(e);
+            if (e != 0) throw ErrorCode.ToException(e);
 
             // TODO: What is this configuration for?
             e = sccoredb.SCConfigSetValue("ELOGDIR", c.OutputDirectory);
-            if (e != 0) throw sccoreerr.TranslateErrorCode(e);
+            if (e != 0) throw ErrorCode.ToException(e);
         }
 
         private unsafe void ConnectDatabase(Configuration configuration, void *hsched, ulong hmenv, ulong hlogs)
@@ -199,7 +199,7 @@ namespace Starcounter.Internal
 
             int empty;
             e = sccoredb.sccoredb_connect(flags, hsched, hmenv, hlogs, &empty);
-            if (e != 0) throw sccoreerr.TranslateErrorCode(e);
+            if (e != 0) throw ErrorCode.ToException(e);
         }
 
 
@@ -207,7 +207,7 @@ namespace Starcounter.Internal
         {
             uint e = sccoredb.sccoredb_disconnect(0);
             if (e == 0) return;
-            throw sccoreerr.TranslateErrorCode(e);
+            throw ErrorCode.ToException(e);
         }
     }
 }

@@ -40,7 +40,7 @@ namespace Starcounter.Internal
                 }
                 else
                 {
-                    throw sccoreerr.TranslateErrorCode(e);
+                    throw ErrorCode.ToException(e);
                 }
             }
         }
