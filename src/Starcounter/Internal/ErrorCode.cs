@@ -256,13 +256,6 @@ namespace Starcounter
             return errorCode / 1000;
         }
 
-        // Obsolete
-        //public static ErrorCode.Category ToCategory(uint errorCode) {
-        //    uint c = (errorCode / 1000);
-        //    c *= 1000;
-        //    return (ErrorCode.Category)c;
-        //}
-
         public static Exception ToException(uint errorCode) {
             return InternalCreateException(errorCode, null, null, null, null);
         }
