@@ -72,6 +72,18 @@
     <Compile Include="Binding\TypeDef.cs" />
     <Compile Include="Binding\TypeLoader.cs" />
     <Compile Include="Binding\UIntPropertyBinding.cs" />
+    <Compile Include="ConstraintViolationException.cs" />
+    <Compile Include="DbException.cs" />
+    <Compile Include="Internal\DatabaseExceptionFactory.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Internal\ErrorCode.cs" />
+    <Compile Include="Internal\ErrorHandling\FactoryErrorMessage.cs" />
+    <Compile Include="Internal\ErrorHandling\FileLocation.cs" />
+    <Compile Include="Internal\ErrorHandling\ErrorMessage.cs" />
+    <Compile Include="Internal\ErrorHandling\ExceptionFactory.cs" />
+    <Compile Include="Internal\ErrorHandling\ParsedErrorMessage.cs" />
+    <Compile Include="ITransactionConflictException.cs" />
     <Compile Include="LargeBinary.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="Internal\Fix.cs" />
@@ -86,7 +98,6 @@
     <Compile Include="Mock\IndexInfo.cs" />
     <Compile Include="Mock\IteratorHelper.cs" />
     <Compile Include="Mock\DatabaseEngineInstanceConfiguration.cs" />
-    <Compile Include="Mock\ErrorCode.cs" />
     <Compile Include="Mock\IObjectView.cs" />
     <Compile Include="Binding\IPropertyBinding.cs" />
     <Compile Include="Binding\ITypeBinding.cs" />
@@ -98,6 +109,7 @@
     <Compile Include="Mock\Temp.cs" />
     <Compile Include="Mock\ThreadHelper.cs" />
     <Compile Include="Mock\TypeRepository.cs" />
+    <Compile Include="ObjectDoesntExistException.cs" />
     <Compile Include="Query\Execution\CodeGeneration\CodeGenFilterCache.cs" />
     <Compile Include="Query\Execution\CodeGeneration\CodeGenFilterInstrCodes.cs" />
     <Compile Include="Query\Execution\CodeGeneration\CodeGenFilterNode.cs" />
@@ -299,7 +311,6 @@
     <Compile Include="Internal\Package.cs" />
     <Compile Include="Internal\Processor.cs" />
     <Compile Include="Internal\sccoredb.cs" />
-    <Compile Include="Internal\sccoreerr.cs" />
     <Compile Include="Internal\sccorelib.cs" />
     <Compile Include="Internal\sccorelog.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -327,6 +338,10 @@
     <Compile Include="Mock\Schema\DatabaseSocietyClass.cs" />
     <Compile Include="Mock\Schema\DatabaseUnsupportedType.cs" />
     <Compile Include="Mock\Schema\IDatabasePropertyType.cs" />
+    <Compile Include="TransactionAbortedException.cs" />
+    <Compile Include="TransactionConflictDbException.cs" />
+    <Compile Include="TransactionConflictException.cs" />
+    <Compile Include="UnhandledTransactionConflictException.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
