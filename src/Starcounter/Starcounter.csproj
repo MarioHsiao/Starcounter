@@ -79,6 +79,7 @@
     <Compile Include="Internal\ErrorHandling\ErrorMessage.cs" />
     <Compile Include="Internal\ErrorHandling\ExceptionFactory.cs" />
     <Compile Include="Internal\ErrorHandling\ParsedErrorMessage.cs" />
+    <Compile Include="ITransactionConflictException.cs" />
     <Compile Include="LargeBinary.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="Internal\Fix.cs" />
