@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Runtime.InteropServices;
+using Starcounter.CommandLine;
 
 namespace Starcounter.Internal
 {
@@ -11,18 +12,24 @@ namespace Starcounter.Internal
         public static void Main(string[] args)
         {
             Control c = new Control();
-            c.Setup();
-            c.Start();
-            c.Run();
-            c.Stop();
-            c.Cleanup();
+            if (c.Setup(args)) {
+                c.Start();
+                c.Run();
+                c.Stop();
+                c.Cleanup();
+            }
         }
 
         private unsafe void *hsched_;
 
-        private unsafe void Setup()
+        private unsafe bool Setup(string[] args)
         {
+            ApplicationArguments arguments;
+            
             DatabaseExceptionFactory.InstallInCurrentAppDomain();
+
+            if (!ProgramCommandLine.TryGetProgramArguments(args, out arguments))
+                return false;
 
             Configuration configuration = Configuration.Load();
 
@@ -71,6 +78,8 @@ namespace Starcounter.Internal
 
             // Query module.
             Scheduler.Setup(1);
+
+            return true;
         }
 
         private unsafe void Start()
