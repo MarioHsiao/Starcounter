@@ -31,8 +31,8 @@ namespace Starcounter.Internal
             if (!ProgramCommandLine.TryGetProgramArguments(args, out arguments))
                 return false;
 
-            Configuration configuration = Configuration.Load();
-
+            Configuration configuration = Configuration.Load(arguments);
+            
 #if false // TODO:
             _SetCriticalLogHandler(_LogCritical, NULL);
             SetUnhandledExceptionFilter(_UnhandledExceptionFilter);
