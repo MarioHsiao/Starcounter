@@ -58,7 +58,7 @@ namespace Starcounter
                                     }
                                     else
                                     {
-                                        throw sccoreerr.TranslateErrorCode(sccoredb.Mdb_GetLastError());
+                                        throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
                                     }
                                 }
                                 return new TableDef(name, baseName, columns, tableId, definition_addr);
@@ -70,7 +70,7 @@ namespace Starcounter
                         return null;
                     }
                 }
-                throw sccoreerr.TranslateErrorCode(sccoredb.Mdb_GetLastError());
+                throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
             }
         }
 
@@ -110,7 +110,7 @@ namespace Starcounter
                         fixed (sccoredb.SC_COLUMN_DEFINITION* fixed_column_definitions = column_definitions)
                         {
                             uint e = sccoredb.sc_create_table(fixed_name, inheritedDefinitionAddr, fixed_column_definitions);
-                            if (e != 0) throw sccoreerr.TranslateErrorCode(e);
+                            if (e != 0) throw ErrorCode.ToException(e);
                         }
                     }
                 }
@@ -129,14 +129,14 @@ namespace Starcounter
         {
             uint e = sccoredb.sc_rename_table(tableId, newName);
             if (e == 0) return;
-            throw sccoreerr.TranslateErrorCode(e);
+            throw ErrorCode.ToException(e);
         }
 
         public static void DropTable(ushort tableId)
         {
             uint e = sccoredb.sc_drop_table(tableId);
             if (e == 0) return;
-            throw sccoreerr.TranslateErrorCode(e);
+            throw ErrorCode.ToException(e);
         }
 
         public static void CreateIndex(ulong definitionAddr, string name, short columnIndex) // TODO:
@@ -148,7 +148,7 @@ namespace Starcounter
                 column_indexes[1] = -1;
                 uint e = sccoredb.sc_create_index(definitionAddr, name, 0, column_indexes, 0);
                 if (e == 0) return;
-                throw sccoreerr.TranslateErrorCode(e);
+                throw ErrorCode.ToException(e);
             }
         }
 
@@ -160,7 +160,7 @@ namespace Starcounter
             ulong verify;
 
             e = sccoredb.sccoredb_create_transaction_and_set_current(0, out transaction_id, out handle, out verify);
-            if (e != 0) throw sccoreerr.TranslateErrorCode(e);
+            if (e != 0) throw ErrorCode.ToException(e);
             try
             {
                 action();
@@ -168,12 +168,12 @@ namespace Starcounter
                 ulong hiter;
                 ulong viter;
                 e = sccoredb.sccoredb_begin_commit(out hiter, out viter);
-                if (e != 0) throw sccoreerr.TranslateErrorCode(e);
+                if (e != 0) throw ErrorCode.ToException(e);
 
                 // TODO: Handle triggers.
 
                 e = sccoredb.sccoredb_complete_commit(1, out transaction_id);
-                if (e != 0) throw sccoreerr.TranslateErrorCode(e);
+                if (e != 0) throw ErrorCode.ToException(e);
             }
             catch (Exception ex)
             {

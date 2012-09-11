@@ -367,7 +367,7 @@ namespace Starcounter.Internal
                     0,
                     (ulong)hPackage
                     );
-                if (e != 0) throw sccoreerr.TranslateErrorCode(e);
+                if (e != 0) throw ErrorCode.ToException(e);
 
                 // We only process one package at a time. Wait for the package
                 // to be processed before accepting more input.
