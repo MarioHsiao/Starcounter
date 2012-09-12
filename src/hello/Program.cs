@@ -14,6 +14,15 @@ namespace hello
             Console.WriteLine("Hello world (on database thread in database process)!");
 
 #if false
+#if false
+            Db.Transaction(() =>
+            {
+                Object o;
+                o = Db.SQL("SELECT m FROM MyMusic.Mucho m WHERE m.Number = ? AND m.Name = ?", 7, "Nisse").First;
+                o = null;
+            });
+#endif
+
             Db.Transaction(() =>
             {
                 MyMusic.Mucho m;
@@ -35,6 +44,17 @@ namespace hello
                     a = new MyMusic.Album("Nisse", "Nisse", DateTime.Now);
                 }
                 a = null;
+
+#if false
+                MyMusic.Artist artist;
+                artist = (MyMusic.Artist)Db.SQL("SELECT a FROM MyMusic.Artist a WHERE a.Name = ? AND a.Age = ?", "Nisse", 7).First;
+                if (artist == null)
+                {
+                    artist = new MyMusic.Artist("Nisse", "Nisse");
+                    artist.BirthYear = DateTime.Now.Year - 7;
+                }
+                artist = null;
+#endif
             });
 #endif
         }
