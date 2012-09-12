@@ -28,9 +28,20 @@ namespace Starcounter.Binding
         {
             CreateNewTable();
 
-            BuildColumnValueTransferSet(); 
+            BuildColumnValueTransferSet();
+
+            // We do the inheriting tables first so that only the records of
+            // current table remains when we scan the,
+
+            TableDef[] directlyInheritedTableDefs = GetDirectlyInheritedTableDefs();
+            for (int i = 0; i < directlyInheritedTableDefs.Length; i++)
+            {
+                UpgradeInheritingTable(directlyInheritedTableDefs[i]);
+            }
 
             MoveRecordsToNewTable();
+
+            // TODO: Add all indexes defined on old table to new table.
 
             DropOldTable();
 
@@ -117,6 +128,33 @@ namespace Starcounter.Binding
             columnValueTransferSet_ = output.ToArray();
         }
 
+        private void UpgradeInheritingTable(TableDef oldInheritingTableDef)
+        {
+            List<ColumnDef> newColumnDefs = new List<ColumnDef>();
+            ColumnDef[] inheritedColumnDefs = newTableDef_.ColumnDefs;
+            for (int i = 0; i < inheritedColumnDefs.Length; i++)
+            {
+                var inheritedColumnDef = inheritedColumnDefs[i].Clone();
+                inheritedColumnDef.IsInherited = true;
+                newColumnDefs.Add(inheritedColumnDef);
+            }
+
+            ColumnDef[] columnDefs = oldInheritingTableDef.ColumnDefs;
+            for (int i = oldTableDef_.ColumnDefs.Length; i < columnDefs.Length; i++)
+            {
+                newColumnDefs.Add(columnDefs[i].Clone());
+            }
+
+            TableDef newInheritingTableDef = new TableDef(
+                oldInheritingTableDef.Name,
+                newTableDef_.Name,
+                newColumnDefs.ToArray()
+                );
+
+            TableUpgrade tableUpgrade = new TableUpgrade(oldInheritingTableDef, newInheritingTableDef);
+            tableUpgrade.Eval();
+        }
+
         private void MoveRecordsToNewTable()
         {
             var indexInfo = oldTableDef_.GetAllIndexInfos()[0];
@@ -132,6 +170,39 @@ namespace Starcounter.Binding
                 });
             }
             while (c != 0);
+        }
+
+        private unsafe TableDef[] GetDirectlyInheritedTableDefs()
+        {
+            TableDef[] output = null;
+
+            Db.Transaction(() =>
+            {
+                sccoredb.Mdb_DefinitionInfo definitionInfo;
+                sccoredb.Mdb_DefinitionToDefinitionInfo(oldTableDef_.DefinitionAddr, out definitionInfo);
+
+                ulong[] definitionAddrs = new ulong[definitionInfo.inheriting_definition_count];
+                for (int i = 0; i < definitionAddrs.Length; i++)
+                {
+                    definitionAddrs[i] = definitionInfo.inheriting_definition_addrs[i];
+                }
+
+                List<TableDef> tableDefs = new List<TableDef>((int)definitionInfo.inheriting_definition_count);
+
+                for (int i = 0; i < definitionAddrs.Length; i++)
+                {
+                    ulong definitionAddr = definitionAddrs[i];
+                    sccoredb.Mdb_DefinitionToDefinitionInfo(definitionAddr, out definitionInfo);
+                    if (definitionInfo.inherited_definition_addr == oldTableDef_.DefinitionAddr)
+                    {
+                        tableDefs.Add(TableDef.ConstructTableDef(definitionAddr, definitionInfo));
+                    }
+                }
+
+                output = tableDefs.ToArray();
+            });
+
+            return output;
         }
 
         private void DropOldTable()
@@ -228,6 +299,8 @@ namespace Starcounter.Binding
         {
             uint e;
 
+            ushort filterTableId = oldTableDef_.TableId;
+
             ulong count = 0;
 
             ulong hiter;
@@ -258,8 +331,11 @@ namespace Starcounter.Binding
                         {
                             if (source.ObjectID != sccoredb.MDBIT_OBJECTID)
                             {
-                                handler(source);
-                                if (++count == max) break;
+                                if (tableId == filterTableId)
+                                {
+                                    handler(source);
+                                    if (++count == max) break;
+                                }
                             }
                             else break;
                         }
