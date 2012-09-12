@@ -27,16 +27,16 @@ namespace Starcounter
                         b = sccoredb.Mdb_DefinitionToDefinitionInfo(definition_addr, out definitionInfo);
                         if (b != 0)
                         {
-                            ushort tableId = definitionInfo.TableID;
-                            int columnCount = definitionInfo.NumAttributes;
+                            ushort tableId = definitionInfo.table_id;
+                            uint columnCount = definitionInfo.column_count;
                             string baseName = null;
 
-                            if (definitionInfo.ETIBasedOn != sccoredb.INVALID_DEFINITION_ADDR)
+                            if (definitionInfo.inherited_definition_addr != sccoredb.INVALID_DEFINITION_ADDR)
                             {
-                                b = sccoredb.Mdb_DefinitionToDefinitionInfo(definitionInfo.ETIBasedOn, out definitionInfo);
+                                b = sccoredb.Mdb_DefinitionToDefinitionInfo(definitionInfo.inherited_definition_addr, out definitionInfo);
                                 if (b != 0)
                                 {
-                                    baseName = new String(definitionInfo.PtrCodeClassName);
+                                    baseName = new String(definitionInfo.table_name);
                                 }
                             }
 
