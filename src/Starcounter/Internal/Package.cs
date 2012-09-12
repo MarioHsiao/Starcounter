@@ -65,6 +65,10 @@ namespace Starcounter.Internal
             {
                 var typeDef = typeDefs[i];
                 typeDef.TableDef = CreateOrUpdateDatabaseTable(typeDef.TableDef);
+
+                // TODO:
+                // Remap properties representing columns if the the column
+                // order has changed.
             }
 
             for (int i = 0; i < typeDefs.Length; i++)
@@ -79,6 +83,8 @@ namespace Starcounter.Internal
         {
             TableDef storedTableDef = null;
 
+            // TODO: Complete any pending upgrade.
+
             Db.Transaction(() =>
             {
                 storedTableDef = Db.LookupTable(tableDef.Name);
@@ -86,41 +92,31 @@ namespace Starcounter.Internal
 
             if (storedTableDef == null)
             {
-                TableDef inheritedTableDef = null;
+                var tableCreate = new TableCreate(tableDef);
+                storedTableDef = tableCreate.Eval();
+            }
+//            else if (!storedTableDef.Equals(tableDef)) // TODO: Upgrade if columns in different order as now?
+            else if (storedTableDef.BaseName == null)
+            {
+                var tableUpgrade = new TableUpgrade(storedTableDef, tableDef);
+                storedTableDef = tableUpgrade.Eval();
+            }
 
-                if (tableDef.BaseName != null)
-                {
-                    Db.Transaction(() =>
-                    {
-                        inheritedTableDef = Db.LookupTable(tableDef.BaseName);
-                    });
-
-                    if (inheritedTableDef == null) throw new Exception(); // TODO:
-                }
-
-                // TODO:
-                // Check that the first columns of the table definition matches
-                // that of the inherited table. Do this in Db.CreateTable?
-
-                Db.CreateTable(tableDef, inheritedTableDef);
-
-                Db.Transaction(() =>
-                {
-                    storedTableDef = Db.LookupTable(tableDef.Name);
-                });
-
-                // TODO:
-
+#if true
+            bool hasIndex = false;
+            Db.Transaction(() =>
+            {
+                hasIndex = storedTableDef.GetAllIndexInfos().Length != 0;
+            });
+            if (!hasIndex)
+            {
                 Db.CreateIndex(
                     storedTableDef.DefinitionAddr,
                     string.Concat(storedTableDef.Name, "_AUTO"),
                     0
                     );
             }
-            else
-            {
-                // TODO: Update if different structure.
-            }
+#endif
 
             return storedTableDef;
         }
