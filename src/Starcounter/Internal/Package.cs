@@ -95,8 +95,7 @@ namespace Starcounter.Internal
                 var tableCreate = new TableCreate(tableDef);
                 storedTableDef = tableCreate.Eval();
             }
-//            else if (!storedTableDef.Equals(tableDef)) // TODO: Upgrade if columns in different order as now?
-            else if (storedTableDef.BaseName == null)
+            else if (!storedTableDef.Equals(tableDef))
             {
                 var tableUpgrade = new TableUpgrade(storedTableDef, tableDef);
                 storedTableDef = tableUpgrade.Eval();
