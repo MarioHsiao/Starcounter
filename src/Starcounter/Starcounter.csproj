@@ -50,6 +50,7 @@
     <Compile Include="Binding\Bindings.cs" />
     <Compile Include="Binding\BindingHelper.cs" />
     <Compile Include="Binding\BytePropertyBinding.cs" />
+    <Compile Include="Binding\TableCreate.cs" />
     <Compile Include="Binding\LargeBinaryPropertyBinding.cs" />
     <Compile Include="Binding\ObjectPropertyBinding.cs" />
     <Compile Include="Binding\SinglePropertyBinding.cs" />
@@ -57,6 +58,7 @@
     <Compile Include="Binding\DecimalPropertyBinding.cs" />
     <Compile Include="Binding\DoublePropertyBinding.cs" />
     <Compile Include="Binding\RealPropertyBinding.cs" />
+    <Compile Include="Binding\TableUpgrade.cs" />
     <Compile Include="Binding\UInt16PropertyBinding.cs" />
     <Compile Include="Binding\UInt32PropertyBinding.cs" />
     <Compile Include="Binding\UInt64PropertyBinding.cs" />

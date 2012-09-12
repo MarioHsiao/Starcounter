@@ -41,6 +41,34 @@ namespace Starcounter.Binding
             DefinitionAddr = definitionAddr;
         }
 
+        public TableDef Clone()
+        {
+            ColumnDef[] clonedColumnDefs = new ColumnDef[ColumnDefs.Length];
+            for (int i = 0; i < ColumnDefs.Length; i++)
+            {
+                clonedColumnDefs[i] = ColumnDefs[i].Clone();
+            }
+            return new TableDef(Name, BaseName, clonedColumnDefs, TableId, DefinitionAddr);
+        }
+
+        public bool Equals(TableDef tableDef)
+        {
+            bool b =
+                Name == tableDef.Name &&
+                BaseName == tableDef.BaseName &&
+                ColumnDefs.Length == tableDef.ColumnDefs.Length
+                ;
+            if (b)
+            {
+                for (int i = 0; i < ColumnDefs.Length; i++)
+                {
+                    b = ColumnDefs[i].Equals(tableDef.ColumnDefs[i]);
+                    if (!b) break;
+                }
+            }
+            return b;
+        }
+
         internal IndexInfo[] GetAllIndexInfos()
         {
             UInt32 ec;
