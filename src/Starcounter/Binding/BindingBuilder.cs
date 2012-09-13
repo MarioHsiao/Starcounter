@@ -647,7 +647,7 @@ namespace Starcounter.Binding
                 propertyInfo.PropertyType == returnType
                 )
                 return;
-            throw new Exception("VerifyProperty failed."); // TODO:
+            throw ErrorCode.ToException(Error.SCERRSCHEMACODEMISMATCH, "VerifyProperty failed.");
         }
 
         private void VerifyObjectProperty(PropertyInfo propertyInfo)
@@ -658,7 +658,7 @@ namespace Starcounter.Binding
                 objectPropertyBindingReturnType.IsAssignableFrom(propertyInfo.PropertyType)
                 )
                 return;
-            throw new Exception("VerifyProperty failed."); // TODO:
+            throw ErrorCode.ToException(Error.SCERRSCHEMACODEMISMATCH, "VerifyObjectProperty failed.");
         }
     }
 }
