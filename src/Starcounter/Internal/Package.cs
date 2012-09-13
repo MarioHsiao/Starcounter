@@ -81,14 +81,21 @@ namespace Starcounter.Internal
 
         private TableDef CreateOrUpdateDatabaseTable(TableDef tableDef)
         {
+            string tableName = tableDef.Name;
             TableDef storedTableDef = null;
-
-            // TODO: Complete any pending upgrade.
+            TableDef pendingUpgradeTableDef = null;
 
             Db.Transaction(() =>
             {
-                storedTableDef = Db.LookupTable(tableDef.Name);
+                storedTableDef = Db.LookupTable(tableName);
+                pendingUpgradeTableDef = Db.LookupTable(TableUpgrade.CreatePendingUpdateTableName(tableName));
             });
+
+            if (pendingUpgradeTableDef != null)
+            {
+                var continueTableUpgrade = new TableUpgrade(tableName, storedTableDef, pendingUpgradeTableDef);
+                storedTableDef = continueTableUpgrade.ContinueEval();
+            }
 
             if (storedTableDef == null)
             {
@@ -97,7 +104,7 @@ namespace Starcounter.Internal
             }
             else if (!storedTableDef.Equals(tableDef))
             {
-                var tableUpgrade = new TableUpgrade(storedTableDef, tableDef);
+                var tableUpgrade = new TableUpgrade(tableName, storedTableDef, tableDef);
                 storedTableDef = tableUpgrade.Eval();
             }
 
