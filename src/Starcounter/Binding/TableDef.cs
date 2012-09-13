@@ -1,12 +1,9 @@
 ﻿
-using Starcounter.Internal;
-using System.Text;
-
-// TODO:
 using Sc.Server.Binding;
-using System;
 using Starcounter.Query.Execution;
-
+using Starcounter.Internal;
+using System;
+using System.Text;
 
 namespace Starcounter.Binding
 {
