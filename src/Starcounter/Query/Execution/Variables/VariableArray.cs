@@ -307,9 +307,9 @@ internal class VariableArray
                     case DbTypeCode.Object:
                     case DbTypeCode.Binary:
                     case DbTypeCode.LargeBinary:
-                    case DbTypeCode.Objects:
-                        stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.GLOBAL_DATA, "INTERNAL_DATA VOID *g_QueryParam" + i + " = 0;");
-                        break;
+                    //case DbTypeCode.Objects:
+                    //    stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.GLOBAL_DATA, "INTERNAL_DATA VOID *g_QueryParam" + i + " = 0;");
+                    //    break;
 
                     default:
                         throw new ArgumentException("Incorrect query variable " + i + " with type " + type.ToString() + " for code generation.");

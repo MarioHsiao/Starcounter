@@ -19,7 +19,7 @@ namespace Starcounter.Binding
         Int32,
         Int16,
         Object,
-        Objects, // TODO:
+        //Objects,
         SByte,
         String,
         UInt64,
