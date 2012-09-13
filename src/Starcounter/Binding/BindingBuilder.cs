@@ -224,6 +224,7 @@ namespace Starcounter.Binding
 
         private static Type boolPropertyBindingBaseType = typeof(BooleanPropertyBinding);
         private static Type boolPropertyBindingReturnType = typeof(Boolean);
+        private static Type nullableBoolPropertyBindingReturnType = typeof(Nullable<Boolean>);
 
         private PropertyBinding CreateBooleanPropertyBinding(PropertyDef propertyDef, Type thisType)
         {
@@ -232,12 +233,14 @@ namespace Starcounter.Binding
                 boolPropertyBindingBaseType,
                 "DoGetBoolean",
                 boolPropertyBindingReturnType,
+                nullableBoolPropertyBindingReturnType,
                 thisType
                 );
         }
 
         private static Type datetimePropertyBindingBaseType = typeof(DateTimePropertyBinding);
         private static Type datetimePropertyBindingReturnType = typeof(DateTime);
+        private static Type nullableDatetimePropertyBindingReturnType = typeof(Nullable<DateTime>);
 
         private PropertyBinding CreateDateTimePropertyBinding(PropertyDef propertyDef, Type thisType)
         {
@@ -246,12 +249,14 @@ namespace Starcounter.Binding
                 datetimePropertyBindingBaseType,
                 "DoGetDateTime",
                 datetimePropertyBindingReturnType,
+                nullableDatetimePropertyBindingReturnType,
                 thisType
                 );
         }
 
         private static Type decimalPropertyBindingBaseType = typeof(DecimalPropertyBinding);
         private static Type decimalPropertyBindingReturnType = typeof(Decimal);
+        private static Type nullableDecimalPropertyBindingReturnType = typeof(Nullable<Decimal>);
 
         private PropertyBinding CreateDecimalPropertyBinding(PropertyDef propertyDef, Type thisType)
         {
@@ -260,12 +265,14 @@ namespace Starcounter.Binding
                 decimalPropertyBindingBaseType,
                 "DoDecimalTime",
                 decimalPropertyBindingReturnType,
+                nullableDecimalPropertyBindingReturnType,
                 thisType
                 );
         }
 
         private static Type doublePropertyBindingBaseType = typeof(DoublePropertyBinding);
         private static Type doublePropertyBindingReturnType = typeof(Double);
+        private static Type nullableDoublePropertyBindingReturnType = typeof(Nullable<Double>);
 
         private PropertyBinding CreateDoublePropertyBinding(PropertyDef propertyDef, Type thisType)
         {
@@ -274,12 +281,14 @@ namespace Starcounter.Binding
                 decimalPropertyBindingBaseType,
                 "DoDoubleTime",
                 decimalPropertyBindingReturnType,
+                nullableDoublePropertyBindingReturnType,
                 thisType
                 );
         }
 
         private static Type singlePropertyBindingBaseType = typeof(SinglePropertyBinding);
         private static Type singlePropertyBindingReturnType = typeof(Single);
+        private static Type nullableSinglePropertyBindingReturnType = typeof(Nullable<Single>);
 
         private PropertyBinding CreateSinglePropertyBinding(PropertyDef propertyDef, Type thisType)
         {
@@ -288,6 +297,7 @@ namespace Starcounter.Binding
                 singlePropertyBindingBaseType,
                 "DoSingleTime",
                 singlePropertyBindingReturnType,
+                nullableSinglePropertyBindingReturnType,
                 thisType
                 );
         }
@@ -330,6 +340,7 @@ namespace Starcounter.Binding
 
         private static Type int8PropertyBindingBaseType = typeof(SBytePropertyBinding);
         private static Type int8PropertyBindingReturnType = typeof(SByte);
+        private static Type nullableInt8PropertyBindingReturnType = typeof(Nullable<SByte>);
 
         private PropertyBinding CreateSBytePropertyBinding(PropertyDef propertyDef, Type thisType)
         {
@@ -338,12 +349,14 @@ namespace Starcounter.Binding
                 int8PropertyBindingBaseType,
                 "DoGetSByte",
                 int8PropertyBindingReturnType,
+                nullableInt8PropertyBindingReturnType,
                 thisType
                 );
         }
 
         private static Type int16PropertyBindingBaseType = typeof(Int16PropertyBinding);
         private static Type int16PropertyBindingReturnType = typeof(Int16);
+        private static Type nullableInt16PropertyBindingReturnType = typeof(Nullable<Int16>);
 
         private PropertyBinding CreateInt16PropertyBinding(PropertyDef propertyDef, Type thisType)
         {
@@ -352,12 +365,14 @@ namespace Starcounter.Binding
                 int16PropertyBindingBaseType,
                 "DoGetInt16",
                 int16PropertyBindingReturnType,
+                nullableInt16PropertyBindingReturnType,
                 thisType
                 );
         }
 
         private static Type int32PropertyBindingBaseType = typeof(Int32PropertyBinding);
         private static Type int32PropertyBindingReturnType = typeof(Int32);
+        private static Type nullableInt32PropertyBindingReturnType = typeof(Nullable<Int32>);
 
         private PropertyBinding CreateInt32PropertyBinding(PropertyDef propertyDef, Type thisType)
         {
@@ -366,12 +381,14 @@ namespace Starcounter.Binding
                 int32PropertyBindingBaseType,
                 "DoGetInt32",
                 int32PropertyBindingReturnType,
+                nullableInt32PropertyBindingReturnType,
                 thisType
                 );
         }
 
         private static Type int64PropertyBindingBaseType = typeof(Int64PropertyBinding);
         private static Type int64PropertyBindingReturnType = typeof(Int64);
+        private static Type nullableInt64PropertyBindingReturnType = typeof(Nullable<Int64>);
 
         private PropertyBinding CreateInt64PropertyBinding(PropertyDef propertyDef, Type thisType)
         {
@@ -380,6 +397,7 @@ namespace Starcounter.Binding
                 int64PropertyBindingBaseType,
                 "DoGetInt64",
                 int64PropertyBindingReturnType,
+                nullableInt64PropertyBindingReturnType,
                 thisType
                 );
         }
@@ -400,6 +418,7 @@ namespace Starcounter.Binding
 
         private static Type uint8PropertyBindingBaseType = typeof(BytePropertyBinding);
         private static Type uint8PropertyBindingReturnType = typeof(Byte);
+        private static Type nullableUint8PropertyBindingReturnType = typeof(Nullable<Byte>);
 
         private PropertyBinding CreateBytePropertyBinding(PropertyDef propertyDef, Type thisType)
         {
@@ -408,12 +427,14 @@ namespace Starcounter.Binding
                 uint8PropertyBindingBaseType,
                 "DoGetByte",
                 uint8PropertyBindingReturnType,
+                nullableUint8PropertyBindingReturnType,
                 thisType
                 );
         }
 
         private static Type uint16PropertyBindingBaseType = typeof(UInt16PropertyBinding);
         private static Type uint16PropertyBindingReturnType = typeof(UInt16);
+        private static Type nullableUint16PropertyBindingReturnType = typeof(Nullable<UInt16>);
 
         private PropertyBinding CreateUInt16PropertyBinding(PropertyDef propertyDef, Type thisType)
         {
@@ -422,12 +443,14 @@ namespace Starcounter.Binding
                 uint16PropertyBindingBaseType,
                 "DoGetUInt16",
                 uint16PropertyBindingReturnType,
+                nullableUint16PropertyBindingReturnType,
                 thisType
                 );
         }
 
         private static Type uint32PropertyBindingBaseType = typeof(UInt32PropertyBinding);
         private static Type uint32PropertyBindingReturnType = typeof(UInt32);
+        private static Type nullableUint32PropertyBindingReturnType = typeof(Nullable<UInt32>);
 
         private PropertyBinding CreateUInt32PropertyBinding(PropertyDef propertyDef, Type thisType)
         {
@@ -436,12 +459,14 @@ namespace Starcounter.Binding
                 uint32PropertyBindingBaseType,
                 "DoGetUInt32",
                 uint32PropertyBindingReturnType,
+                nullableUint32PropertyBindingReturnType,
                 thisType
                 );
         }
 
         private static Type uint64PropertyBindingBaseType = typeof(UInt64PropertyBinding);
         private static Type uint64PropertyBindingReturnType = typeof(UInt64);
+        private static Type nullableUint64PropertyBindingReturnType = typeof(Nullable<UInt64>);
 
         private PropertyBinding CreateUInt64PropertyBinding(PropertyDef propertyDef, Type thisType)
         {
@@ -450,6 +475,7 @@ namespace Starcounter.Binding
                 uint64PropertyBindingBaseType,
                 "DoGetUInt64",
                 uint64PropertyBindingReturnType,
+                nullableUint64PropertyBindingReturnType,
                 thisType
                 );
         }
@@ -477,7 +503,7 @@ namespace Starcounter.Binding
             return new LargeBinaryPropertyBinding();
         }
 
-        private PropertyBinding GeneratePropertyBindingDefault(PropertyDef propertyDef, Type bindingBaseType, String methodName, Type returnType, Type thisType)
+        private PropertyBinding GeneratePropertyBindingDefault(PropertyDef propertyDef, Type bindingBaseType, String methodName, Type returnType, Type nullableReturnType, Type thisType)
         {
             PropertyInfo propertyInfo;
             bool isNullable;
@@ -489,7 +515,7 @@ namespace Starcounter.Binding
 
             isNullable = propertyDef.IsNullable;
 
-            Type implReturnType = typeof(Nullable<>).MakeGenericType(returnType); // TODO: Constant!
+            Type implReturnType = nullableReturnType;
             Type targetReturnType = !isNullable ? returnType : implReturnType;
             VerifyProperty(propertyInfo, targetReturnType);
 
@@ -518,19 +544,16 @@ namespace Starcounter.Binding
             return (PropertyBinding)(propBindingType.GetConstructor(Type.EmptyTypes).Invoke(null));
         }
 
+        private static Type[] propertyBindingGetParams = new Type[] { typeof(Object) };
+
         private void GeneratePropertyBindingDefault(TypeBuilder typeBuilder, String methodName, Type implReturnType, Type targetReturnType, Type thisType, PropertyInfo propertyInfo)
         {
             MethodInfo methodInfo;
             MethodBuilder methodBuilder;
             ILGenerator ilGenerator;
-            Type[] paramTypeArray;
 
             ConstructorInfo implReturnTypeCtor = implReturnType.GetConstructor(new Type[] { targetReturnType });
 
-            // TODO: Constant!
-            paramTypeArray = new Type[1];
-            paramTypeArray[0] = typeof(Object);
-            
             methodInfo = typeof(PropertyBinding).GetMethod(
                              methodName,
                              (BindingFlags.Instance | BindingFlags.NonPublic)
@@ -539,7 +562,7 @@ namespace Starcounter.Binding
                                 methodName,
                                 (MethodAttributes.HideBySig | MethodAttributes.Final | MethodAttributes.NewSlot | MethodAttributes.Family | MethodAttributes.Virtual),
                                 implReturnType,
-                                paramTypeArray
+                                propertyBindingGetParams
                             );
             typeBuilder.DefineMethodOverride(methodBuilder, methodInfo);
             ilGenerator = methodBuilder.GetILGenerator();
@@ -558,11 +581,6 @@ namespace Starcounter.Binding
             MethodBuilder methodBuilder;
             ILGenerator ilGenerator;
             
-            // TODO: Constant!
-            Type[] paramTypeArray;
-            paramTypeArray = new Type[1];
-            paramTypeArray[0] = typeof(Object);
-
             methodInfo = typeof(PropertyBinding).GetMethod(
                              methodName,
                              (BindingFlags.Instance | BindingFlags.NonPublic)
@@ -571,7 +589,7 @@ namespace Starcounter.Binding
                                 methodName,
                                 (MethodAttributes.HideBySig | MethodAttributes.Final | MethodAttributes.NewSlot | MethodAttributes.Family | MethodAttributes.Virtual),
                                 returnType,
-                                paramTypeArray
+                                propertyBindingGetParams
                             );
             typeBuilder.DefineMethodOverride(methodBuilder, methodInfo);
             ilGenerator = methodBuilder.GetILGenerator();
