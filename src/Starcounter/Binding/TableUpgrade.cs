@@ -11,15 +11,25 @@ namespace Starcounter.Binding
     internal class TableUpgrade
     {
 
+        public const string PendingUpdateTableNamePrefix = "0";
+
+        public static string CreatePendingUpdateTableName(string name)
+        {
+            // TODO: Restrict name size and format on non upgrade table.
+            return string.Concat(PendingUpdateTableNamePrefix, name); 
+        }
+
         private delegate void RecordHandler(ObjectRef obj);
 
+        private readonly string tableName_;
         private readonly TableDef oldTableDef_;
         private TableDef newTableDef_;
 
         private ColumnValueTransfer[] columnValueTransferSet_;
 
-        public TableUpgrade(TableDef oldTableDef, TableDef newTableDef)
+        public TableUpgrade(string tableName, TableDef oldTableDef, TableDef newTableDef)
         {
+            tableName_ = tableName;
             oldTableDef_ = oldTableDef;
             newTableDef_ = newTableDef;
         }
@@ -28,16 +38,16 @@ namespace Starcounter.Binding
         {
             CreateNewTable();
 
-            BuildColumnValueTransferSet();
-
             // We do the inheriting tables first so that only the records of
             // current table remains when we scan the,
 
-            TableDef[] directlyInheritedTableDefs = GetDirectlyInheritedTableDefs();
+            TableDef[] directlyInheritedTableDefs = GetDirectlyInheritedTableDefs(oldTableDef_.DefinitionAddr);
             for (int i = 0; i < directlyInheritedTableDefs.Length; i++)
             {
                 UpgradeInheritingTable(directlyInheritedTableDefs[i]);
             }
+
+            BuildColumnValueTransferSet();
 
             MoveRecordsToNewTable();
 
@@ -55,13 +65,121 @@ namespace Starcounter.Binding
             return newTableDef_;
         }
 
+        public TableDef ContinueEval()
+        {
+            if (oldTableDef_ != null)
+            {
+                // Start or conclude any upgrades on inherited tables.
+                
+                // If an inherited table already has been upgraded it won't
+                // show in this list since it will no longer inherit the old
+                // table but will instead inherit the new table.
+
+                TableDef[] directlyInheritedTableDefs;
+                directlyInheritedTableDefs = GetDirectlyInheritedTableDefs(oldTableDef_.DefinitionAddr);
+                for (int i = 0; i < directlyInheritedTableDefs.Length; i++)
+                {
+                    ContinueUpgradeInheritingTable(directlyInheritedTableDefs[i]);
+                }
+
+                // If an upgrade of an inherited table is concluded but the
+                // table rename was not completed we will have a table
+                // inheriting the new table but with an illegal name. So we
+                // check all the tables inheriting the new table and make sure
+                // they have the final name.
+                //
+                // This we do not have to do recursivly since if the replaced
+                // inherited table is dropped then all upgrades on table
+                // inherting this table will have been completed.
+
+                directlyInheritedTableDefs = GetDirectlyInheritedTableDefs(newTableDef_.DefinitionAddr);
+                for (int i = 0; i < directlyInheritedTableDefs.Length; i++)
+                {
+                    var directlyInheritedTableDef = directlyInheritedTableDefs[i];
+                    var inheritedTableName = directlyInheritedTableDef.Name;
+                    if (inheritedTableName.StartsWith(PendingUpdateTableNamePrefix))
+                    {
+                        inheritedTableName = inheritedTableName.Substring(PendingUpdateTableNamePrefix.Length);
+                        Db.RenameTable(directlyInheritedTableDef.TableId, inheritedTableName);
+                    }
+                }
+
+                BuildColumnValueTransferSet();
+
+                MoveRecordsToNewTable();
+
+                // TODO:
+                // Assure that all indexes defined on old table is defined on new table.
+
+                DropOldTable();
+            }
+
+            RenameNewTable();
+
+            Db.Transaction(() =>
+            {
+                newTableDef_ = Db.LookupTable(oldTableDef_.Name);
+            });
+
+            return newTableDef_;
+        }
+
         private void CreateNewTable()
         {
-            // TODO: Restrict name size and format on non upgrade table.
             newTableDef_ = newTableDef_.Clone();
-            newTableDef_.Name = string.Concat("0", newTableDef_.Name, "000");
+            newTableDef_.Name = CreatePendingUpdateTableName(newTableDef_.Name);
             var tableCreate = new TableCreate(newTableDef_);
             newTableDef_ = tableCreate.Eval();
+        }
+
+        private void UpgradeInheritingTable(TableDef oldInheritingTableDef)
+        {
+            List<ColumnDef> newColumnDefs = new List<ColumnDef>();
+            ColumnDef[] inheritedColumnDefs = newTableDef_.ColumnDefs;
+            for (int i = 0; i < inheritedColumnDefs.Length; i++)
+            {
+                var inheritedColumnDef = inheritedColumnDefs[i].Clone();
+                inheritedColumnDef.IsInherited = true;
+                newColumnDefs.Add(inheritedColumnDef);
+            }
+
+            ColumnDef[] columnDefs = oldInheritingTableDef.ColumnDefs;
+            for (int i = oldTableDef_.ColumnDefs.Length; i < columnDefs.Length; i++)
+            {
+                newColumnDefs.Add(columnDefs[i].Clone());
+            }
+
+            string tableName = oldInheritingTableDef.Name;
+
+            TableDef newInheritingTableDef = new TableDef(
+                tableName,
+                newTableDef_.Name,
+                newColumnDefs.ToArray()
+                );
+
+            var tableUpgrade = new TableUpgrade(tableName, oldInheritingTableDef, newInheritingTableDef);
+            tableUpgrade.Eval();
+        }
+
+        private void ContinueUpgradeInheritingTable(TableDef oldInheritingTableDef)
+        {
+            var tableName = oldInheritingTableDef.Name;
+            TableDef newInheritingTableDef = null;
+
+            Db.Transaction(() =>
+            {
+                newInheritingTableDef = Db.LookupTable(CreatePendingUpdateTableName(tableName));
+            });
+
+            if (newInheritingTableDef != null)
+            {
+                var tableUpgrade = new TableUpgrade(tableName, oldInheritingTableDef, newInheritingTableDef);
+                tableUpgrade.ContinueEval();
+            }
+            else
+            {
+                UpgradeInheritingTable(oldInheritingTableDef);
+            }
         }
 
         private void BuildColumnValueTransferSet()
@@ -128,33 +246,6 @@ namespace Starcounter.Binding
             columnValueTransferSet_ = output.ToArray();
         }
 
-        private void UpgradeInheritingTable(TableDef oldInheritingTableDef)
-        {
-            List<ColumnDef> newColumnDefs = new List<ColumnDef>();
-            ColumnDef[] inheritedColumnDefs = newTableDef_.ColumnDefs;
-            for (int i = 0; i < inheritedColumnDefs.Length; i++)
-            {
-                var inheritedColumnDef = inheritedColumnDefs[i].Clone();
-                inheritedColumnDef.IsInherited = true;
-                newColumnDefs.Add(inheritedColumnDef);
-            }
-
-            ColumnDef[] columnDefs = oldInheritingTableDef.ColumnDefs;
-            for (int i = oldTableDef_.ColumnDefs.Length; i < columnDefs.Length; i++)
-            {
-                newColumnDefs.Add(columnDefs[i].Clone());
-            }
-
-            TableDef newInheritingTableDef = new TableDef(
-                oldInheritingTableDef.Name,
-                newTableDef_.Name,
-                newColumnDefs.ToArray()
-                );
-
-            TableUpgrade tableUpgrade = new TableUpgrade(oldInheritingTableDef, newInheritingTableDef);
-            tableUpgrade.Eval();
-        }
-
         private void MoveRecordsToNewTable()
         {
             var indexInfo = oldTableDef_.GetAllIndexInfos()[0];
@@ -172,14 +263,14 @@ namespace Starcounter.Binding
             while (c != 0);
         }
 
-        private unsafe TableDef[] GetDirectlyInheritedTableDefs()
+        private unsafe TableDef[] GetDirectlyInheritedTableDefs(ulong baseDefinitionAddr)
         {
             TableDef[] output = null;
 
             Db.Transaction(() =>
             {
                 sccoredb.Mdb_DefinitionInfo definitionInfo;
-                sccoredb.Mdb_DefinitionToDefinitionInfo(oldTableDef_.DefinitionAddr, out definitionInfo);
+                sccoredb.Mdb_DefinitionToDefinitionInfo(baseDefinitionAddr, out definitionInfo);
 
                 ulong[] definitionAddrs = new ulong[definitionInfo.inheriting_definition_count];
                 for (int i = 0; i < definitionAddrs.Length; i++)
@@ -191,9 +282,9 @@ namespace Starcounter.Binding
 
                 for (int i = 0; i < definitionAddrs.Length; i++)
                 {
-                    ulong definitionAddr = definitionAddrs[i];
+                    var definitionAddr = definitionAddrs[i];
                     sccoredb.Mdb_DefinitionToDefinitionInfo(definitionAddr, out definitionInfo);
-                    if (definitionInfo.inherited_definition_addr == oldTableDef_.DefinitionAddr)
+                    if (definitionInfo.inherited_definition_addr == baseDefinitionAddr)
                     {
                         tableDefs.Add(TableDef.ConstructTableDef(definitionAddr, definitionInfo));
                     }
@@ -212,7 +303,7 @@ namespace Starcounter.Binding
 
         private void RenameNewTable()
         {
-            Db.RenameTable(newTableDef_.TableId, oldTableDef_.Name);
+            Db.RenameTable(newTableDef_.TableId, tableName_);
         }
 
         private void MoveRecord(ObjectRef source)
