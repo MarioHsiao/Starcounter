@@ -75,10 +75,7 @@ namespace Starcounter.Internal
                 LoaderHelper.MapPropertyDefsToColumnDefs(tableDef.ColumnDefs, typeDef.PropertyDefs);
             }
 
-            for (int i = 0; i < typeDefs.Length; i++)
-            {
-                Bindings.RegisterTypeDef(typeDefs[i]);
-            }
+            Bindings.RegisterTypeDefs(typeDefs);
 
             if (typeDefs.Length != 0) Fix.ResetTheQueryModule();
         }

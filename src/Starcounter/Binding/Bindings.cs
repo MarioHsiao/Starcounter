@@ -6,28 +6,50 @@ using System.Collections.Generic;
 namespace Starcounter.Binding
 {
     
-    public static class Bindings
+    internal static class Bindings
     {
 
-        // TODO: Access to collections needs to be thread-safe.
-
-        private static List<TypeBinding> typeBindingsById_ = new List<TypeBinding>();
+        private static TypeBinding[] typeBindingsById_ = new TypeBinding[0];
         private static Dictionary<string, TypeBinding> typeBindingsByName_ = new Dictionary<string, TypeBinding>();
 
-        private static List<TypeDef> typeDefsById_ = new List<TypeDef>();
+        private static TypeDef[] typeDefsById_ = new TypeDef[0];
         private static Dictionary<string, TypeDef> typeDefsByName_ = new Dictionary<string, TypeDef>();
+
+        private static object syncRoot_ = new object();
 
         //
         // Note that a type definition must not be registered until the table
         // definition has been synchronized with the database.
         //
-        public static void RegisterTypeDef(TypeDef typeDef)
+        // Only one thread at a time must be allowed to add type definitions.
+        //
+        internal static void RegisterTypeDefs(TypeDef[] typeDefs)
         {
-            typeDefsByName_.Add(typeDef.Name, typeDef);
+            // We don't have to lock here since only one thread at a time will
+            // be adding type definitions.
 
-            TableDef tableDef = typeDef.TableDef;
-            while (typeDefsById_.Count <= tableDef.TableId) typeDefsById_.Add(null); // TODO:
-            typeDefsById_[tableDef.TableId] = typeDef;
+            Dictionary<string, TypeDef> typeDefsByName = new Dictionary<string, TypeDef>(typeDefsByName_);
+            TypeDef typeDef;
+            for (int i = 0; i < typeDefs.Length; i++)
+            {
+                typeDef = typeDefs[i];
+                typeDefsByName.Add(typeDef.Name, typeDef);
+            }
+
+            List<TypeDef> typeDefsById = new List<TypeDef>(typeDefsById_);
+            for (int i = 0; i < typeDefs.Length; i++)
+            {
+                typeDef = typeDefs[i];
+                var tableId = typeDef.TableDef.TableId;
+                while (typeDefsById.Count <= tableId) typeDefsById.Add(null);
+                typeDefsById[tableId] = typeDef;
+            }
+
+            // No one will be requesting a type not previously registered so we
+            // do not have to worry that the different maps are not in sync.
+
+            typeDefsById_ = typeDefsById.ToArray();
+            typeDefsByName_ = typeDefsByName;
         }
 
         internal static TypeDef GetTypeDef(string name)
@@ -67,10 +89,9 @@ namespace Starcounter.Binding
             {
                 return typeBindingsByName_[name];
             }
-            catch (KeyNotFoundException)
-            {
-                return BuildTypeBindingFromTypeDef(name);
-            }
+            catch (KeyNotFoundException) { }
+
+            return BuildTypeBindingFromTypeDef(name);
         }
 
         private static TypeBinding BuildTypeBindingFromTypeDef(ushort tableId)
@@ -81,7 +102,7 @@ namespace Starcounter.Binding
             }
             catch (IndexOutOfRangeException)
             {
-                return null; // TODO: Type not loaded.
+                throw CreateExceptionOnTypeDefNotFound();
             }
         }
 
@@ -94,25 +115,55 @@ namespace Starcounter.Binding
 
         private static TypeBinding BuildTypeBindingFromTypeDef(TypeDef typeDef)
         {
-            if (typeDef == null) return null; // TODO: Type not loaded. Detect by way of exception.
+            if (typeDef == null) throw CreateExceptionOnTypeDefNotFound();
 
-            BindingBuilder builder = new BindingBuilder(typeDef);
-            TypeBinding tb = builder.CreateTypeBinding();
+            lock (syncRoot_)
+            {
+                // Check if some other thread has added a type binding for the
+                // specific type while we where waiting to acquire the lock.
+
+                TypeBinding tb = null;
+                var tableId = typeDef.TableDef.TableId;
+                if (typeBindingsById_.Length > tableId)
+                {
+                    tb = typeBindingsById_[tableId];
+                }
+
+                if (tb == null)
+                {
+                    BindingBuilder builder = new BindingBuilder(typeDef);
+                    tb = builder.CreateTypeBinding();
 #if false
-            builder.WriteAssemblyToDisk();
+                    builder.WriteAssemblyToDisk();
 #endif
+                    AddTypeBinding(tb);
+                }
 
-            AddTypeBinding(tb);
-            return tb;
+                return tb;
+            }
         }
 
         private static void AddTypeBinding(TypeBinding typeBinding)
         {
-            typeBindingsByName_.Add(typeBinding.Name, typeBinding);
+            Dictionary<string, TypeBinding> typeBindingsByName = new Dictionary<string, TypeBinding>(typeBindingsByName_);
+            typeBindingsByName.Add(typeBinding.Name, typeBinding);
 
-            TableDef tableDef = typeBinding.TypeDef.TableDef;
-            while (typeBindingsById_.Count <= tableDef.TableId) typeBindingsById_.Add(null); // TODO:
-            typeBindingsById_[tableDef.TableId] = typeBinding;
+            List<TypeBinding> typeBindingsById = new List<TypeBinding>(typeBindingsById_);
+            var tableId = typeBinding.TypeDef.TableDef.TableId;
+            while (typeBindingsById.Count <= tableId) typeBindingsById.Add(null);
+            typeBindingsById[tableId] = typeBinding;
+
+            typeBindingsById_ = typeBindingsById.ToArray();
+            typeBindingsByName_ = typeBindingsByName;
+        }
+
+        private static Exception CreateExceptionOnTypeDefNotFound()
+        {
+            // This should not happen. No one should be requesting type binding
+            // for a type that hasn't be registered. Schema must not have been
+            // provided properly.
+
+            throw ErrorCode.ToException(Error.SCERRSCHEMACODEMISMATCH);
         }
     }
 }

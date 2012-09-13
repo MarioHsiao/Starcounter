@@ -15,46 +15,39 @@ namespace Starcounter.LucentObjects
         public static void InitializeClientAssembly(Type clientAssemblyTypeInitializer, Type type)
         {
             string typeName = type.FullName;
-            TypeDef typeDef = Bindings.GetTypeDef(typeName);
-            if (typeDef != null)
+
+            TypeBinding tb = Bindings.GetTypeBinding(type.FullName);
+
+            FieldInfo field;
+            field = clientAssemblyTypeInitializer.GetField(typeName + "__typeAddress", BindingFlags.Static | BindingFlags.NonPublic);
+            field.SetValue(null, tb.DefHandle);
+            field = clientAssemblyTypeInitializer.GetField(typeName + "__typeBinding", BindingFlags.Static | BindingFlags.NonPublic);
+            field.SetValue(null, tb);
+
+            ColumnDef[] columns = tb.TypeDef.TableDef.ColumnDefs;
+            for (int ci = 0; ci < columns.Length; ci++)
             {
-                TypeBinding tb = Bindings.GetTypeBinding(type.FullName);
+                ColumnDef column = columns[ci];
 
-                FieldInfo field;
-                field = clientAssemblyTypeInitializer.GetField(typeName + "__typeAddress", BindingFlags.Static | BindingFlags.NonPublic);
-                field.SetValue(null, tb.DefHandle);
-                field = clientAssemblyTypeInitializer.GetField(typeName + "__typeBinding", BindingFlags.Static | BindingFlags.NonPublic);
-                field.SetValue(null, tb);
-
-                ColumnDef[] columns = tb.TypeDef.TableDef.ColumnDefs;
-                for (int ci = 0; ci < columns.Length; ci++)
+                field = type.GetField("<>0" + column.Name + "000", BindingFlags.Static | BindingFlags.NonPublic);
+                if (!column.IsInherited)
                 {
-                    ColumnDef column = columns[ci];
-
-                    field = type.GetField("<>0" + column.Name + "000", BindingFlags.Static | BindingFlags.NonPublic);
-                    if (!column.IsInherited)
+                    try
                     {
-                        try
-                        {
-                            field.SetValue(null, ci);
-                        }
-                        catch (NullReferenceException)
-                        {
-                            throw ErrorCode.ToException(Error.SCERRSCHEMACODEMISMATCH);
-                        }
+                        field.SetValue(null, ci);
                     }
-                    else if (field != null)
+                    catch (NullReferenceException)
                     {
-                        // If inherited column there should be no field to
-                        // store the column index.
-
                         throw ErrorCode.ToException(Error.SCERRSCHEMACODEMISMATCH);
                     }
                 }
-            }
-            else
-            {
-                throw ErrorCode.ToException(Error.SCERRSCHEMACODEMISMATCH);
+                else if (field != null)
+                {
+                    // If inherited column there should be no field to
+                    // store the column index.
+
+                    throw ErrorCode.ToException(Error.SCERRSCHEMACODEMISMATCH);
+                }
             }
         }
     }
