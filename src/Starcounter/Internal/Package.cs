@@ -64,11 +64,15 @@ namespace Starcounter.Internal
             for (int i = 0; i < typeDefs.Length; i++)
             {
                 var typeDef = typeDefs[i];
-                typeDef.TableDef = CreateOrUpdateDatabaseTable(typeDef.TableDef);
+                var tableDef = typeDef.TableDef;
 
-                // TODO:
-                // Remap properties representing columns if the the column
+                tableDef = CreateOrUpdateDatabaseTable(tableDef);
+                typeDef.TableDef = tableDef;
+
+                // Remap properties representing columns in case the column
                 // order has changed.
+
+                LoaderHelper.MapPropertyDefsToColumnDefs(tableDef.ColumnDefs, typeDef.PropertyDefs);
             }
 
             for (int i = 0; i < typeDefs.Length; i++)
