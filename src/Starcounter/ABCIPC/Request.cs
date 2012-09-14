@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -220,7 +221,7 @@ namespace Starcounter.ABCIPC {
             if (reply == null)
                 throw new ArgumentNullException("reply");
 
-            InternalReply(Reply.Protocol.MakeString(Reply.TypeFromResult(result), reply));
+            InternalReply(Reply.Protocol.MakeString(Reply.TypeFromResult(result, reply), reply));
         }
 
         public void ReplyStatus(string reply) {
