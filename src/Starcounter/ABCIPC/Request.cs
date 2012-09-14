@@ -207,6 +207,10 @@ namespace Starcounter.ABCIPC {
             InternalRespond2(Reply.Protocol.MakeString(Reply.TypeFromResult(result), reply));
         }
 
+        internal void RespondToUnknownMessage() {
+            InternalRespond2(Reply.Protocol.MakeString(Reply.ReplyType.UnknownMessage, this.Message));
+        }
+
         void InternalRespond2(string replyString) {
             if (IsResponded)
                 throw new InvalidOperationException("Request has already been responded to.");

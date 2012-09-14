@@ -140,6 +140,7 @@ namespace Starcounter.ABCIPC {
             do {
                 stringReply = receive();
                 reply = Reply.Protocol.Parse(stringReply);
+                RaiseIfMessageUnknown(reply);
 
                 // Check if the response seems right. Only invoke
                 // the handler if it does.
@@ -154,8 +155,6 @@ namespace Starcounter.ABCIPC {
                     throw new Exception(string.Format("The server handler for message \"{0}\" failed: {1}.", message, reply._carry));
                 else if (reply._type == Reply.ReplyType.BadSignature)
                     throw new Exception(string.Format("The server side signature for message \"{0}\" did not match the call", message));
-                else if (reply._type == Reply.ReplyType.UnknownMessage)
-                    throw new Exception(string.Format("The server didnt reconized message \"{0}\".", message));
 
                 // Invoke the handler if there is one. Maybe catch exceptions
                 // and raise a certain one, wrapping the one coming from the
@@ -168,6 +167,11 @@ namespace Starcounter.ABCIPC {
             } while (!reply.IsResponse);
 
             return reply.IsSuccess;
+        }
+
+        void RaiseIfMessageUnknown(Reply reply) {
+            if (reply._type == Reply.ReplyType.UnknownMessage)
+                throw new NotSupportedException(string.Format("The server didn't reconize the sent message. ({0}).", reply.ToString()));
         }
 
         //bool SendRequest(OutgoingRequest request, Func<string, string, bool> responseHandler) {

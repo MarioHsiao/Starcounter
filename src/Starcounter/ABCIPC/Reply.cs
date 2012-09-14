@@ -49,7 +49,6 @@ namespace Starcounter.ABCIPC {
                     case ReplyType.OK:
                     case ReplyType.Progress:
                     case ReplyType.Fail:
-                    case ReplyType.UnknownMessage:
                     case ReplyType.BadSignature:
                         Trace.Assert(
                             carry == null, 
@@ -62,6 +61,7 @@ namespace Starcounter.ABCIPC {
                     case ReplyType.ProgressWithCarry:
                     case ReplyType.FailWithCarry:
                     case ReplyType.HandlerException:
+                    case ReplyType.UnknownMessage:
                         carry = carry ?? string.Empty;
                         result = string.Concat(((int)type).ToString("D2"), carry);
                         break;
@@ -120,7 +120,9 @@ namespace Starcounter.ABCIPC {
                 type == ReplyType.OKWithCarry ||
                 type == ReplyType.ProgressWithCarry ||
                 type == ReplyType.FailWithCarry ||
-                type == ReplyType.HandlerException;
+                type == ReplyType.HandlerException ||
+                type == ReplyType.UnknownMessage;
+
         }
 
         internal Reply(Reply.ReplyType type, string carry) {
