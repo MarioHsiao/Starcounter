@@ -188,52 +188,23 @@ namespace Starcounter.ABCIPC {
             }
         }
 
-        //public string GetStringParameter() {
-        //    Trace.Assert(messageType == Protocol.MessageWithString || messageType == Protocol.MessageWithStringNULL);
-        //    return (string)ParameterData;
-        //}
-
-        //public string[] GetStringArrayParameter() {
-        //    Trace.Assert(messageType == Protocol.MessageWithStringArray || messageType == Protocol.MessageWithStringArrayNULL);
-        //    return (string[])ParameterData;
-        //}
-
-        //public Dictionary<string, string> GetDictionaryParameter() {
-        //    Trace.Assert(messageType == Protocol.MessageWithDictionary || messageType == Protocol.MessageWithDictionaryNULL);
-        //    return (Dictionary<string, string>)ParameterData;
-        //}
-
-        /* internal enum ReplyType {
-            OK = 50,
-            OKWithCarry = 51,
-            Progress = 52,
-            ProgressWithCarry = 53,
-            Fail = 80,
-            FailWithCarry = 81,
-            UnknownMessage = 82,
-            BadSignature = 83,
-            HandlerException = 84
-        }*/
-
         public void Respond(bool result) {
-            // OK/Fail without carry.
-            InternalRespond2(result ? "50" : "80");
+            InternalRespond2(
+                Reply.Protocol.MakeString(Reply.TypeFromResult(result)));
         }
 
         public void Respond(string reply) {
             if (reply == null)
-                throw new ArgumentNullException();
+                throw new ArgumentNullException("reply");
 
-            // OK with carry
-            InternalRespond2("51" + reply);
+            InternalRespond2(Reply.Protocol.MakeString(Reply.ReplyType.OKWithCarry, reply));
         }
 
         public void Respond(bool result, string reply) {
             if (reply == null)
-                throw new ArgumentNullException();
+                throw new ArgumentNullException("reply");
 
-            // OK/Fail with carry
-            InternalRespond2(result ? "51" : "81" + reply);
+            InternalRespond2(Reply.Protocol.MakeString(Reply.TypeFromResult(result), reply));
         }
 
         void InternalRespond2(string replyString) {

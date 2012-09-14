@@ -37,6 +37,38 @@ namespace Starcounter.ABCIPC {
 
                 return new Reply(replyType, carry);
             }
+
+            public static string MakeString(ReplyType type) {
+                return MakeString(type, null);
+            }
+
+            public static string MakeString(ReplyType type, string carry) {
+                string result = null;
+
+                switch (type) {
+                    case ReplyType.OK:
+                    case ReplyType.Progress:
+                    case ReplyType.Fail:
+                    case ReplyType.UnknownMessage:
+                    case ReplyType.BadSignature:
+                        Trace.Assert(
+                            carry == null, 
+                            string.Format("Reply {0} does not support a carry", Enum.GetName(typeof(ReplyType), type))
+                            );
+                        result = ((int)type).ToString("D2");
+                        break;
+
+                    case ReplyType.OKWithCarry:
+                    case ReplyType.ProgressWithCarry:
+                    case ReplyType.FailWithCarry:
+                    case ReplyType.HandlerException:
+                        carry = carry ?? string.Empty;
+                        result = string.Concat(((int)type).ToString("D2"), carry);
+                        break;
+                }
+
+                return result;
+            }
         }
 
         internal enum ReplyType {
@@ -70,6 +102,17 @@ namespace Starcounter.ABCIPC {
             get {
                 return TypeHasCarry(_type);
             }
+        }
+
+        internal static Reply.ReplyType TypeFromResult(bool result) {
+            return TypeFromResult(result, null);
+        }
+
+        internal static Reply.ReplyType TypeFromResult(bool result, string carry) {
+            if (carry == null) {
+                return result ? ReplyType.OK : ReplyType.Fail;
+            }
+            return result ? ReplyType.OKWithCarry : ReplyType.FailWithCarry;
         }
 
         internal static bool TypeHasCarry(Reply.ReplyType type) {
