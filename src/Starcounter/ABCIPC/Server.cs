@@ -20,8 +20,9 @@ namespace Starcounter.ABCIPC {
         public void Receive() {
             Request request;
             Action<Request> handler;
+            bool shutdown = false;
 
-            do {
+            while (!shutdown) {
                 string s = receive();
 
                 // Allow installing a preparser, so that we can support simpler
@@ -43,12 +44,12 @@ namespace Starcounter.ABCIPC {
                 try {
                     handler = GetHandler(request.Message);
                 } catch (KeyNotFoundException) {
-                    // Unsupported message. The default sends back
-                    // such an error to the client and goes back to
-                    // receive. This can be overridden by a certain
-                    // handler.
-                    // TODO:
-                    // Implement this in Request.UnsupportedMessage.
+                    // Unsupported message. By default, we answer
+                    // back to the client with a well-known reply
+                    // and gets back for the next request.
+
+                    request.RespondToUnknownMessage();
+                    continue;
                 }
 
                 // Install handler around request and send that back
@@ -69,7 +70,8 @@ namespace Starcounter.ABCIPC {
                 // If so, we stop receiving. Use predefined message.
                 // TODO:
 
-            } while (!request.IsShutdown);
+                shutdown = request.IsShutdown;
+            }
         }
 
         public void Handle(string message, Action<Request> handler) {
