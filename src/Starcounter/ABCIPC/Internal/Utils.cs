@@ -24,6 +24,7 @@ namespace Starcounter.ABCIPC.Internal {
                 while (true) {
                     Console.Write("Request>");
                     string read = Console.ReadLine();
+
                     string protocol;
 
                     // Never return anything until we have properly parsed it!
@@ -34,6 +35,17 @@ namespace Starcounter.ABCIPC.Internal {
                     if (read.Equals(string.Empty)) {
                         protocol = Request.Protocol.ShutdownRequest;
                         return RequestWithProtocol(protocol);
+                    }
+
+                    if (read.StartsWith("!")) {
+                        read = read.Substring(1);
+                        if (read.Equals("cls", StringComparison.InvariantCultureIgnoreCase)) {
+                            Console.Clear();
+                            continue;
+                        }
+
+                        Console.Beep();
+                        continue;
                     }
 
                     int indexOfFirstSpace = read.IndexOf(" ");
@@ -59,19 +71,19 @@ namespace Starcounter.ABCIPC.Internal {
                     const string NULL_PARAMETER = "$0";
 
                     if (parameters.StartsWith("[")) {
+                        string[] array;
                         // Call with string array parameters
                         // Implements: client.Send(string, string[]);
+
                         parameters = parameters.Trim('[', ']');
-                        var arr = parameters.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                        if (arr.Length == 0) {
-                            arr = null;
+                        if (parameters.Equals(NULL_PARAMETER)) {
+                            protocol = Request.Protocol.MakeRequestStringWithStringArrayNULL(message);
+                        } else {
+                            array = parameters.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                            protocol = Request.Protocol.MakeRequestStringWithStringArray(message, array);
                         }
 
-                        Console.Beep();
-                        continue;
-                        //client.Send(message, arr, delegate(Reply reply) {
-                        //    Console.WriteLine(message + "=" + reply);
-                        //});
+                        return RequestWithProtocol(protocol);
                     }
                     else if (parameters.StartsWith("<")) {
                         // Call with dictionary parameters
