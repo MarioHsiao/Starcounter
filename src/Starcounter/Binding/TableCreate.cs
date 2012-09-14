@@ -44,6 +44,14 @@ namespace Starcounter.Binding
                 newTableDef = Db.LookupTable(tableDef.Name);
             });
 
+#if true
+            Db.CreateIndex(
+                newTableDef.DefinitionAddr,
+                string.Concat(newTableDef.Name, "_AUTO"),
+                0
+                );
+#endif
+
             return newTableDef;
         }
     }

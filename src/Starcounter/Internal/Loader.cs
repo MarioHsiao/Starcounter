@@ -11,6 +11,38 @@ using Sc.Server.Weaver.Schema;
 namespace Starcounter.Internal
 {
 
+    internal static class LoaderHelper
+    {
+
+        internal static void MapPropertyDefsToColumnDefs(ColumnDef[] columnDefs, PropertyDef[] propertyDefs)
+        {
+            for (int pi = 0; pi < propertyDefs.Length; pi++)
+            {
+                var columnName = propertyDefs[pi].ColumnName;
+                if (columnName != null)
+                {
+                    try
+                    {
+                        int ci = 0;
+                        for (; ; )
+                        {
+                            if (columnDefs[ci].Name == columnName)
+                            {
+                                propertyDefs[pi].ColumnIndex = ci;
+                                break;
+                            }
+                            ci++;
+                        }
+                    }
+                    catch (IndexOutOfRangeException)
+                    {
+                        throw new Exception(); // TODO:
+                    }
+                }
+            }
+        }
+    }
+
     internal static class SchemaLoader
     {
 
@@ -60,12 +92,11 @@ namespace Starcounter.Internal
         {
             var columnDefs = new List<ColumnDef>();
             var propertyDefs = new List<PropertyDef>();
-            var propertyMappings = new List<string>();
 
-            GatherColumnAndPropertyDefs(databaseClass, columnDefs, propertyDefs, propertyMappings, false);
+            GatherColumnAndPropertyDefs(databaseClass, columnDefs, propertyDefs, false);
             var columnDefArray = columnDefs.ToArray();
             var propertyDefArray = propertyDefs.ToArray();
-            MapPropertyDefsToColumnDefs(columnDefArray, propertyDefArray, propertyMappings);
+            LoaderHelper.MapPropertyDefsToColumnDefs(columnDefArray, propertyDefArray);
 
             string baseName = databaseClass.BaseClass == null ? null : databaseClass.BaseClass.Name;
             if (baseName == rootClassName) baseName = null;
@@ -76,12 +107,12 @@ namespace Starcounter.Internal
             return typeDef;
         }
 
-        private static void GatherColumnAndPropertyDefs(DatabaseEntityClass databaseClass, List<ColumnDef> columnDefs, List<PropertyDef> propertyDefs, List<string> propertyMappings, bool subClass)
+        private static void GatherColumnAndPropertyDefs(DatabaseEntityClass databaseClass, List<ColumnDef> columnDefs, List<PropertyDef> propertyDefs, bool subClass)
         {
             var baseDatabaseClass = databaseClass.BaseClass as DatabaseEntityClass;
             if (baseDatabaseClass != null)
             {
-                GatherColumnAndPropertyDefs(baseDatabaseClass, columnDefs, propertyDefs, propertyMappings, true);
+                GatherColumnAndPropertyDefs(baseDatabaseClass, columnDefs, propertyDefs, true);
             }
 
             var databaseAttributes = databaseClass.Attributes;
@@ -146,78 +177,50 @@ namespace Starcounter.Internal
 
                     if (databaseAttribute.IsPublicRead)
                     {
-                        propertyDefs.Add(new PropertyDef(
+                       var propertyDef = new PropertyDef(
                             databaseAttribute.Name,
                             type,
                             isNullable,
                             targetTypeName
-                            ));
-
-                        var propertyMapping = databaseAttribute.Name;
-                        propertyMappings.Add(propertyMapping);
+                            );
+                        propertyDef.ColumnName = databaseAttribute.Name;
+                        propertyDefs.Add(propertyDef);
                     }
                     break;
                 case DatabaseAttributeKind.PersistentProperty:
                     if (databaseAttribute.IsPublicRead)
                     {
-                        propertyDefs.Add(new PropertyDef(
+                        var propertyDef = new PropertyDef(
                             databaseAttribute.Name,
                             type,
                             isNullable,
                             targetTypeName
-                            ));
-
-                        var propertyMapping = databaseAttribute.PersistentProperty.AttributeFieldIndex;
-                        propertyMappings.Add(propertyMapping);
+                            );
+                        propertyDef.ColumnName = databaseAttribute.PersistentProperty.AttributeFieldIndex;
+                        propertyDefs.Add(propertyDef);
                     }
                     break;
                 case DatabaseAttributeKind.NotPersistentProperty:
                     if (databaseAttribute.IsPublicRead)
                     {
-                        propertyDefs.Add(new PropertyDef(
+                        var propertyDef = new PropertyDef(
                             databaseAttribute.Name,
                             type,
                             isNullable,
                             targetTypeName
-                            ));
+                            );
 
-                        string propertyMapping = null;
+                        string columnName = null;
                         var backingField = databaseAttribute.BackingField;
                         if (backingField != null && backingField.AttributeKind == DatabaseAttributeKind.PersistentField)
                         {
-                            propertyMapping = backingField.Name;
+                            columnName = backingField.Name;
                         }
-                        propertyMappings.Add(propertyMapping);
+                        propertyDef.ColumnName = columnName;
+
+                        propertyDefs.Add(propertyDef);
                     }
                     break;
-                }
-            }
-        }
-
-        private static void MapPropertyDefsToColumnDefs(ColumnDef[] columnDefs, PropertyDef[] propertyDefs, List<string> propertyMappings)
-        {
-            for (int pi = 0; pi < propertyDefs.Length; pi++)
-            {
-                var propertyMapping = propertyMappings[pi];
-                if (propertyMapping != null)
-                {
-                    try
-                    {
-                        int ci = 0;
-                        for (; ; )
-                        {
-                            if (columnDefs[ci].Name == propertyMapping)
-                            {
-                                propertyDefs[pi].ColumnIndex = ci;
-                                break;
-                            }
-                            ci++;
-                        }
-                    }
-                    catch (IndexOutOfRangeException)
-                    {
-                        throw new Exception(); // TODO:
-                    }
                 }
             }
         }
