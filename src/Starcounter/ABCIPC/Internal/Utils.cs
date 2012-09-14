@@ -24,6 +24,7 @@ namespace Starcounter.ABCIPC.Internal {
                 while (true) {
                     Console.Write("Request>");
                     string read = Console.ReadLine();
+                    string protocol;
 
                     // Never return anything until we have properly parsed it!
                     // And remember, we can write to the console here to!
@@ -39,16 +40,61 @@ namespace Starcounter.ABCIPC.Internal {
 
                     int indexOfFirstSpace = read.IndexOf(" ");
                     if (indexOfFirstSpace == -1) {
+                        // Call with no parameters.
                         // Implements: client.Send(string)
-                        var r = Request.Protocol.MakeRequestStringWithoutParameters(read);
-                        ToConsoleWithColor("(->" + r + ")", ConsoleColor.DarkGray);
-                        return r;
+                        protocol = Request.Protocol.MakeRequestStringWithoutParameters(read);
+                        return RequestWithProtocol(protocol);
                     }
 
                     // We've got a command and some additional stuff on the command line.
                     // Try interpret it.
 
-                    Console.Beep();
+                    string message;
+                    string parameters;
+
+                    message = read.Substring(0, indexOfFirstSpace);
+                    parameters = read.Substring(indexOfFirstSpace + 1).TrimStart();
+
+                    // All parameterized messages allows a certain syntax
+                    // for invoking the server with NULL.
+                    // TODO:
+
+                    const string NULL_PARAMETER = "$0";
+
+                    if (parameters.StartsWith("[")) {
+                        // Call with string array parameters
+                        // Implements: client.Send(string, string[]);
+                        parameters = parameters.Trim('[', ']');
+                        var arr = parameters.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                        if (arr.Length == 0) {
+                            arr = null;
+                        }
+
+                        Console.Beep();
+                        continue;
+                        //client.Send(message, arr, delegate(Reply reply) {
+                        //    Console.WriteLine(message + "=" + reply);
+                        //});
+                    }
+                    else if (parameters.StartsWith("<")) {
+                        // Call with dictionary parameters
+                        // Implements: client.Send(string, Dictionary<string, string>);
+                        parameters = parameters.Trim('<', '>');
+                        Console.Beep();
+                        continue;
+                    }
+                    else {
+                        // Call with single string parameter
+                        // Implements: client.Send(string, string);
+
+                        if (parameters.Equals(NULL_PARAMETER)) {
+                            protocol = Request.Protocol.MakeRequestStringWithStringNULL(message);
+                        } else {
+                            protocol = Request.Protocol.MakeRequestStringWithStringParameter(message, parameters);
+                        }
+
+                        return RequestWithProtocol(protocol);
+                    }
                 }
             }
 
@@ -56,6 +102,11 @@ namespace Starcounter.ABCIPC.Internal {
                 var r = Reply.Protocol.Parse(response);
                 ToConsoleWithColor("(<-" + response + ")", ConsoleColor.DarkGray);
                 ToConsoleWithColor("Response>" + r.ToString(), ConsoleColor.Yellow);
+            }
+
+            static string RequestWithProtocol(string protocol) {
+                ToConsoleWithColor("(->" + protocol + ")", ConsoleColor.DarkGray);
+                return protocol;
             }
 
             static void ToConsoleWithColor(string text, ConsoleColor color) {
