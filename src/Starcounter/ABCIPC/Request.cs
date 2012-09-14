@@ -78,6 +78,11 @@ namespace Starcounter.ABCIPC {
             private set;
         }
 
+        public bool IsShutdown {
+            get;
+            set;
+        }
+
         object ParameterData {
             get;
             set;

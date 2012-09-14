@@ -69,7 +69,7 @@ namespace Starcounter.ABCIPC {
                 // If so, we stop receiving. Use predefined message.
                 // TODO:
 
-            } while (true);
+            } while (!request.IsShutdown);
         }
 
         public void Handle(string message, Action<Request> handler) {
