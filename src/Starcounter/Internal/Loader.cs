@@ -7,6 +7,8 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 
 using Sc.Server.Weaver.Schema;
+using Starcounter.ABCIPC;
+using Starcounter.ABCIPC.Internal;
 
 namespace Starcounter.Internal
 {
@@ -327,60 +329,98 @@ namespace Starcounter.Internal
         {
             var appDomain = AppDomain.CurrentDomain;
             appDomain.AssemblyResolve += new ResolveEventHandler(ResolveAssembly);
+            Server server;
 
-            for (; ; )
-            {
-                string input = Console.ReadLine();
+            // Create the server.
+            // If input has not been redirected, we let the server accept
+            // requests in a simple text format from the console.
+            // 
+            // If the input has been redirected, we force the parent process
+            // to use the "real" API's (i.e. the Client), just as the server
+            // will do, once it has been moved into Orange.
 
-                var inputFile = new FileInfo(input);
-
-                // TODO: Handle duplicates.
-
-                privateBinBriefcase_.AddFromDirectory(inputFile.Directory);
-
-                var typeDefs = SchemaLoader.LoadAndConvertSchema(inputFile.Directory);
-                var unregisteredTypeDefs = new List<TypeDef>(typeDefs.Count);
-                for (int i = 0; i < typeDefs.Count; i++)
-                {
-                    var typeDef = typeDefs[i];
-                    var alreadyRegisteredTypeDef = Bindings.GetTypeDef(typeDef.Name);
-                    if (alreadyRegisteredTypeDef == null)
-                    {
-                        unregisteredTypeDefs.Add(typeDef);
-                    }
-                    else
-                    {
-                        // TODO:
-                        // Assure that the already loaded type definition has
-                        // the same structure.
-                    }
-                }
-
-                var assembly = Assembly.LoadFile(inputFile.FullName);
-
-                Package package = new Package(unregisteredTypeDefs.ToArray(), assembly);
-                IntPtr hPackage = (IntPtr)GCHandle.Alloc(package, GCHandleType.Normal);
-
-                uint e = sccorelib.cm2_schedule(
-                    hsched,
-                    0,
-                    sccorelib_ext.TYPE_PROCESS_PACKAGE,
-                    0,
-                    0,
-                    0,
-                    (ulong)hPackage
-                    );
-                if (e != 0) throw ErrorCode.ToException(e);
-
-                // We only process one package at a time. Wait for the package
-                // to be processed before accepting more input.
-                //
-                // (We can only handle one package at a time or we can not
-                // evaluate if a type definition has already been loaded.)
-
-                package.WaitUntilProcessed();
-                package.Dispose();
+            if (!Console.IsInputRedirected) {
+                server = Utils.PromptHelper.CreateServerAttachedToPrompt();
+            } else {
+                server = new Server(Console.In.ReadLine, Console.Out.WriteLine);
             }
+
+            // Install handlers for the type of requests we accept.
+
+            // Handles execution requests for Apps
+            server.Handle("Exec", delegate(Request r) {
+                ExecApp(hsched, r);
+            });
+            
+            // Some test handlers to show a little more.
+            // To be removed.
+
+            server.Handle("Ping", delegate(Request request) {
+                request.Respond(true);
+            });
+
+            server.Handle("Echo", delegate(Request request) {
+                var response = request.GetParameter<string>();
+                request.Respond(response ?? "<NULL>");
+            });
+
+            // Receive until we are told to shutdown
+
+            server.Receive();
+        }
+
+        static unsafe void ExecApp(void* hsched, Request request) {
+            var filePath = request.GetParameter<string>();
+            
+            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath)) {
+                request.Respond(false, "File not found");
+                return;
+            }
+            
+            var inputFile = new FileInfo(filePath);
+            
+            // TODO: Handle duplicates.
+
+            privateBinBriefcase_.AddFromDirectory(inputFile.Directory);
+
+            var typeDefs = SchemaLoader.LoadAndConvertSchema(inputFile.Directory);
+            var unregisteredTypeDefs = new List<TypeDef>(typeDefs.Count);
+            for (int i = 0; i < typeDefs.Count; i++) {
+                var typeDef = typeDefs[i];
+                var alreadyRegisteredTypeDef = Bindings.GetTypeDef(typeDef.Name);
+                if (alreadyRegisteredTypeDef == null) {
+                    unregisteredTypeDefs.Add(typeDef);
+                } else {
+                    // TODO:
+                    // Assure that the already loaded type definition has
+                    // the same structure.
+                }
+            }
+
+            var assembly = Assembly.LoadFile(inputFile.FullName);
+
+            Package package = new Package(unregisteredTypeDefs.ToArray(), assembly);
+            IntPtr hPackage = (IntPtr)GCHandle.Alloc(package, GCHandleType.Normal);
+
+            uint e = sccorelib.cm2_schedule(
+                hsched,
+                0,
+                sccorelib_ext.TYPE_PROCESS_PACKAGE,
+                0,
+                0,
+                0,
+                (ulong)hPackage
+                );
+            if (e != 0) throw ErrorCode.ToException(e);
+
+            // We only process one package at a time. Wait for the package
+            // to be processed before accepting more input.
+            //
+            // (We can only handle one package at a time or we can not
+            // evaluate if a type definition has already been loaded.)
+
+            package.WaitUntilProcessed();
+            package.Dispose();
         }
     }
 }
