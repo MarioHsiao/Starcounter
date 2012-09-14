@@ -7,9 +7,43 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 
 using Sc.Server.Weaver.Schema;
+using Starcounter.ABCIPC;
+using Starcounter.ABCIPC.Internal;
 
 namespace Starcounter.Internal
 {
+
+    internal static class LoaderHelper
+    {
+
+        internal static void MapPropertyDefsToColumnDefs(ColumnDef[] columnDefs, PropertyDef[] propertyDefs)
+        {
+            for (int pi = 0; pi < propertyDefs.Length; pi++)
+            {
+                var columnName = propertyDefs[pi].ColumnName;
+                if (columnName != null)
+                {
+                    try
+                    {
+                        int ci = 0;
+                        for (; ; )
+                        {
+                            if (columnDefs[ci].Name == columnName)
+                            {
+                                propertyDefs[pi].ColumnIndex = ci;
+                                break;
+                            }
+                            ci++;
+                        }
+                    }
+                    catch (IndexOutOfRangeException)
+                    {
+                        throw new Exception(); // TODO:
+                    }
+                }
+            }
+        }
+    }
 
     internal static class SchemaLoader
     {
@@ -60,12 +94,11 @@ namespace Starcounter.Internal
         {
             var columnDefs = new List<ColumnDef>();
             var propertyDefs = new List<PropertyDef>();
-            var propertyMappings = new List<string>();
 
-            GatherColumnAndPropertyDefs(databaseClass, columnDefs, propertyDefs, propertyMappings, false);
+            GatherColumnAndPropertyDefs(databaseClass, columnDefs, propertyDefs, false);
             var columnDefArray = columnDefs.ToArray();
             var propertyDefArray = propertyDefs.ToArray();
-            MapPropertyDefsToColumnDefs(columnDefArray, propertyDefArray, propertyMappings);
+            LoaderHelper.MapPropertyDefsToColumnDefs(columnDefArray, propertyDefArray);
 
             string baseName = databaseClass.BaseClass == null ? null : databaseClass.BaseClass.Name;
             if (baseName == rootClassName) baseName = null;
@@ -76,12 +109,12 @@ namespace Starcounter.Internal
             return typeDef;
         }
 
-        private static void GatherColumnAndPropertyDefs(DatabaseEntityClass databaseClass, List<ColumnDef> columnDefs, List<PropertyDef> propertyDefs, List<string> propertyMappings, bool subClass)
+        private static void GatherColumnAndPropertyDefs(DatabaseEntityClass databaseClass, List<ColumnDef> columnDefs, List<PropertyDef> propertyDefs, bool subClass)
         {
             var baseDatabaseClass = databaseClass.BaseClass as DatabaseEntityClass;
             if (baseDatabaseClass != null)
             {
-                GatherColumnAndPropertyDefs(baseDatabaseClass, columnDefs, propertyDefs, propertyMappings, true);
+                GatherColumnAndPropertyDefs(baseDatabaseClass, columnDefs, propertyDefs, true);
             }
 
             var databaseAttributes = databaseClass.Attributes;
@@ -146,78 +179,50 @@ namespace Starcounter.Internal
 
                     if (databaseAttribute.IsPublicRead)
                     {
-                        propertyDefs.Add(new PropertyDef(
+                       var propertyDef = new PropertyDef(
                             databaseAttribute.Name,
                             type,
                             isNullable,
                             targetTypeName
-                            ));
-
-                        var propertyMapping = databaseAttribute.Name;
-                        propertyMappings.Add(propertyMapping);
+                            );
+                        propertyDef.ColumnName = databaseAttribute.Name;
+                        propertyDefs.Add(propertyDef);
                     }
                     break;
                 case DatabaseAttributeKind.PersistentProperty:
                     if (databaseAttribute.IsPublicRead)
                     {
-                        propertyDefs.Add(new PropertyDef(
+                        var propertyDef = new PropertyDef(
                             databaseAttribute.Name,
                             type,
                             isNullable,
                             targetTypeName
-                            ));
-
-                        var propertyMapping = databaseAttribute.PersistentProperty.AttributeFieldIndex;
-                        propertyMappings.Add(propertyMapping);
+                            );
+                        propertyDef.ColumnName = databaseAttribute.PersistentProperty.AttributeFieldIndex;
+                        propertyDefs.Add(propertyDef);
                     }
                     break;
                 case DatabaseAttributeKind.NotPersistentProperty:
                     if (databaseAttribute.IsPublicRead)
                     {
-                        propertyDefs.Add(new PropertyDef(
+                        var propertyDef = new PropertyDef(
                             databaseAttribute.Name,
                             type,
                             isNullable,
                             targetTypeName
-                            ));
+                            );
 
-                        string propertyMapping = null;
+                        string columnName = null;
                         var backingField = databaseAttribute.BackingField;
                         if (backingField != null && backingField.AttributeKind == DatabaseAttributeKind.PersistentField)
                         {
-                            propertyMapping = backingField.Name;
+                            columnName = backingField.Name;
                         }
-                        propertyMappings.Add(propertyMapping);
+                        propertyDef.ColumnName = columnName;
+
+                        propertyDefs.Add(propertyDef);
                     }
                     break;
-                }
-            }
-        }
-
-        private static void MapPropertyDefsToColumnDefs(ColumnDef[] columnDefs, PropertyDef[] propertyDefs, List<string> propertyMappings)
-        {
-            for (int pi = 0; pi < propertyDefs.Length; pi++)
-            {
-                var propertyMapping = propertyMappings[pi];
-                if (propertyMapping != null)
-                {
-                    try
-                    {
-                        int ci = 0;
-                        for (; ; )
-                        {
-                            if (columnDefs[ci].Name == propertyMapping)
-                            {
-                                propertyDefs[pi].ColumnIndex = ci;
-                                break;
-                            }
-                            ci++;
-                        }
-                    }
-                    catch (IndexOutOfRangeException)
-                    {
-                        throw new Exception(); // TODO:
-                    }
                 }
             }
         }
@@ -324,60 +329,98 @@ namespace Starcounter.Internal
         {
             var appDomain = AppDomain.CurrentDomain;
             appDomain.AssemblyResolve += new ResolveEventHandler(ResolveAssembly);
+            Server server;
 
-            for (; ; )
-            {
-                string input = Console.ReadLine();
+            // Create the server.
+            // If input has not been redirected, we let the server accept
+            // requests in a simple text format from the console.
+            // 
+            // If the input has been redirected, we force the parent process
+            // to use the "real" API's (i.e. the Client), just as the server
+            // will do, once it has been moved into Orange.
 
-                var inputFile = new FileInfo(input);
-
-                // TODO: Handle duplicates.
-
-                privateBinBriefcase_.AddFromDirectory(inputFile.Directory);
-
-                var typeDefs = SchemaLoader.LoadAndConvertSchema(inputFile.Directory);
-                var unregisteredTypeDefs = new List<TypeDef>(typeDefs.Count);
-                for (int i = 0; i < typeDefs.Count; i++)
-                {
-                    var typeDef = typeDefs[i];
-                    var alreadyRegisteredTypeDef = Bindings.GetTypeDef(typeDef.Name);
-                    if (alreadyRegisteredTypeDef == null)
-                    {
-                        unregisteredTypeDefs.Add(typeDef);
-                    }
-                    else
-                    {
-                        // TODO:
-                        // Assure that the already loaded type definition has
-                        // the same structure.
-                    }
-                }
-
-                var assembly = Assembly.LoadFile(inputFile.FullName);
-
-                Package package = new Package(unregisteredTypeDefs.ToArray(), assembly);
-                IntPtr hPackage = (IntPtr)GCHandle.Alloc(package, GCHandleType.Normal);
-
-                uint e = sccorelib.cm2_schedule(
-                    hsched,
-                    0,
-                    sccorelib_ext.TYPE_PROCESS_PACKAGE,
-                    0,
-                    0,
-                    0,
-                    (ulong)hPackage
-                    );
-                if (e != 0) throw ErrorCode.ToException(e);
-
-                // We only process one package at a time. Wait for the package
-                // to be processed before accepting more input.
-                //
-                // (We can only handle one package at a time or we can not
-                // evaluate if a type definition has already been loaded.)
-
-                package.WaitUntilProcessed();
-                package.Dispose();
+            if (!Console.IsInputRedirected) {
+                server = Utils.PromptHelper.CreateServerAttachedToPrompt();
+            } else {
+                server = new Server(Console.In.ReadLine, Console.Out.WriteLine);
             }
+
+            // Install handlers for the type of requests we accept.
+
+            // Handles execution requests for Apps
+            server.Handle("Exec", delegate(Request r) {
+                ExecApp(hsched, r);
+            });
+            
+            // Some test handlers to show a little more.
+            // To be removed.
+
+            server.Handle("Ping", delegate(Request request) {
+                request.Respond(true);
+            });
+
+            server.Handle("Echo", delegate(Request request) {
+                var response = request.GetParameter<string>();
+                request.Respond(response ?? "<NULL>");
+            });
+
+            // Receive until we are told to shutdown
+
+            server.Receive();
+        }
+
+        static unsafe void ExecApp(void* hsched, Request request) {
+            var filePath = request.GetParameter<string>();
+            
+            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath)) {
+                request.Respond(false, "File not found");
+                return;
+            }
+            
+            var inputFile = new FileInfo(filePath);
+            
+            // TODO: Handle duplicates.
+
+            privateBinBriefcase_.AddFromDirectory(inputFile.Directory);
+
+            var typeDefs = SchemaLoader.LoadAndConvertSchema(inputFile.Directory);
+            var unregisteredTypeDefs = new List<TypeDef>(typeDefs.Count);
+            for (int i = 0; i < typeDefs.Count; i++) {
+                var typeDef = typeDefs[i];
+                var alreadyRegisteredTypeDef = Bindings.GetTypeDef(typeDef.Name);
+                if (alreadyRegisteredTypeDef == null) {
+                    unregisteredTypeDefs.Add(typeDef);
+                } else {
+                    // TODO:
+                    // Assure that the already loaded type definition has
+                    // the same structure.
+                }
+            }
+
+            var assembly = Assembly.LoadFile(inputFile.FullName);
+
+            Package package = new Package(unregisteredTypeDefs.ToArray(), assembly);
+            IntPtr hPackage = (IntPtr)GCHandle.Alloc(package, GCHandleType.Normal);
+
+            uint e = sccorelib.cm2_schedule(
+                hsched,
+                0,
+                sccorelib_ext.TYPE_PROCESS_PACKAGE,
+                0,
+                0,
+                0,
+                (ulong)hPackage
+                );
+            if (e != 0) throw ErrorCode.ToException(e);
+
+            // We only process one package at a time. Wait for the package
+            // to be processed before accepting more input.
+            //
+            // (We can only handle one package at a time or we can not
+            // evaluate if a type definition has already been loaded.)
+
+            package.WaitUntilProcessed();
+            package.Dispose();
         }
     }
 }

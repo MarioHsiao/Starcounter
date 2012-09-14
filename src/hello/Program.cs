@@ -26,7 +26,6 @@ namespace hello
             Db.Transaction(() =>
             {
                 MyMusic.Mucho m;
-//                m = (MyMusic.Mucho)Db.SQL("SELECT m FROM MyMusic.Mucho m WHERE m.Number = ?", 7).First;
                 m = (MyMusic.Mucho)Db.SQL("SELECT m FROM MyMusic.Mucho m WHERE m.Number = ? AND m.Name = ?", 7, "Nisse").First;
                 if (m == null)
                 {
@@ -36,25 +35,29 @@ namespace hello
                 }
                 m = null;
 
-                MyMusic.Album a;
-//                a = (MyMusic.Album)Db.SQL("SELECT a FROM MyMusic.Album a WHERE a.Name = ?", "Nisse").First;
-                a = (MyMusic.Album)Db.SQL("SELECT a FROM MyMusic.Album a WHERE a.Name = ? AND a.Label = ?", "Nisse", "Nisse").First;
-                if (a == null)
+                MyMusic.Album album;
+                album = (MyMusic.Album)Db.SQL("SELECT a FROM MyMusic.Album a WHERE a.Name = ? AND a.Label = ?", "Nisse", "Nisse").First;
+                if (album == null)
                 {
-                    a = new MyMusic.Album("Nisse", "Nisse", DateTime.Now);
+                    album = new MyMusic.Album("Nisse", "Nisse", DateTime.Now);
                 }
-                a = null;
+                album = null;
 
-#if false
-                MyMusic.Artist artist;
-                artist = (MyMusic.Artist)Db.SQL("SELECT a FROM MyMusic.Artist a WHERE a.Name = ? AND a.Age = ?", "Nisse", 7).First;
-                if (artist == null)
+                MyMusic.Song song;
+                song = (MyMusic.Song)Db.SQL("SELECT a FROM MyMusic.Song a WHERE a.Name = ?", "Nisse").First;
+                if (song == null)
                 {
-                    artist = new MyMusic.Artist("Nisse", "Nisse");
-                    artist.BirthYear = DateTime.Now.Year - 7;
+                    song = new MyMusic.Song("Nisse", null, null, DateTime.Now);
                 }
-                artist = null;
-#endif
+                song = null;
+
+                MyMusic.RatedSong ratedSong;
+                ratedSong = (MyMusic.RatedSong)Db.SQL("SELECT a FROM MyMusic.RatedSong a WHERE a.Name = ?", "Nisse2").First;
+                if (ratedSong == null)
+                {
+                    ratedSong = new MyMusic.RatedSong("Nisse2", null, null, DateTime.Now, 4);
+                }
+                ratedSong = null;
             });
 #endif
         }

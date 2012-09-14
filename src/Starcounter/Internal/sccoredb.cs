@@ -100,15 +100,17 @@ namespace Starcounter.Internal
         internal const ushort MDB_ATTRFLAG_DERIVED = 0x0002;
 
         internal const ushort MDB_ATTRFLAG_NULLABLE = 0x0040;
-        
+
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
         internal unsafe struct Mdb_DefinitionInfo
         {
-            internal char* PtrCodeClassName;
-            internal int NumAttributes;
-            internal ulong ETIBasedOn;
-            internal ushort TableID;
-            internal ushort Flags;
+            public char* table_name;
+            public uint column_count;
+            public uint inheriting_definition_count;
+            public ulong* inheriting_definition_addrs;
+            public ulong inherited_definition_addr;
+            public ushort table_id;
+            public ushort flags;
         }
 
         [StructLayout(LayoutKind.Sequential, Pack=8)]
