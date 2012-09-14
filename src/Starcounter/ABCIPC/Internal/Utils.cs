@@ -32,10 +32,8 @@ namespace Starcounter.ABCIPC.Internal {
 
                     read = read.Trim();
                     if (read.Equals(string.Empty)) {
-                        // Make shutdown request.
-                        // TODO;
-                        Console.Beep();
-                        continue;
+                        protocol = Request.Protocol.ShutdownRequest;
+                        return RequestWithProtocol(protocol);
                     }
 
                     int indexOfFirstSpace = read.IndexOf(" ");
