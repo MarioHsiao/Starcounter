@@ -42,6 +42,10 @@
     <RunPostBuildEvent>Always</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="ABCIPC\Client.cs" />
+    <Compile Include="ABCIPC\Reply.cs" />
+    <Compile Include="ABCIPC\Request.cs" />
+    <Compile Include="ABCIPC\Server.cs" />
     <Compile Include="Binary.cs" />
     <Compile Include="Binding\BinaryPropertyBinding.cs" />
     <Compile Include="Binding\BindingBuilder.cs" />
