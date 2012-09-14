@@ -42,7 +42,12 @@
     <RunPostBuildEvent>Always</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Binary.cs" />
+    <Compile Include="ABCIPC\Client.cs" />
+    <Compile Include="ABCIPC\Reply.cs" />
+    <Compile Include="ABCIPC\Request.cs" />
+    <Compile Include="ABCIPC\Server.cs" />
+    <Compile Include="ABCIPC\Internal\Utils.cs" />
+	<Compile Include="Binary.cs" />
     <Compile Include="Binding\BinaryPropertyBinding.cs" />
     <Compile Include="Binding\BindingBuilder.cs" />
     <Compile Include="Binding\BooleanPropertyBinding.cs" />
@@ -101,6 +106,7 @@
     <Compile Include="Internal\ErrorHandling\ErrorMessage.cs" />
     <Compile Include="Internal\ErrorHandling\ExceptionFactory.cs" />
     <Compile Include="Internal\ErrorHandling\ParsedErrorMessage.cs" />
+    <Compile Include="Internal\KeyValueBinary.cs" />
     <Compile Include="Internal\ProgramCommandLine.cs" />
     <Compile Include="ITransactionConflictException.cs" />
     <Compile Include="LargeBinary.cs" />

@@ -12,6 +12,11 @@ namespace Starcounter.Binding
         public string TargetTypeName;
 
         /// <summary>
+        /// Name of column if representing a database column. NULL otherwise.
+        /// </summary>
+        public string ColumnName;
+
+        /// <summary>
         /// Index of column if representing a database column. -1 otherwise.
         /// </summary>
         public int ColumnIndex;
@@ -24,6 +29,7 @@ namespace Starcounter.Binding
             Type = type;
             IsNullable = isNullable;
             TargetTypeName = targetTypeName;
+            //ColumnName = null;
             ColumnIndex = -1;
         }
     }
