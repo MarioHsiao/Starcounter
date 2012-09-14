@@ -55,8 +55,7 @@ namespace Starcounter.ABCIPC.Internal {
 
                     // All parameterized messages allows a certain syntax
                     // for invoking the server with NULL.
-                    // TODO:
-
+                    
                     const string NULL_PARAMETER = "$0";
 
                     if (parameters.StartsWith("[")) {
@@ -99,7 +98,7 @@ namespace Starcounter.ABCIPC.Internal {
             public static void WriteTextResponseToConsole(string response) {
                 var r = Reply.Protocol.Parse(response);
                 ToConsoleWithColor("(<-" + response + ")", ConsoleColor.DarkGray);
-                ToConsoleWithColor("Response>" + r.ToString(), ConsoleColor.Yellow);
+                ToConsoleWithColor("Response>" + r.ToString(), r.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
             }
 
             static string RequestWithProtocol(string protocol) {
