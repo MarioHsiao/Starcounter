@@ -205,7 +205,7 @@ namespace Starcounter.ABCIPC {
         }
 
         public void Respond(bool result) {
-            InternalRespond2(
+            InternalReply(
                 Reply.Protocol.MakeString(Reply.TypeFromResult(result)));
         }
 
@@ -213,32 +213,39 @@ namespace Starcounter.ABCIPC {
             if (reply == null)
                 throw new ArgumentNullException("reply");
 
-            InternalRespond2(Reply.Protocol.MakeString(Reply.ReplyType.OKWithCarry, reply));
+            InternalReply(Reply.Protocol.MakeString(Reply.ReplyType.OKWithCarry, reply));
         }
 
         public void Respond(bool result, string reply) {
             if (reply == null)
                 throw new ArgumentNullException("reply");
 
-            InternalRespond2(Reply.Protocol.MakeString(Reply.TypeFromResult(result), reply));
+            InternalReply(Reply.Protocol.MakeString(Reply.TypeFromResult(result), reply));
+        }
+
+        public void ReplyStatus(string reply) {
+            string protocol = reply == null ? 
+                Reply.Protocol.MakeString(Reply.ReplyType.Progress) : 
+                Reply.Protocol.MakeString(Reply.ReplyType.ProgressWithCarry, reply);
+            InternalReply(protocol, true);
         }
 
         internal void RespondToUnknownMessage() {
-            InternalRespond2(Reply.Protocol.MakeString(Reply.ReplyType.UnknownMessage, this.Message));
+            InternalReply(Reply.Protocol.MakeString(Reply.ReplyType.UnknownMessage, this.Message));
         }
 
-        void InternalRespond2(string replyString) {
+        void InternalReply(string replyString) {
+            InternalReply(replyString, false);
+        }
+
+        void InternalReply(string replyString, bool statusMessage) {
             if (IsResponded)
                 throw new InvalidOperationException("Request has already been responded to.");
 
-            // Log it?
-            // Mark it as responded!
-            // Save the response!
-            // Send reply back.
-            // TODO:
-
             server.reply(replyString);
-            this.IsResponded = true;
+            if (!statusMessage) {
+                this.IsResponded = true;
+            }
         }
     }
 
