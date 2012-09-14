@@ -12,6 +12,31 @@ namespace Starcounter.ABCIPC.Internal {
 
         public static class PromptHelper {
 
+            static void Usage() {
+                Console.WriteLine("The server prompt support requests with and without parameters.");
+                Console.WriteLine("Requests are case-insensitive.");
+                Console.WriteLine("To send NULL to parameterized requests, use \"{0}\".", NULL_PARAMETER);
+                Console.WriteLine("? shows this help and !cls clears the screen.");
+                Console.WriteLine("Hit [ENTER] on a blank line to exit.");
+                Console.WriteLine();
+                Console.WriteLine("Examples:");
+                Console.WriteLine("  ping                           (No parameter request)");
+                Console.WriteLine("  echo hello                     (string parameter request)");
+                Console.WriteLine("  arraycount [1,2,3,4]           (string[] parameter request)");
+                Console.WriteLine("  dictcount <key=val,key2=val2>  (Dictionary<string,string> parameter request)");
+                Console.WriteLine();
+            }
+
+            public static Server CreateServerAttachedToPrompt() {
+                Usage();
+                return new Server(ReadTextRequestFromConsole, WriteTextResponseToConsole);
+            }
+
+            // All parameterized messages allows a certain syntax
+            // for invoking the server with NULL.
+
+            const string NULL_PARAMETER = "$0";
+
             /// <summary>
             /// Can be installed in servers that want to offer a simple
             /// text based input/output alternative, using the console.
@@ -35,9 +60,11 @@ namespace Starcounter.ABCIPC.Internal {
                     if (read.Equals(string.Empty)) {
                         protocol = Request.Protocol.ShutdownRequest;
                         return RequestWithProtocol(protocol);
+                    } else if (read.Equals("?")) {
+                        Usage();
+                        continue;
                     }
-
-                    if (read.StartsWith("!")) {
+                    else if (read.StartsWith("!")) {
                         read = read.Substring(1);
                         if (read.Equals("cls", StringComparison.InvariantCultureIgnoreCase)) {
                             Console.Clear();
@@ -64,11 +91,6 @@ namespace Starcounter.ABCIPC.Internal {
 
                     message = read.Substring(0, indexOfFirstSpace);
                     parameters = read.Substring(indexOfFirstSpace + 1).TrimStart();
-
-                    // All parameterized messages allows a certain syntax
-                    // for invoking the server with NULL.
-                    
-                    const string NULL_PARAMETER = "$0";
 
                     if (parameters.StartsWith("[")) {
                         string[] array;
