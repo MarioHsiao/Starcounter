@@ -44,12 +44,19 @@ namespace Starcounter.ABCIPC {
                 try {
                     handler = GetHandler(request.Message);
                 } catch (KeyNotFoundException) {
-                    // Unsupported message. By default, we answer
-                    // back to the client with a well-known reply
-                    // and gets back for the next request.
+                    // Check if it's one of the built-in messages, like
+                    // shutdown. If it is, it means there need not to be
+                    // any handler installed.
 
-                    request.RespondToUnknownMessage();
-                    continue;
+                    if (!request.IsShutdown) {
+                        
+                        // Unsupported message. By default, we answer
+                        // back to the client with a well-known reply
+                        // and gets back for the next request.
+
+                        request.RespondToUnknownMessage();
+                        continue;
+                    }
                 }
 
                 // Install handler around request and send that back
@@ -57,7 +64,9 @@ namespace Starcounter.ABCIPC {
                 // on the server.
                 // TODO:
 
-                handler(request);
+                if (handler != null) {
+                    handler(request);
+                }
 
                 // How do we handle requests not responded to? We send
                 // a response indicating it was a success.
@@ -67,8 +76,7 @@ namespace Starcounter.ABCIPC {
                 }
 
                 // Check if the reguest was marked to shutdown the server.
-                // If so, we stop receiving. Use predefined message.
-                // TODO:
+                // If so, we stop receiving.
 
                 shutdown = request.IsShutdown;
             }

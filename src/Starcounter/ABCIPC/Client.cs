@@ -65,6 +65,14 @@ namespace Starcounter.ABCIPC {
             this.receive = recieve;
         }
 
+        public bool SendShutdown() {
+            return SendShutdown(null);
+        }
+
+        public bool SendShutdown(Action<Reply> responseHandler) {
+            return SendRequest2(Request.ShutdownMessage, Request.Protocol.ShutdownRequest, responseHandler);
+        }
+
         // Client shutdown:00 (nothing else), the smallest messsage.
         // 01-09: reserved.
         // Client request w/o parameters: 10.

@@ -14,6 +14,13 @@ namespace Starcounter.ABCIPC {
     /// </summary>
     public class Request {
 
+        /// <summary>
+        /// The (opaque) name of the shutdown request message. Servers that need
+        /// custom handling for the shutdown request can install a handler with
+        /// this name and customize - or even cancel - the shutdown.
+        /// </summary>
+        public const string ShutdownMessage = "!Shutdown!";
+
         internal static class Protocol {
             public const int MessageWithoutParameters = 10;     // Send(string)
             public const int MessageWithString = 11;            // Send(string, "value"), value not null.
@@ -22,6 +29,8 @@ namespace Starcounter.ABCIPC {
             public const int MessageWithStringArrayNULL = 14;   // Send(string, null);
             public const int MessageWithDictionary = 15;        // Send(string, new Dictionary<string, string>), value not null.
             public const int MessageWithDictionaryNULL = 16;    // Send(string, null);
+
+            public const string ShutdownRequest = "00";
 
             public static string MakeRequestStringWithoutParameters(string message) {
                 // "10"[NN][message] where [NN] is the length of the message and message contains the message itself.
@@ -128,8 +137,15 @@ namespace Starcounter.ABCIPC {
                     return request;
                 }
 
+                if (code == 0) {
+                    request = new Request(server, code, Request.ShutdownMessage, null);
+                    request.IsShutdown = true;
+                    return request;
+                }
+
                 // Should never happen
                 // TODO:
+
                 throw new NotImplementedException();
             }
         }
