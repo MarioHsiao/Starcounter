@@ -22,7 +22,7 @@ namespace Starcounter.ABCIPC.Internal {
             /// <returns></returns>
             public static string ReadTextRequestFromConsole() {
                 while (true) {
-                    Console.Write(">");
+                    Console.Write("Request>");
                     string read = Console.ReadLine();
 
                     // Never return anything until we have properly parsed it!
@@ -41,16 +41,21 @@ namespace Starcounter.ABCIPC.Internal {
                     if (indexOfFirstSpace == -1) {
                         // Implements: client.Send(string)
                         var r = Request.Protocol.MakeRequestStringWithoutParameters(read);
-                        ToConsoleWithColor("(" + r + ")", ConsoleColor.DarkGray);
+                        ToConsoleWithColor("(->" + r + ")", ConsoleColor.DarkGray);
                         return r;
                     }
+
+                    // We've got a command and some additional stuff on the command line.
+                    // Try interpret it.
 
                     Console.Beep();
                 }
             }
 
             public static void WriteTextResponseToConsole(string response) {
-                ToConsoleWithColor("<" + response, ConsoleColor.Yellow);
+                var r = Reply.Protocol.Parse(response);
+                ToConsoleWithColor("(<-" + response + ")", ConsoleColor.DarkGray);
+                ToConsoleWithColor("Response>" + r.ToString(), ConsoleColor.Yellow);
             }
 
             static void ToConsoleWithColor(string text, ConsoleColor color) {
