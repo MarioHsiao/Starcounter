@@ -64,11 +64,15 @@ namespace Starcounter.Internal
             for (int i = 0; i < typeDefs.Length; i++)
             {
                 var typeDef = typeDefs[i];
-                typeDef.TableDef = CreateOrUpdateDatabaseTable(typeDef.TableDef);
+                var tableDef = typeDef.TableDef;
 
-                // TODO:
-                // Remap properties representing columns if the the column
+                tableDef = CreateOrUpdateDatabaseTable(tableDef);
+                typeDef.TableDef = tableDef;
+
+                // Remap properties representing columns in case the column
                 // order has changed.
+
+                LoaderHelper.MapPropertyDefsToColumnDefs(tableDef.ColumnDefs, typeDef.PropertyDefs);
             }
 
             for (int i = 0; i < typeDefs.Length; i++)
@@ -81,14 +85,21 @@ namespace Starcounter.Internal
 
         private TableDef CreateOrUpdateDatabaseTable(TableDef tableDef)
         {
+            string tableName = tableDef.Name;
             TableDef storedTableDef = null;
-
-            // TODO: Complete any pending upgrade.
+            TableDef pendingUpgradeTableDef = null;
 
             Db.Transaction(() =>
             {
-                storedTableDef = Db.LookupTable(tableDef.Name);
+                storedTableDef = Db.LookupTable(tableName);
+                pendingUpgradeTableDef = Db.LookupTable(TableUpgrade.CreatePendingUpdateTableName(tableName));
             });
+
+            if (pendingUpgradeTableDef != null)
+            {
+                var continueTableUpgrade = new TableUpgrade(tableName, storedTableDef, pendingUpgradeTableDef);
+                storedTableDef = continueTableUpgrade.ContinueEval();
+            }
 
             if (storedTableDef == null)
             {
@@ -97,7 +108,7 @@ namespace Starcounter.Internal
             }
             else if (!storedTableDef.Equals(tableDef))
             {
-                var tableUpgrade = new TableUpgrade(storedTableDef, tableDef);
+                var tableUpgrade = new TableUpgrade(tableName, storedTableDef, tableDef);
                 storedTableDef = tableUpgrade.Eval();
             }
 

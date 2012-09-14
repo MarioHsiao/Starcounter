@@ -13,14 +13,6 @@ namespace Starcounter.Binding
         internal Int32 _index;
         internal String _name;
 
-#if false // TODO:
-        //
-        // The type or extension binding the property binding belongs to. Set
-        // when the property binding is created.
-        //
-        internal TypeBinding _belongsTo;
-#endif
-
         public Int32 Index { get { return _index; } }
 
         public String Name { get { return _name; } }
