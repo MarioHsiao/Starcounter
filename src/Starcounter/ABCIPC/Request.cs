@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Starcounter.Internal;
+using System.Diagnostics;
 
 namespace Starcounter.ABCIPC {
 
@@ -36,6 +38,23 @@ namespace Starcounter.ABCIPC {
                 return string.Format("{0}{1}{2}", MessageWithStringNULL, message.Length.ToString("D2"), message);
             }
 
+            public static string MakeRequestStringWithStringArray(string message, string[] array) {
+                var serializedArray = KeyValueBinary.FromArray(array).Value;
+                // "15"[NN][message][NNNN][array] (the protocol limits the serialized array size to ~1K).
+                return string.Format("{0}{1}{2}{3}{4}",
+                    MessageWithStringArray, 
+                    message.Length.ToString("D2"), 
+                    message,
+                    serializedArray.Length.ToString("D4"),
+                    serializedArray
+                    );
+            }
+
+            public static string MakeRequestStringWithStringArrayNULL(string message) {
+                // "14"[NN][message]
+                return string.Format("{0}{1}{2}", MessageWithStringArrayNULL, message.Length.ToString("D2"), message);
+            }
+
             public static Request Parse(Server server, string stringRequest) {
                 Request request;
                 int code;
@@ -56,6 +75,21 @@ namespace Starcounter.ABCIPC {
                         data = stringRequest.Substring(4 + msgLength + 2, dataLength);
                     } else {
                         data = null;
+                    }
+
+                    request = new Request(server, code, message, data);
+                    return request;
+                }
+
+                if (code == 13 || code == 14) {
+                    // Message with string array.
+                    msgLength = int.Parse(stringRequest.Substring(2, 2));
+                    message = stringRequest.Substring(4, msgLength);
+                    if (code == 14) {
+                        data = null;
+                    } else {
+                        dataLength = int.Parse(stringRequest.Substring(4 + msgLength, 4));
+                        data = stringRequest.Substring(4 + msgLength + 4, dataLength);
                     }
 
                     request = new Request(server, code, message, data);
@@ -96,7 +130,15 @@ namespace Starcounter.ABCIPC {
             this.ParameterData = data;
         }
 
-        public T GetParameter<T>() {
+        public T GetParameter<T>() where T : class {
+            if (this.messageType == Request.Protocol.MessageWithStringArray || this.messageType == Request.Protocol.MessageWithStringArrayNULL) {
+                Trace.Assert(typeof(T) == typeof(string[]), string.Format("{0} is not a string[]", typeof(T).Name));
+                if (this.messageType == Request.Protocol.MessageWithStringArrayNULL)
+                    return (T) null;
+
+                return KeyValueBinary.ToArray((string)this.ParameterData) as T;
+            }
+
             try {
                 return (T)this.ParameterData;
             } catch (InvalidCastException) {
