@@ -119,6 +119,17 @@ namespace Starcounter.ABCIPC {
             return SendRequest2(message, protocol, responseHandler);
         }
 
+        public bool Send(string message, Dictionary<string, string> arguments) {
+            return Send(message, arguments, null);
+        }
+
+        public bool Send(string message, Dictionary<string, string> arguments, Action<Reply> responseHandler) {
+            string protocol = arguments == null ?
+                Request.Protocol.MakeRequestStringWithDictionaryNULL(message) :
+                Request.Protocol.MakeRequestStringWithDictionary(message, arguments);
+            return SendRequest2(message, protocol, responseHandler);
+        }
+
         bool SendRequest2(string message, string protocolMessage, Action<Reply> responseHandler) {
             // int hash = protocolMessage.GetHashCode();
             send(protocolMessage);

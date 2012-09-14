@@ -40,7 +40,7 @@ namespace Starcounter.ABCIPC {
 
             public static string MakeRequestStringWithStringArray(string message, string[] array) {
                 var serializedArray = KeyValueBinary.FromArray(array).Value;
-                // "15"[NN][message][NNNN][array] (the protocol limits the serialized array size to ~1K).
+                // "13"[NN][message][NNNN][array] (the protocol limits the serialized array size to ~1K).
                 return string.Format("{0}{1}{2}{3}{4}",
                     MessageWithStringArray, 
                     message.Length.ToString("D2"), 
@@ -53,6 +53,23 @@ namespace Starcounter.ABCIPC {
             public static string MakeRequestStringWithStringArrayNULL(string message) {
                 // "14"[NN][message]
                 return string.Format("{0}{1}{2}", MessageWithStringArrayNULL, message.Length.ToString("D2"), message);
+            }
+
+            public static string MakeRequestStringWithDictionary(string message, Dictionary<string, string> dictionary) {
+                var serialized = KeyValueBinary.FromDictionary(dictionary).Value;
+                // "15"[NN][message][NNNN][dictionary] (the protocol limits the serialized dictionary size to ~1K).
+                return string.Format("{0}{1}{2}{3}{4}",
+                    MessageWithDictionary, 
+                    message.Length.ToString("D2"), 
+                    message,
+                    serialized.Length.ToString("D4"),
+                    serialized
+                    );
+            }
+
+            public static string MakeRequestStringWithDictionaryNULL(string message) {
+                // "16"[NN][message]
+                return string.Format("{0}{1}{2}", MessageWithDictionaryNULL, message.Length.ToString("D2"), message);
             }
 
             public static Request Parse(Server server, string stringRequest) {
@@ -96,9 +113,23 @@ namespace Starcounter.ABCIPC {
                     return request;
                 }
 
-                // Handle other requests.
-                // TODO:
+                if (code == 15 || code == 16) {
+                    // Message with dictionary array.
+                    msgLength = int.Parse(stringRequest.Substring(2, 2));
+                    message = stringRequest.Substring(4, msgLength);
+                    if (code == 16) {
+                        data = null;
+                    } else {
+                        dataLength = int.Parse(stringRequest.Substring(4 + msgLength, 4));
+                        data = stringRequest.Substring(4 + msgLength + 4, dataLength);
+                    }
 
+                    request = new Request(server, code, message, data);
+                    return request;
+                }
+
+                // Should never happen
+                // TODO:
                 throw new NotImplementedException();
             }
         }
@@ -137,6 +168,14 @@ namespace Starcounter.ABCIPC {
                     return (T) null;
 
                 return KeyValueBinary.ToArray((string)this.ParameterData) as T;
+            }
+
+            if (this.messageType == Request.Protocol.MessageWithDictionary || this.messageType == Request.Protocol.MessageWithDictionaryNULL) {
+                Trace.Assert(typeof(Dictionary<string, string>).IsAssignableFrom(typeof(T)), string.Format("{0} is not a Dictionary<string, string>", typeof(T).Name));
+                if (this.messageType == Request.Protocol.MessageWithDictionaryNULL)
+                    return (T)null;
+
+                return KeyValueBinary.ToDictionary((string)this.ParameterData) as T;
             }
 
             try {
