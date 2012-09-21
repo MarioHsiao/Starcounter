@@ -115,9 +115,7 @@ namespace Starcounter.Internal
 
         internal const ushort CM2_TYPE_RELEASE = 0x0000;
 
-        internal const ushort CM2_TYPE_CLOCK = 0x0001;
-
-        internal const ushort CM2_TYPE_REQUEST = 0x0002;
+        internal const ushort CM2_TYPE_REQUEST = 0x0001;
 
         internal const ushort CM2_TYPE_CALLBACK = 0x0010;
 

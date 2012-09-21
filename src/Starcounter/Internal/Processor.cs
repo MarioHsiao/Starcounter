@@ -27,9 +27,6 @@ namespace Starcounter.Internal
 
                         return;
 
-                    case sccorelib.CM2_TYPE_CLOCK:
-                        break;
-
                     case sccorelib.CM2_TYPE_REQUEST:
                         break;
 
