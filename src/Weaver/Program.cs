@@ -37,8 +37,114 @@ namespace Weaver {
         }
 
         static bool TryGetProgramArguments(string[] args, out ApplicationArguments arguments) {
-            arguments = null;
-            return false;
+            ApplicationSyntaxDefinition syntaxDefinition;
+            CommandSyntaxDefinition commandDefinition;
+            IApplicationSyntax syntax;
+            Parser parser;
+
+            // Define the general program syntax
+
+            syntaxDefinition = new ApplicationSyntaxDefinition();
+            syntaxDefinition.ProgramDescription = "Weaves a given executable and it's dependencies.";
+            syntaxDefinition.DefaultCommand = ProgramCommands.Weave;
+
+            // Define the global property allowing the verbosity level
+            // of the program to be changed.
+
+            syntaxDefinition.DefineProperty(
+                "verbosity",
+                "Sets the verbosity of the program (quiet, minimal, verbose, diagnostic). Minimal is the default."
+                );
+
+            // Define the global flag allowing a debugger to be attached
+            // to the process when starting. Undocumented, internal flag.
+
+            syntaxDefinition.DefineFlag(
+                "attachdebugger",
+                "Attaches a debugger to the process during startup."
+                );
+
+            // Define the global flag allowing callers to specify that all
+            // errors written to standard error output should be wrapped in
+            // a given parcel ID. This feature is intended for outer tools
+            // only, not for end users.
+
+            syntaxDefinition.DefineProperty(
+                "errorparcelid",
+                "Specifies an id that should be used when errors are written to wrap them in parcels."
+                );
+
+            // Define the "WEAVE" command, used to weave assemblies, but omit creating
+            // a code library archive.
+
+            // Define the command. Exactly one parameter - the executable - is
+            // expected.
+            commandDefinition = syntaxDefinition.DefineCommand(ProgramCommands.Weave, "Weaves user code.", 1);
+
+            // Optional specification of the cache directory to use. The cache is used
+            // to cache assembly analysis results and possibly transformed/weaved binaries.
+            // If no cache directory is given, a default cache directory will be used.
+            commandDefinition.DefineProperty("cachedir", "Specifies the cache directory to use.");
+
+            // Optional flag instructing the program not to weave the code for IPC. If
+            // this flag is set, the code will be weaved as it would be weaved inside the
+            // database, only nonsense random field indexes will be used. This can be
+            // usefull to diagnose or test the database weaver.
+            //
+            // This flag is no longer supported in PeeDee, at least not now. The only
+            // valid option is to weave "no ipc", i.e. doing no Lucent Objects stuff,
+            // and hence it seems logical to disable/hide this flag for now.
+            // commandDefinition.DefineFlag("noipc", "Instructs the weaver not to weave the code for IPC usage.");
+
+            // Optional flag instructing the program not to use the weaver cache when
+            // analyzing/weaving code. The effect of this flag is that any up-to-date
+            // cached content will always be recreated, i.e. weaving will always occur.
+            commandDefinition.DefineFlag("nocache", "Instructs the weaver not to use the weaver cache.");
+
+            // Allows the weave command to be ran just weaving to the cache, not touching
+            // the input.
+            commandDefinition.DefineFlag(
+                "tocache", 
+                "Instructs the weaver to leave the input intact and weave only to the weaver cache.");
+
+            // Define the "Verify" command, used to analyze and verify user code.
+
+            // Define the command. Exactly one parameter - the executable - is
+            // expected.
+            commandDefinition = syntaxDefinition.DefineCommand(ProgramCommands.Verify, "Verifies user code.", 1);
+
+            // Optional specification of the cache directory to use. The cache is used
+            // to cache assembly analysis results. If no cache directory is given, a
+            // default cache directory will be used.
+            commandDefinition.DefineProperty("cachedir", "Specifies the cache directory to use.");
+
+            // Optional flag instructing the program not to use the weaver cache when
+            // analyzing/weaving code.
+            commandDefinition.DefineFlag("nocache", "Instructs the weaver not to use the weaver cache.");
+
+            // Create the syntax, validating it
+            syntax = syntaxDefinition.CreateSyntax();
+
+            // If no arguments are given, use the syntax to create a Usage
+            // message, just as is expected when giving /help or /? to a program.
+            if (args.Length == 0) {
+                Usage(syntax, null);
+                arguments = null;
+                return false;
+            }
+
+            // Parse and evaluate the given input
+            parser = new Parser(args);
+            try {
+                arguments = parser.Parse(syntax);
+            } catch (InvalidCommandLineException invalidCommandLine) {
+                Usage(syntax, invalidCommandLine);
+                ReportProgramError(invalidCommandLine.ErrorCode, invalidCommandLine.Message);
+                arguments = null;
+                return false;
+            }
+
+            return true;
         }
 
         static void Usage(
@@ -58,7 +164,7 @@ namespace Weaver {
 
             Console.WriteLine("Usage:");
             Console.WriteLine();
-            Console.Write("codelibrary.exe");
+            Console.Write("weaver.exe");
             foreach (var globalFlag in syntax.Flags) {
                 Console.Write(" --FLAG:{0}", globalFlag.Name);
             }
