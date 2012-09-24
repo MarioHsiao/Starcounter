@@ -8,6 +8,7 @@ using Starcounter;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
 using System.IO;
+using System.Diagnostics;
 
 namespace Weaver {
 
@@ -25,15 +26,179 @@ namespace Weaver {
 
             try {
                 if (TryGetProgramArguments(args, out arguments))
-                    ExecuteCommand(arguments);
+                    ApplyOptionsAndExecuteGivenCommand(arguments);
             } finally {
                 Console.ResetColor();
             }
         }
 
-        static void ExecuteCommand(ApplicationArguments arguments) {
-            // Implement.
-            // TODO:
+        static void ApplyOptionsAndExecuteGivenCommand(ApplicationArguments arguments) {
+            string inputDirectory;
+            string cacheDirectory;
+            uint error;
+            string fileName;
+            string givenFilePath;
+            
+            ApplyGlobalProgramOptions(arguments);
+
+            // All commands share the requirement to specify the executable as the first
+            // parameter. All commands also support specifying the cache directory. Set
+            // them up here.
+
+            givenFilePath = arguments.CommandParameters[0];
+            inputDirectory = null;
+            fileName = null;
+
+            try {
+                givenFilePath = Path.GetFullPath(givenFilePath);
+
+                if (!File.Exists(givenFilePath)) {
+                    error = Error.SCERRWEAVERFILENOTFOUND;
+                    ReportProgramError(
+                        error,
+                        ErrorCode.ToMessage(error, string.Format("Path: {0}.", givenFilePath)));
+                    return;
+                }
+            } catch (Exception e) {
+                error = Error.SCERRWEAVERFILENOTFOUND;
+                ReportProgramError(
+                    error,
+                    ErrorCode.ToMessage(error, string.Format("Failed resolving path: {0}, Path: {1}.", e.Message, givenFilePath)));
+                return;
+            }
+
+            var supportedExtensions = new string[] { ".exe", ".dll" };
+            var extension = Path.GetExtension(givenFilePath).ToLower();
+
+            if (!supportedExtensions.Contains<string>(extension)) {
+                error = Error.SCERRWEAVERFILENOTSUPPORTED;
+                ReportProgramError(
+                    error,
+                    ErrorCode.ToMessage(error, string.Format("Supported extensions: {0}.", string.Join(",", supportedExtensions)))
+                    );
+                return;
+            }
+
+            fileName = Path.GetFileName(givenFilePath);
+            inputDirectory = Path.GetDirectoryName(givenFilePath);
+            inputDirectory = inputDirectory.Trim('"');
+
+            // Resolve a cache directory to use, either from the given input
+            // or from using the default directory.
+
+            if (!arguments.TryGetProperty("cachedir", out cacheDirectory)) {
+                // TODO:
+                // cacheDirectory = Path.Combine(inputDirectory, CodeWeaver.DefaultCacheDirectoryName);
+            }
+
+            if (!Directory.Exists(cacheDirectory)) {
+                try {
+                    Directory.CreateDirectory(cacheDirectory);
+                } catch (Exception e) {
+                    error = Error.SCERRCODELIBFAILEDNEWCACHEDIR;
+                    ReportProgramError(
+                        error,
+                        ErrorCode.ToMessage(error, string.Format("Message: {0}.", e.Message)));
+                    return;
+                }
+            }
+
+            // Decide what command to run and invoke the proper method.
+
+            switch (arguments.Command) {
+
+                case ProgramCommands.Weave:
+                    ExecuteWeaveCommand(inputDirectory, cacheDirectory, fileName, arguments);
+                    break;
+
+                case ProgramCommands.Verify:
+                    ExecuteVerifyCommand(inputDirectory, cacheDirectory, fileName, arguments);
+                    break;
+
+                default:
+                    error = Error.SCERRBADCOMMANDLINESYNTAX;
+                    ReportProgramError(
+                        error,
+                        ErrorCode.ToMessage(error, string.Format("Command {0} not recognized.", arguments.Command))
+                        );
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Executes the command "Weave".
+        /// </summary>
+        /// <param name="inputDirectory">The input directory.</param>
+        /// <param name="cacheDirectory">The cache directory.</param>
+        /// <param name="fileName">An eventual name of a file to give the weaver.</param>
+        /// <param name="arguments">Parsed and verified program arguments.</param>
+        static void ExecuteWeaveCommand(
+            string inputDirectory,
+            string cacheDirectory,
+            string fileName,
+            ApplicationArguments arguments) {
+        }
+
+        /// <summary>
+        /// Executes the command "Verify".
+        /// </summary>
+        /// <param name="inputDirectory">The input directory.</param>
+        /// <param name="cacheDirectory">The cache directory.</param>
+        /// <param name="fileName">An eventual name of a file to give the weaver.</param>
+        /// <param name="arguments">Parsed and verified program arguments.</param>
+        static void ExecuteVerifyCommand(
+            string inputDirectory,
+            string cacheDirectory,
+            string fileName,
+            ApplicationArguments arguments) {
+        }
+
+        static void ApplyGlobalProgramOptions(ApplicationArguments arguments) {
+            string propertyValue;
+
+            // Consult global/shared parameters and apply them as specified by
+            // their specification.
+
+            if (arguments.ContainsFlag("attachdebugger")) {
+                if (Debugger.IsAttached)
+                    WriteDebug("A debugger is already attached to the process.");
+                else {
+                    bool debuggerAttached;
+                    try {
+                        debuggerAttached = Debugger.Launch();
+                    } catch {
+                        debuggerAttached = false;
+                    }
+
+                    if (!debuggerAttached)
+                        WriteWarning("Unable to attach a debugger.");
+                }
+            }
+
+            if (arguments.TryGetProperty("verbosity", out propertyValue)) {
+                switch (propertyValue.ToLowerInvariant()) {
+                    case "quiet":
+                        Program.OutputVerbosity = Verbosity.Quiet;
+                        break;
+
+                    case "verbose":
+                        Program.OutputVerbosity = Verbosity.Verbose;
+                        break;
+
+                    case "diagnostic":
+                        Program.OutputVerbosity = Verbosity.Diagnostic;
+                        break;
+
+                    default:
+                        // Don't change the default verbosity, initialized
+                        // statically.
+                        break;
+                }
+            }
+
+            if (arguments.TryGetProperty("errorparcelid", out propertyValue)) {
+                Program.ErrorParcelID = propertyValue;
+            }
         }
 
         static bool TryGetProgramArguments(string[] args, out ApplicationArguments arguments) {
