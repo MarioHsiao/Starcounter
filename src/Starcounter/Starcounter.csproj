@@ -41,6 +41,10 @@
   <PropertyGroup>
     <RunPostBuildEvent>Always</RunPostBuildEvent>
   </PropertyGroup>
+  <PropertyGroup>
+	<!-- Base paths to redistribuatables / third party files -->
+	<PostSharpRedistributables>..\Redistributables\PostSharp\Release</PostSharpRedistributables>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="ABCIPC\Client.cs" />
     <Compile Include="ABCIPC\Reply.cs" />
@@ -371,9 +375,24 @@
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
+	<Reference Include="PostSharp">
+      <HintPath>$(PostSharpRedistributables)\PostSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="PostSharp.Hosting">
+      <HintPath>$(PostSharpRedistributables)\PostSharp.Hosting.dll</HintPath>
+    </Reference>
+    <Reference Include="PostSharp.Sdk">
+      <HintPath>$(PostSharpRedistributables)\PostSharp.Sdk.dll</HintPath>
+    </Reference>
+    <Reference Include="PostSharp.Settings">
+      <HintPath>$(PostSharpRedistributables)\PostSharp.Settings.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include="Starcounter.snk" />
+	<None Include="$(PostSharpRedistributables)\PostSharp-Platform.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
