@@ -19,6 +19,10 @@ namespace Starcounter
 
         internal ObjectRef ThisRef;
     }
+
+    [AttributeUsage(AttributeTargets.Field)]
+    public sealed class NotPersistentAttribute : Attribute {
+    }
     
     public abstract class Entity : DbObject, IObjectView
     {
