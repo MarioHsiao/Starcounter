@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<PlugIn xmlns="http://schemas.postsharp.org/1.0/configuration">
+  <!-- Define tasks -->
+  <TaskType	Name="ScTransform"
+				    Phase="Transform"
+				    Implementation="Sc.Server.Weaver.ScTransformTask, Starcounter"
+				    >
+    <Dependency TaskType="CodeWeaver" Position="After"/>
+    <Dependency TaskType="Remove" Position="After"/>
+  </TaskType>
+
+  <TaskType Name="ScCopy"
+            Phase="Generate"
+            Implementation="Sc.Server.Weaver.ScCopyTask, Starcounter">
+    <Dependency TaskType="Compile" Position="Before"/>
+  </TaskType>
+
+  <TaskType Name="ScTouch"
+          Phase="Generate"
+          Implementation="Sc.Server.Weaver.ScTouchTask, Starcounter">
+    <Dependency TaskType="Compile" Position="Before"/>
+  </TaskType>
+
+  <TaskType Name="ScTransactionScope"
+            Phase="Transform"
+            Implementation="Sc.Server.Weaver.ScTransactionScopeTask, Starcounter">
+    <Dependency TaskType="CodeWeaver" Position="After"/>
+    <Dependency TaskType="AnnotationRepository" />
+  </TaskType>
+
+  <TaskType Name="ScConnectionBoundObject"
+            Phase="Transform"
+            Implementation="Sc.Server.Weaver.ScConnectionBoundObjectTask, Starcounter">
+    <Dependency TaskType="CodeWeaver" Position="After"/>
+    <Dependency TaskType="TypeHierarchyAnalysis"/>
+  </TaskType>
+
+
+  <TaskType Name="ScEnhanceThreadingTask"
+            Phase="Transform"
+            Implementation="Sc.Server.Weaver.Runtime.ScEnhanceThreadingTask, Starcounter">
+    <Dependency TaskType="ScTransform" Required="false" />
+  </TaskType>
+</PlugIn>

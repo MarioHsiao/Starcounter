@@ -1,0 +1,251 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="SCATV01" xml:space="preserve">
+    <value>User code cannot reference the assembly "{0}".</value>
+  </data>
+  <data name="SCATV02" xml:space="preserve">
+    <value>The type {0} is derived from DbObject, but is neither an Entity Class, a Kind Class, or an Extension Class.</value>
+  </data>
+  <data name="SCATV03" xml:space="preserve">
+    <value>Cannot set the field {0}.{1} because its database implementation is read-only.</value>
+  </data>
+  <data name="SCATV04" xml:space="preserve">
+    <value>The assembly "{0}" is decorated with the [KnownAssembly] custom attribute, but has an incorrect proof.</value>
+  </data>
+  <data name="SCATV05" xml:space="preserve">
+    <value>You cannot deploy a strongly-named assembly ({0}) in Starcounter. You should deploy it in GAC instead.</value>
+  </data>
+  <data name="SCATV06" xml:space="preserve">
+    <value>The assembly {0} has no reference to Starcounter, either direct or indirect. Consider configure it for weaver exclusion to decrease database startup time.</value>
+  </data>
+  <data name="SCDCV01" xml:space="preserve">
+    <value>The database class {0} cannot have generic parameters.</value>
+  </data>
+  <data name="SCDCV02" xml:space="preserve">
+    <value>The database class {0} cannot have a destructor.</value>
+  </data>
+  <data name="SCDCV03" xml:space="preserve">
+    <value>The database class {0} cannot have any field named "__typeRef".</value>
+  </data>
+  <data name="SCDCV04" xml:space="preserve">
+    <value>In database class {0}, instance initialization logic found outside constructor bodies is too complex. Consider moving this initialization logic in the constructor body or use factory methods.</value>
+  </data>
+  <data name="SCDCV06" xml:space="preserve">
+    <value>The field {0}.{1} hides a field with the same name in a parent class. This is forbidden in a database class.</value>
+  </data>
+  <data name="SCDCV07" xml:space="preserve">
+    <value>The type {0} [{1}] clashes with a type with the same name: [{2}].</value>
+  </data>
+  <data name="SCECV01" xml:space="preserve">
+    <value>The extension class {0} must declare the default, parameterless constructor, and no other constructor, and the visibility of the default constructor should be private.</value>
+  </data>
+  <data name="SCECV02" xml:space="preserve">
+    <value>The default constructor of the extension class {0} should never be called in user code. It is called in method '{2}', in module {3}.</value>
+  </data>
+  <data name="SCECV03" xml:space="preserve">
+    <value>The default constructor of the extension class {0} should have an empty implementation.</value>
+  </data>
+  <data name="SCECV04" xml:space="preserve">
+    <value>The extension class {0} should be sealed.</value>
+  </data>
+  <data name="SCINF01" xml:space="preserve">
+    <value>Analyzing the module {0}.</value>
+  </data>
+  <data name="SCINF02" xml:space="preserve">
+    <value>Transforming the module {0}.</value>
+  </data>
+  <data name="SCINF03" xml:space="preserve">
+    <value>The module {0} does not contain any reference to Starcounter. Skipping transformation.</value>
+  </data>
+  <data name="SCINF04" xml:space="preserve">
+    <value>The module {0} does not need to be transformed because it is up-to-date. Skipping transformation.</value>
+  </data>
+  <data name="SCKCV02" xml:space="preserve">
+    <value>The kind class {0} should be named 'Kind'.</value>
+  </data>
+  <data name="SCKCV03" xml:space="preserve">
+    <value>The type {0} is a kind class but is not nested in a society object.</value>
+  </data>
+  <data name="SCKCV04" xml:space="preserve">
+    <value>The kind class of the society object {0} should be derived from the kind class of closent parent defining a kind class, {1}.</value>
+  </data>
+  <data name="SCKCV05" xml:space="preserve">
+    <value>The kind class {0} should have a default constructor.</value>
+  </data>
+  <data name="SCKCV06" xml:space="preserve">
+    <value>The type {0} is nested in a society object and is named 'Kind', but is not a kind class (it does not derive from a kind class).</value>
+  </data>
+  <data name="SCKCV08" xml:space="preserve">
+    <value>The kind class {0} cannot be sealed.</value>
+  </data>
+  <data name="SCKCV09" xml:space="preserve">
+    <value>The kind class {0} should be protected or public.</value>
+  </data>
+  <data name="SCERR4012" xml:space="preserve">
+    <value>The data type of the field or property {0}.{1} ({2}) is not supported by the database.</value>
+  </data>
+  <data name="SCPFV02" xml:space="preserve">
+    <value>The field {0}.{1} is initialized outside the constructor but has a complex value. Only literal intrinsic values are allowed.</value>
+  </data>
+  <data name="SCPFV06" xml:space="preserve">
+    <value>The field {0}.{1} is marked to be a synonym of a field {2}, but this field could not be found in the current and base classes.</value>
+  </data>
+  <data name="SCPFV07" xml:space="preserve">
+    <value>The field {0}.{1} is a synonymous to the field {0}.{2}, but their types are not compatible. If field types are intrinsic, both types should match exactly.</value>
+  </data>
+  <data name="SCPFV08" xml:space="preserve">
+    <value>The field {0}.{1} cannot have a larger visibility than the field {2}.{3}.</value>
+  </data>
+  <data name="SCPFV09" xml:space="preserve">
+    <value>The field {0}.{1} should be read-only, since the field {2}.{3} is.</value>
+  </data>
+  <data name="SCPFV12" xml:space="preserve">
+    <value>The field {0}.{1} is a synonymous of {2}.{3}, but it is not a persistent field.</value>
+  </data>
+  <data name="SCPFV13" xml:space="preserve">
+    <value>The field {0} is decorated with the [RelatesTo] custom attribute, but it is not an enumerable or it is not persistent.</value>
+  </data>
+<!--
+  <data name="SCPFV15" xml:space="preserve">
+    <value>The field {0}.{1} is marked to relate to the field {2}, but this field does not exist in the type {3}.</value>
+  </data>
+-->
+  <data name="SCPFV16" xml:space="preserve">
+    <value>The field {0} is decorated with the [SynonymousTo] custom attribute, but it is not a persistent field.</value>
+  </data>
+  <data name="SCPFV21" xml:space="preserve">
+    <value>We suspect you try, in method {{{0}}} to pass the field(s) {1} by reference. Passing persistent fields by reference is not supported. Use intermediate local variables instead.</value>
+  </data>
+  <data name="SCPFV22" xml:space="preserve">
+    <value>Synonyms of field {0}.{1} form a cycle.</value>
+  </data>
+  <data name="SCPPV02" xml:space="preserve">
+    <value>The database property {0}.{1} refers to an unexisting field {2}.</value>
+  </data>
+  <data name="SCPVF20" xml:space="preserve">
+    <value>The field {0}.{1} cannot be the synonymous of a private field.</value>
+  </data>
+  <data name="SCSOV01" xml:space="preserve">
+    <value>The society object class {0} contains a field named "_" (underscore) but this field either this field should be public and static and its type should be the kind class of this society object class.</value>
+  </data>
+  <data name="SCPPV03" xml:space="preserve">
+    <value>The database property {0}.{1} refers to a kernel field {2} that does not exist.</value>
+  </data>
+</root>

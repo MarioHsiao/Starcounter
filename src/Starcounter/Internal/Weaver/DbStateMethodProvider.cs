@@ -1,0 +1,255 @@
+
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using PostSharp.Sdk.CodeModel;
+using PostSharp.Sdk.CodeModel.TypeSignatures;
+using Sc.Server.Weaver.Schema;
+using Starcounter;
+using Starcounter.Internal;
+using IMethod = PostSharp.Sdk.CodeModel.IMethod;
+using System.Diagnostics;
+
+namespace Starcounter.Internal.Weaver {
+    /// <summary>
+    /// Provides the method <see cref="GetGetMethod"/> and <see cref="GetSetMethod"/>, which determine
+    /// which method of the <see cref="DbState"/> class should be called to retrieve or store the value
+    /// of database fields, and which type conversion is necessary.
+    /// </summary>
+    internal class DbStateMethodProvider {
+        private class MethodCastPair {
+            public IMethod Method;
+            public ITypeSignature CastType;
+        }
+
+        private const string readOperation = "Read";
+        private const string writeOperation = "Write";
+
+        private readonly ModuleDeclaration module;
+        private readonly Dictionary<string, MethodCastPair> cache = new Dictionary<string, MethodCastPair>();
+        private static readonly Type dbStateType = typeof(Sc.Server.Internal.DbState);
+        private readonly Type codeGeneratedDbStateType;
+
+        /// <summary>
+        /// Initializes a new <see cref="DbStateMethodProvider"/>.
+        /// </summary>
+        /// <param name="module">Modules from which the <see cref="DbState"/> methods will be called.</param>
+        public DbStateMethodProvider(ModuleDeclaration module, String dynamicLibDir) {
+            Trace.Assert(string.IsNullOrEmpty(dynamicLibDir), "Currently, we don't support generated code.");
+
+            this.module = module;
+            this.codeGeneratedDbStateType = null;
+        }
+
+        #region Helper methods
+        /// <summary>
+        /// Gets the cache key of the type of a <see cref="DatabaseAttribute"/>.
+        /// </summary>
+        /// <param name="databaseAttribute">A <see cref="DatabaseAttribute"/>.</param>
+        /// <returns>A string uniquely identifying the type of the <paramref name="databaseAttribute"/>.</returns>
+        private static string GetAttributeTypeCacheKey(DatabaseAttribute databaseAttribute) {
+            return databaseAttribute.AttributeType.ToString() + ", nullable=" + databaseAttribute.IsNullable.ToString();
+        }
+
+        /// <summary>
+        /// Gets a generic method instance of <see cref="DbState"/>. The method is supposed to have
+        /// a single generic parameter.
+        /// </summary>
+        /// <param name="methodName">Name of the method instance.</param>
+        /// <param name="itemType">Generic argument.</param>
+        /// <returns>A generic instance of the method of <see cref="DbState"/> named
+        /// <paramref name="methodName"/> with <paramref name="itemType"/> as the only generic
+        /// argument.</returns>
+        private IMethod GetGenericMethodInstance(string methodName, ITypeSignature itemType) {
+            MethodInfo methodInfo = dbStateType.GetMethod(methodName);
+            Trace.Assert(methodInfo != null, string.Format("Cannot find the method DbState.{0}.", methodName));
+            MethodRefDeclaration methodRef = (MethodRefDeclaration)
+                                             this.module.FindMethod(methodInfo, BindingOptions.RequireGenericDefinition);
+            return methodRef.MethodSpecs.GetGenericInstance(new ITypeSignature[] { itemType }, true);
+        }
+
+        /// <summary>
+        /// Maps a <see cref="DatabasePrimitive"/> on an <see cref="IntrinsicType"/>.
+        /// </summary>
+        /// <param name="primitive">A <see cref="DatabasePrimitive"/>.</param>
+        /// <returns>The <see cref="IntrinsicType"/> corresponding to <paramref name="primitive"/>.</returns>
+        private static IntrinsicType MapDatabasePrimitiveToInstrinsic(DatabasePrimitive primitive) {
+            switch (primitive) {
+                case DatabasePrimitive.Boolean:
+                    return IntrinsicType.Boolean;
+                case DatabasePrimitive.Double:
+                    return IntrinsicType.Double;
+                case DatabasePrimitive.Single:
+                    return IntrinsicType.Single;
+                case DatabasePrimitive.Byte:
+                    return IntrinsicType.Byte;
+                case DatabasePrimitive.Int16:
+                    return IntrinsicType.Int16;
+                case DatabasePrimitive.Int32:
+                    return IntrinsicType.Int32;
+                case DatabasePrimitive.Int64:
+                    return IntrinsicType.Int64;
+                case DatabasePrimitive.SByte:
+                    return IntrinsicType.SByte;
+                case DatabasePrimitive.UInt16:
+                    return IntrinsicType.UInt16;
+                case DatabasePrimitive.UInt32:
+                    return IntrinsicType.UInt32;
+                case DatabasePrimitive.UInt64:
+                    return IntrinsicType.UInt64;
+                case DatabasePrimitive.String:
+                    return IntrinsicType.String;
+                default:
+                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("Cannot map this database primitive to a CLR intrinsic: {0}.", primitive));
+            }
+        }
+        #endregion
+
+
+        /// <summary>
+        /// Determines which method of the <see cref="DbState"/> class should be called to retrieve or store the value
+        /// of database fields, and which type conversion is necessary.
+        /// </summary>
+        /// <param name="fieldType">Type of the field or the replacing property, as viewed by user code.</param>
+        /// <param name="databaseAttribute"><see cref="DatabaseAttribute"/> for which the method
+        /// is requested.</param>
+        /// <param name="operation">Operation (<see cref="readOperation"/> or <see cref="writeOperation"/>)</param>
+        /// <param name="method">Filled with the <see cref="DbState"/> method.</param>
+        /// <param name="castType">Filled with the type from / to which the value returned by / passed to
+        /// <paramref name="method"/> has to be casted, or <b>null</b> if no cast is necessary.</param>
+        /// <returns><b>true</b> if the method exist, otherwise <b>false</b> (happens for instance
+        /// when the <b>write</b> operation is requested on an intrinsically read-only type).</returns>
+        private bool GetMethod(ITypeSignature fieldType, DatabaseAttribute databaseAttribute, string operation,
+                               out IMethod method, out ITypeSignature castType) {
+            string key = operation + " : " + GetAttributeTypeCacheKey(databaseAttribute);
+            castType = null;
+            MethodCastPair methodCastPair;
+            if (!this.cache.TryGetValue(key, out methodCastPair)) {
+                DatabasePrimitiveType primitiveType;
+                DatabaseEnumType enumType = null;
+                if ((primitiveType = databaseAttribute.AttributeType as DatabasePrimitiveType) != null ||
+                    (enumType = databaseAttribute.AttributeType as DatabaseEnumType) != null) {
+                    DatabasePrimitive primitive = primitiveType != null
+                                                  ?
+                                                  primitiveType.Primitive
+                                                  :
+                                                  enumType.UnderlyingType;
+                    string methodName;
+                    if (databaseAttribute.IsNullable) {
+                        methodName = operation + "Nullable" + primitive.ToString();
+                        if (enumType != null) {
+                            // The caller will have to cast to/from Nullable<primitive>.
+                            // Note that this is a non-trivial cast.
+                            castType = new GenericTypeInstanceTypeSignature(
+                                (INamedType)
+                                this.module.FindType(typeof(Nullable<>), BindingOptions.RequireGenericDefinition),
+                                new ITypeSignature[] { this.module.Cache.GetIntrinsic(MapDatabasePrimitiveToInstrinsic(primitive)) });
+                        }
+                    } else {
+                        methodName = operation + primitive.ToString();
+                    }
+
+                    MethodInfo methodInfo;
+
+                    methodInfo = codeGeneratedDbStateType == null ? null : codeGeneratedDbStateType.GetMethod(methodName);
+                    if (methodInfo == null) {
+                        methodInfo = dbStateType.GetMethod(methodName);
+                    }
+
+                    Trace.Assert(methodInfo != null, string.Format("Cannot find the method DbState.{0}.", methodName));
+
+                    method = this.module.FindMethod(methodInfo, BindingOptions.Default);
+                } else if (databaseAttribute.AttributeType is DatabaseArrayType) {
+                    string methodName = operation + "Array";
+                    if (operation == readOperation) {
+                        method =
+                        this.GetGenericMethodInstance(methodName,
+                        ((ArrayTypeSignature)
+                        TypeSpecDeclaration.Unwrap(fieldType)).
+                        ElementType);
+                    } else {
+                        MethodInfo methodInfo = dbStateType.GetMethod(methodName);
+                        Trace.Assert(methodInfo != null, string.Format("Cannot find the method DbState.{0}.", methodName));
+                        method = this.module.FindMethod(methodInfo, BindingOptions.Default);
+                    }
+                } else if (databaseAttribute.AttributeType is DatabaseClass) {
+                    string methodName = operation + "Object";
+                    MethodInfo methodInfo;
+
+                    methodInfo = codeGeneratedDbStateType == null ? null : codeGeneratedDbStateType.GetMethod(methodName);
+                    if (methodInfo == null) {
+                        methodInfo = dbStateType.GetMethod(methodName);
+                    }
+                    Trace.Assert(methodInfo != null, string.Format("Cannot find the method DbState.{0}.", methodName));
+                    method = this.module.FindMethod(methodInfo, BindingOptions.Default);
+                    // The caller will have to cast from this type:
+                    castType = this.module.Cache.GetType(typeof(Entity));
+                } else {
+                    Trace.Assert(false, string.Format("Not an expected type: {0}", databaseAttribute.AttributeType));
+                    method = null;
+                }
+                methodCastPair = new MethodCastPair();
+                methodCastPair.Method = method;
+                methodCastPair.CastType = castType;
+                this.cache.Add(key, methodCastPair);
+            } else {
+                method = methodCastPair.Method;
+                castType = methodCastPair.CastType;
+            }
+            return true;
+        }
+
+
+
+
+        /// <summary>
+        /// Determines which method of the <see cref="DbState"/> class should be called to retrieve
+        /// the value
+        /// of database fields, and which type conversion is necessary.
+        /// </summary>
+        /// <param name="fieldType">Type of the field or the replacing property, as viewed by user code.</param>
+        /// <param name="databaseAttribute"><see cref="DatabaseAttribute"/> for which the method
+        /// is requested.</param>
+        /// <param name="getMethod">Filled with the <see cref="DbState"/> method.</param>
+        /// <param name="castType">Filled with the type from the value returned by
+        /// <paramref name="getMethod"/> has to be casted, or <b>null</b> if no cast is necessary.</param>
+        /// <returns><b>true</b> if the method exist, otherwise <b>false</b>.</returns>
+        public bool GetGetMethod(ITypeSignature fieldType, DatabaseAttribute databaseAttribute,
+        out IMethod getMethod, out ITypeSignature castType) {
+            return GetMethod(fieldType, databaseAttribute, readOperation, out getMethod, out castType);
+        }
+
+        /// <summary>
+        /// Determines which method of the <see cref="DbState"/> class should be called to store the value
+        /// of database fields, and which type conversion is necessary.
+        /// </summary>
+        /// <param name="fieldType">Type of the field or the replacing property, as viewed by user code.</param>
+        /// <param name="databaseAttribute"><see cref="DatabaseAttribute"/> for which the method
+        /// is requested.</param>
+        /// <param name="setMethod">Filled with the <see cref="DbState"/> method.</param>
+        /// <param name="castType">Filled with the type to which the value passed to
+        /// <paramref name="setMethod"/> has to be casted, or <b>null</b> if no cast is necessary.</param>
+        /// <returns><b>true</b> if the method exist, otherwise <b>false</b> (happens for instance
+        /// when the <b>write</b> operation is requested on an intrinsically read-only type).</returns>
+        public bool GetSetMethod(ITypeSignature fieldType, DatabaseAttribute databaseAttribute,
+        out IMethod setMethod, out ITypeSignature castType) {
+            return GetMethod(fieldType, databaseAttribute, writeOperation, out setMethod, out castType);
+        }
+
+        public bool TryGetGeneratedMethodByName(string name, out IMethod method) {
+            MethodInfo generatedMethod;
+
+            method = null;
+
+            if (codeGeneratedDbStateType == null)
+                return false;
+
+            generatedMethod = codeGeneratedDbStateType.GetMethod(name);
+            if (generatedMethod == null)
+                return false;
+
+            method = this.module.FindMethod(generatedMethod, BindingOptions.Default);
+            return true;
+        }
+    }
+}
