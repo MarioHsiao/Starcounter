@@ -40,7 +40,11 @@
     <ScTransform InputFile="" />
 
     <!-- We then run some miscellonous tasks. -->
+    <!--
+    Currently disabled. See ScTransactionScopeTask.cs for comments.
     <ScTransactionScope />
+    -->
+    
     <!--
     Since "connection bound objects" is not something we really promote
     right now - or they are even documented - the execution of this task

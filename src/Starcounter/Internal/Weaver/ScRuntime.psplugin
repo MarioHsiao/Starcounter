@@ -3,7 +3,7 @@
   <!-- Define tasks -->
   <TaskType	Name="ScTransform"
 				    Phase="Transform"
-				    Implementation="Sc.Server.Weaver.ScTransformTask, Starcounter"
+				    Implementation="Starcounter.Internal.Weaver.ScTransformTask, Starcounter"
 				    >
     <Dependency TaskType="CodeWeaver" Position="After"/>
     <Dependency TaskType="Remove" Position="After"/>
@@ -11,34 +11,31 @@
 
   <TaskType Name="ScCopy"
             Phase="Generate"
-            Implementation="Sc.Server.Weaver.ScCopyTask, Starcounter">
+            Implementation="Starcounter.Internal.Weaver.ScCopyTask, Starcounter">
     <Dependency TaskType="Compile" Position="Before"/>
   </TaskType>
 
   <TaskType Name="ScTouch"
           Phase="Generate"
-          Implementation="Sc.Server.Weaver.ScTouchTask, Starcounter">
+          Implementation="Starcounter.Internal.Weaver.ScTouchTask, Starcounter">
     <Dependency TaskType="Compile" Position="Before"/>
   </TaskType>
 
+  <!--
+  PSA 25/9 2012: Not aware of whats been decided about transcation
+  scopes, but since they are not part of even the mock, I'm not doing
+  anything to try to support them in the weaver.
   <TaskType Name="ScTransactionScope"
             Phase="Transform"
-            Implementation="Sc.Server.Weaver.ScTransactionScopeTask, Starcounter">
+            Implementation="Starcounter.Internal.Weaver.ScTransactionScopeTask, Starcounter">
     <Dependency TaskType="CodeWeaver" Position="After"/>
     <Dependency TaskType="AnnotationRepository" />
   </TaskType>
-
-  <TaskType Name="ScConnectionBoundObject"
-            Phase="Transform"
-            Implementation="Sc.Server.Weaver.ScConnectionBoundObjectTask, Starcounter">
-    <Dependency TaskType="CodeWeaver" Position="After"/>
-    <Dependency TaskType="TypeHierarchyAnalysis"/>
-  </TaskType>
-
-
+  -->
+  
   <TaskType Name="ScEnhanceThreadingTask"
             Phase="Transform"
-            Implementation="Sc.Server.Weaver.Runtime.ScEnhanceThreadingTask, Starcounter">
+            Implementation="Starcounter.Internal.Weaver.ScEnhanceThreadingTask, Starcounter">
     <Dependency TaskType="ScTransform" Required="false" />
   </TaskType>
 </PlugIn>
