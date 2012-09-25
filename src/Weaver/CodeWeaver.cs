@@ -240,8 +240,8 @@ namespace Weaver {
             // Right now, we don't support IPC/Lucent Objects weaving and we will
             // never utilize this setting ourself. But to be sure we don't have it
             // accidentaly set, let's refuse going further if it's set.
-            if (WeaveForIPC) {
-                Program.ReportProgramError(Error.SCERRUNSPECIFIED, "Currently, weaving for IPC is not supported.");
+            if (!WeaveForIPC) {
+                Program.ReportProgramError(Error.SCERRUNSPECIFIED, "Currently, weaving with IPC must be set.");
                 return false;
             }
 
