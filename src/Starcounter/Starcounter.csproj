@@ -438,7 +438,9 @@
     <RuntimeFile Include="Internal\Weaver\ScTransform.psproj"/>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Internal\Weaver\Postsharp.license" />
+    <EmbeddedResource Include="Internal\Weaver\Postsharp.license">
+	  <LogicalName>Sc.Postsharp.license</LogicalName>
+	</EmbeddedResource>
     <EmbeddedResource Include="Internal\Weaver\Messages.resx">
       <SubType>Designer</SubType>
     </EmbeddedResource>
