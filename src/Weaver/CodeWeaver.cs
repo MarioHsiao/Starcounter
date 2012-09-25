@@ -15,6 +15,7 @@ using Sc.Server.Weaver;
 using Starcounter;
 using Starcounter.Internal;
 using Starcounter.Internal.Weaver;
+using System.Text.RegularExpressions;
 
 namespace Weaver {
 
@@ -25,6 +26,8 @@ namespace Weaver {
     internal class CodeWeaver : MarshalByRefObject, IPostSharpHost {
         const string AnalyzerProjectFileName = "ScAnalyzeOnly.psproj";
         const string WeaverProjectFileName = "ScTransform.psproj";
+
+        private readonly List<Regex> weaverExcludes = new List<Regex>();
 
         /// <summary>
         /// The name of the default cache directory, if no cache directory is given.
@@ -157,6 +160,8 @@ namespace Weaver {
             } catch {
                 this.WeaverRuntimeDirectory = Environment.CurrentDirectory;
             }
+
+            AddStandardWeaverExcludes();
         }
 
         public bool Execute() {
@@ -465,8 +470,15 @@ namespace Weaver {
 
         bool FileIsToBeExcluded(string file) {
             // Since we currently have defined no way to configure excludes in PeeDee/2.2,
-            // no exclusion occurs. When we need it, add it here.
-            // TODO:
+            // no exclusion occurs, except for the standard excludes (PostSharp, Starcounter).
+            // When we need it, add configuration possibility and populate the same set.
+
+            string fileName = Path.GetFileName(file);
+            foreach (Regex regex in weaverExcludes) {
+                if (regex.IsMatch(fileName))
+                    return true;
+            }
+
             return false;
         }
 
@@ -617,6 +629,22 @@ namespace Weaver {
             parameters.Properties["DontCopyToOutput"] = this.WeaveToCacheOnly ? bool.TrueString : bool.FalseString;
 
             return parameters;
+        }
+
+        void AddStandardWeaverExcludes() {
+            foreach (var exclude in new string[] {
+                "PostSharp*.dll",
+                "Starcounter.dll"}
+                ) {
+                AddExcludeExpression(exclude, weaverExcludes);
+            }
+        }
+
+        void AddExcludeExpression(string specification, List<Regex> target) {
+            target.Add(
+                new Regex("^" + specification.Replace(".", "\\.").Replace("?", ".").Replace("*", ".*"),
+                    RegexOptions.IgnoreCase
+                    ));
         }
 
         #region IPostSharpHost Members (methods called back by PostSharp)
