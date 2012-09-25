@@ -87,8 +87,7 @@ namespace Weaver {
             // or from using the default directory.
 
             if (!arguments.TryGetProperty("cachedir", out cacheDirectory)) {
-                // TODO:
-                // cacheDirectory = Path.Combine(inputDirectory, CodeWeaver.DefaultCacheDirectoryName);
+                cacheDirectory = Path.Combine(inputDirectory, CodeWeaver.DefaultCacheDirectoryName);
             }
 
             if (!Directory.Exists(cacheDirectory)) {
@@ -130,13 +129,28 @@ namespace Weaver {
         /// </summary>
         /// <param name="inputDirectory">The input directory.</param>
         /// <param name="cacheDirectory">The cache directory.</param>
-        /// <param name="fileName">An eventual name of a file to give the weaver.</param>
+        /// <param name="fileName">The name of the file to give the weaver.</param>
         /// <param name="arguments">Parsed and verified program arguments.</param>
         static void ExecuteWeaveCommand(
             string inputDirectory,
             string cacheDirectory,
             string fileName,
             ApplicationArguments arguments) {
+            CodeWeaver weaver;
+
+            // Create the code weaver facade and configure it properly. Then
+            // execute the underlying weaver engine.
+
+            weaver = new CodeWeaver(inputDirectory, fileName, cacheDirectory);
+            weaver.RunWeaver = true;
+            weaver.WeaveForIPC = false;//!arguments.ContainsFlag("noipc");
+            weaver.DisableWeaverCache = arguments.ContainsFlag("nocache");
+            weaver.WeaveToCacheOnly = arguments.ContainsFlag("tocache");
+
+            // Invoke the weaver subsystem. If it fails, it will report the
+            // error itself.
+
+            weaver.Execute();
         }
 
         /// <summary>
@@ -144,13 +158,27 @@ namespace Weaver {
         /// </summary>
         /// <param name="inputDirectory">The input directory.</param>
         /// <param name="cacheDirectory">The cache directory.</param>
-        /// <param name="fileName">An eventual name of a file to give the weaver.</param>
+        /// <param name="fileName">The name of the file to give the weaver.</param>
         /// <param name="arguments">Parsed and verified program arguments.</param>
         static void ExecuteVerifyCommand(
             string inputDirectory,
             string cacheDirectory,
             string fileName,
             ApplicationArguments arguments) {
+            CodeWeaver weaver;
+            
+            // Create the code weaver facade and configure it properly. Then
+            // execute the underlying weaver engine.
+
+            weaver = new CodeWeaver(inputDirectory, fileName, cacheDirectory);
+            weaver.RunWeaver = false;
+            weaver.WeaveForIPC = false;
+            weaver.DisableWeaverCache = arguments.ContainsFlag("nocache");
+
+            // Invoke the weaver subsystem. If it fails, it will report the
+            // error itself.
+
+            weaver.Execute();
         }
 
         static void ApplyGlobalProgramOptions(ApplicationArguments arguments) {
