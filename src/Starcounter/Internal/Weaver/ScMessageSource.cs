@@ -15,6 +15,7 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         public const string WeaverMessageSource = "Starcounter.Weaver";
 
+#if false
         /// <summary>
         /// A message source for Starcounter-specific stuff.
         /// </summary>
@@ -25,8 +26,20 @@ namespace Starcounter.Internal.Weaver {
         /// </remarks>
         public static readonly MessageSource Instance = new MessageSource(
             WeaverMessageSource,
-            new ResourceManager("Sc.Server.Weaver.Messages",
+            new ResourceManager("Weaver.Messages",
                                 typeof(ScMessageSource).Assembly));
+#endif
+
+        /// <summary>
+        /// Redirect the legacy "Instance" to the new "Source" until we've
+        /// had time to fixup all weaver-related messages. This will work,
+        /// but it will give just codes back, never proper error messages.
+        /// </summary>
+        public static MessageSource Instance {
+            get {
+                return ScMessageSource.Source;
+            }
+        }
 
         /// <summary>
         /// The new message source, replacing <see cref="Instance"/>, to be
@@ -150,7 +163,24 @@ namespace Starcounter.Internal.Weaver {
             // never be called, and hence we just return the key as the
             // message in case some code whould call it by accident.
 
-            return key;
+            uint errorCode = WeaverUtilities.WeaverMessageToErrorCode(key);
+            if (errorCode == 0) {
+                
+                // Test.
+                // We should ultimately factor out all messages from the
+                // embedded resource stream and utilize our own error system
+                // (i.e. "Grey"), extending it with support for warnings and
+                // information messages too.
+                // TODO:
+                //if (key.Equals("SCINF01")) {
+                //    return "Analyzing the module {0}.";
+                //}
+
+
+                return key;
+            }
+
+            return ErrorCode.ToMessage(errorCode);
         }
 
         #endregion
