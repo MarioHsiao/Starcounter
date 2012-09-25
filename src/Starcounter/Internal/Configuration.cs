@@ -67,7 +67,7 @@ namespace Starcounter.Internal
             get {
                 string prop;
 
-                if (!this.ProgramArguments.TryGetProperty("OutputDir", out prop))
+                if (!this.ProgramArguments.TryGetProperty("TempDir", out prop))
                     prop = @"C:/Test/Temp";
 
                 return prop;
