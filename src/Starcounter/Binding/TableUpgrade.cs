@@ -308,30 +308,31 @@ namespace Starcounter.Binding
 
         private void MoveRecord(ObjectRef source)
         {
-            uint e;
-            ObjectRef target;
+            ColumnValueTransfer[] columnValueTransfers = columnValueTransferSet_;
+            for (int i = 0; i < columnValueTransfers.Length; i++)
+            {
+                var columnValueTransfer = columnValueTransfers[i];
+                columnValueTransfer.Read(source);
+            }
 
+            uint e;
             unsafe
             {
-                e = sccoredb.sc_insert(newTableDef_.DefinitionAddr, &target.ObjectID, &target.ETI);
+                e = sccoredb.sccoredb_replace(source.ObjectID, source.ETI, newTableDef_.DefinitionAddr);
             }
             if (e == 0)
             {
-                ColumnValueTransfer[] columnValueTransfers = columnValueTransferSet_;
+                ObjectRef target = source;
                 for (int i = 0; i < columnValueTransfers.Length; i++)
                 {
-                    ColumnValueTransfer columnValueTransfer = columnValueTransfers[i];
-                    columnValueTransfer.Read(source);
+                    var columnValueTransfer = columnValueTransfers[i];
                     columnValueTransfer.Write(target);
                 }
-
-                int b;
-                b = sccoredb.Mdb_ObjectIssueDelete(source.ObjectID, source.ETI);
-                if (b != 0) b = sccoredb.Mdb_ObjectDelete(source.ObjectID, source.ETI, 1);
-                if (b == 0) e = sccoredb.Mdb_GetLastError();
             }
-
-            if (e != 0) throw ErrorCode.ToException(e);
+            else
+            {
+                throw ErrorCode.ToException(e);
+            }
         }
 
         private unsafe void BuildScanRangeKeys(IndexInfo indexInfo, out Byte[] lk, out Byte[] hk)

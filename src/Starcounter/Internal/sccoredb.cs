@@ -241,6 +241,12 @@ namespace Starcounter.Internal
             ulong* pnew_addr
             );
 
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal extern static uint sccoredb_replace(
+            ulong record_id,
+            ulong record_addr,
+            ulong definition_addr
+            );
 
         internal const ushort Mdb_DataValueFlag_Null = 0x0001;
 
