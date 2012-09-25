@@ -6,6 +6,7 @@ using System.Text;
 using PostSharp.Sdk.CodeModel;
 using Sc.Server.Weaver.Schema;
 using Starcounter;
+using System.Reflection;
 
 namespace Starcounter.Internal.Weaver {
     internal static class WeaverSchemaExtensions {
@@ -41,10 +42,11 @@ namespace Starcounter.Internal.Weaver {
         public static void AddStarcounterAssembly(this DatabaseSchema schema) {
             DatabaseAssembly databaseAssembly;
 
-            databaseAssembly = new DatabaseAssembly("Starcounter", "Starcounter");
+            databaseAssembly = new DatabaseAssembly("Starcounter", Assembly.GetExecutingAssembly().FullName);
             databaseAssembly.IsCached = true;
             databaseAssembly.SetSchema(schema);
             schema.Assemblies.Add(databaseAssembly);
+            databaseAssembly.DatabaseClasses.Add(new DatabaseEntityClass(databaseAssembly, typeof(Entity).FullName));
 
             // The built-in types, and the metadata "Table" class - what should
             // we do with them in 2.2?
