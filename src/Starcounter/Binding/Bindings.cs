@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace Starcounter.Binding
 {
     
-    internal static class Bindings
+    public static class Bindings
     {
 
         private static TypeBinding[] typeBindingsById_ = new TypeBinding[0];
@@ -52,7 +52,7 @@ namespace Starcounter.Binding
             typeDefsByName_ = typeDefsByName;
         }
 
-        internal static TypeDef GetTypeDef(string name)
+        public static TypeDef GetTypeDef(string name)
         {
             TypeDef typeDef;
             typeDefsByName_.TryGetValue(name, out typeDef);

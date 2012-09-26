@@ -1,7 +1,7 @@
 ﻿
 using Starcounter.CommandLine;
 
-namespace Starcounter.Internal
+namespace StarcounterInternal.Bootstrap
 {
     
     /// <summary>
