@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
 
-namespace Starcounter.Internal {
+namespace StarcounterInternal.Bootstrap {
 
     /// <summary>
     /// Contains a set of utility methods responsible for defining, parsing

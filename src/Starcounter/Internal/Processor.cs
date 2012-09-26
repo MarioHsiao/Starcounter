@@ -5,10 +5,10 @@ using System;
 namespace Starcounter.Internal
 {
     
-    internal static class Processor
+    public static class Processor
     {
 
-        internal static unsafe void RunMessageLoop(void *hsched)
+        public static unsafe void RunMessageLoop(void *hsched)
         {
             ThreadData.Current = new ThreadData(sccorelib.GetCpuNumber(), sccorelib.GetStateShare());
 

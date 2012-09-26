@@ -7,18 +7,18 @@ namespace Starcounter.Internal
     /// <summary>
     /// Basic host configuration.
     /// </summary>
-    internal class Configuration
+    public class Configuration
     {
-        internal ApplicationArguments ProgramArguments { get; private set; }
+        public ApplicationArguments ProgramArguments { get; private set; }
 
-        internal static Configuration Load(ApplicationArguments arguments)
+        public static Configuration Load(ApplicationArguments arguments)
         {
             return new Configuration() { ProgramArguments = arguments };
         }
 
         private Configuration() { }
 
-        internal string Name
+        public string Name
         {
             get 
             {
@@ -26,7 +26,7 @@ namespace Starcounter.Internal
             }
         }
 
-        internal string CompilerPath
+        public string CompilerPath
         {
             get {
                 string prop;
@@ -38,7 +38,7 @@ namespace Starcounter.Internal
             }
         }
 
-        internal string DatabaseDirectory
+        public string DatabaseDirectory
         {
             get {
                 string prop;
@@ -50,7 +50,7 @@ namespace Starcounter.Internal
             }
         }
 
-        internal string OutputDirectory
+        public string OutputDirectory
         {
             get {
                 string prop;
@@ -62,7 +62,7 @@ namespace Starcounter.Internal
             }
         }
 
-        internal string TempDirectory
+        public string TempDirectory
         {
             get {
                 string prop;
