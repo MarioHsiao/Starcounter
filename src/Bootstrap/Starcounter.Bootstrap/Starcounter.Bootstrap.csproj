@@ -34,6 +34,11 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="ABCIPC\Client.cs" />
+    <Compile Include="ABCIPC\Internal\Utils.cs" />
+    <Compile Include="ABCIPC\Reply.cs" />
+    <Compile Include="ABCIPC\Request.cs" />
+    <Compile Include="ABCIPC\Server.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="Control.cs" />
     <Compile Include="Loader.cs" />

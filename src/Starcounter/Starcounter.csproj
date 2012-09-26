@@ -50,11 +50,6 @@
     <PostSharpRedistributables>..\Redistributables\PostSharp\Release</PostSharpRedistributables>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="ABCIPC\Client.cs" />
-    <Compile Include="ABCIPC\Reply.cs" />
-    <Compile Include="ABCIPC\Request.cs" />
-    <Compile Include="ABCIPC\Server.cs" />
-    <Compile Include="ABCIPC\Internal\Utils.cs" />
     <Compile Include="Apps\App.cs" />
     <Compile Include="Apps\Bootstrap\AppProcess.cs" />
     <Compile Include="Binary.cs" />
