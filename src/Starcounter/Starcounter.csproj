@@ -51,6 +51,8 @@
     <Compile Include="ABCIPC\Request.cs" />
     <Compile Include="ABCIPC\Server.cs" />
     <Compile Include="ABCIPC\Internal\Utils.cs" />
+    <Compile Include="Apps\App.cs" />
+    <Compile Include="Apps\Bootstrap\AppProcess.cs" />
     <Compile Include="Binary.cs" />
     <Compile Include="Binding\BinaryPropertyBinding.cs" />
     <Compile Include="Binding\BindingBuilder.cs" />
@@ -431,16 +433,16 @@
     </AvailableItemName>
   </ItemGroup>
   <ItemGroup>
-	<RuntimeFile Include="Internal\Weaver\ScAnalyze.psplugin"/>
-	<RuntimeFile Include="Internal\Weaver\ScAnalyzeOnly.psproj"/>
-    <RuntimeFile Include="Internal\Weaver\ScIgnore.psproj"/>
-    <RuntimeFile Include="Internal\Weaver\ScRuntime.psplugin"/>
-    <RuntimeFile Include="Internal\Weaver\ScTransform.psproj"/>
+    <RuntimeFile Include="Internal\Weaver\ScAnalyze.psplugin" />
+    <RuntimeFile Include="Internal\Weaver\ScAnalyzeOnly.psproj" />
+    <RuntimeFile Include="Internal\Weaver\ScIgnore.psproj" />
+    <RuntimeFile Include="Internal\Weaver\ScRuntime.psplugin" />
+    <RuntimeFile Include="Internal\Weaver\ScTransform.psproj" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Internal\Weaver\Postsharp.license">
-	  <LogicalName>Sc.Postsharp.license</LogicalName>
-	</EmbeddedResource>
+      <LogicalName>Sc.Postsharp.license</LogicalName>
+    </EmbeddedResource>
     <EmbeddedResource Include="Internal\Weaver\Messages.resx">
       <SubType>Designer</SubType>
     </EmbeddedResource>
@@ -455,10 +457,6 @@
   </Target>
   -->
   <Target Name="AfterBuild">
-    <Copy
-        DestinationFolder="$(OutputPath)"
-        SourceFiles="@(RuntimeFile)"
-        SkipUnchangedFiles="true"
-        />  
+    <Copy DestinationFolder="$(OutputPath)" SourceFiles="@(RuntimeFile)" SkipUnchangedFiles="true" />
   </Target>
 </Project>
