@@ -8,12 +8,10 @@ using System.Runtime.InteropServices;
 
 using Sc.Server.Weaver.Schema;
 using Starcounter;
-using Starcounter.ABCIPC;
-using Starcounter.ABCIPC.Internal;
 using Starcounter.Internal;
 using Starcounter.Internal.Weaver;
 
-namespace StarcounterInternal.Bootstrap
+namespace StarcounterInternal.Hosting
 {
 
     internal class BinBriefcase
@@ -48,12 +46,18 @@ namespace StarcounterInternal.Bootstrap
         }
     }
 
+    public class LoaderException : Exception
+    {
+
+        public LoaderException(string message) : base(message) { }
+    }
+
     public static class Loader
     {
 
         private static readonly BinBriefcase privateBinBriefcase_ = new BinBriefcase();
 
-        internal static Assembly ResolveAssembly(object sender, ResolveEventArgs args)
+        public static Assembly ResolveAssembly(object sender, ResolveEventArgs args)
         {
             Assembly assembly = null;
 
@@ -69,74 +73,20 @@ namespace StarcounterInternal.Bootstrap
             return assembly;
         }
 
-        public static unsafe void RunMessageLoop(void* hsched)
+        public static unsafe void ExecApp(void* hsched, string filePath)
         {
-            var appDomain = AppDomain.CurrentDomain;
-            appDomain.AssemblyResolve += new ResolveEventHandler(ResolveAssembly);
-            Server server;
-
-            // Create the server.
-            // If input has not been redirected, we let the server accept
-            // requests in a simple text format from the console.
-            // 
-            // If the input has been redirected, we force the parent process
-            // to use the "real" API's (i.e. the Client), just as the server
-            // will do, once it has been moved into Orange.
-
-            if (!Console.IsInputRedirected)
-            {
-                server = Utils.PromptHelper.CreateServerAttachedToPrompt();
-            }
-            else
-            {
-                server = new Server(Console.In.ReadLine, Console.Out.WriteLine);
-            }
-
-            // Install handlers for the type of requests we accept.
-
-            // Handles execution requests for Apps
-            server.Handle("Exec", delegate(Request r)
-            {
-                ExecApp(hsched, r);
-            });
-
-            // Some test handlers to show a little more.
-            // To be removed.
-
-            server.Handle("Ping", delegate(Request request)
-            {
-                request.Respond(true);
-            });
-
-            server.Handle("Echo", delegate(Request request)
-            {
-                var response = request.GetParameter<string>();
-                request.Respond(response ?? "<NULL>");
-            });
-
-            // Receive until we are told to shutdown
-
-            server.Receive();
-        }
-
-        static unsafe void ExecApp(void* hsched, Request request)
-        {
-            var filePath = request.GetParameter<string>();
-
             try
             {
                 filePath = Path.GetFullPath(filePath);
             }
             catch (ArgumentException pathEx)
             {
-                request.Respond(false, string.Format("{0} ({1})", pathEx.Message, filePath));
-                return;
+                throw new LoaderException(string.Format("{0} ({1})", pathEx.Message, filePath));
             }
 
             if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
             {
-                request.Respond(false, string.Format("File not found: {0}.", filePath));
-                return;
+                throw new LoaderException(string.Format("File not found: {0}.", filePath));
             }
 
             var inputFile = new FileInfo(filePath);

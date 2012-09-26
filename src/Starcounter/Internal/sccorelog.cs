@@ -3,7 +3,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace StarcounterInternal.Bootstrap
+namespace Starcounter.Internal
 {
 
     [SuppressUnmanagedCodeSecurity]

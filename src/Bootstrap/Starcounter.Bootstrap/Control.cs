@@ -4,6 +4,9 @@ using System.Runtime.InteropServices;
 using Starcounter.CommandLine;
 using Starcounter; // TODO:
 using Starcounter.Internal; // TODO:
+using StarcounterInternal.Hosting;
+using Starcounter.ABCIPC;
+using Starcounter.ABCIPC.Internal;
 
 namespace StarcounterInternal.Bootstrap
 {
@@ -94,7 +97,59 @@ namespace StarcounterInternal.Bootstrap
 
         private unsafe void Run()
         {
-            Loader.RunMessageLoop(hsched_);
+            var appDomain = AppDomain.CurrentDomain;
+            appDomain.AssemblyResolve += new ResolveEventHandler(Loader.ResolveAssembly);
+            Server server;
+
+            // Create the server.
+            // If input has not been redirected, we let the server accept
+            // requests in a simple text format from the console.
+            // 
+            // If the input has been redirected, we force the parent process
+            // to use the "real" API's (i.e. the Client), just as the server
+            // will do, once it has been moved into Orange.
+
+            if (!Console.IsInputRedirected)
+            {
+                server = Utils.PromptHelper.CreateServerAttachedToPrompt();
+            }
+            else
+            {
+                server = new Server(Console.In.ReadLine, Console.Out.WriteLine);
+            }
+
+            // Install handlers for the type of requests we accept.
+
+            // Handles execution requests for Apps
+            server.Handle("Exec", delegate(Request r)
+            {
+                try
+                {
+                    Loader.ExecApp(hsched_, r.GetParameter<string>());
+                }
+                catch (LoaderException ex)
+                {
+                    r.Respond(false, ex.Message);
+                }
+            });
+
+            // Some test handlers to show a little more.
+            // To be removed.
+
+            server.Handle("Ping", delegate(Request request)
+            {
+                request.Respond(true);
+            });
+
+            server.Handle("Echo", delegate(Request request)
+            {
+                var response = request.GetParameter<string>();
+                request.Respond(response ?? "<NULL>");
+            });
+
+            // Receive until we are told to shutdown
+
+            server.Receive();
         }
 
         private unsafe void Stop()

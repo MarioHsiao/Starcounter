@@ -41,12 +41,14 @@
     <Compile Include="ABCIPC\Server.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="Control.cs" />
-    <Compile Include="Loader.cs" />
-    <Compile Include="orange.cs" />
     <Compile Include="ProgramCommandLine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Hosting\Starcounter.Hosting\Starcounter.Hosting.csproj">
+      <Project>{b427c63b-c13f-47cc-b101-29ced68a68b8}</Project>
+      <Name>Starcounter.Hosting</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Starcounter\Starcounter.csproj">
       <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
       <Name>Starcounter</Name>
