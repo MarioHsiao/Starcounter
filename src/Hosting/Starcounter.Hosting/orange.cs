@@ -2,15 +2,15 @@
 using Starcounter.Internal;
 using System.Runtime.InteropServices;
 
-namespace StarcounterInternal.Bootstrap
+namespace StarcounterInternal.Hosting
 {
     
-    internal static class orange // TODO: Move appropriate scheduler callback implementations to managed code.
+    public static class orange // TODO: Move appropriate scheduler callback implementations to managed code.
     {
 
         private static ulong hmenv_;
 
-        internal static void orange_setup(ulong hmenv)
+        public static void orange_setup(ulong hmenv)
         {
             hmenv_ = hmenv;
         }
@@ -27,7 +27,7 @@ namespace StarcounterInternal.Bootstrap
         private static unsafe sccorelib.ALERT_STALL al_stall = new sccorelib.ALERT_STALL(orange_alert_stall);
         private static unsafe sccorelib.ALERT_LOWMEM al_lowmem = new sccorelib.ALERT_LOWMEM(orange_alert_lowmem);
 
-        internal static unsafe void orange_configure_scheduler_callbacks(ref sccorelib.CM2_SETUP setup)
+        public static unsafe void orange_configure_scheduler_callbacks(ref sccorelib.CM2_SETUP setup)
         {
             setup.th_enter = (void*)Marshal.GetFunctionPointerForDelegate(th_enter);
             setup.th_leave = (void*)Marshal.GetFunctionPointerForDelegate(th_leave);
