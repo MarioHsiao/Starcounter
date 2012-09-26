@@ -141,14 +141,14 @@ namespace Starcounter.Internal.Weaver {
         public override bool Execute() {
             DatabaseAttribute databaseAttribute;
             DatabaseClass databaseClass;
-            DatabaseExtensionClass databaseExtensionClass;
+//            DatabaseExtensionClass databaseExtensionClass;
             DatabaseEntityClass databaseEntityClass;
             DatabaseSocietyClass databaseSocietyClass;
             FieldDefDeclaration field;
             IEnumerator<MetadataDeclaration> typeEnumerator;
             IMethod getMethod;
             IMethod setMethod;
-            MethodDefDeclaration constructor;
+//            MethodDefDeclaration constructor;
             MethodDefDeclaration staticConstructor;
             ScAnalysisTask analysisTask;
             TypeDefDeclaration typeDef;
@@ -1187,7 +1187,7 @@ namespace Starcounter.Internal.Weaver {
             IMethod replacementConstructor;
             InstructionBlock rootInstrBlock;
             InstructionSequence sequence;
-            IType forbiddenType;
+//            IType forbiddenType;
             IType parentType;
             MethodBodyDeclaration constructorImplementation;
             MethodDefDeclaration enhancedConstructor;
