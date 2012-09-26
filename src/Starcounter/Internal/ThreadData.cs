@@ -9,11 +9,11 @@ namespace Starcounter
     /// scheduled for execution by a virtual processor (VPContext).
     /// Every thread holds an independent instance of this class.
     /// </summary>
-    internal sealed class ThreadData : Object
+    public sealed class ThreadData : Object
     {
 
         [ThreadStatic]
-        internal static ThreadData Current;
+        public static ThreadData Current;
 
         internal static ThreadData GetCurrentIfAttachedAndReattachIfAutoDetached()
         {
@@ -55,7 +55,7 @@ namespace Starcounter
 
         private readonly unsafe UInt32* _pStateShare;
 
-        internal unsafe ThreadData(Byte schedulerNumber, UInt32* pStateShare)
+        public unsafe ThreadData(Byte schedulerNumber, UInt32* pStateShare)
         {
             Scheduler = Scheduler.GetInstance(schedulerNumber);
             _pStateShare = pStateShare;

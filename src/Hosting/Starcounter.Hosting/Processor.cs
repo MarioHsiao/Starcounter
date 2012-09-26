@@ -1,8 +1,9 @@
 ﻿
+using Starcounter;
 using Starcounter.Internal;
 using System;
 
-namespace Starcounter.Internal
+namespace StarcounterInternal.Hosting
 {
     
     public static class Processor
@@ -15,7 +16,7 @@ namespace Starcounter.Internal
             for (; ; )
             {
                 sccorelib.CM2_TASK_DATA task_data;
-                uint e = sccorelib.cm2_standby(hsched, &task_data);
+                uint e = sccoreapp.sccoreapp_standby(hsched, &task_data);
                 if (e == 0)
                 {
                     switch (task_data.Type)
