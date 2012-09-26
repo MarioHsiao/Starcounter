@@ -60,7 +60,7 @@ namespace StarcounterInternal.Hosting
 
         private static unsafe void orange_thread_start(void* hsched, byte cpun, void* p, uint ignore)
         {
-            Starcounter.Internal.Processor.RunMessageLoop(hsched);
+            Processor.RunMessageLoop(hsched);
         }
 
         private static unsafe void orange_thread_reset(void* hsched, byte cpun, void* p)

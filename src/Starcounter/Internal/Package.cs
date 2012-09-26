@@ -11,7 +11,7 @@ namespace Starcounter.Internal
     public class Package
     {
 
-        internal static void Process(IntPtr hPackage)
+        public static void Process(IntPtr hPackage)
         {
             GCHandle gcHandle = (GCHandle)hPackage;
             Package p = (Package)gcHandle.Target;
