@@ -620,9 +620,9 @@ namespace Starcounter.Internal.Weaver {
         /// </remarks>
         private void ValidateCustomAttributeUsage() {
             AnnotationRepositoryTask annotationRepositoryTask;
-            DatabaseAttribute databaseAttribute;
-            DatabaseClass databaseClass;
-            FieldDefDeclaration field;
+//            DatabaseAttribute databaseAttribute;
+//            DatabaseClass databaseClass;
+//            FieldDefDeclaration field;
             
             // Inspect that custom attributes were used were it makes sense.
             annotationRepositoryTask = AnnotationRepositoryTask.GetTask(Project);
