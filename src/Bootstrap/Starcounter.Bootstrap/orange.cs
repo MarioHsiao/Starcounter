@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.Internal;
 using System.Runtime.InteropServices;
 
 namespace StarcounterInternal.Bootstrap
