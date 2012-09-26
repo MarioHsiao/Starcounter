@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using Sc.Server.Weaver.Schema;
 using Starcounter.ABCIPC;
 using Starcounter.ABCIPC.Internal;
+using Starcounter.Internal.Weaver;
 
 namespace Starcounter.Internal
 {
@@ -55,16 +56,11 @@ namespace Starcounter.Internal
             var schemaFiles = inputDir.GetFiles("*.schema");
 
             var databaseSchema = new DatabaseSchema();
+            databaseSchema.AddStarcounterAssembly();
+
             var typeDefs = new List<TypeDef>();
 
             DatabaseAssembly databaseAssembly;
-
-            // Workaround for DatabaseSchema.PopulateDatabaseEntityClasses to
-            // work.
-
-            databaseAssembly = new DatabaseAssembly("Starcounter", Assembly.GetExecutingAssembly().FullName);
-            databaseSchema.Assemblies.Add(databaseAssembly);
-            databaseAssembly.DatabaseClasses.Add(new DatabaseEntityClass(databaseAssembly, rootClassName));
 
             for (int i = 0; i < schemaFiles.Length; i++)
             {
@@ -371,9 +367,16 @@ namespace Starcounter.Internal
 
         static unsafe void ExecApp(void* hsched, Request request) {
             var filePath = request.GetParameter<string>();
-            
+
+            try {
+                filePath = Path.GetFullPath(filePath);
+            } catch (ArgumentException pathEx) {
+                request.Respond(false, string.Format("{0} ({1})", pathEx.Message, filePath));
+                return;
+            }
+                
             if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath)) {
-                request.Respond(false, "File not found");
+                request.Respond(false, string.Format("File not found: {0}.", filePath));
                 return;
             }
             

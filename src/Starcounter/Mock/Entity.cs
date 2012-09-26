@@ -19,6 +19,10 @@ namespace Starcounter
 
         internal ObjectRef ThisRef;
     }
+
+    [AttributeUsage(AttributeTargets.Field)]
+    public sealed class NotPersistentAttribute : Attribute {
+    }
     
     public abstract class Entity : DbObject, IObjectView
     {
@@ -79,7 +83,12 @@ namespace Starcounter
         
         private TypeBinding typeBinding_;
 
-        public Entity(Sc.Server.Internal.Uninitialized u) { }
+        protected Entity()
+            : base() {
+            throw ErrorCode.ToException(Error.SCERRCODENOTENHANCED);
+        }
+
+        protected Entity(Sc.Server.Internal.Uninitialized u) { }
 
         public Entity(ulong typeAddr, Sc.Server.Binding.TypeBinding typeBinding, Sc.Server.Internal.Uninitialized u)
         {
