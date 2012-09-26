@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.postsharp.org/1.0/configuration" ReferenceDirectory="{$ScInputDirectory}">
+
+  <Using PlugInFile="ScAnalyze.psplugin"/>
+
+  <Tasks>
+    <ScAnalyze 
+      Timestamp="{$CacheTimestamp}"
+      SaveTo="{$ScCacheDirectory}\{$AssemblyName}.schema"/>
+  </Tasks>
+  
+</Project>
