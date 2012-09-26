@@ -8,7 +8,7 @@ using System.Threading;
 namespace Starcounter.Internal
 {
     
-    internal class Package
+    public class Package
     {
 
         internal static void Process(IntPtr hPackage)
@@ -23,7 +23,7 @@ namespace Starcounter.Internal
         private readonly Assembly assembly_;
         private readonly ManualResetEvent processedEvent_;
 
-        internal Package(
+        public Package(
             TypeDef[] unregisteredTypeDefs, // Previously unregistered type definitions.
             Assembly assembly               // Entry point assembly.
             )
@@ -47,12 +47,12 @@ namespace Starcounter.Internal
             }
         }
 
-        internal void WaitUntilProcessed()
+        public void WaitUntilProcessed()
         {
             processedEvent_.WaitOne();
         }
 
-        internal void Dispose()
+        public void Dispose()
         {
             processedEvent_.Dispose();
         }
