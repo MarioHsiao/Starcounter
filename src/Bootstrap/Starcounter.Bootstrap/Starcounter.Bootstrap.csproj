@@ -46,7 +46,6 @@
     <Compile Include="ProgramCommandLine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="sccoredb.cs" />
-    <Compile Include="sccorelog.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Starcounter\Starcounter.csproj">
