@@ -1,6 +1,4 @@
 ﻿
-using Starcounter.Internal;
-
 namespace boot
 {
     class Program
@@ -8,7 +6,7 @@ namespace boot
         
         static void Main(string[] args)
         {
-            Control.Main(args);
+            StarcounterInternal.Bootstrap.Control.Main(args);
         }
     }
 }
