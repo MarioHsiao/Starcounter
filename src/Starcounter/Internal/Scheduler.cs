@@ -10,7 +10,7 @@ using System.Collections.Generic;
 namespace Starcounter
 {
  
-    internal sealed class Scheduler
+    public sealed class Scheduler
     {
         // Contains all virtual processor instances
         // (up to number of logical cores on a machine).
@@ -52,7 +52,7 @@ namespace Starcounter
             return _instances[cpuNumber];
         }
 
-        internal static void Setup(Byte cpuCount)
+        public static void Setup(Byte cpuCount)
         {
             Scheduler[] instances;
             Int32 i;

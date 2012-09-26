@@ -1,7 +1,7 @@
 ﻿
 using System.Runtime.InteropServices;
 
-namespace Starcounter.Internal
+namespace StarcounterInternal.Bootstrap
 {
     
     internal static class orange // TODO: Move appropriate scheduler callback implementations to managed code.
@@ -59,7 +59,7 @@ namespace Starcounter.Internal
 
         private static unsafe void orange_thread_start(void* hsched, byte cpun, void* p, uint ignore)
         {
-            Processor.RunMessageLoop(hsched);
+            Starcounter.Internal.Processor.RunMessageLoop(hsched);
         }
 
         private static unsafe void orange_thread_reset(void* hsched, byte cpun, void* p)

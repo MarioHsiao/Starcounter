@@ -300,7 +300,7 @@ namespace Starcounter.Internal
         }
     }
 
-    internal static class Loader
+    public static class Loader
     {
 
         private static readonly BinBriefcase privateBinBriefcase_ = new BinBriefcase();
@@ -321,7 +321,7 @@ namespace Starcounter.Internal
             return assembly;
         }
 
-        internal static unsafe void RunMessageLoop(void* hsched)
+        public static unsafe void RunMessageLoop(void* hsched)
         {
             var appDomain = AppDomain.CurrentDomain;
             appDomain.AssemblyResolve += new ResolveEventHandler(ResolveAssembly);

@@ -8,8 +8,8 @@ namespace Starcounter.Internal {
     /// The database specific exception factory to be installed inside the
     /// database worker process.
     /// </summary>
-    internal sealed class DatabaseExceptionFactory : ExceptionFactory {
-        internal static void InstallInCurrentAppDomain() {
+    public sealed class DatabaseExceptionFactory : ExceptionFactory {
+        public static void InstallInCurrentAppDomain() {
             if (ErrorCode.ExceptionFactory is DatabaseExceptionFactory)
                 return;
 

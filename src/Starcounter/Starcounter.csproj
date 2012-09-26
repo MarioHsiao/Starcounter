@@ -117,7 +117,6 @@
     <Compile Include="Internal\ErrorHandling\ExceptionFactory.cs" />
     <Compile Include="Internal\ErrorHandling\ParsedErrorMessage.cs" />
     <Compile Include="Internal\KeyValueBinary.cs" />
-    <Compile Include="Internal\ProgramCommandLine.cs" />
     <Compile Include="Internal\Weaver\AnonymousTypeAdapter.cs" />
     <Compile Include="Internal\Weaver\AnonymousTypePropertyAttribute.cs" />
     <Compile Include="Internal\Weaver\AssemblyWeavedForIPCAttribute.cs" />
@@ -370,15 +369,12 @@
     <Compile Include="Query\_QueryModule.cs" />
     <Compile Include="Binding\TableDef.cs" />
     <Compile Include="Db.cs" />
-    <Compile Include="Internal\Control.cs" />
     <Compile Include="Internal\Configuration.cs" />
     <Compile Include="Internal\Loader.cs" />
-    <Compile Include="Internal\orange.cs" />
     <Compile Include="Internal\Package.cs" />
     <Compile Include="Internal\Processor.cs" />
     <Compile Include="Internal\sccoredb.cs" />
     <Compile Include="Internal\sccorelib.cs" />
-    <Compile Include="Internal\sccorelog.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Mock\Entity.cs" />
     <Compile Include="Mock\LucentObjectsRuntime.cs" />
