@@ -32,7 +32,7 @@ namespace Weaver {
         /// <summary>
         /// The name of the default cache directory, if no cache directory is given.
         /// </summary>
-        public const string DefaultCacheDirectoryName = ".starcounterCachedFiles";
+        public const string DefaultCacheDirectoryName = ".starcounter";
 
         /// <summary>
         /// The directory where the weaver looks for input.
