@@ -7,102 +7,102 @@ namespace Starcounter.Internal
 {
     
     [SuppressUnmanagedCodeSecurity]
-    internal static class sccoredb
+    public static class sccoredb
     {
 
-        internal const ulong MDBIT_OBJECTID = 0; // TODO:
+        public const ulong MDBIT_OBJECTID = 0; // TODO:
 
-        internal const ulong INVALID_DEFINITION_ADDR = 0xFFFFFFFFFF;
-        internal const ulong INVALID_RECORD_ADDR = 0xFFFFFFFFFF;
+        public const ulong INVALID_DEFINITION_ADDR = 0xFFFFFFFFFF;
+        public const ulong INVALID_RECORD_ADDR = 0xFFFFFFFFFF;
 
 
-        internal const byte SC_BASETYPE_UINT64 = 0x01;
-        internal const byte SC_BASETYPE_SINT64 = 0x02;
-        internal const byte SC_BASETYPE_SINGLE = 0x03;
-        internal const byte SC_BASETYPE_DOUBLE = 0x04;
-        internal const byte SC_BASETYPE_BINARY = 0x05;
-        internal const byte SC_BASETYPE_STRING = 0x06;
-        internal const byte SC_BASETYPE_DECIMAL = 0x07;
-        internal const byte SC_BASETYPE_OBJREF = 0x08;
-        internal const byte SC_BASETYPE_LBINARY = 0x09;
+        public const byte SC_BASETYPE_UINT64 = 0x01;
+        public const byte SC_BASETYPE_SINT64 = 0x02;
+        public const byte SC_BASETYPE_SINGLE = 0x03;
+        public const byte SC_BASETYPE_DOUBLE = 0x04;
+        public const byte SC_BASETYPE_BINARY = 0x05;
+        public const byte SC_BASETYPE_STRING = 0x06;
+        public const byte SC_BASETYPE_DECIMAL = 0x07;
+        public const byte SC_BASETYPE_OBJREF = 0x08;
+        public const byte SC_BASETYPE_LBINARY = 0x09;
 
-        internal const byte Mdb_Type_Boolean = (0x10 | SC_BASETYPE_UINT64);
-        internal const byte Mdb_Type_Byte = (0x20 | SC_BASETYPE_UINT64);
-        internal const byte Mdb_Type_UInt16 = (0x30 | SC_BASETYPE_UINT64);
-        internal const byte Mdb_Type_UInt32 = (0x40 | SC_BASETYPE_UINT64);
-        internal const byte Mdb_Type_UInt64 = (0x50 | SC_BASETYPE_UINT64);
-        internal const byte Mdb_Type_DateTime = (0x60 | SC_BASETYPE_UINT64);
-        internal const byte Mdb_Type_TimeSpan = (0x70 | SC_BASETYPE_UINT64);
-        internal const byte Mdb_Type_SByte = (0x10 | SC_BASETYPE_SINT64);
-        internal const byte Mdb_Type_Int16 = (0x20 | SC_BASETYPE_SINT64);
-        internal const byte Mdb_Type_Int32 = (0x30 | SC_BASETYPE_SINT64);
-        internal const byte Mdb_Type_Int64 = (0x40 | SC_BASETYPE_SINT64);
-        internal const byte Mdb_Type_Single = (0x10 | SC_BASETYPE_SINGLE);
-        internal const byte Mdb_Type_Double = (0x10 | SC_BASETYPE_DOUBLE);
-        internal const byte Mdb_Type_Binary = (0x10 | SC_BASETYPE_BINARY);
-        internal const byte Mdb_Type_String = (0x10 | SC_BASETYPE_STRING);
-        internal const byte Mdb_Type_Decimal = (0x10 | SC_BASETYPE_DECIMAL);
-        internal const byte Mdb_Type_ObjectID = (0x10 | SC_BASETYPE_OBJREF);
-        internal const byte Mdb_Type_LargeBinary = (0x10 | SC_BASETYPE_LBINARY);
+        public const byte Mdb_Type_Boolean = (0x10 | SC_BASETYPE_UINT64);
+        public const byte Mdb_Type_Byte = (0x20 | SC_BASETYPE_UINT64);
+        public const byte Mdb_Type_UInt16 = (0x30 | SC_BASETYPE_UINT64);
+        public const byte Mdb_Type_UInt32 = (0x40 | SC_BASETYPE_UINT64);
+        public const byte Mdb_Type_UInt64 = (0x50 | SC_BASETYPE_UINT64);
+        public const byte Mdb_Type_DateTime = (0x60 | SC_BASETYPE_UINT64);
+        public const byte Mdb_Type_TimeSpan = (0x70 | SC_BASETYPE_UINT64);
+        public const byte Mdb_Type_SByte = (0x10 | SC_BASETYPE_SINT64);
+        public const byte Mdb_Type_Int16 = (0x20 | SC_BASETYPE_SINT64);
+        public const byte Mdb_Type_Int32 = (0x30 | SC_BASETYPE_SINT64);
+        public const byte Mdb_Type_Int64 = (0x40 | SC_BASETYPE_SINT64);
+        public const byte Mdb_Type_Single = (0x10 | SC_BASETYPE_SINGLE);
+        public const byte Mdb_Type_Double = (0x10 | SC_BASETYPE_DOUBLE);
+        public const byte Mdb_Type_Binary = (0x10 | SC_BASETYPE_BINARY);
+        public const byte Mdb_Type_String = (0x10 | SC_BASETYPE_STRING);
+        public const byte Mdb_Type_Decimal = (0x10 | SC_BASETYPE_DECIMAL);
+        public const byte Mdb_Type_ObjectID = (0x10 | SC_BASETYPE_OBJREF);
+        public const byte Mdb_Type_LargeBinary = (0x10 | SC_BASETYPE_LBINARY);
 
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static uint Mdb_GetLastError();
+        public extern static uint Mdb_GetLastError();
 
     
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        internal static extern uint SCConfigSetValue(string key, string value);
+        public static extern uint SCConfigSetValue(string key, string value);
 
-        internal const uint SCCOREDB_LOAD_DATABASE = 0x00100000;
+        public const uint SCCOREDB_LOAD_DATABASE = 0x00100000;
 
-        internal const uint SCCOREDB_COMPLETE_INIT = 0x00200000;
+        public const uint SCCOREDB_COMPLETE_INIT = 0x00200000;
 
-        internal const uint SCCOREDB_ENABLE_CHECK_FILE_ON_LOAD = 0x00010000;
+        public const uint SCCOREDB_ENABLE_CHECK_FILE_ON_LOAD = 0x00010000;
 
-        internal const uint SCCOREDB_ENABLE_CHECK_FILE_ON_CHECKP = 0x00020000;
+        public const uint SCCOREDB_ENABLE_CHECK_FILE_ON_CHECKP = 0x00020000;
 
-        internal const uint SCCOREDB_ENABLE_CHECK_FILE_ON_BACKUP = 0x00040000;
+        public const uint SCCOREDB_ENABLE_CHECK_FILE_ON_BACKUP = 0x00040000;
 
-        internal const uint SCCOREDB_ENABLE_CHECK_MEMORY_ON_CHECKP = 0x00080000;
-
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern unsafe uint sccoredb_connect(uint flags, void* hsched, ulong hmenv, ulong hlogs, int* pempty);
-
-        internal const uint SCCOREDB_UNLOAD_DATABASE = 0x00200000;
+        public const uint SCCOREDB_ENABLE_CHECK_MEMORY_ON_CHECKP = 0x00080000;
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint sccoredb_disconnect(uint flags);
+        public static extern unsafe uint sccoredb_connect(uint flags, void* hsched, ulong hmenv, ulong hlogs, int* pempty);
+
+        public const uint SCCOREDB_UNLOAD_DATABASE = 0x00200000;
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint SCAttachThread(byte scheduler_number, int init);
+        public static extern uint sccoredb_disconnect(uint flags);
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint SCDetachThread(uint yield_reason);
+        public static extern uint SCAttachThread(byte scheduler_number, int init);
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint SCResetThread();
+        public static extern uint SCDetachThread(uint yield_reason);
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint SCConfigureVP();
+        public static extern uint SCResetThread();
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint SCBackgroundTask();
+        public static extern uint SCConfigureVP();
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint sccoredb_advance_clock(uint scheduler_index);
+        public static extern uint SCBackgroundTask();
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern unsafe uint SCIdleTask(int* pCallAgainIfStillIdle);
+        public static extern uint sccoredb_advance_clock(uint scheduler_index);
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint SCLowMemoryAlert(uint lr);
+        public static extern unsafe uint SCIdleTask(int* pCallAgainIfStillIdle);
 
-        internal const ushort MDB_ATTRFLAG_DERIVED = 0x0002;
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public static extern uint SCLowMemoryAlert(uint lr);
 
-        internal const ushort MDB_ATTRFLAG_NULLABLE = 0x0040;
+        public const ushort MDB_ATTRFLAG_DERIVED = 0x0002;
+
+        public const ushort MDB_ATTRFLAG_NULLABLE = 0x0040;
 
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
-        internal unsafe struct Mdb_DefinitionInfo
+        public unsafe struct Mdb_DefinitionInfo
         {
             public char* table_name;
             public uint column_count;
@@ -114,91 +114,91 @@ namespace Starcounter.Internal
         }
 
         [StructLayout(LayoutKind.Sequential, Pack=8)]
-        internal unsafe struct Mdb_AttributeInfo
+        public unsafe struct Mdb_AttributeInfo
         {
-            internal ushort Flags;
-            internal char* PtrName;
-            internal ushort Index;
-            internal byte Type;
-            internal ulong RefDef;
+            public ushort Flags;
+            public char* PtrName;
+            public ushort Index;
+            public byte Type;
+            public ulong RefDef;
         }
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        internal extern static int Mdb_DefinitionFromCodeClassString(
+        public extern static int Mdb_DefinitionFromCodeClassString(
             string name,
             out ulong etiDefinition
             );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static int Mdb_DefinitionToDefinitionInfo(
+        public extern static int Mdb_DefinitionToDefinitionInfo(
             UInt64 etiDefinition,
             out Mdb_DefinitionInfo definitionInfo
             );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static int Mdb_DefinitionAttributeIndexToInfo(
+        public extern static int Mdb_DefinitionAttributeIndexToInfo(
             ulong etiDefinition,
             ushort index,
             out Mdb_AttributeInfo attributeInfo
             );
         
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
-        internal unsafe struct SC_COLUMN_DEFINITION
+        public unsafe struct SC_COLUMN_DEFINITION
         {
-            internal byte type;
-            internal byte is_nullable;
-            internal byte* name;
+            public byte type;
+            public byte is_nullable;
+            public byte* name;
         }
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern unsafe uint sc_create_table(
+        public static extern unsafe uint sc_create_table(
             byte *name,
             ulong base_definition_addr,
             SC_COLUMN_DEFINITION *column_definitions
             );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        internal static extern uint sc_rename_table(
+        public static extern uint sc_rename_table(
             ushort table_id,
             string new_name
             );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint sc_drop_table(ushort table_id);
+        public static extern uint sc_drop_table(ushort table_id);
 
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal unsafe extern static UInt32 SCSchemaGetIndexes(
+        public unsafe extern static UInt32 SCSchemaGetIndexes(
             UInt64 definitionAddr,
             UInt32* pic,
             SC_INDEX_INFO* piis
         );
 
         [StructLayout(LayoutKind.Sequential, Pack=8)]
-        internal unsafe struct SC_INDEX_INFO
+        public unsafe struct SC_INDEX_INFO
         {
-            internal UInt64 handle;
-            internal UInt64 definitionAddr;
-            internal Char* name;
-            internal Int16 attributeCount;
-            internal UInt16 sortMask;
-            internal Int16 attrIndexArr_0;
-            internal Int16 attrIndexArr_1;
-            internal Int16 attrIndexArr_2;
-            internal Int16 attrIndexArr_3;
-            internal Int16 attrIndexArr_4;
-            internal Int16 attrIndexArr_5;
-            internal Int16 attrIndexArr_6;
-            internal Int16 attrIndexArr_7;
-            internal Int16 attrIndexArr_8;
-            internal Int16 attrIndexArr_9;
-            internal Int16 attrIndexArr_10;
+            public UInt64 handle;
+            public UInt64 definitionAddr;
+            public Char* name;
+            public Int16 attributeCount;
+            public UInt16 sortMask;
+            public Int16 attrIndexArr_0;
+            public Int16 attrIndexArr_1;
+            public Int16 attrIndexArr_2;
+            public Int16 attrIndexArr_3;
+            public Int16 attrIndexArr_4;
+            public Int16 attrIndexArr_5;
+            public Int16 attrIndexArr_6;
+            public Int16 attrIndexArr_7;
+            public Int16 attrIndexArr_8;
+            public Int16 attrIndexArr_9;
+            public Int16 attrIndexArr_10;
         };
 
-        internal const UInt32 SC_INDEXCREATE_UNIQUE_CONSTRAINT = 0x00000001;
+        public const UInt32 SC_INDEXCREATE_UNIQUE_CONSTRAINT = 0x00000001;
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        internal extern unsafe static UInt32 sc_create_index(
+        public extern unsafe static UInt32 sc_create_index(
             ulong definition_addr,
             string name,
             ushort sort_mask,
@@ -208,7 +208,7 @@ namespace Starcounter.Internal
 
         
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static uint sccoredb_create_transaction_and_set_current(
+        public extern static uint sccoredb_create_transaction_and_set_current(
             uint flags,
             out ulong transaction_id,
             out ulong handle,
@@ -216,54 +216,54 @@ namespace Starcounter.Internal
             );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static uint sccoredb_free_transaction(
+        public extern static uint sccoredb_free_transaction(
             ulong handle,
             ulong verify
             );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static uint sccoredb_begin_commit(
+        public extern static uint sccoredb_begin_commit(
             out ulong hiter,
             out ulong viter
             );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static uint sccoredb_complete_commit(
+        public extern static uint sccoredb_complete_commit(
             int detach_and_free,
             out ulong new_transaction_id
             );
 
         
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal unsafe extern static UInt32 sc_insert(
+        public unsafe extern static UInt32 sc_insert(
             ulong definition_addr,
             ulong* pnew_oid,
             ulong* pnew_addr
             );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static uint sccoredb_replace(
+        public extern static uint sccoredb_replace(
             ulong record_id,
             ulong record_addr,
             ulong definition_addr
             );
 
-        internal const ushort Mdb_DataValueFlag_Null = 0x0001;
+        public const ushort Mdb_DataValueFlag_Null = 0x0001;
 
-        internal const ushort Mdb_DataValueFlag_Transactional = 0x0002;
+        public const ushort Mdb_DataValueFlag_Transactional = 0x0002;
 
-        internal const ushort Mdb_DataValueFlag_Error = 0x1000;
+        public const ushort Mdb_DataValueFlag_Error = 0x1000;
 
-        internal const ushort Mdb_DataValueFlag_WouldBlock = 0x2000;
+        public const ushort Mdb_DataValueFlag_WouldBlock = 0x2000;
 
-        internal const ushort Mdb_DataValueFlag_DeletedVersion = 0x0010;
+        public const ushort Mdb_DataValueFlag_DeletedVersion = 0x0010;
 
-        internal const ushort Mdb_DataValueFlag_DeletedPublic = 0x0020;
+        public const ushort Mdb_DataValueFlag_DeletedPublic = 0x0020;
 
-        internal const ushort Mdb_DataValueFlag_Exceptional = 0x1030; // (Mdb_DataValueFlag_Error | Mdb_DataValueFlag_DeletedVersion | Mdb_DataValueFlag_DeletedPublic);
+        public const ushort Mdb_DataValueFlag_Exceptional = 0x1030; // (Mdb_DataValueFlag_Error | Mdb_DataValueFlag_DeletedVersion | Mdb_DataValueFlag_DeletedPublic);
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal unsafe extern static UInt16 Mdb_ObjectReadBinary(
+        public unsafe extern static UInt16 Mdb_ObjectReadBinary(
             UInt64 objectOID,
             UInt64 objectETI,
             Int32 index,
@@ -271,7 +271,7 @@ namespace Starcounter.Internal
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal unsafe extern static UInt16 Mdb_ObjectReadBool2(
+        public unsafe extern static UInt16 Mdb_ObjectReadBool2(
             UInt64 objectOID,
             UInt64 objectETI,
             Int32 index,
@@ -279,7 +279,7 @@ namespace Starcounter.Internal
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal unsafe extern static UInt16 SCObjectReadDecimal2(
+        public unsafe extern static UInt16 SCObjectReadDecimal2(
             UInt64 objectOID,
             UInt64 objectETI,
             Int32 index,
@@ -287,7 +287,7 @@ namespace Starcounter.Internal
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal unsafe extern static UInt16 Mdb_ObjectReadDouble(
+        public unsafe extern static UInt16 Mdb_ObjectReadDouble(
             UInt64 objectOID,
             UInt64 objectETI,
             Int32 index,
@@ -295,7 +295,7 @@ namespace Starcounter.Internal
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal unsafe extern static UInt16 Mdb_ObjectReadInt64(
+        public unsafe extern static UInt16 Mdb_ObjectReadInt64(
             UInt64 objectOID,
             UInt64 objectETI,
             Int32 index,
@@ -303,7 +303,7 @@ namespace Starcounter.Internal
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal unsafe extern static UInt16 SCObjectReadLargeBinary(
+        public unsafe extern static UInt16 SCObjectReadLargeBinary(
             UInt64 objectOID,
             UInt64 objectETI,
             Int32 index,
@@ -311,7 +311,7 @@ namespace Starcounter.Internal
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal unsafe extern static void Mdb_ObjectReadObjRef(
+        public unsafe extern static void Mdb_ObjectReadObjRef(
             UInt64 objectOID,
             UInt64 objectETI,
             Int32 index,
@@ -322,7 +322,7 @@ namespace Starcounter.Internal
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal unsafe extern static UInt16 Mdb_ObjectReadSingle(
+        public unsafe extern static UInt16 Mdb_ObjectReadSingle(
             UInt64 objectOID,
             UInt64 objectETI,
             Int32 index,
@@ -330,7 +330,7 @@ namespace Starcounter.Internal
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal unsafe extern static UInt16 SCObjectReadStringW2(
+        public unsafe extern static UInt16 SCObjectReadStringW2(
             UInt64 objectOID,
             UInt64 objectETI,
             Int32 index,
@@ -338,7 +338,7 @@ namespace Starcounter.Internal
         );
         
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal unsafe extern static UInt16 Mdb_ObjectReadUInt64(
+        public unsafe extern static UInt16 Mdb_ObjectReadUInt64(
             UInt64 objectOID,
             UInt64 objectETI,
             Int32 index,
@@ -346,7 +346,7 @@ namespace Starcounter.Internal
         );
         
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static UInt32 Mdb_ObjectWriteBinary(
+        public extern static UInt32 Mdb_ObjectWriteBinary(
             UInt64 objectOID,
             UInt64 objectETI,
             Int32 index,
@@ -354,7 +354,7 @@ namespace Starcounter.Internal
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static Boolean Mdb_ObjectWriteBool2(
+        public extern static Boolean Mdb_ObjectWriteBool2(
             UInt64 objectOID,
             UInt64 objectETI,
             Int32 index,
@@ -362,7 +362,7 @@ namespace Starcounter.Internal
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static Boolean Mdb_ObjectWriteDecimal(
+        public extern static Boolean Mdb_ObjectWriteDecimal(
             UInt64 objectOID,
             UInt64 objectETI,
             Int32 index,
@@ -373,7 +373,7 @@ namespace Starcounter.Internal
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static Boolean Mdb_ObjectWriteDouble(
+        public extern static Boolean Mdb_ObjectWriteDouble(
             UInt64 objectOID,
             UInt64 objectETI,
             Int32 index,
@@ -381,7 +381,7 @@ namespace Starcounter.Internal
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static Boolean Mdb_ObjectWriteInt64(
+        public extern static Boolean Mdb_ObjectWriteInt64(
             UInt64 objectOID,
             UInt64 objectETI,
             Int32 index,
@@ -389,7 +389,7 @@ namespace Starcounter.Internal
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static UInt32 SCObjectWriteLargeBinary(
+        public extern static UInt32 SCObjectWriteLargeBinary(
             UInt64 objectOID,
             UInt64 objectETI,
             Int32 index,
@@ -397,7 +397,7 @@ namespace Starcounter.Internal
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static Boolean Mdb_ObjectWriteObjRef(
+        public extern static Boolean Mdb_ObjectWriteObjRef(
             UInt64 objectOID,
             UInt64 objectETI,
             Int32 index,
@@ -406,7 +406,7 @@ namespace Starcounter.Internal
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static Boolean Mdb_ObjectWriteSingle(
+        public extern static Boolean Mdb_ObjectWriteSingle(
             UInt64 objectOID,
             UInt64 objectETI,
             Int32 index,
@@ -414,7 +414,7 @@ namespace Starcounter.Internal
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static Boolean Mdb_ObjectWriteAttributeState(
+        public extern static Boolean Mdb_ObjectWriteAttributeState(
             UInt64 objectOID,
             UInt64 objectETI,
             Int32 index,
@@ -422,7 +422,7 @@ namespace Starcounter.Internal
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal unsafe extern static Boolean Mdb_ObjectWriteString16(
+        public unsafe extern static Boolean Mdb_ObjectWriteString16(
             UInt64 objectOID,
             UInt64 objectETI,
             Int32 index,
@@ -430,25 +430,25 @@ namespace Starcounter.Internal
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static Boolean Mdb_ObjectWriteUInt64(
+        public extern static Boolean Mdb_ObjectWriteUInt64(
             UInt64 objectOID,
             UInt64 objectETI,
             Int32 index,
             UInt64 value
         );
 
-        internal const UInt32 SC_ITERATOR_RANGE_VALID_LSKEY = 0x00000001;
+        public const UInt32 SC_ITERATOR_RANGE_VALID_LSKEY = 0x00000001;
 
-        internal const UInt32 SC_ITERATOR_RANGE_INCLUDE_LSKEY = 0x00000010;
+        public const UInt32 SC_ITERATOR_RANGE_INCLUDE_LSKEY = 0x00000010;
 
-        internal const UInt32 SC_ITERATOR_RANGE_VALID_GRKEY = 0x00000002;
+        public const UInt32 SC_ITERATOR_RANGE_VALID_GRKEY = 0x00000002;
 
-        internal const UInt32 SC_ITERATOR_RANGE_INCLUDE_GRKEY = 0x00000020;
+        public const UInt32 SC_ITERATOR_RANGE_INCLUDE_GRKEY = 0x00000020;
 
-        internal const UInt32 SC_ITERATOR_SORTED_DESCENDING = 0x00080000;
+        public const UInt32 SC_ITERATOR_SORTED_DESCENDING = 0x00080000;
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal unsafe extern static UInt32 SCIteratorCreate(
+        public unsafe extern static UInt32 SCIteratorCreate(
             UInt64 hIndex,
             UInt32 flags,
             Byte* lesserKey,
@@ -458,7 +458,7 @@ namespace Starcounter.Internal
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal unsafe extern static UInt32 SCIteratorCreate2(
+        public unsafe extern static UInt32 SCIteratorCreate2(
             UInt64 hIndex,
             UInt32 flags,
             Byte* lesserKey,
@@ -470,7 +470,7 @@ namespace Starcounter.Internal
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal unsafe extern static UInt32 SCIteratorNext(
+        public unsafe extern static UInt32 SCIteratorNext(
             UInt64 h,
             UInt64 v,
             UInt64* pObjectOID,
@@ -480,7 +480,7 @@ namespace Starcounter.Internal
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal unsafe extern static UInt32 SCIteratorFillUp(
+        public unsafe extern static UInt32 SCIteratorFillUp(
             UInt64 h,
             UInt64 v,
             Byte* results,
@@ -496,7 +496,7 @@ namespace Starcounter.Internal
         // have been freed.
         //
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal unsafe extern static UInt32 sc_get_recreate_key_and_free_iterator(
+        public unsafe extern static UInt32 sc_get_recreate_key_and_free_iterator(
             UInt64 h,
             UInt64 v,
             UInt32 flags,
@@ -504,7 +504,7 @@ namespace Starcounter.Internal
             );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal unsafe extern static UInt32 sc_get_index_position_key(
+        public unsafe extern static UInt32 sc_get_index_position_key(
             UInt64 index_addr,
             UInt64 record_id,
             UInt64 record_addr,
@@ -512,7 +512,7 @@ namespace Starcounter.Internal
             );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal unsafe extern static UInt32 sc_recreate_iterator(
+        public unsafe extern static UInt32 sc_recreate_iterator(
             UInt64 hindex,
             UInt32 flags,
             Byte* recreate_key,
@@ -522,7 +522,7 @@ namespace Starcounter.Internal
             );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal unsafe extern static UInt32 sc_recreate_iterator_with_filter(
+        public unsafe extern static UInt32 sc_recreate_iterator_with_filter(
             UInt64 hindex,
             UInt32 flags,
             Byte* recreate_key,
@@ -534,67 +534,67 @@ namespace Starcounter.Internal
             );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal unsafe extern static UInt32 sccoredb_iterator_get_local_time(
+        public unsafe extern static UInt32 sccoredb_iterator_get_local_time(
             UInt64 iter_handle,
             UInt64 iter_verify,
             UInt32* plocal_time
             );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static UInt32 SCIteratorFree(
+        public extern static UInt32 SCIteratorFree(
             UInt64 h,
             UInt64 v
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        internal static extern unsafe UInt32 SCConvertUTF16StringToNative(
+        public static extern unsafe UInt32 SCConvertUTF16StringToNative(
             String input,
             UInt32 flags,
             Byte** output
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        internal static extern unsafe UInt32 SCConvertUTF16StringToNative2(
+        public static extern unsafe UInt32 SCConvertUTF16StringToNative2(
             String input,
             UInt32 flags,
             Byte* output,
             UInt32 outlen);
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        internal static extern unsafe UInt32 SCConvertNativeStringToUTF16(
+        public static extern unsafe UInt32 SCConvertNativeStringToUTF16(
             Byte* inBuf,
             UInt32 inlen,
             Char* output,
             UInt32* poutlen);
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern unsafe Int32 SCCompareNativeStrings(
+        public static extern unsafe Int32 SCCompareNativeStrings(
             /* const */ Byte* str1,
             /* const */ Byte* str2
             );
    
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        internal extern static UInt32 SCCompareUTF16Strings(
+        public extern static UInt32 SCCompareUTF16Strings(
             String str1,
             String str2,
             out Int32 result
             );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal unsafe extern static Boolean Mdb_OIDToETIEx(
+        public unsafe extern static Boolean Mdb_OIDToETIEx(
             UInt64 objID,
             UInt64* pEtiPubl,
             UInt16* pCodeClassIndex
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static int Mdb_ObjectIssueDelete(
+        public extern static int Mdb_ObjectIssueDelete(
             UInt64 objectOID,
             UInt64 objectETI
         );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static int Mdb_ObjectDelete(
+        public extern static int Mdb_ObjectDelete(
             UInt64 objectOID,
             UInt64 objectETI,
             int execute
