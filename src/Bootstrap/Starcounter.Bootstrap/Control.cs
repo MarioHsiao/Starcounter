@@ -30,37 +30,24 @@ namespace StarcounterInternal.Bootstrap
 
         private unsafe bool Setup(string[] args)
         {
-            ApplicationArguments arguments;
+#if false
+            // Disables priority boost for all the threads in the process.
+            // Often a good idea when using spin-locks. Not sure it worth
+            // anything with the current setup however since most often no more
+            // running threads then cores. So leaving this disabled for now.
+
+            Kernel32.SetProcessPriorityBoost(Kernel32.GetCurrentProcess(), 1);
+#endif
 
             DatabaseExceptionFactory.InstallInCurrentAppDomain();
 
+            ApplicationArguments arguments;
             if (!ProgramCommandLine.TryGetProgramArguments(args, out arguments))
                 return false;
 
             Configuration configuration = Configuration.Load(arguments);
 
-#if false // TODO:
-            br = SetProcessPriorityBoost(GetCurrentProcess(), TRUE);
-            _ASSERT(br != FALSE);
-#endif
-
-#if false
-	        wcscpy_s(temp, (13 + 1), L"Global\\SCAPP_");
-	        wcscpy_s((temp + 13), (_MAX_APPNAME_LENGTH + 1), serverName);
-	        he = CreateEvent(NULL, TRUE, FALSE, temp);
-	        if (he == NULL)
-	        {
-		        dr = SCERROUTOFMEMORY;
-		        goto start_err;
-	        }
-	        dr = GetLastError();
-	        if (dr == ERROR_ALREADY_EXISTS)
-	        {
-		        dr = SCERRAPPALREADYSTARTED;
-		        goto start_err;
-	        }
-	        _pGlobals->hEvent = he;
-#endif
+            AssureNoOtherProcessWithTheSameName(configuration);
 
             byte* mem = (byte*)Marshal.AllocHGlobal(4096); // TODO: Allocate aligned memory. Evaluate size.
 
@@ -163,6 +150,26 @@ namespace StarcounterInternal.Bootstrap
             DisconnectDatabase();
         }
 
+        private System.Threading.EventWaitHandle processControl_;
+
+        private void AssureNoOtherProcessWithTheSameName(Configuration c)
+        {
+            try
+            {
+                bool createdNew;
+                processControl_ = new System.Threading.EventWaitHandle(false, System.Threading.EventResetMode.ManualReset, c.Name, out createdNew);
+                if (createdNew) return;
+                processControl_.Dispose();
+                processControl_ = null;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // Event exists but we can't access it. We treat it the same as
+                // if the event exists and we can access it.
+            }
+
+            throw ErrorCode.ToException(Error.SCERRAPPALREADYSTARTED);
+        }
 
         private unsafe ulong ConfigureMemory(Configuration c, void* mem128)
         {
