@@ -38,7 +38,7 @@ void LeaveSafeBmxManagement(BmxData* new_bmx_data)
 }
 
 // Initializes BMX related data structures.
-uint32_t InitBmxManager()
+uint32_t sc_init_bmx_manager()
 {
     // Initializing BMX critical section.
     InitializeCriticalSection(&g_bmx_cs_);
@@ -57,6 +57,14 @@ uint32_t InitBmxManager()
         return SCERRUNSPECIFIED; // SCERRWRONGBMXMANAGERHANDLER
 
     return 0;
+}
+
+// Main message loop for incoming requests. Handles the 
+// dispatching of the message to the correct handler as 
+// well as sending any responses back.
+uint32_t sc_handle_incoming_chunks(CM2_TASK_DATA* task_data)
+{
+    return g_bmx_data->HandleBmxChunk(task_data);
 }
 
 // Registers port handler.
@@ -121,14 +129,6 @@ uint32_t sc_bmx_unregister_handler(BMX_HANDLER_TYPE handler_id)
     LeaveSafeBmxManagement(g_bmx_data_copy);
 
     return err_code;
-}
-
-// Main message loop for incoming requests. Handles the 
-// dispatching of the message to the correct handler as 
-// well as sending any responses back.
-uint32_t sc_handle_incoming_chunks(CM2_TASK_DATA* task_data)
-{
-    return g_bmx_data->HandleBmxChunk(task_data);
 }
 
 // The specific handler that is responsible for handling responses

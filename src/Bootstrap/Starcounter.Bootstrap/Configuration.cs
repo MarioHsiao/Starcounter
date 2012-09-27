@@ -1,4 +1,5 @@
 ﻿
+using Starcounter;
 using Starcounter.CommandLine;
 
 namespace StarcounterInternal.Bootstrap
@@ -23,6 +24,45 @@ namespace StarcounterInternal.Bootstrap
             get 
             {
                 return this.ProgramArguments.CommandParameters[0];
+            }
+        }
+
+        public string ServerName
+        {
+            get
+            {
+                string serverName;
+
+                if (!this.ProgramArguments.TryGetProperty("ServerName", out serverName))
+                    serverName = "PERSONAL";
+
+                // Making server name upper case.
+                serverName = serverName.ToUpper();
+
+                return serverName;
+            }
+        }
+
+        public uint ChunksNumber
+        {
+            get
+            {
+                // Default communication shared chunks number.
+                uint chunksNumber = 4096;
+
+                string chunksNumberStr;
+                if (this.ProgramArguments.TryGetProperty("ChunksNumber", out chunksNumberStr))
+                {
+                    chunksNumber = uint.Parse(chunksNumberStr);
+
+                    // Checking if number of chunks is correct.
+                    if ((chunksNumber <= 1024) || (chunksNumber >= 4096 * 128))
+                    {
+                        throw ErrorCode.ToException(Error.SCERRBADCHUNKSNUMBERCONFIG);
+                    }
+                }
+
+                return chunksNumber;
             }
         }
 
