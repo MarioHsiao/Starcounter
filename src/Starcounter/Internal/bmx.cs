@@ -9,14 +9,14 @@ namespace Starcounter.Internal
     public static class bmx
     {
         [StructLayout(LayoutKind.Sequential)]
-        internal struct SC_SESSION_ID
+        public struct SC_SESSION_ID
         {
             internal UInt64 low;
             internal UInt64 high;
         };
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct BMX_TASK_INFO
+        public struct BMX_TASK_INFO
         {
             internal Byte flags;
             internal Byte scheduler_number;
@@ -27,7 +27,7 @@ namespace Starcounter.Internal
             internal SC_SESSION_ID session_id;
         };
 
-        internal unsafe delegate UInt32 BMX_HANDLER_CALLBACK(
+        public unsafe delegate UInt32 BMX_HANDLER_CALLBACK(
             UInt64 session_id,
             Byte* raw_chunk,
             BMX_TASK_INFO* task_info,
@@ -35,7 +35,13 @@ namespace Starcounter.Internal
         );
 
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        internal unsafe extern static UInt32 sc_bmx_read_from_chunk(
+        public extern static UInt32 sc_init_bmx_manager();
+
+        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public unsafe extern static UInt32 sc_handle_incoming_chunks(sccorelib.CM2_TASK_DATA* task_data);
+
+        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public unsafe extern static UInt32 sc_bmx_read_from_chunk(
             UInt32 chunk_index,
             Byte* raw_chunk,
             UInt32 length,
@@ -44,7 +50,7 @@ namespace Starcounter.Internal
         );
 
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        internal unsafe extern static UInt32 sc_bmx_write_to_chunk(
+        public unsafe extern static UInt32 sc_bmx_write_to_chunk(
             Byte* source_buffer,
             UInt32 length,
             UInt32* chunk_index,
@@ -52,14 +58,14 @@ namespace Starcounter.Internal
         );
 
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        internal unsafe extern static UInt32 sc_bmx_register_port_handler(
+        public unsafe extern static UInt32 sc_bmx_register_port_handler(
             UInt16 port,
             BMX_HANDLER_CALLBACK callback,
             UInt16* handler_id
         );
 
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        internal unsafe extern static UInt32 sc_bmx_register_subport_handler(
+        public unsafe extern static UInt32 sc_bmx_register_subport_handler(
             UInt16 port,
             UInt32 subport,
             BMX_HANDLER_CALLBACK callback,
@@ -67,7 +73,7 @@ namespace Starcounter.Internal
         );
 
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        internal unsafe extern static UInt32 sc_bmx_register_uri_handler(
+        public unsafe extern static UInt32 sc_bmx_register_uri_handler(
             UInt16 port,
             String url,
             Byte http_verb,
