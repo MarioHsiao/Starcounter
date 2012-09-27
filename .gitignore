@@ -1,0 +1,16 @@
+_Resharper*
+obj
+bin
+x64
+Win32
+*.user
+*.cache
+*.opensdf
+*.generated.cs
+*.XmlSerializers.dll
+*.Resources.Designer.cs.dll
+*.force
+*.suo
+*.sdf
+*.ipch
+src/Starcounter/Error.cs
