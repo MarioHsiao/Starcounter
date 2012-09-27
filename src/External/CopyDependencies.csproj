@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <SC_BLUE_BRANCH Condition=" '$(SC_BLUE_BRANCH)' == '' ">develop</SC_BLUE_BRANCH>
+    <BinariesFTP>\\scbuildserver\FTP</BinariesFTP>
+  </PropertyGroup>
+
+
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <ProjectGuid>{8B599BFF-B414-41A3-A270-96CDA0C522AF}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <OutputPath>.\..\..\bin\$(Configuration)\</OutputPath>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CopyExternalFiles</RootNamespace>
+    <AssemblyName>CopyExternalFiles</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <BlueSolution>.\..\..\..\Blue\src\Blue.sln</BlueSolution>
+    <BlueSolutionInclude>.\..\..\..\Blue\src\include</BlueSolutionInclude>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <LocalBlueBinariesDir>.\..\..\..\Blue\src\x64\$(Configuration)</LocalBlueBinariesDir>
+    <RemoteBlueBinariesDir>$(BinariesFTP)\SCBuilds\Blue\$(SC_BLUE_BRANCH)\LatestStable\x64\$(Configuration)</RemoteBlueBinariesDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <LocalBlueBinFiles Include="$(LocalBlueBinariesDir)\**\*.lib" />
+    <RemoteBlueBinFiles Include="$(RemoteBlueBinariesDir)\**\*.lib" />
+    <RemoteBlueIncludeFiles Include="$(BinariesFTP)\SCBuilds\Blue\$(SC_BLUE_BRANCH)\LatestStable\Include\*" />
+  </ItemGroup>
+
+  <Target Name="CopyExternalStaticFiles">
+
+    <!-- NOTE: Comment the following line in order to build without requiring FTP connection. -->
+    <Error Text="Shared FTP folder is not accessible: $(BinariesFTP)" Condition="!Exists('$(BinariesFTP)')" />
+
+    <Copy Condition="Exists('$(BlueSolution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalBlueBinFiles)" DestinationFiles="@(LocalBlueBinFiles->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
+
+    <Copy Condition="!Exists('$(BlueSolution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteBlueBinFiles)" DestinationFiles="@(RemoteBlueBinFiles->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy Condition="!Exists('$(BlueSolution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteBlueIncludeFiles)" DestinationFolder=".\..\..\..\Blue\src\include" />
+  </Target>
+
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+
+  <Target Name="Build" DependsOnTargets="CopyExternalStaticFiles" />
+
+</Project>
