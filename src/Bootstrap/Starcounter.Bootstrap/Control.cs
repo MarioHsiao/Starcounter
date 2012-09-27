@@ -30,19 +30,22 @@ namespace StarcounterInternal.Bootstrap
 
         private unsafe bool Setup(string[] args)
         {
-            ApplicationArguments arguments;
+#if false
+            // Disables priority boost for all the threads in the process.
+            // Often a good idea when using spin-locks. Not sure it worth
+            // anything with the current setup however since most often no more
+            // running threads then cores. So leaving this disabled for now.
+
+            Kernel32.SetProcessPriorityBoost(Kernel32.GetCurrentProcess(), 1);
+#endif
 
             DatabaseExceptionFactory.InstallInCurrentAppDomain();
 
+            ApplicationArguments arguments;
             if (!ProgramCommandLine.TryGetProgramArguments(args, out arguments))
                 return false;
 
             Configuration configuration = Configuration.Load(arguments);
-
-#if false // TODO:
-            br = SetProcessPriorityBoost(GetCurrentProcess(), TRUE);
-            _ASSERT(br != FALSE);
-#endif
 
 #if false
 	        wcscpy_s(temp, (13 + 1), L"Global\\SCAPP_");
