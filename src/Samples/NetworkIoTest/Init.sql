@@ -1,0 +1,4 @@
+-- Use this file to index your database
+-- Example:
+-- CREATE INDEX Class1Index ON Class1 (Field1);
+-- More about how to declare indexes: http://www.starcounter.com/wiki/Index_Declaration
