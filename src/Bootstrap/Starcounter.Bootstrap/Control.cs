@@ -82,6 +82,9 @@ namespace StarcounterInternal.Bootstrap
 
             ConnectDatabase(configuration, hsched_, hmenv, hlogs);
 
+            // Initializing the bmx manager.
+            bmx.sc_init_bmx_manager();
+
             // Query module.
             Scheduler.Setup(1);
 
@@ -198,10 +201,11 @@ namespace StarcounterInternal.Bootstrap
 
             uint space_needed_for_scheduler = 1024 + (cpuc * 512);
             sccorelib.CM2_SETUP setup = new sccorelib.CM2_SETUP();
-            setup.name = (char*)Marshal.StringToHGlobalUni(c.Name);
-            setup.server_name = (char*)Marshal.StringToHGlobalUni("PERSONAL");
+            setup.name = (char*)Marshal.StringToHGlobalUni(c.ServerName + "_" + c.Name);
+            setup.server_name = (char*)Marshal.StringToHGlobalUni(c.ServerName);
             setup.db_data_dir_path = (char*)Marshal.StringToHGlobalUni(c.OutputDirectory); // TODO: ?
             setup.is_system = 0;
+            setup.num_shm_chunks = c.ChunksNumber;
             setup.mem = mem;
             setup.mem_size = space_needed_for_scheduler;
             setup.hmenv = hmenv;

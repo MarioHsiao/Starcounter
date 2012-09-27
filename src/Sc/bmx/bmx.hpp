@@ -44,6 +44,12 @@ typedef uint32_t (__stdcall *GENERIC_HANDLER_CALLBACK)(
     bool* is_handled
 );
 
+// Initializes bmx manager.
+EXTERN_C uint32_t sc_init_bmx_manager();
+
+// Handles all incoming chunks.
+EXTERN_C uint32_t sc_handle_incoming_chunks(CM2_TASK_DATA* task_data);
+
 // Register port handler.
 EXTERN_C uint32_t sc_bmx_register_port_handler(
     uint16_t port, 
