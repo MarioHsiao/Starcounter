@@ -226,9 +226,6 @@ namespace StarcounterInternal.Bootstrap
             e = sccoredb.SCConfigSetValue("NAME", c.Name);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccoredb.SCConfigSetValue("LONGNAME", c.Name);
-            if (e != 0) throw ErrorCode.ToException(e);
-
             e = sccoredb.SCConfigSetValue("IMAGEDIR", c.DatabaseDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
