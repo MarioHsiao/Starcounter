@@ -10,6 +10,9 @@ using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
 using Starcounter.Server.Setup;
 using System.Diagnostics;
+using Starcounter.ABCIPC;
+using Starcounter.ABCIPC.Internal;
+using Server = StarcounterServer.Server;
 
 namespace StarcounterServer {
 
@@ -69,6 +72,21 @@ namespace StarcounterServer {
 
                 // Start is utilized. Bootstrap the server.
                 // TODO:
+
+                if (this.UserInteractive) {
+                    Starcounter.ABCIPC.Server ipcServer;
+                    if (!Console.IsInputRedirected) {
+                        ipcServer = Utils.PromptHelper.CreateServerAttachedToPrompt();
+                    } else {
+                        ipcServer = new Starcounter.ABCIPC.Server(Console.In.ReadLine, Console.Out.WriteLine);
+                    }
+
+                    ipcServer.Handle("Ping", delegate(Request request) {
+                        request.Respond(true);
+                    });
+
+                    ipcServer.Receive();
+                }
             }
         }
 
