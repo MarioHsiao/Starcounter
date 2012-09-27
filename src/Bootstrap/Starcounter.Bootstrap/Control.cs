@@ -40,12 +40,6 @@ namespace StarcounterInternal.Bootstrap
             Configuration configuration = Configuration.Load(arguments);
 
 #if false // TODO:
-            _SetCriticalLogHandler(_LogCritical, NULL);
-            SetUnhandledExceptionFilter(_UnhandledExceptionFilter);
-            AddVectoredExceptionHandler(0, _VectoredExceptionHandler);
-#endif
-            // TODO:
-#if false // TODO:
             br = SetProcessPriorityBoost(GetCurrentProcess(), TRUE);
             _ASSERT(br != FALSE);
 #endif
@@ -74,6 +68,8 @@ namespace StarcounterInternal.Bootstrap
             mem += 128;
 
             ulong hlogs = ConfigureLogging(configuration, hmenv);
+
+            ConfigureHost(hlogs);
 
             hsched_ = ConfigureScheduler(configuration, mem, hmenv);
             mem += (1024 + 512);
@@ -188,6 +184,12 @@ namespace StarcounterInternal.Bootstrap
             if (e != 0) throw ErrorCode.ToException(e);
 
             return hlogs;
+        }
+
+        private unsafe void ConfigureHost(ulong hlogs)
+        {
+            uint e = sccoreapp.sccoreapp_init((void*)hlogs);
+            if (e != 0) throw ErrorCode.ToException(e);
         }
 
         private unsafe void* ConfigureScheduler(Configuration c, void* mem, ulong hmenv)

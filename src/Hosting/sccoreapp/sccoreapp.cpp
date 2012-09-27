@@ -2,6 +2,12 @@
 #include "internal.h"
 
 
+extern "C" uint32_t __stdcall sccoreapp_init(void *hlogs)
+{
+	_init(hlogs);
+	return 0;
+}
+
 extern "C" uint32_t __stdcall sccoreapp_standby(void* hsched, CM2_TASK_DATA* ptask_data)
 {
 	for (;;)
