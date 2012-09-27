@@ -40,10 +40,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hello", "Samples\hello\hell
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkIoTest", "Samples\NetworkIoTest\NetworkIoTest.csproj", "{1606D39A-79E6-468E-828A-42526C06A197}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "External", "External", "{512E74BB-F061-441F-A169-88A2308C0F74}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CopyDependencies", "External\CopyDependencies.csproj", "{8B599BFF-B414-41A3-A270-96CDA0C522AF}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -98,9 +94,6 @@ Global
 		{1606D39A-79E6-468E-828A-42526C06A197}.Debug|x64.Build.0 = Debug|Any CPU
 		{1606D39A-79E6-468E-828A-42526C06A197}.Release|x64.ActiveCfg = Release|Any CPU
 		{1606D39A-79E6-468E-828A-42526C06A197}.Release|x64.Build.0 = Release|Any CPU
-		{8B599BFF-B414-41A3-A270-96CDA0C522AF}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{8B599BFF-B414-41A3-A270-96CDA0C522AF}.Debug|x64.Build.0 = Debug|Any CPU
-		{8B599BFF-B414-41A3-A270-96CDA0C522AF}.Release|x64.ActiveCfg = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -117,6 +110,5 @@ Global
 		{785E7F33-7D3A-4119-84C1-78819279669C} = {2E993A9D-C78B-45A5-AA0D-1FAA58825805}
 		{1606D39A-79E6-468E-828A-42526C06A197} = {2E993A9D-C78B-45A5-AA0D-1FAA58825805}
 		{76C95AD5-A9B4-4672-856A-18A1CE45D2B1} = {EB6765FF-80A0-4695-B8F4-9F5ADF59CBA1}
-		{8B599BFF-B414-41A3-A270-96CDA0C522AF} = {512E74BB-F061-441F-A169-88A2308C0F74}
 	EndGlobalSection
 EndGlobal
