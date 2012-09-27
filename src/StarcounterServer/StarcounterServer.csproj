@@ -49,6 +49,13 @@
     <Compile Include="Configuration\ConfigurationFile.cs" />
     <Compile Include="Configuration\IConfigurationElement.cs" />
     <Compile Include="Configuration\InvalidConfigurationException.cs" />
+    <Compile Include="Configuration\Server\DatabaseRuntimeConfiguration.cs" />
+    <Compile Include="Configuration\Server\DatabaseConfiguration.cs" />
+    <Compile Include="Configuration\Server\MonitoringConfiguration.cs" />
+    <Compile Include="Configuration\Server\ServerConfiguration.cs" />
+    <Compile Include="Configuration\Server\TraceSourceConfiguration.cs" />
+    <Compile Include="Mock\Severity.cs" />
+    <Compile Include="Mock\_sccorelog.cs" />
     <Compile Include="Program.cs">
       <SubType>Component</SubType>
     </Compile>
