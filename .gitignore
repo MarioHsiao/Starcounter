@@ -14,3 +14,4 @@ Win32
 *.sdf
 *.ipch
 src/Starcounter/Error.cs
+*.ncrunchsolution
