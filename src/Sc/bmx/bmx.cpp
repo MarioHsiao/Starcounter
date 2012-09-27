@@ -271,7 +271,6 @@ uint32_t BmxData::UnregisterHandler(BMX_HANDLER_TYPE handler_id)
 uint32_t BmxData::SendAllHandlersInfo(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info)
 {
     // Checking if we have channel registered for pushes.
-    // TODO
     //if (~0 == channel_index_for_push_)
     //    return SCERRUNSPECIFIED; // SCERRPUSHCHANNELNOTREGISTERED.
 
@@ -351,7 +350,7 @@ uint32_t BmxData::SendAllHandlersInfo(shared_memory_chunk* smc, TASK_INFO_TYPE* 
     }
 
     // Checking that there was no error.
-    if (!err_code)
+    if ((!err_code) && (max_num_entries_ > 1))
     {
         // Now the chunk is ready to be sent.
         err_code = cm_send_to_client(task_info->chunk_index);
@@ -482,7 +481,7 @@ uint32_t BmxData::PushRegisteredPortHandler(BMX_HANDLER_TYPE handler_id, uint16_
 	shared_memory_chunk* smc;
 
     // Checking if we have channel registered for pushes.
-	if (~0 == get_channel_index_for_push())
+	if (~0 == channel_index_for_push_)
         return 0;
 
 	// We have a channel to push on. Lets send the registration immediately.
@@ -509,7 +508,7 @@ uint32_t BmxData::PushRegisteredSubportHandler(BMX_HANDLER_TYPE handler_id, uint
     shared_memory_chunk* smc;
 
     // Checking if we have channel registered for pushes.
-	if (~0 == get_channel_index_for_push())
+	if (~0 == channel_index_for_push_)
         return 0;
 
     // We have a channel to push on. Lets send the registration immediately.
@@ -541,7 +540,7 @@ uint32_t BmxData::PushRegisteredUriHandler(
     shared_memory_chunk* smc;
 
     // Checking if we have channel registered for pushes.
-    if (~0 == get_channel_index_for_push())
+    if (~0 == channel_index_for_push_)
         return 0;
 
     // We have a channel to push on. Lets send the registration immediately.
@@ -569,7 +568,7 @@ uint32_t BmxData::PushHandlerUnregistration(BMX_HANDLER_TYPE handler_id)
     request_chunk_part* request;
 
     // Checking if we have channel registered for pushes.
-    if (~0 == get_channel_index_for_push())
+    if (~0 == channel_index_for_push_)
         return 0;
 
     // We have a channel to push on. Lets send the registration immediately.
