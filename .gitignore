@@ -3,6 +3,8 @@ obj
 bin
 x64
 Win32
+Debug
+Release
 *.user
 *.cache
 *.opensdf
