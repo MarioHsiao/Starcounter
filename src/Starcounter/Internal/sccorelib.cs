@@ -166,6 +166,9 @@ namespace Starcounter.Internal
         [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern void mh4_menv_trim_cache(ulong hmenv, int periodic);
 
+        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        internal extern static UInt32 cm_send_to_client(UInt32 chunk_index);
+
         public unsafe static Byte GetCpuCount(IntPtr handle)
         {
             byte cpuc;
