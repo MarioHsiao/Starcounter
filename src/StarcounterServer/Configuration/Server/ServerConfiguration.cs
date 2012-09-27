@@ -41,7 +41,7 @@ namespace Starcounter.Configuration {
         /// Path of the directory containing databases hosted by this server.
         /// </summary>
         [XmlElement(IsNullable = false)]
-        public string DatabasesDirectory {
+        public string DatabaseDirectory {
             get;
             set;
         }
