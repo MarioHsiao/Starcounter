@@ -23,7 +23,7 @@ namespace Starcounter.Configuration {
         /// <summary>
         /// Extension of database instance configuration files.
         /// </summary>
-        public const string FileExtension = ".config";
+        public const string FileExtension = ".db.config";
 
 
         private DatabaseRuntimeConfiguration _runtime;
