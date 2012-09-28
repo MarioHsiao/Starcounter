@@ -121,7 +121,7 @@ namespace Starcounter.Server.Setup {
             };
 
             serverConfig = new ServerConfiguration() {
-                Name = structure.Name,
+                // Name = structure.Name,
                 DatabaseDirectory = structure.DatabaseDirectory,
                 TempDirectory = structure.TempDirectory,
                 LogDirectory = structure.LogDirectory,
@@ -160,6 +160,10 @@ namespace Starcounter.Server.Setup {
         public void Execute() {
             this.Structure.Create();
             this.ServerConfiguration.Save(this.Structure.ServerConfigurationPath);
+
+            string samplePath = Path.Combine(Path.GetDirectoryName(this.Structure.ServerConfigurationPath), ".sample" + DatabaseConfiguration.FileExtension);
+            var sample = ServerConfiguration.DefaultDatabaseConfiguration.Clone(samplePath);
+            sample.Save();
         }
     }
 }
