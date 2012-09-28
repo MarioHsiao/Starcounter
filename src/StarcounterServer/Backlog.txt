@@ -9,4 +9,9 @@ Backlog for server integration
   is created (and serialized), we expect it to have all values represented.
 # Migrate ServerInstance.GetImageFileMaxSize and ServerInstance.GetImageFileMaxSize
   and utilize them in Database.ToPublicModel().
-# Add logging and tracing calls.  
+# Add logging and tracing calls.
+
+NEXTs
+# Comment, refactor and clean the command dispatcher
+# Comment, refactor and clean the command processor base class
+# Introdce DatabaseCommand
