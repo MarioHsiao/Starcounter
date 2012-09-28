@@ -7,6 +7,7 @@ using StarcounterServer.PublicModel;
 using System;
 using System.Collections.Generic;
 using System.Security.Principal;
+using System.IO;
 
 namespace StarcounterServer {
 
@@ -37,6 +38,24 @@ namespace StarcounterServer {
         internal readonly string Uri;
 
         /// <summary>
+        /// Gets the full path of the temporary directory decided and resolved
+        /// when the server started.
+        /// </summary>
+        internal string TempDirectory {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets the full path of the database directory decided and resolved
+        /// when the server started.
+        /// </summary>
+        internal string DatabaseDirectory {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// Gets the dictionary with databases maintained by this server,
         /// keyed by their name.
         /// </summary>
@@ -63,6 +82,40 @@ namespace StarcounterServer {
         }
 
         internal void Setup() {
+            string serverRepositoryDirectory;
+            string tempDirectory;
+            string databaseDirectory;
+
+            // Validate the database directory exist. We refuse to start if
+            // we can not properly resolve it to an existing directory.
+
+            serverRepositoryDirectory = Path.GetDirectoryName(Path.GetFullPath(this.Configuration.ConfigurationFilePath));
+            databaseDirectory = Environment.ExpandEnvironmentVariables(this.Configuration.DatabaseDirectory);
+            if (!Path.IsPathRooted(databaseDirectory)) {
+                databaseDirectory = Path.Combine(serverRepositoryDirectory, databaseDirectory);
+            }
+            databaseDirectory = Path.GetFullPath(databaseDirectory);
+            if (!Directory.Exists(databaseDirectory)) {
+                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("Database directory doesn't exist. Path: {0}", databaseDirectory));
+            }
+
+            // Setup the temporary directory. This directory we create
+            // if it's not found, since it's not the end of the world if
+            // it's wrongly given and temporary files end up somewhere
+            // not intended.
+
+            tempDirectory = Environment.ExpandEnvironmentVariables(this.Configuration.TempDirectory);
+            if (!Path.IsPathRooted(tempDirectory)) {
+                tempDirectory = Path.Combine(serverRepositoryDirectory, tempDirectory);
+            }
+            tempDirectory = Path.GetFullPath(tempDirectory);
+            if (!Directory.Exists(tempDirectory)) {
+                Directory.CreateDirectory(tempDirectory);
+            }
+
+            this.DatabaseDirectory = databaseDirectory;
+            this.TempDirectory = tempDirectory;
+
             this.DatabaseDefaultValues.Update(this.Configuration);
             SetupDatabases();
             CurrentPublicModel = new PublicModelProvider(this);
