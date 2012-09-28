@@ -12,12 +12,12 @@ using Starcounter.Server.Setup;
 using System.Diagnostics;
 using Starcounter.ABCIPC;
 using Starcounter.ABCIPC.Internal;
-using Server = StarcounterServer.Server;
+using Server = StarcounterServer.ServerProgram;
 
 namespace StarcounterServer {
 
-    class Server : ServiceBase {
-        static Server server;
+    class ServerProgram : ServiceBase {
+        static ServerProgram serverProgram;
 
         /// <summary>
         /// Gets or sets a value indicating if the server runs in user
@@ -29,19 +29,19 @@ namespace StarcounterServer {
         }
 
         static void Main(string[] args) {
-            server = new Server() { UserInteractive = Environment.UserInteractive };
+            serverProgram = new ServerProgram() { UserInteractive = Environment.UserInteractive };
 
-            if (server.UserInteractive) {
+            if (serverProgram.UserInteractive) {
                 // The server is executed either as a console program, or a
                 // Windows application, depending on how it was built.
                 Console.CancelKeyPress += Console_CancelKeyPress;
-                server.OnStart(args);
+                serverProgram.OnStart(args);
                 Console.WriteLine("Press CTRL+C to exit...");
                 Thread.Sleep(Timeout.Infinite);
 
             } else {
                 // The server is ran as a service.
-                ServiceBase.Run(server);
+                ServiceBase.Run(serverProgram);
             }
         }
 
@@ -83,6 +83,16 @@ namespace StarcounterServer {
 
                     ipcServer.Handle("Ping", delegate(Request request) {
                         request.Respond(true);
+                    });
+
+                    ipcServer.Handle("GetKs", delegate(Request request) {
+                        var numberOfKilobytes = int.Parse(request.GetParameter<string>());
+                        var response = new byte[numberOfKilobytes * 512];
+                        const string letters = "ABCDEFGHIJ";
+                        for (int i = 0; i < response.Length; i++) {
+                            response[i] = (byte)(char)letters[i % 10];
+                        }
+                        request.Respond(ASCIIEncoding.ASCII.GetString(response));
                     });
 
                     ipcServer.Receive();
@@ -206,7 +216,7 @@ namespace StarcounterServer {
         }
 
         static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e) {
-            server.OnStop();
+            serverProgram.OnStop();
             Environment.Exit(0);
         }
     }
