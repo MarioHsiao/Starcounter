@@ -116,7 +116,10 @@ namespace Starcounter
                 Int32* userDataWrittenBytes = (Int32*)(unmanaged_chunk_ + GATEWAY_CHUNK_BEGIN + USER_DATA_WRITTEN_BYTES_OFFSET);
                 *userDataWrittenBytes = length;
 
-                // Setting request size to zero (to avoid confusion with management chunks).
+                // Setting non-bmx-management chunk type.
+                (*(Int16*)(unmanaged_chunk_ + BMX_PROTOCOL_BEGIN)) = Int16.MaxValue;
+
+                // Setting request size to zero.
                 (*(UInt32*)(unmanaged_chunk_ + REQUEST_SIZE_BEGIN)) = 0;
 
                 // Copying user data to chunk.

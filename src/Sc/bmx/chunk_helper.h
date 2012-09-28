@@ -184,8 +184,12 @@ public:
         // Writing number of characters in the string.
         write(num_chars_to_write);
 
+        // Checking if enough space.
+        if (num_chars_to_write >= ((starcounter::core::chunk_size - offset_) >> 1))
+            return SCERRUNSPECIFIED; // SCERRURISTRINGCOPYPROBLEM
+
         // Copying the URI string.
-        if (wcsncpy_s((wchar_t *)get_raw_chunk(), (starcounter::core::chunk_size - offset_) >> 1, str, num_chars_to_write))
+        if (wcsncpy_s((wchar_t *)get_raw_chunk(), num_chars_to_write + 1, str, num_chars_to_write))
             return SCERRUNSPECIFIED; // SCERRURISTRINGCOPYPROBLEM
 
         // Skipping all written characters.
@@ -199,8 +203,12 @@ public:
         // Writing number of characters in the string.
         write(num_chars_to_write);
 
+        // Checking if enough space.
+        if (num_chars_to_write >= (starcounter::core::chunk_size - offset_))
+            return SCERRUNSPECIFIED; // SCERRURISTRINGCOPYPROBLEM
+
         // Copying the URI string.
-        if (strncpy_s((char *)get_raw_chunk(), (starcounter::core::chunk_size - offset_) >> 1, str, num_chars_to_write))
+        if (strncpy_s((char *)get_raw_chunk(), num_chars_to_write + 1, str, num_chars_to_write))
             return SCERRUNSPECIFIED; // SCERRURISTRINGCOPYPROBLEM
 
         // Skipping all written characters.
