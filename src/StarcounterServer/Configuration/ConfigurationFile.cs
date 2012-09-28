@@ -50,10 +50,10 @@ namespace Starcounter.Configuration {
         /// This property is XML serializable so that it can be serialized
         /// for remote communication. However, it should not be stored to files.
         /// </remarks>
-        [DefaultValue(null)]
+        [XmlIgnore]
         public string Name {
             get;
-            set;
+            private set;
         }
 
 
@@ -110,7 +110,6 @@ namespace Starcounter.Configuration {
                 ) {
                     writer.Formatting = Formatting.Indented;
                     XmlSerializer serializer = new XmlSerializer(this.GetType());
-                    this.Name = null;
                     serializer.Serialize(writer, this);
                     this.ConfigurationFilePath = fileName;
                 }
