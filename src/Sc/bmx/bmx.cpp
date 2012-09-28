@@ -42,9 +42,13 @@ uint32_t BmxData::RegisterPortHandler(
                         return err_code;
                 }
 
+                // Assigning existing handler id.
                 *handler_id = i;
 
-                return 0;
+                // Sending the handler registration information (only during first handler registration in the list).
+                err_code = PushRegisteredPortHandler(*handler_id, port_num);
+
+                return err_code;
             }
         }
     }
@@ -111,9 +115,13 @@ uint32_t BmxData::RegisterSubPortHandler(
                             return err_code;
                     }
 
+                    // Assigning existing handler id.
                     *handler_id = i;
 
-                    return 0;
+                    // Sending the handler registration information (only during first handler registration in the list).
+                    err_code = PushRegisteredSubportHandler(*handler_id, port, subport);
+
+                    return err_code;
                 }
             }
         }
@@ -198,9 +206,13 @@ uint32_t BmxData::RegisterUriHandler(
                             return err_code;
                     }
 
+                    // Assigning existing handler id.
                     *handler_id = i;
 
-                    return 0;
+                    // Sending the handler registration information (only during first handler registration in the list).
+                    err_code = PushRegisteredUriHandler(*handler_id, port, uri_str_lc, uri_len_chars, http_method);
+
+                    return err_code;
                 }
             }
         }
@@ -480,14 +492,13 @@ uint32_t BmxData::PushRegisteredPortHandler(BMX_HANDLER_TYPE handler_id, uint16_
 	uint32_t chunk_index;
 	shared_memory_chunk* smc;
 
-    // Checking if we have channel registered for pushes.
-	if (~0 == channel_index_for_push_)
-        return 0;
-
-	// We have a channel to push on. Lets send the registration immediately.
+	// If have a channel to push on: Lets send the registration immediately.
 	uint32_t err_code = AcquireNewChunk(smc, chunk_index);
-	if (err_code != 0)
+    if (err_code)
+	{
+		if (err_code == SCERRINVALIDOPERATION) { return 0; /* No channel attached to task. */ }
         return err_code;
+	}
 
     // Filling the chunk.
 	smc->set_bmx_protocol(BMX_MANAGEMENT_HANDLER);
@@ -507,14 +518,13 @@ uint32_t BmxData::PushRegisteredSubportHandler(BMX_HANDLER_TYPE handler_id, uint
     uint32_t chunk_index;
     shared_memory_chunk* smc;
 
-    // Checking if we have channel registered for pushes.
-	if (~0 == channel_index_for_push_)
-        return 0;
-
-    // We have a channel to push on. Lets send the registration immediately.
+	// If have a channel to push on: Lets send the registration immediately.
     uint32_t err_code = AcquireNewChunk(smc, chunk_index);
-    if (err_code != 0)
+    if (err_code)
+	{
+		if (err_code == SCERRINVALIDOPERATION) { return 0; /* No channel attached to task. */ }
         return err_code;
+	}
 
     // Filling the chunk.
     smc->set_bmx_protocol(BMX_MANAGEMENT_HANDLER);
@@ -539,14 +549,13 @@ uint32_t BmxData::PushRegisteredUriHandler(
     uint32_t chunk_index;
     shared_memory_chunk* smc;
 
-    // Checking if we have channel registered for pushes.
-    if (~0 == channel_index_for_push_)
-        return 0;
-
-    // We have a channel to push on. Lets send the registration immediately.
+	// If have a channel to push on: Lets send the registration immediately.
     uint32_t err_code = AcquireNewChunk(smc, chunk_index);
-    if (err_code != 0)
+    if (err_code)
+	{
+		if (err_code == SCERRINVALIDOPERATION) { return 0; /* No channel attached to task. */ }
         return err_code;
+	}
 
     // Filling the chunk.
     smc->set_bmx_protocol(BMX_MANAGEMENT_HANDLER);
@@ -567,14 +576,13 @@ uint32_t BmxData::PushHandlerUnregistration(BMX_HANDLER_TYPE handler_id)
     shared_memory_chunk* smc;
     request_chunk_part* request;
 
-    // Checking if we have channel registered for pushes.
-    if (~0 == channel_index_for_push_)
-        return 0;
-
-    // We have a channel to push on. Lets send the registration immediately.
+	// If have a channel to push on: Lets send the registration immediately.
     uint32_t err_code = AcquireNewChunk(smc, chunk_index);
-    if (err_code != 0)
+    if (err_code)
+	{
+		if (err_code == SCERRINVALIDOPERATION) { return 0; /* No channel attached to task. */ }
         return err_code;
+	}
 
     // Filling the chunk.
     smc->set_bmx_protocol(BMX_MANAGEMENT_HANDLER);

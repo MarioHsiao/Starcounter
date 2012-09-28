@@ -381,8 +381,6 @@ namespace bmx
     // Global BMX data, including handlers, memory, etc.
     class BmxData
     {
-        // Channel index for pushing chunk.
-        uint32_t channel_index_for_push_;
 
         // Current maximum number of handlers.
         BMX_HANDLER_TYPE max_num_entries_;
@@ -392,25 +390,12 @@ namespace bmx
 
     public:
 
-        // Setting channel push index.
-        void set_channel_index_for_push(uint32_t channel_index)
-        {
-            channel_index_for_push_ = channel_index;
-        }
-
-        // Getting channel index for push.
-        uint32_t get_channel_index_for_push()
-        {
-            return channel_index_for_push_;
-        }
-
         // Clones current BMX data.
         BmxData* Clone()
         {
             // Note: creating with one more entry.
             BmxData* new_copy = new BmxData(max_num_entries_ + 1);
 
-            new_copy->channel_index_for_push_ = channel_index_for_push_;
             new_copy->max_num_entries_ = max_num_entries_;
 
             // Note: for non-linear HandlersList structure, need to copy element by element.
@@ -480,7 +465,6 @@ namespace bmx
         BmxData(uint32_t max_total_handlers)
         {
             registered_handlers_ = new HandlersList[max_total_handlers];
-            channel_index_for_push_ = ~0;
             max_num_entries_ = 0;
         }
 

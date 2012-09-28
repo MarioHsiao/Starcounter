@@ -164,7 +164,8 @@ uint32_t starcounter::bmx::OnIncomingBmxMessage(
                 // Channel attached to thread. No storing away channel reference in
                 // shared memory.
 
-                //g_bmx_data->set_channel_index_for_push(1);
+				err_code = coalmine_set_current_channel_as_default();
+                if (err_code) return err_code;
                 break;
             }
 

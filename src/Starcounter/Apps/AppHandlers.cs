@@ -155,8 +155,11 @@ namespace Starcounter
         }
     }
 
+    //[StructLayout(LayoutKind.Sequential, Pack = 8)]
     public unsafe struct HttpRequestInternal
     {
+        public const Int32 MAX_HTTP_HEADERS = 16;
+
         // Request.
         public UInt32 request_offset_;
         public UInt32 request_len_bytes_;
@@ -184,6 +187,13 @@ namespace Starcounter
         // Session ID.
         public UInt32 session_string_offset_;
         public UInt32 session_string_len_bytes_;
+
+        // Header offsets.
+        public fixed UInt32 header_offsets_[MAX_HTTP_HEADERS];
+        public fixed UInt32 header_value_len_bytes_[MAX_HTTP_HEADERS];
+        public UInt32 num_headers_;
+
+        // Session structure.
         public ScSessionStruct session_struct_;
 
         // HTTP method.
