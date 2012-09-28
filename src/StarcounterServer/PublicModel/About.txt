@@ -1,0 +1,18 @@
+﻿
+About the StarcounterServer.PublicModel classes
+-----------------------------------------------
+
+The "public model" is the logical exposed view of the server. The
+server keeps an up-to-date snapshot of this model internally, one
+that can instantly be exposed to management clients.
+
+The classes in this namespace are not, at least initially, exposed
+"as is", i.e. the types themselves are not accessible to code outside
+the server. Instead, instances of these types represent state that
+can be fetched by means of a management API and that state is kept by
+the server in thread-safe structures, maintained "outside" the inner
+server representation. 
+
+The format of the exposed model, once it goes over the wire, is not yet
+set (will most likely be in the form of strings, paired as key-values,
+in the first release).

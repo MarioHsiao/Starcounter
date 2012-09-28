@@ -61,6 +61,8 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PublicModel\DatabaseInfo.cs" />
+    <Compile Include="PublicModel\ServerInfo.cs" />
     <Compile Include="ScUri.cs" />
     <Compile Include="ServerNode.cs" />
     <Compile Include="Setup\RepositorySetup.cs" />
@@ -76,6 +78,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />
+  <ItemGroup>
+    <Content Include="PublicModel\About.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
