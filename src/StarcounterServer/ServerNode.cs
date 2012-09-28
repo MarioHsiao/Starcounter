@@ -173,9 +173,14 @@ namespace StarcounterServer {
         }
 
         void SetupDatabases() {
-            // Reads all database information from disk, populating the
-            // set of domain object databases.
-            // TODO:
+            foreach (var databaseDirectory in Directory.GetDirectories(this.DatabaseDirectory)) {
+                var databaseName = Path.GetFileName(databaseDirectory).ToLowerInvariant();
+                var databaseConfigPath = Path.Combine(databaseDirectory, databaseName + DatabaseConfiguration.FileExtension);
+
+                var config = DatabaseConfiguration.Load(databaseConfigPath);
+                var database = new Database(this, config);
+                this.Databases.Add(databaseName, database);
+            }
         }
     }
 }
