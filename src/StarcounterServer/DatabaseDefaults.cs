@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Starcounter.Configuration;
 using System.Runtime.InteropServices;
 
-namespace StarcounterServer {
+namespace Starcounter.Server {
 
     /// <summary>
     /// Represents database default values for a given server.

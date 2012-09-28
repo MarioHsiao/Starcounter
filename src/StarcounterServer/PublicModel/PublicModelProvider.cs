@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace StarcounterServer.PublicModel {
+namespace Starcounter.Server.PublicModel {
 
     /// <summary>
     /// Provides access to the public model in a thread-safe manner.

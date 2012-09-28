@@ -7,7 +7,7 @@
     <ProjectGuid>{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>StarcounterServer</RootNamespace>
+    <RootNamespace>Starcounter.Server</RootNamespace>
     <AssemblyName>StarcounterServer</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

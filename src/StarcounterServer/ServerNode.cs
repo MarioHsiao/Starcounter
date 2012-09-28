@@ -3,13 +3,13 @@ using Starcounter;
 using Starcounter.ABCIPC;
 using Starcounter.ABCIPC.Internal;
 using Starcounter.Configuration;
-using StarcounterServer.PublicModel;
+using Starcounter.Server.PublicModel;
 using System;
 using System.Collections.Generic;
 using System.Security.Principal;
 using System.IO;
 
-namespace StarcounterServer {
+namespace Starcounter.Server {
 
     /// <summary>
     /// Representing the running server, hosted in a server program.
@@ -122,7 +122,7 @@ namespace StarcounterServer {
         }
 
         internal void Start() {
-            Server ipcServer;
+            Starcounter.ABCIPC.Server ipcServer;
 
             // Assume for now interactive mode. This code is still just
             // to get up and running. We'll eventually utilize pipes and
@@ -131,7 +131,7 @@ namespace StarcounterServer {
             if (!Console.IsInputRedirected) {
                 ipcServer = Utils.PromptHelper.CreateServerAttachedToPrompt();
             } else {
-                ipcServer = new Server(Console.In.ReadLine, Console.Out.WriteLine);
+                ipcServer = new Starcounter.ABCIPC.Server(Console.In.ReadLine, Console.Out.WriteLine);
             }
 
             // To handle these two requests is the first 2.2 server
