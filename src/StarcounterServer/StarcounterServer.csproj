@@ -55,6 +55,7 @@
     <Compile Include="Configuration\Server\ServerConfiguration.cs" />
     <Compile Include="Configuration\Server\TraceSourceConfiguration.cs" />
     <Compile Include="Database.cs" />
+    <Compile Include="DatabaseDefaults.cs" />
     <Compile Include="Mock\Severity.cs" />
     <Compile Include="Mock\_sccorelog.cs" />
     <Compile Include="Program.cs">
