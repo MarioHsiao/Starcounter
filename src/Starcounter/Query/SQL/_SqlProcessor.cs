@@ -6,6 +6,7 @@ using Sc.Server.Internal;
 using Starcounter.Query.Execution;
 //using Sc.Server.Weaver.Schema;
 using Starcounter.Binding;
+using Starcounter.Internal;
 
 namespace Starcounter.Query.Sql
 {
@@ -98,10 +99,63 @@ internal static class SqlProcessor
         }
     }
 
-#if false
-    // CREATE [UNIQUE] INDEX indexName ON typeName (propName1 [ASC/DESC], ...)
-    internal static DatabaseIndex ProcessCreateIndex(String statement)
+#if true
+    internal static void CreateKernelIndex(Sc.Server.Weaver.Schema.DatabaseIndex index)
     {
+        Int16[] attributeIndexArr;
+        Int32 factor;
+        SortOrder sortOrder;
+        UInt16 sortMask;
+        UInt32 errorCode;
+        UInt32 flags;
+
+        flags = 0;
+        if (index.Unique)
+        {
+            flags |= sccoredb.SC_INDEXCREATE_UNIQUE_CONSTRAINT;
+        }
+
+        factor = 1;
+        sortMask = 0;
+        for (Int32 i = 0; i < index.Attributes.Length; i++)
+        {
+            sortOrder = (SortOrder)index.SortOrders[i];
+            if (sortOrder == SortOrder.Descending)
+            {
+                sortMask = (UInt16)(sortMask + factor);
+            }
+            factor = factor * 2;
+        }
+
+        attributeIndexArr = new Int16[index.Attributes.Length + 1];
+        for (Int32 i = 0; i < index.Attributes.Length; i++)
+        {
+            attributeIndexArr[i] = (Int16)index.Attributes[i].Index;
+        }
+
+        // Set the last position in the array to -1 (terminator).
+        attributeIndexArr[attributeIndexArr.Length - 1] = -1;
+
+        unsafe
+        {
+            UInt64 handle;
+            sccoredb.Mdb_DefinitionFromCodeClassString(index.DataBaseClass.Name, out handle);
+
+            fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0]))
+            {
+                errorCode = sccoredb.sc_create_index(handle, index.Name, sortMask, attributeIndexesPointer, flags);
+            }
+        }
+        if (errorCode != 0)
+        {
+            throw ErrorCode.ToException(errorCode);
+        }
+    }
+
+    // CREATE [UNIQUE] INDEX indexName ON typeName (propName1 [ASC/DESC], ...)
+    internal static void ProcessCreateIndex(String statement)
+    {
+        #region Parse CREATE INDEX statement
         List<String> tokenList = Tokenizer.Tokenize(statement);
 
         if (tokenList == null || tokenList.Count < 2)
@@ -142,27 +196,28 @@ internal static class SqlProcessor
         }
 
         pos++;
+        // Parse the type (relation) name, which contains namespaces.
         Int32 beginPos = pos;
         String typePath = ProcessIdentifierPath(tokenList, ref pos);
         Int32 endPos = pos - 1;
 
         //typeBind = GetTypeBinding(typePath, tokenList, beginPos, endPos);
-        
+
+        // Parse properties (column) names
         if (!Token("(", tokenList, pos))
         {
             throw new SqlException("Expected opening bracket '('.", tokenList, pos);
         }
         pos++;
-        
-        List<String> propertyList = new List<String>();
-        List<SortOrder> sortOrderingList = new List<SortOrder>();
+        List<String> propertyList = new List<String>(); // List of properties/columns
+        List<int> sortOrderingList = new List<int>(); // List of corresponding orders (ASC or DESC)
         propertyList.Add(ProcessProperty(tokenList, ref pos, -1, null));
-        sortOrderingList.Add(ProcessSortOrdering(tokenList, ref pos));
+        sortOrderingList.Add((int)ProcessSortOrdering(tokenList, ref pos));
         while (Token(",", tokenList, pos))
         {
             pos++;
             propertyList.Add(ProcessProperty(tokenList, ref pos, -1, null));
-            sortOrderingList.Add(ProcessSortOrdering(tokenList, ref pos));
+            sortOrderingList.Add((int)ProcessSortOrdering(tokenList, ref pos));
         }
 
         if (!Token(")", tokenList, pos))
@@ -181,8 +236,10 @@ internal static class SqlProcessor
             //throw new SqlException("Expected no more tokens.", tokenList, pos);
             throw new SqlException("Found token after end of statement (maybe a semicolon is missing).");
         }
+        #endregion
 
-        return new DatabaseIndex(indexName, typePath, propertyList.ToArray(), sortOrderingList.ToArray(), unique);
+        Sc.Server.Weaver.Schema.DatabaseIndex dbIndex = new Sc.Server.Weaver.Schema.DatabaseIndex(indexName, typePath, propertyList.ToArray(), sortOrderingList.ToArray(), unique);
+        CreateKernelIndex(dbIndex);
 
         //CreateIndex(unique, indexName, typeBind, propertyList, sortOrderingList);
     }
