@@ -164,7 +164,7 @@ uint32_t starcounter::bmx::OnIncomingBmxMessage(
                 // Channel attached to thread. No storing away channel reference in
                 // shared memory.
 
-                // data->channel_index_for_push = task_info->channel_index;
+                //g_bmx_data->set_channel_index_for_push(1);
                 break;
             }
 

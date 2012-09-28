@@ -392,6 +392,18 @@ namespace bmx
 
     public:
 
+        // Setting channel push index.
+        void set_channel_index_for_push(uint32_t channel_index)
+        {
+            channel_index_for_push_ = channel_index;
+        }
+
+        // Getting channel index for push.
+        uint32_t get_channel_index_for_push()
+        {
+            return channel_index_for_push_;
+        }
+
         // Clones current BMX data.
         BmxData* Clone()
         {
@@ -463,12 +475,6 @@ namespace bmx
             HTTP_METHODS http_method,
             GENERIC_HANDLER_CALLBACK uri_handler, 
             BMX_HANDLER_TYPE* handler_id);
-
-        // Getting channel index for push.
-        uint32_t get_channel_index_for_push()
-        {
-            return channel_index_for_push_;
-        }
 
         // Constructor.
         BmxData(uint32_t max_total_handlers)
