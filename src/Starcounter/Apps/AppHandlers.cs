@@ -155,6 +155,7 @@ namespace Starcounter
         }
     }
 
+    //[StructLayout(LayoutKind.Sequential, Pack = 8)]
     public unsafe struct HttpRequestInternal
     {
         public const Int32 MAX_HTTP_HEADERS = 16;
