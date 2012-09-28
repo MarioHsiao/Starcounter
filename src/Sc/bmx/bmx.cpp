@@ -42,9 +42,13 @@ uint32_t BmxData::RegisterPortHandler(
                         return err_code;
                 }
 
+                // Assigning existing handler id.
                 *handler_id = i;
 
-                return 0;
+                // Sending the handler registration information (only during first handler registration in the list).
+                err_code = PushRegisteredPortHandler(*handler_id, port_num);
+
+                return err_code;
             }
         }
     }
@@ -111,9 +115,13 @@ uint32_t BmxData::RegisterSubPortHandler(
                             return err_code;
                     }
 
+                    // Assigning existing handler id.
                     *handler_id = i;
 
-                    return 0;
+                    // Sending the handler registration information (only during first handler registration in the list).
+                    err_code = PushRegisteredSubportHandler(*handler_id, port, subport);
+
+                    return err_code;
                 }
             }
         }
@@ -198,9 +206,13 @@ uint32_t BmxData::RegisterUriHandler(
                             return err_code;
                     }
 
+                    // Assigning existing handler id.
                     *handler_id = i;
 
-                    return 0;
+                    // Sending the handler registration information (only during first handler registration in the list).
+                    err_code = PushRegisteredUriHandler(*handler_id, port, uri_str_lc, uri_len_chars, http_method);
+
+                    return err_code;
                 }
             }
         }
@@ -484,7 +496,7 @@ uint32_t BmxData::PushRegisteredPortHandler(BMX_HANDLER_TYPE handler_id, uint16_
 	uint32_t err_code = AcquireNewChunk(smc, chunk_index);
     if (err_code)
 	{
-		if (err_code == SCERRINVALIDOPERATION) { /* No channel attached to task. */ }
+		if (err_code == SCERRINVALIDOPERATION) { return 0; /* No channel attached to task. */ }
         return err_code;
 	}
 
@@ -510,7 +522,7 @@ uint32_t BmxData::PushRegisteredSubportHandler(BMX_HANDLER_TYPE handler_id, uint
     uint32_t err_code = AcquireNewChunk(smc, chunk_index);
     if (err_code)
 	{
-		if (err_code == SCERRINVALIDOPERATION) { /* No channel attached to task. */ }
+		if (err_code == SCERRINVALIDOPERATION) { return 0; /* No channel attached to task. */ }
         return err_code;
 	}
 
@@ -541,7 +553,7 @@ uint32_t BmxData::PushRegisteredUriHandler(
     uint32_t err_code = AcquireNewChunk(smc, chunk_index);
     if (err_code)
 	{
-		if (err_code == SCERRINVALIDOPERATION) { /* No channel attached to task. */ }
+		if (err_code == SCERRINVALIDOPERATION) { return 0; /* No channel attached to task. */ }
         return err_code;
 	}
 
@@ -568,7 +580,7 @@ uint32_t BmxData::PushHandlerUnregistration(BMX_HANDLER_TYPE handler_id)
     uint32_t err_code = AcquireNewChunk(smc, chunk_index);
     if (err_code)
 	{
-		if (err_code == SCERRINVALIDOPERATION) { /* No channel attached to task. */ }
+		if (err_code == SCERRINVALIDOPERATION) { return 0; /* No channel attached to task. */ }
         return err_code;
 	}
 
