@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Starcounter;
 using Starcounter.Configuration;
+using StarcounterServer.PublicModel;
 
 namespace StarcounterServer {
 
@@ -22,16 +24,41 @@ namespace StarcounterServer {
         /// <summary>
         /// The configuration of this <see cref="Database"/>.
         /// </summary>
-        internal readonly DatabaseRuntimeConfiguration Configuration;
+        internal readonly DatabaseConfiguration Configuration;
+
+        /// <summary>
+        /// Gets the simple name of this database.
+        /// </summary>
+        internal readonly string Name;
+
+        /// <summary>
+        /// Gets the URI of this database.
+        /// </summary>
+        internal readonly string Uri;
 
         /// <summary>
         /// Intializes a <see cref="Database"/>.
         /// </summary>
-        /// <param name="server"></param>
-        /// <param name="configuration"></param>
-        internal Database(ServerNode server, DatabaseRuntimeConfiguration configuration) {
+        /// <param name="server">The server to which the current database belong.</param>
+        /// <param name="configuration">The configuration applied.</param>
+        internal Database(ServerNode server, DatabaseConfiguration configuration) {
             this.Server = server;
             this.Configuration = configuration;
+            this.Name = this.Configuration.Name;
+            this.Uri = ScUri.MakeDatabaseUri(ScUri.GetMachineName(), server.Name, this.Name).ToString();
+        }
+
+        internal DatabaseInfo ToPublicModel() {
+            var info = new DatabaseInfo() {
+                CollationFile = null,
+                Configuration = this.Configuration.Clone(this.Configuration.ConfigurationFilePath),
+                Name = this.Name,
+                MaxImageSize = 0,   // TODO: Backlog
+                SupportReplication = false,
+                TransactionLogSize = 0, // TODO: Backlog
+                Uri = this.Uri
+            };
+            return info;
         }
     }
 }

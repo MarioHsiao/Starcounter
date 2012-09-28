@@ -24,6 +24,11 @@ namespace StarcounterServer {
         internal readonly DatabaseDefaults DatabaseDefaultValues;
 
         /// <summary>
+        /// Gets the simple name of the server.
+        /// </summary>
+        internal readonly string Name;
+
+        /// <summary>
         /// Gets the URI of this server.
         /// </summary>
         internal readonly string Uri;
@@ -41,7 +46,8 @@ namespace StarcounterServer {
         internal ServerNode(ServerConfiguration configuration) {
             this.Configuration = configuration;
             this.DatabaseDefaultValues = new DatabaseDefaults();
-            this.Uri = ScUri.MakeServerUri(ScUri.GetMachineName(), configuration.Name);
+            this.Name = configuration.Name;
+            this.Uri = ScUri.MakeServerUri(ScUri.GetMachineName(), this.Name);
             this.Databases = new Dictionary<string, Database>();
         }
 
