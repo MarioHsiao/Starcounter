@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using Starcounter.Configuration;
+using StarcounterServer;
 
 namespace Starcounter.Server.Setup {
 
@@ -98,8 +99,10 @@ namespace Starcounter.Server.Setup {
             MonitoringConfiguration monitoringConfig;
             DatabaseRuntimeConfiguration databaseRuntimeConfig;
             DatabaseConfiguration databaseConfiguration;
+            DatabaseDefaults databaseDefaults;
 
             structure = RepositoryStructure.NewDefault(repositoryPath);
+            databaseDefaults = new DatabaseDefaults();
 
             monitoringConfig = new MonitoringConfiguration() {
                 MonitoringType = MonitoringType.Disabled,
@@ -112,7 +115,7 @@ namespace Starcounter.Server.Setup {
                 TempDirectory = Path.Combine(structure.TempDirectory, "[DatabaseName]"),
                 SQLProcessPort = 8066 + serverPortRange,
                 SharedMemoryChunkSize = 4096,
-                SharedMemoryChunksNumber = 4096
+                SharedMemoryChunksNumber = 4096,
             };
 
             databaseConfiguration = new DatabaseConfiguration() {
@@ -121,12 +124,13 @@ namespace Starcounter.Server.Setup {
             };
 
             serverConfig = new ServerConfiguration() {
-                // Name = structure.Name,
                 DatabaseDirectory = structure.DatabaseDirectory,
                 TempDirectory = structure.TempDirectory,
                 LogDirectory = structure.LogDirectory,
                 EnginesDirectory = structure.RepositoryDirectory,
-                DefaultDatabaseConfiguration = databaseConfiguration,
+                DatabaseDefaultMaxImageSize = databaseDefaults.MaxImageSize,
+                DatabaseDefaultTransactionLogSize = databaseDefaults.TransactionLogSize,
+                DefaultDatabaseConfiguration = databaseConfiguration
             };
 
             return new RepositorySetup(structure, serverConfig);
