@@ -7,3 +7,5 @@ Backlog for server integration
   we lower confusion as to what values are really used and we need
   no handling for ApplyDefaults or anything. As soon as a configuration
   is created (and serialized), we expect it to have all values represented.
+# Migrate ServerInstance.GetImageFileMaxSize and ServerInstance.GetImageFileMaxSize
+  and utilize them in Database.ToPublicModel(). 
