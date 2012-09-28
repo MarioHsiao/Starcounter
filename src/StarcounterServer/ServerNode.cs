@@ -144,7 +144,21 @@ namespace StarcounterServer {
             });
 
             ipcServer.Handle("GetDatabase", delegate(Request request) {
-                request.Respond(false, "Not implemented");
+                string name;
+                ScUri serverUri;
+                string uri;
+                
+                name = request.GetParameter<string>();
+                serverUri = ScUri.FromString(this.Uri);
+                uri = ScUri.MakeDatabaseUri(serverUri.MachineName, serverUri.ServerName, name).ToString();
+
+                var info = CurrentPublicModel.GetDatabase(uri);
+                if (info == null) {
+                    request.Respond(false, "Database not found");
+                    return;
+                }
+
+                request.Respond(string.Format("URI={0}, Files={1}", info.Uri, info.Configuration.Runtime.ImageDirectory));
             });
 
             ipcServer.Receive();
