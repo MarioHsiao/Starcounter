@@ -103,7 +103,10 @@ namespace Starcounter.Server.Setup {
             if (repositoryDirectory.IndexOfAny(Path.GetInvalidPathChars()) != -1) {
                 throw new ArgumentOutOfRangeException("repositoryDirectory");
             }
+
+            repositoryDirectory = Path.GetFullPath(repositoryDirectory);
             this.RepositoryDirectory = repositoryDirectory;
+
             UseDirectoryPathOrCreateDefault(
                 ref databaseDirectory, Path.Combine, repositoryDirectory, "Databases");
             UseDirectoryPathOrCreateDefault(
