@@ -21,8 +21,10 @@ namespace StarcounterInternal.Hosting
 
         internal void AddFromDirectory(DirectoryInfo inputDir)
         {
-            FileInfo[] fileInfos = inputDir.GetFiles("*.dll");
-            for (int i = 0; i < fileInfos.Length; i++)
+            List<FileInfo> fileInfos = new List<FileInfo>();
+            fileInfos.AddRange(inputDir.GetFiles("*.exe"));
+            fileInfos.AddRange(inputDir.GetFiles("*.dll"));
+            for (int i = 0; i < fileInfos.Count; i++)
             {
                 var fileInfo = fileInfos[i];
                 var fileName = fileInfo.Name;
@@ -65,6 +67,12 @@ namespace StarcounterInternal.Hosting
             var assemblyNameElems = assemblyName.Split(',');
             var assemblyFileName = string.Concat(assemblyNameElems[0], ".dll");
             var assemblyFileInfo = privateBinBriefcase_.GetAssemblyFile(assemblyFileName);
+            if (assemblyFileInfo == null)
+            {
+                assemblyFileName = string.Concat(assemblyNameElems[0], ".exe");
+                assemblyFileInfo = privateBinBriefcase_.GetAssemblyFile(assemblyFileName);
+            }
+
             if (assemblyFileInfo != null)
             {
                 assembly = Assembly.LoadFile(assemblyFileInfo.FullName);
