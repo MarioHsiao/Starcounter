@@ -63,9 +63,27 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PublicModel\CommandId.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PublicModel\CommandInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PublicModel\CommandTaskInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="PublicModel\DatabaseInfo.cs" />
+    <Compile Include="PublicModel\ErrorInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PublicModel\ProgressInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="PublicModel\PublicModelProvider.cs" />
     <Compile Include="PublicModel\ServerInfo.cs" />
+    <Compile Include="PublicModel\TaskDuration.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="ScUri.cs" />
     <Compile Include="ServerNode.cs" />
     <Compile Include="Setup\RepositorySetup.cs" />
