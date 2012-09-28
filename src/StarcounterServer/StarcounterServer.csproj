@@ -60,6 +60,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ServerNode.cs" />
     <Compile Include="Setup\RepositorySetup.cs" />
     <Compile Include="Setup\RepositoryStructure.cs" />
   </ItemGroup>
