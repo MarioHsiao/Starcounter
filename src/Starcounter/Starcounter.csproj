@@ -51,7 +51,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Apps\App.cs" />
-    <Compile Include="Apps\AppHandlers.cs" />
+    <Compile Include="Apps\GatewayHandlers.cs" />
     <Compile Include="Apps\Bootstrap\AppProcess.cs" />
     <Compile Include="Apps\NetworkDataStream.cs" />
     <Compile Include="Binary.cs" />

@@ -323,7 +323,7 @@ namespace Starcounter
         SubportHandlerParams info
     );
 
-	public unsafe class AppHandlers
+	public unsafe class GatewayHandlers
 	{
         // Offset in bytes for HttpRequest structure.
         const Int32 HTTP_REQUEST_OFFSET_BYTES = 184;
@@ -342,7 +342,7 @@ namespace Starcounter
         private static bmx.BMX_HANDLER_CALLBACK subport_outer_handler_;
         private static bmx.BMX_HANDLER_CALLBACK uri_outer_handler_;
 
-        static AppHandlers()
+        static GatewayHandlers()
 		{
             AppProcess.AssertInDatabaseOrSendStartRequest();
 
