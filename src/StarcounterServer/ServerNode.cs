@@ -1,7 +1,10 @@
 ﻿
 using Starcounter;
+using Starcounter.ABCIPC;
+using Starcounter.ABCIPC.Internal;
 using Starcounter.Configuration;
 using StarcounterServer.PublicModel;
+using System;
 using System.Collections.Generic;
 using System.Security.Principal;
 
@@ -56,6 +59,32 @@ namespace StarcounterServer {
         }
 
         internal void Start() {
+            Server ipcServer;
+
+            // Assume for now interactive mode. This code is still just
+            // to get up and running. We'll eventually utilize pipes and
+            // spawn another thread, etc.
+            
+            if (!Console.IsInputRedirected) {
+                ipcServer = Utils.PromptHelper.CreateServerAttachedToPrompt();
+            } else {
+                ipcServer = new Server(Console.In.ReadLine, Console.Out.WriteLine);
+            }
+
+            // To handle these two requests is the first 2.2 server
+            // milestone.
+            //   The creation should accept a single parameter (the
+            // name) and use only defaults.
+
+            ipcServer.Handle("CreateDatabase", delegate(Request request) {
+                request.Respond(false, "Not implemented");
+            });
+
+            ipcServer.Handle("GetDatabase", delegate(Request request) {
+                request.Respond(false, "Not implemented");
+            });
+
+            ipcServer.Receive();
         }
 
         internal void Stop() {

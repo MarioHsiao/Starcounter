@@ -1,18 +1,13 @@
 ﻿
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.ServiceProcess;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
+using Starcounter.Configuration;
 using Starcounter.Server.Setup;
+using System;
 using System.Diagnostics;
-using Starcounter.ABCIPC;
-using Starcounter.ABCIPC.Internal;
-using Server = StarcounterServer.ServerProgram;
+using System.IO;
+using System.ServiceProcess;
+using System.Threading;
 
 namespace StarcounterServer {
 
@@ -73,30 +68,10 @@ namespace StarcounterServer {
                 // Start is utilized. Bootstrap the server.
                 // TODO:
 
-                if (this.UserInteractive) {
-                    Starcounter.ABCIPC.Server ipcServer;
-                    if (!Console.IsInputRedirected) {
-                        ipcServer = Utils.PromptHelper.CreateServerAttachedToPrompt();
-                    } else {
-                        ipcServer = new Starcounter.ABCIPC.Server(Console.In.ReadLine, Console.Out.WriteLine);
-                    }
-
-                    ipcServer.Handle("Ping", delegate(Request request) {
-                        request.Respond(true);
-                    });
-
-                    ipcServer.Handle("GetKs", delegate(Request request) {
-                        var numberOfKilobytes = int.Parse(request.GetParameter<string>());
-                        var response = new byte[numberOfKilobytes * 512];
-                        const string letters = "ABCDEFGHIJ";
-                        for (int i = 0; i < response.Length; i++) {
-                            response[i] = (byte)(char)letters[i % 10];
-                        }
-                        request.Respond(ASCIIEncoding.ASCII.GetString(response));
-                    });
-
-                    ipcServer.Receive();
-                }
+                var config = ServerConfiguration.Load(Path.GetFullPath(arguments.CommandParameters[0]));
+                var server = new ServerNode(config);
+                server.Setup();
+                server.Start();
             }
         }
 

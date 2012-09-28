@@ -48,6 +48,12 @@ namespace StarcounterServer {
             this.Uri = ScUri.MakeDatabaseUri(ScUri.GetMachineName(), server.Name, this.Name).ToString();
         }
 
+        /// <summary>
+        /// Creates a snapshot of this <see cref="Database"/> in the
+        /// form of a public model <see cref="DatabaseInfo"/>.
+        /// </summary>
+        /// <returns>A <see cref="DatabaseInfo"/> representing the current state
+        /// of this database.</returns>
         internal DatabaseInfo ToPublicModel() {
             var info = new DatabaseInfo() {
                 CollationFile = null,
