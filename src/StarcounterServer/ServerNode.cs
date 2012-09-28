@@ -1,11 +1,9 @@
 ﻿
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Starcounter.Configuration;
 using Starcounter;
+using Starcounter.Configuration;
+using StarcounterServer.PublicModel;
+using System.Collections.Generic;
+using System.Security.Principal;
 
 namespace StarcounterServer {
 
@@ -18,6 +16,12 @@ namespace StarcounterServer {
         /// Gets the server configuration.
         /// </summary>
         internal readonly ServerConfiguration Configuration;
+
+        /// <summary>
+        /// Gets the database default values to be used when creating databases
+        /// and values are not explicitly given.
+        /// </summary>
+        internal readonly DatabaseDefaults DatabaseDefaultValues;
 
         /// <summary>
         /// Gets the URI of this server.
@@ -36,17 +40,38 @@ namespace StarcounterServer {
         /// <param name="configuration"></param>
         internal ServerNode(ServerConfiguration configuration) {
             this.Configuration = configuration;
+            this.DatabaseDefaultValues = new DatabaseDefaults();
             this.Uri = ScUri.MakeServerUri(ScUri.GetMachineName(), configuration.Name);
             this.Databases = new Dictionary<string, Database>();
         }
 
         internal void Setup() {
+            this.DatabaseDefaultValues.Update(this.Configuration);
         }
 
         internal void Start() {
         }
 
         internal void Stop() {
+        }
+
+        /// <summary>
+        /// Creates a snapshot of this <see cref="ServerNode"/> in the
+        /// form of a public model <see cref="ServerInfo"/>.
+        /// </summary>
+        /// <returns>A <see cref="ServerInfo"/> representing the current state
+        /// of this server.</returns>
+        internal ServerInfo ToPublicModel() {
+            var info = new ServerInfo() {
+                Configuration = this.Configuration.Clone(),
+                DefaultMaxImageSize = this.DatabaseDefaultValues.MaxImageSize,
+                DefaultTransactionLogSize = this.DatabaseDefaultValues.TransactionLogSize,
+                IsMonitoringSupported = false,
+                ServerConfigurationPath = this.Configuration.ConfigurationFilePath,
+                Uri = this.Uri,
+                UserName = WindowsIdentity.GetCurrent().Name,
+            };
+            return info;
         }
     }
 }
