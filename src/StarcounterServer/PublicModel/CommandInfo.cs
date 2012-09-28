@@ -8,6 +8,7 @@ namespace Starcounter.Server.PublicModel {
     /// Snapshot state of an executing command processor.
     /// </summary>
     internal sealed class CommandInfo {
+        
         /// <summary>
         /// Initializes a <see cref="CommandInfo"/> message object.
         /// </summary>
