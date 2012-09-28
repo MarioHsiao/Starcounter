@@ -6,9 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Starcounter;
 using Starcounter.Configuration;
-using StarcounterServer.PublicModel;
+using Starcounter.Server.PublicModel;
 
-namespace StarcounterServer {
+namespace Starcounter.Server {
 
     /// <summary>
     /// A database maintained by a certain server (represented by

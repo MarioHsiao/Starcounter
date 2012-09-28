@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using Starcounter.Configuration;
-using StarcounterServer;
+using Starcounter.Server;
 
 namespace Starcounter.Server.Setup {
 

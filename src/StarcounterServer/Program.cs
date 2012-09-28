@@ -9,7 +9,7 @@ using System.IO;
 using System.ServiceProcess;
 using System.Threading;
 
-namespace StarcounterServer {
+namespace Starcounter.Server {
 
     class ServerProgram : ServiceBase {
         static ServerProgram serverProgram;

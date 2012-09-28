@@ -2,7 +2,7 @@
 using System.Xml.Serialization;
 using Starcounter.Configuration;
 
-namespace StarcounterServer.PublicModel {
+namespace Starcounter.Server.PublicModel {
 
     /// <summary>
     /// Represents a snapshot of the public state of a server.
