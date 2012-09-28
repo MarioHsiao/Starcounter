@@ -17,20 +17,22 @@ namespace NetworkIoTestApp
         {
             UInt16 handlerId;
 
-            RegisterPortHandler(79, OnRawPortMessage, out handlerId);
+            RegisterUriHandler(80, "/", HTTP_METHODS.GET_METHOD, OnHttpMessageRoot, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
-            RegisterPortHandler(80, OnHttpMessagePort, out handlerId);
+            RegisterUriHandler(80, "/users", HTTP_METHODS.GET_METHOD, OnHttpMessageUsers, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
-            RegisterPortHandler(81, OnWsMessage, out handlerId);
+            /*
+            RegisterPortHandler(81, OnRawPortMessage, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
-            RegisterUriHandler(82, "/", HTTP_METHODS.GET_METHOD, OnHttpMessageRoot, out handlerId);
+            RegisterPortHandler(82, OnHttpMessagePort, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
-            RegisterUriHandler(82, "/users", HTTP_METHODS.GET_METHOD, OnHttpMessageUsers, out handlerId);
+            RegisterPortHandler(83, OnWsMessage, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
+            */
         }
 
         // Raw port handler.
@@ -103,8 +105,9 @@ namespace NetworkIoTestApp
                 "<body>\r\n" +
                 "<h1>Handler URI prefix: root(/) </h1>\r\n" +
                 p.ToString() +
-                "<h1>All cookies: " + p["Cookie: "] + "</h1>" +
-                "<h1>Host: " + p["Host: "] + "</h1>" +
+                // TODO: Fix get header!
+                //"<h1>All cookies: " + p["Cookie: "] + "</h1>" +
+                //"<h1>Host: " + p["Host: "] + "</h1>" +
                 "</body>\r\n" +
                 "</html>\r\n";
 
@@ -126,8 +129,9 @@ namespace NetworkIoTestApp
                 "<body>\r\n" +
                 "<h1>Handler URI prefix: /users </h1>\r\n" +
                 p.ToString() +
-                "<h1>All cookies: " + p["Cookie: "] + "</h1>" +
-                "<h1>Host: " + p["Host: "] + "</h1>" +
+                // TODO: Fix get header!
+                //"<h1>All cookies: " + p["Cookie: "] + "</h1>" +
+                //"<h1>Host: " + p["Host: "] + "</h1>" +
                 "</body>\r\n" +
                 "</html>\r\n";
 
