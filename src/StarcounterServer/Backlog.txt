@@ -1,0 +1,9 @@
+﻿
+Backlog for server integration
+
+# ServerStatisticsCollector
+# Make sure all configuration properties are forced to be present
+  in the serialized form (XML), even if just as XML:NIL. This way,
+  we lower confusion as to what values are really used and we need
+  no handling for ApplyDefaults or anything. As soon as a configuration
+  is created (and serialized), we expect it to have all values represented.
