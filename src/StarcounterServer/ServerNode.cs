@@ -43,6 +43,14 @@ namespace StarcounterServer {
         internal Dictionary<string, Database> Databases { get; private set; }
 
         /// <summary>
+        /// Gets the current public model snapshot of the server and
+        /// it's databases. The public model is updated in a thread-safe
+        /// maner whenever there is a change in any of the internal
+        /// domain state objects (modified by command processors).
+        /// </summary>
+        internal PublicModelProvider CurrentPublicModel { get; private set; }
+
+        /// <summary>
         /// Initializes a <see cref="ServerNode"/>.
         /// </summary>
         /// <param name="configuration"></param>
@@ -56,6 +64,8 @@ namespace StarcounterServer {
 
         internal void Setup() {
             this.DatabaseDefaultValues.Update(this.Configuration);
+            SetupDatabases();
+            CurrentPublicModel = new PublicModelProvider(this);
         }
 
         internal void Start() {
@@ -107,6 +117,12 @@ namespace StarcounterServer {
                 UserName = WindowsIdentity.GetCurrent().Name,
             };
             return info;
+        }
+
+        void SetupDatabases() {
+            // Reads all database information from disk, populating the
+            // set of domain object databases.
+            // TODO:
         }
     }
 }
