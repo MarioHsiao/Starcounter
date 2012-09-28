@@ -60,5 +60,23 @@ namespace StarcounterServer.PublicModel {
             get;
             set;
         }
+
+        /// <summary>
+        /// Gets or sets the user name the server represented by the
+        /// current information object runs under.
+        /// </summary>
+        public string UserName {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// The full path to the server configuration file whose
+        /// database repository this server maintains.
+        /// </summary>
+        public string ServerConfigurationPath {
+            get;
+            set;
+        }
     }
 }
