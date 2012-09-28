@@ -63,6 +63,7 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PublicModel\DatabaseInfo.cs" />
+    <Compile Include="PublicModel\PublicModelProvider.cs" />
     <Compile Include="PublicModel\ServerInfo.cs" />
     <Compile Include="ScUri.cs" />
     <Compile Include="ServerNode.cs" />
