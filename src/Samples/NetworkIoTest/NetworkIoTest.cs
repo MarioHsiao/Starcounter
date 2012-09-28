@@ -5,7 +5,7 @@ using Starcounter;
 
 namespace NetworkIoTestApp
 {
-    public class NetworkIoTestApp : AppHandlers
+    public class NetworkIoTestApp
     {
         internal static void Main(String[] args)
         {
@@ -17,10 +17,10 @@ namespace NetworkIoTestApp
         {
             UInt16 handlerId;
 
-            RegisterUriHandler(80, "/", HTTP_METHODS.GET_METHOD, OnHttpMessageRoot, out handlerId);
+            GatewayHandlers.RegisterUriHandler(80, "/", HTTP_METHODS.GET_METHOD, OnHttpMessageRoot, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
-            RegisterUriHandler(80, "/users", HTTP_METHODS.GET_METHOD, OnHttpMessageUsers, out handlerId);
+            GatewayHandlers.RegisterUriHandler(80, "/users", HTTP_METHODS.GET_METHOD, OnHttpMessageUsers, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
             /*
