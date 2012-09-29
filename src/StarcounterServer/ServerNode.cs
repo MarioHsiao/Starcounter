@@ -28,6 +28,11 @@ namespace Starcounter.Server {
         internal readonly DatabaseDefaults DatabaseDefaultValues;
 
         /// <summary>
+        /// Gets the <see cref="DatabaseEngine"/> used by the current server.
+        /// </summary>
+        internal readonly DatabaseEngine DatabaseEngine;
+
+        /// <summary>
         /// Gets the simple name of the server.
         /// </summary>
         internal readonly string Name;
@@ -79,6 +84,7 @@ namespace Starcounter.Server {
             this.Name = configuration.Name;
             this.Uri = ScUri.MakeServerUri(ScUri.GetMachineName(), this.Name);
             this.Databases = new Dictionary<string, Database>();
+            this.DatabaseEngine = new DatabaseEngine(this);
         }
 
         internal void Setup() {
@@ -116,6 +122,7 @@ namespace Starcounter.Server {
             this.DatabaseDirectory = databaseDirectory;
             this.TempDirectory = tempDirectory;
 
+            this.DatabaseEngine.Setup();
             this.DatabaseDefaultValues.Update(this.Configuration);
             SetupDatabases();
             CurrentPublicModel = new PublicModelProvider(this);
