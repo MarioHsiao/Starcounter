@@ -49,6 +49,7 @@
     <Compile Include="Commands\CommandProcessor.cs" />
     <Compile Include="Commands\CommandProcessorAttribute.cs" />
     <Compile Include="Commands\CommandTask.cs" />
+    <Compile Include="Commands\DatabaseCommand.cs" />
     <Compile Include="Commands\ErrorInfoException.cs" />
     <Compile Include="Commands\ServerCommand.cs" />
     <Compile Include="Configuration\ConfigurationElement.cs" />
