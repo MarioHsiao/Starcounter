@@ -31,6 +31,130 @@ namespace Starcounter
 
         // Scheduler ID.
         public UInt32 scheduler_id_;
+
+        // Hex table used for conversion.
+        static Byte[] hex_table_ = new Byte[] { (Byte)'0', (Byte)'1', (Byte)'2', (Byte)'3', (Byte)'4', (Byte)'5', (Byte)'6', (Byte)'7', (Byte)'8', (Byte)'9', (Byte)'A', (Byte)'B', (Byte)'C', (Byte)'D', (Byte)'E', (Byte)'F' };
+
+        // Session string length in characters.
+        const Int32 SC_SESSION_STRING_LEN_CHARS = 24;
+
+        // Session cookie prefix.
+        const String SessionCookiePrefix = "ScSessionId=";
+
+        // Converts uint64_t number to hexadecimal string.
+        Int32 uint64_to_hex_string(UInt64 number, Byte[] bytes_out, Int32 offset, Int32 num_4bits)
+        {
+            Int32 n = 0;
+            while(number > 0)
+            {
+                bytes_out[n + offset] = hex_table_[number & 0xF];
+                n++;
+                number >>= 4;
+            }
+
+            // Filling with zero values if necessary.
+            while (n < num_4bits)
+            {
+                bytes_out[n + offset] = (Byte)'0';
+                n++;
+            }
+
+            // Returning length.
+            return n;
+        }
+
+        // Converts session to string.
+        public Int32 ConvertToString(Byte[] str_out)
+        {
+            // Translating session index.
+            Int32 sessionStringLen = uint64_to_hex_string(session_index_, str_out, 0, 8);
+
+            // Translating session random salt.
+            sessionStringLen += uint64_to_hex_string(random_salt_, str_out, sessionStringLen, 16);
+
+            return sessionStringLen;
+        }
+
+        // Converts session to string.
+        public String ConvertToString()
+        {
+            // Allocating string bytes.
+            Byte[] str_bytes = new Byte[SC_SESSION_STRING_LEN_CHARS];
+
+            // Translating session index.
+            Int32 sessionStringLen = uint64_to_hex_string(session_index_, str_bytes, 0, 8);
+
+            // Translating session random salt.
+            sessionStringLen += uint64_to_hex_string(random_salt_, str_bytes, sessionStringLen, 16);
+
+            // Converting byte array to string.
+            return UTF8Encoding.ASCII.GetString(str_bytes);
+        }
+
+        // Converts session to a cookie string.
+        public String ConvertToSessionCookie()
+        {
+            return SessionCookiePrefix + ConvertToString();
+        }
+
+        // Converts uint64_t number to hexadecimal string.
+        unsafe Int32 uint64_to_hex_string(UInt64 number, Byte* bytes_out, Int32 offset, Int32 num_4bits)
+        {
+            Int32 n = 0;
+            while (number > 0)
+            {
+                bytes_out[n + offset] = hex_table_[number & 0xF];
+                n++;
+                number >>= 4;
+            }
+
+            // Filling with zero values if necessary.
+            while (n < num_4bits)
+            {
+                bytes_out[n + offset] = (Byte)'0';
+                n++;
+            }
+
+            // Returning length.
+            return n;
+        }
+
+        // Converts session to string.
+        public unsafe Int32 ConvertToStringUnsafe(Byte* str_out)
+        {
+            // Translating session index.
+            Int32 sessionStringLen = uint64_to_hex_string(session_index_, str_out, 0, 8);
+
+            // Translating session random salt.
+            sessionStringLen += uint64_to_hex_string(random_salt_, str_out, sessionStringLen, 16);
+
+            return sessionStringLen;
+        }
+
+        // Converts session to string.
+        public String ConvertToStringFaster()
+        {
+            unsafe
+            {
+                // Allocating string bytes on stack.
+                Byte* str_bytes = stackalloc Byte[SC_SESSION_STRING_LEN_CHARS];
+
+                // Translating session index.
+                Int32 sessionStringLen = uint64_to_hex_string(session_index_, str_bytes, 0, 8);
+
+                // Translating session random salt.
+                sessionStringLen += uint64_to_hex_string(random_salt_, str_bytes, sessionStringLen, 16);
+
+                // Converting byte array to string.
+                return Marshal.PtrToStringAnsi((IntPtr)str_bytes, SC_SESSION_STRING_LEN_CHARS);
+            }
+        }
+
+        // Converts session to a cookie string.
+        public String ConvertToSessionCookieFaster()
+        {
+            return SessionCookiePrefix + ConvertToStringFaster();
+        }
     }
 
     public struct HttpRequest
@@ -98,14 +222,14 @@ namespace Starcounter
 
         public void GetRawHeader(byte[] key, out IntPtr ptr, out UInt32 sizeBytes)
         {
-            unsafe { http_request_->GetRawHeader(key, out ptr, out sizeBytes); }
+            unsafe { http_request_->GetHeaderValue(key, out ptr, out sizeBytes); }
         }
 
         public String this[String name]
         {
             get
             {
-                unsafe { return http_request_->GetRawHeader(name); }
+                unsafe { return http_request_->GetHeaderValue(name); }
             }
         }
 
@@ -190,6 +314,8 @@ namespace Starcounter
 
         // Header offsets.
         public fixed UInt32 header_offsets_[MAX_HTTP_HEADERS];
+        public fixed UInt32 header_len_bytes_[MAX_HTTP_HEADERS];
+        public fixed UInt32 header_value_offsets_[MAX_HTTP_HEADERS];
         public fixed UInt32 header_value_len_bytes_[MAX_HTTP_HEADERS];
         public UInt32 num_headers_;
 
@@ -214,11 +340,18 @@ namespace Starcounter
             sizeBytes = request_len_bytes_;
         }
 
+        // TODO: Plain big buffer!
         public void GetRawContent(out IntPtr ptr, out UInt32 sizeBytes)
         {
             if (content_len_bytes_ <= 0) ptr = IntPtr.Zero;
             else { ptr = new IntPtr(sd_ + content_offset_); }
             sizeBytes = content_len_bytes_;
+        }
+
+        // TODO: Plain big buffer!
+        public String GetRawContent()
+        {
+            return Marshal.PtrToStringAnsi((IntPtr)(sd_ + content_offset_), (Int32)content_len_bytes_);
         }
 
         public void GetRawMethodAndUri(out IntPtr ptr, out UInt32 sizeBytes)
@@ -251,14 +384,101 @@ namespace Starcounter
             sizeBytes = session_string_len_bytes_;
         }
 
-        public void GetRawHeader(byte[] key, out IntPtr ptr, out UInt32 sizeBytes)
+        public String GetSessionString()
         {
-            // Searching for header with given key.
-            throw new NotImplementedException();
+            IntPtr raw_session_string;
+            UInt32 len_bytes;
+            GetRawSessionString(out raw_session_string, out len_bytes);
+
+            return Marshal.PtrToStringAnsi(raw_session_string, (Int32)len_bytes);
         }
 
-        public String GetRawHeader(String name)
+        public void GetHeaderValue(byte[] headerName, out IntPtr ptr, out UInt32 sizeBytes)
         {
+            unsafe
+            {
+                fixed (UInt32* header_offsets = header_offsets_,
+                    header_len_bytes = header_len_bytes_,
+                    header_value_offsets = header_value_offsets_,
+                    header_value_len_bytes = header_value_len_bytes_)
+                {
+                    // Going through all headers.
+                    for (Int32 i = 0; i < num_headers_; i++)
+                    {
+                        Boolean found = true;
+
+                        // Checking that length is correct.
+                        if (headerName.Length == header_len_bytes[i])
+                        {
+                            // Going through all characters in current header.
+                            for (Int32 k = 0; k < headerName.Length; k++)
+                            {
+                                // Comparing each character.
+                                if (((Byte)headerName[k]) != *(sd_ + header_offsets[i] + k))
+                                {
+                                    found = false;
+                                    break;
+                                }
+                            }
+
+                            if (found)
+                            {
+                                ptr = (IntPtr)(sd_ + header_value_offsets[i]);
+                                sizeBytes = header_value_len_bytes[i];
+
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // In case if header is not found.
+            ptr = IntPtr.Zero;
+            sizeBytes = 0;
+        }
+
+        public String GetHeaderValue(String headerName)
+        {
+            unsafe
+            {
+                fixed (UInt32* header_offsets = header_offsets_,
+                    header_len_bytes = header_len_bytes_,
+                    header_value_offsets = header_value_offsets_,
+                    header_value_len_bytes = header_value_len_bytes_)
+                {
+                    // Going through all headers.
+                    for (Int32 i = 0; i < num_headers_; i++)
+                    {
+                        Boolean found = true;
+
+                        // Checking that length is correct.
+                        if (headerName.Length == header_len_bytes[i])
+                        {
+                            // Going through all characters in current header.
+                            for (Int32 k = 0; k < headerName.Length; k++)
+                            {
+                                // Comparing each character.
+                                if (((Byte)headerName[k]) != *(sd_ + header_offsets[i] + k))
+                                {
+                                    found = false;
+                                    break;
+                                }
+                            }
+
+                            if (found)
+                            {
+                                // Skipping two bytes for colon and one space.
+                                return Marshal.PtrToStringAnsi((IntPtr)(sd_ + header_value_offsets[i]), (Int32)header_value_len_bytes[i]);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return null;
+
+            /*
             // Constructing the string if its the first time.
             String headers_and_values = Marshal.PtrToStringAnsi((IntPtr)(sd_ + headers_offset_), (Int32)headers_len_bytes_);
 
@@ -273,6 +493,7 @@ namespace Starcounter
                 k++;
 
             return headers_and_values.Substring(index + name.Length, k - index - name.Length);
+            */
         }
 
         public String Uri
@@ -293,7 +514,8 @@ namespace Starcounter
                    "<h1>ContentLength: " + content_len_bytes_ + "</h1>\r\n" +
                    "<h1>GZip: " + gzip_enabled_ + "</h1>\r\n" +
                    "<h1>Session index: " + session_struct_.session_index_ + "</h1>\r\n" +
-                   "<h1>Session scheduler: " + session_struct_.scheduler_id_ + "</h1>\r\n"
+                   "<h1>Session scheduler: " + session_struct_.scheduler_id_ + "</h1>\r\n" +
+                   "<h1>Session string: " + GetSessionString() + "</h1>\r\n"
                    ;
         }
     };
