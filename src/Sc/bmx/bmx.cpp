@@ -161,8 +161,8 @@ uint32_t BmxData::RegisterUriHandler(
         return SCERRUNSPECIFIED; // SCERRMAXHANDLERSREACHED
 
     // Checking if URI starts with slash.
-    if (uri_string[0] != '/')
-        return SCERRUNSPECIFIED; // SCERRURIMUSTSTARTWITHSLASH
+    //if (uri_string[0] != '/')
+    //    return SCERRUNSPECIFIED; // SCERRURIMUSTSTARTWITHSLASH
 
     uint32_t err_code = 0;
     char uri_str_lc[MAX_URI_STRING_LEN];
