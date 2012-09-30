@@ -17,10 +17,10 @@ namespace NetworkIoTestApp
         {
             UInt16 handlerId;
 
-            GatewayHandlers.RegisterUriHandler(80, "/", HTTP_METHODS.GET_METHOD, OnHttpMessageRoot, out handlerId);
+            GatewayHandlers.RegisterUriHandler(80, "GET /", HTTP_METHODS.GET_METHOD, OnHttpMessageRoot, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
-            GatewayHandlers.RegisterUriHandler(80, "/users", HTTP_METHODS.GET_METHOD, OnHttpMessageUsers, out handlerId);
+            GatewayHandlers.RegisterUriHandler(80, "GET /users", HTTP_METHODS.GET_METHOD, OnHttpMessageUsers, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
             /*
