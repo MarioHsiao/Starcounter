@@ -27,13 +27,74 @@ namespace StarcounterInternal.Bootstrap
             }
         }
 
+        public string CompilerPath
+        {
+            get {
+                string prop;
+
+                if (!this.ProgramArguments.TryGetProperty(ProgramCommandLine.CommandNames.CompilerPath, out prop))
+                    prop = @"C:/Test/MinGW/bin/x86_64-w64-mingw32-gcc.exe";
+
+                return prop;
+            }
+        }
+
+        public string DatabaseDirectory
+        {
+            get {
+                string prop;
+
+                if (!this.ProgramArguments.TryGetProperty(ProgramCommandLine.CommandNames.DatabaseDir, out prop))
+                    prop = @"C:/Test";
+
+                return prop;
+            }
+        }
+
+        public string OutputDirectory
+        {
+            get {
+                string prop;
+
+                if (!this.ProgramArguments.TryGetProperty(ProgramCommandLine.CommandNames.OutputDir, out prop))
+                    prop = @"C:/Test";
+
+                return prop;
+            }
+        }
+
+        public string TempDirectory
+        {
+            get {
+                string prop;
+
+                if (!this.ProgramArguments.TryGetProperty(ProgramCommandLine.CommandNames.TempDir, out prop))
+                    prop = @"C:/Test/Temp";
+
+                return prop;
+            }
+        }
+
+        public string AutoStartExePath
+        {
+            get
+            {
+                string autoStartExePath;
+
+                if (!this.ProgramArguments.TryGetProperty(ProgramCommandLine.CommandNames.AutoStartExePath, out autoStartExePath))
+                    autoStartExePath = null;
+
+                return autoStartExePath;
+            }
+        }
+
         public string ServerName
         {
             get
             {
                 string serverName;
 
-                if (!this.ProgramArguments.TryGetProperty("ServerName", out serverName))
+                if (!this.ProgramArguments.TryGetProperty(ProgramCommandLine.CommandNames.ServerName, out serverName))
                     serverName = "PERSONAL";
 
                 // Making server name upper case.
@@ -51,7 +112,7 @@ namespace StarcounterInternal.Bootstrap
                 uint chunksNumber = 4096;
 
                 string chunksNumberStr;
-                if (this.ProgramArguments.TryGetProperty("ChunksNumber", out chunksNumberStr))
+                if (this.ProgramArguments.TryGetProperty(ProgramCommandLine.CommandNames.ChunksNumber, out chunksNumberStr))
                 {
                     chunksNumber = uint.Parse(chunksNumberStr);
 
@@ -63,54 +124,6 @@ namespace StarcounterInternal.Bootstrap
                 }
 
                 return chunksNumber;
-            }
-        }
-
-        public string CompilerPath
-        {
-            get {
-                string prop;
-
-                if (!this.ProgramArguments.TryGetProperty("CompilerPath", out prop))
-                    prop = @"C:/Test/MinGW/bin/x86_64-w64-mingw32-gcc.exe";
-
-                return prop;
-            }
-        }
-
-        public string DatabaseDirectory
-        {
-            get {
-                string prop;
-                
-                if (!this.ProgramArguments.TryGetProperty("DatabaseDir", out prop))
-                    prop = @"C:/Test";
-
-                return prop;
-            }
-        }
-
-        public string OutputDirectory
-        {
-            get {
-                string prop;
-
-                if (!this.ProgramArguments.TryGetProperty("OutputDir", out prop))
-                    prop = @"C:/Test";
-
-                return prop;
-            }
-        }
-
-        public string TempDirectory
-        {
-            get {
-                string prop;
-
-                if (!this.ProgramArguments.TryGetProperty("TempDir", out prop))
-                    prop = @"C:/Test/Temp";
-
-                return prop;
             }
         }
     }

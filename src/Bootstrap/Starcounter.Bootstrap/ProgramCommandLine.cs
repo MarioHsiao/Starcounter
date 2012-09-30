@@ -27,6 +27,41 @@ namespace StarcounterInternal.Bootstrap {
             /// be omitted on the command line.
             /// </remarks>
             public const string Start = "Start";
+
+            /// <summary>
+            /// Specifies the database directory to use.
+            /// </summary>
+            public const string DatabaseDir = "DatabaseDir";
+
+            /// <summary>
+            /// Specifies the output directory to use.
+            /// </summary>
+            public const string OutputDir = "OutputDir";
+
+            /// <summary>
+            /// Specifies the temporary directory to use.
+            /// </summary>
+            public const string TempDir = "TempDir";
+
+            /// <summary>
+            /// Specifies the path to the compiler to use when generating code.
+            /// </summary>
+            public const string CompilerPath = "CompilerPath";
+
+            /// <summary>
+            /// Specifies the name of Starcounter server which started the database.
+            /// </summary>
+            public const string ServerName = "ServerName";
+
+            /// <summary>
+            /// Specifies the total number of chunks used for shared memory communication.
+            /// </summary>
+            public const string ChunksNumber = "ChunksNumber";
+
+            /// <summary>
+            /// Specifies the path to executable that should be run on startup.
+            /// </summary>
+            public const string AutoStartExePath = "AutoStartExePath";
         }
 
         internal static bool TryGetProgramArguments(string[] args, out ApplicationArguments arguments) {
@@ -60,11 +95,15 @@ namespace StarcounterInternal.Bootstrap {
             // Specifies the property set we accept.
             // A full command line could look like
             // > prog.exe mydatabase --DatabaseDir "C:\MyDatabase" --OutputDir "C:\Out" --TempDir "C:\Temp" --CompilerPath "C:\bin\x86_64-w64-mingw32-gcc.exe"
+            // --AutoStartExePath "c:\github\Orange\bin\Debug\NetworkIoTest\NetworkIoTest.exe" --ServerName PERSONAL --ChunksNumber 1024
 
-            commandDefinition.DefineProperty("DatabaseDir", "Specifies the database directory to use.");
-            commandDefinition.DefineProperty("OutputDir", "Specifies the output directory to use.");
-            commandDefinition.DefineProperty("TempDir", "Specifies the temporary directory to use.");
-            commandDefinition.DefineProperty("CompilerPath", "Specifies the path to the compiler to use when generating code.");
+            commandDefinition.DefineProperty(CommandNames.DatabaseDir, "Specifies the database directory to use.");
+            commandDefinition.DefineProperty(CommandNames.OutputDir, "Specifies the output directory to use.");
+            commandDefinition.DefineProperty(CommandNames.TempDir, "Specifies the temporary directory to use.");
+            commandDefinition.DefineProperty(CommandNames.CompilerPath, "Specifies the path to the compiler to use when generating code.");
+            commandDefinition.DefineProperty(CommandNames.ServerName, "Specifies the name of Starcounter server which started the database.");
+            commandDefinition.DefineProperty(CommandNames.ChunksNumber, "Specifies the total number of chunks used for shared memory communication.");
+            commandDefinition.DefineProperty(CommandNames.AutoStartExePath, "Specifies the path to executable that should be run on startup.");
 
             // Create the syntax, validating it
             syntax = syntaxDefinition.CreateSyntax();
