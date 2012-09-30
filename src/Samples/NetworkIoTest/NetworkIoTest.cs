@@ -99,20 +99,25 @@ namespace NetworkIoTestApp
         // HTTP handler with no specific URI.
         private static Boolean OnHttpMessageRoot(HttpRequest p)
         {
-            // Creating response string.
-            String response =
+            String responseBody =
                 "<html>\r\n" +
                 "<body>\r\n" +
                 "<h1>Handler URI prefix: root(/) </h1>\r\n" +
                 p.ToString() +
-                // TODO: Fix get header!
-                //"<h1>All cookies: " + p["Cookie: "] + "</h1>" +
-                //"<h1>Host: " + p["Host: "] + "</h1>" +
+                "<h1>All cookies: " + p["Cookie"] + "</h1>" +
+                "<h1>Host: " + p["Host"] + "</h1>" +
                 "</body>\r\n" +
                 "</html>\r\n";
 
+            String responseHeader =
+                "HTTP/1.1 200 OK\r\n" +
+                "Content-Type: text/html; charset=UTF-8\r\n" +
+                "Set-Cookie: " + p.SessionStruct.ConvertToSessionCookieFaster() + "; HttpOnly\r\n" +
+                "Content-Length: " + responseBody.Length + "\r\n" +
+                "\r\n";
+
             // Converting string to byte array.
-            Byte[] respBytes = Encoding.ASCII.GetBytes(response);
+            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + responseBody);
 
             // Writing back to channel.
             p.WriteResponse(respBytes, 0, respBytes.Length);
@@ -123,20 +128,25 @@ namespace NetworkIoTestApp
         // HTTP handler with no specific URI.
         private static Boolean OnHttpMessageUsers(HttpRequest p)
         {
-            // Creating response string.
-            String response =
+            String responseBody =
                 "<html>\r\n" +
                 "<body>\r\n" +
                 "<h1>Handler URI prefix: /users </h1>\r\n" +
                 p.ToString() +
-                // TODO: Fix get header!
-                //"<h1>All cookies: " + p["Cookie: "] + "</h1>" +
-                //"<h1>Host: " + p["Host: "] + "</h1>" +
+                "<h1>All cookies: " + p["Cookie"] + "</h1>" +
+                "<h1>Host: " + p["Host"] + "</h1>" +
                 "</body>\r\n" +
                 "</html>\r\n";
 
+            String responseHeader = 
+                "HTTP/1.1 200 OK\r\n" +
+                "Content-Type: text/html; charset=UTF-8\r\n" +
+                "Set-Cookie: " + p.SessionStruct.ConvertToSessionCookieFaster() + "; HttpOnly\r\n" +
+                "Content-Length: " + responseBody.Length + "\r\n" +
+                "\r\n";
+
             // Converting string to byte array.
-            Byte[] respBytes = Encoding.ASCII.GetBytes(response);
+            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + responseBody);
 
             // Writing back to channel.
             p.WriteResponse(respBytes, 0, respBytes.Length);
