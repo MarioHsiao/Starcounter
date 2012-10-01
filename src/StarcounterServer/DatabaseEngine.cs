@@ -16,8 +16,7 @@ namespace Starcounter.Server {
     /// what exact input to use.
     /// </summary>
     internal sealed class DatabaseEngine {
-        string installationDirectory;
-
+        
         internal const string DatabaseExeFileName = "scpmm.exe";
         internal const string WorkerProcessExeFileName = "boot.exe";
 
@@ -47,12 +46,11 @@ namespace Starcounter.Server {
         }
 
         internal void Setup() {
-            this.installationDirectory = Path.GetDirectoryName(typeof(DatabaseEngine).Assembly.Location);
-            var databaseExe = Path.Combine(this.installationDirectory, DatabaseExeFileName);
+            var databaseExe = Path.Combine(this.Server.InstallationDirectory, DatabaseExeFileName);
             if (!File.Exists(databaseExe)) {
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("Database engine executable not found: {0}", databaseExe));
             }
-            var workerProcExe = Path.Combine(this.installationDirectory, WorkerProcessExeFileName);
+            var workerProcExe = Path.Combine(this.Server.InstallationDirectory, WorkerProcessExeFileName);
             if (!File.Exists(workerProcExe)) {
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("Worker process executable not found: {0}", databaseExe));
             }
