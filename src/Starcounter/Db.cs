@@ -119,10 +119,13 @@ namespace Starcounter
 
         public static void Transaction(Action action)
         {
+            bool completed;
             uint e;
             ulong transaction_id;
             ulong handle;
             ulong verify;
+
+            completed = false;
 
             e = sccoredb.sccoredb_create_transaction_and_set_current(0, out transaction_id, out handle, out verify);
             if (e != 0) throw ErrorCode.ToException(e);
@@ -139,11 +142,15 @@ namespace Starcounter
 
                 e = sccoredb.sccoredb_complete_commit(1, out transaction_id);
                 if (e != 0) throw ErrorCode.ToException(e);
+
+                completed = true;
             }
-            catch (Exception ex)
+            finally
             {
-                sccoredb.sccoredb_free_transaction(handle, verify);
-                throw ex;
+                if (!completed)
+                {
+                    sccoredb.sccoredb_free_transaction(handle, verify);
+                }
             }
         }
     }

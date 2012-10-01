@@ -40,7 +40,7 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>Starcounter.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\Starcounter.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <RunPostBuildEvent>Always</RunPostBuildEvent>
@@ -51,7 +51,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Apps\App.cs" />
-    <Compile Include="Apps\AppHandlers.cs" />
+    <Compile Include="Apps\GatewayHandlers.cs" />
     <Compile Include="Apps\Bootstrap\AppProcess.cs" />
     <Compile Include="Apps\NetworkDataStream.cs" />
     <Compile Include="Binary.cs" />
@@ -419,7 +419,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Starcounter.snk" />
+    <None Include="..\Starcounter.snk" />
     <None Include="$(PostSharpRedistributables)\PostSharp-Platform.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -443,6 +443,12 @@
     <EmbeddedResource Include="Internal\Weaver\Messages.resx">
       <SubType>Designer</SubType>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Communication\HttpStructs\HttpStructs.csproj">
+      <Project>{90d57166-b42e-4bbe-b9ec-cfb33e551b77}</Project>
+      <Name>HttpStructs</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

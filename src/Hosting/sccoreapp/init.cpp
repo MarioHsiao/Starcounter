@@ -25,6 +25,11 @@ void _init(void *hlogs)
     AddVectoredExceptionHandler(0, __vectored_exception_handler);
 }
 
+void _log_critical(const wchar_t *message)
+{
+	__critical_log_handler(0, message);
+}
+
 
 void __critical_log_handler(void *c, uint32_t error_code)
 {
@@ -62,8 +67,11 @@ void __critical_log_handler(void *c, uint32_t error_code)
 void __stdcall __critical_log_handler(void *c, LPCWSTR message)
 {
 	uint64_t hlogs = (uint64_t)__hlogs;
-    SCKernelWriteToLogs(hlogs, SC_ENTRY_CRITICAL, message);
-	SCFlushToLogs(hlogs);
+	if (hlogs)
+	{
+		SCKernelWriteToLogs(hlogs, SC_ENTRY_CRITICAL, message);
+		SCFlushToLogs(hlogs);
+	}
 }
 
 LONG WINAPI __unhandled_exception_filter(EXCEPTION_POINTERS *eps)
