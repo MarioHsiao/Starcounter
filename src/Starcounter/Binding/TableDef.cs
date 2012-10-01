@@ -83,6 +83,19 @@ namespace Starcounter.Binding
             DefinitionAddr = definitionAddr;
         }
 
+        public string ShortName
+        {
+            get
+            {
+                var i = Name.LastIndexOf('.');
+                if (i >= 0)
+                {
+                    return Name.Substring(i + 1);
+                }
+                return Name;
+            }
+        }
+
         public TableDef Clone()
         {
             ColumnDef[] clonedColumnDefs = new ColumnDef[ColumnDefs.Length];
