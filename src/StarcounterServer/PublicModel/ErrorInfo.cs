@@ -191,14 +191,14 @@ namespace Starcounter.Server.PublicModel {
         /// by the current instance.
         /// </returns>
         public ErrorMessage ToErrorMessage() {
-            string format;
+            //string format;
             string message;
             uint numericCode;
             string firstArgument;
             string[] argumentsWithoutPrefix;
-            string header;
-            string body;
-            string helplink;
+            //string header;
+            //string body;
+            //string helplink;
 
             // Try first with the new way use the ErrorInfo type: using a
             // standardized error code (with possible cargo).
