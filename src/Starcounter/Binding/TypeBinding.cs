@@ -76,6 +76,11 @@ namespace Sc.Server.Binding //namespace Starcounter.Binding
             return TypeDef.TableDef.GetAllIndexInfos();
         }
 
+        internal Sc.Server.Binding.IndexInfo GetIndexInfo(string name)
+        {
+            return TypeDef.TableDef.GetIndexInfo(name);
+        }
+
         internal void SetPropertyBindings(PropertyBinding[] propertyBindings)
         {
             propertyBindings_ = propertyBindings;
