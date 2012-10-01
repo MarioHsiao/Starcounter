@@ -155,13 +155,8 @@ namespace Starcounter.Server {
                 ipcServer = new Starcounter.ABCIPC.Server(Console.In.ReadLine, Console.Out.WriteLine);
             }
 
-            // To handle these two requests is the first 2.2 server
-            // milestone.
-            //   The creation should accept a single parameter (the
-            // name) and use only defaults.
-
-            ipcServer.Handle("CreateDatabase", delegate(Request request) {
-                request.Respond(false, "Not implemented");
+            ipcServer.Handle("GetServerInfo", delegate(Request request) {
+                request.Respond(ResponseSerializer.SerializeReponse(CurrentPublicModel.ServerInfo));
             });
 
             ipcServer.Handle("GetDatabase", delegate(Request request) {
@@ -184,37 +179,17 @@ namespace Starcounter.Server {
 
             ipcServer.Handle("GetDatabases", delegate(Request request) {
                 var databases = CurrentPublicModel.GetDatabases();
-                request.Respond(false, "NotImplemented");
+                request.Respond(ResponseSerializer.SerializeReponse(databases));
             });
 
-            // See 2.0 GetServerLogsByNumber
-            ipcServer.Handle("GetLogsByNumber", delegate(Request request) {
-                request.Respond(false, "NotImplemented");
-            });
-
-            // See 2.0 GetServerLogsByDate
-            ipcServer.Handle("GetLogsByDate", delegate(Request request) {
-                request.Respond(false, "NotImplemented");
-            });
-
-            // See 2.0 GetServerStatistics
-            ipcServer.Handle("GetServerStatistics", delegate(Request request) {
-                request.Respond(false, "NotImplemented");
-            });
-
-            // See 2.0 GetCommandDescriptors
             ipcServer.Handle("GetCommandDescriptors", delegate(Request request) {
-                request.Respond(false, "NotImplemented");
+                var supportedCommands = dispatcher.CommandDescriptors;
+                request.Respond(ResponseSerializer.SerializeReponse(supportedCommands));
             });
 
-            // See 2.0 GetCommands
-            ipcServer.Handle("GetCommand", delegate(Request request) {
-                request.Respond(false, "NotImplemented");
-            });
-
-            // See 2.0 GetDatabaseExecutionInfo
-            ipcServer.Handle("GetDatabaseExecutionInfo", delegate(Request request) {
-                request.Respond(false, "NotImplemented");
+            ipcServer.Handle("GetCommands", delegate(Request request) {
+                var commands = this.dispatcher.GetRecentCommands();
+                request.Respond(ResponseSerializer.SerializeReponse(commands));
             });
 
             ipcServer.Handle("ExecApp", delegate(Request request) {
@@ -239,8 +214,36 @@ namespace Starcounter.Server {
 
                 var info = dispatcher.Enqueue(new ExecAppCommand(exePath, workingDirectory, argsArray));
 
-                request.Respond(true, string.Format("CommandId={0}", info.Id));
+                request.Respond(true, ResponseSerializer.SerializeReponse(info));
             });
+
+            #region Command stubs not yet implemented
+
+            ipcServer.Handle("CreateDatabase", delegate(Request request) {
+                request.Respond(false, "NotImplemented");
+            });
+
+            // See 2.0 GetServerLogsByNumber
+            ipcServer.Handle("GetLogsByNumber", delegate(Request request) {
+                request.Respond(false, "NotImplemented");
+            });
+
+            // See 2.0 GetServerLogsByDate
+            ipcServer.Handle("GetLogsByDate", delegate(Request request) {
+                request.Respond(false, "NotImplemented");
+            });
+
+            // See 2.0 GetServerStatistics
+            ipcServer.Handle("GetServerStatistics", delegate(Request request) {
+                request.Respond(false, "NotImplemented");
+            });
+
+            // See 2.0 GetDatabaseExecutionInfo
+            ipcServer.Handle("GetDatabaseExecutionInfo", delegate(Request request) {
+                request.Respond(false, "NotImplemented");
+            });
+
+            #endregion
 
             ipcServer.Receive();
         }
