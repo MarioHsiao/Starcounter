@@ -4,3 +4,5 @@ LIBRARY "sccoreapp"
 EXPORTS
 	sccoreapp_init
 	sccoreapp_standby
+
+	sccoreapp_log_critical
