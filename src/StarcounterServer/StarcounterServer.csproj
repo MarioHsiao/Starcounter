@@ -90,6 +90,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="PublicModel\PublicModelProvider.cs" />
+    <Compile Include="PublicModel\Serialization.cs" />
     <Compile Include="PublicModel\ServerInfo.cs" />
     <Compile Include="PublicModel\TaskDuration.cs">
       <SubType>Code</SubType>
