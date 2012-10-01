@@ -52,6 +52,11 @@ namespace Starcounter.Binding
             typeDefsByName_ = typeDefsByName;
         }
 
+        public static TypeDef GetTypeDef(int tableId)
+        {
+            return typeDefsById_[tableId];
+        }
+
         public static TypeDef GetTypeDef(string name)
         {
             TypeDef typeDef;
@@ -64,7 +69,7 @@ namespace Starcounter.Binding
             return typeDefsByName_.Values;
         }
 
-        internal static TypeBinding GetTypeBinding(ushort tableId)
+        internal static TypeBinding GetTypeBinding(int tableId)
         {
             // TODO:
             // Can we make this so that not found always raised exception?
@@ -94,7 +99,7 @@ namespace Starcounter.Binding
             return BuildTypeBindingFromTypeDef(name);
         }
 
-        private static TypeBinding BuildTypeBindingFromTypeDef(ushort tableId)
+        private static TypeBinding BuildTypeBindingFromTypeDef(int tableId)
         {
             try
             {

@@ -426,5 +426,10 @@ internal class ExtentNode : IOptimizationNode
                                  InnermostExtent, 
                                  null, variableArr, query);
     }
+
+    internal IndexInfo GetIndexInfo(String indexName)
+    {
+        return (compTypeBind.GetTypeBinding(extentNumber) as TypeBinding).GetIndexInfo(indexName);
+    }
 }
 }
