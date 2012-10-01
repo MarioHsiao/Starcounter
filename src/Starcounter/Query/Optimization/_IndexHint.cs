@@ -22,10 +22,7 @@ internal class IndexHint : IHint
         this.indexName = indexName;
     }
 
-    internal IndexInfo GetIndexInfo()
-    {
-        return IndexRepository.GetIndexByName(indexName);
-    }
+    internal String IndexName { get { return indexName; } }
 
     internal Int32 ExtentNumber
     {
