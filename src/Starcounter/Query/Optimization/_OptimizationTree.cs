@@ -84,9 +84,10 @@ internal class OptimizationTree
     {
         for (Int32 i = 0; i < indexHintList.Count; i++)
         {
-            ExtentNode extentNode = GetExtentNode(indexHintList[i].ExtentNumber);
+            var indexHint = indexHintList[i];
+            ExtentNode extentNode = GetExtentNode(indexHint.ExtentNumber);
             if (extentNode.HintedIndexInfo == null) // Only the first index hint should be considered.
-                extentNode.HintedIndexInfo = indexHintList[i].GetIndexInfo();
+                extentNode.HintedIndexInfo = extentNode.GetIndexInfo(indexHint.IndexName);
         }
     }
 
