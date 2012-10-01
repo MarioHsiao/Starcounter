@@ -96,6 +96,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ScUri.cs" />
+    <Compile Include="ServerLogSources.cs" />
     <Compile Include="ServerNode.cs" />
     <Compile Include="ServerServices.cs" />
     <Compile Include="Setup\RepositorySetup.cs" />
