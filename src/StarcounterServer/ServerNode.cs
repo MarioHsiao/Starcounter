@@ -179,6 +179,41 @@ namespace Starcounter.Server {
                 request.Respond(string.Format("URI={0}, Files={1}", info.Uri, info.Configuration.Runtime.ImageDirectory));
             });
 
+            ipcServer.Handle("GetDatabases", delegate(Request request) {
+                var databases = CurrentPublicModel.GetDatabases();
+                request.Respond(false, "NotImplemented");
+            });
+
+            // See 2.0 GetServerLogsByNumber
+            ipcServer.Handle("GetLogsByNumber", delegate(Request request) {
+                request.Respond(false, "NotImplemented");
+            });
+
+            // See 2.0 GetServerLogsByDate
+            ipcServer.Handle("GetLogsByDate", delegate(Request request) {
+                request.Respond(false, "NotImplemented");
+            });
+
+            // See 2.0 GetServerStatistics
+            ipcServer.Handle("GetServerStatistics", delegate(Request request) {
+                request.Respond(false, "NotImplemented");
+            });
+
+            // See 2.0 GetCommandDescriptors
+            ipcServer.Handle("GetCommandDescriptors", delegate(Request request) {
+                request.Respond(false, "NotImplemented");
+            });
+
+            // See 2.0 GetCommands
+            ipcServer.Handle("GetCommand", delegate(Request request) {
+                request.Respond(false, "NotImplemented");
+            });
+
+            // See 2.0 GetDatabaseExecutionInfo
+            ipcServer.Handle("GetDatabaseExecutionInfo", delegate(Request request) {
+                request.Respond(false, "NotImplemented");
+            });
+
             ipcServer.Handle("ExecApp", delegate(Request request) {
                 string exePath;
                 string workingDirectory;
