@@ -84,7 +84,7 @@ namespace hello
         {
             Console.WriteLine("Hello world (on database thread in database process)!");
 
-#if true
+#if false
 #if false
             Db.Transaction(() =>
             {

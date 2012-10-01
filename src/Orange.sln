@@ -51,6 +51,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpStructs", "Communicatio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndexQueryTest", "Samples\IndexQueryTest\IndexQueryTest.csproj", "{917A2134-2267-4E27-9415-1D531AADF156}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarcounterServer", "StarcounterServer\StarcounterServer.csproj", "{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -117,6 +119,9 @@ Global
 		{917A2134-2267-4E27-9415-1D531AADF156}.Debug|x64.Build.0 = Debug|Any CPU
 		{917A2134-2267-4E27-9415-1D531AADF156}.Release|x64.ActiveCfg = Release|Any CPU
 		{917A2134-2267-4E27-9415-1D531AADF156}.Release|x64.Build.0 = Release|Any CPU
+		{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}.Debug|x64.Build.0 = Debug|Any CPU
+		{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}.Release|x64.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
