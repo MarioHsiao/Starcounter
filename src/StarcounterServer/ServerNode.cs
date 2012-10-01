@@ -82,6 +82,8 @@ namespace Starcounter.Server {
         /// </summary>
         internal PublicModelProvider CurrentPublicModel { get; private set; }
 
+        IResponseSerializer ResponseSerializer;
+
         /// <summary>
         /// Initializes a <see cref="ServerNode"/>.
         /// </summary>
@@ -136,7 +138,8 @@ namespace Starcounter.Server {
             this.DatabaseEngine.Setup();
             this.DatabaseDefaultValues.Update(this.Configuration);
             SetupDatabases();
-            CurrentPublicModel = new PublicModelProvider(this);
+            this.CurrentPublicModel = new PublicModelProvider(this);
+            this.ResponseSerializer = new NewtonSoftJsonSerializer(this);
         }
 
         internal void Start() {
@@ -176,7 +179,7 @@ namespace Starcounter.Server {
                     return;
                 }
 
-                request.Respond(string.Format("URI={0}, Files={1}", info.Uri, info.Configuration.Runtime.ImageDirectory));
+                request.Respond(ResponseSerializer.SerializeReponse(info));
             });
 
             ipcServer.Handle("GetDatabases", delegate(Request request) {
