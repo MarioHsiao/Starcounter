@@ -40,3 +40,13 @@ extern "C" uint32_t __stdcall sccoreapp_standby(void* hsched, CM2_TASK_DATA* pta
 		}
 	}
 }
+
+
+// TODO:
+// Temporary solution for handling critical errors in message loop. To be
+// reviewed.
+
+extern "C" void sccoreapp_log_critical(const wchar_t *message)
+{
+	_log_critical(message);
+}

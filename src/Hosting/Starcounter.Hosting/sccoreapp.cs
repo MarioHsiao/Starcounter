@@ -16,5 +16,8 @@ namespace StarcounterInternal.Hosting
 
         [DllImport("sccoreapp.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern unsafe uint sccoreapp_standby(void* hsched, sccorelib.CM2_TASK_DATA* ptask_data);
+
+        [DllImport("sccoreapp.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        public static extern unsafe uint sccoreapp_log_critical(string message);
     }
 }

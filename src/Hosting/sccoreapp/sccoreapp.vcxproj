@@ -174,7 +174,7 @@
     <ClInclude Include="internal.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Sc\bmx\bmx.vcxproj">
+    <ProjectReference Include="..\..\Communication\bmx\bmx.vcxproj">
       <Project>{7e994512-cab0-44f9-97cd-49f67828e8d1}</Project>
     </ProjectReference>
   </ItemGroup>

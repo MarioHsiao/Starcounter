@@ -10,9 +10,10 @@ using Starcounter.ABCIPC.Internal;
 
 namespace StarcounterInternal.Bootstrap
 {
-
     public class Control // TODO: Make internal.
     {
+        // Loaded configuration info.
+        Configuration configuration = null;
 
         public static void Main(string[] args)
         {
@@ -45,7 +46,7 @@ namespace StarcounterInternal.Bootstrap
             if (!ProgramCommandLine.TryGetProgramArguments(args, out arguments))
                 return false;
 
-            Configuration configuration = Configuration.Load(arguments);
+            configuration = Configuration.Load(arguments);
 
             AssureNoOtherProcessWithTheSameName(configuration);
 
@@ -133,7 +134,13 @@ namespace StarcounterInternal.Bootstrap
                 request.Respond(response ?? "<NULL>");
             });
 
-            // Receive until we are told to shutdown
+            // Executing auto-start task if any.
+            if (configuration.AutoStartExePath != null)
+            {
+                Loader.ExecApp(hsched_, configuration.AutoStartExePath);
+            }
+
+            // Receive until we are told to shutdown.
 
             server.Receive();
         }
