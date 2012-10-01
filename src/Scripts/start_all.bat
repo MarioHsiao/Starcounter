@@ -6,14 +6,24 @@ ECHO Please specify database/test name as a first argument in CAPITALIZED lettes
 GOTO:EOF
 )
 
-:: Creating database if needed.
-START "scdbc" scdbc -ip .db -lp .db %1
+:: Checking if everything is pre-created.
+IF NOT EXIST .db (
+:: Creating directories.
+mkdir .db
+mkdir .db.output
+
+:: Creating database.
+scdbc.exe -ip .db -lp .db %1
+)
 
 :: Starting database memory management process.
-START "scpmm" scpmm %1 %1 .db.output
+START "scpmm" scpmm.exe %1 %1 .db.output
 
 :: Starting connection monitor on PERSONAL server.
-START "ScConnMonitor" ScConnMonitor PERSONAL .db.output
+START "ScConnMonitor" ScConnMonitor.exe PERSONAL .db.output
 
 :: Starting the specific database.
-START "boot" boot %1 --DatabaseDir=.db --OutputDir=.db.output --TempDir=.db.output --CompilerPath=MinGW\bin\x86_64-w64-mingw32-gcc.exe
+START "boot" boot.exe %1 --DatabaseDir=.db --OutputDir=.db.output --TempDir=.db.output --CompilerPath=MinGW\bin\x86_64-w64-mingw32-gcc.exe
+
+:: Auto-start example.
+::boot.exe NETWORKIOTEST --DatabaseDir=.db --OutputDir=.db.output --TempDir=.db.output --CompilerPath=MinGW\bin\x86_64-w64-mingw32-gcc.exe --AutoStartExePath=c:\github\Orange\bin\Debug\NetworkIoTest\NetworkIoTest.exe
