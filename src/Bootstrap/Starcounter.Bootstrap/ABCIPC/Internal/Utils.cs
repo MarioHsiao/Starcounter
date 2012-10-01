@@ -110,9 +110,20 @@ namespace Starcounter.ABCIPC.Internal {
                     else if (parameters.StartsWith("<")) {
                         // Call with dictionary parameters
                         // Implements: client.Send(string, Dictionary<string, string>);
+                        Dictionary<string, string> dict = new Dictionary<string, string>();
                         parameters = parameters.Trim('<', '>');
-                        Console.Beep();
-                        continue;
+                        
+                        if (parameters.Equals(NULL_PARAMETER)) {
+                            protocol = Request.Protocol.MakeRequestStringWithDictionaryNULL(message);
+                        } else {
+                            string[] keyValues = parameters.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                            foreach (var item in keyValues) {
+                                dict.Add(item.Substring(0, item.IndexOf('=')), item.Substring(item.IndexOf('=') + 1));
+                            }
+                            protocol = Request.Protocol.MakeRequestStringWithDictionary(message, dict);
+                        }
+
+                        return RequestWithProtocol(protocol);
                     }
                     else {
                         // Call with single string parameter
