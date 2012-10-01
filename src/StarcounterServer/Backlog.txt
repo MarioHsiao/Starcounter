@@ -12,6 +12,9 @@ Backlog for server integration
 # Add logging and tracing calls.
 
 NEXTs
+# Implement ExecApp command.
 # Comment, refactor and clean the command dispatcher
 # Comment, refactor and clean the command processor base class
 # Introdce DatabaseCommand
+# Refactor CommandProcessor, making it a generic, like CommandProcessor<T> :
+ServerCommand and get rid of custom attribute (make IsPublic virtual).
