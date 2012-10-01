@@ -8,6 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Security.Principal;
 using System.IO;
+using Starcounter.Server.Commands;
+using Starcounter.Internal;
 
 namespace Starcounter.Server {
 
@@ -15,6 +17,7 @@ namespace Starcounter.Server {
     /// Representing the running server, hosted in a server program.
     /// </summary>
     internal sealed class ServerNode {
+        private readonly CommandDispatcher dispatcher;
 
         /// <summary>
         /// Gets the server configuration.
@@ -91,6 +94,7 @@ namespace Starcounter.Server {
             this.Uri = ScUri.MakeServerUri(ScUri.GetMachineName(), this.Name);
             this.Databases = new Dictionary<string, Database>();
             this.DatabaseEngine = new DatabaseEngine(this);
+            this.dispatcher = new CommandDispatcher(this);
         }
 
         internal void Setup() {
@@ -128,6 +132,7 @@ namespace Starcounter.Server {
             this.DatabaseDirectory = databaseDirectory;
             this.TempDirectory = tempDirectory;
 
+            this.dispatcher.DiscoverAssembly(GetType().Assembly);
             this.DatabaseEngine.Setup();
             this.DatabaseDefaultValues.Update(this.Configuration);
             SetupDatabases();
@@ -175,15 +180,28 @@ namespace Starcounter.Server {
             });
 
             ipcServer.Handle("ExecApp", delegate(Request request) {
+                string exePath;
+                string workingDirectory;
+                string args;
+                string[] argsArray;
+
                 var properties = request.GetParameter<Dictionary<string, string>>();
-                string s = string.Empty;
-                if (properties != null) {
-                    foreach (var item in properties) {
-                        s += item.Key + "=" + item.Value + ",";
-                    }
+                if (properties == null || !properties.TryGetValue("AssemblyPath", out exePath)) {
+                    request.Respond(false, "Missing required argument 'AssemblyPath'");
+                    return;
                 }
-                s = s.TrimEnd(',');
-                request.Respond(s);
+                exePath = exePath.Trim('"').Trim('\\', '/');
+
+                properties.TryGetValue("WorkingDir", out workingDirectory);
+                if (properties.TryGetValue("Args", out args)) {
+                    argsArray = KeyValueBinary.ToArray(args);
+                } else {
+                    argsArray = new string[0];
+                }
+
+                var info = dispatcher.Enqueue(new ExecAppCommand(exePath, workingDirectory, argsArray));
+
+                request.Respond(true, string.Format("CommandId={0}", info.Id));
             });
 
             ipcServer.Receive();
