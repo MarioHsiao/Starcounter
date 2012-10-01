@@ -47,7 +47,7 @@ namespace Starcounter.Binding
 #if true
             Db.CreateIndex(
                 newTableDef.DefinitionAddr,
-                string.Concat(newTableDef.Name, "_AUTO"),
+                string.Concat(newTableDef.ShortName, "_AUTO"),
                 0
                 );
 #endif

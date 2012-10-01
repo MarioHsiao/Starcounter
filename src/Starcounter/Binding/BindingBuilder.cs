@@ -263,7 +263,7 @@ namespace Starcounter.Binding
             return GeneratePropertyBindingDefault(
                 propertyDef,
                 decimalPropertyBindingBaseType,
-                "DoDecimalTime",
+                "DoGetDecimal",
                 decimalPropertyBindingReturnType,
                 nullableDecimalPropertyBindingReturnType,
                 thisType
@@ -279,7 +279,7 @@ namespace Starcounter.Binding
             return GeneratePropertyBindingDefault(
                 propertyDef,
                 decimalPropertyBindingBaseType,
-                "DoDoubleTime",
+                "DoGetDouble",
                 decimalPropertyBindingReturnType,
                 nullableDoublePropertyBindingReturnType,
                 thisType
@@ -295,7 +295,7 @@ namespace Starcounter.Binding
             return GeneratePropertyBindingDefault(
                 propertyDef,
                 singlePropertyBindingBaseType,
-                "DoSingleTime",
+                "DoGetSingle",
                 singlePropertyBindingReturnType,
                 nullableSinglePropertyBindingReturnType,
                 thisType
