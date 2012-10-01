@@ -203,42 +203,6 @@ namespace HttpStructs
             data_stream_.Init(chunk_data, single_chunk, chunk_index);
         }
 
-        public void ReadBody(Byte[] buffer, Int32 offset, Int32 length)
-        {
-            unsafe { data_stream_.Read(buffer, offset, length); }
-        }
-
-        public String GetContent()
-        {
-            unsafe { return http_request_->GetContent(); }
-        }
-
-        public void WriteResponse(Byte[] buffer, Int32 offset, Int32 length)
-        {
-            unsafe { data_stream_.Write(buffer, offset, length); }
-        }
-
-        public void GetRawRequest(out IntPtr ptr, out UInt32 sizeBytes)
-        {
-            unsafe { http_request_->GetRawRequest(out ptr, out sizeBytes); }
-        }
-
-        public void GetRawContent(out IntPtr ptr, out UInt32 sizeBytes)
-        {
-            unsafe { http_request_->GetRawContent(out ptr, out sizeBytes); }
-        }
-
-        public void GetRawMethodAndUri(out IntPtr ptr, out UInt32 sizeBytes)
-        {
-            unsafe { http_request_->GetRawMethodAndUri(out ptr, out sizeBytes); }
-        }
-
-        public void GetRawVerbAndUriPlusSpace(out IntPtr ptr, out UInt32 sizeBytes)
-        {
-            unsafe { http_request_->GetRawMethodAndUri(out ptr, out sizeBytes); }
-            sizeBytes += 1;
-        }
-
         // TODO
         public void Debug(string message, Exception ex = null)
         {
@@ -279,6 +243,42 @@ namespace HttpStructs
             }
         }
 
+        public void ReadBody(Byte[] buffer, Int32 offset, Int32 length)
+        {
+            unsafe { data_stream_.Read(buffer, offset, length); }
+        }
+
+        public String GetBody()
+        {
+            unsafe { return http_request_->GetBody(); }
+        }
+
+        public void WriteResponse(Byte[] buffer, Int32 offset, Int32 length)
+        {
+            unsafe { data_stream_.Write(buffer, offset, length); }
+        }
+
+        public void GetRawRequest(out IntPtr ptr, out UInt32 sizeBytes)
+        {
+            unsafe { http_request_->GetRawRequest(out ptr, out sizeBytes); }
+        }
+
+        public void GetRawBody(out IntPtr ptr, out UInt32 sizeBytes)
+        {
+            unsafe { http_request_->GetRawBody(out ptr, out sizeBytes); }
+        }
+
+        public void GetRawMethodAndUri(out IntPtr ptr, out UInt32 sizeBytes)
+        {
+            unsafe { http_request_->GetRawMethodAndUri(out ptr, out sizeBytes); }
+        }
+
+        public void GetRawVerbAndUriPlusSpace(out IntPtr ptr, out UInt32 sizeBytes)
+        {
+            unsafe { http_request_->GetRawMethodAndUri(out ptr, out sizeBytes); }
+            sizeBytes += 1;
+        }
+
         public void GetRawHeaders(out IntPtr ptr, out UInt32 sizeBytes)
         {
             unsafe { http_request_->GetRawHeaders(out ptr, out sizeBytes); }
@@ -312,11 +312,11 @@ namespace HttpStructs
             }
         }
 
-        public UInt32 ContentLength
+        public UInt32 BodyLength
         {
             get
             {
-                unsafe { return http_request_->content_len_bytes_; }
+                unsafe { return http_request_->body_len_bytes_; }
             }
         }
 
@@ -336,11 +336,11 @@ namespace HttpStructs
             }
         }
 
-        public Boolean IsGzipEnabled
+        public Boolean IsGzipAccepted
         {
             get
             {
-                unsafe { return http_request_->gzip_enabled_; }
+                unsafe { return http_request_->is_gzip_accepted_; }
             }
         }
 
@@ -367,9 +367,9 @@ namespace HttpStructs
         public UInt32 request_offset_;
         public UInt32 request_len_bytes_;
 
-        // Content.
-        public UInt32 content_offset_;
-        public UInt32 content_len_bytes_;
+        // Body.
+        public UInt32 body_offset_;
+        public UInt32 body_len_bytes_;
 
         // Resource URI.
         public UInt32 uri_offset_;
@@ -404,8 +404,8 @@ namespace HttpStructs
         // HTTP method.
         public HTTP_METHODS http_method_;
 
-        // Gzip indicator.
-        public bool gzip_enabled_;
+        // Is Gzip accepted.
+        public bool is_gzip_accepted_;
 
         // Socket data pointer.
         public unsafe Byte* sd_;
@@ -417,17 +417,17 @@ namespace HttpStructs
         }
 
         // TODO: Plain big buffer!
-        public void GetRawContent(out IntPtr ptr, out UInt32 sizeBytes)
+        public void GetRawBody(out IntPtr ptr, out UInt32 sizeBytes)
         {
-            if (content_len_bytes_ <= 0) ptr = IntPtr.Zero;
-            else { ptr = new IntPtr(sd_ + content_offset_); }
-            sizeBytes = content_len_bytes_;
+            if (body_len_bytes_ <= 0) ptr = IntPtr.Zero;
+            else { ptr = new IntPtr(sd_ + body_offset_); }
+            sizeBytes = body_len_bytes_;
         }
 
         // TODO: Plain big buffer!
-        public String GetContent()
+        public String GetBody()
         {
-            return Marshal.PtrToStringAnsi((IntPtr)(sd_ + content_offset_), (Int32)content_len_bytes_);
+            return Marshal.PtrToStringAnsi((IntPtr)(sd_ + body_offset_), (Int32)body_len_bytes_);
         }
 
         public void GetRawMethodAndUri(out IntPtr ptr, out UInt32 sizeBytes)
@@ -587,8 +587,8 @@ namespace HttpStructs
         {
             return "<h1>HttpMethod: " + http_method_ + "</h1>\r\n" +
                    "<h1>URI: " + Uri + "</h1>\r\n" +
-                   "<h1>ContentLength: " + content_len_bytes_ + "</h1>\r\n" +
-                   "<h1>GZip: " + gzip_enabled_ + "</h1>\r\n" +
+                   "<h1>BodyLength: " + body_len_bytes_ + "</h1>\r\n" +
+                   "<h1>GZip accepted: " + is_gzip_accepted_ + "</h1>\r\n" +
                    "<h1>Session index: " + session_struct_.session_index_ + "</h1>\r\n" +
                    "<h1>Session scheduler: " + session_struct_.scheduler_id_ + "</h1>\r\n" +
                    "<h1>Session string: " + GetSessionString() + "</h1>\r\n"
