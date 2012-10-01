@@ -67,7 +67,6 @@
     <Compile Include="DatabaseDefaults.cs" />
     <Compile Include="DatabaseEngine.cs" />
     <Compile Include="Mock\Severity.cs" />
-    <Compile Include="Mock\_sccorelog.cs" />
     <Compile Include="Program.cs">
       <SubType>Component</SubType>
     </Compile>

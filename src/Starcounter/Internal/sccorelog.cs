@@ -10,6 +10,20 @@ namespace Starcounter.Internal
     public static class sccorelog
     {
 
+        public const uint SC_ENTRY_DEBUG = 0;
+
+        public const uint SC_ENTRY_SUCCESS_AUDIT = 1;
+
+        public const uint SC_ENTRY_FAILURE_AUDIT = 2;
+
+        public const uint SC_ENTRY_NOTICE = 3;
+
+        public const uint SC_ENTRY_WARNING = 4;
+
+        public const uint SC_ENTRY_ERROR = 5;
+
+        public const uint SC_ENTRY_CRITICAL = 6;
+        
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern uint SCInitModule_LOG(ulong hmenv);
 
