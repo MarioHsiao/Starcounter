@@ -43,17 +43,17 @@ namespace IndexQueryTest
                         LastName = "Larsson",
                         UserId = "KalLar01"
                     };
-                    //new AccountTest.Account { AccountId = 0, Amount = 10.0m, Client = user };
-                    //new AccountTest.Account { AccountId = 1, Amount = 20.0m, Client = user };
+                    new AccountTest.Account { AccountId = 0, Amount = 10, Client = user };
+                    new AccountTest.Account { AccountId = 1, Amount = 20, Client = user };
                     user = new AccountTest.User
                     {
                         FirstName = "Oleg",
                         LastName = "Popov",
                         UserId = "OlePop02"
                     };
-                    //new AccountTest.Account { AccountId = 2, Amount = 15.0m, Client = user };
-                    //new AccountTest.Account { AccountId = 3, Amount = 25.0m, Client = user };
-                    //new AccountTest.Account { AccountId = 4, Amount = 15.0m, Client = user };
+                    new AccountTest.Account { AccountId = 2, Amount = 15, Client = user };
+                    new AccountTest.Account { AccountId = 3, Amount = 25, Client = user };
+                    new AccountTest.Account { AccountId = 4, Amount = 15, Client = user };
                     populated = true;
                 }
             });
@@ -89,7 +89,7 @@ namespace IndexQueryTest
         {
             Console.WriteLine("Test of CREATE/DROP INDEX and DROP TABLE.");
             Populate();
-            //PrintAllObjects();
+            PrintAllObjects();
             Console.WriteLine("Test completed.");
         }
     }
