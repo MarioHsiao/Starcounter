@@ -43,6 +43,11 @@ namespace Starcounter.Server {
         internal readonly string Uri;
 
         /// <summary>
+        /// Gets the Starcounter installation directory.
+        /// </summary>
+        internal readonly string InstallationDirectory;
+
+        /// <summary>
         /// Gets the full path of the temporary directory decided and resolved
         /// when the server started.
         /// </summary>
@@ -79,6 +84,7 @@ namespace Starcounter.Server {
         /// </summary>
         /// <param name="configuration"></param>
         internal ServerNode(ServerConfiguration configuration) {
+            this.InstallationDirectory = Path.GetDirectoryName(typeof(ServerProgram).Assembly.Location);
             this.Configuration = configuration;
             this.DatabaseDefaultValues = new DatabaseDefaults();
             this.Name = configuration.Name;
