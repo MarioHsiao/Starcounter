@@ -34,6 +34,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter", "Starcounter\
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bmx", "Communication\bmx\bmx.vcxproj", "{7E994512-CAB0-44F9-97CD-49F67828E8D1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8B599BFF-B414-41A3-A270-96CDA0C522AF} = {8B599BFF-B414-41A3-A270-96CDA0C522AF}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{EB6765FF-80A0-4695-B8F4-9F5ADF59CBA1}"
 EndProject
@@ -116,7 +119,9 @@ Global
 		{90D57166-B42E-4BBE-B9EC-CFB33E551B77}.Release|x64.ActiveCfg = Release|Any CPU
 		{90D57166-B42E-4BBE-B9EC-CFB33E551B77}.Release|x64.Build.0 = Release|Any CPU
 		{917A2134-2267-4E27-9415-1D531AADF156}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{917A2134-2267-4E27-9415-1D531AADF156}.Debug|x64.Build.0 = Debug|Any CPU
 		{917A2134-2267-4E27-9415-1D531AADF156}.Release|x64.ActiveCfg = Release|Any CPU
+		{917A2134-2267-4E27-9415-1D531AADF156}.Release|x64.Build.0 = Release|Any CPU
 		{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}.Debug|x64.Build.0 = Debug|Any CPU
 		{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}.Release|x64.ActiveCfg = Release|Any CPU
