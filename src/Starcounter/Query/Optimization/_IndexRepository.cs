@@ -26,11 +26,6 @@ internal static class IndexRepository
     // TODO: Should be private. Only temporary internal for debugging purposes.
     static internal Dictionary<String, IndexUseInfo> indexDictionaryBySortSpecification;
 
-    /// <summary>
-    /// Dictionary of available indexes with the names of the indexes as keys.
-    /// </summary>
-    static Dictionary<String, IndexInfo> indexDictionaryByName;
-
     // Called during startup.
     internal static void Initiate()
     {
@@ -38,9 +33,6 @@ internal static class IndexRepository
         {
             // Create index dictionary for optimization by removing sorting.
             IndexRepository.CreateIndexDictionaryBySortSpecification();
-
-            // Create index dictionary for finding an index by name.
-            IndexRepository.CreateIndexDictionaryByName();
         });
     }
 
@@ -84,35 +76,6 @@ internal static class IndexRepository
         if (indexDictionaryBySortSpecification.TryGetValue(key, out indexUseInfo))
         {
             return indexUseInfo;
-        }
-        return null;
-    }
-
-    internal static void CreateIndexDictionaryByName()
-    {
-        indexDictionaryByName = new Dictionary<String, IndexInfo>();
-        IEnumerator<TypeDef> enumerator = Starcounter.Binding.Bindings.GetAllTypeDefs().GetEnumerator();
-        IndexInfo[] indexInfoArray = null;
-        while (enumerator.MoveNext())
-        {
-            indexInfoArray = enumerator.Current.TableDef.GetAllIndexInfos();
-            for (Int32 i = 0; i < indexInfoArray.Length; i++)
-            {
-                if (indexDictionaryByName.ContainsKey(indexInfoArray[i].Name))
-                {
-                    throw ErrorCode.ToException(Error.SCERRSQLDUPLICATEDIDENTIFIER, "An index with the same name already exists: " + indexInfoArray[i].Name);
-                }
-                indexDictionaryByName.Add(indexInfoArray[i].Name, indexInfoArray[i]);
-            }
-        }
-    }
-
-    internal static IndexInfo GetIndexByName(String name)
-    {
-        IndexInfo indexInfo = null;
-        if (indexDictionaryByName.TryGetValue(name, out indexInfo))
-        {
-            return indexInfo;
         }
         return null;
     }
