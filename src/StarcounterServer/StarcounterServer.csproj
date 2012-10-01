@@ -97,6 +97,7 @@
     </Compile>
     <Compile Include="ScUri.cs" />
     <Compile Include="ServerNode.cs" />
+    <Compile Include="ServerServices.cs" />
     <Compile Include="Setup\RepositorySetup.cs" />
     <Compile Include="Setup\RepositoryStructure.cs" />
   </ItemGroup>
