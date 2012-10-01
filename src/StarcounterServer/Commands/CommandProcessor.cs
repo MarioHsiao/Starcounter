@@ -349,9 +349,7 @@ namespace Starcounter.Server.Commands {
         /// </summary>
         protected virtual LogSource Log {
             get {
-                // TODO: Backlog
-                // return ServerLogSources.CommandProcessor;
-                throw new NotImplementedException();
+                return ServerLogSources.Default;
             }
         }
 
