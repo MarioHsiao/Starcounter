@@ -174,6 +174,18 @@ namespace Starcounter.Server {
                 request.Respond(string.Format("URI={0}, Files={1}", info.Uri, info.Configuration.Runtime.ImageDirectory));
             });
 
+            ipcServer.Handle("ExecApp", delegate(Request request) {
+                var properties = request.GetParameter<Dictionary<string, string>>();
+                string s = string.Empty;
+                if (properties != null) {
+                    foreach (var item in properties) {
+                        s += item.Key + "=" + item.Value + ",";
+                    }
+                }
+                s = s.TrimEnd(',');
+                request.Respond(s);
+            });
+
             ipcServer.Receive();
         }
 
