@@ -244,5 +244,17 @@ namespace Starcounter.Binding
                 return iil;
             }
         }
+
+        internal IndexInfo GetIndexInfo(string name)
+        {
+            // TODO: Optimize.
+            IndexInfo[] indexInfos = GetAllIndexInfos();
+            for (int i = 0; i < indexInfos.Length; i++)
+            {
+                var indexInfo = indexInfos[i];
+                if (indexInfo.Name == name) return indexInfo;
+            }
+            return null;
+        }
     }
 }
