@@ -444,6 +444,12 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Communication\HttpStructs\HttpStructs.csproj">
+      <Project>{90d57166-b42e-4bbe-b9ec-cfb33e551b77}</Project>
+      <Name>HttpStructs</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>..\..\..\Grey\src\ErrorCodeCompiler\scerrcc.exe ..\..\..\Grey\src\errorcodes.xml -cs2 $(ProjectDir)Error.cs</PreBuildEvent>
