@@ -332,7 +332,6 @@
     <Compile Include="Query\Optimization\_ExtentSet.cs" />
     <Compile Include="Query\Optimization\_HintSpecification.cs" />
     <Compile Include="Query\Optimization\_IndexHint.cs" />
-    <Compile Include="Query\Optimization\_IndexRepository.cs" />
     <Compile Include="Query\Optimization\_IndexUseInfo.cs" />
     <Compile Include="Query\Optimization\_Interfaces.cs" />
     <Compile Include="Query\Optimization\_JoinNode.cs" />

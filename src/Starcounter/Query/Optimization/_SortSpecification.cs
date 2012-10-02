@@ -122,23 +122,31 @@ internal class SortSpecification
 
     private static IndexUseInfo GetIndexUseInfo(CompositeTypeBinding resultTypeBind, List<IPathComparer> pathComparerList)
     {
-        String key = CreateIndexDictionaryKey(resultTypeBind, pathComparerList);
-        if (key == null)
-        {
-            return null;
-        }
-        IndexUseInfo indexUseInfo = IndexRepository.GetIndexBySortSpecification(key);
-        return indexUseInfo; // Might be "null".
-    }
-
-    private static String CreateIndexDictionaryKey(CompositeTypeBinding resultTypeBind, List<IPathComparer> pathComparerList)
-    {
         if (pathComparerList.Count == 0)
         {
             return null;
         }
+
         Int32 extentNumber = pathComparerList[0].Path.ExtentNumber;
-        ITypeBinding typeBind = resultTypeBind.GetTypeBinding(extentNumber);
+        TypeBinding typeBind = (resultTypeBind.GetTypeBinding(extentNumber) as TypeBinding);
+        TypeDef typeDef = typeBind.TypeDef;
+
+        String key = CreateIndexDictionaryKey(typeDef, pathComparerList);
+        if (key == null)
+        {
+            return null;
+        }
+        IndexUseInfo indexUseInfo = GetIndexBySortSpecification(
+            CreateIndexDictionaryBySortSpecification(typeDef),
+            key
+            );
+        return indexUseInfo; // Might be "null".
+    }
+
+    private static String CreateIndexDictionaryKey(TypeDef typeBind, List<IPathComparer> pathComparerList)
+    {
+        // Assume pathComparerList.Count > 0.
+
         String key = typeBind.Name;
         for (Int32 i = 0; i < pathComparerList.Count; i++)
         {
@@ -147,7 +155,49 @@ internal class SortSpecification
         return key;
     }
 
-    internal static String CreateIndexDictionaryKey(TypeDef typeBind, IndexInfo indexInfo, Int32 usedArity)
+    private static Dictionary<String, IndexUseInfo> CreateIndexDictionaryBySortSpecification(TypeDef typeDef)
+    {
+        Dictionary<String, IndexUseInfo> indexDictionaryBySortSpecification = new Dictionary<String, IndexUseInfo>();
+        IndexInfo[] indexInfoArray = null;
+        IndexUseInfo indexUseInfo = null;
+        String key = null;
+
+        indexInfoArray = typeDef.TableDef.GetAllIndexInfos();
+        for (Int32 i = 0; i < indexInfoArray.Length; i++)
+        {
+            for (Int32 j = 1; j <= indexInfoArray[i].AttributeCount; j++)
+            {
+                // Create entry for using index ascending.
+                indexUseInfo = new IndexUseInfo(indexInfoArray[i], SortOrder.Ascending);
+                key = CreateIndexDictionaryKey(typeDef, indexInfoArray[i], j);
+                if (!indexDictionaryBySortSpecification.ContainsKey(key))
+                {
+                    indexDictionaryBySortSpecification.Add(key, indexUseInfo);
+                }
+                // Create entry for iusing index descending.
+                indexUseInfo = new IndexUseInfo(indexInfoArray[i], SortOrder.Descending);
+                key = CreateReversedIndexDictionaryKey(typeDef, indexInfoArray[i], j);
+                if (!indexDictionaryBySortSpecification.ContainsKey(key))
+                {
+                    indexDictionaryBySortSpecification.Add(key, indexUseInfo);
+                }
+            }
+        }
+
+        return indexDictionaryBySortSpecification;
+    }
+
+    private static IndexUseInfo GetIndexBySortSpecification(Dictionary<String, IndexUseInfo> indexDictionaryBySortSpecification, String key)
+    {
+        IndexUseInfo indexUseInfo = null;
+        if (indexDictionaryBySortSpecification.TryGetValue(key, out indexUseInfo))
+        {
+            return indexUseInfo;
+        }
+        return null;
+    }
+
+    private static String CreateIndexDictionaryKey(TypeDef typeBind, IndexInfo indexInfo, Int32 usedArity)
     {
         if (usedArity < 1 || usedArity > indexInfo.AttributeCount)
         {
@@ -168,7 +218,7 @@ internal class SortSpecification
         return SortOrder.Ascending;
     }
 
-    internal static String CreateReversedIndexDictionaryKey(TypeDef typeBind, IndexInfo indexInfo, Int32 usedArity)
+    private static String CreateReversedIndexDictionaryKey(TypeDef typeBind, IndexInfo indexInfo, Int32 usedArity)
     {
         if (usedArity < 1 || usedArity > indexInfo.AttributeCount)
         {
