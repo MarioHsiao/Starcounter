@@ -21,6 +21,7 @@ namespace Starcounter.Server {
     /// </summary>
     public sealed class ServerServices {
         ServerEngine engine;
+        IServerRuntime runtime;
         Server ipcServer;
         IResponseSerializer responseSerializer;
 
@@ -35,6 +36,7 @@ namespace Starcounter.Server {
                 ipcServer = new Starcounter.ABCIPC.Server(Console.In.ReadLine, Console.Out.WriteLine);
             }
             this.engine = engine;
+            this.runtime = null;
             this.ipcServer = ipcServer;
             this.responseSerializer = new NewtonSoftJsonSerializer(engine);
         }
@@ -42,7 +44,7 @@ namespace Starcounter.Server {
         public void Setup() {
 
             ipcServer.Handle("GetServerInfo", delegate(Request request) {
-                request.Respond(responseSerializer.SerializeReponse(engine.CurrentPublicModel.ServerInfo));
+                request.Respond(responseSerializer.SerializeReponse(runtime.GetServerInfo()));
             });
 
             ipcServer.Handle("GetDatabase", delegate(Request request) {
@@ -54,7 +56,7 @@ namespace Starcounter.Server {
                 serverUri = ScUri.FromString(engine.Uri);
                 uri = ScUri.MakeDatabaseUri(serverUri.MachineName, serverUri.ServerName, name).ToString();
 
-                var info = engine.CurrentPublicModel.GetDatabase(uri);
+                var info = runtime.GetDatabase(uri);
                 if (info == null) {
                     request.Respond(false, "Database not found");
                     return;
@@ -64,17 +66,19 @@ namespace Starcounter.Server {
             });
 
             ipcServer.Handle("GetDatabases", delegate(Request request) {
-                var databases = engine.CurrentPublicModel.GetDatabases();
+                var databases = runtime.GetDatabases();
                 request.Respond(responseSerializer.SerializeReponse(databases));
             });
 
             ipcServer.Handle("GetCommandDescriptors", delegate(Request request) {
+                // Redirect to IServerRuntime as soon as supported.
+                // TODO:
                 var supportedCommands = engine.Dispatcher.CommandDescriptors;
                 request.Respond(responseSerializer.SerializeReponse(supportedCommands));
             });
 
             ipcServer.Handle("GetCommands", delegate(Request request) {
-                var commands = engine.Dispatcher.GetRecentCommands();
+                var commands = runtime.GetCommands();
                 request.Respond(responseSerializer.SerializeReponse(commands));
             });
 
@@ -142,6 +146,9 @@ namespace Starcounter.Server {
         /// caller.
         /// </remarks>
         public void Start() {
+            // We don't assign the runtime until we are started,
+            // trusting the engine was started prior to us.
+            this.runtime = this.engine.CurrentPublicModel;
             ipcServer.Receive();
         }
     }
