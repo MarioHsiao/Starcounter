@@ -126,135 +126,134 @@ namespace Starcounter.Binding
 
         internal IndexInfo[] GetAllIndexInfos()
         {
-            UInt32 ec;
-            UInt32 ic;
+            uint ec;
+            uint ic;
             sccoredb.SC_INDEX_INFO[] iis;
             IndexInfo[] iil;
-            Int32 i;
-            String name;
-            Int16 attributeCount;
-            UInt16 tempSortMask;
-            SortOrder[] sortOrderings;
-            ColumnDef[] columnDefs;
 
             unsafe
             {
-                ec = sccoredb.SCSchemaGetIndexes(
+                ec = sccoredb.sccoredb_get_index_infos(
                     DefinitionAddr,
                     &ic,
                     null
                 );
-
                 if (ec != 0)
                 {
                     throw ErrorCode.ToException(ec);
                 }
-
                 if (ic == 0)
                 {
                     return new IndexInfo[0];
                 }
 
                 iis = new sccoredb.SC_INDEX_INFO[ic];
-
-                fixed (sccoredb.SC_INDEX_INFO* p = &(iis[0]))
+                fixed (sccoredb.SC_INDEX_INFO* pii = &(iis[0]))
                 {
-                    ec = sccoredb.SCSchemaGetIndexes(
+                    ec = sccoredb.sccoredb_get_index_infos(
                         DefinitionAddr,
                         &ic,
-                        p
+                        pii
                     );
-                }
-
-                if (ec != 0)
-                {
-                    throw ErrorCode.ToException(ec);
-                }
-
-                iil = new IndexInfo[ic];
-
-                for (i = 0; i < ic; i++)
-                {
-                    name = new String(iis[i].name);
-                    // Get the number of attributes.
-                    attributeCount = iis[i].attributeCount;
-                    if (attributeCount < 1 || attributeCount > 10)
+                    if (ec != 0)
                     {
-                        throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect attributeCount.");
+                        throw ErrorCode.ToException(ec);
                     }
-                    // Get the sort orderings.
-                    sortOrderings = new SortOrder[attributeCount];
-                    tempSortMask = iis[i].sortMask;
-                    for (Int32 j = 0; j < attributeCount; j++)
-                    {
-                        if ((tempSortMask & 1) == 1)
-                        {
-                            sortOrderings[j] = SortOrder.Descending;
-                        }
-                        else
-                        {
-                            sortOrderings[j] = SortOrder.Ascending;
-                        }
-                        tempSortMask = (UInt16)(tempSortMask >> 1);
-                    }
-                    // Get the column definitions.
-                    columnDefs = new ColumnDef[attributeCount];
-                    for (Int32 j = 0; j < attributeCount; j++)
-                    {
-                        switch (j)
-                        {
-                            case 0:
-                                columnDefs[j] = ColumnDefs[iis[i].attrIndexArr_0];
-                                break;
-                            case 1:
-                                columnDefs[j] = ColumnDefs[iis[i].attrIndexArr_1];
-                                break;
-                            case 2:
-                                columnDefs[j] = ColumnDefs[iis[i].attrIndexArr_2];
-                                break;
-                            case 3:
-                                columnDefs[j] = ColumnDefs[iis[i].attrIndexArr_3];
-                                break;
-                            case 4:
-                                columnDefs[j] = ColumnDefs[iis[i].attrIndexArr_4];
-                                break;
-                            case 5:
-                                columnDefs[j] = ColumnDefs[iis[i].attrIndexArr_5];
-                                break;
-                            case 6:
-                                columnDefs[j] = ColumnDefs[iis[i].attrIndexArr_6];
-                                break;
-                            case 7:
-                                columnDefs[j] = ColumnDefs[iis[i].attrIndexArr_7];
-                                break;
-                            case 8:
-                                columnDefs[j] = ColumnDefs[iis[i].attrIndexArr_8];
-                                break;
-                            case 9:
-                                columnDefs[j] = ColumnDefs[iis[i].attrIndexArr_9];
-                                break;
-                            case 10:
-                                columnDefs[j] = ColumnDefs[iis[i].attrIndexArr_10];
-                                break;
-                        }
-                    }
-                    iil[i] = new IndexInfo(iis[i].handle, name, columnDefs, sortOrderings);
-                }
 
-                return iil;
+                    iil = new IndexInfo[ic];
+                    for (int i = 0; i < ic; i++)
+                    {
+                        iil[i] = CreateIndexInfo(pii + i);
+                    }
+                    return iil;
+                }
             }
         }
 
         internal IndexInfo GetIndexInfo(string name)
         {
-            // TODO: Optimize.
-            IndexInfo[] indexInfos = GetAllIndexInfos();
-            for (int i = 0; i < indexInfos.Length; i++)
+            unsafe
             {
-                var indexInfo = indexInfos[i];
-                if (indexInfo.Name == name) return indexInfo;
+                sccoredb.SC_INDEX_INFO ii;
+                uint r = sccoredb.sccoredb_get_index_info_by_name(DefinitionAddr, name, &ii);
+                if (r == 0) return CreateIndexInfo(&ii);
+                if (r == Error.SCERRINDEXNOTFOUND) return null; // Index not found.
+                throw ErrorCode.ToException(r);
             }
-            return null;
+        }
+
+        private unsafe IndexInfo CreateIndexInfo(sccoredb.SC_INDEX_INFO* pii)
+        {
+            string name;
+            short attributeCount;
+            ushort tempSortMask;
+            SortOrder[] sortOrderings;
+            ColumnDef[] columnDefs;
+
+            name = new String(pii->name);
+            // Get the number of attributes.
+            attributeCount = pii->attributeCount;
+            if (attributeCount < 1 || attributeCount > 10)
+            {
+                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect attributeCount.");
+            }
+            // Get the sort orderings.
+            sortOrderings = new SortOrder[attributeCount];
+            tempSortMask = pii->sortMask;
+            for (Int32 j = 0; j < attributeCount; j++)
+            {
+                if ((tempSortMask & 1) == 1)
+                {
+                    sortOrderings[j] = SortOrder.Descending;
+                }
+                else
+                {
+                    sortOrderings[j] = SortOrder.Ascending;
+                }
+                tempSortMask = (UInt16)(tempSortMask >> 1);
+            }
+            // Get the column definitions.
+            columnDefs = new ColumnDef[attributeCount];
+            for (Int32 j = 0; j < attributeCount; j++)
+            {
+                switch (j)
+                {
+                    case 0:
+                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_0];
+                        break;
+                    case 1:
+                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_1];
+                        break;
+                    case 2:
+                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_2];
+                        break;
+                    case 3:
+                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_3];
+                        break;
+                    case 4:
+                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_4];
+                        break;
+                    case 5:
+                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_5];
+                        break;
+                    case 6:
+                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_6];
+                        break;
+                    case 7:
+                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_7];
+                        break;
+                    case 8:
+                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_8];
+                        break;
+                    case 9:
+                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_9];
+                        break;
+                    case 10:
+                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_10];
+                        break;
+                }
+            }
+            return new IndexInfo(pii->handle, name, columnDefs, sortOrderings);
         }
     }
 }
