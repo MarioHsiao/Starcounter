@@ -5,7 +5,7 @@ namespace Starcounter.Server.PublicModel {
     /// Describes a task, possibly executed as part of executing
     /// a server command.
     /// </summary>
-    internal sealed class TaskInfo {
+    public sealed class TaskInfo {
         
         /// <summary>
         /// Numeric identity of the task, used to send over the wire
@@ -13,7 +13,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public int ID {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -22,7 +22,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string ShortText {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string Description {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public TaskDuration Duration {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string ProgressUnits {
             get;
-            set;
+            internal set;
         }
     }
 }

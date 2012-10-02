@@ -5,18 +5,19 @@ namespace Starcounter.Server.PublicModel {
     /// Represents the progress of a task, executing to fullfill the
     /// execution of a <see cref="ServerCommand"/>.
     /// </summary>
-    internal sealed class ProgressInfo {
+    public sealed class ProgressInfo {
+        
         /// <summary>
         /// Deserialization constructor.
         /// </summary>
-        public ProgressInfo() {
+        internal ProgressInfo() {
         }
 
         /// <summary>
         /// Initializes a new <see cref="ProgressInfo"/>.
         /// </summary>
         /// <param name="data">To be defined.</param>
-        public ProgressInfo(int taskID, int value, int maximum, string text) {
+        internal ProgressInfo(int taskID, int value, int maximum, string text) {
             this.TaskIdentity = taskID;
             this.Value = value;
             this.Maximum = maximum;
@@ -27,22 +28,34 @@ namespace Starcounter.Server.PublicModel {
         /// Identity of the well-known command sub-task that has made progress,
         /// or a pseudo number according to protocol.
         /// </summary>
-        public int TaskIdentity;
+        public int TaskIdentity { 
+            get; 
+            internal set; 
+        }
 
         /// <summary>
         /// Progress value.
         /// </summary>
-        public int Value;
+        public int Value {
+            get;
+            internal set;
+        }
 
         /// <summary>
         /// Progress maximum, if known.
         /// </summary>
-        public int Maximum;
+        public int Maximum {
+            get;
+            internal set;
+        }
 
         /// <summary>
         /// Progress Text.
         /// </summary>
-        public string Text;
+        public string Text {
+            get;
+            internal set;
+        }
 
         /// <summary>
         /// Gets a value indicating if the current progess record indicates

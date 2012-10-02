@@ -8,7 +8,7 @@ namespace Starcounter.Server.PublicModel {
     /// Describes a command and provides possibly information about it's
     /// underlying tasks.
     /// </summary>
-    internal sealed class CommandDescriptor {
+    public sealed class CommandDescriptor {
         public static readonly CommandDescriptor Empty = new CommandDescriptor();
 
         /// <summary>
@@ -18,7 +18,7 @@ namespace Starcounter.Server.PublicModel {
         /// <example>"Starts a database"</example>
         public string CommandDescription {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public int CommandType {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public TaskInfo[] Tasks {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>

@@ -6,7 +6,7 @@ namespace Starcounter.Server.PublicModel {
     /// <summary>
     /// Unique identifier of a command.
     /// </summary>
-    internal class CommandId : IEquatable<CommandId> {
+    public sealed class CommandId : IEquatable<CommandId> {
         
         /// <summary>
         /// The null/empty command identifier.

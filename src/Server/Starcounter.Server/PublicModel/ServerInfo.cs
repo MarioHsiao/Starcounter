@@ -7,12 +7,12 @@ namespace Starcounter.Server.PublicModel {
     /// <summary>
     /// Represents a snapshot of the public state of a server.
     /// </summary>
-    internal sealed class ServerInfo {
+    public sealed class ServerInfo {
 
         /// <summary>
         /// Initializes a <see cref="ServerInfo"/> message object.
         /// </summary>
-        public ServerInfo() {
+        internal ServerInfo() {
         }
 
         /// <summary>
@@ -23,7 +23,7 @@ namespace Starcounter.Server.PublicModel {
         /// </remarks>
         public string Uri {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public ServerConfiguration Configuration {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public bool IsMonitoringSupported {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public long DefaultMaxImageSize {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public long DefaultTransactionLogSize {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string UserName {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -76,7 +76,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string ServerConfigurationPath {
             get;
-            set;
+            internal set;
         }
     }
 }

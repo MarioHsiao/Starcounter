@@ -4,7 +4,7 @@ namespace Starcounter.Server.PublicModel {
     /// <summary>
     /// Denotes a duration of a task.
     /// </summary>
-    internal enum TaskDuration {
+    public enum TaskDuration {
         /// <summary>
         /// The duration can't even be estimated.
         /// </summary>
