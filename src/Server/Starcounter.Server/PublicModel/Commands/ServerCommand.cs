@@ -1,7 +1,7 @@
 
 using System;
 
-namespace Starcounter.Server.Commands {
+namespace Starcounter.Server.PublicModel.Commands {
     
     /// <summary>
     /// Base class of all server commands, possible to install processors for

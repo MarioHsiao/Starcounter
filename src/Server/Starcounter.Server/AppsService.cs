@@ -1,8 +1,8 @@
 ﻿
 using Starcounter.Apps.Bootstrap;
 using Starcounter.Internal;
-using Starcounter.Server.Commands;
 using Starcounter.Server.PublicModel;
+using Starcounter.Server.PublicModel.Commands;
 using System.Collections.Generic;
 using System.IO;
 
