@@ -166,13 +166,19 @@ namespace Starcounter.Internal
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern uint sc_drop_table(ushort table_id);
 
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public unsafe extern static UInt32 sccoredb_get_index_info_by_name(
+            UInt64 definition_addr,
+            string name,
+            SC_INDEX_INFO* pii
+            );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 SCSchemaGetIndexes(
-            UInt64 definitionAddr,
+        public unsafe extern static UInt32 sccoredb_get_index_infos(
+            UInt64 definition_addr,
             UInt32* pic,
             SC_INDEX_INFO* piis
-        );
+            );
 
         [StructLayout(LayoutKind.Sequential, Pack=8)]
         public unsafe struct SC_INDEX_INFO
