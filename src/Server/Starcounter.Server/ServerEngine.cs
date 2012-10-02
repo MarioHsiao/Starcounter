@@ -17,7 +17,7 @@ namespace Starcounter.Server {
     /// <summary>
     /// Representing the running server, hosted in a server program.
     /// </summary>
-    internal sealed class ServerEngine {
+    public sealed class ServerEngine {
         internal readonly CommandDispatcher Dispatcher;
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace Starcounter.Server {
         /// </summary>
         /// <param name="serverConfigurationPath">Path to the server configuration
         /// file in the root of the server repository the engine will run.</param>
-        internal ServerEngine(string serverConfigurationPath) {
+        public ServerEngine(string serverConfigurationPath) {
             this.InstallationDirectory = Path.GetDirectoryName(typeof(ServerEngine).Assembly.Location);
             this.Configuration = ServerConfiguration.Load(Path.GetFullPath(serverConfigurationPath));
             this.DatabaseDefaultValues = new DatabaseDefaults();
@@ -106,7 +106,10 @@ namespace Starcounter.Server {
             this.AppsService = new Server.AppsService(this);
         }
 
-        internal void Setup() {
+        /// <summary>
+        /// Executes setup of the current engine.
+        /// </summary>
+        public void Setup() {
             string serverRepositoryDirectory;
             string tempDirectory;
             string databaseDirectory;
@@ -149,12 +152,32 @@ namespace Starcounter.Server {
             this.AppsService.Setup();
         }
 
-        internal void Start() {
+        /// <summary>
+        /// Starts the current engine, meaning all built-in services of the
+        /// engine will get the chance to start.
+        /// </summary>
+        /// <remarks>
+        /// This call is not blocking; after all built-in services has been
+        /// started, control is returned to the host.
+        /// </remarks>
+        public void Start() {
             this.AppsService.Start();
+
+            // Start all other built-in standard components, like the gateway,
+            // the process monitor, etc.
+            // TODO:
         }
 
-        internal void Stop() {
+        /// <summary>
+        /// Stops the current engine, meaning all built-in services of the
+        /// engine will get a request to stop.
+        /// </summary>
+        public void Stop() {
             this.AppsService.Stop();
+
+            // Stop all other built-in standard components, like the gateway,
+            // the process monitor, etc.
+            // TODO:
         }
 
         /// <summary>
