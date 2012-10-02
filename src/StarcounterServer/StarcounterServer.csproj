@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -30,6 +31,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
@@ -67,7 +69,6 @@
     <Compile Include="DatabaseDefaults.cs" />
     <Compile Include="DatabaseEngine.cs" />
     <Compile Include="Mock\Severity.cs" />
-    <Compile Include="Mock\_sccorelog.cs" />
     <Compile Include="Program.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -96,7 +97,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ScUri.cs" />
+    <Compile Include="ServerLogSources.cs" />
     <Compile Include="ServerNode.cs" />
+    <Compile Include="ServerServices.cs" />
     <Compile Include="Setup\RepositorySetup.cs" />
     <Compile Include="Setup\RepositoryStructure.cs" />
   </ItemGroup>
