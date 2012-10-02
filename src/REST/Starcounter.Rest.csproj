@@ -125,9 +125,9 @@
       <Project>{90d57166-b42e-4bbe-b9ec-cfb33e551b77}</Project>
       <Name>HttpStructs</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Starcounter.BitsAndBytes\Starcounter.BitsAndBytes.csproj">
+    <ProjectReference Include="..\Starcounter.BitsAndBytes\BitsAndBytes.csproj">
       <Project>{c6b4ba42-680c-446d-9b89-1c82d443dc75}</Project>
-      <Name>Starcounter.BitsAndBytes</Name>
+      <Name>BitsAndBytes</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

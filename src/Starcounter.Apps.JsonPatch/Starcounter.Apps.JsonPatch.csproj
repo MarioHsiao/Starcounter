@@ -82,9 +82,9 @@
       <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
       <Name>Starcounter.Apps.Interfaces</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Starcounter.BitsAndBytes\Starcounter.BitsAndBytes.csproj">
+    <ProjectReference Include="..\Starcounter.BitsAndBytes\BitsAndBytes.csproj">
       <Project>{c6b4ba42-680c-446d-9b89-1c82d443dc75}</Project>
-      <Name>Starcounter.BitsAndBytes</Name>
+      <Name>BitsAndBytes</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.Hypermedia\Starcounter.Hypermedia.csproj">
       <Project>{42137e4c-afe5-4c60-b970-3343c3b3ec30}</Project>
