@@ -1,0 +1,23 @@
+﻿<!DOCTYPE html>
+<head>
+    <title>Untitled Page</title>
+</head>
+<body>
+<h1>The internal tuple format</h1>
+<p>
+SQL projections and App view models are all stored as Starcounter session tuples. A session tuple is a transient
+data structure (it is not stored on disk). Tuple values can have the same data types as JSON plus the values available
+in the database (types allowed by Entity). 
+</p>
+<p>
+For the user (the software developer), tuples are often exposed as JSON or SQL results. Internally however, they are stored
+inside big chunks of memory called SessionBlobs. Each session has one or more SessionBlobs (new blobs are added when needed and sometimes
+they are merged together). The tuples are stored in one of three binary formats. Two formats avoid non printable bytes (ASCII/UTF-8).
+This allows the contents of these tuples to be copied directly to the network and the end consumer (for example a browser).
+</p>
+<p>
+<img src="http://www.rebelslounge.com/res/sessiontuples/TupleFormat.png"/>
+</p>
+</body>
+
+</html>

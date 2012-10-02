@@ -1,0 +1,11 @@
+{
+   "PlayerId":"",
+	"FullName":"",
+	Accounts:[
+		{
+			"AccountType":"",
+			"AccountId":"",
+			"Amount":""
+		}
+   ]
+}

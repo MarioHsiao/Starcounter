@@ -48,7 +48,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Communication\HttpStructs\HttpStructs.csproj">
+    <ProjectReference Include="..\..\HTTP\HttpStructs.csproj">
       <Project>{90d57166-b42e-4bbe-b9ec-cfb33e551b77}</Project>
       <Name>HttpStructs</Name>
     </ProjectReference>
