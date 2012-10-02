@@ -18,6 +18,7 @@
     <BlueSolutionInclude>..\..\..\Level0\src\include</BlueSolutionInclude>
     <GreyDll>..\Starcounter.ErrorCodes\scerrres\x64\$(Configuration)\scerrres.dll</GreyDll>
     <StartAllScript>..\BuildSystem\Scripts\start_all.bat</StartAllScript>
+    <GatewayXML>..\NetworkGateway\scripts\ScGateway.xml</GatewayXML>
   </PropertyGroup>
   <PropertyGroup>
     <LocalBlueBinariesDir>..\..\..\Level0\src\x64\$(Configuration)</LocalBlueBinariesDir>
@@ -39,6 +40,7 @@
     <Copy Condition="!Exists('$(BlueSolution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteBlueIncludeFiles)" DestinationFolder="..\..\..\Level0\src\include" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(GreyDll)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(StartAllScript)" DestinationFolder="$(OutputPath)" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(GatewayXML)" DestinationFolder="$(OutputPath)" />
   </Target>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" DependsOnTargets="CopyExternalStaticFiles" />
