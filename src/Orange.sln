@@ -56,6 +56,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndexQueryTest", "Samples\I
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarcounterServer", "StarcounterServer\StarcounterServer.csproj", "{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Internal", "Starcounter.Internal\Starcounter.Internal.csproj", "{015A94BB-8483-4227-90D6-A08D092212BD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9E8D97FC-87A3-4A7C-B318-9414B5EEA60E} = {9E8D97FC-87A3-4A7C-B318-9414B5EEA60E}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -125,6 +130,9 @@ Global
 		{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}.Debug|x64.Build.0 = Debug|Any CPU
 		{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}.Release|x64.ActiveCfg = Release|Any CPU
+		{015A94BB-8483-4227-90D6-A08D092212BD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{015A94BB-8483-4227-90D6-A08D092212BD}.Debug|x64.Build.0 = Debug|Any CPU
+		{015A94BB-8483-4227-90D6-A08D092212BD}.Release|x64.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
