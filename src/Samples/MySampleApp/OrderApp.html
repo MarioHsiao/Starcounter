@@ -1,0 +1,11 @@
+<div>
+    <div>{{OrderNo}}</div>
+
+
+    <datagrid ng-model="Items">
+        <datacolumn ng-model="Product._SearchText" data-options="Product._Options"></datacolumn>
+        <datacolumn ng-model="Quantity"></datacolumn>
+    </datagrid>
+    <button data-trigger="Save">Place</button>
+    <div>{{Total}}</div>
+</div>

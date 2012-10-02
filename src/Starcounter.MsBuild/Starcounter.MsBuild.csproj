@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{B1EC8976-B515-4308-89C3-319543A0C7A9}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Starcounter.Internal.MsBuild</RootNamespace>
+    <AssemblyName>Starcounter.MsBuild</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Build.Framework" />
+    <Reference Include="Microsoft.Build.Utilities.v4.0" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="JsonToCsMsBuildTask.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ThirdParty\DynamoIoc\DynamoIoc.csproj">
+      <Project>{ea81e2c5-0477-42ab-82f2-b57228af694e}</Project>
+      <Name>DynamoIoc</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Apps\Starcounter.Apps.csproj">
+      <Project>{bbaad98c-2661-42dc-85e4-3f2d11bbe010}</Project>
+      <Name>Starcounter.Apps</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Apps.CodeGeneration\Starcounter.Apps.CodeGeneration.csproj">
+      <Project>{02ea0fb4-cc2f-4dac-a58a-1f3115b7fae8}</Project>
+      <Name>Starcounter.Apps.CodeGeneration</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Apps.JsonReader\Starcounter.Apps.JsonReader.csproj">
+      <Project>{8312de1e-1e35-42fd-902a-2fe517396240}</Project>
+      <Name>Starcounter.Apps.JsonReader</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Apps.Interfaces\Starcounter.Apps.Interfaces.csproj">
+      <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
+      <Name>Starcounter.Apps.Interfaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Apps.JsTemplateParser\Starcounter.Apps.JsTemplateParser.fsproj">
+      <Project>{6b8b91cd-9da4-4585-b9a0-84b75a5d42f6}</Project>
+      <Name>Starcounter.Apps.JsTemplateParser</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.BitsAndBytes\Starcounter.BitsAndBytes.csproj">
+      <Project>{c6b4ba42-680c-446d-9b89-1c82d443dc75}</Project>
+      <Name>Starcounter.BitsAndBytes</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

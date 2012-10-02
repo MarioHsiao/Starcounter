@@ -1,0 +1,54 @@
+﻿{
+   $:{Editable:true},
+
+   $userid: {Bind:"uid"},
+   $password: {Bound:false},
+   
+   $doubleToInt: {Type:"int", Editable:false},
+   $doubleToString: {Editable:false, Type:"string"},
+
+   $decimalToDouble: {Type:"double"},
+   $decimalToInt: {Type:"int"},
+   $decimalToString: {Type:"string"},
+
+   $intToDouble: {Type:"double"},
+   $intToDecimal: {Type:"decimal"},
+   $intToString: {Type:"string"},
+
+   userid$:		23,
+   username:	"admin", 
+   password:	"admin",
+  
+   doubleValue: 0x3F7A,
+   doubleToInt: 0x3F,
+   doubleToDecimal: 0xFF,
+   doubleToString: 3e5,
+
+   decimalValue: 99.90,
+   decimalToDouble: 23.70,
+   decimalToInt: 19.90,
+   decimalToString: 199.78,
+   
+   intToDouble: 19,
+   intToDecimal: 27,
+   intToString: 19,
+   
+   boolToString: true,
+
+   login: event,
+
+   $doubleToDecimal: {Type:"decimal"},
+
+   child: {
+      test:"",
+      test2:""
+   },
+
+   array: [{
+      test:"",
+      test2:""
+   }],
+
+   userLink: "/users/admin",
+   user: null
+}

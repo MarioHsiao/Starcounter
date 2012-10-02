@@ -93,7 +93,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SCCOREAPP_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\..\Blue\src\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\Level0\src\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -110,7 +110,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SCCOREAPP_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\..\Blue\src\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\Level0\src\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -129,7 +129,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SCCOREAPP_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\..\Blue\src\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\Level0\src\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -150,7 +150,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SCCOREAPP_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\..\Blue\src\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\Level0\src\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -174,8 +174,8 @@
     <ClInclude Include="internal.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Communication\bmx\bmx.vcxproj">
-      <Project>{7e994512-cab0-44f9-97cd-49f67828e8d1}</Project>
+    <ProjectReference Include="..\..\Chunks\BMX\bmx.vcxproj">
+      <Project>{6665517f-743d-4809-94d3-13325fc2af74}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

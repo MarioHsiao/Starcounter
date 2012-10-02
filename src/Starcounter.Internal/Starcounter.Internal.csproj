@@ -47,7 +47,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>$(SolutionDir)..\..\Grey\src\ErrorCodeCompiler\scerrcc.exe $(SolutionDir)..\..\Grey\src\errorcodes.xml -orangeintcs $(ProjectDir)Error.cs</PreBuildEvent>
+    <PreBuildEvent>$(SolutionDir)Starcounter.ErrorCodes\ErrorCodeCompiler\scerrcc.exe $(SolutionDir)Starcounter.ErrorCodes\errorcodes.xml -orangeintcs $(ProjectDir)Error.cs</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

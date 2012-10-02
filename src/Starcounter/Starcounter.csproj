@@ -47,7 +47,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <!-- Base paths to redistribuatables / third party files -->
-    <PostSharpRedistributables>..\Redistributables\PostSharp\Release</PostSharpRedistributables>
+    <PostSharpRedistributables>..\ThirdParty\PostSharp\Release</PostSharpRedistributables>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Apps\App.cs" />
@@ -444,7 +444,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Communication\HttpStructs\HttpStructs.csproj">
+    <ProjectReference Include="..\HTTP\HttpStructs.csproj">
       <Project>{90d57166-b42e-4bbe-b9ec-cfb33e551b77}</Project>
       <Name>HttpStructs</Name>
     </ProjectReference>
@@ -455,18 +455,20 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>$(SolutionDir)..\..\Grey\src\ErrorCodeCompiler\scerrcc.exe $(SolutionDir)..\..\Grey\src\errorcodes.xml -orangestdcs $(ProjectDir)Error.cs</PreBuildEvent>
+    <PreBuildEvent>$(SolutionDir)Starcounter.ErrorCodes\ErrorCodeCompiler\scerrcc.exe $(SolutionDir)Starcounter.ErrorCodes\errorcodes.xml -orangestdcs $(ProjectDir)Error.cs</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
   -->
+  <!--
   <Target Name="AfterClean">
     <Exec Command="&quot;C:\Program Files (x86)\Microsoft SDKs\Windows\v8.0A\Bin\NETFX 4.0 Tools\gacutil.exe&quot; /u Starcounter" />
   </Target>
+  -->
   <Target Name="AfterBuild">
     <Copy DestinationFolder="$(OutputPath)" SourceFiles="@(RuntimeFile)" SkipUnchangedFiles="true" />
-    <Exec Command="&quot;C:\Program Files (x86)\Microsoft SDKs\Windows\v8.0A\Bin\NETFX 4.0 Tools\gacutil.exe&quot; /f /i &quot;$(MSBuildProjectDirectory)\$(OutputPath)\$(AssemblyName).dll&quot;" />
+    <!-- <Exec Command="&quot;C:\Program Files (x86)\Microsoft SDKs\Windows\v8.0A\Bin\NETFX 4.0 Tools\gacutil.exe&quot; /f /i &quot;$(MSBuildProjectDirectory)\$(OutputPath)\$(AssemblyName).dll&quot;" /> -->
   </Target>
 </Project>

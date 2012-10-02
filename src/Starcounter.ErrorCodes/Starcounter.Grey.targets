@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ErrorCodeCompilerExe>$(SC_BUILD_SOURCES_PATH)\..\..\Grey\src\ErrorCodeCompiler\scerrcc.exe</ErrorCodeCompilerExe>
+    <ErrorCodeXML>$(SC_BUILD_SOURCES_PATH)\..\..\Grey\src\errorcodes.xml</ErrorCodeXML>
+  </PropertyGroup>
+  <PropertyGroup>
+    <CompilerOutputType>-cs</CompilerOutputType>
+    <CSharpErrorCodeFile Condition=" '$(CSharpErrorCodeFile)' == '' ">ErrorCodes.generated.cs</CSharpErrorCodeFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ExceptionAssistantContentFile Condition=" '$(ExceptionAssistantContentFile)' == '' ">StarcounterExceptionAssistantContent.xml</ExceptionAssistantContentFile>
+  </PropertyGroup>
+  
+  <!-- 
+  The CompileXMLErrorsToCSharp target invokes the error code compiler and instructs it to
+  generate a C# source code file with all errors defined in the errors.xml input file.
+  
+  The target expects a C# file path to write the file to, and the path to the grey directory
+  if it is executed from a remote destination.
+  
+  If the output file referenced is older then eithter the date of the compiler executable
+  or the input xml-file, it will be recreated. Else, this target will consider no need to
+  execute the compilation.
+  -->
+  <Target Name="CompileXMLErrorsToCSharp" Inputs="$(ErrorCodeCompilerExe);$(ErrorCodeXML)" Outputs="$(CSharpErrorCodeFile)">
+    <Exec Command="$(ErrorCodeCompilerExe) $(ErrorCodeXML) -v $(CompilerOutputType) $(CSharpErrorCodeFile)" />
+  </Target>
+
+  <!-- 
+  The GenerateVSExceptionAssistantContent target invokes the error code compiler and instructs
+  it to generate an XML exception assistant content file, understood by the Visual Studio
+  Exception Assistant component, with all errors defined in the errors.xml input file.
+  
+  The target expects a XML file path to write the file to, and the path to the grey directory
+  if it is executed from a remote destination.
+  
+  If the output file referenced is older then eithter the date of the compiler executable
+  or the input xml-file, it will be recreated. Else, this target will consider no need to
+  execute the compilation.
+  -->
+  <Target Name="GenerateVSExceptionAssistantContent" Inputs="$(ErrorCodeCompilerExe);$(ErrorCodeXML)" Outputs="$(ExceptionAssistantContentFile)">
+    <Exec Command="$(ErrorCodeCompilerExe) $(ErrorCodeXML) -v -ea $(ExceptionAssistantContentFile)" />
+  </Target>
+  
+</Project>
