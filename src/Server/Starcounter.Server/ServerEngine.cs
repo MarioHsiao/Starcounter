@@ -160,12 +160,18 @@ namespace Starcounter.Server {
         /// This call is not blocking; after all built-in services has been
         /// started, control is returned to the host.
         /// </remarks>
-        public void Start() {
+        /// <returns>
+        /// A reference to an implementation of <see cref="IServerRuntime"/>
+        /// allowing the host to interact with the now running server.
+        /// </returns>
+        public IServerRuntime Start() {
             this.AppsService.Start();
 
             // Start all other built-in standard components, like the gateway,
             // the process monitor, etc.
             // TODO:
+
+            return this.CurrentPublicModel;
         }
 
         /// <summary>
