@@ -2,6 +2,7 @@
 using System;
 
 namespace Starcounter.Server.Commands {
+    
     /// <summary>
     /// Server command targeting a specific database on the server on
     /// which it executes.
