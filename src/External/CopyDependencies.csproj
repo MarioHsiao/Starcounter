@@ -6,7 +6,6 @@
     <BinariesFTP>\\scbuildserver\FTP</BinariesFTP>
   </PropertyGroup>
 
-
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <ProjectGuid>{8B599BFF-B414-41A3-A270-96CDA0C522AF}</ProjectGuid>
@@ -18,14 +17,14 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <BlueSolution>..\..\..\Blue\src\Blue.sln</BlueSolution>
-    <BlueSolutionInclude>..\..\..\Blue\src\include</BlueSolutionInclude>
-    <GreyDll>..\..\..\Grey\src\scerrres\x64\$(Configuration)\scerrres.dll</GreyDll>
-    <StartAllScript>..\Scripts\start_all.bat</StartAllScript>
+    <BlueSolution>..\..\..\Level0\src\Blue.sln</BlueSolution>
+    <BlueSolutionInclude>..\..\..\Level0\src\include</BlueSolutionInclude>
+    <GreyDll>..\Starcounter.ErrorCodes\scerrres\x64\$(Configuration)\scerrres.dll</GreyDll>
+    <StartAllScript>..\BuildSystem\Scripts\start_all.bat</StartAllScript>
   </PropertyGroup>
 
   <PropertyGroup>
-    <LocalBlueBinariesDir>.\..\..\..\Blue\src\x64\$(Configuration)</LocalBlueBinariesDir>
+    <LocalBlueBinariesDir>..\..\..\Level0\src\x64\$(Configuration)</LocalBlueBinariesDir>
     <RemoteBlueBinariesDir>$(BinariesFTP)\SCBuilds\Blue\$(SC_BLUE_BRANCH)\LatestStable\x64\$(Configuration)</RemoteBlueBinariesDir>
   </PropertyGroup>
 
@@ -43,7 +42,7 @@
     <Copy Condition="Exists('$(BlueSolution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalBlueBinFiles)" DestinationFiles="@(LocalBlueBinFiles->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
 
     <Copy Condition="!Exists('$(BlueSolution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteBlueBinFiles)" DestinationFiles="@(RemoteBlueBinFiles->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <Copy Condition="!Exists('$(BlueSolution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteBlueIncludeFiles)" DestinationFolder=".\..\..\..\Blue\src\include" />
+    <Copy Condition="!Exists('$(BlueSolution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteBlueIncludeFiles)" DestinationFolder="..\..\..\Level0\src\include" />
     
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(GreyDll)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(StartAllScript)" DestinationFolder="$(OutputPath)" />

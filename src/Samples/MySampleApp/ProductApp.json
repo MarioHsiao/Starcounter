@@ -1,0 +1,6 @@
+{ 
+    Image:"bigmac.png",
+	Description:"Big Mac",
+	Price:24.00,
+	Buy:null
+}

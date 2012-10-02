@@ -1,0 +1,140 @@
+﻿// Starcounter Internal Template Ecmascript Parser
+// Copyright (c) Starcounter AB
+
+
+namespace Starcounter.Internal
+
+
+type ITemplate =
+    interface
+    end
+   
+
+type IObjectTemplate =
+    interface
+    end
+
+
+// Interface declaration:
+type ITemplateFactory =
+    interface
+        abstract AddObjectProperty : obj * string -> obj               // Name
+        abstract AddObjectElement : obj -> obj                           // Name
+        abstract AddStringProperty : obj * string * string -> obj        // Name, value
+        abstract AddBooleanProperty : obj * string * bool -> obj        // Name, value
+        abstract AddEventProperty : obj * string * string -> obj        // Name, value
+        abstract AddArrayProperty : obj * string -> obj                // Name
+        abstract AddCargoProperty : obj -> obj         
+        abstract AddMetaProperty : obj -> obj         
+        abstract SetEditableProperty : obj * bool -> unit
+    end
+
+
+module public Materializer =
+    let AstToString (ast:obj) = // JOCKE
+        Parser.parse ("test","test",1 ) |> ignore
+        sprintf "%A" ast
+
+    let Parse (source:Src) =
+        source |> Parser.parse
+
+    let BuiltTemplate( source:string, sourceReference:string, overhead:int, factory:ITemplateFactory ) =
+
+        let astTree, scopeData = Parser.parse ( source, sourceReference, overhead )
+
+        let printa text indentation = 
+            for i in 1 .. indentation do
+                printf " "
+            printfn "%s" text
+
+        let failedExpectation expected found =
+            failwith (sprintf "Expected %A but found a %A" expected found )
+
+        let rec materializePrimitive (parent:obj) (name:string) (ast:Ast.Tree) (factory:ITemplateFactory) : obj =
+            match ast with
+                | Ast.String (str) ->
+                    factory.AddStringProperty(parent,name,str)
+                | Ast.Boolean(b) ->
+                    factory.AddBooleanProperty(parent,name,b)
+                | Ast.Identifier(identifier) ->
+                    factory.AddEventProperty(parent,name,identifier)
+                | _ ->
+                    failedExpectation "string, boolean or event" ast
+
+        let rec materializeChildren (parent:obj) (name:string) (ast:Ast.Tree) (factory:ITemplateFactory) : unit = // Create a template from the Javascript like object expression { FirstName:'Joachim', LastName:'Wester' }
+            let createProperty (parent:obj) (name:string) (expression:Ast.Tree) (factory:ITemplateFactory) : obj =
+                match expression with
+                | Ast.Tree.Object (_) ->
+                    let newObj = (factory.AddObjectProperty(parent,name))
+                    materializeChildren newObj name expression factory
+                    newObj
+//                    printfn "%s:{" name
+                | Ast.Tree.Array (list) ->
+//                    printfn "%s:[" name
+                    let array = (factory.AddArrayProperty( parent, name ))
+                    list |> List.iter
+                        begin
+                            fun x ->
+                                let newObj = (factory.AddObjectElement( array ))
+                                materializeChildren newObj name x factory |> ignore
+                        end
+                    array
+                | Ast.Tree.Invoke (prop,parameters) ->
+                    let newProp =
+                        match prop with
+                        | Ast.Tree.Property (expr,identifier) ->
+//                            printfn "%s:xxx.%s(" name identifier
+                            materializePrimitive parent name expr factory
+                        | _ -> failedExpectation "Property" prop
+                    parameters |> List.iter
+                        begin
+                            fun (par) ->
+                                printfn "param    %A," p1+ar
+
+                        end
+                    newProp
+                |_ ->  materializePrimitive parent name expression factory
+
+            match ast with
+            | Ast.Object (properties) ->
+                properties |> List.iter ( fun ( name, expression ) -> ( createProperty parent name expression factory |> ignore ) )
+            | _ ->
+                failedExpectation "Object" ast
+
+
+        let interpretFunction (astTree:Ast.Tree) (factory:ITemplateFactory) : obj = // Takes the Ast tree containing the template scrit. I.e. __template__ = { FirstName:'Joachim', LastName:'Wester' }
+            match astTree with
+            | Ast.Tree.Function (a,b,block) ->
+                    match block with
+                    | Ast.Tree.Block (blockList) ->
+                        assert ( blockList.Length = 1 )
+                        let assignBlock = ( blockList.Item(0) )
+                        match assignBlock with
+                        | Ast.Tree.Block stmtList ->
+                            assert ( stmtList.Length = 1 )
+                            let var = ( stmtList.Item(0) )
+                            match var with
+                            | Ast.Tree.Var assign ->
+                                match assign with
+                                    | Ast.Tree.Assign (identifier, expression) ->                       // __template__ = { ... }
+                                        match identifier with
+                                        | Ast.Identifier str ->
+                                            assert (str = "__template__")
+                                            let parent = (factory.AddObjectProperty(null,null))
+                                            materializeChildren parent "__template__" expression factory                                    // Heureka! Here is the Javascript like object expression creating the template
+                                            parent
+                                        | _ -> failedExpectation "__template__" identifier
+                                    | _ -> failedExpectation "assign" assign
+                            | _ -> failedExpectation "block2" var
+                        | x -> failedExpectation "var" x
+                    | _ -> failedExpectation "block1" block
+            | _ -> failedExpectation "function" astTree
+
+        let result = interpretFunction astTree factory
+
+        result
+        //factory.CreateTemplate()
+  
+    
+
+    

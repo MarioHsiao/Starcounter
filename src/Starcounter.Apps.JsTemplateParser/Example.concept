@@ -1,0 +1,51 @@
+﻿# Definition of persons, orders and products
+
+There is a person with the first name "Joachim" and the last name "Wester".
+Jesus is a person with the first name "Jesus".
+
+Persons are agents having a last name and phone numbers.
+Orders are objects having a customer, order items and a date.
+
+Order items are objects having a product, a description, a price and a total.
+
+Phone numbers are objects having a text.
+
+Objects are C# objects.
+
+Names are texts.
+Texts are strings.
+
+First names are names.
+Last names are names.
+Totals are decimals.
+Number of copies are counts.
+Counts are ints.
+Quantities are decimals.
+
+For orders, totals are C# decimals.
+
+All customers are potential customers having
+	a buyer instead of a potential buyer.
+
+Potential customers are relations having
+	a potentional buyer instead of a 'what is'
+	a seller instead of a 'to what'.
+
+For relations, "what is" is something and "to what" is something.
+
+Buyers are agents.
+Sellers are agents.
+
+An agent is an object (as for example a company or a person).
+
+---------------------
+# Stuff you can do with orders 
+
+We can delete orders.
+We can print orders provided the number of copies.
+
+
+Person forms are user interfaces with first name, last name and phone numbers.
+They expose persons.
+
+ 

@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{EA81E2C5-0477-42AB-82F2-B57228AF694E}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>DynamoIoc</RootNamespace>
+    <AssemblyName>DynamoIoc</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Container\IIocContainer.cs" />
+    <Compile Include="Container\IKeyResolver.cs" />
+    <Compile Include="Container\IocContainer.cs" />
+    <Compile Include="Container\IResolver.cs" />
+    <Compile Include="Container\KeyResolver.cs" />
+    <Compile Include="Container\ResolverExtensions.cs" />
+    <Compile Include="ExpressionHelper.cs" />
+    <Compile Include="IFluentInterface.cs" />
+    <Compile Include="Index\DirectIndex.cs" />
+    <Compile Include="Index\GroupedEntry.cs" />
+    <Compile Include="Index\GroupedIndex.cs" />
+    <Compile Include="Index\IIndex.cs" />
+    <Compile Include="Index\IIndexAccessor.cs" />
+    <Compile Include="Index\IIndexBuilder.cs" />
+    <Compile Include="Lifetime\ContainerLifetime.cs" />
+    <Compile Include="Lifetime\ILifetime.cs" />
+    <Compile Include="Lifetime\LifetimeExtensions.cs" />
+    <Compile Include="Lifetime\ThreadLocalLifetime.cs" />
+    <Compile Include="Lifetime\TransientLifetime.cs" />
+    <Compile Include="ReflectionHelper.cs" />
+    <Compile Include="Registration\CompileMode.cs" />
+    <Compile Include="Registration\ExpressionCompiler.cs" />
+    <Compile Include="Registration\ExpressionRegistration.cs" />
+    <Compile Include="Registration\ICompilableRegistration.cs" />
+    <Compile Include="Registration\IExpressionRegistration.cs" />
+    <Compile Include="Registration\InstanceRegistration.cs" />
+    <Compile Include="Registration\IRegistration.cs" />
+    <Compile Include="ServiceProviderAdapter.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="DynamoIoc\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
