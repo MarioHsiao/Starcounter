@@ -101,17 +101,13 @@
     <ClCompile Include="OurSources\socket_data.cpp">
       <Filter>OurSources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Lavender\src\Connectivity\common\mapped_region.cpp">
-      <Filter>OurSources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Lavender\src\Connectivity\common\shared_memory_object.cpp">
-      <Filter>OurSources</Filter>
-    </ClCompile>
     <ClCompile Include="OurSources\worker_db_interface.cpp">
       <Filter>OurSources</Filter>
     </ClCompile>
     <ClCompile Include="OurSources\handlers.cpp">
       <Filter>OurSources</Filter>
     </ClCompile>
+    <ClCompile Include="..\Chunks\common\mapped_region.cpp" />
+    <ClCompile Include="..\Chunks\common\shared_memory_object.cpp" />
   </ItemGroup>
 </Project>
