@@ -18,23 +18,25 @@ namespace Starcounter.Server.PublicModel {
         /// <summary>
         /// Initializes the public model from the given server.
         /// </summary>
-        /// <param name="node"></param>
-        internal PublicModelProvider(ServerNode node) {
+        /// <param name="engine">The <see cref="ServerEngine"/> maintaining
+        /// the current model.</param>
+        internal PublicModelProvider(ServerEngine engine) {
             databases = new Dictionary<string, DatabaseInfo>();
 
-            foreach (var database in node.Databases.Values) {
+            foreach (var database in engine.Databases.Values) {
                 databases.Add(database.Uri, database.ToPublicModel());
             }
 
-            UpdateServerInfo(node);
+            UpdateServerInfo(engine);
         }
 
         /// <summary>
         /// Updates the <see cref="ServerInfo"/> of the public model.
         /// </summary>
-        /// <param name="node"></param>
-        internal void UpdateServerInfo(ServerNode node) {
-            this.ServerInfo = node.ToPublicModel();
+        /// <param name="engine">The <see cref="ServerEngine"/> maintaining
+        /// the current model.</param>
+        internal void UpdateServerInfo(ServerEngine engine) {
+            this.ServerInfo = engine.ToPublicModel();
         }
 
         /// <summary>

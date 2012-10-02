@@ -30,14 +30,14 @@ namespace Starcounter.Server.Commands {
         /// <summary>
         /// Initializes a new <see cref="CommandProcessor"/>.
         /// </summary>
-        protected CommandProcessor(ServerNode server, ServerCommand command) : this(server, command, false) { }
+        protected CommandProcessor(ServerEngine server, ServerCommand command) : this(server, command, false) { }
 
         /// <summary>
         /// Initializes a new <see cref="CommandProcessor"/>.
         /// </summary>
-        protected CommandProcessor(ServerNode server, ServerCommand command, Boolean isInternal)
+        protected CommandProcessor(ServerEngine server, ServerCommand command, Boolean isInternal)
             : base() {
-            this.Node = server;
+            this.Engine = server;
             this.command = command;
             this.Id = CommandId.MakeNew();
             this.typeIdentity = CreateToken(GetType());
@@ -60,7 +60,7 @@ namespace Starcounter.Server.Commands {
         /// <summary>
         /// Gets the server on which the current processor executes.
         /// </summary>
-        public ServerNode Node {
+        public ServerEngine Engine {
             get;
             private set;
         }
@@ -75,7 +75,8 @@ namespace Starcounter.Server.Commands {
         }
 
         /// <summary>
-        /// Gets a unique identifier of this command on the node.
+        /// Gets a unique identifier of this command in the exeucting
+        /// <see cref="ServerEngine"/>.
         /// </summary>
         public CommandId Id {
             get;
@@ -149,7 +150,7 @@ namespace Starcounter.Server.Commands {
             info = new CommandInfo();
             info.Id = this.Id;
             info.CommandType = this.typeIdentity;
-            info.ServerUri = this.Node.Uri;
+            info.ServerUri = this.Engine.Uri;
             info.Description = this.command.Description;
             info.StartTime = this.startTime;
             info.Status = this.Status;
@@ -182,12 +183,6 @@ namespace Starcounter.Server.Commands {
             }
 
             this.CorrelatedCommand = correlatingTo;
-
-            // TODO: Backlog
-            //ServerLogSources.CommandProcessor.Debug("Enqueueing command {{{1}}} for immediate execution.",
-            //                                            this.Node.Uri,
-            //                                            this.command.Description);
-
             this.Status = CommandStatus.Queued;
         }
 
@@ -208,19 +203,9 @@ namespace Starcounter.Server.Commands {
 
                 NotifyStatusChanged();
 
-                // TODO: Backlog
-                //ServerLogSources.CommandProcessor.Debug("Executing command {{{1}}}", this.Node.Uri,
-                //                                        this.command.Description);
-
                 this.Execute();
                 this.SetCompleted();
 
-                // TODO: Backlog
-                //ServerLogSources.CommandProcessor.Debug(
-                //    "Command {{{1}}} successfully executed.",
-                //    this.Node.Uri,
-                //    this.command.Description
-                //    );
             } catch (Exception e) {
                 ErrorInfo commandError;
                 ErrorInfoException errorInfoException;

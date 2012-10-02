@@ -23,7 +23,7 @@ namespace Starcounter.Server {
         /// <summary>
         /// Gets the server that has instantiated this engine.
         /// </summary>
-        internal readonly ServerNode Server;
+        internal readonly ServerEngine Server;
 
         /// <summary>
         /// Gets the full path to the database executable.
@@ -41,7 +41,7 @@ namespace Starcounter.Server {
             private set;
         }
 
-        internal DatabaseEngine(ServerNode server) {
+        internal DatabaseEngine(ServerEngine server) {
             this.Server = server;
         }
 
