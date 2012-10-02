@@ -98,6 +98,7 @@ namespace Starcounter.Server.Setup {
             ServerConfiguration serverConfig;
             MonitoringConfiguration monitoringConfig;
             DatabaseRuntimeConfiguration databaseRuntimeConfig;
+            DatabaseStorageConfiguration databaseStorageConfig;
             DatabaseConfiguration databaseConfiguration;
             DatabaseDefaults databaseDefaults;
 
@@ -107,6 +108,13 @@ namespace Starcounter.Server.Setup {
             monitoringConfig = new MonitoringConfiguration() {
                 MonitoringType = MonitoringType.Disabled,
                 StartupType = StartupType.Manual
+            };
+
+            databaseStorageConfig = new DatabaseStorageConfiguration() {
+                MaxImageSize = databaseDefaults.MaxImageSize,
+                TransactionLogSize = databaseDefaults.TransactionLogSize,
+                SupportReplication = false,
+                CollationFile = databaseDefaults.CollationFile
             };
 
             databaseRuntimeConfig = new DatabaseRuntimeConfiguration() {
@@ -128,8 +136,7 @@ namespace Starcounter.Server.Setup {
                 TempDirectory = structure.TempDirectory,
                 LogDirectory = structure.LogDirectory,
                 EnginesDirectory = structure.RepositoryDirectory,
-                DatabaseDefaultMaxImageSize = databaseDefaults.MaxImageSize,
-                DatabaseDefaultTransactionLogSize = databaseDefaults.TransactionLogSize,
+                DefaultDatabaseStorageConfiguration = databaseStorageConfig,
                 DefaultDatabaseConfiguration = databaseConfiguration
             };
 

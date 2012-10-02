@@ -34,15 +34,24 @@ namespace Starcounter.Server {
         private const long MIN_DEFAULT_MAX_IMAGE_SIZE = 256;
         private const long MIN_DEFAULT_TRANSACTION_LOG_SIZE = 256;
 
+        /// <summary>
+        /// The static default collation file, used when either no configuration
+        /// not a platform-dependent value can be retreived.
+        /// </summary>
+        private const string StaticDefaultCollationFile = "TurboText_en-GB_2.dll";
+
         private readonly long CalculatedMaxImageSize;
         private readonly long InitialDefaultTransactionLogSize;
+        private readonly string InitialDefaultCollationFile;
 
         internal long? ConfiguredMaxImageSize { get; private set; }
         internal long? ConfiguredTransactionLogSize { get; private set; }
+        internal string ConfiguredCollationFile { get; private set; }
 
         internal DatabaseDefaults() {
             CalculatedMaxImageSize = CalculateDefaultMaxImageSize();
             InitialDefaultTransactionLogSize = MIN_DEFAULT_TRANSACTION_LOG_SIZE;
+            InitialDefaultCollationFile = StaticDefaultCollationFile;
         }
 
         /// <summary>
@@ -68,17 +77,34 @@ namespace Starcounter.Server {
         }
 
         /// <summary>
+        /// Gets the default collation file to use.
+        /// </summary>
+        internal string CollationFile {
+            get {
+                return ConfiguredCollationFile ?? InitialDefaultCollationFile;
+            }
+        }
+
+        /// <summary>
         /// Updates the defaults based on the given <see cref="ServerConfiguration"/>.
         /// </summary>
         /// <param name="configuration"></param>
         internal void Update(ServerConfiguration configuration) {
-            this.ConfiguredMaxImageSize = configuration.DatabaseDefaultMaxImageSize;
-            if (this.ConfiguredMaxImageSize.HasValue && this.ConfiguredMaxImageSize.Value < MIN_DEFAULT_MAX_IMAGE_SIZE)
-                this.ConfiguredMaxImageSize = MIN_DEFAULT_MAX_IMAGE_SIZE;
+            DatabaseStorageConfiguration storageConfiguration = configuration.DefaultDatabaseStorageConfiguration; 
+            if (storageConfiguration != null) {
+                this.ConfiguredMaxImageSize = storageConfiguration.MaxImageSize;
+                if (this.ConfiguredMaxImageSize.HasValue && this.ConfiguredMaxImageSize.Value < MIN_DEFAULT_MAX_IMAGE_SIZE)
+                    this.ConfiguredMaxImageSize = MIN_DEFAULT_MAX_IMAGE_SIZE;
 
-            this.ConfiguredTransactionLogSize = configuration.DatabaseDefaultTransactionLogSize;
-            if (this.ConfiguredTransactionLogSize.HasValue && this.ConfiguredTransactionLogSize.Value < MIN_DEFAULT_TRANSACTION_LOG_SIZE)
-                this.ConfiguredMaxImageSize = MIN_DEFAULT_TRANSACTION_LOG_SIZE;
+                this.ConfiguredTransactionLogSize = storageConfiguration.TransactionLogSize;
+                if (this.ConfiguredTransactionLogSize.HasValue && this.ConfiguredTransactionLogSize.Value < MIN_DEFAULT_TRANSACTION_LOG_SIZE)
+                    this.ConfiguredMaxImageSize = MIN_DEFAULT_TRANSACTION_LOG_SIZE;
+
+                // NOTE:
+                // Check if the file is present in the installation directory and
+                // refuse it (with a log message) if not?
+                this.ConfiguredCollationFile = storageConfiguration.CollationFile;
+            }
         }
 
         private long CalculateDefaultMaxImageSize() {
