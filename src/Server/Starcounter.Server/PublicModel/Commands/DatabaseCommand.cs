@@ -1,7 +1,7 @@
 ﻿
 using System;
 
-namespace Starcounter.Server.Commands {
+namespace Starcounter.Server.PublicModel.Commands {
     
     /// <summary>
     /// Server command targeting a specific database on the server on

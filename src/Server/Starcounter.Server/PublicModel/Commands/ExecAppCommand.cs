@@ -1,7 +1,8 @@
 ﻿
 using System.IO;
 
-namespace Starcounter.Server.Commands {
+namespace Starcounter.Server.PublicModel.Commands {
+
     /// <summary>
     /// A command representing the request to start an executable.
     /// </summary>
