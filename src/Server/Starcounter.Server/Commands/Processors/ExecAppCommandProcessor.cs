@@ -23,6 +23,21 @@ namespace Starcounter.Server.Commands {
 
         /// </inheritdoc>
         protected override void Execute() {
+            // If no database, create it.
+            //  1) Create a database configuration.
+            //  2) Create directories for configuration and data.
+            //  3) Create the image- and transaction logs.
+            //  4) Add it to the internal model, and the public one.
+            //
+            //  How do we go about to assure we track creation? Use
+            //  something simple, like a leading dot or whatever.
+            //
+            //  Scheme:
+            //  1) Create database directory: "."+ config.Databases + name.
+            //  2) Create the configuration, in memory.
+            //  3) Create/assure all directories (temp, image, log)
+            //  4) Create image- and transaction logs (using scdbc.exe)
+
             throw new NotImplementedException();
         }
     }

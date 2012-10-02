@@ -48,6 +48,7 @@
     <Compile Include="Commands\CommandProcessorAttribute.cs" />
     <Compile Include="Commands\CommandTask.cs" />
     <Compile Include="Configuration\Server\DatabaseStorageConfiguration.cs" />
+    <Compile Include="DatabaseSetupProperties.cs" />
     <Compile Include="PublicModel\Commands\DatabaseCommand.cs" />
     <Compile Include="Commands\ErrorInfoException.cs" />
     <Compile Include="PublicModel\Commands\ServerCommand.cs" />
