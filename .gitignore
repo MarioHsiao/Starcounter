@@ -19,3 +19,10 @@ src/Starcounter/Error.cs
 src/Starcounter.Internal/Error.cs
 *.ncrunchsolution
 src/packages
+
+# Generated error code files
+src/Starcounter.ErrorCodes/ErrorCodeCompiler/scerrcc.exe
+src/Starcounter.ErrorCodes/ErrorCodeCompiler/scerrcc.pdb
+src/Starcounter.ErrorCodes/ErrorCodeCompiler/Starcounter.Errors.dll
+src/Starcounter.ErrorCodes/ErrorCodeCompiler/Starcounter.Errors.pdb
+src/Starcounter.ErrorCodes/scerrres/scerrres.h
