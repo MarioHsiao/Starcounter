@@ -19,57 +19,57 @@ namespace Starcounter.Internal.ExeModule
             // TODO: Establish connection to boot!
             return;
 
-            Stopwatch sw = Stopwatch.StartNew();
-            //          bool isDebug = System.Diagnostics.Debugger.IsAttached;
-            //          System.Diagnostics.Debugger.Launch();
-            Process[] servers;
-            string fileSpec = System.Environment.GetCommandLineArgs()[0];
-            if (fileSpec.EndsWith(".vshost.exe"))
-                fileSpec = fileSpec.Substring(0, fileSpec.Length - 11) + ".exe";
-            int timeout = 2000;
-            do
-            {
-                servers = Process.GetProcessesByName("boot");
+            //Stopwatch sw = Stopwatch.StartNew();
+            ////          bool isDebug = System.Diagnostics.Debugger.IsAttached;
+            ////          System.Diagnostics.Debugger.Launch();
+            //Process[] servers;
+            //string fileSpec = System.Environment.GetCommandLineArgs()[0];
+            //if (fileSpec.EndsWith(".vshost.exe"))
+            //    fileSpec = fileSpec.Substring(0, fileSpec.Length - 11) + ".exe";
+            //int timeout = 2000;
+            //do
+            //{
+            //    servers = Process.GetProcessesByName("boot");
 
-                if (servers.Length == 0)
-                {
-                    servers = Process.GetProcessesByName("Fakeway.vshost");
-                }
+            //    if (servers.Length == 0)
+            //    {
+            //        servers = Process.GetProcessesByName("Fakeway.vshost");
+            //    }
 
-                if (servers.Length == 0)
-                {
-                    servers = Process.GetProcessesByName("Fakeway");
-                }
+            //    if (servers.Length == 0)
+            //    {
+            //        servers = Process.GetProcessesByName("Fakeway");
+            //    }
 
-                if (servers.Length == 0)
-                {
-                    servers = Process.GetProcessesByName("scdbs");
-                }
+            //    if (servers.Length == 0)
+            //    {
+            //        servers = Process.GetProcessesByName("scdbs");
+            //    }
 
-                if (servers.Length == 0)
-                {
-                    servers = Process.GetProcessesByName("scdbsw");
-                }
+            //    if (servers.Length == 0)
+            //    {
+            //        servers = Process.GetProcessesByName("scdbsw");
+            //    }
 
-                if (servers.Length == 0)
-                {
-                    MessageBox(IntPtr.Zero, "No Starcounter Host is running on this machine. Have tried Fakeway and Fakeway.vshost.", "Cannot start module", 0x00000030);
-                    return;
-                }
-            } while (servers.Length == 0 && sw.ElapsedMilliseconds < timeout);
+            //    if (servers.Length == 0)
+            //    {
+            //        MessageBox(IntPtr.Zero, "No Starcounter Host is running on this machine. Have tried Fakeway and Fakeway.vshost.", "Cannot start module", 0x00000030);
+            //        return;
+            //    }
+            //} while (servers.Length == 0 && sw.ElapsedMilliseconds < timeout);
 
-            if (servers.Length > 1)
-            {
-                MessageBox(IntPtr.Zero, "Unclear where to start this module. There are multiple Starcounter user code Hosts running on this machine.", "Cannot start module", 0x00000030);
-                //                Console.WriteLine("Unclear where to start this module. There are multiple Starcounter Nodes running on this machine.x");
-                return;
-            }
+            //if (servers.Length > 1)
+            //{
+            //    MessageBox(IntPtr.Zero, "Unclear where to start this module. There are multiple Starcounter user code Hosts running on this machine.", "Cannot start module", 0x00000030);
+            //    //                Console.WriteLine("Unclear where to start this module. There are multiple Starcounter Nodes running on this machine.x");
+            //    return;
+            //}
 
-            string appName = AppDomain.CurrentDomain.SetupInformation.ApplicationName;
-            string workingDir = System.Environment.CurrentDirectory;
-            string[] args = System.Environment.GetCommandLineArgs();
+            //string appName = AppDomain.CurrentDomain.SetupInformation.ApplicationName;
+            //string workingDir = System.Environment.CurrentDirectory;
+            //string[] args = System.Environment.GetCommandLineArgs();
 
-            RegisterApp(appName, fileSpec, workingDir, args);
+            //RegisterApp(appName, fileSpec, workingDir, args);
         }
 
         public static void RegisterApp(String appName, String dllOrExePath, String workingDir, String[] startupArgs)

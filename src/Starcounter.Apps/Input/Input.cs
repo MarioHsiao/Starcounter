@@ -3,7 +3,7 @@ using Starcounter.Templates;
 namespace Starcounter {
 
     public class Input<T1> : Input where T1 : App {
-        private T1 _Doc;
+        private T1 _Doc = null;
         public T1 Doc { get { return _Doc; } }
     }
 

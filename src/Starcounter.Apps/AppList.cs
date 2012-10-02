@@ -37,7 +37,7 @@ namespace Starcounter
             Add(app);
             return app;
         }
-        public new T Add(Entity data)
+        public T Add(Entity data)
         {
             var app = new T() { Data = data };
             Add(app);

@@ -1506,6 +1506,8 @@ namespace HtmlAgilityPack
 		#endregion
 
 	}
+
+#pragma warning disable 618
     /// <summary>
     /// Wraps getting AppDomain permissions
     /// </summary>
@@ -1544,6 +1546,8 @@ namespace HtmlAgilityPack
 #endif
         }
     }
+#pragma warning restore 618
+
     /// <summary>
     /// An interface for getting permissions of the running application
     /// </summary>

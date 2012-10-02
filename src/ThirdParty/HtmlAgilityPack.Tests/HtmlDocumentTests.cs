@@ -118,7 +118,7 @@ namespace HtmlAgilityPack.Tests
 		public void TestParse()
 		{
 			var doc = GetMshomeDocument();
-			Assert.IsTrue(doc.DocumentNode.DescendantNodes().Count() > 0);
+			Assert.IsTrue(doc.DocumentNode.Descendants().Count() > 0);
 		}
 
 		[Test]
@@ -126,13 +126,13 @@ namespace HtmlAgilityPack.Tests
 		{
 			var doc = GetMshomeDocument();
 			var doc1desc =
-				doc.DocumentNode.DescendantNodes().Where(x => !string.IsNullOrWhiteSpace(x.InnerText)).ToList();
+				doc.DocumentNode.Descendants().Where(x => !string.IsNullOrWhiteSpace(x.InnerText)).ToList();
 			doc.Save(_contentDirectory + "testsaveparse.html");
 
 			var doc2 = new HtmlDocument();
 			doc2.Load(_contentDirectory + "testsaveparse.html");
 			var doc2desc =
-				doc2.DocumentNode.DescendantNodes().Where(x => !string.IsNullOrWhiteSpace(x.InnerText)).ToList();
+				doc2.DocumentNode.Descendants().Where(x => !string.IsNullOrWhiteSpace(x.InnerText)).ToList();
 			Assert.AreEqual(doc1desc.Count, doc2desc.Count);
 			//for(var i=0; i< doc1desc.Count;i++)
 			//{
@@ -150,7 +150,7 @@ namespace HtmlAgilityPack.Tests
 		public void TestRemoveUpdatesPreviousSibling()
 		{
 			var doc = GetMshomeDocument();
-			var docDesc = doc.DocumentNode.DescendantNodes().ToList();
+			var docDesc = doc.DocumentNode.Descendants().ToList();
 			var toRemove = docDesc[1200];
 			var toRemovePrevSibling = toRemove.PreviousSibling;
 			var toRemoveNextSibling = toRemove.NextSibling;
@@ -162,7 +162,7 @@ namespace HtmlAgilityPack.Tests
 		public void TestReplaceUpdatesSiblings()
 		{
 			var doc = GetMshomeDocument();
-			var docDesc = doc.DocumentNode.DescendantNodes().ToList();
+			var docDesc = doc.DocumentNode.Descendants().ToList();
 			var toReplace = docDesc[1200];
 			var toReplacePrevSibling = toReplace.PreviousSibling;
 			var toReplaceNextSibling = toReplace.NextSibling;
