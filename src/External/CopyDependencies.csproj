@@ -11,15 +11,17 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <ProjectGuid>{8B599BFF-B414-41A3-A270-96CDA0C522AF}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <OutputPath>.\..\..\bin\$(Configuration)\</OutputPath>
+    <OutputPath>..\..\bin\$(Configuration)\</OutputPath>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CopyExternalFiles</RootNamespace>
     <AssemblyName>CopyExternalFiles</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup>
-    <BlueSolution>.\..\..\..\Blue\src\Blue.sln</BlueSolution>
-    <BlueSolutionInclude>.\..\..\..\Blue\src\include</BlueSolutionInclude>
+    <BlueSolution>..\..\..\Blue\src\Blue.sln</BlueSolution>
+    <BlueSolutionInclude>..\..\..\Blue\src\include</BlueSolutionInclude>
+    <GreyDll>..\..\..\Grey\src\scerrres\x64\$(Configuration)\scerrres.dll</GreyDll>
+    <StartAllScript>..\Scripts\start_all.bat</StartAllScript>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -28,8 +30,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <LocalBlueBinFiles Include="$(LocalBlueBinariesDir)\**\*.lib" />
-    <RemoteBlueBinFiles Include="$(RemoteBlueBinariesDir)\**\*.lib" />
+    <LocalBlueBinFiles Include="$(LocalBlueBinariesDir)\*" />
+    <RemoteBlueBinFiles Include="$(RemoteBlueBinariesDir)\*" />
     <RemoteBlueIncludeFiles Include="$(BinariesFTP)\SCBuilds\Blue\$(SC_BLUE_BRANCH)\LatestStable\Include\*" />
   </ItemGroup>
 
@@ -42,6 +44,9 @@
 
     <Copy Condition="!Exists('$(BlueSolution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteBlueBinFiles)" DestinationFiles="@(RemoteBlueBinFiles->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy Condition="!Exists('$(BlueSolution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteBlueIncludeFiles)" DestinationFolder=".\..\..\..\Blue\src\include" />
+    
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(GreyDll)" DestinationFolder="$(OutputPath)" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(StartAllScript)" DestinationFolder="$(OutputPath)" />
   </Target>
 
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
