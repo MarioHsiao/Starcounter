@@ -2,13 +2,15 @@
 using System;
 using System.Collections.Generic;
 using Starcounter.Server.PublicModel;
+using Starcounter.Server.PublicModel.Commands;
 
 namespace Starcounter.Server {
 
     /// <summary>
     /// Provides access to the public model in a thread-safe manner.
     /// </summary>
-    internal sealed class PublicModelProvider {
+    internal sealed class PublicModelProvider : IServerRuntime {
+        private ServerEngine engine;
         private readonly Dictionary<string, DatabaseInfo> databases;
         
         /// <summary>
@@ -22,7 +24,8 @@ namespace Starcounter.Server {
         /// <param name="engine">The <see cref="ServerEngine"/> maintaining
         /// the current model.</param>
         internal PublicModelProvider(ServerEngine engine) {
-            databases = new Dictionary<string, DatabaseInfo>();
+            this.engine = engine;
+            this.databases = new Dictionary<string, DatabaseInfo>();
 
             foreach (var database in engine.Databases.Values) {
                 databases.Add(database.Uri, database.ToPublicModel());
@@ -77,12 +80,28 @@ namespace Starcounter.Server {
                 throw new ArgumentException(String.Format("Database '{0}' doesn't exist.", database.Uri));
         }
 
-        /// <summary>
-        /// Gets a database in the public model by it's URI.
-        /// </summary>
-        /// <param name="databaseUri"></param>
-        /// <returns></returns>
-        internal DatabaseInfo GetDatabase(string databaseUri) {
+        /// </inheritdoc>
+        public CommandInfo Execute(ServerCommand command) {
+            return this.engine.Dispatcher.Enqueue(command);
+        }
+
+        /// </inheritdoc>
+        public CommandInfo GetCommand(CommandId id) {
+            throw new NotImplementedException();
+        }
+
+        /// </inheritdoc>
+        public CommandInfo[] GetCommands() {
+            return this.engine.Dispatcher.GetRecentCommands();
+        }
+
+        /// </inheritdoc>
+        public ServerInfo GetServerInfo() {
+            return this.ServerInfo;
+        }
+
+        /// </inheritdoc>
+        public DatabaseInfo GetDatabase(string databaseUri) {
             lock (databases) {
                 DatabaseInfo databaseInfo;
                 databases.TryGetValue(databaseUri, out databaseInfo);
@@ -90,11 +109,8 @@ namespace Starcounter.Server {
             }
         }
 
-        /// <summary>
-        /// Gets all databases part of the public model.
-        /// </summary>
-        /// <returns></returns>
-        internal DatabaseInfo[] GetDatabases() {
+        /// </inheritdoc>
+        public DatabaseInfo[] GetDatabases() {
             lock (databases) {
                 DatabaseInfo[] copy = new DatabaseInfo[databases.Values.Count];
                 databases.Values.CopyTo(copy, 0);
