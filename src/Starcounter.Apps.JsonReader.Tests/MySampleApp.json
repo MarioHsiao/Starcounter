@@ -1,0 +1,14 @@
+﻿ {
+	SearchText	: "Joach", 
+	$SearchText : {Editable:true,OnUpdate:"SearchPerson"},
+	$NewPerson	: {Run:"NewPerson"},
+	Results:
+	[
+		{
+		    $:{Class:"PersonApp"},
+			FirstName:"Joachim",
+			LastName:"Wester",
+			$ShowPerson:{Run:"ShowPerson"}
+		}
+	]
+}

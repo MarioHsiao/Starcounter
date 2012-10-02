@@ -1,0 +1,24 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <CoreCompileDependsOn>$(CoreCompileDependsOn);GenerateAppCode</CoreCompileDependsOn>
+  </PropertyGroup>
+  <ItemGroup>
+    <AvailableItemName Include="App"/>
+  </ItemGroup>
+     
+  <!-- TODO: Temporary path. Use installation directory for starcounter later when Apps is integrated into main Starcounter -->
+ <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToCsMsBuildTask" AssemblyFile="..\Starcounter.MsBuild\bin\Debug\Starcounter.MsBuild.dll" />
+
+  <Target Name="GenerateAppCode" Inputs="@(App)" Outputs="@(App->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
+    <JsonToCsMsBuildTask
+       InputFiles="@(App)"
+       OutputFiles="@(App->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
+       <Output TaskParameter="OutputFiles" ItemName="gFiles" /> 
+    </JsonToCsMsBuildTask>
+	<ItemGroup>
+      <Compile Include="@(gFiles)" />
+    </ItemGroup>
+  </Target>
+</Project>
+
+

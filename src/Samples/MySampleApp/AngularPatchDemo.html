@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en" ng-app="StarcounterLib">
+<head>
+    <script>
+    var __elim_rq = {"FirstName":"Frank","LastName":"Jobs","FullName":"Frank Jobs","Address":{"Street":null,"City":null},"MyTextBox":null,"MyMessage":"Please put something to text box","View-Model":"116fe64042ef52689c4fb2755c6bdd7c"};
+  </script>
+    <meta charset="utf-8">
+  <title>Angular Patch demo</title>
+  <script src="../js/lib/angular.min.js"></script>
+  <script src="../js/lib/jsonpatch.js"></script>
+  <script src="../js/serverScope.js"></script>
+  <script src="../js/app.js"></script>
+  </head>
+<body ng-controller="MyCtrl" server-scope>
+
+<h1>Angular Patch demo</h1>
+
+<p>The session is restarted when you refresh the window. Random name is generated on session start</p>
+
+<p><button ng-click="clientChange()">Put controller's name</button></p>
+
+<table>
+  <tr>
+    <td>First name</td>
+    <td><input ng-model="FirstName"></td>
+  </tr>
+  <tr>
+    <td>Last name</td>
+    <td><input ng-model="LastName"></td>
+  </tr>
+  <tr>
+    <td>Full name (generated on server)</td>
+    <td><input ng-model="FullName" ng-readonly="true" style="opacity: 0.7; width: 400px"></td>
+  </tr>
+  <tr>
+    <td>Address</td>
+    <td>Street: <input ng-model="Address.Street"> City: <input ng-model="Address.City"></td>
+  </tr>
+</table>
+
+<hr>
+
+<input ng-model="MyTextBox">
+<div>{{MyMessage}}</div>
+
+</body>
+</html>
