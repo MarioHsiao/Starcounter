@@ -1,4 +1,5 @@
 ﻿
+
 using Starcounter;
 using Starcounter.ABCIPC;
 using Starcounter.ABCIPC.Internal;
@@ -87,12 +88,13 @@ namespace Starcounter.Server {
         /// <summary>
         /// Initializes a <see cref="ServerEngine"/>.
         /// </summary>
-        /// <param name="configuration"></param>
-        internal ServerEngine(ServerConfiguration configuration) {
+        /// <param name="serverConfigurationPath">Path to the server configuration
+        /// file in the root of the server repository the engine will run.</param>
+        internal ServerEngine(string serverConfigurationPath) {
             this.InstallationDirectory = Path.GetDirectoryName(typeof(ServerEngine).Assembly.Location);
-            this.Configuration = configuration;
+            this.Configuration = ServerConfiguration.Load(Path.GetFullPath(serverConfigurationPath));
             this.DatabaseDefaultValues = new DatabaseDefaults();
-            this.Name = configuration.Name;
+            this.Name = this.Configuration.Name;
             this.Uri = ScUri.MakeServerUri(ScUri.GetMachineName(), this.Name);
             this.Databases = new Dictionary<string, Database>();
             this.DatabaseEngine = new DatabaseEngine(this);
