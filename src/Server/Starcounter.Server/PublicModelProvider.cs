@@ -87,7 +87,7 @@ namespace Starcounter.Server {
 
         /// </inheritdoc>
         public CommandInfo GetCommand(CommandId id) {
-            throw new NotImplementedException();
+            return this.engine.Dispatcher.GetRecentCommand(id);
         }
 
         /// </inheritdoc>
