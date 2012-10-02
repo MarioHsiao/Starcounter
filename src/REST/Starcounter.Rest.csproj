@@ -100,17 +100,10 @@
     <Compile Include="RequestHandler\RequestProcessorBuilder.cs" />
     <Compile Include="RequestHandler\ParseTree\ParseNode.cs" />
     <Compile Include="RequestHandler\RequestProcessorMetaData.cs" />
-    <Compile Include="Fakeway %28temporary%29\SessionID.cs" />
     <Compile Include="Http\HttpResponse.cs" />
-    <Compile Include="Fakeway %28temporary%29\FrameType.cs" />
     <Compile Include="Http\HttpParser.cs" />
     <Compile Include="Http\HttpRequest.cs" />
-    <Compile Include="Fakeway %28temporary%29\IConnection.cs" />
-    <Compile Include="Fakeway %28temporary%29\IGwWebHandler.cs" />
-    <Compile Include="Fakeway %28temporary%29\IRawGwHandler.cs" />
     <Compile Include="Http\IHttpRestServer.cs" />
-    <Compile Include="Fakeway %28temporary%29\ReadState.cs" />
-    <Compile Include="Fakeway %28temporary%29\IWorker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Http\HttpRestServer.cs" />
   </ItemGroup>
