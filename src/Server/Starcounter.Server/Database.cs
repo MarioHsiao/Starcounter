@@ -19,7 +19,7 @@ namespace Starcounter.Server {
         /// <summary>
         /// The server to which this database belongs.
         /// </summary>
-        internal readonly ServerNode Server;
+        internal readonly ServerEngine Server;
 
         /// <summary>
         /// The configuration of this <see cref="Database"/>.
@@ -41,7 +41,7 @@ namespace Starcounter.Server {
         /// </summary>
         /// <param name="server">The server to which the current database belong.</param>
         /// <param name="configuration">The configuration applied.</param>
-        internal Database(ServerNode server, DatabaseConfiguration configuration) {
+        internal Database(ServerEngine server, DatabaseConfiguration configuration) {
             this.Server = server;
             this.Configuration = configuration;
             this.Name = this.Configuration.Name;

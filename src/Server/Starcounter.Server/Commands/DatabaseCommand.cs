@@ -12,7 +12,6 @@ namespace Starcounter.Server.Commands {
         /// </summary>
         /// <param name="database">The URI of the <see cref="Database">database</see>
         /// this commmand targets.</param>
-        /// <param name="node">The <see cref="ServerNode"/> processing the current command.</param>
         /// <param name="descriptionFormat">Formatting string of the command description.</param>
         /// <param name="descriptionArgs">Arguments for <paramref name="descriptionFormat"/>.</param>
         protected DatabaseCommand(
@@ -29,7 +28,6 @@ namespace Starcounter.Server.Commands {
         /// </summary>
         /// <param name="database">The URI of the <see cref="Database">database</see>
         /// this commmand targets.</param>
-        /// <param name="node">Node on which the command should be executed.</param>
         /// <param name="description">Human-readable description of the command.</param>
         protected DatabaseCommand(string databaseUri, string description)
             : base(description) {

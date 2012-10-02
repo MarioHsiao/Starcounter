@@ -17,7 +17,7 @@ namespace Starcounter.Server.Commands {
 
         private CommandDescriptor[] _commandDescriptors = new CommandDescriptor[0];
         private Dictionary<Type, ConstructorInfo> _constructors = new Dictionary<Type, ConstructorInfo>();
-        private readonly ServerNode _node;
+        private readonly ServerEngine _engine;
 
         private readonly Object _syncRoot = new Object();
 
@@ -38,8 +38,8 @@ namespace Starcounter.Server.Commands {
 
         private readonly static TimeSpan TimeUntilDoneTasksAreRemoved = TimeSpan.FromMinutes(2);
 
-        internal CommandDispatcher(ServerNode node) {
-            _node = node;
+        internal CommandDispatcher(ServerEngine engine) {
+            _engine = engine;
 
             _lists.PendingProc = new LinkedList<CommandProcessor>();
             _lists.PendingInfo = new LinkedList<CommandInfo>();
@@ -82,7 +82,7 @@ namespace Starcounter.Server.Commands {
                         // ServerCommand argument. This constructor will be used to
                         // create processors for commands arriving to the server.
 
-                        constructor = type.GetConstructor(new[] { typeof(ServerNode), typeof(ServerCommand) });
+                        constructor = type.GetConstructor(new[] { typeof(ServerEngine), typeof(ServerCommand) });
                         if (constructor == null)
                             throw new InvalidProgramException(
                                 string.Format("The command processor {0} does not have the expected constructor.",
@@ -209,7 +209,7 @@ namespace Starcounter.Server.Commands {
         }
 
         private CommandProcessor GetCommandProcessor(ServerCommand command) {
-            return (CommandProcessor)_constructors[command.GetType()].Invoke(new object[] { _node, command });
+            return (CommandProcessor)_constructors[command.GetType()].Invoke(new object[] { _engine, command });
         }
 
 #if DEBUG

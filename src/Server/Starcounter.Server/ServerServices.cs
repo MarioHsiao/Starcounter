@@ -18,12 +18,12 @@ namespace Starcounter.Server {
     /// Encapsulates the services exposed by the server.
     /// </summary>
     internal sealed class ServerServices {
-        ServerNode node;
+        ServerEngine engine;
         Server ipcServer;
         IResponseSerializer responseSerializer;
 
-        internal ServerServices(ServerNode node, Server ipcServer, IResponseSerializer responseSerializer) {
-            this.node = node;
+        internal ServerServices(ServerEngine engine, Server ipcServer, IResponseSerializer responseSerializer) {
+            this.engine = engine;
             this.ipcServer = ipcServer;
             this.responseSerializer = responseSerializer;
         }
@@ -31,7 +31,7 @@ namespace Starcounter.Server {
         internal void Setup() {
 
             ipcServer.Handle("GetServerInfo", delegate(Request request) {
-                request.Respond(responseSerializer.SerializeReponse(node.CurrentPublicModel.ServerInfo));
+                request.Respond(responseSerializer.SerializeReponse(engine.CurrentPublicModel.ServerInfo));
             });
 
             ipcServer.Handle("GetDatabase", delegate(Request request) {
@@ -40,10 +40,10 @@ namespace Starcounter.Server {
                 string uri;
 
                 name = request.GetParameter<string>();
-                serverUri = ScUri.FromString(node.Uri);
+                serverUri = ScUri.FromString(engine.Uri);
                 uri = ScUri.MakeDatabaseUri(serverUri.MachineName, serverUri.ServerName, name).ToString();
 
-                var info = node.CurrentPublicModel.GetDatabase(uri);
+                var info = engine.CurrentPublicModel.GetDatabase(uri);
                 if (info == null) {
                     request.Respond(false, "Database not found");
                     return;
@@ -53,17 +53,17 @@ namespace Starcounter.Server {
             });
 
             ipcServer.Handle("GetDatabases", delegate(Request request) {
-                var databases = node.CurrentPublicModel.GetDatabases();
+                var databases = engine.CurrentPublicModel.GetDatabases();
                 request.Respond(responseSerializer.SerializeReponse(databases));
             });
 
             ipcServer.Handle("GetCommandDescriptors", delegate(Request request) {
-                var supportedCommands = node.Dispatcher.CommandDescriptors;
+                var supportedCommands = engine.Dispatcher.CommandDescriptors;
                 request.Respond(responseSerializer.SerializeReponse(supportedCommands));
             });
 
             ipcServer.Handle("GetCommands", delegate(Request request) {
-                var commands = node.Dispatcher.GetRecentCommands();
+                var commands = engine.Dispatcher.GetRecentCommands();
                 request.Respond(responseSerializer.SerializeReponse(commands));
             });
 
@@ -164,7 +164,7 @@ namespace Starcounter.Server {
 
         CommandInfo EnqueueExecAppCommandWithDispatcher(string assemblyPath, string workingDirectory, string[] args) {
             ExecAppCommand command = new ExecAppCommand(assemblyPath, workingDirectory, args);
-            return node.Dispatcher.Enqueue(command);
+            return engine.Dispatcher.Enqueue(command);
         }
     }
 }

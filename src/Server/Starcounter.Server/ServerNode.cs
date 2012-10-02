@@ -16,7 +16,7 @@ namespace Starcounter.Server {
     /// <summary>
     /// Representing the running server, hosted in a server program.
     /// </summary>
-    internal sealed class ServerNode {
+    internal sealed class ServerEngine {
         internal readonly CommandDispatcher Dispatcher;
 
         /// <summary>
@@ -85,11 +85,11 @@ namespace Starcounter.Server {
         internal ServerServices ServiceHost { get; private set; }
 
         /// <summary>
-        /// Initializes a <see cref="ServerNode"/>.
+        /// Initializes a <see cref="ServerEngine"/>.
         /// </summary>
         /// <param name="configuration"></param>
-        internal ServerNode(ServerConfiguration configuration) {
-            this.InstallationDirectory = Path.GetDirectoryName(typeof(ServerNode).Assembly.Location);
+        internal ServerEngine(ServerConfiguration configuration) {
+            this.InstallationDirectory = Path.GetDirectoryName(typeof(ServerEngine).Assembly.Location);
             this.Configuration = configuration;
             this.DatabaseDefaultValues = new DatabaseDefaults();
             this.Name = configuration.Name;
@@ -161,7 +161,7 @@ namespace Starcounter.Server {
         }
 
         /// <summary>
-        /// Creates a snapshot of this <see cref="ServerNode"/> in the
+        /// Creates a snapshot of this <see cref="ServerEngine"/> in the
         /// form of a public model <see cref="ServerInfo"/>.
         /// </summary>
         /// <returns>A <see cref="ServerInfo"/> representing the current state

@@ -19,7 +19,7 @@ namespace Starcounter.Server.Commands {
         /// <param name="server">The server in which the processor executes.</param>
         /// <param name="command">The <see cref="ExecAppCommand"/> the
         /// processor should exeucte.</param>
-        public ExecAppCommandProcessor(ServerNode server, ServerCommand command) 
+        public ExecAppCommandProcessor(ServerEngine server, ServerCommand command) 
             : base(server, command)
         {
         }

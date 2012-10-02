@@ -18,7 +18,7 @@ namespace Starcounter.Server.PublicModel {
     internal sealed class NewtonSoftJsonSerializer : IResponseSerializer {
         MethodInfo jsonSerializeObject;
 
-        internal NewtonSoftJsonSerializer(ServerNode server) {
+        internal NewtonSoftJsonSerializer(ServerEngine server) {
             var jsonPath = Path.Combine(server.InstallationDirectory, "Newtonsoft.Json.dll");
             if (File.Exists(jsonPath)) {
                 var assembly = Assembly.LoadFrom(jsonPath);
