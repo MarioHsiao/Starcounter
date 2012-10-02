@@ -83,7 +83,11 @@ namespace Starcounter.Server {
         /// </summary>
         internal PublicModelProvider CurrentPublicModel { get; private set; }
 
-        internal ServerServices ServiceHost { get; private set; }
+        /// <summary>
+        /// Gets the current <see cref="AppsService"/> running as part of
+        /// any engine.
+        /// </summary>
+        internal AppsService AppsService { get; private set; }
 
         /// <summary>
         /// Initializes a <see cref="ServerEngine"/>.
@@ -99,17 +103,7 @@ namespace Starcounter.Server {
             this.Databases = new Dictionary<string, Database>();
             this.DatabaseEngine = new DatabaseEngine(this);
             this.Dispatcher = new CommandDispatcher(this);
-
-            // Assume for now interactive mode. This code is still just
-            // to get up and running. We'll eventually utilize pipes and
-            // spawn another thread, etc.
-            Starcounter.ABCIPC.Server ipcServer;
-            if (!Console.IsInputRedirected) {
-                ipcServer = Utils.PromptHelper.CreateServerAttachedToPrompt();
-            } else {
-                ipcServer = new Starcounter.ABCIPC.Server(Console.In.ReadLine, Console.Out.WriteLine);
-            }
-            this.ServiceHost = new ServerServices(this, ipcServer, new NewtonSoftJsonSerializer(this));
+            this.AppsService = new Server.AppsService(this);
         }
 
         internal void Setup() {
@@ -152,14 +146,15 @@ namespace Starcounter.Server {
             this.DatabaseDefaultValues.Update(this.Configuration);
             SetupDatabases();
             this.CurrentPublicModel = new PublicModelProvider(this);
-            this.ServiceHost.Setup();
+            this.AppsService.Setup();
         }
 
         internal void Start() {
-            this.ServiceHost.Start();
+            this.AppsService.Start();
         }
 
         internal void Stop() {
+            this.AppsService.Stop();
         }
 
         /// <summary>

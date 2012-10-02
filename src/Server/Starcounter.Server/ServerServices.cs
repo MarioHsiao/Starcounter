@@ -22,6 +22,19 @@ namespace Starcounter.Server {
         Server ipcServer;
         IResponseSerializer responseSerializer;
 
+        void Foo() {
+            //// Assume for now interactive mode. This code is still just
+            //// to get up and running. We'll eventually utilize pipes and
+            //// spawn another thread, etc.
+            //Starcounter.ABCIPC.Server ipcServer;
+            //if (!Console.IsInputRedirected) {
+            //    ipcServer = Utils.PromptHelper.CreateServerAttachedToPrompt();
+            //} else {
+            //    ipcServer = new Starcounter.ABCIPC.Server(Console.In.ReadLine, Console.Out.WriteLine);
+            //}
+            //this.ServiceHost = new ServerServices(this, ipcServer, new NewtonSoftJsonSerializer(this));
+        }
+
         internal ServerServices(ServerEngine engine, Server ipcServer, IResponseSerializer responseSerializer) {
             this.engine = engine;
             this.ipcServer = ipcServer;
@@ -87,7 +100,7 @@ namespace Starcounter.Server {
                     argsArray = new string[0];
                 }
 
-                var info = EnqueueExecAppCommandWithDispatcher(exePath, workingDirectory, argsArray);
+                var info = engine.AppsService.EnqueueExecAppCommandWithDispatcher(exePath, workingDirectory, argsArray);
 
                 request.Respond(true, responseSerializer.SerializeReponse(info));
             });
@@ -122,49 +135,7 @@ namespace Starcounter.Server {
         }
 
         internal void Start() {
-            AppProcess.WaitForStartRequests(OnAppExeStartRequest);
             ipcServer.Receive();
-        }
-
-        /// <summary>
-        /// Handles requests coming from booting App executables.
-        /// </summary>
-        /// <param name="properties"></param>
-        /// <returns></returns>
-        bool OnAppExeStartRequest(Dictionary<string, string> properties) {
-            string assemblyPath;
-            string workingDirectory;
-            string serializedArgs;
-            string[] arguments;
-
-            // Validate all required properties are given in the given
-            // property set and only enque a command if they are.
-            //
-            // If any of them are missing, we simply log a warning and keep
-            // listening for new requests.
-
-            if (!properties.TryGetValue("AssemblyPath", out assemblyPath)) {
-                //LogWarning("Ignoring starting request without given assembly path.");
-                return true;
-            }
-
-            if (!properties.TryGetValue("WorkingDirectory", out workingDirectory)) {
-                workingDirectory = Path.GetDirectoryName(assemblyPath);
-            }
-
-            if (properties.TryGetValue("Args", out serializedArgs)) {
-                arguments = KeyValueBinary.ToArray(serializedArgs);
-            } else {
-                arguments = new string[0];
-            }
-
-            EnqueueExecAppCommandWithDispatcher(assemblyPath, workingDirectory, arguments);
-            return true;
-        }
-
-        CommandInfo EnqueueExecAppCommandWithDispatcher(string assemblyPath, string workingDirectory, string[] args) {
-            ExecAppCommand command = new ExecAppCommand(assemblyPath, workingDirectory, args);
-            return engine.Dispatcher.Enqueue(command);
         }
     }
 }

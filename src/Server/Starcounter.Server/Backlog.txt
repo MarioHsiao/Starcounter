@@ -13,9 +13,9 @@ Backlog for server integration
 
 NEXTs
 # Implement ExecApp command.
-# Change reqeust/response to use named pipes and merge with App execution.
-# Comment, refactor and clean the command dispatcher
-# Comment, refactor and clean the command processor base class
-# Introdce DatabaseCommand
+# Implement AppsService.Stop (using event in the listener thread in AppsProcess).
+# Comment, refactor and clean the command dispatcher.
+# Comment, refactor and clean the command processor base class.
+# Introdce DatabaseCommand.
 # Refactor CommandProcessor, making it a generic, like CommandProcessor<T> :
 ServerCommand and get rid of custom attribute (make IsPublic virtual).

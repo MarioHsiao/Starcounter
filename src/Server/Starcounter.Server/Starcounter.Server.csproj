@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppsService.cs" />
     <Compile Include="Commands\CommandDispatcher.cs" />
     <Compile Include="Commands\CommandProcessor.cs" />
     <Compile Include="Commands\CommandProcessorAttribute.cs" />
