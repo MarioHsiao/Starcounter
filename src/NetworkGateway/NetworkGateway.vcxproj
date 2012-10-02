@@ -92,6 +92,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <PrecompiledHeader>Create</PrecompiledHeader>
       <PrecompiledHeaderFile>static_headers.hpp</PrecompiledHeaderFile>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>c:\boost\x86_64\lib</AdditionalLibraryDirectories>
