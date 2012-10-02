@@ -449,21 +449,23 @@
       <Project>{90d57166-b42e-4bbe-b9ec-cfb33e551b77}</Project>
       <Name>HttpStructs</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
+      <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
+      <Name>Starcounter.Internal</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>..\..\..\Grey\src\ErrorCodeCompiler\scerrcc.exe ..\..\..\Grey\src\errorcodes.xml -cs2 $(ProjectDir)Error.cs</PreBuildEvent>
+    <PreBuildEvent>$(SolutionDir)..\..\Grey\src\ErrorCodeCompiler\scerrcc.exe $(SolutionDir)..\..\Grey\src\errorcodes.xml -orangestdcs $(ProjectDir)Error.cs</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
   -->
-
   <Target Name="AfterClean">
     <Exec Command="&quot;C:\Program Files (x86)\Microsoft SDKs\Windows\v8.0A\Bin\NETFX 4.0 Tools\gacutil.exe&quot; /u Starcounter" />
   </Target>
-
   <Target Name="AfterBuild">
     <Copy DestinationFolder="$(OutputPath)" SourceFiles="@(RuntimeFile)" SkipUnchangedFiles="true" />
     <Exec Command="&quot;C:\Program Files (x86)\Microsoft SDKs\Windows\v8.0A\Bin\NETFX 4.0 Tools\gacutil.exe&quot; /f /i &quot;$(MSBuildProjectDirectory)\$(OutputPath)\$(AssemblyName).dll&quot;" />

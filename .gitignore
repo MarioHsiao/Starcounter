@@ -16,4 +16,5 @@ Release
 *.sdf
 *.ipch
 src/Starcounter/Error.cs
+src/Starcounter.Internal/Error.cs
 *.ncrunchsolution
