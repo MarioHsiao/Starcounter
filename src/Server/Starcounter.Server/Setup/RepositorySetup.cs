@@ -44,16 +44,16 @@ namespace Starcounter.Server.Setup {
     /// }
     /// </code>
     /// </example>
-    internal class RepositorySetup {
+    public sealed class RepositorySetup {
         /// <summary>
         /// The <see cref="RepositoryStructure"/> to use.
         /// </summary>
-        public readonly RepositoryStructure Structure;
+        internal readonly RepositoryStructure Structure;
 
         /// <summary>
         /// The <see cref="ServerConfiguration">server configuration</see> to use.
         /// </summary>
-        public readonly ServerConfiguration ServerConfiguration;
+        internal readonly ServerConfiguration ServerConfiguration;
 
         /// <summary>
         /// Creates a new default setup based on a directory and a name.
@@ -93,7 +93,7 @@ namespace Starcounter.Server.Setup {
         /// part of the given path.</param>
         /// <returns>A <see cref="RepositorySetup"/> representing the
         /// setup of the given value.</returns>
-        public static RepositorySetup NewDefault(string repositoryPath, int serverPortRange) {
+        internal static RepositorySetup NewDefault(string repositoryPath, int serverPortRange) {
             RepositoryStructure structure;
             ServerConfiguration serverConfig;
             MonitoringConfiguration monitoringConfig;
@@ -145,7 +145,7 @@ namespace Starcounter.Server.Setup {
         /// use.</param>
         /// <param name="engineConfiguration">The <see cref="EngineConfiguration"/>
         /// to use.</param>
-        public RepositorySetup(RepositoryStructure structure, ServerConfiguration serverConfiguration) {
+        internal RepositorySetup(RepositoryStructure structure, ServerConfiguration serverConfiguration) {
             if (structure == null) {
                 throw new ArgumentNullException("structure");
             }
