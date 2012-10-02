@@ -11,7 +11,7 @@ namespace Starcounter.Server.PublicModel {
     /// <summary>
     /// Interface of a response serializer.
     /// </summary>
-    public interface IResponseSerializer {
+    internal interface IResponseSerializer {
         string SerializeReponse(object response);
     }
 
