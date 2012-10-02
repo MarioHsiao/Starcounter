@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,7 @@ using Starcounter.Server.PublicModel;
 using Starcounter.Internal;
 using Starcounter.Server.Commands;
 using System.IO;
+using Starcounter.ABCIPC.Internal;
 
 namespace Starcounter.Server {
 
@@ -17,31 +19,27 @@ namespace Starcounter.Server {
     /// <summary>
     /// Encapsulates the services exposed by the server.
     /// </summary>
-    internal sealed class ServerServices {
+    public sealed class ServerServices {
         ServerEngine engine;
         Server ipcServer;
         IResponseSerializer responseSerializer;
 
-        void Foo() {
-            //// Assume for now interactive mode. This code is still just
-            //// to get up and running. We'll eventually utilize pipes and
-            //// spawn another thread, etc.
-            //Starcounter.ABCIPC.Server ipcServer;
-            //if (!Console.IsInputRedirected) {
-            //    ipcServer = Utils.PromptHelper.CreateServerAttachedToPrompt();
-            //} else {
-            //    ipcServer = new Starcounter.ABCIPC.Server(Console.In.ReadLine, Console.Out.WriteLine);
-            //}
-            //this.ServiceHost = new ServerServices(this, ipcServer, new NewtonSoftJsonSerializer(this));
-        }
-
-        internal ServerServices(ServerEngine engine, Server ipcServer, IResponseSerializer responseSerializer) {
+        public ServerServices(ServerEngine engine) {
+            // Assume for now interactive mode. This code is still just
+            // to get up and running. We'll eventually utilize pipes and
+            // spawn another thread, etc.
+            Starcounter.ABCIPC.Server ipcServer;
+            if (!Console.IsInputRedirected) {
+                ipcServer = Utils.PromptHelper.CreateServerAttachedToPrompt();
+            } else {
+                ipcServer = new Starcounter.ABCIPC.Server(Console.In.ReadLine, Console.Out.WriteLine);
+            }
             this.engine = engine;
             this.ipcServer = ipcServer;
-            this.responseSerializer = responseSerializer;
+            this.responseSerializer = new NewtonSoftJsonSerializer(engine);
         }
 
-        internal void Setup() {
+        public void Setup() {
 
             ipcServer.Handle("GetServerInfo", delegate(Request request) {
                 request.Respond(responseSerializer.SerializeReponse(engine.CurrentPublicModel.ServerInfo));
@@ -134,7 +132,16 @@ namespace Starcounter.Server {
             #endregion
         }
 
-        internal void Start() {
+        /// <summary>
+        /// Starts the <see cref="ServerServices"/>, blocking the calling
+        /// thread until a request to shut down comes in.
+        /// </summary>
+        /// <remarks>
+        /// The <see cref="ServerServices"/> does not stop or dispose the
+        /// <see cref="ServerEngine"/> upon shutdown; this is up to the
+        /// caller.
+        /// </remarks>
+        public void Start() {
             ipcServer.Receive();
         }
     }
