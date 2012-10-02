@@ -7,7 +7,7 @@ namespace Starcounter.Server.PublicModel.Commands {
     /// Base class of all server commands, possible to install processors for
     /// and execute via the server command queue / dispatcher.
     /// </summary>
-    internal abstract class ServerCommand {
+    public abstract class ServerCommand {
         /// <summary>
         /// Initializes a new <see cref="ServerCommand"/>.
         /// </summary>
