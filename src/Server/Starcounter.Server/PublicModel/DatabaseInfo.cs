@@ -7,12 +7,12 @@ namespace Starcounter.Server.PublicModel {
     /// <summary>
     /// Represents a snapshot of the public state of a database.
     /// </summary>
-    internal sealed class DatabaseInfo {
+    public sealed class DatabaseInfo {
         
         /// <summary>
         /// Initializes a <see cref="DatabaseInfo"/>.
         /// </summary>
-        public DatabaseInfo() {
+        internal DatabaseInfo() {
         }
 
         /// <summary>
@@ -20,7 +20,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string Uri {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string Name {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace Starcounter.Server.PublicModel {
         /// </remarks>
         public long MaxImageSize {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace Starcounter.Server.PublicModel {
         /// </remarks>
         public long TransactionLogSize {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string CollationFile {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public bool SupportReplication {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public DatabaseConfiguration Configuration {
             get;
-            set;
+            internal set;
         }
     }
 }

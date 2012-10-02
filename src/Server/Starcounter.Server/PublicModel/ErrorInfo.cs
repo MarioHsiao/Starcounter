@@ -11,7 +11,7 @@ namespace Starcounter.Server.PublicModel {
     /// extracted and utilized by consumers (e.g. normally client management
     /// applications).
     /// </summary>
-    internal sealed class ErrorInfo {
+    public sealed class ErrorInfo {
         //private static readonly ResourceManager resourceManager =
         //    new ResourceManager("Starcounter.Management.Contracts.ErrorMessages",
         //                        typeof(ErrorInfo).Assembly);
@@ -20,14 +20,14 @@ namespace Starcounter.Server.PublicModel {
         /// Prefix used when an <see cref="ErrorInfo"/> represent a message
         /// already properly created.
         /// </summary>
-        public const string FullMessagePrefix = "924C2085-2876-4F76-BE02-312CD21FFDE7";
+        internal const string FullMessagePrefix = "924C2085-2876-4F76-BE02-312CD21FFDE7";
 
         /// <summary>
         /// Prefix used when an <see cref="ErrorInfo"/> contains a given
         /// postfix, usually specified on the server, that needs to travel
         /// accross the wire.
         /// </summary>
-        public const string MessagePostfixPrefix = "34B66911-B05F-417D-82FA-3BA8BABE0F72";
+        internal const string MessagePostfixPrefix = "34B66911-B05F-417D-82FA-3BA8BABE0F72";
 
         /// <summary>
         /// Creates a <see cref="ErrorInfo"/> from an exception.
@@ -40,7 +40,7 @@ namespace Starcounter.Server.PublicModel {
         /// an <see cref="ErrorInfo"/> instance.</param>
         /// <returns>An <see cref="ErrorInfo"/> instance representing
         /// the given exception.</returns>
-        public static ErrorInfo FromException(Exception e) {
+        internal static ErrorInfo FromException(Exception e) {
             uint errorCode;
             string argument;
 
@@ -72,7 +72,7 @@ namespace Starcounter.Server.PublicModel {
         /// An <see cref="ErrorInfo"/> instance representing the
         /// given error code.
         /// </returns>
-        public static ErrorInfo FromErrorCode(uint errorCode) {
+        internal static ErrorInfo FromErrorCode(uint errorCode) {
             return new ErrorInfo(errorCode);
         }
 
@@ -89,7 +89,7 @@ namespace Starcounter.Server.PublicModel {
         /// An <see cref="ErrorInfo"/> instance representing the
         /// given error code.
         /// </returns>
-        public static ErrorInfo FromErrorCode(uint errorCode, string postfix) {
+        internal static ErrorInfo FromErrorCode(uint errorCode, string postfix) {
             if (string.IsNullOrEmpty(postfix))
                 return FromErrorCode(errorCode);
 
@@ -111,7 +111,7 @@ namespace Starcounter.Server.PublicModel {
         /// An <see cref="ErrorInfo"/> instance representing the
         /// given error code.
         /// </returns>
-        public static ErrorInfo FromErrorCode(uint errorCode, string postfix, params string[] arguments) {
+        internal static ErrorInfo FromErrorCode(uint errorCode, string postfix, params string[] arguments) {
             string[] argumentsWithPostfix;
             string postfixEntry;
 
@@ -135,7 +135,7 @@ namespace Starcounter.Server.PublicModel {
         /// <summary>
         /// Deserialization constructor.
         /// </summary>
-        public ErrorInfo() {
+        internal ErrorInfo() {
         }
 
         /// <summary>
@@ -145,7 +145,7 @@ namespace Starcounter.Server.PublicModel {
         /// <param name="arguments">Arguments. These arguments can be used to format
         /// the human-readable error message on the client; they can also be used
         /// by the client to implement repair actions.</param>
-        public ErrorInfo(string errorCode, params string[] arguments) {
+        internal ErrorInfo(string errorCode, params string[] arguments) {
             if (string.IsNullOrEmpty(errorCode)) {
                 throw new ArgumentNullException("errorCode");
             }
@@ -160,7 +160,7 @@ namespace Starcounter.Server.PublicModel {
         /// <param name="arguments">Arguments. These arguments can be used to format
         /// the human-readable error message on the client; they can also be used
         /// by the client to implement repair actions.</param>
-        public ErrorInfo(uint errorCode, params string[] arguments) {
+        internal ErrorInfo(uint errorCode, params string[] arguments) {
             this.ErrorId = errorCode.ToString();
             this.Arguments = arguments;
         }
@@ -170,7 +170,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string ErrorId {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -180,7 +180,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string[] Arguments {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -190,7 +190,7 @@ namespace Starcounter.Server.PublicModel {
         /// An <see cref="ErrorMessage"/> instance representing the error encapsulated
         /// by the current instance.
         /// </returns>
-        public ErrorMessage ToErrorMessage() {
+        internal ErrorMessage ToErrorMessage() {
             //string format;
             string message;
             uint numericCode;

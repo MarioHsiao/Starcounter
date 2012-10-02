@@ -7,12 +7,12 @@ namespace Starcounter.Server.PublicModel {
     /// <summary>
     /// Snapshot state of an executing command processor.
     /// </summary>
-    internal sealed class CommandInfo {
+    public sealed class CommandInfo {
         
         /// <summary>
         /// Initializes a <see cref="CommandInfo"/> message object.
         /// </summary>
-        public CommandInfo() {
+        internal CommandInfo() {
         }
 
         /// <summary>
@@ -20,7 +20,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public CommandId Id {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public int CommandType {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string ServerUri {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -58,14 +58,13 @@ namespace Starcounter.Server.PublicModel {
         /// </remarks>
         public string DatabaseUri {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
         /// Gets a value indicating if the current command represents a
         /// an activity targeting a specific database.
         /// </summary>
-        [XmlIgnore]
         public bool IsDatabaseActivity {
             get {
                 return this.DatabaseUri != null;
@@ -77,7 +76,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string Description {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -85,7 +84,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public DateTime StartTime {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -93,7 +92,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public DateTime? EndTime {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -101,7 +100,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public CommandStatus Status {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -110,7 +109,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public CommandId CorrelatedCommandId {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -118,7 +117,6 @@ namespace Starcounter.Server.PublicModel {
         /// or if it has been cancelled. To determine the exact nature of a
         /// completed command, consult the <see cref="Status"/> property.
         /// </summary>
-        [XmlIgnore]
         public bool IsCompleted {
             get {
                 return this.EndTime.HasValue;
@@ -129,17 +127,14 @@ namespace Starcounter.Server.PublicModel {
         /// Errors that happened during command execution, or <b>null</b>
         /// if the command executed successfully.
         /// </summary>
-        [XmlArray("Errors")]
-        [XmlArrayItem("Error")]
         public ErrorInfo[] Errors {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
         /// Determines whether the command completed with errors.
         /// </summary>
-        [XmlIgnore]
         public bool HasError {
             get {
                 return this.Errors != null && this.Errors.Length > 0;
@@ -150,18 +145,15 @@ namespace Starcounter.Server.PublicModel {
         /// Gets or sets a value indicating the progress made by the
         /// command this <see cref="CommandInfo"/> represents.
         /// </summary>
-        [XmlArray("Progress")]
-        [XmlArrayItem("Progress")]
         public ProgressInfo[] Progress {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
         /// Gets a value indicating if the command comes with any
         /// progress information.
         /// </summary>
-        [XmlIgnore]
         public bool HasProgress {
             get {
                 return this.Progress != null && this.Progress.Length > 0;
