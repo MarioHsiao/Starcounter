@@ -130,6 +130,50 @@ namespace Starcounter.Server.Commands {
             this._constructors = constructors;
         }
 
+        internal CommandInfo GetRecentCommand(CommandId id) {
+            Func<CommandInfo, bool> match;
+
+            match = delegate(CommandInfo candidate) {
+                return candidate != null && candidate.Id.Equals(id);
+            };
+
+            lock (_syncRoot) {
+
+                if (match(_lists.CurrentInfo))
+                    return _lists.CurrentInfo;
+
+                if (_lists.PendingInfo.Count != 0) {
+                    LinkedListNode<CommandInfo> nextCommand = _lists.PendingInfo.First;
+                    do {
+                        if (match(nextCommand.Value))
+                            return nextCommand.Value;
+
+                        nextCommand = nextCommand.Next;
+                    }
+                    while (nextCommand != null);
+                }
+
+                if (_lists.ProcessedInfo.Count != 0) {
+                    DateTime removedAt = DateTime.Now.Subtract(TimeUntilDoneTasksAreRemoved);
+                    LinkedListNode<CommandInfo> nextCommand = _lists.ProcessedInfo.First;
+                    do {
+                        LinkedListNode<CommandInfo> command = nextCommand;
+                        nextCommand = command.Next;
+
+                        if (command.Value.EndTime > removedAt) {
+                            if (match(command.Value))
+                                return command.Value;
+                        } else {
+                            _lists.ProcessedInfo.Remove(command);
+                        }
+                    }
+                    while (nextCommand != null);
+                }
+            }
+
+            return null;
+        }
+
         internal CommandInfo[] GetRecentCommands() {
             List<CommandInfo> commands = new List<CommandInfo>();
 
