@@ -52,82 +52,8 @@ namespace Starcounter.Server.Commands {
             get { return _commandDescriptors; }
         }
 
-        /// <summary>
-        /// Discovers the command processors (<see cref="CommandProcessor"/>) present in an assembly.
-        /// </summary>
-        /// <param name="assembly">An assembly containing types derived from <see cref="CommandProcessor"/>.</param>
-        internal void DiscoverAssembly(Assembly assembly) // Note that this method should only be called during initialization.
-        {
-            List<CommandDescriptor> commandDescriptors;
-            Dictionary<Type, ConstructorInfo> constructors;
-            ConstructorInfo constructor;
-            MethodInfo makeDescriptor;
-            CommandDescriptor descriptor;
-
-            if (assembly == null) {
-                throw new ArgumentNullException("assembly");
-            }
-
-            commandDescriptors = new List<CommandDescriptor>();
-            constructors = new Dictionary<Type, ConstructorInfo>();
-
-            foreach (Type type in assembly.GetTypes()) {
-                if (!type.IsAbstract && typeof(CommandProcessor).IsAssignableFrom(type)) {
-                    CommandProcessorAttribute[] attributes =
-                        (CommandProcessorAttribute[])type.GetCustomAttributes(
-                            typeof(CommandProcessorAttribute), false
-                        );
-
-                    if (attributes.Length > 0) {
-                        // Get a reference to the constructor accepting a single
-                        // ServerCommand argument. This constructor will be used to
-                        // create processors for commands arriving to the server.
-
-                        constructor = type.GetConstructor(new[] { typeof(ServerEngine), typeof(ServerCommand) });
-                        if (constructor == null)
-                            throw new InvalidProgramException(
-                                string.Format("The command processor {0} does not have the expected constructor.",
-                                              type.FullName));
-
-                        // TODO: Backlog
-                        //ServerLogSources.CommandProcessor.Debug(
-                        //    "Discovered the command processor {0} for {1}.",
-                        //    type.Name, attributes[0].CommandType.Name
-                        //);
-
-                        constructors.Add(attributes[0].CommandType, constructor);
-
-                        if (!attributes[0].IsInternal) {
-                            // Assure a command descriptor entry is created, to allow
-                            // clients to ask the server what commands it accepts and
-                            // to be able to map sent commands to static descriptors
-                            // when building client side components.
-
-                            makeDescriptor = type.GetMethod("MakeDescriptor");
-                            descriptor =
-                                makeDescriptor != null ?
-                                (CommandDescriptor)makeDescriptor.Invoke(null, null) :
-                                CommandProcessor.MakeDescriptor(
-                                    type,
-                                    attributes[0]
-                                );
-
-                            // TODO: Backlog
-                            //ServerLogSources.CommandProcessor.Debug(
-                            //    "Added command descriptor with type {0} for command {1} (\"{2}\").",
-                            //    descriptor.CommandType,
-                            //    attributes[0].CommandType.Name,
-                            //    descriptor.CommandDescription
-                            //);
-
-                            commandDescriptors.Add(descriptor);
-                        }
-                    }
-                }
-            }
-
-            this._commandDescriptors = commandDescriptors.ToArray();
-            this._constructors = constructors;
+        internal void Setup() {
+            DiscoverAssembly(GetType().Assembly);
         }
 
         internal CommandInfo GetRecentCommand(CommandId id) {
@@ -309,6 +235,84 @@ namespace Starcounter.Server.Commands {
                 throw new InvalidOperationException("_lists.CurrentInfo.Id != commandInfo.Id");
 #endif
             _lists.CurrentInfo = commandInfo;
+        }
+
+        /// <summary>
+        /// Discovers the command processors (<see cref="CommandProcessor"/>) present in an assembly.
+        /// </summary>
+        /// <param name="assembly">An assembly containing types derived from <see cref="CommandProcessor"/>.</param>
+        void DiscoverAssembly(Assembly assembly) // Note that this method should only be called during initialization.
+        {
+            List<CommandDescriptor> commandDescriptors;
+            Dictionary<Type, ConstructorInfo> constructors;
+            ConstructorInfo constructor;
+            MethodInfo makeDescriptor;
+            CommandDescriptor descriptor;
+
+            if (assembly == null) {
+                throw new ArgumentNullException("assembly");
+            }
+
+            commandDescriptors = new List<CommandDescriptor>();
+            constructors = new Dictionary<Type, ConstructorInfo>();
+
+            foreach (Type type in assembly.GetTypes()) {
+                if (!type.IsAbstract && typeof(CommandProcessor).IsAssignableFrom(type)) {
+                    CommandProcessorAttribute[] attributes =
+                        (CommandProcessorAttribute[])type.GetCustomAttributes(
+                            typeof(CommandProcessorAttribute), false
+                        );
+
+                    if (attributes.Length > 0) {
+                        // Get a reference to the constructor accepting a single
+                        // ServerCommand argument. This constructor will be used to
+                        // create processors for commands arriving to the server.
+
+                        constructor = type.GetConstructor(new[] { typeof(ServerEngine), typeof(ServerCommand) });
+                        if (constructor == null)
+                            throw new InvalidProgramException(
+                                string.Format("The command processor {0} does not have the expected constructor.",
+                                              type.FullName));
+
+                        // TODO: Backlog
+                        //ServerLogSources.CommandProcessor.Debug(
+                        //    "Discovered the command processor {0} for {1}.",
+                        //    type.Name, attributes[0].CommandType.Name
+                        //);
+
+                        constructors.Add(attributes[0].CommandType, constructor);
+
+                        if (!attributes[0].IsInternal) {
+                            // Assure a command descriptor entry is created, to allow
+                            // clients to ask the server what commands it accepts and
+                            // to be able to map sent commands to static descriptors
+                            // when building client side components.
+
+                            makeDescriptor = type.GetMethod("MakeDescriptor");
+                            descriptor =
+                                makeDescriptor != null ?
+                                (CommandDescriptor)makeDescriptor.Invoke(null, null) :
+                                CommandProcessor.MakeDescriptor(
+                                    type,
+                                    attributes[0]
+                                );
+
+                            // TODO: Backlog
+                            //ServerLogSources.CommandProcessor.Debug(
+                            //    "Added command descriptor with type {0} for command {1} (\"{2}\").",
+                            //    descriptor.CommandType,
+                            //    attributes[0].CommandType.Name,
+                            //    descriptor.CommandDescription
+                            //);
+
+                            commandDescriptors.Add(descriptor);
+                        }
+                    }
+                }
+            }
+
+            this._commandDescriptors = commandDescriptors.ToArray();
+            this._constructors = constructors;
         }
     }
 }

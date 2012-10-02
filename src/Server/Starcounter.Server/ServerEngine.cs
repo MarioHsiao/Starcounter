@@ -144,7 +144,7 @@ namespace Starcounter.Server {
             this.DatabaseDirectory = databaseDirectory;
             this.TempDirectory = tempDirectory;
 
-            this.Dispatcher.DiscoverAssembly(GetType().Assembly);
+            this.Dispatcher.Setup();
             this.DatabaseEngine.Setup();
             this.DatabaseDefaultValues.Update(this.Configuration);
             SetupDatabases();
