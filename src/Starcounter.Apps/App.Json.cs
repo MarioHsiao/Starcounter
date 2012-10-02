@@ -6,7 +6,7 @@ using Starcounter.Templates;
 namespace Starcounter {
 
     public partial class App {
-        private char[] Session;
+//        private char[] Session;
         /// <summary>
         /// 
         /// </summary>
@@ -137,10 +137,10 @@ namespace Starcounter {
                                 throw new NotImplementedException();
                             }
                         }
-                        else {
-                            sb.Append("__vf:");
-                            sb.Append(JsonConvert.SerializeObject(Media.Content.FilePath.ToString()));
-                        }
+                        //else {
+                        //    sb.Append("__vf:");
+                        //    sb.Append(JsonConvert.SerializeObject(Media.Content.FilePath.ToString()));
+                        //}
                 }
 
             }

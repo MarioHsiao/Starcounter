@@ -5,7 +5,7 @@ namespace Starcounter.Templates.Interfaces {
 
         object DefaultValueAsObject { get; set; }
 
-        Type InstanceType { get; }
+        new Type InstanceType { get; }
 
     }
 }

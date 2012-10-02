@@ -62,50 +62,50 @@ namespace Starcounter.Client.Tests.Application {
         public static void ReadDynamic() {
             return;
 
-            List<App> apps = CreateSome();
-            dynamic jocke = apps[0];
-            dynamic tim = apps[1];
+            //List<App> apps = CreateSome();
+            //dynamic jocke = apps[0];
+            //dynamic tim = apps[1];
 
-            Assert.AreEqual("Joachim", jocke.FirstName);
-            Assert.AreEqual("Wester", jocke.LastName);
-            Assert.AreEqual(30, jocke.Age);
+            //Assert.AreEqual("Joachim", jocke.FirstName);
+            //Assert.AreEqual("Wester", jocke.LastName);
+            //Assert.AreEqual(30, jocke.Age);
 
-            Assert.AreEqual("Timothy", tim.FirstName);
-            Assert.AreEqual("Wester", tim.LastName);
-            Assert.AreEqual(16, tim.Age);
+            //Assert.AreEqual("Timothy", tim.FirstName);
+            //Assert.AreEqual("Wester", tim.LastName);
+            //Assert.AreEqual(16, tim.Age);
         }
 
         [Test]
         public static void WriteDynamic() {
             return;
-            List<App> apps = CreateSome();
-            dynamic a = apps[0];
-            dynamic b = apps[1];
-            dynamic c = new App() { Template = b.Template };
+            //List<App> apps = CreateSome();
+            //dynamic a = apps[0];
+            //dynamic b = apps[1];
+            //dynamic c = new App() { Template = b.Template };
 
-            a.FirstName = "Adrienne";
-            a.LastName = "Wester";
-            a.Age = 24;
+            //a.FirstName = "Adrienne";
+            //a.LastName = "Wester";
+            //a.Age = 24;
 
-            b.FirstName = "Douglas";
-            b.LastName = "Wester";
-            b.Age = 7;
+            //b.FirstName = "Douglas";
+            //b.LastName = "Wester";
+            //b.Age = 7;
 
-            c.FirstName = "Charlie";
-            c.LastName = "Wester";
-            c.Age = 4;
+            //c.FirstName = "Charlie";
+            //c.LastName = "Wester";
+            //c.Age = 4;
 
-            Assert.AreEqual("Adrienne", a.FirstName);
-            Assert.AreEqual("Wester", a.LastName);
-            Assert.AreEqual(24, a.Age);
+            //Assert.AreEqual("Adrienne", a.FirstName);
+            //Assert.AreEqual("Wester", a.LastName);
+            //Assert.AreEqual(24, a.Age);
 
-            Assert.AreEqual("Douglas", b.FirstName);
-            Assert.AreEqual("Wester", b.LastName);
-            Assert.AreEqual(7, b.Age);
+            //Assert.AreEqual("Douglas", b.FirstName);
+            //Assert.AreEqual("Wester", b.LastName);
+            //Assert.AreEqual(7, b.Age);
 
-            Assert.AreEqual("Charlie", c.FirstName);
-            Assert.AreEqual("Wester", c.LastName);
-            Assert.AreEqual(4, c.Age);
+            //Assert.AreEqual("Charlie", c.FirstName);
+            //Assert.AreEqual("Wester", c.LastName);
+            //Assert.AreEqual(4, c.Age);
         }
 
     }
