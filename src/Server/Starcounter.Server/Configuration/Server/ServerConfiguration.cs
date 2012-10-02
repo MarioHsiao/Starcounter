@@ -74,30 +74,40 @@ namespace Starcounter.Configuration {
         }
 
         /// <summary>
-        /// Gets or sets the default database maximum image size for the
-        /// server to use when creating new databases and no maximum image
-        /// size is explicitly given.
-        /// </summary>
-        /// <remarks>
-        /// Expressed in megabytes.
-        /// </remarks>
-        public long? DatabaseDefaultMaxImageSize {
+        /// Gets or sets the default database storage properties
+        /// for the server to use when creating new databases and
+        /// no values are explicitly given.
+        [XmlElement(IsNullable = false)]
+        public DatabaseStorageConfiguration DefaultDatabaseStorageConfiguration {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets or sets the default database transaction log size for the
-        /// server to use when creating new databases and no transaction log
-        /// size is explicitly given.
-        /// </summary>
-        /// <remarks>
-        /// Expressed in megabytes.
-        /// </remarks>
-        public long? DatabaseDefaultTransactionLogSize {
-            get;
-            set;
-        }
+        ///// <summary>
+        ///// Gets or sets the default database maximum image size for the
+        ///// server to use when creating new databases and no maximum image
+        ///// size is explicitly given.
+        ///// </summary>
+        ///// <remarks>
+        ///// Expressed in megabytes.
+        ///// </remarks>
+        //public long? DatabaseDefaultMaxImageSize {
+        //    get;
+        //    set;
+        //}
+
+        ///// <summary>
+        ///// Gets or sets the default database transaction log size for the
+        ///// server to use when creating new databases and no transaction log
+        ///// size is explicitly given.
+        ///// </summary>
+        ///// <remarks>
+        ///// Expressed in megabytes.
+        ///// </remarks>
+        //public long? DatabaseDefaultTransactionLogSize {
+        //    get;
+        //    set;
+        //}
 
         /// <summary>
         /// Default configuration for instances of this engine.
