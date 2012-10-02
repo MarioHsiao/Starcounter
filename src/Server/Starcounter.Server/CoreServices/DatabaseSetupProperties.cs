@@ -48,8 +48,9 @@ namespace Starcounter.Server {
         }
 
         void ExpandPlaceholdersInConfigurationStrings() {
-            // Implement
-            // TODO:
+            this.Configuration.Runtime.ImageDirectory = this.Configuration.Runtime.ImageDirectory.Replace("[DatabaseName]", this.Name);
+            this.Configuration.Runtime.TransactionLogDirectory = this.Configuration.Runtime.TransactionLogDirectory.Replace("[DatabaseName]", this.Name);
+            this.Configuration.Runtime.TempDirectory = this.Configuration.Runtime.TempDirectory.Replace("[DatabaseName]", this.Name);
         }
     }
 }
