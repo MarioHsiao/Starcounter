@@ -54,11 +54,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpStructs", "Communicatio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndexQueryTest", "Samples\IndexQueryTest\IndexQueryTest.csproj", "{917A2134-2267-4E27-9415-1D531AADF156}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarcounterServer", "StarcounterServer\StarcounterServer.csproj", "{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{411E2883-6894-4BB1-A243-FF31D84ABEAB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Server", "Server\Starcounter.Server\Starcounter.Server.csproj", "{28E1D438-7DC4-4BF7-A486-0598C78DBBE9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarcounterServer", "Server\StarcounterServer\StarcounterServer.csproj", "{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -154,5 +154,6 @@ Global
 		{76C95AD5-A9B4-4672-856A-18A1CE45D2B1} = {EB6765FF-80A0-4695-B8F4-9F5ADF59CBA1}
 		{8B599BFF-B414-41A3-A270-96CDA0C522AF} = {E64C1F28-D2C1-47D2-A62B-151A6968D158}
 		{28E1D438-7DC4-4BF7-A486-0598C78DBBE9} = {411E2883-6894-4BB1-A243-FF31D84ABEAB}
+		{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45} = {411E2883-6894-4BB1-A243-FF31D84ABEAB}
 	EndGlobalSection
 EndGlobal
