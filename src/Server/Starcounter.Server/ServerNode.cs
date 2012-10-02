@@ -89,7 +89,7 @@ namespace Starcounter.Server {
         /// </summary>
         /// <param name="configuration"></param>
         internal ServerNode(ServerConfiguration configuration) {
-            this.InstallationDirectory = Path.GetDirectoryName(typeof(ServerProgram).Assembly.Location);
+            this.InstallationDirectory = Path.GetDirectoryName(typeof(ServerNode).Assembly.Location);
             this.Configuration = configuration;
             this.DatabaseDefaultValues = new DatabaseDefaults();
             this.Name = configuration.Name;

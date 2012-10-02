@@ -52,26 +52,26 @@ namespace Starcounter.Server {
                         } catch { }
                 }
 
-                if (arguments.Command.Equals("CreateRepo", StringComparison.InvariantCultureIgnoreCase)) {
-                    string repositoryPath = arguments.CommandParameters[0];
-                    string serverName;
+                //if (arguments.Command.Equals("CreateRepo", StringComparison.InvariantCultureIgnoreCase)) {
+                //    string repositoryPath = arguments.CommandParameters[0];
+                //    string serverName;
 
-                    if (!arguments.TryGetProperty("name", out serverName)) {
-                        serverName = "Personal";
-                    }
+                //    if (!arguments.TryGetProperty("name", out serverName)) {
+                //        serverName = "Personal";
+                //    }
 
-                    var setup = RepositorySetup.NewDefault(repositoryPath, serverName);
-                    setup.Execute();
-                    return;
-                }
+                //    var setup = RepositorySetup.NewDefault(repositoryPath, serverName);
+                //    setup.Execute();
+                //    return;
+                //}
 
                 // Start is utilized. Bootstrap the server.
                 // TODO:
 
-                var config = ServerConfiguration.Load(Path.GetFullPath(arguments.CommandParameters[0]));
-                var server = new ServerNode(config);
-                server.Setup();
-                server.Start();
+                //var config = ServerConfiguration.Load(Path.GetFullPath(arguments.CommandParameters[0]));
+                //var server = new ServerNode(config);
+                //server.Setup();
+                //server.Start();
             }
         }
 
