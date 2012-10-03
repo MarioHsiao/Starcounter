@@ -4,23 +4,23 @@ using System.Diagnostics;
 using System.Threading;
 using BuildSystemHelper;
 
-namespace BuildBlue
+namespace BuildLevel0
 {
-    class BuildBlue
+    class BuildLevel0
     {
-        // Which Blue version to build.
-        static readonly String blueBuildBranch = Environment.GetEnvironmentVariable("SC_BLUE_BRANCH");
+        // Which Level0 version to build.
+        static readonly String level0_BuildBranch = Environment.GetEnvironmentVariable("GIT_LEVEL0_BRANCH");
 
         // Important directories.
-        static readonly String BlueRootDir =
-            Environment.GetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar) + @"\Blue\Src";
+        static readonly String Level0_RootDir =
+            Environment.GetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar) + @"\Level0\Src";
 
-        // Blue latest stable files directory.
+        // Level0 latest stable files directory.
         static readonly String FtpLatestStableDir =
-            Path.Combine(BuildSystem.MappedBuildServerFTP, @"SCBuilds\Blue\" + blueBuildBranch + @"\LatestStable");
+            Path.Combine(BuildSystem.MappedBuildServerFTP, @"SCBuilds\Level0\" + level0_BuildBranch + @"\LatestStable");
 
         /// <summary>
-        /// Core function to build Blue in a certain configuration and platform.
+        /// Core function to build Level0 in a certain configuration and platform.
         /// </summary>
         /// <param name="configuration">Release or Debug</param>
         /// <param name="platform">Win32 or x64</param>
@@ -32,7 +32,7 @@ namespace BuildBlue
 
             // Killing interrupting processes.
             errorOut.WriteLine("Killing disturbing processes...");
-            BuildSystem.KillDisturbingProcesses(new String[] {"buildblue", "buildconsole", "buildsystem"});
+            BuildSystem.KillDisturbingProcesses(new String[] {"buildlevel0", "buildconsole", "buildsystem"});
             Thread.Sleep(2000);
 
             // Create IncrediBuild process start information.
@@ -40,15 +40,15 @@ namespace BuildBlue
             {
                 /*
                 FileName = @"C:\Program Files (x86)\Xoreax\IncrediBuild\BuildConsole.exe",
-                Arguments = Path.Combine(BlueRootDir, "Blue.sln") + " " + buildType +  " /cfg=\"" + configuration + "|" + platform + "\" " + parameters,
+                Arguments = Path.Combine(Level0_RootDir, "Level0.sln") + " " + buildType +  " /cfg=\"" + configuration + "|" + platform + "\" " + parameters,
                 UseShellExecute = false,
-                WorkingDirectory = BlueRootDir
+                WorkingDirectory = Level0_RootDir
                 */
 
                 FileName = BuildSystem.MsBuildExePath,
-                Arguments = Path.Combine(BlueRootDir, "Blue.sln") + " /property:Configuration=\"" + configuration + "\";Platform=\"" + platform + "\";GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:normal /maxcpucount /nodeReuse:False " + parameters,
+                Arguments = Path.Combine(Level0_RootDir, "Level0.sln") + " /property:Configuration=\"" + configuration + "\";Platform=\"" + platform + "\";GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:normal /maxcpucount /nodeReuse:False " + parameters,
                 UseShellExecute = false,
-                WorkingDirectory = BlueRootDir
+                WorkingDirectory = Level0_RootDir
             };
 
             errorOut.WriteLine("Building with IncrediBuild: \"" + ibProcInfo.FileName + "\" " + ibProcInfo.Arguments);
@@ -67,10 +67,10 @@ namespace BuildBlue
                 p.Kill();
 
                 // Creating return message.
-                String errMsg = "ERROR: Blue build process has not exited within the allowed wait interval (60 seconds)." + Environment.NewLine;
+                String errMsg = "ERROR: Level0 build process has not exited within the allowed wait interval (60 seconds)." + Environment.NewLine;
                 errorOut.WriteLine(errMsg);
 
-                throw new Exception("Blue building process failed.");
+                throw new Exception("Level0 building process failed.");
             }
 
             // Checking process error code.
@@ -78,10 +78,10 @@ namespace BuildBlue
             {
                 // Creating return message.
                 String errMsg = "ERROR: ";
-                errMsg += "Blue build process has finished with incorrect exit code." + Environment.NewLine;
+                errMsg += "Level0 build process has finished with incorrect exit code." + Environment.NewLine;
                 errorOut.WriteLine(errMsg);
 
-                throw new Exception("Blue building process failed.");
+                throw new Exception("Level0 building process failed.");
             }
         }
 
@@ -91,7 +91,7 @@ namespace BuildBlue
             try
             {
                 // Printing tool welcome message.
-                BuildSystem.PrintToolWelcome("Blue Build");
+                BuildSystem.PrintToolWelcome("Level0 Build");
 
                 TextWriter errorOut = Console.Error;
 
@@ -120,13 +120,13 @@ namespace BuildBlue
                     {
                         if (BuildSystem.IsPersonalBuild())
                         {
-                            errorOut.WriteLine("Skipping uploading Blue '{0}' build artifacts since its a Personal build...", blueBuildBranch);
+                            errorOut.WriteLine("Skipping uploading Level0 '{0}' build artifacts since its a Personal build...", level0_BuildBranch);
                             return 0;
                         }
                         else if (releaseConfBuild)
                         {
                             // Now we can copy all built files for all configurations.
-                            errorOut.WriteLine("Uploading Blue '{0}' build artifacts to FTP directory...", blueBuildBranch);
+                            errorOut.WriteLine("Uploading Level0 '{0}' build artifacts to FTP directory...", level0_BuildBranch);
 
                             // Checking that directory exists.
                             if (!Directory.Exists(FtpLatestStableDir))
@@ -148,14 +148,14 @@ namespace BuildBlue
                                 File.WriteAllText(lockFile, "locked!");
 
                                 // Copying all built files.
-                                BuildSystem.CopyDirToSharedFtp(BlueRootDir + @"\x64\Release", FtpLatestStableDir + @"\x64\Release");
-                                BuildSystem.CopyDirToSharedFtp(BlueRootDir + @"\x64\Debug", FtpLatestStableDir + @"\x64\Debug");
+                                BuildSystem.CopyDirToSharedFtp(Level0_RootDir + @"\x64\Release", FtpLatestStableDir + @"\x64\Release");
+                                BuildSystem.CopyDirToSharedFtp(Level0_RootDir + @"\x64\Debug", FtpLatestStableDir + @"\x64\Debug");
 
                                 // Copying headers directory as well.
-                                BuildSystem.CopyDirToSharedFtp(BlueRootDir + @"\include", FtpLatestStableDir + @"\include");
+                                BuildSystem.CopyDirToSharedFtp(Level0_RootDir + @"\include", FtpLatestStableDir + @"\include");
 
-                                // BuildSystem.CopyDirToSharedFtp(BlueRootDir + @"\Win32\Release", FtpCopyDir + @"\Win32\Release");
-                                // BuildSystem.CopyDirToSharedFtp(BlueRootDir + @"\Win32\Debug", FtpCopyDir + @"\Win32\Debug");
+                                // BuildSystem.CopyDirToSharedFtp(Level0_RootDir + @"\Win32\Release", FtpCopyDir + @"\Win32\Release");
+                                // BuildSystem.CopyDirToSharedFtp(Level0_RootDir + @"\Win32\Debug", FtpCopyDir + @"\Win32\Debug");
                             }
                             finally
                             {
@@ -170,7 +170,7 @@ namespace BuildBlue
                 }
 
                 Stopwatch timer = Stopwatch.StartNew();
-                errorOut.WriteLine("Starting Blue '{0}' Build Process...", blueBuildBranch);
+                errorOut.WriteLine("Starting Level0 '{0}' Build Process...", level0_BuildBranch);
 
                 // Checking if user runs special debug build.
                 if (!releaseConfBuild)
@@ -193,7 +193,7 @@ namespace BuildBlue
 
                 // Calculating total time spent on the building process.
                 timer.Stop();
-                errorOut.WriteLine("Blue '{0}' build process finished successfully.", blueBuildBranch);
+                errorOut.WriteLine("Level0 '{0}' build process finished successfully.", level0_BuildBranch);
 
                 errorOut.WriteLine("Total time spent on the build (ms): " + timer.ElapsedMilliseconds + ".");
                 errorOut.WriteLine("---------------------------------------------------------------");
