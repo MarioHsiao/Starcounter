@@ -150,7 +150,7 @@ namespace BuildLevel0
                                 File.WriteAllText(lockFile, "locked!");
 
                                 // Copying all built files.
-                                //BuildSystem.CopyDirToSharedFtp(Level0_RootDir + @"\x64\Release", FtpLatestStableDir + @"\x64\Release");
+                                BuildSystem.CopyDirToSharedFtp(Level0_RootDir + @"\x64\Release", FtpLatestStableDir + @"\x64\Release");
                                 BuildSystem.CopyDirToSharedFtp(Level0_RootDir + @"\x64\Debug", FtpLatestStableDir + @"\x64\Debug");
 
                                 // Copying headers directory as well.
