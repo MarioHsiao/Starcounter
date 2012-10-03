@@ -14,6 +14,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter", "Starcounter\Starcounter.csproj", "{7BF06E68-1088-47EE-B06C-DE546AFABDB0}"
 	ProjectSection(ProjectDependencies) = postProject
 		{9E8D97FC-87A3-4A7C-B318-9414B5EEA60E} = {9E8D97FC-87A3-4A7C-B318-9414B5EEA60E}
+		{8B599BFF-B414-41A3-A270-96CDA0C522AF} = {8B599BFF-B414-41A3-A270-96CDA0C522AF}
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hello", "Samples\hello\hello.csproj", "{785E7F33-7D3A-4119-84C1-78819279669C}"
@@ -90,6 +91,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Web.Tests", "Starcounter.Web.Tests\Starcounter.Web.Tests.csproj", "{8670B44F-5240-4E27-AEAC-E7C58F626777}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Weaver", "Weaver\Weaver.csproj", "{76C95AD5-A9B4-4672-856A-18A1CE45D2B1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8B599BFF-B414-41A3-A270-96CDA0C522AF} = {8B599BFF-B414-41A3-A270-96CDA0C522AF}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ThirdParty", "ThirdParty", "{5069EDE6-F3FE-4CD3-89C8-1AF15ED4B047}"
 EndProject
