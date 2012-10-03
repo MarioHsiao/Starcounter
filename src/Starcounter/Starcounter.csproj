@@ -47,7 +47,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <!-- Base paths to redistribuatables / third party files -->
-    <PostSharpRedistributables>..\ThirdParty\PostSharp</PostSharpRedistributables>
+    <PostSharpRedistributables>$(OutputPath)</PostSharpRedistributables>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Apps\App.cs" />
