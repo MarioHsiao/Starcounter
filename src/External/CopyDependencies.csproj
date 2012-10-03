@@ -28,13 +28,13 @@
   </PropertyGroup>
   <PropertyGroup>
     <LocalBlueBinariesDir>..\..\..\Level0\src\x64\$(Configuration)</LocalBlueBinariesDir>
-    <RemoteBlueBinariesDir>$(BinariesFTP)\SCBuilds\Blue\$(GIT_LEVEL0_BRANCH)\LatestStable\x64\$(Configuration)</RemoteBlueBinariesDir>
+    <RemoteBlueBinariesDir>$(BinariesFTP)\SCBuilds\Level0\$(GIT_LEVEL0_BRANCH)\LatestStable\x64\$(Configuration)</RemoteBlueBinariesDir>
     <RemotePrologSQLParser>$(BinariesFTP)\SCDev\ThirdParty\PrologSQLParser\StarcounterSQL.exe</RemotePrologSQLParser>
   </PropertyGroup>
   <ItemGroup>
     <LocalBlueBinFiles Include="$(LocalBlueBinariesDir)\*" />
     <RemoteBlueBinFiles Include="$(RemoteBlueBinariesDir)\*" />
-    <RemoteBlueIncludeFiles Include="$(BinariesFTP)\SCBuilds\Blue\$(GIT_LEVEL0_BRANCH)\LatestStable\Include\*" />
+    <RemoteBlueIncludeFiles Include="$(BinariesFTP)\SCBuilds\Level0\$(GIT_LEVEL0_BRANCH)\LatestStable\Include\*" />
     <RemotePostSharpBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\PostSharp\*" />
     <RemoteMinGW64Binaries Include="$(BinariesFTP)\SCDev\ThirdParty\MinGW_x64\**\*" />
   </ItemGroup>
