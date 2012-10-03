@@ -72,8 +72,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CodeBehindAnalyser\CodebehindMetadata.cs" />
-    <Compile Include="CodeBehindAnalyser\JsonMapInfo.cs" />
     <Compile Include="CSharpGenerator\CSharpGenerator.cs" />
     <Compile Include="SimpleCodeDom\NPredefinedClass.cs" />
     <Compile Include="SimpleCodeDom\NAppMetadata.cs" />
