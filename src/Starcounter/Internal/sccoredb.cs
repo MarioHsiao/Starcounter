@@ -166,21 +166,7 @@ namespace Starcounter.Internal
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern uint sc_drop_table(ushort table_id);
 
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public unsafe extern static UInt32 sccoredb_get_index_info_by_name(
-            UInt64 definition_addr,
-            string name,
-            SC_INDEX_INFO* pii
-            );
-
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 sccoredb_get_index_infos(
-            UInt64 definition_addr,
-            UInt32* pic,
-            SC_INDEX_INFO* piis
-            );
-
-        [StructLayout(LayoutKind.Sequential, Pack=8)]
+        [StructLayout(LayoutKind.Sequential, Pack = 8)]
         public unsafe struct SC_INDEX_INFO
         {
             public UInt64 handle;
@@ -200,6 +186,34 @@ namespace Starcounter.Internal
             public Int16 attrIndexArr_9;
             public Int16 attrIndexArr_10;
         };
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public unsafe extern static UInt32 sccoredb_get_index_info_by_name(
+            UInt64 definition_addr,
+            string name,
+            SC_INDEX_INFO* pii
+            );
+
+        [StructLayout(LayoutKind.Sequential, Pack = 4)]
+        public unsafe struct SCCOREDB_SORT_SPEC_ELEM
+        {
+            public short column_index;
+            public byte sort; // 0 ascending, 1 descending.
+        };
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public unsafe extern static UInt32 sccoredb_get_index_info_by_sort(
+            UInt64 definition_addr,
+            SCCOREDB_SORT_SPEC_ELEM *sort_spec,
+            SC_INDEX_INFO *pii
+            );
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public unsafe extern static UInt32 sccoredb_get_index_infos(
+            UInt64 definition_addr,
+            UInt32* pic,
+            SC_INDEX_INFO* piis
+            );
 
         public const UInt32 SC_INDEXCREATE_UNIQUE_CONSTRAINT = 0x00000001;
 

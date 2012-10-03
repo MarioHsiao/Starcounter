@@ -182,7 +182,7 @@ namespace Starcounter.Binding
             }
         }
 
-        private unsafe IndexInfo CreateIndexInfo(sccoredb.SC_INDEX_INFO* pii)
+        internal unsafe IndexInfo CreateIndexInfo(sccoredb.SC_INDEX_INFO* pii)
         {
             string name;
             short attributeCount;
