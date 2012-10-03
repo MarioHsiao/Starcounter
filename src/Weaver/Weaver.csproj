@@ -35,7 +35,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <!-- Base paths to redistributables / third party files -->
-    <PostSharpRedistributables>..\ThirdParty\PostSharp</PostSharpRedistributables>
+    <PostSharpRedistributables>$(OutputPath)</PostSharpRedistributables>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
