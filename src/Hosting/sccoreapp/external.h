@@ -8,4 +8,4 @@
 #include <sccoredbg.h>
 
 
-#include "../../../Grey/src/scerrres/scerrres.h"
+#include "../../Starcounter.ErrorCodes/scerrres/scerrres.h"
