@@ -125,118 +125,81 @@ namespace CheckBuildSystem
             return incorrString;
         }
 
-        // Definitions of incorrect text patterns.
-        static String[][] incorrPatterns = 
+        // Class describing one build system policy.
+        class BuildSystemPolicy
         {
-            /*new String[] { @"\<ProjectReference.+\.csproj",
-                            @"Configuration\)\|\$\(Platform\)",
-                            @"\<\s*OutputPath",
-                            @"\<\s*IntermediateOutputPath",
-                            @"\<\s*PlatformTarget",
-                            @"\<\s*DontImportPostSharp",
-                            @"\<\s*TargetFrameworkVersion",
-                            @"\<\s*SccProjectName",
-                            "AnyCPU"
-                            },*/
+            // Incorrect string pattern in file.
+            public String[] IncorrectPatterns;
 
-            new String[] { "Mixed Platforms" },
+            // File exceptions, e.g. "HtmlAgilityPack.fx.4.0-CP.csproj"
+            public String[] FileExceptions;
 
-            null,
+            // File types, e.g. "*.sln" 
+            public String[] FileTypes;
 
-            new String[] { @"Threaded\<\/RuntimeLibrary\>",
-                            @"Debug\<\/RuntimeLibrary\>" },
+            // Description of this build system policy.
+            public String PolicyDescription;
+        }
 
-            new String[] { @"\<TargetFrameworkVersion\>v4\.0\<\/TargetFrameworkVersion\>",
-                            @"\<TargetFrameworkVersion\>v3\.5\<\/TargetFrameworkVersion\>" },
-
-            new String[] { @"\<Prefer32Bit\>true\<\/Prefer32Bit\>" },
-
-            new String[] { @"\<PlatformToolset\>v100\<\/PlatformToolset\>", @"\<PlatformToolset\>v90\<\/PlatformToolset\>" },
-
-            new String[] { "TargetFrameworkProfile" }
-        };
-
-        // Definitions of files that are skipped from evaluation.
-        static String[][] fileExceptions =
+        // All build system policies are defined here.
+        static BuildSystemPolicy[] Policies = new BuildSystemPolicy[]
         {
-            /*new String[] { "Application.csproj",
-                            "HelloWorld.csproj",
-                            "BuildLevel0.csproj",
-                            "Starcounter.MSBuild.Tasks.csproj",
-                            "Starcounter.VisualStudio.2010.csproj",
-                            "SCBuildCommon.targets",
-                            "LoadAndLatencyClient.csproj",
-                            "SQLTestClient.csproj",
-                            "SQLTest1Client.csproj",
-                            "SQLTest2Client.csproj",
-                            "SQLTest3Client.csproj",
-                            "PolePositionClient.csproj",
-                            "SqlCacheTrasherClient.csproj",
-                            "scerrcc.csproj",
-                            "Starcounter.Errors.csproj",
-                            "Bookkeeping.csproj"
-                            },*/
+            new BuildSystemPolicy
+            {
+                IncorrectPatterns = new String[] { "Mixed Platforms" },
 
-            new String[] { "Starcounter.VisualStudio.2010.sln" }, 
+                FileExceptions = null, 
 
-            new String[] { "Starcounter.VisualStudio.2010.pdb",
-                            "Blast_s.pdb",
-                            "PimpMyBits.WPF.Components.SpeedGrid.pdb",
-                            "RapidMinds.Controls.Wpf.SpeedGrid.pdb",
-                            "WPFToolkit.Design.pdb",
-                            "WPFToolkit.pdb",
-                            "WPFToolkit.VisualStudio.Design.pdb"
-                            },
+                FileTypes = new String[] { "*.sln" },
 
-            null,
+                PolicyDescription = "Solution files should NOT have any Mixed Platforms configurations."
+            },
 
-            null,
+            new BuildSystemPolicy
+            {
+                IncorrectPatterns = null,
 
-            null,
+                FileExceptions = new String[] { "P4API_x64.pdb" },
 
-            null,
+                FileTypes = new String[] { "*.ilk", "*.force", "*.pdb", "*.suo", "*.ncb", "*.generated.cs", "*.cache", "*.cs.dll" },
 
-            null
-        };
+                PolicyDescription = "Only binaries that are added to exceptions list can be submitted to source control system."
+            },
 
-        // Definitions of file types that are searched for.
-        static String[][] fileTypes =
-        {
-            //new String[] { "*.csproj", "*.proj", "*.targets" },
+            new BuildSystemPolicy
+            {
+                IncorrectPatterns = new String[] { @"\<TargetFrameworkVersion\>v4\.0\<\/TargetFrameworkVersion\>",
+                                                   @"\<TargetFrameworkVersion\>v3\.5\<\/TargetFrameworkVersion\>" },
 
-            new String[] { "*.sln" },
+                FileExceptions = new String[] { "HtmlAgilityPack.fx.4.0-CP.csproj" },
 
-            new String[] { "*.ilk", "*.force", "*.pdb", "*.suo", "*.ncb", "*.generated.cs", "*.cache", "*.cs.dll" },
+                FileTypes = new String[] { "*.csproj" },
 
-            new String[] { "*.vcxproj" },
+                PolicyDescription = "Only .NET v4.5 is allowed for managed projects."
+            },
 
-            new String[] { "*.csproj" },
+            new BuildSystemPolicy
+            {
+                IncorrectPatterns = new String[] { @"\<Prefer32Bit\>true\<\/Prefer32Bit\>" },
 
-            new String[] { "*.csproj" },
+                FileExceptions = null,
 
-            new String[] { "*.vcxproj" },
+                FileTypes = new String[] { "*.csproj" },
 
-            new String[] { "*.csproj" }
-        };
+                PolicyDescription = "No true Prefer32Bit flag is allowed in managed projects."
+            },
 
-        // Description of errors.
-        static String[] errorDescriptions = 
-        {
-            //"Direct project references are not allowed. Only concrete project platform can be used (x86 or x64). Output path and target platform version definitions are not allowed.",
+            new BuildSystemPolicy
+            {
+                IncorrectPatterns = new String[] { @"\<PlatformToolset\>v100\<\/PlatformToolset\>",
+                                                   @"\<PlatformToolset\>v90\<\/PlatformToolset\>" },
 
-            "Yellow solution file should NOT have any Mixed Platforms configurations.",
+                FileExceptions = null,
 
-            "Only binaries that are added to exceptions list can be submitted to source control system.",
+                FileTypes = new String[] { "*.vcxproj" },
 
-            "Visual Studio C Runtime can only be linked dynamically by native projects.",
-
-            "Only .NET v4.5 is allowed for managed projects.",
-
-            "No true Prefer32Bit flag is allowed in managed projects.",
-
-            "Visual Studio 2012 Build Toolset(v110) should be used for native projects.",
-
-            "Managed projects must not target client .NET profile."
+                PolicyDescription = "Visual Studio 2012 Build Toolset(v110) should be used for all native projects."
+            },
         };
 
         static int Main(string[] args)
@@ -252,14 +215,14 @@ namespace CheckBuildSystem
 
             String errorStr = null;
             Boolean errorFound = false;
-            for (Int32 i = 0; i < incorrPatterns.Length; i++)
+            for (Int32 i = 0; i < Policies.Length; i++)
             {
-                errorStr = FindIncorrectFiles(searchDirectory, fileTypes[i], fileExceptions[i], incorrPatterns[i]);
+                errorStr = FindIncorrectFiles(searchDirectory, Policies[i].FileTypes, Policies[i].FileExceptions, Policies[i].IncorrectPatterns);
                 if (errorStr != null)
                 {
                     errorFound = true;
                     errorOut.Write(errorStr);
-                    errorOut.WriteLine("Error description: " + errorDescriptions[i]);
+                    errorOut.WriteLine("Error description: " + Policies[i].PolicyDescription);
                     errorOut.WriteLine();
                     errorOut.WriteLine();
                 }
