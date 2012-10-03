@@ -37,6 +37,7 @@
     <RemoteBlueIncludeFiles Include="$(BinariesFTP)\SCBuilds\Level0\$(GIT_LEVEL0_BRANCH)\LatestStable\Include\*" />
     <RemotePostSharpBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\PostSharp\*" />
     <RemoteMinGW64Binaries Include="$(BinariesFTP)\SCDev\ThirdParty\MinGW_x64\**\*" />
+    <RemoteNuGetPackages Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' != '' " Include="$(BinariesFTP)\SCDev\ThirdParty\packages\**\*" />
   </ItemGroup>
   <Target Name="CopyExternalStaticFiles">
     <!-- NOTE: Comment the following line in order to build without requiring FTP connection. -->
@@ -54,6 +55,9 @@
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(GreyDll)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(StartAllScript)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(GatewayXML)" DestinationFolder="$(OutputPath)" />
+    
+    <!-- Build system stuff. -->
+    <Copy Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' != '' " SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteNuGetPackages)" DestinationFiles="@(RemoteNuGetPackages->'..\packages\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" DependsOnTargets="CopyExternalStaticFiles" />
