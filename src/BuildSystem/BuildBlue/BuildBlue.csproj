@@ -50,7 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BuildSystemHelper\BuildSystemHelper.csproj">
-      <Project>{F6C7987E-9331-44D8-899D-A214A2F3901C}</Project>
+      <Project>{f6c7987e-9331-44d8-899d-a214a2f3901c}</Project>
       <Name>BuildSystemHelper</Name>
     </ProjectReference>
   </ItemGroup>

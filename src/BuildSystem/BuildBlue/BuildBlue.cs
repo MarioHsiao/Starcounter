@@ -13,11 +13,11 @@ namespace BuildLevel0
 
         // Important directories.
         static readonly String Level0_RootDir =
-            Environment.GetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar) + @"\Level0\Src";
+            Environment.GetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar) + "\\Level0\\Src";
 
         // Level0 latest stable files directory.
         static readonly String FtpLatestStableDir =
-            Path.Combine(BuildSystem.MappedBuildServerFTP, @"SCBuilds\Level0\" + level0_BuildBranch + @"\LatestStable");
+            BuildSystem.MappedBuildServerFTP + "\\SCBuilds\\Level0\\" + level0_BuildBranch + "\\LatestStable";
 
         /// <summary>
         /// Core function to build Level0 in a certain configuration and platform.
@@ -87,6 +87,8 @@ namespace BuildLevel0
 
         static int Main(String[] args)
         {
+            //System.Diagnostics.Debugger.Launch();
+
             // Catching all possible exceptions.
             try
             {
@@ -125,12 +127,12 @@ namespace BuildLevel0
                         }
                         else if (releaseConfBuild)
                         {
-                            // Now we can copy all built files for all configurations.
-                            errorOut.WriteLine("Uploading Level0 '{0}' build artifacts to FTP directory...", level0_BuildBranch);
-
                             // Checking that directory exists.
                             if (!Directory.Exists(FtpLatestStableDir))
                                 Directory.CreateDirectory(FtpLatestStableDir);
+
+                            // Now we can copy all built files for all configurations.
+                            errorOut.WriteLine("Uploading Level0 '{0}' build artifacts to mapped FTP directory: '{1}'", level0_BuildBranch, FtpLatestStableDir);
 
                             // Lock file used for files upload synchronization.
                             String lockFile = FtpLatestStableDir + "\\locked";
@@ -148,7 +150,7 @@ namespace BuildLevel0
                                 File.WriteAllText(lockFile, "locked!");
 
                                 // Copying all built files.
-                                BuildSystem.CopyDirToSharedFtp(Level0_RootDir + @"\x64\Release", FtpLatestStableDir + @"\x64\Release");
+                                //BuildSystem.CopyDirToSharedFtp(Level0_RootDir + @"\x64\Release", FtpLatestStableDir + @"\x64\Release");
                                 BuildSystem.CopyDirToSharedFtp(Level0_RootDir + @"\x64\Debug", FtpLatestStableDir + @"\x64\Debug");
 
                                 // Copying headers directory as well.
