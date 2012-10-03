@@ -1,4 +1,4 @@
-pushd C:\GitRepositories\Starcounter\Orange\bin\Debug
+pushd C:\GitRepositories\Starcounter\Level1\bin\Debug
 Weaver.exe s\IndexQueryTest\IndexQueryTest.exe --FLAG:tocache
 scpmm ACCOUNTTEST AccountTest .db.output
 START ScConnMonitor PERSONAL .db.output

@@ -108,60 +108,46 @@ internal static class SqlProcessor
         SortOrder sortOrder;
         UInt16 sortMask;
         UInt32 errorCode;
-        UInt32 flags;
+        UInt32 flags = 0;
         
+        // Parse the statement
         List<String> tokenList = Tokenizer.Tokenize(statement);
-
         if (tokenList == null || tokenList.Count < 2)
         {
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect tokenList.");
         }
-
         Int32 pos = 0;
         if (!Token("$CREATE", tokenList, pos))
         {
             throw new SqlException("Expected word CREATE.", tokenList, pos);
         }
-
         pos++;
-        Boolean unique = false;
         if (Token("$UNIQUE", tokenList, pos))
         {
-            unique = true;
+            flags |= sccoredb.SC_INDEXCREATE_UNIQUE_CONSTRAINT;
             pos++;
         }
-        flags = 0;
-        if (unique)
-        {
-            flags |= sccoredb.SC_INDEXCREATE_UNIQUE_CONSTRAINT;
-        }
-
         if (!Token("$INDEX", tokenList, pos))
         {
             throw new SqlException("Expected word INDEX.", tokenList, pos);
         }
-
         pos++;
         if (!IdentifierToken(tokenList, pos))
         {
             throw new SqlException("Expected identifier.", tokenList, pos);
         }
         String indexName = tokenList[pos];
-
         pos++;
         if (!Token("$ON", tokenList, pos))
         {
             throw new SqlException("Expected word ON.", tokenList, pos);
         }
-
         pos++;
+        
         // Parse the type (relation) name, which contains namespaces.
         Int32 beginPos = pos;
         String typePath = ProcessIdentifierPath(tokenList, ref pos);
         Int32 endPos = pos - 1;
-
-        //typeBind = GetTypeBinding(typePath, tokenList, beginPos, endPos);
-
         // Parse properties (column) names
         if (!Token("(", tokenList, pos))
         {
@@ -169,11 +155,17 @@ internal static class SqlProcessor
         }
         pos++;
         List<String> propertyList = new List<String>(); // List of properties/columns
-        List<int> sortOrderingList = new List<int>(); // List of corresponding orders (ASC or DESC)
-        propertyList.Add(ProcessProperty(tokenList, ref pos, -1, null));
-        sortOrderingList.Add((int)ProcessSortOrdering(tokenList, ref pos));
+        //List<int> sortOrderingList = new List<int>(); // List of corresponding orders (ASC or DESC)
         factor = 1;
         sortMask = 0;
+        propertyList.Add(ProcessProperty(tokenList, ref pos, -1, null));
+        //sortOrderingList.Add((int)ProcessSortOrdering(tokenList, ref pos));
+        sortOrder = ProcessSortOrdering(tokenList, ref pos);
+        if (sortOrder == SortOrder.Descending)
+        {
+            sortMask = (UInt16)(sortMask + factor);
+        }
+        factor = factor * 2;
         while (Token(",", tokenList, pos))
         {
             pos++;
@@ -204,6 +196,7 @@ internal static class SqlProcessor
             throw new SqlException("Found token after end of statement (maybe a semicolon is missing).");
         }
 
+        // Prepare array of attributes
         TypeBinding typeBind = TypeRepository.GetTypeBinding(typePath);
         PropertyBinding propBind = null;
         if (typeBind == null)
