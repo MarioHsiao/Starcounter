@@ -114,7 +114,12 @@ namespace IndexQueryTest
             {
                 Db.SlowSQL("CREATE INDEX userFN ON AccountTest.User (FirstName ASC)");
             });
+            Console.WriteLine("Created index userFN ON AccountTest.User (FirstName ASC)");
             PrintUserByFirstName("Oleg");
+            Db.Transaction(delegate
+            {
+                Console.WriteLine(((ISqlEnumerator)Db.SQL("select u from User u where FirstName = ?", "Oleg").GetEnumerator()).ToString());
+            });
             Console.WriteLine("Test completed.");
         }
     }

@@ -100,58 +100,6 @@ internal static class SqlProcessor
     }
 
 #if true
-    internal static void CreateKernelIndex(Sc.Server.Weaver.Schema.DatabaseIndex index)
-    {
-        Int16[] attributeIndexArr;
-        Int32 factor;
-        SortOrder sortOrder;
-        UInt16 sortMask;
-        UInt32 errorCode;
-        UInt32 flags;
-
-        flags = 0;
-        if (index.Unique)
-        {
-            flags |= sccoredb.SC_INDEXCREATE_UNIQUE_CONSTRAINT;
-        }
-
-        factor = 1;
-        sortMask = 0;
-        for (Int32 i = 0; i < index.Attributes.Length; i++)
-        {
-            sortOrder = (SortOrder)index.SortOrders[i];
-            if (sortOrder == SortOrder.Descending)
-            {
-                sortMask = (UInt16)(sortMask + factor);
-            }
-            factor = factor * 2;
-        }
-
-        attributeIndexArr = new Int16[index.Attributes.Length + 1];
-        for (Int32 i = 0; i < index.Attributes.Length; i++)
-        {
-            attributeIndexArr[i] = (Int16)index.Attributes[i].Index;
-        }
-
-        // Set the last position in the array to -1 (terminator).
-        attributeIndexArr[attributeIndexArr.Length - 1] = -1;
-
-        unsafe
-        {
-            UInt64 handle;
-            sccoredb.Mdb_DefinitionFromCodeClassString(index.DataBaseClass.Name, out handle);
-
-            fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0]))
-            {
-                errorCode = sccoredb.sc_create_index(handle, index.Name, sortMask, attributeIndexesPointer, flags);
-            }
-        }
-        if (errorCode != 0)
-        {
-            throw ErrorCode.ToException(errorCode);
-        }
-    }
-
     // CREATE [UNIQUE] INDEX indexName ON typeName (propName1 [ASC/DESC], ...)
     internal static void ProcessCreateIndex(String statement)
     {
@@ -257,12 +205,18 @@ internal static class SqlProcessor
         }
 
         TypeBinding typeBind = TypeRepository.GetTypeBinding(typePath);
+        PropertyBinding propBind = null;
         if (typeBind == null)
-             TypeRepository.TryGetTypeBindingByShortName(typePath,out typeBind);
+            TypeRepository.TryGetTypeBindingByShortName(typePath, out typeBind);
+        if (typeBind == null)
+            throw new SqlException("Table " + typePath + " is not found");
         attributeIndexArr = new Int16[propertyList.Count + 1];
         for (Int32 i = 0; i < propertyList.Count; i++)
         {
-            attributeIndexArr[i] = (Int16) typeBind.GetPropertyBinding(propertyList[i]).Index;
+            propBind = typeBind.GetPropertyBinding(propertyList[i]);
+            if (propBind == null)
+                throw new SqlException("Column " + propBind + "is not found in table " + typeBind.Name);
+            attributeIndexArr[i] = (Int16)propBind.GetDataIndex();
         }
 
         // Set the last position in the array to -1 (terminator).
@@ -282,14 +236,6 @@ internal static class SqlProcessor
         {
             throw ErrorCode.ToException(errorCode);
         }
-        //Sc.Server.Weaver.Schema.DatabaseIndex dbIndex = new Sc.Server.Weaver.Schema.DatabaseIndex(indexName, typePath, propertyList.ToArray(), sortOrderingList.ToArray(), unique);
-        //CreateKernelIndex(dbIndex);
-
-        // index name: indexName
-        // database class name:  typePath
-        // sortMask: sortMask
-
-        //CreateIndex(unique, indexName, typeBind, propertyList, sortOrderingList);
     }
 #endif
 
