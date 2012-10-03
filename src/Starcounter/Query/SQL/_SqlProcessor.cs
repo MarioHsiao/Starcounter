@@ -155,7 +155,13 @@ internal static class SqlProcessor
     // CREATE [UNIQUE] INDEX indexName ON typeName (propName1 [ASC/DESC], ...)
     internal static void ProcessCreateIndex(String statement)
     {
-        #region Parse CREATE INDEX statement
+        Int16[] attributeIndexArr;
+        Int32 factor;
+        SortOrder sortOrder;
+        UInt16 sortMask;
+        UInt32 errorCode;
+        UInt32 flags;
+        
         List<String> tokenList = Tokenizer.Tokenize(statement);
 
         if (tokenList == null || tokenList.Count < 2)
@@ -175,6 +181,11 @@ internal static class SqlProcessor
         {
             unique = true;
             pos++;
+        }
+        flags = 0;
+        if (unique)
+        {
+            flags |= sccoredb.SC_INDEXCREATE_UNIQUE_CONSTRAINT;
         }
 
         if (!Token("$INDEX", tokenList, pos))
@@ -213,11 +224,19 @@ internal static class SqlProcessor
         List<int> sortOrderingList = new List<int>(); // List of corresponding orders (ASC or DESC)
         propertyList.Add(ProcessProperty(tokenList, ref pos, -1, null));
         sortOrderingList.Add((int)ProcessSortOrdering(tokenList, ref pos));
+        factor = 1;
+        sortMask = 0;
         while (Token(",", tokenList, pos))
         {
             pos++;
             propertyList.Add(ProcessProperty(tokenList, ref pos, -1, null));
-            sortOrderingList.Add((int)ProcessSortOrdering(tokenList, ref pos));
+            //sortOrderingList.Add((int)ProcessSortOrdering(tokenList, ref pos));
+            sortOrder = ProcessSortOrdering(tokenList, ref pos);
+            if (sortOrder == SortOrder.Descending)
+            {
+                sortMask = (UInt16)(sortMask + factor);
+            }
+            factor = factor * 2;
         }
 
         if (!Token(")", tokenList, pos))
@@ -236,10 +255,39 @@ internal static class SqlProcessor
             //throw new SqlException("Expected no more tokens.", tokenList, pos);
             throw new SqlException("Found token after end of statement (maybe a semicolon is missing).");
         }
-        #endregion
 
-        Sc.Server.Weaver.Schema.DatabaseIndex dbIndex = new Sc.Server.Weaver.Schema.DatabaseIndex(indexName, typePath, propertyList.ToArray(), sortOrderingList.ToArray(), unique);
-        CreateKernelIndex(dbIndex);
+        TypeBinding typeBind = TypeRepository.GetTypeBinding(typePath);
+        if (typeBind == null)
+             TypeRepository.TryGetTypeBindingByShortName(typePath,out typeBind);
+        attributeIndexArr = new Int16[propertyList.Count + 1];
+        for (Int32 i = 0; i < propertyList.Count; i++)
+        {
+            attributeIndexArr[i] = (Int16) typeBind.GetPropertyBinding(propertyList[i]).Index;
+        }
+
+        // Set the last position in the array to -1 (terminator).
+        attributeIndexArr[attributeIndexArr.Length - 1] = -1;
+
+        unsafe
+        {
+            UInt64 handle;
+            sccoredb.Mdb_DefinitionFromCodeClassString(typePath, out handle);
+
+            fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0]))
+            {
+                errorCode = sccoredb.sc_create_index(handle, indexName, sortMask, attributeIndexesPointer, flags);
+            }
+        }
+        if (errorCode != 0)
+        {
+            throw ErrorCode.ToException(errorCode);
+        }
+        //Sc.Server.Weaver.Schema.DatabaseIndex dbIndex = new Sc.Server.Weaver.Schema.DatabaseIndex(indexName, typePath, propertyList.ToArray(), sortOrderingList.ToArray(), unique);
+        //CreateKernelIndex(dbIndex);
+
+        // index name: indexName
+        // database class name:  typePath
+        // sortMask: sortMask
 
         //CreateIndex(unique, indexName, typeBind, propertyList, sortOrderingList);
     }
