@@ -27,3 +27,6 @@ START "boot" boot.exe %1 --DatabaseDir=.db --OutputDir=.db.output --TempDir=.db.
 
 :: Auto-start example.
 ::boot.exe NETWORKIOTEST --DatabaseDir=.db --OutputDir=.db.output --TempDir=.db.output --CompilerPath=MinGW\bin\x86_64-w64-mingw32-gcc.exe --AutoStartExePath=c:\github\Orange\bin\Debug\NetworkIoTest\NetworkIoTest.exe
+
+:: Starting Network Gateway.
+START "ScGateway" ScGateway.exe PERSONAL ScGateway.xml .db.output
