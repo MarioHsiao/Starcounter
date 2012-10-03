@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="OurHeaders">
+      <UniqueIdentifier>{f4059fbe-2203-4317-8bbf-bb36a8405586}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OurSources">
+      <UniqueIdentifier>{24607fa4-13a8-46ec-9e31-d9008d8231b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdPartySources">
+      <UniqueIdentifier>{f75cbc09-9efe-47d3-804d-07451e4310f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdPartyHeaders">
+      <UniqueIdentifier>{bdbe4cf3-5250-47c4-93be-b8a938d319b1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ThirdPartyHeaders\cdecode.h">
+      <Filter>ThirdPartyHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdPartyHeaders\cencode.h">
+      <Filter>ThirdPartyHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdPartyHeaders\http_parser.h">
+      <Filter>ThirdPartyHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdPartyHeaders\rapidxml.hpp">
+      <Filter>ThirdPartyHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdPartyHeaders\sha-1.h">
+      <Filter>ThirdPartyHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="OurHeaders\gateway.hpp">
+      <Filter>OurHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="OurHeaders\http_proto.hpp">
+      <Filter>OurHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="OurHeaders\profiler.hpp">
+      <Filter>OurHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="OurHeaders\socket_data.hpp">
+      <Filter>OurHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="OurHeaders\tls_proto.hpp">
+      <Filter>OurHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="OurHeaders\utilities.hpp">
+      <Filter>OurHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="OurHeaders\worker.hpp">
+      <Filter>OurHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="OurHeaders\ws_proto.hpp">
+      <Filter>OurHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="OurHeaders\random.hpp">
+      <Filter>OurHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="OurHeaders\worker_db_interface.hpp">
+      <Filter>OurHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="OurHeaders\handlers.hpp">
+      <Filter>OurHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="OurHeaders\static_headers.hpp">
+      <Filter>OurHeaders</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ThirdPartySources\http_parser.c">
+      <Filter>ThirdPartySources</Filter>
+    </ClCompile>
+    <ClCompile Include="OurSources\gateway.cpp">
+      <Filter>OurSources</Filter>
+    </ClCompile>
+    <ClCompile Include="OurSources\http_proto.cpp">
+      <Filter>OurSources</Filter>
+    </ClCompile>
+    <ClCompile Include="OurSources\ws_proto.cpp">
+      <Filter>OurSources</Filter>
+    </ClCompile>
+    <ClCompile Include="OurSources\utilities.cpp">
+      <Filter>OurSources</Filter>
+    </ClCompile>
+    <ClCompile Include="OurSources\tls_proto.cpp">
+      <Filter>OurSources</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdPartySources\cdecode.cpp">
+      <Filter>ThirdPartySources</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdPartySources\cencode.cpp">
+      <Filter>ThirdPartySources</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdPartySources\sha-1.cpp">
+      <Filter>ThirdPartySources</Filter>
+    </ClCompile>
+    <ClCompile Include="OurSources\worker.cpp">
+      <Filter>OurSources</Filter>
+    </ClCompile>
+    <ClCompile Include="OurSources\socket_data.cpp">
+      <Filter>OurSources</Filter>
+    </ClCompile>
+    <ClCompile Include="OurSources\worker_db_interface.cpp">
+      <Filter>OurSources</Filter>
+    </ClCompile>
+    <ClCompile Include="OurSources\handlers.cpp">
+      <Filter>OurSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Chunks\common\mapped_region.cpp" />
+    <ClCompile Include="..\Chunks\common\shared_memory_object.cpp" />
+  </ItemGroup>
+</Project>

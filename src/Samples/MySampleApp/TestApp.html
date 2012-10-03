@@ -1,0 +1,241 @@
+<!doctype html>
+<html ng-app="StarcounterLib">
+   <head>
+      <script src="lib/angular.min.js"></script>
+      <script src="lib/jsonpatch.js"></script>
+      <script src="lib/serverScope.js"></script>
+      <script src="lib/app.js"></script>
+      <link rel="stylesheet" href="css/base.css" />
+      <title>My sample application</title>
+   </head>
+   <body server-scope>
+       <input ng-model="MyTextBox" />
+       <div>Message:{{MyMessage}}</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	   <h3>1. User visits /demo page, enters some text in an input field and server rejects it...</h3>
+       <table border="1">
+           <tr>
+               <th>
+                   From
+               </th>
+               <th>
+                   To
+               </th>
+               <th>
+                   Request/response
+               </th>
+               <th>
+                   Headers
+               </th>
+               <th>
+                   Comments
+               </th>
+           </tr>
+           <tr>
+               <td>
+                   Browser
+               </td>
+               <td>
+                   Server
+               </td>
+               <td>
+                   GET /demo
+               </td>
+               <td>
+                   Accept:html
+               </td>
+               <td style="max-width:500px">
+                   As an optimization, the server might include a __elim_req variable in the html. If this variable is set, the client should use the provided JSON tree as the view model and not make the
+                   GET /__vm request below.
+               </td>
+
+           </tr>
+           <tr>
+               <td>
+                   Server
+               </td>
+               <td>
+                   Browser
+               </td>
+               <td>
+                   200 OK<br />
+                   &lt;input ng-model="MyTextBox"&gt;&lt;/input&gt;<br />
+                   &lt;div="{ {MyMessage} }"&gt;&lt;/div&gt;<br />
+                   &lt;a ref data-bind="MyLink"&gt;&lt;/a ref&gt;<br />
+                   &lt;page data-bind="MyPage"&gt;&lt;/page&gt;<br />
+               </td>
+               <td>
+                   Link: H8s3<br />
+				   <p style="background: gold"><b>Marcin:</b> HTTP response headers<br> 
+				   are not readable by JS (actually they are,<br> 
+				   but only for XHR request).<br> 
+				   Decided to put it to __elim_req</p>
+               </td>
+               <td>
+                   The  &lt;page&gt; and &lt;a&gt; tags will not be part of tomorrows demo.
+               </td>
+
+           </tr>
+           <tr>
+               <td>
+                   Browser (xhr)
+               </td>
+               <td>
+               Server
+               </td>
+               <td>
+                   GET /__vm/H8s3
+               </td>
+               <td>
+                   Accept:application/json<br />
+               </td>
+               <td style="max-width:500px">
+                   The view model is treated as a REST resource.
+               </td>
+           </tr>
+           <tr>
+               <td>
+                   Server
+               </td>
+               <td>
+                   Browser (xhr)
+               </td>
+               <td>
+                   200 OK<br />
+                    {<br />
+                   "MyTextbox":"hello world", <br />
+                   "MyLink":null,<br>
+                   "MyMessage:"",<br>
+                    "MyPage":{Url:"www.mysampleapp.com/test",Content:""}<br>
+                    }
+               </td>
+               <td>
+               </td>
+               <td style="max-width:500px">
+                   The GET will always return the complete thing.
+               </td>
+
+           </tr>
+           <tr>
+               <td>
+                   Browser (xhr)
+               </td>
+               <td>
+               Server
+               </td>
+               <td>
+                   PATCH /__vm/H8s3<br />
+				   [ { "replace":"/MyTextBox", "value": "I am typing something" } ]
+               </td>
+               <td>
+                   Accept:application/json<br />
+               </td>
+               <td style="max-width:500px">
+                   Unless specified differently, the Angular-Patch adapter will always update when Angular updates the model. Currently, for input fields, this means
+                   for every keystroke. The only Json patch operation needed for Starcounter applications and is the "Replace" operation (it is the server that decides
+                   what will be added/changed in the model so the server just treats the requests as user input and not absolute changes).
+               </td>
+           </tr>
+           <tr>
+               <td>
+                   Server
+               </td>
+               <td>
+                   Browser (xhr)
+               </td>
+               <td>
+                   200 OK<br />
+                   [<br />
+                    { "replace":"/MyTextBox", "value":"hello world" },<br />
+                    { "replace":"/MyMessage", "value":"You are not allowed to type that" }<br />
+                   ]
+               </td>
+               <td>
+               </td>
+               <td style="max-width:500px">
+                   After initializing the model, the client sends Json patch requests and receives Json patches responses. Each request and response can contain multiple operations.
+                   There will be future metadata to instruct Angular-Patch when it is allowed to batch model changes on the client. The default behaviour is to send the change
+                   as soon as it has occured (resulting in a single "replace" operation per request).
+               </td>
+           </tr>
+           </table>
+
+
+
+
+
+
+       <h3>** BELOW IS NOT INCLUDED IN TOMORROWS DEMO **</h3>
+       <h3>2. User clicks a SPA enabled hyperlink and receives a new page</h3>
+              <table border="1">
+           <tr>
+               <th>
+                   From
+               </th>
+               <th>
+                   To
+               </th>
+               <th>
+                   Request/response
+               </th>
+               <th>
+                   Headers
+               </th>
+           </tr>
+           <tr>
+               <td>
+                   Browser (xhr)
+               </td>
+               <td>
+               Server
+               </td>
+               <td>
+                   PATCH /__vm/H8s3<br />
+                   [ { "replace":"/MyLink", "value":null } ]
+               </td>
+               <td>
+                   Accept:application/json<br />
+               </td>
+           </tr>
+           <tr>
+               <td>
+                   Server
+               </td>
+               <td>
+                   Browser (xhr)
+               </td>
+               <td>
+                   200 OK<br />
+                   [<br />
+                    { "replace":"/MyPage", "value": { "Url":"www.mysampleapp.com/test", "Content":"some html" } },<br />
+                   ]
+               </td>
+               <td>
+               </td>
+           </tr>
+
+
+
+       </table>
+   </body>
+</html>

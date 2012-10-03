@@ -1,0 +1,19 @@
+﻿{
+   FirstName: "This is a test",
+   LastName: "Clinton",
+   $LastName: {Editable:false},
+   Items:
+   [
+	  {
+		 Description: "Take a nap!",
+		 IsDone: true,
+		 DeleteItem: event
+	  },
+	  {
+		 Description: "Fix prototype!",
+		 IsDone: true,
+		 DeleteItem: event
+	  }
+   ],
+   AddItem	: event
+}

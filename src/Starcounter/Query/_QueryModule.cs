@@ -43,9 +43,6 @@ internal static class QueryModule
             processPort = StarcounterEnvironment.DefaultPorts.SQLProlog;
         PrologManager.Initiate(newSchema, processFolder, processFileName, processVersion, processPort, schemaFilePath, 
             maxQueryLength, maxQueryRetries, maxVerifyRetries, timeBetweenVerifyRetries);
-
-        // Create repository of index information.
-        IndexRepository.Initiate();
     }
 
     /// <summary>
