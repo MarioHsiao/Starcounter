@@ -83,6 +83,20 @@ namespace IndexQueryTest
             });
             return nrPrintedObjs;
         }
+
+        static int PrintUserByFirstName(String FirstName)
+        {
+            int nrPrintedObjs = 0;
+            Db.Transaction(delegate
+            {
+                foreach (AccountTest.User u in Db.SQL("select u from User u where FirstName = ?", FirstName))
+                {
+                    Console.WriteLine("User " + u.FirstName + " " + u.LastName + " with ID " + u.UserId);
+                    nrPrintedObjs++;
+                }
+            });
+            return nrPrintedObjs;
+        }
         #endregion
 
         static void Main(string[] args)
@@ -90,6 +104,17 @@ namespace IndexQueryTest
             Console.WriteLine("Test of CREATE/DROP INDEX and DROP TABLE.");
             Populate();
             PrintAllObjects();
+            // See a query plan
+            Db.Transaction(delegate
+            {
+                ISqlEnumerator sqlEnum = (ISqlEnumerator)Db.SQL("select u from user u").GetEnumerator();
+                Console.WriteLine(sqlEnum.ToString());
+            });
+            Db.Transaction(delegate
+            {
+                Db.SlowSQL("CREATE INDEX userFN ON AccountTest.User (FirstName ASC)");
+            });
+            PrintUserByFirstName("Oleg");
             Console.WriteLine("Test completed.");
         }
     }
