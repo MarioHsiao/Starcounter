@@ -1,5 +1,6 @@
 ﻿
 using Starcounter.Binding;
+using Starcounter.Internal;
 using Starcounter.Query.Execution;
 using Sc.Server.Binding;
 using Sc.Server.Internal;
@@ -129,6 +130,52 @@ internal class SortSpecification
 
         Int32 extentNumber = pathComparerList[0].Path.ExtentNumber;
         TypeBinding typeBind = (resultTypeBind.GetTypeBinding(extentNumber) as TypeBinding);
+
+#if true
+        unsafe
+        {
+            sccoredb.SCCOREDB_SORT_SPEC_ELEM[] sort_spec = new sccoredb.SCCOREDB_SORT_SPEC_ELEM[pathComparerList.Count + 1];
+            for (int i = 0; i < pathComparerList.Count; i++)
+            {
+                sort_spec[i].column_index = (Int16)typeBind.GetPropertyBinding(pathComparerList[i].Path.FullName).GetDataIndex();
+                sort_spec[i].sort = (Byte)pathComparerList[i].SortOrdering;
+            }
+            sort_spec[pathComparerList.Count].column_index = -1;
+
+            fixed (sccoredb.SCCOREDB_SORT_SPEC_ELEM* fixed_sort_spec = sort_spec)
+            {
+                sccoredb.SC_INDEX_INFO kernel_index_info;
+                uint r = sccoredb.sccoredb_get_index_info_by_sort(typeBind.DefHandle, fixed_sort_spec, &kernel_index_info);
+                if (r == 0)
+                {
+                    return new IndexUseInfo(typeBind.TypeDef.TableDef.CreateIndexInfo(&kernel_index_info), SortOrder.Ascending);
+                }
+                if (r != Error.SCERRINDEXNOTFOUND) throw ErrorCode.ToException(r);
+            }
+
+            // Try find index with matching decending sort.
+
+            for (int i = 0; i < (sort_spec.Length - 1); i++)
+            {
+                sort_spec[i].sort = sort_spec[i].sort == 0 ? (byte)1 : (byte)0;
+            }
+            sort_spec[pathComparerList.Count].column_index = -1;
+
+            fixed (sccoredb.SCCOREDB_SORT_SPEC_ELEM* fixed_sort_spec = sort_spec)
+            {
+                sccoredb.SC_INDEX_INFO kernel_index_info;
+                uint r = sccoredb.sccoredb_get_index_info_by_sort(typeBind.DefHandle, fixed_sort_spec, &kernel_index_info);
+                if (r == 0)
+                {
+                    return new IndexUseInfo(typeBind.TypeDef.TableDef.CreateIndexInfo(&kernel_index_info), SortOrder.Descending);
+                }
+                if (r == Error.SCERRINDEXNOTFOUND) return null;
+                throw ErrorCode.ToException(r);
+            }
+        }
+#endif
+
+#if false // TODO: Remove!
         TypeDef typeDef = typeBind.TypeDef;
 
         String key = CreateIndexDictionaryKey(typeDef, pathComparerList);
@@ -141,8 +188,10 @@ internal class SortSpecification
             key
             );
         return indexUseInfo; // Might be "null".
+#endif
     }
 
+#if false
     private static String CreateIndexDictionaryKey(TypeDef typeBind, List<IPathComparer> pathComparerList)
     {
         // Assume pathComparerList.Count > 0.
@@ -210,6 +259,7 @@ internal class SortSpecification
         }
         return key;
     }
+#endif
 
     private static SortOrder Reverse(SortOrder sortOrdering)
     {
