@@ -161,7 +161,7 @@ namespace CheckBuildSystem
         {
             /*new String[] { "Application.csproj",
                             "HelloWorld.csproj",
-                            "BuildBlue.csproj",
+                            "BuildLevel0.csproj",
                             "Starcounter.MSBuild.Tasks.csproj",
                             "Starcounter.VisualStudio.2010.csproj",
                             "SCBuildCommon.targets",
