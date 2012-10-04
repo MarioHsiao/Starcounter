@@ -67,6 +67,7 @@ partial class Master : App {
         {
             UInt16 handlerId;
             GatewayHandlers.RegisterUriHandler(80, "GET /", HTTP_METHODS.GET_METHOD, OnHttpMessageRoot, out handlerId);
+            GatewayHandlers.RegisterUriHandler(80, "PATCH /", HTTP_METHODS.PATCH_METHOD, OnHttpMessageRoot, out handlerId);
         });
     }
 
