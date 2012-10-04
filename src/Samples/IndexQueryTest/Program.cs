@@ -84,7 +84,7 @@ namespace IndexQueryTest
             return nrPrintedObjs;
         }
 
-        static int PrintUserByFirstName(String LastName)
+        static int PrintUserByLastName(String LastName)
         {
             int nrPrintedObjs = 0;
             Db.Transaction(delegate
@@ -110,6 +110,7 @@ namespace IndexQueryTest
                 ISqlEnumerator sqlEnum = (ISqlEnumerator)Db.SQL("select u from user u").GetEnumerator();
                 Console.WriteLine(sqlEnum.ToString());
             });
+            // Create index if necessary
             Db.Transaction(delegate
             {
                 try
@@ -125,7 +126,8 @@ namespace IndexQueryTest
                         throw ex;
                 }
             });
-            PrintUserByFirstName("Popov");
+            // Test that query plan uses the created index
+            PrintUserByLastName("Popov");
             Db.Transaction(delegate
             {
                 Console.WriteLine(((ISqlEnumerator)Db.SQL("select u from User u where LastName = ?", "Popov").GetEnumerator()).ToString());

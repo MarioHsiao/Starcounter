@@ -105,12 +105,11 @@ internal static class SqlProcessor
     {
         Int16[] attributeIndexArr;
         Int32 factor;
-        SortOrder sortOrder;
         UInt16 sortMask;
         UInt32 errorCode;
         UInt32 flags = 0;
         
-        // Parse the statement
+        // Parse the statement and prepare variables to call kernel
         List<String> tokenList = Tokenizer.Tokenize(statement);
         if (tokenList == null || tokenList.Count < 2)
         {
@@ -155,13 +154,10 @@ internal static class SqlProcessor
         }
         pos++;
         List<String> propertyList = new List<String>(); // List of properties/columns
-        //List<int> sortOrderingList = new List<int>(); // List of corresponding orders (ASC or DESC)
         factor = 1;
         sortMask = 0;
         propertyList.Add(ProcessProperty(tokenList, ref pos, -1, null));
-        //sortOrderingList.Add((int)ProcessSortOrdering(tokenList, ref pos));
-        sortOrder = ProcessSortOrdering(tokenList, ref pos);
-        if (sortOrder == SortOrder.Descending)
+        if (ProcessSortOrdering(tokenList, ref pos) == SortOrder.Descending)
         {
             sortMask = (UInt16)(sortMask + factor);
         }
@@ -170,9 +166,7 @@ internal static class SqlProcessor
         {
             pos++;
             propertyList.Add(ProcessProperty(tokenList, ref pos, -1, null));
-            //sortOrderingList.Add((int)ProcessSortOrdering(tokenList, ref pos));
-            sortOrder = ProcessSortOrdering(tokenList, ref pos);
-            if (sortOrder == SortOrder.Descending)
+            if (ProcessSortOrdering(tokenList, ref pos) == SortOrder.Descending)
             {
                 sortMask = (UInt16)(sortMask + factor);
             }
@@ -215,6 +209,7 @@ internal static class SqlProcessor
         // Set the last position in the array to -1 (terminator).
         attributeIndexArr[attributeIndexArr.Length - 1] = -1;
 
+        // Call kenrel
         unsafe
         {
             UInt64 handle;
