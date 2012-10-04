@@ -175,9 +175,8 @@ is_system, uint32_t chunks_total_number) try {
 	// Initialize the shared_chunk_pool by pushing in chunk_indexes.
 	// These chunk_indexes represents free chunks.
 
-	// The chunks from 0..channels -1 are preallocated, one per channel.
-	// Chunks from channels..chunks -1 are put in the shared_chunk_pool.
-	for (chunk_index i = channels; i < chunks_total_number; ++i) {
+	// Chunks from 0..chunks -1 are put in the shared_chunk_pool.
+	for (chunk_index i = 0; i < chunks_total_number; ++i) {
 		shared_chunk_pool->push_front(i);
 	}
 	
