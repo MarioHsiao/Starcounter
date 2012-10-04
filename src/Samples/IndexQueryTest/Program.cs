@@ -84,12 +84,12 @@ namespace IndexQueryTest
             return nrPrintedObjs;
         }
 
-        static int PrintUserByFirstName(String FirstName)
+        static int PrintUserByFirstName(String LastName)
         {
             int nrPrintedObjs = 0;
             Db.Transaction(delegate
             {
-                foreach (AccountTest.User u in Db.SQL("select u from User u where FirstName = ?", FirstName))
+                foreach (AccountTest.User u in Db.SQL("select u from User u where LastName = ?", LastName))
                 {
                     Console.WriteLine("User " + u.FirstName + " " + u.LastName + " with ID " + u.UserId);
                     nrPrintedObjs++;
@@ -112,13 +112,23 @@ namespace IndexQueryTest
             });
             Db.Transaction(delegate
             {
-                Db.SlowSQL("CREATE INDEX userFN ON AccountTest.User (FirstName ASC)");
+                try
+                {
+                    Db.SlowSQL("CREATE INDEX userLN ON AccountTest.User (LastName ASC)");
+                    Console.WriteLine("Created index userLN ON AccountTest.User (LastName ASC)");
+                }
+                catch (Starcounter.DbException ex)
+                {
+                    if (ex.Message.StartsWith("ScErrNamedIndexAlreadyExists"))
+                        Console.WriteLine("Index userLN already exists.");
+                    else
+                        throw ex;
+                }
             });
-            Console.WriteLine("Created index userFN ON AccountTest.User (FirstName ASC)");
-            PrintUserByFirstName("Oleg");
+            PrintUserByFirstName("Popov");
             Db.Transaction(delegate
             {
-                Console.WriteLine(((ISqlEnumerator)Db.SQL("select u from User u where FirstName = ?", "Oleg").GetEnumerator()).ToString());
+                Console.WriteLine(((ISqlEnumerator)Db.SQL("select u from User u where LastName = ?", "Popov").GetEnumerator()).ToString());
             });
             Console.WriteLine("Test completed.");
         }
