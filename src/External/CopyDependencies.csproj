@@ -11,6 +11,7 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <OutputPath>..\..\bin\Debug\</OutputPath>
   </PropertyGroup>
+  
   <PropertyGroup>
     <ProjectGuid>{8B599BFF-B414-41A3-A270-96CDA0C522AF}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -19,6 +20,7 @@
     <AssemblyName>CopyDependencies</AssemblyName>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
+  
   <PropertyGroup>
     <BlueSolution>..\..\..\Level0\src\Blue.sln</BlueSolution>
     <BlueSolutionInclude>..\..\..\Level0\src\include</BlueSolutionInclude>
@@ -26,22 +28,25 @@
     <StartAllScript>..\BuildSystem\Scripts\start_all.bat</StartAllScript>
     <GatewayXML>..\NetworkGateway\scripts\ScGateway.xml</GatewayXML>
   </PropertyGroup>
+  
   <PropertyGroup>
     <LocalBlueBinariesDir>..\..\..\Level0\src\x64\$(Configuration)</LocalBlueBinariesDir>
     <RemoteBlueBinariesDir>$(BinariesFTP)\SCBuilds\Level0\$(GIT_LEVEL0_BRANCH)\LatestStable\x64\$(Configuration)</RemoteBlueBinariesDir>
     <RemotePrologSQLParser>$(BinariesFTP)\SCDev\ThirdParty\PrologSQLParser\StarcounterSQL.exe</RemotePrologSQLParser>
   </PropertyGroup>
-  <ItemGroup>
-    <LocalBlueBinFiles Include="$(LocalBlueBinariesDir)\*" />
-    <RemoteBlueBinFiles Include="$(RemoteBlueBinariesDir)\*" />
-    <RemoteBlueIncludeFiles Include="$(BinariesFTP)\SCBuilds\Level0\$(GIT_LEVEL0_BRANCH)\LatestStable\Include\*" />
-    <RemotePostSharpBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\PostSharp\*" />
-    <RemoteMinGW64Binaries Include="$(BinariesFTP)\SCDev\ThirdParty\MinGW_x64\**\*" />
-    <RemoteNuGetPackages Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' != '' " Include="$(BinariesFTP)\SCDev\ThirdParty\packages\**\*" />
-  </ItemGroup>
+
   <Target Name="CopyExternalStaticFiles">
     <!-- NOTE: Comment the following line in order to build without requiring FTP connection. -->
     <Error Text="Shared FTP folder is not accessible: $(BinariesFTP)" Condition="'$(BinariesFTPAccessible)' != 'True'" />
+    
+    <ItemGroup>
+        <LocalBlueBinFiles Include="$(LocalBlueBinariesDir)\*" />
+        <RemoteBlueBinFiles Include="$(RemoteBlueBinariesDir)\*" />
+        <RemoteBlueIncludeFiles Include="$(BinariesFTP)\SCBuilds\Level0\$(GIT_LEVEL0_BRANCH)\LatestStable\Include\*" />
+        <RemotePostSharpBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\PostSharp\*" />
+        <RemoteMinGW64Binaries Include="$(BinariesFTP)\SCDev\ThirdParty\MinGW_x64\**\*" />
+        <RemoteNuGetPackages Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' != '' " Include="$(BinariesFTP)\SCDev\ThirdParty\packages\**\*" />
+    </ItemGroup>
 
     <!-- Remote files from FTP. -->
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True' AND !Exists('$(BlueSolution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteBlueBinFiles)" DestinationFiles="@(RemoteBlueBinFiles->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
