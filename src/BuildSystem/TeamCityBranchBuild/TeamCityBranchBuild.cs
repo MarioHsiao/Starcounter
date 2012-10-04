@@ -96,8 +96,8 @@ namespace TeamCityBranchBuild
                 if (devRootDir == null)
                     throw new Exception("Can't get path to current workspace directory.");
 
-                // Removing Blue sources directory.
-                Directory.Delete(Path.Combine(devRootDir, @"Blue"), true);
+                // Removing Level0 sources directory.
+                Directory.Delete(Path.Combine(devRootDir, @"Level0"), true);
 
                 // Target build directory.
                 String buildNumber = Environment.GetEnvironmentVariable("BUILD_NUMBER");
