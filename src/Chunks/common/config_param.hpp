@@ -24,7 +24,7 @@ namespace core {
 // Starcounter DB.
 
 // The size of each chunk.
-const std::size_t chunk_size = 1 << 13; // 8K chunks.
+const std::size_t chunk_size = 1 << 19; // 512K chunks.
 
 // One chunk per channel is the minimum because a default chunk is allocated for
 // each channel.
