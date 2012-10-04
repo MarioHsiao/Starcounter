@@ -96,6 +96,11 @@ namespace Starcounter
                 case 's':
 					return new SqlResult(transactionId, query, true, values);
 
+                case 'C':
+                case 'c':
+                    SqlProcessor.ProcessCreateIndex(query);
+                    return null;
+
                 case 'D':
                 case 'd':
                     SqlProcessor.ProcessDelete(query, values);
@@ -109,6 +114,11 @@ namespace Starcounter
                         case 'S':
                         case 's':
 							return new SqlResult(transactionId, query, true, values);
+
+                        case 'C':
+                        case 'c':
+                            SqlProcessor.ProcessCreateIndex(query);
+                            return null;
 
                         case 'D':
                         case 'd':

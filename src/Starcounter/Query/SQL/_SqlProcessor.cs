@@ -6,6 +6,7 @@ using Sc.Server.Internal;
 using Starcounter.Query.Execution;
 //using Sc.Server.Weaver.Schema;
 using Starcounter.Binding;
+using Starcounter.Internal;
 
 namespace Starcounter.Query.Sql
 {
@@ -98,71 +99,78 @@ internal static class SqlProcessor
         }
     }
 
-#if false
+#if true
     // CREATE [UNIQUE] INDEX indexName ON typeName (propName1 [ASC/DESC], ...)
-    internal static DatabaseIndex ProcessCreateIndex(String statement)
+    internal static void ProcessCreateIndex(String statement)
     {
+        Int16[] attributeIndexArr;
+        Int32 factor;
+        UInt16 sortMask;
+        UInt32 errorCode;
+        UInt32 flags = 0;
+        
+        // Parse the statement and prepare variables to call kernel
         List<String> tokenList = Tokenizer.Tokenize(statement);
-
         if (tokenList == null || tokenList.Count < 2)
         {
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect tokenList.");
         }
-
         Int32 pos = 0;
         if (!Token("$CREATE", tokenList, pos))
         {
             throw new SqlException("Expected word CREATE.", tokenList, pos);
         }
-
         pos++;
-        Boolean unique = false;
         if (Token("$UNIQUE", tokenList, pos))
         {
-            unique = true;
+            flags |= sccoredb.SC_INDEXCREATE_UNIQUE_CONSTRAINT;
             pos++;
         }
-
         if (!Token("$INDEX", tokenList, pos))
         {
             throw new SqlException("Expected word INDEX.", tokenList, pos);
         }
-
         pos++;
         if (!IdentifierToken(tokenList, pos))
         {
             throw new SqlException("Expected identifier.", tokenList, pos);
         }
         String indexName = tokenList[pos];
-
         pos++;
         if (!Token("$ON", tokenList, pos))
         {
             throw new SqlException("Expected word ON.", tokenList, pos);
         }
-
         pos++;
+        
+        // Parse the type (relation) name, which contains namespaces.
         Int32 beginPos = pos;
         String typePath = ProcessIdentifierPath(tokenList, ref pos);
         Int32 endPos = pos - 1;
-
-        //typeBind = GetTypeBinding(typePath, tokenList, beginPos, endPos);
-        
+        // Parse properties (column) names
         if (!Token("(", tokenList, pos))
         {
             throw new SqlException("Expected opening bracket '('.", tokenList, pos);
         }
         pos++;
-        
-        List<String> propertyList = new List<String>();
-        List<SortOrder> sortOrderingList = new List<SortOrder>();
+        List<String> propertyList = new List<String>(); // List of properties/columns
+        factor = 1;
+        sortMask = 0;
         propertyList.Add(ProcessProperty(tokenList, ref pos, -1, null));
-        sortOrderingList.Add(ProcessSortOrdering(tokenList, ref pos));
+        if (ProcessSortOrdering(tokenList, ref pos) == SortOrder.Descending)
+        {
+            sortMask = (UInt16)(sortMask + factor);
+        }
+        factor = factor * 2;
         while (Token(",", tokenList, pos))
         {
             pos++;
             propertyList.Add(ProcessProperty(tokenList, ref pos, -1, null));
-            sortOrderingList.Add(ProcessSortOrdering(tokenList, ref pos));
+            if (ProcessSortOrdering(tokenList, ref pos) == SortOrder.Descending)
+            {
+                sortMask = (UInt16)(sortMask + factor);
+            }
+            factor = factor * 2;
         }
 
         if (!Token(")", tokenList, pos))
@@ -182,9 +190,40 @@ internal static class SqlProcessor
             throw new SqlException("Found token after end of statement (maybe a semicolon is missing).");
         }
 
-        return new DatabaseIndex(indexName, typePath, propertyList.ToArray(), sortOrderingList.ToArray(), unique);
+        // Prepare array of attributes
+        TypeBinding typeBind = TypeRepository.GetTypeBinding(typePath);
+        PropertyBinding propBind = null;
+        if (typeBind == null)
+            TypeRepository.TryGetTypeBindingByShortName(typePath, out typeBind);
+        if (typeBind == null)
+            throw new SqlException("Table " + typePath + " is not found");
+        attributeIndexArr = new Int16[propertyList.Count + 1];
+        for (Int32 i = 0; i < propertyList.Count; i++)
+        {
+            propBind = typeBind.GetPropertyBinding(propertyList[i]);
+            if (propBind == null)
+                throw new SqlException("Column " + propBind + "is not found in table " + typeBind.Name);
+            attributeIndexArr[i] = (Int16)propBind.GetDataIndex();
+        }
 
-        //CreateIndex(unique, indexName, typeBind, propertyList, sortOrderingList);
+        // Set the last position in the array to -1 (terminator).
+        attributeIndexArr[attributeIndexArr.Length - 1] = -1;
+
+        // Call kenrel
+        unsafe
+        {
+            UInt64 handle;
+            sccoredb.Mdb_DefinitionFromCodeClassString(typePath, out handle);
+
+            fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0]))
+            {
+                errorCode = sccoredb.sc_create_index(handle, indexName, sortMask, attributeIndexesPointer, flags);
+            }
+        }
+        if (errorCode != 0)
+        {
+            throw ErrorCode.ToException(errorCode);
+        }
     }
 #endif
 
