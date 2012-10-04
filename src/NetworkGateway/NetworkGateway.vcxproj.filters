@@ -107,7 +107,11 @@
     <ClCompile Include="OurSources\handlers.cpp">
       <Filter>OurSources</Filter>
     </ClCompile>
-    <ClCompile Include="..\Chunks\common\mapped_region.cpp" />
-    <ClCompile Include="..\Chunks\common\shared_memory_object.cpp" />
+    <ClCompile Include="..\Chunks\common\mapped_region.cpp">
+      <Filter>OurSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Chunks\common\shared_memory_object.cpp">
+      <Filter>OurSources</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

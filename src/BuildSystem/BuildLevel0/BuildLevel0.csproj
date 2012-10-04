@@ -8,19 +8,20 @@
     <ProjectGuid>{889BA191-6A32-4F90-A17D-5B839C77B61C}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>BuildBlue</RootNamespace>
-    <AssemblyName>BuildBlue</AssemblyName>
+    <RootNamespace>BuildLevel0</RootNamespace>
+    <AssemblyName>BuildLevel0</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <UseVSHostingProcess>false</UseVSHostingProcess>
+    <IntermediateOutputPath>..\..\..\bsbin\$(Configuration)\Interm\$(AssemblyName)\</IntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\bin\Debug\</OutputPath>
+    <OutputPath>..\..\..\bsbin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -29,7 +30,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\bin\Release\</OutputPath>
+    <OutputPath>..\..\..\bsbin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -45,12 +46,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BuildBlue.cs" />
+    <Compile Include="BuildLevel0.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BuildSystemHelper\BuildSystemHelper.csproj">
-      <Project>{F6C7987E-9331-44D8-899D-A214A2F3901C}</Project>
+      <Project>{f6c7987e-9331-44d8-899d-a214a2f3901c}</Project>
       <Name>BuildSystemHelper</Name>
     </ProjectReference>
   </ItemGroup>

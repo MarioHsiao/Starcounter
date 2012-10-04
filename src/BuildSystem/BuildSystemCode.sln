@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildsFillupDaemon", "Build
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestLauncher", "TestLauncher\TestLauncher.csproj", "{DD0908D2-5B25-4CCB-8F6F-44CEF7CB3229}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildBlue", "BuildBlue\BuildBlue.csproj", "{889BA191-6A32-4F90-A17D-5B839C77B61C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildLevel0", "BuildLevel0\BuildLevel0.csproj", "{889BA191-6A32-4F90-A17D-5B839C77B61C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdoptProjectToBuildSystem", "AdoptProjectToBuildSystem\AdoptProjectToBuildSystem.csproj", "{DDC52B20-AC01-46A1-B590-F650457F879D}"
 EndProject

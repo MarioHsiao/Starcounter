@@ -22,3 +22,5 @@ taskkill /f /t /im ScCode*
 taskkill /f /t /im ScData*
 taskkill /f /t /im ScMonitor*
 taskkill /f /t /im ScServer*
+
+EXIT 0
