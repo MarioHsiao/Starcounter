@@ -262,8 +262,8 @@ namespace BuildSystemHelper
         /// <param name="toolName"></param>
         public static void PrintToolWelcome(String toolName)
         {
-            Console.Error.WriteLine("---------------------------------------------------------------");
-            Console.Error.WriteLine("Starting tool: '" + toolName + "'");
+            Console.WriteLine("---------------------------------------------------------------");
+            Console.WriteLine("Starting tool: '" + toolName + "'");
         }
 
         /// <summary>
