@@ -232,8 +232,8 @@ namespace CheckBuildSystem
             if (errorFound)
                 return 1;
 
-            errorOut.WriteLine("Build system policy enforcement tool finished successfully.");
-            errorOut.WriteLine("---------------------------------------------------------------");
+            Console.WriteLine("Build system policy enforcement tool finished successfully.");
+            Console.WriteLine("---------------------------------------------------------------");
             return 0;
         }
     }

@@ -132,7 +132,7 @@ namespace BuildLevel0
                                 Directory.CreateDirectory(FtpLatestStableDir);
 
                             // Now we can copy all built files for all configurations.
-                            errorOut.WriteLine("Uploading Level0 '{0}' build artifacts to mapped FTP directory: '{1}'", level0_BuildBranch, FtpLatestStableDir);
+                            Console.WriteLine("Uploading Level0 '{0}' build artifacts to mapped FTP directory: '{1}'", level0_BuildBranch, FtpLatestStableDir);
 
                             // Lock file used for files upload synchronization.
                             String lockFile = FtpLatestStableDir + "\\locked";
