@@ -6,50 +6,45 @@ using Roslyn.Compilers.CSharp;
 
 namespace Starcounter.Internal.Application.CodeGeneration
 {
-    public class JsonMapInfo
+    public static class CodebehindAnalyzer
     {
-        public String Namespace;
-        public String ClassName;
-        public List<String> ParentClasses;
-        public String JsonMapName;
-    }
-
-    public class CodeBehindMetadata
-    {
-        public static readonly CodeBehindMetadata Empty 
-            = new CodeBehindMetadata("", new List<JsonMapInfo>());
-
-        public readonly String RootNamespace;
-        public readonly List<JsonMapInfo> JsonPropertyMapList;
-
-        public CodeBehindMetadata(String ns, List<JsonMapInfo> list)
-        {
-            RootNamespace = ns;
-            JsonPropertyMapList = list;
-        }
-    }
-
-    public static class RoslynParserHelper
-    {
-        public static CodeBehindMetadata GetCodeBehindMetadata(string className,
-                                                               string codeBehindFilename)
+        /// <summary>
+        /// Parses the specified c# file using Roslyn and builds a metadata
+        /// structure used to generate code for json Apps.
+        /// </summary>
+        /// <param name="className"></param>
+        /// <param name="codeBehindFilename"></param>
+        /// <returns></returns>
+        public static CodeBehindMetadata Analyze(string className, string codeBehindFilename)
         {
             SyntaxNode root;
             SyntaxTree tree;   
             String ns;
-            List<JsonMapInfo> mapList = new List<JsonMapInfo>();
+            List<JsonMapInfo> mapList;
+            List<HandleInputInfo> inputList;
 
-            if (!File.Exists(codeBehindFilename)) return new CodeBehindMetadata(null, mapList);
+            if (!File.Exists(codeBehindFilename)) return CodeBehindMetadata.Empty;
 
             tree = SyntaxTree.ParseFile(codeBehindFilename);
             root = tree.GetRoot();
 
             ns = GetNamespaceForClass(className, root);
+
+            mapList = new List<JsonMapInfo>();
             FillListWithJsonMapInfo(className, root, mapList);
 
-            return new CodeBehindMetadata(ns, mapList);
+            inputList = new List<HandleInputInfo>();
+            FillListWithHandleInputInfo(root, inputList);
+
+            return new CodeBehindMetadata(ns, mapList, inputList);
         }
         
+        /// <summary>
+        /// Gets the namespace for the class with the specified shortname.
+        /// </summary>
+        /// <param name="className"></param>
+        /// <param name="root"></param>
+        /// <returns></returns>
         private static string GetNamespaceForClass(string className, SyntaxNode root)
         {
             ClassDeclarationSyntax cd = FindClassDeclarationFor(className, root);
@@ -81,6 +76,12 @@ namespace Starcounter.Internal.Application.CodeGeneration
             return nsBuilder.ToString();
         }
 
+        /// <summary>
+        /// Finds the Roslyn ClassDeclatation node for a class with the specified shortname.
+        /// </summary>
+        /// <param name="className"></param>
+        /// <param name="current"></param>
+        /// <returns></returns>
         private static ClassDeclarationSyntax FindClassDeclarationFor(string className, SyntaxNode current)
         {
             ClassDeclarationSyntax cd;
@@ -101,6 +102,80 @@ namespace Starcounter.Internal.Application.CodeGeneration
             return ret;
         }
 
+        /// <summary>
+        /// Searches through the syntaxtree and adds all found info where an method
+        /// that ís called 'Handle' with one parameter of type Input is declared.
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="list"></param>
+        private static void FillListWithHandleInputInfo(SyntaxNode node, List<HandleInputInfo> list)
+        {
+            MethodDeclarationSyntax methodDecl;
+
+            if (node.Kind == SyntaxKind.MethodDeclaration)
+            {
+                methodDecl = (MethodDeclarationSyntax)node;
+                if (methodDecl.Identifier.ValueText.Equals("Handle", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    list.Add(GetHandleInputInfoFrom(methodDecl));
+                    return;
+                }
+            }
+
+            foreach (SyntaxNode child in node.ChildNodes())
+            {
+                FillListWithHandleInputInfo(child, list);
+            }
+        }
+
+        /// <summary>
+        /// Creates a HandleInputInfo object and sets the fields with values from
+        /// the specified MethodDeclaration node.
+        /// </summary>
+        /// <param name="methodNode"></param>
+        /// <returns></returns>
+        private static HandleInputInfo GetHandleInputInfoFrom(MethodDeclarationSyntax methodNode)
+        {
+            ClassDeclarationSyntax classDecl;
+            ClassDeclarationSyntax parentClassDecl;
+            String fullClassname;
+            String ns;
+            String paramType;
+
+            String returnType = methodNode.ReturnType.ToString();
+            if (!"void".Equals(returnType))
+                throw new Exception("No return values are allowed in an app Handle method.");
+
+            paramType = null;
+            foreach (ParameterSyntax par in methodNode.ParameterList.ChildNodes())
+            {
+                if (paramType != null)
+                    throw new Exception("Only one parameter is allowed on an app Handle method.");
+                paramType = par.Type.ToString();
+            }
+
+            classDecl = FindClass(methodNode.Parent);
+            fullClassname = classDecl.Identifier.ValueText;
+
+            parentClassDecl = FindClass(classDecl.Parent);
+            while (parentClassDecl != null)
+            {
+                fullClassname = parentClassDecl.Identifier.ValueText + "." + fullClassname;
+                parentClassDecl = FindClass(parentClassDecl.Parent);
+            }
+
+            ns = FindNamespaceForClassDeclaration(classDecl);
+
+            return new HandleInputInfo(ns, fullClassname, paramType);
+        }
+
+        /// <summary>
+        /// Searches through the syntaxtree and adds all found info where an attribute
+        /// that starts with the classname is found.
+        /// </summary>
+        /// <param name="className"></param>
+        /// <param name="node"></param>
+        /// <param name="list"></param>
         private static void FillListWithJsonMapInfo(String className, SyntaxNode node, List<JsonMapInfo> list)
         {
             AttributeSyntax attribute;
@@ -110,7 +185,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 attribute = (AttributeSyntax)node;
                 if (IsJsonMapAttribute(attribute, className))
                 {
-                    list.Add(GetInfoFrom(attribute));
+                    list.Add(GetJsonMapInfoFrom(attribute));
                     return;
                 }
             }
@@ -121,15 +196,18 @@ namespace Starcounter.Internal.Application.CodeGeneration
             }
         }
 
-        private static JsonMapInfo GetInfoFrom(AttributeSyntax attributeNode)
+        /// <summary>
+        /// Creates a JsonMapInfo object with values taken from the specified
+        /// attributenode.
+        /// </summary>
+        /// <param name="attributeNode"></param>
+        /// <returns></returns>
+        private static JsonMapInfo GetJsonMapInfoFrom(AttributeSyntax attributeNode)
         {
             ClassDeclarationSyntax classDecl;
             ClassDeclarationSyntax parentClassDecl;
-            JsonMapInfo info = new JsonMapInfo();
             List<String> parentClassNames = new List<String>();
 
-            info.JsonMapName = attributeNode.Name.ToString();
-            
             // Find the class the attribute was declared on.
             classDecl = FindClass(attributeNode.Parent);
 
@@ -143,13 +221,21 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 parentClassDecl = FindClass(parentClassDecl.Parent);
             }
 
-            info.Namespace = FindNamespaceForClassDeclaration(classDecl);
-            info.ClassName = classDecl.Identifier.ValueText;
-            info.ParentClasses = parentClassNames;
-
-            return info;
+            return new JsonMapInfo(
+                        FindNamespaceForClassDeclaration(classDecl),
+                        classDecl.Identifier.ValueText,
+                        parentClassNames,
+                        attributeNode.Name.ToString()
+                   );
         }
 
+        /// <summary>
+        /// Checks if the specified attribute node is an json map attribute. I.e
+        /// starts with the classname.
+        /// </summary>
+        /// <param name="attribute"></param>
+        /// <param name="className"></param>
+        /// <returns></returns>
         private static Boolean IsJsonMapAttribute(AttributeSyntax attribute, String className)
         {
             String attributeName = attribute.Name.ToString();
