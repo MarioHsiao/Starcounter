@@ -36,16 +36,18 @@
   </PropertyGroup>
 
   <Target Name="CopyExternalStaticFiles">
+  
     <!-- NOTE: Comment the following line in order to build without requiring FTP connection. -->
     <Error Text="Shared FTP folder is not accessible: $(BinariesFTP)" Condition="'$(BinariesFTPAccessible)' != 'True'" />
     
+    <!-- Creating copied files lists. -->
     <ItemGroup>
-        <LocalBlueBinFiles Include="$(LocalBlueBinariesDir)\*" />
-        <RemoteBlueBinFiles Include="$(RemoteBlueBinariesDir)\*" />
-        <RemoteBlueIncludeFiles Include="$(BinariesFTP)\SCBuilds\Level0\$(GIT_LEVEL0_BRANCH)\LatestStable\Include\*" />
-        <RemotePostSharpBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\PostSharp\*" />
-        <RemoteMinGW64Binaries Include="$(BinariesFTP)\SCDev\ThirdParty\MinGW_x64\**\*" />
-        <RemoteNuGetPackages Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' != '' " Include="$(BinariesFTP)\SCDev\ThirdParty\packages\**\*" />
+      <LocalBlueBinFiles Include="$(LocalBlueBinariesDir)\*" />
+      <RemoteBlueBinFiles Include="$(RemoteBlueBinariesDir)\*" />
+      <RemoteBlueIncludeFiles Include="$(BinariesFTP)\SCBuilds\Level0\$(GIT_LEVEL0_BRANCH)\LatestStable\Include\*" />
+      <RemotePostSharpBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\PostSharp\*" />
+      <RemoteMinGW64Binaries Include="$(BinariesFTP)\SCDev\ThirdParty\MinGW_x64\**\*" />
+      <RemoteNuGetPackages Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' != '' " Include="$(BinariesFTP)\SCDev\ThirdParty\packages\**\*" />
     </ItemGroup>
 
     <!-- Remote files from FTP. -->
