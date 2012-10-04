@@ -49,7 +49,7 @@ namespace Test {
         public static void GenerateCsWithCodeBehind()
         {
             String className = "MySampleApp";
-            CodeBehindMetadata metadata = RoslynParserHelper.GetCodeBehindMetadata(className,
+            CodeBehindMetadata metadata = CodeBehindAnalyzer.Analyze(className,
                                                                                    className + ".json.cs");
             
             AppTemplate actual = TemplateFromJs.ReadFile(className + ".json");

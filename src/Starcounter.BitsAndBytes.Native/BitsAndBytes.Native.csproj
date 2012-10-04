@@ -1,14 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{710365C1-63CC-4C65-B3D1-FF1BE8E1D276}</ProjectGuid>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{885EB31B-CF41-4C6C-A7BE-53B32A0C8B82}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Starcounter.Template.Interface</RootNamespace>
-    <AssemblyName>Starcounter.Apps.Interfaces</AssemblyName>
+    <RootNamespace>Starcounter.Internal</RootNamespace>
+    <AssemblyName>Starcounter.BitsAndBytes.Native</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -18,45 +19,68 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\..\bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;SERVERSIDE</DefineConstants>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\..\bin\Release\</OutputPath>
-    <DefineConstants>TRACE;SERVERSIDE</DefineConstants>
+    <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Prefer32Bit>false</Prefer32Bit>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>..\..\bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;SERVERSIDE</DefineConstants>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <NoWarn>;2008</NoWarn>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisLogFile>bin\Debug\Starcounter.Internal.dll.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 11.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 11.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+    <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>..\..\bin\Release\</OutputPath>
-    <DefineConstants>TRACE;SERVERSIDE</DefineConstants>
+    <DefineConstants>TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Optimize>true</Optimize>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn>;2008</NoWarn>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x64</PlatformTarget>
+    <CodeAnalysisLogFile>bin\Release\Starcounter.Internal.dll.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 11.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 11.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
+    <Prefer32Bit>false</Prefer32Bit>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -64,40 +88,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IApp.cs" />
-    <Compile Include="IAppArray.cs" />
-    <Compile Include="IArray.cs" />
-    <Compile Include="IDebugInfo.cs" />
-    <Compile Include="IParent.cs" />
-    <Compile Include="IAppFactory.cs" />
-    <Compile Include="Template\Abstract\IStatefullTemplate.cs" />
-    <Compile Include="Template\IObjectTemplate.cs" />
-    <Compile Include="Template\ITAction.cs" />
-    <Compile Include="Template\IAppListTemplate.cs" />
-    <Compile Include="Template\IAppTemplate.cs" />
-    <Compile Include="Template\IListTemplate.cs" />
-    <Compile Include="Template\IBoolTemplate.cs" />
-    <Compile Include="Template\IDecimalTemplate.cs" />
-    <Compile Include="Template\IDoubleTemplate.cs" />
-    <Compile Include="Template\IIntTemplate.cs" />
-    <Compile Include="Template\IOidTemplate.cs" />
-    <Compile Include="Template\Abstract\IParentTemplate.cs" />
-    <Compile Include="Template\IPropertyTemplates.cs" />
-    <Compile Include="Template\IStringTemplate.cs" />
-    <Compile Include="Template\Abstract\ITemplate.cs" />
+    <Compile Include="BitsAndBytes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Template\Abstract\IValueTemplate.cs" />
-    <Compile Include="Template\ITemplateCodeGenerator.cs" />
-    <Compile Include="Template\ITemplateCodeGeneratorModule.cs" />
+    <Compile Include="Utf8Helper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\REST\Starcounter.Rest.csproj">
-      <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
-      <Name>Starcounter.Rest</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter\Starcounter.csproj">
-      <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
-      <Name>Starcounter</Name>
+    <ProjectReference Include="..\ThirdParty\DynamoIoc\DynamoIoc.csproj">
+      <Project>{ea81e2c5-0477-42ab-82f2-b57228af694e}</Project>
+      <Name>DynamoIoc</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
