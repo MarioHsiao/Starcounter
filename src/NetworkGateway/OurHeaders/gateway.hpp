@@ -2,6 +2,36 @@
 #ifndef GATEWAY_HPP
 #define GATEWAY_HPP
 
+// Connectivity headers include.
+#include "common/macro_definitions.hpp"
+#include "common/config_param.hpp"
+#include "common/shared_interface.hpp"
+#include "common/database_shared_memory_parameters.hpp"
+#include "common/monitor_interface.hpp"
+#include "common/circular_buffer.hpp"
+#include "common/bounded_buffer.hpp"
+#include "common/chunk.hpp"
+#include "common/shared_chunk_pool.hpp"
+#include "common/chunk_pool.hpp"
+#include "common/channel.hpp"
+#include "common/scheduler_channel.hpp"
+#include "common/common_scheduler_interface.hpp"
+#include "common/scheduler_interface.hpp"
+#include "common/common_client_interface.hpp"
+#include "common/client_interface.hpp"
+#include "common/client_number.hpp"
+#include "common/macro_definitions.hpp"
+#include "common/interprocess.hpp"
+#include "common/name_definitions.hpp"
+
+// BMX/Blast2 include.
+#include "../Chunks/bmx/bmx.hpp"
+#include "../Chunks/bmx/chunk_helper.h"
+
+// Internal includes.
+#include "utilities.hpp"
+#include "profiler.hpp"
+
 namespace starcounter {
 namespace network {
 
