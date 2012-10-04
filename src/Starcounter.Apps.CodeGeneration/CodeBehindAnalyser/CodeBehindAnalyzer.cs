@@ -6,7 +6,7 @@ using Roslyn.Compilers.CSharp;
 
 namespace Starcounter.Internal.Application.CodeGeneration
 {
-    public static class CodebehindAnalyzer
+    public static class CodeBehindAnalyzer
     {
         /// <summary>
         /// Parses the specified c# file using Roslyn and builds a metadata
