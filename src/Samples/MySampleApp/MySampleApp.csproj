@@ -40,6 +40,7 @@
     <WarningLevel>4</WarningLevel>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <Prefer32Bit>false</Prefer32Bit>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -68,6 +69,7 @@
     <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 11.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
     <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
     <Prefer32Bit>false</Prefer32Bit>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>bin\release\</OutputPath>
@@ -91,18 +93,31 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="nunit.framework">
-      <HintPath>..\packages\NUnit.2.6.0.12054\lib\nunit.framework.dll</HintPath>
+    <Reference Include="HttpStructs">
+      <HintPath>..\..\..\bin\$(Configuration)\HttpStructs.dll</HintPath>
+    </Reference>
+    <Reference Include="Starcounter, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d2df1e81d0ca3abf, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\bin\$(Configuration)\Starcounter.dll</HintPath>
+    </Reference>
+    <Reference Include="Starcounter.Apps">
+      <HintPath>..\..\..\bin\$(Configuration)\Starcounter.Apps.dll</HintPath>
+    </Reference>
+    <Reference Include="Starcounter.Apps.Interfaces">
+      <HintPath>..\..\..\bin\$(Configuration)\Starcounter.Apps.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="Starcounter.Apps.JsonPatch">
+      <HintPath>..\..\..\bin\$(Configuration)\Starcounter.Apps.JsonPatch.dll</HintPath>
+    </Reference>
+    <Reference Include="Starcounter.Hypermedia">
+      <HintPath>..\..\..\bin\$(Configuration)\Starcounter.Hypermedia.dll</HintPath>
+    </Reference>
+    <Reference Include="Starcounter.REST">
+      <HintPath>..\..\..\bin\$(Configuration)\Starcounter.REST.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ProductApp.json.cs">
@@ -126,40 +141,85 @@
     </App>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Starcounter.Apps\Starcounter.Apps.csproj">
-      <Project>{bbaad98c-2661-42dc-85e4-3f2d11bbe010}</Project>
-      <Name>Starcounter.Apps</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Starcounter.Apps.Interfaces\Starcounter.Apps.Interfaces.csproj">
-      <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
-      <Name>Starcounter.Apps.Interfaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\REST\Starcounter.Rest.csproj">
-      <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
-      <Name>Starcounter.REST</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Starcounter.BitsAndBytes\Starcounter.BitsAndBytes.csproj">
-      <Project>{c6b4ba42-680c-446d-9b89-1c82d443dc75}</Project>
-      <Name>Starcounter.BitsAndBytes</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Starcounter.Hypermedia\Starcounter.Hypermedia.csproj">
-      <Project>{42137e4c-afe5-4c60-b970-3343c3b3ec30}</Project>
-      <Name>Starcounter.Hypermedia</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Starcounter\Starcounter.csproj">
-      <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
-      <Name>Starcounter</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="angular-1.0.1.min.js" />
-    <Content Include="TestApp.html" />
-    <Content Include="OrderApp.html" />
-    <Content Include="ProductApp.html" />
-    <Content Include="css\base.css" />
-    <Content Include="Master.html" />
-    <Content Include="css\btn_play_video_on.png" />
-    <Content Include="css\testscreen.svg" />
+    <Content Include="lib\angular-1.0.1.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\angular-1.0.1.min.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\angular.min.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\app.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\json-patch-bruth.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\json-patch-min.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\json-patch-ws.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\json-patch.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\jsonpatch.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\serverScope.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\someotherwatch.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\starcounter-angular.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\starcounter-templates.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\starcounter-websockets.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\supereasy.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\temp.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\test.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\watch.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\Youtube.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestApp.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="OrderApp.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ProductApp.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="css\base.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Master.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="css\btn_play_video_on.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="css\testscreen.svg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0">
@@ -193,11 +253,14 @@
     <App Include="TestApp.json">
       <Generator>MsBuild:Compile</Generator>
     </App>
+    <None Include="less\base.less">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- TODO: Temporary path. Use installation directory for starcounter 
   	   later when Apps is integrated into main Starcounter -->
-  <Import Project="..\..\Starcounter.MsBuild\Starcounter.MsBuild.targets" />
+  <Import Project="..\..\..\bin\$(Configuration)\Starcounter.MsBuild.targets" />
   <ProjectExtensions>
     <VisualStudio>
       <UserProperties DocumentXCommentEditorState="&lt;HtmlEditState&gt;&#xA;  &lt;Attributes&gt;&#xA;    &lt;Attribute key=&quot;dtscrollpos&quot; valuetype=&quot;integer&quot;&gt;0&lt;/Attribute&gt;&#xA;    &lt;Attribute key=&quot;lang_VB&quot; valuetype=&quot;string&quot;&gt;on&lt;/Attribute&gt;&#xA;    &lt;Attribute key=&quot;lang_VBUsage&quot; valuetype=&quot;string&quot;&gt;on&lt;/Attribute&gt;&#xA;    &lt;Attribute key=&quot;lang_CS&quot; valuetype=&quot;string&quot;&gt;on&lt;/Attribute&gt;&#xA;    &lt;Attribute key=&quot;lang_CPP2005&quot; valuetype=&quot;string&quot;&gt;on&lt;/Attribute&gt;&#xA;    &lt;Attribute key=&quot;inheritedMembers&quot; valuetype=&quot;string&quot;&gt;on&lt;/Attribute&gt;&#xA;    &lt;Attribute key=&quot;protectedMembers&quot; valuetype=&quot;string&quot;&gt;on&lt;/Attribute&gt;&#xA;    &lt;Attribute key=&quot;SyntaxGroup_SelectedTab&quot; valuetype=&quot;string&quot;&gt;SyntaxTab_VB&lt;/Attribute&gt;&#xA;  &lt;/Attributes&gt;&#xA;&lt;/HtmlEditState&gt;" />
