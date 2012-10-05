@@ -164,7 +164,6 @@
     <Compile Include="Mock\IObjectView.cs" />
     <Compile Include="Binding\IPropertyBinding.cs" />
     <Compile Include="Binding\ITypeBinding.cs" />
-    <Compile Include="Mock\LogSource.cs" />
     <Compile Include="Mock\ObjectRef.cs" />
     <Compile Include="Internal\DbState.cs" />
     <Compile Include="Binding\PropertyBinding.cs" />
@@ -450,6 +449,10 @@
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Logging\Starcounter.Logging.csproj">
+      <Project>{a1fae6e5-8ebb-42c3-9fc2-33d67917067d}</Project>
+      <Name>Starcounter.Logging</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

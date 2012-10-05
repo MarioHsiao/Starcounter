@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.Logging;
 using System;
 
 namespace Starcounter
