@@ -16,6 +16,7 @@ using Starcounter;
 using Starcounter.Internal;
 using Starcounter.Internal.Weaver;
 using System.Text.RegularExpressions;
+using Error = Starcounter.Internal.Error;
 
 namespace Weaver {
 

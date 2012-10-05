@@ -15,6 +15,7 @@ using System.Threading;
 //using System.Xml;
 using Starcounter.Query.Execution;
 using Starcounter.Binding;
+using Starcounter.Logging;
 
 namespace Starcounter.Query.Sql
 {

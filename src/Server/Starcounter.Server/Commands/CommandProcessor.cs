@@ -1,4 +1,5 @@
 
+using Starcounter.Logging;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
 using System;

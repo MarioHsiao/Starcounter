@@ -7,6 +7,7 @@ using Starcounter.Internal; // TODO:
 using StarcounterInternal.Hosting;
 using Starcounter.ABCIPC;
 using Starcounter.ABCIPC.Internal;
+using Error = Starcounter.Internal.Error;
 
 namespace StarcounterInternal.Bootstrap
 {
