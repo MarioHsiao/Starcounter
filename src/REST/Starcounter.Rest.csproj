@@ -116,7 +116,7 @@
       <Project>{90d57166-b42e-4bbe-b9ec-cfb33e551b77}</Project>
       <Name>HttpStructs</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Starcounter.BitsAndBytes.Native\BitsAndBytes.Unsafe.csproj">
+    <ProjectReference Include="..\Starcounter.BitsAndBytes.Unsafe\BitsAndBytes.Unsafe.csproj">
       <Project>{885eb31b-cf41-4c6c-a7be-53b32a0c8b82}</Project>
       <Name>BitsAndBytes.Unsafe</Name>
     </ProjectReference>
