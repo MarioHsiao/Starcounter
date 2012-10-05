@@ -228,6 +228,65 @@ internal static class SqlProcessor
         Scheduler.GetInstance(true).InvalidateCache(); // Assuming that scheduler is attached, otherwise null pointer exception
     }
 
+    internal static void ProcessDropIndex(String statement)
+    {
+        // Parse the statement and prepare variables to call kernel
+        List<String> tokenList = Tokenizer.Tokenize(statement);
+        if (tokenList == null || tokenList.Count < 2)
+        {
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect tokenList.");
+        }
+        Int32 pos = 0;
+        if (!Token("$DROP", tokenList, pos))
+        {
+            throw new SqlException("Expected word DROP.", tokenList, pos);
+        }
+        pos++;
+        if (!Token("$INDEX", tokenList, pos))
+        {
+            throw new SqlException("Expected word INDEX", tokenList, pos);
+        }
+        pos++;
+        if (!IdentifierToken(tokenList, pos))
+        {
+            throw new SqlException("Expected identifier.", tokenList, pos);
+        }
+        String indexName = tokenList[pos];
+        pos++;
+        if (!Token("$ON", tokenList, pos))
+        {
+            throw new SqlException("Expected word ON.", tokenList, pos);
+        }
+        pos++;
+
+        // Parse the type (relation) name, which contains namespaces.
+        Int32 beginPos = pos;
+        String typePath = ProcessIdentifierPath(tokenList, ref pos);
+        Int32 endPos = pos - 1;
+
+        if (pos < tokenList.Count)
+        {
+            //throw new SqlException("Expected no more tokens.", tokenList, pos);
+            throw new SqlException("Found token after end of statement (maybe a semicolon is missing).");
+        }
+
+        // Call kenrel
+        //UInt32 errorCode;
+        unsafe
+        {
+            UInt64 handle;
+            sccoredb.Mdb_DefinitionFromCodeClassString(typePath, out handle);
+            // errorCode = sccoredb.sc_drop_index(handle, indexName);
+        }
+        //if (errorCode != 0)
+        //{
+        //    throw ErrorCode.ToException(errorCode);
+        //}
+
+        // Invalidate cache, since queries have to be reoptimized to avoid using the dropped index.
+        Scheduler.GetInstance(true).InvalidateCache(); // Assuming that scheduler is attached, otherwise null pointer exception
+    }
+
     //private static void CreateIndex(Boolean unique, String indexName, TypeBinding typeBind, List<Property> propertyList,
     //                                List<SortOrdering> sortOrderingList)
     //{

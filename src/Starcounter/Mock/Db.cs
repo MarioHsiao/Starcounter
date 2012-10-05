@@ -111,7 +111,7 @@ namespace Starcounter
                             return null;
                         case 'I':
                         case 'i':
-                            // SqlProcessor.ProcessDropIndex(query);
+                            SqlProcessor.ProcessDropIndex(query);
                             return null;
                         case 'T':
                         case 't':
@@ -144,7 +144,7 @@ namespace Starcounter
                                     return null;
                                 case 'I':
                                 case 'i':
-                                    // SqlProcessor.ProcessDropIndex(query);
+                                    SqlProcessor.ProcessDropIndex(query);
                                     return null;
                                 case 'T':
                                 case 't':
