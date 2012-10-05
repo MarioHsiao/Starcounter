@@ -138,7 +138,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "09. Bootstrap", "09. Bootst
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "07. Weaver", "07. Weaver", "{1AC7C23F-67AD-470E-B5CC-67D2C89DD18F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BitsAndBytes.Unsafe", "Starcounter.BitsAndBytes.Native\BitsAndBytes.Unsafe.csproj", "{885EB31B-CF41-4C6C-A7BE-53B32A0C8B82}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BitsAndBytes.Unsafe", "Starcounter.BitsAndBytes.Unsafe\BitsAndBytes.Unsafe.csproj", "{885EB31B-CF41-4C6C-A7BE-53B32A0C8B82}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Logging", "Starcounter.Logging\Starcounter.Logging.csproj", "{A1FAE6E5-8EBB-42C3-9FC2-33D67917067D}"
 EndProject
