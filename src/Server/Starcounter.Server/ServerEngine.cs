@@ -96,6 +96,12 @@ namespace Starcounter.Server {
         internal WeaverService WeaverService { get; private set; }
 
         /// <summary>
+        /// Gets the <see cref="DatabaseStorageService"/> used when the current
+        /// server engine needs to operate on database storage files.
+        /// </summary>
+        internal DatabaseStorageService StorageService { get; private set; }
+
+        /// <summary>
         /// Initializes a <see cref="ServerEngine"/>.
         /// </summary>
         /// <param name="serverConfigurationPath">Path to the server configuration
@@ -111,6 +117,7 @@ namespace Starcounter.Server {
             this.Dispatcher = new CommandDispatcher(this);
             this.AppsService = new Server.AppsService(this);
             this.WeaverService = new Server.WeaverService(this);
+            this.StorageService = new DatabaseStorageService(this);
         }
 
         /// <summary>
@@ -157,6 +164,8 @@ namespace Starcounter.Server {
             SetupDatabases();
             this.CurrentPublicModel = new PublicModelProvider(this);
             this.AppsService.Setup();
+            this.WeaverService.Setup();
+            this.StorageService.Setup();
         }
 
         /// <summary>
