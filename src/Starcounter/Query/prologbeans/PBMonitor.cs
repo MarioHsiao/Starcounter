@@ -1,6 +1,7 @@
 // Copyright (c) 2004 SICS AB. All rights reserved.
 //
 using Starcounter;
+using Starcounter.Logging;
 
 namespace se.sics.prologbeans
 {

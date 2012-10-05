@@ -8,6 +8,7 @@
 namespace se.sics.prologbeans
 {
 using Starcounter;
+using Starcounter.Logging;
 
 using System;
 #if JAVAXCONTEXT
