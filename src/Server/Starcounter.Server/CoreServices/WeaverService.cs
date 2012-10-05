@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
+using System.Diagnostics;
 
 namespace Starcounter.Server {
 
@@ -47,7 +49,16 @@ namespace Starcounter.Server {
         /// </param>
         /// <returns>The full path to the corresponding, weaved assembly.</returns>
         internal string Weave(string givenAssembly, string runtimeDirectory) {
-            throw new NotImplementedException();
+            string weaverExe;
+            string arguments;
+
+            weaverExe = Path.Combine(engine.InstallationDirectory, "weaver.exe");
+            arguments = string.Format("Weave \"{0}\" --FLAG:tocache --cachedir=\"{1}\"",
+                givenAssembly, runtimeDirectory);
+
+            ToolInvocationHelper.InvokeTool(new ProcessStartInfo(weaverExe, arguments));
+
+            return Path.Combine(runtimeDirectory, Path.GetFileName(givenAssembly));
         }
     }
 }
