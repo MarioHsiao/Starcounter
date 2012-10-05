@@ -14,7 +14,7 @@ using Starcounter.Internal;
 
 namespace Starcounter.Server {
 
-    internal static class Host // Temporary stuff
+    internal static class Host
     {
 
         internal static unsafe void Configure(ServerConfiguration c)
@@ -226,8 +226,6 @@ namespace Starcounter.Server {
         /// allowing the host to interact with the now running server.
         /// </returns>
         public IServerRuntime Start() {
-            new Starcounter.Logging.LogSource("ServerEngine").LogNotice("Starting"); // TODO: Remove!
-
             this.AppsService.Start();
 
             // Start all other built-in standard components, like the gateway,
