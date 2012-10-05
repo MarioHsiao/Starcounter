@@ -32,7 +32,7 @@ namespace StarcounterInternal.Bootstrap
             get {
                 string prop;
 
-                if (!this.ProgramArguments.TryGetProperty(ProgramCommandLine.CommandNames.CompilerPath, out prop))
+                if (!this.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.CompilerPath, out prop))
                     prop = @"C:/Test/MinGW/bin/x86_64-w64-mingw32-gcc.exe";
 
                 return prop;
@@ -44,7 +44,7 @@ namespace StarcounterInternal.Bootstrap
             get {
                 string prop;
 
-                if (!this.ProgramArguments.TryGetProperty(ProgramCommandLine.CommandNames.DatabaseDir, out prop))
+                if (!this.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.DatabaseDir, out prop))
                     prop = @"C:/Test";
 
                 return prop;
@@ -56,7 +56,7 @@ namespace StarcounterInternal.Bootstrap
             get {
                 string prop;
 
-                if (!this.ProgramArguments.TryGetProperty(ProgramCommandLine.CommandNames.OutputDir, out prop))
+                if (!this.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.OutputDir, out prop))
                     prop = @"C:/Test";
 
                 return prop;
@@ -68,7 +68,7 @@ namespace StarcounterInternal.Bootstrap
             get {
                 string prop;
 
-                if (!this.ProgramArguments.TryGetProperty(ProgramCommandLine.CommandNames.TempDir, out prop))
+                if (!this.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.TempDir, out prop))
                     prop = @"C:/Test/Temp";
 
                 return prop;
@@ -81,7 +81,7 @@ namespace StarcounterInternal.Bootstrap
             {
                 string autoStartExePath;
 
-                if (!this.ProgramArguments.TryGetProperty(ProgramCommandLine.CommandNames.AutoStartExePath, out autoStartExePath))
+                if (!this.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.AutoStartExePath, out autoStartExePath))
                     autoStartExePath = null;
 
                 return autoStartExePath;
@@ -94,7 +94,7 @@ namespace StarcounterInternal.Bootstrap
             {
                 string serverName;
 
-                if (!this.ProgramArguments.TryGetProperty(ProgramCommandLine.CommandNames.ServerName, out serverName))
+                if (!this.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.ServerName, out serverName))
                     serverName = "PERSONAL";
 
                 // Making server name upper case.
@@ -112,7 +112,7 @@ namespace StarcounterInternal.Bootstrap
                 uint chunksNumber = 128;
 
                 string chunksNumberStr;
-                if (this.ProgramArguments.TryGetProperty(ProgramCommandLine.CommandNames.ChunksNumber, out chunksNumberStr))
+                if (this.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.ChunksNumber, out chunksNumberStr))
                 {
                     chunksNumber = uint.Parse(chunksNumberStr);
 
