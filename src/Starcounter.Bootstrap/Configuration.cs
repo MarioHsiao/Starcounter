@@ -109,7 +109,7 @@ namespace StarcounterInternal.Bootstrap
             get
             {
                 // Default communication shared chunks number.
-                uint chunksNumber = 4096;
+                uint chunksNumber = 128;
 
                 string chunksNumberStr;
                 if (this.ProgramArguments.TryGetProperty(ProgramCommandLine.CommandNames.ChunksNumber, out chunksNumberStr))
@@ -117,7 +117,7 @@ namespace StarcounterInternal.Bootstrap
                     chunksNumber = uint.Parse(chunksNumberStr);
 
                     // Checking if number of chunks is correct.
-                    if ((chunksNumber <= 1024) || (chunksNumber >= 4096 * 128))
+                    if ((chunksNumber < 128) || (chunksNumber > 4096 * 128))
                     {
                         throw ErrorCode.ToException(Error.SCERRBADCHUNKSNUMBERCONFIG);
                     }

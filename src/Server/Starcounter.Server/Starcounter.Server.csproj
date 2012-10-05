@@ -67,6 +67,8 @@
     <Compile Include="Configuration\Server\DatabaseStorageConfiguration.cs" />
     <Compile Include="CoreServices\DatabaseSetup.cs" />
     <Compile Include="CoreServices\DatabaseSetupProperties.cs" />
+    <Compile Include="CoreServices\DatabaseStorageService.cs" />
+    <Compile Include="CoreServices\WeaverService.cs" />
     <Compile Include="PublicModel\Commands\DatabaseCommand.cs" />
     <Compile Include="Commands\ErrorInfoException.cs" />
     <Compile Include="PublicModel\Commands\ServerCommand.cs" />
@@ -104,6 +106,8 @@
     <Compile Include="ServerServices.cs" />
     <Compile Include="Setup\RepositorySetup.cs" />
     <Compile Include="Setup\RepositoryStructure.cs" />
+    <Compile Include="ToolInvocationException.cs" />
+    <Compile Include="ToolInvocationHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Starcounter.Bootstrap\Starcounter.Bootstrap.csproj">

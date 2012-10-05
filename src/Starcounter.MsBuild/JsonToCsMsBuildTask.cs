@@ -61,7 +61,7 @@ namespace Starcounter.Internal.MsBuild
             String jsonContent = File.ReadAllText(jsonFilename);
 
             var className = Paths.StripFileNameWithoutExtention(jsonFilename);
-            metadata = RoslynParserHelper.GetCodeBehindMetadata(className, codeBehindFilename);
+            metadata = CodeBehindAnalyzer.Analyze(className, codeBehindFilename);
 			t = TemplateFromJs.CreateFromJs(jsonContent, false);
             if (t.ClassName == null)
 			{
