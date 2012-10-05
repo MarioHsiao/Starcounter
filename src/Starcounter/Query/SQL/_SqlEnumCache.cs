@@ -88,7 +88,6 @@ public sealed class SqlEnumCache
 
             // Giving the cache where all subsequent enumerators should be returned.
             execEnum.AttachToCache(newEnumList);
-            // Commented code moved from here to the end of file
         }
 
         // Adding to the sorting list.
@@ -161,44 +160,3 @@ public sealed class SqlEnumCache
     }
 }
 }
-
-/* From outer else conidtion in GetCachedEnumerator(Int32 uniqueQueryId) 
-// Creating code generation engine.
-CodeGenStringGenerator stringGen = new CodeGenStringGenerator(uniqueQueryID);
-
-// Generating code from managed execution plan.
-String rootEnumName = execEnum.GetUniqueName(stringGen.SeqNumber());
-
-stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "DLL_EXPORT INT32 CALL_CONV InitEnumerator_" + execEnum.UniqueQueryID + "(UINT8 *queryParameters)");
-stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "{");
-stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "g_QueryParamsData = queryParameters;");
-stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "// Chopping query parameters here.");
-stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "ProcessQueryParameters(g_QueryParamsData);");
-stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "return 0;");
-stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "}" + CodeGenStringGenerator.ENDL);
-
-stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "DLL_EXPORT INT32 CALL_CONV MoveNext_" + execEnum.UniqueQueryID + "(UINT64 *oid, UINT64 *eti, UINT16 *ci)");
-stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "{");
-stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "INT32 errCode = " + rootEnumName + "_MoveNext();");
-stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "if (errCode != 0)");
-stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "  return errCode;" + CodeGenStringGenerator.ENDL);
-
-stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "// Since the scan was successful, copying the results.");
-stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "*oid = g_" + rootEnumName + "->oid;");
-stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "*eti = g_" + rootEnumName + "->eti;");
-stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "*ci = g_" + rootEnumName + "->ci;");
-stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "return 0;");
-stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "}" + CodeGenStringGenerator.ENDL);
-
-stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "DLL_EXPORT INT32 CALL_CONV Reset_" + execEnum.UniqueQueryID + "()");
-stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "{");
-stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "return " + rootEnumName + "_Reset();");
-stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "}" + CodeGenStringGenerator.ENDL);
-
-// Calling recursive code generation for the root enumerator.
-execEnum.GenerateCompilableCode(stringGen);
-
-// Compiling and verifying library.
-if (CompilerHelper.CompileAndVerifyLibrary(stringGen.GetGeneratedCode(), execEnum.UniqueQueryID) != null)
-    execEnum.UniqueQueryID = 0; // Code generation has failed.
-*/
