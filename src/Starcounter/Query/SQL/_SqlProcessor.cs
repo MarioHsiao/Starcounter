@@ -99,7 +99,6 @@ internal static class SqlProcessor
         }
     }
 
-#if true
     // CREATE [UNIQUE] INDEX indexName ON typeName (propName1 [ASC/DESC], ...)
     internal static void ProcessCreateIndex(String statement)
     {
@@ -224,8 +223,8 @@ internal static class SqlProcessor
         {
             throw ErrorCode.ToException(errorCode);
         }
+        // Invalidate cache, since queries have to be reoptimized to use the created index.
     }
-#endif
 
     //private static void CreateIndex(Boolean unique, String indexName, TypeBinding typeBind, List<Property> propertyList,
     //                                List<SortOrdering> sortOrderingList)
