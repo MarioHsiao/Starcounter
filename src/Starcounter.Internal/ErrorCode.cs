@@ -48,6 +48,7 @@ namespace Starcounter
             return InternalToMessage(errorCode, string.Empty);
         }
 
+#if false
         public static string ToMessage(string prefix, uint errorCode)
         {
             string message = InternalToMessage(errorCode, string.Empty);
@@ -57,12 +58,14 @@ namespace Starcounter
 
             return message;
         }
+#endif
 
         public static FactoryErrorMessage ToMessage(uint errorCode, string postfix)
         {
             return InternalToMessage(errorCode, postfix);
         }
 
+#if false
         public static string ToMessage(string prefix, uint errorCode, string postfix)
         {
             string message = InternalToMessage(errorCode, postfix);
@@ -72,6 +75,7 @@ namespace Starcounter
 
             return message;
         }
+#endif
 
         public static FactoryErrorMessage ToMessageWithArguments(uint errorCode, string messagePostfix, params object[] messageArguments)
         {
@@ -92,7 +96,7 @@ namespace Starcounter
         /// <param name="errorCode">The error code.</param>
         /// <returns>The help link message.</returns>
         /// <seealso cref="ToHelpLinkMessage(string)"/>
-        public static string ToHelpLinkMessage(uint errorCode)
+        private static string ToHelpLinkMessage(uint errorCode)
         {
             return ToHelpLinkMessage(ToHelpLink(errorCode));
         }
