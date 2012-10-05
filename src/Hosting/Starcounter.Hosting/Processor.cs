@@ -17,6 +17,7 @@ namespace StarcounterInternal.Hosting
 
                 for (; ; )
                 {
+                    ThreadData.Current.Scheduler.SqlEnumCache.InvalidateCache();
                     sccorelib.CM2_TASK_DATA task_data;
                     uint e = sccoreapp.sccoreapp_standby(hsched, &task_data);
                     if (e == 0)

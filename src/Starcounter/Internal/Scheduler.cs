@@ -34,7 +34,7 @@ namespace Starcounter
         // with non-preemptive scheduling (only one thread is executed at a time).
         readonly SqlEnumCache _sqlEnumCache;
 
-        internal SqlEnumCache SqlEnumCache
+        public SqlEnumCache SqlEnumCache
         {
             get
             {
