@@ -90,6 +90,12 @@ namespace Starcounter.Server {
         internal AppsService AppsService { get; private set; }
 
         /// <summary>
+        /// Gets the <see cref="WeaverService"/> used when the current server
+        /// engine will need to weave user code.
+        /// </summary>
+        internal WeaverService WeaverService { get; private set; }
+
+        /// <summary>
         /// Initializes a <see cref="ServerEngine"/>.
         /// </summary>
         /// <param name="serverConfigurationPath">Path to the server configuration
@@ -104,6 +110,7 @@ namespace Starcounter.Server {
             this.DatabaseEngine = new DatabaseEngine(this);
             this.Dispatcher = new CommandDispatcher(this);
             this.AppsService = new Server.AppsService(this);
+            this.WeaverService = new Server.WeaverService(this);
         }
 
         /// <summary>
