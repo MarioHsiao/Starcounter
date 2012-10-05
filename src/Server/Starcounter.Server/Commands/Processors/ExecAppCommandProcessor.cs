@@ -57,11 +57,29 @@ namespace Starcounter.Server.Commands {
             Engine.DatabaseEngine.StartDatabaseProcess(database);
             Engine.DatabaseEngine.StartWorkerProcess(database, out workerProcess);
             
+            // Get a client handle to the worker process.
+
+            var client = new Client(workerProcess.StandardInput.WriteLine, workerProcess.StandardOutput.ReadLine);
+
             // The current database worker protocol is "Exec c:\myfile.exe". We use
             // that until the full one is in place.
-            
-            var client = new Client(workerProcess.StandardInput.WriteLine, workerProcess.StandardOutput.ReadLine);
-            client.Send("Exec", string.Format("\"{0}\"", weavedExecutable));
+            //   Grab the response message and utilize it if we fail.
+
+            string responseMessage = string.Empty;
+            bool success = client.Send("Exec", string.Format("\"{0}\"", weavedExecutable), delegate(Reply reply) {
+                if (reply.IsResponse && !reply.IsSuccess) {
+                    reply.TryGetCarry(out responseMessage);
+                }
+            });
+            if (!success) {
+                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, responseMessage);
+            }
+
+            // The app is successfully loaded in the worker process. We should
+            // keep it referenced in the server and consider the execution of this
+            // processor a success.
+
+
         }
 
         string GetAppRuntimeDirectory(string baseDirectory, string assemblyPath) {
