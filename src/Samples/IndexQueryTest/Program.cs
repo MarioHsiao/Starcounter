@@ -120,7 +120,7 @@ namespace IndexQueryTest
                 }
                 catch (Starcounter.DbException ex)
                 {
-                    if (ex.Message.StartsWith("ScErrNamedIndexAlreadyExists"))
+                    if (ex.ErrorCode == Starcounter.Error.SCERRNAMEDINDEXALREADYEXISTS)
                         Console.WriteLine("Index userLN already exists.");
                     else
                         throw ex;
