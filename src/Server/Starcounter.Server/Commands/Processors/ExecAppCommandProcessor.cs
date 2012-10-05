@@ -1,5 +1,4 @@
 ﻿
-
 using Starcounter.Server.PublicModel.Commands;
 using System;
 using System.IO;
@@ -38,27 +37,23 @@ namespace Starcounter.Server.Commands {
             weaver = Engine.WeaverService;
             weavedExecutable = weaver.Weave(command.AssemblyPath, appRuntimeDirectory);
 
+            // Try getting the database from our internal model
+
             if (!Engine.Databases.TryGetValue(command.DatabaseName, out database)) {
                 // Create the database, if not explicitly told otherwise.
-                // TODO:
+                // Add it to our internal model as well as to the public
+                // one.
+                var setup = new DatabaseSetup(this.Engine, new DatabaseSetupProperties(this.Engine, command.DatabaseName));
+                database = setup.CreateDatabase();
+                Engine.Databases.Add(database.Name, database);
+                Engine.CurrentPublicModel.AddDatabase(database);
             }
 
-            // If no database, create it.
-            //  1) Create a database configuration.
-            //  2) Create directories for configuration and data.
-            //  3) Create the image- and transaction logs.
-            //  4) Add it to the internal model, and the public one.
-            //
-            //  How do we go about to assure we track creation? Use
-            //  something simple, like a leading dot or whatever.
-            //
-            //  Scheme:
-            //  1) Create database directory: "."+ config.Databases + name.
-            //  2) Create the configuration, in memory.
-            //  3) Create/assure all directories (temp, image, log)
-            //  4) Create image- and transaction logs (using scdbc.exe)
+            // Assure the database is started and that there is user code worker
+            // process on top of it where we can inject the booting executable.
+            // TODO:
 
-            /// throw new NotImplementedException();
+            throw new NotImplementedException();
         }
 
         string GetAppRuntimeDirectory(string baseDirectory, string assemblyPath) {
