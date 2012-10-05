@@ -106,7 +106,7 @@ namespace Starcounter.Server {
             this.DatabaseDefaultValues = new DatabaseDefaults();
             this.Name = this.Configuration.Name;
             this.Uri = ScUri.MakeServerUri(ScUri.GetMachineName(), this.Name);
-            this.Databases = new Dictionary<string, Database>();
+            this.Databases = new Dictionary<string, Database>(StringComparer.InvariantCultureIgnoreCase);
             this.DatabaseEngine = new DatabaseEngine(this);
             this.Dispatcher = new CommandDispatcher(this);
             this.AppsService = new Server.AppsService(this);
