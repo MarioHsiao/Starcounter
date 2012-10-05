@@ -82,6 +82,7 @@ namespace Starcounter.Server {
 
         /// </inheritdoc>
         public CommandInfo Execute(ServerCommand command) {
+            command.GetReadyToEnqueue();
             return this.engine.Dispatcher.Enqueue(command);
         }
 
