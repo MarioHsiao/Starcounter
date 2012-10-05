@@ -1,4 +1,5 @@
 ﻿
+using System;
 using System.IO;
 
 namespace Starcounter.Server.PublicModel.Commands {
@@ -27,11 +28,16 @@ namespace Starcounter.Server.PublicModel.Commands {
         /// <summary>
         /// Initializes an instance of <see cref="ExecAppCommand"/>.
         /// </summary>
+        /// <param name="engine">The <see cref="ServerEngine"/> where this command
+        /// are to execute.</param>
         /// <param name="assemblyPath">Path to the assembly requesting to start.</param>
         /// <param name="workingDirectory">Working directory the executable has requested to run in.</param>
         /// <param name="arguments">Arguments as passed to the requesting executable.</param>
-        internal ExecAppCommand(string assemblyPath, string workingDirectory, string[] arguments)
-            : base("Starting {0}", Path.GetFileName(assemblyPath)) {
+        internal ExecAppCommand(ServerEngine engine, string assemblyPath, string workingDirectory, string[] arguments)
+            : base(engine, "Starting {0}", Path.GetFileName(assemblyPath)) {
+            if (string.IsNullOrEmpty(assemblyPath)) {
+                throw new ArgumentNullException("assemblyPath");
+            }
             this.AssemblyPath = assemblyPath;
             if (string.IsNullOrEmpty(workingDirectory)) {
                 workingDirectory = Path.GetDirectoryName(this.AssemblyPath);
