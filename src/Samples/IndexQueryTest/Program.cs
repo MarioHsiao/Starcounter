@@ -110,6 +110,12 @@ namespace IndexQueryTest
                 ISqlEnumerator sqlEnum = (ISqlEnumerator)Db.SQL("select u from user u").GetEnumerator();
                 Console.WriteLine(sqlEnum.ToString());
             });
+            // Test that query plan before creating index
+            PrintUserByLastName("Popov");
+            Db.Transaction(delegate
+            {
+                Console.WriteLine(((ISqlEnumerator)Db.SQL("select u from User u where LastName = ?", "Popov").GetEnumerator()).ToString());
+            });
             // Create index if necessary
             Db.Transaction(delegate
             {
