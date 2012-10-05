@@ -2,6 +2,8 @@
 using Starcounter.Server.PublicModel.Commands;
 using System;
 using System.IO;
+using System.Diagnostics;
+using Starcounter.ABCIPC;
 
 namespace Starcounter.Server.Commands {
 
@@ -28,6 +30,7 @@ namespace Starcounter.Server.Commands {
             string appRuntimeDirectory;
             string weavedExecutable;
             Database database;
+            Process workerProcess;
 
             // Weave first.
 
@@ -52,7 +55,13 @@ namespace Starcounter.Server.Commands {
             // process on top of it where we can inject the booting executable.
 
             Engine.DatabaseEngine.StartDatabaseProcess(database);
-            throw new NotImplementedException();
+            Engine.DatabaseEngine.StartWorkerProcess(database, out workerProcess);
+            
+            // The current database worker protocol is "Exec c:\myfile.exe". We use
+            // that until the full one is in place.
+            
+            var client = new Client(workerProcess.StandardInput.WriteLine, workerProcess.StandardOutput.ReadLine);
+            client.Send("Exec", string.Format("\"{0}\"", weavedExecutable));
         }
 
         string GetAppRuntimeDirectory(string baseDirectory, string assemblyPath) {
