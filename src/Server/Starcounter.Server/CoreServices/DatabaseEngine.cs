@@ -31,6 +31,7 @@ namespace Starcounter.Server {
 
         internal const string DatabaseExeFileName = "scpmm.exe";
         internal const string WorkerProcessExeFileName = "boot.exe";
+        internal const string MinGWCompilerFileName = "x86_64-w64-mingw32-gcc.exe";
 
         /// <summary>
         /// Gets the server that has instantiated this engine.
@@ -49,6 +50,14 @@ namespace Starcounter.Server {
         /// Gets the full path to the worker process executable.
         /// </summary>
         internal string WorkerProcessExePath {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets the full path to the MinGW compiler executable.
+        /// </summary>
+        internal string MinGWCompilerPath {
             get;
             private set;
         }
@@ -74,9 +83,14 @@ namespace Starcounter.Server {
             if (!File.Exists(workerProcExe)) {
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("Worker process executable not found: {0}", databaseExe));
             }
+            var compilerPath = Path.Combine(this.Server.InstallationDirectory, @"MinGW\bin", MinGWCompilerFileName);
+            if (!File.Exists(compilerPath)) {
+                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("MinGW compiler executable not found: {0}", compilerPath));
+            }
 
             this.DatabaseExePath = databaseExe;
             this.WorkerProcessExePath = workerProcExe;
+            this.MinGWCompilerPath = compilerPath;
         }
 
         /// <summary>
@@ -194,18 +208,19 @@ namespace Starcounter.Server {
 #endif
         }
 
-        internal void WaitForDatabaseProcessToExit(string processControlEventName) {
+        internal bool StartWorkerProcess(Database database, out Process process) {
+            process = Process.Start(GetWorkerProcessStartInfo(database));
+            return true;
+        }
+
+        void WaitForDatabaseProcessToExit(string processControlEventName) {
             while (IsDatabaseProcessRunning(processControlEventName)) Thread.Sleep(1);
         }
 
-        internal ProcessStartInfo GetDatabaseStartInfo(Database database) {
+        ProcessStartInfo GetDatabaseStartInfo(Database database) {
             var arguments = new StringBuilder();
 
-            arguments.Append('\"');
-            arguments.Append(database.Server.Name.ToUpperInvariant());
-            arguments.Append('_');
             arguments.Append(database.Name.ToUpperInvariant());
-            arguments.Append('\"');
             arguments.Append(' ');
 
             arguments.Append('\"');
@@ -220,8 +235,26 @@ namespace Starcounter.Server {
             return new ProcessStartInfo(this.DatabaseExePath, arguments.ToString());
         }
 
-        internal ProcessStartInfo GetWorkerProcessStartInfo(Database database) {
-            throw new NotImplementedException();
+        ProcessStartInfo GetWorkerProcessStartInfo(Database database) {
+            ProcessStartInfo processStart;
+            StringBuilder args;
+
+            args = new StringBuilder();
+            args.Append("--FLAG:attachdebugger ");  // Apply to attach a debugger to the boot sequence.
+            args.Append(database.Name.ToUpper());
+            args.AppendFormat(" --DatabaseDir \"{0}\"", database.Configuration.Runtime.ImageDirectory);
+            args.AppendFormat(" --OutputDir \"{0}\"", database.Server.Configuration.LogDirectory);
+            args.AppendFormat(" --TempDir \"{0}\"", database.Configuration.Runtime.TempDirectory);
+            args.AppendFormat(" --CompilerPath \"{0}\"", this.MinGWCompilerPath);
+            
+            processStart = new ProcessStartInfo(this.WorkerProcessExePath, args.ToString().Trim());
+            processStart.CreateNoWindow = true;
+            processStart.UseShellExecute = false;
+            processStart.RedirectStandardInput = true;
+            processStart.RedirectStandardOutput = true;
+            processStart.RedirectStandardError = true;    
+            
+            return processStart;
         }
 
         string GetDatabaseControlEventName(Database database) {
