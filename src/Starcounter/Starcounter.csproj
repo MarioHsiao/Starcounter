@@ -115,7 +115,6 @@
     <Compile Include="Internal\ErrorHandling\ExceptionFactory.cs" />
     <Compile Include="Internal\ErrorHandling\ParsedErrorMessage.cs" />
     <Compile Include="Internal\KeyValueBinary.cs" />
-    <Compile Include="Internal\sccorelog.cs" />
     <Compile Include="Internal\Weaver\AnonymousTypeAdapter.cs" />
     <Compile Include="Internal\Weaver\AnonymousTypePropertyAttribute.cs" />
     <Compile Include="Internal\Weaver\AssemblyWeavedForIPCAttribute.cs" />
