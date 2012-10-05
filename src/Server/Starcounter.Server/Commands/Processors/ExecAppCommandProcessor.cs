@@ -17,9 +17,8 @@ namespace Starcounter.Server.Commands {
         /// <param name="server">The server in which the processor executes.</param>
         /// <param name="command">The <see cref="ExecAppCommand"/> the
         /// processor should exeucte.</param>
-        public ExecAppCommandProcessor(ServerEngine server, ServerCommand command) 
-            : base(server, command)
-        {
+        public ExecAppCommandProcessor(ServerEngine server, ServerCommand command)
+            : base(server, command) {
         }
 
         /// </inheritdoc>
@@ -51,16 +50,9 @@ namespace Starcounter.Server.Commands {
 
             // Assure the database is started and that there is user code worker
             // process on top of it where we can inject the booting executable.
-            // TODO:
 
-            bool wasStarted = Engine.DatabaseEngine.StartDatabaseProcess(database);
-            Console.WriteLine(wasStarted);
-            if (wasStarted) {
-                wasStarted = Engine.DatabaseEngine.StopDatabaseProcess(database);
-                Console.WriteLine(wasStarted);
-            }
-
-            // throw new NotImplementedException();
+            Engine.DatabaseEngine.StartDatabaseProcess(database);
+            throw new NotImplementedException();
         }
 
         string GetAppRuntimeDirectory(string baseDirectory, string assemblyPath) {
