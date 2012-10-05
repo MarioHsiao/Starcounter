@@ -102,6 +102,11 @@ namespace IndexQueryTest
         static void Main(string[] args)
         {
             Console.WriteLine("Test of CREATE/DROP INDEX and DROP TABLE.");
+            Db.Transaction(delegate
+            {
+                Db.SlowSQL("DELETE FROM Account");
+                Db.SlowSQL("DELETE FROM User");
+            });
             Populate();
             PrintAllObjects();
             // See a query plan
