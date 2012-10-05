@@ -90,7 +90,6 @@
     <Compile Include="CommandLine\CommandLineSection.cs" />
     <Compile Include="CommandLine\GivenOption.cs" />
     <Compile Include="CommandLine\IApplicationInput.cs" />
-    <Compile Include="CommandLine\InvalidCommandLineException.cs" />
     <Compile Include="CommandLine\Parser.cs" />
     <Compile Include="CommandLine\Syntax\ApplicationSyntaxDefinition.cs" />
     <Compile Include="CommandLine\Syntax\CommandSyntaxDefinition.cs" />
@@ -108,12 +107,6 @@
     <Compile Include="Internal\DatabaseExceptionFactory.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Internal\ErrorCode.cs" />
-    <Compile Include="Internal\ErrorHandling\FactoryErrorMessage.cs" />
-    <Compile Include="Internal\ErrorHandling\FileLocation.cs" />
-    <Compile Include="Internal\ErrorHandling\ErrorMessage.cs" />
-    <Compile Include="Internal\ErrorHandling\ExceptionFactory.cs" />
-    <Compile Include="Internal\ErrorHandling\ParsedErrorMessage.cs" />
     <Compile Include="Internal\KeyValueBinary.cs" />
     <Compile Include="Internal\Weaver\AnonymousTypeAdapter.cs" />
     <Compile Include="Internal\Weaver\AnonymousTypePropertyAttribute.cs" />
