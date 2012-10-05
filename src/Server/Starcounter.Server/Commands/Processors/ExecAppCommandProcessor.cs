@@ -53,7 +53,14 @@ namespace Starcounter.Server.Commands {
             // process on top of it where we can inject the booting executable.
             // TODO:
 
-            throw new NotImplementedException();
+            bool wasStarted = Engine.DatabaseEngine.StartDatabaseProcess(database);
+            Console.WriteLine(wasStarted);
+            if (wasStarted) {
+                wasStarted = Engine.DatabaseEngine.StopDatabaseProcess(database);
+                Console.WriteLine(wasStarted);
+            }
+
+            // throw new NotImplementedException();
         }
 
         string GetAppRuntimeDirectory(string baseDirectory, string assemblyPath) {
