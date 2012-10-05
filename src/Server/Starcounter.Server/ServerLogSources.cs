@@ -1,4 +1,6 @@
 ﻿
+using Starcounter.Logging;
+
 namespace Starcounter.Server {
 
     /// <summary>

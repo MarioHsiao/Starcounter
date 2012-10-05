@@ -90,7 +90,6 @@
     <Compile Include="CommandLine\CommandLineSection.cs" />
     <Compile Include="CommandLine\GivenOption.cs" />
     <Compile Include="CommandLine\IApplicationInput.cs" />
-    <Compile Include="CommandLine\InvalidCommandLineException.cs" />
     <Compile Include="CommandLine\Parser.cs" />
     <Compile Include="CommandLine\Syntax\ApplicationSyntaxDefinition.cs" />
     <Compile Include="CommandLine\Syntax\CommandSyntaxDefinition.cs" />
@@ -108,14 +107,7 @@
     <Compile Include="Internal\DatabaseExceptionFactory.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Internal\ErrorCode.cs" />
-    <Compile Include="Internal\ErrorHandling\FactoryErrorMessage.cs" />
-    <Compile Include="Internal\ErrorHandling\FileLocation.cs" />
-    <Compile Include="Internal\ErrorHandling\ErrorMessage.cs" />
-    <Compile Include="Internal\ErrorHandling\ExceptionFactory.cs" />
-    <Compile Include="Internal\ErrorHandling\ParsedErrorMessage.cs" />
     <Compile Include="Internal\KeyValueBinary.cs" />
-    <Compile Include="Internal\sccorelog.cs" />
     <Compile Include="Internal\Weaver\AnonymousTypeAdapter.cs" />
     <Compile Include="Internal\Weaver\AnonymousTypePropertyAttribute.cs" />
     <Compile Include="Internal\Weaver\AssemblyWeavedForIPCAttribute.cs" />
@@ -165,7 +157,6 @@
     <Compile Include="Mock\IObjectView.cs" />
     <Compile Include="Binding\IPropertyBinding.cs" />
     <Compile Include="Binding\ITypeBinding.cs" />
-    <Compile Include="Mock\LogSource.cs" />
     <Compile Include="Mock\ObjectRef.cs" />
     <Compile Include="Internal\DbState.cs" />
     <Compile Include="Binding\PropertyBinding.cs" />
@@ -451,6 +442,10 @@
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Logging\Starcounter.Logging.csproj">
+      <Project>{a1fae6e5-8ebb-42c3-9fc2-33d67917067d}</Project>
+      <Name>Starcounter.Logging</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

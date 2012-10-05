@@ -23,11 +23,11 @@ namespace Starcounter.Internal
         public const uint SC_ENTRY_ERROR = 5;
 
         public const uint SC_ENTRY_CRITICAL = 6;
-        
+
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern uint SCInitModule_LOG(ulong hmenv);
 
-        [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet=CharSet.Unicode)]
+        [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         public static extern unsafe uint SCConnectToLogs(string serverName, void* ignore1, void* ignore2, ulong* phlogs);
 
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]

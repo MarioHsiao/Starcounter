@@ -48,6 +48,7 @@
       <RemotePostSharpBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\PostSharp\*" />
       <RemoteMinGW64Binaries Include="$(BinariesFTP)\SCDev\ThirdParty\MinGW_x64\**\*" />
       <RemoteNuGetPackages Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' != '' " Include="$(BinariesFTP)\SCDev\ThirdParty\packages\**\*" />
+      <!-- <RemoteNuGetDir Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' != '' " Include="$(BinariesFTP)\SCDev\ThirdParty\.nuget\**\*" /> -->
     </ItemGroup>
 
     <!-- Remote files from FTP. -->
@@ -65,6 +66,7 @@
     
     <!-- Build system stuff. -->
     <Copy Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' != '' " SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteNuGetPackages)" DestinationFiles="@(RemoteNuGetPackages->'..\packages\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <!-- <Copy Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' != '' " SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteNuGetDir)" DestinationFiles="@(RemoteNuGetDir->'..\.nuget\%(RecursiveDir)%(Filename)%(Extension)')" /> -->
   </Target>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" DependsOnTargets="CopyExternalStaticFiles" />
