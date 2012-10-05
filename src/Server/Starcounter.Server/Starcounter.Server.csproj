@@ -67,6 +67,7 @@
     <Compile Include="Configuration\Server\DatabaseStorageConfiguration.cs" />
     <Compile Include="CoreServices\DatabaseSetup.cs" />
     <Compile Include="CoreServices\DatabaseSetupProperties.cs" />
+    <Compile Include="CoreServices\DatabaseStorageService.cs" />
     <Compile Include="CoreServices\WeaverService.cs" />
     <Compile Include="PublicModel\Commands\DatabaseCommand.cs" />
     <Compile Include="Commands\ErrorInfoException.cs" />
