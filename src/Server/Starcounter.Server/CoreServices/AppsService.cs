@@ -62,7 +62,7 @@ namespace Starcounter.Server {
         /// <returns></returns>
         internal CommandInfo EnqueueExecAppCommandWithDispatcher(string assemblyPath, string workingDirectory, string[] args) {
             ExecAppCommand command = new ExecAppCommand(this.engine, assemblyPath, workingDirectory, args);
-            return engine.Dispatcher.Enqueue(command);
+            return engine.CurrentPublicModel.Execute(command);
         }
 
         /// <summary>
