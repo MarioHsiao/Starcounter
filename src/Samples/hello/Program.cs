@@ -4,7 +4,7 @@
 #define MYMUSIC_MODEL
 
 using Starcounter;
-using Starcounter.Binding;
+using Starcounter.Logging;
 using System;
 
 #if MYMUSIC_MODEL
@@ -84,7 +84,10 @@ namespace hello
         {
             Console.WriteLine("Hello world (on database thread in database process)!");
 
-#if false
+            LogSource logSource = new LogSource("hello");
+            logSource.LogNotice("Hello world (on database thread in database process)!");
+
+#if true
 #if false
             Db.Transaction(() =>
             {
