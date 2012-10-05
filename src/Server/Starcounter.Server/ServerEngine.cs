@@ -14,6 +14,49 @@ using Starcounter.Internal;
 
 namespace Starcounter.Server {
 
+    internal static class Host
+    {
+
+        internal static unsafe void Configure(ServerConfiguration c)
+        {
+            byte* mem = (byte*)System.Runtime.InteropServices.Marshal.AllocHGlobal(128);
+
+            ulong hmenv = ConfigureMemory(c, mem);
+            mem += 128;
+
+            ulong hlogs = ConfigureLogging(c, hmenv);
+        }
+
+        private static unsafe ulong ConfigureMemory(ServerConfiguration c, void* mem128)
+        {
+            uint slabs = (64 * 1024 * 1024) / 4096;  // 64 MB
+            ulong hmenv = sccorelib.mh4_menv_create(mem128, slabs);
+            if (hmenv != 0) return hmenv;
+            throw ErrorCode.ToException(Error.SCERROUTOFMEMORY);
+        }
+
+        private static unsafe ulong ConfigureLogging(ServerConfiguration c, ulong hmenv)
+        {
+            uint e;
+
+            e = sccorelog.SCInitModule_LOG(hmenv);
+            if (e != 0) throw ErrorCode.ToException(e);
+
+            ulong hlogs;
+            e = sccorelog.SCConnectToLogs(ScUri.MakeServerUri(Environment.MachineName, c.Name), null, null, &hlogs);
+            if (e != 0) throw ErrorCode.ToException(e);
+
+            string logDirectory = c.LogDirectory;
+            logDirectory = "c:\\Test"; // TODO:
+            e = sccorelog.SCBindLogsToDir(hlogs, logDirectory);
+            if (e != 0) throw ErrorCode.ToException(e);
+
+            Starcounter.Logging.LogManager.Setup(hlogs);
+
+            return hlogs;
+        }
+    }
+
     /// <summary>
     /// Representing the running server, hosted in a server program.
     /// </summary>
@@ -127,6 +170,8 @@ namespace Starcounter.Server {
             string serverRepositoryDirectory;
             string tempDirectory;
             string databaseDirectory;
+
+            Host.Configure(this.Configuration);
 
             // Validate the database directory exist. We refuse to start if
             // we can not properly resolve it to an existing directory.
