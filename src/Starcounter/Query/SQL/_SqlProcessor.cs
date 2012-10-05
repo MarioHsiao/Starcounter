@@ -223,7 +223,9 @@ internal static class SqlProcessor
         {
             throw ErrorCode.ToException(errorCode);
         }
+        
         // Invalidate cache, since queries have to be reoptimized to use the created index.
+        Scheduler.GetInstance(true).InvalidateCache(); // Assuming that scheduler is attached, otherwise null pointer exception
     }
 
     //private static void CreateIndex(Boolean unique, String indexName, TypeBinding typeBind, List<Property> propertyList,
