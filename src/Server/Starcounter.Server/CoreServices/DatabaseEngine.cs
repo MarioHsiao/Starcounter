@@ -209,7 +209,15 @@ namespace Starcounter.Server {
         }
 
         internal bool StartWorkerProcess(Database database, out Process process) {
+            process = database.GetRunningWorkerProcess();
+            if (process != null) 
+                return false;
+
+            // No process referenced, or the referenced process was not
+            // alive. Start a worker process.
+
             process = Process.Start(GetWorkerProcessStartInfo(database));
+            database.WorkerProcess = process;
             return true;
         }
 

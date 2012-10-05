@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Starcounter;
 using Starcounter.Configuration;
 using Starcounter.Server.PublicModel;
+using System.Diagnostics;
 
 namespace Starcounter.Server {
 
@@ -37,6 +38,15 @@ namespace Starcounter.Server {
         internal readonly string Uri;
 
         /// <summary>
+        /// Gets or sets the worker process associated with the
+        /// current <see cref="Database"/>.
+        /// </summary>
+        internal Process WorkerProcess {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Intializes a <see cref="Database"/>.
         /// </summary>
         /// <param name="server">The server to which the current database belong.</param>
@@ -65,6 +75,20 @@ namespace Starcounter.Server {
                 Uri = this.Uri
             };
             return info;
+        }
+
+        /// <summary>
+        /// Gets the worker process associated with the current <see cref="Database"/>
+        /// or NULL if not started or it has exited.
+        /// </summary>
+        /// <returns></returns>
+        internal Process GetRunningWorkerProcess() {
+            var p = WorkerProcess;
+            if (p != null) {
+                p.Refresh();
+                p = p.HasExited ? null : p;
+            }
+            return p;
         }
     }
 }
