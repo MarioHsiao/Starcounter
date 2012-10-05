@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace Starcounter
+namespace Starcounter.Logging
 {
-    public class LogSource : object
+    public class LogSource
     {
 
         public LogSource(String source)
