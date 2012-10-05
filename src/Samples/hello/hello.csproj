@@ -42,6 +42,10 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Starcounter.Logging\Starcounter.Logging.csproj">
+      <Project>{a1fae6e5-8ebb-42c3-9fc2-33d67917067d}</Project>
+      <Name>Starcounter.Logging</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Starcounter\Starcounter.csproj">
       <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
       <Name>Starcounter</Name>

@@ -3,10 +3,11 @@ using System;
 using System.Runtime.InteropServices;
 using Starcounter.CommandLine;
 using Starcounter; // TODO:
-using Starcounter.Internal; // TODO:
-using StarcounterInternal.Hosting;
 using Starcounter.ABCIPC;
 using Starcounter.ABCIPC.Internal;
+using Starcounter.Internal; // TODO:
+using Starcounter.Logging;
+using StarcounterInternal.Hosting;
 using Error = Starcounter.Internal.Error;
 
 namespace StarcounterInternal.Bootstrap
@@ -208,6 +209,8 @@ namespace StarcounterInternal.Bootstrap
         {
             uint e = sccoreapp.sccoreapp_init((void*)hlogs);
             if (e != 0) throw ErrorCode.ToException(e);
+
+            LogManager.Setup(hlogs);
         }
 
         private unsafe void* ConfigureScheduler(Configuration c, void* mem, ulong hmenv)
