@@ -94,6 +94,7 @@ namespace Starcounter.Server {
                     return;
                 }
                 exePath = exePath.Trim('"').Trim('\\', '/');
+                exePath = Path.GetFullPath(exePath);
 
                 properties.TryGetValue("WorkingDir", out workingDirectory);
                 if (properties.TryGetValue("Args", out args)) {
