@@ -23,7 +23,7 @@ START "scpmm" scpmm.exe %1 %1 .db.output
 START "ScConnMonitor" ScConnMonitor.exe PERSONAL .db.output
 
 :: Starting the specific database.
-START "boot" boot.exe %1 --DatabaseDir=.db --OutputDir=.db.output --TempDir=.db.output --CompilerPath=MinGW\bin\x86_64-w64-mingw32-gcc.exe
+START "boot" boot.exe %1 --DatabaseDir=.db --OutputDir=.db.output --TempDir=.db.output --CompilerPath=MinGW\bin\x86_64-w64-mingw32-gcc.exe --AutoStartExePath=C:\sc\Level1\src\Samples\MySampleApp\bin\debug\mysampleapp.exe
 
 :: Auto-start example.
 ::boot.exe NETWORKIOTEST --DatabaseDir=.db --OutputDir=.db.output --TempDir=.db.output --CompilerPath=MinGW\bin\x86_64-w64-mingw32-gcc.exe --AutoStartExePath=c:\github\Orange\bin\Debug\NetworkIoTest\NetworkIoTest.exe
