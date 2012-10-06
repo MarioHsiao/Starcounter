@@ -392,16 +392,15 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             h.Append("// This is a system generated file. It reflects the Starcounter App Template defined in the file \"");
             h.Append(fileName);
             h.Append('"');
-            h.AppendLine();
-            h.AppendLine("// DO NOT MODIFY DIRECTLY - CHANGES WILL BE OVERWRITTEN");
-            h.AppendLine();
-            h.AppendLine("using System;");
-            h.AppendLine("using System.Collections.Generic;");
-            h.AppendLine("using Starcounter;");
-            h.AppendLine("using Starcounter.Internal;");
-            h.AppendLine("using Starcounter.Templates;");
-            //         h.AppendLine("using System.ComponentModel.Composition;");
-            h.AppendLine();
+            h.Append('\n');
+            h.Append("// DO NOT MODIFY DIRECTLY - CHANGES WILL BE OVERWRITTEN\n");
+            h.Append('\n');
+            h.Append("using System;\n");
+            h.Append("using System.Collections.Generic;\n");
+            h.Append("using Starcounter;\n");
+            h.Append("using Starcounter.Internal;\n");
+            h.Append("using Starcounter.Templates;\n");
+            h.Append('\n');
         }
     }
 }
