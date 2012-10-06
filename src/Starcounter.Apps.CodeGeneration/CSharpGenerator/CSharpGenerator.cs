@@ -157,7 +157,8 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         private void WriteNode( NBase node ) {
             foreach (var x in node.Prefix) {
                 Output.Append(' ', node.Indentation);
-                Output.AppendLine(x);
+                Output.Append(x);
+                Output.Append('\n');
             }
             foreach (var kid in node.Children) {
                 kid.Indentation = node.Indentation + Indentation;
@@ -165,7 +166,8 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             }
             foreach (var x in node.Suffix) {
                 Output.Append(' ', node.Indentation);
-                Output.AppendLine(x);
+                Output.Append(x);
+                Output.Append('\n');
             }
         }
 
