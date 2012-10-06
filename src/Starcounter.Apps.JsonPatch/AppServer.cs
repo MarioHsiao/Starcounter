@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using Starcounter.Internal.Web;
 using Starcounter.Internal.REST;
 using Starcounter.Internal.Application;
 using HttpStructs;
@@ -43,7 +40,6 @@ namespace Starcounter.Internal.Web {
     /// handler, the request is routed to a standard file based static resource
     /// web serving implementation that will serve html, png, jpg etc. using the file system.
     /// This file based resolver will be injected into the constructor of this class.
-    /// </summary>
     /// </remarks>
     public partial class HttpAppServer : HttpRestServer {
 
