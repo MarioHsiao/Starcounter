@@ -58,7 +58,7 @@ partial class Master : App {
     private static void Bootstrap()
     {
         var fileserv = new StaticWebServer();
-        fileserv.UserAddedLocalFileDirectoryWithStaticContent(Path.GetDirectoryName(typeof(Master).Assembly.Location));
+        fileserv.UserAddedLocalFileDirectoryWithStaticContent(Path.GetDirectoryName(typeof(Master).Assembly.Location) + "\\..\\.." );
         _appServer = new HttpAppServer(fileserv, new SessionDictionary());
 
         InternalHandlers.Register();
