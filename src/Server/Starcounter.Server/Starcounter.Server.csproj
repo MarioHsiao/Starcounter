@@ -61,6 +61,7 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\Processors\CreateDatabaseCommandProcessor.cs" />
     <Compile Include="CoreServices\AppsService.cs" />
     <Compile Include="Commands\CommandDispatcher.cs" />
     <Compile Include="Commands\CommandProcessor.cs" />
@@ -71,6 +72,7 @@
     <Compile Include="CoreServices\DatabaseSetupProperties.cs" />
     <Compile Include="CoreServices\DatabaseStorageService.cs" />
     <Compile Include="CoreServices\WeaverService.cs" />
+    <Compile Include="PublicModel\Commands\CreateDatabaseCommand.cs" />
     <Compile Include="PublicModel\Commands\DatabaseCommand.cs" />
     <Compile Include="Commands\ErrorInfoException.cs" />
     <Compile Include="PublicModel\Commands\ServerCommand.cs" />
