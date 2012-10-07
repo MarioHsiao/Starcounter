@@ -163,8 +163,8 @@ namespace Starcounter.Internal
             string new_name
             );
 
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint sc_drop_table(ushort table_id);
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public static extern uint sccoredb_drop_table(string name);
 
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
         public unsafe struct SC_INDEX_INFO

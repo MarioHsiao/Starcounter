@@ -298,7 +298,7 @@ namespace Starcounter.Binding
 
         private void DropOldTable()
         {
-            Db.DropTable(oldTableDef_.TableId);
+            Db.DropTable(oldTableDef_.Name);
         }
 
         private void RenameNewTable()
