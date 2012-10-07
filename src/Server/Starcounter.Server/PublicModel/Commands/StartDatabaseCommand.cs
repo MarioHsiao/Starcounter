@@ -16,7 +16,7 @@ namespace Starcounter.Server.PublicModel.Commands {
         /// <param name="engine"></param>
         /// <param name="databaseName"></param>
         public StartDatabaseCommand(ServerEngine engine, string databaseName)
-            : base(engine, CreateDatabaseUri(engine, databaseName), string.Format("Creating database {0}.", databaseName)) {
+            : base(engine, CreateDatabaseUri(engine, databaseName), string.Format("Starting database {0}.", databaseName)) {
         }
     }
 }
