@@ -109,7 +109,13 @@ namespace Starcounter.Server {
                 MaxImageSize = 0,   // TODO: Backlog
                 SupportReplication = false,
                 TransactionLogSize = 0, // TODO: Backlog
-                Uri = this.Uri
+                Uri = this.Uri,
+                HostedApps = this.Apps.ConvertAll<AppInfo>(delegate(DatabaseApp app) {
+                    return new AppInfo() {
+                        ExecutablePath = app.OriginalExecutablePath,
+                        WorkingDirectory = app.WorkingDirectory
+                    };
+                }).ToArray()
             };
             return info;
         }
