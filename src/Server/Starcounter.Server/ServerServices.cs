@@ -11,6 +11,7 @@ using Starcounter.Internal;
 using Starcounter.Server.Commands;
 using System.IO;
 using Starcounter.ABCIPC.Internal;
+using Starcounter.Server.PublicModel.Commands;
 
 namespace Starcounter.Server {
 
@@ -108,11 +109,25 @@ namespace Starcounter.Server {
                 request.Respond(true, responseSerializer.SerializeReponse(info));
             });
 
-            #region Command stubs not yet implemented
-
             ipcServer.Handle("CreateDatabase", delegate(Request request) {
-                request.Respond(false, "NotImplemented");
+                CreateDatabaseCommand command;
+                string name;
+
+                // Get required properties - we can default everything but the
+                // name. Without a name, we consider the request a failure.
+
+                var properties = request.GetParameter<Dictionary<string, string>>();
+                if (properties == null || !properties.TryGetValue("Name", out name)) {
+                    request.Respond(false, "Missing required argument 'Name'");
+                    return;
+                }
+                command = new CreateDatabaseCommand(this.engine, name);
+
+                var info = engine.CurrentPublicModel.Execute(command);
+                request.Respond(true, responseSerializer.SerializeReponse(info));
             });
+
+            #region Command stubs not yet implemented
 
             // See 2.0 GetServerLogsByNumber
             ipcServer.Handle("GetLogsByNumber", delegate(Request request) {
