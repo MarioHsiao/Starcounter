@@ -38,7 +38,7 @@ namespace Test {
            var facit = file.ReadToEnd();
            file.Close();
            Assert.IsInstanceOf(typeof(AppTemplate), actual);
-           CodeGenerationModule codegenmodule = new CodeGenerationModule();
+           var codegenmodule = new CodeGenerationModule();
            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator("C#",actual, CodeBehindMetadata.Empty);
            var code = codegen.GenerateCode();
            Console.WriteLine(code);

@@ -8,16 +8,16 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// <summary>
     /// The source code representation of the AppTemplate class.
     /// </summary>
-    public class NAppTemplate : NClass {
-        public NApp AppNode;
+    public class NAppTemplateClass : NTemplateClass {
+       // public NAppClass AppClassNode;
 
-        public static Dictionary<AppTemplate, NClass> Instances = new Dictionary<AppTemplate, NClass>();
+//        public static Dictionary<AppTemplate, NClass> Instances = new Dictionary<AppTemplate, NClass>();
 
         public override string ClassName {
             get {
-                if (AppNode == null)
+                if (NValueClass == null)
                     return "Unknown";
-                return AppNode.ClassName + "Template";
+                return NValueClass.ClassName + "Template";
             }
         }
 

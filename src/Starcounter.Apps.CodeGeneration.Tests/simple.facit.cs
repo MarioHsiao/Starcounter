@@ -17,7 +17,7 @@ public partial class PlayerApp {
     public PlayerApp.KidApp Kid { get { return GetValue<PlayerApp.KidApp>(Template.Kid); } set { SetValue(Template.Kid, value); } }
     public App Page { get { return GetValue(Template.Page); } set { SetValue(Template.Page, value); } }
     public int PlayerId { get { return GetValue(Template.PlayerId); } set { SetValue(Template.PlayerId, value); } }
-    public string FullName { get { return GetValue(Template.FullName); } set { SetValue(Template.FullName, value); } }
+    public String FullName { get { return GetValue(Template.FullName); } set { SetValue(Template.FullName, value); } }
     public Listing<PlayerApp.AccountsApp> Accounts { get { return GetValue<PlayerApp.AccountsApp>(Template.Accounts); } set { SetValue<PlayerApp.AccountsApp>(Template.Accounts, value); } }
     public class KidApp : App {
         public static KidAppTemplate DefaultTemplate = new KidAppTemplate();
@@ -26,7 +26,7 @@ public partial class PlayerApp {
         }
         public new KidAppTemplate Template { get { return (KidAppTemplate)base.Template; } set { base.Template = value; } }
         public new KidAppMetadata Metadata { get { return (KidAppMetadata)base.Metadata; } }
-        public string Grandkid { get { return GetValue(Template.Grandkid); } set { SetValue(Template.Grandkid, value); } }
+        public String Grandkid { get { return GetValue(Template.Grandkid); } set { SetValue(Template.Grandkid, value); } }
         public class KidAppTemplate : AppTemplate {
             public KidAppTemplate()
                 : base() {
@@ -52,7 +52,7 @@ public partial class PlayerApp {
         public new AccountsAppMetadata Metadata { get { return (AccountsAppMetadata)base.Metadata; } }
         public int AccountId { get { return GetValue(Template.AccountId); } set { SetValue(Template.AccountId, value); } }
         public int AccountType { get { return GetValue(Template.AccountType); } set { SetValue(Template.AccountType, value); } }
-        public decimal Balance { get { return GetValue(Template.Balance); } set { SetValue(Template.Balance, value); } }
+        public Decimal Balance { get { return GetValue(Template.Balance); } set { SetValue(Template.Balance, value); } }
         public class AccountsAppTemplate : AppTemplate {
             public AccountsAppTemplate()
                 : base() {
@@ -110,19 +110,19 @@ public partial class PlayerApp {
     }
     public static class Input {
         public static class Kid {
-            public class Grandkid : Input<PlayerApp.KidApp, string> {
+            public class Grandkid : Input<PlayerApp.KidApp, String> {
             }
         }
         public class PlayerId : Input<PlayerApp, int> {
         }
-        public class FullName : Input<PlayerApp, string> {
+        public class FullName : Input<PlayerApp, String> {
         }
         public static class Accounts {
             public class AccountId : Input<PlayerApp.AccountsApp, int> {
             }
             public class AccountType : Input<PlayerApp.AccountsApp, int> {
             }
-            public class Balance : Input<PlayerApp.AccountsApp, decimal> {
+            public class Balance : Input<PlayerApp.AccountsApp, Decimal> {
             }
         }
     }

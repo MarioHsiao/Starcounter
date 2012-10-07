@@ -7,13 +7,15 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// <summary>
     /// Represents a App class definition in template tree.
     /// </summary>
-    public class NApp : NClass {
-        public AppTemplate Template;
-        public NApp AppClass;
-        public NClass TemplateClass;
-        public NClass MetaDataClass;
+    public class NAppClass : NValueClass {
+//        public NAppClass AppClassClass;
+//        public NClass TemplateClass;
+//        public NClass MetaDataClass;
 
-        public static Dictionary<AppTemplate, NClass> Instances = new Dictionary<AppTemplate, NClass>();
+        public AppTemplate Template {
+            get { return (AppTemplate) (NTemplateClass.Template); }
+        }
+
 
         public string _Inherits;
 
