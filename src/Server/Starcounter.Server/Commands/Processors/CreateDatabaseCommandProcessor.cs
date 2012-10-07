@@ -22,7 +22,20 @@ namespace Starcounter.Server.Commands {
 
         /// </inheritdoc>
         protected override void Execute() {
-            throw new NotImplementedException();
+            CreateDatabaseCommand command = (CreateDatabaseCommand)this.Command;
+            AssureUniqueName(command);
+
+            var setup = new DatabaseSetup(this.Engine, command.SetupProperties);
+            var database = setup.CreateDatabase();
+            Engine.Databases.Add(database.Name, database);
+            Engine.CurrentPublicModel.AddDatabase(database);
+        }
+
+        void AssureUniqueName(CreateDatabaseCommand command) {
+            string candidate = command.SetupProperties.Name;
+            if (Engine.Databases.ContainsKey(candidate)) {
+                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("Database '{0}' already exist.", candidate));
+            }
         }
     }
 }
