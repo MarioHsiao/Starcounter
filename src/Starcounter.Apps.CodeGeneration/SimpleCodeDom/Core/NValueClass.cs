@@ -20,7 +20,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             Classes[NTemplateClass.DoubleProperty] = new NPrimitiveType { NTemplateClass = NTemplateClass.Classes[NTemplateClass.DoubleProperty] };
             Classes[NTemplateClass.BoolProperty] = new NPrimitiveType { NTemplateClass = NTemplateClass.Classes[NTemplateClass.BoolProperty] };
             Classes[NTemplateClass.ActionProperty] = new NPrimitiveType { NTemplateClass = NTemplateClass.Classes[NTemplateClass.ActionProperty] };
-            Classes[NTemplateClass.AppTemplate] = new NPrimitiveType { NTemplateClass = NTemplateClass.Classes[NTemplateClass.AppTemplate] };
+            Classes[NTemplateClass.AppTemplate] = new NAppClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.AppTemplate] };
         }
 
 

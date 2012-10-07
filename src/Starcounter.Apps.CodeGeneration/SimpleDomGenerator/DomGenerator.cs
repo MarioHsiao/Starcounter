@@ -390,7 +390,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             foreach (var kid in app.Children) {
                 if (kid is NProperty) {
                     var mn = kid as NProperty;
-                    if (mn.Type is NListingXXXClass || mn.Type is NAppClass) {
+                    if (mn.Type is NListingXXXClass || ( mn.Type is NAppClass && mn.Type.Children.Count > 0 ) ) {
                         NClass type;
                         if (mn.Type is NListingXXXClass)
                             type = (mn.Type as NListingXXXClass).NApp;
@@ -404,11 +404,11 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                         GeneratePrimitiveValueEvents(x, type, eventName);
                     }
                     else {
-                        if (mn.Type.IsPrimitive) {
-                            var x = new NEventClass() {
+                        if (mn.Type is NPrimitiveType) {
+                            new NEventClass() {
                                 NMember = mn,
                                 Parent = parent,
-                                NApp = app,
+//                                NApp = app,
                                 EventName = eventName
                             };
                         }

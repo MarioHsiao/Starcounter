@@ -15,7 +15,7 @@ public partial class PlayerApp {
     public new PlayerAppTemplate Template { get { return (PlayerAppTemplate)base.Template; } set { base.Template = value; } }
     public new PlayerAppMetadata Metadata { get { return (PlayerAppMetadata)base.Metadata; } }
     public PlayerApp.KidApp Kid { get { return GetValue<PlayerApp.KidApp>(Template.Kid); } set { SetValue(Template.Kid, value); } }
-    public App Page { get { return GetValue(Template.Page); } set { SetValue(Template.Page, value); } }
+    public App Page { get { return GetValue<App>(Template.Page); } set { SetValue(Template.Page, value); } }
     public int PlayerId { get { return GetValue(Template.PlayerId); } set { SetValue(Template.PlayerId, value); } }
     public String FullName { get { return GetValue(Template.FullName); } set { SetValue(Template.FullName, value); } }
     public Listing<PlayerApp.AccountsApp> Accounts { get { return GetValue<PlayerApp.AccountsApp>(Template.Accounts); } set { SetValue<PlayerApp.AccountsApp>(Template.Accounts, value); } }
@@ -110,19 +110,19 @@ public partial class PlayerApp {
     }
     public static class Input {
         public static class Kid {
-            public class Grandkid : Input<PlayerApp.KidApp, String> {
+            public class Grandkid : Input<PlayerApp.KidApp, StringProperty, String> {
             }
         }
-        public class PlayerId : Input<PlayerApp, int> {
+        public class PlayerId : Input<PlayerApp, IntProperty, int> {
         }
-        public class FullName : Input<PlayerApp, String> {
+        public class FullName : Input<PlayerApp, StringProperty, String> {
         }
         public static class Accounts {
-            public class AccountId : Input<PlayerApp.AccountsApp, int> {
+            public class AccountId : Input<PlayerApp.AccountsApp, IntProperty, int> {
             }
-            public class AccountType : Input<PlayerApp.AccountsApp, int> {
+            public class AccountType : Input<PlayerApp.AccountsApp, IntProperty, int> {
             }
-            public class Balance : Input<PlayerApp.AccountsApp, Decimal> {
+            public class Balance : Input<PlayerApp.AccountsApp, DecimalProperty, Decimal> {
             }
         }
     }
