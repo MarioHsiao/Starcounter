@@ -72,6 +72,7 @@
     <Compile Include="CoreServices\DatabaseSetup.cs" />
     <Compile Include="CoreServices\DatabaseSetupProperties.cs" />
     <Compile Include="CoreServices\DatabaseStorageService.cs" />
+    <Compile Include="CoreServices\SharedMemoryMonitor.cs" />
     <Compile Include="CoreServices\WeaverService.cs" />
     <Compile Include="PublicModel\Commands\CreateDatabaseCommand.cs" />
     <Compile Include="PublicModel\Commands\DatabaseCommand.cs" />
