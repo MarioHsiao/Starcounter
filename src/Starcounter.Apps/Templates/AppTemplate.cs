@@ -17,8 +17,8 @@ namespace Starcounter.Templates {
 #endif
     {
 
-        public T Register<T>( string name, bool editable = false ) where T: Template, new() {
-            return new T() {
+        public TTemplate Register<TApp,TTemplate>( string name, bool editable = false, Func<TApp,TTemplate,Input<TApp,TTemplate>> input = null ) where TTemplate: Template, new() where TApp : App {
+            return new TTemplate() {
                 Parent = this,
 //                PropertyName = propertyName,
                 Name = name,
