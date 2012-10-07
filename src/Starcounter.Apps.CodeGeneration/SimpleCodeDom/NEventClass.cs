@@ -11,6 +11,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
 
         public NProperty NMember { get; set; }
         public NClass NApp { get; set; }
+        public NClass NTemplate { get; set; }
         public string EventName { get; set; }
 
         public override string ClassName {
@@ -20,6 +21,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             get {
                 var str = EventName + "<";
                 str += NApp.FullClassName;
+                str += ", ";
+                str += (NTemplate==null) ? "UnknownTemplate" : NTemplate.FullClassName;
                 str += ", ";
                 str += NMember.Type.FullClassName;
                 str += ">";

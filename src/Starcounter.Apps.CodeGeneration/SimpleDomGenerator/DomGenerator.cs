@@ -235,129 +235,121 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             }            
         }
 
+        private void GenerateKidsForAppTemplate(AppTemplate at, NApp appParent, NClass templParent, NClass metaParent, Template template) {
+            NClass acn;
+            NClass tcn;
+            NClass mcn;
+            if (at.Properties.Count == 0) {
+                acn = CodeGenerationModule.FixedAppTypes[typeof(AppTemplate)];
+                tcn = CodeGenerationModule.FixedTemplateTypes[typeof(AppTemplate)];
+                mcn = CodeGenerationModule.FixedMetaDataTypes[typeof(AppTemplate)];
+            }
+            else {
+                NApp racn;
+                acn = racn = new NApp() {
+                    Parent = appParent,
+                    Template = at,
+                    _Inherits = "App"
+                };
+                tcn = new NAppTemplate() {
+                    Parent = racn,
+                    AppNode = racn,
+                    _Inherits = "AppTemplate"
+                };
+                mcn = new NAppMetadata() {
+                    Parent = racn,
+                    AppNode = racn,
+                    _Inherits = "AppMetadata"
+                };
+                racn.MetaDataClass = mcn;
+                racn.TemplateClass = tcn;
+            }
+            NApp.Instances[at] = acn;
+            NAppTemplate.Instances[at] = tcn;
+            NAppMetadata.Instances[at] = mcn;
+            if (acn is NApp) {
+                GenerateKids(acn as NApp, tcn as NAppTemplate, mcn as NAppMetadata, at);
+                if (!appParent.Children.Remove(acn))
+                    throw new Exception(); // Move to...
+                appParent.Children.Add(acn); // Move to...
+                if (!acn.Children.Remove(tcn))
+                    throw new Exception(); // Move to...
+                acn.Children.Add(tcn); // Move to...
+                if (!acn.Children.Remove(mcn))
+                    throw new Exception(); // ...last member
+                acn.Children.Add(mcn); // ...last member
+            }
+
+            if (at.Parent is AppTemplate) {
+                new NProperty() {
+                    Parent = appParent,
+                    Template = at,
+                    Type = NApp.Instances[at],
+                };
+                new NProperty() {
+                    Parent = templParent,
+                    Template = at,
+                    Type = NAppTemplate.Instances[at],
+                };
+                new NProperty() {
+                    Parent = metaParent,
+                    Template = at,
+                    Type = NAppMetadata.Instances[at],
+                };
+
+            }
+        }
+
+        private void GenerateKidsForListingProperty(ListingProperty alt, NApp appParent, NClass templParent, NClass metaParent, Template template) {
+            var amn = new NProperty() {
+                                          Parent = appParent,
+                                          Template = alt
+                                      };
+            var tmn = new NProperty() {
+                                          Parent = appParent.TemplateClass,
+                                          Template = alt
+                                      };
+            var mmn = new NProperty() {
+                                          Parent = appParent.MetaDataClass,
+                                          Template = alt
+                                      };
+            GenerateKids(appParent, templParent, metaParent, alt);
+            amn.Type = new NListingXXXClass("Listing", NApp.Instances[alt.App], null);
+            tmn.Type = new NListingXXXClass("ListingProperty", NApp.Instances[alt.App], NAppTemplate.Instances[alt.App]);
+            mmn.Type = new NListingXXXClass("ListingMetadata", NApp.Instances[alt.App], NAppTemplate.Instances[alt.App]);
+        }
+
         private void GenerateKids(NApp appParent, NClass templParent, NClass metaParent, Template template) {
             if (template is ParentTemplate) {
                 var pt = (ParentTemplate)template;
                 foreach (var kid in pt.Children) {
                     if (kid is ParentTemplate) {
                         if (kid is AppTemplate) {
-                            var at = (AppTemplate)kid;
-                            NClass acn;
-                            NClass tcn;
-                            NClass mcn;
-                            if (at.Properties.Count == 0) {
-                                acn = CodeGenerationModule.FixedAppTypes[typeof(AppTemplate)];
-                                tcn = CodeGenerationModule.FixedTemplateTypes[typeof(AppTemplate)];
-                                mcn = CodeGenerationModule.FixedMetaDataTypes[typeof(AppTemplate)];
-                            }
-                            else {
-                                NApp racn;
-                                acn = racn = new NApp() {
-                                    Parent = appParent,
-                                    Template = at,
-                                    _Inherits = "App"
-                                };
-                                tcn = new NAppTemplate() {
-                                    Parent = racn,
-                                    AppNode = racn,
-                                    _Inherits = "AppTemplate"
-                                };
-                                mcn = new NAppMetadata() {
-                                    Parent = racn,
-                                    AppNode = racn,
-                                    _Inherits = "AppMetadata"
-                                };
-                                racn.MetaDataClass = mcn;
-                                racn.TemplateClass = tcn;
-                            }
-                            NApp.Instances[at] = acn;
-                            NAppTemplate.Instances[at] = tcn;
-                            NAppMetadata.Instances[at] = mcn;
-
-//                            appParent.Children.Add(acn);
-//                            appParent.Children.Add(tcn);
-//                            appParent.Children.Add(mcn);
-                            if (acn is NApp) {
-                                GenerateKids(acn as NApp, tcn as NAppTemplate, mcn as NAppMetadata, kid);
-                                if (!appParent.Children.Remove(acn))
-                                    throw new Exception(); // Move to...
-                                appParent.Children.Add(acn); // Move to...
-                                if (!acn.Children.Remove(tcn))
-                                    throw new Exception(); // Move to...
-                                acn.Children.Add(tcn); // Move to...
-                                if (!acn.Children.Remove(mcn))
-                                    throw new Exception(); // ...last member
-                                acn.Children.Add(mcn); // ...last member
-                            }
-
-                            if (at.Parent is AppTemplate) {
-                                new NProperty() {
-                                    Parent = appParent,
-                                    Template = kid,
-                                    Type = NApp.Instances[at],
-                                };
-                                new NProperty() {
-                                    Parent = templParent,
-                                    Template = kid,
-                                    Type = NAppTemplate.Instances[at],
-                                };
-                                new NProperty() {
-                                    Parent = metaParent,
-                                    Template = kid,
-                                    Type = NAppMetadata.Instances[at],
-                                };
-
-                            }
-
+                            GenerateKidsForAppTemplate(kid as AppTemplate, appParent, templParent,metaParent,template);
                         }
                         else if (kid is ListingProperty) {
-                            var alt = (ListingProperty)kid;
-                            var amn = new NProperty() {
-                                Parent = appParent,
-                                Template = alt                                
-                            };
-                            var tmn = new NProperty() {
-                                Parent = appParent.TemplateClass,
-                                Template = alt
-                            };
-                            var mmn = new NProperty() {
-                                Parent = appParent.MetaDataClass,
-                                Template = alt
-                            };
-                            GenerateKids(appParent, templParent, metaParent, kid);
-                            amn.Type = new NListingXXXClass("Listing",NApp.Instances[alt.App],null);
-                            tmn.Type = new NListingXXXClass("ListingProperty", NApp.Instances[alt.App], NAppTemplate.Instances[alt.App]);
-                            mmn.Type = new NListingXXXClass("ListingMetadata", NApp.Instances[alt.App], NAppTemplate.Instances[alt.App]);
+                            GenerateKidsForListingProperty(kid as ListingProperty, appParent, templParent,metaParent,template);
                         }
                         else {
                             throw new Exception();
                         }
                     }
                     else {
-                        AppTemplate x = null;
-                        if (kid is ListingProperty) {
-                            x = ((ListingProperty)kid).App;
-                        }
-                        var ap = new NProperty() {
+                        new NProperty() {
                             Parent = appParent,
-                            //MemberName = kid.PropertyName,
                             Template = kid,
-//                            Type = NApp.Instances[(AppTemplate)kid.Parent]
                             Type = CodeGenerationModule.FixedAppTypes[kid.GetType()] //NAppTemplate.Instances[(AppTemplate)kid.Parent]
                         };
-                        var tp = new NProperty() {
+                        new NProperty() {
                             Parent = templParent,
                             Template = kid,
                             Type = CodeGenerationModule.FixedTemplateTypes[kid.GetType()] //NAppTemplate.Instances[(AppTemplate)kid.Parent]
                         };
-                        var mp = new NProperty() {
+                        new NProperty() {
                             Parent = metaParent,
                             Template = kid,
                             Type = CodeGenerationModule.FixedMetaDataTypes[kid.GetType()]
                         };
-//                        appParent.Children.Add(ap);
-//                        templParent.Children.Add(tp);
-//                        metaParent.Children.Add(mp);
                     }
                 }
             }
