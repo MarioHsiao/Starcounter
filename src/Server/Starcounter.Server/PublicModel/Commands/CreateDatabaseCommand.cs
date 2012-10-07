@@ -12,30 +12,22 @@ namespace Starcounter.Server.PublicModel.Commands {
     /// </summary>
     public sealed class CreateDatabaseCommand : ServerCommand {
         /// <summary>
-        /// Gets the name of the database to be created.
+        /// Gets the property structure describing the properties that
+        /// should be used when creating the database.
         /// </summary>
-        public readonly string DatabaseName;
+        public readonly DatabaseSetupProperties SetupProperties;
 
         /// <summary>
-        /// Gets the <see cref="DatabaseStorageConfiguration"/> specifying how
-        /// the storage for the database will be created.
+        /// Initializes a new <see cref="CreateDatabaseCommand"/>.
         /// </summary>
-        public readonly DatabaseStorageConfiguration StorageConfiguration;
-
-        /// <summary>
-        /// Gets the management configuration for the database about to be
-        /// created.
-        /// </summary>
-        public readonly DatabaseConfiguration Configuration;
-
+        /// <param name="engine"></param>
+        /// <param name="databaseName"></param>
         public CreateDatabaseCommand(ServerEngine engine, string databaseName) : base(engine, "Creating database {0}", databaseName) {
             if (string.IsNullOrEmpty(databaseName)) {
                 throw new ArgumentNullException("name");
             }
 
-            this.DatabaseName = databaseName;
-            this.Configuration = (DatabaseConfiguration) engine.Configuration.DefaultDatabaseConfiguration.Clone();
-            this.StorageConfiguration = (DatabaseStorageConfiguration) engine.Configuration.DefaultDatabaseStorageConfiguration.Clone();
+            this.SetupProperties = new DatabaseSetupProperties(engine, databaseName);
         }
     }
 }
