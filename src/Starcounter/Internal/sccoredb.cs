@@ -226,6 +226,11 @@ namespace Starcounter.Internal
             uint flags
             );
 
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public extern unsafe static UInt32 sccoredb_drop_index(
+            string table_name,
+            string name
+            );
         
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint sccoredb_create_transaction_and_set_current(
