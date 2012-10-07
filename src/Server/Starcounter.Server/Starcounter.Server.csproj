@@ -95,6 +95,7 @@
     <Compile Include="PublicModel\CommandDescriptor.cs" />
     <Compile Include="PublicModel\CommandId.cs" />
     <Compile Include="PublicModel\CommandInfo.cs" />
+    <Compile Include="PublicModel\Commands\StartDatabaseCommand.cs" />
     <Compile Include="PublicModel\CommandTaskInfo.cs" />
     <Compile Include="PublicModel\DatabaseInfo.cs" />
     <Compile Include="PublicModel\ErrorInfo.cs" />
