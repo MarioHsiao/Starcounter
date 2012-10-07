@@ -42,8 +42,8 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             //return Old.GenerateCodeOld();
             ProcessAllNodes();
 
-            WriteHeader(Root.AppClassNode.Template.CompilerOrigin.FileName, Output);
-            foreach (NApp napp in Root.Children)
+            WriteHeader(Root.AppClassClassNode.Template.CompilerOrigin.FileName, Output);
+            foreach (NAppClass napp in Root.Children)
             {
                 WriteNode(napp);
             }
@@ -53,16 +53,16 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         }
 
         private void ProcessAllNodes() {
-            NApp napp;
-            NApp previousApp;
+            NAppClass napp;
+            NAppClass previousAppClass;
             String previousNs;
             String currentNs;
 
-            previousApp = null;
+            previousAppClass = null;
             previousNs = "";
             for (Int32 i = 0; i < Root.Children.Count; i++)
             {
-                napp = Root.Children[i] as NApp;
+                napp = Root.Children[i] as NAppClass;
                 if (napp == null)
                 {
                     throw new Exception("Unable to generate code. Invalid node found. Expected App but found: " + Root.Children[i]);
@@ -71,9 +71,9 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 currentNs = napp.Template.Namespace;
                 if (currentNs != previousNs)
                 {
-                    if (previousApp != null && !String.IsNullOrEmpty(previousNs))
+                    if (previousAppClass != null && !String.IsNullOrEmpty(previousNs))
                     {
-                        previousApp.Suffix.Add("}");
+                        previousAppClass.Suffix.Add("}");
                     }
 
                     if (!String.IsNullOrEmpty(currentNs))
@@ -85,12 +85,12 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 ProcessNode(napp);
 
                 previousNs = currentNs;
-                previousApp = napp;
+                previousAppClass = napp;
             }
 
-            if (previousApp != null && !String.IsNullOrEmpty(previousNs))
+            if (previousAppClass != null && !String.IsNullOrEmpty(previousNs))
             {
-                previousApp.Suffix.Add("}");
+                previousAppClass.Suffix.Add("}");
             }
         }
 
@@ -132,19 +132,19 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     }
                     sb.Append(" {");
                     node.Prefix.Add(sb.ToString());
-                    if (node is NApp) {
-                        WriteAppClassPrefix(node as NApp);
+                    if (node is NAppClass) {
+                        WriteAppClassPrefix(node as NAppClass);
                     }
-                    else if (node is NAppTemplate) {
-                        WriteAppTemplateClassPrefix(node as NAppTemplate);
+                    else if (node is NAppTemplateClass) {
+                        WriteAppTemplateClassPrefix(node as NAppTemplateClass);
                     }
                 }
                 node.Suffix.Add("}");
             }
             else if (node is NProperty) {
-                if (node.Parent is NApp)
+                if (node.Parent is NAppClass)
                     WriteAppMemberPrefix(node as NProperty);
-                else if (node.Parent is NAppTemplate)
+                else if (node.Parent is NAppTemplateClass)
                     WriteAppTemplateMemberPrefix(node as NProperty);
                 else if (node.Parent is NAppMetadata)
                     WriteAppMetadataMemberPrefix(node as NProperty);
@@ -202,12 +202,12 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             m.Prefix.Add(sb.ToString());
         }
 
-        private void WriteAppClassPrefix(NApp a) {
+        private void WriteAppClassPrefix(NAppClass a) {
             a.Prefix.Add(
                 "    public static " +
-                a.TemplateClass.ClassName +
+                a.NTemplateClass.ClassName +
                 " DefaultTemplate = new " +
-                a.TemplateClass.ClassName +
+                a.NTemplateClass.ClassName +
                 "();");
 /*            var sb = new StringBuilder();
 
@@ -233,15 +233,15 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 "    }");
             a.Prefix.Add(
                 "    public new " +
-                a.TemplateClass.ClassName +
+                a.NTemplateClass.ClassName +
                 " Template { get { return (" +
-                a.TemplateClass.ClassName +
+                a.NTemplateClass.ClassName +
                 ")base.Template; } set { base.Template = value; } }");
             a.Prefix.Add(
                 "    public new " +
-                a.MetaDataClass.ClassName +
+                a.NTemplateClass.NMetadataClass.ClassName +
                 " Metadata { get { return (" +
-                a.MetaDataClass.ClassName +
+                a.NTemplateClass.NMetadataClass.ClassName +
                 ")base.Metadata; } }");
         }
 
@@ -282,7 +282,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         /// Writes the class declaration and constructor for an AppTemplate class
         /// </summary>
         /// <param name="a">The class declaration syntax node</param>
-        private void WriteAppTemplateClassPrefix(NAppTemplate a) {
+        private void WriteAppTemplateClassPrefix(NAppTemplateClass a) {
             var sb = new StringBuilder();
             sb.Append("    public ");
             sb.Append(a.ClassName);
@@ -291,12 +291,12 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             a.Prefix.Add("        : base() {");
             sb = new StringBuilder();
             sb.Append("        InstanceType = typeof(");
-            sb.Append(a.AppNode.FullClassName);
+            sb.Append(a.NValueClass.FullClassName);
             sb.Append(");");
             a.Prefix.Add(sb.ToString());
             sb = new StringBuilder();
             sb.Append("        ClassName = \"");
-            sb.Append(a.AppNode.ClassName);
+            sb.Append(a.NValueClass.ClassName);
             sb.Append("\";");
             a.Prefix.Add(sb.ToString());
             foreach (var kid in a.Children) {
@@ -328,7 +328,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         /// Writes the class declaration and constructor for an AppTemplate class
         /// </summary>
         /// <param name="a">The class declaration syntax node</param>
-        private void WriteAppMetadataClassPrefix(NAppMetadata a) {
+        private void WriteAppMetadataClassPrefix(NMetadataClass a) {
             var sb = new StringBuilder();
             sb.Append("    public ");
             sb.Append(a.ClassName);
@@ -336,16 +336,16 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             a.Prefix.Add(sb.ToString());
             sb = new StringBuilder();
             sb.Append("    public new ");
-            sb.Append(a.AppNode.FullClassName);
+            sb.Append(a.NTemplateClass.NValueClass.FullClassName);
             sb.Append(" App { get { return (");
-            sb.Append(a.AppNode.FullClassName);
+            sb.Append(a.NTemplateClass.NValueClass.FullClassName);
             sb.Append(")base.App; } }");
             a.Prefix.Add(sb.ToString());
             sb = new StringBuilder();
             sb.Append("    public new ");
-            sb.Append(a.AppNode.TemplateClass.FullClassName);
+            sb.Append(a.NTemplateClass.FullClassName);
             sb.Append(" Template { get { return (");
-            sb.Append(a.AppNode.TemplateClass.FullClassName);
+            sb.Append(a.NTemplateClass.FullClassName);
             sb.Append(")base.Template; } }");
             a.Prefix.Add(sb.ToString());
             /*            sb = new StringBuilder();
