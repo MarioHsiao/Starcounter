@@ -127,6 +127,24 @@ namespace Starcounter.Server {
                 request.Respond(true, responseSerializer.SerializeReponse(info));
             });
 
+            ipcServer.Handle("StartDatabase", delegate(Request request) {
+                StartDatabaseCommand command;
+                string name;
+
+                // Get required properties - we can default everything but the
+                // name. Without a name, we consider the request a failure.
+
+                var properties = request.GetParameter<Dictionary<string, string>>();
+                if (properties == null || !properties.TryGetValue("Name", out name)) {
+                    request.Respond(false, "Missing required argument 'Name'");
+                    return;
+                }
+                command = new StartDatabaseCommand(this.engine, name);
+
+                var info = engine.CurrentPublicModel.Execute(command);
+                request.Respond(true, responseSerializer.SerializeReponse(info));
+            });
+
             #region Command stubs not yet implemented
 
             // See 2.0 GetServerLogsByNumber
