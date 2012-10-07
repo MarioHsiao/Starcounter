@@ -1,6 +1,7 @@
 ﻿
 
 using System;
+using Starcounter.Templates;
 
 namespace Starcounter.Internal.Application.CodeGeneration {
 
@@ -11,6 +12,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
 
         public override string ClassName {
             get {
+                if (NTemplateClass.Template is ActionProperty)
+                    return "Action";
                 var type = NTemplateClass.Template.InstanceType;
                 if (type == typeof(Int32)) {
                     return "int";
