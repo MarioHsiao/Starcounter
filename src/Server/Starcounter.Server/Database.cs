@@ -47,6 +47,33 @@ namespace Starcounter.Server {
         }
 
         /// <summary>
+        /// Gets or sets a value indicating if the database is supposed to
+        /// be running or not.
+        /// </summary>
+        internal bool SupposedToBeStarted {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Gets or sets the counter used to determine when automatic restart
+        /// no longer is viable on failure.
+        /// </summary>
+        internal int BadAutoRestartCount {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating the last time an automatic restart
+        /// was triggered.
+        /// </summary>
+        internal DateTime LastAutoRestartTime {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Intializes a <see cref="Database"/>.
         /// </summary>
         /// <param name="server">The server to which the current database belong.</param>

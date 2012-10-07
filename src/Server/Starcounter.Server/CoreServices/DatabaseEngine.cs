@@ -218,6 +218,7 @@ namespace Starcounter.Server {
 
             process = Process.Start(GetWorkerProcessStartInfo(database));
             database.WorkerProcess = process;
+            database.SupposedToBeStarted = true;
             return true;
         }
 
