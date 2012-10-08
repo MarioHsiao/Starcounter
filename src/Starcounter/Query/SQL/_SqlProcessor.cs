@@ -271,17 +271,15 @@ internal static class SqlProcessor
         }
 
         // Call kenrel
-        //UInt32 errorCode;
+        UInt32 errorCode;
         unsafe
         {
-            UInt64 handle;
-            sccoredb.Mdb_DefinitionFromCodeClassString(typePath, out handle);
-            // errorCode = sccoredb.sc_drop_index(handle, indexName);
+            errorCode = sccoredb.sccoredb_drop_index(typePath, indexName);
         }
-        //if (errorCode != 0)
-        //{
-        //    throw ErrorCode.ToException(errorCode);
-        //}
+        if (errorCode != 0)
+        {
+            throw ErrorCode.ToException(errorCode);
+        }
 
         // Invalidate cache, since queries have to be reoptimized to avoid using the dropped index.
         Scheduler.GetInstance(true).InvalidateCache(); // Assuming that scheduler is attached, otherwise null pointer exception
