@@ -9,22 +9,11 @@ namespace Starcounter
 {
 
 
-    // TODO:
-    // We must keep DbObject around because generated code links to DbState
-    // methods with this type are parameter. Remove class and change all
-    // references to Entity once the generated code has been changed.
-    
-    public class DbObject
-    {
-
-        internal ObjectRef ThisRef;
-    }
-
     [AttributeUsage(AttributeTargets.Field)]
     public sealed class NotPersistentAttribute : Attribute {
     }
     
-    public abstract class Entity : DbObject, IObjectView
+    public abstract class Entity : IObjectView
     {
 
         /// <summary>
@@ -80,7 +69,8 @@ namespace Starcounter
             }
             return !obj1.Equals(obj2);
         }
-        
+
+        internal ObjectRef ThisRef;
         private TypeBinding typeBinding_;
 
         protected Entity()
