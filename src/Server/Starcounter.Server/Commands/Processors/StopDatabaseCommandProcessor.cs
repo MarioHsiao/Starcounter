@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+using System;
 using Starcounter.Server.PublicModel.Commands;
 
 namespace Starcounter.Server.Commands.Processors {
@@ -21,7 +18,17 @@ namespace Starcounter.Server.Commands.Processors {
 
         /// </inheritdoc>
         protected override void Execute() {
-            throw new NotImplementedException();
+            StopDatabaseCommand command = (StopDatabaseCommand)this.Command;
+            Database database;
+
+            if (!this.Engine.Databases.TryGetValue(command.Name, out database)) {
+                throw ErrorCode.ToException(Error.SCERRDATABASENOTFOUND, string.Format("Database: '{0}'.", command.DatabaseUri));
+            }
+
+            Engine.DatabaseEngine.StopWorkerProcess(database);
+            if (command.StopDatabaseProcess) {
+                Engine.DatabaseEngine.StopDatabaseProcess(database);
+            }
         }
     }
 }
