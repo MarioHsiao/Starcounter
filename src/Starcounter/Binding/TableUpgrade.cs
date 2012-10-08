@@ -448,7 +448,11 @@ namespace Starcounter.Binding
     internal abstract class ColumnValueTransfer
     {
 
-        internal sealed class UpgradeRecord : DbObject { }
+        internal sealed class UpgradeRecord : Entity
+        {
+
+            public UpgradeRecord(Sc.Server.Internal.Uninitialized u) : base(u) { }
+        }
 
         protected UpgradeRecord rec_;
         protected readonly int sourceIndex_;
@@ -456,7 +460,7 @@ namespace Starcounter.Binding
 
         public ColumnValueTransfer(int sourceIndex, int targetIndex)
         {
-            rec_ = new UpgradeRecord();
+            rec_ = new UpgradeRecord((Sc.Server.Internal.Uninitialized)null);
             sourceIndex_ = sourceIndex;
             targetIndex_ = targetIndex;
         }
