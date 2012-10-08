@@ -47,7 +47,7 @@ namespace Starcounter.Server {
             if (e != 0) throw ErrorCode.ToException(e);
 
             string logDirectory = c.LogDirectory;
-            logDirectory = "c:\\Test"; // TODO:
+            // logDirectory = "c:\\Test"; // TODO:
             e = sccorelog.SCBindLogsToDir(hlogs, logDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
@@ -145,6 +145,12 @@ namespace Starcounter.Server {
         internal DatabaseStorageService StorageService { get; private set; }
 
         /// <summary>
+        /// Gets the <see cref="SharedMemoryMonitor"/> utilized by this server
+        /// engine to monitor shared memory connections.
+        /// </summary>
+        internal SharedMemoryMonitor SharedMemoryMonitor { get; private set; }
+
+        /// <summary>
         /// Initializes a <see cref="ServerEngine"/>.
         /// </summary>
         /// <param name="serverConfigurationPath">Path to the server configuration
@@ -161,6 +167,7 @@ namespace Starcounter.Server {
             this.AppsService = new Server.AppsService(this);
             this.WeaverService = new Server.WeaverService(this);
             this.StorageService = new DatabaseStorageService(this);
+            this.SharedMemoryMonitor = new SharedMemoryMonitor(this);
         }
 
         /// <summary>
@@ -211,6 +218,7 @@ namespace Starcounter.Server {
             this.AppsService.Setup();
             this.WeaverService.Setup();
             this.StorageService.Setup();
+            this.SharedMemoryMonitor.Setup();
         }
 
         /// <summary>
@@ -226,6 +234,7 @@ namespace Starcounter.Server {
         /// allowing the host to interact with the now running server.
         /// </returns>
         public IServerRuntime Start() {
+            this.SharedMemoryMonitor.Start();
             this.AppsService.Start();
 
             // Start all other built-in standard components, like the gateway,

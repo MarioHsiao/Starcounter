@@ -7,7 +7,19 @@ namespace Starcounter.Server.PublicModel.Commands {
     /// Server command targeting a specific database on the server on
     /// which it executes.
     /// </summary>
-    internal abstract class DatabaseCommand : ServerCommand {
+    public abstract class DatabaseCommand : ServerCommand {
+        /// <summary>
+        /// Utility method that creates a database <see cref="ScUri"/> as a string,
+        /// referencing the specified database hosted in the given server engine.
+        /// </summary>
+        /// <param name="engine"></param>
+        /// <param name="databaseName"></param>
+        /// <returns></returns>
+        internal static string CreateDatabaseUri(ServerEngine engine, string databaseName) {
+            ScUri serverUri = ScUri.FromString(engine.Uri);
+            return ScUri.MakeDatabaseUri(serverUri.MachineName, serverUri.ServerName, databaseName).ToString();
+        }
+
         /// <summary>
         /// Initializes a new <see cref="DatabaseCommand"/>.
         /// </summary>
@@ -54,6 +66,16 @@ namespace Starcounter.Server.PublicModel.Commands {
         public string DatabaseUri {
             get;
             private set;
+        }
+
+        /// <summary>
+        /// Gets the name of the database this command targets, scoped by the
+        /// server engine.
+        /// </summary>
+        public string Name {
+            get {
+                return ScUri.FromString(this.DatabaseUri).DatabaseName;
+            }
         }
     }
 }

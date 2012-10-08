@@ -61,6 +61,9 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\Processors\CreateDatabaseCommandProcessor.cs" />
+    <Compile Include="Commands\Processors\StartDatabaseCommandProcessor.cs" />
+    <Compile Include="Commands\Processors\StopDatabaseCommandProcessor.cs" />
     <Compile Include="CoreServices\AppsService.cs" />
     <Compile Include="Commands\CommandDispatcher.cs" />
     <Compile Include="Commands\CommandProcessor.cs" />
@@ -70,7 +73,11 @@
     <Compile Include="CoreServices\DatabaseSetup.cs" />
     <Compile Include="CoreServices\DatabaseSetupProperties.cs" />
     <Compile Include="CoreServices\DatabaseStorageService.cs" />
+    <Compile Include="CoreServices\SharedMemoryMonitor.cs" />
     <Compile Include="CoreServices\WeaverService.cs" />
+    <Compile Include="DatabaseApp.cs" />
+    <Compile Include="PublicModel\AppInfo.cs" />
+    <Compile Include="PublicModel\Commands\CreateDatabaseCommand.cs" />
     <Compile Include="PublicModel\Commands\DatabaseCommand.cs" />
     <Compile Include="Commands\ErrorInfoException.cs" />
     <Compile Include="PublicModel\Commands\ServerCommand.cs" />
@@ -93,6 +100,8 @@
     <Compile Include="PublicModel\CommandDescriptor.cs" />
     <Compile Include="PublicModel\CommandId.cs" />
     <Compile Include="PublicModel\CommandInfo.cs" />
+    <Compile Include="PublicModel\Commands\StartDatabaseCommand.cs" />
+    <Compile Include="PublicModel\Commands\StopDatabaseCommand.cs" />
     <Compile Include="PublicModel\CommandTaskInfo.cs" />
     <Compile Include="PublicModel\DatabaseInfo.cs" />
     <Compile Include="PublicModel\ErrorInfo.cs" />

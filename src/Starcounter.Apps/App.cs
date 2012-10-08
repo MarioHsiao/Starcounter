@@ -125,8 +125,8 @@ namespace Starcounter {
             Init();
         }
 
-        public void Input( Input input ) {
-        }
+//        public void Input( Input input ) {
+//        }
         
         public virtual void Commit() {
         }

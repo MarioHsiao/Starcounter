@@ -94,5 +94,14 @@ namespace Starcounter.Server.PublicModel {
             get;
             internal set;
         }
+
+        /// <summary>
+        /// Gets the set of "Apps" currently hosted in the database
+        /// represented by this snapshot.
+        /// </summary>
+        public AppInfo[] HostedApps {
+            get;
+            internal set;
+        }
     }
 }
