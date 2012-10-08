@@ -1,14 +1,8 @@
 ﻿
-using Starcounter.Logging;
 using System;
 
 namespace Starcounter
 {
-    public class LogSources
-    {
-        public static LogSource Sql = new LogSource("Sql");
-    }
-
     public class SqlConnectivity
     {
         public static uint InitSqlFunctions()
@@ -18,12 +12,12 @@ namespace Starcounter
 
         public static void ThrowConvertedServerError(uint ec)
         {
-            throw new System.Exception(ec.ToString());
+            throw new NotImplementedException();
         }
 
         public static string GetServerProfilingString()
         {
-            return null;
+            throw new NotImplementedException();
         }
     }
 

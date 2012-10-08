@@ -158,11 +158,12 @@
     <Compile Include="Mock\IObjectView.cs" />
     <Compile Include="Binding\IPropertyBinding.cs" />
     <Compile Include="Binding\ITypeBinding.cs" />
+    <Compile Include="Mock\LogSources.cs" />
     <Compile Include="Mock\ObjectRef.cs" />
     <Compile Include="Internal\DbState.cs" />
     <Compile Include="Binding\PropertyBinding.cs" />
     <Compile Include="Mock\RangeFlags.cs" />
-    <Compile Include="Mock\Temp.cs" />
+    <Compile Include="Mock\SqlConnectivity.cs" />
     <Compile Include="Mock\ThreadHelper.cs" />
     <Compile Include="Mock\TypeRepository.cs" />
     <Compile Include="ObjectDoesntExistException.cs" />
