@@ -43,6 +43,7 @@ void SocketDataChunk::Init(
 
     type_of_network_oper_ = UNKNOWN_OPER;
     recv_flags_ = 0;
+    num_chunks_ = 1;
 
     // Initializing HTTP/WEBSOCKETS data structures.
     http_ws_proto_.Init();
@@ -55,6 +56,7 @@ void SocketDataChunk::Reset()
     data_to_user_flag_ = true;
 
     socket_attached_ = false;
+
     type_of_network_oper_ = DISCONNECT_OPER;
 
     // Clearing attached session.

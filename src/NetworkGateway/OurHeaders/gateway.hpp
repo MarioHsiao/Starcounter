@@ -42,7 +42,7 @@ namespace network {
 //#define GW_WEBSOCKET_DIAG
 #define GW_ERRORS_DIAG
 #define GW_WARNINGS_DIAG
-#define GW_GENERAL_DIAG
+//#define GW_GENERAL_DIAG
 //#define GW_CHUNKS_DIAG
 #define GW_DATABASES_DIAG
 //#define GW_SESSIONS_DIAG
@@ -315,18 +315,6 @@ public:
     }
 };
 
-class NewAccumBuffer
-{
-    // Number of active buffers.
-    int32_t num_active_buf;
-
-    // Total length of data.
-    int32_t total_data_len;
-
-    // Buffers themselves.
-    WSABUF buffs[MAX_WSA_BUFS];
-};
-
 // Accumulative buffer.
 class AccumBuffer
 {
@@ -550,7 +538,7 @@ public:
     void AttachSocket(SOCKET newSocket, uint64_t newStamp)
     {
 #ifdef GW_SESSIONS_DIAG
-        GW_COUT << "Session: " << session_struct_.session_index_ << ", new socket attached: " << newSocket << std::endl;
+        GW_COUT << "Session: " << session_struct_.session_index_ << ":" << session_struct_.random_salt_ << ", new socket attached: " << newSocket << std::endl;
 #endif
         attached_socket_ = newSocket;
         socket_stamp_ = newStamp;
