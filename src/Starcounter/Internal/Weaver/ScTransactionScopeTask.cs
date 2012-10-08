@@ -14,7 +14,6 @@ using PostSharp.Sdk.CodeWeaver;
 using PostSharp.Sdk.Collections;
 using PostSharp.Sdk.Extensibility;
 using PostSharp.Sdk.Extensibility.Tasks;
-using Sc.Server.Internal;
 using Starcounter;
 using IMethod = PostSharp.Sdk.CodeModel.IMethod;
 using System.Reflection;

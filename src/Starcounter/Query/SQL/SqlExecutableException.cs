@@ -1,7 +1,6 @@
 ﻿
 //using se.sics.prologbeans;
 //using Starcounter;
-//using Sc.Server.Internal;
 //using System.Collections.Generic;
 //using System.Diagnostics;
 //using System.Globalization;

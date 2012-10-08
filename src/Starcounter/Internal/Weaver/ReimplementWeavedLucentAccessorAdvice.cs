@@ -1,10 +1,10 @@
 ﻿
+using Sc.Server.Internal;
 using System;
 using PostSharp.Sdk.CodeModel;
 using PostSharp.Sdk.CodeWeaver;
 using PostSharp.Sdk.Collections;
 using Starcounter.Internal.Weaver;
-using Sc.Server.Internal;
 using System.Reflection;
 
 namespace Starcounter.LucentObjects
