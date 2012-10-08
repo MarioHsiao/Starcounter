@@ -115,7 +115,7 @@ internal class CompositeTypeBinding : ITypeBinding
     internal void AddTypeBinding(String typeName)
     {
         //PI110503 TypeBinding typeBind = TypeRepository.GetTypeBindingByUpperCaseName(typeName.ToUpper());
-        TypeBinding typeBind = Sc.Server.Binding.TypeRepository.GetTypeBinding(typeName);
+        TypeBinding typeBind = TypeRepository.GetTypeBinding(typeName);
         if (typeBind != null)
             typeBindingList.Add(typeBind);
         else

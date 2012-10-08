@@ -114,7 +114,7 @@ internal sealed class TemporaryTypeBinding : ITypeBinding
     internal void AddTemporaryProperty(String name, String typeName)
     {
         //PI110503 TypeBinding typeBind = TypeRepository.GetTypeBindingByUpperCaseName(typeName);
-        TypeBinding typeBind = Sc.Server.Binding.TypeRepository.GetTypeBinding(typeName);
+        TypeBinding typeBind = TypeRepository.GetTypeBinding(typeName);
         if (typeBind == null)
         {
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Unknown extent name: " + typeName);

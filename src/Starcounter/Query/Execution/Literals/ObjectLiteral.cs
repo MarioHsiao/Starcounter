@@ -49,7 +49,7 @@ internal class ObjectLiteral : Literal, ILiteral, IObjectPathItem
             // Default type of an object literal.
         {
             // TODO EOH2: There is no type binding for Starcounter.Entity.
-            typeBinding = Sc.Server.Binding.TypeRepository.GetTypeBinding("Starcounter.Entity");
+            typeBinding = TypeRepository.GetTypeBinding("Starcounter.Entity");
         }
         
         // Pre-computing byte array for this literal.
