@@ -1,5 +1,4 @@
 ﻿
-using Sc.Server.Binding;
 using Sc.Server.Internal;
 using Starcounter.Binding;
 using Starcounter.Internal;

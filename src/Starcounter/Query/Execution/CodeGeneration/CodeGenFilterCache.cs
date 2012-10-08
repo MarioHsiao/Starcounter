@@ -5,7 +5,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using Sc.Server.Binding;
 using Starcounter.Internal;
 using Starcounter.Binding;
 

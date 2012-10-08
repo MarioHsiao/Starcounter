@@ -82,7 +82,6 @@
 //
 // - IStaticRange
 
-using Sc.Server.Binding;
 using Starcounter.Query.Optimization;
 using System;
 using System.Collections.Generic;

@@ -2,7 +2,6 @@
 using Starcounter.Query.Optimization;
 using Sc.Server.Internal;
 using System;
-using Sc.Server.Binding;
 using System.Collections.Generic;
 using System.Text;
 using Starcounter.Binding;

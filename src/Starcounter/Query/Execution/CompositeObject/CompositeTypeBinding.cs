@@ -1,7 +1,6 @@
 ﻿
 using Starcounter;
 using Starcounter.Query.Optimization;
-using Sc.Server.Binding;
 using Sc.Server.Internal;
 using System;
 using System.Collections.Generic;
@@ -116,7 +115,7 @@ internal class CompositeTypeBinding : ITypeBinding
     internal void AddTypeBinding(String typeName)
     {
         //PI110503 TypeBinding typeBind = TypeRepository.GetTypeBindingByUpperCaseName(typeName.ToUpper());
-        TypeBinding typeBind = TypeRepository.GetTypeBinding(typeName);
+        TypeBinding typeBind = Sc.Server.Binding.TypeRepository.GetTypeBinding(typeName);
         if (typeBind != null)
             typeBindingList.Add(typeBind);
         else
