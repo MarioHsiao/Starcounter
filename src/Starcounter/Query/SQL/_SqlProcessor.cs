@@ -1,7 +1,6 @@
 ﻿
 using System;
 using System.Collections.Generic;
-using Sc.Server.Internal;
 using Starcounter.Query.Execution;
 //using Sc.Server.Weaver.Schema;
 using Starcounter.Binding;

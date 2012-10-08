@@ -1,6 +1,5 @@
 ﻿
 using Starcounter.Query.Optimization;
-using Sc.Server.Internal;
 using System;
 using Starcounter.Binding;
 

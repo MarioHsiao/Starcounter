@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 using Starcounter;
 using Starcounter.Query.Sql;
-using Sc.Server.Internal;
 using Starcounter.Query.Execution;
 using System.Threading;
 using Starcounter.Internal;
