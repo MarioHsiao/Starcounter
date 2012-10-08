@@ -1,7 +1,5 @@
 ﻿
 using Starcounter.Query.Optimization;
-using Sc.Server.Binding;
-using Sc.Server.Internal;
 using System;
 using System.Globalization;
 using System.Collections.Generic;

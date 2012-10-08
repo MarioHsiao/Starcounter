@@ -2,12 +2,10 @@
 using System;
 //using System.Data;
 using System.Reflection;
-using Sc.Server.Internal;
 //using Sc.Server.Weaver;
 using Starcounter.LucentObjects;
 using Starcounter.Query.Execution;
 using Starcounter.Query.Sql;
-using Sc.Server.Binding;
 using Starcounter.Binding;
 
 

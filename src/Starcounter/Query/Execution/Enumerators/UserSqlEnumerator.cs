@@ -1,14 +1,12 @@
 ﻿using Starcounter;
 using Starcounter.Binding;
 using Starcounter.Query.Sql;
-using Sc.Server.Internal;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.IO;
-using Sc.Server.Binding;
 using Starcounter.LucentObjects;
 using System.Runtime.InteropServices;
 using Starcounter.Internal;

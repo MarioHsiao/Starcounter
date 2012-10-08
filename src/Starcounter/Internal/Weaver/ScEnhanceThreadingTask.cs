@@ -5,7 +5,6 @@ using PostSharp.Sdk.CodeModel;
 using PostSharp.Sdk.Collections;
 using PostSharp.Sdk.Extensibility;
 using PostSharp.Sdk.Extensibility.Tasks;
-using Sc.Server.Internal;
 
 namespace Starcounter.Internal.Weaver {
     public sealed class ScEnhanceThreadingTask : Task {

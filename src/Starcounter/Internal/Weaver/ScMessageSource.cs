@@ -2,7 +2,6 @@
 using System.Resources;
 using PostSharp;
 using PostSharp.Extensibility;
-using Sc.Server.Internal;
 using System;
 
 namespace Starcounter.Internal.Weaver {

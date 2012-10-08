@@ -15,7 +15,6 @@ using PostSharp.Sdk.CodeWeaver;
 using PostSharp.Sdk.Collections;
 using PostSharp.Sdk.Extensibility;
 using PostSharp.Sdk.Extensibility.Tasks;
-using Sc.Server.Internal;
 using Sc.Server.Weaver.Schema;
 using Starcounter;
 
@@ -483,7 +482,7 @@ namespace Starcounter.Internal.Weaver {
                 // either directly or indirectly. Prepare to run analyzis.
 
                 _entityType = FindStarcounterType(typeof(Entity));
-                _dbObjectType = FindStarcounterType(typeof(DbObject));
+                _dbObjectType = FindStarcounterType(typeof(Entity));
                 _notPersistentAttributeType = FindStarcounterType(typeof(NotPersistentAttribute));
                 
                 // Set up dependencies for this assembly.
