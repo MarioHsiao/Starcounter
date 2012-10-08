@@ -55,10 +55,6 @@ namespace Starcounter.Internal.JsonPatch
             return _patchTypeToString[patchType];
         }
 
-  //      [ { "replace":"/UserName","value":"admin" },
-  //        { "replace":"/Password","value":"admin" },
-  //        { "replace":"/Login","value":true } ]
-
         public static void EvaluatePatches(String body)
         {
             Byte[] contentArr;
@@ -67,7 +63,7 @@ namespace Starcounter.Internal.JsonPatch
 
             Int32 patchType = UNDEFINED;
             JsonPointer pointer = null;
-            String value = null;
+            Byte[] value = null;
 
             bracketCount = 0;
             contentArr = Encoding.UTF8.GetBytes(body);
@@ -101,13 +97,13 @@ namespace Starcounter.Internal.JsonPatch
             }
         }
 
-        private static void HandleParsedPatch(Int32 patchType, JsonPointer pointer, String value)
+        private static void HandleParsedPatch(Int32 patchType, JsonPointer pointer, Byte[] value)
         {
             AppAndTemplate aat = JsonPatch.Evaluate(Session.Current.RootApp, pointer);
-            aat.App.TrySetValue((StringProperty)aat.Template, value);
+            aat.App.TrySetValue((StringProperty)aat.Template, Encoding.UTF8.GetString(value));
         }
 
-        private static Int32 GetPatchValue(Byte[] contentArr, Int32 offset, out String value)
+        private static Int32 GetPatchValue(Byte[] contentArr, Int32 offset, out Byte[] value)
         {
             Byte current;
             Int32 start;
@@ -145,7 +141,10 @@ namespace Starcounter.Internal.JsonPatch
                 throw new Exception("Cannot find value in patch");
             }
 
-            value = Encoding.UTF8.GetString(contentArr, start, length);
+            Byte[] ret = new Byte[length];
+            Buffer.BlockCopy(contentArr, start, ret, 0, length);
+            value = ret;
+//            value = Encoding.UTF8.GetString(contentArr, start, length);
             return offset;
         }
 
@@ -375,7 +374,7 @@ namespace Starcounter.Internal.JsonPatch
 
             nextIndexIsPositionInList = false;
             listProp = null;
-            path = from._indexPath;
+            path = nearestApp.IndexPathFor(from);
             for (Int32 i = 0; i < path.Length; i++)
             {
                 if (nextIndexIsPositionInList)

@@ -42,7 +42,7 @@ namespace Starcounter {
     {
        public App() : base() 
        {
-           _indexInList = -1;
+           _cacheIndexInList = -1;
        }
 
        public App(Entity data) : this() {
@@ -60,47 +60,25 @@ namespace Starcounter {
 
         public Boolean IsSerialized { get; internal set; }
 
-        internal Int32[] _indexPath;
-        internal Int32 _indexInList;
+        internal Int32 _cacheIndexInList;
 
-        /// <summary>
-        /// Called when only part of the index path is changed. This can
-        /// be for example if an app is inserted or removed to/from a list and 
-        /// the other indexes are unchanged.
-        /// </summary>
-        /// <param name="position"></param>
-        /// <param name="newIndex"></param>
-        internal void PartialIndexUpdate(Int32 position, Int32 newIndex)
+        internal override void FillIndexPath(int[] path, int pos)
         {
-            _indexPath[position] = newIndex;
-
-            foreach (Template child in Template.Children)
+            if (Parent != null)
             {
-                child.PartialIndexUpdate(position, newIndex);
-            }
-        }
-
-        /// <summary>
-        /// Called when the whole path needs to be recreated. The parent index
-        /// is sent as a parameter and is copied to this path.
-        /// </summary>
-        /// <param name="parentIndexPath"></param>
-        internal void FullIndexUpdate(Int32[] parentIndexPath)
-        {
-            if (parentIndexPath == null)
-            {
-                _indexPath = new Int32[0];
-            }
-            else
-            {
-                _indexPath = new Int32[parentIndexPath.Length + 1];
-                Array.Copy(parentIndexPath, _indexPath, parentIndexPath.Length);
-                _indexPath[_indexPath.Length - 1] = _indexInList;
-            }
-
-            foreach (Template child in Template.Children)
-            {
-                child.FullIndexUpdate(this, _indexPath);
+                if (Parent is Listing)
+                {
+                    if (_cacheIndexInList == -1)
+                    {
+                        _cacheIndexInList = ((Listing)Parent).IndexOf(this);
+                    }
+                    path[pos] = _cacheIndexInList;
+                }
+                else
+                {
+                    path[pos] = Template.Index;
+                }
+                Parent.FillIndexPath(path, pos - 1);
             }
         }
 
@@ -147,11 +125,7 @@ namespace Starcounter {
         public new AppTemplate Template 
         { 
             get { return (AppTemplate)base.Template; } 
-            set 
-            { 
-                base.Template = value;
-                FullIndexUpdate(null);
-            } 
+            set { base.Template = value; }
         }
 
         /// <summary>

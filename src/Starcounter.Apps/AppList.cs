@@ -122,8 +122,7 @@ namespace Starcounter
             for (Int32 i = index + 1; i < QuickAndDirtyArray.Count; i++)
             {
                 otherItem = QuickAndDirtyArray[i];
-                otherItem._indexInList = i;
-                otherItem.PartialIndexUpdate(template._indexPath.Length, i);
+                otherItem._cacheIndexInList = i;
             }
             
         }
@@ -142,8 +141,7 @@ namespace Starcounter
             for (Int32 i = index; i < QuickAndDirtyArray.Count; i++)
             {
                 otherItem = QuickAndDirtyArray[i];
-                otherItem._indexInList = i;
-                otherItem.PartialIndexUpdate(template._indexPath.Length, i);
+                otherItem._cacheIndexInList = i;
             }
 #else
          throw new JockeNotImplementedException();
@@ -199,7 +197,6 @@ namespace Starcounter
         {
             base.OnSetParent(item);
 //            QuickAndDirtyArray.Add((App)item);
-            ((App)item).FullIndexUpdate(((Template)Template)._indexPath);
         }
 
         public void Add(App item)
@@ -209,7 +206,7 @@ namespace Starcounter
 #if QUICKTUPLE
             index = QuickAndDirtyArray.Count;
             QuickAndDirtyArray.Add(item);
-            item._indexInList = index;
+            item._cacheIndexInList = index;
             item.Parent = this;
 #else
          throw new JockeNotImplementedException();
