@@ -2790,6 +2790,9 @@
     <code hex="00E5" severity="Error" name="ScErrIndexNotFound">
       <message>Index requested not found.</message>
     </code>
+    <code hex="00E6" severity="Error" name="ScErrTableNotFound">
+      <message>Table with specified name not found.</message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->

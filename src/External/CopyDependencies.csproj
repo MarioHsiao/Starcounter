@@ -26,6 +26,7 @@
     <BlueSolutionInclude>..\..\..\Level0\src\include</BlueSolutionInclude>
     <GreyDll>..\Starcounter.ErrorCodes\scerrres\x64\$(Configuration)\scerrres.dll</GreyDll>
     <StartAllScript>..\BuildSystem\Scripts\start_all.bat</StartAllScript>
+    <KillAllScript>..\BuildSystem\Scripts\kill_all.bat</KillAllScript>
     <GatewayXML>..\NetworkGateway\scripts\ScGateway.xml</GatewayXML>
   </PropertyGroup>
   
@@ -48,7 +49,7 @@
       <RemotePostSharpBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\PostSharp\*" />
       <RemoteMinGW64Binaries Include="$(BinariesFTP)\SCDev\ThirdParty\MinGW_x64\**\*" />
       <RemoteNuGetPackages Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' != '' " Include="$(BinariesFTP)\SCDev\ThirdParty\packages\**\*" />
-      <!-- <RemoteNuGetDir Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' != '' " Include="$(BinariesFTP)\SCDev\ThirdParty\.nuget\**\*" /> -->
+      <RemoteNuGetDir Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' != '' " Include="$(BinariesFTP)\SCDev\ThirdParty\.nuget\**\*" />
     </ItemGroup>
 
     <!-- Remote files from FTP. -->
@@ -62,11 +63,12 @@
     <Copy Condition="Exists('$(BlueSolution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalBlueBinFiles)" DestinationFiles="@(LocalBlueBinFiles->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(GreyDll)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(StartAllScript)" DestinationFolder="$(OutputPath)" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(KillAllScript)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(GatewayXML)" DestinationFolder="$(OutputPath)" />
     
     <!-- Build system stuff. -->
     <Copy Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' != '' " SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteNuGetPackages)" DestinationFiles="@(RemoteNuGetPackages->'..\packages\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <!-- <Copy Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' != '' " SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteNuGetDir)" DestinationFiles="@(RemoteNuGetDir->'..\.nuget\%(RecursiveDir)%(Filename)%(Extension)')" /> -->
+    <Copy Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' != '' " SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteNuGetDir)" DestinationFiles="@(RemoteNuGetDir->'..\.nuget\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" DependsOnTargets="CopyExternalStaticFiles" />

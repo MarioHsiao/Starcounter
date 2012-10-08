@@ -110,10 +110,6 @@
       <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
       <Name>Starcounter.Apps.Interfaces</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Starcounter.Apps.CodeGeneration\Starcounter.Apps.CodeGeneration.csproj">
-      <Project>{02ea0fb4-cc2f-4dac-a58a-1f3115b7fae8}</Project>
-      <Name>Starcounter.Apps.CodeGeneration</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.MsBuild\Starcounter.MsBuild.csproj">
       <Project>{b1ec8976-b515-4308-89c3-319543a0c7a9}</Project>
       <Name>Starcounter.MsBuild</Name>
