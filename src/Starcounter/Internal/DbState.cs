@@ -5,12 +5,7 @@ using Starcounter.Internal;
 using System;
 
 
-// TODO:
-// We must keep DbState in namespace Sc.Server.Internal for now because
-// generated code links to this code. To be moved to namespace
-// Starcounter.Internal as soon as code generation has been updated.
-
-namespace Sc.Server.Internal //namespace Starcounter.Internal
+namespace Starcounter.Internal
 {
 
     public static class DbState
