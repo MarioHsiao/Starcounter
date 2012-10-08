@@ -190,10 +190,10 @@ internal static class SqlProcessor
         }
 
         // Prepare array of attributes
-        TypeBinding typeBind = Sc.Server.Binding.TypeRepository.GetTypeBinding(typePath);
+        TypeBinding typeBind = TypeRepository.GetTypeBinding(typePath);
         PropertyBinding propBind = null;
         if (typeBind == null)
-            Sc.Server.Binding.TypeRepository.TryGetTypeBindingByShortName(typePath, out typeBind);
+            TypeRepository.TryGetTypeBindingByShortName(typePath, out typeBind);
         if (typeBind == null)
             throw new SqlException("Table " + typePath + " is not found");
         attributeIndexArr = new Int16[propertyList.Count + 1];
@@ -562,7 +562,7 @@ internal static class SqlProcessor
         // Short type name.
         if (name.IndexOf('.') == -1)
         {
-            Int32 result = Sc.Server.Binding.TypeRepository.TryGetTypeBindingByShortName(name, out typeBind);
+            Int32 result = TypeRepository.TryGetTypeBindingByShortName(name, out typeBind);
             switch (result)
             {
                 case 0:
@@ -576,7 +576,7 @@ internal static class SqlProcessor
             }
         }
         // Full type name.
-        typeBind = Sc.Server.Binding.TypeRepository.GetTypeBinding(name);
+        typeBind = TypeRepository.GetTypeBinding(name);
         if (typeBind == null)
         {
             throw new SqlException("Unknown type.", tokenList, beginPos, endPos);

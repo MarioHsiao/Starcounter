@@ -1,7 +1,5 @@
 ﻿
-using Starcounter.Binding;
-
-namespace Sc.Server.Binding
+namespace Starcounter.Binding
 {
     
     internal static class TypeRepository
