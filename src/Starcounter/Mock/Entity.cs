@@ -80,7 +80,7 @@ namespace Starcounter
 
         protected Entity(Sc.Server.Internal.Uninitialized u) { }
 
-        public Entity(ulong typeAddr, Sc.Server.Binding.TypeBinding typeBinding, Sc.Server.Internal.Uninitialized u)
+        public Entity(ulong typeAddr, TypeBinding typeBinding, Sc.Server.Internal.Uninitialized u)
         {
             DbState.Insert(this, typeAddr, typeBinding);
         }

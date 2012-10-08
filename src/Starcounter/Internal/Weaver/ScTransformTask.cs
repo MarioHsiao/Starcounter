@@ -409,7 +409,7 @@ namespace Starcounter.Internal.Weaver {
                 BindingOptions.RequireGenericDefinition
                 );
 
-            _typeBindingType = _module.Cache.GetType(typeof(Sc.Server.Binding.TypeBinding));
+            _typeBindingType = _module.Cache.GetType(typeof(Starcounter.Binding.TypeBinding));
             _ulongType = _module.Cache.GetIntrinsic(IntrinsicType.UInt64);
 
             _objectViewType = _module.FindType(typeof(IObjectView), BindingOptions.Default);

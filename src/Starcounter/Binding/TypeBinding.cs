@@ -1,16 +1,10 @@
 ﻿
 using Starcounter;
-using Starcounter.Binding;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-// TODO:
-// We must keep TypeBinding in namespace Sc.Server.Binding for now because
-// generated code links to this code. To be moved to namespace
-// Starcounter.Binding as soon as code generation has been updated.
-
-namespace Sc.Server.Binding //namespace Starcounter.Binding
+namespace Starcounter.Binding
 {
 
     [Flags]
