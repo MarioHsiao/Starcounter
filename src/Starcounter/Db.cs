@@ -117,41 +117,73 @@ namespace Starcounter
             }
         }
 
+        [ThreadStatic]
+        private static bool _inTransactionScope = false;
+
         public static void Transaction(Action action)
         {
             bool completed;
-            uint e;
+            uint r;
             ulong transaction_id;
             ulong handle;
             ulong verify;
 
             completed = false;
 
-            e = sccoredb.sccoredb_create_transaction_and_set_current(0, out transaction_id, out handle, out verify);
-            if (e != 0) throw ErrorCode.ToException(e);
-            try
+            if (!_inTransactionScope)
             {
-                action();
-
-                ulong hiter;
-                ulong viter;
-                e = sccoredb.sccoredb_begin_commit(out hiter, out viter);
-                if (e != 0) throw ErrorCode.ToException(e);
-
-                // TODO: Handle triggers.
-
-                e = sccoredb.sccoredb_complete_commit(1, out transaction_id);
-                if (e != 0) throw ErrorCode.ToException(e);
-
-                completed = true;
-            }
-            finally
-            {
-                if (!completed)
+                r = sccoredb.sccoredb_create_transaction_and_set_current(0, out transaction_id, out handle, out verify);
+                if (r != 0) throw ErrorCode.ToException(r);
+                try
                 {
-                    sccoredb.sccoredb_free_transaction(handle, verify);
+                    _inTransactionScope = true; 
+
+                    action();
+
+                    ulong hiter;
+                    ulong viter;
+                    r = sccoredb.sccoredb_begin_commit(out hiter, out viter);
+                    if (r != 0) throw ErrorCode.ToException(r);
+
+                    // TODO: Handle triggers.
+
+                    r = sccoredb.sccoredb_complete_commit(1, out transaction_id);
+                    if (r != 0) throw ErrorCode.ToException(r);
+
+                    _inTransactionScope = false;
+                    completed = true;
+                }
+                finally
+                {
+                    if (!completed)
+                    {
+                        if (
+                            sccoredb.Mdb_TransactionSetCurrent(0, 0) != 0 &&
+                            sccoredb.sccoredb_free_transaction(handle, verify) == 0
+                            )
+                        {
+                            _inTransactionScope = false;
+                        }
+                        else
+                        {
+                            HandleFatalErrorInTransactionScope();
+                        }
+                    }
                 }
             }
+            else
+            {
+                action();
+            }
+        }
+
+        private static void HandleFatalErrorInTransactionScope()
+        {
+            uint e = sccoredb.Mdb_GetLastError();
+            Starcounter.Logging.LogManager.InternalFatal(
+                ErrorCode.ToMessage(e)
+                );
+            System.Environment.Exit((int)e);
         }
     }
 }
