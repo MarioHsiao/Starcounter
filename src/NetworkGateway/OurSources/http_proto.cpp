@@ -391,7 +391,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
                     }
                     else
                     {
-                        GW_COUT << "Given session does not exist, creating a new session." << std::endl;
+                        GW_COUT << "Given session does not exist: " << sessionIndex << ":" << randomSalt << std::endl;
 
                         // Given session does not exist, dropping the connection.
                         //return 1;

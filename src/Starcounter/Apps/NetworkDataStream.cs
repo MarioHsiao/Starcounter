@@ -12,10 +12,13 @@ namespace Starcounter
         public const Int32 BMX_PROTOCOL_BEGIN = 16;
         public const Int32 REQUEST_SIZE_BEGIN = BMX_PROTOCOL_BEGIN + BMX_HANDLER_SIZE;
         public const Int32 GATEWAY_CHUNK_BEGIN = 24;
-        public const Int32 SESSION_INDEX_OFFSET = 8;
-        public const Int32 USER_DATA_OFFSET = 12;
-        public const Int32 MAX_USER_DATA_BYTES_OFFSET = 16;
-        public const Int32 USER_DATA_WRITTEN_BYTES_OFFSET = 20;
+        public const Int32 GATEWAY_DATA_BEGIN = 32;
+        public const Int32 SESSION_INDEX_OFFSET = GATEWAY_DATA_BEGIN + 8;
+        public const Int32 USER_DATA_OFFSET = GATEWAY_DATA_BEGIN + 12;
+        public const Int32 MAX_USER_DATA_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 16;
+        public const Int32 USER_DATA_WRITTEN_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 20;
+        public const Int32 SHM_CHUNK_SIZE = 1 << 12;
+        public const Int32 SHM_LINK_SIZE = 4;
 
         Byte* unmanaged_chunk_;
         Boolean single_chunk_;
@@ -122,27 +125,25 @@ namespace Starcounter
                 // Setting request size to zero.
                 (*(UInt32*)(unmanaged_chunk_ + REQUEST_SIZE_BEGIN)) = 0;
 
-                // Copying user data to chunk.
-                Marshal.Copy(
-                    buffer,
-                    offset,
-                    (IntPtr)(unmanaged_chunk_ + GATEWAY_CHUNK_BEGIN + *userDataOffsetPtr),
-                    length);
+                // Checking if data fits inside one chunk.
+                if (length - offset < SHM_CHUNK_SIZE - GATEWAY_CHUNK_BEGIN + *userDataOffsetPtr + SHM_LINK_SIZE)
+                {
+                    Marshal.Copy(
+                        buffer,
+                        offset,
+                        (IntPtr)(unmanaged_chunk_ + GATEWAY_CHUNK_BEGIN + *userDataOffsetPtr),
+                        length);
 
-                /*
-                UInt32 chunk_index = _chunkIndex;
-                ec = sccoresrv.sc_bmx_write_to_chunk(
-                    p + startIndex,
-                    (UInt32)length,
-                    &chunk_index,
-                    *userDataOffsetPtr
-                );
-                */
+                    ec = sccorelib.cm_send_to_client(chunk_index_);
+                    if (ec != 0) throw ErrorCode.ToException(ec);
+                }
+                // Data does not feet we need multiple chunks.
+                else
+                {
+                    ec = bmx.sc_bmx_send_big_buffer(p + offset, (UInt32)(length - offset), chunk_index_);
+                    if (ec != 0) throw ErrorCode.ToException(ec);
+                }
             }
-            //if (ec != 0) throw ErrorCode.ToException(ec);
-
-            ec = sccorelib.cm_send_to_client(chunk_index_);
-            if (ec != 0) throw ErrorCode.ToException(ec);
         }
     }
 }

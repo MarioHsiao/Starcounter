@@ -168,7 +168,7 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_inde
 uint32_t GatewayWorker::Receive(SocketDataChunk *sd)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_COUT << "[" << worker_id_ << "]: " << "Receive: " << sd->sock() << " " << sd->chunk_index() << std::endl;
+    GW_COUT << "[" << worker_id_ << "]: " << "Receive: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
 #endif
 
     // Start receiving on socket.
@@ -215,7 +215,7 @@ uint32_t GatewayWorker::Receive(SocketDataChunk *sd)
 uint32_t GatewayWorker::FinishReceive(SocketDataChunk *sd, int32_t numBytesReceived)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_COUT << "[" << worker_id_ << "]: " << "FinishReceive: " << sd->sock() << " " << sd->chunk_index() << std::endl;
+    GW_COUT << "[" << worker_id_ << "]: " << "FinishReceive: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
 #endif
 
     // Checking if socket is closed by the other peer.
@@ -320,7 +320,7 @@ uint32_t GatewayWorker::FinishReceive(SocketDataChunk *sd, int32_t numBytesRecei
 uint32_t GatewayWorker::Send(SocketDataChunk *sd)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_COUT << "[" << worker_id_ << "]: " << "Send: " << sd->sock() << " " << sd->chunk_index() << std::endl;
+    GW_COUT << "[" << worker_id_ << "]: " << "Send: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
 #endif
 
     // Start sending on socket.
@@ -357,7 +357,7 @@ uint32_t GatewayWorker::Send(SocketDataChunk *sd)
 uint32_t GatewayWorker::FinishSend(SocketDataChunk *sd, int32_t numBytesSent)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_COUT << "[" << worker_id_ << "]: " << "FinishSend: " << sd->sock() << " " << sd->chunk_index() << std::endl;
+    GW_COUT << "[" << worker_id_ << "]: " << "FinishSend: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
 #endif
 
     // Checking that we processed correct number of bytes.
@@ -399,7 +399,7 @@ uint32_t GatewayWorker::FinishSend(SocketDataChunk *sd, int32_t numBytesSent)
 uint32_t GatewayWorker::Disconnect(SocketDataChunk *sd)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_COUT << "[" << worker_id_ << "]: " << "Disconnect: " << sd->sock() << " " << sd->chunk_index() << std::endl;
+    GW_COUT << "[" << worker_id_ << "]: " << "Disconnect: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
 #endif
 
     // Checking if we need to return chunk to private pool.
@@ -455,7 +455,7 @@ uint32_t GatewayWorker::Disconnect(SocketDataChunk *sd)
 uint32_t GatewayWorker::VanishSocketData(SocketDataChunk *sd)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_COUT << "[" << worker_id_ << "]: " << "Vanish Socket Data: " << sd->sock() << " " << sd->chunk_index() << std::endl;
+    GW_COUT << "[" << worker_id_ << "]: " << "Vanish Socket Data: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
 #endif
 
     // Checking if we were accepting socket.
@@ -486,7 +486,7 @@ uint32_t GatewayWorker::VanishSocketData(SocketDataChunk *sd)
 inline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunk *sd)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_COUT << "[" << worker_id_ << "]: " << "FinishDisconnect: " << sd->sock() << " " << sd->chunk_index() << std::endl;
+    GW_COUT << "[" << worker_id_ << "]: " << "FinishDisconnect: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
 #endif
 
     // Stop tracking this socket.
@@ -523,7 +523,7 @@ inline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunk *sd)
 uint32_t GatewayWorker::Connect(SocketDataChunk *sd, sockaddr_in *serverAddr)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_COUT << "[" << worker_id_ << "]: " << "Connect: " << sd->sock() << " " << sd->chunk_index() << std::endl;
+    GW_COUT << "[" << worker_id_ << "]: " << "Connect: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
 #endif
 
     while(TRUE)
@@ -576,7 +576,7 @@ uint32_t GatewayWorker::Connect(SocketDataChunk *sd, sockaddr_in *serverAddr)
 uint32_t GatewayWorker::FinishConnect(SocketDataChunk *sd)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_COUT << "[" << worker_id_ << "]: " << "FinishConnect: " << sd->sock() << " " << sd->chunk_index() << std::endl;
+    GW_COUT << "[" << worker_id_ << "]: " << "FinishConnect: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
 #endif
 
     // Increasing number of connections.
@@ -592,7 +592,7 @@ uint32_t GatewayWorker::FinishConnect(SocketDataChunk *sd)
 uint32_t GatewayWorker::Accept(SocketDataChunk *sd)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_COUT << "[" << worker_id_ << "]: " << "Accept: " << sd->sock() << " " << sd->chunk_index() << std::endl;
+    GW_COUT << "[" << worker_id_ << "]: " << "Accept: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
 #endif
 
     // Socket is attached to this socket data.
@@ -635,7 +635,7 @@ uint32_t GatewayWorker::Accept(SocketDataChunk *sd)
 uint32_t GatewayWorker::FinishAccept(SocketDataChunk *sd, int32_t numBytesReceived)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_COUT << "[" << worker_id_ << "]: " << "FinishAccept: " << sd->sock() << " " << sd->chunk_index() << std::endl;
+    GW_COUT << "[" << worker_id_ << "]: " << "FinishAccept: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
 #endif
 
     // Checking the endpoint information (e.g. for black listing).
@@ -686,11 +686,11 @@ uint32_t GatewayWorker::IOCPSocketsWorker()
         // Checking if operation successfully completed.
         if (TRUE == complStatus)
         {
-            // Processing each retrieved ovl.
+            // Processing each retrieved overlapped.
             for (uint32_t i = 0; i < removedOvlsNum; i++)
             {
                 // Obtaining socket data structure.
-                SocketDataChunk *sd = (SocketDataChunk *)(((uint8_t *)removedOvls[i].lpOverlapped) - OVL_OFFSET_IN_CHUNK);
+                SocketDataChunk *sd = (SocketDataChunk *)(removedOvls[i].lpOverlapped);
 
                 // Checking that socket is valid.
                 if (!sd->CheckSocketIsValid(this))

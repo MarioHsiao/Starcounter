@@ -329,6 +329,7 @@ Global
 		{A1FAE6E5-8EBB-42C3-9FC2-33D67917067D}.Release|x64.ActiveCfg = Release|Any CPU
 		{A1FAE6E5-8EBB-42C3-9FC2-33D67917067D}.Release|x64.Build.0 = Release|Any CPU
 		{2F1B4CDB-2A7E-405E-A774-EC9D9AF9BD3F}.Debug|x64.ActiveCfg = Debug|x64
+		{2F1B4CDB-2A7E-405E-A774-EC9D9AF9BD3F}.Debug|x64.Build.0 = Debug|x64
 		{2F1B4CDB-2A7E-405E-A774-EC9D9AF9BD3F}.Release|x64.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
