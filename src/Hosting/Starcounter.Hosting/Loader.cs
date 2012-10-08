@@ -85,6 +85,7 @@ namespace StarcounterInternal.Hosting
         {
             try
             {
+                filePath = filePath.Trim('\"', '\\');
                 filePath = Path.GetFullPath(filePath);
             }
             catch (ArgumentException pathEx)

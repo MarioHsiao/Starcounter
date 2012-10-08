@@ -410,9 +410,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Starcounter.snk" />
-    <None Include="$(PostSharpRedistributables)\PostSharp-Platform.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <AvailableItemName Include="RuntimeFile">

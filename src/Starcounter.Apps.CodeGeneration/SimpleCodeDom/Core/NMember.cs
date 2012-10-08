@@ -23,7 +23,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 if (Type is NListingXXXClass) {
                     return (Type as NListingXXXClass).NApp;
                 }
-                else if (Type is NApp) {
+                else if (Type is NAppClass) {
                     return Type;
                 }
                 return null;

@@ -7,15 +7,14 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// <summary>
     /// Each App can have a metadata class. See AppMetadata.
     /// </summary>
-    public class NAppMetadata : NClass {
-        public NApp AppNode;
+    public class NAppMetadata : NMetadataClass {
         public AppTemplate Template;
 
         public static Dictionary<AppTemplate, NClass> Instances = new Dictionary<AppTemplate, NClass>();
 
         public override string ClassName {
             get {
-                return AppNode.ClassName + "Metadata";
+                return NTemplateClass.NValueClass.ClassName + "Metadata";
             }
         }
 
