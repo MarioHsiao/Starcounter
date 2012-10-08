@@ -39,8 +39,8 @@ namespace Starcounter.ABCIPC {
             }
 
             public static string MakeRequestStringWithStringParameter(string message, string parameter) {
-                // "11"[NN][message][NN][parameter]
-                return string.Format("{0}{1}{2}{3}{4}", MessageWithString, message.Length.ToString("D2"), message, parameter.Length.ToString("D2"), parameter);
+                // "11"[NN][message][NNNN][parameter] (the protocol limits the serialized string size to ~10K).
+                return string.Format("{0}{1}{2}{3}{4}", MessageWithString, message.Length.ToString("D2"), message, parameter.Length.ToString("D4"), parameter);
             }
 
             public static string MakeRequestStringWithStringNULL(string message) {
@@ -50,7 +50,7 @@ namespace Starcounter.ABCIPC {
 
             public static string MakeRequestStringWithStringArray(string message, string[] array) {
                 var serializedArray = KeyValueBinary.FromArray(array).Value;
-                // "13"[NN][message][NNNN][array] (the protocol limits the serialized array size to ~1K).
+                // "13"[NN][message][NNNN][array] (the protocol limits the serialized array size to ~10K).
                 return string.Format("{0}{1}{2}{3}{4}",
                     MessageWithStringArray, 
                     message.Length.ToString("D2"), 
@@ -67,7 +67,7 @@ namespace Starcounter.ABCIPC {
 
             public static string MakeRequestStringWithDictionary(string message, Dictionary<string, string> dictionary) {
                 var serialized = KeyValueBinary.FromDictionary(dictionary).Value;
-                // "15"[NN][message][NNNN][dictionary] (the protocol limits the serialized dictionary size to ~1K).
+                // "15"[NN][message][NNNN][dictionary] (the protocol limits the serialized dictionary size to ~10K).
                 return string.Format("{0}{1}{2}{3}{4}",
                     MessageWithDictionary, 
                     message.Length.ToString("D2"), 
@@ -94,12 +94,14 @@ namespace Starcounter.ABCIPC {
                 // TODO:
 
                 code = int.Parse(stringRequest.Substring(0, 2));
-                if (code == 10 || code == 11 || code == 12) {
+                if (code == MessageWithoutParameters || 
+                    code == MessageWithString ||
+                    code == MessageWithStringNULL) {
                     msgLength = int.Parse(stringRequest.Substring(2, 2));
                     message = stringRequest.Substring(4, msgLength);
-                    if (code == 11) {
-                        dataLength = int.Parse(stringRequest.Substring(4 + msgLength, 2));
-                        data = stringRequest.Substring(4 + msgLength + 2, dataLength);
+                    if (code == MessageWithString) {
+                        dataLength = int.Parse(stringRequest.Substring(4 + msgLength, 4));
+                        data = stringRequest.Substring(4 + msgLength + 4, dataLength);
                     } else {
                         data = null;
                     }
@@ -108,11 +110,11 @@ namespace Starcounter.ABCIPC {
                     return request;
                 }
 
-                if (code == 13 || code == 14) {
+                if (code == MessageWithStringArray || code == MessageWithStringArrayNULL) {
                     // Message with string array.
                     msgLength = int.Parse(stringRequest.Substring(2, 2));
                     message = stringRequest.Substring(4, msgLength);
-                    if (code == 14) {
+                    if (code == MessageWithStringArrayNULL) {
                         data = null;
                     } else {
                         dataLength = int.Parse(stringRequest.Substring(4 + msgLength, 4));
@@ -123,11 +125,11 @@ namespace Starcounter.ABCIPC {
                     return request;
                 }
 
-                if (code == 15 || code == 16) {
+                if (code == MessageWithDictionary || code == MessageWithDictionaryNULL) {
                     // Message with dictionary array.
                     msgLength = int.Parse(stringRequest.Substring(2, 2));
                     message = stringRequest.Substring(4, msgLength);
-                    if (code == 16) {
+                    if (code == MessageWithDictionaryNULL) {
                         data = null;
                     } else {
                         dataLength = int.Parse(stringRequest.Substring(4 + msgLength, 4));

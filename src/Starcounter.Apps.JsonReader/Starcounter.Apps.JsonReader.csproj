@@ -69,6 +69,10 @@
     <Compile Include="TemplateFromJs.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\REST\Starcounter.Rest.csproj">
+      <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
+      <Name>Starcounter.Rest</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Starcounter.Apps\Starcounter.Apps.csproj">
       <Project>{bbaad98c-2661-42dc-85e4-3f2d11bbe010}</Project>
       <Name>Starcounter.Apps</Name>

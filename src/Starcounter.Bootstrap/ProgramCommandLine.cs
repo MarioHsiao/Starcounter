@@ -27,7 +27,12 @@ namespace StarcounterInternal.Bootstrap {
             /// be omitted on the command line.
             /// </remarks>
             public const string Start = "Start";
+        }
 
+        /// <summary>
+        /// Defines the commands this program accepts.
+        /// </summary>
+        internal static class OptionNames {
             /// <summary>
             /// Specifies the database directory to use.
             /// </summary>
@@ -97,13 +102,13 @@ namespace StarcounterInternal.Bootstrap {
             // > prog.exe mydatabase --DatabaseDir "C:\MyDatabase" --OutputDir "C:\Out" --TempDir "C:\Temp" --CompilerPath "C:\bin\x86_64-w64-mingw32-gcc.exe"
             // --AutoStartExePath "c:\github\Orange\bin\Debug\NetworkIoTest\NetworkIoTest.exe" --ServerName PERSONAL --ChunksNumber 1024
 
-            commandDefinition.DefineProperty(CommandNames.DatabaseDir, "Specifies the database directory to use.");
-            commandDefinition.DefineProperty(CommandNames.OutputDir, "Specifies the output directory to use.");
-            commandDefinition.DefineProperty(CommandNames.TempDir, "Specifies the temporary directory to use.");
-            commandDefinition.DefineProperty(CommandNames.CompilerPath, "Specifies the path to the compiler to use when generating code.");
-            commandDefinition.DefineProperty(CommandNames.ServerName, "Specifies the name of Starcounter server which started the database.");
-            commandDefinition.DefineProperty(CommandNames.ChunksNumber, "Specifies the total number of chunks used for shared memory communication.");
-            commandDefinition.DefineProperty(CommandNames.AutoStartExePath, "Specifies the path to executable that should be run on startup.");
+            commandDefinition.DefineProperty(OptionNames.DatabaseDir, "Specifies the database directory to use.");
+            commandDefinition.DefineProperty(OptionNames.OutputDir, "Specifies the output directory to use.");
+            commandDefinition.DefineProperty(OptionNames.TempDir, "Specifies the temporary directory to use.");
+            commandDefinition.DefineProperty(OptionNames.CompilerPath, "Specifies the path to the compiler to use when generating code.");
+            commandDefinition.DefineProperty(OptionNames.ServerName, "Specifies the name of Starcounter server which started the database.");
+            commandDefinition.DefineProperty(OptionNames.ChunksNumber, "Specifies the total number of chunks used for shared memory communication.");
+            commandDefinition.DefineProperty(OptionNames.AutoStartExePath, "Specifies the path to executable that should be run on startup.");
 
             // Create the syntax, validating it
             syntax = syntaxDefinition.CreateSyntax();

@@ -97,9 +97,9 @@ namespace Starcounter
             throw ErrorCode.ToException(e);
         }
 
-        public static void DropTable(ushort tableId)
+        public static void DropTable(string name)
         {
-            uint e = sccoredb.sc_drop_table(tableId);
+            uint e = sccoredb.sccoredb_drop_table(name);
             if (e == 0) return;
             throw ErrorCode.ToException(e);
         }
