@@ -169,9 +169,8 @@ namespace Starcounter.Internal.Weaver {
                     "SCINF03",
                     new Object[] { _module.Name }
                     );
-                return true;
 #pragma warning restore 618
-
+                return true;
             }
 
             // Check if the transformation kind has been established to be None,
