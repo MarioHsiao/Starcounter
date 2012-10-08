@@ -143,6 +143,13 @@ namespace IndexQueryTest
             {
                 Console.WriteLine(((ISqlEnumerator)Db.SQL("select u from User u where LastName = ?", "Popov").GetEnumerator()).ToString());
             });
+            Db.SlowSQL("DROP INDEX userLN ON AccountTest.User");
+            Console.WriteLine("Dropped index userLN ON AccountTest.User");
+            PrintUserByLastName("Popov");
+            Db.Transaction(delegate
+            {
+                Console.WriteLine(((ISqlEnumerator)Db.SQL("select u from User u where LastName = ?", "Popov").GetEnumerator()).ToString());
+            });
             Console.WriteLine("Test completed.");
         }
     }
