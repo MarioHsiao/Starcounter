@@ -3,10 +3,10 @@ using Starcounter;
 using Starcounter.Query.Execution;
 using Sc.Server.Internal;
 using System;
-using Starcounter.Binding;
 
-namespace Sc.Server.Binding
+namespace Starcounter.Binding
 {
+
     internal class IndexInfo : Object
     {
         private UInt64 _handle;

@@ -65,12 +65,12 @@ namespace Starcounter.Binding
             return pb;
         }
 
-        internal Sc.Server.Binding.IndexInfo[] GetAllIndexInfos()
+        internal IndexInfo[] GetAllIndexInfos()
         {
             return TypeDef.TableDef.GetAllIndexInfos();
         }
 
-        internal Sc.Server.Binding.IndexInfo GetIndexInfo(string name)
+        internal IndexInfo GetIndexInfo(string name)
         {
             return TypeDef.TableDef.GetIndexInfo(name);
         }
