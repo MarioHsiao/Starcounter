@@ -47,6 +47,42 @@ namespace Starcounter.Server {
         }
 
         /// <summary>
+        /// Gets or sets a value indicating if the database is supposed to
+        /// be running or not.
+        /// </summary>
+        internal bool SupposedToBeStarted {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Gets or sets the counter used to determine when automatic restart
+        /// no longer is viable on failure.
+        /// </summary>
+        internal int BadAutoRestartCount {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating the last time an automatic restart
+        /// was triggered.
+        /// </summary>
+        internal DateTime LastAutoRestartTime {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Gets or sets the list of Apps currently known to the
+        /// database represented by this instance.
+        /// </summary>
+        internal List<DatabaseApp> Apps {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Intializes a <see cref="Database"/>.
         /// </summary>
         /// <param name="server">The server to which the current database belong.</param>
@@ -56,6 +92,7 @@ namespace Starcounter.Server {
             this.Configuration = configuration;
             this.Name = this.Configuration.Name;
             this.Uri = ScUri.MakeDatabaseUri(ScUri.GetMachineName(), server.Name, this.Name).ToString();
+            this.Apps = new List<DatabaseApp>();
         }
 
         /// <summary>
@@ -72,7 +109,13 @@ namespace Starcounter.Server {
                 MaxImageSize = 0,   // TODO: Backlog
                 SupportReplication = false,
                 TransactionLogSize = 0, // TODO: Backlog
-                Uri = this.Uri
+                Uri = this.Uri,
+                HostedApps = this.Apps.ConvertAll<AppInfo>(delegate(DatabaseApp app) {
+                    return new AppInfo() {
+                        ExecutablePath = app.OriginalExecutablePath,
+                        WorkingDirectory = app.WorkingDirectory
+                    };
+                }).ToArray()
             };
             return info;
         }

@@ -10,18 +10,31 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     public class NEventClass : NClass {
 
         public NProperty NMember { get; set; }
-        public NClass NApp { get; set; }
+        //public NClass NApp { get; set; }
+        //public NClass NTemplate { get; set; }
         public string EventName { get; set; }
 
         public override string ClassName {
             get { return NMember.MemberName; }
         }
+
+        public NTemplateClass NTemplate {
+            get { return  ((NValueClass)NMember.Type).NTemplateClass; }
+        }
+
+        public NAppClass NApp {
+            get { return (NAppClass)NMember.Parent; }
+        }
+
+
         public override string Inherits {
             get {
                 var str = EventName + "<";
                 str += NApp.FullClassName;
                 str += ", ";
-                str += NMember.Type.FullClassName;
+                str += NTemplate.FullClassName;
+                str += ", ";
+                str += NMember.Type.ClassName;
                 str += ">";
                 return str;
             }

@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.ABCIPC;
 using Starcounter.Server.Commands;
 using Starcounter.Server.PublicModel;
 using System;
@@ -218,8 +219,39 @@ namespace Starcounter.Server {
 
             process = Process.Start(GetWorkerProcessStartInfo(database));
             database.WorkerProcess = process;
+            database.SupposedToBeStarted = true;
             return true;
         }
+
+        internal bool StopWorkerProcess(Database database) {
+            var process = database.WorkerProcess;
+            if (process == null)
+                return false;
+
+            process.Refresh();
+            if (process.HasExited) {
+                process.Close();
+                database.WorkerProcess = null;
+                return false;
+            }
+
+            // The process is alive; we should tell it to shut down and
+            // release the reference.
+
+            var client = new Client(process.StandardInput.WriteLine, process.StandardOutput.ReadLine);
+            if (!client.SendShutdown()) {
+                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Shutdown request to worker process unsuccessfull.");
+            }
+
+            process.WaitForExit();
+            process.Close();
+
+            database.WorkerProcess = null;
+            database.Apps.Clear();
+            database.SupposedToBeStarted = false;
+            return true;
+        }
+
 
         void WaitForDatabaseProcessToExit(string processControlEventName) {
             while (IsDatabaseProcessRunning(processControlEventName)) Thread.Sleep(1);

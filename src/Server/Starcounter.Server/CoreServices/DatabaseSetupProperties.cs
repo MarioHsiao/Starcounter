@@ -3,24 +3,24 @@ using Starcounter.Configuration;
 
 namespace Starcounter.Server {
 
-    internal sealed class DatabaseSetupProperties {
+    public sealed class DatabaseSetupProperties {
         /// <summary>
         /// Gets the name of the database to which the current
         /// property set applies.
         /// </summary>
-        internal readonly string Name;
+        public readonly string Name;
 
         /// <summary>
         /// Gets the resolved management configuration of the database
         /// to which the current property set applies.
         /// </summary>
-        internal readonly DatabaseConfiguration Configuration;
+        public readonly DatabaseConfiguration Configuration;
 
         /// <summary>
         /// Gets the database storage configuration of the database
         /// to which the current property set applies.
         /// </summary>
-        internal readonly DatabaseStorageConfiguration StorageConfiguration;
+        public readonly DatabaseStorageConfiguration StorageConfiguration;
 
         /// <summary>
         /// Initializes a <see cref="DatabaseSetupProperties"/> instance.
