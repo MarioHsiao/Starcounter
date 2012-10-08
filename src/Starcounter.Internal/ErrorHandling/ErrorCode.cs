@@ -65,7 +65,6 @@ namespace Starcounter
             return InternalToMessage(errorCode, postfix);
         }
 
-#if false
         public static string ToMessage(string prefix, uint errorCode, string postfix)
         {
             string message = InternalToMessage(errorCode, postfix);
@@ -75,7 +74,6 @@ namespace Starcounter
 
             return message;
         }
-#endif
 
         public static FactoryErrorMessage ToMessageWithArguments(uint errorCode, string messagePostfix, params object[] messageArguments)
         {
