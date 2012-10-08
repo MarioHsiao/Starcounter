@@ -159,7 +159,9 @@ namespace Starcounter.Internal.Weaver {
 
         private static Set<MethodDefDeclaration> FindAffectedMethods(MethodRefDeclaration methodRef) {
             Set<MethodDefDeclaration> affectedMethods = new Set<MethodDefDeclaration>(64);
+#pragma warning disable 612
             foreach (MethodDefDeclaration methodDef in IndexUsagesTask.GetUsedBy(methodRef)) {
+#pragma warning restore 612
                 affectedMethods.AddIfAbsent(methodDef);
             }
             return affectedMethods;
