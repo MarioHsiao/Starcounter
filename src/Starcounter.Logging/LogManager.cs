@@ -15,6 +15,12 @@ namespace Starcounter.Logging
             _hlogs = hlogs;
         }
 
+        public static void InternalFatal(String message)
+        {
+            sccorelog.SCKernelWriteToLogs(_hlogs, sccorelog.SC_ENTRY_CRITICAL, message);
+            sccorelog.SCFlushToLogs(_hlogs);
+        }
+
         internal static void Debug(String source, String message, String category, Exception exception)
         {
             WriteToLogs(sccorelog.SC_ENTRY_DEBUG, source, message, category, exception);

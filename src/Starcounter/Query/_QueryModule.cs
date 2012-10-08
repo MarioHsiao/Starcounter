@@ -4,7 +4,6 @@ using Starcounter.Configuration;
 using Starcounter.Query.Optimization;
 using Starcounter.Query.Sql;
 using Starcounter.Query.Execution;
-using Sc.Server.Internal;
 using System.Diagnostics;
 
 namespace Starcounter.Query

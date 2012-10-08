@@ -258,6 +258,11 @@ namespace Starcounter.Internal
             out ulong new_transaction_id
             );
 
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static int Mdb_TransactionSetCurrent(
+            ulong hTrans,
+            ulong verify
+            );
         
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public unsafe extern static UInt32 sc_insert(

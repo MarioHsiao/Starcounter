@@ -3,7 +3,6 @@ using PostSharp.Reflection;
 using PostSharp.Sdk.CodeModel;
 using PostSharp.Sdk.CodeWeaver;
 using PostSharp.Sdk.Collections;
-using Sc.Server.Internal;
 using Starcounter;
 using AssertionFailedException = PostSharp.Sdk.AssertionFailedException;
 using IMethod = PostSharp.Sdk.CodeModel.IMethod;

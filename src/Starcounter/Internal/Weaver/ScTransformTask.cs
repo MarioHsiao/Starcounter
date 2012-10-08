@@ -14,7 +14,6 @@ using PostSharp.Sdk.CodeWeaver;
 using PostSharp.Sdk.Collections;
 using PostSharp.Sdk.Extensibility;
 using PostSharp.Sdk.Extensibility.Tasks;
-using Sc.Server.Internal;
 using Sc.Server.Weaver.Schema;
 using Starcounter;
 using Starcounter.Configuration;
@@ -409,7 +408,7 @@ namespace Starcounter.Internal.Weaver {
                 BindingOptions.RequireGenericDefinition
                 );
 
-            _typeBindingType = _module.Cache.GetType(typeof(Sc.Server.Binding.TypeBinding));
+            _typeBindingType = _module.Cache.GetType(typeof(Starcounter.Binding.TypeBinding));
             _ulongType = _module.Cache.GetIntrinsic(IntrinsicType.UInt64);
 
             _objectViewType = _module.FindType(typeof(IObjectView), BindingOptions.Default);

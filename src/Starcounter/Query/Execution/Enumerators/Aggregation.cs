@@ -2,8 +2,6 @@ using Starcounter;
 using Starcounter.Binding;
 using Starcounter.Query.Sql;
 using Starcounter.Query.Execution;
-using Sc.Server.Binding;
-using Sc.Server.Internal;
 using System;
 using System.Collections;
 using System.Collections.Generic;
