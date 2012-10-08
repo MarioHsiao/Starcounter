@@ -27,7 +27,7 @@ namespace Starcounter.Internal.Weaver {
 
         private readonly ModuleDeclaration module;
         private readonly Dictionary<string, MethodCastPair> cache = new Dictionary<string, MethodCastPair>();
-        private static readonly Type dbStateType = typeof(Sc.Server.Internal.DbState);
+        private static readonly Type dbStateType = typeof(DbState);
         private readonly Type codeGeneratedDbStateType;
 
         /// <summary>

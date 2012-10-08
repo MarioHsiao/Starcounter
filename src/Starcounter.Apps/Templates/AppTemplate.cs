@@ -24,7 +24,8 @@ namespace Starcounter.Templates {
                 Parent = this,
                 Name = name,
                 Editable = editable,
-                InputHandler = input
+// TODO: Jocke
+//                InputHandler = input
             };
         }
 
@@ -35,7 +36,8 @@ namespace Starcounter.Templates {
                 Parent = this,
                 Name = name,
                 Editable = editable,
-                InputHandler = input
+// TODO: Jocke
+//                InputHandler = input
             };
         }
 

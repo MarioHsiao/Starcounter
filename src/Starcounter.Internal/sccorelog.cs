@@ -38,5 +38,11 @@ namespace Starcounter.Internal
 
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         public static extern uint SCWriteToLogs(ulong h, uint type, string source, string category, string userName, string message);
+
+        [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        public static extern uint SCKernelWriteToLogs(ulong h, uint type, string message);
+
+        [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall)]
+        public static extern uint SCFlushToLogs(ulong h);
     }
 }
