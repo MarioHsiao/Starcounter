@@ -1,5 +1,4 @@
 ﻿
-using Sc.Server.Binding;
 using Starcounter;
 using Starcounter.Binding;
 using Starcounter.Internal;
@@ -340,7 +339,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             {
                 if ((flags & sccoredb.Mdb_DataValueFlag_Null) == 0)
                 {
-                    return TypeRepository.GetTypeBinding(cci).NewInstance(value.ETI, value.ObjectID);
+                    return Bindings.GetTypeBinding(cci).NewInstance(value.ETI, value.ObjectID);
                 }
                 return null;
             }
@@ -1050,7 +1049,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             {
                 if ((flags & sccoredb.Mdb_DataValueFlag_Null) == 0)
                 {
-                    return TypeRepository.GetTypeBinding(cci).NewInstance(value.ETI, value.ObjectID);
+                    return Bindings.GetTypeBinding(cci).NewInstance(value.ETI, value.ObjectID);
                 }
                 return null;
             }

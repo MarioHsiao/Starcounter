@@ -1,6 +1,5 @@
 ﻿
 using Starcounter.Query.Optimization;
-using Sc.Server.Binding;
 using Sc.Server.Internal;
 using System;
 using System.Globalization;
@@ -49,7 +48,8 @@ internal class ObjectLiteral : Literal, ILiteral, IObjectPathItem
         else
             // Default type of an object literal.
         {
-            typeBinding = TypeRepository.GetTypeBinding("Starcounter.Entity");
+            // TODO EOH2: There is no type binding for Starcounter.Entity.
+            typeBinding = Sc.Server.Binding.TypeRepository.GetTypeBinding("Starcounter.Entity");
         }
         
         // Pre-computing byte array for this literal.

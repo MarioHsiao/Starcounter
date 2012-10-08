@@ -1,7 +1,6 @@
 
 using se.sics.prologbeans;
 using Starcounter;
-using Sc.Server.Binding;
 using Sc.Server.Internal;
 using System;
 using System.Collections.Generic;

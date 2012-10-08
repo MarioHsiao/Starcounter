@@ -1,6 +1,5 @@
 using Starcounter;
 using Starcounter.Query.Sql;
-using Sc.Server.Binding;
 using Sc.Server.Internal;
 using System;
 using System.Threading;

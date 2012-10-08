@@ -4,7 +4,6 @@ using Starcounter;
 using Starcounter.Query.Execution;
 using Starcounter.Query.Optimization;
 using Starcounter.Query.Sql;
-using Sc.Server.Binding;
 using Sc.Server.Internal;
 using System.Text;
 using System;
@@ -2143,7 +2142,7 @@ namespace Starcounter.Query.Sql
             if (variable == null)
             {
                 //PI110503 ObjectVariable objVariable = new ObjectVariable(number, TypeRepository.GetTypeBindingByUpperCaseName(typeTerm.Name.ToUpper()));
-                ObjectVariable objVariable = new ObjectVariable(number, TypeRepository.GetTypeBinding(typeTerm.Name));
+                ObjectVariable objVariable = new ObjectVariable(number, Sc.Server.Binding.TypeRepository.GetTypeBinding(typeTerm.Name));
                 varArray.SetElement(number, objVariable);
                 return objVariable;
             }
@@ -2360,7 +2359,7 @@ namespace Starcounter.Query.Sql
                 return new ObjectLiteral(UIntegerParse(literalTerm.Name)); // ObjectID
             }
             //PI110503 return new ObjectLiteral(TypeRepository.GetTypeBindingByUpperCaseName(typeTerm.Name.ToUpper()));
-            return new ObjectLiteral(TypeRepository.GetTypeBinding(typeTerm.Name));
+            return new ObjectLiteral(Sc.Server.Binding.TypeRepository.GetTypeBinding(typeTerm.Name));
         }
 
         private static StringLiteral CreateStringLiteral(Term literalTerm)
@@ -2682,7 +2681,7 @@ namespace Starcounter.Query.Sql
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect typeTerm: " + typeTerm);
             }
             //PI110503 ITypeBinding typeBind = TypeRepository.GetTypeBindingByUpperCaseName(typeTerm.getArgument(1).Name.ToUpper());
-            ITypeBinding typeBind = TypeRepository.GetTypeBinding(typeTerm.getArgument(1).Name);
+            ITypeBinding typeBind = Sc.Server.Binding.TypeRepository.GetTypeBinding(typeTerm.getArgument(1).Name);
             if (typeBind == null)
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect typeTerm: " + typeTerm);

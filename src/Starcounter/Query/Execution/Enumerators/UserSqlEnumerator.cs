@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.IO;
-using Sc.Server.Binding;
 using Starcounter.LucentObjects;
 using System.Runtime.InteropServices;
 using Starcounter.Internal;
@@ -439,7 +438,7 @@ namespace Starcounter.Query.Execution
             if ((eti == 0) && (oid == 0))
                 return null;
 
-            TypeBinding binding = TypeRepository.GetTypeBinding(currentCCI);
+            TypeBinding binding = Sc.Server.Binding.TypeRepository.GetTypeBinding(currentCCI);
             try
             {
                 return binding.NewInstance(eti, oid) as Entity;
