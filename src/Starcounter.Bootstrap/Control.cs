@@ -73,6 +73,7 @@ namespace StarcounterInternal.Bootstrap
 
             // Query module.
             Scheduler.Setup(1);
+            Starcounter.Query.QueryModule.Configure(configuration.SQLProcessPort);
 
             return true;
         }

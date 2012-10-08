@@ -16,7 +16,6 @@ using PostSharp.Sdk.Extensibility;
 using PostSharp.Sdk.Extensibility.Tasks;
 using Sc.Server.Weaver.Schema;
 using Starcounter;
-using Starcounter.Configuration;
 using Starcounter.LucentObjects;
 using IMember = PostSharp.Sdk.CodeModel.IMember;
 using IMethod = PostSharp.Sdk.CodeModel.IMethod;

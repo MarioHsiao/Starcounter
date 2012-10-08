@@ -154,7 +154,6 @@
     <Compile Include="Mock\GlobalQueryCache.cs" />
     <Compile Include="Mock\IndexInfo.cs" />
     <Compile Include="Mock\IteratorHelper.cs" />
-    <Compile Include="Mock\DatabaseEngineInstanceConfiguration.cs" />
     <Compile Include="IObjectView.cs" />
     <Compile Include="Binding\IPropertyBinding.cs" />
     <Compile Include="Binding\ITypeBinding.cs" />
