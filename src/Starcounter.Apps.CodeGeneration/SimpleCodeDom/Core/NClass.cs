@@ -14,7 +14,6 @@ namespace Starcounter.Internal.Application.CodeGeneration {
 
         public bool IsPartial { get; set; }
         public bool IsStatic { get; set; }
-        public bool IsPrimitive { get; set; }
 
         public virtual string FullClassName {
             get {
