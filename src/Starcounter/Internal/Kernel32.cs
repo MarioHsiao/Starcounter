@@ -10,7 +10,7 @@ namespace Starcounter.Internal
     {
 
         [DllImport("Kernel32.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern void ExitProcess(uint exitCode);
+        public static extern void ExitProcess(uint exitCode);
         
         [DllImport("Kernel32.dll", EntryPoint = "RtlMoveMemory")]
         internal unsafe static extern void MoveByteMemory(Byte* Destination, Byte* Source, Int32 LengthBytes);
