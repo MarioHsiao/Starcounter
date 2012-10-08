@@ -180,10 +180,7 @@ namespace Starcounter
         private static void HandleFatalErrorInTransactionScope()
         {
             uint e = sccoredb.Mdb_GetLastError();
-            Starcounter.Logging.LogManager.InternalFatal(
-                ErrorCode.ToMessage(e)
-                );
-            System.Environment.Exit((int)e);
+            ExceptionManager.HandleInternalFatalError(e);
         }
     }
 }
