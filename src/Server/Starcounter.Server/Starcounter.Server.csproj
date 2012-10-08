@@ -63,6 +63,7 @@
   <ItemGroup>
     <Compile Include="Commands\Processors\CreateDatabaseCommandProcessor.cs" />
     <Compile Include="Commands\Processors\StartDatabaseCommandProcessor.cs" />
+    <Compile Include="Commands\Processors\StopDatabaseCommandProcessor.cs" />
     <Compile Include="CoreServices\AppsService.cs" />
     <Compile Include="Commands\CommandDispatcher.cs" />
     <Compile Include="Commands\CommandProcessor.cs" />
