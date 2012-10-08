@@ -107,6 +107,7 @@
     <Compile Include="Internal\DatabaseExceptionFactory.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Internal\ExceptionManager.cs" />
     <Compile Include="Internal\KeyValueBinary.cs" />
     <Compile Include="Internal\Weaver\AnonymousTypeAdapter.cs" />
     <Compile Include="Internal\Weaver\AnonymousTypePropertyAttribute.cs" />
