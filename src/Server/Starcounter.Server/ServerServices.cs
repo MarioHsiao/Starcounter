@@ -145,6 +145,28 @@ namespace Starcounter.Server {
                 request.Respond(true, responseSerializer.SerializeReponse(info));
             });
 
+            ipcServer.Handle("StopDatabase", delegate(Request request) {
+                StopDatabaseCommand command;
+                string name;
+
+                // Get required properties - we can default everything but the
+                // name. Without a name, we consider the request a failure.
+                // We also support an additional parameter, indicating if we
+                // should stop the database process too, and not just the worker
+                // process (which is the default).
+
+                var properties = request.GetParameter<Dictionary<string, string>>();
+                if (properties == null || !properties.TryGetValue("Name", out name)) {
+                    request.Respond(false, "Missing required argument 'Name'");
+                    return;
+                }
+                command = new StopDatabaseCommand(this.engine, name);
+                command.StopDatabaseProcess = properties.ContainsKey("StopDb");
+
+                var info = engine.CurrentPublicModel.Execute(command);
+                request.Respond(true, responseSerializer.SerializeReponse(info));
+            });
+
             #region Command stubs not yet implemented
 
             // See 2.0 GetServerLogsByNumber
