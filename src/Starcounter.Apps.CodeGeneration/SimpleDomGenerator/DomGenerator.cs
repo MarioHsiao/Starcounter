@@ -19,7 +19,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// has been generated. This is used to allow the generated code structure match the code behind structure. In this way,
     /// there is no need for the programmer to have deep nesting of class declarations in JSON trees.
     /// </remarks>
-    public partial class DomGenerator {
+    public class DomGenerator {
 
         /// <summary>
         /// Creates a dom generator for a template
@@ -35,36 +35,40 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// This is the main calling point to generate a dom tree for a application template.
         /// </summary>
         /// <param name="at">The App template (i.e. json tree prototype) to generate code for</param>
+        /// <param name="metadata"> </param>
         /// <returns>An abstract code tree. Use CSharpGenerator to generate .CS code.</returns>
         public NRoot GenerateDomTree( AppTemplate at, CodeBehindMetadata metadata ) {
             var root = new NRoot();
-            var acn = new NApp() {
+            var acn = new NAppClass() {
                 Parent = root,
-                Template = at,
                 IsPartial = true
             };
-            var tcn = new NAppTemplate() {
+            var tcn = new NAppTemplateClass() {
                 Parent = acn,
-                AppNode = acn,
+                NValueClass = acn,
+                Template = at,
                 _Inherits = "AppTemplate"
             };
             var mcn = new NAppMetadata() {
                 Parent = acn,
-                AppNode = acn,
+                NTemplateClass = tcn,
                 _Inherits = "AppMetadata"
             };
-            NApp.Instances[at] = acn;
-            NAppTemplate.Instances[at] = tcn;
-            NAppMetadata.Instances[at] = mcn;
+//            acn.NTemplateClass.Temp               NTemplateClass = NTemplateClass.Classes[at],
+            tcn.NMetadataClass = mcn;
+
+            NValueClass.Classes[at] = acn;
+            NTemplateClass.Classes[at] = tcn;
+            NMetadataClass.Classes[at] = mcn;
 
 
-            root.AppClassNode = acn;
-            acn.MetaDataClass = mcn;
-            acn.TemplateClass = tcn;
-            if (acn is NApp) {
-                var racn = acn as NApp;
-                GenerateKids(racn, racn.TemplateClass, racn.MetaDataClass, racn.Template);
-            }
+            root.AppClassClassNode = acn;
+//            acn.MetaDataClass = mcn;
+            acn.NTemplateClass = tcn;
+//            if (acn is NAppClass) {
+//                var racn = acn as NAppClass;
+            GenerateKids(acn, acn.NTemplateClass, acn.NTemplateClass.NMetadataClass, acn.NTemplateClass.Template);
+//            }
 
             //tcn.Parent = tcn.Parent;
             //mcn.Parent = mcn.Parent;
@@ -97,10 +101,10 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             AppTemplate rootTemplate;
             AppTemplate[] classesInOrder;
             JsonMapInfo mapInfo;
-            NApp nApp;
+            NAppClass nAppClass;
 
             classesInOrder = new AppTemplate[metadata.JsonPropertyMapList.Count];
-            rootTemplate = root.AppClassNode.Template;
+            rootTemplate = root.AppClassClassNode.Template;
 
             for (Int32 i = 0; i < classesInOrder.Length; i++)
             {
@@ -111,9 +115,9 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 if (!String.IsNullOrEmpty(mapInfo.Namespace))
                     appTemplate.Namespace = mapInfo.Namespace;
 
-                nApp = NApp.Instances[appTemplate] as NApp;
-                nApp.IsPartial = true;
-                nApp._Inherits = null;
+                nAppClass = NValueClass.Classes[appTemplate] as NAppClass;
+                nAppClass.IsPartial = true;
+                nAppClass._Inherits = null;
 
                 classesInOrder[i] = appTemplate;
             }
@@ -133,7 +137,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             
             for (Int32 i = 0; i < classesInOrder.Length; i++)
             {
-                theClass = NApp.Instances[classesInOrder[i]];
+                theClass = NValueClass.Classes[classesInOrder[i]];
                 parentClasses = mapInfos[i].ParentClasses;
                 if (parentClasses.Count > 0)
                 {
@@ -215,12 +219,12 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         {
             var move = new List<NBase>();
             foreach (var kid in node.Children) {
-                if (kid is NApp) {
+                if (kid is NAppClass) {
                     move.Add(kid);
                 }
             }
             foreach (var kid in node.Children) {
-                if (kid is NAppTemplate) {
+                if (kid is NAppTemplateClass) {
                     move.Add(kid);
                 }
             }
@@ -235,132 +239,122 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             }            
         }
 
-        private void GenerateKids(NApp appParent, NClass templParent, NClass metaParent, Template template) {
+        private void GenerateKids(NAppClass appClassParent, NClass templParent, NClass metaParent, Template template) {
             if (template is ParentTemplate) {
                 var pt = (ParentTemplate)template;
                 foreach (var kid in pt.Children) {
                     if (kid is ParentTemplate) {
                         if (kid is AppTemplate) {
-                            var at = (AppTemplate)kid;
-                            NClass acn;
-                            NClass tcn;
-                            NClass mcn;
-                            if (at.Properties.Count == 0) {
-                                acn = CodeGenerationModule.FixedAppTypes[typeof(AppTemplate)];
-                                tcn = CodeGenerationModule.FixedTemplateTypes[typeof(AppTemplate)];
-                                mcn = CodeGenerationModule.FixedMetaDataTypes[typeof(AppTemplate)];
-                            }
-                            else {
-                                NApp racn;
-                                acn = racn = new NApp() {
-                                    Parent = appParent,
-                                    Template = at,
-                                    _Inherits = "App"
-                                };
-                                tcn = new NAppTemplate() {
-                                    Parent = racn,
-                                    AppNode = racn,
-                                    _Inherits = "AppTemplate"
-                                };
-                                mcn = new NAppMetadata() {
-                                    Parent = racn,
-                                    AppNode = racn,
-                                    _Inherits = "AppMetadata"
-                                };
-                                racn.MetaDataClass = mcn;
-                                racn.TemplateClass = tcn;
-                            }
-                            NApp.Instances[at] = acn;
-                            NAppTemplate.Instances[at] = tcn;
-                            NAppMetadata.Instances[at] = mcn;
-
-//                            appParent.Children.Add(acn);
-//                            appParent.Children.Add(tcn);
-//                            appParent.Children.Add(mcn);
-                            if (acn is NApp) {
-                                GenerateKids(acn as NApp, tcn as NAppTemplate, mcn as NAppMetadata, kid);
-                                if (!appParent.Children.Remove(acn))
-                                    throw new Exception(); // Move to...
-                                appParent.Children.Add(acn); // Move to...
-                                if (!acn.Children.Remove(tcn))
-                                    throw new Exception(); // Move to...
-                                acn.Children.Add(tcn); // Move to...
-                                if (!acn.Children.Remove(mcn))
-                                    throw new Exception(); // ...last member
-                                acn.Children.Add(mcn); // ...last member
-                            }
-
-                            if (at.Parent is AppTemplate) {
-                                new NProperty() {
-                                    Parent = appParent,
-                                    Template = kid,
-                                    Type = NApp.Instances[at],
-                                };
-                                new NProperty() {
-                                    Parent = templParent,
-                                    Template = kid,
-                                    Type = NAppTemplate.Instances[at],
-                                };
-                                new NProperty() {
-                                    Parent = metaParent,
-                                    Template = kid,
-                                    Type = NAppMetadata.Instances[at],
-                                };
-
-                            }
-
+                            GenerateForApp(kid as AppTemplate, appClassParent, templParent,metaParent,template);
                         }
                         else if (kid is ListingProperty) {
-                            var alt = (ListingProperty)kid;
-                            var amn = new NProperty() {
-                                Parent = appParent,
-                                Template = alt                                
-                            };
-                            var tmn = new NProperty() {
-                                Parent = appParent.TemplateClass,
-                                Template = alt
-                            };
-                            var mmn = new NProperty() {
-                                Parent = appParent.MetaDataClass,
-                                Template = alt
-                            };
-                            GenerateKids(appParent, templParent, metaParent, kid);
-                            amn.Type = new NListingXXXClass("Listing",NApp.Instances[alt.App],null);
-                            tmn.Type = new NListingXXXClass("ListingProperty", NApp.Instances[alt.App], NAppTemplate.Instances[alt.App]);
-                            mmn.Type = new NListingXXXClass("ListingMetadata", NApp.Instances[alt.App], NAppTemplate.Instances[alt.App]);
+                            GenerateForListing(kid as ListingProperty, appClassParent, templParent,metaParent,template);
                         }
                         else {
                             throw new Exception();
                         }
                     }
                     else {
-                        AppTemplate x = null;
-                        if (kid is ListingProperty) {
-                            x = ((ListingProperty)kid).App;
-                        }
-                        var ap = new NProperty() {
-                            Parent = appParent,
-                            //MemberName = kid.PropertyName,
-                            Template = kid,
-//                            Type = NApp.Instances[(AppTemplate)kid.Parent]
-                            Type = CodeGenerationModule.FixedAppTypes[kid.GetType()] //NAppTemplate.Instances[(AppTemplate)kid.Parent]
-                        };
-                        var tp = new NProperty() {
-                            Parent = templParent,
-                            Template = kid,
-                            Type = CodeGenerationModule.FixedTemplateTypes[kid.GetType()] //NAppTemplate.Instances[(AppTemplate)kid.Parent]
-                        };
-                        var mp = new NProperty() {
-                            Parent = metaParent,
-                            Template = kid,
-                            Type = CodeGenerationModule.FixedMetaDataTypes[kid.GetType()]
-                        };
-//                        appParent.Children.Add(ap);
-//                        templParent.Children.Add(tp);
-//                        metaParent.Children.Add(mp);
+                        GenerateProperty( kid, appClassParent, templParent, metaParent );
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Generates the ast nodes for a custom app class and the corresponding app template and app meta data custom classes.
+        /// </summary>
+        /// <param name="at"></param>
+        /// <param name="appClassParent"></param>
+        /// <param name="templParent"></param>
+        /// <param name="metaParent"></param>
+        /// <param name="template"></param>
+        private void GenerateForApp(AppTemplate at, NAppClass appClassParent, NClass templParent, NClass metaParent, Template template) {
+            NValueClass acn;
+            NTemplateClass tcn;
+            NMetadataClass mcn;
+            if (at.Properties.Count == 0) {
+                // Empty App templates does not typically receive a custom template class (unless explicitly set by the Json.nnnn syntax (TODO)
+                // This means that they can be assigned to any App object. A typicall example is to have a Page:{} property in a master
+                // app (representing, for example, child web pages)
+                acn = NValueClass.Classes[NTemplateClass.AppTemplate];
+                tcn = NTemplateClass.Classes[NTemplateClass.AppTemplate];
+                mcn = NMetadataClass.Classes[NTemplateClass.AppTemplate];
+            }
+            else {
+                NAppClass racn;
+                acn = racn = new NAppClass() {
+                                            Parent = appClassParent,
+                                            _Inherits = "App"
+                                        };
+                tcn = new NAppTemplateClass() {
+                                             Parent = racn,
+                                             Template = at,
+                                             NValueClass = racn,
+                                             _Inherits = "AppTemplate"
+                                         };
+                mcn = new NAppMetadata() {
+                                             Parent = racn,
+                                             NTemplateClass = tcn,
+                                             _Inherits = "AppMetadata"
+                                         };
+                tcn.NMetadataClass = mcn;
+                racn.NTemplateClass = tcn;
+                GenerateKids(acn as NAppClass, tcn as NAppTemplateClass, mcn as NAppMetadata, at);
+                if (!appClassParent.Children.Remove(acn))
+                    throw new Exception(); // Move to...
+                appClassParent.Children.Add(acn); // Move to...
+                if (!acn.Children.Remove(tcn))
+                    throw new Exception(); // Move to...
+                acn.Children.Add(tcn); // Move to...
+                if (!acn.Children.Remove(mcn))
+                    throw new Exception(); // ...last member
+                acn.Children.Add(mcn); // ...last member
+            }
+            NValueClass.Classes[at] = acn;
+            NTemplateClass.Classes[at] = tcn;
+            NMetadataClass.Classes[at] = mcn;
+
+            if (at.Parent is AppTemplate)
+                GenerateProperty( at, appClassParent, templParent, metaParent );
+        }
+
+        private void GenerateProperty( Template at, NAppClass appClassParent, NClass templParent, NClass metaParent ) {
+            new NProperty() {
+                                Parent = appClassParent,
+                                Template = at,
+                                Type = NValueClass.Find(at),
+                            };
+            new NProperty() {
+                                Parent = templParent,
+                                Template = at,
+                                Type = NTemplateClass.Find(at),
+                            };
+            new NProperty() {
+                                Parent = metaParent,
+                                Template = at,
+                                Type = NMetadataClass.Find(at),
+                            };            
+        }
+
+
+        private void GenerateForListing(ListingProperty alt, NAppClass appClassParent, NClass templParent, NClass metaParent, Template template) {
+            var amn = new NProperty() {
+                Parent = appClassParent,
+                Template = alt
+            };
+            var tmn = new NProperty() {
+                Parent = appClassParent.NTemplateClass,
+                Template = alt
+            };
+            var mmn = new NProperty() {
+                Parent = appClassParent.NTemplateClass.NMetadataClass,
+                Template = alt
+            };
+            GenerateKids(appClassParent, templParent, metaParent, alt);
+            amn.Type = new NListingXXXClass("Listing", NValueClass.Classes[alt.App], null);
+            tmn.Type = new NListingXXXClass("ListingProperty", NValueClass.Classes[alt.App], NTemplateClass.Classes[alt.App]);
+            mmn.Type = new NListingXXXClass("ListingMetadata", NValueClass.Classes[alt.App], NTemplateClass.Classes[alt.App]);
         }
 
         /// <summary>
@@ -369,18 +363,18 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// to write classes that are not deeply nested (unless he/she wants the class declarations nested).
         /// The function is recursive and calls itself.
         /// </summary>
-        /// <param name="app">The node to generate attributes for</param>
+        /// <param name="appClass">The node to generate attributes for</param>
         /// <param name="parent">The DOM node to generate attributes for</param>
-        public void GenerateJsonAttributes(NApp app,NBase parent) {
-            foreach (var kid in app.Children) {
-                if (kid is NApp) {
+        public void GenerateJsonAttributes(NAppClass appClass,NBase parent) {
+            foreach (var kid in appClass.Children) {
+                if (kid is NAppClass) {
                     var x = new NJsonAttributeClass() {
                         _Inherits = "TemplateAttribute",
-                        _ClassName = (kid as NApp).Stem,
+                        _ClassName = (kid as NAppClass).Stem,
                         Parent = parent
 
                     };
-                    GenerateJsonAttributes(kid  as NApp, x);
+                    GenerateJsonAttributes(kid  as NAppClass, x);
                 }
             }
         }
@@ -396,12 +390,12 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             foreach (var kid in app.Children) {
                 if (kid is NProperty) {
                     var mn = kid as NProperty;
-                    if (mn.Type is NListingXXXClass || mn.Type is NApp) {
+                    if (mn.Type is NListingXXXClass || ( mn.Type is NAppClass && mn.Type.Children.Count > 0 ) ) {
                         NClass type;
                         if (mn.Type is NListingXXXClass)
                             type = (mn.Type as NListingXXXClass).NApp;
                         else
-                            type = mn.Type as NApp;
+                            type = mn.Type as NAppClass;
                         var x = new NOtherClass() {
                             Parent = parent,
                             IsStatic = true,
@@ -410,11 +404,11 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                         GeneratePrimitiveValueEvents(x, type, eventName);
                     }
                     else {
-                        if (mn.Type.IsPrimitive) {
-                            var x = new NEventClass() {
+                        if (mn.Type is NPrimitiveType) {
+                            new NEventClass() {
                                 NMember = mn,
                                 Parent = parent,
-                                NApp = app,
+//                                NApp = app,
                                 EventName = eventName
                             };
                         }

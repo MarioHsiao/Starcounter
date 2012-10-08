@@ -67,6 +67,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\REST\Starcounter.Rest.csproj">
+      <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
+      <Name>Starcounter.Rest</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ThirdParty\DynamoIoc\DynamoIoc.csproj">
       <Project>{ea81e2c5-0477-42ab-82f2-b57228af694e}</Project>
       <Name>DynamoIoc</Name>

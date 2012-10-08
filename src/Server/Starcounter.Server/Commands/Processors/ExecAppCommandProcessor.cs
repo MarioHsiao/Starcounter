@@ -30,21 +30,39 @@ namespace Starcounter.Server.Commands {
             string appRuntimeDirectory;
             string weavedExecutable;
             Database database;
+            DatabaseApp app;
             Process workerProcess;
-
-            // Weave first.
+            bool databaseExist;
+            
+            // First see if we can find the database and take a look what
+            // code is running inside it. We don't want to process the same
+            // executable twice.
 
             command = (ExecAppCommand)this.Command;
+            databaseExist = Engine.Databases.TryGetValue(command.DatabaseName, out database);
+            if (databaseExist) {
+                app = database.Apps.Find(delegate(DatabaseApp candidate) {
+                    return candidate.OriginalExecutablePath.Equals(
+                        command.AssemblyPath, StringComparison.InvariantCultureIgnoreCase);
+                });
+                if (app != null) {
+                    // Running the same executable more than once is not considered an
+                    // error. We just log it as a notice and consider the processing done.
+                    Log.LogNotice("Executable {0} is already running in database {1}.", app.OriginalExecutablePath, command.DatabaseName);
+                    return;
+                }
+            }
+
+            // The application doesn't run inside the database, or the database
+            // doesn't exist. Process furhter: weaving first.
+            
             appRuntimeDirectory = GetAppRuntimeDirectory(this.Engine.Configuration.TempDirectory, command.AssemblyPath);
             weaver = Engine.WeaverService;
             weavedExecutable = weaver.Weave(command.AssemblyPath, appRuntimeDirectory);
 
-            // Try getting the database from our internal model
-
-            if (!Engine.Databases.TryGetValue(command.DatabaseName, out database)) {
-                // Create the database, if not explicitly told otherwise.
-                // Add it to our internal model as well as to the public
-                // one.
+            // Create the database if it does not exist and if not told otherwise.
+            // Add it to our internal model as well as to the public one.
+            if (!databaseExist) {
                 var setup = new DatabaseSetup(this.Engine, new DatabaseSetupProperties(this.Engine, command.DatabaseName));
                 database = setup.CreateDatabase();
                 Engine.Databases.Add(database.Name, database);
@@ -78,8 +96,13 @@ namespace Starcounter.Server.Commands {
             // The app is successfully loaded in the worker process. We should
             // keep it referenced in the server and consider the execution of this
             // processor a success.
-
-
+            app = new DatabaseApp() {
+                OriginalExecutablePath = command.AssemblyPath,
+                WorkingDirectory = command.WorkingDirectory,
+                Arguments = command.Arguments,
+                ExecutionPath = weavedExecutable
+            };
+            database.Apps.Add(app);
         }
 
         string GetAppRuntimeDirectory(string baseDirectory, string assemblyPath) {

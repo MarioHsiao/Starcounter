@@ -163,8 +163,8 @@ namespace Starcounter.Internal
             string new_name
             );
 
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint sc_drop_table(ushort table_id);
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public static extern uint sccoredb_drop_table(string name);
 
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
         public unsafe struct SC_INDEX_INFO
@@ -226,6 +226,11 @@ namespace Starcounter.Internal
             uint flags
             );
 
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public extern unsafe static UInt32 sccoredb_drop_index(
+            string table_name,
+            string name
+            );
         
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint sccoredb_create_transaction_and_set_current(
