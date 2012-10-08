@@ -34,7 +34,9 @@ namespace Starcounter.Server {
             if (!Console.IsInputRedirected) {
                 ipcServer = Utils.PromptHelper.CreateServerAttachedToPrompt();
             } else {
-                ipcServer = new Starcounter.ABCIPC.Server(Console.In.ReadLine, Console.Out.WriteLine);
+                ipcServer = new Starcounter.ABCIPC.Server(Console.In.ReadLine, delegate(string reply, bool endsRequest) {
+                    Console.WriteLine(reply);
+                });
             }
             this.engine = engine;
             this.runtime = null;
@@ -42,7 +44,18 @@ namespace Starcounter.Server {
             this.responseSerializer = new NewtonSoftJsonSerializer(engine);
         }
 
+        public ServerServices(ServerEngine engine, Func<string> requestReader, Action<string, bool> replyWriter) {
+            this.engine = engine;
+            this.runtime = null;
+            this.ipcServer = new Starcounter.ABCIPC.Server(requestReader, replyWriter);
+            this.responseSerializer = new NewtonSoftJsonSerializer(engine);
+        }
+
         public void Setup() {
+
+            ipcServer.Handle("Ping", delegate(Request request) {
+                request.Respond(true);
+            });
 
             ipcServer.Handle("GetServerInfo", delegate(Request request) {
                 request.Respond(responseSerializer.SerializeReponse(runtime.GetServerInfo()));
