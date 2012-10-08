@@ -368,7 +368,7 @@
     <Compile Include="Entity.cs" />
     <Compile Include="Mock\LucentObjectsRuntime.cs" />
     <Compile Include="Binding\TypeBinding.cs" />
-    <Compile Include="Mock\Uninitialized.cs" />
+    <Compile Include="Internal\Uninitialized.cs" />
     <Compile Include="Mock\Schema\DatabaseArrayType.cs" />
     <Compile Include="Mock\Schema\DatabaseAssembly.cs" />
     <Compile Include="Mock\Schema\DatabaseAttribute.cs" />
