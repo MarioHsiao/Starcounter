@@ -50,7 +50,7 @@ namespace StarcounterInternal.Hosting
                 
                 uint e;
                 if (!ErrorCode.TryGetCode(ex, out e)) e = 1;
-                System.Environment.Exit((int)e);
+                Kernel32.ExitProcess(e);
             }
         }
     }

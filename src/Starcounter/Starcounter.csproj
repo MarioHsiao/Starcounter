@@ -107,6 +107,7 @@
     <Compile Include="Internal\DatabaseExceptionFactory.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Internal\ExceptionManager.cs" />
     <Compile Include="Internal\KeyValueBinary.cs" />
     <Compile Include="Internal\Weaver\AnonymousTypeAdapter.cs" />
     <Compile Include="Internal\Weaver\AnonymousTypePropertyAttribute.cs" />
@@ -154,14 +155,15 @@
     <Compile Include="Mock\IndexInfo.cs" />
     <Compile Include="Mock\IteratorHelper.cs" />
     <Compile Include="Mock\DatabaseEngineInstanceConfiguration.cs" />
-    <Compile Include="Mock\IObjectView.cs" />
+    <Compile Include="IObjectView.cs" />
     <Compile Include="Binding\IPropertyBinding.cs" />
     <Compile Include="Binding\ITypeBinding.cs" />
-    <Compile Include="Mock\ObjectRef.cs" />
+    <Compile Include="Mock\LogSources.cs" />
+    <Compile Include="ObjectRef.cs" />
     <Compile Include="Internal\DbState.cs" />
     <Compile Include="Binding\PropertyBinding.cs" />
     <Compile Include="Mock\RangeFlags.cs" />
-    <Compile Include="Mock\Temp.cs" />
+    <Compile Include="Mock\SqlConnectivity.cs" />
     <Compile Include="Mock\ThreadHelper.cs" />
     <Compile Include="Mock\TypeRepository.cs" />
     <Compile Include="ObjectDoesntExistException.cs" />
@@ -363,10 +365,10 @@
     <Compile Include="Internal\sccoredb.cs" />
     <Compile Include="Internal\sccorelib.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Mock\Entity.cs" />
+    <Compile Include="Entity.cs" />
     <Compile Include="Mock\LucentObjectsRuntime.cs" />
     <Compile Include="Binding\TypeBinding.cs" />
-    <Compile Include="Mock\Uninitialized.cs" />
+    <Compile Include="Internal\Uninitialized.cs" />
     <Compile Include="Mock\Schema\DatabaseArrayType.cs" />
     <Compile Include="Mock\Schema\DatabaseAssembly.cs" />
     <Compile Include="Mock\Schema\DatabaseAttribute.cs" />

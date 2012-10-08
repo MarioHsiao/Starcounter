@@ -1,6 +1,5 @@
 ﻿using System;
 using se.sics.prologbeans;
-using Sc.Server.Internal;
 using Starcounter.Query.Sql;
 using System.Text;
 using System.Runtime.InteropServices;

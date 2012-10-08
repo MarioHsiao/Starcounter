@@ -1,6 +1,5 @@
 ﻿
-using Sc.Server.Binding;
-using Sc.Server.Internal;
+using Starcounter.Internal;
 using System;
 using System.Reflection;
 using System.Reflection.Emit;

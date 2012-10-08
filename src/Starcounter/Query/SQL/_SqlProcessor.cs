@@ -1,8 +1,6 @@
 ﻿
 using System;
 using System.Collections.Generic;
-using Sc.Server.Binding;
-using Sc.Server.Internal;
 using Starcounter.Query.Execution;
 //using Sc.Server.Weaver.Schema;
 using Starcounter.Binding;
@@ -557,6 +555,7 @@ internal static class SqlProcessor
         return identifierPath;
     }
 
+#if false
     internal static TypeBinding GetTypeBinding(String name, List<String> tokenList, Int32 beginPos, Int32 endPos)
     {
         TypeBinding typeBind = null;
@@ -584,6 +583,7 @@ internal static class SqlProcessor
         }
         return typeBind;
     }
+#endif
 
     // TODO: Implement support of methods in path.
     //internal static IPath ProcessPath(List<String> tokenList, ref Int32 pos, Int32 extentNum, ITypeBinding typeBind)
