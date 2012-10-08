@@ -450,7 +450,7 @@ namespace Starcounter.Binding
         internal sealed class UpgradeRecord : Entity
         {
 
-            public UpgradeRecord(Sc.Server.Internal.Uninitialized u) : base(u) { }
+            public UpgradeRecord(Uninitialized u) : base(u) { }
         }
 
         protected UpgradeRecord rec_;
@@ -459,7 +459,7 @@ namespace Starcounter.Binding
 
         public ColumnValueTransfer(int sourceIndex, int targetIndex)
         {
-            rec_ = new UpgradeRecord((Sc.Server.Internal.Uninitialized)null);
+            rec_ = new UpgradeRecord((Uninitialized)null);
             sourceIndex_ = sourceIndex;
             targetIndex_ = targetIndex;
         }

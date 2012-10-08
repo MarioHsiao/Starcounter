@@ -77,9 +77,9 @@ namespace Starcounter
             throw ErrorCode.ToException(Error.SCERRCODENOTENHANCED);
         }
 
-        protected Entity(Sc.Server.Internal.Uninitialized u) { }
+        protected Entity(Uninitialized u) { }
 
-        public Entity(ulong typeAddr, TypeBinding typeBinding, Sc.Server.Internal.Uninitialized u)
+        public Entity(ulong typeAddr, TypeBinding typeBinding, Uninitialized u)
         {
             DbState.Insert(this, typeAddr, typeBinding);
         }
