@@ -166,7 +166,12 @@ namespace Starcounter.Server {
             ToConsoleWithColor(string.Format("Reply: {0}", reply), endsRequest ? ConsoleColor.White : ConsoleColor.Red);
             byte[] byteReply = Encoding.UTF8.GetBytes(reply);
             pipe.Write(byteReply, 0, byteReply.Length);
-            if (endsRequest) pipe.Disconnect();
+            if (endsRequest) {
+                pipe.WaitForPipeDrain();
+                if (pipe.IsConnected) {
+                    pipe.Disconnect();
+                }
+            }
         }
 
         void Usage(IApplicationSyntax syntax, InvalidCommandLineException argumentException) {
