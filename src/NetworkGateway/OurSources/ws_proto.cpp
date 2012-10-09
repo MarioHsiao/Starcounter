@@ -78,8 +78,8 @@ uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunk *sd, BMX_
             MaskUnMask(frame_info_.payload_len_, frame_info_.mask_, (uint64_t *)payload);
 
             // Setting user data length and pointer.
-            sd->SetUserDataWrittenBytes(frame_info_.payload_len_);
-            sd->SetUserDataOffset(payload - ((uint8_t *)sd));
+            sd->set_user_data_written_bytes(frame_info_.payload_len_);
+            sd->set_user_data_offset(payload - ((uint8_t *)sd));
 
             // Push chunk to corresponding channel/scheduler.
             gw->PushSocketDataToDb(sd, user_handler_id);
@@ -96,8 +96,8 @@ uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunk *sd, BMX_
             MaskUnMask(frame_info_.payload_len_, frame_info_.mask_, (uint64_t *)payload);
 
             // Setting user data length and pointer.
-            sd->SetUserDataWrittenBytes(frame_info_.payload_len_);
-            sd->SetUserDataOffset(payload - ((uint8_t *)sd));
+            sd->set_user_data_written_bytes(frame_info_.payload_len_);
+            sd->set_user_data_offset(payload - ((uint8_t *)sd));
 
             // Push chunk to corresponding channel/scheduler.
             gw->PushSocketDataToDb(sd, user_handler_id);

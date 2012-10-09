@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Text;
 using System.Threading;
 using HttpStructs;
@@ -22,6 +23,9 @@ namespace NetworkIoTestApp
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
             GatewayHandlers.RegisterUriHandler(80, "GET /users", HTTP_METHODS.GET_METHOD, OnHttpMessageUsers, out handlerId);
+            Console.WriteLine("Successfully registered new handler: " + handlerId);
+
+            GatewayHandlers.RegisterUriHandler(80, "GET /image", HTTP_METHODS.GET_METHOD, OnHttpMessageImage, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
             /*
@@ -151,6 +155,32 @@ namespace NetworkIoTestApp
 
             // Writing back to channel.
             p.WriteResponse(respBytes, 0, respBytes.Length);
+
+            return true;
+        }
+
+        // HTTP handler with no specific URI.
+        private static Boolean OnHttpMessageImage(HttpRequest p)
+        {
+            // Loading image file from disk.
+            Byte[] bodyBytes = File.ReadAllBytes(@"c:\github\Level1\src\Samples\NetworkIoTest\image.png");
+
+            String headerString =
+                "HTTP/1.1 200 OK\r\n" +
+                "Content-Type: image/png\r\n" +
+                "Set-Cookie: " + p.SessionStruct.ConvertToSessionCookieFaster() + "; HttpOnly\r\n" +
+                "Content-Length: " + bodyBytes.Length + "\r\n" +
+                "\r\n";
+
+            Byte[] headerBytes = Encoding.ASCII.GetBytes(headerString);
+
+            // Combining two arrays together.
+            Byte[] responseBuf = new Byte[headerBytes.Length + bodyBytes.Length];
+            headerBytes.CopyTo(responseBuf, 0);
+            bodyBytes.CopyTo(responseBuf, headerBytes.Length);
+
+            // Writing back to channel.
+            p.WriteResponse(responseBuf, 0, responseBuf.Length);
 
             return true;
         }

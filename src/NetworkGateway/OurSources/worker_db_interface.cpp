@@ -53,15 +53,15 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
             // that the out queue in this channel is not full.
             the_channel.scheduler()->notify();
 
-            // Chunk was popped successfully.
-            g_gateway.GetDatabase(db_index_)->ChangeNumUsedChunks(1);
-
             // Get the chunk.
             shared_memory_chunk* smc = (shared_memory_chunk*) &(shared_int_.chunk(chunk_index));
 
             // Check if its a BMX handlers management message.
             if (bmx::BMX_MANAGEMENT_HANDLER == smc->get_bmx_protocol())
             {
+                // Changing number of owned chunks.
+                g_gateway.GetDatabase(db_index_)->ChangeNumUsedChunks(1);
+
                 // Entering global lock.
                 gw->EnterGlobalLock();
 
@@ -72,8 +72,8 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
                 // Releasing global lock.
                 gw->LeaveGlobalLock();
 
-                // Releasing chunk.
-                ReturnChunkToPool(chunk_index);
+                // Releasing management chunk.
+                ReturnLinkedChunksToPool(1, chunk_index);
 
                 continue;
             }
@@ -81,12 +81,21 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
             // Process the chunk.
             SocketDataChunk *sd = (SocketDataChunk *)((uint8_t *)smc + BMX_HEADER_MAX_SIZE_BYTES);
 
+            // Setting chunk index because of possible cloned chunks.
+            sd->set_chunk_index(chunk_index);
+
+            // We need to check if its a multi-chunk response.
+            sd->CreateWSABuffersIfMultiChunks(shared_int_, smc);
+
+            // Changing number of owned chunks.
+            g_gateway.GetDatabase(db_index_)->ChangeNumUsedChunks(sd->get_num_chunks());
+
             // Checking that corresponding database and handler are up.
             if (!sd->CheckSocketIsValid(gw))
                 continue;
 
 #ifdef GW_CHUNKS_DIAG
-            GW_COUT << "[" << gw->GetWorkerId() << "]: " << "Popping chunk: " << sd->sock() << " " << sd->chunk_index() << std::endl;
+            GW_COUT << "[" << gw->GetWorkerId() << "]: " << "Popping chunk: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
 #endif
 
             // Resetting the data buffer.
@@ -146,7 +155,7 @@ uint32_t WorkerDbInterface::PushChunkToDb(
         the_channel.scheduler()->notify();
 
 #ifdef GW_CHUNKS_DIAG
-        GW_COUT << "   successfully pushed: " << chunk_index << std::endl;
+        GW_COUT << "   successfully pushed: chunk " << chunk_index << std::endl;
 #endif
     }
     else
@@ -175,17 +184,17 @@ uint32_t WorkerDbInterface::ReturnChunkToPool(GatewayWorker *gw, SocketDataChunk
     GW_COUT << "[" << gw->GetWorkerId() << "]: " << "Returning chunk: " << sd->sock() << " " << sd->chunk_index() << std::endl;
 #endif
 
-    return ReturnChunkToPool(sd->chunk_index());
+    return ReturnLinkedChunksToPool(sd->get_num_chunks(), sd->chunk_index());
 }
 
 // Returns given chunk to private chunk pool.
-uint32_t WorkerDbInterface::ReturnChunkToPool(core::chunk_index& chunk_index)
+uint32_t WorkerDbInterface::ReturnLinkedChunksToPool(uint32_t num_linked_chunks, core::chunk_index& chunk_index)
 {
     // Releasing chunk to private pool.
     private_chunk_pool_.release_linked_chunks(&shared_int_.chunk(0), chunk_index);
 
     // Chunk has been released.
-    g_gateway.GetDatabase(db_index_)->ChangeNumUsedChunks(-1);
+    g_gateway.GetDatabase(db_index_)->ChangeNumUsedChunks(-num_linked_chunks);
 
     // Check if there are too many private chunks so
     // we need to release them to the shared chunk pool.
@@ -202,7 +211,7 @@ uint32_t WorkerDbInterface::ReturnChunkToPool(core::chunk_index& chunk_index)
 uint32_t WorkerDbInterface::PushSocketDataToDb(GatewayWorker* gw, SocketDataChunk *sd, BMX_HANDLER_TYPE user_handler_id)
 {
 #ifdef GW_CHUNKS_DIAG
-    GW_COUT << "[" << gw->GetWorkerId() << "]: " << "Pushing chunk: " << sd->sock() << " " << sd->chunk_index() << " " << user_handler_id << std::endl;
+    GW_COUT << "[" << gw->GetWorkerId() << "]: " << "Pushing chunk: socket " << sd->sock() << " chunk " << sd->chunk_index() << " handler_id " << user_handler_id << std::endl;
 #endif
 
     // Checking if chunk belongs to this database.

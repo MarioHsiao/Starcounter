@@ -78,6 +78,8 @@
     <Compile Include="IRequestHandler.cs" />
     <Compile Include="JsonPatchTest.cs" />
     <Compile Include="MainApp.cs" />
+    <Compile Include="Master.cs" />
+    <Compile Include="Master.json.g.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestApp.cs" />
     <Compile Include="TestDynamicApps.cs" />
@@ -109,10 +111,6 @@
     <ProjectReference Include="..\Starcounter.Apps.Interfaces\Starcounter.Apps.Interfaces.csproj">
       <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
       <Name>Starcounter.Apps.Interfaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.MsBuild\Starcounter.MsBuild.csproj">
-      <Project>{b1ec8976-b515-4308-89c3-319543a0c7a9}</Project>
-      <Name>Starcounter.MsBuild</Name>
     </ProjectReference>
     <ProjectReference Include="..\REST\Starcounter.Rest.csproj">
       <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>

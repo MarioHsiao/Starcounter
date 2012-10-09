@@ -877,6 +877,10 @@ void SessionData::GenerateNewSession(GatewayWorker *gw, uint32_t sessionIndex, u
     num_visits_ = 0;
     attached_socket_ = INVALID_SOCKET;
     socket_stamp_ = gw->Random->uint64();
+
+#ifdef GW_SESSIONS_DIAG
+    GW_COUT << "New session generated: " << session_struct_.session_index_ << ":" << session_struct_.random_salt_ << std::endl;
+#endif
 }
 
 // Prints statistics, scans for database updates in the background, etc.
