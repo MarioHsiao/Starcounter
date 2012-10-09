@@ -1,5 +1,5 @@
 ﻿
-namespace Sc.Server.Internal
+namespace Starcounter.Internal
 {
 
     public sealed class Uninitialized { }

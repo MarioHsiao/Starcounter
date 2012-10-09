@@ -9,7 +9,7 @@ namespace Starcounter.Internal
 
         public static void ResetTheQueryModule()
         {
-            QueryModule.Initiate(true, new Starcounter.Configuration.DatabaseEngineInstanceConfiguration());
+            QueryModule.Initiate(true);
         }
     }
 }

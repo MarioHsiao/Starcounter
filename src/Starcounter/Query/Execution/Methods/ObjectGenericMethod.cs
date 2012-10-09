@@ -3,7 +3,6 @@
 using Starcounter;
 using Starcounter.Query.Optimization;
 using Starcounter.Query.Sql;
-using Sc.Server.Internal;
 using System;
 using System.Collections.Generic;
 using System.Collections;
