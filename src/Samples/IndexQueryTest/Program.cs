@@ -29,6 +29,7 @@ namespace IndexQueryTest
 {
     class Program
     {
+#if ACCOUNTTEST_MODEL
         #region Populate
         static bool Populate()
         {
@@ -104,6 +105,11 @@ namespace IndexQueryTest
             Console.WriteLine("Test of CREATE/DROP INDEX and DROP TABLE.");
             Db.Transaction(delegate
             {
+                if (Db.SQL("select u from user u").First == null)
+                {
+                    Console.WriteLine("It seems that User table was deleted");
+                    PrintAllObjects();
+                }
                 Db.SlowSQL("DELETE FROM Account");
                 Db.SlowSQL("DELETE FROM User");
             });
@@ -152,5 +158,14 @@ namespace IndexQueryTest
             });
             Console.WriteLine("Test completed.");
         }
+#else
+        static void Main(string[] args)
+        {
+            Console.WriteLine("Test of CREATE/DROP INDEX and DROP TABLE without module is loaded.");
+            Db.SlowSQL("DROP TABLE AccountTest.Account");
+            Db.SlowSQL("DROP TABLE AccountTest.User");
+            Console.WriteLine("Test completed");
+        }
+#endif
     }
 }
