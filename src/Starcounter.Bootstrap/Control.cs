@@ -139,6 +139,8 @@ namespace StarcounterInternal.Bootstrap
                 request.Respond(response ?? "<NULL>");
             });
 
+            Loader.AddBasePackage(hsched_);
+
             // Executing auto-start task if any.
             if (configuration.AutoStartExePath != null)
             {
