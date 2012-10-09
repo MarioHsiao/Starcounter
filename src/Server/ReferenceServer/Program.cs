@@ -6,41 +6,27 @@ using Starcounter.Server.Setup;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.ServiceProcess;
 using System.Threading;
+
+using System.Text;
+using System.IO.Pipes;
 
 namespace Starcounter.Server {
 
-    class ServerProgram : ServiceBase {
-        static ServerProgram serverProgram;
-
-        /// <summary>
-        /// Gets or sets a value indicating if the server runs in user
-        /// interactive mode or not. If not, it's running as a service.
-        /// </summary>
-        bool UserInteractive {
-            get;
-            set;
-        }
+    /// <summary>
+    /// Implements a reference server, not intended for production use,
+    /// but rather to show how to host the server engine.
+    /// </summary>
+    class ReferenceServer {
+        static ReferenceServer serverProgram;
+        NamedPipeServerStream pipe;
 
         static void Main(string[] args) {
-            serverProgram = new ServerProgram() { UserInteractive = Environment.UserInteractive };
-
-            if (serverProgram.UserInteractive) {
-                // The server is executed either as a console program, or a
-                // Windows application, depending on how it was built.
-                Console.CancelKeyPress += Console_CancelKeyPress;
-                serverProgram.OnStart(args);
-                Console.WriteLine("Press CTRL+C to exit...");
-                Thread.Sleep(Timeout.Infinite);
-
-            } else {
-                // The server is ran as a service.
-                ServiceBase.Run(serverProgram);
-            }
+            serverProgram = new ReferenceServer();
+            serverProgram.Run(args);
         }
 
-        protected override void OnStart(string[] args) {
+        void Run(string[] args) {
             ApplicationArguments arguments;
 
             if (TryGetProgramArguments(args, out arguments)) {
@@ -70,16 +56,26 @@ namespace Starcounter.Server {
                 var engine = new ServerEngine(arguments.CommandParameters[0]);
                 engine.Setup();
 
-                var services = new ServerServices(engine);
+                // Setup the service interface. It can be one of three: either
+                // redirected standard streams, local named pipe or the in-process
+                // command prompt.
+
+                ServerServices services;
+                string pipeName;
+
+                if (arguments.TryGetProperty("Pipe", out pipeName)) {
+                    pipe = new NamedPipeServerStream(pipeName, PipeDirection.InOut, 1, PipeTransmissionMode.Message);
+                    services = new ServerServices(engine, ReadRequestFromPipe, SendReplyOnPipe);
+                    ToConsoleWithColor(string.Format("Accepting service calls on pipe '{0}'...", pipeName), ConsoleColor.DarkGray);
+                } else {
+                    services = new ServerServices(engine);
+                }
                 services.Setup();
 
+                // Start the engine and the configured services.
                 engine.Start();
                 services.Start();
             }
-        }
-
-        protected override void OnStop() {
-            // The server is stopping.
         }
 
         bool TryGetProgramArguments(string[] args, out ApplicationArguments arguments) {
@@ -106,6 +102,11 @@ namespace Starcounter.Server {
             // parameter - the path to the server configuration file - is expected.
 
             commandDefinition = syntaxDefinition.DefineCommand("Start", "Starts the Starcounter server.", 1);
+
+            // Define the "Pipe" property, allowing the reference server to be run
+            // using named pipes.
+            commandDefinition.DefineProperty("Pipe", 
+                "Allows the reference server to run using named pipes. The value should be the name of the pipe.");
 
             // Define the "CreateRepo" command, used to create a server repository
             // using built-in defaults. One parameter - the server repository path -
@@ -141,10 +142,39 @@ namespace Starcounter.Server {
             return true;
         }
 
-        void Usage(IApplicationSyntax syntax, InvalidCommandLineException argumentException) {
-            if (!this.UserInteractive)
-                return;
+        string ReadRequestFromPipe() {
+            byte[] buffer;
+            buffer = new byte[1024];
+            MemoryStream messageBuffer;
+            string request;
 
+            pipe.WaitForConnection();
+            messageBuffer = new MemoryStream();
+
+            do {
+                int readCount = pipe.Read(buffer, 0, buffer.Length);
+                messageBuffer.Write(buffer, 0, readCount);
+            } while (!pipe.IsMessageComplete);
+
+            request = Encoding.UTF8.GetString(messageBuffer.ToArray());
+            ToConsoleWithColor(string.Format("Request: {0}", request), ConsoleColor.Yellow);
+
+            return request;
+        }
+
+        void SendReplyOnPipe(string reply, bool endsRequest) {
+            ToConsoleWithColor(string.Format("Reply: {0}", reply), endsRequest ? ConsoleColor.White : ConsoleColor.Red);
+            byte[] byteReply = Encoding.UTF8.GetBytes(reply);
+            pipe.Write(byteReply, 0, byteReply.Length);
+            if (endsRequest) {
+                pipe.WaitForPipeDrain();
+                if (pipe.IsConnected) {
+                    pipe.Disconnect();
+                }
+            }
+        }
+
+        void Usage(IApplicationSyntax syntax, InvalidCommandLineException argumentException) {
             // Print a usage message, based on the syntax.
             // If the argument exception given is not null, print a header with
             // the message.
@@ -193,9 +223,13 @@ namespace Starcounter.Server {
             Console.WriteLine();
         }
 
-        static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e) {
-            serverProgram.OnStop();
-            Environment.Exit(0);
+        static void ToConsoleWithColor(string text, ConsoleColor color) {
+            try {
+                Console.ForegroundColor = color;
+                Console.WriteLine(text);
+            } finally {
+                Console.ResetColor();
+            }
         }
     }
 }
