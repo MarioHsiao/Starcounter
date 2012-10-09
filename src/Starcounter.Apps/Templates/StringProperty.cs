@@ -16,7 +16,11 @@ namespace Starcounter.Templates {
 
 
         public void ProcessInput( App app, string value ) {
-            var input = CustomInputEventCreator.Invoke(app, this, value);
+            Input<String> input = null;
+
+            if (CustomInputEventCreator != null)
+                input = CustomInputEventCreator.Invoke(app, this, value);
+
             if (input != null) {
                 foreach (var h in CustomInputHandlers) {
                     h.Invoke(app, input);
