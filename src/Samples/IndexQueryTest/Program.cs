@@ -29,6 +29,7 @@ namespace IndexQueryTest
 {
     class Program
     {
+#if ACCOUNTTEST_MODEL
         #region Populate
         static bool Populate()
         {
@@ -102,6 +103,16 @@ namespace IndexQueryTest
         static void Main(string[] args)
         {
             Console.WriteLine("Test of CREATE/DROP INDEX and DROP TABLE.");
+            Db.Transaction(delegate
+            {
+                if (Db.SQL("select u from user u").First == null)
+                {
+                    Console.WriteLine("It seems that User table was deleted");
+                    PrintAllObjects();
+                }
+                Db.SlowSQL("DELETE FROM Account");
+                Db.SlowSQL("DELETE FROM User");
+            });
             Populate();
             PrintAllObjects();
             // See a query plan
@@ -109,6 +120,12 @@ namespace IndexQueryTest
             {
                 ISqlEnumerator sqlEnum = (ISqlEnumerator)Db.SQL("select u from user u").GetEnumerator();
                 Console.WriteLine(sqlEnum.ToString());
+            });
+            // Test that query plan before creating index
+            PrintUserByLastName("Popov");
+            Db.Transaction(delegate
+            {
+                Console.WriteLine(((ISqlEnumerator)Db.SQL("select u from User u where LastName = ?", "Popov").GetEnumerator()).ToString());
             });
             // Create index if necessary
             Db.Transaction(delegate
@@ -120,7 +137,7 @@ namespace IndexQueryTest
                 }
                 catch (Starcounter.DbException ex)
                 {
-                    if (ex.Message.StartsWith("ScErrNamedIndexAlreadyExists"))
+                    if (ex.ErrorCode == Starcounter.Error.SCERRNAMEDINDEXALREADYEXISTS)
                         Console.WriteLine("Index userLN already exists.");
                     else
                         throw ex;
@@ -132,7 +149,23 @@ namespace IndexQueryTest
             {
                 Console.WriteLine(((ISqlEnumerator)Db.SQL("select u from User u where LastName = ?", "Popov").GetEnumerator()).ToString());
             });
+            Db.SlowSQL("DROP INDEX userLN ON AccountTest.User");
+            Console.WriteLine("Dropped index userLN ON AccountTest.User");
+            PrintUserByLastName("Popov");
+            Db.Transaction(delegate
+            {
+                Console.WriteLine(((ISqlEnumerator)Db.SQL("select u from User u where LastName = ?", "Popov").GetEnumerator()).ToString());
+            });
             Console.WriteLine("Test completed.");
         }
+#else
+        static void Main(string[] args)
+        {
+            Console.WriteLine("Test of CREATE/DROP INDEX and DROP TABLE without module is loaded.");
+            Db.SlowSQL("DROP TABLE AccountTest.Account");
+            Db.SlowSQL("DROP TABLE AccountTest.User");
+            Console.WriteLine("Test completed");
+        }
+#endif
     }
 }

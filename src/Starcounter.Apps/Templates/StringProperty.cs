@@ -1,5 +1,6 @@
 ﻿using System;
 using Starcounter.Templates.Interfaces;
+using System.Collections.Generic;
 
 #if CLIENT
 namespace Starcounter.Client.Template {
@@ -7,11 +8,36 @@ namespace Starcounter.Client.Template {
 namespace Starcounter.Templates {
 #endif
 
-    public class StringProperty : Property
+    public class StringProperty : Property<string>
 #if IAPP
         , IStringTemplate
 #endif
     {
+
+
+        public void ProcessInput( App app, string value ) {
+            Input<String> input = null;
+
+            if (CustomInputEventCreator != null)
+                input = CustomInputEventCreator.Invoke(app, this, value);
+
+            if (input != null) {
+                foreach (var h in CustomInputHandlers) {
+                    h.Invoke(app, input);
+                }
+                if (!input.Cancelled) {
+                    Console.WriteLine("Setting value after custom handler: " + value);
+                    app.SetValue(this, value);
+                }
+                else {
+                    Console.WriteLine("Handler cancelled: " + value);
+                }
+            }
+            else {
+                Console.WriteLine("Setting value after no handler: " + value);
+                app.SetValue(this, value);
+            }
+        }
 
         private string _DefaultValue = "";
 

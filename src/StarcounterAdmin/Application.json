@@ -1,0 +1,16 @@
+{
+	"id":"app1",
+	"status":"stopped",
+	"name":"App 1",
+	"description":"Description App 1",
+	"image": "/img/console.png",
+	"remove":null,
+	"console":{"text":"No console output yet!", "clear":null},
+	"start":null,
+	"pause":null,
+	"stop":null,
+	"delete":null,
+	"backup":null
+}
+
+

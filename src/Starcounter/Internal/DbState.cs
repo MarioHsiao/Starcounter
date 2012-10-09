@@ -1,16 +1,11 @@
 ﻿
-using Sc.Server.Binding;
 using Starcounter;
+using Starcounter.Binding;
 using Starcounter.Internal;
 using System;
 
 
-// TODO:
-// We must keep DbState in namespace Sc.Server.Internal for now because
-// generated code links to this code. To be moved to namespace
-// Starcounter.Internal as soon as code generation has been updated.
-
-namespace Sc.Server.Internal //namespace Starcounter.Internal
+namespace Starcounter.Internal
 {
 
     public static class DbState
@@ -53,7 +48,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
 #endif
         }
 
-        public static Boolean ReadBoolean(DbObject obj, Int32 index)
+        public static Boolean ReadBoolean(Entity obj, Int32 index)
         {
             Byte value;
             UInt16 flags;
@@ -72,7 +67,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
-        public static Nullable<Boolean> ReadNullableBoolean(DbObject obj, Int32 index)
+        public static Nullable<Boolean> ReadNullableBoolean(Entity obj, Int32 index)
         {
             Byte value;
             UInt16 flags;
@@ -95,17 +90,17 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
-        public static Byte ReadByte(DbObject obj, Int32 index)
+        public static Byte ReadByte(Entity obj, Int32 index)
         {
             return (Byte)ReadUInt64(obj, index);
         }
 
-        public static Nullable<Byte> ReadNullableByte(DbObject obj, Int32 index)
+        public static Nullable<Byte> ReadNullableByte(Entity obj, Int32 index)
         {
             return (Byte?)ReadNullableUInt64(obj, index);
         }
 
-        public static DateTime ReadDateTime(DbObject obj, Int32 index)
+        public static DateTime ReadDateTime(Entity obj, Int32 index)
         {
             UInt64 ticks;
             UInt16 flags;
@@ -128,7 +123,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
-        public static Nullable<DateTime> ReadNullableDateTime(DbObject obj, Int32 index)
+        public static Nullable<DateTime> ReadNullableDateTime(Entity obj, Int32 index)
         {
             UInt64 ticks;
             UInt16 flags;
@@ -151,7 +146,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
-        public static Decimal ReadDecimal(DbObject obj, Int32 index)
+        public static Decimal ReadDecimal(Entity obj, Int32 index)
         {
             UInt16 flags;
             ObjectRef thisRef;
@@ -177,7 +172,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
-        public static Nullable<Decimal> ReadNullableDecimal(DbObject obj, Int32 index)
+        public static Nullable<Decimal> ReadNullableDecimal(Entity obj, Int32 index)
         {
             UInt16 flags;
             ObjectRef thisRef;
@@ -210,7 +205,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
-        public static Double ReadDouble(DbObject obj, Int32 index)
+        public static Double ReadDouble(Entity obj, Int32 index)
         {
             Double value;
             UInt16 flags;
@@ -229,7 +224,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
-        public static Nullable<Double> ReadNullableDouble(DbObject obj, Int32 index)
+        public static Nullable<Double> ReadNullableDouble(Entity obj, Int32 index)
         {
             Double value;
             UInt16 flags;
@@ -252,27 +247,27 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
-        public static Int16 ReadInt16(DbObject obj, Int32 index)
+        public static Int16 ReadInt16(Entity obj, Int32 index)
         {
             return (Int16)ReadInt64(obj, index);
         }
 
-        public static Nullable<Int16> ReadNullableInt16(DbObject obj, Int32 index)
+        public static Nullable<Int16> ReadNullableInt16(Entity obj, Int32 index)
         {
             return (Int16?)ReadNullableInt64(obj, index);
         }
 
-        public static Int32 ReadInt32(DbObject obj, Int32 index)
+        public static Int32 ReadInt32(Entity obj, Int32 index)
         {
             return (Int32)ReadInt64(obj, index);
         }
 
-        public static Nullable<Int32> ReadNullableInt32(DbObject obj, Int32 index)
+        public static Nullable<Int32> ReadNullableInt32(Entity obj, Int32 index)
         {
             return (Int32?)ReadNullableInt64(obj, index);
         }
 
-        public static Int64 ReadInt64(DbObject obj, Int32 index)
+        public static Int64 ReadInt64(Entity obj, Int32 index)
         {
             Int64 value;
             UInt16 flags;
@@ -291,7 +286,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
-        public static Nullable<Int64> ReadNullableInt64(DbObject obj, Int32 index)
+        public static Nullable<Int64> ReadNullableInt64(Entity obj, Int32 index)
         {
             Int64 value;
             UInt16 flags;
@@ -314,7 +309,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
-        public static Entity ReadObject(DbObject obj, Int32 index)
+        public static Entity ReadObject(Entity obj, Int32 index)
         {
             ObjectRef thisRef;
             UInt16 flags;
@@ -339,7 +334,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             {
                 if ((flags & sccoredb.Mdb_DataValueFlag_Null) == 0)
                 {
-                    return TypeRepository.GetTypeBinding(cci).NewInstance(value.ETI, value.ObjectID);
+                    return Bindings.GetTypeBinding(cci).NewInstance(value.ETI, value.ObjectID);
                 }
                 return null;
             }
@@ -347,17 +342,17 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
-        public static SByte ReadSByte(DbObject obj, Int32 index)
+        public static SByte ReadSByte(Entity obj, Int32 index)
         {
             return (SByte)ReadInt64(obj, index);
         }
 
-        public static Nullable<SByte> ReadNullableSByte(DbObject obj, Int32 index)
+        public static Nullable<SByte> ReadNullableSByte(Entity obj, Int32 index)
         {
             return (SByte?)ReadNullableInt64(obj, index);
         }
 
-        public static Single ReadSingle(DbObject obj, Int32 index)
+        public static Single ReadSingle(Entity obj, Int32 index)
         {
             Single value;
             UInt16 flags;
@@ -376,7 +371,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
-        public static Nullable<Single> ReadNullableSingle(DbObject obj, Int32 index)
+        public static Nullable<Single> ReadNullableSingle(Entity obj, Int32 index)
         {
             Single value;
             UInt16 flags;
@@ -399,7 +394,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
-        public static String ReadString(DbObject obj, Int32 index)
+        public static String ReadString(Entity obj, Int32 index)
         {
             unsafe
             {
@@ -433,7 +428,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             }
         }
 
-        public static Binary ReadBinary(DbObject obj, Int32 index)
+        public static Binary ReadBinary(Entity obj, Int32 index)
         {
             UInt16 flags;
             ObjectRef thisRef;
@@ -457,7 +452,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
-        public static LargeBinary ReadLargeBinary(DbObject obj, Int32 index)
+        public static LargeBinary ReadLargeBinary(Entity obj, Int32 index)
         {
             UInt16 flags;
             ObjectRef thisRef;
@@ -479,12 +474,12 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
-        public static TimeSpan ReadTimeSpan(DbObject obj, Int32 index)
+        public static TimeSpan ReadTimeSpan(Entity obj, Int32 index)
         {
             return new TimeSpan(ReadTimeSpanEx(obj, index));
         }
 
-        public static Nullable<TimeSpan> ReadNullableTimeSpan(DbObject obj, Int32 index)
+        public static Nullable<TimeSpan> ReadNullableTimeSpan(Entity obj, Int32 index)
         {
             UInt64 ticks;
             UInt16 flags;
@@ -507,7 +502,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             return new Nullable<TimeSpan>(new TimeSpan((Int64)ticks));
         }
 
-        private static Int64 ReadTimeSpanEx(DbObject obj, Int32 index)
+        private static Int64 ReadTimeSpanEx(Entity obj, Int32 index)
         {
             UInt64 ticks;
             UInt16 flags;
@@ -530,27 +525,27 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             return (Int64)ticks;
         }
 
-        public static UInt16 ReadUInt16(DbObject obj, Int32 index)
+        public static UInt16 ReadUInt16(Entity obj, Int32 index)
         {
             return (UInt16)ReadUInt64(obj, index);
         }
 
-        public static Nullable<UInt16> ReadNullableUInt16(DbObject obj, Int32 index)
+        public static Nullable<UInt16> ReadNullableUInt16(Entity obj, Int32 index)
         {
             return (UInt16?)ReadNullableUInt64(obj, index);
         }
 
-        public static UInt32 ReadUInt32(DbObject obj, Int32 index)
+        public static UInt32 ReadUInt32(Entity obj, Int32 index)
         {
             return (UInt32)ReadUInt64(obj, index);
         }
 
-        public static Nullable<UInt32> ReadNullableUInt32(DbObject obj, Int32 index)
+        public static Nullable<UInt32> ReadNullableUInt32(Entity obj, Int32 index)
         {
             return (UInt32?)ReadNullableUInt64(obj, index);
         }
 
-        public static UInt64 ReadUInt64(DbObject obj, Int32 index)
+        public static UInt64 ReadUInt64(Entity obj, Int32 index)
         {
             ObjectRef thisRef;
             UInt16 flags;
@@ -569,7 +564,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
-        public static Nullable<UInt64> ReadNullableUInt64(DbObject obj, Int32 index)
+        public static Nullable<UInt64> ReadNullableUInt64(Entity obj, Int32 index)
         {
             ObjectRef thisRef;
             UInt16 flags;
@@ -592,7 +587,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
-        public static void WriteBoolean(DbObject obj, Int32 index, Boolean value)
+        public static void WriteBoolean(Entity obj, Int32 index, Boolean value)
         {
             ObjectRef thisRef;
             Boolean br;
@@ -605,7 +600,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
-        public static void WriteNullableBoolean(DbObject obj, Int32 index, Nullable<Boolean> value)
+        public static void WriteNullableBoolean(Entity obj, Int32 index, Nullable<Boolean> value)
         {
             if (value.HasValue)
             {
@@ -617,12 +612,12 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             }
         }
 
-        public static void WriteByte(DbObject obj, Int32 index, Byte value)
+        public static void WriteByte(Entity obj, Int32 index, Byte value)
         {
             WriteUInt64(obj, index, value);
         }
 
-        public static void WriteNullableByte(DbObject obj, Int32 index, Nullable<Byte> value)
+        public static void WriteNullableByte(Entity obj, Int32 index, Nullable<Byte> value)
         {
             if (value.HasValue)
             {
@@ -634,12 +629,12 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             }
         }
 
-        public static void WriteDateTime(DbObject obj, Int32 index, DateTime value)
+        public static void WriteDateTime(Entity obj, Int32 index, DateTime value)
         {
             WriteDateTimeEx(obj, index, value.Ticks);
         }
 
-        public static void WriteNullableDateTime(DbObject obj, Int32 index, Nullable<DateTime> value)
+        public static void WriteNullableDateTime(Entity obj, Int32 index, Nullable<DateTime> value)
         {
             if (value.HasValue)
             {
@@ -651,7 +646,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             }
         }
 
-        private static void WriteDateTimeEx(DbObject obj, Int32 index, Int64 value)
+        private static void WriteDateTimeEx(Entity obj, Int32 index, Int64 value)
         {
             ObjectRef thisRef;
             Boolean br;
@@ -668,7 +663,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
-        public static void WriteDecimal(DbObject obj, Int32 index, Decimal value)
+        public static void WriteDecimal(Entity obj, Int32 index, Decimal value)
         {
             ObjectRef thisRef;
             Int32[] bits;
@@ -683,7 +678,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
-        public static void WriteNullableDecimal(DbObject obj, Int32 index, Nullable<Decimal> value)
+        public static void WriteNullableDecimal(Entity obj, Int32 index, Nullable<Decimal> value)
         {
             if (value.HasValue)
             {
@@ -695,7 +690,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             }
         }
 
-        public static void WriteDouble(DbObject obj, Int32 index, Double value)
+        public static void WriteDouble(Entity obj, Int32 index, Double value)
         {
             ObjectRef thisRef;
             Boolean br;
@@ -708,7 +703,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
-        public static void WriteNullableDouble(DbObject obj, Int32 index, Nullable<Double> value)
+        public static void WriteNullableDouble(Entity obj, Int32 index, Nullable<Double> value)
         {
             if (value.HasValue)
             {
@@ -720,12 +715,12 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             }
         }
 
-        public static void WriteInt16(DbObject obj, Int32 index, Int16 value)
+        public static void WriteInt16(Entity obj, Int32 index, Int16 value)
         {
             WriteInt64(obj, index, value);
         }
 
-        public static void WriteNullableInt16(DbObject obj, Int32 index, Nullable<Int16> value)
+        public static void WriteNullableInt16(Entity obj, Int32 index, Nullable<Int16> value)
         {
             if (value.HasValue)
             {
@@ -737,12 +732,12 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             }
         }
 
-        public static void WriteInt32(DbObject obj, Int32 index, Int32 value)
+        public static void WriteInt32(Entity obj, Int32 index, Int32 value)
         {
             WriteInt64(obj, index, value);
         }
 
-        public static void WriteNullableInt32(DbObject obj, Int32 index, Nullable<Int32> value)
+        public static void WriteNullableInt32(Entity obj, Int32 index, Nullable<Int32> value)
         {
             if (value.HasValue)
             {
@@ -754,7 +749,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             }
         }
 
-        public static void WriteInt64(DbObject obj, Int32 index, Int64 value)
+        public static void WriteInt64(Entity obj, Int32 index, Int64 value)
         {
             ObjectRef thisRef;
             Boolean br;
@@ -767,7 +762,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
-        public static void WriteNullableInt64(DbObject obj, Int32 index, Nullable<Int64> value)
+        public static void WriteNullableInt64(Entity obj, Int32 index, Nullable<Int64> value)
         {
             if (value.HasValue)
             {
@@ -779,7 +774,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             }
         }
 
-        public static void WriteObject(DbObject obj, Int32 index, Entity value)
+        public static void WriteObject(Entity obj, Int32 index, Entity value)
         {
             ObjectRef thisRef;
             ObjectRef valueRef;
@@ -808,12 +803,12 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
-        public static void WriteSByte(DbObject obj, Int32 index, SByte value)
+        public static void WriteSByte(Entity obj, Int32 index, SByte value)
         {
             WriteInt64(obj, index, value);
         }
 
-        public static void WriteNullableSByte(DbObject obj, Int32 index, Nullable<SByte> value)
+        public static void WriteNullableSByte(Entity obj, Int32 index, Nullable<SByte> value)
         {
             if (value.HasValue)
             {
@@ -825,7 +820,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             }
         }
 
-        public static void WriteSingle(DbObject obj, Int32 index, Single value)
+        public static void WriteSingle(Entity obj, Int32 index, Single value)
         {
             ObjectRef thisRef;
             Boolean br;
@@ -838,7 +833,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
-        public static void WriteNullableSingle(DbObject obj, Int32 index, Nullable<Single> value)
+        public static void WriteNullableSingle(Entity obj, Int32 index, Nullable<Single> value)
         {
             if (value.HasValue)
             {
@@ -850,7 +845,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             }
         }
 
-        public static void WriteString(DbObject obj, Int32 index, String value)
+        public static void WriteString(Entity obj, Int32 index, String value)
         {
             ObjectRef thisRef;
             Boolean br;
@@ -874,12 +869,12 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
-        public static void WriteTimeSpan(DbObject obj, Int32 index, TimeSpan value)
+        public static void WriteTimeSpan(Entity obj, Int32 index, TimeSpan value)
         {
             WriteTimeSpanEx(obj, index, value.Ticks);
         }
 
-        public static void WriteNullableTimeSpan(DbObject obj, Int32 index, Nullable<TimeSpan> value)
+        public static void WriteNullableTimeSpan(Entity obj, Int32 index, Nullable<TimeSpan> value)
         {
             if (value.HasValue)
             {
@@ -891,7 +886,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             }
         }
 
-        private static void WriteTimeSpanEx(DbObject obj, Int32 index, Int64 value)
+        private static void WriteTimeSpanEx(Entity obj, Int32 index, Int64 value)
         {
             ObjectRef thisRef;
             Boolean br;
@@ -914,12 +909,12 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
-        public static void WriteUInt16(DbObject obj, Int32 index, UInt16 value)
+        public static void WriteUInt16(Entity obj, Int32 index, UInt16 value)
         {
             WriteUInt64(obj, index, value);
         }
 
-        public static void WriteNullableUInt16(DbObject obj, Int32 index, Nullable<UInt16> value)
+        public static void WriteNullableUInt16(Entity obj, Int32 index, Nullable<UInt16> value)
         {
             if (value.HasValue)
             {
@@ -931,12 +926,12 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             }
         }
 
-        public static void WriteUInt32(DbObject obj, Int32 index, UInt32 value)
+        public static void WriteUInt32(Entity obj, Int32 index, UInt32 value)
         {
             WriteUInt64(obj, index, value);
         }
 
-        public static void WriteNullableUInt32(DbObject obj, Int32 index, Nullable<UInt32> value)
+        public static void WriteNullableUInt32(Entity obj, Int32 index, Nullable<UInt32> value)
         {
             if (value.HasValue)
             {
@@ -948,7 +943,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             }
         }
 
-        public static void WriteUInt64(DbObject obj, Int32 index, UInt64 value)
+        public static void WriteUInt64(Entity obj, Int32 index, UInt64 value)
         {
             ObjectRef thisRef;
             Boolean br;
@@ -961,7 +956,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
-        public static void WriteNullableUInt64(DbObject obj, Int32 index, Nullable<UInt64> value)
+        public static void WriteNullableUInt64(Entity obj, Int32 index, Nullable<UInt64> value)
         {
             if (value.HasValue)
             {
@@ -973,7 +968,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             }
         }
 
-        public static void WriteBinary(DbObject obj, Int32 index, Binary value)
+        public static void WriteBinary(Entity obj, Int32 index, Binary value)
         {
             ObjectRef thisRef;
             UInt32 ret;
@@ -991,7 +986,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(ret);
         }
 
-        public static void WriteLargeBinary(DbObject obj, Int32 index, LargeBinary value)
+        public static void WriteLargeBinary(Entity obj, Int32 index, LargeBinary value)
         {
             ObjectRef thisRef;
             UInt32 ret;
@@ -1049,7 +1044,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             {
                 if ((flags & sccoredb.Mdb_DataValueFlag_Null) == 0)
                 {
-                    return TypeRepository.GetTypeBinding(cci).NewInstance(value.ETI, value.ObjectID);
+                    return Bindings.GetTypeBinding(cci).NewInstance(value.ETI, value.ObjectID);
                 }
                 return null;
             }
@@ -1057,7 +1052,7 @@ namespace Sc.Server.Internal //namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
-        internal static void WriteNull(DbObject obj, Int32 index)
+        internal static void WriteNull(Entity obj, Int32 index)
         {
             ObjectRef thisRef;
             Boolean br;

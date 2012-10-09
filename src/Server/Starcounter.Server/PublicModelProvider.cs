@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
+using System.Threading;
 
 namespace Starcounter.Server {
 
@@ -84,6 +85,28 @@ namespace Starcounter.Server {
         public CommandInfo Execute(ServerCommand command) {
             command.GetReadyToEnqueue();
             return this.engine.Dispatcher.Enqueue(command);
+        }
+
+        /// </inheritdoc>
+        /// <remarks>The implementation of this method is based on
+        /// <see cref="Thread.Sleep"/>, which possibly will be changed
+        /// to use events in a future versions.</remarks>
+        public CommandInfo Wait(CommandId id) {
+            CommandInfo cmd;
+
+            while (true) {
+                cmd = this.engine.Dispatcher.GetRecentCommand(id);
+                if (cmd == null) {
+                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "The command is not part of the recent command list.");
+                }
+                if (cmd.IsCompleted) {
+                    break;
+                }
+
+                Thread.Sleep(100);
+            };
+            
+            return cmd;
         }
 
         /// </inheritdoc>

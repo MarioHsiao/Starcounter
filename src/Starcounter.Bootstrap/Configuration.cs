@@ -126,5 +126,19 @@ namespace StarcounterInternal.Bootstrap
                 return chunksNumber;
             }
         }
+
+        public int SQLProcessPort
+        {
+            get
+            {
+                int v = 0;
+                string str;
+                if (this.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.SQLProcessPort, out str))
+                {
+                    v = int.Parse(str);
+                }
+                return v;
+            }
+        }
     }
 }

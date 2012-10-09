@@ -7,7 +7,7 @@ using System.Runtime.Serialization;
 namespace Sc.Server.Weaver.Schema
 {
 /// <summary>
-/// Represents any class derived from <b>DbObject</b> (but <b>DbObject</b> itself).
+/// Represents any class derived from <b>Entity</b>.
 /// </summary>
 [Serializable]
 public abstract partial class DatabaseClass : DatabaseSchemaElement, IDatabaseAttributeType

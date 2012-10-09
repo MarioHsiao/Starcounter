@@ -82,17 +82,6 @@ namespace Starcounter.Templates {
                 return (IEnumerable<Template>)_Single;
             }
         }
-
-        internal override void FullIndexUpdate(App app, int[] parentIndexPath)
-        {
-            base.FullIndexUpdate(app, parentIndexPath);
-            Listing list = (Listing)app.GetValue(this);
-            foreach (App child in list)
-            {
-                child.FullIndexUpdate(_indexPath);
-            }
-        }
-        
     }
 
 }

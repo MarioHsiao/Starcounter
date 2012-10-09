@@ -1,6 +1,5 @@
 ﻿using System;
 using se.sics.prologbeans;
-using Sc.Server.Internal;
 using Starcounter.Query.Sql;
 using System.Text;
 using System.Runtime.InteropServices;
@@ -27,6 +26,29 @@ namespace Starcounter
             get { return _globalCache; }
         }
 
+        internal static object InvalidateLock = new object();
+
+        // Cache for SQL enumerators per virtual processor.
+        // It means that cache is shared between several threads but
+        // with non-preemptive scheduling (only one thread is executed at a time).
+        readonly SqlEnumCache _sqlEnumCache;
+
+        public SqlEnumCache SqlEnumCache
+        {
+            get
+            {
+                return _sqlEnumCache;
+            }
+        }
+
+        internal PrologSession PrologSession;
+
+        private Scheduler(Int32 vpContextID)
+            : base()
+        {
+            _sqlEnumCache = new SqlEnumCache();
+        }
+        
         internal static Scheduler GetInstance(Boolean nullIfNotAttached)
         {
             ThreadData thread;
@@ -114,36 +136,18 @@ namespace Starcounter
             }
         }
 
-        // Cache for SQL enumerators per virtual processor.
-        // It means that cache is shared between several threads but
-        // with non-preemptive scheduling (only one thread is executed at a time).
-        readonly SqlEnumCache _sqlEnumCache;
-
-        internal SqlEnumCache SqlEnumCache
+        /// <summary>
+        /// Invalidates global cache, local cache of this scheduler and sets to invalidate local caches of other schedulers
+        /// </summary>
+        internal void InvalidateCache()
         {
-            get
+            lock (InvalidateLock)
             {
-                return _sqlEnumCache;
+                _globalCache = new GlobalQueryCache();
+                foreach (Scheduler s in _instances)
+                    s._sqlEnumCache.SetToInvalidate();
+                this._sqlEnumCache.InvalidateCache();
             }
-        }
-
-        /*readonly ClientQueryCache _clientSqlEnumCache;
-
-        internal ClientQueryCache ClientSqlEnumCache
-        {
-            get
-            {
-                return _clientSqlEnumCache;
-            }
-        }*/
-
-        internal PrologSession PrologSession;
-
-        private Scheduler(Int32 vpContextID)
-            : base()
-        {
-            _sqlEnumCache = new SqlEnumCache();
-            //clientSqlEnumCache = new ClientQueryCache();
         }
     }
 }

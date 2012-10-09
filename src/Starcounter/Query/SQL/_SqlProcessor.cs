@@ -1,8 +1,6 @@
 ﻿
 using System;
 using System.Collections.Generic;
-using Sc.Server.Binding;
-using Sc.Server.Internal;
 using Starcounter.Query.Execution;
 //using Sc.Server.Weaver.Schema;
 using Starcounter.Binding;
@@ -73,33 +71,6 @@ internal static class SqlProcessor
     //    throw new SqlException("Unknown statement.");
     //}
 
-    // Naive impelementation of "DELETE FROM tableName WHERE condition".
-    internal static void ProcessDelete(String statement, params Object[] values)
-    {
-        if (statement == null)
-            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect statement.");
-
-        if (statement.Length < 12 && statement.ToUpperInvariant().Substring(0, 12) != "DELETE FROM ")
-            throw new SqlException("Expected words DELETE FROM.");
-
-        String tableName = statement.Substring(12);
-
-        Int32 wherePos = tableName.ToUpperInvariant().IndexOf(" WHERE ");
-        String whereClause = "";
-        if (wherePos >= 0)
-        {
-            whereClause = tableName.Substring(wherePos);
-            tableName = tableName.Substring(0, wherePos);
-        }
-
-        SqlResult result = Db.SlowSQL("SELECT x FROM " + tableName + " x" + whereClause, values);
-        foreach (Entity entity in result)
-        {
-            entity.Delete();
-        }
-    }
-
-#if true
     // CREATE [UNIQUE] INDEX indexName ON typeName (propName1 [ASC/DESC], ...)
     internal static void ProcessCreateIndex(String statement)
     {
@@ -224,53 +195,152 @@ internal static class SqlProcessor
         {
             throw ErrorCode.ToException(errorCode);
         }
+        
+        // Invalidate cache, since queries have to be reoptimized to use the created index.
+        Scheduler.GetInstance(true).InvalidateCache(); // Assuming that scheduler is attached, otherwise null pointer exception
     }
-#endif
 
-    //private static void CreateIndex(Boolean unique, String indexName, TypeBinding typeBind, List<Property> propertyList,
-    //                                List<SortOrdering> sortOrderingList)
-    //{
-    //    UInt32 flags = 0;
-    //    if (unique)
-    //    {
-    //        flags = 1;
-    //    }
-    //    UInt16 sortMask = 0;
-    //    Int32 factor = 1;
-    //    for (Int32 i = 0; i < sortOrderingList.Count; i++)
-    //    {
-    //        if (sortOrderingList[i] == SortOrdering.Descending)
-    //        {
-    //            sortMask = (UInt16)(sortMask + factor);
-    //        }
-    //        factor = factor * 2;
-    //    }
-    //    Int16[] attributeIndexArr = new Int16[propertyList.Count + 1];
-    //    for (Int32 i = 0; i < propertyList.Count; i++)
-    //    {
-    //        attributeIndexArr[i] = (Int16)propertyList[i].DataIndex;
-    //    }
-    //    // Set the last position in the array to -1 (terminator).
-    //    attributeIndexArr[attributeIndexArr.Length - 1] = -1;
-    //    UInt32 errorCode = 0;
-    //    unsafe
-    //    {
-    //        // TODO: Is it correct to retrieve the definition handle this way here?
-    //        // The property DefHandle on the Typebinding isn't set until after the
-    //        // schema is updated.
-    //        UInt64 handle;
-    //        sccoredb.Mdb_DefinitionFromCodeClassString(typeBind.Name, &handle);
+    internal static bool ProcessDQuery(String statement, params Object[] values)
+    {
+        List<String> tokenList = Tokenizer.Tokenize(statement);
+        if (tokenList == null || tokenList.Count < 2)
+        {
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect tokenList.");
+        }
+        Int32 pos = 0;
+        if (Token("$DROP", tokenList, pos))
+        {
+            pos++;
+            if (Token("$INDEX", tokenList, pos))
+            {
+                pos++;
+                ProcessDropIndex(statement, tokenList, pos);
+                return true;
+            }
+            if (Token("$TABLE", tokenList, pos))
+            {
+                pos++;
+                ProcessDropTable(statement, tokenList, pos);
+                return true;
+            }
+                throw new SqlException("Unexpected token after DROP", tokenList, pos);
+        }
+        if (Token("$DELETE", tokenList, pos))
+        {
+            pos++;
+            ProcessDelete(statement, values);
+            return true;
+        }
+        return false;
+    }
 
-    //        fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0]))
-    //        {
-    //            errorCode = sccoredb.SCSchemaDeclareCombinedIndex(handle, indexName, sortMask, attributeIndexesPointer, flags);
-    //        }
-    //    }
-    //    if (errorCode != 0)
-    //    {
-    //        throw ErrorCode.ToException(errorCode);
-    //    }
-    //}
+    // Naive impelementation of "DELETE FROM tableName WHERE condition".
+    private static void ProcessDelete(String statement, params Object[] values)
+    {
+        if (statement == null)
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect statement.");
+
+        if (statement.Length < 12 && statement.ToUpperInvariant().Substring(0, 12) != "DELETE FROM ")
+            throw new SqlException("Expected words DELETE FROM.");
+
+        String tableName = statement.Substring(12);
+
+        Int32 wherePos = tableName.ToUpperInvariant().IndexOf(" WHERE ");
+        String whereClause = "";
+        if (wherePos >= 0)
+        {
+            whereClause = tableName.Substring(wherePos);
+            tableName = tableName.Substring(0, wherePos);
+        }
+
+        SqlResult result = Db.SlowSQL("SELECT x FROM " + tableName + " x" + whereClause, values);
+        foreach (Entity entity in result)
+        {
+            entity.Delete();
+        }
+    }
+
+    /// <summary>
+    /// Continue processing statement DROP INDEX indexName ON [namespaces.]tableName
+    /// </summary>
+    /// <param name="statement">The query</param>
+    /// <param name="tokenList">List of tokens for the query</param>
+    /// <param name="pos">Position to continue in the token list</param>
+    private static void ProcessDropIndex(String statement, List<String> tokenList, Int32 pos)
+    {
+        // Parse the rest of the statement and prepare variables to call kernel
+        if (!IdentifierToken(tokenList, pos))
+        {
+            throw new SqlException("Expected identifier.", tokenList, pos);
+        }
+        String indexName = tokenList[pos];
+        pos++;
+        if (!Token("$ON", tokenList, pos))
+        {
+            throw new SqlException("Expected word ON.", tokenList, pos);
+        }
+        pos++;
+
+        // Parse the type (relation) name, which contains namespaces.
+        Int32 beginPos = pos;
+        String typePath = ProcessIdentifierPath(tokenList, ref pos);
+        Int32 endPos = pos - 1;
+
+        if (pos < tokenList.Count)
+        {
+            //throw new SqlException("Expected no more tokens.", tokenList, pos);
+            throw new SqlException("Found token after end of statement (maybe a semicolon is missing).");
+        }
+
+        // Call kernel
+        UInt32 errorCode;
+        unsafe
+        {
+            errorCode = sccoredb.sccoredb_drop_index(typePath, indexName);
+        }
+        if (errorCode != 0)
+        {
+            throw ErrorCode.ToException(errorCode);
+        }
+
+        // Invalidate cache, since queries have to be reoptimized to avoid using the dropped index.
+        Scheduler.GetInstance(true).InvalidateCache(); // Assuming that scheduler is attached, otherwise null pointer exception
+    }
+
+    /// <summary>
+    /// Continue processing statement DROP TABLE [namespaces.]tableName
+    /// </summary>
+    /// <param name="statement">The query</param>
+    /// <param name="tokenList">List of tokens for the query</param>
+    /// <param name="pos">Position to continue in the token list</param>
+    private static void ProcessDropTable(String statement, List<String> tokenList, Int32 pos)
+    {
+        // Parse the rest of the statement and prepare variables to call kernel
+        // Parse the type (relation) name, which contains namespaces.
+        Int32 beginPos = pos;
+        String typePath = ProcessIdentifierPath(tokenList, ref pos);
+        Int32 endPos = pos - 1;
+
+        if (pos < tokenList.Count)
+        {
+            //throw new SqlException("Expected no more tokens.", tokenList, pos);
+            throw new SqlException("Found token after end of statement (maybe a semicolon is missing).");
+        }
+
+        // Call kernel
+        UInt32 errorCode;
+        unsafe
+        {
+            errorCode = sccoredb.sccoredb_drop_table(typePath);
+        }
+        if (errorCode != 0)
+        {
+            throw ErrorCode.ToException(errorCode);
+        }
+
+        // Invalidate cache, since queries have to be reoptimized to avoid using the dropped index.
+        Scheduler.GetInstance(true).InvalidateCache(); // Assuming that scheduler is attached, otherwise null pointer exception
+    }
 
     // CREATE {PROC|PROCEDURE} procedureName @parameterName1 typeName1 [OUT|OUTPUT], ... 
     // AS methodSpecifier
@@ -557,6 +627,7 @@ internal static class SqlProcessor
         return identifierPath;
     }
 
+#if false
     internal static TypeBinding GetTypeBinding(String name, List<String> tokenList, Int32 beginPos, Int32 endPos)
     {
         TypeBinding typeBind = null;
@@ -584,6 +655,7 @@ internal static class SqlProcessor
         }
         return typeBind;
     }
+#endif
 
     // TODO: Implement support of methods in path.
     //internal static IPath ProcessPath(List<String> tokenList, ref Int32 pos, Int32 extentNum, ITypeBinding typeBind)

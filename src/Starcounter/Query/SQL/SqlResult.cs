@@ -2,7 +2,6 @@
 using System;
 using System.Collections;
 using System.Diagnostics;
-using Sc.Server.Internal;
 using Starcounter.LucentObjects;
 using Starcounter.Query.Execution;
 using Sc.Query.Execution;

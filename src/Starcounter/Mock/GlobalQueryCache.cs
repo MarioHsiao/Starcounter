@@ -1,6 +1,5 @@
 ﻿using System;
 using se.sics.prologbeans;
-using Sc.Server.Internal;
 using Starcounter.Query.Sql;
 using System.Text;
 using System.Runtime.InteropServices;
@@ -41,6 +40,7 @@ internal sealed class GlobalQueryCache
             }
 
             // Query is not cached, adding it.
+            // Parser and optimize it
             IExecutionEnumerator newEnum = null;
             try
             {
@@ -142,6 +142,11 @@ internal sealed class GlobalQueryCache
 
         // Returning cached enumerator query string.
         return execEnum.QueryString;
+    }
+
+    internal Boolean IsCacheFull()
+    {
+        return numUniqueQueries == MaxUniqueQueries;
     }
 
     /// <summary>

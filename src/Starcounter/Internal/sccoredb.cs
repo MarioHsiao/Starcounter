@@ -258,6 +258,18 @@ namespace Starcounter.Internal
             out ulong new_transaction_id
             );
 
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static int Mdb_TransactionSetCurrent(
+            ulong hTrans,
+            ulong verify
+            );
+
+        // TODO:
+        // CALLI candidate with variant with no auto attach. Should be made
+        // faster (or we should have a variant of create and set current that
+        // fails is transaction is attached).
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint sccoredb_has_transaction(out int v);
         
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public unsafe extern static UInt32 sc_insert(
