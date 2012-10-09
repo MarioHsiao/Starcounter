@@ -109,7 +109,7 @@ namespace StarcounterInternal.Bootstrap
             get
             {
                 // Default communication shared chunks number.
-                uint chunksNumber = 1 << 14;
+                uint chunksNumber = 128;
 
                 string chunksNumberStr;
                 if (this.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.ChunksNumber, out chunksNumberStr))
