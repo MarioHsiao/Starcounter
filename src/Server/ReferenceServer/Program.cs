@@ -147,6 +147,7 @@ namespace Starcounter.Server {
             buffer = new byte[1024];
             MemoryStream messageBuffer;
             string request;
+            byte[] byteRequest;
 
             pipe.WaitForConnection();
             messageBuffer = new MemoryStream();
@@ -156,15 +157,18 @@ namespace Starcounter.Server {
                 messageBuffer.Write(buffer, 0, readCount);
             } while (!pipe.IsMessageComplete);
 
-            request = Encoding.UTF8.GetString(messageBuffer.ToArray());
-            ToConsoleWithColor(string.Format("Request: {0}", request), ConsoleColor.Yellow);
+            byteRequest = messageBuffer.ToArray();
+            request = Encoding.UTF8.GetString(byteRequest);
+            
+            ToConsoleWithColor(string.Format("Request ({0}): {1}", byteRequest.Length, request), ConsoleColor.Yellow);
 
             return request;
         }
 
         void SendReplyOnPipe(string reply, bool endsRequest) {
-            ToConsoleWithColor(string.Format("Reply: {0}", reply), endsRequest ? ConsoleColor.White : ConsoleColor.Red);
             byte[] byteReply = Encoding.UTF8.GetBytes(reply);
+
+            ToConsoleWithColor(string.Format("Reply ({0}): {1}", byteReply.Length, reply), endsRequest ? ConsoleColor.White : ConsoleColor.Red);
             pipe.Write(byteReply, 0, byteReply.Length);
             if (endsRequest) {
                 pipe.WaitForPipeDrain();
