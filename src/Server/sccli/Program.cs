@@ -23,10 +23,11 @@ namespace sccli {
                 ToConsoleWithColor(s, ConsoleColor.Yellow);
             });
             supportedCommands.Add("ping", Program.Ping);
-            supportedCommands.Add("createdatabase", Program.CreateDatabase);
             supportedCommands.Add("getdatabase", Program.GetDatabase);
             supportedCommands.Add("getdatabases", Program.GetDatabases);
             supportedCommands.Add("getserver", Program.GetServerInfo);
+            supportedCommands.Add("createdatabase", Program.CreateDatabase);
+            supportedCommands.Add("startdatabase", Program.StartDatabase);
         }
 
         static void Main(string[] args) {
@@ -63,6 +64,12 @@ namespace sccli {
             var props = new Dictionary<string, string>();
             props["Name"] = args[1];
             client.Send("CreateDatabase", props, (Reply reply) => WriteReplyToConsole(reply));
+        }
+
+        static void StartDatabase(Client client, string[] args) {
+            var props = new Dictionary<string, string>();
+            props["Name"] = args[1];
+            client.Send("StartDatabase", props, (Reply reply) => WriteReplyToConsole(reply));
         }
 
         static void GetDatabase(Client client, string[] args) {
