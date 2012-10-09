@@ -12,7 +12,7 @@ namespace Starcounter.Server.PublicModel {
     /// Interface of a response serializer.
     /// </summary>
     internal interface IResponseSerializer {
-        string SerializeReponse(object response);
+        string SerializeResponse(object response);
     }
 
     internal sealed class NewtonSoftJsonSerializer : IResponseSerializer {
@@ -29,7 +29,7 @@ namespace Starcounter.Server.PublicModel {
             }
         }
 
-        public string SerializeReponse(object response) {
+        public string SerializeResponse(object response) {
             return (string) jsonSerializeObject.Invoke(null, new object[] { response });
         }
     }
