@@ -29,6 +29,7 @@ namespace sccli {
             supportedCommands.Add("createdatabase", Program.CreateDatabase);
             supportedCommands.Add("startdatabase", Program.StartDatabase);
             supportedCommands.Add("stopdatabase", Program.StopDatabase);
+            supportedCommands.Add("exec", Program.ExecApp);
         }
 
         static void Main(string[] args) {
@@ -98,6 +99,15 @@ namespace sccli {
                 props["@@Synchronous"] = bool.TrueString;
             }
             client.Send("StopDatabase", props, (Reply reply) => WriteReplyToConsole(reply));
+        }
+
+        static void ExecApp(Client client, string[] args) {
+            var props = new Dictionary<string, string>();
+            props["AssemblyPath"] = args[1];
+            if (args.Contains<string>("@@Synchronous")) {
+                props["@@Synchronous"] = bool.TrueString;
+            }
+            client.Send("ExecApp", props, (Reply reply) => WriteReplyToConsole(reply));
         }
 
         static void GetDatabase(Client client, string[] args) {
