@@ -13,26 +13,26 @@ namespace Starcounter.Internal.Web {
 
 
       public static byte[] Created201 = new byte[] { (byte)'H', (byte)'T', (byte)'T', (byte)'P', (byte)'/', (byte)'1', (byte)'.', (byte)'0', (byte)' ',
-                                       (byte)'2', (byte)'0', (byte)'1', (byte)' ', (byte)'C', (byte)'r', (byte)'e', (byte)'a', (byte)'t', (byte)'e', (byte)'d', (byte)'\n', (byte)'\n' };
+                                       (byte)'2', (byte)'0', (byte)'1', (byte)' ', (byte)'C', (byte)'r', (byte)'e', (byte)'a', (byte)'t', (byte)'e', (byte)'d', (byte)'\r', (byte)'\n', (byte)'\r', (byte)'\n' };
 
       public static byte[] Ok200 = new byte[] { (byte)'H', (byte)'T', (byte)'T', (byte)'P', (byte)'/', (byte)'1', (byte)'.', (byte)'0', (byte)' ',
                                        (byte)'2', (byte)'0', (byte)'0', (byte)' ', (byte)'O', (byte)'K', (byte)'\n', (byte)'\n' };
       public static byte[] Ok200_Content = new byte[] { (byte)'H', (byte)'T', (byte)'T', (byte)'P', (byte)'/', (byte)'1', (byte)'.', (byte)'0', (byte)' ',
                                        (byte)'2', (byte)'0', (byte)'0', (byte)' ', (byte)'O', (byte)'K', (byte)'\n',
-                                       (byte)'L', (byte)':'};
+                                       (byte)'C', (byte)'o',(byte)'n',(byte)'t',(byte)'e',(byte)'n',(byte)'t', (byte)'-',(byte)'L',(byte)'e',(byte)'n',(byte)'g',(byte)'t',(byte)'h',  (byte)':'};
 
       public static byte[] ISE500_Content;
 
       public static byte[] OkResponseHeader;
-      public static byte[] HeaderSealing = Encoding.UTF8.GetBytes("\n\n");
+      public static byte[] HeaderSealing = Encoding.UTF8.GetBytes("\r\n\r\n");
       public static uint OkResponseContentLengthInsertionPoint;
 
       static HttpResponseBuilder() {
-         var str = "HTTP/1.0 200 OK\nL:9999999999";
+         var str = "HTTP/1.0 200 OK\r\nContent-Length:9999999999";
          OkResponseHeader = Encoding.UTF8.GetBytes(str);
-         OkResponseContentLengthInsertionPoint = 18; // Content-Length => L
+         OkResponseContentLengthInsertionPoint = 32; // Content-Length
 
-          str = "HTTP/1.1 500 Internal Server Error\nL: ";
+          str = "HTTP/1.1 500 Internal Server Error\nContent-Length: ";
           ISE500_Content = Encoding.UTF8.GetBytes(str);
       }
 

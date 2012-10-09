@@ -1,0 +1,15 @@
+{
+	"info": {
+				"name":"Server One",
+				"description":"This is Server One"
+            },
+	"start":null,
+	"pause":null,
+	"stop":null,
+	"log": {
+		"list": [{"id":"001", "severity":"Warning", "description":"This is a test log entry"}],
+		"clear":null
+	},
+
+	"databases":[{}]
+}
