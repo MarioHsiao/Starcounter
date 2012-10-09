@@ -140,7 +140,7 @@ namespace Starcounter.ABCIPC.Internal {
                 }
             }
 
-            public static void WriteTextResponseToConsole(string response) {
+            public static void WriteTextResponseToConsole(string response, bool endsRequest) {
                 var r = Reply.Protocol.Parse(response);
                 ToConsoleWithColor("(<-" + response + ")", ConsoleColor.DarkGray);
                 ToConsoleWithColor("Response>" + r.ToString(), r.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
