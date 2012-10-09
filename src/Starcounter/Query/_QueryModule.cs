@@ -1,8 +1,9 @@
 ﻿
-using System;
+using Starcounter.Binding;
 using Starcounter.Query.Optimization;
 using Starcounter.Query.Sql;
 using Starcounter.Query.Execution;
+using System;
 using System.Diagnostics;
 
 namespace Starcounter.Query
@@ -18,7 +19,6 @@ namespace Starcounter.Query
         //const String processVersion = "111208";
         const String processVersion = "121002";
         static Int32 processPort;
-        static Int32 configuredProcessPort = 0;
         //static readonly String schemaFilePath = AppDomain.CurrentDomain.BaseDirectory + "\\schema.pl";
         static readonly String schemaFolder = AppDomain.CurrentDomain.BaseDirectory + "\\";
         const Int32 maxQueryLength = 3000;
@@ -26,18 +26,14 @@ namespace Starcounter.Query
         const Int32 maxVerifyRetries = 100;
         const Int32 timeBetweenVerifyRetries = 100; // [ms]
 
-        public static void Configure(Int32 sqlProcessPort)
-        {
-            configuredProcessPort = sqlProcessPort;
-        }
-
         /// <summary>
         /// Initiates query module. Called during start-up.
         /// </summary>
-        internal static void Initiate(Boolean notInUse)
+        /// <param name="sqlProcessPort">External SQL process port. If 0 then default should be used.</param>
+        public static void Initiate(Int32 sqlProcessPort)
         {
-            // TEMP
-            System.Diagnostics.Debugger.Break();
+            //// TEMP
+            //System.Diagnostics.Debugger.Break();
 
             // Connect managed and native Sql functions.
             UInt32 errCode = SqlConnectivity.InitSqlFunctions();
@@ -47,11 +43,42 @@ namespace Starcounter.Query
                 SqlConnectivity.ThrowConvertedServerError(errCode);
 
             // Start external SQL process (Prolog-process).
-            processPort = configuredProcessPort;
+            processPort = sqlProcessPort;
             if (processPort == 0)
                 processPort = StarcounterEnvironment.DefaultPorts.SQLProlog;
-            PrologManager.Initiate(notInUse, processFolder, processFileName, processVersion, processPort, schemaFolder,
+            PrologManager.Initiate(processFolder, processFileName, processVersion, processPort, schemaFolder,
                 maxQueryLength, maxQueryRetries, maxVerifyRetries, timeBetweenVerifyRetries);
+        }
+
+        /// <summary>
+        /// Remove all schema information from external SQL process (Prolog-process).
+        /// </summary>
+        internal static void Reset()
+        {
+            try
+            {
+                Starcounter.ThreadHelper.SetYieldBlock();
+                Scheduler scheduler = Scheduler.GetInstance();
+                PrologManager.DeleteAllSchemaInfo(scheduler);
+            }
+            finally
+            {
+                Starcounter.ThreadHelper.ReleaseYieldBlock();
+            }
+        }
+
+        internal static void UpdateSchemaInfo(TypeDef[] typeDefArray)
+        {
+            try
+            {
+                Starcounter.ThreadHelper.SetYieldBlock();
+                Scheduler scheduler = Scheduler.GetInstance();
+                PrologManager.ExportSchemaInfo(scheduler, typeDefArray);
+            }
+            finally
+            {
+                Starcounter.ThreadHelper.ReleaseYieldBlock();
+            }
         }
 
         /// <summary>
