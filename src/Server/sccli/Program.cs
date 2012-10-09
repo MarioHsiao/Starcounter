@@ -26,6 +26,7 @@ namespace sccli {
             supportedCommands.Add("createdatabase", Program.CreateDatabase);
             supportedCommands.Add("getdatabase", Program.GetDatabase);
             supportedCommands.Add("getdatabases", Program.GetDatabases);
+            supportedCommands.Add("getserver", Program.GetServerInfo);
         }
 
         static void Main(string[] args) {
@@ -52,6 +53,10 @@ namespace sccli {
 
         static void Ping(Client client, string[] args) {
             client.Send("Ping", (Reply reply) => WriteReplyToConsole(reply));
+        }
+
+        static void GetServerInfo(Client client, string[] args) {
+            client.Send("GetServerInfo", (Reply reply) => WriteReplyToConsole(reply));
         }
 
         static void CreateDatabase(Client client, string[] args) {
