@@ -149,6 +149,7 @@
     <Compile Include="Internal\Kernel32.cs" />
     <Compile Include="Internal\Scheduler.cs" />
     <Compile Include="Internal\ThreadData.cs" />
+    <Compile Include="Metadata\SysTable.cs" />
     <Compile Include="Mock\Db.cs" />
     <Compile Include="Mock\DbHelper.cs" />
     <Compile Include="Mock\Enumerator.cs" />
