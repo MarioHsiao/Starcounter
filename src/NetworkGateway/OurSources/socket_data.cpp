@@ -27,7 +27,7 @@ void SocketDataChunk::Init(
     blob_user_data_offset_ = server_port->get_blob_user_data_offset();
 
     // Resets data buffer offset.
-    ResetDataBufferOffset();
+    ResetUserDataOffset();
 
     // Calculating maximum size of user data.
     max_user_data_bytes_ = DATA_BLOB_SIZE_BYTES - blob_user_data_offset_;

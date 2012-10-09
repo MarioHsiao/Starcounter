@@ -479,7 +479,7 @@ sc_io_event& the_io_event) try {
 	// A channel.
 	unsigned long int ch;
 	
-	// If there are any messages (asuming not) in the overflow buffer, we try to
+	// If there are any messages (assuming not) in the overflow buffer, we try to
 	// empty the overflow buffer first, because it is more important to give
 	// back chunks before attempting to receive chunks, in case the system is on
 	// the verge of being out of chunks.
@@ -490,22 +490,27 @@ sc_io_event& the_io_event) try {
 	else {
 		// This type must be uint32_t.
 		uint32_t chunk_index_and_channel;
-		std::size_t current_overflow_size
-		= this_scheduler_interface_->overflow_pool().size();
+		std::size_t current_overflow_size = this_scheduler_interface_->overflow_pool().size();
 		
 		// Try to empty the overflow buffer, but only those elements that are
 		// currently in the buffer. Those that fail to be pushed are put back in
 		// the buffer and those are attempted to be pushed the next time around.
 		for (std::size_t i = 0; i < current_overflow_size; ++i) {
-			this_scheduler_interface_->overflow_pool().pop_back
-			(&chunk_index_and_channel);
+			this_scheduler_interface_->overflow_pool().back(&chunk_index_and_channel);
 			
 			the_chunk_index = chunk_index_and_channel & 0xFFFFFFUL;
 			ch = (chunk_index_and_channel >> 24) & 0xFFUL;
 			
 			// Try to push it to the queue. If it fails, the item is put back in
 			// the overflow_.
-			send_to_client(ch, the_chunk_index);
+			//send_to_client(ch, the_chunk_index);
+
+            // Reference used as shorthand.
+            if (!channel_[ch].out.try_push_front(the_chunk_index))
+                    break;
+
+            // Now really popping the chunk since it was successfully pushed.
+            this_scheduler_interface_->overflow_pool().pop_back(&chunk_index_and_channel);
 		}
 	}
 	
@@ -839,8 +844,10 @@ chunk_index the_chunk_index) {
 									//show_linked_chunks(the_chunk_index);
 									#endif
 	///-------------------------------------------------------------------------
-	
-	if (the_channel.out.try_push_front(the_chunk_index)) {
+
+    // Checking if overflow pool is empty otherwise put into it.
+	if (this_scheduler_interface_->overflow_pool().empty() &&
+        the_channel.out.try_push_front(the_chunk_index)) {
 		// Successfully pushed the response message to the channel.
 		return;
 	}
