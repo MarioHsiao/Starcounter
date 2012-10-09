@@ -32,88 +32,216 @@ EXTERN_C uint32_t __stdcall sc_bmx_read_from_chunk(
 	return 999;
 }
 
-EXTERN_C uint32_t __stdcall sc_bmx_write_to_chunk(
-	uint8_t* source_buffer,
-	uint32_t length,
-	uint32_t* chunk_index,
-    uint32_t offset
-)
+const uint32_t MAX_LINKED_CHUNKS_BYTES = 1024 * 64;
+const uint32_t MAX_DATA_IN_CHUNK = starcounter::core::chunk_size - shared_memory_chunk::LINK_SIZE;
+
+const uint32_t BMX_HANDLER_SIZE = 2;
+const uint32_t BMX_PROTOCOL_BEGIN = 16;
+const uint32_t REQUEST_SIZE_BEGIN = BMX_PROTOCOL_BEGIN + BMX_HANDLER_SIZE;
+const uint32_t GATEWAY_CHUNK_BEGIN = 24;
+const uint32_t GATEWAY_DATA_BEGIN = GATEWAY_CHUNK_BEGIN + 32;
+const uint32_t USER_DATA_OFFSET = GATEWAY_DATA_BEGIN + 12;
+const uint32_t MAX_USER_DATA_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 16;
+const uint32_t USER_DATA_WRITTEN_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 20;
+const uint32_t SOCKET_DATA_NUM_CLONE_BYTES = GATEWAY_CHUNK_BEGIN + 160;
+
+// Size of the usable chunk data.
+const uint32_t GATEWAY_CHUNK_USABLE_SIZE = starcounter::core::chunk_size - GATEWAY_CHUNK_BEGIN - shared_memory_chunk::LINK_SIZE;
+
+// Clones the existing chunk into a new one by copying the specified header.
+EXTERN_C __forceinline uint32_t __stdcall sc_bmx_clone_chunk(
+    starcounter::core::chunk_index src_chunk_index,
+    uint32_t offset,
+    uint32_t num_bytes_to_copy,
+    starcounter::core::chunk_index* new_chunk_index
+    )
 {
-	shared_memory_chunk* current_smc;
-	shared_memory_chunk* main_chunk;
-	response_chunk_part* response;
-	request_chunk_part* current_part;
-	uint8_t* p;
-	uint8_t* temp_chunk;
-	uint32_t available_response_size;
-	uint32_t copy_size;
-	uint32_t errorcode;
-	uint32_t left_to_copy;
-	uint32_t needed_size;
-	uint32_t next_index;
+    uint32_t err_code;
 
-	DWORD new_chunk_index;
-//	errorcode = cm_acquire_shared_memory_chunk(&new_chunk_index);
-//	if (errorcode != 0) goto on_error;
-	new_chunk_index = *chunk_index;
+    // Acquiring new chunk.
+    err_code = cm_acquire_shared_memory_chunk((DWORD *)new_chunk_index);
+    if (err_code)
+        return err_code;
 
-	errorcode = cm_get_shared_memory_chunk(new_chunk_index, &temp_chunk);
-	if (errorcode != 0) goto on_error;
+    // Getting chunk memory address.
+    uint8_t* src_chunk_buf;
+    err_code = cm_get_shared_memory_chunk(src_chunk_index, &src_chunk_buf);
+    if (err_code)
+        return err_code;
 
-	main_chunk = (shared_memory_chunk*)temp_chunk;
-	response = (response_chunk_part *)(((char *)main_chunk->get_response_chunk()) - shared_memory_chunk::LINK_SIZE);
-	response->reset_offset();
-	available_response_size = main_chunk->get_available_response_size();
+    // Getting chunk memory address.
+    uint8_t* new_chunk_buf;
+    err_code = cm_get_shared_memory_chunk(*new_chunk_index, &new_chunk_buf);
+    if (err_code)
+        return err_code;
 
-	if (available_response_size > length) 
-	{
-        response->write(255);
-        response->skip(offset);
-		response->write_data_only(source_buffer, length);
-		*chunk_index = new_chunk_index;
-		return 0;
-	}
+    // Copying memory from original chunk to copy.
+    memcpy(new_chunk_buf, src_chunk_buf + offset, num_bytes_to_copy);
 
-	// More than one chunk is needed.
-	needed_size = length - available_response_size;
-	errorcode = cm_acquire_linked_shared_memory_chunks(new_chunk_index, needed_size);
-	if (errorcode != 0) goto on_error;
+    return 0;
+}
 
-	response->write((int32_t)length);
+// Writes given big linear buffer into obtained linked chunks.
+EXTERN_C __forceinline uint32_t __stdcall sc_bmx_write_to_chunks(
+    uint8_t* buf,
+    uint32_t buf_len_bytes,
+    starcounter::core::chunk_index cur_chunk_index,
+    uint32_t* actual_written_bytes
+    )
+{
+    // Maximum number of bytes that will be written in this call.
+    uint32_t num_bytes_to_write = buf_len_bytes;
+    
+    // Checking if more than maximum chunks we can take at once.
+    if (buf_len_bytes > MAX_LINKED_CHUNKS_BYTES)
+        num_bytes_to_write = MAX_LINKED_CHUNKS_BYTES;
 
-	p = source_buffer;
-	response->write_data_only(p, available_response_size);
-	p += available_response_size;
-	left_to_copy = needed_size;
+    // Acquiring linked chunks.
+    uint32_t err_code = cm_acquire_linked_shared_memory_chunks(cur_chunk_index, num_bytes_to_write);
+    if (err_code)
+        return err_code;
 
-	next_index = main_chunk->get_link();
-	while (next_index != main_chunk->LINK_TERMINATOR)
-	{
-		errorcode = cm_get_shared_memory_chunk(next_index, &temp_chunk);
-		if (errorcode != 0) goto on_error;
+    // Getting chunk memory address.
+    uint8_t* cur_chunk_buf;
+    err_code = cm_get_shared_memory_chunk(cur_chunk_index, &cur_chunk_buf);
+    if (err_code)
+        return err_code;
 
-		current_smc = (shared_memory_chunk*)temp_chunk;
+    // Setting the number of written bytes.
+    *(uint32_t*)(cur_chunk_buf + USER_DATA_WRITTEN_BYTES_OFFSET) = num_bytes_to_write;
 
-		// We use the request part of the chunk here to gain 4 bytes since we are going to
-		// use the whole chunk (probably).
-		current_part = current_smc->get_request_chunk();
-		current_part->reset_offset();
+    // Going through each linked chunk and write data there.
+    uint32_t left_bytes_to_write = num_bytes_to_write;
+    uint32_t num_bytes_to_write_in_chunk = left_bytes_to_write;
+    if (num_bytes_to_write_in_chunk > MAX_DATA_IN_CHUNK)
+        num_bytes_to_write_in_chunk = MAX_DATA_IN_CHUNK;
 
-		copy_size = current_smc->get_available_request_size();
-		if (left_to_copy < copy_size) copy_size = left_to_copy;
+    // Getting index of the first data chunk in chain.
+    cur_chunk_index = ((shared_memory_chunk*)cur_chunk_buf)->get_link();
 
-		current_part->write_data_only(p, copy_size);
-		p += copy_size;
-		left_to_copy -= copy_size;
-		next_index = current_smc->get_link();
-	}
+    // Processing until have some bytes to write.
+    while(left_bytes_to_write > 0)
+    {
+        // Getting chunk memory address.
+        err_code = cm_get_shared_memory_chunk(cur_chunk_index, &cur_chunk_buf);
+        if (err_code)
+            return err_code;
+        
+        // Copying memory.
+        memcpy(cur_chunk_buf, buf + num_bytes_to_write - left_bytes_to_write, num_bytes_to_write_in_chunk);
+        left_bytes_to_write -= num_bytes_to_write_in_chunk;
 
-	*chunk_index = new_chunk_index;
-	return 0;
+        // Checking how many bytes to write next time.
+        if (left_bytes_to_write < MAX_DATA_IN_CHUNK)
+            num_bytes_to_write_in_chunk = left_bytes_to_write;
 
-on_error:
-	// TODO:
-	// if we have allocated the chunks already we need to return them here
-	// before returning.
-	return errorcode;
+        // Getting next chunk in chain.
+        cur_chunk_index = ((shared_memory_chunk*)cur_chunk_buf)->get_link();
+    }
+
+    // Setting number of total written bytes.
+    *actual_written_bytes = num_bytes_to_write;
+
+    return 0;
+}
+
+// Does everything to send the small linear user buffer to the client.
+EXTERN_C __forceinline uint32_t __stdcall sc_bmx_send_small_buffer(
+    uint8_t* buf,
+    uint32_t buf_len_bytes,
+    uint32_t user_data_offset,
+    starcounter::core::chunk_index chunk_index,
+    uint8_t* chunk_memory
+    )
+{
+    // Setting number of actual user bytes written.
+    *(uint32_t*)(chunk_memory + USER_DATA_WRITTEN_BYTES_OFFSET) = buf_len_bytes;
+
+    // Copying buffer into chunk.
+    memcpy(chunk_memory + GATEWAY_CHUNK_BEGIN + user_data_offset, buf, buf_len_bytes);
+
+    // Sending linked chunks to client.
+    return cm_send_to_client(chunk_index);
+}
+
+// Does everything to send the big linear user buffer to the client.
+EXTERN_C __forceinline uint32_t __stdcall sc_bmx_send_big_buffer(
+    uint8_t* buf,
+    uint32_t buf_len_bytes,
+    starcounter::core::chunk_index src_chunk_index
+    )
+{
+    uint32_t last_written_bytes;
+    uint32_t err_code;
+    starcounter::core::chunk_index new_chunk_index = shared_memory_chunk::LINK_TERMINATOR;
+
+    // Looping until all user bytes are sent.
+    uint32_t total_sent_bytes = 0;
+    while (total_sent_bytes < buf_len_bytes)
+    {
+        // Copying user data to multiple chunks.
+        err_code = sc_bmx_write_to_chunks(
+            buf + total_sent_bytes,
+            buf_len_bytes - total_sent_bytes,
+            src_chunk_index,
+            &last_written_bytes
+            );
+
+        if (err_code)
+            return err_code;
+
+        // Increasing total sent bytes.
+        total_sent_bytes += last_written_bytes;
+
+        // Checking if not all user data has been copied so we need to make a chunk clone.
+        if (total_sent_bytes < buf_len_bytes)
+        {
+            // Obtaining a new chunk and copying the original chunk header there.
+            err_code = sc_bmx_clone_chunk(src_chunk_index, 0, SOCKET_DATA_NUM_CLONE_BYTES, &new_chunk_index);
+            if (err_code)
+                return err_code;
+        }
+
+        // Sending linked chunks to client.
+        err_code = cm_send_to_client(src_chunk_index);
+        if (err_code)
+            return err_code;
+
+        //std::cout << "Sent bytes: " << total_sent_bytes << std::endl;
+
+        // Assigning new source chunk.
+        src_chunk_index = new_chunk_index;
+    }
+
+    return 0;
+}
+
+// The entry point to send any-size user data to client.
+EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
+    uint8_t* buf,
+    uint32_t buf_len_bytes,
+    starcounter::core::chunk_index chunk_index,
+    uint8_t* chunk_memory
+    )
+{
+    // Points to user data offset in chunk.
+    uint32_t user_data_offset = *(uint32_t*)(chunk_memory + USER_DATA_OFFSET);
+
+    // Setting non-bmx-management chunk type.
+    (*(int16_t*)(chunk_memory + BMX_PROTOCOL_BEGIN)) = 32767;
+
+    // Setting request size to zero.
+    (*(uint32_t*)(chunk_memory + REQUEST_SIZE_BEGIN)) = 0;
+
+    // Checking if user data fits inside the request chunk.
+    if (buf_len_bytes < (GATEWAY_CHUNK_USABLE_SIZE - user_data_offset))
+    {
+        // Sending using the same request chunk.
+        return sc_bmx_send_small_buffer(buf, buf_len_bytes, user_data_offset, chunk_index, chunk_memory);
+    }
+    else
+    {
+        // Sending using multiple linked chunks.
+        return sc_bmx_send_big_buffer(buf, buf_len_bytes, chunk_index);
+    }
 }

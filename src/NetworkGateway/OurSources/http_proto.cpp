@@ -391,7 +391,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
                     }
                     else
                     {
-                        GW_COUT << "Given session does not exist, creating a new session." << std::endl;
+                        GW_COUT << "Given session does not exist: " << sessionIndex << ":" << randomSalt << std::endl;
 
                         // Given session does not exist, dropping the connection.
                         //return 1;
@@ -785,8 +785,15 @@ uint32_t HttpWsProto::HttpWsProcessData(
                 memcpy(payload + 2, (uint8_t*)sd + http_request_.uri_offset_, uri_len);
 
                 // Setting user data length and pointer.
-                sd->SetUserDataWrittenBytes(uri_len + 2);
-                sd->SetUserDataOffset(payload - ((uint8_t *)sd));
+                sd->set_user_data_written_bytes(uri_len + 2);
+
+                // TODO: Decide if lower 2 lines are needed.
+                //sd->set_user_data_offset(payload - ((uint8_t *)sd));
+                //sd->set_max_user_data_bytes(DATA_BLOB_SIZE_BYTES - (payload - sd->get_data_blob()));
+
+                // Resetting user data parameters.
+                sd->ResetUserDataOffset();
+                sd->ResetMaxUserDataBytes();
 
                 // Push chunk to corresponding channel/scheduler.
                 gw->PushSocketDataToDb(sd, handler_id);

@@ -111,6 +111,13 @@ public sealed class SqlEnumCache
         // Checking if its completely new query.
         if (enumIndex < 0)
         {
+            // Check if there is space for the query
+            if (globalQueryCache.IsCacheFull())
+            {
+                Scheduler myScheduler = Scheduler.GetInstance(true);
+                myScheduler.InvalidateCache();
+            }
+
             enumIndex = globalQueryCache.AddNewQuery(query);
         }
 
