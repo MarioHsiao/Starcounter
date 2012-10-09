@@ -17,11 +17,29 @@ namespace Starcounter.Server.PublicModel {
         /// <summary>
         /// Executes the given <see cref="ServerCommand"/>.
         /// </summary>
+        /// <remarks>
+        /// Execution of server commands are always asynchronous, meaning
+        /// this call will return when some basic validation has occured
+        /// and the returned value will represent the state of the command
+        /// just after it has been enqueued. To find it the result of the
+        /// completed command, use <see cref="Wait"/> or use <see cref="GetCommand"/>
+        /// to get the latest snapshot of the command state.
+        /// </remarks>
         /// <param name="command">The <see cref="ServerCommand"/>
         /// to execute.</param>
         /// <returns>A <see cref="CommandInfo"/> representing the state of
         /// the command.</returns>
         CommandInfo Execute(ServerCommand command);
+
+        /// <summary>
+        /// Waits for the server command represented by the given
+        /// <see cref="CommandId"/> to complete.
+        /// </summary>
+        /// <param name="id">The <see cref="CommandId"/> of the command
+        /// to wait for.</param>
+        /// <returns>A <see cref="CommandInfo"/> representing the state
+        /// of the command after it has finished.</returns>
+        CommandInfo Wait(CommandId id);
 
         /// <summary>
         /// Gets a snapshot of the latest state of the command

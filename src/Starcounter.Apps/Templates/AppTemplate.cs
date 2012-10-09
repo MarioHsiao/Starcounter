@@ -17,27 +17,24 @@ namespace Starcounter.Templates {
 #endif
     {
 
-        public TTemplate Register<TApp, TTemplate>(string name, bool editable = false, Func<TApp, TTemplate, Input<TApp, TTemplate>> input = null)
-            where TTemplate : Template, new()
-            where TApp : App {
+        public TTemplate Register<TTemplate>(string name, bool editable = false)
+            where TTemplate : Template, new() {
             return new TTemplate() {
                 Parent = this,
                 Name = name,
-                Editable = editable,
-// TODO: Jocke
-//                InputHandler = input
+                Editable = editable
             };
         }
 
-        public TTemplate Register<TApp, TTemplate, TValue>(string name, bool editable = false, Func<TApp, TTemplate, Input<TApp, TTemplate, TValue>> input = null)
-            where TTemplate : Template, new()
-            where TApp : App {
+        public TTemplate Register<TTemplate,TValue>(
+            string name,
+            bool editable = false)
+            where TTemplate : Property<TValue>, new()
+        {
             return new TTemplate() {
                 Parent = this,
                 Name = name,
                 Editable = editable,
-// TODO: Jocke
-//                InputHandler = input
             };
         }
 
