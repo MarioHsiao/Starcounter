@@ -68,7 +68,7 @@ namespace Starcounter.Server {
                     services = new ServerServices(engine, ReadRequestFromPipe, SendReplyOnPipe);
                     ToConsoleWithColor(string.Format("Accepting service calls on pipe '{0}'...", pipeName), ConsoleColor.DarkGray);
                 } else {
-                    services = new ServerServices(engine, ReadRequestFromPipe, SendReplyOnPipe);
+                    services = new ServerServices(engine);
                 }
                 services.Setup();
 
