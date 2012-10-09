@@ -6,17 +6,41 @@ using System.Threading.Tasks;
 
 namespace Starcounter.ABCIPC {
 
+    /// <summary>
+    /// Encapsulates the simplest kind of server, supporting handlers to
+    /// be defined for incoming requests and a recieving message loop that
+    /// reads requests from an opaque delegate, invokes a handler and
+    /// replies to the request on an equal opaque output receiver delegate.
+    /// </summary>
     public sealed class Server {
-        internal readonly Func<string> receive;
-        internal readonly Action<string> reply;
-        internal Dictionary<string, Action<Request>> handlers;
+        readonly Func<string> receive;
+        readonly Dictionary<string, Action<Request>> handlers;
 
-        public Server(Func<string> recieve, Action<string> reply) {
+        /// <summary>
+        /// Gets the method to use when replying to requests. The first
+        /// parameter should hold the reply and the second bool parameter
+        /// indicates if the reply ends the request - if it's not, at
+        /// least one more reply will come from the same request.
+        /// </summary>
+        internal readonly Action<string, bool> Reply;
+        
+        /// <summary>
+        /// Initializes a <see cref="Server"/>.
+        /// </summary>
+        /// <param name="recieve">The receiving method, feeding the ABCIPC
+        /// server with incoming requests.</param>
+        /// <param name="reply">The replying method, used by the server to
+        /// send replies. The boolean parameter indicates if the reply
+        /// being sent ends the request.</param>
+        public Server(Func<string> recieve, Action<string, bool> reply) {
             this.receive = recieve;
-            this.reply = reply;
+            this.Reply = reply;
             handlers = new Dictionary<string, Action<Request>>(StringComparer.InvariantCultureIgnoreCase);
         }
 
+        /// <summary>
+        /// Recieves messages until a shutdown is coming in.
+        /// </summary>
         public void Receive() {
             Request request;
             Action<Request> handler;
@@ -24,10 +48,6 @@ namespace Starcounter.ABCIPC {
 
             while (!shutdown) {
                 string s = receive();
-
-                // Allow installing a preparser, so that we can support simpler
-                // syntax from the console, for example.
-                // TODO:
 
                 // Parse the input, validate it and invoke the handler.
                 //
@@ -65,7 +85,12 @@ namespace Starcounter.ABCIPC {
                 // TODO:
 
                 if (handler != null) {
-                    handler(request);
+                    try {
+                        handler(request);
+                    } catch (Exception exception) {
+                        request.RespondToExceptionInHandler(exception);
+                        throw;
+                    }
                 }
 
                 // How do we handle requests not responded to? We send
