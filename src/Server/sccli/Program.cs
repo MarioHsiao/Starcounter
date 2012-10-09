@@ -116,10 +116,19 @@ namespace sccli {
         }
 
         static string ReceiveReply() {
-            var buffer = new byte[4096];
-            var count = pipe.Read(buffer, 0, buffer.Length);
+            int length;
+
+            // Replies are prefixed with size first when the
+            // reference server operates using named pipes.
+            
+            length = pipe.ReadByte() * 256;
+            length += pipe.ReadByte();
+            
+            var buffer = new byte[length];
+            var count = pipe.Read(buffer, 0, length);
             pipe.Close();
-            return Encoding.UTF8.GetString(buffer.ToArray(), 0, count);
+
+            return Encoding.UTF8.GetString(buffer, 0, count);
         }
 
         static void WriteReplyToConsole(Reply reply) {

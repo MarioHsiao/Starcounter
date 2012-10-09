@@ -167,9 +167,17 @@ namespace Starcounter.Server {
 
         void SendReplyOnPipe(string reply, bool endsRequest) {
             byte[] byteReply = Encoding.UTF8.GetBytes(reply);
+            int length = byteReply.Length;
+            if (length > UInt16.MaxValue) {
+                length = (int)UInt16.MaxValue;
+            }
 
             ToConsoleWithColor(string.Format("Reply ({0}): {1}", byteReply.Length, reply), endsRequest ? ConsoleColor.White : ConsoleColor.Red);
+            pipe.WriteByte((byte)(length / 256));
+            pipe.WriteByte((byte)(length & 255));
             pipe.Write(byteReply, 0, byteReply.Length);
+            pipe.Flush();
+            
             if (endsRequest) {
                 pipe.WaitForPipeDrain();
                 if (pipe.IsConnected) {
