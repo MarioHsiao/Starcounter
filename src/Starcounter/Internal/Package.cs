@@ -1,5 +1,6 @@
 ﻿
 using Starcounter.Binding;
+using Starcounter.Query;
 using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -77,7 +78,10 @@ namespace Starcounter.Internal
 
             Bindings.RegisterTypeDefs(typeDefs);
 
-            if (typeDefs.Length != 0) Fix.ResetTheQueryModule();
+            if (typeDefs.Length != 0)
+            {
+                QueryModule.UpdateSchemaInfo(typeDefs);
+            }
         }
 
         private TableDef CreateOrUpdateDatabaseTable(TableDef tableDef)

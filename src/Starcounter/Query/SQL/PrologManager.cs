@@ -23,7 +23,6 @@ namespace Starcounter.Query.Sql
         static Object startProcessLock;
         static List<String> schemaFilePathList;
         static Process process;
-        static Boolean blnNotInUse;
         static String processFolder;
         static String processFileName;
         static String processVersion;
@@ -35,13 +34,12 @@ namespace Starcounter.Query.Sql
         static Int32 timeBetweenVerifyRetries;
 
         // Is called during start-up.
-        internal static void Initiate(Boolean notInUse, String procFolder, String procFileName, String procVersion, Int32 procPort,
+        internal static void Initiate(String procFolder, String procFileName, String procVersion, Int32 procPort,
             String schemaFolder, Int32 queryLength, Int32 queryRetries, Int32 verifyRetries, Int32 betweenVerifyRetries)
         {
             logSource = LogSources.Sql;
             startProcessLock = new Object();
 
-            blnNotInUse = notInUse;
             processFolder = procFolder;
             processFileName = procFileName;
             processVersion = procVersion;
@@ -53,6 +51,7 @@ namespace Starcounter.Query.Sql
             maxVerifyRetries = verifyRetries;
             timeBetweenVerifyRetries = betweenVerifyRetries;
 
+            // Establish an SQL process without any schema information.
             EstablishSqlProcess();
         }
 
@@ -60,11 +59,11 @@ namespace Starcounter.Query.Sql
         /// Export schema information to external SQL process by one call to the SQL process per TypeBinding.
         /// Note that this method is significantly slower than ExportSchemaInfo.
         /// </summary>
-        /// <param name="vpContext">Representation of the current virtual processor.</param>
+        /// <param name="scheduler">Representation of the current virtual processor.</param>
         /// <param name="typeEnumerator">Enumerator of TypeBindings (type information).</param>
-        private static void ExportSchemaInfo2(Scheduler vpContext, IEnumerator<TypeDef> typeEnumerator)
+        private static void ExportSchemaInfo2(Scheduler scheduler, IEnumerator<TypeDef> typeEnumerator)
         {
-            // Since the vpContext.PrologSession is shared between all the threads
+            // Since the scheduler.PrologSession is shared between all the threads
             // managed by the same scheduler, this method must be called within
             // the scope of a yield block.
 
@@ -76,7 +75,7 @@ namespace Starcounter.Query.Sql
                 {
                     typeDef = typeEnumerator.Current;
                     schemaInfo = GetTableSchemaInfo(typeDef);
-                    CallSqlProcessToAddSchemaInfo(vpContext, schemaInfo);
+                    CallSqlProcessToAddSchemaInfo(scheduler, schemaInfo);
                     logSource.Debug("Exported schema info about table (class): " + typeDef.Name);
                 }
             }
@@ -92,18 +91,18 @@ namespace Starcounter.Query.Sql
         /// Export schema information to external SQL process by file and a single call to the SQL process.
         /// Note that this method is significantly faster than ExportSchemaInfo2.
         /// </summary>
-        /// <param name="vpContext">Representation of the current virtual processor.</param>
-        /// <param name="typeEnumerator">Enumerator of TypeDefs (type information).</param>
-        internal static void ExportSchemaInfo(Scheduler vpContext, IEnumerator<TypeDef> typeEnumerator)
+        /// <param name="scheduler">Representation of the current virtual processor.</param>
+        /// <param name="typeDefArray">Enumerator of TypeDefs (type information).</param>
+        internal static void ExportSchemaInfo(Scheduler scheduler, TypeDef[] typeDefArray)
         {
-            // Since the vpContext.PrologSession is shared between all the threads
+            // Since the scheduler.PrologSession is shared between all the threads
             // managed by the same scheduler, this method must be called within
             // the scope of a yield block. 
 
             String schemaFilePath = schemaFolderExternal + "schema" + DateTime.Now.ToString("yyMMddHHmmssfff") + ".pl";
             try
             {
-                WriteSchemaInfoToFile(schemaFilePath, typeEnumerator);
+                WriteSchemaInfoToFile(schemaFilePath, typeDefArray);
             }
             catch (Exception exception)
             {
@@ -112,7 +111,7 @@ namespace Starcounter.Query.Sql
             }
             try
             {
-                CallSqlProcessToLoadSchemaInfo(vpContext, schemaFilePath);
+                CallSqlProcessToLoadSchemaInfo(scheduler, schemaFilePath);
             }
             catch (Exception exception)
             {
@@ -128,27 +127,27 @@ namespace Starcounter.Query.Sql
         /// Deletes all schema information of external SQL process and reexports schema information by using previously generated files.
         /// This method is primarily used for debugging purposes.
         /// </summary>
-        /// <param name="vpContext">Representation of the current virtual processor.</param>
-        private static void DeleteAndReExportAllSchemaInfo(Scheduler vpContext)
+        /// <param name="scheduler">Representation of the current virtual processor.</param>
+        private static void DeleteAndReExportAllSchemaInfo(Scheduler scheduler)
         {
-            // Since the vpContext.PrologSession is shared between all the threads
+            // Since the scheduler.PrologSession is shared between all the threads
             // managed by the same scheduler, this method must be called within
             // the scope of a yield block.
 
             List<String> tmpSchemaFileList = schemaFilePathList; // Temporary store the schemaFilePathList.
-            DeleteAllSchemaInfo(vpContext); // schemaFilePathList becomes empty.
-            ReExportAllSchemaInfo(vpContext, tmpSchemaFileList); // schemaFilePathList becomes reinstantiated.
+            DeleteAllSchemaInfo(scheduler); // schemaFilePathList becomes empty.
+            ReExportAllSchemaInfo(scheduler, tmpSchemaFileList); // schemaFilePathList becomes reinstantiated.
         }
 
         /// <summary>
         /// Reexports schema information to external SQL process by using previously generated files.
         /// This method is primarily used for debugging purposes.
         /// </summary>
-        /// <param name="vpContext">Representation of the current virtual processor.</param>
+        /// <param name="scheduler">Representation of the current virtual processor.</param>
         /// <param name="tmpSchemaFileList">List of previously generated schema files.</param>
-        private static void ReExportAllSchemaInfo(Scheduler vpContext, List<String> tmpSchemaFileList)
+        private static void ReExportAllSchemaInfo(Scheduler scheduler, List<String> tmpSchemaFileList)
         {
-            // Since the vpContext.PrologSession is shared between all the threads
+            // Since the scheduler.PrologSession is shared between all the threads
             // managed by the same scheduler, this method must be called within
             // the scope of a yield block.
 
@@ -157,7 +156,7 @@ namespace Starcounter.Query.Sql
             {
                 try
                 {
-                    CallSqlProcessToLoadSchemaInfo(vpContext, tmpSchemaFileList[i]);
+                    CallSqlProcessToLoadSchemaInfo(scheduler, tmpSchemaFileList[i]);
                 }
                 catch (Exception exception)
                 {
@@ -173,10 +172,10 @@ namespace Starcounter.Query.Sql
         /// <summary>
         /// Deletes all schema information of external SQL process.
         /// </summary>
-        /// <param name="vpContext">Representation of the current virtual processor.</param>
-        internal static void DeleteAllSchemaInfo(Scheduler vpContext)
+        /// <param name="scheduler">Representation of the current virtual processor.</param>
+        internal static void DeleteAllSchemaInfo(Scheduler scheduler)
         {
-            // Since the vpContext.PrologSession is shared between all the threads
+            // Since the scheduler.PrologSession is shared between all the threads
             // managed by the same scheduler, this method must be called within
             // the scope of a yield block. 
 
@@ -188,7 +187,7 @@ namespace Starcounter.Query.Sql
             {
                 try
                 {
-                    EstablishConnectedSession(ref session, vpContext);
+                    EstablishConnectedSession(ref session, scheduler);
                     answer = session.executeQuery("delete_schemainfo_prolog");
                     CheckQueryAnswerForError(answer);
                     loopCount = maxQueryRetries;
@@ -202,13 +201,13 @@ namespace Starcounter.Query.Sql
                     }
                     else
                     {
-                        LeaveConnectedSession(session, vpContext);
+                        LeaveConnectedSession(session, scheduler);
                         // TODO: New error code SCERRSQLDELETESCHEMAFAILED
                         throw ErrorCode.ToException(Error.SCERRSQLEXPORTSCHEMAFAILED, exception);
                     }
                 }
             }
-            LeaveConnectedSession(session, vpContext);
+            LeaveConnectedSession(session, scheduler);
 
             schemaFilePathList = new List<String>();
         }
@@ -217,18 +216,18 @@ namespace Starcounter.Query.Sql
         /// Checks that the schema files loaded into the external SQL process equals the here generated schema files.
         /// Primarily used for debugging purposes.
         /// </summary>
-        /// <param name="vpContext">Representation of the current virtual processor.</param>
+        /// <param name="scheduler">Representation of the current virtual processor.</param>
         /// <returns>True, if the schema information is correct, otherwise false.</returns>
-        private static Boolean VerifySchemaInfo(Scheduler vpContext)
+        private static Boolean VerifySchemaInfo(Scheduler scheduler)
         {
-            // Since the vpContext.PrologSession is shared between all the threads
+            // Since the scheduler.PrologSession is shared between all the threads
             // managed by the same scheduler, this method must be called within
             // the scope of a yield block. 
 
             List<String> externalSchemaFilePathList = null;
             try
             {
-                externalSchemaFilePathList = GetCurrentSqlSchemaFiles(vpContext);
+                externalSchemaFilePathList = GetCurrentSqlSchemaFiles(scheduler);
                 if (StringListEqual(externalSchemaFilePathList, schemaFilePathList))
                     return true;
                 return false;
@@ -264,7 +263,20 @@ namespace Starcounter.Query.Sql
 
             // Correct version of process is running.
             if (existingProcessVersion == processVersion)
+            {
+                ConnectPrologSessions();
+                try
+                {
+                    Starcounter.ThreadHelper.SetYieldBlock();
+                    Scheduler scheduler = Scheduler.GetInstance();
+                    DeleteAllSchemaInfo(scheduler);
+                }
+                finally
+                {
+                    Starcounter.ThreadHelper.ReleaseYieldBlock();
+                }
                 return;
+            }
 
             // No process is running.
             if (existingProcessVersion == null)
@@ -282,17 +294,17 @@ namespace Starcounter.Query.Sql
 
         private static void ConnectPrologSessions()
         {
-            Scheduler vpContext = null;
+            Scheduler scheduler = null;
             PrologSession prologSession = null;
             for (Byte cpuNumber = 0; cpuNumber < Scheduler.SchedulerCount; cpuNumber++)
             {
-                vpContext = Scheduler.GetInstance(cpuNumber);
-                prologSession = vpContext.PrologSession;
+                scheduler = Scheduler.GetInstance(cpuNumber);
+                prologSession = scheduler.PrologSession;
                 if (prologSession == null)
                 {
                     prologSession = new PrologSession();
                     prologSession.Port = processPort;
-                    vpContext.PrologSession = prologSession;
+                    scheduler.PrologSession = prologSession;
                 }
 
                 if (prologSession.Connected == false)
@@ -341,7 +353,7 @@ namespace Starcounter.Query.Sql
             }
         }
 
-        private static void EstablishConnectedSession(ref PrologSession session, Scheduler vpContext)
+        private static void EstablishConnectedSession(ref PrologSession session, Scheduler scheduler)
         {
             // Check current session.
             if (session != null)
@@ -353,18 +365,18 @@ namespace Starcounter.Query.Sql
                 session.connect();
                 return;
             }
-            // Get session from vpContext.
-            if (vpContext != null)
+            // Get session from scheduler.
+            if (scheduler != null)
             {
-                session = vpContext.PrologSession;
+                session = scheduler.PrologSession;
             }
             // Create new session.
             if (session == null)
             {
                 session = new PrologSession();
-                if (vpContext != null)
+                if (scheduler != null)
                 {
-                    vpContext.PrologSession = session;
+                    scheduler.PrologSession = session;
                 }
                 session.Port = processPort;
             }
@@ -374,9 +386,9 @@ namespace Starcounter.Query.Sql
             }
         }
 
-        private static void LeaveConnectedSession(PrologSession session, Scheduler vpContext)
+        private static void LeaveConnectedSession(PrologSession session, Scheduler scheduler)
         {
-            if (vpContext == null && session != null)
+            if (scheduler == null && session != null)
             {
                 session.disconnect();
             }
@@ -597,7 +609,7 @@ namespace Starcounter.Query.Sql
             return strBuilder.ToString();
         }
 
-        private static void CallSqlProcessToAddSchemaInfo(Scheduler vpContext, String schemaInfo)
+        private static void CallSqlProcessToAddSchemaInfo(Scheduler scheduler, String schemaInfo)
         {
             PrologSession session = null;
             se.sics.prologbeans.Bindings bindings = null;
@@ -608,7 +620,7 @@ namespace Starcounter.Query.Sql
             {
                 try
                 {
-                    EstablishConnectedSession(ref session, vpContext);
+                    EstablishConnectedSession(ref session, scheduler);
                     bindings = new se.sics.prologbeans.Bindings();
                     bindings.bind("SchemaInfo", schemaInfo);
                     answer = session.executeQuery("add_schemainfo_prolog(SchemaInfo)", bindings);
@@ -624,15 +636,15 @@ namespace Starcounter.Query.Sql
                     }
                     else
                     {
-                        LeaveConnectedSession(session, vpContext);
+                        LeaveConnectedSession(session, scheduler);
                         throw exception;
                     }
                 }
             }
-            LeaveConnectedSession(session, vpContext);
+            LeaveConnectedSession(session, scheduler);
         }
 
-        private static void WriteSchemaInfoToFile(String schemaFilePath, IEnumerator<TypeDef> typeEnumerator)
+        private static void WriteSchemaInfoToFile(String schemaFilePath, TypeDef[] typeDefArray)
         {
             StreamWriter streamWriter = null;
             //IEnumerator<ExtensionBinding> extEnumerator = null;
@@ -656,9 +668,9 @@ namespace Starcounter.Query.Sql
                 streamWriter.WriteLine("/* class(shortClassNameUpper,fullClassName,baseClassName). */");
                 String fullClassNameUpper = null;
                 String shortClassNameUpper = null;
-                while (typeEnumerator.MoveNext())
+                for (Int32 i = 0; i < typeDefArray.Length; i++)
                 {
-                    typeDef = typeEnumerator.Current;
+                    typeDef = typeDefArray[i];
                     fullClassNameUpper = typeDef.Name.ToUpperInvariant();
                     shortClassNameUpper = GetShortName(typeDef.Name).ToUpperInvariant();
                     if (typeDef.BaseName != null)
@@ -701,13 +713,12 @@ namespace Starcounter.Query.Sql
 
                 // Export information about properties (columns).
                 streamWriter.WriteLine("/* property(fullClassName,propertyNameUpper,propertyName,propertyType). */");
-                typeEnumerator.Reset();
-                while (typeEnumerator.MoveNext())
+                for (Int32 i = 0; i < typeDefArray.Length; i++)
                 {
-                    typeDef = typeEnumerator.Current;
-                    for (Int32 i = 0; i < typeDef.PropertyDefs.Length; i++)
+                    typeDef = typeDefArray[i];
+                    for (Int32 j = 0; j < typeDef.PropertyDefs.Length; j++)
                     {
-                        propDef = typeDef.PropertyDefs[i];
+                        propDef = typeDef.PropertyDefs[j];
                         if (propDef.Type == DbTypeCode.Object)
                         {
                             if (propDef.TargetTypeName != null)
@@ -801,7 +812,7 @@ namespace Starcounter.Query.Sql
             }
         }
 
-        private static void CallSqlProcessToLoadSchemaInfo(Scheduler vpContext, String schemaFilePath)
+        private static void CallSqlProcessToLoadSchemaInfo(Scheduler scheduler, String schemaFilePath)
         {
             PrologSession session = null;
             se.sics.prologbeans.Bindings bindings = null;
@@ -812,7 +823,7 @@ namespace Starcounter.Query.Sql
             {
                 try
                 {
-                    EstablishConnectedSession(ref session, vpContext);
+                    EstablishConnectedSession(ref session, scheduler);
                     bindings = new se.sics.prologbeans.Bindings();
                     bindings.bind("SchemaFile", schemaFilePath);
                     answer = session.executeQuery("load_schemainfo_prolog(SchemaFile)", bindings);
@@ -828,15 +839,15 @@ namespace Starcounter.Query.Sql
                     }
                     else
                     {
-                        LeaveConnectedSession(session, vpContext);
+                        LeaveConnectedSession(session, scheduler);
                         throw exception;
                     }
                 }
             }
-            LeaveConnectedSession(session, vpContext);
+            LeaveConnectedSession(session, scheduler);
         }
 
-        private static List<String> GetCurrentSqlSchemaFiles(Scheduler vpContext)
+        private static List<String> GetCurrentSqlSchemaFiles(Scheduler scheduler)
         {
             PrologSession session = null;
             QueryAnswer answer = null;
@@ -846,7 +857,7 @@ namespace Starcounter.Query.Sql
             {
                 try
                 {
-                    EstablishConnectedSession(ref session, vpContext);
+                    EstablishConnectedSession(ref session, scheduler);
                     answer = session.executeQuery("current_schemafiles_prolog(SchemaFiles)");
                     CheckQueryAnswerForError(answer);
                     loopCount = maxQueryRetries;
@@ -860,12 +871,12 @@ namespace Starcounter.Query.Sql
                     }
                     else
                     {
-                        LeaveConnectedSession(session, vpContext);
+                        LeaveConnectedSession(session, scheduler);
                         throw exception;
                     }
                 }
             }
-            LeaveConnectedSession(session, vpContext);
+            LeaveConnectedSession(session, scheduler);
 
             List<String> schemaFileList = new List<String>();
             Term cursor = answer.getValue("SchemaFiles");
@@ -892,9 +903,9 @@ namespace Starcounter.Query.Sql
         }
 
         [PermissionSet(SecurityAction.Assert, Unrestricted = true)]
-        internal static IExecutionEnumerator ProcessSqlQuery(Scheduler vpContext, String query)
+        internal static IExecutionEnumerator ProcessSqlQuery(Scheduler scheduler, String query)
         {
-            // Since the vpContext.PrologSession is shared between all the threads
+            // Since the scheduler.PrologSession is shared between all the threads
             // managed by the same scheduler, this method must be called within
             // the scope of a yield block. 
 
@@ -921,7 +932,7 @@ namespace Starcounter.Query.Sql
             {
                 try
                 {
-                    EstablishConnectedSession(ref session, vpContext);
+                    EstablishConnectedSession(ref session, scheduler);
                     bindings = new se.sics.prologbeans.Bindings();
                     bindings.bind("Query", query);
                     answer = session.executeQuery("sql_prolog(Query,TypeDef,ExecInfo,VarNum,ErrList)", bindings);
@@ -936,16 +947,16 @@ namespace Starcounter.Query.Sql
                         logSource.LogWarning("Failed to process query: " + query, exception);
                         EstablishSqlProcess();
                         logSource.LogWarning("Restarted process: " + processFolder + processFileName + " " + processPort + " " + schemaFolderExternal);
-                        ReExportAllSchemaInfo(vpContext, schemaFilePathList);
+                        ReExportAllSchemaInfo(scheduler, schemaFilePathList);
                     }
                     else
                     {
-                        LeaveConnectedSession(session, vpContext);
+                        LeaveConnectedSession(session, scheduler);
                         throw;
                     }
                 }
             }
-            LeaveConnectedSession(session, vpContext);
+            LeaveConnectedSession(session, scheduler);
 
             // Check for errors.
             Term errListTerm = answer.getValue("ErrList");
