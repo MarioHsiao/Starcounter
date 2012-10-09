@@ -73,6 +73,7 @@ namespace StarcounterInternal.Bootstrap
 
             // Query module.
             Scheduler.Setup(1);
+            Starcounter.Query.QueryModule.Configure(configuration.SQLProcessPort);
 
             return true;
         }
@@ -104,7 +105,9 @@ namespace StarcounterInternal.Bootstrap
             }
             else
             {
-                server = new Server(Console.In.ReadLine, Console.Out.WriteLine);
+                server = new Server(Console.In.ReadLine, delegate(string reply, bool endsRequest) {
+                    Console.Out.WriteLine(reply);
+                });
             }
 
             // Install handlers for the type of requests we accept.

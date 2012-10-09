@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using Starcounter;
 using Starcounter.Internal;
 using Starcounter.Query.Sql;
-using Sc.Server.Binding;
-using Sc.Server.Internal;
 using Starcounter.Query.Execution;
 
 namespace Starcounter.Query.Sql
@@ -28,6 +26,14 @@ public sealed class SqlEnumCache
     // Just a temporary buffer.
     internal Byte[] TempBuffer = new Byte[SqlConnectivityInterface.RECREATION_KEY_MAX_BYTES];
 
+    // References to global cache to be able run query during invalidation period
+    GlobalQueryCache globalQueryCache = Scheduler.GlobalCache;
+
+    /// <summary>
+    /// If true, then this local cache has to be invalidated. It is set on through Scheduler.
+    /// </summary>
+    Boolean toInvalidate = false;
+
     /// <summary>
     /// Gets an already existing enumerator given the unique query ID.
     /// </summary>
@@ -46,7 +52,7 @@ public sealed class SqlEnumCache
             if (enumList.Count == 0)
             {
                 // Always using first cached enumerator for cloning (because of dynamic ranges).
-                execEnum = Scheduler.GlobalCache.GetEnumClone(uniqueQueryId);
+                execEnum = globalQueryCache.GetEnumClone(uniqueQueryId);
 
                 // Increasing the number of enumerators.
                 totalCachedEnum++;
@@ -64,7 +70,7 @@ public sealed class SqlEnumCache
         else
         {
             // Fetching existing enumerator from the global cache.
-            execEnum = Scheduler.GlobalCache.GetEnumClone(uniqueQueryId);
+            execEnum = globalQueryCache.GetEnumClone(uniqueQueryId);
 
             // Increasing the number of enumerators
             totalCachedEnum++;
@@ -80,47 +86,6 @@ public sealed class SqlEnumCache
 
             // Giving the cache where all subsequent enumerators should be returned.
             execEnum.AttachToCache(newEnumList);
-
-            /*
-            // Creating code generation engine.
-            CodeGenStringGenerator stringGen = new CodeGenStringGenerator(uniqueQueryID);
-
-            // Generating code from managed execution plan.
-            String rootEnumName = execEnum.GetUniqueName(stringGen.SeqNumber());
-
-            stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "DLL_EXPORT INT32 CALL_CONV InitEnumerator_" + execEnum.UniqueQueryID + "(UINT8 *queryParameters)");
-            stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "{");
-            stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "g_QueryParamsData = queryParameters;");
-            stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "// Chopping query parameters here.");
-            stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "ProcessQueryParameters(g_QueryParamsData);");
-            stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "return 0;");
-            stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "}" + CodeGenStringGenerator.ENDL);
-
-            stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "DLL_EXPORT INT32 CALL_CONV MoveNext_" + execEnum.UniqueQueryID + "(UINT64 *oid, UINT64 *eti, UINT16 *ci)");
-            stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "{");
-            stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "INT32 errCode = " + rootEnumName + "_MoveNext();");
-            stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "if (errCode != 0)");
-            stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "  return errCode;" + CodeGenStringGenerator.ENDL);
-
-            stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "// Since the scan was successful, copying the results.");
-            stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "*oid = g_" + rootEnumName + "->oid;");
-            stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "*eti = g_" + rootEnumName + "->eti;");
-            stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "*ci = g_" + rootEnumName + "->ci;");
-            stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "return 0;");
-            stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "}" + CodeGenStringGenerator.ENDL);
-
-            stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "DLL_EXPORT INT32 CALL_CONV Reset_" + execEnum.UniqueQueryID + "()");
-            stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "{");
-            stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "return " + rootEnumName + "_Reset();");
-            stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "}" + CodeGenStringGenerator.ENDL);
-
-            // Calling recursive code generation for the root enumerator.
-            execEnum.GenerateCompilableCode(stringGen);
-
-            // Compiling and verifying library.
-            if (CompilerHelper.CompileAndVerifyLibrary(stringGen.GetGeneratedCode(), execEnum.UniqueQueryID) != null)
-                execEnum.UniqueQueryID = 0; // Code generation has failed.
-            */
         }
 
         // Adding to the sorting list.
@@ -135,18 +100,25 @@ public sealed class SqlEnumCache
     internal IExecutionEnumerator GetCachedEnumerator(String query)
     {
         // Trying last used enumerator.
-        if (query == Scheduler.GlobalCache.GetQueryString(lastUsedEnumIndex))
+        if (query == globalQueryCache.GetQueryString(lastUsedEnumIndex))
         {
             return GetCachedEnumerator(lastUsedEnumIndex);
         }
 
         // We have to ask dictionary for the index.
-        Int32 enumIndex = Scheduler.GlobalCache.GetEnumIndex(query);
+        Int32 enumIndex = globalQueryCache.GetEnumIndex(query);
 
         // Checking if its completely new query.
         if (enumIndex < 0)
         {
-            enumIndex = Scheduler.GlobalCache.AddNewQuery(query);
+            // Check if there is space for the query
+            if (globalQueryCache.IsCacheFull())
+            {
+                Scheduler myScheduler = Scheduler.GetInstance(true);
+                myScheduler.InvalidateCache();
+            }
+
+            enumIndex = globalQueryCache.AddNewQuery(query);
         }
 
         // Fetching existing enumerator using index.
@@ -159,6 +131,37 @@ public sealed class SqlEnumCache
     internal String SQLCacheStatus()
     {
         return String.Format("Server SQL query cache status: Totally amount of enumerators = {0}.", totalCachedEnum);
+    }
+
+    /// <summary>
+    /// Resets local variable to empty cache. Resets global cache references to
+    /// current global cache values (i.e., after invalidation of global reset).
+    /// This method assumed is not to be called concurrently.
+    /// </summary>
+    public void InvalidateCache()
+    {
+        if (toInvalidate)
+        {
+            lock (Scheduler.InvalidateLock)
+            {
+                globalQueryCache = Scheduler.GlobalCache;
+                toInvalidate = false;
+            }
+            enumArray = new LinkedListNode<LinkedList<IExecutionEnumerator>>[GlobalQueryCache.MaxUniqueQueries];
+            totalCachedEnum = 0;
+            lastUsedEnumIndex = 0;
+        }
+    }
+
+    internal void InvalidateCache(bool force)
+    {
+        toInvalidate = true;
+        InvalidateCache();
+    }
+
+    internal void SetToInvalidate()
+    {
+        toInvalidate = true;
     }
 }
 }

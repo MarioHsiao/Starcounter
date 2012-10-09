@@ -1,10 +1,8 @@
 ﻿
 using System;
-using Starcounter.Configuration;
 using Starcounter.Query.Optimization;
 using Starcounter.Query.Sql;
 using Starcounter.Query.Execution;
-using Sc.Server.Internal;
 using System.Diagnostics;
 
 namespace Starcounter.Query
@@ -12,7 +10,7 @@ namespace Starcounter.Query
 /// <summary>
 /// Configuration, initiation and termination of query module.
 /// </summary>
-internal static class QueryModule
+public static class QueryModule
 {
     // Configuration of query module.
     static readonly String processFolder = StarcounterEnvironment.SystemDirectory + "\\32BitComponents\\";
@@ -25,10 +23,17 @@ internal static class QueryModule
     const Int32 maxVerifyRetries = 100;
     const Int32 timeBetweenVerifyRetries = 100; // [ms]
 
+    private static int configuredSQLProcessPort;
+
+    public static void Configure(int sqlProcessPort)
+    {
+        configuredSQLProcessPort = sqlProcessPort;
+    }
+
     /// <summary>
     /// Initiates query module. Called during start-up.
     /// </summary>
-    internal static void Initiate(Boolean newSchema, DatabaseEngineInstanceConfiguration engineConfiguration)
+    internal static void Initiate(Boolean newSchema)
     {
         // Connect managed and native Sql functions.
         UInt32 errCode = SqlConnectivity.InitSqlFunctions();
@@ -38,7 +43,7 @@ internal static class QueryModule
             SqlConnectivity.ThrowConvertedServerError(errCode);
 
         // Export database schema and index information, and start Prolog-process.
-        processPort = engineConfiguration.SQLProcessPort;
+        processPort = configuredSQLProcessPort;
         if (processPort == 0)
             processPort = StarcounterEnvironment.DefaultPorts.SQLProlog;
         PrologManager.Initiate(newSchema, processFolder, processFileName, processVersion, processPort, schemaFilePath, 

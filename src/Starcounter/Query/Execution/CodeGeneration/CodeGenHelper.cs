@@ -1,11 +1,9 @@
 ﻿using Starcounter;
 using Starcounter.Query.Sql;
-using Sc.Server.Internal;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using Sc.Server.Binding;
 using System.IO;
 using System.Diagnostics;
 using System.Runtime.InteropServices;

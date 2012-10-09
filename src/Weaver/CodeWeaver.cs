@@ -10,7 +10,6 @@ using PostSharp.Extensibility;
 using PostSharp.Hosting;
 using PostSharp.Sdk.CodeModel;
 using PostSharp.Sdk.Extensibility;
-using Sc.Server.Internal;
 using Sc.Server.Weaver;
 using Starcounter;
 using Starcounter.Internal;

@@ -1,7 +1,5 @@
 
 using Starcounter;
-using Sc.Server.Binding;
-using Sc.Server.Internal;
 using System;
 using System.Collections.Generic;
 
@@ -53,6 +51,7 @@ internal static class Tokenizer
         stringHash.Add("DELETE");
         stringHash.Add("DESC");
         stringHash.Add("DISTINCT");
+        stringHash.Add("DROP");
         stringHash.Add("ESCAPE");
         stringHash.Add("EXISTS");
         stringHash.Add("FALSE");
@@ -90,6 +89,7 @@ internal static class Tokenizer
         stringHash.Add("SELECT");
         stringHash.Add("STARTS");
         stringHash.Add("SUM");
+        stringHash.Add("TABLE");
         stringHash.Add("TIME");
         stringHash.Add("TIMESTAMP");
         stringHash.Add("TRUE");

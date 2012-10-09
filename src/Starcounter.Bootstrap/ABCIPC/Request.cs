@@ -237,6 +237,13 @@ namespace Starcounter.ABCIPC {
             InternalReply(Reply.Protocol.MakeString(Reply.ReplyType.UnknownMessage, this.Message));
         }
 
+        internal void RespondToExceptionInHandler(Exception handlerException) {
+            InternalReply(Reply.Protocol.MakeString(
+                Reply.ReplyType.HandlerException,
+                string.Format("{0}={1}", this.Message, handlerException.Message)));
+        }
+
+
         void InternalReply(string replyString) {
             InternalReply(replyString, false);
         }
@@ -245,11 +252,10 @@ namespace Starcounter.ABCIPC {
             if (IsResponded)
                 throw new InvalidOperationException("Request has already been responded to.");
 
-            server.reply(replyString);
+            server.Reply(replyString, !statusMessage);
             if (!statusMessage) {
                 this.IsResponded = true;
             }
         }
     }
-
 }
