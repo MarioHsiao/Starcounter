@@ -28,6 +28,7 @@ namespace sccli {
             supportedCommands.Add("getserver", Program.GetServerInfo);
             supportedCommands.Add("createdatabase", Program.CreateDatabase);
             supportedCommands.Add("startdatabase", Program.StartDatabase);
+            supportedCommands.Add("stopdatabase", Program.StopDatabase);
         }
 
         static void Main(string[] args) {
@@ -70,6 +71,14 @@ namespace sccli {
             var props = new Dictionary<string, string>();
             props["Name"] = args[1];
             client.Send("StartDatabase", props, (Reply reply) => WriteReplyToConsole(reply));
+        }
+
+        static void StopDatabase(Client client, string[] args) {
+            var props = new Dictionary<string, string>();
+            props["Name"] = args[1];
+            if (args.Contains<string>("stopdb"))
+                props["StopDb"] = bool.TrueString;
+            client.Send("StopDatabase", props, (Reply reply) => WriteReplyToConsole(reply));
         }
 
         static void GetDatabase(Client client, string[] args) {
