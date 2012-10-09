@@ -1,7 +1,6 @@
 ﻿
 using System;
 using Starcounter;
-using Sc.Server.Internal;
 using System.Diagnostics;
 
 namespace Starcounter.Internal.Weaver

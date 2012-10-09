@@ -5,7 +5,6 @@ using PostSharp.Sdk.CodeModel;
 using PostSharp.Sdk.Collections;
 using PostSharp.Sdk.Extensibility;
 using PostSharp.Sdk.Extensibility.Tasks;
-using Sc.Server.Internal;
 
 namespace Starcounter.Internal.Weaver {
     public sealed class ScEnhanceThreadingTask : Task {
@@ -160,7 +159,9 @@ namespace Starcounter.Internal.Weaver {
 
         private static Set<MethodDefDeclaration> FindAffectedMethods(MethodRefDeclaration methodRef) {
             Set<MethodDefDeclaration> affectedMethods = new Set<MethodDefDeclaration>(64);
+#pragma warning disable 612
             foreach (MethodDefDeclaration methodDef in IndexUsagesTask.GetUsedBy(methodRef)) {
+#pragma warning restore 612
                 affectedMethods.AddIfAbsent(methodDef);
             }
             return affectedMethods;

@@ -15,7 +15,6 @@ using PostSharp.Sdk.CodeWeaver;
 using PostSharp.Sdk.Collections;
 using PostSharp.Sdk.Extensibility;
 using PostSharp.Sdk.Extensibility.Tasks;
-using Sc.Server.Internal;
 using Sc.Server.Weaver.Schema;
 using Starcounter;
 
@@ -385,8 +384,10 @@ namespace Starcounter.Internal.Weaver {
             proof = (String)knownAssemblyAttribute.ConstructorArguments[1].Value.Value;
             kaa = new KnownAssemblyAttribute(weaverDirectives, proof);
             if (!kaa.CheckProof(module.AssemblyManifest.GetFullName())) {
+#pragma warning disable 618
                 ScMessageSource.Instance.Write(SeverityType.Fatal, "SCATV04",
                                                new Object[] { module.AssemblyManifest.GetFullName() });
+#pragma warning restore 618
                 return WeaverDirectives.None;
             }
 
@@ -427,10 +428,12 @@ namespace Starcounter.Internal.Weaver {
 
             _discoverDatabaseClassCache = new Dictionary<ITypeSignature, DatabaseClass>();
 
+#pragma warning disable 618
             ScMessageSource.Instance.Write(
                 SeverityType.ImportantInfo,
                 "SCINF01",
                 new Object[] { _module.Name });
+#pragma warning restore 618
 
             // Create a DatabaseAssembly for the current module and add it to the schema.
             _databaseAssembly = new DatabaseAssembly(_module.AssemblyManifest.Name, _module.AssemblyManifest.GetFullName()) {
@@ -454,11 +457,13 @@ namespace Starcounter.Internal.Weaver {
             if ((_weaverDirectives & (WeaverDirectives.ExcludeConstraintValidation
                                             | WeaverDirectives.AllowForbiddenDeclarations)) == 0) {
                 if (_module.AssemblyManifest.GetPublicKey() != null) {
+#pragma warning disable 618
                     ScMessageSource.Instance.Write(
                                         SeverityType.Error,
                                         "SCATV05",
                                         new Object[] { _module.AssemblyManifest.GetFullName() }
                                     );
+#pragma warning restore 618
                 }
                 ValidateForbiddenReferences();
             }
@@ -473,17 +478,19 @@ namespace Starcounter.Internal.Weaver {
                 // it would be better to configure this assembly not to be analyzed by
                 // the weaver, to improve startup time.
 
+#pragma warning disable 618
                 ScMessageSource.Instance.Write(
                     SeverityType.ImportantInfo,
                     "SCATV06",
                     new Object[] { _module.AssemblyManifest.GetFullName() }
                     );
+#pragma warning restore 618
             } else {
                 // The module/assembly we are told to process references Starcounter,
                 // either directly or indirectly. Prepare to run analyzis.
 
                 _entityType = FindStarcounterType(typeof(Entity));
-                _dbObjectType = FindStarcounterType(typeof(DbObject));
+                _dbObjectType = FindStarcounterType(typeof(Entity));
                 _notPersistentAttributeType = FindStarcounterType(typeof(NotPersistentAttribute));
                 
                 // Set up dependencies for this assembly.
@@ -588,8 +595,10 @@ namespace Starcounter.Internal.Weaver {
             foreach (AssemblyRefDeclaration assemblyRef in _module.AssemblyRefs) {
                 name = assemblyRef.Name;
                 if (Array.Exists(_forbiddenAssemblies, s => String.Equals(name, s, strComp))) {
+#pragma warning disable 618
                     ScMessageSource.Instance.Write(SeverityType.Error, "SCATV01",
                                                    new Object[] { name });
+#pragma warning restore 618
                 }
             }
         }
@@ -625,9 +634,9 @@ namespace Starcounter.Internal.Weaver {
 //            FieldDefDeclaration field;
             
             // Inspect that custom attributes were used were it makes sense.
+#pragma warning disable 612
             annotationRepositoryTask = AnnotationRepositoryTask.GetTask(Project);
-
-            
+#pragma warning restore 612
         }
 
         #endregion
@@ -647,6 +656,7 @@ namespace Starcounter.Internal.Weaver {
                     parent = (DatabaseSocietyClass)databaseClass.BaseClass;
                     if (parent != null
                             && databaseClass.KindClass.BaseClass != parent.InheritedKindClass) {
+#pragma warning disable 618
                         ScMessageSource.Instance.Write(SeverityType.Error,
                                                        "SCKCV04",
                                                        new object[] {
@@ -654,6 +664,7 @@ namespace Starcounter.Internal.Weaver {
 														parent.InheritedKindClass.Name
 												   }
                                                     );
+#pragma warning restore 618
                     }
                 }
 
@@ -663,9 +674,11 @@ namespace Starcounter.Internal.Weaver {
                          && (databaseClass.KindClass == null
                                 || nestedType != databaseClass.KindClass.GetTypeDefinition())
                        ) {
+#pragma warning disable 618
                         ScMessageSource.Instance.Write(SeverityType.Error,
                                                        "SCKCV06",
                                                        new object[] { nestedType.Name });
+#pragma warning restore 618
                     }
                 }
             }
@@ -684,9 +697,11 @@ namespace Starcounter.Internal.Weaver {
 
             // A kind class must be named ‘Kind’.
             if (!databaseClass.Name.EndsWith("+Kind")) {
+#pragma warning disable 618
                 ScMessageSource.Instance.Write(SeverityType.Error,
                                                "SCKCV02",
                                                new Object[] { databaseClass.Name });
+#pragma warning restore 618
             }
 
             // A kind class must have a default constructor (unless it is abstract).
@@ -694,16 +709,20 @@ namespace Starcounter.Internal.Weaver {
                     && typeDef.Methods.GetMethod(".ctor",
                                                  _defaultConstructorSignature,
                                                  bindOpts) == null) {
+#pragma warning disable 618
                 ScMessageSource.Instance.Write(SeverityType.Error,
                                                "SCKCV05",
                                                new Object[] { databaseClass.Name });
+#pragma warning restore 618
             }
 
             // A kind class cannot be sealed.
             if (typeDef.IsSealed) {
+#pragma warning disable 618
                 ScMessageSource.Instance.Write(SeverityType.Error,
                                                "SCKCV08",
                                                new Object[] { databaseClass.Name });
+#pragma warning restore 618
             }
 
             // A kind class should have at least protected visibility.
@@ -711,9 +730,11 @@ namespace Starcounter.Internal.Weaver {
             if (visibility != TypeAttributes.NestedFamily
                   && visibility != TypeAttributes.NestedFamORAssem
                   && visibility != TypeAttributes.NestedPublic) {
+#pragma warning disable 618
                 ScMessageSource.Instance.Write(SeverityType.Error,
                                                "SCKCV09",
                                                new Object[] { databaseClass.Name });
+#pragma warning restore 618
             }
         }
 
@@ -732,26 +753,32 @@ namespace Starcounter.Internal.Weaver {
                 if (constructorDef.Parameters.Count == 0) {
                     defaultConstructor = constructorDef;
                 } else if (!forbiddenConstructorErrorEmitted) {
+#pragma warning disable 618
                     ScMessageSource.Instance.Write(SeverityType.Error,
                                                    "SCECV01",
                                                    new Object[] { databaseClass.Name });
+#pragma warning restore 618
                     forbiddenConstructorErrorEmitted = true;
                 }
             }
 
             if (defaultConstructor == null) {
                 if (!forbiddenConstructorErrorEmitted) {
+#pragma warning disable 618
                     ScMessageSource.Instance.Write(SeverityType.Error,
                                                    "SCECV01",
                                                    new Object[] { databaseClass.Name });
+#pragma warning restore 618
                 }
             }
 
             // An extension class should be sealed.
             if (!typeDef.IsSealed) {
+#pragma warning disable 618
                 ScMessageSource.Instance.Write(SeverityType.Error,
                                                "SCECV04",
                                                new Object[] { databaseClass.Name });
+#pragma warning restore 618
             }
         }
 
@@ -779,9 +806,11 @@ namespace Starcounter.Internal.Weaver {
 
             // A database class cannot have generic parameters.
             if (typeDef.IsGenericDefinition) {
+#pragma warning disable 618
                 ScMessageSource.Instance.Write(SeverityType.Error,
                                                "SCDCV01",
                                                new Object[] { databaseClass.Name });
+#pragma warning restore 618
             }
 
             // A database class cannot have a destructor.
@@ -790,9 +819,11 @@ namespace Starcounter.Internal.Weaver {
                                                                 _defaultConstructorSignature,
                                                                 bindOpts);
             if (finalizeMethod != null) {
+#pragma warning disable 618
                 ScMessageSource.Instance.Write(SeverityType.Error,
                                                "SCDCV02",
                                                new Object[] { databaseClass.Name });
+#pragma warning restore 618
             }
         }
 
@@ -1077,8 +1108,10 @@ namespace Starcounter.Internal.Weaver {
                 //  ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: {0} is not a DbObject.", type);
                 // Emit an error if the type is nested in a society object and is named 'Kind'.
                 if (typeDef.DeclaringType != null && typeDef.Name == "Kind" && IsSocietyObject(typeDef.DeclaringType)) {
+#pragma warning disable 618
                     ScMessageSource.Instance.Write(SeverityType.Error,
                                                    "SCKCV06", new object[] { typeDef });
+#pragma warning restore 618
                 }
                 return null;
             }
@@ -1122,10 +1155,12 @@ namespace Starcounter.Internal.Weaver {
                         ReflectionNameOptions.UseAssemblyName);
                 StringBuilder newClassName = new StringBuilder();
                 typeDef.WriteReflectionName(newClassName, ReflectionNameOptions.UseAssemblyName);
+#pragma warning disable 618
                 ScMessageSource.Instance.Write(SeverityType.Error,
                                                "SCDCV07",
                                                new object[] { typeDef.GetReflectionName(), newClassName, existingClassName }
                                               );
+#pragma warning restore 618
                 return null;
             }
 
@@ -1150,7 +1185,9 @@ namespace Starcounter.Internal.Weaver {
                     // The parent class is not a society object.
                     // This is an error.
 
+#pragma warning disable 618
                     ScMessageSource.Instance.Write(SeverityType.Error, "SCKCV03", new object[] { typeDef });
+#pragma warning restore 618
                     return null;
                 } else {
                     parentClass.KindClass = databaseClass as DatabaseKindClass;
@@ -1239,9 +1276,11 @@ namespace Starcounter.Internal.Weaver {
             if (databaseClass.BaseClass != null &&
             databaseClass.BaseClass.FindAttributeInAncestors(field.Name) != null) {
                 // SCDCV06
+#pragma warning disable 618
                 ScMessageSource.Instance.Write(SeverityType.Error,
                 "SCDCV06",
                 new object[] { field.DeclaringType, field.Name });
+#pragma warning restore 618
             }
             DatabaseAttribute databaseAttribute = new DatabaseAttribute(databaseClass, field.Name);
             databaseClass.Attributes.Add(databaseAttribute);
@@ -1506,6 +1545,7 @@ namespace Starcounter.Internal.Weaver {
                                     } else {
                                         // The field {0}.{1} is initialized outside the constructor but has a complex value.
                                         // Only literal intrinsic values are allowed.
+#pragma warning disable 618
                                         ScMessageSource.Instance.Write(SeverityType.Error,
                                                                        "SCPFV02", new object[]
                                     {
@@ -1516,6 +1556,7 @@ namespace Starcounter.Internal.Weaver {
                                         databaseAttribute
                                         .Name
                                     });
+#pragma warning restore 618
                                     }
                                 }
                             }
@@ -1651,22 +1692,32 @@ namespace Starcounter.Internal.Weaver {
                             stack.Push(thisPointerStackContent);
                         break;
                 }
-                switch (OpCodeMap.GetFlowControl(reader.CurrentInstruction.OpCodeNumber)) {
+#pragma warning disable 618
+                switch (OpCodeMap.GetFlowControl(reader.CurrentInstruction.OpCodeNumber))
+#pragma warning restore 618
+                {
                     case FlowControl.Next:
                     case FlowControl.Call:
                         // We understand that.
                         break;
                     default:
+#pragma warning disable 618
                         // This is too complex for our analysis.
                         ScMessageSource.Instance.Write(SeverityType.Error, "SCDCV04",
                                                        new object[] { methodDef.DeclaringType.Name });
+#pragma warning restore 618
                         return;
                 }
+#pragma warning disable 618
                 StackBehaviour popBehaviour =
                     OpCodeMap.GetStackBehaviourPop(reader.CurrentInstruction.OpCodeNumber);
+#pragma warning restore 618
+#pragma warning disable 618
                 StackBehaviour pushBehaviour =
                     OpCodeMap.GetStackBehaviourPush(reader.CurrentInstruction.OpCodeNumber);
-                switch (popBehaviour) {
+#pragma warning restore 618
+                switch (popBehaviour)
+                {
                     case StackBehaviour.Pop0:
                         break;
                     case StackBehaviour.Pop1:
@@ -1746,8 +1797,10 @@ namespace Starcounter.Internal.Weaver {
                     constructorEmpty = false;
                 }
                 if (!constructorEmpty) {
+#pragma warning disable 618
                     ScMessageSource.Instance.Write(SeverityType.Error,
                                                    "SCECV03", new object[] { databaseClass.Name });
+#pragma warning restore 618
                 }
             }
         }
@@ -1793,9 +1846,11 @@ namespace Starcounter.Internal.Weaver {
                                     ITypeSignature parameterType =
                                         method.GetParameterType(i);
                                     if (parameterType.BelongsToClassification(TypeClassifications.Pointer)) {
+#pragma warning disable 618
                                         PointerTypeSignature pointerTypeSignature =
                                             (PointerTypeSignature)
                                             parameterType.GetNakedType(TypeNakingOptions.IgnoreAll);
+#pragma warning restore 618
                                         ITypeSignature elementType = pointerTypeSignature.ElementType;
                                         ScAnalysisTrace.Instance.WriteLine(
                                             "This method passes the reference of a {{{0}}}.", elementType);
@@ -1823,8 +1878,10 @@ namespace Starcounter.Internal.Weaver {
                         }
                         fields.Append(s);
                     }
+#pragma warning disable 618
                     ScMessageSource.Instance.Write(SeverityType.Error, "SCPFV21",
                                                    new object[] { methodDef.ToString(), fields.ToString() });
+#pragma warning restore 618
                 }
             }
         }
