@@ -14,10 +14,8 @@ using PostSharp.Sdk.CodeWeaver;
 using PostSharp.Sdk.Collections;
 using PostSharp.Sdk.Extensibility;
 using PostSharp.Sdk.Extensibility.Tasks;
-using Sc.Server.Internal;
 using Sc.Server.Weaver.Schema;
 using Starcounter;
-using Starcounter.Configuration;
 using Starcounter.LucentObjects;
 using IMember = PostSharp.Sdk.CodeModel.IMember;
 using IMethod = PostSharp.Sdk.CodeModel.IMethod;
@@ -28,7 +26,9 @@ namespace Starcounter.Internal.Weaver {
     ///  <see cref="IAdviceProvider"/> interface to provide advices to the low-level
     /// code weaver.
     /// </summary>
+#pragma warning disable 618
     public class ScTransformTask : Task, IAdviceProvider {
+#pragma warning restore 618
         private static readonly TagId _constructorEnhancedTagGuid
                                         = TagId.Register("{A7296EEE-BD8D-4220-9153-B5AAE974FA98}");
 
@@ -163,11 +163,13 @@ namespace Starcounter.Internal.Weaver {
                 // No reference to Starcounter. We don't need to transform anything.
                 // Lets skip the rest of the code.
 
+#pragma warning disable 618
                 ScMessageSource.Instance.Write(
                     SeverityType.Info,
                     "SCINF03",
                     new Object[] { _module.Name }
                     );
+#pragma warning restore 618
                 return true;
             }
 
@@ -175,11 +177,13 @@ namespace Starcounter.Internal.Weaver {
             // meaning we need not to transform at all.
 
             if (analysisTask.TransformationKind == WeaverTransformationKind.None) {
+#pragma warning disable 618
                 ScMessageSource.Instance.Write(
                     SeverityType.Info,
                     "SCINF04",
                     new Object[] { _module.Name }
                     );
+#pragma warning restore 618
 
                 // Disable all upcoming tasks in this project, since we don't
                 // need to do anything with this assembly
@@ -221,10 +225,12 @@ namespace Starcounter.Internal.Weaver {
             // We will weave it. Make sure we redirect it first and then mark it
             // as weaved for IPC if it's such a context we are weaving for.
 
+#pragma warning disable 618
             ScMessageSource.Instance.Write(
                 SeverityType.ImportantInfo, "SCINF02",
                 new Object[] { _module.Name }
                 );
+#pragma warning restore 618
 
             // Initialize extra for user code weavers.
 
@@ -319,7 +325,9 @@ namespace Starcounter.Internal.Weaver {
 
             // We have to index usages a second time, because we have changed method implementations.
 
+#pragma warning disable 612
             IndexUsagesTask.Execute(this.Project);
+#pragma warning restore 612
             return true;
         }
 
@@ -551,7 +559,9 @@ namespace Starcounter.Internal.Weaver {
                 FieldType = _module.Cache.GetType(typeof(IObjectView))
             };
             typeDef.Fields.Add(objectViewField);
+#pragma warning disable 618
             objectViewFieldRef = GenericHelper.GetFieldCanonicalGenericInstance(objectViewField);
+#pragma warning restore 618
 
             adapterField = new FieldDefDeclaration() {
                 Name = "adapter",
@@ -561,7 +571,9 @@ namespace Starcounter.Internal.Weaver {
                 this._module.Cache.GetType(typeof(AnonymousTypeAdapter))
             };
             typeDef.Fields.Add(adapterField);
+#pragma warning disable 618
             adapterFieldRef = GenericHelper.GetFieldCanonicalGenericInstance(adapterField);
+#pragma warning restore 618
 
             // Create a new constructor.
             constructorDef = new MethodDefDeclaration() {
@@ -753,7 +765,9 @@ namespace Starcounter.Internal.Weaver {
                         _writer.EmitInstructionInt32(OpCodeNumber.Ldc_I4, index);
                         _weavingHelper.GetRuntimeType(databaseValueType, _writer);
                         _writer.EmitInstructionMethod(OpCodeNumber.Call, _adapterGetPropertyMethod);
+#pragma warning disable 618
                         _weavingHelper.FromObject(targetValueType, _writer);
+#pragma warning restore 618
                     }
                     _writer.EmitInstruction(OpCodeNumber.Ret);
                     _writer.DetachInstructionSequence();

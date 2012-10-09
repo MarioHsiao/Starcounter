@@ -110,6 +110,7 @@ namespace Starcounter.Internal.Weaver {
                             context.InstructionWriter.EmitInstruction(OpCodeNumber.Pop);
                             context.InstructionWriter.EmitInstruction(OpCodeNumber.Pop);
                             // Now emit the error.
+#pragma warning disable 618
                             ScMessageSource.Instance.Write(SeverityType.Error,
                                                            "SCATV03", new object[]
                         {
@@ -117,6 +118,7 @@ namespace Starcounter.Internal.Weaver {
                             field.Name
                         },
                             context.JoinPoint.Instruction.LastSymbolSequencePoint);
+#pragma warning restore 618
                         }
                         break;
                     case OpCodeNumber.Ldflda: {

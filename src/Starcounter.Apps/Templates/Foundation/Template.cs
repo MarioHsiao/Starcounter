@@ -81,21 +81,6 @@ namespace Starcounter.Templates {
 
         public int Index { get; internal set; }
 
-        // Describes the path starting from the top-level app
-        // how to find this item.
-        internal Int32[] _indexPath;
-        internal virtual void PartialIndexUpdate(Int32 positionToChange, Int32 newIndex)
-        {
-            _indexPath[positionToChange] = newIndex;
-        }
-
-        internal virtual void FullIndexUpdate(App app, Int32[] parentIndexPath)
-        {
-            _indexPath = new Int32[parentIndexPath.Length + 1];
-            Array.Copy(parentIndexPath, _indexPath, parentIndexPath.Length);
-            _indexPath[_indexPath.Length - 1] = Index;
-        }
-
         private string _Name;
         private string _PropertyName;
 

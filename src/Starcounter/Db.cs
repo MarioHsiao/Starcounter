@@ -117,40 +117,44 @@ namespace Starcounter
             }
         }
 
-        [ThreadStatic]
-        private static bool _inTransactionScope = false;
-
         public static void Transaction(Action action)
         {
-            bool completed;
             uint r;
+            int noBoundary;
+            bool completed;
             ulong transaction_id;
             ulong handle;
             ulong verify;
 
-            completed = false;
+            // TODO:
+            // Make boundary check faster. Best approach probably to do a
+            // sccoredb_create_transaction_and_set_current that fails if
+            // transaction attached.
 
-            if (!_inTransactionScope)
+            r = sccoredb.sccoredb_has_transaction(out noBoundary);
+            if (r != 0) goto err;
+            
+            if (noBoundary == 0)
             {
+                completed = false;
                 r = sccoredb.sccoredb_create_transaction_and_set_current(0, out transaction_id, out handle, out verify);
-                if (r != 0) throw ErrorCode.ToException(r);
+                if (r != 0) goto err;
                 try
                 {
-                    _inTransactionScope = true; 
+                    Starcounter.Transaction.OnTransactionSwitch();
 
                     action();
 
                     ulong hiter;
                     ulong viter;
                     r = sccoredb.sccoredb_begin_commit(out hiter, out viter);
-                    if (r != 0) throw ErrorCode.ToException(r);
+                    if (r != 0) goto err;
 
                     // TODO: Handle triggers.
 
                     r = sccoredb.sccoredb_complete_commit(1, out transaction_id);
-                    if (r != 0) throw ErrorCode.ToException(r);
+                    if (r != 0) goto err;
 
-                    _inTransactionScope = false;
                     completed = true;
                 }
                 finally
@@ -158,13 +162,9 @@ namespace Starcounter
                     if (!completed)
                     {
                         if (
-                            sccoredb.Mdb_TransactionSetCurrent(0, 0) != 0 &&
-                            sccoredb.sccoredb_free_transaction(handle, verify) == 0
+                            sccoredb.Mdb_TransactionSetCurrent(0, 0) == 0 ||
+                            sccoredb.sccoredb_free_transaction(handle, verify) != 0
                             )
-                        {
-                            _inTransactionScope = false;
-                        }
-                        else
                         {
                             HandleFatalErrorInTransactionScope();
                         }
@@ -175,6 +175,11 @@ namespace Starcounter
             {
                 action();
             }
+
+            return;
+
+        err:
+            throw ErrorCode.ToException(r);
         }
 
         private static void HandleFatalErrorInTransactionScope()
