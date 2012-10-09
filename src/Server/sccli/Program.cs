@@ -36,7 +36,16 @@ namespace sccli {
             Action<Client, string[]> action;
 
             var client = new Client(SendRequest, ReceiveReply);
+            
             command = args.Length == 0 ? string.Empty : args[0].ToLowerInvariant();
+            if (command.StartsWith("@")) {
+                command = command.Substring(1);
+                var args2 = new string[args.Length + 1];
+                Array.Copy(args, args2, args.Length);
+                args2[args2.Length - 1] = "@@Synchronous";
+                args = args2;
+            }
+
             if (!supportedCommands.TryGetValue(command, out action)) {
                 ToConsoleWithColor(string.Format("Unknown command: {0}", command), ConsoleColor.Red);
                 action = supportedCommands["help"];
@@ -64,20 +73,30 @@ namespace sccli {
         static void CreateDatabase(Client client, string[] args) {
             var props = new Dictionary<string, string>();
             props["Name"] = args[1];
+            if (args.Contains<string>("@@Synchronous")) {
+                props["@@Synchronous"] = bool.TrueString;
+            }
             client.Send("CreateDatabase", props, (Reply reply) => WriteReplyToConsole(reply));
         }
 
         static void StartDatabase(Client client, string[] args) {
             var props = new Dictionary<string, string>();
             props["Name"] = args[1];
+            if (args.Contains<string>("@@Synchronous")) {
+                props["@@Synchronous"] = bool.TrueString;
+            }
             client.Send("StartDatabase", props, (Reply reply) => WriteReplyToConsole(reply));
         }
 
         static void StopDatabase(Client client, string[] args) {
             var props = new Dictionary<string, string>();
             props["Name"] = args[1];
-            if (args.Contains<string>("stopdb"))
+            if (args.Contains<string>("stopdb")) {
                 props["StopDb"] = bool.TrueString;
+            }
+            if (args.Contains<string>("@@Synchronous")) {
+                props["@@Synchronous"] = bool.TrueString;
+            }
             client.Send("StopDatabase", props, (Reply reply) => WriteReplyToConsole(reply));
         }
 
