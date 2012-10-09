@@ -329,11 +329,6 @@ namespace Starcounter {
             ChangeLog.UpdateValue(this, property);
         }
 
-        public void TrySetValue(StringProperty property, string value)
-        {
-
-        }
-
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(IStringTemplate property, string value) {
 #if QUICKTUPLE
