@@ -92,7 +92,7 @@ namespace Starcounter
             {
                 case 'S':
                 case 's':
-					return new SqlResult(transactionId, query, true, values);
+                    return new SqlResult(transactionId, query, true, values);
 
                 case 'C':
                 case 'c':
@@ -101,8 +101,10 @@ namespace Starcounter
 
                 case 'D':
                 case 'd':
-                    SqlProcessor.ProcessDelete(query, values);
-                    return null;
+                    if (SqlProcessor.ProcessDQuery(query, values))
+                        return null;
+                    else
+                        return new SqlResult(transactionId, query, true, values);
 
                 case ' ':
                 case '\t':
@@ -111,7 +113,7 @@ namespace Starcounter
                     {
                         case 'S':
                         case 's':
-							return new SqlResult(transactionId, query, true, values);
+                            return new SqlResult(transactionId, query, true, values);
 
                         case 'C':
                         case 'c':
@@ -120,15 +122,17 @@ namespace Starcounter
 
                         case 'D':
                         case 'd':
-                            SqlProcessor.ProcessDelete(query, values);
-                            return null;
+                            if (SqlProcessor.ProcessDQuery(query, values))
+                                return null;
+                            else
+                                return new SqlResult(transactionId, query, true, values);
 
                         default:
-							return new SqlResult(transactionId, query, true, values);
+                            return new SqlResult(transactionId, query, true, values);
                     }
 
                 default:
-					return new SqlResult(transactionId, query, true, values);
+                    return new SqlResult(transactionId, query, true, values);
             }
         }
     }

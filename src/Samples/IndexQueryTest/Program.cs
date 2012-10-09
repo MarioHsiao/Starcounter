@@ -102,6 +102,11 @@ namespace IndexQueryTest
         static void Main(string[] args)
         {
             Console.WriteLine("Test of CREATE/DROP INDEX and DROP TABLE.");
+            Db.Transaction(delegate
+            {
+                Db.SlowSQL("DELETE FROM Account");
+                Db.SlowSQL("DELETE FROM User");
+            });
             Populate();
             PrintAllObjects();
             // See a query plan
@@ -109,6 +114,12 @@ namespace IndexQueryTest
             {
                 ISqlEnumerator sqlEnum = (ISqlEnumerator)Db.SQL("select u from user u").GetEnumerator();
                 Console.WriteLine(sqlEnum.ToString());
+            });
+            // Test that query plan before creating index
+            PrintUserByLastName("Popov");
+            Db.Transaction(delegate
+            {
+                Console.WriteLine(((ISqlEnumerator)Db.SQL("select u from User u where LastName = ?", "Popov").GetEnumerator()).ToString());
             });
             // Create index if necessary
             Db.Transaction(delegate
@@ -120,13 +131,20 @@ namespace IndexQueryTest
                 }
                 catch (Starcounter.DbException ex)
                 {
-                    if (ex.Message.StartsWith("ScErrNamedIndexAlreadyExists"))
+                    if (ex.ErrorCode == Starcounter.Error.SCERRNAMEDINDEXALREADYEXISTS)
                         Console.WriteLine("Index userLN already exists.");
                     else
                         throw ex;
                 }
             });
             // Test that query plan uses the created index
+            PrintUserByLastName("Popov");
+            Db.Transaction(delegate
+            {
+                Console.WriteLine(((ISqlEnumerator)Db.SQL("select u from User u where LastName = ?", "Popov").GetEnumerator()).ToString());
+            });
+            Db.SlowSQL("DROP INDEX userLN ON AccountTest.User");
+            Console.WriteLine("Dropped index userLN ON AccountTest.User");
             PrintUserByLastName("Popov");
             Db.Transaction(delegate
             {

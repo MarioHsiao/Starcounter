@@ -51,7 +51,7 @@ namespace Starcounter
         // methods supported by this class need be thread-safe.
         //
 
-        internal readonly Scheduler Scheduler;
+        public readonly Scheduler Scheduler;
 
         private readonly unsafe UInt32* _pStateShare;
 
