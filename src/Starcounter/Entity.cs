@@ -1,6 +1,4 @@
 ﻿
-using Sc.Server.Binding;
-using Sc.Server.Internal;
 using Starcounter.Binding;
 using Starcounter.Internal;
 using System;
@@ -9,22 +7,11 @@ namespace Starcounter
 {
 
 
-    // TODO:
-    // We must keep DbObject around because generated code links to DbState
-    // methods with this type are parameter. Remove class and change all
-    // references to Entity once the generated code has been changed.
-    
-    public class DbObject
-    {
-
-        internal ObjectRef ThisRef;
-    }
-
     [AttributeUsage(AttributeTargets.Field)]
     public sealed class NotPersistentAttribute : Attribute {
     }
     
-    public abstract class Entity : DbObject, IObjectView
+    public abstract class Entity : IObjectView
     {
 
         /// <summary>
@@ -80,7 +67,8 @@ namespace Starcounter
             }
             return !obj1.Equals(obj2);
         }
-        
+
+        internal ObjectRef ThisRef;
         private TypeBinding typeBinding_;
 
         protected Entity()
@@ -88,9 +76,9 @@ namespace Starcounter
             throw ErrorCode.ToException(Error.SCERRCODENOTENHANCED);
         }
 
-        protected Entity(Sc.Server.Internal.Uninitialized u) { }
+        protected Entity(Uninitialized u) { }
 
-        public Entity(ulong typeAddr, Sc.Server.Binding.TypeBinding typeBinding, Sc.Server.Internal.Uninitialized u)
+        public Entity(ulong typeAddr, TypeBinding typeBinding, Uninitialized u)
         {
             DbState.Insert(this, typeAddr, typeBinding);
         }

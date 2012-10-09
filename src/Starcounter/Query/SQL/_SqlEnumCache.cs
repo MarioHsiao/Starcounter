@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using Starcounter;
 using Starcounter.Internal;
 using Starcounter.Query.Sql;
-using Sc.Server.Binding;
-using Sc.Server.Internal;
 using Starcounter.Query.Execution;
 
 namespace Starcounter.Query.Sql

@@ -3,7 +3,7 @@
     "FirstName": "Cliff",
     "LastName": "Barnes",
 
-    Items:
+    "Items":
     [
 	    {
 		    Description: "Take a nap!",
@@ -16,5 +16,10 @@
 		    DeleteItem: false
 	    }
     ],
-    AddItem	: false
+	"Page":
+	{
+		"Description":"A",
+		"ClickIt":"null"
+	},
+    "AddItem":false
 }

@@ -1,7 +1,5 @@
 ﻿using Starcounter;
 using Starcounter.Binding;
-using Sc.Server.Binding;
-using Sc.Server.Internal;
 using System;
 using System.Threading;
 using System.Collections;
@@ -162,7 +160,7 @@ namespace Starcounter
             if (previousCCI == currentCCI)
                 goto attach;
 
-            typeBinding = TypeRepository.GetTypeBinding(currentCCI);
+            typeBinding = Bindings.GetTypeBinding(currentCCI);
             current = (typeBinding.NewInstanceUninit() as T);
             if (current == null)
             {
@@ -192,11 +190,13 @@ namespace Starcounter
             throw TranslateErrorCode(sccoredb.Mdb_GetLastError());
         }
 
+#if false
         public Boolean CreateProxyObject(UInt64 eti, UInt64 oid, UInt16 currentCCI)
         {
-            _current = TypeRepository.GetTypeBinding(currentCCI).NewInstance(eti, oid) as T;
+            _current = Bindings.GetTypeBinding(currentCCI).NewInstance(eti, oid) as T;
             return true;
         }
+#endif
 
         /// <summary>
         /// Assumes that enumerator was already disposed and marks it like this.

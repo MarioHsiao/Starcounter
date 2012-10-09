@@ -46,9 +46,20 @@ namespace StarcounterInternal.Hosting
 
         private static unsafe void orange_thread_enter(void* hsched, byte cpun, void* p, int init)
         {
-            uint e = sccoredb.SCAttachThread(cpun, init);
-            if (e == 0) return;
-            orange_fatal_error(e);
+            uint r;
+            r = sccoredb.SCAttachThread(cpun, init);
+            if (r == 0)
+            {
+                int hasTransaction;
+                r = sccoredb.sccoredb_has_transaction(out hasTransaction);
+                if (r == 0)
+                {
+                    if (hasTransaction == 0) return;
+                    Starcounter.Transaction.OnTransactionSwitch();
+                    return;
+                }
+            }
+            orange_fatal_error(r);
         }
 
         private static unsafe void orange_thread_leave(void* hsched, byte cpun, void* p, uint yr)

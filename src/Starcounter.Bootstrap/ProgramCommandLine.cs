@@ -67,6 +67,11 @@ namespace StarcounterInternal.Bootstrap {
             /// Specifies the path to executable that should be run on startup.
             /// </summary>
             public const string AutoStartExePath = "AutoStartExePath";
+
+            /// <summary>
+            /// Specifies TCP/IP port to be used by StarcounterSQL.exe.
+            /// </summary>
+            public const string SQLProcessPort = "SQLProcessPort";
         }
 
         internal static bool TryGetProgramArguments(string[] args, out ApplicationArguments arguments) {
@@ -109,6 +114,7 @@ namespace StarcounterInternal.Bootstrap {
             commandDefinition.DefineProperty(OptionNames.ServerName, "Specifies the name of Starcounter server which started the database.");
             commandDefinition.DefineProperty(OptionNames.ChunksNumber, "Specifies the total number of chunks used for shared memory communication.");
             commandDefinition.DefineProperty(OptionNames.AutoStartExePath, "Specifies the path to executable that should be run on startup.");
+            commandDefinition.DefineProperty(OptionNames.SQLProcessPort, "Specifies TCP/IP port to be used by StarcounterSQL.exe.");
 
             // Create the syntax, validating it
             syntax = syntaxDefinition.CreateSyntax();

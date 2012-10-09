@@ -149,7 +149,7 @@ namespace Starcounter.Internal
         [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static UInt32 cm3_eautodet(IntPtr h_opt);
 
-#if false
+#if true
         [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static UInt32 cm3_set_yblk(IntPtr h_opt);
 
