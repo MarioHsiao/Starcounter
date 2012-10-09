@@ -66,6 +66,7 @@ namespace Starcounter.Server {
                 if (arguments.TryGetProperty("Pipe", out pipeName)) {
                     pipe = new NamedPipeServerStream(pipeName, PipeDirection.InOut, 1, PipeTransmissionMode.Message);
                     services = new ServerServices(engine, ReadRequestFromPipe, SendReplyOnPipe);
+                    ToConsoleWithColor(string.Format("Accepting service calls on pipe '{0}'...", pipeName), ConsoleColor.DarkGray);
                 } else {
                     services = new ServerServices(engine, ReadRequestFromPipe, SendReplyOnPipe);
                 }
@@ -145,6 +146,7 @@ namespace Starcounter.Server {
             byte[] buffer;
             buffer = new byte[1024];
             MemoryStream messageBuffer;
+            string request;
 
             pipe.WaitForConnection();
             messageBuffer = new MemoryStream();
@@ -154,10 +156,14 @@ namespace Starcounter.Server {
                 messageBuffer.Write(buffer, 0, readCount);
             } while (!pipe.IsMessageComplete);
 
-            return Encoding.UTF8.GetString(messageBuffer.ToArray());
+            request = Encoding.UTF8.GetString(messageBuffer.ToArray());
+            ToConsoleWithColor(string.Format("Request: {0}", request), ConsoleColor.Yellow);
+
+            return request;
         }
 
         void SendReplyOnPipe(string reply, bool endsRequest) {
+            ToConsoleWithColor(string.Format("Reply: {0}", reply), endsRequest ? ConsoleColor.White : ConsoleColor.Red);
             byte[] byteReply = Encoding.UTF8.GetBytes(reply);
             pipe.Write(byteReply, 0, byteReply.Length);
             if (endsRequest) pipe.Disconnect();
@@ -210,6 +216,15 @@ namespace Starcounter.Server {
             }
 
             Console.WriteLine();
+        }
+
+        static void ToConsoleWithColor(string text, ConsoleColor color) {
+            try {
+                Console.ForegroundColor = color;
+                Console.WriteLine(text);
+            } finally {
+                Console.ResetColor();
+            }
         }
     }
 }
