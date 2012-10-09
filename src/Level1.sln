@@ -113,7 +113,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "11. Server", "11. Server", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Server", "Server\Starcounter.Server\Starcounter.Server.csproj", "{28E1D438-7DC4-4BF7-A486-0598C78DBBE9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarcounterServer", "Server\StarcounterServer\StarcounterServer.csproj", "{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReferenceServer", "Server\ReferenceServer\ReferenceServer.csproj", "{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{C74FD2EF-8675-42C1-BC45-E4CF1EB0BB48}"
 	ProjectSection(SolutionItems) = preProject
