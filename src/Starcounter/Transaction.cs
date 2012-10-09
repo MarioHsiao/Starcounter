@@ -9,6 +9,7 @@ namespace Starcounter
 
         public static void OnTransactionSwitch()
         {
+            ThreadData.Current.Scheduler.SqlEnumCache.InvalidateCache();
         }
     }
 }
