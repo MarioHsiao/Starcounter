@@ -81,6 +81,36 @@ inline bool overflow_buffer<T, Alloc>::pop_back(value_type* item) {
 }
 
 template<class T, class Alloc>
+inline bool overflow_buffer<T, Alloc>::back(value_type* item) {
+    // Overflow buffers are expected to be empty most of the time.
+    // This is in contrast to circular_buffer which assumes that the queue is
+    // not empty most of the time.
+    if (empty()) {
+        // The item was not popped because the buffer is empty.
+        return false;
+    }
+
+    *item = container_[unread_ - 1];
+    // The item was popped.
+    return true;
+}
+
+template<class T, class Alloc>
+inline bool overflow_buffer<T, Alloc>::front(value_type* item) {
+    // Overflow buffers are expected to be empty most of the time.
+    // This is in contrast to circular_buffer which assumes that the queue is
+    // not empty most of the time.
+    if (empty()) {
+        // The item was not popped because the buffer is empty.
+        return false;
+    }
+
+    *item = container_[0];
+    // The item was popped.
+    return true;
+}
+
+template<class T, class Alloc>
 inline bool overflow_buffer<T, Alloc>::is_not_empty() const {
 	return unread_ > 0;
 }

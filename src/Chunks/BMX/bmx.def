@@ -9,7 +9,5 @@ EXPORTS
 	sc_bmx_register_uri_handler
 	sc_bmx_unregister_handler
 	sc_bmx_read_from_chunk
-    sc_bmx_clone_chunk
-    sc_bmx_write_to_chunks
-    sc_bmx_send_big_buffer
+	sc_bmx_send_buffer
 

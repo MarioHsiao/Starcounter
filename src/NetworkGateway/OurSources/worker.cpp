@@ -361,19 +361,19 @@ uint32_t GatewayWorker::FinishSend(SocketDataChunk *sd, int32_t numBytesSent)
 #endif
 
     // Checking that we processed correct number of bytes.
-    /*
-    if (numBytesSent != g_msgLenBytes)
+    if (numBytesSent != sd->get_user_data_written_bytes())
     {
-        GW_COUT << "[" << id << "]: " << "Incorrect number of bytes sent: " << numBytesSent << " of " << g_msgLenBytes << "(correct)" << std::endl;
-        return false;
+#ifdef GW_ERRORS_DIAG
+        GW_COUT << "[" << worker_id_ << "]: " << "Incorrect number of bytes sent: " << numBytesSent << " of " << sd->get_user_data_written_bytes() << "(correct)" << std::endl;
+#endif
+        return SCERRUNSPECIFIED;
     }
-    */
 
     // Increasing number of sends.
     worker_stats_sent_num_++;
 
     // Resets data buffer offset.
-    sd->ResetDataBufferOffset();
+    sd->ResetUserDataOffset();
 
     // Resetting buffer information.
     sd->get_data_buf()->ResetBufferForNewOperation();

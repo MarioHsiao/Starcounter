@@ -76,7 +76,7 @@ const int32_t BMX_HEADER_MAX_SIZE_BYTES = 24;
 const int32_t GATEWAY_HEADER_MAX_SIZE_BYTES = 1024;
 
 // Length of blob data in bytes.
-const int32_t DATA_BLOB_SIZE_BYTES = core::chunk_size - BMX_HEADER_MAX_SIZE_BYTES - GATEWAY_HEADER_MAX_SIZE_BYTES;
+const int32_t DATA_BLOB_SIZE_BYTES = core::chunk_size - BMX_HEADER_MAX_SIZE_BYTES - GATEWAY_HEADER_MAX_SIZE_BYTES - shared_memory_chunk::LINK_SIZE;
 
 // Minimum size of response data for HTTP/WebSockets.
 const int32_t HTTP_WS_MIN_RESPONSE_SIZE = 512;
@@ -95,7 +95,7 @@ const int32_t INVALID_SESSION_INDEX = -1;
 
 // Maximum number of chunks to keep in private chunk pool
 // until we release them to shared chunk pool.
-const int32_t MAX_CHUNKS_IN_PRIVATE_POOL = 2048;
+const int32_t MAX_CHUNKS_IN_PRIVATE_POOL = 512;
 
 // Number of chunks to leave in private chunk pool after releasing
 // rest of the chunks to shared chunk pool.
@@ -131,7 +131,7 @@ const int32_t SUBPORT_BLOB_USER_DATA_OFFSET = 32;
 const int32_t WS_BLOB_USER_DATA_OFFSET = 16;
 
 // Offset in bytes for HttpRequest structure.
-const int32_t HTTP_REQUEST_OFFSET_BYTES = 184;
+const int32_t HTTP_REQUEST_OFFSET_BYTES = 192;
 
 // Error code type.
 #define GW_ERR_CHECK(err_code) if (0 != err_code) return err_code

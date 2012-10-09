@@ -53,15 +53,15 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
             // that the out queue in this channel is not full.
             the_channel.scheduler()->notify();
 
-            // Chunk was popped successfully.
-            g_gateway.GetDatabase(db_index_)->ChangeNumUsedChunks(1);
-
             // Get the chunk.
             shared_memory_chunk* smc = (shared_memory_chunk*) &(shared_int_.chunk(chunk_index));
 
             // Check if its a BMX handlers management message.
             if (bmx::BMX_MANAGEMENT_HANDLER == smc->get_bmx_protocol())
             {
+                // Changing number of owned chunks.
+                g_gateway.GetDatabase(db_index_)->ChangeNumUsedChunks(1);
+
                 // Entering global lock.
                 gw->EnterGlobalLock();
 
@@ -81,8 +81,14 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
             // Process the chunk.
             SocketDataChunk *sd = (SocketDataChunk *)((uint8_t *)smc + BMX_HEADER_MAX_SIZE_BYTES);
 
+            // Setting chunk index because of possible cloned chunks.
+            sd->set_chunk_index(chunk_index);
+
             // We need to check if its a multi-chunk response.
             sd->CreateWSABuffersIfMultiChunks(shared_int_, smc);
+
+            // Changing number of owned chunks.
+            g_gateway.GetDatabase(db_index_)->ChangeNumUsedChunks(sd->get_num_chunks());
 
             // Checking that corresponding database and handler are up.
             if (!sd->CheckSocketIsValid(gw))
