@@ -81,6 +81,49 @@ namespace StarcounterInternal.Hosting
             return assembly;
         }
 
+        public static unsafe void AddBasePackage(void* hsched)
+        {
+            TableDef sysTableTableDef = new TableDef(
+                "sys.table",
+                new ColumnDef[]
+                {
+                    new ColumnDef("table_id", DbTypeCode.UInt16, false, false),
+                    new ColumnDef("name", DbTypeCode.String, true, false),
+                }
+                );
+
+            TypeDef sysTableTypeDef = new TypeDef(
+                "Starcounter.Metadata.SysTable",
+                null,
+                new PropertyDef[] { new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" } },
+                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.SysTable"),
+                sysTableTableDef
+                );
+
+            Package package = new Package(new TypeDef[] { sysTableTypeDef }, null);
+            IntPtr hPackage = (IntPtr)GCHandle.Alloc(package, GCHandleType.Normal);
+
+            uint e = sccorelib.cm2_schedule(
+                hsched,
+                0,
+                sccorelib_ext.TYPE_PROCESS_PACKAGE,
+                0,
+                0,
+                0,
+                (ulong)hPackage
+                );
+            if (e != 0) throw ErrorCode.ToException(e);
+
+            // We only process one package at a time. Wait for the package
+            // to be processed before accepting more input.
+            //
+            // (We can only handle one package at a time or we can not
+            // evaluate if a type definition has already been loaded.)
+
+            package.WaitUntilProcessed();
+            package.Dispose();
+        }
+
         public static unsafe void ExecApp(void* hsched, string filePath)
         {
             try

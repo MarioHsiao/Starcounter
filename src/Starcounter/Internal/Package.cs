@@ -130,7 +130,10 @@ namespace Starcounter.Internal
 
         private void ExecuteEntryPoint()
         {
-            assembly_.EntryPoint.Invoke(null, new object[] { null });
+            if (assembly_ != null)
+            {
+                assembly_.EntryPoint.Invoke(null, new object[] { null });
+            }
         }
     }
 }
