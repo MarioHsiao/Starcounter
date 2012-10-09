@@ -9,6 +9,9 @@ using System.IO;
 using System.ServiceProcess;
 using System.Threading;
 
+using System.Text;
+using System.IO.Pipes;
+
 namespace Starcounter.Server {
 
     class ServerProgram : ServiceBase {
@@ -22,6 +25,8 @@ namespace Starcounter.Server {
             get;
             set;
         }
+
+        NamedPipeServerStream pipe = new NamedPipeServerStream("test123", PipeDirection.InOut, 1, PipeTransmissionMode.Message);
 
         static void Main(string[] args) {
             serverProgram = new ServerProgram() { UserInteractive = Environment.UserInteractive };
@@ -38,6 +43,28 @@ namespace Starcounter.Server {
                 // The server is ran as a service.
                 ServiceBase.Run(serverProgram);
             }
+        }
+
+        string ReceiveOne() {
+            byte[] buffer;
+            buffer = new byte[1024];
+            MemoryStream messageBuffer;
+
+            pipe.WaitForConnection();
+            messageBuffer = new MemoryStream();
+
+            do {
+                int readCount = pipe.Read(buffer, 0, buffer.Length);
+                messageBuffer.Write(buffer, 0, readCount);
+            } while (!pipe.IsMessageComplete);
+
+            return Encoding.UTF8.GetString(messageBuffer.ToArray());
+        }
+
+        void SendOne(string reply, bool endsRequest) {
+            byte[] byteReply = Encoding.UTF8.GetBytes(reply);
+            pipe.Write(byteReply, 0, byteReply.Length);
+            if (endsRequest) pipe.Disconnect();
         }
 
         protected override void OnStart(string[] args) {
@@ -70,7 +97,7 @@ namespace Starcounter.Server {
                 var engine = new ServerEngine(arguments.CommandParameters[0]);
                 engine.Setup();
 
-                var services = new ServerServices(engine);
+                var services = new ServerServices(engine, ReceiveOne, SendOne);
                 services.Setup();
 
                 engine.Start();
