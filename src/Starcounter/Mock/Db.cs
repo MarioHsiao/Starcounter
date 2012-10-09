@@ -101,22 +101,10 @@ namespace Starcounter
 
                 case 'D':
                 case 'd':
-                    switch (query[6])
-                    {
-                        case 'E':
-                        case 'e':
-                            SqlProcessor.ProcessDelete(query, values);
-                            return null;
-                        case 'I':
-                        case 'i':
-                            SqlProcessor.ProcessDropIndex(query);
-                            return null;
-                        case 'T':
-                        case 't':
-                            // SqlProcessor.ProcessDeleteTable(query);
-                            return null;
-                    }
-                    return new SqlResult(transactionId, query, true, values);
+                    if (SqlProcessor.ProcessDQuery(query, values))
+                        return null;
+                    else
+                        return new SqlResult(transactionId, query, true, values);
 
                 case ' ':
                 case '\t':
@@ -134,22 +122,10 @@ namespace Starcounter
 
                         case 'D':
                         case 'd':
-                            switch (query[6])
-                            {
-                                case 'E':
-                                case 'e':
-                                    SqlProcessor.ProcessDelete(query, values);
-                                    return null;
-                                case 'I':
-                                case 'i':
-                                    SqlProcessor.ProcessDropIndex(query);
-                                    return null;
-                                case 'T':
-                                case 't':
-                                    // SqlProcessor.ProcessDeleteTable(query);
-                                    return null;
-                            }
-                            return new SqlResult(transactionId, query, true, values);
+                            if (SqlProcessor.ProcessDQuery(query, values))
+                                return null;
+                            else
+                                return new SqlResult(transactionId, query, true, values);
 
                         default:
                             return new SqlResult(transactionId, query, true, values);
