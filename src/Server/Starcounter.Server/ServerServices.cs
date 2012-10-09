@@ -58,7 +58,7 @@ namespace Starcounter.Server {
             });
 
             ipcServer.Handle("GetServerInfo", delegate(Request request) {
-                request.Respond(responseSerializer.SerializeReponse(runtime.GetServerInfo()));
+                request.Respond(responseSerializer.SerializeResponse(runtime.GetServerInfo()));
             });
 
             ipcServer.Handle("GetDatabase", delegate(Request request) {
@@ -76,24 +76,24 @@ namespace Starcounter.Server {
                     return;
                 }
 
-                request.Respond(responseSerializer.SerializeReponse(info));
+                request.Respond(responseSerializer.SerializeResponse(info));
             });
 
             ipcServer.Handle("GetDatabases", delegate(Request request) {
                 var databases = runtime.GetDatabases();
-                request.Respond(responseSerializer.SerializeReponse(databases));
+                request.Respond(responseSerializer.SerializeResponse(databases));
             });
 
             ipcServer.Handle("GetCommandDescriptors", delegate(Request request) {
                 // Redirect to IServerRuntime as soon as supported.
                 // TODO:
                 var supportedCommands = engine.Dispatcher.CommandDescriptors;
-                request.Respond(responseSerializer.SerializeReponse(supportedCommands));
+                request.Respond(responseSerializer.SerializeResponse(supportedCommands));
             });
 
             ipcServer.Handle("GetCommands", delegate(Request request) {
                 var commands = runtime.GetCommands();
-                request.Respond(responseSerializer.SerializeReponse(commands));
+                request.Respond(responseSerializer.SerializeResponse(commands));
             });
 
             ipcServer.Handle("ExecApp", delegate(Request request) {
@@ -119,7 +119,7 @@ namespace Starcounter.Server {
 
                 var info = engine.AppsService.EnqueueExecAppCommandWithDispatcher(exePath, workingDirectory, argsArray);
 
-                request.Respond(true, responseSerializer.SerializeReponse(info));
+                request.Respond(true, responseSerializer.SerializeResponse(info));
             });
 
             ipcServer.Handle("CreateDatabase", delegate(Request request) {
@@ -137,7 +137,7 @@ namespace Starcounter.Server {
                 command = new CreateDatabaseCommand(this.engine, name);
 
                 var info = engine.CurrentPublicModel.Execute(command);
-                request.Respond(true, responseSerializer.SerializeReponse(info));
+                request.Respond(true, responseSerializer.SerializeResponse(info));
             });
 
             ipcServer.Handle("StartDatabase", delegate(Request request) {
@@ -155,7 +155,7 @@ namespace Starcounter.Server {
                 command = new StartDatabaseCommand(this.engine, name);
 
                 var info = engine.CurrentPublicModel.Execute(command);
-                request.Respond(true, responseSerializer.SerializeReponse(info));
+                request.Respond(true, responseSerializer.SerializeResponse(info));
             });
 
             ipcServer.Handle("StopDatabase", delegate(Request request) {
@@ -177,7 +177,7 @@ namespace Starcounter.Server {
                 command.StopDatabaseProcess = properties.ContainsKey("StopDb");
 
                 var info = engine.CurrentPublicModel.Execute(command);
-                request.Respond(true, responseSerializer.SerializeReponse(info));
+                request.Respond(true, responseSerializer.SerializeResponse(info));
             });
 
             #region Command stubs not yet implemented
