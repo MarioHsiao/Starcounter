@@ -18,5 +18,15 @@ namespace Starcounter.Metadata
         {
             get { return DbState.ReadString(this, 1); }
         }
+
+        public string Description
+        {
+            get { return DbState.ReadString(this, 2); }
+        }
+
+        public bool Unique
+        {
+            get { return DbState.ReadBoolean(this, 3); }
+        }
     }
 }
