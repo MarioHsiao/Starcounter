@@ -119,7 +119,7 @@ namespace Starcounter.Internal
             {
                 Db.CreateIndex(
                     storedTableDef.DefinitionAddr,
-                    string.Concat(storedTableDef.ShortName, "_AUTO"),
+                    "auto",
                     0
                     );
             }
