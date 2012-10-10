@@ -22,6 +22,8 @@ namespace IndexQueryTest
                 Console.WriteLine(sqlEnum.ToString());
             });
             TestCreateDropIndex();
+            TestOrderBy();
+            TestHint();
             //CreateDropIndexParallelTest();
 #endif
 #if ACCOUNTTEST_MODEL_NO

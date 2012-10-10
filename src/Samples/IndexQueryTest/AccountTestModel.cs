@@ -10,6 +10,11 @@ namespace AccountTest
         public String FirstName;
         public String LastName;
         public String UserId;
+
+        public override String ToString()
+        {
+            return "User " + FirstName + " " + LastName + " with ID " + UserId;
+        }
     }
 
     public class Account : Entity
