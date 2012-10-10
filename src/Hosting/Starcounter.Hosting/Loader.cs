@@ -108,6 +108,8 @@ namespace StarcounterInternal.Hosting
                 {
                     new ColumnDef("name", DbTypeCode.String, true, false),
                     new ColumnDef("table_name", DbTypeCode.String, true, false),
+                    new ColumnDef("description", DbTypeCode.String, true, false),
+                    new ColumnDef("unique", DbTypeCode.Boolean, false, false),
                 }
                 );
 
@@ -118,6 +120,8 @@ namespace StarcounterInternal.Hosting
                 {
                     new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
                     new PropertyDef("TableName", DbTypeCode.String, true) { ColumnName = "table_name" },
+                    new PropertyDef("Description", DbTypeCode.String, true) { ColumnName = "description" },
+                    new PropertyDef("Unique", DbTypeCode.Boolean, false) { ColumnName = "unique" },
                 },
                 new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.SysIndex"),
                 systemTableDef
