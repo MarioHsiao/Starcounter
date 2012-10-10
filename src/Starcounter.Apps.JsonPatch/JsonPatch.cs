@@ -100,7 +100,8 @@ namespace Starcounter.Internal.JsonPatch
         private static void HandleParsedPatch(Int32 patchType, JsonPointer pointer, Byte[] value)
         {
             AppAndTemplate aat = JsonPatch.Evaluate(Session.Current.RootApp, pointer);
-            aat.App.TrySetValue((StringProperty)aat.Template, Encoding.UTF8.GetString(value));
+            //aat.App.TrySetValue((StringProperty)aat.Template, Encoding.UTF8.GetString(value));
+            ((StringProperty)aat.Template).ProcessInput(aat.App, Encoding.UTF8.GetString(value));
         }
 
         private static Int32 GetPatchValue(Byte[] contentArr, Int32 offset, out Byte[] value)
@@ -110,7 +111,7 @@ namespace Starcounter.Internal.JsonPatch
             Int32 length;
 
             start = -1;
-            length = -1;
+            length = 0;
             while (offset < contentArr.Length)
             {
                 current = contentArr[offset];
@@ -136,7 +137,7 @@ namespace Starcounter.Internal.JsonPatch
                 offset++;
             }
 
-            if (start < 0 || length < 0)
+            if (start < 0)
             {
                 throw new Exception("Cannot find value in patch");
             }

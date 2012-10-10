@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Text;
-using Starcounter.Internal.MsBuild;
 using NUnit.Framework;
 using Starcounter.Internal;
 using Starcounter.Internal.Application;
