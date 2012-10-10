@@ -83,7 +83,9 @@ namespace StarcounterInternal.Hosting
 
         public static unsafe void AddBasePackage(void* hsched)
         {
-            TableDef sysTableTableDef = new TableDef(
+            TableDef systemTableDef;
+
+            systemTableDef = new TableDef(
                 "sys.table",
                 new ColumnDef[]
                 {
@@ -97,10 +99,31 @@ namespace StarcounterInternal.Hosting
                 null,
                 new PropertyDef[] { new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" } },
                 new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.SysTable"),
-                sysTableTableDef
+                systemTableDef
                 );
 
-            Package package = new Package(new TypeDef[] { sysTableTypeDef }, null);
+            systemTableDef = new TableDef(
+                "sys.index",
+                new ColumnDef[]
+                {
+                    new ColumnDef("name", DbTypeCode.String, true, false),
+                    new ColumnDef("table_name", DbTypeCode.String, true, false),
+                }
+                );
+
+            TypeDef sysIndexTypeDef = new TypeDef(
+                "Starcounter.Metadata.SysIndex",
+                null,
+                new PropertyDef[]
+                {
+                    new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
+                    new PropertyDef("TableName", DbTypeCode.String, true) { ColumnName = "table_name" },
+                },
+                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.SysIndex"),
+                systemTableDef
+                );
+
+            Package package = new Package(new TypeDef[] { sysTableTypeDef, sysIndexTypeDef }, null);
             IntPtr hPackage = (IntPtr)GCHandle.Alloc(package, GCHandleType.Normal);
 
             uint e = sccorelib.cm2_schedule(
