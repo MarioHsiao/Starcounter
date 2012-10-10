@@ -59,6 +59,7 @@ namespace IndexQueryTest
                 Console.WriteLine(((ISqlEnumerator)Db.SQL("select u from User u where LastName = ?", "Popov").GetEnumerator()).ToString());
             });
         }
+
 #endif
     }
 }
