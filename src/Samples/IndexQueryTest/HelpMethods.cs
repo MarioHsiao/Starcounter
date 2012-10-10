@@ -75,6 +75,20 @@ namespace IndexQueryTest
             });
             return nrPrintedObjs;
         }
+
+        static int PrintUsersOrderByLastName()
+        {
+            int nrPrintedObjs = 0;
+            Db.Transaction(delegate
+            {
+                foreach (AccountTest.User u in Db.SQL("select u from User u order by LastName"))
+                {
+                    Console.WriteLine("User " + u.FirstName + " " + u.LastName + " with ID " + u.UserId);
+                    nrPrintedObjs++;
+                }
+            });
+            return nrPrintedObjs;
+        }
         #endregion
 #endif
     }
