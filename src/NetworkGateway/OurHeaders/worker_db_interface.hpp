@@ -158,8 +158,8 @@ public:
     // Returns given socket data chunk to private chunk pool.
     uint32_t ReturnChunkToPool(GatewayWorker *gw, SocketDataChunk *sd);
 
-    // Returns given chunk to private chunk pool.
-    uint32_t ReturnChunkToPool(core::chunk_index& chunk_index);
+    // Returns given linked chunks to private chunk pool (and if needed then to shared).
+    uint32_t ReturnLinkedChunksToPool(uint32_t num_linked_chunks, core::chunk_index& chunk_index);
 
     // Registers push channel.
     uint32_t RegisterPushChannel();

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using HttpStructs;
 using Starcounter.Internal.Application;
 using Starcounter.Internal.Web;
@@ -14,7 +15,9 @@ namespace Starcounter.Internal.JsonPatch
             GET("/__vm/@s", (string sessionId) =>
             {
                 Session s = HardcodedStuff.Here.Sessions.GetSession(sessionId);
-                return s.RootApp;
+
+                Byte[] json = s.RootApp.ToJsonUtf8(false);
+                return new HttpResponse() { Uncompressed = HttpResponseBuilder.CreateMinimalOk200WithContent(json, 0, (uint)json.Length) };
             });
 
             PATCH("/__vm/@s", (string sessionId) =>

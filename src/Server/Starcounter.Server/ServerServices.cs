@@ -97,10 +97,12 @@ namespace Starcounter.Server {
             });
 
             ipcServer.Handle("ExecApp", delegate(Request request) {
+                IServerRuntime runtime;
                 string exePath;
                 string workingDirectory;
                 string args;
                 string[] argsArray;
+                bool synchronous;
 
                 var properties = request.GetParameter<Dictionary<string, string>>();
                 if (properties == null || !properties.TryGetValue("AssemblyPath", out exePath)) {
@@ -116,15 +118,22 @@ namespace Starcounter.Server {
                 } else {
                     argsArray = new string[0];
                 }
+                synchronous = properties.ContainsKey("@@Synchronous");
+                runtime = engine.CurrentPublicModel;
 
                 var info = engine.AppsService.EnqueueExecAppCommandWithDispatcher(exePath, workingDirectory, argsArray);
+                if (synchronous) {
+                    info = runtime.Wait(info.Id);
+                }
 
                 request.Respond(true, responseSerializer.SerializeResponse(info));
             });
 
             ipcServer.Handle("CreateDatabase", delegate(Request request) {
+                IServerRuntime runtime;
                 CreateDatabaseCommand command;
                 string name;
+                bool synchronous;
 
                 // Get required properties - we can default everything but the
                 // name. Without a name, we consider the request a failure.
@@ -134,15 +143,24 @@ namespace Starcounter.Server {
                     request.Respond(false, "Missing required argument 'Name'");
                     return;
                 }
+                synchronous = properties.ContainsKey("@@Synchronous");
+                
                 command = new CreateDatabaseCommand(this.engine, name);
+                runtime = engine.CurrentPublicModel;
 
-                var info = engine.CurrentPublicModel.Execute(command);
+                var info = runtime.Execute(command);
+                if (synchronous) {
+                    info = runtime.Wait(info.Id);
+                }
+
                 request.Respond(true, responseSerializer.SerializeResponse(info));
             });
 
             ipcServer.Handle("StartDatabase", delegate(Request request) {
+                IServerRuntime runtime;
                 StartDatabaseCommand command;
                 string name;
+                bool synchronous;
 
                 // Get required properties - we can default everything but the
                 // name. Without a name, we consider the request a failure.
@@ -152,15 +170,24 @@ namespace Starcounter.Server {
                     request.Respond(false, "Missing required argument 'Name'");
                     return;
                 }
-                command = new StartDatabaseCommand(this.engine, name);
+                synchronous = properties.ContainsKey("@@Synchronous");
 
-                var info = engine.CurrentPublicModel.Execute(command);
+                command = new StartDatabaseCommand(this.engine, name);
+                runtime = engine.CurrentPublicModel;
+                
+                var info = runtime.Execute(command);
+                if (synchronous) {
+                    info = runtime.Wait(info.Id);
+                }
+
                 request.Respond(true, responseSerializer.SerializeResponse(info));
             });
 
             ipcServer.Handle("StopDatabase", delegate(Request request) {
+                IServerRuntime runtime;
                 StopDatabaseCommand command;
                 string name;
+                bool synchronous;
 
                 // Get required properties - we can default everything but the
                 // name. Without a name, we consider the request a failure.
@@ -173,10 +200,17 @@ namespace Starcounter.Server {
                     request.Respond(false, "Missing required argument 'Name'");
                     return;
                 }
+                synchronous = properties.ContainsKey("@@Synchronous");
+
                 command = new StopDatabaseCommand(this.engine, name);
                 command.StopDatabaseProcess = properties.ContainsKey("StopDb");
+                runtime = engine.CurrentPublicModel;
 
-                var info = engine.CurrentPublicModel.Execute(command);
+                var info = runtime.Execute(command);
+                if (synchronous) {
+                    info = runtime.Wait(info.Id);
+                }
+
                 request.Respond(true, responseSerializer.SerializeResponse(info));
             });
 
