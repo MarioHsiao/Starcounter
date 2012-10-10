@@ -218,6 +218,22 @@ public:
 	 */
 	bool pop_back(value_type* item);
 
+    /// Peeks item from the back of the queue.
+	/**
+	 * @param item The item to be peaked from the back of the queue.
+	 *
+	 * @return true if the item was peaked, false if the buffer was empty.
+	 */
+    bool back(value_type* item);
+
+    /// Peeks item from the front of the queue.
+	/**
+	 * @param item The item to be peaked from the front of the queue.
+	 *
+	 * @return true if the item was peaked, false if the buffer was empty.
+	 */
+    bool front(value_type* item);
+
 private:
 	overflow_buffer(const overflow_buffer&);
 	overflow_buffer& operator=(const overflow_buffer&);

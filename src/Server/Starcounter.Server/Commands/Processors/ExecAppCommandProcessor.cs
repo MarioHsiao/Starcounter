@@ -103,6 +103,7 @@ namespace Starcounter.Server.Commands {
                 ExecutionPath = weavedExecutable
             };
             database.Apps.Add(app);
+            Engine.CurrentPublicModel.UpdateDatabase(database);
         }
 
         string GetAppRuntimeDirectory(string baseDirectory, string assemblyPath) {

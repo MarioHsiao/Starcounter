@@ -2793,6 +2793,9 @@
     <code hex="00E6" severity="Error" name="ScErrTableNotFound">
       <message>Table with specified name not found.</message>
     </code>
+    <code hex="00E7" severity="Error" name="ScErrMetadataTable">
+      <message>Table can't be altered or deleted because it is a metadata table.</message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
