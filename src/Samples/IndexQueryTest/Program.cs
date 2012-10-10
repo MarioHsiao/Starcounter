@@ -22,6 +22,7 @@ namespace IndexQueryTest
                 Console.WriteLine(sqlEnum.ToString());
             });
             TestCreateDropIndex();
+            //CreateDropIndexParallelTest();
 #endif
 #if ACCOUNTTEST_MODEL_NO
             Console.WriteLine("Test without loading model.");
