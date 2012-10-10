@@ -285,7 +285,7 @@ namespace StarcounterInternal.Bootstrap
             uint flags = 0;
             flags |= sccoredb.SCCOREDB_LOAD_DATABASE;
             flags |= sccoredb.SCCOREDB_ENABLE_CHECK_FILE_ON_LOAD;
-            //            flags |= sccoredb.SCCOREDB_ENABLE_CHECK_FILE_ON_CHECKP;
+            //flags |= sccoredb.SCCOREDB_ENABLE_CHECK_FILE_ON_CHECKP;
             flags |= sccoredb.SCCOREDB_ENABLE_CHECK_FILE_ON_BACKUP;
             flags |= sccoredb.SCCOREDB_ENABLE_CHECK_MEMORY_ON_CHECKP;
 
