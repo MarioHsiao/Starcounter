@@ -109,7 +109,7 @@ namespace Starcounter
             fixed (Byte* p = buffer)
             {
                 // Processing user data and sending it to gateway.
-                UInt32 ec = bmx.sc_bmx_send_buffer(p + offset, (UInt32)(length - offset), chunk_index_, unmanaged_chunk_);
+                UInt32 ec = bmx.sc_bmx_send_buffer(p + offset, (UInt32)length, chunk_index_, unmanaged_chunk_);
 
                 // Checking if any error occurred.
                 if (ec != 0)
