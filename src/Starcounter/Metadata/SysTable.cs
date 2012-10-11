@@ -11,7 +11,7 @@ namespace Starcounter.Metadata
 
         public string Name
         {
-            get { return DbState.ReadString(this, 1); }
+            get { return DbState.ReadString(this, 0); }
         }
     }
 }
