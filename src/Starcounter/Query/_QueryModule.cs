@@ -34,9 +34,6 @@ namespace Starcounter.Query
         /// <param name="sqlProcessPort">External SQL process port. If 0 then default should be used.</param>
         public static void Initiate(Int32 sqlProcessPort)
         {
-            // TEMP
-            System.Diagnostics.Debugger.Break();
-
             // Connect managed and native Sql functions.
             UInt32 errCode = SqlConnectivity.InitSqlFunctions();
 
@@ -57,35 +54,29 @@ namespace Starcounter.Query
         /// </summary>
         internal static void Reset()
         {
-            // TEMP
-            System.Diagnostics.Debugger.Break();
-
             try
             {
-                //Starcounter.ThreadHelper.SetYieldBlock();
+                Starcounter.ThreadHelper.SetYieldBlock();
                 Scheduler scheduler = Scheduler.GetInstance(true);
                 PrologManager.DeleteAllSchemaInfo(scheduler);
             }
             finally
             {
-                //Starcounter.ThreadHelper.ReleaseYieldBlock();
+                Starcounter.ThreadHelper.ReleaseYieldBlock();
             }
         }
 
         internal static void UpdateSchemaInfo(TypeDef[] typeDefArray)
         {
-            // TEMP
-            System.Diagnostics.Debugger.Break();
-
             try
             {
-                //Starcounter.ThreadHelper.SetYieldBlock();
+                Starcounter.ThreadHelper.SetYieldBlock();
                 Scheduler scheduler = Scheduler.GetInstance(true);
                 PrologManager.ExportSchemaInfo(scheduler, typeDefArray);
             }
             finally
             {
-                //Starcounter.ThreadHelper.ReleaseYieldBlock();
+                Starcounter.ThreadHelper.ReleaseYieldBlock();
             }
         }
 
