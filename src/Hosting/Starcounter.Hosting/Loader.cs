@@ -86,7 +86,7 @@ namespace StarcounterInternal.Hosting
             TableDef systemTableDef;
 
             systemTableDef = new TableDef(
-                "sys.table",
+                "sys_table",
                 new ColumnDef[]
                 {
                     new ColumnDef("name", DbTypeCode.String, true, false),
@@ -108,7 +108,7 @@ namespace StarcounterInternal.Hosting
                 );
 
             systemTableDef = new TableDef(
-                "sys.index",
+                "sys_index",
                 new ColumnDef[]
                 {
                     new ColumnDef("name", DbTypeCode.String, true, false),
