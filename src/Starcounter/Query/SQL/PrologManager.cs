@@ -268,8 +268,9 @@ namespace Starcounter.Query.Sql
                 try
                 {
                     //Starcounter.ThreadHelper.SetYieldBlock();
-                    Scheduler scheduler = Scheduler.GetInstance(true);
-                    DeleteAllSchemaInfo(scheduler);
+                    //Scheduler scheduler = Scheduler.GetInstance(true);
+                    //DeleteAllSchemaInfo(scheduler);
+                    DeleteAllSchemaInfo(null);
                 }
                 finally
                 {
