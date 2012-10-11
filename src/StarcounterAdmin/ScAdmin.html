@@ -1,0 +1,63 @@
+<!doctype html>
+<html ng-app="StarcounterLib">
+<head>
+    <script src="lib/angular.min.js"></script>
+    <script src="lib/jsonpatch.js"></script>
+    <script src="lib/serverScope.js"></script>
+    <script src="lib/app.js"></script>
+    <link rel="stylesheet" href="css/base.css" />
+    <title>Starcounter Administrator</title>
+</head>
+<body server-scope>
+    <h1>{{Header}}</h1>
+    <div>Uri: {{ServerUri}}</div>
+    <div>Status: {{Status}}</div>
+
+    <h3>Operations</h3>
+    <div>Value:</div>
+    <input ng-model="Value" />
+    <div>Create DB</div>
+    <input ng-model="CreateDbClick" />
+    <div>Start DB</div>
+    <input ng-model="StartDbClick" />
+    <div>Stop DB</div>
+    <input ng-model="StopDbClick" />
+    <div>ExecApp click</div>
+    <input ng-model="ExecAppClick" />
+    <p></p>
+    <div>Databases:</div>
+    <table border="1">
+        <tr>
+            <th>Name</th>
+            <th>Uri</th>
+            <th>Loaded apps</th>
+        </tr>
+        <tr ng-repeat="db in Databases">
+            <td>{{db.Name}}</td>
+            <td>{{db.Uri}}</td>
+            <td>
+                <div ng-repeat="app in db.Apps">
+                    <div>{{app.Executable}}</div>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <p></p>
+    <div>Commands:</div>
+    <table border="1">
+        <tr>
+            <th>Description</th>
+            <th>Id</th>
+            <th>IsCompleted</th>
+            <th>HasError</th>
+        </tr>
+        <tr ng-repeat="cmd in Commands">
+            <td>{{cmd.Description}}</td>
+            <td>{{cmd.Id}}</td>
+            <td>{{cmd.IsCompleted}}</td>
+            <td>{{cmd.HasErrors}}</td>
+        </tr>
+    </table>
+</body>
+</html>
