@@ -81,6 +81,81 @@ namespace StarcounterInternal.Hosting
             return assembly;
         }
 
+        public static unsafe void AddBasePackage(void* hsched)
+        {
+            TableDef systemTableDef;
+
+            systemTableDef = new TableDef(
+                "sys_table",
+                new ColumnDef[]
+                {
+                    new ColumnDef("name", DbTypeCode.String, true, false),
+                    new ColumnDef("base_name", DbTypeCode.String, true, false),
+                    new ColumnDef("table_id", DbTypeCode.UInt16, false, false),
+                }
+                );
+
+            TypeDef sysTableTypeDef = new TypeDef(
+                "Starcounter.Metadata.SysTable",
+                null,
+                new PropertyDef[]
+                {
+                    new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
+                    new PropertyDef("BaseName", DbTypeCode.String, true) { ColumnName = "base_name" }
+                },
+                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.SysTable"),
+                systemTableDef
+                );
+
+            systemTableDef = new TableDef(
+                "sys_index",
+                new ColumnDef[]
+                {
+                    new ColumnDef("name", DbTypeCode.String, true, false),
+                    new ColumnDef("table_name", DbTypeCode.String, true, false),
+                    new ColumnDef("description", DbTypeCode.String, true, false),
+                    new ColumnDef("unique", DbTypeCode.Boolean, false, false),
+                }
+                );
+
+            TypeDef sysIndexTypeDef = new TypeDef(
+                "Starcounter.Metadata.SysIndex",
+                null,
+                new PropertyDef[]
+                {
+                    new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
+                    new PropertyDef("TableName", DbTypeCode.String, true) { ColumnName = "table_name" },
+                    new PropertyDef("Description", DbTypeCode.String, true) { ColumnName = "description" },
+                    new PropertyDef("Unique", DbTypeCode.Boolean, false) { ColumnName = "unique" },
+                },
+                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.SysIndex"),
+                systemTableDef
+                );
+
+            Package package = new Package(new TypeDef[] { sysTableTypeDef, sysIndexTypeDef }, null);
+            IntPtr hPackage = (IntPtr)GCHandle.Alloc(package, GCHandleType.Normal);
+
+            uint e = sccorelib.cm2_schedule(
+                hsched,
+                0,
+                sccorelib_ext.TYPE_PROCESS_PACKAGE,
+                0,
+                0,
+                0,
+                (ulong)hPackage
+                );
+            if (e != 0) throw ErrorCode.ToException(e);
+
+            // We only process one package at a time. Wait for the package
+            // to be processed before accepting more input.
+            //
+            // (We can only handle one package at a time or we can not
+            // evaluate if a type definition has already been loaded.)
+
+            package.WaitUntilProcessed();
+            package.Dispose();
+        }
+
         public static unsafe void ExecApp(void* hsched, string filePath)
         {
             try
