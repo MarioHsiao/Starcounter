@@ -36,12 +36,13 @@ namespace Starcounter
 	public unsafe class GatewayHandlers
 	{
         // Offset in bytes for HttpRequest structure.
-        const Int32 HTTP_REQUEST_OFFSET_BYTES = 184;
+        const Int32 HTTP_REQUEST_OFFSET_BYTES = 192;
 
         // Maximum size of BMX header in the beginning of the chunk
         // after which the gateway data can be placed.
         const Int32 BMX_HEADER_MAX_SIZE_BYTES = 24;
 
+        // Maximum number of handlers to register.
         const Int32 MAX_HANDLERS = 1024;
 
         private static PortCallback[] port_handlers_;
@@ -74,7 +75,7 @@ namespace Starcounter
             *is_handled = false;
 
             UInt32 chunk_index = task_info->chunk_index;
-            Console.WriteLine("Handler called, session: " + session_id + ", chunk: " + chunk_index);
+            //Console.WriteLine("Handler called, session: " + session_id + ", chunk: " + chunk_index);
 
             // Fetching the callback.
             PortCallback user_callback = port_handlers_[task_info->handler_id];
@@ -87,7 +88,7 @@ namespace Starcounter
             // Creating parameters.
             PortHandlerParams handler_params = new PortHandlerParams
             {
-                UserSessionId = *(UInt32*)(raw_chunk + NetworkDataStream.GATEWAY_CHUNK_BEGIN + NetworkDataStream.SESSION_INDEX_OFFSET),
+                UserSessionId = *(UInt32*)(raw_chunk + NetworkDataStream.SESSION_INDEX_OFFSET),
                 DataStream = new NetworkDataStream(raw_chunk, is_single_chunk, task_info->chunk_index)
             };
 
@@ -106,7 +107,7 @@ namespace Starcounter
             *is_handled = false;
 
             UInt32 chunk_index = task_info->chunk_index;
-            Console.WriteLine("Handler called, session: " + session_id + ", chunk: " + chunk_index);
+            //Console.WriteLine("Handler called, session: " + session_id + ", chunk: " + chunk_index);
 
             // Fetching the callback.
             SubportCallback user_callback = subport_handlers_[task_info->handler_id];
@@ -119,7 +120,7 @@ namespace Starcounter
             // Creating parameters.
             SubportHandlerParams handler_params = new SubportHandlerParams
             {
-                UserSessionId = *(UInt32*)(raw_chunk + NetworkDataStream.GATEWAY_CHUNK_BEGIN + NetworkDataStream.SESSION_INDEX_OFFSET),
+                UserSessionId = *(UInt32*)(raw_chunk + NetworkDataStream.SESSION_INDEX_OFFSET),
                 SubportId = 0,
                 DataStream = new NetworkDataStream(raw_chunk, is_single_chunk, task_info->chunk_index)
             };
@@ -139,7 +140,7 @@ namespace Starcounter
             *is_handled = false;
 
             UInt32 chunk_index = task_info->chunk_index;
-            Console.WriteLine("Handler called, session: " + session_id + ", chunk: " + chunk_index);
+            //Console.WriteLine("Handler called, session: " + session_id + ", chunk: " + chunk_index);
 
             // Fetching the callback.
             UriCallback user_callback = uri_handlers_[task_info->handler_id];

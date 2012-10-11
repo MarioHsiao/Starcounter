@@ -29,6 +29,7 @@ namespace sccli {
             supportedCommands.Add("createdatabase", Program.CreateDatabase);
             supportedCommands.Add("startdatabase", Program.StartDatabase);
             supportedCommands.Add("stopdatabase", Program.StopDatabase);
+            supportedCommands.Add("exec", Program.ExecApp);
         }
 
         static void Main(string[] args) {
@@ -36,7 +37,16 @@ namespace sccli {
             Action<Client, string[]> action;
 
             var client = new Client(SendRequest, ReceiveReply);
+            
             command = args.Length == 0 ? string.Empty : args[0].ToLowerInvariant();
+            if (command.StartsWith("@")) {
+                command = command.Substring(1);
+                var args2 = new string[args.Length + 1];
+                Array.Copy(args, args2, args.Length);
+                args2[args2.Length - 1] = "@@Synchronous";
+                args = args2;
+            }
+
             if (!supportedCommands.TryGetValue(command, out action)) {
                 ToConsoleWithColor(string.Format("Unknown command: {0}", command), ConsoleColor.Red);
                 action = supportedCommands["help"];
@@ -64,21 +74,40 @@ namespace sccli {
         static void CreateDatabase(Client client, string[] args) {
             var props = new Dictionary<string, string>();
             props["Name"] = args[1];
+            if (args.Contains<string>("@@Synchronous")) {
+                props["@@Synchronous"] = bool.TrueString;
+            }
             client.Send("CreateDatabase", props, (Reply reply) => WriteReplyToConsole(reply));
         }
 
         static void StartDatabase(Client client, string[] args) {
             var props = new Dictionary<string, string>();
             props["Name"] = args[1];
+            if (args.Contains<string>("@@Synchronous")) {
+                props["@@Synchronous"] = bool.TrueString;
+            }
             client.Send("StartDatabase", props, (Reply reply) => WriteReplyToConsole(reply));
         }
 
         static void StopDatabase(Client client, string[] args) {
             var props = new Dictionary<string, string>();
             props["Name"] = args[1];
-            if (args.Contains<string>("stopdb"))
+            if (args.Contains<string>("stopdb")) {
                 props["StopDb"] = bool.TrueString;
+            }
+            if (args.Contains<string>("@@Synchronous")) {
+                props["@@Synchronous"] = bool.TrueString;
+            }
             client.Send("StopDatabase", props, (Reply reply) => WriteReplyToConsole(reply));
+        }
+
+        static void ExecApp(Client client, string[] args) {
+            var props = new Dictionary<string, string>();
+            props["AssemblyPath"] = args[1];
+            if (args.Contains<string>("@@Synchronous")) {
+                props["@@Synchronous"] = bool.TrueString;
+            }
+            client.Send("ExecApp", props, (Reply reply) => WriteReplyToConsole(reply));
         }
 
         static void GetDatabase(Client client, string[] args) {
@@ -97,10 +126,19 @@ namespace sccli {
         }
 
         static string ReceiveReply() {
-            var buffer = new byte[4096];
-            var count = pipe.Read(buffer, 0, buffer.Length);
+            int length;
+
+            // Replies are prefixed with size first when the
+            // reference server operates using named pipes.
+            
+            length = pipe.ReadByte() * 256;
+            length += pipe.ReadByte();
+            
+            var buffer = new byte[length];
+            var count = pipe.Read(buffer, 0, length);
             pipe.Close();
-            return Encoding.UTF8.GetString(buffer.ToArray(), 0, count);
+
+            return Encoding.UTF8.GetString(buffer, 0, count);
         }
 
         static void WriteReplyToConsole(Reply reply) {
