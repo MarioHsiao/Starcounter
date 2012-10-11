@@ -13,5 +13,10 @@ namespace Starcounter.Metadata
         {
             get { return DbState.ReadString(this, 0); }
         }
+
+        public string BaseName
+        {
+            get { return DbState.ReadString(this, 1); }
+        }
     }
 }
