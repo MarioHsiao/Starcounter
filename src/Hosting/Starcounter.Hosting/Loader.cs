@@ -89,8 +89,8 @@ namespace StarcounterInternal.Hosting
                 "sys.table",
                 new ColumnDef[]
                 {
-                    new ColumnDef("table_id", DbTypeCode.UInt16, false, false),
                     new ColumnDef("name", DbTypeCode.String, true, false),
+                    new ColumnDef("table_id", DbTypeCode.UInt16, false, false),
                 }
                 );
 
