@@ -1,15 +1,15 @@
 ﻿
-using Starcounter.Query;
+//using Starcounter.Query;
 
-namespace Starcounter.Internal
-{
+//namespace Starcounter.Internal
+//{
     
-    public static class Fix // TODO:
-    {
+//    public static class Fix // TODO:
+//    {
 
-        public static void ResetTheQueryModule()
-        {
-            QueryModule.Initiate(true);
-        }
-    }
-}
+//        public static void ResetTheQueryModule()
+//        {
+//            QueryModule.Reset();
+//        }
+//    }
+//}
