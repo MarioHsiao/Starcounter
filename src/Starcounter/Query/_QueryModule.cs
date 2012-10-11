@@ -17,7 +17,7 @@ namespace Starcounter.Query
         //static String processFolder = StarcounterEnvironment.SystemDirectory + "\\32BitComponents\\";
         static String processFolder = AppDomain.CurrentDomain.BaseDirectory + "32BitComponents\\";
         //const String processFileName = "StarcounterSQL.exe";
-        const String processFileName = "StarcounterSQL_LATEST.exe";
+        const String processFileName = "StarcounterSQL.exe";
         //const String processVersion = "111208";
         const String processVersion = "121002";
         static Int32 processPort;
