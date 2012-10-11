@@ -85,7 +85,7 @@ namespace Starcounter.Server.Commands {
             // process on top of it where we can inject the booting executable.
 
             Engine.DatabaseEngine.StartDatabaseProcess(database);
-            Engine.DatabaseEngine.StartWorkerProcess(database, out workerProcess);
+            Engine.DatabaseEngine.StartWorkerProcess(database, command.NoDb, out workerProcess);
             
             // Get a client handle to the worker process.
 
