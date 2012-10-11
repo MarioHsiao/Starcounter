@@ -138,7 +138,7 @@ public sealed class SqlEnumCache
     /// current global cache values (i.e., after invalidation of global reset).
     /// This method assumed is not to be called concurrently.
     /// </summary>
-    public void InvalidateCache()
+    internal void InvalidateCache()
     {
         if (toInvalidate)
         {
