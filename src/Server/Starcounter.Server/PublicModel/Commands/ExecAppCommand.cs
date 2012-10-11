@@ -108,6 +108,10 @@ namespace Starcounter.Server.PublicModel.Commands {
                     this.DatabaseName = Path.GetFileNameWithoutExtension(this.AssemblyPath);
                 }
             }
+
+            if (this.NoDb == false) {
+                this.NoDb = scargs.Contains<string>("NoDb", StringComparer.InvariantCultureIgnoreCase);
+            }
         }
     }
 }
