@@ -55,10 +55,22 @@ namespace Starcounter.Server.Commands {
 
             // The application doesn't run inside the database, or the database
             // doesn't exist. Process furhter: weaving first.
-            
-            appRuntimeDirectory = GetAppRuntimeDirectory(this.Engine.Configuration.TempDirectory, command.AssemblyPath);
-            weaver = Engine.WeaverService;
-            weavedExecutable = weaver.Weave(command.AssemblyPath, appRuntimeDirectory);
+
+            // Make sure we respect the (temporary) NoDb switch if applied.
+
+            if (command.NoDb) {
+                // TODO PSA:
+                // We most likely want to copy all binaries to a temporary runtime
+                // directory anyway, since with the current approach, we will lock
+                // future builds from succeeding if the host process keeps any of
+                // the binaries loaded.
+                appRuntimeDirectory = Path.GetDirectoryName(command.AssemblyPath);
+                weavedExecutable = command.AssemblyPath;
+            } else {
+                appRuntimeDirectory = GetAppRuntimeDirectory(this.Engine.Configuration.TempDirectory, command.AssemblyPath);
+                weaver = Engine.WeaverService;
+                weavedExecutable = weaver.Weave(command.AssemblyPath, appRuntimeDirectory);
+            }
 
             // Create the database if it does not exist and if not told otherwise.
             // Add it to our internal model as well as to the public one.
