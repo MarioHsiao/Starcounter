@@ -267,13 +267,13 @@ namespace Starcounter.Query.Sql
                 ConnectPrologSessions();
                 try
                 {
-                    Starcounter.ThreadHelper.SetYieldBlock();
-                    Scheduler scheduler = Scheduler.GetInstance();
+                    //Starcounter.ThreadHelper.SetYieldBlock();
+                    Scheduler scheduler = Scheduler.GetInstance(true);
                     DeleteAllSchemaInfo(scheduler);
                 }
                 finally
                 {
-                    Starcounter.ThreadHelper.ReleaseYieldBlock();
+                    //Starcounter.ThreadHelper.ReleaseYieldBlock();
                 }
                 return;
             }
@@ -443,7 +443,7 @@ namespace Starcounter.Query.Sql
                         process.StartInfo.FileName = processFolder + processFileName;
                         process.StartInfo.CreateNoWindow = true;
                         process.StartInfo.UseShellExecute = true;
-                        process.StartInfo.Arguments = processPort.ToString() + " " + schemaFolderExternal;
+                        process.StartInfo.Arguments = processPort.ToString();
                         process.Start();
                     }
                     catch (Exception exception)
@@ -451,7 +451,7 @@ namespace Starcounter.Query.Sql
                         String errMessage = "Failed to start process: " + processFolder + processFileName + " " + process.StartInfo.Arguments;
                         throw ErrorCode.ToException(Error.SCERRSQLSTARTPROCESSFAILED, exception, errMessage);
                     }
-                    logSource.Debug("Started process: " + processFolder + processFileName + " " + processPort + " " + schemaFolderExternal);
+                    logSource.Debug("Started process: " + processFolder + processFileName + " " + processPort);
 
                     // Verify process.
                     Boolean verified = false;

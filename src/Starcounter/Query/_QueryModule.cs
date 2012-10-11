@@ -14,13 +14,15 @@ namespace Starcounter.Query
     public static class QueryModule
     {
         // Configuration of query module.
-        static readonly String processFolder = StarcounterEnvironment.SystemDirectory + "\\32BitComponents\\";
-        const String processFileName = "StarcounterSQL.exe";
+        //static String processFolder = StarcounterEnvironment.SystemDirectory + "\\32BitComponents\\";
+        static String processFolder = AppDomain.CurrentDomain.BaseDirectory + "32BitComponents\\";
+        //const String processFileName = "StarcounterSQL.exe";
+        const String processFileName = "StarcounterSQL_LATEST.exe";
         //const String processVersion = "111208";
         const String processVersion = "121002";
         static Int32 processPort;
         //static readonly String schemaFilePath = AppDomain.CurrentDomain.BaseDirectory + "\\schema.pl";
-        static readonly String schemaFolder = AppDomain.CurrentDomain.BaseDirectory + "\\";
+        static String schemaFolder = AppDomain.CurrentDomain.BaseDirectory + "32BitComponents\\";
         const Int32 maxQueryLength = 3000;
         const Int32 maxQueryRetries = 10;
         const Int32 maxVerifyRetries = 100;
@@ -32,8 +34,8 @@ namespace Starcounter.Query
         /// <param name="sqlProcessPort">External SQL process port. If 0 then default should be used.</param>
         public static void Initiate(Int32 sqlProcessPort)
         {
-            //// TEMP
-            //System.Diagnostics.Debugger.Break();
+            // TEMP
+            System.Diagnostics.Debugger.Break();
 
             // Connect managed and native Sql functions.
             UInt32 errCode = SqlConnectivity.InitSqlFunctions();
@@ -51,33 +53,39 @@ namespace Starcounter.Query
         }
 
         /// <summary>
-        /// Remove all schema information from external SQL process (Prolog-process).
+        /// Removes all schema information from external SQL process (Prolog-process).
         /// </summary>
         internal static void Reset()
         {
+            // TEMP
+            System.Diagnostics.Debugger.Break();
+
             try
             {
-                Starcounter.ThreadHelper.SetYieldBlock();
-                Scheduler scheduler = Scheduler.GetInstance();
+                //Starcounter.ThreadHelper.SetYieldBlock();
+                Scheduler scheduler = Scheduler.GetInstance(true);
                 PrologManager.DeleteAllSchemaInfo(scheduler);
             }
             finally
             {
-                Starcounter.ThreadHelper.ReleaseYieldBlock();
+                //Starcounter.ThreadHelper.ReleaseYieldBlock();
             }
         }
 
         internal static void UpdateSchemaInfo(TypeDef[] typeDefArray)
         {
+            // TEMP
+            System.Diagnostics.Debugger.Break();
+
             try
             {
-                Starcounter.ThreadHelper.SetYieldBlock();
-                Scheduler scheduler = Scheduler.GetInstance();
+                //Starcounter.ThreadHelper.SetYieldBlock();
+                Scheduler scheduler = Scheduler.GetInstance(true);
                 PrologManager.ExportSchemaInfo(scheduler, typeDefArray);
             }
             finally
             {
-                Starcounter.ThreadHelper.ReleaseYieldBlock();
+                //Starcounter.ThreadHelper.ReleaseYieldBlock();
             }
         }
 
