@@ -2,7 +2,7 @@
 using Starcounter;
 using Starcounter.Binding;
 
-namespace SQLTest
+namespace SqlTest
 {
     class Program
     {
