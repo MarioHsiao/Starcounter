@@ -210,6 +210,10 @@ namespace Starcounter.Server {
         }
 
         internal bool StartWorkerProcess(Database database, out Process process) {
+            return StartWorkerProcess(database, false, out process);
+        }
+
+        internal bool StartWorkerProcess(Database database, bool startWithNoDb, out Process process) {
             process = database.GetRunningWorkerProcess();
             if (process != null) 
                 return false;
@@ -217,7 +221,7 @@ namespace Starcounter.Server {
             // No process referenced, or the referenced process was not
             // alive. Start a worker process.
 
-            process = Process.Start(GetWorkerProcessStartInfo(database));
+            process = Process.Start(GetWorkerProcessStartInfo(database, startWithNoDb));
             database.WorkerProcess = process;
             database.SupposedToBeStarted = true;
             return true;
@@ -276,6 +280,10 @@ namespace Starcounter.Server {
         }
 
         ProcessStartInfo GetWorkerProcessStartInfo(Database database) {
+            return GetWorkerProcessStartInfo(database, false);
+        }
+
+        ProcessStartInfo GetWorkerProcessStartInfo(Database database, bool startWithNoDb) {
             ProcessStartInfo processStart;
             StringBuilder args;
 
@@ -286,6 +294,9 @@ namespace Starcounter.Server {
             args.AppendFormat(" --OutputDir \"{0}\"", database.Server.Configuration.LogDirectory);
             args.AppendFormat(" --TempDir \"{0}\"", database.Configuration.Runtime.TempDirectory);
             args.AppendFormat(" --CompilerPath \"{0}\"", this.MinGWCompilerPath);
+            if (startWithNoDb) {
+                args.Append(" --FLAG:NoDb");
+            }
             
             processStart = new ProcessStartInfo(this.WorkerProcessExePath, args.ToString().Trim());
             processStart.CreateNoWindow = true;
