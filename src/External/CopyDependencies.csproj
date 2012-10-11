@@ -37,7 +37,10 @@
   </PropertyGroup>
 
   <Target Name="CopyExternalStaticFiles">
-  
+
+    <!-- Building Blue solution if any. -->
+    <!-- <Exec Condition="Exists('$(BlueSolution)')" Command="C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe $(BlueSolution) /property:Configuration=$(Configuration);Platform=x64;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" /> -->
+    
     <!-- NOTE: Comment the following line in order to build without requiring FTP connection. -->
     <Error Text="Shared FTP folder is not accessible: $(BinariesFTP)" Condition="'$(BinariesFTPAccessible)' != 'True'" />
     

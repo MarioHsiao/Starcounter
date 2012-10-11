@@ -148,6 +148,65 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MySampleApp", "Samples\MySa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sccli", "Server\sccli\sccli.csproj", "{AC2A8729-1693-47DA-9723-C54EAD0EEECF}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{F5866E64-EAD9-44E9-98B3-93DED5C8B352}"
+	ProjectSection(SolutionItems) = preProject
+		Chunks\common\atomic_bounded_buffer.hpp = Chunks\common\atomic_bounded_buffer.hpp
+		Chunks\common\atomic_buffer.hpp = Chunks\common\atomic_buffer.hpp
+		Chunks\common\bit_operations.hpp = Chunks\common\bit_operations.hpp
+		Chunks\common\bounded_buffer.hpp = Chunks\common\bounded_buffer.hpp
+		Chunks\common\channel.hpp = Chunks\common\channel.hpp
+		Chunks\common\channel_mask.hpp = Chunks\common\channel_mask.hpp
+		Chunks\common\channel_number.hpp = Chunks\common\channel_number.hpp
+		Chunks\common\chunk.hpp = Chunks\common\chunk.hpp
+		Chunks\common\chunk_pool.hpp = Chunks\common\chunk_pool.hpp
+		Chunks\common\circular_buffer.hpp = Chunks\common\circular_buffer.hpp
+		Chunks\common\client_interface.hpp = Chunks\common\client_interface.hpp
+		Chunks\common\client_number.hpp = Chunks\common\client_number.hpp
+		Chunks\common\client_number_pool.hpp = Chunks\common\client_number_pool.hpp
+		Chunks\common\common_client_interface.hpp = Chunks\common\common_client_interface.hpp
+		Chunks\common\common_scheduler_interface.hpp = Chunks\common\common_scheduler_interface.hpp
+		Chunks\common\config_param.hpp = Chunks\common\config_param.hpp
+		Chunks\common\database_shared_memory_parameters.hpp = Chunks\common\database_shared_memory_parameters.hpp
+		Chunks\common\interprocess.hpp = Chunks\common\interprocess.hpp
+		Chunks\common\log_message.hpp = Chunks\common\log_message.hpp
+		Chunks\common\macro_definitions.hpp = Chunks\common\macro_definitions.hpp
+		Chunks\common\mapped_region.cpp = Chunks\common\mapped_region.cpp
+		Chunks\common\monitor_interface.hpp = Chunks\common\monitor_interface.hpp
+		Chunks\common\name_definitions.hpp = Chunks\common\name_definitions.hpp
+		Chunks\common\overflow_buffer.hpp = Chunks\common\overflow_buffer.hpp
+		Chunks\common\owner_id.hpp = Chunks\common\owner_id.hpp
+		Chunks\common\pid_type.hpp = Chunks\common\pid_type.hpp
+		Chunks\common\resource_map.hpp = Chunks\common\resource_map.hpp
+		Chunks\common\scheduler_channel.hpp = Chunks\common\scheduler_channel.hpp
+		Chunks\common\scheduler_interface.hpp = Chunks\common\scheduler_interface.hpp
+		Chunks\common\scheduler_mask.hpp = Chunks\common\scheduler_mask.hpp
+		Chunks\common\scheduler_number.hpp = Chunks\common\scheduler_number.hpp
+		Chunks\common\shared_chunk_pool.hpp = Chunks\common\shared_chunk_pool.hpp
+		Chunks\common\shared_interface.hpp = Chunks\common\shared_interface.hpp
+		Chunks\common\shared_memory_manager.hpp = Chunks\common\shared_memory_manager.hpp
+		Chunks\common\shared_memory_object.cpp = Chunks\common\shared_memory_object.cpp
+		Chunks\common\timeout.hpp = Chunks\common\timeout.hpp
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "impl", "impl", "{FFD0C045-ECC0-4621-BB0D-CE53859E0BC5}"
+	ProjectSection(SolutionItems) = preProject
+		Chunks\common\impl\atomic_buffer.hpp = Chunks\common\impl\atomic_buffer.hpp
+		Chunks\common\impl\bounded_buffer.hpp = Chunks\common\impl\bounded_buffer.hpp
+		Chunks\common\impl\chunk_pool.hpp = Chunks\common\impl\chunk_pool.hpp
+		Chunks\common\impl\circular_buffer.hpp = Chunks\common\impl\circular_buffer.hpp
+		Chunks\common\impl\client_number_pool.hpp = Chunks\common\impl\client_number_pool.hpp
+		Chunks\common\impl\database_shared_memory_parameters.hpp = Chunks\common\impl\database_shared_memory_parameters.hpp
+		Chunks\common\impl\monitor_interface.hpp = Chunks\common\impl\monitor_interface.hpp
+		Chunks\common\impl\overflow_buffer.hpp = Chunks\common\impl\overflow_buffer.hpp
+		Chunks\common\impl\owner_id.hpp = Chunks\common\impl\owner_id.hpp
+		Chunks\common\impl\pid_type.hpp = Chunks\common\impl\pid_type.hpp
+		Chunks\common\impl\shared_chunk_pool.hpp = Chunks\common\impl\shared_chunk_pool.hpp
+		Chunks\common\impl\shared_interface.hpp = Chunks\common\impl\shared_interface.hpp
+		Chunks\common\impl\timeout.hpp = Chunks\common\impl\timeout.hpp
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLTest", "Samples\SQLTest\SQLTest.csproj", "{75FD7F1C-71C9-4083-8F70-D20B2C665F77}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -335,6 +394,10 @@ Global
 		{AC2A8729-1693-47DA-9723-C54EAD0EEECF}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{AC2A8729-1693-47DA-9723-C54EAD0EEECF}.Debug|x64.Build.0 = Debug|Any CPU
 		{AC2A8729-1693-47DA-9723-C54EAD0EEECF}.Release|x64.ActiveCfg = Release|Any CPU
+		{75FD7F1C-71C9-4083-8F70-D20B2C665F77}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{75FD7F1C-71C9-4083-8F70-D20B2C665F77}.Debug|x64.Build.0 = Debug|Any CPU
+		{75FD7F1C-71C9-4083-8F70-D20B2C665F77}.Release|x64.ActiveCfg = Release|Any CPU
+		{75FD7F1C-71C9-4083-8F70-D20B2C665F77}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -355,9 +418,11 @@ Global
 		{1606D39A-79E6-468E-828A-42526C06A197} = {2E993A9D-C78B-45A5-AA0D-1FAA58825805}
 		{917A2134-2267-4E27-9415-1D531AADF156} = {2E993A9D-C78B-45A5-AA0D-1FAA58825805}
 		{2F1B4CDB-2A7E-405E-A774-EC9D9AF9BD3F} = {2E993A9D-C78B-45A5-AA0D-1FAA58825805}
+		{75FD7F1C-71C9-4083-8F70-D20B2C665F77} = {2E993A9D-C78B-45A5-AA0D-1FAA58825805}
 		{7BF06E68-1088-47EE-B06C-DE546AFABDB0} = {1046FAB3-028B-4F84-A133-8C6248B7B7CB}
 		{8B599BFF-B414-41A3-A270-96CDA0C522AF} = {E64C1F28-D2C1-47D2-A62B-151A6968D158}
 		{6665517F-743D-4809-94D3-13325FC2AF74} = {7CAA7AEE-92D3-4643-9566-C060AF2CFF2C}
+		{F5866E64-EAD9-44E9-98B3-93DED5C8B352} = {7CAA7AEE-92D3-4643-9566-C060AF2CFF2C}
 		{5A65D606-6613-4139-8853-B5F26313E4DF} = {FF0868CF-A78E-44A4-93E5-57182F039F31}
 		{1F4D1E72-C615-42B1-9B29-D5A9CEDE09E0} = {FF0868CF-A78E-44A4-93E5-57182F039F31}
 		{9E8D97FC-87A3-4A7C-B318-9414B5EEA60E} = {FF0868CF-A78E-44A4-93E5-57182F039F31}
@@ -387,5 +452,6 @@ Global
 		{28E1D438-7DC4-4BF7-A486-0598C78DBBE9} = {42B8DA2F-1785-43DC-B8D8-AE3676E822D4}
 		{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45} = {42B8DA2F-1785-43DC-B8D8-AE3676E822D4}
 		{AC2A8729-1693-47DA-9723-C54EAD0EEECF} = {42B8DA2F-1785-43DC-B8D8-AE3676E822D4}
+		{FFD0C045-ECC0-4621-BB0D-CE53859E0BC5} = {F5866E64-EAD9-44E9-98B3-93DED5C8B352}
 	EndGlobalSection
 EndGlobal

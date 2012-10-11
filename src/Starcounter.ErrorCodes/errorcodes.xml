@@ -2793,6 +2793,12 @@
     <code hex="00E6" severity="Error" name="ScErrTableNotFound">
       <message>Table with specified name not found.</message>
     </code>
+    <code hex="00E8" severity="Error" name="ScErrSystemTable">
+      <message>Table can't be altered or dropped because it is a system table.</message>
+    </code>
+    <code hex="00E9" severity="Error" name="ScErrSystemIndex">
+      <message>Index can't be altered or dropped because it is a system index.</message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->

@@ -1,0 +1,26 @@
+{
+	"Header":"Starcounter Administrator",
+	"ServerName":"",
+	"ServerUri":"",
+	"Status":"",
+	"Value":"",
+	"CreateDbClick":"",
+	"StartDbClick":"",
+	"StopDbClick":"",
+	"ExecAppClick":"",
+	"Databases":
+	[
+		{ 
+			"Name":"", 
+			"Uri":"",
+			"Apps":
+			[
+				{ "Executable":"" }
+			]
+		}
+	],
+	"Commands":
+	[
+		{ "Description":"", "Id":"", "IsCompleted":"", "HasErrors":""}
+	]
+}

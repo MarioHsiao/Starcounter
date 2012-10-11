@@ -73,7 +73,7 @@ namespace StarcounterInternal.Bootstrap
 
             // Query module.
             Scheduler.Setup(1);
-            Starcounter.Query.QueryModule.Configure(configuration.SQLProcessPort);
+            Starcounter.Query.QueryModule.Initiate(configuration.SQLProcessPort);
 
             return true;
         }
@@ -138,6 +138,8 @@ namespace StarcounterInternal.Bootstrap
                 var response = request.GetParameter<string>();
                 request.Respond(response ?? "<NULL>");
             });
+
+            Loader.AddBasePackage(hsched_);
 
             // Executing auto-start task if any.
             if (configuration.AutoStartExePath != null)
@@ -283,7 +285,7 @@ namespace StarcounterInternal.Bootstrap
             uint flags = 0;
             flags |= sccoredb.SCCOREDB_LOAD_DATABASE;
             flags |= sccoredb.SCCOREDB_ENABLE_CHECK_FILE_ON_LOAD;
-            //            flags |= sccoredb.SCCOREDB_ENABLE_CHECK_FILE_ON_CHECKP;
+            //flags |= sccoredb.SCCOREDB_ENABLE_CHECK_FILE_ON_CHECKP;
             flags |= sccoredb.SCCOREDB_ENABLE_CHECK_FILE_ON_BACKUP;
             flags |= sccoredb.SCCOREDB_ENABLE_CHECK_MEMORY_ON_CHECKP;
 

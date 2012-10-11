@@ -306,8 +306,6 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     sb.Append("        ");
                     sb.Append(mn.MemberName);
                     sb.Append(" = Register<");
-                    sb.Append(((NClass)a.Parent).ClassName);
-                    sb.Append(", ");
                     sb.Append(mn.Type.FullClassName);
                     sb.Append(">(\"");
                     sb.Append(mn.MemberName);

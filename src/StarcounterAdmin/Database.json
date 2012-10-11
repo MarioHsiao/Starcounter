@@ -1,0 +1,22 @@
+{
+	"id":"mymusic",
+	"status":"stopped",
+	"name":"mymusic",
+	"description":"Description of mymusic",
+	"image": "/img/database_128.png",
+	"image_size":5,
+	"transactionslog_size":128,
+	"image_folder":"C:/mymusic/image",
+	"transactionslog_folder":"C:/mymusic/log",
+	"temp_folder":"C:/mymusic/temp",
+	"properties":"Properties...",
+	"log": {
+		"list": [{"id":"Identity", "severity":"severity", "description":"Description"}],
+		"clear":null
+	},
+ 
+	"query": {"result": [{}], "execute":null},
+	"apps":[{}]
+}
+
+

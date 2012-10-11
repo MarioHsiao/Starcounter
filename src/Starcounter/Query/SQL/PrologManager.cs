@@ -1,6 +1,9 @@
 
 using se.sics.prologbeans;
 using Starcounter;
+using Starcounter.Binding;
+using Starcounter.Logging;
+using Starcounter.Query.Execution;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,11 +12,8 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Permissions;
+using System.Text;
 using System.Threading;
-//using System.Xml;
-using Starcounter.Query.Execution;
-using Starcounter.Binding;
-using Starcounter.Logging;
 
 namespace Starcounter.Query.Sql
 {
@@ -21,109 +21,391 @@ namespace Starcounter.Query.Sql
     {
         static LogSource logSource;
         static Object startProcessLock;
+        static List<String> schemaFilePathList = new List<String>();
         static Process process;
-        static Boolean newSchema;
         static String processFolder;
         static String processFileName;
         static String processVersion;
         static Int32 processPort;
-        static String schemaFilePath;
-        static String schemaFileEncoded;
-        static DateTime schemaTime;
+        static String schemaFolderExternal;
         static Int32 maxQueryLength;
         static Int32 maxQueryRetries;
         static Int32 maxVerifyRetries;
         static Int32 timeBetweenVerifyRetries;
 
         // Is called during start-up.
-        internal static void Initiate(Boolean newschema, String processfolder, String processfilename, String processversion, Int32 processport, 
-            String schemafilepath, Int32 maxquerylength, Int32 maxqueryretries, Int32 maxverifyretries, Int32 timebetweenverifyretries)
+        internal static void Initiate(String procFolder, String procFileName, String procVersion, Int32 procPort,
+            String schemaFolder, Int32 queryLength, Int32 queryRetries, Int32 verifyRetries, Int32 betweenVerifyRetries)
         {
             logSource = LogSources.Sql;
             startProcessLock = new Object();
 
-            newSchema = newschema;
-            processFolder = processfolder;
-            processFileName = processfilename;
-            processVersion = processversion;
-            processPort = processport;
-            schemaFilePath = schemafilepath;
-            maxQueryLength = maxquerylength;
-            maxQueryRetries = maxqueryretries;
-            maxVerifyRetries = maxverifyretries;
-            timeBetweenVerifyRetries = timebetweenverifyretries;
+            processFolder = procFolder;
+            processFileName = procFileName;
+            processVersion = procVersion;
+            processPort = procPort;
+            //schemaFolderExternal = schemaFolder.Replace("\\", "/").Replace(' ', '?'); // TODO: Use some appropriate standard encoding?
+            schemaFolderExternal = schemaFolder.Replace("\\", "/");
+            maxQueryLength = queryLength;
+            maxQueryRetries = queryRetries;
+            maxVerifyRetries = verifyRetries;
+            timeBetweenVerifyRetries = betweenVerifyRetries;
 
-            schemaFileEncoded = schemaFilePath.Replace("\\", "/").Replace(' ', '?'); // TODO: Use some appropriate standard encoding?
-
-            if (newSchema)
-                InitiateNewSchema();
-            else
-                InitiateSameSchema();
+            // Establish an SQL process without any schema information.
+            EstablishSqlProcess();
         }
 
-        private static void InitiateNewSchema()
+        /// <summary>
+        /// Export schema information to external SQL process by one call to the SQL process per TypeBinding.
+        /// Note that this method is significantly slower than ExportSchemaInfo.
+        /// </summary>
+        /// <param name="scheduler">Representation of the current virtual processor.</param>
+        /// <param name="typeEnumerator">Enumerator of TypeBindings (type information).</param>
+        private static void ExportSchemaInfo2(Scheduler scheduler, IEnumerator<TypeDef> typeEnumerator)
         {
-            DisconnectPrologSessions();
+            // Since the scheduler.PrologSession is shared between all the threads
+            // managed by the same scheduler, this method must be called within
+            // the scope of a yield block.
 
-            Int32 tickCount = Environment.TickCount;
-
-            // Export schema to file.
-            ExportSchemaFile(schemaFilePath);
-
-            KillConflictingProcess();
-
-            StartProcess();
-
-            // Temporary output the upstart time of Starcounter SQL executable.
-            tickCount = Environment.TickCount - tickCount;
-            // logSource.Debug("Upstart of StarcounterSQL in " + tickCount.ToString() + " ms.");
-            logSource.LogNotice("Upstart of StarcounterSQL in " + tickCount.ToString() + " ms.");
-
-            ConnectPrologSessions();
-        }
-
-        private static void InitiateSameSchema()
-        {
+            String schemaInfo = null;
+            TypeDef typeDef = null;
             try
             {
-                DisconnectPrologSessions();
-
-                Int32 tickCount = Environment.TickCount;
-
-                VerifyProcess(false);
-
-                // Temporary output the reconnect time to Starcounter SQL executable.
-                tickCount = Environment.TickCount - tickCount;
-                //logSource.Debug("Reconnect to StarcounterSQL in " + tickCount.ToString() + " ms.");
-                logSource.LogNotice("Reconnect to StarcounterSQL in " + tickCount.ToString() + " ms.");
-
-                ConnectPrologSessions();
+                while (typeEnumerator.MoveNext())
+                {
+                    typeDef = typeEnumerator.Current;
+                    schemaInfo = GetTableSchemaInfo(typeDef);
+                    CallSqlProcessToAddSchemaInfo(scheduler, schemaInfo);
+                    logSource.Debug("Exported schema info about table (class): " + typeDef.Name);
+                }
             }
-            catch (SqlExecutableException)
+            catch (Exception exception)
             {
-                InitiateNewSchema();
+                String errMessage = "Failed to export SQL schema info.";
+                // TODO: New error code.
+                throw ErrorCode.ToException(Error.SCERRSQLEXPORTSCHEMAFAILED, exception, errMessage);
             }
         }
 
         /// <summary>
-        /// If there is an old conflicting PrologProcess answering on the port processPort then it is killed.
+        /// Export schema information to external SQL process by file and a single call to the SQL process.
+        /// Note that this method is significantly faster than ExportSchemaInfo2.
         /// </summary>
-        private static void KillConflictingProcess()
+        /// <param name="scheduler">Representation of the current virtual processor.</param>
+        /// <param name="typeDefArray">Enumerator of TypeDefs (type information).</param>
+        internal static void ExportSchemaInfo(Scheduler scheduler, TypeDef[] typeDefArray)
         {
-            PrologSession session;
-            session = null;
-            // An exception will always be thrown, either (if there is an old PrologProcess)
+            // Since the scheduler.PrologSession is shared between all the threads
+            // managed by the same scheduler, this method must be called within
+            // the scope of a yield block. 
+
+            String schemaFilePath = schemaFolderExternal + "schema" + DateTime.Now.ToString("yyMMddHHmmssfff") + ".pl";
+            try
+            {
+                WriteSchemaInfoToFile(schemaFilePath, typeDefArray);
+            }
+            catch (Exception exception)
+            {
+                String errMessage = "Failed to export SQL schema info to file: " + schemaFilePath;
+                throw ErrorCode.ToException(Error.SCERRSQLEXPORTSCHEMAFAILED, exception, errMessage);
+            }
+            try
+            {
+                CallSqlProcessToLoadSchemaInfo(scheduler, schemaFilePath);
+            }
+            catch (Exception exception)
+            {
+                String errMessage = "Failed to load SQL schema info from file: " + schemaFilePath;
+                // TODO: New error code SCERRSQLLOADSCHEMAFAILED
+                throw ErrorCode.ToException(Error.SCERRSQLEXPORTSCHEMAFAILED, exception, errMessage);
+            }
+            schemaFilePathList.Add(schemaFilePath);
+            logSource.Debug("Exported schema info: " + schemaFilePath);
+        }
+
+        /// <summary>
+        /// Deletes all schema information of external SQL process and reexports schema information by using previously generated files.
+        /// This method is primarily used for debugging purposes.
+        /// </summary>
+        /// <param name="scheduler">Representation of the current virtual processor.</param>
+        private static void DeleteAndReExportAllSchemaInfo(Scheduler scheduler)
+        {
+            // Since the scheduler.PrologSession is shared between all the threads
+            // managed by the same scheduler, this method must be called within
+            // the scope of a yield block.
+
+            List<String> tmpSchemaFileList = schemaFilePathList; // Temporary store the schemaFilePathList.
+            DeleteAllSchemaInfo(scheduler); // schemaFilePathList becomes empty.
+            ReExportAllSchemaInfo(scheduler, tmpSchemaFileList); // schemaFilePathList becomes reinstantiated.
+        }
+
+        /// <summary>
+        /// Reexports schema information to external SQL process by using previously generated files.
+        /// This method is primarily used for debugging purposes.
+        /// </summary>
+        /// <param name="scheduler">Representation of the current virtual processor.</param>
+        /// <param name="tmpSchemaFileList">List of previously generated schema files.</param>
+        private static void ReExportAllSchemaInfo(Scheduler scheduler, List<String> tmpSchemaFileList)
+        {
+            // Since the scheduler.PrologSession is shared between all the threads
+            // managed by the same scheduler, this method must be called within
+            // the scope of a yield block.
+
+            String schemaFilePath = null;
+            for (Int32 i = 0; i < tmpSchemaFileList.Count; i++)
+            {
+                try
+                {
+                    CallSqlProcessToLoadSchemaInfo(scheduler, tmpSchemaFileList[i]);
+                }
+                catch (Exception exception)
+                {
+                    String errMessage = "Failed to reload SQL schema info from file: " + schemaFilePath;
+                    // TODO: New error code SCERRSQLRELOADSCHEMAFAILED
+                    throw ErrorCode.ToException(Error.SCERRSQLEXPORTSCHEMAFAILED, exception, errMessage);
+                }
+                schemaFilePathList.Add(tmpSchemaFileList[i]);
+                logSource.Debug("Reexported schema info: " + schemaFilePath);
+            }
+        }
+
+        /// <summary>
+        /// Deletes all schema information of external SQL process.
+        /// </summary>
+        /// <param name="scheduler">Representation of the current virtual processor.</param>
+        internal static void DeleteAllSchemaInfo(Scheduler scheduler)
+        {
+            // Since the scheduler.PrologSession is shared between all the threads
+            // managed by the same scheduler, this method must be called within
+            // the scope of a yield block. 
+
+            PrologSession session = null;
+            QueryAnswer answer = null;
+            Int32 loopCount = 0;
+
+            while (loopCount < maxQueryRetries)
+            {
+                try
+                {
+                    EstablishConnectedSession(ref session, scheduler);
+                    answer = session.executeQuery("delete_schemainfo_prolog");
+                    CheckQueryAnswerForError(answer);
+                    loopCount = maxQueryRetries;
+                }
+                catch (Exception exception)
+                {
+                    loopCount++;
+                    if (loopCount < maxQueryRetries)
+                    {
+                        logSource.LogWarning("Failed once to delete schema info.", exception);
+                    }
+                    else
+                    {
+                        LeaveConnectedSession(session, scheduler);
+                        // TODO: New error code SCERRSQLDELETESCHEMAFAILED
+                        throw ErrorCode.ToException(Error.SCERRSQLEXPORTSCHEMAFAILED, exception);
+                    }
+                }
+            }
+            LeaveConnectedSession(session, scheduler);
+
+            schemaFilePathList = new List<String>();
+        }
+
+        /// <summary>
+        /// Checks that the schema files loaded into the external SQL process equals the here generated schema files.
+        /// Primarily used for debugging purposes.
+        /// </summary>
+        /// <param name="scheduler">Representation of the current virtual processor.</param>
+        /// <returns>True, if the schema information is correct, otherwise false.</returns>
+        private static Boolean VerifySchemaInfo(Scheduler scheduler)
+        {
+            // Since the scheduler.PrologSession is shared between all the threads
+            // managed by the same scheduler, this method must be called within
+            // the scope of a yield block. 
+
+            List<String> externalSchemaFilePathList = null;
+            try
+            {
+                externalSchemaFilePathList = GetCurrentSqlSchemaFiles(scheduler);
+                if (StringListEqual(externalSchemaFilePathList, schemaFilePathList))
+                    return true;
+                return false;
+            }
+            catch (Exception exception)
+            {
+                // TODO: New error code SCERRSQLVERIFYSCHEMAFAILED
+                throw ErrorCode.ToException(Error.SCERRSQLEXPORTSCHEMAFAILED, exception);
+            }
+        }
+
+        private static void CheckQueryAnswerForError(QueryAnswer answer)
+        {
+            if (answer == null)
+            {
+                throw new SqlExecutableException("Incorrect answer.");
+            }
+            if (answer.IsError)
+            {
+                throw new SqlExecutableException("SQL process error: " + answer.Error);
+            }
+            if (answer.queryFailed())
+            {
+                throw new SqlExecutableException("SQL process query failure.");
+            }
+        }
+
+        private static void EstablishSqlProcess()
+        {
+            DisconnectPrologSessions();
+
+            String existingProcessVersion = GetExistingSqlProcessVersion();
+
+            // Correct version of process is running.
+            if (existingProcessVersion == processVersion)
+            {
+                ConnectPrologSessions();
+                try
+                {
+                    //Starcounter.ThreadHelper.SetYieldBlock();
+                    //Scheduler scheduler = Scheduler.GetInstance(true);
+                    //DeleteAllSchemaInfo(scheduler);
+                    DeleteAllSchemaInfo(null);
+                }
+                finally
+                {
+                    //Starcounter.ThreadHelper.ReleaseYieldBlock();
+                }
+                return;
+            }
+
+            // No process is running.
+            if (existingProcessVersion == null)
+            {
+                StartSqlProcess();
+                ConnectPrologSessions();
+                return;
+            }
+
+            // Incorrect version of process is running.
+            KillExistingSqlProcess();
+            StartSqlProcess();
+            ConnectPrologSessions();
+        }
+
+        private static void ConnectPrologSessions()
+        {
+            Scheduler scheduler = null;
+            PrologSession prologSession = null;
+            for (Byte cpuNumber = 0; cpuNumber < Scheduler.SchedulerCount; cpuNumber++)
+            {
+                scheduler = Scheduler.GetInstance(cpuNumber);
+                prologSession = scheduler.PrologSession;
+                if (prologSession == null)
+                {
+                    prologSession = new PrologSession();
+                    prologSession.Port = processPort;
+                    scheduler.PrologSession = prologSession;
+                }
+
+                if (prologSession.Connected == false)
+                {
+                    prologSession.connect();
+                }
+            }
+        }
+
+        private static void DisconnectPrologSessions()
+        {
+            PrologSession prologSession = null;
+            for (Byte cpuNumber = 0; cpuNumber < Scheduler.SchedulerCount; cpuNumber++)
+            {
+                prologSession = Scheduler.GetInstance(cpuNumber).PrologSession;
+                if (prologSession != null)
+                {
+                    prologSession.disconnect();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the version of existing SQL process, if there is one.
+        /// </summary>
+        /// <returns>The version number, or null (if there is no such process).</returns>
+        private static String GetExistingSqlProcessVersion()
+        {
+            PrologSession session = null;
+
+            try
+            {
+                EstablishConnectedSession(ref session, null);
+                QueryAnswer answer = session.executeQuery("process_version_prolog(Version)");
+                CheckQueryAnswerForError(answer);
+                String existingProcessVersion = answer.getValue("Version").ToString();
+                return existingProcessVersion;
+            }
+            catch (SocketException)
+            {
+                return null;
+            }
+            finally
+            {
+                LeaveConnectedSession(session, null);
+            }
+        }
+
+        private static void EstablishConnectedSession(ref PrologSession session, Scheduler scheduler)
+        {
+            // Check current session.
+            if (session != null)
+            {
+                if (session.Connected)
+                {
+                    return;
+                }
+                session.connect();
+                return;
+            }
+            // Get session from scheduler.
+            if (scheduler != null)
+            {
+                session = scheduler.PrologSession;
+            }
+            // Create new session.
+            if (session == null)
+            {
+                session = new PrologSession();
+                if (scheduler != null)
+                {
+                    scheduler.PrologSession = session;
+                }
+                session.Port = processPort;
+            }
+            if (!session.Connected)
+            {
+                session.connect();
+            }
+        }
+
+        private static void LeaveConnectedSession(PrologSession session, Scheduler scheduler)
+        {
+            if (scheduler == null && session != null)
+            {
+                session.disconnect();
+            }
+        }
+
+        private static void KillExistingSqlProcess()
+        {
+            PrologSession session = null;
+
+            // An exception will always be thrown, either (if there is an existing SQL process)
             // System.IO.IOException: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host.
             // or (otherwise)
             // System.Net.Sockets.SocketException: No connection could be made because the target machine actively refused it.
             try
             {
-                session = new PrologSession();
-                session.Port = processPort;
-                if (!session.Connected)
-                {
-                    session.connect();
-                }
+                EstablishConnectedSession(ref session, null);
                 session.executeQuery("kill_prolog");
                 logSource.LogWarning("A conflicting SQL process was found and was killed.");
             }
@@ -133,21 +415,18 @@ namespace Starcounter.Query.Sql
             }
             catch (SocketException)
             {
-                logSource.Debug("No conflicting SQL process.");
+                logSource.LogWarning("A conflicting SQL process was found but was killed by someone else.");
             }
             finally
             {
-                if (session != null)
-                {
-                    session.disconnect();
-                }
+                LeaveConnectedSession(session, null);
             }
         }
 
         /// <summary>
         /// Starts and verifies external SQL process (StarcounterSQL.exe).
         /// </summary>
-        private static void StartProcess()
+        private static void StartSqlProcess()
         {
             lock (startProcessLock)
             {
@@ -162,10 +441,10 @@ namespace Starcounter.Query.Sql
                     try
                     {
                         process = new Process();
-                        process.StartInfo.FileName = Environment.CurrentDirectory + processFolder + processFileName;
+                        process.StartInfo.FileName = processFolder + processFileName;
                         process.StartInfo.CreateNoWindow = true;
                         process.StartInfo.UseShellExecute = true;
-                        process.StartInfo.Arguments = processPort.ToString() + " " + schemaFileEncoded;
+                        process.StartInfo.Arguments = processPort.ToString();
                         process.Start();
                     }
                     catch (Exception exception)
@@ -173,107 +452,464 @@ namespace Starcounter.Query.Sql
                         String errMessage = "Failed to start process: " + processFolder + processFileName + " " + process.StartInfo.Arguments;
                         throw ErrorCode.ToException(Error.SCERRSQLSTARTPROCESSFAILED, exception, errMessage);
                     }
-                    logSource.Debug("Started process: " + processFolder + processFileName + " " + processPort + " " + schemaFileEncoded);
+                    logSource.Debug("Started process: " + processFolder + processFileName + " " + processPort);
 
                     // Verify process.
                     Boolean verified = false;
                     Int32 retries = 0;
+                    String existingProcessVersion = null;
+
                     while (verified == false && retries < maxVerifyRetries)
                     {
                         retries++;
-                        try
+
+                        existingProcessVersion = GetExistingSqlProcessVersion();
+                        verified = (existingProcessVersion == processVersion);
+
+                        if (!verified && retries < maxVerifyRetries)
                         {
-                            VerifyProcess(true);
-                            verified = true;
-                            logSource.Debug("Verified process: " + processFileName + " " + processVersion + " " + SchemaTimeString);
+                            Thread.Sleep(timeBetweenVerifyRetries);
                         }
-                        catch (DbException exception)
-                        {
-                            if (retries < maxVerifyRetries)
-                            {
-                                Thread.Sleep(timeBetweenVerifyRetries);
-                            }
-                            else
-                            {
-                                throw exception;
-                            }
-                        }
+                    }
+
+                    if (verified)
+                        logSource.Debug("Verified process: " + processFolder + processFileName + " " + processVersion);
+                    else
+                    {
+                        String errMessage = "Failed to verify process: " + processFolder + processFileName + " " + processVersion;
+                        throw ErrorCode.ToException(Error.SCERRSQLVERIFYPROCESSFAILED, errMessage);
                     }
                 }
             }
         }
 
-        private static void VerifyProcess(Boolean controlSchemaTime)
+        /// <summary>
+        /// Get schema info regarding one table (class).
+        /// </summary>
+        /// <param name="typeDef">The table (class).</param>
+        /// <returns>A concatenated string of schema info items.</returns>
+        private static String GetTableSchemaInfo(TypeDef typeDef)
         {
-            Scheduler vpContext = Scheduler.GetInstance(true);
-            PrologSession session = null;
+            StringBuilder strBuilder = new StringBuilder();
+            //IEnumerator<ExtensionBinding> extEnumerator = null;
 
             try
             {
-                if (vpContext != null)
+                // Info about table (class).
+                String fullClassNameUpper = typeDef.Name.ToUpperInvariant();
+                String shortClassNameUpper = GetShortName(typeDef.Name).ToUpperInvariant();
+                if (typeDef.BaseName != null)
                 {
-                    session = vpContext.PrologSession;
-                }
-                if (session == null)
-                {
-                    session = new PrologSession();
-                    if (vpContext != null)
+                    strBuilder.Append("class(\'" + fullClassNameUpper + "\',\'" + typeDef.Name + "\',\'" + typeDef.BaseName + "\');");
+                    if (shortClassNameUpper != fullClassNameUpper)
                     {
-                        vpContext.PrologSession = session;
-                    }
-                    session.Port = processPort;
-                }
-                if (!session.Connected)
-                {
-                    session.connect();
-                }
-                QueryAnswer answer = session.executeQuery("verify_prolog(Version,SchemaTime)");
-                if (answer.IsError)
-                {
-                    throw new SqlExecutableException("SQL process error: " + answer.Error);
-                }
-                if (answer.queryFailed())
-                {
-                    throw new SqlExecutableException("SQL process query failure.");
-                }
-                String sqlVersion = answer.getValue("Version").ToString();
-                if (sqlVersion != processVersion)
-                {
-                    throw new SqlExecutableException("Incorrect version of SQL executable: " + sqlVersion);
-                }
-                String externalSchemaTime = answer.getValue("SchemaTime").ToString();
-                if (controlSchemaTime)
-                {
-                    if (externalSchemaTime != SchemaTimeString)
-                    {
-                        throw new SqlExecutableException("Incorrect schema time: " + externalSchemaTime);
+                        strBuilder.Append("class(\'" + shortClassNameUpper + "\',\'" + typeDef.Name + "\',\'" + typeDef.BaseName + "\');");
                     }
                 }
                 else
                 {
-                    schemaTime = DateTime.Parse(externalSchemaTime, DateTimeFormatInfo.InvariantInfo);
+                    strBuilder.Append("class(\'" + fullClassNameUpper + "\',\'" + typeDef.Name + "\',\'none\');");
+                    if (shortClassNameUpper != fullClassNameUpper)
+                    {
+                        strBuilder.Append("class(\'" + shortClassNameUpper + "\',\'" + typeDef.Name + "\',\'none\');");
+                    }
                 }
-                if (vpContext == null)
+
+                // Info about columns (properties).
+                PropertyDef propDef = null;
+                for (Int32 i = 0; i < typeDef.PropertyDefs.Length; i++)
                 {
-                    session.disconnect();
+                    propDef = typeDef.PropertyDefs[i];
+                    if (propDef.Type == DbTypeCode.Object)
+                    {
+                        if (propDef.TargetTypeName != null)
+                        {
+                            strBuilder.Append("property(\'" + typeDef.Name + "\',\'" + propDef.Name.ToUpperInvariant() + "\',\'" + propDef.Name + "\',\'" +
+                                propDef.TargetTypeName + "\');");
+                        }
+                        else
+                        {
+                            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Object reference type without type binding.");
+                        }
+                    }
+                    else
+                    {
+                        strBuilder.Append("property(\'" + typeDef.Name + "\',\'" + propDef.Name.ToUpperInvariant() + "\',\'" + propDef.Name + "\',\'" +
+                            propDef.Type.ToString() + "\');");
+                    }
+                }
+
+                //// Info about extensions.
+                //extEnumerator = typeBind.GetAllExtensionBindings();
+                //ExtensionBinding extBind = null;
+                //String fullExtensionNameUpper = null;
+                //String shortExtensionNameUpper = null;
+                //if (extEnumerator != null)
+                //{
+                //    while (extEnumerator.MoveNext())
+                //    {
+                //        extBind = extEnumerator.Current;
+                //        fullExtensionNameUpper = extBind.Name.ToUpperInvariant();
+                //        shortExtensionNameUpper = GetShortName(extBind.Name).ToUpperInvariant();
+                //        strBuilder.Append("extension(\'" + typeBind.Name + "\',\'" + fullExtensionNameUpper + "\',\'" + extBind.Name + "\');");
+                //        if (shortExtensionNameUpper != fullExtensionNameUpper)
+                //        {
+                //            strBuilder.Append("extension(\'" + typeBind.Name + "\',\'" + shortExtensionNameUpper + "\',\'" + extBind.Name + "\');");
+                //        }
+                //    }
+                //}
+
+                //// Info about extension columns (properties).
+                //extEnumerator.Reset();
+                //if (extEnumerator != null)
+                //{
+                //    while (extEnumerator.MoveNext())
+                //    {
+                //        extBind = extEnumerator.Current;
+                //        for (Int32 i = 0; i < extBind.PropertyCount; i++)
+                //        {
+                //            propBind = extBind.GetPropertyBinding(i);
+                //            if (propBind.TypeCode == DbTypeCode.Object)
+                //            {
+                //                if (propBind.TypeBinding != null)
+                //                {
+                //                    strBuilder.Append("property(\'" + extBind.Name + "\',\'" + propBind.Name.ToUpperInvariant() + "\',\'" + propBind.Name +
+                //                        "\',\'" + propBind.TypeBinding.Name + "\');");
+                //                }
+                //                else
+                //                {
+                //                    throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Object reference type without type binding.");
+                //                }
+                //            }
+                //            else
+                //            {
+                //                strBuilder.Append("property(\'" + extBind.Name + "\',\'" + propBind.Name.ToUpperInvariant() + "\',\'" + propBind.Name + "\',\'" +
+                //                    propBind.TypeCode.ToString() + "\');");
+                //            }
+                //        }
+                //    }
+                //}
+
+                //// Info about method EqualsOrIsDerivedFrom(Object).
+                //strBuilder.Append("method(\'" + typeBind.Name + "\',\'EQUALSORISDERIVEDFROM\',\'EqualsOrIsDerivedFrom\',[\'Starcounter.IObjectView\'],\'Boolean\');");
+
+                //// Info about generic method GetExtension<Type>().
+                //extEnumerator.Reset();
+                //while (extEnumerator.MoveNext())
+                //{
+                //    extBind = extEnumerator.Current;
+                //    strBuilder.Append("gmethod(\'" + typeBind.Name + "\',\'GETEXTENSION\',\'GetExtension\',[\'" + extBind.Name + "\'],[],\'" + extBind.Name + "\');");
+                //}
+            }
+            finally
+            {
+                //    if (extEnumerator != null)
+                //        extEnumerator.Dispose();
+            }
+
+            return strBuilder.ToString();
+        }
+
+        private static void CallSqlProcessToAddSchemaInfo(Scheduler scheduler, String schemaInfo)
+        {
+            PrologSession session = null;
+            se.sics.prologbeans.Bindings bindings = null;
+            QueryAnswer answer = null;
+            Int32 loopCount = 0;
+
+            while (loopCount < maxQueryRetries)
+            {
+                try
+                {
+                    EstablishConnectedSession(ref session, scheduler);
+                    bindings = new se.sics.prologbeans.Bindings();
+                    bindings.bind("SchemaInfo", schemaInfo);
+                    answer = session.executeQuery("add_schemainfo_prolog(SchemaInfo)", bindings);
+                    CheckQueryAnswerForError(answer);
+                    loopCount = maxQueryRetries;
+                }
+                catch (Exception exception)
+                {
+                    loopCount++;
+                    if (loopCount < maxQueryRetries)
+                    {
+                        logSource.LogWarning("Failed once to add schema info: " + schemaInfo, exception);
+                    }
+                    else
+                    {
+                        LeaveConnectedSession(session, scheduler);
+                        throw exception;
+                    }
                 }
             }
-            catch (Exception exception)
+            LeaveConnectedSession(session, scheduler);
+        }
+
+        private static void WriteSchemaInfoToFile(String schemaFilePath, TypeDef[] typeDefArray)
+        {
+            StreamWriter streamWriter = null;
+            //IEnumerator<ExtensionBinding> extEnumerator = null;
+            TypeDef typeDef = null;
+            //ExtensionBinding extBind = null;
+            PropertyDef propDef = null;
+
+            Int32 tickCount = Environment.TickCount;
+            try
             {
-                String errMessage = "Failed to verify process: " + processFileName + " " + processVersion + " " + SchemaTimeString;
-                throw ErrorCode.ToException(Error.SCERRSQLVERIFYPROCESSFAILED, exception, errMessage);
+                streamWriter = new StreamWriter(schemaFilePath);
+
+                // Set meta-info of the current schema export.
+                streamWriter.WriteLine("/* THIS FILE WAS AUTO-GENERATED. DO NOT EDIT! */");
+                streamWriter.WriteLine(":- multifile schemafile/1, class/3, extension/3, property/4, method/5, gmethod/6.");
+                streamWriter.WriteLine(":- dynamic schemafile/1, class/3, extension/3, property/4, method/5, gmethod/6.");
+                streamWriter.WriteLine(":- assert(schemafile('" + schemaFilePath + "')).");
+
+                // Export information about classes (tables).
+                streamWriter.WriteLine("/* class(fullClassNameUpper,fullClassName,baseClassName). */");
+                streamWriter.WriteLine("/* class(shortClassNameUpper,fullClassName,baseClassName). */");
+                String fullClassNameUpper = null;
+                String shortClassNameUpper = null;
+                for (Int32 i = 0; i < typeDefArray.Length; i++)
+                {
+                    typeDef = typeDefArray[i];
+                    fullClassNameUpper = typeDef.Name.ToUpperInvariant();
+                    shortClassNameUpper = GetShortName(typeDef.Name).ToUpperInvariant();
+                    if (typeDef.BaseName != null)
+                    {
+                        streamWriter.WriteLine(":- assert(class('" + fullClassNameUpper + "','" + typeDef.Name + "','" + typeDef.BaseName + "')).");
+                        if (shortClassNameUpper != fullClassNameUpper)
+                            streamWriter.WriteLine(":- assert(class('" + shortClassNameUpper + "','" + typeDef.Name + "','" + typeDef.BaseName + "')).");
+                    }
+                    else
+                    {
+                        streamWriter.WriteLine(":- assert(class('" + fullClassNameUpper + "','" + typeDef.Name + "','none')).");
+                        if (shortClassNameUpper != fullClassNameUpper)
+                            streamWriter.WriteLine(":- assert(class('" + shortClassNameUpper + "','" + typeDef.Name + "','none')).");
+                    }
+                }
+
+                //// Export information about extensions.
+                //streamWriter.WriteLine("/* extension(fullClassName,fullExtensionNameUpper,fullExtensionName). */");
+                //streamWriter.WriteLine("/* extension(fullClassName,shortExtensionNameUpper,fullExtensionName). */");
+                //String fullExtensionNameUpper = null;
+                //String shortExtensionNameUpper = null;
+                //typeEnumerator.Reset();
+                //while (typeEnumerator.MoveNext())
+                //{
+                //    typeDef = typeEnumerator.Current;
+                //    extEnumerator = typeDef.GetAllExtensionBindings();
+                //    if (extEnumerator != null)
+                //    {
+                //        while (extEnumerator.MoveNext())
+                //        {
+                //            extBind = extEnumerator.Current;
+                //            fullExtensionNameUpper = extBind.Name.ToUpperInvariant();
+                //            shortExtensionNameUpper = GetShortName(extBind.Name).ToUpperInvariant();
+                //            streamWriter.WriteLine(":- assert(extension('" + typeDef.Name + "','" + fullExtensionNameUpper + "','" + extBind.Name + "')).");
+                //            if (shortExtensionNameUpper != fullExtensionNameUpper)
+                //                streamWriter.WriteLine(":- assert(extension('" + typeDef.Name + "','" + shortExtensionNameUpper + "','" + extBind.Name + "')).");
+                //        }
+                //    }
+                //}
+
+                // Export information about properties (columns).
+                streamWriter.WriteLine("/* property(fullClassName,propertyNameUpper,propertyName,propertyType). */");
+                for (Int32 i = 0; i < typeDefArray.Length; i++)
+                {
+                    typeDef = typeDefArray[i];
+                    for (Int32 j = 0; j < typeDef.PropertyDefs.Length; j++)
+                    {
+                        propDef = typeDef.PropertyDefs[j];
+                        if (propDef.Type == DbTypeCode.Object)
+                        {
+                            if (propDef.TargetTypeName != null)
+                            {
+                                streamWriter.WriteLine(":- assert(property('" + typeDef.Name + "','" + propDef.Name.ToUpperInvariant() + "','" +
+                                    propDef.Name + "','" + propDef.TargetTypeName + "')).");
+                            }
+                            else
+                            {
+                                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Object reference type without type binding.");
+                            }
+                        }
+                        else
+                        {
+                            streamWriter.WriteLine(":- assert(property('" + typeDef.Name + "','" + propDef.Name.ToUpperInvariant() + "','" +
+                                propDef.Name + "','" + propDef.Type.ToString() + "')).");
+                        }
+                    }
+                }
+
+                //// Export information about extension properties (columns).
+                //typeEnumerator.Reset();
+                //while (typeEnumerator.MoveNext())
+                //{
+                //    typeDef = typeEnumerator.Current;
+                //    extEnumerator = typeDef.GetAllExtensionBindings();
+                //    if (extEnumerator != null)
+                //    {
+                //        while (extEnumerator.MoveNext())
+                //        {
+                //            extBind = extEnumerator.Current;
+                //            for (Int32 i = 0; i < extBind.PropertyCount; i++)
+                //            {
+                //                propDef = extBind.GetPropertyBinding(i);
+                //                if (propDef.TypeCode == DbTypeCode.Object)
+                //                {
+                //                    if (propDef.TypeBinding != null)
+                //                    {
+                //                        streamWriter.WriteLine(":- assert(property('" + extBind.Name + "','" + propDef.Name.ToUpperInvariant() + "','" +
+                //                            propDef.Name + "','" + propDef.TypeBinding.Name + "')).");
+                //                    }
+                //                    else
+                //                    {
+                //                        throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Object reference type without type binding.");
+                //                    }
+                //                }
+                //                else
+                //                {
+                //                    streamWriter.WriteLine(":- assert(property('" + extBind.Name + "','" + propDef.Name.ToUpperInvariant() + "','" +
+                //                        propDef.Name + "','" + propDef.TypeCode.ToString() + "')).");
+                //                }
+                //            }
+                //        }
+                //    }
+                //}
+
+                //// Export information about method EqualsOrIsDerivedFrom(Object).
+                //streamWriter.WriteLine("/* method(fullClassName,methodNameUpper,methodName,argumentTypes,returnType). */");
+                //typeEnumerator.Reset();
+                //while (typeEnumerator.MoveNext())
+                //{
+                //    typeDef = typeEnumerator.Current;
+                //    streamWriter.WriteLine(":- assert(method('" + typeDef.Name + "','EQUALSORISDERIVEDFROM','EqualsOrIsDerivedFrom',['Starcounter.IObjectView'],'Boolean')).");
+                //}
+
+                //// Export information about generic method GetExtension<Type>().
+                //streamWriter.WriteLine("/* gmethod(fullClassName,methodNameUpper,methodName,typeParameters,argumentTypes,returnType)). */");
+                //typeEnumerator.Reset();
+                //while (typeEnumerator.MoveNext())
+                //{
+                //    typeDef = typeEnumerator.Current;
+                //    extEnumerator = typeDef.GetAllExtensionBindings();
+                //    while (extEnumerator.MoveNext())
+                //    {
+                //        extBind = extEnumerator.Current;
+                //        streamWriter.WriteLine(":- assert(gmethod('" + typeDef.Name + "','GETEXTENSION','GetExtension',['" +
+                //            extBind.Name + "'],[],'" + extBind.Name + "')).");
+                //    }
+                //}
+
+                tickCount = Environment.TickCount - tickCount;
+                logSource.Debug("Exported SQL schema to " + schemaFilePath + " in " + tickCount.ToString() + " ms.");
+                //logSource.LogNotice("Exported SQL schema info to " + schemaFilePath + " in " + tickCount.ToString() + " ms.");
+            }
+            finally
+            {
+                if (streamWriter != null)
+                {
+                    streamWriter.Close();
+                }
             }
         }
 
-        [PermissionSet(SecurityAction.Assert, Unrestricted = true)]
-        internal static IExecutionEnumerator ProcessSqlQuery(Scheduler vproc, String query)
+        private static void CallSqlProcessToLoadSchemaInfo(Scheduler scheduler, String schemaFilePath)
         {
-            //  Since the Prolog session is shared between all the threads
-            //  managed by the same scheduler, this method must be called within
-            //  the scope of a yield block. Currently it's only called from
-            //  method SQL.GetPreparedCache() which sets a yield block. But if
-            //  called from another place in the future this needs to be kept in
-            //  mind.
+            PrologSession session = null;
+            se.sics.prologbeans.Bindings bindings = null;
+            QueryAnswer answer = null;
+            Int32 loopCount = 0;
+
+            while (loopCount < maxQueryRetries)
+            {
+                try
+                {
+                    EstablishConnectedSession(ref session, scheduler);
+                    bindings = new se.sics.prologbeans.Bindings();
+                    bindings.bind("SchemaFile", schemaFilePath);
+                    answer = session.executeQuery("load_schemainfo_prolog(SchemaFile)", bindings);
+                    CheckQueryAnswerForError(answer);
+                    loopCount = maxQueryRetries;
+                }
+                catch (Exception exception)
+                {
+                    loopCount++;
+                    if (loopCount < maxQueryRetries)
+                    {
+                        logSource.LogWarning("Failed once to load schema file: " + schemaFilePath, exception);
+                    }
+                    else
+                    {
+                        LeaveConnectedSession(session, scheduler);
+                        throw exception;
+                    }
+                }
+            }
+            LeaveConnectedSession(session, scheduler);
+        }
+
+        private static List<String> GetCurrentSqlSchemaFiles(Scheduler scheduler)
+        {
+            PrologSession session = null;
+            QueryAnswer answer = null;
+            Int32 loopCount = 0;
+
+            while (loopCount < maxQueryRetries)
+            {
+                try
+                {
+                    EstablishConnectedSession(ref session, scheduler);
+                    answer = session.executeQuery("current_schemafiles_prolog(SchemaFiles)");
+                    CheckQueryAnswerForError(answer);
+                    loopCount = maxQueryRetries;
+                }
+                catch (Exception exception)
+                {
+                    loopCount++;
+                    if (loopCount < maxQueryRetries)
+                    {
+                        logSource.LogWarning("Failed once to verify schema.", exception);
+                    }
+                    else
+                    {
+                        LeaveConnectedSession(session, scheduler);
+                        throw exception;
+                    }
+                }
+            }
+            LeaveConnectedSession(session, scheduler);
+
+            List<String> schemaFileList = new List<String>();
+            Term cursor = answer.getValue("SchemaFiles");
+            while (cursor.List && cursor.Name != "[]")
+            {
+                schemaFileList.Add(cursor.getArgument(1).Name);
+                cursor = cursor.getArgument(2);
+            }
+            return schemaFileList;
+        }
+
+        private static Boolean StringListEqual(List<String> list1, List<String> list2)
+        {
+            if (list1.Count != list2.Count)
+                return false;
+
+            for (Int32 i = 0; i < list1.Count; i++)
+            {
+                if (list1[i] != list2[i])
+                    return false;
+            }
+
+            return true;
+        }
+
+        [PermissionSet(SecurityAction.Assert, Unrestricted = true)]
+        internal static IExecutionEnumerator ProcessSqlQuery(Scheduler scheduler, String query)
+        {
+            // Since the scheduler.PrologSession is shared between all the threads
+            // managed by the same scheduler, this method must be called within
+            // the scope of a yield block. 
+
             if (query == null)
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect query.");
@@ -287,113 +923,70 @@ namespace Starcounter.Query.Sql
                 query = " ";
             }
 
-            try
-            {
-                QueryAnswer answer = null;
-                const Int32 loopMax = 5;
-                Int32 loopCount = 0;
-                PrologSession session = vproc.PrologSession;
+            QueryAnswer answer = null;
+            Int32 loopCount = 0;
+            PrologSession session = null;
+            se.sics.prologbeans.Bindings bindings = null;
 
-                // Try maximum loopMax times to process the query.
-                while (loopCount < loopMax)
+            // Try maximum maxQueryRetries times to process the query.
+            while (loopCount < maxQueryRetries)
+            {
+                try
                 {
-                    try
+                    EstablishConnectedSession(ref session, scheduler);
+                    bindings = new se.sics.prologbeans.Bindings();
+                    bindings.bind("Query", query);
+                    answer = session.executeQuery("sql_prolog(Query,TypeDef,ExecInfo,VarNum,ErrList)", bindings);
+                    CheckQueryAnswerForError(answer);
+                    loopCount = maxQueryRetries;
+                }
+                catch (Exception exception)
+                {
+                    loopCount++;
+                    if (loopCount < maxQueryRetries)
                     {
-                        if (session == null)
-                        {
-                            session = new PrologSession();
-                            vproc.PrologSession = session;
-                            session.Port = processPort;
-                        }
-                        try
-                        {
-                            if (!session.Connected)
-                            {
-                                session.connect();
-                            }
-                            se.sics.prologbeans.Bindings bindings = new se.sics.prologbeans.Bindings();
-                            bindings.bind("Query", query);
-                            answer = session.executeQuery("sql_prolog(Query,TypeDef,ExecInfo,VarNum,ErrList)", bindings);
-                        }
-                        catch (IOException exception)
-                        {
-                            throw new SqlExecutableException(null, exception);
-                        }
-                        catch (SocketException exception)
-                        {
-                            throw new SqlExecutableException(null, exception);
-                        }
-                        if (answer.IsError)
-                        {
-                            throw new SqlExecutableException("SQL process error: " + answer.Error);
-                        }
-                        if (answer.queryFailed())
-                        {
-                            throw new SqlExecutableException("SQL process query failure.");
-                        }
-                        loopCount = loopMax;
+                        logSource.LogWarning("Failed to process query: " + query, exception);
+                        EstablishSqlProcess();
+                        logSource.LogWarning("Restarted process: " + processFolder + processFileName + " " + processPort + " " + schemaFolderExternal);
+                        ReExportAllSchemaInfo(scheduler, schemaFilePathList);
                     }
-                    catch (SqlExecutableException exception)
+                    else
                     {
-                        loopCount++;
-                        if (loopCount < loopMax)
-                        // Try to restart Prolog process.
-                        {
-                            logSource.LogException(exception);
-                            InitiateNewSchema();
-                            logSource.LogWarning("Restarted process: " + processFolder + processFileName + " " + processPort + " " + schemaFileEncoded);
-                        }
-                        else
-                        {
-                            throw;
-                        }
+                        LeaveConnectedSession(session, scheduler);
+                        throw;
                     }
                 }
-
-                if (answer == null)
-                {
-                    throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect answer.");
-                }
-
-                Term errListTerm = answer.getValue("ErrList");
-                if (errListTerm.Name != "[]")
-                {
-                    throw CreateSqlException(query, errListTerm);
-                }
-
-                // Get the number of variables in the query.
-                Term varNumTerm = answer.getValue("VarNum");
-                if (varNumTerm.Integer == false)
-                {
-                    throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect varNumTerm: " + varNumTerm);
-                }
-                Int32 varNumber = varNumTerm.intValue();
-
-                // Creating variable array with specified number of entries (if any).
-                VariableArray variableArray = new VariableArray(varNumber);
-
-                // Calling core enumerator creation function.
-                IExecutionEnumerator createdEnumerator = Creator.CreateEnumerator(Creator.CreateResultTypeBinding(answer.getValue("TypeDef"), variableArray),
-                                                                                  answer.getValue("ExecInfo"), variableArray, query);
-
-                // The special case where query includes "LIKE ?" is handled by special class LikeExecEnumerator.
-                if (((variableArray.QueryFlags & QueryFlags.IncludesLIKEvariable) != QueryFlags.None) && (query[0] != ' '))
-                    createdEnumerator = new LikeExecEnumerator(query, null, null);
-
-                // Return the created execution enumerator.
-                return createdEnumerator;
             }
-            catch (Exception exception)
+            LeaveConnectedSession(session, scheduler);
+
+            // Check for errors.
+            Term errListTerm = answer.getValue("ErrList");
+            if (errListTerm.Name != "[]")
             {
-                if (exception is SqlException)
-                {
-                    throw exception;
-                }
-                else
-                {
-                    throw ErrorCode.ToException(Error.SCERRSQLPROCESSQUERYFAILED, exception, "Failed to process query: " + query);
-                }
+                throw CreateSqlException(query, errListTerm);
             }
+
+            // Get the number of variables in the query.
+            Term varNumTerm = answer.getValue("VarNum");
+            if (varNumTerm.Integer == false)
+            {
+                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect varNumTerm: " + varNumTerm);
+            }
+            Int32 varNumber = varNumTerm.intValue();
+
+            // Creating variable array with specified number of entries (if any).
+            VariableArray variableArray = new VariableArray(varNumber);
+
+            // Calling core enumerator creation function.
+            IExecutionEnumerator createdEnumerator = Creator.CreateEnumerator(Creator.CreateResultTypeBinding(answer.getValue("TypeDef"), variableArray),
+                                                                                answer.getValue("ExecInfo"), variableArray, query);
+
+            // The special case where query includes "LIKE ?" is handled by special class LikeExecEnumerator.
+            if (((variableArray.QueryFlags & QueryFlags.IncludesLIKEvariable) != QueryFlags.None) && (query[0] != ' '))
+                createdEnumerator = new LikeExecEnumerator(query, null, null);
+
+            // Return the created execution enumerator.
+            return createdEnumerator;
         }
 
         private static SqlException CreateSqlException(String query, Term msgListTerm)
@@ -416,173 +1009,6 @@ namespace Starcounter.Query.Sql
             if (process != null)
             {
                 process.Dispose();
-            }
-        }
-
-        private static void DisconnectPrologSessions()
-        {
-            PrologSession prologSession = null;
-            for (Byte cpuNumber = 0; cpuNumber < Scheduler.SchedulerCount; cpuNumber++)
-            {
-                prologSession = Scheduler.GetInstance(cpuNumber).PrologSession;
-                if (prologSession != null)
-                {
-                    prologSession.disconnect();
-                }
-            }
-        }
-
-        private static void ConnectPrologSessions()
-        {
-            Scheduler vpContext = null;
-            PrologSession prologSession = null;
-            for (Byte cpuNumber = 0; cpuNumber < Scheduler.SchedulerCount; cpuNumber++)
-            {
-                vpContext = Scheduler.GetInstance(cpuNumber);
-                prologSession = vpContext.PrologSession;
-                if (prologSession == null)
-                {
-                    prologSession = new PrologSession();
-                    prologSession.Port = processPort;
-                    vpContext.PrologSession = prologSession;
-                }
-
-                if (prologSession.Connected == false)
-                {
-                    prologSession.connect();
-                }
-            }
-        }
-
-        private static String SchemaTimeString
-        {
-            get
-            {
-                //return schemaTime.ToString("yyMMddHHmmss");
-                return schemaTime.ToString(DateTimeFormatInfo.InvariantInfo);
-            }
-        }
-
-        private static void ExportSchemaFile(String schemaFile)
-        {
-            StreamWriter streamWriter = null;
-            IEnumerator<TypeDef> typeEnumerator = null;
-            TypeDef typeBind = null;
-            PropertyDef propBind = null;
-
-            schemaFilePath = schemaFile;
-
-            // Set timestamp of schema creation.
-            schemaTime = DateTime.Now;
-
-            Int32 tickCount = Environment.TickCount;
-            try
-            {
-                streamWriter = new StreamWriter(schemaFilePath);
-
-                // Set meta-info of the current schema export.
-                streamWriter.WriteLine("/* THIS FILE WAS AUTO-GENERATED. DO NOT EDIT! */");
-                streamWriter.WriteLine(":- module(schema,[]).");
-                streamWriter.WriteLine("schema_time('" + SchemaTimeString + "').");
-
-                // Export information about classes (tables).
-                streamWriter.WriteLine("class(fullClassNameUpper,fullClassName,baseClassName).");
-                streamWriter.WriteLine("class(shortClassNameUpper,fullClassName,baseClassName).");
-                String fullClassNameUpper = null;
-                String shortClassNameUpper = null;
-                typeEnumerator = Starcounter.Binding.Bindings.GetAllTypeDefs().GetEnumerator();
-                while (typeEnumerator.MoveNext())
-                {
-                    typeBind = typeEnumerator.Current;
-                    fullClassNameUpper = typeBind.Name.ToUpperInvariant();
-                    shortClassNameUpper = GetShortName(typeBind.Name).ToUpperInvariant();
-                    if (typeBind.BaseName != null)
-                    {
-                        streamWriter.WriteLine("class('" + fullClassNameUpper + "','" + typeBind.Name + "','" + typeBind.BaseName + "').");
-                        if (shortClassNameUpper != fullClassNameUpper)
-                            streamWriter.WriteLine("class('" + shortClassNameUpper + "','" + typeBind.Name + "','" + typeBind.BaseName + "').");
-                    }
-                    else
-                    {
-                        streamWriter.WriteLine("class('" + fullClassNameUpper + "','" + typeBind.Name + "','none').");
-                        if (shortClassNameUpper != fullClassNameUpper)
-                            streamWriter.WriteLine("class('" + shortClassNameUpper + "','" + typeBind.Name + "','none').");
-                    }
-                }
-
-                // Export information about properties (columns).
-                streamWriter.WriteLine("property(fullClassName,propertyNameUpper,propertyName,propertyType).");
-                typeEnumerator.Reset();
-                while (typeEnumerator.MoveNext())
-                {
-                    typeBind = typeEnumerator.Current;
-                    for (Int32 i = 0; i < typeBind.PropertyDefs.Length; i++)
-                    {
-                        propBind = typeBind.PropertyDefs[i];
-                        if (propBind.Type == DbTypeCode.Object)
-                        {
-                            if (propBind.TargetTypeName != null)
-                            {
-                                streamWriter.WriteLine("property('" + typeBind.Name + "','" + propBind.Name.ToUpperInvariant() + "','" +
-                                    propBind.Name + "','" + propBind.TargetTypeName + "').");
-                            }
-                            else
-                            {
-                                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Object reference type without type binding.");
-                            }
-                        }
-                        else
-                        {
-                            streamWriter.WriteLine("property('" + typeBind.Name + "','" + propBind.Name.ToUpperInvariant() + "','" +
-                                propBind.Name + "','" + propBind.Type.ToString() + "').");
-                        }
-                    }
-                }
-
-#if false // TODO EOH2:
-                // Export information about method EqualsOrIsDerivedFrom(Object).
-                streamWriter.WriteLine("method(fullClassName,methodNameUpper,methodName,argumentTypes,returnType).");
-                typeEnumerator.Reset();
-                while (typeEnumerator.MoveNext())
-                {
-                    typeBind = typeEnumerator.Current;
-                    streamWriter.WriteLine("method('" + typeBind.Name + "','EQUALSORISDERIVEDFROM','EqualsOrIsDerivedFrom',['Starcounter.IObjectView'],'Boolean').");
-                }
-#endif
-
-#if false // TODO EOH2:
-                // Export information about generic method GetExtension<Type>().
-                streamWriter.WriteLine("gmethod(fullClassName,methodNameUpper,methodName,typeParameters,argumentTypes,returnType).");
-                typeEnumerator.Reset();
-                while (typeEnumerator.MoveNext())
-                {
-                    typeBind = typeEnumerator.Current;
-                    extEnumerator = typeBind.GetAllExtensionBindings();
-                    while (extEnumerator.MoveNext())
-                    {
-                        extBind = extEnumerator.Current;
-                        streamWriter.WriteLine("gmethod('" + typeBind.Name + "','GETEXTENSION','GetExtension',['" +
-                            extBind.Name + "'],[],'" + extBind.Name + "').");
-                    }
-                }
-#endif
-
-                tickCount = Environment.TickCount - tickCount;
-                // logSource.Debug("Exported SQL schema to " + schemaFilePath + " in " + tickCount.ToString() + " ms.");
-                logSource.LogNotice("Exported SQL schema to " + schemaFilePath + " in " + tickCount.ToString() + " ms.");
-            }
-            catch (Exception exception)
-            {
-                String errMessage = "Failed to export SQL schema to " + schemaFilePath + ".";
-                // logSource.LogException(exception, errMessage);
-                throw ErrorCode.ToException(Error.SCERRSQLEXPORTSCHEMAFAILED, exception, errMessage);
-            }
-            finally
-            {
-                if (streamWriter != null)
-                {
-                    streamWriter.Close();
-                }
             }
         }
 
