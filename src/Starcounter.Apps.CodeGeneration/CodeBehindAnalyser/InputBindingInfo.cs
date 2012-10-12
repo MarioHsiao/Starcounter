@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace Starcounter.Internal.Application.CodeGeneration
 {
-    public class HandleInputInfo
+    public class InputBindingInfo
     {
-        internal HandleInputInfo(String ns, String cn, String it)
+        internal InputBindingInfo(String ns, String cn, String it)
         {
             Namespace = ns;
             ClassName = cn;
