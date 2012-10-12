@@ -234,8 +234,7 @@ namespace Starcounter.Internal
         
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint sccoredb_create_transaction_and_set_current(
-            uint flags,
-            out ulong transaction_id,
+            int lock_tran_on_thread,
             out ulong handle,
             out ulong verify
             );
@@ -248,21 +247,23 @@ namespace Starcounter.Internal
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint sccoredb_begin_commit(
+            int tran_locked_on_thread,
             out ulong hiter,
             out ulong viter
             );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint sccoredb_complete_commit(
-            int detach_and_free,
-            out ulong new_transaction_id
+            int tran_locked_on_thread,
+            int detach_and_free
             );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static int Mdb_TransactionSetCurrent(
-            ulong hTrans,
-            ulong verify
-            );
+        public extern static uint sccoredb_set_current_transaction(
+	        int unlock_tran_from_thread,
+        	ulong handle,
+        	ulong verify
+	        );
 
         // TODO:
         // CALLI candidate with variant with no auto attach. Should be made
