@@ -12,8 +12,12 @@ namespace MySampleNamespace
 
     partial class MySampleApp
     {
-    }
+        public void Handle(Input.userLink input)
+        {
+        }
 
-    public class Test : Attribute {
+        public void Handle(Input.child.test input)
+        {
+        }
     }
 }
