@@ -28,9 +28,7 @@
 #include <boost/bind.hpp>
 #define WIN32_LEAN_AND_MEAN
 # include <windows.h>
-# include <atlstr.h>
 # include <intrin.h>
-# include <strsafe.h>
 #undef WIN32_LEAN_AND_MEAN
 #include "../common/channel.hpp"
 #include "../common/channel_mask.hpp"
