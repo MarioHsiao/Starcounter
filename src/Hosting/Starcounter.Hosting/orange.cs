@@ -50,14 +50,8 @@ namespace StarcounterInternal.Hosting
             r = sccoredb.SCAttachThread(cpun, init);
             if (r == 0)
             {
-                int hasTransaction;
-                r = sccoredb.sccoredb_has_transaction(out hasTransaction);
-                if (r == 0)
-                {
-                    if (hasTransaction == 0) return;
-                    Starcounter.Transaction.OnTransactionSwitch();
-                    return;
-                }
+                Starcounter.Transaction.OnTransactionSwitch();
+                return;
             }
             orange_fatal_error(r);
         }
