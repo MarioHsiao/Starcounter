@@ -63,8 +63,19 @@ namespace StarcounterInternal.Hosting
             orange_fatal_error(e);
         }
 
-        private static unsafe void orange_thread_start(void* hsched, byte cpun, void* p, uint ignore)
+        private static void OnThreadStart(uint sf)
         {
+            if ((sf & sccorelib.CM5_START_FLAG_FIRST_THREAD) != 0)
+            {
+                uint r = sccoredb.SCConfigureVP();
+                if (r == 0) return;
+                orange_fatal_error(r);
+            }
+        }
+
+        private static unsafe void orange_thread_start(void* hsched, byte cpun, void* p, uint sf)
+        {
+            OnThreadStart(sf);
             Processor.RunMessageLoop(hsched);
         }
 
