@@ -123,7 +123,7 @@ namespace Starcounter.Internal
             {
                 Db.CreateIndex(
                     storedTableDef.DefinitionAddr,
-                    string.Concat(storedTableDef.ShortName, "_AUTO"),
+                    "auto",
                     0
                     );
             }
@@ -134,7 +134,10 @@ namespace Starcounter.Internal
 
         private void ExecuteEntryPoint()
         {
-            assembly_.EntryPoint.Invoke(null, new object[] { null });
+            if (assembly_ != null)
+            {
+                assembly_.EntryPoint.Invoke(null, new object[] { null });
+            }
         }
     }
 }
