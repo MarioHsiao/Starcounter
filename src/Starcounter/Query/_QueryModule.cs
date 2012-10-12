@@ -15,24 +15,24 @@ namespace Starcounter.Query
     {
         // Configuration of query module.
         //static String processFolder = StarcounterEnvironment.SystemDirectory + "\\32BitComponents\\";
-        static String processFolder = AppDomain.CurrentDomain.BaseDirectory + "32BitComponents\\";
+        internal static String ProcessFolder = AppDomain.CurrentDomain.BaseDirectory + "32BitComponents\\";
         //const String processFileName = "StarcounterSQL.exe";
-        const String processFileName = "StarcounterSQL.exe";
+        internal const String ProcessFileName = "StarcounterSQL.exe";
         //const String processVersion = "111208";
-        const String processVersion = "121002";
-        static Int32 processPort;
+        internal const String ProcessVersion = "121002";
+        internal static Int32 ProcessPort = 0;
         //static readonly String schemaFilePath = AppDomain.CurrentDomain.BaseDirectory + "\\schema.pl";
-        static String schemaFolder = AppDomain.CurrentDomain.BaseDirectory + "32BitComponents\\";
-        const Int32 maxQueryLength = 3000;
-        const Int32 maxQueryRetries = 10;
-        const Int32 maxVerifyRetries = 100;
-        const Int32 timeBetweenVerifyRetries = 100; // [ms]
+        internal static String SchemaFolder = AppDomain.CurrentDomain.BaseDirectory + "32BitComponents\\";
+        internal const Int32 MaxQueryLength = 3000;
+        internal const Int32 MaxQueryRetries = 10;
+        internal const Int32 MaxVerifyRetries = 100;
+        internal const Int32 TimeBetweenVerifyRetries = 100; // [ms]
 
         /// <summary>
         /// Initiates query module. Called during start-up.
         /// </summary>
-        /// <param name="sqlProcessPort">External SQL process port. If 0 then default should be used.</param>
-        public static void Initiate(Int32 sqlProcessPort)
+        /// <param name="processPort">External SQL process port. If 0 then default should be used.</param>
+        public static void Initiate(Int32 processPort)
         {
             // Connect managed and native Sql functions.
             UInt32 errCode = SqlConnectivity.InitSqlFunctions();
@@ -42,11 +42,10 @@ namespace Starcounter.Query
                 SqlConnectivity.ThrowConvertedServerError(errCode);
 
             // Start external SQL process (Prolog-process).
-            processPort = sqlProcessPort;
-            if (processPort == 0)
-                processPort = StarcounterEnvironment.DefaultPorts.SQLProlog;
-            PrologManager.Initiate(processFolder, processFileName, processVersion, processPort, schemaFolder,
-                maxQueryLength, maxQueryRetries, maxVerifyRetries, timeBetweenVerifyRetries);
+            ProcessPort = processPort;
+            if (ProcessPort == 0)
+                ProcessPort = StarcounterEnvironment.DefaultPorts.SQLProlog;
+            PrologManager.Initiate();
         }
 
         /// <summary>
