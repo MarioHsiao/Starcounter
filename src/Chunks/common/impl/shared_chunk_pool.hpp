@@ -550,8 +550,7 @@ client_interface_ptr, uint32_t timeout_milliseconds) {
 	if (released != 0) {
 		not_empty_.notify_one();
 	}
-	//std::cout << "RELEASED " << released << " CHUNKS." << std::endl; /// DEBUG INFO
-	
+
 	// Successfully released all chunks.
 	return true;
 }

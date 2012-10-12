@@ -40,10 +40,10 @@ inline chunk_index client_port::wait_for_response(uint32_t the_channel_index) {
 inline chunk_index client_port::acquire_chunk() {
 	chunk_index index;
 	/// TODO: Handle timeout and errors.
-	//while (!shared_interface::acquire_chunk_index(&index)) { // Obsolete API
 	while (!shared_interface::client_acquire_linked_chunks(index, 1)) { // New API
 		// until a chunk_index is acquired...
 	}
+
 	return index;
 }
 
@@ -71,10 +71,7 @@ inline uint32_t client_port::get_number_of_active_schedulers() {
 }
 
 inline void client_port::release_chunk(chunk_index the_chunk_index) {
-	//shared_interface::release_chunk_index(the_chunk_index); // old
-	
 	shared_interface::client_release_linked_chunks(the_chunk_index); // for now...name change -client
-	//shared_interface::release_linked_chunks(the_chunk_index); // new
 }
 
 inline void client_port::release_client() {
