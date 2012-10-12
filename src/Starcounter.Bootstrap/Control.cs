@@ -29,6 +29,7 @@ namespace StarcounterInternal.Bootstrap
             }
         }
 
+        private bool withdb_;
         private unsafe void* hsched_;
 
         private unsafe bool Setup(string[] args)
@@ -50,6 +51,8 @@ namespace StarcounterInternal.Bootstrap
 
             configuration = Configuration.Load(arguments);
 
+            withdb_ = !configuration.NoDb;
+
             AssureNoOtherProcessWithTheSameName(configuration);
 
             byte* mem = (byte*)Marshal.AllocHGlobal(4096); // TODO: Allocate aligned memory. Evaluate size.
@@ -64,19 +67,19 @@ namespace StarcounterInternal.Bootstrap
             hsched_ = ConfigureScheduler(configuration, mem, hmenv);
             mem += (1024 + 512);
 
-            ConfigureDatabase(configuration);
-
-            if (!configuration.NoDb) {
+            if (withdb_)
+            {
+                ConfigureDatabase(configuration);
                 ConnectDatabase(configuration, hsched_, hmenv, hlogs);
             }
 
             // Initializing the bmx manager.
             bmx.sc_init_bmx_manager();
 
-            Scheduler.Setup(1);
-
             // Query module.
-            if (!configuration.NoDb) {    
+            Scheduler.Setup(1);
+            if (withdb_)
+            {
                 Starcounter.Query.QueryModule.Initiate(configuration.SQLProcessPort);
             }
 
@@ -144,7 +147,7 @@ namespace StarcounterInternal.Bootstrap
                 request.Respond(response ?? "<NULL>");
             });
 
-            Loader.AddBasePackage(hsched_);
+            if (withdb_) Loader.AddBasePackage(hsched_);
 
             // Executing auto-start task if any.
             if (configuration.AutoStartExePath != null)
@@ -227,7 +230,8 @@ namespace StarcounterInternal.Bootstrap
         {
             uint cpuc = 1;
 
-            orange.orange_setup(hmenv);
+            if (withdb_) orange.orange_setup(hmenv);
+            else orange_nodb.orange_setup(hmenv);
 
             uint space_needed_for_scheduler = 1024 + (cpuc * 512);
             sccorelib.CM2_SETUP setup = new sccorelib.CM2_SETUP();
@@ -240,7 +244,8 @@ namespace StarcounterInternal.Bootstrap
             setup.mem_size = space_needed_for_scheduler;
             setup.hmenv = hmenv;
             setup.cpuc = (byte)cpuc;
-            orange.orange_configure_scheduler_callbacks(ref setup);
+            if (withdb_) orange.orange_configure_scheduler_callbacks(ref setup);
+            else orange_nodb.orange_configure_scheduler_callbacks(ref setup);
 
             void* hsched;
             uint e = sccorelib.cm2_setup(&setup, &hsched);
