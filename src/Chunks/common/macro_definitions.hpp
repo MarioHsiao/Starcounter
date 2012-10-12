@@ -12,12 +12,31 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-/// Switch on current work in progress.
-#define SPIN
+/// Define CONNECTIVITY_MONITOR_SHOW_ACTIVITY in order for the connectivity monitor
+/// to show the activity in shared memory between database(s) and client(s).
+/// It shows resource usage and activity in channels. Only used for debug, it shall
+/// not be defined when pushing code.
+//#define CONNECTIVITY_MONITOR_SHOW_ACTIVITY
+
+/// Debug switch to see atomic_buffer performance counters used in
+/// starcounter::core::channel. NOTE: This macro must be commented out before pushing
+/// code so that performance counters are not used because it degrades performance a bit.
+//#define STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS
+
+/// Define CONNECTIVITY_USE_EVENTS_TO_SYNC to use Windows Event synchronization in connectivity.
+/// Comment this out in order to use Boost.Interprocess condition synchronization.
+/// The plan is to test the implementation with Windows Events and when stable, remove
+/// code using Boost.Interprocess condition variable and remove wrapping of the code
+/// with this macro. Using Windows Events is not yet fully implemented.
+/// While experimenting with this, don't define it when pushing code.
+//#define CONNECTIVITY_USE_EVENTS_TO_SYNC
 
 // The SCHEDULERS macro is a bit malplaced but it works for now. It is only used
-// in the test server and test client.
-#define SCHEDULERS 2
+// in the test server and test client. I think those two projects are more or less
+// replaced by the \Yellow\src\Connectivity\NetworkGateway\
+// There is probably no longer any point in testing the performance of the channels
+// throughput stand alone. Now we do ping-pong tests with a real database.
+//#define SCHEDULERS 2
 
 // Prefix for database names.
 #define DATABASE_NAME_PREFIX "starcounter"
@@ -30,7 +49,7 @@
 #define DEFAULT_MONITOR_LOG_FILE_NAME "monitor.log"
 #define W_DEFAULT_MONITOR_LOG_FILE_NAME L"monitor.log"
 
-// Default monitor active database file name
+// Default monitor active databases file name
 #define DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME "active_databases"
 #define W_DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME L"active_databases"
 

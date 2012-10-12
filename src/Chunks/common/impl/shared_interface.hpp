@@ -44,7 +44,60 @@ client_number_(no_client_number),
 owner_id_(oid),
 pid_(pid) {
 	init(segment_name, monitor_interface_name, pid, oid);
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	// Using Windows Events to synchronize.
+	for (std::size_t id = 0; id < max_number_of_schedulers; ++id) {
+		work_[id] = 0;
+	}
+	for (std::size_t id = 0; id < max_number_of_schedulers; ++id) {
+		if (common_scheduler_interface().is_scheduler_active(id)) {
+			char notify_name[segment_and_notify_name_size];
+			wchar_t w_notify_name[segment_and_notify_name_size];
+			std::size_t length;
+
+			// Format: "Local\<segment_name>_notify_scheduler_<id>".
+			if ((length = _snprintf_s(notify_name, _countof(notify_name),
+			segment_and_notify_name_size -1 /* null */,
+			"Local\\%s_notify_scheduler_%u", segment_name.c_str(), id)) < 0) {
+				return; // error
+			}
+			notify_name[length] = '\0';
+
+			/// TODO: Fix insecure
+			if ((length = mbstowcs(w_notify_name, notify_name, segment_name_size)) < 0) {
+				std::cout << this
+				<< ": Failed to convert segment_name to multi-byte string. Error: "
+				<< GetLastError() << "\n";
+				return; // throw exception
+			}
+			w_notify_name[length] = L'\0';
+
+			if ((work_[id] = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, FALSE,
+			w_notify_name)) == NULL) {
+				// Failed to open the event.
+				std::cout << this << ": Failed to open event with error: "
+				<< GetLastError() << "\n"; /// DEBUG
+				return; // throw exception
+			}
+		}
+	}
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 }
+
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+inline shared_interface::~shared_interface() {
+	for (std::size_t id = 0; id < max_number_of_schedulers; ++id) {
+		if (work_[id]) {
+			if (CloseHandle(work_[id]) == 0) {
+				//std::cout << "shared_interface::~shared_interface(): "
+				//"Failed to CloseHandle(work[" << id << "]). Windows system error code: "
+				//<< GetLastError() << "\n"; /// DEBUG
+			}
+			work_[id] = 0;
+		}
+	}
+}
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 
 inline void shared_interface::init(std::string segment_name, std::string
 monitor_interface_name, pid_type pid, owner_id oid) {
@@ -94,6 +147,7 @@ uint32_t timeout_milliseconds) {
 	if ((common_client_interface_->release_client_number(client_number_,
 	client_interface_, spin_count, timeout_milliseconds)) == true) {
 		client_number_ = no_client_number;
+
 		// Successfully released the client_number.
 		return true;
 	}
@@ -159,49 +213,27 @@ inline void shared_interface::release_channel(channel_number the_channel_number)
 	= channel_[the_channel_number].scheduler();
 	
 	// Force the load of the pointer to the scheduler before it is released.
-	_mm_lfence();
+	_mm_mfence();
 	
-	/// Mark the channel to be released.
+	/// Mark the channel to be released. The scheduler is responsible for
+	/// the release of the channel. Nobody else may use the channel until
+	/// it is freed.
 	channel_[the_channel_number].set_to_be_released();
-	
+
 	/// Notify the scheduler. It may happen that the scheduler has already
 	/// released the channel now, in which case the notification do no harm
 	/// because it notifies an existing scheduler. Once a valid pointer to a
 	/// scheduler have been obtained, it can always be used since a scheduler
 	/// can not quit.
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	// Using Windows Events to synchronize.
+	HANDLE work = 0; /// TEST COMPILE
+	the_scheduler->notify(work);
+#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	// Using Boost.Interprocess to synchronize.
 	the_scheduler->notify();
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 }
-
-//------------------------------------------------------------------------------
-							// OBSOLETE FUNCTIONS. TODO: Replace them with new API functions.
-							#if 0
-							/// This function is obsolete and replaced by acquire_linked_chunks().
-							inline bool shared_interface::acquire_chunk_index(chunk_index* the_chunk_index,
-							uint32_t spin_count, uint32_t timeout_milliseconds) {
-								// Wrapping the new API here, so that clean up works if this obsolete API is used.
-								return shared_chunk_pool_->acquire_linked_chunks(chunk_, *the_chunk_index, 1,
-								client_interface_, timeout_milliseconds);
-							}
-							///// This function is obsolete and replaced by release_linked_chunks().
-							inline bool shared_interface::release_chunk_index(chunk_index the_chunk_index,
-							uint32_t spin_count, uint32_t timeout_milliseconds) {
-								// Wrapping the new API here, so that clean up works if this obsolete API is used.
-								return shared_chunk_pool_->release_linked_chunks(chunk_, the_chunk_index,
-								client_interface_, timeout_milliseconds);
-							}
-							#endif
-
-//------------------------------------------------------------------------------
-																				/// THESE ARE OBSOLETE SINCE SCHEDULERS USE server_port, not shared_interface.
-
-																				// TODO: Move to server_port.
-																				#if 0
-																				inline bool shared_interface::release_linked_chunks(chunk_index& head, uint32_t
-																				timeout_milliseconds) {
-																					return shared_chunk_pool_->release_linked_chunks(chunk_, head,
-																					timeout_milliseconds);
-																				}
-																				#endif
 
 //------------------------------------------------------------------------------
 // TODO: Rename to acquire_linked_chunks()
@@ -375,6 +407,12 @@ inline client_number shared_interface::get_client_number() const {
 	return client_number_;
 }
 
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+inline HANDLE shared_interface::get_work_event(std::size_t i) const {
+	return work_[i];
+}
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+
 inline uint32_t shared_interface::send_to_server_and_wait_response(uint32_t ch,
 uint32_t request, uint32_t& response, uint32_t spin, uint32_t timeout) {
 	// Get a reference to the channel.
@@ -388,7 +426,13 @@ push_request_message_with_spin: /// The notify flag could be true...
 		// Push the message to the channels in queue, retry spin_count times.
 		if (the_channel.in.push_front(request, spin) == true) {
 			// Successfully pushed the chunk_index. Notify the scheduler.
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+			// Using Windows Events to synchronize.
+			the_channel.scheduler()->notify(get_work_event(the_channel.get_scheduler_number()));
+#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+			// Using Boost.Interprocess to synchronize.
 			the_channel.scheduler()->notify();
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 		}
 		else {
 			// Could not push the request message to the channels in queue while
@@ -404,6 +448,7 @@ push_request_message_with_spin: /// The notify flag could be true...
 				case common_client_interface_type::normal:
 					// The server state is normal. Wait until the request
 					// message can be pushed. . .the in queue is full.
+					//std::cout << "channel " << ch << " is full, waiting...\n"; /// DEBUG INFO
 					if (this_client_interface.wait_for_work(timeout)) {
 						// The scheduler or monitor notified the client.
 						///this_client_interface.set_notify_flag(false);
@@ -434,7 +479,13 @@ pop_response_message_with_spin: /// The notify flag could be true
 		// times.
 		if (the_channel.out.pop_back(&response, spin) == true) {
 			// Successfully popped response. Notify the scheduler.
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+			// Using Windows Events to synchronize.
+			the_channel.scheduler()->notify(get_work_event(the_channel.get_scheduler_number()));
+#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+			// Using Boost.Interprocess to synchronize.
 			the_channel.scheduler()->notify();
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 		}
 		else {
 			client_interface_type& this_client_interface
@@ -450,6 +501,7 @@ pop_response_message_with_spin: /// The notify flag could be true
 				case common_client_interface_type::normal:
 					// The server state is normal. Wait until a response message
 					// can be popped. . .the out queue is empty.
+					//std::cout << "channel " << ch << " is empty, waiting for response...\n"; /// DEBUG INFO
 					if (this_client_interface.wait_for_work(timeout)) {
 						// The scheduler or monitor notified the client.
 						///this_client_interface.set_notify_flag(false); /// was commented
@@ -498,76 +550,6 @@ pop_response_message_with_spin: /// The notify flag could be true
 	/// The notify flag could be true, but it should be false! This hurts performance a lot.
 	return 0;
 }
-
-																				#if 0
-																				uint32_t shared_interface::try_send(uint32_t ch, uint32_t request,
-																				uint32_t spin) {
-																					// Get a reference to the channel.
-																					channel_type& the_channel = channel(ch);
-																					
-																				push_request_message_with_spin:
-																					// Push the message to the channels in queue, retry spin_count times.
-																					if (the_channel.in.push_front(request, spin) == true) {
-																						// Successfully pushed the chunk_index. Notify the scheduler.
-																						the_channel.scheduler()->notify();
-																					}
-																					else {
-																						// Could not push the request message to the channels in queue while
-																						// spinning. Return failure code.
-																						return SCERRCHANNELINFULL;
-																					}
-																					
-																					// Successfully pushed.
-																					return 0;
-																				}
-																				#endif
-
-																				#if 0
-																				uint32_t shared_interface::send_request_to_server(uint32_t ch, uint32_t request,
-																				uint32_t spin) {
-																					// Get a reference to the channel.
-																					channel_type& the_channel = channel(ch);
-																					
-																					// Before starting to spin, check the state of the database. Asuming the
-																					// state is normal.
-																					if (common_client_interface().database_state()
-																					== common_client_interface_type::normal) {
-																				push_request_message_with_spin: /// The notify flag could be true...
-																						// Push the message to the channels in queue, retry spin_count times.
-																						if (the_channel.in.push_front(request, spin) == true) {
-																							// Successfully pushed the chunk_index. Notify the scheduler.
-																							the_channel.scheduler()->notify();
-																						}
-																						else {
-																							// Could not push the request message to the channels in queue while
-																							// spinning. Return failure code.
-																							return SCERRCHANNELINFULL;
-																						}
-																					}
-																					else {
-																						// The database state is not normal. Check the state of the database.
-																						switch (common_client_interface().database_state()) {
-																						case common_client_interface_type::normal:
-																							/// Not expected. The state was not normal, but now all of a sudden
-																							/// it is normal again. Return error code or go on? I just go on
-																							/// for now but TODO: return error code.
-																							goto push_request_message_with_spin;
-																						case common_client_interface_type
-																						::database_terminated_gracefully:
-																							return SCERRDBTERMINATEDGRACEFULLY;
-																						case common_client_interface_type
-																						::database_terminated_unexpectedly:
-																							return SCERRDBTERMINATEDUNEXPECTEDLY;
-																						default: // Unknown database state.
-																							return SCERRUNKNOWNDBSTATE;
-																						}
-																					}
-																					
-																					// Successfully pushed.
-																					/// The notify flag could be true, but it should be false! This hurts performance a lot.
-																					return 0;
-																				}
-																				#endif
 
 } // namespace core
 } // namespace starcounter

@@ -27,6 +27,7 @@
 #include <boost/bind.hpp>
 #include "../common/client_number.hpp"
 #include "../common/client_number_pool.hpp"
+#include "macro_definitions.hpp"
 
 namespace starcounter {
 namespace core {
@@ -191,8 +192,9 @@ private:
 	// A pool with client numbers, which is used to acquire the
 	// client_interface[client_number].
 	queue_type client_number_pool_;
-	char cache_line_pad_0_[CACHE_LINE_SIZE -(sizeof(queue_type)
-	% CACHE_LINE_SIZE)];
+	char cache_line_pad_0_[CACHE_LINE_SIZE
+	-(sizeof(queue_type) % CACHE_LINE_SIZE) // client_number_pool_
+	];
 	
 	// Database state.
 	volatile state state_;
@@ -200,7 +202,10 @@ private:
 	// Number of client interfaces to clean up.
 	volatile uint32_t client_interfaces_to_clean_up_;
 	
-	char cache_line_pad_1_[CACHE_LINE_SIZE -sizeof(state) -sizeof(uint32_t)];
+	char cache_line_pad_1_[CACHE_LINE_SIZE
+	-sizeof(state) // state_
+	-sizeof(uint32_t) // client_interfaces_to_clean_up_
+	];
 };
 
 typedef simple_shared_memory_allocator<client_number>

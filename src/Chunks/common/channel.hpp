@@ -23,6 +23,7 @@
 #include "../common/scheduler_interface.hpp"
 #include "../common/client_interface.hpp"
 #include "../common/config_param.hpp"
+#include "../common/macro_definitions.hpp"
 
 namespace starcounter {
 namespace core {
@@ -142,7 +143,7 @@ public:
 	bool is_to_be_released() const {
 		return is_to_be_released_;
 	}
-	
+
 public:
 	starcounter::core::atomic_buffer<T, 8> in; // 1 << 8 (256) elements.
 	starcounter::core::atomic_buffer<T, 8> out; // 1 << 8 (256) elements.
@@ -175,9 +176,6 @@ private:
 	// owns this channel can use it.
 	uint64_t client_interface_; // client_interface_type*
 	
-	// The owner_id_ marks which client process owns the channel.
-	//owner_id owner_id_;
-	
 	// Only read from and written to on the server side. Used to keep track of
 	// when a channel can be released if the client terminates unexpectedly.
 	int32_t server_refs_;
@@ -193,7 +191,6 @@ private:
 	char cache_line_pad_0_[CACHE_LINE_SIZE -(
 	+sizeof(scheduler_interface_type*) // scheduler_interface_
 	+sizeof(uint64_t) // client_interface_
-	//+sizeof(owner_id) // owner_id_
 	+sizeof(int32_t) // server_refs_
 	+sizeof(scheduler_number) // scheduler_number_
 	+sizeof(client_number) // client_number_
@@ -212,9 +209,6 @@ private:
 	// owns this channel can use it.
 	uint64_t client_interface_; // client_interface_type*
 	
-	// The owner_id_ marks which client process owns the channel.
-	//owner_id owner_id_;
-	
 	// Only read from and written to on the server side. Used to keep track of
 	// when a channel can be released if the client terminates unexpectedly.
 	int32_t server_refs_;
@@ -231,7 +225,6 @@ private:
 	+sizeof(scheduler_interface_type*) // scheduler_interface_
 	+sizeof(uint32_t) // scheduler_interface_pad_
 	+sizeof(uint64_t) // client_interface_
-	//+sizeof(owner_id) // owner_id_
 	+sizeof(int32_t) // server_refs_
 	+sizeof(scheduler_number) // scheduler_number_
 	+sizeof(client_number) // client_number_

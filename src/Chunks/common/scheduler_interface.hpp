@@ -1,7 +1,7 @@
 //
 // scheduler_interface.hpp
 //
-// Copyright © 2006-2011 Starcounter AB. All rights reserved.
+// Copyright © 2006-2012 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -14,6 +14,7 @@
 
 #include <cstddef>
 #include <boost/cstdint.hpp>
+#include <iostream> /// debug
 #include <memory>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
@@ -26,14 +27,16 @@
 #include <boost/call_traits.hpp>
 #include <boost/bind.hpp>
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <intrin.h>
+# include <windows.h>
+# include <atlstr.h>
+# include <intrin.h>
 #undef WIN32_LEAN_AND_MEAN
 #include "../common/channel.hpp"
 #include "../common/channel_mask.hpp"
 #include "../common/client_interface.hpp"
 #include "../common/overflow_buffer.hpp"
 #include "../common/chunk_pool.hpp"
+#include "../common/macro_definitions.hpp"
 
 namespace starcounter {
 namespace core {
@@ -81,7 +84,7 @@ public:
 	overflow_pool_allocator_type;
 	
 	enum {
-		channel_mask_words = 4 // 4 * 64-bit = 256 (channels)
+		channel_scan_mask_words = 4 // 4 * 64-bit = 256 (channels)
 	};
 	
 	// Construction/Destruction.
@@ -103,27 +106,66 @@ public:
 	const chunk_pool_allocator_type& chunk_pool_alloc
 	= chunk_pool_allocator_type(),
 	const overflow_pool_allocator_type& overflow_pool_alloc
-	= overflow_pool_allocator_type())
+	= overflow_pool_allocator_type(),
+	const char* segment_name = 0,
+	int32_t id = -1)
 	: channel_number_(channel_number_queue_capacity,
 	channel_number_queue_alloc),
 	chunk_pool_(chunk_pool_capacity, chunk_pool_alloc),
 	overflow_pool_(overflow_pool_capacity, overflow_pool_alloc),
-	channel_mask_(),
+	channel_scan_mask_(),
 	channel_scan_counter_(0),
 	notify_(false),
 	predicate_(false),
-	client_interface_(0) {}
+	client_interface_(0) {
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+		if (segment_name != 0) {
+			char notify_name[segment_and_notify_name_size];
+			wchar_t w_notify_name[segment_and_notify_name_size];
+			std::size_t length;
+
+			// Format: "Local\<segment_name>_notify_scheduler_<id>".
+			if ((length = _snprintf_s(notify_name, _countof(notify_name),
+			segment_and_notify_name_size -1 /* null */,
+			"Local\\%s_notify_scheduler_%u", segment_name, id)) < 0) {
+				return; // error
+			}
+			notify_name[length] = '\0';
+			//std::cout << "notify_name: " << notify_name << "\n"; /// DEBUG
+
+			/// TODO: Fix insecure
+			if ((length = mbstowcs(w_notify_name, notify_name, segment_name_size)) < 0) {
+				//std::cout << this
+				//<< ": Failed to convert segment_name to multi-byte string. Error: "
+				//<< GetLastError() << "\n";
+				return; // throw exception
+			}
+			w_notify_name[length] = L'\0';
+
+			if ((work_ = ::CreateEvent(NULL, TRUE, FALSE, w_notify_name)) == NULL) {
+				// Failed to create event.
+				//std::cout << this << ": Failed to create event with error: "
+				//<< GetLastError() << "\n"; /// DEBUG
+				return; // throw exception
+			}
+		}
+		else {
+			// TODO: Handle the error - no segment name. Throw an exception.
+		}
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	}
+	
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	~scheduler_interface() {
+		::CloseHandle(work_);
+	}
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 	
 	void pop_back_channel_number(channel_number* the_channel_number) {
 		channel_number_.pop_back(the_channel_number);
-		// Set the channel_number flag in channel_mask_.
-		//channel_mask_.set_channel_number_flag(the_channel_number);
 	}
 	
 	void push_front_channel_number(channel_number the_channel_number) {
-		// Clear the channel_number flag in this channel_mask_.
-		//channel_mask_.clear_channel_number_flag(the_channel_number);
-		
 		// Release the_channel_number to this channel_number_ queue.
 		channel_number_.push_front(the_channel_number);
 	}
@@ -150,17 +192,27 @@ public:
 	}
 	
 	void set_channel_number_flag(channel_number the_channel_number) {
-		channel_mask_.set_channel_number_flag(the_channel_number);
+		channel_scan_mask_.set_channel_number_flag(the_channel_number);
 	}
 	
 	void clear_channel_number_flag(channel_number the_channel_number) {
-		channel_mask_.clear_channel_number_flag(the_channel_number);
+		channel_scan_mask_.clear_channel_number_flag(the_channel_number);
 	}
 	
 	uint64_t get_channel_mask_word(std::size_t n) const {
-		return channel_mask_.get_channel_mask_word(n);
+		return channel_scan_mask_.get_channel_mask_word(n);
 	}
 	
+	/// TODO: Remove this debug function.
+	/**
+	 * @param n Is the channel number the caller want to know if
+	 *		it is owned (true) or not owned (false). The information may be
+	 *		incorrect once it is returned. Use for debug output.
+	 */
+	bool is_channel_owner(std::size_t n) const {
+		return channel_scan_mask_.get_channel_number_flag(n);
+	}
+
 	/// Get spin count.
 	/**
 	 * @return The spin_count.
@@ -185,7 +237,7 @@ public:
 	// access the out queue of the channel?
 	//--------------------------------------------------------------------------
 	
-	//the scheduler have seen the update of the channel_mask_ and the client
+	//the scheduler have seen the update of the channel_scan_mask_ and the client
 	// can then release the channel. However, the scheduler may take a
 	// relatively long time to complete a scan. We may enter a periodic sleep
 	// of 1 ms and poll the get_channel_scan_counter() once every 1 ms.
@@ -194,7 +246,7 @@ public:
 	}
 	
 	// A scheduler calls increment_channel_scan_counter() each time it has
-	// completed a scan of all channels in the channel_mask_.
+	// completed a scan of all channels in the channel_scan_mask_.
 	void increment_channel_scan_counter() {
 		channel_scan_counter_type next = channel_scan_counter_ +1;
 		_mm_mfence();
@@ -213,14 +265,30 @@ public:
 	}
 	
 	//--------------------------------------------------------------------------
-	// Clients call notify() each time they push a message on a channel, in
-	// order to wake up the scheduler it communicates with, if it is waiting.
+	// Clients call notify() each time they push a message on a channel, or mark
+	// the channel for release, in order to wake up the scheduler it
+	// communicates with, if it is waiting.
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	// Use Windows Events to synchronize.
+	void notify(HANDLE work) {
+		if (false /*get_notify_flag() == false*/) { /// DEBUG TEST - FORCE NOTIFICATION
+			// No need to notify the scheduler because it is not waiting.
+			return;
+		}
+		else {
+			if (!::SetEvent(work)) {
+				//std::cout << this << ": SetEvent(" << work_ << ") <2> failed with the error: "
+				//<< ::GetLastError() << "\n"; /// DEBUG
+			}
+		}
+	}
+#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	// Use Boost.Interprocess to synchronize.
 	void notify() {
 		if (get_notify_flag() == false) {
 			// No need to notify the scheduler because it is not waiting.
 			return;
 		}
-		
 		else {
 			boost::interprocess::scoped_lock
 			<boost::interprocess::interprocess_mutex> lock(mutex_);
@@ -232,11 +300,25 @@ public:
 			work_.notify_one(); // In the client interface we notify all.
 		}
 	}
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 	
+	//--------------------------------------------------------------------------
 	// The monitor call try_to_notify_scheduler_to_do_clean_up() if a client
 	// process has crashed, in order to wake up the scheduler if it is waiting.
 	// A scheduler that is woken up is required to see if the channel is marked
 	// for clean-up. Maybe this is not at all required, it may be irrelevent.
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	// Use Windows Events to synchronize.
+	bool try_to_notify_scheduler_to_do_clean_up(uint32_t timeout_milliseconds) {
+		if (!::SetEvent(work_)) {
+			//std::cout << this << ": SetEvent(" << work_ << ") <3> failed with the error: "
+			//<< ::GetLastError() << "\n"; /// DEBUG
+			return false;
+		}
+		return true;
+	}
+#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	// Use Boost.Interprocess to synchronize.
 	bool try_to_notify_scheduler_to_do_clean_up(uint32_t timeout_milliseconds) {
 		const boost::system_time timeout = boost::posix_time::microsec_clock
 		::universal_time() +boost::posix_time::milliseconds
@@ -259,6 +341,7 @@ public:
 			return false;
 		}
 	}
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 	
 	// Setting predicate to true means the condition is met
 	// and the wait is over, the thread waiting will not wait any more.
@@ -281,6 +364,34 @@ public:
 	 * @return false if the call is returning because the time period specified
 	 *		by timeout_milliseconds has elapsed, true otherwise.
 	 */
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	// Use Windows Events to synchronize.
+	bool wait_for_work(unsigned int timeout_milliseconds) {
+		//std::cout << this << " scheduler is waiting...\n"; /// DEBUG
+		switch (::WaitForSingleObject(work_, timeout_milliseconds)) {
+		case WAIT_OBJECT_0:
+			// The scheduler was notified that there is work to do.
+			//std::cout << this << " scheduler is running (NOTIFIED)\n"; /// DEBUG
+			
+			if (::ResetEvent(work_)) {
+				//std::cout << "::ResetEvent(" << work_ << ")\n"; /// DEBUG
+				return true;
+			}
+			else {
+				//std::cout << this << " scheduler ResetEvent() failed. Error" << ::GetLastError() << "\n"; /// DEBUG
+				return true; // Anyway.
+			}
+			return true;
+		case WAIT_TIMEOUT:
+			//std::cout << this << " scheduler is running (timeout)\n"; /// DEBUG
+			return false;
+		case WAIT_FAILED: // Windows system error code: 6 = The handle is invalid.
+			//std::cout << this << " scheduler WaitForSingleObject() failed. Error" << ::GetLastError() << "\n"; /// DEBUG
+			return false;
+		}
+	}
+#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	// Use Boost.Interprocess to synchronize.
 	bool wait_for_work(unsigned int timeout_milliseconds) {
 		// boost::get_system_time() also works.
 		const boost::system_time timeout
@@ -290,19 +401,30 @@ public:
 		boost::interprocess::scoped_lock
 		<boost::interprocess::interprocess_mutex> lock(mutex_);
 		
+		if (!lock.owns()) {
+			// The timeout_milliseconds time period has elapsed.
+			//std::cout << this << " scheduler is running (timeout no lock)\n"; /// DEBUG
+			return false;
+		}
+		
+		//std::cout << this << " scheduler is waiting...\n"; /// DEBUG
+
 		// Wait until at least one message has been pushed into some channel,
 		// or the timeout_milliseconds time period has elapsed.
 		if (work_.timed_wait(lock, timeout,
 		boost::bind(&scheduler_interface_type::do_work, this)) == true) {
 			// The scheduler was notified that there is work to do.
+			//std::cout << this << " scheduler is running (notified)\n"; /// DEBUG
 			set_predicate(false);
 			return true;
 		}
 		
 		// The timeout_milliseconds time period has elapsed.
 		// Shall the predicate be set to false on timeout? I think not.
+		//std::cout << this << " scheduler is running (timeout)\n"; /// DEBUG
 		return false;
 	}
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 	
 	uint64_t get_client_interface_as_qword() {
 		boost::interprocess::scoped_lock
@@ -325,23 +447,29 @@ public:
 private:
 	// Condition to wait when the all of this scheduler's channels in queues,
 	// and the scheduler channels in queue are empty.
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	// Use Windows Events to synchronize.
+	HANDLE work_;
+#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	// Use Boost.Interprocess to synchronize.
 	boost::interprocess::interprocess_condition work_;
 	boost::interprocess::interprocess_mutex mutex_;
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 	
 	// Sync access to client_interface - probably not needed.
 	boost::interprocess::interprocess_mutex client_interface_mutex_;
 	channel_number_queue_type channel_number_;
 	chunk_pool_type chunk_pool_;
 	overflow_pool_type overflow_pool_;
-	char pad0[CACHE_LINE_SIZE];
-	channel_mask<channels> channel_mask_;
-	char pad1[CACHE_LINE_SIZE];
+	char cache_line_pad_0_[CACHE_LINE_SIZE]; // Not needed if on another cache line.
+	channel_mask<channels> channel_scan_mask_;
+	char cache_line_pad_1_[CACHE_LINE_SIZE];
 	volatile channel_scan_counter_type channel_scan_counter_;
-	char pad2[CACHE_LINE_SIZE -sizeof(channel_scan_counter_type)];
+	char cache_line_pad_2_[CACHE_LINE_SIZE -sizeof(channel_scan_counter_type)];
 	volatile bool notify_;
-	char pad3[CACHE_LINE_SIZE -sizeof(bool)];
+	char cache_line_pad_3_[CACHE_LINE_SIZE -sizeof(bool)];
 	volatile bool predicate_;
-	char pad4[CACHE_LINE_SIZE -sizeof(bool)];
+	char cache_line_pad_4_[CACHE_LINE_SIZE -sizeof(bool)];
 	
 	// The scheduler that have allocated this interface must store a pointer to
 	// the client_interface here, which will be relative to its own address
@@ -352,7 +480,7 @@ private:
 	// We store the pointer as uint64_t to provide compatibility between 64-bit
 	// server and 32-bit client.
 	uint64_t client_interface_; // client_interface_type*
-	char pad5[CACHE_LINE_SIZE -sizeof(uint64_t)];
+	char cache_line_pad_5_[CACHE_LINE_SIZE -sizeof(uint64_t)];
 };
 
 typedef starcounter::core::simple_shared_memory_allocator<channel_number>

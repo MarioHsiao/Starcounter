@@ -85,6 +85,11 @@ public:
 	monitor_interface_name, pid_type pid, owner_id oid = owner_id
 	(owner_id::none));
 	
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	/// Destructor.
+	~shared_interface();
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	
 	/// Initialize.
 	/**
 	 * @param segment_name is used to open the database shared memory.
@@ -375,6 +380,10 @@ public:
 	/// Get the client_number.
 	client_number get_client_number() const;
 	
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	HANDLE get_work_event(std::size_t i) const;
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	
 private:
 	// Specify what it throws.
 	void init();
@@ -399,6 +408,15 @@ private:
 	std::string monitor_interface_name_;
 	shared_memory_object segment_;
 	mapped_region mapped_region_;
+	
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	// Using Windows Events to synchronize, therefore each client need to
+	// have all events (HANDLEs) already opened and ready to be used,
+	// to notify any scheduler. Here is an array of HANDLEs, only those
+	// that correspond to an active scheduler will be opened/closed.
+	HANDLE work_[max_number_of_schedulers];
+
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 	
 protected:
 	/// TODO: Replace direct accesses to client_number_ with get_client_number()

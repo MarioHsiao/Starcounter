@@ -80,7 +80,7 @@ public:
 	 */
 	explicit common_scheduler_interface(const allocator_type& alloc
 	= allocator_type())
-	: scheduler_mask_(), state_(normal) {}
+	: active_schedulers_mask_(), state_(normal) {}
 	
 	/// TODO: Think about multiple clients.
 	void clients_state(state s) {
@@ -95,36 +95,41 @@ public:
 	}
 	
 	bool is_scheduler_active(std::size_t index) {
-		return scheduler_mask_.is_scheduler_active(index);
+		return active_schedulers_mask_.is_scheduler_active(index);
 	}
 	
 	void set_scheduler_number_flag(std::size_t ch) {
-		scheduler_mask_.set_scheduler_number_flag(ch);
+		active_schedulers_mask_.set_scheduler_number_flag(ch);
 	}
 	
 	void clear_scheduler_number_flag(std::size_t ch) {
-		scheduler_mask_.clear_scheduler_number_flag(ch);
+		active_schedulers_mask_.clear_scheduler_number_flag(ch);
 	}
 	
 	uint64_t get_scheduler_mask(std::size_t ch) const {
-		return scheduler_mask_.get_scheduler_mask(ch);
+		return active_schedulers_mask_.get_scheduler_mask(ch);
 	}
 	
 	std::size_t number_of_active_schedulers() const {
 		std::size_t count = 0;
 		
 		for (std::size_t i = 0; i < scheduler_mask_type::masks; ++i) {
-			count += population_count(scheduler_mask_.get_mask(i));
+			count += population_count(active_schedulers_mask_.get_mask(i));
 		}
 		
 		return count;
 	}
 	
 private:
-	scheduler_mask_type scheduler_mask_;
-	char pad0[CACHE_LINE_SIZE -(sizeof(scheduler_mask_type) % CACHE_LINE_SIZE)];
+	scheduler_mask_type active_schedulers_mask_;
+	char cache_line_pad_0_[CACHE_LINE_SIZE
+	-(sizeof(scheduler_mask_type) % CACHE_LINE_SIZE) // active_schedulers_mask_
+	];
+	
 	volatile state state_;
-	char pad1[CACHE_LINE_SIZE -sizeof(state)];
+	char cache_line_pad_1_[CACHE_LINE_SIZE
+	-sizeof(state) // state_
+	];
 };
 
 typedef starcounter::core::simple_shared_memory_allocator<std::size_t>

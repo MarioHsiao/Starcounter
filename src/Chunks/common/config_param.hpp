@@ -27,7 +27,10 @@ namespace core {
 const std::size_t chunk_size = 1 << 12; // 4K chunks.
 
 // One chunk per channel is the minimum because a default chunk is allocated for
-// each channel.
+// each channel. Currently channel_bits + chunks_total_number_max must not
+// exceed 32, because chunk_index is 32-bit and sometimes both the chunk_index
+// and the channel shared the same 32-bit word. This means that
+// chunks_total_number_max can not be more than 1 << 24 when channel_bits = 8.
 const std::size_t chunks_total_number_max = 1 << 16;
 
 // The number of channels.
@@ -62,6 +65,14 @@ const std::size_t database_name_size = 32;
 
 // The size of the array to hold the segment name, including terminating null.
 const std::size_t segment_name_size = 64;
+
+// The size of the array to hold the segment name and notify name,
+// including terminating null. The format is:
+// "Local\<segment_name>_notify_scheduler_<N>", and
+// "Local\<segment_name>_notify_client_<N>".
+// where N is number in the range 0..31 for schedulers and 0..255 for clients.
+// For example: "Local\starcounter_PERSONAL_LOADANDLATENCY_64_notify_scheduler_0"
+const std::size_t segment_and_notify_name_size = 96;
 
 // The size of the array to hold the interface name.
 const std::size_t interface_name_size = 64;

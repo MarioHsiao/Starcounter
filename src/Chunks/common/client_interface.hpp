@@ -42,14 +42,14 @@ namespace core {
 /**
  * @param T The type of the elements stored in the bounded_buffer.
  * @par Type Requirements T
- *      The T has to be SGIAssignable (SGI STL defined combination of Assignable
- *      and CopyConstructible), and EqualityComparable and/or LessThanComparable
- *      if the bounded_buffer will be compared with another container.
+ *		The T has to be SGIAssignable (SGI STL defined combination of Assignable
+ *		and CopyConstructible), and EqualityComparable and/or LessThanComparable
+ *		if the bounded_buffer will be compared with another container.
  * @param Alloc The allocator type used for all internal memory management.
  * @par Type Requirements Alloc
- *      The Alloc has to meet the allocator requirements imposed by STL.
+ *		The Alloc has to meet the allocator requirements imposed by STL.
  * @par Default Alloc
- *      std::allocator<T>
+ *		std::allocator<T>
  */
 template<class T, class Alloc = std::allocator<T> >
 class client_interface {
@@ -101,14 +101,59 @@ public:
 	///
 	/**
 	 * @param alloc The allocator.
+	 * @param segment_name The segment name.
+	 * @param id The index in the array of client_interface[s].
 	 * @throws "An allocation error" if memory is exhausted (std::bad_alloc if
 	 *		the standard allocator is used).
 	 * @par Complexity
 	 *		Constant.
 	 */
-	client_interface(const allocator_type& alloc = allocator_type())
+	explicit client_interface(const allocator_type& alloc = allocator_type(),
+	const char* segment_name = 0, int32_t id = -1)
 	: notify_(false), predicate_(false), owner_id_(owner_id::none),
-	allocated_channels_(0) {}
+	allocated_channels_(0) {
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+		if (segment_name != 0) {
+			char notify_name[segment_and_notify_name_size];
+			wchar_t w_notify_name[segment_and_notify_name_size];
+			std::size_t length;
+
+			// Format: "Local\<segment_name>_notify_client_<id>".
+			if ((length = _snprintf_s(notify_name, _countof(notify_name),
+			segment_and_notify_name_size -1 /* null */,
+			"Local\\%s_notify_client_%u", segment_name, id)) < 0) {
+				return; // error
+			}
+			notify_name[length] = '\0';
+			//std::cout << "notify_client_name: " << notify_name << "\n"; /// DEBUG
+
+			/// TODO: Fix insecure
+			if ((length = mbstowcs(w_notify_name, notify_name, segment_name_size)) < 0) {
+				//std::cout << this
+				//<< ": Failed to convert segment_name to multi-byte string. Error: "
+				//<< GetLastError() << "\n";
+				return; // throw exception
+			}
+			w_notify_name[length] = L'\0';
+
+			if ((work_ = ::CreateEvent(NULL, TRUE, FALSE, w_notify_name)) == NULL) {
+				// Failed to create event.
+				//std::cout << this << ": Failed to create event with error: "
+				//<< GetLastError() << "\n"; /// DEBUG
+				return; // throw exception
+			}
+		}
+		else {
+			// TODO: Handle the error - no segment name. Throw an exception.
+		}
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	}
+	
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	~client_interface() {
+		::CloseHandle(work_);
+	}
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 	
 	bool get_notify_flag() const {
 		return notify_;
@@ -128,6 +173,22 @@ public:
 	
 	/// Schedulers call notify() each time they push a message on a channel.
 	/// The monitor call notify() if the database goes down.
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	// Use Windows Events to synchronize.
+	void notify() {
+		if (get_notify_flag() == false) {
+			// No need to notify the scheduler because it is not waiting.
+			return;
+		}
+		else {
+			if (!::SetEvent(work_)) {
+				//std::cout << this << ": SetEvent(" << work_ << ") <1> failed with the error: "
+				//<< ::GetLastError() << "\n"; /// DEBUG
+			}
+		}
+	}
+#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	// Use Boost.Interprocess to synchronize.
 	void notify() {
 		if (get_notify_flag() == false) {
 			// No need to notify, because no client thread is waiting,
@@ -150,6 +211,7 @@ public:
 			work_.notify_all();
 		}
 	}
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 	
 	// Setting predicate to true means the condition is met and the wait is
 	// over. Threads that are waiting will not wait any more. Setting the
@@ -192,10 +254,37 @@ public:
 	/// It is a "timed" function that can fail.
 	/**
 	 * @param timeout_milliseconds The number of milliseconds to wait before
-	 *      a timeout may occur.
+	 *		a timeout may occur.
 	 * @return false if the call is returning because the time period specified
-	 *      by timeout_milliseconds has elapsed, otherwise true.
+	 *		by timeout_milliseconds has elapsed, otherwise true.
 	 */
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	// Using Windows Events to synchronize.
+	bool wait_for_work(unsigned int timeout_milliseconds) {
+		//std::cout << this << " client is waiting...\n"; /// DEBUG
+		switch (::WaitForSingleObject(work_, timeout_milliseconds)) {
+		case WAIT_OBJECT_0:
+			// The client was notified that there is work to do.
+			//std::cout << this << " client is running (notified)\n"; /// DEBUG
+			
+			if (::ResetEvent(work_)) {
+				return true;
+			}
+			else {
+				//std::cout << this << " client ResetEvent() failed. Error" << ::GetLastError() << "\n"; /// DEBUG
+				return true; // Anyway.
+			}
+			return true;
+		case WAIT_TIMEOUT:
+			//std::cout << this << " client is running (timeout)\n"; /// DEBUG
+			return false;
+		case WAIT_FAILED: // Windows system error code: 6 = The handle is invalid.
+			//std::cout << this << " client WaitForSingleObject() failed. Error" << ::GetLastError() << "\n"; /// DEBUG
+			return false;
+		}
+	}
+#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	// Using Boost.Interprocess to synchronize.
 	bool wait_for_work(uint32_t timeout_milliseconds) {
 		// boost::get_system_time() also works.
 		const boost::system_time timeout
@@ -207,8 +296,11 @@ public:
 		
 		if (!lock.owns()) {
 			// The timeout_milliseconds time period has elapsed.
+			//std::cout << this << " client is running (timeout, failed to acquire lock)\n"; /// DEBUG
 			return false;
 		}
+		
+		//std::cout << this << " client is waiting...\n"; /// DEBUG
 		
 		// Wait until at least one message has been pushed into some channel,
 		// or the timeout_milliseconds time period has elapsed.
@@ -216,13 +308,16 @@ public:
 		boost::bind(&client_interface<value_type, allocator_type>::do_work,
 		this)) == true) {
 			// The client was notified.
+			//std::cout << this << " client is running (notified)\n"; /// DEBUG
 			set_predicate(false);
 			return true;
 		}
 		
 		// The timeout_milliseconds time period has elapsed.
+		//std::cout << this << " client is running (wait timeout)\n"; /// DEBUG
 		return false;
 	}
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 	
 	/// Set the owner_id when acquiring and releasing a client_interface.
 	/**
@@ -300,26 +395,56 @@ public:
 		resource_map_.clear_channel_flag(scheduler_num, channel_num);
 	}
 	
+	/// TODO: Remove this debug function.
+	/**
+	 * @param n Is the channel number the caller want to know if
+	 *		it is owned (true) or not owned (false). The information may be
+	 *		incorrect once it is returned. Use for debug output.
+	 */
+	bool is_channel_owner(uint32_t n) const {
+		return resource_map_.owns_channel(n);
+	}
+
+	bool is_chunk_owner(uint32_t n) const {
+		return resource_map_.owns_chunk(n);
+	}
+
 private:
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	// Use Windows Events to synchronize.
+	HANDLE work_;
+	char cache_line_pad_0_[CACHE_LINE_SIZE
+	-sizeof(HANDLE) // work_
+	];
+#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	// Use Boost.Interprocess to synchronize.
 	boost::interprocess::interprocess_mutex mutex_;
 	// Condition to wait when all of this clients channels out queues are empty.
 	boost::interprocess::interprocess_condition work_;
 	char cache_line_pad_0_[CACHE_LINE_SIZE
-	-sizeof(boost::interprocess::interprocess_mutex)
-	-sizeof(boost::interprocess::interprocess_condition)];
+	-sizeof(boost::interprocess::interprocess_mutex) // mutex_
+	-sizeof(boost::interprocess::interprocess_condition) // work_
+	];
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 	
 	volatile bool notify_;
-	char cache_line_pad_1_[CACHE_LINE_SIZE -sizeof(bool)];
+	char cache_line_pad_1_[CACHE_LINE_SIZE
+	-sizeof(bool) // notify_
+	];
 	
 	bool predicate_; // Is synchronized by mutex_.
-	char cache_line_pad_2_[CACHE_LINE_SIZE -sizeof(bool)];
+	char cache_line_pad_2_[CACHE_LINE_SIZE
+	-sizeof(bool) // predicate_
+	];
 	
 	// The owner of this client_interface also owns resources marked in the
 	// resource_map_.
 	owner_id owner_id_;
 	volatile uint32_t allocated_channels_;
-	char cache_line_pad_3_[CACHE_LINE_SIZE -sizeof(owner_id)
-	-sizeof(uint32_t)];
+	char cache_line_pad_3_[CACHE_LINE_SIZE
+	-sizeof(owner_id) // owner_id_
+	-sizeof(uint32_t) // allocated_channels_
+	];
 	
 	resource_map resource_map_;
 };
