@@ -231,6 +231,13 @@ namespace Starcounter.Internal
             string table_name,
             string name
             );
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint sccoredb_set_current_transaction(
+            int unlock_tran_from_thread,
+            ulong handle,
+            ulong verify
+            );
         
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint sccoredb_create_transaction_and_set_current(
@@ -259,14 +266,25 @@ namespace Starcounter.Internal
             );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint sccoredb_set_current_transaction(
-	        int unlock_tran_from_thread,
-        	ulong handle,
-        	ulong verify
-	        );
+        public extern static uint sccoredb_abort_commit(
+            int tran_locked_on_thread
+            );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 sc_insert(
+        public extern static uint sccoredb_reset_abort();
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint sccoredb_wait_for_low_checkpoint_urgency(
+            uint flags
+            );
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint sccoredb_wait_for_high_avail_log_memory(
+            uint flags
+            );
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public unsafe extern static uint sc_insert(
             ulong definition_addr,
             ulong* pnew_oid,
             ulong* pnew_addr
