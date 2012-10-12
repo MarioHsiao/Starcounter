@@ -137,18 +137,7 @@ namespace Starcounter
 
                     action();
 
-                    ulong hiter;
-                    ulong viter;
-                    r = sccoredb.sccoredb_begin_commit(1, out hiter, out viter);
-                    if (r == 0)
-                    {
-                        // TODO: Handle triggers.
-
-                        r = sccoredb.sccoredb_complete_commit(1, 1);
-                        if (r == 0) return;
-                    }
-
-                    throw ErrorCode.ToException(r);
+                    Starcounter.Transaction.Commit(1, 1);
                 }
                 catch (Exception)
                 {
