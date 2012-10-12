@@ -136,7 +136,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                         WriteAppClassPrefix(node as NAppClass);
                     }
                     else if (node is NAppTemplateClass) {
-                        WriteAppTemplateClassPrefix(node as NAppTemplateClass);
+                        WriteAppTemplateConstructor((node as NAppTemplateClass).Constructor);
                     }
                 }
                 node.Suffix.Add("}");
@@ -282,7 +282,9 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         /// Writes the class declaration and constructor for an AppTemplate class
         /// </summary>
         /// <param name="a">The class declaration syntax node</param>
-        private void WriteAppTemplateClassPrefix(NAppTemplateClass a) {
+        private void WriteAppTemplateConstructor(NConstructor cst) {
+            NAppTemplateClass a = (NAppTemplateClass)cst.Parent;
+
             var sb = new StringBuilder();
             sb.Append("    public ");
             sb.Append(a.ClassName);
@@ -294,13 +296,17 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             sb.Append(a.NValueClass.FullClassName);
             sb.Append(");");
             a.Prefix.Add(sb.ToString());
+            
             sb = new StringBuilder();
             sb.Append("        ClassName = \"");
             sb.Append(a.NValueClass.ClassName);
             sb.Append("\";");
             a.Prefix.Add(sb.ToString());
-            foreach (var kid in a.Children) {
-                if (kid is NProperty) {
+
+            foreach (NBase kid in cst.Children)
+            {
+                if (kid is NProperty)
+                {
                     var mn = kid as NProperty;
                     sb = new StringBuilder();
                     sb.Append("        ");
@@ -310,13 +316,20 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     sb.Append(">(\"");
                     sb.Append(mn.MemberName);
                     sb.Append('"');
-                    if (mn.Template.Editable) {
+                    if (mn.Template.Editable)
+                    {
                         sb.Append(", Editable = true);");
                     }
-                    else {
+                    else
+                    {
                         sb.Append(");");
                     }
                     a.Prefix.Add(sb.ToString());
+                }
+                else if (kid is NInputBinding)
+                {
+                    String s = ((NInputBinding)kid).GetBindingCode();
+                    a.Prefix.Add(s);
                 }
             }
             a.Prefix.Add(
