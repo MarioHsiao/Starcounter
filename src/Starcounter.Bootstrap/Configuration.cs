@@ -140,5 +140,11 @@ namespace StarcounterInternal.Bootstrap
                 return v;
             }
         }
+
+        public bool NoDb {
+            get {
+                return this.ProgramArguments.ContainsFlag(ProgramCommandLine.OptionNames.NoDb);
+            }
+        }
     }
 }

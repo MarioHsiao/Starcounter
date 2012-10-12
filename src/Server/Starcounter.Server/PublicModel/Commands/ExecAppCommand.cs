@@ -37,6 +37,20 @@ namespace Starcounter.Server.PublicModel.Commands {
         }
 
         /// <summary>
+        /// Gets or sets a value dictating if the App being executed should
+        /// be considered not containing anything that needs the database services
+        /// of Starcounter (i.e. weaving, SQL, etc).
+        /// </summary>
+        /// <remarks>
+        /// This switch will likely be made obsolete in the near future, so
+        /// use it only if you are very certain of what you do and why.
+        /// </remarks>
+        public bool NoDb {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets all arguments targeting Starcounter.
         /// </summary>
         internal string[] ArgumentsToStarcounter {
@@ -93,6 +107,10 @@ namespace Starcounter.Server.PublicModel.Commands {
                 } else {
                     this.DatabaseName = Path.GetFileNameWithoutExtension(this.AssemblyPath);
                 }
+            }
+
+            if (this.NoDb == false) {
+                this.NoDb = scargs.Contains<string>("NoDb", StringComparer.InvariantCultureIgnoreCase);
             }
         }
     }
