@@ -120,25 +120,17 @@ namespace Starcounter
         public static void Transaction(Action action)
         {
             uint r;
-            int noBoundary;
-            bool completed;
-            ulong transaction_id;
             ulong handle;
             ulong verify;
 
             // TODO:
-            // Make boundary check faster. Best approach probably to do a
-            // sccoredb_create_transaction_and_set_current that fails if
-            // transaction attached.
+            // Handle if transaction not locked on thread (and not the default
+            // transaction) by simply lock the transaction on thread instead of
+            // creating a new one.
 
-            r = sccoredb.sccoredb_has_transaction(out noBoundary);
-            if (r != 0) goto err;
-            
-            if (noBoundary == 0)
+            r = sccoredb.sccoredb_create_transaction_and_set_current(1, out handle, out verify);
+            if (r == 0)
             {
-                completed = false;
-                r = sccoredb.sccoredb_create_transaction_and_set_current(0, out transaction_id, out handle, out verify);
-                if (r != 0) goto err;
                 try
                 {
                     Starcounter.Transaction.OnTransactionSwitch();
@@ -147,38 +139,39 @@ namespace Starcounter
 
                     ulong hiter;
                     ulong viter;
-                    r = sccoredb.sccoredb_begin_commit(out hiter, out viter);
-                    if (r != 0) goto err;
-
-                    // TODO: Handle triggers.
-
-                    r = sccoredb.sccoredb_complete_commit(1, out transaction_id);
-                    if (r != 0) goto err;
-
-                    completed = true;
-                }
-                finally
-                {
-                    if (!completed)
+                    r = sccoredb.sccoredb_begin_commit(1, out hiter, out viter);
+                    if (r == 0)
                     {
-                        if (
-                            sccoredb.Mdb_TransactionSetCurrent(0, 0) == 0 ||
-                            sccoredb.sccoredb_free_transaction(handle, verify) != 0
-                            )
-                        {
-                            HandleFatalErrorInTransactionScope();
-                        }
+                        // TODO: Handle triggers.
+
+                        r = sccoredb.sccoredb_complete_commit(1, 1);
+                        if (r == 0) return;
                     }
+
+                    throw ErrorCode.ToException(r);
+                }
+                catch (Exception)
+                {
+                    if (
+                        sccoredb.sccoredb_set_current_transaction(1, 0, 0) == 0 &&
+                        sccoredb.sccoredb_free_transaction(handle, verify) == 0
+                        )
+                        throw;
+                    HandleFatalErrorInTransactionScope();
                 }
             }
-            else
+
+            if (r == Error.SCERRTRANSACTIONLOCKEDONTHREAD)
             {
+                // We already have a transaction locked on thread so we're
+                // already in a transaction scope (possibly an implicit one if
+                // for example in the context of a trigger): Just invoke the
+                // callback and exit.
+
                 action();
+                return;
             }
 
-            return;
-
-        err:
             throw ErrorCode.ToException(r);
         }
 
