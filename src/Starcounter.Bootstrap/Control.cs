@@ -73,9 +73,10 @@ namespace StarcounterInternal.Bootstrap
             // Initializing the bmx manager.
             bmx.sc_init_bmx_manager();
 
-            // Query module.
             Scheduler.Setup(1);
-            if (!configuration.NoDb) {
+
+            // Query module.
+            if (!configuration.NoDb) {    
                 Starcounter.Query.QueryModule.Initiate(configuration.SQLProcessPort);
             }
 
