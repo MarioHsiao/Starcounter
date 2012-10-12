@@ -30,7 +30,7 @@ namespace StarcounterInternal.Bootstrap {
         }
 
         /// <summary>
-        /// Defines the commands this program accepts.
+        /// Defines the options the "Start" command accepts.
         /// </summary>
         internal static class OptionNames {
             /// <summary>
@@ -72,6 +72,12 @@ namespace StarcounterInternal.Bootstrap {
             /// Specifies TCP/IP port to be used by StarcounterSQL.exe.
             /// </summary>
             public const string SQLProcessPort = "SQLProcessPort";
+
+            /// <summary>
+            /// Gets the string to use to apply the switch that tells the host process
+            /// not to connect to the database nor utilize the SQL engine.
+            /// </summary>
+            public const string NoDb = "NoDb";
         }
 
         internal static bool TryGetProgramArguments(string[] args, out ApplicationArguments arguments) {
@@ -115,6 +121,7 @@ namespace StarcounterInternal.Bootstrap {
             commandDefinition.DefineProperty(OptionNames.ChunksNumber, "Specifies the total number of chunks used for shared memory communication.");
             commandDefinition.DefineProperty(OptionNames.AutoStartExePath, "Specifies the path to executable that should be run on startup.");
             commandDefinition.DefineProperty(OptionNames.SQLProcessPort, "Specifies TCP/IP port to be used by StarcounterSQL.exe.");
+            commandDefinition.DefineFlag(OptionNames.NoDb, "Instructs the program not to connect to the database nor use the SQL engine.");
 
             // Create the syntax, validating it
             syntax = syntaxDefinition.CreateSyntax();

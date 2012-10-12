@@ -66,14 +66,19 @@ namespace StarcounterInternal.Bootstrap
 
             ConfigureDatabase(configuration);
 
-            ConnectDatabase(configuration, hsched_, hmenv, hlogs);
+            if (!configuration.NoDb) {
+                ConnectDatabase(configuration, hsched_, hmenv, hlogs);
+            }
 
             // Initializing the bmx manager.
             bmx.sc_init_bmx_manager();
 
-            // Query module.
             Scheduler.Setup(1);
-            Starcounter.Query.QueryModule.Initiate(configuration.SQLProcessPort);
+
+            // Query module.
+            if (!configuration.NoDb) {    
+                Starcounter.Query.QueryModule.Initiate(configuration.SQLProcessPort);
+            }
 
             return true;
         }
