@@ -21,7 +21,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             SyntaxTree tree;   
             String ns;
             List<JsonMapInfo> mapList;
-            List<HandleInputInfo> inputList;
+            List<InputBindingInfo> inputList;
 
             if (!File.Exists(codeBehindFilename)) return CodeBehindMetadata.Empty;
 
@@ -33,7 +33,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             mapList = new List<JsonMapInfo>();
             FillListWithJsonMapInfo(className, root, mapList);
 
-            inputList = new List<HandleInputInfo>();
+            inputList = new List<InputBindingInfo>();
             FillListWithHandleInputInfo(root, inputList);
 
             return new CodeBehindMetadata(ns, mapList, inputList);
@@ -73,7 +73,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
 
                 if (ns != null) nsBuilder.Insert(0, '.');
             }
-            return nsBuilder.ToString();
+            return nsBuilder.ToString().TrimEnd();
         }
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// </summary>
         /// <param name="node"></param>
         /// <param name="list"></param>
-        private static void FillListWithHandleInputInfo(SyntaxNode node, List<HandleInputInfo> list)
+        private static void FillListWithHandleInputInfo(SyntaxNode node, List<InputBindingInfo> list)
         {
             MethodDeclarationSyntax methodDecl;
 
@@ -134,7 +134,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// </summary>
         /// <param name="methodNode"></param>
         /// <returns></returns>
-        private static HandleInputInfo GetHandleInputInfoFrom(MethodDeclarationSyntax methodNode)
+        private static InputBindingInfo GetHandleInputInfoFrom(MethodDeclarationSyntax methodNode)
         {
             ClassDeclarationSyntax classDecl;
             ClassDeclarationSyntax parentClassDecl;
@@ -166,7 +166,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
 
             ns = FindNamespaceForClassDeclaration(classDecl);
 
-            return new HandleInputInfo(ns, fullClassname, paramType);
+            return new InputBindingInfo(ns, fullClassname, paramType);
         }
 
         /// <summary>
