@@ -26,8 +26,9 @@
 #include <boost/call_traits.hpp>
 #include <boost/bind.hpp>
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <intrin.h>
+# include <windows.h>
+# include <intrin.h>
+# include <strsafe.h>
 #undef WIN32_LEAN_AND_MEAN
 #include "../common/channel_number.hpp"
 #include "../common/client_number.hpp"
