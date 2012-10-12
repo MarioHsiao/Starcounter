@@ -74,6 +74,11 @@ namespace StarcounterInternal.Bootstrap {
             public const string SQLProcessPort = "SQLProcessPort";
 
             /// <summary>
+            /// Specifies the number of schedulers.
+            /// </summary>
+            public const string SchedulerCount = "SchedulerCount";
+
+            /// <summary>
             /// Gets the string to use to apply the switch that tells the host process
             /// not to connect to the database nor utilize the SQL engine.
             /// </summary>
@@ -121,6 +126,7 @@ namespace StarcounterInternal.Bootstrap {
             commandDefinition.DefineProperty(OptionNames.ChunksNumber, "Specifies the total number of chunks used for shared memory communication.");
             commandDefinition.DefineProperty(OptionNames.AutoStartExePath, "Specifies the path to executable that should be run on startup.");
             commandDefinition.DefineProperty(OptionNames.SQLProcessPort, "Specifies TCP/IP port to be used by StarcounterSQL.exe.");
+            commandDefinition.DefineProperty(OptionNames.SchedulerCount, "Specifies the number of schedulers.");
             commandDefinition.DefineFlag(OptionNames.NoDb, "Instructs the program not to connect to the database nor use the SQL engine.");
 
             // Create the syntax, validating it
