@@ -21,7 +21,7 @@ namespace Starcounter.Query.Sql
     {
         static LogSource logSource;
         static Object startProcessLock;
-        static List<String> schemaFilePathList;
+        static List<String> schemaFilePathList = new List<String>();
         static Process process;
         //static String processFolder;
         //static String processFileName;
