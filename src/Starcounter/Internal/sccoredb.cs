@@ -53,6 +53,17 @@ namespace Starcounter.Internal
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         public static extern uint SCConfigSetValue(string key, string value);
 
+        public delegate void ON_NEW_SCHEMA(ulong generation);
+
+        [StructLayout(LayoutKind.Sequential, Pack = 8)]
+        public unsafe struct sccoredb_config
+        {
+            public void* on_new_schema;
+        }
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public static extern unsafe uint sccoredb_configure(sccoredb_config* pconfig);
+
         public const uint SCCOREDB_LOAD_DATABASE = 0x00100000;
 
         public const uint SCCOREDB_COMPLETE_INIT = 0x00200000;

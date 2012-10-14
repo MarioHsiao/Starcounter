@@ -99,6 +99,8 @@ namespace hello
             LogSource logSource = new LogSource("hello");
             logSource.LogNotice("Hello world (on database thread in database process)!");
 
+//            Starcounter.Internal.sccoredb.sccoredb_drop_index("MyMusic.Artist", "auto");
+
 #if true
 #if false
             Db.Transaction(() =>

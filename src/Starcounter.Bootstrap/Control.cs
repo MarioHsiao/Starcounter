@@ -309,6 +309,11 @@ namespace StarcounterInternal.Bootstrap
             // TODO: What is this configuration for?
             e = sccoredb.SCConfigSetValue("ELOGDIR", c.OutputDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
+
+            sccoredb.sccoredb_config config = new sccoredb.sccoredb_config();
+            orange.orange_configure_database_callbacks(ref config);
+            e = sccoredb.sccoredb_configure(&config);
+            if (e != 0) throw ErrorCode.ToException(e);
         }
 
         private unsafe void ConnectDatabase(Configuration configuration, void* hsched, ulong hmenv, ulong hlogs)

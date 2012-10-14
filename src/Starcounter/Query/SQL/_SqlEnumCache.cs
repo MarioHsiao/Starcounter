@@ -30,11 +30,6 @@ public sealed class SqlEnumCache
     GlobalQueryCache globalQueryCache = Scheduler.GlobalCache;
 
     /// <summary>
-    /// If true, then this local cache has to be invalidated. It is set on through Scheduler.
-    /// </summary>
-    Boolean toInvalidate = false;
-
-    /// <summary>
     /// Gets an already existing enumerator given the unique query ID.
     /// </summary>
     internal IExecutionEnumerator GetCachedEnumerator(Int32 uniqueQueryId)
@@ -111,12 +106,14 @@ public sealed class SqlEnumCache
         // Checking if its completely new query.
         if (enumIndex < 0)
         {
+#if false // TODO: ?
             // Check if there is space for the query
             if (globalQueryCache.IsCacheFull())
             {
                 Scheduler myScheduler = Scheduler.GetInstance(true);
                 myScheduler.InvalidateCache();
             }
+#endif
 
             enumIndex = globalQueryCache.AddNewQuery(query);
         }
@@ -133,35 +130,12 @@ public sealed class SqlEnumCache
         return String.Format("Server SQL query cache status: Totally amount of enumerators = {0}.", totalCachedEnum);
     }
 
-    /// <summary>
-    /// Resets local variable to empty cache. Resets global cache references to
-    /// current global cache values (i.e., after invalidation of global reset).
-    /// This method assumed is not to be called concurrently.
-    /// </summary>
-    internal void InvalidateCache()
+    internal void InvalidateCache(GlobalQueryCache globalQueryCache)
     {
-        if (toInvalidate)
-        {
-            lock (Scheduler.InvalidateLock)
-            {
-                globalQueryCache = Scheduler.GlobalCache;
-                toInvalidate = false;
-            }
-            enumArray = new LinkedListNode<LinkedList<IExecutionEnumerator>>[GlobalQueryCache.MaxUniqueQueries];
-            totalCachedEnum = 0;
-            lastUsedEnumIndex = 0;
-        }
-    }
-
-    internal void InvalidateCache(bool force)
-    {
-        toInvalidate = true;
-        InvalidateCache();
-    }
-
-    internal void SetToInvalidate()
-    {
-        toInvalidate = true;
+        this.globalQueryCache = globalQueryCache;
+        enumArray = new LinkedListNode<LinkedList<IExecutionEnumerator>>[GlobalQueryCache.MaxUniqueQueries];
+        totalCachedEnum = 0;
+        lastUsedEnumIndex = 0;
     }
 }
 }
