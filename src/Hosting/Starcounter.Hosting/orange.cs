@@ -44,15 +44,18 @@ namespace StarcounterInternal.Hosting
 
         }
 
+        private static sccoredb.ON_NEW_SCHEMA on_new_schema = new sccoredb.ON_NEW_SCHEMA(orange_on_new_schema);
+
+        public static unsafe void orange_configure_database_callbacks(ref sccoredb.sccoredb_config config)
+        {
+            config.on_new_schema = (void*)Marshal.GetFunctionPointerForDelegate(on_new_schema);
+        }
+
         private static unsafe void orange_thread_enter(void* hsched, byte cpun, void* p, int init)
         {
             uint r;
             r = sccoredb.SCAttachThread(cpun, init);
-            if (r == 0)
-            {
-                Starcounter.Transaction.OnTransactionSwitch();
-                return;
-            }
+            if (r == 0) return;
             orange_fatal_error(r);
         }
 
@@ -170,6 +173,13 @@ namespace StarcounterInternal.Hosting
             }
 
             orange_fatal_error(e);
+        }
+
+        private static void orange_on_new_schema(ulong generation)
+        {
+            // Thread is yield blocked. Thread is always attached.
+
+            Starcounter.ThreadData.Current.Scheduler.InvalidateCache(generation);
         }
 
         private static void orange_fatal_error(uint e)

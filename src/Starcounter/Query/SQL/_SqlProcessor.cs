@@ -195,9 +195,6 @@ internal static class SqlProcessor
         {
             throw ErrorCode.ToException(errorCode);
         }
-        
-        // Invalidate cache, since queries have to be reoptimized to use the created index.
-        Scheduler.GetInstance(true).InvalidateCache(); // Assuming that scheduler is attached, otherwise null pointer exception
     }
 
     internal static bool ProcessDQuery(String statement, params Object[] values)
@@ -302,9 +299,6 @@ internal static class SqlProcessor
         {
             throw ErrorCode.ToException(errorCode);
         }
-
-        // Invalidate cache, since queries have to be reoptimized to avoid using the dropped index.
-        Scheduler.GetInstance(true).InvalidateCache(); // Assuming that scheduler is attached, otherwise null pointer exception
     }
 
     /// <summary>
@@ -337,9 +331,6 @@ internal static class SqlProcessor
         {
             throw ErrorCode.ToException(errorCode);
         }
-
-        // Invalidate cache, since queries have to be reoptimized to avoid using the dropped index.
-        Scheduler.GetInstance(true).InvalidateCache(); // Assuming that scheduler is attached, otherwise null pointer exception
     }
 
     // CREATE {PROC|PROCEDURE} procedureName @parameterName1 typeName1 [OUT|OUTPUT], ... 

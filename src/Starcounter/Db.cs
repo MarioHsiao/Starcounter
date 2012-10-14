@@ -140,10 +140,7 @@ namespace Starcounter
                 {
                     try
                     {
-                        Starcounter.Transaction.OnTransactionSwitch();
-
                         action();
-
                         Starcounter.Transaction.Commit(1, 1);
                         return;
                     }

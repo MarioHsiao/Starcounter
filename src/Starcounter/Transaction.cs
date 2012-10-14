@@ -8,12 +8,6 @@ namespace Starcounter
     public static class Transaction
     {
 
-        public static void OnTransactionSwitch()
-        {
-            ThreadData t = ThreadData.Current;
-            if (t != null) t.Scheduler.SqlEnumCache.InvalidateCache();
-        }
-
         internal static void Commit(int tran_locked_on_thread, int detach_and_free)
         {
             uint r;
