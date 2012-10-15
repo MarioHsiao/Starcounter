@@ -223,7 +223,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
 
             // We skip the two first parts since the first one will always be "Json" 
             // and the second the rootTemplate.
-            for (Int32 i = 2; i < mapParts.Length; i++)
+            for (Int32 i = 1; i < mapParts.Length; i++)
             {
                 template = appTemplate.Properties.GetTemplateByName(mapParts[i]);
                 if (template is AppTemplate)
@@ -600,8 +600,26 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 binding.BindsToProperty = (NProperty)cst.Children[index];
                 binding.PropertyAppClass = (NAppClass)NAppClass.Find(propertyAppClass.Template);
                 binding.InputTypeName = info.FullInputTypeName;
-
                 FindHandleDeclaringClass(binding, info);
+
+                // We check the next item in the constructor. All inputbindings for 
+                // the same property needs to be ordered with the least parent-calls first.
+                Int32 indexToCheck = index + 1;
+                while (indexToCheck < children.Count)
+                {
+                    NInputBinding otherBinding = children[indexToCheck] as NInputBinding;
+
+                    if (otherBinding == null) break;
+                    if (otherBinding.BindsToProperty != binding.BindsToProperty) break;
+
+                    // Two handlers (or more) are declared for the same property. Lets
+                    // order them with the least parentcalls first.
+                    if (binding.AppParentCount < otherBinding.AppParentCount) break;
+
+                    index = indexToCheck;
+                    indexToCheck++;
+                }
+
                 propertyAppClass.Constructor.Children.Insert(index + 1, binding);
             }
         }
