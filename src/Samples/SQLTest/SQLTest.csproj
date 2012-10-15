@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="DataCreators.cs" />
     <Compile Include="DataModels.cs" />
+    <Compile Include="Indexes.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
