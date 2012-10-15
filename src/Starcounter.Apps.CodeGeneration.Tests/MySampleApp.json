@@ -44,10 +44,20 @@
        test2:""
    },
 
-   "items":
-   [
-       { "itemname":"" }
-   ],
+   "ActivePage":
+	{ 
+		"MyTestStr":"",
+		"SubPage1":
+		{
+			"SubPage2":
+			{
+				"SubPage3":
+				{
+					"StringValue":""
+				}
+			}
+		}
+	},
 
    userLink: "/users/admin",
    user: null
