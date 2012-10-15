@@ -19,7 +19,7 @@ namespace Starcounter
         static LinkedList<String> _lastErrorMessages = new LinkedList<String>();
 
         // Global query cache.
-        static GlobalQueryCache _globalCache = new GlobalQueryCache();
+        static GlobalQueryCache _globalCache = new GlobalQueryCache(0);
 
         internal static GlobalQueryCache GlobalCache
         {
@@ -139,15 +139,38 @@ namespace Starcounter
         /// <summary>
         /// Invalidates global cache, local cache of this scheduler and sets to invalidate local caches of other schedulers
         /// </summary>
-        internal void InvalidateCache()
+        public void InvalidateCache(ulong generation)
         {
+            // Calling thread will be yield blocked.
+
+            GlobalQueryCache cacheToUse;
+
             lock (InvalidateLock)
             {
-                _globalCache = new GlobalQueryCache();
-                foreach (Scheduler s in _instances)
-                    s._sqlEnumCache.SetToInvalidate();
-                this._sqlEnumCache.InvalidateCache();
+                cacheToUse = _globalCache;
+                ulong cacheGeneration = cacheToUse.Generation;
+
+                if (cacheGeneration == generation)
+                {
+                    // Global query cache if of the same generation as
+                    // requested.
+                }
+                else if (cacheGeneration < generation)
+                {
+                    cacheToUse = _globalCache = new GlobalQueryCache(generation);
+                }
+                else
+                {
+                    // The generation we want is older then the generation of
+                    // the global query cache. We create a temporary cache
+                    // until the current scheduler can get up to date and use
+                    // the latest shared version.
+
+                    cacheToUse = new GlobalQueryCache(generation);
+                }
             }
+
+            this._sqlEnumCache.InvalidateCache(cacheToUse);
         }
     }
 }

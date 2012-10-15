@@ -57,9 +57,10 @@
 #include "../common/monitor_interface.hpp"
 #include "../common/shared_interface.hpp"
 #include "../common/bounded_buffer.hpp"
-#include "event.hpp"
+//#include "event.hpp"
 #include "bounded_message_buffer.hpp"
 #include "process_info.hpp"
+#include "../common/macro_definitions.hpp"
 
 /// TODO Figure which of these to include. Maybe required if monitor opens a
 /// database process managed shared memory.
@@ -75,7 +76,6 @@
 //#include "../common/client_interface.hpp"
 //#include "../common/client_number.hpp"
 //#include "../common/config_param.hpp"
-//#include "../common/macro_definitions.hpp"
 //#include "../common/interprocess.hpp"
 //#include "../common/name_definitions.hpp"
 //#include "../common/monitor_interface.hpp"
@@ -277,7 +277,26 @@ public:
 	bool insert_database_name(const std::string& database_name);
 	bool erase_database_name(const std::string& database_name);
 	
+#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+	/// Print an estimate of the rate in the space of 4 charactes.
+	/// For example:
+	/// "  0 "
+	/// "999 "
+	/// "999k"
+	/// "1.0M"
+	/// "9.9M"
+	/// " 10M"
+	/// "999M" (or higher)
+	/**
+	 * @param rate Number of items per second, as measured.
+	 */
+	void print_rate_with_precision(double rate);
+#endif // (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+
 private:
+	// Controlling the console a bit makes it easier to read.
+	void gotoxy(int16_t x, int16_t y);
+
 	/// The registration thread calls this.
 	void registrar();
 	
@@ -315,8 +334,10 @@ private:
 	/// Write active databases.
 	void update_active_databases_file();
 	
+#if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 	/// Watch resources, dor debug purpose only.
 	void watch_resources();
+#endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 	
 	// The monitor initializes the monitor_interface_shared_memory_object.
 	shared_memory_object monitor_interface_;

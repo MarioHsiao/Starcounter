@@ -23,7 +23,9 @@ active_databases_updated_flag_(false),
 registrar_(),
 log_thread_(),
 active_databases_file_updater_thread_(),
+#if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 resources_watching_thread_(),
+#endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 owner_id_counter_(owner_id::none),
 internal_chron_() {
 	/// TODO: Use Boost.Program_options.
@@ -34,7 +36,7 @@ internal_chron_() {
 	
 	// wcstombs() output to temp_buf and then it is copied to a string.
 	/// TODO: Try to improve this code, by copying directly to string.
-	char temp_buf[segment_name_size];
+	char temp_buf[maximum_path_and_file_name_length];
 	
 	// The is_system flag is set to true if the first argument is "SYSTEM",
 	// otherwise it is false. If it is true, privilege SeDebugPrivilege is set.
@@ -46,7 +48,9 @@ internal_chron_() {
 	if (argc > 2) {
 		// Get the first argument, server_name, and convert it from wide-
 		// character string to multibyte string.
-		length = std::wcstombs(temp_buf, argv[1], segment_name_size -1);
+		length = std::wcstombs(temp_buf, argv[1],
+		maximum_path_and_file_name_length -1);
+
 		server_name_ = std::string(temp_buf);
 		
 		if (server_name_ == "SYSTEM") {
@@ -55,7 +59,9 @@ internal_chron_() {
 		
 		// Get the second argument, monitor_log_dir_path, and convert it from
 		// wide character string to multibyte string.
-		length = std::wcstombs(temp_buf, argv[2], segment_name_size -1);
+		length = std::wcstombs(temp_buf, argv[2],
+		maximum_path_and_file_name_length -1);
+
 		temp_buf[length++] = SLASH;
 		temp_buf[length++] = '\0';
 		monitor_log_dir_path_ = std::string(temp_buf);
@@ -70,7 +76,9 @@ internal_chron_() {
 	if (argc > 3) {
 		// Get the first second, monitor_log_dir_path, and convert it from wide-
 		// character string to multibyte string.
-		length = std::wcstombs(temp_buf, argv[3], segment_name_size -1);
+		length = std::wcstombs(temp_buf, argv[3],
+		maximum_path_and_file_name_length -1);
+
 		log_file_name_ = std::string(temp_buf);
 	}
 	else {
@@ -269,7 +277,10 @@ monitor::~monitor() {
 	/// TODO: Check that the log thread flushes all messages before exit.
 	log_thread_.join();
 	active_databases_file_updater_thread_.join();
+
+#if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 	resources_watching_thread_.join();
+#endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 	
 	//--------------------------------------------------------------------------
 	// Close the monitor log file.
@@ -318,9 +329,11 @@ void monitor::run() {
 	active_databases_file_updater_thread_ = boost::thread(boost::bind
 	(&monitor::update_active_databases_file, this));
 	
+#if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 	// Start the resources watching thread.
 	resources_watching_thread_ = boost::thread(boost::bind
 	(&monitor::watch_resources, this));
+#endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 }
 
 void monitor::wait_for_database_process_event(std::size_t group) {
@@ -856,7 +869,7 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 								// For each client_interface, find the ones that
 								// have the same owner_id:
 								// • Set the owner_id's clean up flag, thereby
-								//   indirectlt marking all resources (chunks
+								//   indirectly marking all resources (chunks
 								//   and channels) that the client process
 								//   owned, for clean up. This prepares for the
 								//   clean up job to be done by the schedulers.
@@ -864,34 +877,36 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 								//std::cout << "Searching for terminated " << owner_id_of_terminated_process
 								//<< "...\n"; /// DEBUG
 								
-								for (std::size_t n = 0;
-								n < max_number_of_clients; ++n) {
-									if (shared.client_interface(n)
-									.get_owner_id()
+								for (std::size_t n = 0; n < max_number_of_clients; ++n) {
+									if (shared.client_interface(n).get_owner_id()
 									== owner_id_of_terminated_process) {
-										client_interface_type*
-										client_interface_ptr
+										//std::cout << "clean up: client_interface[" << n << "]\n"; /// DEBUG
+										client_interface_type* client_interface_ptr
 										= &shared.client_interface(n);
 										
-										common_client_interface_type*
-										common_client_interface_ptr
-										= &shared.common_client_interface();
+										//common_client_interface_type* common_client_interface_ptr
+										//= &shared.common_client_interface();
 										
 										if (client_interface_ptr) {
-											common_client_interface_ptr
-											->increment_client_interfaces_to_clean_up();
-											
-											// I think it is important that the
-											// increment above is done before
+											//common_client_interface_ptr->increment_client_interfaces_to_clean_up();
+											shared.common_client_interface().increment_client_interfaces_to_clean_up();
+
+											// I think it is important that the increment above is done before
 											// marking for clean up below.
 											_mm_mfence();
+											_mm_lfence(); // serializes instructions
+											client_interface_ptr->get_owner_id().mark_for_clean_up();
 											
-											client_interface_ptr->
-											get_owner_id().mark_for_clean_up();
-											
+											/// If no schedulers will do it then the monitor must do it.
+
 											++channels_to_recover;
 										}
-										
+
+										//std::cout << "client_interfaces_to_clean_up: "
+										//<< shared.common_client_interface().client_interfaces_to_clean_up() << "\n"; /// DEBUG
+
+										//std::cout << "channels_to_recover: " << channels_to_recover << "\n"; /// DEBUG
+
 										// Log: Marked client_interface for
 										// clean up.
 										message = "Marked client_interface "
@@ -903,46 +918,28 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 										// owned, try to notify the scheduler.
 										// Log this event.
 										
-										// For each mask word, bitscan to find
-										// the channel indices.
-										for (uint32_t ch_index = 0;
-										ch_index < resource_map
-										::channels_mask_size; ++ch_index) {
-											///std::cout << ":" << ch_index << '\n'; /// DEBUG
-											for (resource_map::mask_type mask
-											= client_interface_ptr
-											->get_resource_map()
-											.get_owned_channels_mask(ch_index);
-											mask; mask &= mask -1) {
-												uint32_t ch
-												= bit_scan_forward(mask);
-												
-												ch += ch_index << resource_map
-												::shift_bits_in_mask_type;
-												
-												scheduler_number
-												the_scheduler_number
-												= shared.channel(ch)
-												.get_scheduler_number();
-												
-												/// TODO: Check if the_scheduler_number is out of range!!!
-												
-												scheduler_interface_type*
-												scheduler_interface_ptr =
-												&shared.scheduler_interface
-												(the_scheduler_number);
-												
-												// A fence is needed so that all
-												// accesses to the channel is
-												// completed when marking it to
-												// be released.
+										// For each mask word, bitscan to find the channels owned by the terminated client.
+										for (uint32_t ch_index = 0; ch_index < resource_map::channels_mask_size; ++ch_index) {
+											for (resource_map::mask_type mask = client_interface_ptr->get_resource_map()
+											.get_owned_channels_mask(ch_index); mask; mask &= mask -1) {
+												uint32_t ch = bit_scan_forward(mask);
+												ch += ch_index << resource_map::shift_bits_in_mask_type;
+												scheduler_number the_scheduler_number = shared.channel(ch).get_scheduler_number();
+												scheduler_interface_type* scheduler_interface_ptr = 0;
+
+												if (the_scheduler_number != -1) {
+													scheduler_interface_ptr = &shared.scheduler_interface(the_scheduler_number);
+												}
+
+												// A fence is needed so that all accesses to the channel is
+												// completed when marking it to be released.
 												_mm_mfence();
-												
+												_mm_lfence(); // serializes instructions
+
 												// Mark channel to be released.
 												// After this the channel cannot
 												// be accessed by the monitor.
-												shared.channel(ch)
-												.set_to_be_released();
+												shared.channel(ch).set_to_be_released();
 												
 												// The scheduler may be waiting,
 												// so try to notify it.
@@ -951,10 +948,8 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 												// that probes this channel.
 												// Wait up to 64 ms / channel.
 												if (scheduler_interface_ptr) {
-													if ((scheduler_interface_ptr
-													->try_to_notify_scheduler_to_do_clean_up
-													(64 /* ms to wait */))
-													== true) {
+													if ((scheduler_interface_ptr->try_to_notify_scheduler_to_do_clean_up
+													(64 /* ms to wait */)) == true) {
 														// Log: Succeessfully
 														// notified the scheduler
 														// on this channel.
@@ -1511,8 +1506,54 @@ void monitor::update_active_databases_file() {
 	} while (true);
 }
 
+void monitor::gotoxy(int16_t x, int16_t y) {
+	COORD coord;
+	coord.X = x;
+	coord.Y = y;
+	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+}
+
+#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+void monitor::print_rate_with_precision(double rate) {
+	// The rate is printed in one of the formats:
+	//    0 - 9999 (<1E4)
+	//  10k - 999k (<1E6)
+	// 1.0M - 9.9M (<1E7)
+	//  10M - 999M (or higher)
+	if (rate >= 1E4) {
+		if (rate >= 1E6) {
+			if (rate >= 1E7) {
+				// " 10M" - "999M" (or higher)
+				std::cout.width(3);
+				std::cout << int(rate / 1E6) << 'M';
+			}
+			else {
+				// "1.0M" - "9.9M" (<1E7)
+				std::cout.width(3);
+				std::cout << std::fixed << std::setprecision(1)
+				<< (double(rate) / 1E6) << 'M';
+			}
+		}
+		else {
+			// "  1k" - "999k" (<1E6)
+			std::cout.width(3);
+			std::cout << std::fixed << std::setprecision(0)
+			<< int(double(rate) / 1E3) << 'k';
+		}
+	}
+	else {
+		// "   0" - "9999" (<1E4)
+		std::cout.width(4);
+		std::cout << int(rate);
+	}
+}
+#endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+
+/// NOTE: Originally was ment to be able to show multiple databases at once,
+/// which it can but then statistics are messed up completely. Only test with
+/// one database running.
+#if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 void monitor::watch_resources() {
-	Sleep(INFINITE); // Comment this to see resources in databases.
 	// Vector of all shared interfaces.
 	std::vector<boost::shared_ptr<shared_interface> > shared;
 	shared.reserve(256);
@@ -1520,65 +1561,331 @@ void monitor::watch_resources() {
 	std::string segment_name;
 	std::size_t retries;
 	
+#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+	boost::timer t;
+	
+	// stat[0] contains the most recently collected statistics, and
+	// stat[1] contains the previously collected statistics.
+	struct stat {
+		stat()
+		: timestamp(0) {}
+		
+		struct channel_statistics {
+			channel_statistics()
+			: in_pushed(0LL),
+			in_popped(0LL),
+			out_pushed(0LL),
+			out_popped(0LL) {}
+			
+			int64_t in_pushed;
+			int64_t in_popped;
+			int64_t out_pushed;
+			int64_t out_popped;
+		} channel[channels];
+		
+		double timestamp;
+	} stat[2];
+	
+	// Number of chunks in the in and out queue of the current channel,
+	// that have been pushed and popped since start, recent statistics:
+	int64_t in_pushed_recent;
+	int64_t in_popped_recent;
+	int64_t out_pushed_recent;
+	int64_t out_popped_recent;
+	
+	// Number of chunks in the in and out queue of the current channel,
+	// that have been pushed and popped since start, previous statistics:
+	int64_t in_pushed_previous;
+	int64_t in_popped_previous;
+	int64_t out_pushed_previous;
+	int64_t out_popped_previous;
+
+	// Sum of number of chunks in all channels in and out queue that have been
+	// pushed and popped recently since start:
+	int64_t in_pushed_recent_sum;
+	int64_t in_popped_recent_sum;
+	int64_t out_pushed_recent_sum;
+	int64_t out_popped_recent_sum;
+
+	// Sum of number of chunks in all channels in and out queue that have been
+	// pushed and popped recently since start:
+	int64_t in_pushed_previous_sum;
+	int64_t in_popped_previous_sum;
+	int64_t out_pushed_previous_sum;
+	int64_t out_popped_previous_sum;
+
+	// The flow in a channel is measured by the rate chunks are passing through
+	// per second.
+	double rate;
+
+	// Elapsed time is used to compute the number of push/pop per second.
+	double elapsed_time;
+
+	// Wait at least 1 ms before showing statistics.
+	Sleep(1);
+
+	//  If elapsed time is 0, division by 0 will happen.
+	while (t.elapsed() == 0) {
+		Sleep(1);
+	}
+
+#endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+	int active_segments_update_counter = 0; // Prevent checking too often.
+
 	do {
-		//----------------------------------------------------------------------
-		// Check if there is a new segment name to add.
-		if (active_segments_update_.pop_back(&segment_name, 0, 1000)) {
-			retries = 0;
+		std::cout.flush();
+		gotoxy(0, 0);
+
+		if (active_segments_update_counter-- <= 0) {
+			// Check if there is a new segment name to add.
+			if (active_segments_update_.pop_back(&segment_name, 0, 100)) {
+				retries = 0;
 			
-			while (true) {
-				try {
-					shared.push_back(boost::shared_ptr<shared_interface>
-					(new shared_interface(segment_name, std::string(),
-					pid_type(pid_type::no_pid))));
+				while (true) {
+					try {
+						shared.push_back(boost::shared_ptr<shared_interface>
+						(new shared_interface(segment_name, std::string(),
+						pid_type(pid_type::no_pid))));
 					
-					break;
+						break;
+					}
+					catch (shared_interface_exception&) {
+						// Not possible to open yet. . .
+						++retries;
+					}
 				}
-				catch (shared_interface_exception&) {
-					// Not possible to open yet. . .
-					++retries;
-				}
-			}
 			
-			std::cout << "Opened segment name: " << segment_name << '\n'
-			<< "After " << retries << " retries.\n";
-			segment_name.clear();
+				//std::cout << "Opened segment name: " << segment_name << '\n'
+				//<< "After " << retries << " retries.\n";
+				segment_name.clear();
+			}
+
+			active_segments_update_counter = 10;
 		}
 		
-		//----------------------------------------------------------------------
-		
-		std::cout << "----------------------------------------"
-		"----------------------------------------" << std::endl;
-		
+		// No sleep is needed because output to cmd on Windows takes so much time.
+		// On a Linux machine a sleep might be needed.
+
 		for (std::size_t i = 0; i < shared.size(); ++i) {
-			std::cout << "Segment: " << shared[i]->get_segment_name() << '\n'
-			<< "  chunks: " << shared[i]->shared_chunk_pool().size() << '\n';
+			shared_interface& the_shared = *shared[i];
+
+			std::cout << "Segment: " << the_shared.get_segment_name() << '\n'
+			<< "  free chunks:                  ";
+			std::cout.width(4);
+			std::cout << the_shared.shared_chunk_pool().size() << '\n';
 			
-			std::size_t schedulers = shared[i]->common_scheduler_interface()
+			std::size_t schedulers = the_shared.common_scheduler_interface()
 			.number_of_active_schedulers();
-			
+			uint32_t free_channels_sum = 0;
+
 			for (std::size_t j = 0; j < schedulers; ++j) {
-				std::cout << "  channels in scheduler_interface[" << j << "]: "
-				<< shared[i]->scheduler_interface(j).channel_number_queue()
-				.size() << '\n';
+				uint32_t free_channels_in_scheduler_interface = the_shared
+				.scheduler_interface(j).channel_number_queue().size();
+
+				free_channels_sum += free_channels_in_scheduler_interface;
+				
+				std::cout << "  free channels in scheduler " << j << ": ";
+				std::cout.width(4);
+				std::cout << free_channels_in_scheduler_interface << '\n';
 			}
 			
-			std::cout << "  client interfaces: "
-			<< shared[i]->common_client_interface().client_number_pool().size() << '\n';
-				
-			std::cout << '\n';
+			std::cout << "  free channels (total):        ";
+			std::cout.width(4);
+			std::cout << free_channels_sum << '\n';
 			
+			std::cout << "  free client interfaces:       ";
+			std::cout.width(4);
+			std::cout << the_shared.common_client_interface().client_number_pool().size() << '\n';
+			
+			/// WATCH OWNER_ID IN CLIENT_INTERFACE[0]
+			//bool c = the_shared.client_interface(0).get_owner_id().get_clean_up();
+			
+			/// Debug: Watch the owned channels mask in client_interface[0..1]
+			//for (std::size_t ci = 0; ci < 2; ++ci) {
+			//	std::cout << "client_interface[" << ci << "].owned_channels_mask:\n";
+			//	the_shared.client_interface(ci).get_resource_map().print_owned_channels_mask();
+			//}
+
+			//------------------------------------------------------------------
+#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+			std::cout << "\nChannels (rate, client/scheduler)    "
+			<< "Elapsed time: " << stat[0].timestamp << " s";
+
+			// Taking the timestamp before collecting statistics is probably better
+			// than taking the timestamp after having collected the statistics,
+			// because the timestamp might be more correct then.
+			stat[0].timestamp = t.elapsed();
+			
+			// Elapsed time between stat[0] and stat[1].
+			elapsed_time = stat[0].timestamp -stat[1].timestamp;
+			
+			// Copy recent statistics data [0] to previous statistics data [1].
+			stat[1] = stat[0];
+			
+			// Collect new statistics data from each channel.
 			for (std::size_t ch = 0; ch < channels; ++ch) {
-				// Reference used as shorthand.
-				channel_type& the_channel = shared[i]->channel(ch);
+				stat[0].channel[ch].in_pushed
+				= the_shared.channel(ch).in.pushed_counter().get();
 				
-				if (the_channel.is_to_be_released()) {
-					std::cout << ">" << ch << '\n';
-				}
+				stat[0].channel[ch].in_popped
+				= the_shared.channel(ch).in.popped_counter().get();
+				
+				stat[0].channel[ch].out_pushed
+				= the_shared.channel(ch).out.pushed_counter().get();
+				
+				stat[0].channel[ch].out_popped
+				= the_shared.channel(ch).out.popped_counter().get();
 			}
+			
+			// Sanity check.
+			if (elapsed_time == 0) {
+				// Avoid division by zero and don't print statistics.
+				continue;
+			}
+			
+			// Clear sums.
+			in_pushed_recent_sum = 0LL;
+			in_popped_recent_sum = 0LL;
+			out_pushed_recent_sum = 0LL;
+			out_popped_recent_sum = 0LL;
+			in_pushed_previous_sum = 0LL;
+			in_popped_previous_sum = 0LL;
+			out_pushed_previous_sum = 0LL;
+			out_popped_previous_sum = 0LL;
+
+			// Right place?
+			// Get number of chunks pushed and popped in the current
+			// channels (ch) in and out queues, recently and previously.
+			for (std::size_t ch = 0; ch < channels; ++ch) {
+				in_pushed_recent = stat[0].channel[ch].in_pushed;
+				in_popped_recent = stat[0].channel[ch].in_popped;
+				out_pushed_recent = stat[0].channel[ch].out_pushed;
+				out_popped_recent = stat[0].channel[ch].out_popped;
+				in_pushed_previous = stat[1].channel[ch].in_pushed;
+				in_popped_previous = stat[1].channel[ch].in_popped;
+				out_pushed_previous = stat[1].channel[ch].out_pushed;
+				out_popped_previous = stat[1].channel[ch].out_popped;
+				
+				// Add to sum.
+				in_pushed_recent_sum += in_pushed_recent;
+				in_popped_recent_sum += in_popped_recent;
+				out_pushed_recent_sum += out_pushed_recent;
+				out_popped_recent_sum += out_popped_recent;
+				in_pushed_previous_sum += in_pushed_previous;
+				in_popped_previous_sum += in_popped_previous;
+				out_pushed_previous_sum += out_pushed_previous;
+				out_popped_previous_sum += out_popped_previous;
+			}
+
+#else // !defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+			std::cout << "\nChannels (client/scheduler):";
+#endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+
+			for (std::size_t ch = 0; ch < channels; ++ch) {
+				if (!(ch % 8)) {
+					std::cout << "\n";
+					std::cout.width(3);
+					std::cout << ch << "-";
+					std::cout.width(3);
+					std::cout << ch +7 << ":  ";
+				}
+
+				// Reference used as shorthand.
+				channel_type& this_channel = the_shared.channel(ch);
+
+				//--------------------------------------------------------------
+				// Calculate the flow in the channel, the channel flow at which
+				// chunks passes through it. This is number of chunks
+				// popped from the out queue per second.
+
+				// First indicator: Rate (chunks/sec that are popped from the out
+				// queue), or spaces if not available.
+#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+				
+				//--------------------------------------------------------------
+				// Calculate the channel flow as number of chunks that are
+				// popped from this channels out queue per second.
+
+				rate = double(out_pushed_recent -out_pushed_previous)
+				/ elapsed_time;
+
+				print_rate_with_precision(rate);
+
+				//--------------------------------------------------------------
+#else // !defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+				std::cout << "    "; // Flow unknown.
+#endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+				
+				// Distance to next indicator.
+				std::cout << " ";
+
+				//--------------------------------------------------------------
+				// Second indicator: If the channel is owned by a client or not.
+				//   '.' = no client owns this channel,
+				//   a digit = the number of the client that owns it,
+				//   according to the client scan mask.
+				if (this_channel.get_client_number() != -1) {
+					if (the_shared.client_interface(this_channel
+					.get_client_number()).is_channel_owner(ch)) {
+						std::cout << this_channel.get_client_number();
+					}
+					else {
+						std::cout << " ";
+					}
+				}
+				else {
+					std::cout << " ";
+				}
+
+				// Separator.
+				std::cout << "/";
+
+				//--------------------------------------------------------------
+				// Third indicator: If the channel is owned by a scheduler or not.
+				//   '.' = no scheduler owns this channel,
+				//   a digit = the number of the scheduler that owns it,
+				//   according to the scheduler scan mask.
+				if (this_channel.get_scheduler_number() != -1) {
+					if (the_shared.scheduler_interface(this_channel
+					.get_scheduler_number()).is_channel_owner(ch)) {
+						std::cout << this_channel.get_scheduler_number();
+					}
+					else {
+						std::cout << " ";
+					}
+				}
+				else {
+					std::cout << " ";
+				}
+
+				#if 0
+				// Separator.
+				std::cout << "/";
+				//--------------------------------------------------------------
+				// Fourth char indicates if the channel is marked for release or not.
+				//   '.' = the channel is not marked for release,
+				//   a digit = the number of the scheduler that shall release it,
+				//   according to the scheduler number indicated in the channel.
+				if (this_channel.get_scheduler_number() != -1) {
+					if (this_channel.is_to_be_released()) {
+						std::cout << this_channel.get_scheduler_number();
+					}
+					else {
+						std::cout << " ";
+					}
+				}
+				else {
+					std::cout << " ";
+				}
+				#endif
+
+				//--------------------------------------------------------------
+				// Two spaces separate channels information.
+				std::cout << "  ";
+			}
+
+			std::cout << "\n";
 		}
-		
-		//std::cout << "Segments: " << shared.size() << std::endl;
 	} while (true);
 }
 
@@ -1593,6 +1900,7 @@ void monitor::remove_database_process_event(process_info::handle_type e) {
 		}
 	}
 }
+#endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 
 void monitor::remove_database_process_event(std::size_t group, uint32_t
 event_code) {

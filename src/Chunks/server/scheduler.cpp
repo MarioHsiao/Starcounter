@@ -117,6 +117,14 @@ class server_port {
 	starcounter::core::mapped_region mapped_region_;
 	std::size_t id_;	
 	
+	// TODO: Remove gotoxy() - used during debug.
+	void gotoxy(int16_t x, int16_t y) {
+		COORD coord;
+		coord.X = x;
+		coord.Y = y;
+		SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+	}
+	
 public:
 	enum {
 		// TODO: Experiment with this treshold, which decides when to acquire
@@ -155,7 +163,8 @@ public:
 	 *		all chunks in the channel or targeted to the channel.
 	 */
 	void do_release_channel(channel_number the_channel_number);
-	
+	void release_channel_marked_for_release(channel_number the_channel_index);
+
 	std::size_t number_of_active_schedulers();
 	
 	//--------------------------------------------------------------------------
@@ -314,7 +323,7 @@ public:
 	}
 
 private:
-	__forceinline unsigned long prepare_wait_or_wait_for_signal(unsigned long timeout_milliseconds)
+	FORCE_INLINE unsigned long prepare_wait_or_wait_for_signal(unsigned long timeout_milliseconds)
 	{
 		// If the notify flag is not set, then this was the first scan not
 		// finding any message to process since last time we had work to do.
@@ -449,9 +458,6 @@ unsigned long server_port::init(const char* database_name, std::size_t id) {
 
 //------------------------------------------------------------------------------
 #if 0 /// TODO: Test if this method results in a faster scan of the channels.
-std::size_t i;
-std::size_t the_channel;
-
 // Flags which words to scan, those channel_scan words that are not 0.
 uint64_t words_to_scan; /// TODO: Align on cache-line boundary.
 
@@ -459,11 +465,18 @@ uint64_t words_to_scan; /// TODO: Align on cache-line boundary.
 uint64_t channel_scan[64]; /// TODO: Align on cache-line boundary.
 
 for (uint64_t word_mask = words_to_scan; word_mask; word_mask &= word_mask -1) {
-    (void) _BitScanForward64(&i, word_mask);
+    std::size_t i = bit_scan_forward(word_mask);
     for (uint64_t bit_mask = channel_scan[i]; bit_mask; bit_mask &= bit_mask -1) {
-        (void) _BitScanForward64(&the_channel, bit_mask);
+        std::size_t this_channel = bit_scan_forward(bit_mask);
         // Probe the channels in queue to see if there is a message...and process it.
     }
+}
+
+/// The fastest would be to use 64 channels:
+for (uint64_t channels_mask = get_channel_scan_mask();
+channels_mask; channels_mask &= channels_mask -1) {
+    std::size_t this_channel = bit_scan_forward(channels_mask);
+    // Probe the channels in queue to see if there is a message...and process it.
 }
 
 #endif /// TODO: Test if this method results in a faster scan of the channels.
@@ -476,21 +489,19 @@ sc_io_event& the_io_event) try {
 	// with one chunk at any given time.
 	chunk_index the_chunk_index;
 	
-	// A channel.
-	unsigned long int ch;
-	
-	// If there are any messages (assuming not) in the overflow buffer, we try to
-	// empty the overflow buffer first, because it is more important to give
-	// back chunks before attempting to receive chunks, in case the system is on
-	// the verge of being out of chunks.
-	
+	// If there are any chunks (asuming not) in the overflow buffer, try to
+	// push all chunks currently in the overflow buffer first, because it is
+	// more important to send back processed chunks before attempting to receive
+	// chunks to be processed.
+
 	if (this_scheduler_interface_->overflow_pool().empty()) {
 		goto main_processing_loop;
 	}
 	else {
 		// This type must be uint32_t.
 		uint32_t chunk_index_and_channel;
-		std::size_t current_overflow_size = this_scheduler_interface_->overflow_pool().size();
+		std::size_t current_overflow_size
+		= this_scheduler_interface_->overflow_pool().size();
 		
 		// Try to empty the overflow buffer, but only those elements that are
 		// currently in the buffer. Those that fail to be pushed are put back in
@@ -499,7 +510,7 @@ sc_io_event& the_io_event) try {
 			this_scheduler_interface_->overflow_pool().back(&chunk_index_and_channel);
 			
 			the_chunk_index = chunk_index_and_channel & 0xFFFFFFUL;
-			ch = (chunk_index_and_channel >> 24) & 0xFFUL;
+			channel_number ch = (chunk_index_and_channel >> 24) & 0xFFUL;
 			
 			// Try to push it to the queue. If it fails, the item is put back in
 			// the overflow_.
@@ -516,10 +527,17 @@ sc_io_event& the_io_event) try {
 	
 main_processing_loop:
 	while (true) {
+		// TODO: 1/32 of the times passing here, checking the channels is forced by
+		// not checking the signal- or task-channels, etc. Experiment needed.
+		//if (STRONGLY_TAKEN((++signal_and_task_queues_check_counter & 31) != 0)) {
 		if (this_scheduler_signal_channel_->in.try_pop_back(&the_chunk_index) == true)
 		{
 			the_io_event.channel_index_ = invalid_channel_number;
 			the_io_event.chunk_index_ = the_chunk_index;
+			
+			/// TODO: If this path is often taken, then channel[s] where client(s) push
+			/// chunks are rarely checked instead. A counter can be used to sometimes
+			/// bypass checking this_scheduler_signal_channel_.
 			return 0;
 		}
 
@@ -529,14 +547,14 @@ main_processing_loop:
 			// Got an internal message from some scheduler.
 			the_io_event.channel_index_ = invalid_channel_number;
 			the_io_event.chunk_index_ = the_chunk_index;
+
+			/// TODO: If this path is often taken, then channel[s] where client(s) push
+			/// chunks are rarely checked instead. A counter can be used to sometimes
+			/// bypass checking this_scheduler_task_channel_.
 			return 0;
 		}
+		//}
 
-		#if defined(_MSC_VER) // Windows
-		# if defined(_M_X64) || defined(_M_AMD64) // LLP64 machine
-		/// 64-bit version
-		
-		///---------------------------------------------------------------------
 		if (!common_client_interface().client_interfaces_to_clean_up()) {
 			// No clean up to do.
 			goto check_next_channel;
@@ -548,58 +566,83 @@ main_processing_loop:
 			
 			/// Scan through all channels of this scheduler and check if they
 			/// are marked for release.
-			uint32_t chy;
 			
-			for (channel_number n = 0; n < channel_masks_; ++n) {
+			for (channel_number mask_word_counter = 0;
+			mask_word_counter < channel_masks_; ++mask_word_counter) {
+#if defined(_MSC_VER) // Windows
+# if defined(_M_X64) || defined(_M_AMD64) // LLP64 machine
+				/// 64-bit version
 				for (uint64_t mask = this_scheduler_interface_
-				->get_channel_mask_word(n); mask; mask &= mask -1) {
-					chy = bit_scan_forward(mask);
-					chy += n << 6;
-					
-					// Reference used as shorthand.
-					channel_type& the_channel = channel_[chy];
+				->get_channel_mask_word(mask_word_counter);
+				mask; mask &= mask -1) {
+					channel_number this_channel = bit_scan_forward(mask);
+					this_channel += mask_word_counter << 6;
+# elif defined(_M_IX86) // ILP32 machine
+				/// 32-bit version
+				for (uint32_t mask = this_scheduler_interface_
+				->get_channel_mask_word(mask_word_counter);
+				mask; mask &= mask -1) {
+					channel_number this_channel = bit_scan_forward(mask);
+					this_channel += mask_word_counter << 5;
+# endif // (_M_X64) || (_M_AMD64)
+#else
+# error Compiler not supported.
+#endif // (_MSC_VER)
+					channel_type& the_channel = channel_[this_channel];
 					
 					// Check if the channel is marked for release, assuming not.
 					if (!the_channel.is_to_be_released()) {
 						continue; // check next...
 					}
 					else {
-						///=========================================================
-						/// The channel has been marked for release. The release of
-						/// the channel will be done when there are no more server
-						/// references to the channel, i.e., there is tranquility in
-						/// the channel. The state of tranquility in the channel
-						/// remains for as long as the scheduler don't pop another
-						/// message from the in queue of this channel.
-						///=========================================================
-						
+						// The channel has been marked for release. The release of
+						// the channel will be done when there are no more server
+						// references to the channel, i.e., there is tranquility in
+						// the channel. The state of tranquility in the channel
+						// remains for as long as the scheduler don't pop another
+						// message from the in queue of this channel.
 						if (the_channel.get_server_refs() != 0) {
 							// No tranquility yet in the channel.
 							continue;
 						}
 						else {
 							// Tranquility in the channel. Releasing it.
-							do_release_channel(chy);
+							do_release_channel(this_channel);
 						}
 					}
 				}
 			}
 		}
-		
-		///---------------------------------------------------------------------
+
 check_next_channel:
-		for (channel_number n = next_channel_ >> 6; n < channel_masks_; ++n) {
-			uint64_t tm = ~0ULL << (next_channel_ & 63);
-			
-			for (uint64_t mask = tm
-			& this_scheduler_interface_->get_channel_mask_word(n); mask;
-			mask &= mask -1) {
-				ch = bit_scan_forward(mask);
-				ch += n << 6;
-				next_channel_ = (ch +1) & 0xFFUL;
-				
-				// Reference used as shorthand.
-				channel_type& the_channel = channel_[ch];
+#if defined(_MSC_VER) // Windows
+# if defined(_M_X64) || defined(_M_AMD64) // LLP64 machine
+		/// 64-bit version
+		for (channel_number mask_word_counter = next_channel_ >> 6;
+		mask_word_counter < channel_masks_; ++mask_word_counter) {
+			uint32_t prev = (next_channel_ & 63);
+			for (uint64_t mask = (this_scheduler_interface_
+			->get_channel_mask_word(mask_word_counter) >> prev) << prev;
+			mask; mask &= mask -1) {
+				channel_number this_channel = bit_scan_forward(mask);
+				this_channel += mask_word_counter << 6;
+# elif defined(_M_IX86) // ILP32 machine
+		/// 32-bit version
+		for (channel_number mask_word_counter = next_channel_ >> 5;
+		mask_word_counter < channel_masks_; ++mask_word_counter) {
+			uint32_t prev = (next_channel_ & 31);
+			for (uint32_t mask = (this_scheduler_interface_
+			->get_channel_mask_word(mask_word_counter) >> prev) << prev;
+			mask; mask &= mask -1) {
+				channel_number this_channel = bit_scan_forward(mask);
+				this_channel += mask_word_counter << 5;
+# endif // (_M_X64) || (_M_AMD64)
+#else
+# error Compiler not supported.
+#endif // (_MSC_VER)
+				// next_channel_ = (this_channel +1) % channels;
+				next_channel_ = (this_channel +1) & (channels -1);
+				channel_type& the_channel = channel_[this_channel];
 				
 				// Check if the channel is marked for release, assuming not.
 				if (!the_channel.is_to_be_released()) {
@@ -611,102 +654,47 @@ check_next_channel:
 						// Add a reference to for the caller. The caller will
 						// release the channel request has been processed.
 						the_channel.add_server_ref();
-						the_io_event.channel_index_ = ch;
-						the_io_event.chunk_index_ = the_chunk_index;
-						return 0;
-					}
-				}
-																				#if 0
-																				else {
-																					///=========================================================
-																					/// The channel has been marked for release. The release of
-																					/// the channel will be done when there are no more server
-																					/// references to the channel, i.e., there is tranquility in
-																					/// the channel. The state of tranquility in the channel
-																					/// remains for as long as the scheduler don't pop another
-																					/// message from the in queue of this channel.
-																					///=========================================================
-																					
-																					if (the_channel.get_server_refs() != 0) {
-																						// No tranquility yet in the channel.
-																						continue;
-																					}
-																					else {
-																						// Tranquility in the channel. Releasing it.
-																						//do_release_channel(ch);
-																					}
-																				}
-																				#endif
-			}
-			
-			// When reading a new mask, start at bit 0 in that mask.
-			next_channel_ &= ~63;
-		}
-		
-		# elif defined(_M_IX86) // ILP32 machine
-		/// 32-bit version
-		
-		for (channel_number n = next_channel_ >> 5; n < channel_masks_; ++n) {
-			uint32_t tm = ~0UL << (next_channel_ & 31);
-			
-			for (uint32_t mask = tm
-			& this_scheduler_interface_->get_channel_mask_word(n); mask;
-			mask &= mask -1) {
-				ch = bit_scan_forward(mask);
-				ch += n << 5;
-				next_channel_ = (ch +1) & 0xFFUL;
-				
-				// Reference used as shorthand.
-				channel_type& the_channel = channel_[ch];
-				
-				// Check if the channel is marked for release, assuming not.
-				if (!the_channel.is_to_be_released()) {
-					// Check if there is a message and process it.
-					if (the_channel.in.try_pop_back(&the_chunk_index) == true) {
-						// Notify the client that the in queue is not full.
-						the_channel.client()->notify();
-						// Add a reference to for the caller. The caller will
-						// release the channel request has been processed.
-						the_channel.add_server_ref();
-						the_io_event.channel_index_ = ch;
+						the_io_event.channel_index_ = this_channel;
 						the_io_event.chunk_index_ = the_chunk_index;
 						return 0;
 					}
 				}
 				else {
-					///=========================================================
-					/// The channel has been marked for release. The release of
-					/// the channel will be done when there are no more server
-					/// references to the channel, i.e., there is tranquility in
-					/// the channel. The state of tranquility in the channel
-					/// remains for as long as the scheduler don't pop another
-					/// message from the in queue of this channel.
-					///=========================================================
-					
-					// Get number of refs to channel.
-					int32_t refs = the_channel.get_server_refs();
-					
+					// The channel has been marked for release. The release of
+					// the channel will be done when there are no more server
+					// references to the channel, i.e., there is tranquility in
+					// the channel. The state of tranquility in the channel
+					// remains for as long as the scheduler don't pop another
+					// message from the in queue of this channel.
 					if (the_channel.get_server_refs() != 0) {
 						// No tranquility yet in the channel.
 						continue;
 					}
 					else {
 						// Tranquility in the channel. Releasing it.
-						do_release_channel(ch);
+						release_channel_marked_for_release(this_channel);
 					}
 				}
 			}
 			
-			// When reading a new mask, start at bit 0 in that mask.
-			next_channel_ &= ~31;
+#if defined(_MSC_VER) // Windows
+# if defined(_M_X64) || defined(_M_AMD64) // LLP64 machine
+			// A 64-bit mask word have been scanned, therefore add mask size 64.
+			next_channel_ += 64;
+
+			// Keep the mask word counter value (bit 7:6), and clear all other bits.
+			next_channel_ &= 192; // ...011000000
+# elif defined(_M_IX86) // ILP32 machine
+			// A 32-bit mask word have been scanned, therefore add mask size 32.
+			next_channel_ += 32;
+
+			// Keep the mask word counter value (bit 7:5), and clear all other bits.
+			next_channel_ &= 224; // ...011100000
+# endif // (_M_X64) || (_M_AMD64)
+#else
+# error Compiler not supported.
+#endif // (_MSC_VER)
 		}
-		
-		# endif // (_M_X64) || (_M_AMD64)
-		#else
-		# error Compiler not supported.
-		#endif // (_MSC_VER)
-		
-		///=====================================================================
 		
 		// The scheduler has completed a scan of all its channels in queues.
 		this_scheduler_interface_->increment_channel_scan_counter();
@@ -718,12 +706,13 @@ check_next_channel:
 		// was the first scan not finding any message to process since last time
 		// we had work to do.
 		unsigned long r = prepare_wait_or_wait_for_signal(timeout_milliseconds);
-		if (r == 0) continue;
+		if (r == 0) {
+			continue;
+		}
 		return r;
 	}
 	// The scheduler thread exit here. The server should join the thread.
 }
-//catch (boost::interprocess::interprocess_exception& e) {
 catch (boost::interprocess::interprocess_exception&) {
 	return (unsigned long) -1;
 }
@@ -745,23 +734,30 @@ unsigned long server_port::get_next_signal(unsigned int timeout_milliseconds, un
 	return r;
 }
 
-long server_port::has_task()
-{
+long server_port::has_task() {
 	if (this_scheduler_task_channel_->in.has_more()) return 1;
 
 	for (channel_number n = 0; n < channel_masks_; ++n) {
+#if defined(_MSC_VER) // Windows
+# if defined(_M_X64) || defined(_M_AMD64) // LLP64 machine
+		/// 64-bit version
 		for (uint64_t mask = this_scheduler_interface_
 		->get_channel_mask_word(n); mask; mask &= mask -1) {
-			uint32_t chy = bit_scan_forward(mask);
-			chy += n << 6;
-					
-			// Reference used as shorthand.
-			channel_type& the_channel = channel_[chy];
-			
-			if (the_channel.in.has_more()) return 1;
+			uint32_t ch = bit_scan_forward(mask);
+			ch += n << 6;
+# elif defined(_M_IX86) // ILP32 machine
+		/// 32-bit version
+		for (uint32_t mask = this_scheduler_interface_
+		->get_channel_mask_word(n); mask; mask &= mask -1) {
+			uint32_t ch = bit_scan_forward(mask);
+			ch += n << 5;
+# endif // (_M_X64) || (_M_AMD64)
+#else
+# error Compiler not supported.
+#endif // (_MSC_VER)
+			if (channel_[ch].in.has_more()) return 1;
 		}
 	}
-
 	return 0;
 }
 
@@ -882,12 +878,34 @@ unsigned long server_port::send_task_to_scheduler(unsigned long port_number,
 chunk_index the_chunk_index) {
 	scheduler_channel_type& the_channel = scheduler_task_channel_[port_number];
 	if (the_channel.in.try_push_front(the_chunk_index)) {
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	// Using Windows Events to synchronize.
+		// Get the work HANDLE...
+		HANDLE work = 0; /// TEST COMPILE
+		scheduler_interface_[port_number].notify(work);
+#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	// Using Boost.Interprocess to synchronize.
 		scheduler_interface_[port_number].notify();
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 		return 0;
 	}
 	return _E_INPUT_QUEUE_FULL;
 }
 
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	// Using Windows Events to synchronize.
+unsigned long server_port::send_signal_to_scheduler(unsigned long port_number,
+chunk_index the_chunk_index) {
+	scheduler_channel_type& the_channel = scheduler_signal_channel_[port_number];
+	if (the_channel.in.try_push_front(the_chunk_index)) {
+		HANDLE work = 0; /// TEST COMPILE
+		scheduler_interface_[port_number].notify(work);
+		return 0;
+	}
+	return _E_INPUT_QUEUE_FULL;
+}
+#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	// Using Boost.Interprocess to synchronize.
 unsigned long server_port::send_signal_to_scheduler(unsigned long port_number,
 chunk_index the_chunk_index) {
 	scheduler_channel_type& the_channel = scheduler_signal_channel_[port_number];
@@ -897,6 +915,7 @@ chunk_index the_chunk_index) {
 	}
 	return _E_INPUT_QUEUE_FULL;
 }
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 
 void server_port::add_ref_to_channel(unsigned long the_channel_index)
 {
@@ -932,7 +951,7 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 	int32_t server_refs = channel.get_server_refs();
 	chunk_index the_chunk_index;
 	
-	// TODO: The client process terminated without unregistering. Clean up
+	// TODO: If the client process terminated without unregistering, clean up
 	// must be done by the database process. There are no more references to
 	// the channel on the server so it is safe to release the channel.
 	// But first the in and out queues must be emptied and any chunk in them
@@ -952,6 +971,11 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 	// the overflow_pool, to the bit bucket. These are copies and the
 	// same indices are marked in the resource_map.
 	
+	///=========================================================================
+	/// Empty the channels in and out queues.
+	///=========================================================================
+
+	// Empty the channels in queue.
 	for (std::size_t i = 0; i < channel_capacity; ++i) {
 		if (channel.in.try_pop_back(&the_chunk_index) == true) {
 			// the_chunk_index is not released here, it is done later when
@@ -964,6 +988,7 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 		}
 	}
 	
+	// Empty the channels out queue.
 	for (std::size_t i = 0; i < channel_capacity; ++i) {
 		if (channel.out.try_pop_back(&the_chunk_index) == true) {
 			// the_chunk_index is not released here, it is done later when
@@ -976,7 +1001,11 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 		}
 	}
 	
-	uint32_t overflow_indices_removed = 0;
+	///=========================================================================
+	/// Remove chunk indices from the overflow_pool targeted for this channel.
+	///=========================================================================
+	
+	//uint32_t overflow_indices_removed = 0;
 	
 	if (!this_scheduler_interface_->overflow_pool().empty()) {
 		// This type must be uint32_t.
@@ -984,8 +1013,155 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 		std::size_t current_overflow_size
 		= this_scheduler_interface_->overflow_pool().size();
 		
-		// Empty the overflow_pool_ on indices targeted for the
-		// the_channel_index.
+		for (std::size_t i = 0; i < current_overflow_size; ++i) {
+			this_scheduler_interface_->overflow_pool().pop_back
+			(&chunk_index_and_channel);
+			
+			if ((chunk_index_and_channel >> 24) != the_channel_index) {
+				// This chunk_index was targeted for another channel.
+				// Push it back in the overflow_pool_.
+				this_scheduler_interface_->overflow_pool().push_front
+				(chunk_index_and_channel);
+			}
+			//else {
+			//	++overflow_indices_removed;
+			//}
+		}
+	}
+	
+	///=========================================================================
+	/// Releases the channel making it available for any client to allocate.
+	///=========================================================================
+	
+	_mm_mfence();
+	_mm_lfence(); // Synchronizes instruction stream.
+	channel.clear_is_to_be_released(); // Do it higher up in here?
+
+	// Get the scheduler_number the channel is to be released via.
+	uint32_t the_scheduler_number = client_interface_ptr->get_resource_map()
+	.get_scheduler_number_for_owned_channel_number(the_channel_index);
+	
+	// Mark the channel as not owned.
+	client_interface_ptr->clear_channel_flag(the_scheduler_number,
+	the_channel_index);
+
+	// It is of paramount importance that the above is done before the
+	// channel is released. The fence forces this.
+	_mm_mfence();
+	_mm_lfence(); // Synchronizes instruction stream.
+	
+	// Release the channel.
+	release_channel_number(the_channel_index, the_scheduler_number); /// TEST: Shall not be commented.
+	_mm_mfence();
+	_mm_lfence(); // Synchronizes instruction stream.
+	
+	// The channel has been released and can now be allocated by any client.
+	
+	uint32_t channels_left
+	= client_interface_ptr->decrement_number_of_allocated_channels();
+	
+	if (channels_left == 0) {
+		if (client_interface_ptr->get_owner_id().get_clean_up()) {
+			// Is the client_interface marked for clean up?
+			// Clean up job to do.
+			///=================================================================
+			/// Release all chunks in this client_interface, making them
+			/// available for anyone to allocate.
+			///=================================================================
+	
+			// Search through the overflow_pool and for each chunk that is
+			// marked in the resource_map of this client, remove it. Otherwise
+			// put it back into the overflow_pool. Not sure if this is needed.
+			// Maybe tranquility means there is no chunks left, because they
+			// were thrown away already. Should be the case, verify!
+	
+			// Now there shall not exist any more chunk indices around, except
+			// those in the resource_map. Release them.
+	
+			//std::size_t chunks_flagged = client_interface_ptr
+			//->get_resource_map().count_chunk_flags_set();
+	
+			bool release_chunk_result = release_clients_chunks
+			(client_interface_ptr, 10000 /* milliseconds */);
+	
+			// Release the client_interface[the_client_number].
+			client_interface_ptr->set_owner_id(owner_id::none);
+	
+			bool release_client_number_res =
+			common_client_interface_->release_client_number(the_client_number,
+			client_interface_ptr);
+	
+			common_client_interface_->decrement_client_interfaces_to_clean_up();
+			// Clean up done for client_interface[the_client_number].
+		}
+	}
+}
+
+void server_port::release_channel_marked_for_release(channel_number the_channel_index) {
+	channel_type& channel = channel_[the_channel_index];
+	int32_t server_refs = channel.get_server_refs();
+	chunk_index the_chunk_index;
+	
+	// TODO: If the client process terminated without unregistering, clean up
+	// must be done by the database process. There are no more references to
+	// the channel on the server so it is safe to release the channel.
+	// But first the in and out queues must be emptied and any chunk in them
+	// must first be released. Default chunks are not released of course.
+	client_interface_type* client_interface_ptr = channel.client();
+	client_number the_client_number = channel.get_client_number();
+	
+	// Clean up job to be done: Empty the in and out queues of this
+	// channel and decrement the number of owned channels counter in
+	// this client_interface, and if the counter reaches 0, this
+	// scheduler do the job of releasing the resources in this
+	// client_interface. This can be changed so that another thread
+	// do this job instead and this scheduler move on an do its normal
+	// tasks. Its a question of optimization.
+	
+	// Move all chunk indices from the channels in and out queues, and
+	// the overflow_pool, to the bit bucket. These are copies and the
+	// same indices are marked in the resource_map.
+	
+	///=========================================================================
+	/// Empty the channels in and out queues.
+	///=========================================================================
+
+	// Empty the channels in queue.
+	for (std::size_t i = 0; i < channel_capacity; ++i) {
+		if (channel.in.try_pop_back(&the_chunk_index) == true) {
+			// the_chunk_index is not released here, it is done later when
+			// releasing chunks via the resource map.
+			continue;
+		}
+		else {
+			// Only reason it would not work is that it is empty.
+			break;
+		}
+	}
+	
+	// Empty the channels out queue.
+	for (std::size_t i = 0; i < channel_capacity; ++i) {
+		if (channel.out.try_pop_back(&the_chunk_index) == true) {
+			// the_chunk_index is not released here, it is done later when
+			// releasing chunks via the resource map.
+			continue;
+		}
+		else {
+			// Only reason it would not work is that it is empty.
+			break;
+		}
+	}
+	
+	///=========================================================================
+	/// Remove chunk indices from the overflow_pool targeted for this channel.
+	///=========================================================================
+
+	if (!this_scheduler_interface_->overflow_pool().empty()) {
+		// This type must be uint32_t.
+		uint32_t chunk_index_and_channel;
+		std::size_t current_overflow_size
+		= this_scheduler_interface_->overflow_pool().size();
+		
 		for (std::size_t i = 0; i < current_overflow_size; ++i) {
 			this_scheduler_interface_->overflow_pool().pop_back
 			(&chunk_index_and_channel);
@@ -997,18 +1173,33 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 				(chunk_index_and_channel);
 			}
 			else {
-				++overflow_indices_removed;
+				// This chunk is targeted for this channel and shall be freed if
+				// the chunk is not a pre-allocated chunk.
+
+				// Clear channel_number (31:24) to get only the chunk_index.
+				the_channel_index &= (1 << 24) -1;
+
+				// Free this chunk if not a default chunk_index.
+				if (the_channel_index >= channels) {
+					shared_chunk_pool_->push_front(the_channel_index);
+				}
 			}
 		}
 	}
 	
+	/// TODO: If the in queue was not empty at the moment this function was
+	/// called, this is a bug because the scheduler have popped a message since
+	/// then. This must be made impossible. Verify this.
+
 	///=========================================================================
 	/// Releases the channel making it available for any client to allocate.
 	///=========================================================================
-	
-	// Clear the flag indicating that this channel is to be released.
+	_mm_mfence();
+	_mm_sfence();
 	channel.clear_is_to_be_released(); // Do it higher up in here?
-	
+	_mm_mfence();
+	_mm_sfence();
+
 	// Get the scheduler_number the channel is to be released via.
 	uint32_t the_scheduler_number = client_interface_ptr->get_resource_map()
 	.get_scheduler_number_for_owned_channel_number(the_channel_index);
@@ -1020,87 +1211,16 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 	// It is of paramount importance that the above is done before the
 	// channel is released. The fence forces this.
 	_mm_mfence();
+	_mm_lfence(); // Synchronizes instruction stream.
 	
 	// Release the channel.
 	release_channel_number(the_channel_index, the_scheduler_number);
 	_mm_mfence();
-	
-	// The channel has been released and can now be allocated by any client.
+	_mm_lfence(); // Synchronizes instruction stream.
 	
 	uint32_t channels_left
 	= client_interface_ptr->decrement_number_of_allocated_channels();
-	
-	if (channels_left == 0) {
-		#if 0 /// Debug info
-		std::cout << "SCHEDULER " << id_ << ": "
-		<< "NOW ALL CHANNELS OF CLIENT_INTERFACE " << the_client_number
-		<< " HAVE BEEN RELEASED. " << client_interface_ptr->allocated_channels()
-		<< " CHANNELS ALLOCATED." << std::endl; /// Debug info
-		#endif /// Debug info
-		
-		// Is the client_interface marked for clean up?
-		if (client_interface_ptr->get_owner_id().get_clean_up()) {
-			// Clean up job to do.
-			//std::cout << "SCHEDULER " << id_ << ": CLIENT_INTERFACE "
-			//<< the_client_number << " IS MARKED FOR CLEAN UP." << std::endl; /// Debug info
-			
-			///=================================================================
-			/// Release all chunks in this client_interface, making them
-			/// available for anyone to allocate.
-			///=================================================================
-			
-			// Search through the overflow_pool and for each chunk that is
-			// marked in the resource_map of this client, remove it. Otherwise
-			// put it back into the overflow_pool. Not sure if this is needed.
-			// Maybe tranquility means there is no chunks left, because they
-			// were thrown away already. Should be the case, verify!
-			
-			// Now there shall not exist any more chunk indices around, except
-			// those in the resource_map. Release them.
-			
-			//std::size_t chunks_flagged = client_interface_ptr
-			//->get_resource_map().count_chunk_flags_set();
-					
-			bool release_chunk_result = release_clients_chunks
-			(client_interface_ptr, 10000 /* milliseconds */);
-			
-			#if 0 /// Debug info
-			if (release_chunk_result == true) {
-				std::cout << "SCHEDULER " << id_ << ": "
-				<< "NOW ALL CHUNKS OF CLIENT_INTERFACE " << the_client_number
-				<< " HAVE BEEN RELEASED." << std::endl; /// Debug info
-			}
-			else {
-				std::cout << "SCHEDULER " << id_ << ": "
-				<< "FAILED TO RELEASE CHUNKS OF CLIENT_INTERFACE " << the_client_number
-				<< ". SORRY." << std::endl; /// Debug info
-			}
-			#endif /// Debug info
-			
-			// Release the client_interface[the_client_number].
-			client_interface_ptr->set_owner_id(owner_id::none);
-
-			bool release_client_number_res =
-			common_client_interface_->release_client_number(the_client_number,
-			client_interface_ptr);
-			
-			common_client_interface_->decrement_client_interfaces_to_clean_up();
-			
-			#if 0 /// Debug info
-			if (release_client_number_res == true) {
-				std::cout << "SCHEDULER " << id_ << ": CLIENT_INTERFACE "
-				<< the_client_number << " HAVE BEEN RELEASED." << std::endl; /// Debug info
-			}
-			else {
-				std::cout << "SCHEDULER " << id_ << ": FAILED TO RELEASE "
-				"CLIENT_INTERFACE " << the_client_number << ". SORRY." << std::endl; /// Debug info
-			}
-			#endif /// Debug info
-
-			// Clean up done for client_interface[the_client_number].
-			return;
-		}
-	}
+	// The channel has been released and can now be allocated by any client.
 }
 
 std::size_t server_port::number_of_active_schedulers() {
@@ -1259,9 +1379,16 @@ uint32_t timeout_milliseconds) {
 	scheduler_interface_[the_scheduler_number]
 	.clear_channel_number_flag(the_channel_number);
 	
-	// Set the pointers to null.
-	channel_[the_channel_number].set_scheduler_interface(0);
-	channel_[the_channel_number].set_client_interface_as_qword(0);
+	_mm_mfence(); // Neccessary?
+
+	// Set the pointers and indexes to 0.
+	channel_type& the_channel = channel_[the_channel_number];
+	the_channel.set_scheduler_interface(0);
+	the_channel.set_scheduler_number(-1);
+	the_channel.set_client_interface_as_qword(0);
+	the_channel.set_client_number(-1);
+
+	_mm_mfence(); // Neccessary?
 	
 	// Release the_channel_number.
 	scheduler_interface_[the_scheduler_number]

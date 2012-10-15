@@ -54,14 +54,11 @@ public:
 	 * @param segment_name is used to open the database shared memory. The
 	 *		segment name has the format:
 	 *		<DATABASE_NAME_PREFIX>_<DATABASE_NAME>_<SEQUENCE_NUMBER>
-	 *
 	 * @param monitor_interface_name is used to open and close the
 	 *		monitor_interface. The monitor_interface_name has the format:
 	 *		<SERVER_NAME>_<MONITOR_INTERFACE_SUFFIX>
-	 *
 	 * @param oid Is the owner_id shared by all client threads in this client
 	 *		process.
-	 *
 	 * @param pid Is the process id of this client process.
 	 */
 	client_port(const char* segment_name, const char* monitor_interface_name,
@@ -71,17 +68,12 @@ public:
 	/// response from the database. It is a "timed" function that can fail.
 	/**
 	 * @param channel The channel which the communication is done.
-	 *
 	 * @param request The request chunk_index.
-	 *
 	 * @param response Reference to the response chunk_index.
-	 *
 	 * @param spin The number of times to re-try pushing to the in queue or
 	 *		popping from the out queue, before eventually blocking.
-	 *
 	 * @param timeout The number of milliseconds to wait before a timeout may
 	 *		occur, in case the database doesn't respond.
-	 *
 	 * @return An error code.
 	 */
 	uint32_t send_to_server_and_wait_response(uint32_t channel,
@@ -89,12 +81,13 @@ public:
 	
 	chunk_index wait_for_response(uint32_t the_channel_index);
 	
-							/// acquire_chunk() used an obsolete API in shared_interface. Now it uses
-							/// the new API, but acquire_chunk() is obsolete because it is inefficient
-							/// to acquire just one chunk. So this function should be removed.
-							chunk_index acquire_chunk();
+	/// acquire_chunk() used an obsolete API in shared_interface. Now it uses
+	/// the new API, but acquire_chunk() is obsolete because it is inefficient
+	/// to acquire just one chunk. So this function should be removed.
+	chunk_index acquire_chunk();
 	
 	channel_number acquire_channel(scheduler_number the_scheduler_number);
+
 	void release_channel(channel_number the_channel_number);
 	
 	uint32_t get_number_of_active_schedulers();

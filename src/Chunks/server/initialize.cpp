@@ -59,7 +59,6 @@ static shared_memory_object global_segment_shared_memory_object;
 unsigned long initialize(const char* segment_name, std::size_t schedulers, bool
 is_system, uint32_t chunks_total_number) try {
 	using namespace starcounter::core;
-
 	//--------------------------------------------------------------------------
 	// if (strlen(segment_name) > 31) return;
 	
@@ -209,9 +208,10 @@ is_system, uint32_t chunks_total_number) try {
 	= (scheduler_interface_type*) p;
 	
 	for (std::size_t i = 0; i < schedulers; ++i) {
-		new(scheduler_interface +i) scheduler_interface_type
-		(channels, chunks_total_number, chunks_total_number, scheduler_interface_alloc_inst,
-		scheduler_interface_alloc_inst2, scheduler_interface_alloc_inst2);
+		new(scheduler_interface +i) scheduler_interface_type(channels,
+		chunks_total_number, chunks_total_number,
+		scheduler_interface_alloc_inst, scheduler_interface_alloc_inst2,
+		scheduler_interface_alloc_inst2, segment_name, i);
 	}
 	
 	// Initialize the scheduler_interface by pushing in channel_number(s).
@@ -237,7 +237,7 @@ is_system, uint32_t chunks_total_number) try {
 	
 	for (std::size_t i = 0; i < max_number_of_clients; ++i) {
 		new(client_interface +i) client_interface_type
-		(client_interface_alloc_inst);
+		(client_interface_alloc_inst, segment_name, i);
 	}
 	
 	//--------------------------------------------------------------------------

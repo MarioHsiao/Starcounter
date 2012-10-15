@@ -14,7 +14,9 @@ namespace Starcounter.Internal
 
         public unsafe delegate void THREAD_LEAVE(void* hsched, byte cpun, void* p, uint yr);
 
-        public unsafe delegate void THREAD_START(void* hsched, byte cpun, void* p, uint ignore);
+        public const uint CM5_START_FLAG_FIRST_THREAD = 1;
+
+        public unsafe delegate void THREAD_START(void* hsched, byte cpun, void* p, uint sf);
 
         public unsafe delegate void THREAD_RESET(void* hsched, byte cpun, void* p);
 

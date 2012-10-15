@@ -26,8 +26,8 @@
 #include <boost/timer.hpp>
 
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <intrin.h>
+# include <windows.h>
+# include <intrin.h>
 #undef WIN32_LEAN_AND_MEAN
 
 #include "../common/circular_buffer.hpp"

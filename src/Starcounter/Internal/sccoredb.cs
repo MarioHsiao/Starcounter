@@ -53,6 +53,17 @@ namespace Starcounter.Internal
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         public static extern uint SCConfigSetValue(string key, string value);
 
+        public delegate void ON_NEW_SCHEMA(ulong generation);
+
+        [StructLayout(LayoutKind.Sequential, Pack = 8)]
+        public unsafe struct sccoredb_config
+        {
+            public void* on_new_schema;
+        }
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public static extern unsafe uint sccoredb_configure(sccoredb_config* pconfig);
+
         public const uint SCCOREDB_LOAD_DATABASE = 0x00100000;
 
         public const uint SCCOREDB_COMPLETE_INIT = 0x00200000;
@@ -231,11 +242,17 @@ namespace Starcounter.Internal
             string table_name,
             string name
             );
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint sccoredb_set_current_transaction(
+            int unlock_tran_from_thread,
+            ulong handle,
+            ulong verify
+            );
         
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint sccoredb_create_transaction_and_set_current(
-            uint flags,
-            out ulong transaction_id,
+            int lock_tran_on_thread,
             out ulong handle,
             out ulong verify
             );
@@ -248,31 +265,37 @@ namespace Starcounter.Internal
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint sccoredb_begin_commit(
+            int tran_locked_on_thread,
             out ulong hiter,
             out ulong viter
             );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint sccoredb_complete_commit(
-            int detach_and_free,
-            out ulong new_transaction_id
+            int tran_locked_on_thread,
+            int detach_and_free
             );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static int Mdb_TransactionSetCurrent(
-            ulong hTrans,
-            ulong verify
+        public extern static uint sccoredb_abort_commit(
+            int tran_locked_on_thread
             );
 
-        // TODO:
-        // CALLI candidate with variant with no auto attach. Should be made
-        // faster (or we should have a variant of create and set current that
-        // fails is transaction is attached).
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint sccoredb_has_transaction(out int v);
-        
+        public extern static uint sccoredb_reset_abort();
+
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 sc_insert(
+        public extern static uint sccoredb_wait_for_low_checkpoint_urgency(
+            uint flags
+            );
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint sccoredb_wait_for_high_avail_log_memory(
+            uint flags
+            );
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public unsafe extern static uint sc_insert(
             ulong definition_addr,
             ulong* pnew_oid,
             ulong* pnew_addr

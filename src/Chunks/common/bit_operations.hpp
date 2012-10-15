@@ -34,16 +34,15 @@ namespace core {
 ///	Machine:					ILP32	LLP64	LLP64	ILP32	LLP64	LLP64
 ///	Vector instructions:		-		SSE2	SSE4.2	-		SSE2	SSE4.2
 /// ----------------------------------------------------------------------------
-/// bit_scan_forward(uint32_t)	NO		NO		NO		NO		NO		NO
+/// bit_scan_forward(uint32_t)	YES		NO		NO		NO		NO		NO
 /// bit_scan_forward(uint64_t)	NO		NO		NO		NO		NO		NO
 /// bit_scan_reverse(uint32_t)	NO		NO		NO		NO		NO		NO
 /// bit_scan_reverse(uint64_t)	NO		NO		NO		NO		NO		NO
-/// population_count(uint32_t)	NO		NO		NO		NO		NO		NO
-/// population_count(uint64_t)	NO		NO		NO		NO		NO		NO
+/// population_count(uint32_t)	YES		NO		NO		YES		NO		NO
+/// population_count(uint64_t)	YES		NO		NO		YES		NO		NO
 ///
-/// NOTE: Unix = Linux or Mac OS X. No other Unix OS are supported.
-/// SSE42 allows using the POPCNT instruction.
-///
+/// NOTE: Unix = Linux or OS X. No other Unix or Unix like OS are supported.
+/// SSE4.2 allows using the POPCNT instruction.
 ///=============================================================================
 
 #if defined(__INTEL_COMPILER) || defined(__GNUC__)
@@ -53,9 +52,7 @@ namespace core {
 /// Uses inline assembly (for 32-bit architectures).
 /**
  * @param word Nonzero 32-bit word to scan.
- *
  * @precondition word != 0.
- *
  * @return index (0..31) of least significant one bit.
  */
 static FORCE_INLINE std::size_t bit_scan_forward(uint32_t word) {
@@ -71,9 +68,7 @@ static FORCE_INLINE std::size_t bit_scan_forward(uint32_t word) {
 /// Uses inline assembly (for 32-bit architectures).
 /**
  * @param word Nonzero 32-bit word to scan.
- *
  * @precondition word != 0.
- *
  * @return index (0..31) of most significant one bit.
  */
 static FORCE_INLINE std::size_t bit_scan_reverse(uint32_t word) {
@@ -91,9 +86,7 @@ static FORCE_INLINE std::size_t bit_scan_reverse(uint32_t word) {
 /// Uses inline assembly (for 64-bit architectures).
 /**
  * @param word Nonzero 64-bit word to scan.
- *
  * @precondition word != 0.
- *
  * @return index (0..63) of least significant one bit.
  */
 static FORCE_INLINE std::size_t bit_scan_forward(uint64_t word) {
@@ -109,9 +102,7 @@ static FORCE_INLINE std::size_t bit_scan_forward(uint64_t word) {
 /// Uses inline assembly (for 64-bit architectures).
 /**
  * @param word Nonzero 64-bit word to scan.
- *
  * @precondition word != 0.
- *
  * @return index (0..63) of most significant one bit.
  */
 static FORCE_INLINE std::size_t bit_scan_reverse(uint64_t word) {
@@ -165,7 +156,6 @@ static FORCE_INLINE std::size_t bit_scan_reverse(uint64_t word) {
 }
 
 #endif // defined(_M_X64) || (_M_AMD64) // LLP64 machine
-
 #endif // defined(__INTEL_COMPILER) || defined(__GNUC__)
 
 ///=============================================================================
@@ -179,6 +169,13 @@ static FORCE_INLINE std::size_t bit_scan_reverse(uint64_t word) {
 // no time for that now.
 
 //int _mm_popcnt_u64(unsigned __int64 w);
+
+static FORCE_INLINE int population_count(uint32_t w) {
+	w = w -((w >> 1) & 0x55555555);
+	w = (w & 0x33333333) +((w >> 2) & 0x33333333);
+	w = (w +(w >> 4)) & 0x0F0F0F0F;
+	return (w * 0x01010101) >> 24;
+}
 
 static FORCE_INLINE int population_count(uint64_t w) {
 	w = w -((w >> 1) & UINT64_C(0x5555555555555555));
