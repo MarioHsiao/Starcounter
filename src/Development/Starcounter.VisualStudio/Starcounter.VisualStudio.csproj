@@ -65,6 +65,7 @@
     <Compile Include="Projects\AppExeProject.cs" />
     <Compile Include="Projects\AppExeProjectConfiguration.cs" />
     <Compile Include="Projects\AppExeProjectFactory.cs" />
+    <Compile Include="Projects\ProjectProperty.cs" />
     <Compile Include="Projects\StarcounterProject.cs" />
     <Compile Include="Projects\StarcounterProjectConfiguration.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
