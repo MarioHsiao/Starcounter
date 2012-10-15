@@ -174,7 +174,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             if (node.Kind == SyntaxKind.Attribute)
             {
                 attribute = (AttributeSyntax)node;
-                if (IsJsonMapAttribute(attribute, className))
+                if (IsJsonMapAttribute(attribute))
                 {
                     list.Add(GetJsonMapInfoFrom(attribute));
                     return;
@@ -227,11 +227,11 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="attribute"></param>
         /// <param name="className"></param>
         /// <returns></returns>
-        private static Boolean IsJsonMapAttribute(AttributeSyntax attribute, String className)
+        private static Boolean IsJsonMapAttribute(AttributeSyntax attribute)
         {
             String attributeName = attribute.Name.ToString();
             
-            if (attributeName.StartsWith("Json." + className)) return true;
+            if (attributeName.StartsWith("Json.")) return true;
             return false;
         }
 
