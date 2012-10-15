@@ -19,13 +19,20 @@ namespace StarcounterInternal.Bootstrap
 
         public static void Main(string[] args)
         {
-            Control c = new Control();
-            if (c.Setup(args))
+            try
             {
-                c.Start();
-                c.Run();
-                c.Stop();
-                c.Cleanup();
+                Control c = new Control();
+                if (c.Setup(args))
+                {
+                    c.Start();
+                    c.Run();
+                    c.Stop();
+                    c.Cleanup();
+                }
+            }
+            catch (Exception ex)
+            {
+                if (!ExceptionManager.HandleUnhandledException(ex)) throw;
             }
         }
 

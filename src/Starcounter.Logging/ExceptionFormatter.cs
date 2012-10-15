@@ -12,7 +12,7 @@ namespace Starcounter.Logging
     /// formatting containing type, message and stack trace. Use to get a
     /// better output when logging an exception.
     /// </summary>
-    internal static class ExceptionFormatter
+    public static class ExceptionFormatter
     {
 
         private static readonly String[] _ignoredProps;
