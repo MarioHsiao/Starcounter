@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using Starcounter;
 
-namespace SqlTest.Test1
+namespace SqlTest.EmployeeDb
 {
-    public static class DataCreator
+    public static class EmployeeData
     {
         static List<Entity> objectList = new List<Entity>();
 
@@ -332,101 +332,107 @@ namespace SqlTest.Test1
                 objectList.Clear();
             });
         }
-    }
-}
 
-namespace SqlTest.Test3
-{
-    public static class DataCreator
-    {
-        static List<Entity> objectList = new List<Entity>();
-
-        public static void CreateData()
+        /// <summary>
+        /// Creates indexes for SqlTest2, which USES APPROPRIATE SIMPLE (NOT COMBINED) ASCENDING INDEXES.
+        /// </summary>
+        /// <returns>Returns true if no exceptions happened</returns>
+        public static bool CreateIndexes()
         {
-            Db.Transaction(delegate
-            {
-                // Control that data is not already created.
-                if (Db.SQL("select p from IntegerPoint p").First != null)
-                    return;
-
-                // Create instances of IntegerPoint.
-
-                IntegerPoint point1 = new IntegerPoint(null, null, null);
-                objectList.Add(point1);
-                IntegerPoint point2 = new IntegerPoint(null, null, 1);
-                objectList.Add(point2);
-                IntegerPoint point3 = new IntegerPoint(null, null, Int64.MaxValue);
-                objectList.Add(point3);
-
-                IntegerPoint point4 = new IntegerPoint(null, 1, null);
-                objectList.Add(point4);
-                IntegerPoint point5 = new IntegerPoint(null, 1, 1);
-                objectList.Add(point5);
-                IntegerPoint point6 = new IntegerPoint(null, 1, Int64.MaxValue);
-                objectList.Add(point6);
-
-                IntegerPoint point7 = new IntegerPoint(null, Int64.MaxValue, null);
-                objectList.Add(point7);
-                IntegerPoint point8 = new IntegerPoint(null, Int64.MaxValue, 1);
-                objectList.Add(point8);
-                IntegerPoint point9 = new IntegerPoint(null, Int64.MaxValue, Int64.MaxValue);
-                objectList.Add(point9);
-
-                IntegerPoint point10 = new IntegerPoint(1, null, null);
-                objectList.Add(point10);
-                IntegerPoint point11 = new IntegerPoint(1, null, 1);
-                objectList.Add(point11);
-                IntegerPoint point12 = new IntegerPoint(1, null, Int64.MaxValue);
-                objectList.Add(point12);
-
-                IntegerPoint point13 = new IntegerPoint(1, 1, null);
-                objectList.Add(point13);
-                IntegerPoint point14 = new IntegerPoint(1, 1, 1);
-                objectList.Add(point14);
-                IntegerPoint point15 = new IntegerPoint(1, 1, Int64.MaxValue);
-                objectList.Add(point15);
-
-                IntegerPoint point16 = new IntegerPoint(1, Int64.MaxValue, null);
-                objectList.Add(point16);
-                IntegerPoint point17 = new IntegerPoint(1, Int64.MaxValue, 1);
-                objectList.Add(point17);
-                IntegerPoint point18 = new IntegerPoint(1, Int64.MaxValue, Int64.MaxValue);
-                objectList.Add(point18);
-
-                IntegerPoint point19 = new IntegerPoint(Int64.MaxValue, null, null);
-                objectList.Add(point19);
-                IntegerPoint point20 = new IntegerPoint(Int64.MaxValue, null, 1);
-                objectList.Add(point20);
-                IntegerPoint point21 = new IntegerPoint(Int64.MaxValue, null, Int64.MaxValue);
-                objectList.Add(point21);
-
-                IntegerPoint point22 = new IntegerPoint(Int64.MaxValue, 1, null);
-                objectList.Add(point22);
-                IntegerPoint point23 = new IntegerPoint(Int64.MaxValue, 1, 1);
-                objectList.Add(point23);
-                IntegerPoint point24 = new IntegerPoint(Int64.MaxValue, 1, Int64.MaxValue);
-                objectList.Add(point24);
-
-                IntegerPoint point25 = new IntegerPoint(Int64.MaxValue, Int64.MaxValue, null);
-                objectList.Add(point25);
-                IntegerPoint point26 = new IntegerPoint(Int64.MaxValue, Int64.MaxValue, 1);
-                objectList.Add(point26);
-                IntegerPoint point27 = new IntegerPoint(Int64.MaxValue, Int64.MaxValue, Int64.MaxValue);
-                objectList.Add(point27);
-            });
+            // Index on Enum property ASC.
+            Db.SlowSQL("create index Location_Type on SqlTest.Test1.Location (Type)");
+            // Index on Nullable Enum property ASC.
+            Db.SlowSQL("create index Location_NType on SqlTest.Test1.Location (NType)");
+            // Index on Binary property. DOES NOT WORK!
+            Db.SlowSQL("create index Department_IdBinary on SqlTest.Test1.Department (IdBinary)");
+            // Index on Object property ASC.
+            Db.SlowSQL("create index Employee_Department on SqlTest.Test1.Employee (Department)");
+            // Index on Boolean property ASC.
+            Db.SlowSQL("create index SalaryEmployee_Commission on SqlTest.Test1.SalaryEmployee (Commission)");
+            // Index on Nullable Boolean property ASC.
+            Db.SlowSQL("create index SalaryEmployee_NCommission on SqlTest.Test1.SalaryEmployee (NCommission)");
+            // Index on Byte property ASC.
+            Db.SlowSQL("create index SalaryEmployee_SalaryByte on SqlTest.Test1.SalaryEmployee (SalaryByte)");
+            // Index on Nullable Byte property ASC.
+            Db.SlowSQL("create index SalaryEmployee_NSalaryByte on SqlTest.Test1.SalaryEmployee (NSalaryByte)");
+            // Index on DateTime property ASC.
+            Db.SlowSQL("create index SalaryEmployee_HireDate on SqlTest.Test1.SalaryEmployee (HireDate)");
+            // Index on Nullable DateTime property ASC.
+            Db.SlowSQL("create index SalaryEmployee_NHireDate on SqlTest.Test1.SalaryEmployee (NHireDate)");
+            // Index on Decimal property ASC.
+            Db.SlowSQL("create index SalaryEmployee_SalaryDecimal on SqlTest.Test1.SalaryEmployee (SalaryDecimal)");
+            // Index on Nullable Decimal property ASC.
+            Db.SlowSQL("create index SalaryEmployee_NSalaryDecimal on SqlTest.Test1.SalaryEmployee (NSalaryDecimal)");
+            // Index on Int16 property ASC.
+            Db.SlowSQL("create index SalaryEmployee_SalaryInt16 on SqlTest.Test1.SalaryEmployee (SalaryInt16)");
+            // Index on Nullable Int16 property ASC.
+            Db.SlowSQL("create index SalaryEmployee_NSalaryInt16 on SqlTest.Test1.SalaryEmployee (NSalaryInt16)");
+            // Index on Int32 property ASC.
+            Db.SlowSQL("create index SalaryEmployee_SalaryInt32 on SqlTest.Test1.SalaryEmployee (SalaryInt32)");
+            // Index on Nullable Int32 property ASC.
+            Db.SlowSQL("create index SalaryEmployee_NSalaryInt32 on SqlTest.Test1.SalaryEmployee (NSalaryInt32)");
+            // Index on Int64 property ASC.
+            Db.SlowSQL("create index SalaryEmployee_SalaryInt64 on SqlTest.Test1.SalaryEmployee (SalaryInt64)");
+            // Index on Nullable Int64 property ASC.
+            Db.SlowSQL("create index SalaryEmployee_NSalaryInt64 on SqlTest.Test1.SalaryEmployee (NSalaryInt64)");
+            // Index on Object property ASC.
+            Db.SlowSQL("create index SalaryEmployee_Manager on SqlTest.Test1.SalaryEmployee (Manager)");
+            // Index on SByte property ASC.
+            Db.SlowSQL("create index SalaryEmployee_SalarySByte on SqlTest.Test1.SalaryEmployee (SalarySByte)");
+            // Index on Nullable SByte property ASC.
+            Db.SlowSQL("create index SalaryEmployee_NSalarySByte on SqlTest.Test1.SalaryEmployee (NSalarySByte)");
+            // Index on String property ASC.
+            Db.SlowSQL("create index SalaryEmployee_LastName on SqlTest.Test1.SalaryEmployee (LastName)");
+            // Index on UInt16 property ASC.
+            Db.SlowSQL("create index SalaryEmployee_SalaryUInt16 on SqlTest.Test1.SalaryEmployee (SalaryUInt16)");
+            // Index on Nullable UInt16 property ASC.
+            Db.SlowSQL("create index SalaryEmployee_NSalaryUInt16 on SqlTest.Test1.SalaryEmployee (NSalaryUInt16)");
+            // Index on UInt32 property ASC.
+            Db.SlowSQL("create index SalaryEmployee_SalaryUInt32 on SqlTest.Test1.SalaryEmployee (SalaryUInt32)");
+            // Index on Nullable UInt32 property ASC.
+            Db.SlowSQL("create index SalaryEmployee_NSalaryUInt32 on SqlTest.Test1.SalaryEmployee (NSalaryUInt32)");
+            // Index on UInt64 property ASC.
+            Db.SlowSQL("create index SalaryEmployee_SalaryUInt64 on SqlTest.Test1.SalaryEmployee (SalaryUInt64)");
+            // Index on Nullable UInt64 property ASC.
+            Db.SlowSQL("create index SalaryEmployee_NSalaryUInt64 on SqlTest.Test1.SalaryEmployee (NSalaryUInt64)");
+            return true;
         }
 
-        public static void DeleteData()
+        /// <summary>
+        /// Drop indexes created for SqlTest2.
+        /// </summary>
+        /// <returns>Returns true if no exceptions happened</returns>
+        public static bool DropIndexes()
         {
-            Db.Transaction(delegate
-            {
-                foreach (Entity obj in objectList)
-                {
-                    if (obj != null)
-                        obj.Delete();
-                }
-                objectList.Clear();
-            });
+            Db.SlowSQL("drop index Location_Type on SqlTest.Test1.Location");
+            Db.SlowSQL("drop index Location_NType on SqlTest.Test1.Location");
+            Db.SlowSQL("drop index Department_IdBinary on SqlTest.Test1.Department");
+            Db.SlowSQL("drop index Employee_Department on SqlTest.Test1.Employee");
+            Db.SlowSQL("drop index SalaryEmployee_Commission on SqlTest.Test1.SalaryEmployee");
+            Db.SlowSQL("drop index SalaryEmployee_NCommission on SqlTest.Test1.SalaryEmployee");
+            Db.SlowSQL("drop index SalaryEmployee_SalaryByte on SqlTest.Test1.SalaryEmployee");
+            Db.SlowSQL("drop index SalaryEmployee_NSalaryByte on SqlTest.Test1.SalaryEmployee");
+            Db.SlowSQL("drop index SalaryEmployee_HireDate on SqlTest.Test1.SalaryEmployee");
+            Db.SlowSQL("drop index SalaryEmployee_NHireDate on SqlTest.Test1.SalaryEmployee");
+            Db.SlowSQL("drop index SalaryEmployee_SalaryDecimal on SqlTest.Test1.SalaryEmployee");
+            Db.SlowSQL("drop index SalaryEmployee_NSalaryDecimal on SqlTest.Test1.SalaryEmployee");
+            Db.SlowSQL("drop index SalaryEmployee_SalaryInt16 on SqlTest.Test1.SalaryEmployee");
+            Db.SlowSQL("drop index SalaryEmployee_NSalaryInt16 on SqlTest.Test1.SalaryEmployee");
+            Db.SlowSQL("drop index SalaryEmployee_SalaryInt32 on SqlTest.Test1.SalaryEmployee");
+            Db.SlowSQL("drop index SalaryEmployee_NSalaryInt32 on SqlTest.Test1.SalaryEmployee");
+            Db.SlowSQL("drop index SalaryEmployee_SalaryInt64 on SqlTest.Test1.SalaryEmployee");
+            Db.SlowSQL("drop index SalaryEmployee_NSalaryInt64 on SqlTest.Test1.SalaryEmployee");
+            Db.SlowSQL("drop index SalaryEmployee_Manager on SqlTest.Test1.SalaryEmployee");
+            Db.SlowSQL("drop index SalaryEmployee_SalarySByte on SqlTest.Test1.SalaryEmployee");
+            Db.SlowSQL("drop index SalaryEmployee_NSalarySByte on SqlTest.Test1.SalaryEmployee");
+            Db.SlowSQL("drop index SalaryEmployee_LastName on SqlTest.Test1.SalaryEmployee");
+            Db.SlowSQL("drop index SalaryEmployee_SalaryUInt16 on SqlTest.Test1.SalaryEmployee");
+            Db.SlowSQL("drop index SalaryEmployee_NSalaryUInt16 on SqlTest.Test1.SalaryEmployee");
+            Db.SlowSQL("drop index SalaryEmployee_SalaryUInt32 on SqlTest.Test1.SalaryEmployee");
+            Db.SlowSQL("drop index SalaryEmployee_NSalaryUInt32 on SqlTest.Test1.SalaryEmployee");
+            Db.SlowSQL("drop index SalaryEmployee_SalaryUInt64 on SqlTest.Test1.SalaryEmployee");
+            Db.SlowSQL("drop index SalaryEmployee_NSalaryUInt64 on SqlTest.Test1.SalaryEmployee");
+            return true;
         }
     }
 }

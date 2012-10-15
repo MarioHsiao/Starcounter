@@ -40,9 +40,9 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataCreators.cs" />
-    <Compile Include="DataModels.cs" />
-    <Compile Include="Indexes.cs" />
+    <Compile Include="EmployeeData.cs" />
+    <Compile Include="DataModel.cs" />
+    <Compile Include="PointData.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

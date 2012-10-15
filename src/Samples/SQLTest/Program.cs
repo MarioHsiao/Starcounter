@@ -9,17 +9,35 @@ namespace SqlTest
         static void Main(string[] args)
         {
             Console.WriteLine("Started SQLTest.");
-            SqlTest.Test1.DataCreator.CreateData();
-            SqlTest.Test1.DataCreator.DeleteData();
-            //SqlTest.Test2.Indexes.CreateIndexes();
-            //SqlTest.Test1.DataCreator.CreateData();
-            //SqlTest.Test1.DataCreator.DeleteData();
-            //SqlTest.Test2.Indexes.DropIndexes();
-            //SqlTest.Test3.Indexes.CreateIndexes();
-            //SqlTest.Test3.DataCreator.CreateData();
-            //SqlTest.Test3.DataCreator.DeleteData();
-            //SqlTest.Test3.Indexes.DropIndexes();
+            Test1();
+            Test2();
+            Test3();
             Console.WriteLine("Finished SQLTest.");
+        }
+
+        static Boolean Test1()
+        {
+            SqlTest.EmployeeDb.EmployeeData.CreateData();
+            SqlTest.EmployeeDb.EmployeeData.DeleteData();
+            return true;
+        }
+
+        static Boolean Test2()
+        {
+            SqlTest.EmployeeDb.EmployeeData.CreateIndexes();
+            SqlTest.EmployeeDb.EmployeeData.CreateData();
+            SqlTest.EmployeeDb.EmployeeData.DeleteData();
+            SqlTest.EmployeeDb.EmployeeData.DropIndexes();
+            return true;
+        }
+        
+        static Boolean Test3()
+        {
+            SqlTest.PointDb.PointData.CreateIndexes();
+            SqlTest.PointDb.PointData.CreateData();
+            SqlTest.PointDb.PointData.DeleteData();
+            SqlTest.PointDb.PointData.DropIndexes();
+            return true;
         }
     }
 }
