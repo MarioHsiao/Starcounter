@@ -223,7 +223,8 @@ namespace StarcounterInternal.Hosting
 
         private static void orange_fatal_error(uint e)
         {
-            System.Environment.FailFast(e.ToString()); // TODO:
+            sccoreapp.sccoreapp_log_critical_code(e);
+            Kernel32.ExitProcess(e);
         }
     }
 
@@ -338,7 +339,8 @@ namespace StarcounterInternal.Hosting
 
         private static void orange_fatal_error(uint e)
         {
-            System.Environment.FailFast(e.ToString()); // TODO:
+            sccoreapp.sccoreapp_log_critical_code(e);
+            Kernel32.ExitProcess(e);
         }
     }
 }

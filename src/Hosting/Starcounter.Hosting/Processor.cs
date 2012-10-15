@@ -46,7 +46,7 @@ namespace StarcounterInternal.Hosting
             }
             catch (Exception ex)
             {
-                sccoreapp.sccoreapp_log_critical(ex.ToString());
+                sccoreapp.sccoreapp_log_critical_message(ex.ToString());
                 
                 uint e;
                 if (!ErrorCode.TryGetCode(ex, out e)) e = 1;

@@ -2,11 +2,14 @@
 #include "internal.h"
 
 
-__declspec(noinline) extern void _fatal_error(uint32_t r);
+extern "C" void sccoreapp_log_critical_code(uint32_t e);
+
+__declspec(noinline) static void _fatal_error(uint32_t r);
 
 void _fatal_error(uint32_t r)
 {
-	ExitProcess(r); // TODO:
+    sccoreapp_log_critical_code(r);
+	ExitProcess(r);
 }
 
 
