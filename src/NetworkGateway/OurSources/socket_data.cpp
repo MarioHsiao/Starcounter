@@ -120,15 +120,15 @@ uint32_t SocketDataChunk::CreateWSABuffers(WorkerDbInterface* worker_db, shared_
     // Looping through all chunks and creating corresponding
     // WSA buffers in the first chunk data blob.
     uint32_t cur_chunk_data_size = bytes_left;
-    if (cur_chunk_data_size > starcounter::bmx::MAX_DATA_IN_CHUNK)
-        cur_chunk_data_size = starcounter::bmx::MAX_DATA_IN_CHUNK;
+    if (cur_chunk_data_size > starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK)
+        cur_chunk_data_size = starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK;
 
     // Getting shared interface pointer.
     core::shared_interface* shared_int = worker_db->get_shared_int();
 
     // Extra WSABufs storage chunk.
     shared_memory_chunk* wsa_bufs_smc;
-    extra_chunk_index_ = worker_db->GetChunkFromPrivatePool(&wsa_bufs_smc);
+    extra_chunk_index_ = worker_db->GetOneChunkFromPrivatePool(&wsa_bufs_smc);
 
     // Until we get the last chunk in chain.
     core::chunk_index cur_chunk_index = smc->get_link();
@@ -145,7 +145,7 @@ uint32_t SocketDataChunk::CreateWSABuffers(WorkerDbInterface* worker_db, shared_
 
         // Decreasing number of bytes left to be processed.
         bytes_left -= cur_chunk_data_size;
-        if (bytes_left < starcounter::bmx::MAX_DATA_IN_CHUNK)
+        if (bytes_left < starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK)
             cur_chunk_data_size = bytes_left;
 
         // Getting next chunk in chain.
@@ -155,8 +155,8 @@ uint32_t SocketDataChunk::CreateWSABuffers(WorkerDbInterface* worker_db, shared_
         num_chunks_++;
     }
 
-    // Checking that maximum number of WSABUF in chunk is preserved.
-    assert ((num_chunks_ - 1) <= starcounter::bmx::MAX_WSABUFS_LINKED);
+    // Checking that maximum number of WSABUFs in chunk is correct.
+    assert ((num_chunks_ - 1) <= starcounter::bmx::MAX_NUM_LINKED_WSABUFS);
 
     return 0;
 }
