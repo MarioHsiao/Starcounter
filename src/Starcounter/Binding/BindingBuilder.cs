@@ -277,9 +277,9 @@ namespace Starcounter.Binding
         {
             return GeneratePropertyBindingDefault(
                 propertyDef,
-                decimalPropertyBindingBaseType,
+                doublePropertyBindingBaseType,
                 "DoGetDouble",
-                decimalPropertyBindingReturnType,
+                doublePropertyBindingReturnType,
                 nullableDoublePropertyBindingReturnType,
                 thisType
                 );
@@ -658,10 +658,11 @@ namespace Starcounter.Binding
 
         private void VerifyProperty(PropertyInfo propertyInfo, Type returnType)
         {
+            var propertyType = propertyInfo.PropertyType;
             if (
                 propertyInfo != null &&
                 propertyInfo.CanRead &&
-                propertyInfo.PropertyType == returnType
+                propertyType == returnType
                 )
                 return;
             throw ErrorCode.ToException(Error.SCERRSCHEMACODEMISMATCH, "VerifyProperty failed.");
