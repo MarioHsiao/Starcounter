@@ -6,16 +6,18 @@ using System.Runtime.InteropServices;
 using Starcounter.Query.Execution;
 using System.Collections.Generic;
 using Starcounter;
+using System.Threading;
 
 internal sealed class GlobalQueryCache
 {
     /// <summary>
     /// Maximum number of unique queries in cache.
     /// </summary>
-    public const Int32 MaxUniqueQueries = 8192;
+    private const Int32 DefaultUniqueQueries = 8192;
+    //public const Int32 MaxUniqueQueries = 8192;
 
     // Array containing all unique execution enumerators.
-    IExecutionEnumerator[] enumArray = new IExecutionEnumerator[MaxUniqueQueries];
+    IExecutionEnumerator[] enumArray = new IExecutionEnumerator[DefaultUniqueQueries];
 
     // Number of unique cached queries.
     Int32 numUniqueQueries = 0;
@@ -29,6 +31,8 @@ internal sealed class GlobalQueryCache
     {
         Generation = generation;
     }
+
+    internal int EnumArrayLength { get { return enumArray.Length; } }
 
     /// <summary>
     /// Adds a new query to the cache if its already not there.
@@ -76,7 +80,21 @@ internal sealed class GlobalQueryCache
             }
 
             // Adding to the linear array.
-            enumArray[enumIndex] = newEnum;
+            try
+            {
+                enumArray[enumIndex] = newEnum;
+            }
+            catch (IndexOutOfRangeException)
+            {
+                var newEnumArray = new IExecutionEnumerator[enumArray.Length * 2];
+                enumArray.CopyTo(newEnumArray, 0);
+                newEnumArray[enumIndex] = newEnum;
+                Thread.MemoryBarrier();
+                enumArray = newEnumArray;
+            }
+
+            // Add to array before dictionary.
+            Thread.MemoryBarrier();
 
             // Adding to dictionary.
             indexDict.Add(query, enumIndex);
@@ -149,11 +167,6 @@ internal sealed class GlobalQueryCache
 
         // Returning cached enumerator query string.
         return execEnum.QueryString;
-    }
-
-    internal Boolean IsCacheFull()
-    {
-        return numUniqueQueries == MaxUniqueQueries;
     }
 
     /// <summary>
