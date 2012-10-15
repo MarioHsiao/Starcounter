@@ -118,37 +118,51 @@ namespace Starcounter.Internal
                 var databaseAttribute = databaseAttributes[i];
 
                 DbTypeCode type;
-                string targetTypeName;
+                string targetTypeName = null;
 
                 var databaseAttributeType = databaseAttribute.AttributeType;
 
                 DatabasePrimitiveType databasePrimitiveType;
                 DatabaseEnumType databaseEnumType;
                 DatabaseEntityClass databaseEntityClass;
+                DatabaseArrayType databaseArrayType;
 
                 if ((databasePrimitiveType = databaseAttributeType as DatabasePrimitiveType) != null)
                 {
                     type = PrimitiveToTypeCode(databasePrimitiveType.Primitive);
-                    targetTypeName = null;
                 }
                 else if ((databaseEnumType = databaseAttributeType as DatabaseEnumType) != null)
                 {
                     type = PrimitiveToTypeCode(databaseEnumType.UnderlyingType);
-                    targetTypeName = null;
                 }
                 else if ((databaseEntityClass = databaseAttributeType as DatabaseEntityClass) != null)
                 {
                     type = DbTypeCode.Object;
                     targetTypeName = databaseEntityClass.Name;
                 }
+                else if ((databaseArrayType = databaseAttributeType as DatabaseArrayType) != null)
+                {
+                    type = DbTypeCode.String;
+                }
                 else
                 {
                     if (!databaseAttribute.IsPersistent) continue;
 
-                    // Persistent attribute needs to be of a type supported by
-                    // the database.
+                    // This type is not supported (but theres no way code will
+                    // ever reach here unless theres some internal error). We
+                    // just  raise an internal exception indicating the field
+                    // and that this condition was experienced (indicating an
+                    // internal bug).
 
-                    throw new NotSupportedException(); // TODO:
+                    var errorMessage = ErrorCode.ToMessage(
+                        Error.SCERRUNSPECIFIED,
+                        string.Format(
+                            "The attribute type of attribute {0}.{1} was found invalid.",
+                            databaseAttribute.DeclaringClass.Name,
+                            databaseAttribute.Name
+                            )
+                        );
+                    throw new Exception(errorMessage);
                 }
 
                 var isNullable = databaseAttribute.IsNullable;
