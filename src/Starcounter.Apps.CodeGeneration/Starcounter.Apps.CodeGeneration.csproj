@@ -74,7 +74,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CodeBehindAnalyser\HandleInputInfo.cs" />
+    <Compile Include="CodeBehindAnalyser\InputBindingInfo.cs" />
     <Compile Include="CodeBehindAnalyser\CodeBehindMetadata.cs" />
     <Compile Include="CodeBehindAnalyser\JsonMapInfo.cs" />
     <Compile Include="CSharpGenerator\CSharpGenerator.cs" />
