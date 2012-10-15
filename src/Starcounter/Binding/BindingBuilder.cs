@@ -277,9 +277,9 @@ namespace Starcounter.Binding
         {
             return GeneratePropertyBindingDefault(
                 propertyDef,
-                decimalPropertyBindingBaseType,
+                doublePropertyBindingBaseType,
                 "DoGetDouble",
-                decimalPropertyBindingReturnType,
+                doublePropertyBindingReturnType,
                 nullableDoublePropertyBindingReturnType,
                 thisType
                 );
@@ -658,12 +658,42 @@ namespace Starcounter.Binding
 
         private void VerifyProperty(PropertyInfo propertyInfo, Type returnType)
         {
+            var propertyType = propertyInfo.PropertyType;
             if (
                 propertyInfo != null &&
                 propertyInfo.CanRead &&
-                propertyInfo.PropertyType == returnType
+                propertyType == returnType
                 )
+            {
                 return;
+            }
+            
+            Type underlyingType;
+            if (returnType.IsGenericType)
+            {
+                if (
+                    propertyType.IsGenericType &&
+                    propertyType.GetGenericTypeDefinition().FullName == "System.Nullable`1"
+                    )
+                {
+                    var propertyType2 = propertyType.GetGenericArguments()[0];
+                    if (propertyType2.IsEnum)
+                    {
+                        underlyingType = propertyType2.GetEnumUnderlyingType();
+                        var returnType2 = returnType.GetGenericArguments()[0];
+                        if (underlyingType == returnType2) return;
+                    }
+                }
+            }
+            else
+            {
+                if (propertyType.IsEnum) 
+                {
+                    underlyingType = propertyType.GetEnumUnderlyingType();
+                    if (underlyingType == returnType) return;
+                }
+            }
+
             throw ErrorCode.ToException(Error.SCERRSCHEMACODEMISMATCH, "VerifyProperty failed.");
         }
 
