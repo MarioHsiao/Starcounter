@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 namespace StarcounterInternal.Hosting
 {
     
-    public static class orange // TODO: Move appropriate scheduler callback implementations to managed code.
+    public static class orange
     {
 
         private static ulong hmenv_;
@@ -15,31 +15,57 @@ namespace StarcounterInternal.Hosting
             hmenv_ = hmenv;
         }
 
+#if false
         private static unsafe sccorelib.THREAD_ENTER th_enter = new sccorelib.THREAD_ENTER(orange_thread_enter);
         private static unsafe sccorelib.THREAD_LEAVE th_leave = new sccorelib.THREAD_LEAVE(orange_thread_leave);
+#endif
         private static unsafe sccorelib.THREAD_START th_start = new sccorelib.THREAD_START(orange_thread_start);
+#if false
         private static unsafe sccorelib.THREAD_RESET th_reset = new sccorelib.THREAD_RESET(orange_thread_reset);
+#endif
         private static unsafe sccorelib.THREAD_YIELD th_yield = new sccorelib.THREAD_YIELD(orange_thread_yield);
+#if false
         private static unsafe sccorelib.VPROC_BGTASK vp_bgtask = new sccorelib.VPROC_BGTASK(orange_vproc_bgtask);
         private static unsafe sccorelib.VPROC_CTICK vp_ctick = new sccorelib.VPROC_CTICK(orange_vproc_ctick);
         private static unsafe sccorelib.VPROC_IDLE vp_idle = new sccorelib.VPROC_IDLE(orange_vproc_idle);
         private static unsafe sccorelib.VPROC_WAIT vp_wait = new sccorelib.VPROC_WAIT(orange_vproc_wait);
+#endif
         private static unsafe sccorelib.ALERT_STALL al_stall = new sccorelib.ALERT_STALL(orange_alert_stall);
+#if false
         private static unsafe sccorelib.ALERT_LOWMEM al_lowmem = new sccorelib.ALERT_LOWMEM(orange_alert_lowmem);
+#endif
 
         public static unsafe void orange_configure_scheduler_callbacks(ref sccorelib.CM2_SETUP setup)
         {
+            void* hModule = Kernel32.LoadLibraryA("sccoredbh.dll");
+            setup.th_enter = Kernel32.GetProcAddress(hModule, "sccoredbh_thread_enter");
+            setup.th_leave = Kernel32.GetProcAddress(hModule, "sccoredbh_thread_leave");
+            setup.th_reset = Kernel32.GetProcAddress(hModule, "sccoredbh_thread_reset");
+            setup.vp_bgtask = Kernel32.GetProcAddress(hModule, "sccoredbh_vproc_bgtask");
+            setup.vp_ctick = Kernel32.GetProcAddress(hModule, "sccoredbh_vproc_ctick");
+            setup.vp_idle = Kernel32.GetProcAddress(hModule, "sccoredbh_vproc_idle");
+            setup.vp_wait = Kernel32.GetProcAddress(hModule, "sccoredbh_vproc_wait");
+            setup.al_lowmem = Kernel32.GetProcAddress(hModule, "sccoredbh_alert_lowmem");
+
+#if false
             setup.th_enter = (void*)Marshal.GetFunctionPointerForDelegate(th_enter);
             setup.th_leave = (void*)Marshal.GetFunctionPointerForDelegate(th_leave);
+#endif
             setup.th_start = (void*)Marshal.GetFunctionPointerForDelegate(th_start);
+#if false
             setup.th_reset = (void*)Marshal.GetFunctionPointerForDelegate(th_reset);
+#endif
             setup.th_yield = (void*)Marshal.GetFunctionPointerForDelegate(th_yield);
+#if false
             setup.vp_bgtask = (void*)Marshal.GetFunctionPointerForDelegate(vp_bgtask);
             setup.vp_ctick = (void*)Marshal.GetFunctionPointerForDelegate(vp_ctick);
             setup.vp_idle = (void*)Marshal.GetFunctionPointerForDelegate(vp_idle);
             setup.vp_wait = (void*)Marshal.GetFunctionPointerForDelegate(vp_wait);
+#endif
             setup.al_stall = (void*)Marshal.GetFunctionPointerForDelegate(al_stall);
+#if false
             setup.al_lowmem = (void*)Marshal.GetFunctionPointerForDelegate(al_lowmem);
+#endif
             //setup.pex_ctxt = null;
 
         }
@@ -51,6 +77,7 @@ namespace StarcounterInternal.Hosting
             config.on_new_schema = (void*)Marshal.GetFunctionPointerForDelegate(on_new_schema);
         }
 
+#if false
         private static unsafe void orange_thread_enter(void* hsched, byte cpun, void* p, int init)
         {
             uint r;
@@ -65,6 +92,7 @@ namespace StarcounterInternal.Hosting
             if (e == 0) return;
             orange_fatal_error(e);
         }
+#endif
 
         private static void OnThreadStart(uint sf)
         {
@@ -82,6 +110,7 @@ namespace StarcounterInternal.Hosting
             Processor.RunMessageLoop(hsched);
         }
 
+#if false
         private static unsafe void orange_thread_reset(void* hsched, byte cpun, void* p)
         {
             uint e = sccoredb.SCResetThread();
@@ -92,6 +121,7 @@ namespace StarcounterInternal.Hosting
             }
             orange_fatal_error(e);
         }
+#endif
 
         private static unsafe int orange_thread_yield(void* hsched, byte cpun, void* p, uint yr)
         {
@@ -108,6 +138,7 @@ namespace StarcounterInternal.Hosting
             }
         }
 
+#if false
         private static unsafe void orange_vproc_bgtask(void* hsched, byte cpun, void* p)
         {
             uint e = sccoredb.SCBackgroundTask();
@@ -137,12 +168,14 @@ namespace StarcounterInternal.Hosting
         }
 
         private static unsafe void orange_vproc_wait(void* hsched, byte cpun, void* p) { }
+#endif
 
         private static unsafe void orange_alert_stall(void* hsched, void* p, byte cpun, uint sr, uint sc)
         {
             // We have a stalling scheduler....
         }
 
+#if false
         private static unsafe void orange_alert_lowmem(void* hsched, void* p, uint lr)
         {
             uint e;
@@ -174,6 +207,7 @@ namespace StarcounterInternal.Hosting
 
             orange_fatal_error(e);
         }
+#endif
 
         private static void orange_on_new_schema(ulong generation)
         {
