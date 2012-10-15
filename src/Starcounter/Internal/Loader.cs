@@ -121,29 +121,34 @@ namespace Starcounter.Internal
                 string targetTypeName;
 
                 var databaseAttributeType = databaseAttribute.AttributeType;
-                var databasePrimitiveType = databaseAttributeType as DatabasePrimitiveType;
-                if (databasePrimitiveType != null)
+
+                DatabasePrimitiveType databasePrimitiveType;
+                DatabaseEnumType databaseEnumType;
+                DatabaseEntityClass databaseEntityClass;
+
+                if ((databasePrimitiveType = databaseAttributeType as DatabasePrimitiveType) != null)
                 {
                     type = PrimitiveToTypeCode(databasePrimitiveType.Primitive);
                     targetTypeName = null;
                 }
+                else if ((databaseEnumType = databaseAttributeType as DatabaseEnumType) != null)
+                {
+                    type = PrimitiveToTypeCode(databaseEnumType.UnderlyingType);
+                    targetTypeName = null;
+                }
+                else if ((databaseEntityClass = databaseAttributeType as DatabaseEntityClass) != null)
+                {
+                    type = DbTypeCode.Object;
+                    targetTypeName = databaseEntityClass.Name;
+                }
                 else
                 {
-                    var databaseEntityClass = databaseAttributeType as DatabaseEntityClass;
-                    if (databaseEntityClass != null)
-                    {
-                        type = DbTypeCode.Object;
-                        targetTypeName = databaseEntityClass.Name;
-                    }
-                    else
-                    {
-                        if (!databaseAttribute.IsPersistent) continue;
+                    if (!databaseAttribute.IsPersistent) continue;
 
-                        // Persistent attribute needs to be of a type supported
-                        // by the database.
+                    // Persistent attribute needs to be of a type supported by
+                    // the database.
 
-                        throw new NotSupportedException(); // TODO:
-                    }
+                    throw new NotSupportedException(); // TODO:
                 }
 
                 var isNullable = databaseAttribute.IsNullable;
