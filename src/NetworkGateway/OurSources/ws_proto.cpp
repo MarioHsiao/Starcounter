@@ -63,7 +63,7 @@ uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunk *sd, BMX_
     uint8_t *payload = GetFrameInfo(&frame_info_, sd->get_data_buf()->get_orig_buf_ptr());
 
 #ifdef GW_WEBSOCKET_DIAG
-    GW_COUT << "[" << gw->GetWorkerId() << "]: " << "WS_OPCODE: " << frame_info_.opcode_ << std::endl;
+    GW_COUT << "[" << gw->get_worker_id() << "]: " << "WS_OPCODE: " << frame_info_.opcode_ << std::endl;
 #endif
 
     // Determining operation type.

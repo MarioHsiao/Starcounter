@@ -6,6 +6,7 @@
 #include "socket_data.hpp"
 #include "tls_proto.hpp"
 #include "worker.hpp"
+#include "worker_db_interface.hpp"
 
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "winmm.lib")
@@ -73,7 +74,7 @@ Gateway::Gateway()
     gw_workers_ = NULL;
 
     // Worker thread handles.
-    thread_handles_ = NULL;
+    worker_thread_handles_ = NULL;
 
     // IOCP handle.
     iocp_ = INVALID_HANDLE_VALUE;
@@ -86,7 +87,7 @@ Gateway::Gateway()
 
     // Initializing scheduler information.
     global_scheduler_id_unsafe_ = 0;
-    active_sched_num_read_only_ = 0;
+    num_schedulers_ = 0;
 
     server_addr_ = NULL;
     global_sleep_ms_ = 0;
@@ -419,6 +420,7 @@ uint32_t Gateway::ScanDatabases()
         db_did_go_down_[i] = true;
 
     // Reading file line by line.
+    uint32_t err_code;
     std::string current_db_name;
     while(getline(ad_file, current_db_name))
     {
@@ -443,19 +445,19 @@ uint32_t Gateway::ScanDatabases()
         // We have a new database being up.
         if (is_new_database)
         {
-#ifdef GW_GENERAL_DIAG
-            GW_COUT << "Attaching a new database: " << current_db_name << std::endl;
+#ifdef GW_DATABASES_DIAG
+            GW_PRINT_GLOBAL << "Attaching a new database: " << current_db_name << std::endl;
 #endif
 
             // Entering global lock.
             EnterGlobalLock();
 
             // Finding first empty slot.
-            int32_t empty_slot = 0;
-            for (empty_slot = 0; empty_slot < num_dbs_slots_; ++empty_slot)
+            int32_t empty_db_index = 0;
+            for (empty_db_index = 0; empty_db_index < num_dbs_slots_; ++empty_db_index)
             {
                 // Checking if database slot is empty.
-                if (active_databases_[empty_slot].IsEmpty())
+                if (active_databases_[empty_db_index].IsEmpty())
                     break;
             }
 
@@ -464,36 +466,40 @@ uint32_t Gateway::ScanDatabases()
                 new core::shared_interface[setting_num_workers_];
             
             // Adding to the databases list.
-            uint32_t errCode = InitSharedMemory(current_db_name, workers_shared_ints);
-            if (errCode != 0)
+            err_code = InitSharedMemory(current_db_name, workers_shared_ints);
+            if (err_code != 0)
             {
                 // Leaving global lock.
                 LeaveGlobalLock();
-                return errCode;
+                return err_code;
             }
 
             // Filling necessary fields.
-            active_databases_[empty_slot].Init(current_db_name, ++db_seq_num_, empty_slot);
-            db_did_go_down_[empty_slot] = false;
+            active_databases_[empty_db_index].Init(current_db_name, ++db_seq_num_, empty_db_index);
+            db_did_go_down_[empty_db_index] = false;
 
             // Increasing number of active databases.
-            if (empty_slot >= num_dbs_slots_)
+            if (empty_db_index >= num_dbs_slots_)
                 num_dbs_slots_++;
 
             // Adding to workers database interfaces.
             for (int32_t i = 0; i < setting_num_workers_; i++)
             {
-                uint32_t errCode = gw_workers_[i].AddNewDatabase(empty_slot, workers_shared_ints[i]);
-                if (errCode != 0)
+                err_code = gw_workers_[i].AddNewDatabase(empty_db_index, workers_shared_ints[i]);
+                if (err_code)
                 {
                     // Leaving global lock.
                     LeaveGlobalLock();
-                    return errCode;
+                    return err_code;
                 }
             }
 
             // Leaving global lock.
             LeaveGlobalLock();
+
+            // Registering push channel on first worker.
+            err_code = gw_workers_[0].GetDatabase(empty_db_index)->RegisterAllPushChannels();
+            GW_ERR_CHECK(err_code);
         }
     }
 
@@ -502,8 +508,8 @@ uint32_t Gateway::ScanDatabases()
     {
         if ((db_did_go_down_[s]) && (!active_databases_[s].IsDeletionStarted()))
         {
-#ifdef GW_GENERAL_DIAG
-            GW_COUT << "Start detaching dead database: " << active_databases_[s].db_name() << std::endl;
+#ifdef GW_DATABASES_DIAG
+            GW_PRINT_GLOBAL << "Start detaching dead database: " << active_databases_[s].db_name() << std::endl;
 #endif
 
             // Entering global lock.
@@ -538,10 +544,18 @@ void ActiveDatabase::Init(std::string db_name, uint64_t unique_num, int32_t db_i
     db_index_ = db_index;
     were_sockets_closed_ = false;
 
+    num_confirmed_push_channels_ = 0;
     num_used_sockets_ = 0;
     num_used_chunks_ = 0;
+
     for (int32_t i = 0; i < MAX_SOCKET_HANDLE; i++)
         active_sockets_[i] = false;
+}
+
+// Checks if its enough confirmed push channels.
+bool ActiveDatabase::IsAllPushChannelsConfirmed()
+{
+    return (num_confirmed_push_channels_ >= g_gateway.get_num_schedulers());
 }
 
 // Destructor.
@@ -605,7 +619,7 @@ void ActiveDatabase::CloseSockets()
 uint32_t Gateway::Init()
 {
     // Checking if already initialized.
-    if ((gw_workers_ != NULL) || (thread_handles_ != NULL))
+    if ((gw_workers_ != NULL) || (worker_thread_handles_ != NULL))
     {
         GW_COUT << "Workers data was already initialized." << std::endl;
         return 1;
@@ -622,7 +636,7 @@ uint32_t Gateway::Init()
 
     // Allocating workers data.
     gw_workers_ = new GatewayWorker[setting_num_workers_];
-    thread_handles_ = new HANDLE[setting_num_workers_];
+    worker_thread_handles_ = new HANDLE[setting_num_workers_];
 
     // Creating IO completion port.
     iocp_ = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, setting_num_workers_);
@@ -707,7 +721,7 @@ uint32_t Gateway::Init()
     time_t rawtime;
     time(&rawtime);
     tm *timeinfo = localtime(&rawtime);
-    GW_COUT << "New logging session: " << asctime(timeinfo) << std::endl;
+    GW_PRINT_GLOBAL << "New logging session: " << asctime(timeinfo) << std::endl;
 
     return 0;
 }
@@ -774,10 +788,10 @@ uint32_t Gateway::InitSharedMemory(std::string setting_databaseName,
     }
 
     // Obtaining number of active schedulers.
-    if (active_sched_num_read_only_ == 0)
+    if (num_schedulers_ == 0)
     {
-        active_sched_num_read_only_ = sharedInt[0].common_scheduler_interface().number_of_active_schedulers();
-        GW_COUT << "Number of active schedulers: " << active_sched_num_read_only_ << std::endl;
+        num_schedulers_ = sharedInt[0].common_scheduler_interface().number_of_active_schedulers();
+        GW_PRINT_GLOBAL << "Number of active schedulers: " << num_schedulers_ << std::endl;
     }
 
     return 0;
@@ -842,10 +856,27 @@ void Gateway::WaitAllWorkersSuspended()
     }
 }
 
-// Entry point for gateway worker.
-uint32_t __stdcall IOCPSocketsWorkerRoutine(LPVOID params)
+// Entry point for scanning databases thread.
+uint32_t __stdcall ScanDatabasesRoutine(LPVOID params)
 {
-    return ((GatewayWorker *)params)->IOCPSocketsWorker();
+    uint32_t err_code = 0;
+    while (1)
+    {
+        err_code = g_gateway.ScanDatabases();
+        if (err_code)
+            return err_code;
+
+        // NOTE: Pause between scans until synchronous named pipes are fixed.
+        Sleep(100);
+    }
+
+    return 0;
+}
+
+// Entry point for gateway worker.
+uint32_t __stdcall GatewayWorkerRoutine(LPVOID params)
+{
+    return ((GatewayWorker *)params)->WorkerRoutine();
 }
 
 // Cleaning up all global resources.
@@ -883,25 +914,28 @@ void SessionData::GenerateNewSession(GatewayWorker *gw, uint32_t sessionIndex, u
 #endif
 }
 
-// Prints statistics, scans for database updates in the background, etc.
-uint32_t Gateway::GatewayParallelLoop()
+// Prints statistics, monitors all gateway threads, etc.
+uint32_t Gateway::GatewayStatisticsAndMonitoringRoutine()
 {
     // Previous statistics values.
     int64_t prevBytesReceivedAllWorkers = 0,
+        prevBytesSentAllWorkers = 0,
         prevSentNumAllWorkers = 0,
         prevRecvNumAllWorkers = 0;
 
     // New statistics values.
     int64_t newBytesReceivedAllWorkers = 0,
+        newBytesSentAllWorkers = 0,
         newSentNumAllWorkers = 0,
         newRecvNumAllWorkers = 0;
 
     // Difference between new and previous statistics values.
     int64_t diffBytesReceivedAllWorkers = 0,
+        diffBytesSentAllWorkers = 0,
         diffSentNumAllWorkers = 0,
         diffRecvNumAllWorkers = 0;
 
-    while(TRUE)
+    while(1)
     {
         // Waiting some time for statistics updates.
         Sleep(1000);
@@ -909,38 +943,50 @@ uint32_t Gateway::GatewayParallelLoop()
         // Checking if workers are still running.
         for (int32_t i = 0; i < setting_num_workers_; i++)
         {
-            if (!WaitForSingleObject(thread_handles_[i], 0))
+            if (!WaitForSingleObject(worker_thread_handles_[i], 0))
             {
                 GW_COUT << "Worker " << i << " is dead. Quiting..." << std::endl;
                 return 1;
             }
         }
 
+        // Checking if database scanning thread is alive.
+        if (!WaitForSingleObject(db_scan_thread_handle_, 0))
+        {
+            GW_COUT << "Database scanning thread is dead. Quiting..." << std::endl;
+            return 1;
+        }
+
         // Resetting new values.
         newBytesReceivedAllWorkers = 0;
+        newBytesSentAllWorkers = 0;
         newSentNumAllWorkers = 0;
         newRecvNumAllWorkers = 0;
 
         // Fetching new statistics.
         for (int32_t i = 0; i < setting_num_workers_; i++)
         {
-            newBytesReceivedAllWorkers += gw_workers_[i].worker_stats_bytes_received();
-            newSentNumAllWorkers += gw_workers_[i].worker_stats_sent_num();
-            newRecvNumAllWorkers += gw_workers_[i].worker_stats_recv_num();
+            newBytesReceivedAllWorkers += gw_workers_[i].get_worker_stats_bytes_received();
+            newBytesSentAllWorkers += gw_workers_[i].get_worker_stats_bytes_sent();
+            newSentNumAllWorkers += gw_workers_[i].get_worker_stats_sent_num();
+            newRecvNumAllWorkers += gw_workers_[i].get_worker_stats_recv_num();
         }
 
         // Calculating differences.
         diffBytesReceivedAllWorkers = newBytesReceivedAllWorkers - prevBytesReceivedAllWorkers;
+        diffBytesSentAllWorkers = newBytesSentAllWorkers - prevBytesSentAllWorkers;
         diffSentNumAllWorkers = newSentNumAllWorkers - prevSentNumAllWorkers;
         diffRecvNumAllWorkers = newRecvNumAllWorkers - prevRecvNumAllWorkers;
 
         // Updating previous values.
         prevBytesReceivedAllWorkers = newBytesReceivedAllWorkers;
+        prevBytesSentAllWorkers = newBytesSentAllWorkers;
         prevSentNumAllWorkers = newSentNumAllWorkers;
         prevRecvNumAllWorkers = newRecvNumAllWorkers;
 
-        // Printing the statistics.
-        double bandWidthMbitSTotal = (diffBytesReceivedAllWorkers / 1000000.0);
+        // Calculating bandwidth.
+        double recv_bandwidth_mbit_total = ((diffBytesReceivedAllWorkers * 8) / 1000000.0);
+        double send_bandwidth_mbit_total = ((diffBytesSentAllWorkers * 8) / 1000000.0);
 
         // Calculating global sleep interval.
         if ((diffRecvNumAllWorkers > 0) || (diffSentNumAllWorkers > 0))
@@ -951,16 +997,17 @@ uint32_t Gateway::GatewayParallelLoop()
 #ifdef GW_GLOBAL_STATISTICS
 
         // Global statistics.
-        GW_COUT << "Global active chunks " << g_gateway.GetTotalNumUsedChunks() <<
-            ", sockets " << g_gateway.GetTotalNumUsedSockets() << std::endl;
+        GW_PRINT_GLOBAL << "Active chunks " << g_gateway.GetTotalNumUsedChunks() <<
+            ", allocated sockets " << g_gateway.GetTotalNumUsedSockets() << std::endl;
 
         // Individual workers statistics.
-        for (int32_t i = 0; i < setting_num_workers_; i++)
+        for (int32_t worker_id_ = 0; worker_id_ < setting_num_workers_; worker_id_++)
         {
-            GW_COUT << "[" << i << "]:" <<
-                 " recv_bytes " << gw_workers_[i].worker_stats_bytes_received() <<
-                ", sent_times " << gw_workers_[i].worker_stats_sent_num() <<
-                ", recv_times " << gw_workers_[i].worker_stats_recv_num() << std::endl;
+            GW_PRINT_WORKER <<
+                "recv_bytes " << gw_workers_[worker_id_].get_worker_stats_bytes_received() <<
+                ", recv_times " << gw_workers_[worker_id_].get_worker_stats_recv_num() <<
+                ", sent_bytes " << gw_workers_[worker_id_].get_worker_stats_bytes_sent() <<
+                ", sent_times " << gw_workers_[worker_id_].get_worker_stats_sent_num() << std::endl;
         }
 
         // Printing handlers information for each attached database and gateway.
@@ -973,66 +1020,76 @@ uint32_t Gateway::GatewayParallelLoop()
                     GW_COUT << "Port " << server_ports_[p].get_port_number() <<
                         ", db \"" << active_databases_[d].db_name() << "\"" <<
                         ": active conns " << server_ports_[p].get_num_active_conns(d) <<
-                        ", sockets created " << server_ports_[p].get_num_created_sockets(d) << std::endl;
+                        ", allocated sockets " << server_ports_[p].get_num_allocated_sockets(d) << std::endl;
                 }
             }
         }
 
         // Printing all workers stats.
         GW_COUT << "All workers last sec" <<
-             " sent_times " << diffSentNumAllWorkers <<
-            ", recv_times " << diffRecvNumAllWorkers <<
-            ", bandwidth " << bandWidthMbitSTotal <<
-            " mbit/sec" << std::endl << std::endl;
-
+            "recv_times " << diffRecvNumAllWorkers <<            
+            ", recv_bandwidth " << recv_bandwidth_mbit_total << " mbit/sec " <<
+            ", sent_times " << diffSentNumAllWorkers <<
+            ", send_bandwidth " << send_bandwidth_mbit_total << " mbit/sec " << std::endl << std::endl;
 #endif
 
-        // Scanning for databases changes.
-        uint32_t err_code = g_gateway.ScanDatabases();
-        GW_ERR_CHECK(err_code);
     }
 
     return 0;
 }
 
 // Starts gateway workers and statistics printer.
-uint32_t Gateway::StartWorkersAndGatewayLoop(LPTHREAD_START_ROUTINE workerRoutine)
+uint32_t Gateway::StartWorkerAndManagementThreads(
+    LPTHREAD_START_ROUTINE workerRoutine,
+    LPTHREAD_START_ROUTINE scanDbsRoutine)
 {
     // Allocating threads-related data structures.
-    uint32_t *threadIds = new uint32_t[setting_num_workers_];
+    uint32_t *workerThreadIds = new uint32_t[setting_num_workers_];
 
+    // Starting workers one by one.
     for (int i = 0; i < setting_num_workers_; i++)
     {
         // Creating threads.
-        thread_handles_[i] = CreateThread(
+        worker_thread_handles_[i] = CreateThread(
             NULL, // Default security attributes.
             0, // Use default stack size.
             workerRoutine, // Thread function name.
             &gw_workers_[i], // Argument to thread function.
             0, // Use default creation flags.
-            (LPDWORD)&threadIds[i]); // Returns the thread identifier.
+            (LPDWORD)&workerThreadIds[i]); // Returns the thread identifier.
 
         // Checking if threads are created.
-        if (thread_handles_[i] == NULL)
+        if (worker_thread_handles_[i] == NULL)
         {
             GW_COUT << "CreateThread() failed." << std::endl;
             return 1;
         }
     }
 
+    uint32_t dbScanThreadId;
+
+    // Starting database scanning thread.
+    db_scan_thread_handle_ = CreateThread(
+        NULL, // Default security attributes.
+        0, // Use default stack size.
+        scanDbsRoutine, // Thread function name.
+        NULL, // Argument to thread function.
+        0, // Use default creation flags.
+        (LPDWORD)&dbScanThreadId); // Returns the thread identifier.
+
     // Printing statistics.
-    uint32_t errCode = g_gateway.GatewayParallelLoop();
+    uint32_t err_code = g_gateway.GatewayStatisticsAndMonitoringRoutine();
 
     // Close all thread handles and free memory allocations.
     for(int i = 0; i < setting_num_workers_; i++)
-        CloseHandle(thread_handles_[i]);
+        CloseHandle(worker_thread_handles_[i]);
 
-    delete threadIds;
-    delete thread_handles_;
+    delete workerThreadIds;
+    delete worker_thread_handles_;
     delete [] gw_workers_;
 
     // Checking if any error occurred.
-    GW_ERR_CHECK(errCode);
+    GW_ERR_CHECK(err_code);
 
     return 0;
 }
@@ -1053,7 +1110,10 @@ int32_t Gateway::StartGateway()
         return errCode;
 
     // Starting workers and statistics printer.
-    errCode = StartWorkersAndGatewayLoop((LPTHREAD_START_ROUTINE)IOCPSocketsWorkerRoutine);
+    errCode = StartWorkerAndManagementThreads(
+        (LPTHREAD_START_ROUTINE)GatewayWorkerRoutine,
+        (LPTHREAD_START_ROUTINE)ScanDatabasesRoutine);
+
     if (errCode != 0)
         return errCode;
 

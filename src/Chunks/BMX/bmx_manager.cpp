@@ -13,6 +13,8 @@ BmxData* EnterSafeBmxManagement()
     // Entering critical section.
     EnterCriticalSection(&g_bmx_cs_);
 
+    //std::cout << "EnterSafeBmxManagement." << std::endl;
+
     // Checking if there are too many old clones.
     if (g_bmx_old_clones_.size() > 4096)
     {
@@ -35,6 +37,8 @@ void LeaveSafeBmxManagement(BmxData* new_bmx_data)
 
     // Leaving the critical sections.
     LeaveCriticalSection(&g_bmx_cs_);
+
+    //std::cout << "LeaveSafeBmxManagement." << std::endl;
 }
 
 // Initializes BMX related data structures.
@@ -139,39 +143,62 @@ uint32_t starcounter::bmx::OnIncomingBmxMessage(
     TASK_INFO_TYPE* task_info,
     bool* is_handled)
 {
-    uint8_t message_id;
-
     uint32_t err_code = 0;
-    request_chunk_part* request = smc->get_request_chunk();
-    uint32_t request_size = request->get_offset();
+
+    // This is going to be a BMX management chunk.
+    request_chunk_part* request_chunk = smc->get_request_chunk();
+    uint32_t request_size = request_chunk->get_offset();
     uint32_t offset = 0;
 
-    request->reset_offset();
+    request_chunk->reset_offset();
     while (offset < request_size)
     {
-        message_id = request->read_uint8();
+        uint8_t message_id = request_chunk->read_uint8();
         switch (message_id)
         {
             case BMX_ERROR:
             {
                 return SCERRUNSPECIFIED; // SCERRBMXFAILURE
+
                 break;
             }
 
             case BMX_REGISTER_PUSH_CHANNEL:
             {
-                // NOTE:
-                // Channel attached to thread. No storing away channel reference in
-                // shared memory.
+                // Entering critical section.
+                EnterCriticalSection(&g_bmx_cs_);
 
-				err_code = coalmine_set_current_channel_as_default();
-                if (err_code) return err_code;
+                //std::cout << "Received chunk: " << task_info->chunk_index << " on scheduler: " << (int32_t)task_info->scheduler_number << std::endl;
+                //std::cout << "Received BMX_REGISTER_PUSH_CHANNEL." << std::endl;
+
+                // Calling push channel registration.
+                err_code = g_bmx_data->RegisterPushChannelResponse(smc, task_info);
+
+                // Entering critical section.
+                LeaveCriticalSection(&g_bmx_cs_);
+
+                //std::cout << "Left critical section." << std::endl;
+
+                if (err_code)
+                    return err_code;
+
                 break;
             }
 
             case BMX_SEND_ALL_HANDLERS:
             {
+                // Entering critical section.
+                EnterCriticalSection(&g_bmx_cs_);
+
+                //std::cout << "Received chunk: " << task_info->chunk_index << " on scheduler: " << (int32_t)task_info->scheduler_number << std::endl;
+                //std::cout << "Received BMX_SEND_ALL_HANDLERS." << std::endl;
+
                 err_code = g_bmx_data->SendAllHandlersInfo(smc, task_info);
+
+                // Entering critical section.
+                LeaveCriticalSection(&g_bmx_cs_);
+
+                //std::cout << "Left critical section." << std::endl;
 
                 if (err_code)
                     return err_code;
@@ -186,7 +213,7 @@ uint32_t starcounter::bmx::OnIncomingBmxMessage(
             }
         }
 
-        offset = request->get_offset();
+        offset = request_chunk->get_offset();
     }
 
     // BMX messages were handled successfully.

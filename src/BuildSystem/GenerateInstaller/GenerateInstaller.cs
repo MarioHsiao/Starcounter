@@ -253,7 +253,7 @@ namespace GenerateInstaller
                 }
 
                 // Uploading changes to FTP server (only if its not a personal build).
-                if ((Environment.GetEnvironmentVariable("SC_UPLOAD_TO_US_FTP") != null) &&
+                if ((Environment.GetEnvironmentVariable(BuildSystem.UploadToUsFtp) != null) &&
                     (BuildSystem.IsReleasingBuild()))
                 {
                     // Creating this build version folder if needed.
