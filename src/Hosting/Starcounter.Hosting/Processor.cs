@@ -46,11 +46,7 @@ namespace StarcounterInternal.Hosting
             }
             catch (Exception ex)
             {
-                sccoreapp.sccoreapp_log_critical_message(ex.ToString());
-                
-                uint e;
-                if (!ErrorCode.TryGetCode(ex, out e)) e = 1;
-                Kernel32.ExitProcess(e);
+                if (!ExceptionManager.HandleUnhandledException(ex)) throw;
             }
         }
     }

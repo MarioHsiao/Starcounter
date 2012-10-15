@@ -218,7 +218,14 @@ namespace StarcounterInternal.Hosting
         {
             // Thread is yield blocked. Thread is always attached.
 
-            Starcounter.ThreadData.Current.Scheduler.InvalidateCache(generation);
+            try
+            {
+                Starcounter.ThreadData.Current.Scheduler.InvalidateCache(generation);
+            }
+            catch (System.Exception ex)
+            {
+                if (!ExceptionManager.HandleUnhandledException(ex)) throw;
+            }
         }
 
         private static void orange_fatal_error(uint e)
