@@ -5,4 +5,5 @@ EXPORTS
 	sccoreapp_init
 	sccoreapp_standby
 
-	sccoreapp_log_critical
+	sccoreapp_log_critical_code
+	sccoreapp_log_critical_message
