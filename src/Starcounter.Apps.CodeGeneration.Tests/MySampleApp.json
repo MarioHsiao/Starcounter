@@ -40,14 +40,14 @@
    $doubleToDecimal: {Type:"decimal"},
 
    child: {
-      test:"",
-      test2:""
+       test:"",
+       test2:""
    },
 
-   array: [{
-      test:"",
-      test2:""
-   }],
+   "items":
+   [
+       { "itemname":"" }
+   ],
 
    userLink: "/users/admin",
    user: null

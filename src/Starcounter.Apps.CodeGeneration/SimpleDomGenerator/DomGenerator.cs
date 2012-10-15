@@ -3,6 +3,7 @@ using Starcounter.Templates;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Starcounter.Templates.Interfaces;
 
 [assembly: InternalsVisibleTo("Starcounter.Application.Test")]
 
@@ -128,11 +129,24 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 mapInfo = metadata.JsonPropertyMapList[i];
 
                 appTemplate = FindAppTemplateFor(mapInfo.JsonMapName, rootTemplate);
+
+                // TODO:
+                // If we have an empty object declaration in the jsonfile and
+                // set an codebehind class on that property the AppTemplate here 
+                // will be a generic empty one, which (I guess?) cannot be updated
+                // here.
+                // Do we need to create a new AppTemplate and replace the existing one
+                // for all NClasses?
+              
                 appTemplate.ClassName = mapInfo.ClassName;
                 if (!String.IsNullOrEmpty(mapInfo.Namespace))
                     appTemplate.Namespace = mapInfo.Namespace;
 
                 nAppClass = NValueClass.Classes[appTemplate] as NAppClass;
+
+                //if (nAppClass != ac)
+                //    throw new Exception("Uh Ooops!");
+
                 nAppClass.IsPartial = true;
                 nAppClass._Inherits = null;
 
@@ -206,6 +220,9 @@ namespace Starcounter.Internal.Application.CodeGeneration
 
             appTemplate = rootTemplate;
             mapParts = jsonMapName.Split('.');
+
+            // We skip the two first parts since the first one will always be "Json" 
+            // and the second the rootTemplate.
             for (Int32 i = 2; i < mapParts.Length; i++)
             {
                 template = appTemplate.Properties.GetTemplateByName(mapParts[i]);
@@ -523,8 +540,10 @@ namespace Starcounter.Internal.Application.CodeGeneration
             Int32 index;
             List<NBase> children;
             NAppTemplateClass propertyAppClass;
+            NConstructor cst;
             NInputBinding binding;
             NProperty np;
+            Template template;
             String propertyName;
             String[] parts;
 
@@ -533,7 +552,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 // Find the property the binding is for. 
                 // Might not be the same class as the one specified in the info object
                 // since the Handle-implementation can be declared in a parent class.
-                parts = info.InputType.Split('.');
+                parts = info.FullInputTypeName.Split('.');
                 propertyAppClass = nApp;
                 
                 // The first index is always "Input", the next ones until the last is
@@ -549,11 +568,26 @@ namespace Starcounter.Internal.Application.CodeGeneration
                                             return property.Template.Name.Equals(parts[i]);
                                         return false;
                                     });
-                    propertyAppClass = (NAppTemplateClass)NAppTemplateClass.Find(np.Template);
+
+                    template = np.Template;
+                    if (template is ListingProperty)
+                    {
+                        template = ((ListingProperty)template).App;
+                    }
+                    propertyAppClass = (NAppTemplateClass)NAppTemplateClass.Find(template);
                 }
 
                 propertyName = parts[parts.Length-1];
-                children = propertyAppClass.Constructor.Children;
+
+                // We need to search in the children in the constructor since
+                // other inputbindings might have been added that makes the
+                // insertion index change.
+                cst = propertyAppClass.Constructor;
+                children = cst.Children;
+
+                // TODO: 
+                // Make sure that the inputbindings are added in the correct order if 
+                // we have more than one handler for the same property.
                 index = children.FindIndex((NBase child) =>
                         {
                             NProperty property = child as NProperty;
@@ -563,15 +597,51 @@ namespace Starcounter.Internal.Application.CodeGeneration
                         });
 
                 binding = new NInputBinding();
-                binding.BindsToProperty = (NProperty)propertyAppClass.Constructor.Children[index];
+                binding.BindsToProperty = (NProperty)cst.Children[index];
                 binding.PropertyAppClass = (NAppClass)NAppClass.Find(propertyAppClass.Template);
-                binding.InputTypeName = info.InputType;
+                binding.InputTypeName = info.FullInputTypeName;
 
-                // TODO: Find the class the Handle-method is declared and set here.
-
-                binding.DeclaringAppClass = (NAppClass)NAppClass.Find(propertyAppClass.Template); // TODO:
+                FindHandleDeclaringClass(binding, info);
                 propertyAppClass.Constructor.Children.Insert(index + 1, binding);
             }
+        }
+
+        /// <summary>
+        ///  Finds the class where the Handle method is declared. This can be the same class
+        ///  as where the property is declared or a parentclass.
+        /// </summary>
+        /// <param name="binding"></param>
+        /// <param name="info"></param>
+        private static void FindHandleDeclaringClass(NInputBinding binding, InputBindingInfo info)
+        {
+            Int32 parentCount = 0;
+            IParentTemplate candidate = binding.PropertyAppClass.Template;
+            AppTemplate appTemplate;
+            NAppClass declaringAppClass = null;
+
+            while (candidate != null)
+            {
+                appTemplate = candidate as AppTemplate;
+                if (appTemplate != null)
+                {
+                    if (info.DeclaringClassName.Equals(appTemplate.ClassName))
+                    {
+                        declaringAppClass = (NAppClass)NAppClass.Find(appTemplate);
+                        break;
+                    }
+                }
+
+                candidate = candidate.Parent;
+                parentCount++;
+            }
+
+            if (declaringAppClass == null)
+            {
+                throw new Exception("Could not find the app where Handle method is declared.");
+            }
+
+            binding.DeclaringAppClass = declaringAppClass;
+            binding.AppParentCount = parentCount;
         }
 
         /// <summary>
