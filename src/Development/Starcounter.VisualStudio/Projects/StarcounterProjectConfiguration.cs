@@ -60,17 +60,14 @@ namespace Starcounter.VisualStudio.Projects {
             return true;
         }
 
-        #endregion
-
-        #region Shared debugging code, to enable debugging of projects
-
         /// <summary>
         /// When implemented in a subclass, begins debugging.
         /// </summary>
-        /// <param name="deployUI"></param>
-        /// <returns></returns>
-        bool BeginDebug(__VSDBGLAUNCHFLAGS flags) {
-            throw new NotImplementedException();
+        /// <param name="flags">Debugging flags from the environment.</param>
+        /// <returns>True if the launch of the debugger was a success; false
+        /// if not.</returns>
+        protected virtual bool BeginDebug(__VSDBGLAUNCHFLAGS flags) {
+            return true;
         }
 
         #endregion
