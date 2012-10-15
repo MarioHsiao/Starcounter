@@ -15,6 +15,11 @@ namespace Starcounter.Templates {
 
         public UInt64 DefaultValue { get; set; }
 
+        public override void ProcessInput(App app, byte[] rawValue)
+        {
+            throw new NotImplementedException();
+        }
+
         public override object DefaultValueAsObject {
             get { return DefaultValue; }
             set { DefaultValue = (UInt64)value; }
