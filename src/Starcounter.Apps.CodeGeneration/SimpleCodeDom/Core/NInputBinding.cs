@@ -43,40 +43,38 @@ namespace Starcounter.Internal.Application.CodeGeneration
 
         }
 
-        // TODO:
-        // Move.
-        public String GetBindingCode()
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.Append("        ");
-            sb.Append(BindsToProperty.Template.Name);       // {0}
-            sb.Append(".AddHandler((App app, Property<");
-            sb.Append(BindsToProperty.Template.JsonType);   // {1}
-            sb.Append("> prop, ");
-            sb.Append(BindsToProperty.Template.JsonType);   // {1}
-            sb.Append(" value) => { return (new ");
-            sb.Append(InputTypeName);                       // {2}
-            sb.Append("() { App = (");
-            sb.Append(PropertyAppClass.ClassName);          // {3}
-            sb.Append(")app, Template = (");
-            sb.Append(BindsToProperty.Type.ClassName);      // {4}
-            sb.Append(")prop, Value = value }); }, (App app, Input<");
-            sb.Append(BindsToProperty.Template.JsonType);   // {1}
-            sb.Append("> Input) => { ((");
-            sb.Append(DeclaringAppClass.ClassName);         // {5}
-            sb.Append(")app");
+        //public String GetBindingCode()
+        //{
+        //    StringBuilder sb = new StringBuilder();
+        //    sb.Append("        ");
+        //    sb.Append(BindsToProperty.Template.Name);       // {0}
+        //    sb.Append(".AddHandler((App app, Property<");
+        //    sb.Append(BindsToProperty.Template.JsonType);   // {1}
+        //    sb.Append("> prop, ");
+        //    sb.Append(BindsToProperty.Template.JsonType);   // {1}
+        //    sb.Append(" value) => { return (new ");
+        //    sb.Append(InputTypeName);                       // {2}
+        //    sb.Append("() { App = (");
+        //    sb.Append(PropertyAppClass.ClassName);          // {3}
+        //    sb.Append(")app, Template = (");
+        //    sb.Append(BindsToProperty.Type.ClassName);      // {4}
+        //    sb.Append(")prop, Value = value }); }, (App app, Input<");
+        //    sb.Append(BindsToProperty.Template.JsonType);   // {1}
+        //    sb.Append("> Input) => { ((");
+        //    sb.Append(DeclaringAppClass.ClassName);         // {5}
+        //    sb.Append(")app");
 
-            for (Int32 i = 0; i < AppParentCount; i++)
-            {
-                sb.Append(".Parent");
-            }
+        //    for (Int32 i = 0; i < AppParentCount; i++)
+        //    {
+        //        sb.Append(".Parent");
+        //    }
 
-            sb.Append(").Handle((");
-            sb.Append(InputTypeName);                       // {2}
-            sb.Append(")Input); });");
+        //    sb.Append(").Handle((");
+        //    sb.Append(InputTypeName);                       // {2}
+        //    sb.Append(")Input); });");
 
-            return sb.ToString();
-        }
+        //    return sb.ToString();
+        //}
     }
 }
 

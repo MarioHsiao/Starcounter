@@ -328,14 +328,45 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 }
                 else if (kid is NInputBinding)
                 {
-                    String s = ((NInputBinding)kid).GetBindingCode();
-                    a.Prefix.Add(s);
+                    a.Prefix.Add(GetAddInputHandlerCode((NInputBinding)kid));
                 }
             }
             a.Prefix.Add(
                 "    }");
         }
 
+        public String GetAddInputHandlerCode(NInputBinding ib)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("        ");
+            sb.Append(ib.BindsToProperty.Template.Name);       // {0}
+            sb.Append(".AddHandler((App app, Property<");
+            sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
+            sb.Append("> prop, ");
+            sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
+            sb.Append(" value) => { return (new ");
+            sb.Append(ib.InputTypeName);                       // {2}
+            sb.Append("() { App = (");
+            sb.Append(ib.PropertyAppClass.ClassName);          // {3}
+            sb.Append(")app, Template = (");
+            sb.Append(ib.BindsToProperty.Type.ClassName);      // {4}
+            sb.Append(")prop, Value = value }); }, (App app, Input<");
+            sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
+            sb.Append("> Input) => { ((");
+            sb.Append(ib.DeclaringAppClass.ClassName);         // {5}
+            sb.Append(")app");
+
+            for (Int32 i = 0; i < ib.AppParentCount; i++)
+            {
+                sb.Append(".Parent");
+            }
+
+            sb.Append(").Handle((");
+            sb.Append(ib.InputTypeName);                       // {2}
+            sb.Append(")Input); });");
+
+            return sb.ToString();
+        }
 
         /// <summary>
         /// Writes the class declaration and constructor for an AppTemplate class
