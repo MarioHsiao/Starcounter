@@ -21,7 +21,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             SyntaxTree tree;   
             String ns;
             List<JsonMapInfo> mapList;
-            List<HandleInputInfo> inputList;
+            List<InputBindingInfo> inputList;
 
             if (!File.Exists(codeBehindFilename)) return CodeBehindMetadata.Empty;
 
@@ -33,7 +33,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             mapList = new List<JsonMapInfo>();
             FillListWithJsonMapInfo(className, root, mapList);
 
-            inputList = new List<HandleInputInfo>();
+            inputList = new List<InputBindingInfo>();
             FillListWithHandleInputInfo(root, inputList);
 
             return new CodeBehindMetadata(ns, mapList, inputList);
@@ -73,7 +73,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
 
                 if (ns != null) nsBuilder.Insert(0, '.');
             }
-            return nsBuilder.ToString();
+            return nsBuilder.ToString().TrimEnd();
         }
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// </summary>
         /// <param name="node"></param>
         /// <param name="list"></param>
-        private static void FillListWithHandleInputInfo(SyntaxNode node, List<HandleInputInfo> list)
+        private static void FillListWithHandleInputInfo(SyntaxNode node, List<InputBindingInfo> list)
         {
             MethodDeclarationSyntax methodDecl;
 
@@ -134,12 +134,11 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// </summary>
         /// <param name="methodNode"></param>
         /// <returns></returns>
-        private static HandleInputInfo GetHandleInputInfoFrom(MethodDeclarationSyntax methodNode)
+        private static InputBindingInfo GetHandleInputInfoFrom(MethodDeclarationSyntax methodNode)
         {
             ClassDeclarationSyntax classDecl;
-            ClassDeclarationSyntax parentClassDecl;
-            String fullClassname;
-            String ns;
+            String className;
+            String classNs;
             String paramType;
 
             String returnType = methodNode.ReturnType.ToString();
@@ -155,18 +154,10 @@ namespace Starcounter.Internal.Application.CodeGeneration
             }
 
             classDecl = FindClass(methodNode.Parent);
-            fullClassname = classDecl.Identifier.ValueText;
+            className = classDecl.Identifier.ValueText;
+            classNs = FindNamespaceForClassDeclaration(classDecl);
 
-            parentClassDecl = FindClass(classDecl.Parent);
-            while (parentClassDecl != null)
-            {
-                fullClassname = parentClassDecl.Identifier.ValueText + "." + fullClassname;
-                parentClassDecl = FindClass(parentClassDecl.Parent);
-            }
-
-            ns = FindNamespaceForClassDeclaration(classDecl);
-
-            return new HandleInputInfo(ns, fullClassname, paramType);
+            return new InputBindingInfo(classNs, className, paramType);
         }
 
         /// <summary>
@@ -183,7 +174,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             if (node.Kind == SyntaxKind.Attribute)
             {
                 attribute = (AttributeSyntax)node;
-                if (IsJsonMapAttribute(attribute, className))
+                if (IsJsonMapAttribute(attribute))
                 {
                     list.Add(GetJsonMapInfoFrom(attribute));
                     return;
@@ -236,11 +227,11 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="attribute"></param>
         /// <param name="className"></param>
         /// <returns></returns>
-        private static Boolean IsJsonMapAttribute(AttributeSyntax attribute, String className)
+        private static Boolean IsJsonMapAttribute(AttributeSyntax attribute)
         {
             String attributeName = attribute.Name.ToString();
-
-            if (attributeName.StartsWith(className)) return true;
+            
+            if (attributeName.StartsWith("Json.")) return true;
             return false;
         }
 
