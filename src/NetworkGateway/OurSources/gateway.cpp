@@ -867,7 +867,7 @@ uint32_t __stdcall ScanDatabasesRoutine(LPVOID params)
             return err_code;
 
         // NOTE: Pause between scans until synchronous named pipes are fixed.
-        Sleep(100);
+        Sleep(500);
     }
 
     return 0;
