@@ -272,7 +272,7 @@ uint32_t WorkerDbInterface::RegisterPushChannel(int32_t sched_num)
     shared_memory_chunk *smc = NULL;
 
     // Getting a free chunk.
-    core::chunk_index new_chunk = GetChunkFromPrivatePool(&smc);
+    core::chunk_index new_chunk = GetOneChunkFromPrivatePool(&smc);
 
     // Predefined BMX management handler.
     smc->set_bmx_protocol(bmx::BMX_MANAGEMENT_HANDLER);
@@ -297,7 +297,7 @@ uint32_t WorkerDbInterface::RequestRegisteredHandlers(int32_t sched_num)
     shared_memory_chunk *smc = NULL;
 
     // Getting a free chunk.
-    core::chunk_index new_chunk = GetChunkFromPrivatePool(&smc);
+    core::chunk_index new_chunk = GetOneChunkFromPrivatePool(&smc);
 
     // Filling the chunk as BMX management handler.
     smc->set_bmx_protocol(bmx::BMX_MANAGEMENT_HANDLER);

@@ -76,13 +76,13 @@ EXTERN_C __forceinline uint32_t __stdcall sc_bmx_write_to_chunks(
     uint32_t num_bytes_to_write = buf_len_bytes;
     
     // Number of chunks to use.
-    uint32_t num_chunks_to_use = (buf_len_bytes / starcounter::bmx::MAX_DATA_IN_CHUNK) + 1;
+    uint32_t num_chunks_to_use = (buf_len_bytes / starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK) + 1;
 
     // Checking if more than maximum chunks we can take at once.
-    if (num_chunks_to_use > starcounter::bmx::MAX_WSABUFS_LINKED)
+    if (num_chunks_to_use > starcounter::bmx::MAX_NUM_LINKED_WSABUFS)
     {
-        num_chunks_to_use = starcounter::bmx::MAX_WSABUFS_LINKED;
-        num_bytes_to_write = starcounter::bmx::MAX_LINKED_CHUNKS_BYTES;
+        num_chunks_to_use = starcounter::bmx::MAX_NUM_LINKED_WSABUFS;
+        num_bytes_to_write = starcounter::bmx::MAX_BYTES_LINKED_CHUNKS;
     }
 
     // Acquiring linked chunks.
@@ -102,8 +102,8 @@ EXTERN_C __forceinline uint32_t __stdcall sc_bmx_write_to_chunks(
     // Going through each linked chunk and write data there.
     uint32_t left_bytes_to_write = num_bytes_to_write;
     uint32_t num_bytes_to_write_in_chunk = left_bytes_to_write;
-    if (num_bytes_to_write_in_chunk > starcounter::bmx::MAX_DATA_IN_CHUNK)
-        num_bytes_to_write_in_chunk = starcounter::bmx::MAX_DATA_IN_CHUNK;
+    if (num_bytes_to_write_in_chunk > starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK)
+        num_bytes_to_write_in_chunk = starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK;
 
     // Getting index of the first data chunk in chain.
     cur_chunk_index = ((shared_memory_chunk*)cur_chunk_buf)->get_link();
@@ -121,7 +121,7 @@ EXTERN_C __forceinline uint32_t __stdcall sc_bmx_write_to_chunks(
         left_bytes_to_write -= num_bytes_to_write_in_chunk;
 
         // Checking how many bytes to write next time.
-        if (left_bytes_to_write < starcounter::bmx::MAX_DATA_IN_CHUNK)
+        if (left_bytes_to_write < starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK)
             num_bytes_to_write_in_chunk = left_bytes_to_write;
 
         // Getting next chunk in chain.

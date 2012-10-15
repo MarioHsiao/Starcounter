@@ -170,7 +170,7 @@ public:
 
     // Obtains chunk from a private pool if its not empty
     // (otherwise fetches from shared chunk pool).
-    core::chunk_index GetChunkFromPrivatePool(shared_memory_chunk **chunk_data)
+    core::chunk_index GetOneChunkFromPrivatePool(shared_memory_chunk **chunk_data)
     {
         // Pop chunk index from private chunk pool.
         core::chunk_index chunk_index;
@@ -208,7 +208,7 @@ public:
         core::chunk_index chunk_index;
 
         // Determining number of chunks needed.
-        uint32_t num_chunks_needed = num_bytes / starcounter::bmx::MAX_DATA_IN_CHUNK;
+        uint32_t num_chunks_needed = num_bytes / starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK;
 
         // Trying to fetch chunk from private pool.
         uint32_t err_code;

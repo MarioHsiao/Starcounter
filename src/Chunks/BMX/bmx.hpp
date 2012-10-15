@@ -83,9 +83,9 @@ namespace bmx
     #define SCHEDULER_SPIN_COUNT 1000000
 
     // Constants needed for chunks processing.
-    const uint32_t MAX_DATA_IN_CHUNK = starcounter::core::chunk_size - shared_memory_chunk::LINK_SIZE;
-    const uint32_t MAX_WSABUFS_LINKED = MAX_DATA_IN_CHUNK / sizeof(WSABUF);
-    const uint32_t MAX_LINKED_CHUNKS_BYTES = MAX_WSABUFS_LINKED * MAX_DATA_IN_CHUNK;
+    const uint32_t MAX_DATA_BYTES_IN_CHUNK = starcounter::core::chunk_size - shared_memory_chunk::LINK_SIZE;
+    const uint32_t MAX_NUM_LINKED_WSABUFS = MAX_DATA_BYTES_IN_CHUNK / sizeof(WSABUF);
+    const uint32_t MAX_BYTES_LINKED_CHUNKS = MAX_NUM_LINKED_WSABUFS * MAX_DATA_BYTES_IN_CHUNK;
 
     const uint32_t BMX_HANDLER_SIZE = 2;
     const uint32_t BMX_PROTOCOL_BEGIN = 16;
