@@ -36,13 +36,12 @@ namespace starcounter {
 namespace network {
 
 // Some defines, e.g. debugging, statistics, etc.
-//#define GW_GLOBAL_STATISTICS
+#define GW_GLOBAL_STATISTICS
 //#define GW_SOCKET_DIAG
 //#define GW_HTTP_DIAG
 //#define GW_WEBSOCKET_DIAG
 #define GW_ERRORS_DIAG
 #define GW_WARNINGS_DIAG
-//#define GW_GENERAL_DIAG
 //#define GW_CHUNKS_DIAG
 #define GW_DATABASES_DIAG
 //#define GW_SESSIONS_DIAG
@@ -130,14 +129,15 @@ const int32_t AGGR_BLOB_USER_DATA_OFFSET = 64;
 const int32_t SUBPORT_BLOB_USER_DATA_OFFSET = 32;
 const int32_t WS_BLOB_USER_DATA_OFFSET = 16;
 
-// Offset in bytes for HttpRequest structure.
-const int32_t HTTP_REQUEST_OFFSET_BYTES = 192;
-
 // Error code type.
 #define GW_ERR_CHECK(err_code) if (0 != err_code) return err_code
 
 // Channel chunk type.
 typedef uint32_t channel_chunk;
+
+// Printing prefixes.
+#define GW_PRINT_WORKER (GW_COUT << "[" << worker_id_ << "]: ")
+#define GW_PRINT_GLOBAL (GW_COUT << "Global: ")
 
 // Port types.
 enum PortType
@@ -401,6 +401,12 @@ public:
         buf_len_bytes_ -= last_recv_bytes_;
     }
 
+    // Getting original buffer length bytes.
+    ULONG get_orig_buf_len_bytes()
+    {
+        return orig_buf_len_bytes_;
+    }
+
     // Setting the number of bytes retrieved at last receive.
     void SetLastReceivedBytes(ULONG lenBytes)
     {
@@ -613,7 +619,25 @@ class ActiveDatabase
     // Database handlers.
     HandlersTable* user_handlers_;
 
+    // Number of confirmed register push channels.
+    int32_t num_confirmed_push_channels_;
+
 public:
+
+    // Checks if its enough confirmed push channels.
+    bool IsAllPushChannelsConfirmed();
+
+    // Received confirmation push channel.
+    void ReceivedPushChannelConfirmation()
+    {
+        num_confirmed_push_channels_++;
+    }
+
+    // Gets database name.
+    std::string& get_db_name()
+    {
+        return db_name_;
+    }
 
     // Gets database handlers.
     HandlersTable* get_user_handlers()
@@ -717,7 +741,7 @@ class ServerPort
     uint16_t port_number_;
 
     // Statistics.
-    volatile int64_t num_created_sockets_[MAX_ACTIVE_DATABASES];
+    volatile int64_t num_allocated_sockets_[MAX_ACTIVE_DATABASES];
     volatile int64_t num_active_conns_[MAX_ACTIVE_DATABASES];
 
     // Offset for the user data to be written.
@@ -771,7 +795,7 @@ public:
     // Checks if this database slot empty.
     bool EmptyForDb(int32_t db_index)
     {
-        return (num_created_sockets_[db_index] == 0) && (num_active_conns_[db_index] == 0);
+        return (num_allocated_sockets_[db_index] == 0) && (num_active_conns_[db_index] == 0);
     }
 
     // Checking if port is unused by any database.
@@ -804,17 +828,17 @@ public:
         return num_active_conns_[db_index];
     }
 
-    // Retrieves the number of created sockets.
-    int64_t get_num_created_sockets(int32_t db_index)
+    // Retrieves the number of allocated sockets.
+    int64_t get_num_allocated_sockets(int32_t db_index)
     {
-        return num_created_sockets_[db_index];
+        return num_allocated_sockets_[db_index];
     }
 
     // Increments or decrements the number of created sockets.
-    int64_t ChangeNumCreatedSockets(int32_t db_index, int64_t changeValue)
+    int64_t ChangeNumAllocatedSockets(int32_t db_index, int64_t changeValue)
     {
-        InterlockedAdd64(&(num_created_sockets_[db_index]), changeValue);
-        return num_created_sockets_[db_index];
+        InterlockedAdd64(&(num_allocated_sockets_[db_index]), changeValue);
+        return num_allocated_sockets_[db_index];
     }
 
     // Increments or decrements the number of active connections.
@@ -827,7 +851,7 @@ public:
     // Resets the number of created sockets and active connections.
     void Reset(int32_t db_index)
     {
-        InterlockedAnd64(&(num_created_sockets_[db_index]), 0);
+        InterlockedAnd64(&(num_allocated_sockets_[db_index]), 0);
         InterlockedAnd64(&(num_active_conns_[db_index]), 0);
     }
 };
@@ -895,7 +919,10 @@ class Gateway
     GatewayWorker* gw_workers_;
 
     // Worker thread handles.
-    HANDLE* thread_handles_;
+    HANDLE* worker_thread_handles_;
+
+    // Database scanning thread handle.
+    HANDLE db_scan_thread_handle_;
 
     ////////////////////////
     // SESSIONS
@@ -946,7 +973,7 @@ class Gateway
     sockaddr_in* server_addr_;
 
     // Number of active schedulers.
-    uint32_t active_sched_num_read_only_;
+    uint32_t num_schedulers_;
 
     // Black list with malicious IP-addresses.
     std::list<uint32_t> black_list_ips_unsafe_;
@@ -1138,9 +1165,9 @@ public:
     }
 
     // Get number of active schedulers.
-    uint32_t active_sched_num_read_only()
+    uint32_t get_num_schedulers()
     {
-        return active_sched_num_read_only_;
+        return num_schedulers_;
     }
 
     // Get number of workers.
@@ -1206,11 +1233,11 @@ public:
     uint32_t InitSharedMemory(std::string setting_databaseName,
         core::shared_interface* sharedInt_readOnly);
 
-    // Reading list of active databases.
+    // Detects start/stop of active databases.
     uint32_t ScanDatabases();
 
     // Print statistics.
-    uint32_t GatewayParallelLoop();
+    uint32_t GatewayStatisticsAndMonitoringRoutine();
 
     // Creates socket and binds it to server port.
     uint32_t CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t port_num, SOCKET& sock);
@@ -1219,7 +1246,9 @@ public:
     uint32_t CreateNewConnectionsAllWorkers(int32_t howMany, uint16_t port_num, int32_t db_index);
 
     // Start workers.
-    uint32_t StartWorkersAndGatewayLoop(LPTHREAD_START_ROUTINE workerRoutine);
+    uint32_t StartWorkerAndManagementThreads(
+        LPTHREAD_START_ROUTINE workerRoutine,
+        LPTHREAD_START_ROUTINE scanDbsRoutine);
 
     // Cleanup resources.
     uint32_t GlobalCleanup();
@@ -1274,7 +1303,7 @@ public:
 
         // Creating an instance of new unique session.
         all_sessions_unsafe_[freeSessionIndex].GenerateNewSession(gw, freeSessionIndex, global_scheduler_id_unsafe_++);
-        if (global_scheduler_id_unsafe_ >= active_sched_num_read_only_)
+        if (global_scheduler_id_unsafe_ >= num_schedulers_)
             global_scheduler_id_unsafe_ = 0;
 
         // Incrementing number of active sessions.

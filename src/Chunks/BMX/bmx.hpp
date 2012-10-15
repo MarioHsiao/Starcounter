@@ -14,6 +14,10 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
+#define WIN32_LEAN_AND_MEAN
+#include <winsock2.h>
+#undef WIN32_LEAN_AND_MEAN
+
 #include <stdint.h>
 #include <list>
 #include <vector>
@@ -21,9 +25,6 @@
 #include "chunk_helper.h"
 #include "..\common\chunk.hpp"
 #include "sccorensm.h"
-
-#define LINKED_CHUNK 0x01
-#define SCHEDULER_SPIN_COUNT 1000000
 
 // BMX task information.
 struct TASK_INFO_TYPE {
@@ -78,6 +79,27 @@ namespace starcounter
 {
 namespace bmx
 {
+    #define LINKED_CHUNK 0x01
+    #define SCHEDULER_SPIN_COUNT 1000000
+
+    // Constants needed for chunks processing.
+    const uint32_t MAX_DATA_IN_CHUNK = starcounter::core::chunk_size - shared_memory_chunk::LINK_SIZE;
+    const uint32_t MAX_WSABUFS_LINKED = MAX_DATA_IN_CHUNK / sizeof(WSABUF);
+    const uint32_t MAX_LINKED_CHUNKS_BYTES = MAX_WSABUFS_LINKED * MAX_DATA_IN_CHUNK;
+
+    const uint32_t BMX_HANDLER_SIZE = 2;
+    const uint32_t BMX_PROTOCOL_BEGIN = 16;
+    const uint32_t REQUEST_SIZE_BEGIN = BMX_PROTOCOL_BEGIN + BMX_HANDLER_SIZE;
+    const uint32_t GATEWAY_CHUNK_BEGIN = 24;
+    const uint32_t GATEWAY_DATA_BEGIN = GATEWAY_CHUNK_BEGIN + 32;
+    const uint32_t USER_DATA_OFFSET = GATEWAY_DATA_BEGIN + 12;
+    const uint32_t MAX_USER_DATA_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 16;
+    const uint32_t USER_DATA_WRITTEN_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 20;
+    const uint32_t SOCKET_DATA_NUM_CLONE_BYTES = GATEWAY_CHUNK_BEGIN + 160;
+
+    // Size of the usable chunk data.
+    const uint32_t GATEWAY_ORIG_CHUNK_DATA_SIZE = starcounter::core::chunk_size - GATEWAY_CHUNK_BEGIN - shared_memory_chunk::LINK_SIZE;
+
     // Predefined BMX management handler.
     const BMX_HANDLER_TYPE BMX_MANAGEMENT_HANDLER = 0;
 
@@ -97,8 +119,9 @@ namespace bmx
     const uint8_t BMX_UNREGISTER = 3;
     const uint8_t BMX_ERROR = 4;
     const uint8_t BMX_REGISTER_PUSH_CHANNEL = 5;
-    const uint8_t BMX_DEREGISTER_PUSH_CHANNEL = 6;
-    const uint8_t BMX_SEND_ALL_HANDLERS = 7;
+    const uint8_t BMX_REGISTER_PUSH_CHANNEL_RESPONSE = 6;
+    const uint8_t BMX_DEREGISTER_PUSH_CHANNEL = 7;
+    const uint8_t BMX_SEND_ALL_HANDLERS = 8;
 
     // Supported HTTP methods.
     enum HTTP_METHODS
@@ -381,7 +404,6 @@ namespace bmx
     // Global BMX data, including handlers, memory, etc.
     class BmxData
     {
-
         // Current maximum number of handlers.
         BMX_HANDLER_TYPE max_num_entries_;
 
@@ -410,18 +432,18 @@ namespace bmx
         uint32_t AcquireNewChunk(shared_memory_chunk*& chunk, uint32_t& chunk_index);
 
         uint32_t WriteRegisteredPortHandler(
-            shared_memory_chunk* smc,
+            response_chunk_part *response,
             BMX_HANDLER_TYPE handler_id,
             uint16_t port);
 
         uint32_t WriteRegisteredSubPortHandler(
-            shared_memory_chunk* smc,
+            response_chunk_part *response,
             BMX_HANDLER_TYPE handler_id,
             uint16_t port,
             uint32_t subport);
 
         uint32_t WriteRegisteredUriHandler(
-            shared_memory_chunk* smc,
+            response_chunk_part *response,
             BMX_HANDLER_TYPE handler_id,
             uint16_t port,
             char* uri_string,
@@ -432,6 +454,7 @@ namespace bmx
         uint32_t PushRegisteredPortHandler(BMX_HANDLER_TYPE handler_id, uint16_t port_num);
         uint32_t PushRegisteredSubportHandler(BMX_HANDLER_TYPE handler_id, uint16_t port, uint32_t subport);
         uint32_t PushRegisteredUriHandler(BMX_HANDLER_TYPE handler_id, uint16_t port, char* uri, uint32_t uri_len_chars, HTTP_METHODS http_method);
+        uint32_t RegisterPushChannelResponse(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info);
 
         // Sends information about all registered handlers.
         uint32_t SendAllHandlersInfo(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info);

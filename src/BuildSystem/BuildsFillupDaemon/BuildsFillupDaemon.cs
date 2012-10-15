@@ -81,7 +81,7 @@ namespace BuildsFillupDaemon
                 Environment.SetEnvironmentVariable(BuildSystem.ConsolidOutputEnvVar, Path.Combine(sourcesDir, BuildSystem.CommonDefaultBuildOutputPath + @"\BinConsolidated-" + configuration + "-" + platform));
 
                 // Indicating that we need to upload to US FTP.
-                Environment.SetEnvironmentVariable("SC_UPLOAD_TO_US_FTP", "True");
+                Environment.SetEnvironmentVariable(BuildSystem.UploadToUsFtp, "True");
 
                 // Setting this since all pre-compiled files are already copied.
                 Environment.SetEnvironmentVariable("DONT_COPY_EXTERNAL_FILES", "True");
