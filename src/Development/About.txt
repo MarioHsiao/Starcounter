@@ -6,7 +6,7 @@ The Development hive contains the code, the setup projects and the templates nee
 2. Projects
 -----------
 
-2.1 CSAppsTemplate
+2.1 Starcounter.VS.CSAppsProjectTemplate
 A project template for the C# language that allows the creation of an App-based executable.
 The output of this project is a .zip file that contains the templates and can be installed into
 Visual Studio.
@@ -14,3 +14,10 @@ Visual Studio.
 The template defines/references the flavored project type with the unique ID {2343A348-E64C-4CD2-89E0-E5165AC7ABB1}.
 When such a template is instantiated, it will trigger our Visual Studio extension package to be loaded,
 and that way we can customize the development experience to support our "apps" model.
+
+2.2 Starcounter.VisualStudio
+A project that creates the .dll that loads into Visual Studio when a Starcounter project is created,
+based on any of our templates.
+
+The output of this project is a library called Starcounter.VisualStudio.dll that runs from our standard
+installation directory (and builds to \bin\Debug | \bin\Release like other projects).
