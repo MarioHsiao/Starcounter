@@ -1,6 +1,7 @@
 LIBRARY
 
 EXPORTS
+	sccoredbh_init
 	sccoredbh_thread_enter
 	sccoredbh_thread_leave
 	sccoredbh_thread_reset

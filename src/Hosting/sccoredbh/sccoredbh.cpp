@@ -10,8 +10,13 @@ void _fatal_error(uint32_t r)
 }
 
 
-static uint64_t __hmenv = 0; // TODO:
+static uint64_t __hmenv = 0;
 
+
+extern "C" void __stdcall sccoredbh_init(uint64_t hmenv)
+{
+	__hmenv = hmenv;
+}
 
 extern "C" void __stdcall sccoredbh_thread_enter(void* hsched, uint8_t cpun, void* p, int32_t init)
 {

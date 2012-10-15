@@ -35,8 +35,13 @@ namespace StarcounterInternal.Hosting
         private static unsafe sccorelib.ALERT_LOWMEM al_lowmem = new sccorelib.ALERT_LOWMEM(orange_alert_lowmem);
 #endif
 
+        [DllImport("sccoredbh.dll", CallingConvention = CallingConvention.StdCall)]
+        public static extern unsafe uint sccoredbh_init(ulong hmenv);
+
         public static unsafe void orange_configure_scheduler_callbacks(ref sccorelib.CM2_SETUP setup)
         {
+            sccoredbh_init(hmenv_);
+
             void* hModule = Kernel32.LoadLibraryA("sccoredbh.dll");
             setup.th_enter = Kernel32.GetProcAddress(hModule, "sccoredbh_thread_enter");
             setup.th_leave = Kernel32.GetProcAddress(hModule, "sccoredbh_thread_leave");
