@@ -214,6 +214,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "99. Development", "99. Deve
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.VS.CSAppsProjectTemplate", "Development\Starcounter.VS.CSAppsProjectTemplate\Starcounter.VS.CSAppsProjectTemplate.csproj", "{0E242B9D-C9FB-4975-B2A5-885DF7232582}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.VisualStudio", "Development\Starcounter.VisualStudio\Starcounter.VisualStudio.csproj", "{524A9D92-4E74-413B-85E1-B3E893B4A25A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -408,6 +410,9 @@ Global
 		{0E242B9D-C9FB-4975-B2A5-885DF7232582}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{0E242B9D-C9FB-4975-B2A5-885DF7232582}.Debug|x64.Build.0 = Debug|Any CPU
 		{0E242B9D-C9FB-4975-B2A5-885DF7232582}.Release|x64.ActiveCfg = Release|Any CPU
+		{524A9D92-4E74-413B-85E1-B3E893B4A25A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{524A9D92-4E74-413B-85E1-B3E893B4A25A}.Debug|x64.Build.0 = Debug|Any CPU
+		{524A9D92-4E74-413B-85E1-B3E893B4A25A}.Release|x64.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -464,5 +469,6 @@ Global
 		{AC2A8729-1693-47DA-9723-C54EAD0EEECF} = {42B8DA2F-1785-43DC-B8D8-AE3676E822D4}
 		{FFD0C045-ECC0-4621-BB0D-CE53859E0BC5} = {F5866E64-EAD9-44E9-98B3-93DED5C8B352}
 		{0E242B9D-C9FB-4975-B2A5-885DF7232582} = {B39115F7-A3E8-42CE-AAB8-932AB8D4DFB4}
+		{524A9D92-4E74-413B-85E1-B3E893B4A25A} = {B39115F7-A3E8-42CE-AAB8-932AB8D4DFB4}
 	EndGlobalSection
 EndGlobal
