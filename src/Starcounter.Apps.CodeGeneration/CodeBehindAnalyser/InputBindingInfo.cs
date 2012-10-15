@@ -5,15 +5,26 @@ namespace Starcounter.Internal.Application.CodeGeneration
 {
     public class InputBindingInfo
     {
-        internal InputBindingInfo(String ns, String cn, String it)
+        internal InputBindingInfo(String classNs, String className, String fullInputTypename)
         {
-            Namespace = ns;
-            ClassName = cn;
-            InputType = it;
+            DeclaringClassNamespace = classNs;
+            DeclaringClassName = className;
+            FullInputTypeName = fullInputTypename;
         }
 
-        public readonly String Namespace;
-        public readonly String ClassName;
-        public readonly String InputType;
+        /// <summary>
+        /// The namespace of the class where the Handle method is declared.
+        /// </summary>
+        public readonly String DeclaringClassNamespace;
+
+        /// <summary>
+        /// The name of the class where the Handle method is declared.
+        /// </summary>
+        public readonly String DeclaringClassName;
+
+        /// <summary>
+        /// The fullname of the inputtype specified in the Handle method.
+        /// </summary>
+        public readonly String FullInputTypeName;
     }
 }

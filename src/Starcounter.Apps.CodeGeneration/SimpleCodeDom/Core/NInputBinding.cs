@@ -28,6 +28,12 @@ namespace Starcounter.Internal.Application.CodeGeneration
         public NAppClass DeclaringAppClass { get; set; }
 
         /// <summary>
+        /// Count on how many parent calls are needed to go from the property
+        /// appclass to the class where the handle method is declared.
+        /// </summary>
+        public Int32 AppParentCount { get; set; }
+
+        /// <summary>
         /// The full name of the Input-type for this binding.
         /// </summary>
         public String InputTypeName { get; set; }
@@ -51,14 +57,21 @@ namespace Starcounter.Internal.Application.CodeGeneration
             sb.Append(" value) => { return (new ");
             sb.Append(InputTypeName);                       // {2}
             sb.Append("() { App = (");
-            sb.Append(DeclaringAppClass.ClassName);         // {3}
+            sb.Append(PropertyAppClass.ClassName);          // {3}
             sb.Append(")app, Template = (");
             sb.Append(BindsToProperty.Type.ClassName);      // {4}
             sb.Append(")prop, Value = value }); }, (App app, Input<");
             sb.Append(BindsToProperty.Template.JsonType);   // {1}
             sb.Append("> Input) => { ((");
-            sb.Append(PropertyAppClass.ClassName);          // {5}
-            sb.Append(")app).Handle((");
+            sb.Append(DeclaringAppClass.ClassName);         // {5}
+            sb.Append(")app");
+
+            for (Int32 i = 0; i < AppParentCount; i++)
+            {
+                sb.Append(".Parent");
+            }
+
+            sb.Append(").Handle((");
             sb.Append(InputTypeName);                       // {2}
             sb.Append(")Input); });");
 
@@ -68,12 +81,15 @@ namespace Starcounter.Internal.Application.CodeGeneration
 }
 
 //Input handler registration code:
-//{0} : PropertyName
-//{1} : Datatype
-//{2} : Inputname (from metadata)
-//{3} : Classname of App where the property is declared
-//{4} : TemplateTypeName
-//{5} : app with Parent calls as many as needed (from metadata)
+//{0} : PropertyName.
+//{1} : Datatype.
+//{2} : Inputname (from metadata).
+//{3} : Classname of App where the property is declared.
+//{4} : TemplateTypeName.
+//{5} : Classname of the class where Handle is declared.
+//{6} : Parent calls to go from the class where the property is 
+//      declared to the class where the Handle method is declared.
+
 
 //{0}.AddHandler
 //(
@@ -91,7 +107,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
 //    },
 //    (App app, Input<{1}> Input) =>
 //    {
-//        (({5})app).Handle(({2})Input);
+//        (({5})app.{6}).Handle(({2})Input);
 //    }
 //);
 

@@ -137,9 +137,8 @@ namespace Starcounter.Internal.Application.CodeGeneration
         private static InputBindingInfo GetHandleInputInfoFrom(MethodDeclarationSyntax methodNode)
         {
             ClassDeclarationSyntax classDecl;
-            ClassDeclarationSyntax parentClassDecl;
-            String fullClassname;
-            String ns;
+            String className;
+            String classNs;
             String paramType;
 
             String returnType = methodNode.ReturnType.ToString();
@@ -155,18 +154,10 @@ namespace Starcounter.Internal.Application.CodeGeneration
             }
 
             classDecl = FindClass(methodNode.Parent);
-            fullClassname = classDecl.Identifier.ValueText;
+            className = classDecl.Identifier.ValueText;
+            classNs = FindNamespaceForClassDeclaration(classDecl);
 
-            parentClassDecl = FindClass(classDecl.Parent);
-            while (parentClassDecl != null)
-            {
-                fullClassname = parentClassDecl.Identifier.ValueText + "." + fullClassname;
-                parentClassDecl = FindClass(parentClassDecl.Parent);
-            }
-
-            ns = FindNamespaceForClassDeclaration(classDecl);
-
-            return new InputBindingInfo(ns, fullClassname, paramType);
+            return new InputBindingInfo(classNs, className, paramType);
         }
 
         /// <summary>
@@ -239,8 +230,8 @@ namespace Starcounter.Internal.Application.CodeGeneration
         private static Boolean IsJsonMapAttribute(AttributeSyntax attribute, String className)
         {
             String attributeName = attribute.Name.ToString();
-
-            if (attributeName.StartsWith(className)) return true;
+            
+            if (attributeName.StartsWith("Json." + className)) return true;
             return false;
         }
 
