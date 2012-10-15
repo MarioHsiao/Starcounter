@@ -12,10 +12,11 @@ Backlog for server integration
 # Add logging and tracing calls.
 
 NEXTs
-# Implement ExecApp command.
+# Redirect standard streams in Starcounter.Bootstrap when the console is
+redirected.
+# Implement DeleteDatabase command in server.
 # Implement AppsService.Stop (using event in the listener thread in AppsProcess).
 # Comment, refactor and clean the command dispatcher.
 # Comment, refactor and clean the command processor base class.
-# Introdce DatabaseCommand.
 # Refactor CommandProcessor, making it a generic, like CommandProcessor<T> :
 ServerCommand and get rid of custom attribute (make IsPublic virtual).

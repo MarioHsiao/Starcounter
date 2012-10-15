@@ -143,9 +143,9 @@ namespace Starcounter.Server.Commands {
         public CommandInfo ToPublicModel() {
             CommandInfo info;
 
-            //DatabaseCommand databaseCommand;
+            DatabaseCommand databaseCommand;
 
-            //databaseCommand = this.Command as DatabaseCommand;
+            databaseCommand = this.Command as DatabaseCommand;
 
             info = new CommandInfo();
             info.Id = this.Id;
@@ -159,8 +159,7 @@ namespace Starcounter.Server.Commands {
             info.CorrelatedCommandId = this.CorrelatedCommand != null
                 ? this.CorrelatedCommand.Id
                 : CommandId.Null;
-            info.DatabaseUri = null; // TODO
-            // info.DatabaseUri = databaseCommand != null ? databaseCommand.DatabaseUri : null;
+            info.DatabaseUri = databaseCommand != null ? databaseCommand.DatabaseUri : null;
 
             if (this.progress != null) {
                 info.Progress = new ProgressInfo[progress.Values.Count];

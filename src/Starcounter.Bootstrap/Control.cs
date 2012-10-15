@@ -29,6 +29,7 @@ namespace StarcounterInternal.Bootstrap
             }
         }
 
+        private bool withdb_;
         private unsafe void* hsched_;
 
         private unsafe bool Setup(string[] args)
@@ -50,30 +51,44 @@ namespace StarcounterInternal.Bootstrap
 
             configuration = Configuration.Load(arguments);
 
+            withdb_ = !configuration.NoDb;
+
             AssureNoOtherProcessWithTheSameName(configuration);
 
-            byte* mem = (byte*)Marshal.AllocHGlobal(4096); // TODO: Allocate aligned memory. Evaluate size.
+            uint schedulerCount = configuration.SchedulerCount;
+
+            uint memSize = CalculateAmountOfMemoryNeededForRuntimeEnvironment(schedulerCount);
+
+            byte* mem = (byte*)Kernel32.VirtualAlloc((void *)0, (IntPtr)memSize, Kernel32.MEM_COMMIT, Kernel32.PAGE_READWRITE);
+
+            // Note that we really only need 128 bytes. See method
+            // CalculateAmountOfMemoryNeededForRuntimeEnvironment for details.
 
             ulong hmenv = ConfigureMemory(configuration, mem);
-            mem += 128;
+            mem += 512; 
 
             ulong hlogs = ConfigureLogging(configuration, hmenv);
 
             ConfigureHost(hlogs);
 
-            hsched_ = ConfigureScheduler(configuration, mem, hmenv);
-            mem += (1024 + 512);
+            hsched_ = ConfigureScheduler(configuration, mem, hmenv, schedulerCount);
+            mem += (1024 + (schedulerCount * 512));
 
-            ConfigureDatabase(configuration);
-
-            ConnectDatabase(configuration, hsched_, hmenv, hlogs);
+            if (withdb_)
+            {
+                ConfigureDatabase(configuration);
+                ConnectDatabase(configuration, hsched_, hmenv, hlogs);
+            }
 
             // Initializing the bmx manager.
             bmx.sc_init_bmx_manager();
 
             // Query module.
-            Scheduler.Setup(1);
-            Starcounter.Query.QueryModule.Initiate(configuration.SQLProcessPort);
+            Scheduler.Setup((byte)schedulerCount);
+            if (withdb_)
+            {
+                Starcounter.Query.QueryModule.Initiate(configuration.SQLProcessPort);
+            }
 
             return true;
         }
@@ -139,6 +154,8 @@ namespace StarcounterInternal.Bootstrap
                 request.Respond(response ?? "<NULL>");
             });
 
+            if (withdb_) Loader.AddBasePackage(hsched_);
+
             // Executing auto-start task if any.
             if (configuration.AutoStartExePath != null)
             {
@@ -183,6 +200,24 @@ namespace StarcounterInternal.Bootstrap
             throw ErrorCode.ToException(Error.SCERRAPPALREADYSTARTED);
         }
 
+        private uint CalculateAmountOfMemoryNeededForRuntimeEnvironment(uint schedulerCount)
+        {
+            uint s =
+                // Kernel memory setup. We actually only need 128 bytes but in
+                // order for per scheduler memory to be aligned to page
+                // boundary we allocate 512 bytes for this.
+
+                512 + // 128
+
+                // Scheduler: 1024 shared + 512 per scheduler.
+
+                1024 +
+                (schedulerCount * 512) +
+
+                0;
+            return s;
+        }
+
         private unsafe ulong ConfigureMemory(Configuration c, void* mem128)
         {
             uint slabs = (0xFFFFF000 - 4096) / 4096;  // 4 GB - 4 KB
@@ -216,13 +251,12 @@ namespace StarcounterInternal.Bootstrap
             LogManager.Setup(hlogs);
         }
 
-        private unsafe void* ConfigureScheduler(Configuration c, void* mem, ulong hmenv)
+        private unsafe void* ConfigureScheduler(Configuration c, void* mem, ulong hmenv, uint schedulerCount)
         {
-            uint cpuc = 1;
+            if (withdb_) orange.orange_setup(hmenv);
+            else orange_nodb.orange_setup(hmenv);
 
-            orange.orange_setup(hmenv);
-
-            uint space_needed_for_scheduler = 1024 + (cpuc * 512);
+            uint space_needed_for_scheduler = 1024 + (schedulerCount * 512);
             sccorelib.CM2_SETUP setup = new sccorelib.CM2_SETUP();
             setup.name = (char*)Marshal.StringToHGlobalUni(c.ServerName + "_" + c.Name);
             setup.server_name = (char*)Marshal.StringToHGlobalUni(c.ServerName);
@@ -232,8 +266,9 @@ namespace StarcounterInternal.Bootstrap
             setup.mem = mem;
             setup.mem_size = space_needed_for_scheduler;
             setup.hmenv = hmenv;
-            setup.cpuc = (byte)cpuc;
-            orange.orange_configure_scheduler_callbacks(ref setup);
+            setup.cpuc = (byte)schedulerCount;
+            if (withdb_) orange.orange_configure_scheduler_callbacks(ref setup);
+            else orange_nodb.orange_configure_scheduler_callbacks(ref setup);
 
             void* hsched;
             uint e = sccorelib.cm2_setup(&setup, &hsched);
@@ -274,6 +309,11 @@ namespace StarcounterInternal.Bootstrap
             // TODO: What is this configuration for?
             e = sccoredb.SCConfigSetValue("ELOGDIR", c.OutputDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
+
+            sccoredb.sccoredb_config config = new sccoredb.sccoredb_config();
+            orange.orange_configure_database_callbacks(ref config);
+            e = sccoredb.sccoredb_configure(&config);
+            if (e != 0) throw ErrorCode.ToException(e);
         }
 
         private unsafe void ConnectDatabase(Configuration configuration, void* hsched, ulong hmenv, ulong hlogs)
@@ -283,7 +323,7 @@ namespace StarcounterInternal.Bootstrap
             uint flags = 0;
             flags |= sccoredb.SCCOREDB_LOAD_DATABASE;
             flags |= sccoredb.SCCOREDB_ENABLE_CHECK_FILE_ON_LOAD;
-            //            flags |= sccoredb.SCCOREDB_ENABLE_CHECK_FILE_ON_CHECKP;
+            //flags |= sccoredb.SCCOREDB_ENABLE_CHECK_FILE_ON_CHECKP;
             flags |= sccoredb.SCCOREDB_ENABLE_CHECK_FILE_ON_BACKUP;
             flags |= sccoredb.SCCOREDB_ENABLE_CHECK_MEMORY_ON_CHECKP;
 

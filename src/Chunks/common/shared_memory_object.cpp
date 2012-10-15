@@ -14,8 +14,7 @@
 using namespace starcounter::core;
 
 #define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#include <atlstr.h>
+#include <windows.h>
 #include <iostream> /// debug
 
 #ifdef _MSC_VER

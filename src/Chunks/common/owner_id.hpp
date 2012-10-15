@@ -118,11 +118,9 @@ public:
 	/// Constructor.
 	/**
 	 * @param n The value to assign.
-	 *
 	 * @throws Nothing.
-	 *
 	 * @par Complexity
-	 *      Constant.
+	 *		Constant.
 	 */
 	owner_id(param_type n = owner_id::none);
 	
@@ -137,26 +135,20 @@ public:
 	/// Assignment from param_type.
 	/**
 	 * @param n The value to assign.
-	 *
 	 * @return A reference to this owner_id.
-	 *
 	 * @throws Nothing.
-	 *
 	 * @par Exception Safety
-	 *      No-throw.
+	 *		No-throw.
 	 */
 	owner_id& operator=(param_type n);
 	
 	/// Assign in place.
 	/**
 	 * @param n The value to assign.
-	 *
 	 * @return A reference to this owner_id.
-	 *
 	 * @throws Nothing.
-	 *
 	 * @par Exception Safety
-	 *      No-throw.
+	 *		No-throw.
 	 */
 	owner_id& assign(param_type n);
 	
@@ -165,64 +157,53 @@ public:
 	/// Get the value.
 	/**
 	 * @return The value.
-	 *
 	 * @throws Nothing.
-	 *
 	 * @par Exception Safety
-	 *      No-throw.
+	 *		No-throw.
 	 */
 	return_type get() const;
 	
 	/// Set the value.
 	/**
 	 * @param n The value to assign.
-	 *
 	 * @throws Nothing.
-	 *
 	 * @par Exception Safety
-	 *      No-throw.
+	 *		No-throw.
 	 */
 	void set(param_type n);
 	
 	/// Get the owner_id value.
 	/**
 	 * @return The owner_id value.
-	 *
 	 * @throws Nothing.
-	 *
 	 * @par Exception Safety
-	 *      No-throw.
+	 *		No-throw.
 	 */
 	return_type get_owner_id() const;
 	
 	/// Get clean_up flag in bit 0.
 	/**
 	 * @return The clean_up flag, in MSB.
-	 *
 	 * @throws Nothing.
-	 *
 	 * @par Exception Safety
-	 *      No-throw.
+	 *		No-throw.
 	 */
 	return_type get_clean_up() const;
 	
 	/// Mark for clean-up.
 	/**
 	 * @throws Nothing.
-	 *
 	 * @par Exception Safety
-	 *      No-throw.
+	 *		No-throw.
 	 */
 	void mark_for_clean_up();
 	
 	/// Test if this owner_id is not an owner id (owner_id::none.)
 	/**
 	 * @return true if this owner_id is not an owner id (owner_id::none.)
-	 *
 	 * @throws Nothing.
-	 *
 	 * @par Exception Safety
-	 *      No-throw.
+	 *		No-throw.
 	 */
 	bool is_no_owner_id() const;
 	
@@ -233,11 +214,9 @@ public:
     /// operator++ prefix increment.
  	/**
 	 * @return A reference to this owner_id.
-	 *
 	 * @throws Nothing.
-	 *
 	 * @par Exception Safety
-	 *      No-throw.
+	 *		No-throw.
 	 */
 	owner_id& operator++();
 	

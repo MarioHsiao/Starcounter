@@ -1,7 +1,7 @@
 //
 // shared_memory_segment_remover.hpp
 //
-// Copyright © 2006-2011 Starcounter AB. All rights reserved.
+// Copyright © 2006-2012 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 

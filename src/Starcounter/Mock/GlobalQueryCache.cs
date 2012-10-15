@@ -23,6 +23,13 @@ internal sealed class GlobalQueryCache
     // Dictionary containing indexes into enumerator array.
     Dictionary<String, Int32> indexDict = new Dictionary<String, Int32>();
 
+    internal readonly ulong Generation; 
+
+    internal GlobalQueryCache(ulong generation)
+    {
+        Generation = generation;
+    }
+
     /// <summary>
     /// Adds a new query to the cache if its already not there.
     /// Mutually exclusive.

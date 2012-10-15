@@ -1,6 +1,7 @@
 ﻿
 using Starcounter;
 using Starcounter.CommandLine;
+using System;
 
 namespace StarcounterInternal.Bootstrap
 {
@@ -10,14 +11,37 @@ namespace StarcounterInternal.Bootstrap
     /// </summary>
     public class Configuration
     {
-        public ApplicationArguments ProgramArguments { get; private set; }
 
-        public static Configuration Load(ApplicationArguments arguments)
+        public static Configuration Load(ApplicationArguments programArguments)
         {
-            return new Configuration() { ProgramArguments = arguments };
+            return new Configuration(programArguments);
         }
 
-        private Configuration() { }
+        private ApplicationArguments ProgramArguments { get; set; }
+
+        public uint SchedulerCount { get; private set; }
+
+        private Configuration(ApplicationArguments programArguments)
+        {
+            ProgramArguments = programArguments;
+
+            string prop;
+            if (ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.SchedulerCount, out prop))
+            {
+                try
+                {
+                    SchedulerCount = uint.Parse(prop);
+                }
+                catch (Exception e)
+                {
+                    throw ErrorCode.ToException(Error.SCERRBADSCHEDCOUNTCONFIG, e);
+                }
+            }
+            else
+            {
+                SchedulerCount = (uint)Environment.ProcessorCount;
+            }
+        }
 
         public string Name
         {
@@ -138,6 +162,12 @@ namespace StarcounterInternal.Bootstrap
                     v = int.Parse(str);
                 }
                 return v;
+            }
+        }
+
+        public bool NoDb {
+            get {
+                return this.ProgramArguments.ContainsFlag(ProgramCommandLine.OptionNames.NoDb);
             }
         }
     }

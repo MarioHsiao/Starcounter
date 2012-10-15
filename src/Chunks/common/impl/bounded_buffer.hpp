@@ -92,6 +92,7 @@ spin_count, uint32_t timeout_milliseconds) {
 			++unread_;
 			lock.unlock();
 			not_empty_.notify_one();
+
 			// Successfully popped the item.
 			return true;
 		}
@@ -141,6 +142,7 @@ spin_count, uint32_t timeout_milliseconds) {
 			*item = container_[--unread_];
 			lock.unlock();
 			not_full_.notify_one();
+
 			// Successfully popped the item.
 			return true;
 		}
@@ -169,9 +171,11 @@ inline bool bounded_buffer<T, Alloc>::try_push_front(param_type item) {
 		++unread_;
 		lock.unlock();
 		not_empty_.notify_one();
+
 		// The item was pushed.
 		return true;
 	}
+
 	// The lock was not aquired so the item was not pushed.
 	return false;
 }

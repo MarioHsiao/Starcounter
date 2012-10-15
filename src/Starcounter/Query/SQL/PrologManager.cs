@@ -21,35 +21,36 @@ namespace Starcounter.Query.Sql
     {
         static LogSource logSource;
         static Object startProcessLock;
-        static List<String> schemaFilePathList;
+        static List<String> schemaFilePathList = new List<String>();
         static Process process;
-        static String processFolder;
-        static String processFileName;
-        static String processVersion;
-        static Int32 processPort;
+        //static String processFolder;
+        //static String processFileName;
+        //static String processVersion;
+        //static Int32 processPort;
         static String schemaFolderExternal;
-        static Int32 maxQueryLength;
-        static Int32 maxQueryRetries;
-        static Int32 maxVerifyRetries;
-        static Int32 timeBetweenVerifyRetries;
+        //static Int32 maxQueryLength;
+        //static Int32 maxQueryRetries;
+        //static Int32 maxVerifyRetries;
+        //static Int32 timeBetweenVerifyRetries;
 
         // Is called during start-up.
-        internal static void Initiate(String procFolder, String procFileName, String procVersion, Int32 procPort,
-            String schemaFolder, Int32 queryLength, Int32 queryRetries, Int32 verifyRetries, Int32 betweenVerifyRetries)
+        internal static void Initiate()
         {
             logSource = LogSources.Sql;
             startProcessLock = new Object();
 
-            processFolder = procFolder;
-            processFileName = procFileName;
-            processVersion = procVersion;
-            processPort = procPort;
+            //processFolder = procFolder;
+            //processFileName = procFileName;
+            //processVersion = procVersion;
+            //processPort = procPort;
+
             //schemaFolderExternal = schemaFolder.Replace("\\", "/").Replace(' ', '?'); // TODO: Use some appropriate standard encoding?
-            schemaFolderExternal = schemaFolder.Replace("\\", "/");
-            maxQueryLength = queryLength;
-            maxQueryRetries = queryRetries;
-            maxVerifyRetries = verifyRetries;
-            timeBetweenVerifyRetries = betweenVerifyRetries;
+            schemaFolderExternal = QueryModule.SchemaFolder.Replace("\\", "/");
+            
+            //maxQueryLength = queryLength;
+            //maxQueryRetries = queryRetries;
+            //maxVerifyRetries = verifyRetries;
+            //timeBetweenVerifyRetries = betweenVerifyRetries;
 
             // Establish an SQL process without any schema information.
             EstablishSqlProcess();
@@ -183,19 +184,19 @@ namespace Starcounter.Query.Sql
             QueryAnswer answer = null;
             Int32 loopCount = 0;
 
-            while (loopCount < maxQueryRetries)
+            while (loopCount < QueryModule.MaxQueryRetries)
             {
                 try
                 {
                     EstablishConnectedSession(ref session, scheduler);
                     answer = session.executeQuery("delete_schemainfo_prolog");
                     CheckQueryAnswerForError(answer);
-                    loopCount = maxQueryRetries;
+                    loopCount = QueryModule.MaxQueryRetries;
                 }
                 catch (Exception exception)
                 {
                     loopCount++;
-                    if (loopCount < maxQueryRetries)
+                    if (loopCount < QueryModule.MaxQueryRetries)
                     {
                         logSource.LogWarning("Failed once to delete schema info.", exception);
                     }
@@ -262,7 +263,7 @@ namespace Starcounter.Query.Sql
             String existingProcessVersion = GetExistingSqlProcessVersion();
 
             // Correct version of process is running.
-            if (existingProcessVersion == processVersion)
+            if (existingProcessVersion == QueryModule.ProcessVersion)
             {
                 ConnectPrologSessions();
                 try
@@ -304,7 +305,7 @@ namespace Starcounter.Query.Sql
                 if (prologSession == null)
                 {
                     prologSession = new PrologSession();
-                    prologSession.Port = processPort;
+                    prologSession.Port = QueryModule.ProcessPort;
                     scheduler.PrologSession = prologSession;
                 }
 
@@ -379,7 +380,7 @@ namespace Starcounter.Query.Sql
                 {
                     scheduler.PrologSession = session;
                 }
-                session.Port = processPort;
+                session.Port = QueryModule.ProcessPort;
             }
             if (!session.Connected)
             {
@@ -441,42 +442,42 @@ namespace Starcounter.Query.Sql
                     try
                     {
                         process = new Process();
-                        process.StartInfo.FileName = processFolder + processFileName;
+                        process.StartInfo.FileName = QueryModule.ProcessFolder + QueryModule.ProcessFileName;
                         process.StartInfo.CreateNoWindow = true;
                         process.StartInfo.UseShellExecute = true;
-                        process.StartInfo.Arguments = processPort.ToString();
+                        process.StartInfo.Arguments = QueryModule.ProcessPort.ToString();
                         process.Start();
                     }
                     catch (Exception exception)
                     {
-                        String errMessage = "Failed to start process: " + processFolder + processFileName + " " + process.StartInfo.Arguments;
+                        String errMessage = "Failed to start process: " + QueryModule.ProcessFolder + QueryModule.ProcessFileName + " " + QueryModule.ProcessPort.ToString();
                         throw ErrorCode.ToException(Error.SCERRSQLSTARTPROCESSFAILED, exception, errMessage);
                     }
-                    logSource.Debug("Started process: " + processFolder + processFileName + " " + processPort);
+                    logSource.Debug("Started process: " + QueryModule.ProcessFolder + QueryModule.ProcessFileName + " " + QueryModule.ProcessPort.ToString());
 
                     // Verify process.
                     Boolean verified = false;
                     Int32 retries = 0;
                     String existingProcessVersion = null;
 
-                    while (verified == false && retries < maxVerifyRetries)
+                    while (verified == false && retries < QueryModule.MaxVerifyRetries)
                     {
                         retries++;
 
                         existingProcessVersion = GetExistingSqlProcessVersion();
-                        verified = (existingProcessVersion == processVersion);
+                        verified = (existingProcessVersion == QueryModule.ProcessVersion);
 
-                        if (!verified && retries < maxVerifyRetries)
+                        if (!verified && retries < QueryModule.MaxVerifyRetries)
                         {
-                            Thread.Sleep(timeBetweenVerifyRetries);
+                            Thread.Sleep(QueryModule.TimeBetweenVerifyRetries);
                         }
                     }
 
                     if (verified)
-                        logSource.Debug("Verified process: " + processFolder + processFileName + " " + processVersion);
+                        logSource.Debug("Verified process: " + QueryModule.ProcessFolder + QueryModule.ProcessFileName + " " + QueryModule.ProcessVersion);
                     else
                     {
-                        String errMessage = "Failed to verify process: " + processFolder + processFileName + " " + processVersion;
+                        String errMessage = "Failed to verify process: " + QueryModule.ProcessFolder + QueryModule.ProcessFileName + " " + QueryModule.ProcessVersion;
                         throw ErrorCode.ToException(Error.SCERRSQLVERIFYPROCESSFAILED, errMessage);
                     }
                 }
@@ -617,7 +618,7 @@ namespace Starcounter.Query.Sql
             QueryAnswer answer = null;
             Int32 loopCount = 0;
 
-            while (loopCount < maxQueryRetries)
+            while (loopCount < QueryModule.MaxQueryRetries)
             {
                 try
                 {
@@ -626,12 +627,12 @@ namespace Starcounter.Query.Sql
                     bindings.bind("SchemaInfo", schemaInfo);
                     answer = session.executeQuery("add_schemainfo_prolog(SchemaInfo)", bindings);
                     CheckQueryAnswerForError(answer);
-                    loopCount = maxQueryRetries;
+                    loopCount = QueryModule.MaxQueryRetries;
                 }
                 catch (Exception exception)
                 {
                     loopCount++;
-                    if (loopCount < maxQueryRetries)
+                    if (loopCount < QueryModule.MaxQueryRetries)
                     {
                         logSource.LogWarning("Failed once to add schema info: " + schemaInfo, exception);
                     }
@@ -820,7 +821,7 @@ namespace Starcounter.Query.Sql
             QueryAnswer answer = null;
             Int32 loopCount = 0;
 
-            while (loopCount < maxQueryRetries)
+            while (loopCount < QueryModule.MaxQueryRetries)
             {
                 try
                 {
@@ -829,12 +830,12 @@ namespace Starcounter.Query.Sql
                     bindings.bind("SchemaFile", schemaFilePath);
                     answer = session.executeQuery("load_schemainfo_prolog(SchemaFile)", bindings);
                     CheckQueryAnswerForError(answer);
-                    loopCount = maxQueryRetries;
+                    loopCount = QueryModule.MaxQueryRetries;
                 }
                 catch (Exception exception)
                 {
                     loopCount++;
-                    if (loopCount < maxQueryRetries)
+                    if (loopCount < QueryModule.MaxQueryRetries)
                     {
                         logSource.LogWarning("Failed once to load schema file: " + schemaFilePath, exception);
                     }
@@ -854,19 +855,19 @@ namespace Starcounter.Query.Sql
             QueryAnswer answer = null;
             Int32 loopCount = 0;
 
-            while (loopCount < maxQueryRetries)
+            while (loopCount < QueryModule.MaxQueryRetries)
             {
                 try
                 {
                     EstablishConnectedSession(ref session, scheduler);
                     answer = session.executeQuery("current_schemafiles_prolog(SchemaFiles)");
                     CheckQueryAnswerForError(answer);
-                    loopCount = maxQueryRetries;
+                    loopCount = QueryModule.MaxQueryRetries;
                 }
                 catch (Exception exception)
                 {
                     loopCount++;
-                    if (loopCount < maxQueryRetries)
+                    if (loopCount < QueryModule.MaxQueryRetries)
                     {
                         logSource.LogWarning("Failed once to verify schema.", exception);
                     }
@@ -914,9 +915,9 @@ namespace Starcounter.Query.Sql
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect query.");
             }
-            if (query.Length > maxQueryLength)
+            if (query.Length > QueryModule.MaxQueryLength)
             {
-                throw ErrorCode.ToException(Error.SCERRQUERYSTRINGTOOLONG, "Query string longer than maximal length of " + maxQueryLength + " characters.");
+                throw ErrorCode.ToException(Error.SCERRQUERYSTRINGTOOLONG, "Query string longer than maximal length of " + QueryModule.MaxQueryLength + " characters.");
             }
             if (query == "")
             {
@@ -929,7 +930,7 @@ namespace Starcounter.Query.Sql
             se.sics.prologbeans.Bindings bindings = null;
 
             // Try maximum maxQueryRetries times to process the query.
-            while (loopCount < maxQueryRetries)
+            while (loopCount < QueryModule.MaxQueryRetries)
             {
                 try
                 {
@@ -938,16 +939,17 @@ namespace Starcounter.Query.Sql
                     bindings.bind("Query", query);
                     answer = session.executeQuery("sql_prolog(Query,TypeDef,ExecInfo,VarNum,ErrList)", bindings);
                     CheckQueryAnswerForError(answer);
-                    loopCount = maxQueryRetries;
+                    loopCount = QueryModule.MaxQueryRetries;
                 }
                 catch (Exception exception)
                 {
                     loopCount++;
-                    if (loopCount < maxQueryRetries)
+                    if (loopCount < QueryModule.MaxQueryRetries)
                     {
                         logSource.LogWarning("Failed to process query: " + query, exception);
                         EstablishSqlProcess();
-                        logSource.LogWarning("Restarted process: " + processFolder + processFileName + " " + processPort + " " + schemaFolderExternal);
+                        logSource.LogWarning("Restarted process: " + QueryModule.ProcessFolder + QueryModule.ProcessFileName + " " + 
+                            QueryModule.ProcessPort + " " + schemaFolderExternal);
                         ReExportAllSchemaInfo(scheduler, schemaFilePathList);
                     }
                     else

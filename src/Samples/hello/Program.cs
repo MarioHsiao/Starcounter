@@ -77,15 +77,29 @@ namespace MyMusic {
 
 namespace hello
 {
+    class HelloApp : AppNew {
+
+        public HelloApp() {
+            LogSource logSource = new LogSource("hello.app");
+            logSource.LogNotice("Hello app-world (on database thread in database process)!");
+        }
+
+        static void Main(string[] args) {
+            new HelloApp();
+        }
+    }
+
     class Program
     {
 
         static void Main(string[] args)
         {
             Console.WriteLine("Hello world (on database thread in database process)!");
-
+            
             LogSource logSource = new LogSource("hello");
             logSource.LogNotice("Hello world (on database thread in database process)!");
+
+//            Starcounter.Internal.sccoredb.sccoredb_drop_index("MyMusic.Artist", "auto");
 
 #if true
 #if false
