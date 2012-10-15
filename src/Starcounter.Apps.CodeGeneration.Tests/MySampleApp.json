@@ -40,14 +40,24 @@
    $doubleToDecimal: {Type:"decimal"},
 
    child: {
-      test:"",
-      test2:""
+       test:"",
+       test2:""
    },
 
-   array: [{
-      test:"",
-      test2:""
-   }],
+   "ActivePage":
+	{ 
+		"MyTestStr":"",
+		"SubPage1":
+		{
+			"SubPage2":
+			{
+				"SubPage3":
+				{
+					"StringValue":""
+				}
+			}
+		}
+	},
 
    userLink: "/users/admin",
    user: null
