@@ -22,7 +22,8 @@ namespace Starcounter.VisualStudio.Projects {
 
         private IVsHierarchy hierarchy;
         private IVsProjectFlavorCfg innerCfg;
-
+        private readonly IVsBuildPropertyStorage buildPropertyStorage;
+        private readonly Dictionary<string, ProjectProperty> supportedProperties;
         protected readonly VsPackage package;
         protected string debugLaunchDescription;
         protected bool debugLaunchPending;
@@ -49,9 +50,12 @@ namespace Starcounter.VisualStudio.Projects {
             this.package = package;
             this.baseCfg = baseConfiguration;
             this.innerCfg = innerConfiguration;
+            this.supportedProperties = new Dictionary<string, ProjectProperty>();
             this.baseCfg.get_DisplayName(out this.configName);
+            this.buildPropertyStorage = (IVsBuildPropertyStorage)Marshal.GetTypedObjectForIUnknown(projectUnknown, typeof(IVsBuildPropertyStorage));
             ErrorHandler.ThrowOnFailure(this.hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out projectObj));
             this.Project = (Project)projectObj;
+            this.DefineSupportedProperties(this.supportedProperties);
         }
 
         #region Primary method set we expect implementations to customize
@@ -115,6 +119,81 @@ namespace Starcounter.VisualStudio.Projects {
             }
 
             this.package.WriteStatusText(text);
+        }
+
+        protected virtual void DefineSupportedProperties(Dictionary<string, ProjectProperty> properties) {
+            // At this level, we define no supported properties.
+        }
+
+        /// <summary>
+        /// Gets a property value.
+        /// </summary>
+        /// <param name="propertyName">
+        /// The name of the property whose value to retreive.</param>
+        /// <returns>The value of the specified property.</returns>
+        public string GetPropertyValue(string propertyName) {
+            string value;
+            string configurationName;
+            bool found;
+
+            var property = supportedProperties[propertyName];
+            configurationName = property.IsConfigurationDependent
+                ? this.configName
+                : null;
+
+            // We look first in the storage type defined on the property
+            // kind, to see if the value is found on disk.
+
+            found = this.buildPropertyStorage.GetPropertyValue(
+                propertyName,
+                configurationName,
+                (uint)property.StorageType,
+                out value) == VSConstants.S_OK;
+            if (found) return value;
+
+            // If the property indicated it's main storage was the user
+            // configuration file, we query the project level file as a
+            // fallback.
+
+            if (property.StorageType == _PersistStorageType.PST_USER_FILE) {
+                found = this.buildPropertyStorage.GetPropertyValue(
+                    propertyName,
+                    configurationName,
+                    (uint)_PersistStorageType.PST_PROJECT_FILE,
+                    out value)
+                    == VSConstants.S_OK;
+
+                if (found) return value;
+            }
+
+            // And if it was found in no file, we give back the default
+            // as specified when the project configuration is materialized.
+
+            return property.DefaultValue;
+        }
+
+        /// <summary>
+        /// Sets a property value.
+        /// </summary>
+        /// <param name="propertyName">
+        /// The name of the property whose value to set.</param>
+        /// <param name="value">The value to assign the property.</param>
+        public void SetPropertyValue(string propertyName, string value) {
+            string oldValue = GetPropertyValue(propertyName);
+            if (value == oldValue) {
+                return;
+            }
+
+            var property = supportedProperties[propertyName];
+            if (value == null) {
+                ErrorHandler.ThrowOnFailure(
+                    this.buildPropertyStorage.RemoveProperty(propertyName, property.IsConfigurationDependent ? this.configName : null,
+                                                             (uint)property.StorageType));
+            } else {
+                ErrorHandler.ThrowOnFailure(
+                    this.buildPropertyStorage.SetPropertyValue(propertyName, property.IsConfigurationDependent ? this.configName : null,
+                                                               (uint)property.StorageType, value));
+            }
         }
 
         #endregion
