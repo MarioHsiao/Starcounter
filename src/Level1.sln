@@ -208,6 +208,11 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLTest", "Samples\SQLTest\SQLTest.csproj", "{75FD7F1C-71C9-4083-8F70-D20B2C665F77}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "99. Development", "99. Development", "{B39115F7-A3E8-42CE-AAB8-932AB8D4DFB4}"
+	ProjectSection(SolutionItems) = preProject
+		Development\About.txt = Development\About.txt
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.VS.CSAppsProjectTemplate", "Development\Starcounter.VS.CSAppsProjectTemplate\Starcounter.VS.CSAppsProjectTemplate.csproj", "{0E242B9D-C9FB-4975-B2A5-885DF7232582}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -400,6 +405,9 @@ Global
 		{75FD7F1C-71C9-4083-8F70-D20B2C665F77}.Debug|x64.Build.0 = Debug|Any CPU
 		{75FD7F1C-71C9-4083-8F70-D20B2C665F77}.Release|x64.ActiveCfg = Release|Any CPU
 		{75FD7F1C-71C9-4083-8F70-D20B2C665F77}.Release|x64.Build.0 = Release|Any CPU
+		{0E242B9D-C9FB-4975-B2A5-885DF7232582}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0E242B9D-C9FB-4975-B2A5-885DF7232582}.Debug|x64.Build.0 = Debug|Any CPU
+		{0E242B9D-C9FB-4975-B2A5-885DF7232582}.Release|x64.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -455,5 +463,6 @@ Global
 		{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45} = {42B8DA2F-1785-43DC-B8D8-AE3676E822D4}
 		{AC2A8729-1693-47DA-9723-C54EAD0EEECF} = {42B8DA2F-1785-43DC-B8D8-AE3676E822D4}
 		{FFD0C045-ECC0-4621-BB0D-CE53859E0BC5} = {F5866E64-EAD9-44E9-98B3-93DED5C8B352}
+		{0E242B9D-C9FB-4975-B2A5-885DF7232582} = {B39115F7-A3E8-42CE-AAB8-932AB8D4DFB4}
 	EndGlobalSection
 EndGlobal
