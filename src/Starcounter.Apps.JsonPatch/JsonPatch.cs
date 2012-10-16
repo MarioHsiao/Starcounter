@@ -129,11 +129,10 @@ namespace Starcounter.Internal.JsonPatch
                         current = contentArr[offset];
                     }
 
-                    if (current == '"') offset++;
-
                     start = offset;
+                    if (current == '"') start++;
                 }
-                else if (current == '"' && start != -1)
+                else if ((start != -1) && (current == '"' || current == '}'))
                 {
                     length = offset - start;
                     break;
