@@ -427,7 +427,8 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
         case CONTENT_LENGTH:
         {
             // Setting body size parameter.
-            http->http_request_.body_len_bytes_ = length;
+            // TODO: Fix the length parsing.
+            //http->http_request_.body_len_bytes_ = length;
 
             break;
         }
