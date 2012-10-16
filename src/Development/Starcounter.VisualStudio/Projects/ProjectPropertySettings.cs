@@ -13,7 +13,7 @@ namespace Starcounter.VisualStudio.Projects {
     /// possible to get/set from <see cref="StarcounterProjectConfiguration"/>
     /// implementations.
     /// </summary>
-    internal sealed class ProjectProperty {
+    internal sealed class ProjectPropertySettings {
         /// <summary>
         /// Gets or sets the project property storage type.
         /// </summary>
@@ -31,22 +31,22 @@ namespace Starcounter.VisualStudio.Projects {
         internal string DefaultValue;
 
         /// <summary>
-        /// Initializes a <see cref="ProjectProperty"/>.
+        /// Initializes a <see cref="ProjectPropertySettings"/>.
         /// </summary>
         /// <param name="storageType"></param>
         /// <param name="configurationDependent"></param>
         /// <param name="defaultValue"></param>
-        internal ProjectProperty(_PersistStorageType storageType, bool configurationDependent) : 
+        internal ProjectPropertySettings(_PersistStorageType storageType, bool configurationDependent) : 
             this(storageType, configurationDependent, string.Empty) {
         }
 
         /// <summary>
-        /// Initializes a <see cref="ProjectProperty"/>.
+        /// Initializes a <see cref="ProjectPropertySettings"/>.
         /// </summary>
         /// <param name="storageType"></param>
         /// <param name="configurationDependent"></param>
         /// <param name="defaultValue"></param>
-        internal ProjectProperty(_PersistStorageType storageType, bool configurationDependent, string defaultValue) {
+        internal ProjectPropertySettings(_PersistStorageType storageType, bool configurationDependent, string defaultValue) {
             this.StorageType = storageType;
             this.IsConfigurationDependent = configurationDependent;
             this.DefaultValue = defaultValue;
