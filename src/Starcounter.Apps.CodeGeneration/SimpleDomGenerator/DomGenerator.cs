@@ -444,6 +444,11 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 Parent = appClassParent.NTemplateClass,
                 Template = alt
             };
+            var cstmn = new NProperty()
+            {
+                Parent = ((NAppTemplateClass)appClassParent.NTemplateClass).Constructor,
+                Template = alt
+            };
             var mmn = new NProperty()
             {
                 Parent = appClassParent.NTemplateClass.NMetadataClass,
@@ -454,6 +459,9 @@ namespace Starcounter.Internal.Application.CodeGeneration
 
             tmn.Type = new NListingXXXClass("ListingProperty", 
                                             NValueClass.Classes[alt.App], 
+                                            NTemplateClass.Classes[alt.App]);
+            cstmn.Type = new NListingXXXClass("ListingProperty",
+                                            NValueClass.Classes[alt.App],
                                             NTemplateClass.Classes[alt.App]);
 
             mmn.Type = new NListingXXXClass("ListingMetadata", 
