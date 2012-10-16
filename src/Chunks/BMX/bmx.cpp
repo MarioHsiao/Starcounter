@@ -280,7 +280,7 @@ uint32_t BmxData::UnregisterHandler(BMX_HANDLER_TYPE handler_id)
 }
 
 // Registers push channel and send the response.
-uint32_t BmxData::RegisterPushChannelResponse(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info)
+uint32_t BmxData::SendRegisterPushChannelResponse(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info)
 {
     // Entering critical section.
     uint32_t err_code = 0;
