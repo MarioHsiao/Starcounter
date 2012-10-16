@@ -1,5 +1,5 @@
-angular.module('StarcounterLib', [])
-  .directive('serverScope', ['$http', function ($http) {
+angular.module('StarcounterLib', ['panelApp'])
+  .directive('serverScope', ['$http', 'appContext', function ($http, appContext) {
   var directiveDefinitionObject = {
     restrict: 'A',
     compile: function compile(tElement, tAttrs, transclude) {
@@ -15,7 +15,10 @@ angular.module('StarcounterLib', [])
       }
 
       function patchRoot(scope, patch) {
-        jsonpatch.apply(scope, patch);
+        if (patch.length) {
+          console.log("patch", patch);
+          jsonpatch.apply(scope, patch);
+        }
       }
 
       function parseViewModelId(scope) {
@@ -38,23 +41,13 @@ angular.module('StarcounterLib', [])
           rootLoaded = true;
         });
       }
+
       function updateServer(scope, path, value) {
-          if (typeof value == 'undefined') // QUICK UGLY FIX
-              return;
-          console.log( "Input " + path + "=" + value );
         var data = {
           "replace": path,
           "value": value
         };
-        $http({ method: 'PATCH', url: getRequestUrl(scope), data: data }).success(function (data, status, headers, config) {
-            var i, len;
-            var patch;
-
-            console.log("PATCH received from server:");
-            for (i = 0, len = data.length; i < len; i++) {
-                patch = data[i];
-                console.log(patch);
-            }
+        $http({method: 'PATCH', url: getRequestUrl(scope), data: data}).success(function (data, status, headers, config) {
           patchRoot(scope, data);
         });
       }
@@ -67,13 +60,13 @@ angular.module('StarcounterLib', [])
                 updateServer(scope, '/' + prop.replace(/\./g, '/'), current);
               }
             })
-          })(props[i]), false);
+          })(props[i]), true);
         }
       }
 
       return function postLink(scope, element, attrs, controller) {
-        if (typeof window.__elim_req !== 'undefined') {
-          overwriteRoot(scope, window.__elim_req);
+        if (typeof window.__elim_rq !== 'undefined') {
+          overwriteRoot(scope, window.__elim_rq);
           rootLoaded = true;
         }
         else {
@@ -81,7 +74,26 @@ angular.module('StarcounterLib', [])
           getRoot(scope);
         }
 
-        setWatchers(scope, ['Value', 'CreateDbClick', 'StartDbClick', 'StopDbClick', 'ExecAppClick']);
+        var tree = appContext.getScopeTree(scope);
+        var watched = [];
+
+        function findWatchedRecursive(watched, obj, parent) {
+          parent = parent || '';
+          for (var i in obj) {
+            if (obj.hasOwnProperty(i)) {
+              if (Object.prototype.toString.apply(obj[i]) === '[object Object]') {
+                findWatchedRecursive(watched, obj[i], parent + i + '.');
+              }
+              else if (typeof obj[i] !== "function") {
+                watched.push(parent + i);
+              }
+            }
+          }
+        }
+
+        findWatchedRecursive(watched, tree.locals);
+
+        setWatchers(scope, watched);
       }
     }
   };
