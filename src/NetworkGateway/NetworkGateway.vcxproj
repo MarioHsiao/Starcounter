@@ -64,6 +64,11 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Chunks\BMX\bmx.vcxproj">
+      <Project>{6665517f-743d-4809-94d3-13325fc2af74}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{AD395461-89C1-4EFA-AEEF-8AE43C6B656D}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -94,7 +99,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>ThirdPartyHeaders;OurHeaders;c:\boost\x86_64\include\boost-1_46_1;..\Chunks;..\..\..\Level0\src\include;..\..\Yellow\src\Database.Net\include;..\Starcounter.ErrorCodes\scerrres</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>ThirdPartyHeaders;OurHeaders;c:\boost\x86_64\include\boost-1_46_1;..\Chunks;..\..\..\Level0\src\include;..\Starcounter.ErrorCodes\scerrres</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <PrecompiledHeader>Create</PrecompiledHeader>
       <PrecompiledHeaderFile>static_headers.hpp</PrecompiledHeaderFile>
@@ -110,7 +115,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <BrowseInformation>true</BrowseInformation>
-      <AdditionalIncludeDirectories>ThirdPartyHeaders;OurHeaders;c:\boost\x86_64\include\boost-1_46_1;..\Chunks;..\..\..\Level0\src\include;..\..\Yellow\src\Database.Net\include;..\Starcounter.ErrorCodes\scerrres</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>ThirdPartyHeaders;OurHeaders;c:\boost\x86_64\include\boost-1_46_1;..\Chunks;..\..\..\Level0\src\include;..\Starcounter.ErrorCodes\scerrres</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <WarningLevel>Level2</WarningLevel>
       <PrecompiledHeader>Create</PrecompiledHeader>

@@ -68,6 +68,13 @@ uint32_t sc_init_bmx_manager()
 // well as sending any responses back.
 uint32_t sc_handle_incoming_chunks(CM2_TASK_DATA* task_data)
 {
+    /*
+    SYSTEMTIME time;
+    GetSystemTime(&time);
+    WORD millis = (time.wSecond * 1000) + time.wMilliseconds;
+    std::cout << "POP time: " << millis << std::endl;
+    */
+
     return g_bmx_data->HandleBmxChunk(task_data);
 }
 
@@ -135,6 +142,81 @@ uint32_t sc_bmx_unregister_handler(BMX_HANDLER_TYPE handler_id)
     return err_code;
 }
 
+// Construct BMX Ping message.
+uint32_t sc_bmx_construct_ping(
+    uint64_t ping_data, 
+    shared_memory_chunk* smc
+    )
+{
+    // Predefined BMX management handler.
+    smc->set_bmx_protocol(BMX_MANAGEMENT_HANDLER);
+
+    request_chunk_part* request = smc->get_request_chunk();
+    request->reset_offset();
+
+    // Writing BMX message type.
+    request->write(BMX_PING);
+
+    // Writing Ping data.
+    request->write(ping_data);
+
+    // No linked chunks.
+    smc->terminate_link();
+
+    return 0;
+}
+
+// Parse BMX Pong message.
+uint32_t sc_bmx_parse_pong(
+    shared_memory_chunk* smc,
+    uint64_t* pong_data
+    )
+{
+    // Checking that its a BMX message.
+    if (BMX_MANAGEMENT_HANDLER != smc->get_bmx_protocol())
+        return 1;
+
+    // Getting the response part of the chunk.
+    response_chunk_part* response = smc->get_response_chunk();
+    uint32_t response_size = response->get_offset();
+
+    // Checking for correct response size.
+    if (9 != response_size)
+        return 2;
+
+    // Reading BMX message type.
+    response->reset_offset();
+    uint8_t bmx_type = response->read_uint8();
+
+    // Checking if its a Pong message.
+    if (BMX_PONG != bmx_type)
+        return 3;
+
+    // Reading original Ping data.
+    *pong_data = response->read_uint64();
+
+    return 0;
+}
+
+// Send Pong response for initial Ping message.
+inline uint32_t SendPongResponse(request_chunk_part *request, shared_memory_chunk* smc, TASK_INFO_TYPE* task_info)
+{
+    // Original 8-bytes of data.
+    uint64_t orig_data = request->read_uint64();
+
+    response_chunk_part *response = smc->get_response_chunk();
+    response->reset_offset();
+
+    // Writing response Pong with initial data.
+    response->write(BMX_PONG);
+    response->write(orig_data);
+
+    // Now the chunk is ready to be sent.
+    uint32_t err_code = cm_send_to_client(task_info->chunk_index);
+
+    return err_code;
+}
+
 // The specific handler that is responsible for handling responses
 // from the gateway registration process.
 uint32_t starcounter::bmx::OnIncomingBmxMessage(
@@ -146,16 +228,27 @@ uint32_t starcounter::bmx::OnIncomingBmxMessage(
     uint32_t err_code = 0;
 
     // This is going to be a BMX management chunk.
-    request_chunk_part* request_chunk = smc->get_request_chunk();
-    uint32_t request_size = request_chunk->get_offset();
+    request_chunk_part* request = smc->get_request_chunk();
+    uint32_t request_size = request->get_offset();
     uint32_t offset = 0;
 
-    request_chunk->reset_offset();
+    request->reset_offset();
     while (offset < request_size)
     {
-        uint8_t message_id = request_chunk->read_uint8();
+        uint8_t message_id = request->read_uint8();
         switch (message_id)
         {
+            case BMX_PING:
+            {
+                // Writing Pong message and sending it back.
+                err_code = SendPongResponse(request, smc, task_info);
+
+                if (err_code)
+                    return err_code;
+
+                break;
+            }
+
             case BMX_ERROR:
             {
                 return SCERRUNSPECIFIED; // SCERRBMXFAILURE
@@ -213,7 +306,7 @@ uint32_t starcounter::bmx::OnIncomingBmxMessage(
             }
         }
 
-        offset = request_chunk->get_offset();
+        offset = request->get_offset();
     }
 
     // BMX messages were handled successfully.
