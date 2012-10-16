@@ -91,5 +91,15 @@ namespace Starcounter.Binding
         {
             return GetPropertyBinding(name);
         }
+
+        IPropertyBinding ITypeBinding.GetPropertyBinding(int index)
+        {
+            if (index < propertyBindings_.Length)
+                return GetPropertyBinding(index);
+            else
+                return null;
+        }
+
+        int ITypeBinding.PropertyCount { get { return propertyBindings_.Length; } }
     }
 }
