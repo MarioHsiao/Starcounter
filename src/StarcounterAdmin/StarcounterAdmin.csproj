@@ -140,6 +140,9 @@
     <Content Include="lib\app.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="lib\appContext.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="lib\json-patch-bruth.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
