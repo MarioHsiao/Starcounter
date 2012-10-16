@@ -75,6 +75,18 @@ EXTERN_C uint32_t sc_bmx_register_uri_handler(
     BMX_HANDLER_TYPE* handler_id
 );
 
+// Construct BMX Ping message.
+EXTERN_C uint32_t sc_bmx_construct_ping(
+    uint64_t ping_data, 
+    shared_memory_chunk* smc
+    );
+
+// Parse BMX Pong message.
+EXTERN_C uint32_t sc_bmx_parse_pong(
+    shared_memory_chunk* smc,
+    uint64_t* pong_data
+    );
+
 namespace starcounter
 {
 namespace bmx
@@ -122,6 +134,8 @@ namespace bmx
     const uint8_t BMX_REGISTER_PUSH_CHANNEL_RESPONSE = 6;
     const uint8_t BMX_DEREGISTER_PUSH_CHANNEL = 7;
     const uint8_t BMX_SEND_ALL_HANDLERS = 8;
+    const uint8_t BMX_PING = 254;
+    const uint8_t BMX_PONG = 255;
 
     // Supported HTTP methods.
     enum HTTP_METHODS

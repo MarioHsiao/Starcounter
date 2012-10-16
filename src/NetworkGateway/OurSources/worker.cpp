@@ -876,7 +876,10 @@ SocketDataChunk *GatewayWorker::CreateSocketData(
     shared_memory_chunk *smc = NULL;
 
     // Pop chunk index from private chunk pool.
-    core::chunk_index chunk_index = db->GetOneChunkFromPrivatePool(&smc);
+    core::chunk_index chunk_index;
+    uint32_t err_code = db->GetOneChunkFromPrivatePool(&chunk_index, &smc);
+    if (err_code)
+        return NULL;
 
     // Allocating socket data inside chunk.
     SocketDataChunk *socket_data = (SocketDataChunk *)((uint8_t*)smc + BMX_HEADER_MAX_SIZE_BYTES);
