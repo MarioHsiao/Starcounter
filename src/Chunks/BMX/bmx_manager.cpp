@@ -181,7 +181,7 @@ uint32_t sc_bmx_parse_pong(
     uint32_t response_size = response->get_offset();
 
     // Checking for correct response size.
-    if (9 != response_size)
+    if (9 != response_size) // 9 = 1 byte Ping + 8 bytes pong_data
         return 2;
 
     // Reading BMX message type.
@@ -246,7 +246,10 @@ uint32_t starcounter::bmx::OnIncomingBmxMessage(
                 if (err_code)
                     return err_code;
 
-                break;
+			    // BMX messages were handled successfully.
+				*is_handled = true;
+
+				return 0;
             }
 
             case BMX_ERROR:
