@@ -23,7 +23,7 @@ namespace Starcounter.VisualStudio.Projects {
         private IVsHierarchy hierarchy;
         private IVsProjectFlavorCfg innerCfg;
         private readonly IVsBuildPropertyStorage buildPropertyStorage;
-        private readonly Dictionary<string, ProjectProperty> supportedProperties;
+        private readonly Dictionary<string, ProjectPropertySettings> supportedProperties;
         protected readonly VsPackage package;
         protected string debugLaunchDescription;
         protected bool debugLaunchPending;
@@ -50,7 +50,7 @@ namespace Starcounter.VisualStudio.Projects {
             this.package = package;
             this.baseCfg = baseConfiguration;
             this.innerCfg = innerConfiguration;
-            this.supportedProperties = new Dictionary<string, ProjectProperty>();
+            this.supportedProperties = new Dictionary<string, ProjectPropertySettings>();
             this.baseCfg.get_DisplayName(out this.configName);
             this.buildPropertyStorage = (IVsBuildPropertyStorage)Marshal.GetTypedObjectForIUnknown(projectUnknown, typeof(IVsBuildPropertyStorage));
             ErrorHandler.ThrowOnFailure(this.hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out projectObj));
@@ -121,7 +121,7 @@ namespace Starcounter.VisualStudio.Projects {
             this.package.WriteStatusText(text);
         }
 
-        protected virtual void DefineSupportedProperties(Dictionary<string, ProjectProperty> properties) {
+        protected virtual void DefineSupportedProperties(Dictionary<string, ProjectPropertySettings> properties) {
             // At this level, we define no supported properties.
         }
 
