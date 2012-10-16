@@ -181,7 +181,7 @@ uint32_t sc_bmx_parse_pong(
     uint32_t response_size = response->get_offset();
 
     // Checking for correct response size.
-    if (9 != response_size) // 9 = 1 byte Ping + 8 bytes pong_data
+    if (9 != response_size) // 9 = 1 byte Ping message type + 8 bytes pong_data.
         return 2;
 
     // Reading BMX message type.
@@ -229,87 +229,75 @@ uint32_t starcounter::bmx::OnIncomingBmxMessage(
 
     // This is going to be a BMX management chunk.
     request_chunk_part* request = smc->get_request_chunk();
-    uint32_t request_size = request->get_offset();
-    uint32_t offset = 0;
-
     request->reset_offset();
-    while (offset < request_size)
+
+    // Reading BMX management type.
+    uint8_t message_id = request->read_uint8();
+    switch (message_id)
     {
-        uint8_t message_id = request->read_uint8();
-        switch (message_id)
+        case BMX_ERROR:
         {
-            case BMX_PING:
-            {
-                // Writing Pong message and sending it back.
-                err_code = SendPongResponse(request, smc, task_info);
-
-                if (err_code)
-                    return err_code;
-
-			    // BMX messages were handled successfully.
-				*is_handled = true;
-
-				return 0;
-            }
-
-            case BMX_ERROR:
-            {
-                return SCERRUNSPECIFIED; // SCERRBMXFAILURE
-
-                break;
-            }
-
-            case BMX_REGISTER_PUSH_CHANNEL:
-            {
-                // Entering critical section.
-                EnterCriticalSection(&g_bmx_cs_);
-
-                //std::cout << "Received chunk: " << task_info->chunk_index << " on scheduler: " << (int32_t)task_info->scheduler_number << std::endl;
-                //std::cout << "Received BMX_REGISTER_PUSH_CHANNEL." << std::endl;
-
-                // Calling push channel registration.
-                err_code = g_bmx_data->RegisterPushChannelResponse(smc, task_info);
-
-                // Entering critical section.
-                LeaveCriticalSection(&g_bmx_cs_);
-
-                //std::cout << "Left critical section." << std::endl;
-
-                if (err_code)
-                    return err_code;
-
-                break;
-            }
-
-            case BMX_SEND_ALL_HANDLERS:
-            {
-                // Entering critical section.
-                EnterCriticalSection(&g_bmx_cs_);
-
-                //std::cout << "Received chunk: " << task_info->chunk_index << " on scheduler: " << (int32_t)task_info->scheduler_number << std::endl;
-                //std::cout << "Received BMX_SEND_ALL_HANDLERS." << std::endl;
-
-                err_code = g_bmx_data->SendAllHandlersInfo(smc, task_info);
-
-                // Entering critical section.
-                LeaveCriticalSection(&g_bmx_cs_);
-
-                //std::cout << "Left critical section." << std::endl;
-
-                if (err_code)
-                    return err_code;
-
-                break;
-            }
-
-            default:
-            {
-                return SCERRUNSPECIFIED; // SCERRUNKNOWNBMXMESSAGE;
-                break;
-            }
+            return SCERRUNSPECIFIED; // SCERRBMXFAILURE
         }
 
-        offset = request->get_offset();
+        case BMX_PING:
+        {
+            // Writing Pong message and sending it back.
+            err_code = SendPongResponse(request, smc, task_info);
+
+            if (err_code)
+                return err_code;
+
+			break;
+        }
+
+        case BMX_REGISTER_PUSH_CHANNEL:
+        {
+            // Entering critical section.
+            EnterCriticalSection(&g_bmx_cs_);
+
+            //std::cout << "Received chunk: " << task_info->chunk_index << " on scheduler: " << (int32_t)task_info->scheduler_number << std::endl;
+            //std::cout << "Received BMX_REGISTER_PUSH_CHANNEL." << std::endl;
+
+            // Calling push channel registration.
+            err_code = g_bmx_data->SendRegisterPushChannelResponse(smc, task_info);
+
+            // Entering critical section.
+            LeaveCriticalSection(&g_bmx_cs_);
+
+            //std::cout << "Left critical section." << std::endl;
+
+            if (err_code)
+                return err_code;
+
+            break;
+        }
+
+        case BMX_SEND_ALL_HANDLERS:
+        {
+            // Entering critical section.
+            EnterCriticalSection(&g_bmx_cs_);
+
+            //std::cout << "Received chunk: " << task_info->chunk_index << " on scheduler: " << (int32_t)task_info->scheduler_number << std::endl;
+            //std::cout << "Received BMX_SEND_ALL_HANDLERS." << std::endl;
+
+            err_code = g_bmx_data->SendAllHandlersInfo(smc, task_info);
+
+            // Entering critical section.
+            LeaveCriticalSection(&g_bmx_cs_);
+
+            //std::cout << "Left critical section." << std::endl;
+
+            if (err_code)
+                return err_code;
+
+            break;
+        }
+
+        default:
+        {
+            return SCERRUNSPECIFIED; // SCERRUNKNOWNBMXMESSAGE;
+        }
     }
 
     // BMX messages were handled successfully.

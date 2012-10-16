@@ -468,7 +468,7 @@ namespace bmx
         uint32_t PushRegisteredPortHandler(BMX_HANDLER_TYPE handler_id, uint16_t port_num);
         uint32_t PushRegisteredSubportHandler(BMX_HANDLER_TYPE handler_id, uint16_t port, uint32_t subport);
         uint32_t PushRegisteredUriHandler(BMX_HANDLER_TYPE handler_id, uint16_t port, char* uri, uint32_t uri_len_chars, HTTP_METHODS http_method);
-        uint32_t RegisterPushChannelResponse(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info);
+        uint32_t SendRegisterPushChannelResponse(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info);
 
         // Sends information about all registered handlers.
         uint32_t SendAllHandlersInfo(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info);
