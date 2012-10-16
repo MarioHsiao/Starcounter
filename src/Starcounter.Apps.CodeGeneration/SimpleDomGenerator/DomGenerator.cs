@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Starcounter.Templates.Interfaces;
+using System.CodeDom.Compiler;
 
 [assembly: InternalsVisibleTo("Starcounter.Application.Test")]
 
@@ -595,6 +596,17 @@ namespace Starcounter.Internal.Application.CodeGeneration
                                 return property.MemberName.Equals(propertyName);
                             return false;
                         });
+
+                if (index == -1)
+                {
+                    // TODO:
+                    // Need to add file and linenumbers if possible to pinpoint the erroneous code.
+                    throw new Exception("Invalid Handle-method declared in class " 
+                                        + info.DeclaringClassName 
+                                        + ". No property with name " 
+                                        + propertyName + 
+                                        " exists.");
+                }
 
                 binding = new NInputBinding();
                 binding.BindsToProperty = (NProperty)cst.Children[index];
