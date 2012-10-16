@@ -110,21 +110,21 @@ namespace SqlTest.PointDb
         public static bool CreateIndexes()
         {
             // Combined index on Nullable Int64 property ASC, Nullable Int64 property ASC and Nullable Int64 property ASC.
-            Db.SlowSQL("create index IntegerPoint_X_Y_Z on SqlTest.Test3.IntegerPoint (X, Y, Z)");
+            Db.SlowSQL("create index IntegerPoint_X_Y_Z on SqlTest.PointDb.IntegerPoint (X, Y, Z)");
             // Combined index on Nullable Int64 property ASC, Nullable Int64 property ASC and Nullable Int64 property DESC.
-            Db.SlowSQL("create index IntegerPoint_X_Y_ZDESC on SqlTest.Test3.IntegerPoint (X, Y, Z desc)");
+            Db.SlowSQL("create index IntegerPoint_X_Y_ZDESC on SqlTest.PointDb.IntegerPoint (X, Y, Z desc)");
             // Combined index on Nullable Int64 property ASC, Nullable Int64 property DESC and Nullable Int64 property ASC.
-            Db.SlowSQL("create index IntegerPoint_X_YDESC_Z on SqlTest.Test3.IntegerPoint (X, Y desc, Z)");
+            Db.SlowSQL("create index IntegerPoint_X_YDESC_Z on SqlTest.PointDb.IntegerPoint (X, Y desc, Z)");
             // Combined index on Nullable Int64 property ASC, Nullable Int64 property DESC and Nullable Int64 property DESC.
-            Db.SlowSQL("create index IntegerPoint_X_YDESC_ZDESC on SqlTest.Test3.IntegerPoint (X, Y desc, Z desc)");
+            Db.SlowSQL("create index IntegerPoint_X_YDESC_ZDESC on SqlTest.PointDb.IntegerPoint (X, Y desc, Z desc)");
             // Combined index on Nullable Int64 property DESC, Nullable Int64 property ASC and Nullable Int64 property ASC.
-            Db.SlowSQL("create index IntegerPoint_XDESC_Y_Z on SqlTest.Test3.IntegerPoint (X desc, Y, Z)");
+            Db.SlowSQL("create index IntegerPoint_XDESC_Y_Z on SqlTest.PointDb.IntegerPoint (X desc, Y, Z)");
             // Combined index on Nullable Int64 property DESC, Nullable Int64 property ASC and Nullable Int64 property DESC.
-            Db.SlowSQL("create index IntegerPoint_XDESC_Y_ZDESC on SqlTest.Test3.IntegerPoint (X desc, Y, Z desc)");
+            Db.SlowSQL("create index IntegerPoint_XDESC_Y_ZDESC on SqlTest.PointDb.IntegerPoint (X desc, Y, Z desc)");
             // Combined index on Nullable Int64 property DESC, Nullable Int64 property DESC and Nullable Int64 property ASC.
-            Db.SlowSQL("create index IntegerPoint_XDESC_YDESC_Z on SqlTest.Test3.IntegerPoint (X desc, Y desc, Z)");
+            Db.SlowSQL("create index IntegerPoint_XDESC_YDESC_Z on SqlTest.PointDb.IntegerPoint (X desc, Y desc, Z)");
             // Combined index on Nullable Int64 property DESC, Nullable Int64 property DESC and Nullable Int64 property DESC.
-            Db.SlowSQL("create index IntegerPoint_XDESC_YDESC_ZDESC on SqlTest.Test3.IntegerPoint (X desc, Y desc, Z desc)");
+            Db.SlowSQL("create index IntegerPoint_XDESC_YDESC_ZDESC on SqlTest.PointDb.IntegerPoint (X desc, Y desc, Z desc)");
             return true;
         }
  
@@ -134,14 +134,14 @@ namespace SqlTest.PointDb
         /// <returns>Returns true if no exceptions happened</returns>
         public static bool DropIndexes()
         {
-            Db.SlowSQL("drop index IntegerPoint_X_Y_Z on SqlTest.Test3.IntegerPoint (X, Y, Z)");
-            Db.SlowSQL("drop index IntegerPoint_X_Y_ZDESC on SqlTest.Test3.IntegerPoint (X, Y, Z desc)");
-            Db.SlowSQL("drop index IntegerPoint_X_YDESC_Z on SqlTest.Test3.IntegerPoint (X, Y desc, Z)");
-            Db.SlowSQL("drop index IntegerPoint_X_YDESC_ZDESC on SqlTest.Test3.IntegerPoint (X, Y desc, Z desc)");
-            Db.SlowSQL("drop index IntegerPoint_XDESC_Y_Z on SqlTest.Test3.IntegerPoint (X desc, Y, Z)");
-            Db.SlowSQL("drop index IntegerPoint_XDESC_Y_ZDESC on SqlTest.Test3.IntegerPoint (X desc, Y, Z desc)");
-            Db.SlowSQL("drop index IntegerPoint_XDESC_YDESC_Z on SqlTest.Test3.IntegerPoint (X desc, Y desc, Z)");
-            Db.SlowSQL("drop index IntegerPoint_XDESC_YDESC_ZDESC on SqlTest.Test3.IntegerPoint (X desc, Y desc, Z desc)");
+            Db.SlowSQL("drop index IntegerPoint_X_Y_Z on SqlTest.PointDb.IntegerPoint");
+            Db.SlowSQL("drop index IntegerPoint_X_Y_ZDESC on SqlTest.PointDb.IntegerPoint");
+            Db.SlowSQL("drop index IntegerPoint_X_YDESC_Z on SqlTest.PointDb.IntegerPoint");
+            Db.SlowSQL("drop index IntegerPoint_X_YDESC_ZDESC on SqlTest.PointDb.IntegerPoint");
+            Db.SlowSQL("drop index IntegerPoint_XDESC_Y_Z on SqlTest.PointDb.IntegerPoint");
+            Db.SlowSQL("drop index IntegerPoint_XDESC_Y_ZDESC on SqlTest.PointDb.IntegerPoint");
+            Db.SlowSQL("drop index IntegerPoint_XDESC_YDESC_Z on SqlTest.PointDb.IntegerPoint");
+            Db.SlowSQL("drop index IntegerPoint_XDESC_YDESC_ZDESC on SqlTest.PointDb.IntegerPoint");
             return true;
         }
 }
