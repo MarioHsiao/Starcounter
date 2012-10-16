@@ -32,21 +32,18 @@ namespace IndexQueryTest
 
         static void CreateIndexUserLN()
         {
-            Db.Transaction(delegate
+            try
             {
-                try
-                {
-                    Db.SlowSQL("CREATE INDEX userLN ON AccountTest.User (LastName ASC)");
-                    Console.WriteLine("Created index userLN ON AccountTest.User (LastName ASC)");
-                }
-                catch (Starcounter.DbException ex)
-                {
-                    if (ex.ErrorCode == Starcounter.Error.SCERRNAMEDINDEXALREADYEXISTS)
-                        Console.WriteLine("Index userLN already exists.");
-                    else
-                        throw ex;
-                }
-            });
+                Db.SlowSQL("CREATE INDEX userLN ON AccountTest.User (LastName ASC)");
+                Console.WriteLine("Created index userLN ON AccountTest.User (LastName ASC)");
+            }
+            catch (Starcounter.DbException ex)
+            {
+                if (ex.ErrorCode == Starcounter.Error.SCERRNAMEDINDEXALREADYEXISTS)
+                    Console.WriteLine("Index userLN already exists.");
+                else
+                    throw ex;
+            }
         }
 
         static void DropIndexUserLN()
