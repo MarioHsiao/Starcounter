@@ -106,7 +106,10 @@ namespace Starcounter.Templates {
             get { return Properties; }
         }
 
-
+        public override void ProcessInput(App app, byte[] value)
+        {
+            throw new NotImplementedException();
+        }
     }
 
 }

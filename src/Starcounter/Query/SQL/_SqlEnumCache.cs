@@ -15,7 +15,7 @@ namespace Starcounter.Query.Sql
 public sealed class SqlEnumCache
 {
     // Used for fast access to needed enumerator with unique query ID. Never flushed, only extends.
-    LinkedListNode<LinkedList<IExecutionEnumerator>>[] enumArray = new LinkedListNode<LinkedList<IExecutionEnumerator>>[GlobalQueryCache.MaxUniqueQueries];
+    LinkedListNode<LinkedList<IExecutionEnumerator>>[] enumArray;
 
     // Total number of cached enumerators in this cache.
     Int32 totalCachedEnum = 0;
@@ -29,6 +29,11 @@ public sealed class SqlEnumCache
     // References to global cache to be able run query during invalidation period
     GlobalQueryCache globalQueryCache = Scheduler.GlobalCache;
 
+    internal SqlEnumCache()
+    {
+        enumArray = new LinkedListNode<LinkedList<IExecutionEnumerator>>[globalQueryCache.EnumArrayLength];
+    }
+
     /// <summary>
     /// Gets an already existing enumerator given the unique query ID.
     /// </summary>
@@ -37,7 +42,19 @@ public sealed class SqlEnumCache
         IExecutionEnumerator execEnum = null;
 
         // Getting the enumerator list.
-        LinkedListNode<LinkedList<IExecutionEnumerator>> enumListListNode = enumArray[uniqueQueryId];
+        LinkedListNode<LinkedList<IExecutionEnumerator>> enumListListNode;
+        try
+        {
+            enumListListNode = enumArray[uniqueQueryId];
+        }
+        catch (IndexOutOfRangeException)
+        {
+            var newEnumArrayLength = globalQueryCache.EnumArrayLength;
+            var newEnumArray = new LinkedListNode<LinkedList<IExecutionEnumerator>>[newEnumArrayLength];
+            enumArray.CopyTo(newEnumArray, 0);
+            enumArray = newEnumArray;
+            enumListListNode = null;
+        }
         if (enumListListNode != null)
         {
             // Getting enumerator list inside the node.
@@ -106,15 +123,6 @@ public sealed class SqlEnumCache
         // Checking if its completely new query.
         if (enumIndex < 0)
         {
-#if false // TODO: ?
-            // Check if there is space for the query
-            if (globalQueryCache.IsCacheFull())
-            {
-                Scheduler myScheduler = Scheduler.GetInstance(true);
-                myScheduler.InvalidateCache();
-            }
-#endif
-
             enumIndex = globalQueryCache.AddNewQuery(query);
         }
 
@@ -133,7 +141,7 @@ public sealed class SqlEnumCache
     internal void InvalidateCache(GlobalQueryCache globalQueryCache)
     {
         this.globalQueryCache = globalQueryCache;
-        enumArray = new LinkedListNode<LinkedList<IExecutionEnumerator>>[GlobalQueryCache.MaxUniqueQueries];
+        enumArray = new LinkedListNode<LinkedList<IExecutionEnumerator>>[globalQueryCache.EnumArrayLength];
         totalCachedEnum = 0;
         lastUsedEnumIndex = 0;
     }

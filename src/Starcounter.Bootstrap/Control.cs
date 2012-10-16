@@ -72,7 +72,10 @@ namespace StarcounterInternal.Bootstrap
             // CalculateAmountOfMemoryNeededForRuntimeEnvironment for details.
 
             ulong hmenv = ConfigureMemory(configuration, mem);
-            mem += 512; 
+            mem += 512;
+
+            // Initializing the bmx manager.
+            bmx.sc_init_bmx_manager();
 
             ulong hlogs = ConfigureLogging(configuration, hmenv);
 
@@ -86,9 +89,6 @@ namespace StarcounterInternal.Bootstrap
                 ConfigureDatabase(configuration);
                 ConnectDatabase(configuration, hsched_, hmenv, hlogs);
             }
-
-            // Initializing the bmx manager.
-            bmx.sc_init_bmx_manager();
 
             // Query module.
             Scheduler.Setup((byte)schedulerCount);

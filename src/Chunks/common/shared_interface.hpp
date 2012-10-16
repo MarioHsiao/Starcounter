@@ -191,6 +191,26 @@ public:
 	// acquire_linked_chunks_from_shared_chunk_pool().
 	bool client_acquire_linked_chunks(chunk_index& head, std::size_t size,
 	uint32_t timeout_milliseconds = 10000);
+
+    ///--------------------------------------------------------------------------
+	/// Allocate linked chunks from the shared_chunk_pool. It is a "timed"
+	/// function that can fail.
+	/**
+	 * @param head Will upon return contain the head of a linked chain of chunks
+	 *		if successfuly acquired the requested size.
+	 * @param num_chunks The number of chunks to allocate.
+	 * @param timeout_milliseconds The number of milliseconds to wait before a
+	 *      timeout may occur.
+	 * @return true if successfully acquired the linked chunks with the
+	 *		requested amount of memory before the time period specified by
+	 *		timeout_milliseconds has elapsed, otherwise false if not enough
+	 *		space or the time period has elapsed.
+	 */
+	// TODO: After having removed acquire_linked_chunks(), and added it to
+	// server_port, rename this to:
+	// acquire_linked_chunks_from_shared_chunk_pool().
+	bool client_acquire_linked_chunks_counted(chunk_index& head, std::size_t num_chunks,
+	uint32_t timeout_milliseconds = 10000);
 	
 	/// Release linked chunks to the shared_chunk_pool. It is a "timed" function
 	/// that can fail. NOTE: It may be the case that not all chunks were

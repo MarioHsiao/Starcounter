@@ -8,12 +8,17 @@ namespace Starcounter.Client.Template {
 namespace Starcounter.Templates {
 #endif
 
-    public class DecimalProperty : Property
+    public class DecimalProperty : Property<decimal>
 #if IAPP
         , IDecimalTemplate
 #endif
     {
         decimal _DefaultValue = 0;
+
+        public override void ProcessInput(App app, byte[] rawValue)
+        {
+            throw new NotImplementedException();
+        }
 
         public decimal DefaultValue {
             get { return _DefaultValue; }
