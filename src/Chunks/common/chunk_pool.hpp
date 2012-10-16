@@ -89,6 +89,19 @@ public:
 	 */
 	bool acquire_linked_chunks(chunk_type* chunk_base, chunk_index& head,
 	std::size_t size);
+
+    //--------------------------------------------------------------------------
+	/// Acquire linked chunks - when the chunks are already owned by the client.
+	/// A client can use this function, but not a scheduler.
+	/**
+	 * @param chunk_base Points to the first element of the array of chunks.
+	 * @param head Will upon return contain the head of a linked chain of chunks
+	 *		if successfuly acquired the requested size.
+	 * @param num_chunks_to_acquire The number of chunks to allocate as 1..N linked chunks.
+	 * @return true if successfully acquired the linked chunks, otherwise false.
+	 */
+	bool acquire_linked_chunks_counted(chunk_type* chunk_base, chunk_index& head,
+	std::size_t num_chunks_to_acquire);
 	
 	/// Release linked chunks - when the chunks are already owned by the client.
 	/// A client can use this function, but not a scheduler.
@@ -119,6 +132,21 @@ public:
 	 */
 	bool acquire_linked_chunks(chunk_type* chunk_base, chunk_index& head,
 	std::size_t size, client_interface_type* client_interface_ptr);
+
+    //--------------------------------------------------------------------------
+	/// Acquire linked chunks - when the chunks are not owned by any client.
+	/// A scheduler can use this function, but not a client.
+	/**
+	 * @param chunk_base Points to the first element of the array of chunks.
+	 * @param head Will upon return contain the head of a linked chain of chunks
+	 *		if successfuly acquired the requested size.
+     * @param num_chunks_to_acquire The number of chunks to allocate as 1..N linked chunks.
+	 * @param client_interface_ptr A pointer to the client_interface where the
+	 *		chunk will be marked as owned by the client.
+	 * @return true if successfully acquired the linked chunks, otherwise false.
+	 */
+	bool acquire_linked_chunks_counted(chunk_type* chunk_base, chunk_index& head,
+	std::size_t num_chunks_to_acquire, client_interface_type* client_interface_ptr);
 	
 	/// Release linked chunks - when the chunks are not owned by any client.
 	/// A scheduler can use this function, but not a client.

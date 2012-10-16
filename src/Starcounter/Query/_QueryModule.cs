@@ -53,9 +53,9 @@ namespace Starcounter.Query
         /// </summary>
         internal static void Reset()
         {
+            Starcounter.ThreadHelper.SetYieldBlock();
             try
             {
-                Starcounter.ThreadHelper.SetYieldBlock();
                 Scheduler scheduler = Scheduler.GetInstance(true);
                 PrologManager.DeleteAllSchemaInfo(scheduler);
             }
@@ -67,9 +67,9 @@ namespace Starcounter.Query
 
         internal static void UpdateSchemaInfo(TypeDef[] typeDefArray)
         {
+            Starcounter.ThreadHelper.SetYieldBlock();
             try
             {
-                Starcounter.ThreadHelper.SetYieldBlock();
                 Scheduler scheduler = Scheduler.GetInstance(true);
                 PrologManager.ExportSchemaInfo(scheduler, typeDefArray);
             }

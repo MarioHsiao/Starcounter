@@ -214,6 +214,15 @@ inline HttpWsFields DetermineField(const char *at, size_t length)
                     }
                     break;
                 }
+
+                case 'n':
+                {
+                    switch(length)
+                    {
+                        case 14: return CONTENT_LENGTH; // Content-Length
+                    }
+                    break;
+                }
             }
 
             break;
@@ -415,6 +424,14 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
             break;
         }
 
+        case CONTENT_LENGTH:
+        {
+            // Setting body size parameter.
+            http->http_request_.body_len_bytes_ = length;
+
+            break;
+        }
+
         case ACCEPT_ENCODING_FIELD:
         {
             // Checking if Gzip is accepted.
@@ -503,8 +520,11 @@ inline int HttpWsProto::OnBody(http_parser* p, const char *at, size_t length)
 
     HttpWsProto *http = (HttpWsProto *)p;
 
-    // Setting content parameters.
-    http->http_request_.body_len_bytes_ = length;
+    // Setting body parameters.
+    if (http->http_request_.body_len_bytes_ <= 0)
+        http->http_request_.body_len_bytes_ = length;
+
+    // Setting body data offset.
     http->http_request_.body_offset_ = at - (char*)http->sd_ref_;
 
     return 0;
@@ -751,6 +771,16 @@ uint32_t HttpWsProto::HttpWsProcessData(
         // Standard HTTP.
         else
         {
+            // Checking if we have complete body.
+            if (http_request_.body_len_bytes_ > (DATA_BLOB_SIZE_BYTES - bytes_parsed))
+            {
+                // We need to continue receiving up to certain accumulation point.
+
+                
+
+                GW_COUT << "HTTP packet has incorrect data!" << std::endl;
+            }
+
             // Data is complete, posting parallel receive.
             gw->Receive(sd->CloneReceive(gw));
 

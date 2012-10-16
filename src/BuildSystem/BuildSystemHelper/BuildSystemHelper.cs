@@ -73,6 +73,11 @@ namespace BuildSystemHelper
         public const String ConsolidOutputEnvVar = "SC_BIN_CONSOLIDATED_FOLDER";
 
         /// <summary>
+        /// Flag to upload to external FTP.
+        /// </summary>
+        public const String UploadToUsFtp = "SC_UPLOAD_TO_US_FTP";
+
+        /// <summary>
         /// Used for getting directory of currently running assembly.
         /// </summary>
         public static String GetAssemblyDir()

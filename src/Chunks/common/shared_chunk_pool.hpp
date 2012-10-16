@@ -225,6 +225,26 @@ public:
 	bool acquire_linked_chunks(chunk_type* chunk_base, chunk_index& head,
 	std::size_t size, client_interface_type* client_interface_ptr, uint32_t
 	timeout_milliseconds = 10000);
+
+	/// Acquire linked chunks that fit the requested size - for schedulers and
+	/// clients.
+	/**
+	 * @param chunk_base Points to the first element of the array of chunks.
+	 * @param head Will upon return contain the head of a linked chain of chunks
+	 *		if successfuly acquired the requested size.
+	 * @param num_chunks_to_acquire The number of chunks to allocate.
+	 * @param client_interface_ptr A pointer to the client_interface where the
+	 *		chunk will be marked as owned by the client.
+	 * @param timeout_milliseconds The number of milliseconds to wait before a
+	 *		timeout may occur.
+	 * @return true if successfully acquired the linked chunks with the
+	 *		requested amount of memory before the time period specified by
+	 *		timeout_milliseconds has elapsed, otherwise false if not enough
+	 *		space or the time period has elapsed.
+	 */
+	bool acquire_linked_chunks_counted(chunk_type* chunk_base, chunk_index& head,
+	std::size_t num_chunks_to_acquire, client_interface_type* client_interface_ptr, uint32_t
+	timeout_milliseconds = 10000);
 	
 	/// Release linked chunks - for schedulers and clients.
 	/// NOTE: After calling this, the message data in the linked chunks may be

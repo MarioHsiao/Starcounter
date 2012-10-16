@@ -243,6 +243,12 @@ std::size_t size, uint32_t timeout_milliseconds) {
 	client_interface_, timeout_milliseconds);
 }
 
+inline bool shared_interface::client_acquire_linked_chunks_counted(chunk_index& head,
+std::size_t size, uint32_t timeout_milliseconds) {
+	return shared_chunk_pool_->acquire_linked_chunks_counted(chunk_, head, size,
+	client_interface_, timeout_milliseconds);
+}
+
 // TODO: Rename to release_linked_chunks()
 inline bool shared_interface::client_release_linked_chunks(chunk_index& head,
 uint32_t timeout_milliseconds) {

@@ -82,6 +82,11 @@ namespace Starcounter.Templates {
                 return (IEnumerable<Template>)_Single;
             }
         }
+
+        public override void ProcessInput(App app, byte[] rawValue)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 
 }

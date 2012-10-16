@@ -6,16 +6,18 @@ using System.Runtime.InteropServices;
 using Starcounter.Query.Execution;
 using System.Collections.Generic;
 using Starcounter;
+using System.Threading;
 
 internal sealed class GlobalQueryCache
 {
     /// <summary>
     /// Maximum number of unique queries in cache.
     /// </summary>
-    public const Int32 MaxUniqueQueries = 8192;
+    private const Int32 DefaultUniqueQueries = 8192;
+    //public const Int32 MaxUniqueQueries = 8192;
 
     // Array containing all unique execution enumerators.
-    IExecutionEnumerator[] enumArray = new IExecutionEnumerator[MaxUniqueQueries];
+    IExecutionEnumerator[] enumArray = new IExecutionEnumerator[DefaultUniqueQueries];
 
     // Number of unique cached queries.
     Int32 numUniqueQueries = 0;
@@ -30,58 +32,72 @@ internal sealed class GlobalQueryCache
         Generation = generation;
     }
 
+    internal int EnumArrayLength { get { return enumArray.Length; } }
+
     /// <summary>
     /// Adds a new query to the cache if its already not there.
     /// Mutually exclusive.
     /// </summary>
     internal Int32 AddNewQuery(String query)
     {
-        // Mutually excluding.
-        lock (indexDict)
+        Starcounter.ThreadHelper.SetYieldBlock();
+        try
         {
-            // First trying to fetch enumerator.
-            Int32 enumIndex = GetEnumIndex(query);
-            if (enumIndex >= 0)
+            // Mutually excluding.
+            lock (indexDict)
             {
+                // First trying to fetch enumerator.
+                Int32 enumIndex = GetEnumIndex(query);
+                if (enumIndex >= 0)
+                {
+                    return enumIndex;
+                }
+
+                // Query is not cached, adding it.
+                // Parser and optimize it
+                // Creating enumerator from scratch.
+                Scheduler vproc = Scheduler.GetInstance();
+                IExecutionEnumerator newEnum = PrologManager.ProcessSqlQuery(vproc, query);
+
+                // Assigning unique query ID.
+                newEnum.UniqueQueryID = (UInt64)numUniqueQueries;
+                enumIndex = numUniqueQueries;
+
+                // Increasing number of unique queries.
+                numUniqueQueries++;
+
+                // Checking if its LikeExecEnumerator.
+                if (newEnum is LikeExecEnumerator)
+                {
+                    (newEnum as LikeExecEnumerator).CreateLikeCombinations();
+                }
+
+                // Adding to the linear array.
+                try
+                {
+                    enumArray[enumIndex] = newEnum;
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    var newEnumArray = new IExecutionEnumerator[enumArray.Length * 2];
+                    enumArray.CopyTo(newEnumArray, 0);
+                    newEnumArray[enumIndex] = newEnum;
+                    Thread.MemoryBarrier();
+                    enumArray = newEnumArray;
+                }
+
+                // Add to array before dictionary.
+                Thread.MemoryBarrier();
+
+                // Adding to dictionary.
+                indexDict.Add(query, enumIndex);
+
                 return enumIndex;
             }
-
-            // Query is not cached, adding it.
-            // Parser and optimize it
-            IExecutionEnumerator newEnum = null;
-            try
-            {
-                Starcounter.ThreadHelper.SetYieldBlock();
-                Scheduler vproc = Scheduler.GetInstance();
-
-                // Creating enumerator from scratch.
-                newEnum = PrologManager.ProcessSqlQuery(vproc, query);
-            }
-            finally
-            {
-                Starcounter.ThreadHelper.ReleaseYieldBlock();
-            }
-
-            // Assigning unique query ID.
-            newEnum.UniqueQueryID = (UInt64)numUniqueQueries;
-            enumIndex = numUniqueQueries;
-
-            // Increasing number of unique queries.
-            numUniqueQueries++;
-
-            // Checking if its LikeExecEnumerator.
-            if (newEnum is LikeExecEnumerator)
-            {
-                (newEnum as LikeExecEnumerator).CreateLikeCombinations();
-            }
-
-            // Adding to the linear array.
-            enumArray[enumIndex] = newEnum;
-
-            // Adding to dictionary.
-            indexDict.Add(query, enumIndex);
-
-            return enumIndex;
+        }
+        finally
+        {
+            Starcounter.ThreadHelper.ReleaseYieldBlock();
         }
     }
 
@@ -149,11 +165,6 @@ internal sealed class GlobalQueryCache
 
         // Returning cached enumerator query string.
         return execEnum.QueryString;
-    }
-
-    internal Boolean IsCacheFull()
-    {
-        return numUniqueQueries == MaxUniqueQueries;
     }
 
     /// <summary>

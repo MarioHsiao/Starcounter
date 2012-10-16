@@ -335,7 +335,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 "    }");
         }
 
-        public String GetAddInputHandlerCode(NInputBinding ib)
+        private String GetAddInputHandlerCode(NInputBinding ib)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("        ");
