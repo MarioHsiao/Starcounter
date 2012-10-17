@@ -32,7 +32,7 @@ namespace Starcounter.Server {
             // spawn another thread, etc.
             Starcounter.ABCIPC.Server ipcServer;
             if (!Console.IsInputRedirected) {
-                ipcServer = Utils.PromptHelper.CreateServerAttachedToPrompt();
+                ipcServer = ClientServerFactory.CreateServerUsingConsole();
             } else {
                 ipcServer = new Starcounter.ABCIPC.Server(Console.In.ReadLine, delegate(string reply, bool endsRequest) {
                     Console.WriteLine(reply);
@@ -44,10 +44,10 @@ namespace Starcounter.Server {
             this.responseSerializer = new NewtonSoftJsonSerializer(engine);
         }
 
-        public ServerServices(ServerEngine engine, Func<string> requestReader, Action<string, bool> replyWriter) {
+        public ServerServices(ServerEngine engine, Starcounter.ABCIPC.Server ipcServer) {
             this.engine = engine;
             this.runtime = null;
-            this.ipcServer = new Starcounter.ABCIPC.Server(requestReader, replyWriter);
+            this.ipcServer = ipcServer;
             this.responseSerializer = new NewtonSoftJsonSerializer(engine);
         }
 
