@@ -34,7 +34,7 @@ namespace IndexQueryTest
         {
             try
             {
-                Db.SlowSQL("CREATE INDEX userLN ON AccountTest.User (LastName ASC)");
+                Db.SlowSQL("CREATE INDEX userLN ON Accounttest.UsEr (Lastname ASC)");
                 Console.WriteLine("Created index userLN ON AccountTest.User (LastName ASC)");
             }
             catch (Starcounter.DbException ex)
@@ -48,7 +48,7 @@ namespace IndexQueryTest
 
         static void DropIndexUserLN()
         {
-            Db.SlowSQL("DROP INDEX userLN ON AccountTest.User");
+            Db.SlowSQL("DROP INDEX UserLN ON AccountTest.User");
             Console.WriteLine("Dropped index userLN ON AccountTest.User");
         }
 

@@ -12,10 +12,13 @@ namespace Starcounter.Binding
         internal Int32 _dataIndex;
         internal Int32 _index;
         internal String _name;
+        internal String _uppername;
 
         public Int32 Index { get { return _index; } }
 
         public String Name { get { return _name; } }
+
+        public String UpperName { get { return _uppername; } }
 
         public abstract ITypeBinding TypeBinding
         {
@@ -205,6 +208,7 @@ namespace Starcounter.Binding
         internal void SetName(String name)
         {
             _name = name;
+            _uppername = name.ToUpper();
         }
     }
 }
