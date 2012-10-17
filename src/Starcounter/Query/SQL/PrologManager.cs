@@ -23,15 +23,7 @@ namespace Starcounter.Query.Sql
         static Object startProcessLock;
         static List<String> schemaFilePathList = new List<String>();
         static Process process;
-        //static String processFolder;
-        //static String processFileName;
-        //static String processVersion;
-        //static Int32 processPort;
         static String schemaFolderExternal;
-        //static Int32 maxQueryLength;
-        //static Int32 maxQueryRetries;
-        //static Int32 maxVerifyRetries;
-        //static Int32 timeBetweenVerifyRetries;
 
         // Is called during start-up.
         internal static void Initiate()
@@ -39,54 +31,44 @@ namespace Starcounter.Query.Sql
             logSource = LogSources.Sql;
             startProcessLock = new Object();
 
-            //processFolder = procFolder;
-            //processFileName = procFileName;
-            //processVersion = procVersion;
-            //processPort = procPort;
-
             //schemaFolderExternal = schemaFolder.Replace("\\", "/").Replace(' ', '?'); // TODO: Use some appropriate standard encoding?
             schemaFolderExternal = QueryModule.SchemaFolder.Replace("\\", "/");
             
-            //maxQueryLength = queryLength;
-            //maxQueryRetries = queryRetries;
-            //maxVerifyRetries = verifyRetries;
-            //timeBetweenVerifyRetries = betweenVerifyRetries;
-
             // Establish an SQL process without any schema information.
             EstablishSqlProcess();
         }
 
-        /// <summary>
-        /// Export schema information to external SQL process by one call to the SQL process per TypeBinding.
-        /// Note that this method is significantly slower than ExportSchemaInfo.
-        /// </summary>
-        /// <param name="scheduler">Representation of the current virtual processor.</param>
-        /// <param name="typeEnumerator">Enumerator of TypeBindings (type information).</param>
-        private static void ExportSchemaInfo2(Scheduler scheduler, IEnumerator<TypeDef> typeEnumerator)
-        {
-            // Since the scheduler.PrologSession is shared between all the threads
-            // managed by the same scheduler, this method must be called within
-            // the scope of a yield block.
+        ///// <summary>
+        ///// Export schema information to external SQL process by one call to the SQL process per TypeBinding.
+        ///// Note that this method is significantly slower than ExportSchemaInfo.
+        ///// </summary>
+        ///// <param name="scheduler">Representation of the current virtual processor.</param>
+        ///// <param name="typeEnumerator">Enumerator of TypeBindings (type information).</param>
+        //private static void ExportSchemaInfo2(Scheduler scheduler, IEnumerator<TypeDef> typeEnumerator)
+        //{
+        //    // Since the scheduler.PrologSession is shared between all the threads
+        //    // managed by the same scheduler, this method must be called within
+        //    // the scope of a yield block.
 
-            String schemaInfo = null;
-            TypeDef typeDef = null;
-            try
-            {
-                while (typeEnumerator.MoveNext())
-                {
-                    typeDef = typeEnumerator.Current;
-                    schemaInfo = GetTableSchemaInfo(typeDef);
-                    CallSqlProcessToAddSchemaInfo(scheduler, schemaInfo);
-                    logSource.Debug("Exported schema info about table (class): " + typeDef.Name);
-                }
-            }
-            catch (Exception exception)
-            {
-                String errMessage = "Failed to export SQL schema info.";
-                // TODO: New error code.
-                throw ErrorCode.ToException(Error.SCERRSQLEXPORTSCHEMAFAILED, exception, errMessage);
-            }
-        }
+        //    String schemaInfo = null;
+        //    TypeDef typeDef = null;
+        //    try
+        //    {
+        //        while (typeEnumerator.MoveNext())
+        //        {
+        //            typeDef = typeEnumerator.Current;
+        //            schemaInfo = GetTableSchemaInfo(typeDef);
+        //            CallSqlProcessToAddSchemaInfo(scheduler, schemaInfo);
+        //            logSource.Debug("Exported schema info about table (class): " + typeDef.Name);
+        //        }
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        String errMessage = "Failed to export SQL schema info.";
+        //        // TODO: New error code.
+        //        throw ErrorCode.ToException(Error.SCERRSQLEXPORTSCHEMAFAILED, exception, errMessage);
+        //    }
+        //}
 
         /// <summary>
         /// Export schema information to external SQL process by file and a single call to the SQL process.
@@ -124,21 +106,21 @@ namespace Starcounter.Query.Sql
             logSource.Debug("Exported schema info: " + schemaFilePath);
         }
 
-        /// <summary>
-        /// Deletes all schema information of external SQL process and reexports schema information by using previously generated files.
-        /// This method is primarily used for debugging purposes.
-        /// </summary>
-        /// <param name="scheduler">Representation of the current virtual processor.</param>
-        private static void DeleteAndReExportAllSchemaInfo(Scheduler scheduler)
-        {
-            // Since the scheduler.PrologSession is shared between all the threads
-            // managed by the same scheduler, this method must be called within
-            // the scope of a yield block.
+        ///// <summary>
+        ///// Deletes all schema information of external SQL process and reexports schema information by using previously generated files.
+        ///// This method is primarily used for debugging purposes.
+        ///// </summary>
+        ///// <param name="scheduler">Representation of the current virtual processor.</param>
+        //private static void DeleteAndReExportAllSchemaInfo(Scheduler scheduler)
+        //{
+        //    // Since the scheduler.PrologSession is shared between all the threads
+        //    // managed by the same scheduler, this method must be called within
+        //    // the scope of a yield block.
 
-            List<String> tmpSchemaFileList = schemaFilePathList; // Temporary store the schemaFilePathList.
-            DeleteAllSchemaInfo(scheduler); // schemaFilePathList becomes empty.
-            ReExportAllSchemaInfo(scheduler, tmpSchemaFileList); // schemaFilePathList becomes reinstantiated.
-        }
+        //    List<String> tmpSchemaFileList = schemaFilePathList; // Temporary store the schemaFilePathList.
+        //    DeleteAllSchemaInfo(scheduler); // schemaFilePathList becomes empty.
+        //    ReExportAllSchemaInfo(scheduler, tmpSchemaFileList); // schemaFilePathList becomes reinstantiated.
+        //}
 
         /// <summary>
         /// Reexports schema information to external SQL process by using previously generated files.
@@ -213,32 +195,32 @@ namespace Starcounter.Query.Sql
             schemaFilePathList = new List<String>();
         }
 
-        /// <summary>
-        /// Checks that the schema files loaded into the external SQL process equals the here generated schema files.
-        /// Primarily used for debugging purposes.
-        /// </summary>
-        /// <param name="scheduler">Representation of the current virtual processor.</param>
-        /// <returns>True, if the schema information is correct, otherwise false.</returns>
-        private static Boolean VerifySchemaInfo(Scheduler scheduler)
-        {
-            // Since the scheduler.PrologSession is shared between all the threads
-            // managed by the same scheduler, this method must be called within
-            // the scope of a yield block. 
+        ///// <summary>
+        ///// Checks that the schema files loaded into the external SQL process equals the here generated schema files.
+        ///// Primarily used for debugging purposes.
+        ///// </summary>
+        ///// <param name="scheduler">Representation of the current virtual processor.</param>
+        ///// <returns>True, if the schema information is correct, otherwise false.</returns>
+        //private static Boolean VerifySchemaInfo(Scheduler scheduler)
+        //{
+        //    // Since the scheduler.PrologSession is shared between all the threads
+        //    // managed by the same scheduler, this method must be called within
+        //    // the scope of a yield block. 
 
-            List<String> externalSchemaFilePathList = null;
-            try
-            {
-                externalSchemaFilePathList = GetCurrentSqlSchemaFiles(scheduler);
-                if (StringListEqual(externalSchemaFilePathList, schemaFilePathList))
-                    return true;
-                return false;
-            }
-            catch (Exception exception)
-            {
-                // TODO: New error code SCERRSQLVERIFYSCHEMAFAILED
-                throw ErrorCode.ToException(Error.SCERRSQLEXPORTSCHEMAFAILED, exception);
-            }
-        }
+        //    List<String> externalSchemaFilePathList = null;
+        //    try
+        //    {
+        //        externalSchemaFilePathList = GetCurrentSqlSchemaFiles(scheduler);
+        //        if (StringListEqual(externalSchemaFilePathList, schemaFilePathList))
+        //            return true;
+        //        return false;
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        // TODO: New error code SCERRSQLVERIFYSCHEMAFAILED
+        //        throw ErrorCode.ToException(Error.SCERRSQLEXPORTSCHEMAFAILED, exception);
+        //    }
+        //}
 
         private static void CheckQueryAnswerForError(QueryAnswer answer)
         {
@@ -259,24 +241,23 @@ namespace Starcounter.Query.Sql
         private static void EstablishSqlProcess()
         {
             DisconnectPrologSessions();
-
-            String existingProcessVersion = GetExistingSqlProcessVersion();
+            String existingProcessVersion = GetExistingSqlProcessVersionAndDeleteAllSchemaInfo();
 
             // Correct version of process is running.
             if (existingProcessVersion == QueryModule.ProcessVersion)
             {
-                ConnectPrologSessions();
-                try
-                {
+                //ConnectPrologSessions();
+                //try
+                //{
                     //Starcounter.ThreadHelper.SetYieldBlock();
                     //Scheduler scheduler = Scheduler.GetInstance(true);
                     //DeleteAllSchemaInfo(scheduler);
-                    DeleteAllSchemaInfo(null);
-                }
-                finally
-                {
-                    //Starcounter.ThreadHelper.ReleaseYieldBlock();
-                }
+                    //DeleteAllSchemaInfo(null);
+                //}
+                //finally
+                //{
+                //    Starcounter.ThreadHelper.ReleaseYieldBlock();
+                //}
                 return;
             }
 
@@ -284,14 +265,14 @@ namespace Starcounter.Query.Sql
             if (existingProcessVersion == null)
             {
                 StartSqlProcess();
-                ConnectPrologSessions();
+                //ConnectPrologSessions();
                 return;
             }
 
             // Incorrect version of process is running.
             KillExistingSqlProcess();
             StartSqlProcess();
-            ConnectPrologSessions();
+            //ConnectPrologSessions();
         }
 
         private static void ConnectPrologSessions()
@@ -341,6 +322,33 @@ namespace Starcounter.Query.Sql
             {
                 EstablishConnectedSession(ref session, null);
                 QueryAnswer answer = session.executeQuery("process_version_prolog(Version)");
+                CheckQueryAnswerForError(answer);
+                String existingProcessVersion = answer.getValue("Version").ToString();
+                return existingProcessVersion;
+            }
+            catch (SocketException)
+            {
+                return null;
+            }
+            finally
+            {
+                LeaveConnectedSession(session, null);
+            }
+        }
+
+        /// <summary>
+        /// If there is a running SQL process then gets the version of this process and deletes all schema info in that process.
+        /// </summary>
+        /// <returns>The version number, or null (if there is no such process).</returns>
+        private static String GetExistingSqlProcessVersionAndDeleteAllSchemaInfo()
+        {
+            PrologSession session = null;
+
+            try
+            {
+                EstablishConnectedSession(ref session, null);
+                QueryAnswer answer = session.executeQuery("process_version_and_delete_schemainfo_prolog(Version)");
+
                 CheckQueryAnswerForError(answer);
                 String existingProcessVersion = answer.getValue("Version").ToString();
                 return existingProcessVersion;
@@ -455,31 +463,31 @@ namespace Starcounter.Query.Sql
                     }
                     logSource.Debug("Started process: " + QueryModule.ProcessFolder + QueryModule.ProcessFileName + " " + QueryModule.ProcessPort.ToString());
 
-                    // Verify process.
-                    Boolean verified = false;
-                    Int32 retries = 0;
-                    String existingProcessVersion = null;
+                    //// Verify process.
+                    //Boolean verified = false;
+                    //Int32 retries = 0;
+                    //String existingProcessVersion = null;
 
-                    while (verified == false && retries < QueryModule.MaxVerifyRetries)
-                    {
-                        retries++;
+                    //while (verified == false && retries < QueryModule.MaxVerifyRetries)
+                    //{
+                    //    retries++;
 
-                        existingProcessVersion = GetExistingSqlProcessVersion();
-                        verified = (existingProcessVersion == QueryModule.ProcessVersion);
+                    //    existingProcessVersion = GetExistingSqlProcessVersion();
+                    //    verified = (existingProcessVersion == QueryModule.ProcessVersion);
 
-                        if (!verified && retries < QueryModule.MaxVerifyRetries)
-                        {
-                            Thread.Sleep(QueryModule.TimeBetweenVerifyRetries);
-                        }
-                    }
+                    //    if (!verified && retries < QueryModule.MaxVerifyRetries)
+                    //    {
+                    //        Thread.Sleep(QueryModule.TimeBetweenVerifyRetries);
+                    //    }
+                    //}
 
-                    if (verified)
-                        logSource.Debug("Verified process: " + QueryModule.ProcessFolder + QueryModule.ProcessFileName + " " + QueryModule.ProcessVersion);
-                    else
-                    {
-                        String errMessage = "Failed to verify process: " + QueryModule.ProcessFolder + QueryModule.ProcessFileName + " " + QueryModule.ProcessVersion;
-                        throw ErrorCode.ToException(Error.SCERRSQLVERIFYPROCESSFAILED, errMessage);
-                    }
+                    //if (verified)
+                    //    logSource.Debug("Verified process: " + QueryModule.ProcessFolder + QueryModule.ProcessFileName + " " + QueryModule.ProcessVersion);
+                    //else
+                    //{
+                    //    String errMessage = "Failed to verify process: " + QueryModule.ProcessFolder + QueryModule.ProcessFileName + " " + QueryModule.ProcessVersion;
+                    //    throw ErrorCode.ToException(Error.SCERRSQLVERIFYPROCESSFAILED, errMessage);
+                    //}
                 }
             }
         }
