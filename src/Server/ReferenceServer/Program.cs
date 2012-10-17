@@ -59,6 +59,7 @@ namespace Starcounter.Server {
 
                 if (arguments.TryGetProperty("Pipe", out pipeName)) {
                     var ipcServer = ClientServerFactory.CreateServerUsingNamedPipes(pipeName);
+                    ipcServer.ReceivedRequest += OnIPCServerReceivedRequest;
                     services = new ServerServices(engine, ipcServer);
                     ToConsoleWithColor(string.Format("Accepting service calls on pipe '{0}'...", pipeName), ConsoleColor.DarkGray);
                 } else {
@@ -70,6 +71,10 @@ namespace Starcounter.Server {
                 engine.Start();
                 services.Start();
             }
+        }
+
+        void OnIPCServerReceivedRequest(object sender, string request) {
+            ToConsoleWithColor(string.Format("Request: {0}", request), ConsoleColor.Yellow);
         }
 
         bool TryGetProgramArguments(string[] args, out ApplicationArguments arguments) {
