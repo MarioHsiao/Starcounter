@@ -18,7 +18,12 @@ namespace Starcounter.Templates {
 
         public override void ProcessInput(App app, byte[] rawValue)
         {
-            throw new NotImplementedException();
+            // TODO:
+            // Proper implementation.
+            if (rawValue != null && rawValue.Length == 4)
+                ProcessInput(app, true);
+            else
+                ProcessInput(app, false);
         }
 
         /// <summary>

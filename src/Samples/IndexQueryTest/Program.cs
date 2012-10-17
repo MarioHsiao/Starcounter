@@ -12,6 +12,7 @@ namespace IndexQueryTest
             Console.WriteLine("Test of CREATE/DROP INDEX and DROP TABLE.");
 #if ACCOUNTTEST_MODEL
             Console.WriteLine("Test with loading model");
+            TestCreateIndexWithoutQuery();
             TestDelete();
             Populate();
             PrintAllObjects();

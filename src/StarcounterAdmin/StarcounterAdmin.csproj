@@ -108,8 +108,12 @@
     <Compile Include="Application.json.cs">
       <DependentUpon>Application.json</DependentUpon>
     </Compile>
+    <Compile Include="Bootstrapper.cs" />
     <Compile Include="Database.json.cs">
       <DependentUpon>Database.json</DependentUpon>
+    </Compile>
+    <Compile Include="Root.json.cs">
+      <DependentUpon>Root.json</DependentUpon>
     </Compile>
     <Compile Include="ScAdmin.json.cs">
       <DependentUpon>ScAdmin.json</DependentUpon>
@@ -118,6 +122,7 @@
     <Compile Include="Server.json.cs">
       <DependentUpon>Server.json</DependentUpon>
     </Compile>
+    <Compile Include="UriRegistrator.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="css\base.css">
@@ -133,6 +138,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="lib\app.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\appContext.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="lib\json-patch-bruth.js">
@@ -208,6 +216,11 @@
       <Generator>MSBuild:Compile</Generator>
     </App>
     <App Include="ScAdmin.json">
+      <Generator>MSBuild:Compile</Generator>
+    </App>
+  </ItemGroup>
+  <ItemGroup>
+    <App Include="Root.json">
       <Generator>MSBuild:Compile</Generator>
     </App>
   </ItemGroup>
