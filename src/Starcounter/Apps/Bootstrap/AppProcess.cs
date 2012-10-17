@@ -16,18 +16,6 @@ namespace Starcounter.Apps.Bootstrap {
     /// of App processes.
     /// </summary>
     public static class AppProcess {
-        /// <summary>
-        /// The name of the pipe we use.
-        /// </summary>
-        const string PipeName = "sc/apps/server";
-
-        /// <summary>
-        /// Signature of the delegate that receives notifications when an
-        /// executable request to start.
-        /// </summary>
-        /// <param name="startProperties"></param>
-        /// <returns></returns>
-        public delegate bool StartRequestHandler(Dictionary<string, string> startProperties);
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         public static extern int MessageBox(IntPtr hWnd, String text, String caption, uint type);
@@ -45,16 +33,6 @@ namespace Starcounter.Apps.Bootstrap {
 
             SendStartRequest(CreateStartInfoProperties());
             Environment.Exit(0);
-        }
-
-        /// <summary>
-        /// Method to be used by server-like processes, interested in getting
-        /// notifications when App executable processes requests to start.
-        /// </summary>
-        /// <param name="handler">A delegate that will be invoked as soon as
-        /// a request comes in.</param>
-        public static void WaitForStartRequests(StartRequestHandler handler) {
-            (new Thread(() => { RunWaitForStartRequestThread(handler); })).Start();
         }
 
         /// <summary>
@@ -85,31 +63,6 @@ namespace Starcounter.Apps.Bootstrap {
 
             toStarcounter = starcounter.ToArray();
             toAppMain = appMain.ToArray();
-        }
-
-        static void RunWaitForStartRequestThread(StartRequestHandler handler) {
-            NamedPipeServerStream pipe;
-            byte[] buffer;
-
-            pipe = new NamedPipeServerStream(AppProcess.PipeName, PipeDirection.InOut, 1, PipeTransmissionMode.Message);
-            buffer = new byte[1024];
-
-            while (true) {
-                pipe.WaitForConnection();
-
-                MemoryStream buffer2 = new MemoryStream(2048);
-                do {
-                    int readCount = pipe.Read(buffer, 0, buffer.Length);
-                    buffer2.Write(buffer, 0, readCount);
-
-                } while (!pipe.IsMessageComplete);
-
-                pipe.Disconnect();
-
-                Dictionary<string, string> properties = KeyValueBinary.ToDictionary(buffer2.ToArray());
-                if (!handler(properties))
-                    break;
-            }
         }
 
         static Dictionary<string, string> CreateStartInfoProperties() {
