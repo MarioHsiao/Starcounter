@@ -57,6 +57,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ABCIPC\Client.cs" />
+    <Compile Include="ABCIPC\Internal\InternalNamedPipeClient.cs" />
     <Compile Include="ABCIPC\Internal\InternalNamedPipeServer.cs" />
     <Compile Include="ABCIPC\Internal\PipeProtocol.cs" />
     <Compile Include="ABCIPC\Internal\ClientServerFactory.cs" />
