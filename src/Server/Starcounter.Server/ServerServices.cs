@@ -32,7 +32,7 @@ namespace Starcounter.Server {
             // spawn another thread, etc.
             Starcounter.ABCIPC.Server ipcServer;
             if (!Console.IsInputRedirected) {
-                ipcServer = ServerFactory.CreateUsingConsole();
+                ipcServer = ClientServerFactory.CreateServerUsingConsole();
             } else {
                 ipcServer = new Starcounter.ABCIPC.Server(Console.In.ReadLine, delegate(string reply, bool endsRequest) {
                     Console.WriteLine(reply);
