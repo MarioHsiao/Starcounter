@@ -56,6 +56,7 @@ namespace Starcounter.ABCIPC {
         /// send replies. The boolean parameter indicates if the reply
         /// being sent ends the request.</param>
         public Server(Func<string> recieve, Action<string, bool> reply) {
+            handlers = new Dictionary<string, Action<Request>>(StringComparer.InvariantCultureIgnoreCase);
             this.Receiver = recieve;
             this.Reply = reply;
         }
