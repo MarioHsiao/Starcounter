@@ -16,61 +16,51 @@ namespace StarcounterAdministrator
         internal static IServerRuntime _runtime = null;
         internal static ServerEngine _engine;
 
-        static void Main(String[] args)
+        internal static ScAdmin CreateAdminPage()
         {
-            Bootstrap();
+            ServerInfo info;
+            ScAdmin admin = new ScAdmin();
 
-            GET("/about", () =>
+            try
             {
-                return "Starcounter Administrator";
-            });
+                if (ScAdmin._runtime == null)
+                {
+                    ServerEngine engine = new ServerEngine(@".\.server\Personal\Personal.server.config");
+                    engine.Setup();
+                    ScAdmin._engine = engine;
+                    ScAdmin._runtime = engine.Start();
+                    admin.Status = "Started";
+                }
+                else
+                {
+                    admin.Status = "Running";
+                }
 
-            GET("/scadmin", () =>
+                info = _runtime.GetServerInfo();
+
+                admin.ServerName = info.Configuration.Name;
+                admin.ServerUri = info.Uri;
+
+                DatabaseInfo[] dbInfoArr = _runtime.GetDatabases();
+                for (Int32 i = 0; i < dbInfoArr.Length; i++)
+                {
+                    admin.AddDatabaseInfo(dbInfoArr[i]);
+                }
+
+                CommandInfo[] cmdInfoArr = _runtime.GetCommands();
+                for (Int32 i = 0; i < cmdInfoArr.Length; i++)
+                {
+                    admin.AddCommandInfo(cmdInfoArr[i]);
+                }
+            }
+            catch (Exception ex)
             {
-                ServerInfo info;
-                ScAdmin admin = new ScAdmin();
+                admin.Status = ex.Message;
+            }
 
-                try
-                {
-                    if (ScAdmin._runtime == null)
-                    {
-                        ServerEngine engine = new ServerEngine(@".\.server\Personal\Personal.server.config");
-                        engine.Setup();
-                        ScAdmin._engine = engine;
-                        ScAdmin._runtime = engine.Start();
-                        admin.Status = "Started";
-                    }
-                    else
-                    {
-                        admin.Status = "Running";
-                    }
-
-                    info = _runtime.GetServerInfo();
-
-                    admin.ServerName = info.Configuration.Name;
-                    admin.ServerUri = info.Uri;
-                    
-                    DatabaseInfo[] dbInfoArr = _runtime.GetDatabases();
-                    for (Int32 i = 0; i < dbInfoArr.Length; i++)
-                    {
-                        admin.AddDatabaseInfo(dbInfoArr[i]);
-                    }
-
-                    CommandInfo[] cmdInfoArr = _runtime.GetCommands();
-                    for (Int32 i = 0; i < cmdInfoArr.Length; i++)
-                    {
-                        admin.AddCommandInfo(cmdInfoArr[i]);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    admin.Status = ex.Message;
-                }
-                
-                admin.View = "ScAdmin.html";
-                admin.Header = "Starcounter Administrator";
-                return admin;
-            });
+            admin.View = "ScAdmin.html";
+            admin.Header = "Starcounter Administrator";
+            return admin;
         }
 
         private void Handle(Input.CreateDbClick click)
@@ -164,37 +154,5 @@ namespace StarcounterAdministrator
             }
             return ret;
         }
-
-        #region Fake Bootstrapping for Apps
-        /// <summary>
-        /// The following code registers a default handler in the gateway and handles 
-        /// incoming requests and dispatch them to Apps. 
-        /// Also registers internal handlers for jsonpatch.
-        /// 
-        /// All this should be done internally in Starcounter.
-        /// </summary>
-        private static HttpAppServer _appServer;
-        private static void Bootstrap()
-        {
-            var fileserv = new StaticWebServer();
-            fileserv.UserAddedLocalFileDirectoryWithStaticContent(Path.GetDirectoryName(typeof(ScAdmin).Assembly.Location));
-            _appServer = new HttpAppServer(fileserv, new SessionDictionary());
-
-            InternalHandlers.Register();
-
-            App.UriMatcherBuilder.RegistrationListeners.Add((string verbAndUri) =>
-            {
-                UInt16 handlerId;
-                GatewayHandlers.RegisterUriHandler(80, "GET /", HTTP_METHODS.GET_METHOD, OnHttpMessageRoot, out handlerId);
-                GatewayHandlers.RegisterUriHandler(80, "PATCH /", HTTP_METHODS.PATCH_METHOD, OnHttpMessageRoot, out handlerId);
-            });
-        }
-        private static Boolean OnHttpMessageRoot(HttpRequest p)
-        {
-            HttpResponse result = _appServer.Handle(p);
-            p.WriteResponse(result.Uncompressed, 0, result.Uncompressed.Length);
-            return true;
-        }
-        #endregion
     }
 }
