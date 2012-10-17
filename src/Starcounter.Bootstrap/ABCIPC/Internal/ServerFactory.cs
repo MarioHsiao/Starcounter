@@ -16,5 +16,16 @@ namespace Starcounter.ABCIPC.Internal {
         public static Server CreateUsingNamedPipes(string pipeName) {
             return new InternalNamedPipeServer(pipeName);
         }
+
+        /// <summary>
+        /// Creates a server that reads it's input from the console, using
+        /// a simple human-readable protocol on top of the underlying ABCIPC
+        /// protocol to read requests and write replies.
+        /// </summary>
+        /// <returns>A <see cref="Server"/> that reads requests from, and
+        /// writes replies to, the console.</returns>
+        public static Server CreateUsingConsole() {
+            return InternalConsoleServer.Create();
+        }
     }
 }
