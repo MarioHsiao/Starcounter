@@ -13,6 +13,17 @@ namespace Starcounter.VisualStudio.Projects {
         IVsProjectFlavorCfg,
         IVsDebuggableProjectCfg {
         /// <summary>
+        /// The names of the project properties utilized by this class.
+        /// </summary>
+        internal static class PropertyNames {
+            internal const string OutputType = "OutputType";
+            internal const string StartAction = "StartAction";
+            internal const string AssemblyPath = "TargetPath";
+            internal const string WorkingDirectory = "StartWorkingDirectory";
+            internal const string StartArguments = "StartArguments";
+        }
+
+        /// <summary>
         /// The configuration name. Stored in the form Configuration|Platform.
         /// Will typically be either "Debug|AnyCPU" or "Release|AnyCPU", provided
         /// that other configurations/platforms have not been added to the project
@@ -122,7 +133,15 @@ namespace Starcounter.VisualStudio.Projects {
         }
 
         protected virtual void DefineSupportedProperties(Dictionary<string, ProjectPropertySettings> properties) {
-            // At this level, we define no supported properties.
+            properties[PropertyNames.OutputType] = new ProjectPropertySettings(_PersistStorageType.PST_PROJECT_FILE, false);
+            properties[PropertyNames.StartAction] =
+                new ProjectPropertySettings(_PersistStorageType.PST_USER_FILE, true, ProjectStartAction.Project);
+            properties[PropertyNames.AssemblyPath] =
+                new ProjectPropertySettings(_PersistStorageType.PST_USER_FILE, true);
+            properties[PropertyNames.WorkingDirectory] =
+                new ProjectPropertySettings(_PersistStorageType.PST_USER_FILE, true);
+            properties[PropertyNames.StartArguments] =
+                new ProjectPropertySettings(_PersistStorageType.PST_USER_FILE, true);
         }
 
         /// <summary>
