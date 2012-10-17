@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="src\impl">
+      <UniqueIdentifier>{c73fabe5-213a-42aa-8d2c-6b00db709a96}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\common\mapped_region.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\shared_memory_object.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="test.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="worker.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="random.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="impl\worker.hpp">
+      <Filter>src\impl</Filter>
+    </ClInclude>
+    <ClInclude Include="test.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="impl\test.hpp">
+      <Filter>src\impl</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

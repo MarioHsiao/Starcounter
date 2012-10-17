@@ -12,6 +12,12 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
+#ifdef _MSC_VER
+# pragma warning(push) // Save warning levels.
+// Disable some silly and noisy warning from MSVC compiler
+# pragma warning(disable: 4800) // TODO!
+#endif // _MSC_VER
+
 #include <iostream>
 #include <cstddef>
 #include <boost/cstdint.hpp>
@@ -134,5 +140,9 @@ private:
 } // namespace starcounter
 
 //#include "impl/channel_mask.hpp"
+
+#ifdef _MSC_VER
+# pragma warning(pop) // Restore warning levels.
+#endif // _MSC_VER
 
 #endif // STARCOUNTER_CORE_CHANNEL_MASK_HPP
