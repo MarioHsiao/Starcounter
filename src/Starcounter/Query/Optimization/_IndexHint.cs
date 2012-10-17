@@ -20,7 +20,7 @@ internal class IndexHint : IHint
         this.indexName = indexName;
     }
 
-    internal String IndexName { get { return indexName; } }
+    internal String IndexName { get { return indexName.ToUpper(); } }
 
     internal Int32 ExtentNumber
     {
