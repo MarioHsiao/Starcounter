@@ -44,44 +44,6 @@ client_number_(no_client_number),
 owner_id_(oid),
 pid_(pid) {
 	init(segment_name, monitor_interface_name, pid, oid);
-#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-	// Using Windows Events to synchronize.
-	for (std::size_t id = 0; id < max_number_of_schedulers; ++id) {
-		work_[id] = 0;
-	}
-	for (std::size_t id = 0; id < max_number_of_schedulers; ++id) {
-		if (common_scheduler_interface().is_scheduler_active(id)) {
-			char notify_name[segment_and_notify_name_size];
-			wchar_t w_notify_name[segment_and_notify_name_size];
-			std::size_t length;
-
-			// Format: "Local\<segment_name>_notify_scheduler_<id>".
-			if ((length = _snprintf_s(notify_name, _countof(notify_name),
-			segment_and_notify_name_size -1 /* null */,
-			"Local\\%s_notify_scheduler_%u", segment_name.c_str(), id)) < 0) {
-				return; // error
-			}
-			notify_name[length] = '\0';
-
-			/// TODO: Fix insecure
-			if ((length = mbstowcs(w_notify_name, notify_name, segment_name_size)) < 0) {
-				std::cout << this
-				<< ": Failed to convert segment_name to multi-byte string. Error: "
-				<< GetLastError() << "\n";
-				return; // throw exception
-			}
-			w_notify_name[length] = L'\0';
-
-			if ((work_[id] = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, FALSE,
-			w_notify_name)) == NULL) {
-				// Failed to open the event.
-				std::cout << this << ": Failed to open event with error: "
-				<< GetLastError() << "\n"; /// DEBUG
-				return; // throw exception
-			}
-		}
-	}
-#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 }
 
 #if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
@@ -122,6 +84,46 @@ monitor_interface_name, pid_type pid, owner_id oid) {
 		// Invalid segment. The shared memory segment probably don't exist.
 		throw shared_interface_exception(999L); /// TODO: return a suitable error code
 	}
+
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+	// Using Windows Events to synchronize.
+	for (std::size_t id = 0; id < max_number_of_schedulers; ++id) {
+		work_[id] = 0;
+	}
+	for (std::size_t id = 0; id < max_number_of_schedulers; ++id) {
+		if (common_scheduler_interface().is_scheduler_active(id)) {
+			char notify_name[segment_and_notify_name_size];
+			wchar_t w_notify_name[segment_and_notify_name_size];
+			std::size_t length;
+
+			// Format: "Local\<segment_name>_notify_scheduler_<id>".
+			if ((length = _snprintf_s(notify_name, _countof(notify_name),
+			segment_and_notify_name_size -1 /* null */,
+			"Local\\%s_notify_scheduler_%u", segment_name.c_str(), id)) < 0) {
+				return; // error
+			}
+			notify_name[length] = '\0';
+			//std::cout << "notify_name: " << notify_name << "\n"; /// DEBUG
+			
+			/// TODO: Fix insecure
+			if ((length = mbstowcs(w_notify_name, notify_name, segment_name_size)) < 0) {
+				std::cout << this
+				<< ": Failed to convert segment_name to multi-byte string. Error: "
+				<< GetLastError() << "\n";
+				return; // throw exception
+			}
+			w_notify_name[length] = L'\0';
+
+			if ((work_[id] = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, FALSE,
+			w_notify_name)) == NULL) {
+				// Failed to open the event.
+				std::cout << this << ": Failed to open event with error: "
+				<< GetLastError() << "\n"; /// DEBUG
+				return; // throw exception
+			}
+		}
+	}
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 }
 
 inline std::string shared_interface::get_segment_name() const {
@@ -434,6 +436,7 @@ push_request_message_with_spin: /// The notify flag could be true...
 			// Successfully pushed the chunk_index. Notify the scheduler.
 #if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 			// Using Windows Events to synchronize.
+			//std::cout << "NOTIFYING SCHEDULER " << the_channel.get_scheduler_number() << " ON CHANNEL " << ch << "\n"; /// DEBUG INFO
 			the_channel.scheduler()->notify(get_work_event(the_channel.get_scheduler_number()));
 #else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 			// Using Boost.Interprocess to synchronize.

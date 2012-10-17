@@ -147,9 +147,8 @@ try {
 						// Successfully pushed the chunk_index. Notify the
 						// scheduler.
 #if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-						// Using Windows Events to synchronize.
-						HANDLE work = 0; /// TEST COMPILE
-						the_channel.scheduler()->notify(work);
+						the_channel.scheduler()->notify(shared_.get_work_event
+						(the_channel.get_scheduler_number()));
 #else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 						// Using Boost.Interprocess to synchronize.
 						the_channel.scheduler()->notify();

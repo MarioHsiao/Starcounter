@@ -1252,34 +1252,6 @@ unsigned long server_port::acquire_linked_chunk_indexes(unsigned long channel_nu
 	if (div_value.rem != 0) needed_chunks++;
 
 	uint8_t* current_chunk = (uint8_t*)&chunk_[start_chunk_index];
-	//--------------------------------------------------------------------------
-	
-																				#if 0 // Using obsolete API.
-																				// TODO: 
-																				// A method inside the chunk_pool should be used to avoid locking/unlocking 
-																				// for each call to acquire an index. And the owner_id should also be stamped
-																				// there.
-
-																				// TODO:
-																				// Need to handle if sufficient chunks are not available.
-																				for (uint32_t i = 0; i < needed_chunks; i++)
-																				{
-																					shared_chunk_pool_->pop_back(&the_chunk_index);
-																					*((uint32_t*)&current_chunk[chunk_size - 4]) = the_chunk_index;
-
-																					// The owner_id no longer resides in the chunk itself. It is found in
-																					// the client_interface owned by the caller, where it is marked in the
-																					// resource_map. This is not done when the caller is the database proc.
-																					//*((uint64_t*)&current_chunk[0]) = the_owner_id;
-
-																					current_chunk = (uint8_t*)&chunk_[the_chunk_index];
-																				}
-																				*((uint32_t*)&current_chunk[chunk_size - 4]) = ~0;
-																				return 0;
-																				#endif // Using obsolete API.
-	
-	//--------------------------------------------------------------------------
-	// Using new API:
 	chunk_index head;
 	
 	if (needed_chunks < a_bunch_of_chunks) {
@@ -1342,34 +1314,6 @@ unsigned long server_port::acquire_linked_chunk_indexes_counted(unsigned long ch
 	//uint64_t the_owner_id = the_channel.get_owner_id().get_owner_id();
 
 	uint8_t* current_chunk = (uint8_t*)&chunk_[start_chunk_index];
-	//--------------------------------------------------------------------------
-	
-																				#if 0 // Using obsolete API.
-																				// TODO: 
-																				// A method inside the chunk_pool should be used to avoid locking/unlocking 
-																				// for each call to acquire an index. And the owner_id should also be stamped
-																				// there.
-
-																				// TODO:
-																				// Need to handle if sufficient chunks are not available.
-																				for (uint32_t i = 0; i < needed_chunks; i++)
-																				{
-																					shared_chunk_pool_->pop_back(&the_chunk_index);
-																					*((uint32_t*)&current_chunk[chunk_size - 4]) = the_chunk_index;
-
-																					// The owner_id no longer resides in the chunk itself. It is found in
-																					// the client_interface owned by the caller, where it is marked in the
-																					// resource_map. This is not done when the caller is the database proc.
-																					//*((uint64_t*)&current_chunk[0]) = the_owner_id;
-
-																					current_chunk = (uint8_t*)&chunk_[the_chunk_index];
-																				}
-																				*((uint32_t*)&current_chunk[chunk_size - 4]) = ~0;
-																				return 0;
-																				#endif // Using obsolete API.
-	
-	//--------------------------------------------------------------------------
-	// Using new API:
 	chunk_index head;
 	
 	if (num_chunks < a_bunch_of_chunks) {
