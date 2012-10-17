@@ -99,7 +99,29 @@ namespace Starcounter.Server.PublicModel {
         /// Gets the set of "Apps" currently hosted in the database
         /// represented by this snapshot.
         /// </summary>
+        /// <remarks>
+        /// This property should be moved out to a smaller, runtime-specific
+        /// database information entity, along with all other runtime related
+        /// state, like process identity, to allow information that change
+        /// significantly less frequently to be updated only when needed (for
+        /// example, configuration).
+        /// <seealso cref="HostedApps"/>
+        /// </remarks>
         public AppInfo[] HostedApps {
+            get;
+            internal set;
+        }
+
+        /// <summary>
+        /// Gets the process ID of the database host process, if running.
+        /// </summary>
+        /// <remarks>
+        /// This property should be moved out to a smaller, runtime-specific
+        /// database information entity, along with all other runtime related
+        /// state, like info hosted apps.
+        /// <seealso cref="HostedApps"/>
+        /// </remarks>
+        public int HostProcessId {
             get;
             internal set;
         }
