@@ -19,6 +19,7 @@ namespace SQLTest
         {
             TestRunner.Initialize("SqlTest1", false, true, false);
             SQLTest.EmployeeDb.EmployeeData.CreateData();
+            TestRunner.RunTest();
             SQLTest.EmployeeDb.EmployeeData.DeleteData();
             return true;
         }
