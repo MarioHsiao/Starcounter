@@ -103,7 +103,10 @@ uint32_t SocketDataChunk::GetChunks(GatewayWorker *gw, uint32_t num_bytes)
     core::shared_interface* shared_int = worker_db->get_shared_int();
 
     // Obtaining needed amount of chunks.
-    core::chunk_index chunk_index = worker_db->GetLinkedChunksFromPrivatePool(num_bytes);
+    core::chunk_index chunk_index;
+    uint32_t err_code = worker_db->GetLinkedChunksFromPrivatePool(&chunk_index, num_bytes);
+    GW_ERR_CHECK(err_code);
+
     if (INVALID_CHUNK_INDEX == chunk_index)
         return SCERRUNSPECIFIED;
 
@@ -128,7 +131,8 @@ uint32_t SocketDataChunk::CreateWSABuffers(WorkerDbInterface* worker_db, shared_
 
     // Extra WSABufs storage chunk.
     shared_memory_chunk* wsa_bufs_smc;
-    extra_chunk_index_ = worker_db->GetOneChunkFromPrivatePool(&wsa_bufs_smc);
+    uint32_t err_code = worker_db->GetOneChunkFromPrivatePool(&extra_chunk_index_, &wsa_bufs_smc);
+    GW_ERR_CHECK(err_code);
 
     // Until we get the last chunk in chain.
     core::chunk_index cur_chunk_index = smc->get_link();

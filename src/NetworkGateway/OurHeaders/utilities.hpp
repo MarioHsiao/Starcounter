@@ -127,6 +127,14 @@ inline uint32_t StartsWith(
     return same_chars;
 }
 
+inline void PrintCurrentTimeMs(std::string msg)
+{
+    SYSTEMTIME time;
+    GetSystemTime(&time);
+    WORD millis = (time.wSecond * 1000) + time.wMilliseconds;
+    std::cout << msg << ": " << millis << std::endl;
+}
+
 } // namespace network
 } // namespace starcounter
 

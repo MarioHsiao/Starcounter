@@ -280,7 +280,7 @@ uint32_t BmxData::UnregisterHandler(BMX_HANDLER_TYPE handler_id)
 }
 
 // Registers push channel and send the response.
-uint32_t BmxData::RegisterPushChannelResponse(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info)
+uint32_t BmxData::SendRegisterPushChannelResponse(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info)
 {
     // Entering critical section.
     uint32_t err_code = 0;
@@ -292,17 +292,11 @@ uint32_t BmxData::RegisterPushChannelResponse(shared_memory_chunk* smc, TASK_INF
     if (err_code)
         return err_code;
 
-    // Filling the chunk.
-    smc->set_bmx_protocol(BMX_MANAGEMENT_HANDLER);
-
-    response_chunk_part *resp_chunk = smc->get_response_chunk();
-    resp_chunk->reset_offset();
+    response_chunk_part *response = smc->get_response_chunk();
+    response->reset_offset();
 
     // Writing response on push channel registration.
-    resp_chunk->write(BMX_REGISTER_PUSH_CHANNEL_RESPONSE);
-
-    // Terminating last chunk.
-    smc->terminate_link();
+    response->write(BMX_REGISTER_PUSH_CHANNEL_RESPONSE);
 
     // Now the chunk is ready to be sent.
     err_code = cm_send_to_client(task_info->chunk_index);
@@ -319,9 +313,8 @@ uint32_t BmxData::SendAllHandlersInfo(shared_memory_chunk* smc, TASK_INFO_TYPE* 
     // TODO: fix linked chunks when not enough chunk space.
 
     // Filling the chunk.
-    smc->set_bmx_protocol(BMX_MANAGEMENT_HANDLER);
-    response_chunk_part *resp_chunk = smc->get_response_chunk();
-    resp_chunk->reset_offset();
+    response_chunk_part *response = smc->get_response_chunk();
+    response->reset_offset();
 
     // Sending information about each registered handler.
     // NOTE: Gateway needs to know only about the registered handler id of the particular type.
@@ -338,7 +331,7 @@ uint32_t BmxData::SendAllHandlersInfo(shared_memory_chunk* smc, TASK_INFO_TYPE* 
             case PORT_HANDLER:
             {
                 if (!WriteRegisteredPortHandler(
-                    resp_chunk,
+                    response,
                     registered_handlers_[i].get_handler_id(),
                     registered_handlers_[i].get_port()))
                 {
@@ -352,7 +345,7 @@ uint32_t BmxData::SendAllHandlersInfo(shared_memory_chunk* smc, TASK_INFO_TYPE* 
             case SUBPORT_HANDLER:
             {
                 if (!WriteRegisteredSubPortHandler(
-                    resp_chunk,
+                    response,
                     registered_handlers_[i].get_handler_id(),
                     registered_handlers_[i].get_port(),
                     registered_handlers_[i].get_subport()))
@@ -367,7 +360,7 @@ uint32_t BmxData::SendAllHandlersInfo(shared_memory_chunk* smc, TASK_INFO_TYPE* 
             case URI_HANDLER:
             {
                 if (!WriteRegisteredUriHandler(
-                    resp_chunk,
+                    response,
                     registered_handlers_[i].get_handler_id(),
                     registered_handlers_[i].get_port(),
                     registered_handlers_[i].get_uri(),
@@ -535,11 +528,11 @@ uint32_t BmxData::PushRegisteredPortHandler(BMX_HANDLER_TYPE handler_id, uint16_
     // Filling the chunk.
 	smc->set_bmx_protocol(BMX_MANAGEMENT_HANDLER);
 
-    response_chunk_part *resp_chunk = smc->get_response_chunk();
-    resp_chunk->reset_offset();
+    response_chunk_part *response = smc->get_response_chunk();
+    response->reset_offset();
 
     // Writing handler information into chunk.
-	if (!WriteRegisteredPortHandler(resp_chunk, handler_id, port_num))
+	if (!WriteRegisteredPortHandler(response, handler_id, port_num))
         return SCERRUNSPECIFIED; // SCERRTOOBIGHANDLERINFO
 
     // Terminating last chunk.
