@@ -33,6 +33,7 @@ namespace Starcounter.Binding
             {
                 typeDef = typeDefs[i];
                 typeDefsByName.Add(typeDef.Name, typeDef);
+                typeDefsByName.Add(typeDef.Name.ToUpper(), typeDef);
             }
 
             List<TypeDef> typeDefsById = new List<TypeDef>(typeDefsById_);
