@@ -6,6 +6,8 @@ using System.IO;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Starcounter.ABCIPC;
+using Starcounter.ABCIPC.Internal;
 
 namespace Starcounter.Apps.Bootstrap {
 
@@ -131,34 +133,37 @@ namespace Starcounter.Apps.Bootstrap {
             serializedArgs = KeyValueBinary.FromArray(args, 1);
 
             properties.Add("AssemblyPath", exeFileName);
-            properties.Add("WorkingDirectory", workingDirectory);
+            properties.Add("WorkingDir", workingDirectory);
             properties.Add("Args", serializedArgs.Value);
 
             return properties;
         }
 
         static void SendStartRequest(Dictionary<string, string> properties) {
-            NamedPipeClientStream pipe;
+            string serverName;
+            string responseMessage = string.Empty;
+            bool result;
 
-            try {
-                pipe = new NamedPipeClientStream(".", AppProcess.PipeName, PipeDirection.Out);
-            } catch (Exception e) {
-                MessageBox(IntPtr.Zero, string.Format("Failed to connect to server: {0}", e.Message), "Unable to connect to server", 0x00000030);
-                return;
-            }
+            serverName = string.Format("sc//{0}/personal", Environment.MachineName).ToLowerInvariant();
 
+            var client = ClientServerFactory.CreateClientUsingNamedPipes(serverName);
             try {
-                pipe.Connect(5000);
+                result = client.Send("ExecApp", properties, (Reply reply) => {
+                    if (reply.IsResponse) {
+                        responseMessage = reply.ToString();
+                    }
+                });
             } catch (TimeoutException) {
-                MessageBox(IntPtr.Zero, "The server did not respond. Is Starcounter server really running?", "Unable to start App.", 0x00000030);
-                return;
+                result = false;
+                responseMessage = string.Format("Connecting to server \"{0}\" timed out.", serverName);
             } catch (Exception e) {
-                MessageBox(IntPtr.Zero, string.Format("Failed to connect to server: {0}", e.Message), "Unable to connect to server", 0x00000030);
-                return;
+                result = false;
+                responseMessage = e.Message;
             }
-
-            byte[] request = KeyValueBinary.FromDictionary(properties).ToBytes();
-            pipe.Write(request, 0, request.Length);
+            
+            if (!result) {
+                MessageBox(IntPtr.Zero, responseMessage, string.Format("Start request failed (server: {0})", serverName), 0x00000030);
+            }
         }
 
         static bool IsDatabaseWorkerProcess(Process p) {
