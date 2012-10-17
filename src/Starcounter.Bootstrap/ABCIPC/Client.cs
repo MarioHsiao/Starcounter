@@ -22,8 +22,8 @@ namespace Starcounter.ABCIPC {
     // using KeyValueBinary. Or make this extension methods?
 
     public class Client {
-        readonly Action<string> send;
-        readonly Func<string> receive;
+        Action<string> send;
+        Func<string> receive;
 
         //private class OutgoingRequest {
         //    public const int Shutdown = 0;
@@ -61,8 +61,12 @@ namespace Starcounter.ABCIPC {
         //}
 
         public Client(Action<string> send, Func<string> recieve) {
-            this.send = send;
-            this.receive = recieve;
+            Bind(send, receive);
+        }
+
+        protected Client() {
+            this.send = (string request) => { throw new NotImplementedException("Request function has not yet been set."); };
+            this.receive = () => { throw new NotImplementedException("Receiving function has not yet been set."); };
         }
 
         public bool SendShutdown() {
@@ -136,6 +140,11 @@ namespace Starcounter.ABCIPC {
                 Request.Protocol.MakeRequestStringWithDictionaryNULL(message) :
                 Request.Protocol.MakeRequestStringWithDictionary(message, arguments);
             return SendRequest2(message, protocol, responseHandler);
+        }
+
+        protected void Bind(Action<string> send, Func<string> recieve) {
+            this.send = send;
+            this.receive = recieve;
         }
 
         bool SendRequest2(string message, string protocolMessage, Action<Reply> responseHandler) {
