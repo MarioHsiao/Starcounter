@@ -1,7 +1,7 @@
 ﻿using System.IO.Pipes;
 using System.Text;
 
-namespace Starcounter.Bootstrap.ABCIPC.Internal {
+namespace Starcounter.ABCIPC.Internal {
 
     /// <summary>
     /// Encapsulates the pipe protocol we use when ABC IPC extensions
