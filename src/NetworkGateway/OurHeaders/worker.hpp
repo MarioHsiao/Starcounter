@@ -20,6 +20,7 @@ class GatewayWorker
 
     // Worker statistics.
     int64_t worker_stats_bytes_received_,
+        worker_stats_bytes_sent_,
         worker_stats_sent_num_,
         worker_stats_recv_num_,
         worker_stats_last_bound_num_;
@@ -89,25 +90,31 @@ public:
     void DeleteInactiveDatabase(int32_t dbSlotIndex);
 
     // Getting the bytes received statistics.
-    int64_t worker_stats_bytes_received()
+    int64_t get_worker_stats_bytes_received()
     {
         return worker_stats_bytes_received_;
     }
 
+    // Getting the bytes sent statistics.
+    int64_t get_worker_stats_bytes_sent()
+    {
+        return worker_stats_bytes_sent_;
+    }
+
     // Getting the number of sends statistics.
-    int64_t worker_stats_sent_num()
+    int64_t get_worker_stats_sent_num()
     {
         return worker_stats_sent_num_;
     }
 
     // Getting the number of receives statistics.
-    int64_t worker_stats_recv_num()
+    int64_t get_worker_stats_recv_num()
     {
         return worker_stats_recv_num_;
     }
 
     // Getting the number of receives statistics.
-    int64_t worker_stats_last_bound_num()
+    int64_t get_worker_stats_last_bound_num()
     {
         return worker_stats_last_bound_num_;
     }
@@ -132,10 +139,10 @@ public:
     }
 
     // Main worker function.
-    uint32_t IOCPSocketsWorker();
+    uint32_t WorkerRoutine();
 
     // Getting worker ID.
-    int32_t GetWorkerId() { return worker_id_; }
+    int32_t get_worker_id() { return worker_id_; }
 
     // Gets worker IOCP.
     HANDLE get_worker_iocp() { return worker_iocp_; }

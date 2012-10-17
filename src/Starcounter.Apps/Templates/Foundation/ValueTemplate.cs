@@ -21,6 +21,36 @@ namespace Starcounter {
             this.CustomInputEventCreator = createInputEvent;
             this.CustomInputHandlers.Add(handler);
         }
+
+        public void ProcessInput(App app, TValue value)
+        {
+            Input<TValue> input = null;
+
+            if (CustomInputEventCreator != null)
+                input = CustomInputEventCreator.Invoke(app, this, value);
+
+            if (input != null)
+            {
+                foreach (var h in CustomInputHandlers)
+                {
+                    h.Invoke(app, input);
+                }
+                if (!input.Cancelled)
+                {
+                    Console.WriteLine("Setting value after custom handler: " + value);
+                    app.SetValue(this, value);
+                }
+                else
+                {
+                    Console.WriteLine("Handler cancelled: " + value);
+                }
+            }
+            else
+            {
+                Console.WriteLine("Setting value after no handler: " + value);
+                app.SetValue(this, value);
+            }
+        }
     }   
  
  
@@ -33,5 +63,7 @@ namespace Starcounter {
         public override bool HasInstanceValueOnClient {
             get { return true; }
         }
+
+        public abstract void ProcessInput(App app, Byte[] rawValue);
     }
 }

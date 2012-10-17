@@ -26,11 +26,23 @@ namespace Starcounter.Binding
 
         private string name_;
 
-        public string Name { get { return name_; } internal set { name_ = value; } }
+        public string Name
+        {
+            get { return name_; }
+            internal set
+            {
+                name_ = value;
+                uppername_ = value.ToUpper();
+            }
+        }
 
         private ushort tableId_;
 
         public ushort TableId { get { return tableId_; } internal set { tableId_ = value; } }
+
+        //private string shortname_;
+        private string uppername_;
+        public string UpperName { get { return uppername_; } internal set { uppername_ = value; } }
 
         protected abstract Entity NewUninitializedInst();
 
@@ -84,6 +96,8 @@ namespace Starcounter.Binding
             {
                 PropertyBinding pb = propertyBindings[i];
                 propertyBindingsByName_.Add(pb.Name, pb);
+                if (pb.Name != pb.UpperName)
+                    propertyBindingsByName_.Add(pb.UpperName, pb);
             }
         }
 
@@ -91,5 +105,15 @@ namespace Starcounter.Binding
         {
             return GetPropertyBinding(name);
         }
+
+        IPropertyBinding ITypeBinding.GetPropertyBinding(int index)
+        {
+            if (index < propertyBindings_.Length)
+                return GetPropertyBinding(index);
+            else
+                return null;
+        }
+
+        int ITypeBinding.PropertyCount { get { return propertyBindings_.Length; } }
     }
 }

@@ -25,6 +25,11 @@ void _init(void *hlogs)
     AddVectoredExceptionHandler(0, __vectored_exception_handler);
 }
 
+void _log_critical(uint32_t e)
+{
+	__critical_log_handler(0, e);
+}
+
 void _log_critical(const wchar_t *message)
 {
 	__critical_log_handler(0, message);

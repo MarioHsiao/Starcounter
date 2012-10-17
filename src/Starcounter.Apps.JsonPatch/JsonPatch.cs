@@ -100,8 +100,12 @@ namespace Starcounter.Internal.JsonPatch
         private static void HandleParsedPatch(Int32 patchType, JsonPointer pointer, Byte[] value)
         {
             AppAndTemplate aat = JsonPatch.Evaluate(Session.Current.RootApp, pointer);
-            //aat.App.TrySetValue((StringProperty)aat.Template, Encoding.UTF8.GetString(value));
-            ((StringProperty)aat.Template).ProcessInput(aat.App, Encoding.UTF8.GetString(value));
+            Property property = aat.Template as Property;
+
+            if (property == null)
+                throw new Exception("Unable to handle input for property of type: " + aat.Template);
+
+            property.ProcessInput(aat.App, value);
         }
 
         private static Int32 GetPatchValue(Byte[] contentArr, Int32 offset, out Byte[] value)
@@ -125,11 +129,10 @@ namespace Starcounter.Internal.JsonPatch
                         current = contentArr[offset];
                     }
 
-                    if (current == '"') offset++;
-
                     start = offset;
+                    if (current == '"') start++;
                 }
-                else if (current == '"' && start != -1)
+                else if ((start != -1) && (current == '"' || current == '}'))
                 {
                     length = offset - start;
                     break;

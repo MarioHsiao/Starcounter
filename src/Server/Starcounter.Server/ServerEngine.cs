@@ -90,6 +90,16 @@ namespace Starcounter.Server {
         internal readonly string Uri;
 
         /// <summary>
+        /// Gets the default name of the pipe the server use for it's
+        /// core services.
+        /// </summary>
+        internal string DefaultServicePipeName {
+            get {
+                return string.Format("sc//{0}/{1}", Environment.MachineName, this.Name).ToLowerInvariant();
+            }
+        }
+
+        /// <summary>
         /// Gets the Starcounter installation directory.
         /// </summary>
         internal readonly string InstallationDirectory;
@@ -235,13 +245,40 @@ namespace Starcounter.Server {
         /// </returns>
         public IServerRuntime Start() {
             this.SharedMemoryMonitor.Start();
-            this.AppsService.Start();
+            // this.AppsService.Start();
 
             // Start all other built-in standard components, like the gateway,
             // the process monitor, etc.
             // TODO:
 
             return this.CurrentPublicModel;
+        }
+
+        /// <summary>
+        /// Runs the server, blocking the calling thread, until it receives
+        /// a notification to stop. Only core services are exposed.
+        /// </summary>
+        /// <seealso cref="Run(ServerServices)"/>
+        public void Run() {
+            // When ran without any services configured, we make sure at least
+            // the core services are exposed, using named pipes on the local
+            // machine, based on the server name.
+            var ipcServer = ABCIPC.Internal.ClientServerFactory.CreateServerUsingNamedPipes(this.DefaultServicePipeName);
+            var coreServices = new ServerServices(this, ipcServer);
+            
+            coreServices.Setup(ServerServices.ServiceClass.Core);
+
+            Run(coreServices);
+        }
+
+        /// <summary>
+        /// Runs the server, blocking the calling thread, until it receives
+        /// a notification to stop. All services defined in the given
+        /// <see cref="ServerServices"/> set are exposed.
+        /// </summary>
+        /// <seealso cref="Run(ServerServices)"/>
+        public void Run(ServerServices services) {
+            services.Start();
         }
 
         /// <summary>

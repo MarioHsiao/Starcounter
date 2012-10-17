@@ -16,10 +16,8 @@ namespace Starcounter.Query
         // Configuration of query module.
         //static String processFolder = StarcounterEnvironment.SystemDirectory + "\\32BitComponents\\";
         internal static String ProcessFolder = AppDomain.CurrentDomain.BaseDirectory + "32BitComponents\\";
-        //const String processFileName = "StarcounterSQL.exe";
         internal const String ProcessFileName = "StarcounterSQL.exe";
-        //const String processVersion = "111208";
-        internal const String ProcessVersion = "121002";
+        internal const String ProcessVersion = "121017";
         internal static Int32 ProcessPort = 0;
         //static readonly String schemaFilePath = AppDomain.CurrentDomain.BaseDirectory + "\\schema.pl";
         internal static String SchemaFolder = AppDomain.CurrentDomain.BaseDirectory + "32BitComponents\\";
@@ -45,7 +43,9 @@ namespace Starcounter.Query
             ProcessPort = processPort;
             if (ProcessPort == 0)
                 ProcessPort = StarcounterEnvironment.DefaultPorts.SQLProlog;
+            Int32 tickCount = Environment.TickCount;
             PrologManager.Initiate();
+            tickCount = Environment.TickCount - tickCount;
         }
 
         /// <summary>
@@ -53,9 +53,10 @@ namespace Starcounter.Query
         /// </summary>
         internal static void Reset()
         {
+            Int32 tickCount = Environment.TickCount;
+            Starcounter.ThreadHelper.SetYieldBlock();
             try
             {
-                Starcounter.ThreadHelper.SetYieldBlock();
                 Scheduler scheduler = Scheduler.GetInstance(true);
                 PrologManager.DeleteAllSchemaInfo(scheduler);
             }
@@ -63,13 +64,14 @@ namespace Starcounter.Query
             {
                 Starcounter.ThreadHelper.ReleaseYieldBlock();
             }
+            tickCount = Environment.TickCount - tickCount;
         }
 
         internal static void UpdateSchemaInfo(TypeDef[] typeDefArray)
         {
+            Starcounter.ThreadHelper.SetYieldBlock();
             try
             {
-                Starcounter.ThreadHelper.SetYieldBlock();
                 Scheduler scheduler = Scheduler.GetInstance(true);
                 PrologManager.ExportSchemaInfo(scheduler, typeDefArray);
             }

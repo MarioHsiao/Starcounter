@@ -49,5 +49,23 @@ namespace Starcounter
             }
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
+
+        /// <summary>
+        /// Returns the object identifier of the specified object.
+        /// </summary>
+        /// <remarks>
+        /// Note that all the method does is to read the object identifier from
+        /// the proxy. It doesn't check if the proxy is valid in any way, the
+        /// underlying object may for example be have been deleted in which
+        /// case the method returns the identifier the object had.
+        /// </remarks>
+        public static UInt64 GetObjectID(Entity obj)
+        {
+            if (obj == null)
+            {
+                throw new ArgumentNullException("obj");
+            }
+            return obj.ThisRef.ObjectID;
+        }
     }
 }

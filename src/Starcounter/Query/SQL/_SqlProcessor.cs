@@ -162,16 +162,16 @@ internal static class SqlProcessor
         }
 
         // Prepare array of attributes
-        TypeBinding typeBind = TypeRepository.GetTypeBinding(typePath);
+        TypeBinding typeBind = TypeRepository.GetTypeBinding(typePath.ToUpper());
         PropertyBinding propBind = null;
-        if (typeBind == null)
-            TypeRepository.TryGetTypeBindingByShortName(typePath, out typeBind);
+        //if (typeBind == null)
+        //    TypeRepository.TryGetTypeBindingByShortName(typePath, out typeBind);
         if (typeBind == null)
             throw new SqlException("Table " + typePath + " is not found");
         attributeIndexArr = new Int16[propertyList.Count + 1];
         for (Int32 i = 0; i < propertyList.Count; i++)
         {
-            propBind = typeBind.GetPropertyBinding(propertyList[i]);
+            propBind = typeBind.GetPropertyBinding(propertyList[i].ToUpper());
             if (propBind == null)
                 throw new SqlException("Column " + propBind + "is not found in table " + typeBind.Name);
             attributeIndexArr[i] = (Int16)propBind.GetDataIndex();
@@ -184,11 +184,11 @@ internal static class SqlProcessor
         unsafe
         {
             UInt64 handle;
-            sccoredb.Mdb_DefinitionFromCodeClassString(typePath, out handle);
+            sccoredb.Mdb_DefinitionFromCodeClassString(typeBind.Name, out handle);
 
             fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0]))
             {
-                errorCode = sccoredb.sc_create_index(handle, indexName, sortMask, attributeIndexesPointer, flags);
+                errorCode = sccoredb.sc_create_index(handle, indexName.ToUpper(), sortMask, attributeIndexesPointer, flags);
             }
         }
         if (errorCode != 0)
@@ -289,11 +289,16 @@ internal static class SqlProcessor
             throw new SqlException("Found token after end of statement (maybe a semicolon is missing).");
         }
 
+        // Obtain correct table name
+        TypeBinding typeBind = TypeRepository.GetTypeBinding(typePath.ToUpper());
+        if (typeBind == null)
+            throw new SqlException("Table " + typePath + " is not found");
+
         // Call kernel
         UInt32 errorCode;
         unsafe
         {
-            errorCode = sccoredb.sccoredb_drop_index(typePath, indexName);
+            errorCode = sccoredb.sccoredb_drop_index(typeBind.Name, indexName.ToUpper());
         }
         if (errorCode != 0)
         {

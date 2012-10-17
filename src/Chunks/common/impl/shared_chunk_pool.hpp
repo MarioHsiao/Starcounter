@@ -216,6 +216,70 @@ client_interface_ptr, uint32_t timeout_milliseconds) {
 }
 
 template<class T, class Alloc>
+inline bool shared_chunk_pool<T, Alloc>::acquire_linked_chunks_counted(chunk_type*
+chunk_base, chunk_index& head, std::size_t num_chunks_to_acquire, client_interface_type*
+client_interface_ptr, uint32_t timeout_milliseconds) {
+	// The timeout is used multiple times below, while time passes, so all
+	// synchronization must be completed before the timeout_milliseconds
+	// time period has elapsed.
+	const boost::system_time timeout = boost::posix_time::microsec_clock
+	::universal_time() +boost::posix_time::milliseconds(timeout_milliseconds);
+	
+	boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex>
+	lock(mutex_, timeout);
+	
+	if (!lock.owns()) {
+		// The timeout_milliseconds time period has elapsed. Failed to acquire
+		// linked chunks.
+		return false;
+	}
+	
+	// Check if enough space is available, assuming it is.
+	if (num_chunks_to_acquire <= this->size()) {
+		// Enough space is available, start linking chunks together.
+		chunk_index prev;
+		chunk_index current;
+		current = container_[--unread_];
+		_mm_mfence(); // TODO: Figure if _mm_sfence() is enough.
+		client_interface_ptr->set_chunk_flag(current);
+		
+		///Not chunk_base[head].set_link(current); which was a bug.
+		head = current;
+		
+		for (std::size_t i = 1; i < num_chunks_to_acquire; ++i) {
+			prev = current;
+			current = container_[--unread_];
+			
+			_mm_mfence(); // TODO: Figure if _mm_mfence() is enough/required.
+			
+			// This must never occur before the pop_back() above, because if
+			// it occurs before pop_back() and the client process terminates
+			// unexpectedly (crashes), then the clean up will be messed up
+			// because of duplicates. Only way to avoid that would be if the
+			// shared_chunk_pool used a bit map in conjunction with the queue,
+			// to mark free chunks, because then duplicates could not appear
+			// obviously.
+			client_interface_ptr->set_chunk_flag(current);
+			chunk_base[prev].set_link(current);
+		}
+		
+		// Terminate the last chunk.
+		chunk_base[current].terminate_link();
+		
+		// Notify that the queue is not full.
+		lock.unlock();
+		not_full_.notify_one();
+		
+		// Successfully acquired the chunks and linked them.
+		return true;
+    }
+    else {
+		// Not enough space available. Failed to acquire linked chunks.
+		return false;
+	}
+}
+
+template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::release_linked_chunks(chunk_type*
 chunk_, chunk_index& head, client_interface_type* client_interface_ptr, uint32_t
 timeout_milliseconds) {

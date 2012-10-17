@@ -22,8 +22,8 @@ namespace Starcounter.ABCIPC {
     // using KeyValueBinary. Or make this extension methods?
 
     public class Client {
-        readonly Action<string> send;
-        readonly Func<string> receive;
+        Action<string> send;
+        Func<string> receive;
 
         //private class OutgoingRequest {
         //    public const int Shutdown = 0;
@@ -61,8 +61,12 @@ namespace Starcounter.ABCIPC {
         //}
 
         public Client(Action<string> send, Func<string> recieve) {
-            this.send = send;
-            this.receive = recieve;
+            Bind(send, receive);
+        }
+
+        protected Client() {
+            this.send = (string request) => { throw new NotImplementedException("Request function has not yet been set."); };
+            this.receive = () => { throw new NotImplementedException("Receiving function has not yet been set."); };
         }
 
         public bool SendShutdown() {
@@ -70,7 +74,7 @@ namespace Starcounter.ABCIPC {
         }
 
         public bool SendShutdown(Action<Reply> responseHandler) {
-            return SendRequest2(Request.ShutdownMessage, Request.Protocol.ShutdownRequest, responseHandler);
+            return SendRequest(Request.ShutdownMessage, Request.Protocol.ShutdownRequest, responseHandler);
         }
 
         // Client shutdown:00 (nothing else), the smallest messsage.
@@ -92,12 +96,12 @@ namespace Starcounter.ABCIPC {
 
         public bool Send(string message) {
             var protocolMessage = Request.Protocol.MakeRequestStringWithoutParameters(message);
-            return SendRequest2(message, protocolMessage, null);
+            return SendRequest(message, protocolMessage, null);
         }
 
         public bool Send(string message, Action<Reply> responseHandler) {
             var protocolMessage = Request.Protocol.MakeRequestStringWithoutParameters(message);
-            return SendRequest2(message, protocolMessage, responseHandler);
+            return SendRequest(message, protocolMessage, responseHandler);
         }
 
         public bool Send(string message, string parameter) {
@@ -113,7 +117,7 @@ namespace Starcounter.ABCIPC {
                 protocolMessage = Request.Protocol.MakeRequestStringWithStringParameter(message, parameter);
             }
 
-            return SendRequest2(message, protocolMessage, responseHandler);
+            return SendRequest(message, protocolMessage, responseHandler);
         }
 
         public bool Send(string message, string[] arguments) {
@@ -124,7 +128,7 @@ namespace Starcounter.ABCIPC {
             string protocol = arguments == null ?
                 Request.Protocol.MakeRequestStringWithStringArrayNULL(message) :
                 Request.Protocol.MakeRequestStringWithStringArray(message, arguments);
-            return SendRequest2(message, protocol, responseHandler);
+            return SendRequest(message, protocol, responseHandler);
         }
 
         public bool Send(string message, Dictionary<string, string> arguments) {
@@ -135,10 +139,15 @@ namespace Starcounter.ABCIPC {
             string protocol = arguments == null ?
                 Request.Protocol.MakeRequestStringWithDictionaryNULL(message) :
                 Request.Protocol.MakeRequestStringWithDictionary(message, arguments);
-            return SendRequest2(message, protocol, responseHandler);
+            return SendRequest(message, protocol, responseHandler);
         }
 
-        bool SendRequest2(string message, string protocolMessage, Action<Reply> responseHandler) {
+        protected void Bind(Action<string> send, Func<string> recieve) {
+            this.send = send;
+            this.receive = recieve;
+        }
+
+        bool SendRequest(string message, string protocolMessage, Action<Reply> responseHandler) {
             // int hash = protocolMessage.GetHashCode();
             send(protocolMessage);
 
@@ -148,32 +157,21 @@ namespace Starcounter.ABCIPC {
             do {
                 stringReply = receive();
                 reply = Reply.Protocol.Parse(stringReply);
-                RaiseIfMessageUnknown(reply);
 
-                // Check if the response seems right. Only invoke
-                // the handler if it does.
                 // If there are protocol-level errors, raise exceptions, not invoking
-                // the response handler.
+                // the response handler. We only raise exceptions (on the client) for
+                // errors that are actually considered caused by the client.
+                RaiseIfMessageUnknown(reply);
+                RaiseIfBadSignature(reply, message);
 
-                // Move this to a dedicated method and use appropriate
-                // exceptions.
-                // TODO:
-
-                if (reply._type == Reply.ReplyType.HandlerException)
-                    throw new Exception(string.Format("The server handler for message \"{0}\" failed: {1}.", message, reply._carry));
-                else if (reply._type == Reply.ReplyType.BadSignature)
-                    throw new Exception(string.Format("The server side signature for message \"{0}\" did not match the call", message));
-
-                // Invoke the handler if there is one. Maybe catch exceptions
-                // and raise a certain one, wrapping the one coming from the
-                // handler?
-                // TODO:
+                // Invoke the handler if there is one.
 
                 if (responseHandler != null)
                     responseHandler(reply);
 
             } while (!reply.IsResponse);
 
+            // Return the result of the request.
             return reply.IsSuccess;
         }
 
@@ -182,44 +180,9 @@ namespace Starcounter.ABCIPC {
                 throw new NotSupportedException(string.Format("The server didn't reconize the sent message. ({0}).", reply.ToString()));
         }
 
-        //bool SendRequest(OutgoingRequest request, Func<string, string, bool> responseHandler) {
-        //    // int hash = request.Value.GetHashCode();
-        //    send(request.Value);    // Formatted value.
-
-        //    Reply reply;
-        //    string stringReply;
-
-        //    // If there are protocol-level errors, raise exceptions, not invoking
-        //    // the response handler.
-        //    // TODO:
-
-        //    do {
-        //        stringReply = receive();
-        //        reply = Protocol.ParseReply(stringReply);
-
-        //        // reply = (control)[NN:replytype], where NN:
-        //        //  50: OK without additional data
-        //        //  51: OK with parameters
-        //        //  52: Still working, no data. Recieve again, for same request.
-        //        //  53: Still working, with data. Recieve again, for same request.
-        //        //  80: Fail without additional data
-        //        //  81: Fail with carry.
-        //        //  82: Unknown message (no handler)
-        //        //  83: Wrong signature (not parameters, for example)
-        //        //  84: Exception in handler (contains carry, e.g. e.ToString());
-        //        //
-        //        // Check if the response seems right. Only invoke
-        //        // the handler if it does. About "OK's": if the
-        //        // server says the call was OK, we can't let the
-        //        // handler "override" this. Actually, not the other
-        //        // way around either. We should never return from
-        //        // Send until we get the OK.
-        //        // if (IsOKResponse(message, parameters, reply))
-        //        // TODO:
-
-        //    } while (responseHandler(request.Value, stringReply));
-
-        //    return true;
-        //}
+        void RaiseIfBadSignature(Reply reply, string message) {
+            if (reply._type == Reply.ReplyType.BadSignature)
+                throw new Exception(string.Format("The server side signature for message \"{0}\" did not match the call", message));
+        }
     }
 }

@@ -19,13 +19,20 @@ namespace StarcounterInternal.Bootstrap
 
         public static void Main(string[] args)
         {
-            Control c = new Control();
-            if (c.Setup(args))
+            try
             {
-                c.Start();
-                c.Run();
-                c.Stop();
-                c.Cleanup();
+                Control c = new Control();
+                if (c.Setup(args))
+                {
+                    c.Start();
+                    c.Run();
+                    c.Stop();
+                    c.Cleanup();
+                }
+            }
+            catch (Exception ex)
+            {
+                if (!ExceptionManager.HandleUnhandledException(ex)) throw;
             }
         }
 
@@ -65,7 +72,10 @@ namespace StarcounterInternal.Bootstrap
             // CalculateAmountOfMemoryNeededForRuntimeEnvironment for details.
 
             ulong hmenv = ConfigureMemory(configuration, mem);
-            mem += 512; 
+            mem += 512;
+
+            // Initializing the bmx manager.
+            bmx.sc_init_bmx_manager();
 
             ulong hlogs = ConfigureLogging(configuration, hmenv);
 
@@ -79,9 +89,6 @@ namespace StarcounterInternal.Bootstrap
                 ConfigureDatabase(configuration);
                 ConnectDatabase(configuration, hsched_, hmenv, hlogs);
             }
-
-            // Initializing the bmx manager.
-            bmx.sc_init_bmx_manager();
 
             // Query module.
             Scheduler.Setup((byte)schedulerCount);
@@ -116,7 +123,7 @@ namespace StarcounterInternal.Bootstrap
 
             if (!Console.IsInputRedirected)
             {
-                server = Utils.PromptHelper.CreateServerAttachedToPrompt();
+                server = ClientServerFactory.CreateServerUsingConsole();
             }
             else
             {

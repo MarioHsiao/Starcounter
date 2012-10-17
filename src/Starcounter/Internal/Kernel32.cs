@@ -11,12 +11,18 @@ namespace Starcounter.Internal
 
         [DllImport("Kernel32.dll", CallingConvention = CallingConvention.Winapi)]
         public static extern void ExitProcess(uint exitCode);
-        
-        [DllImport("Kernel32.dll", CallingConvention = CallingConvention.Winapi, EntryPoint = "RtlMoveMemory")]
-        internal unsafe static extern void MoveByteMemory(Byte* Destination, Byte* Source, Int32 LengthBytes);
 
         [DllImport("Kernel32.dll", CallingConvention = CallingConvention.Winapi)]
         public static extern IntPtr GetCurrentProcess();
+
+        [DllImport("Kernel32.dll", CallingConvention = CallingConvention.Winapi, CharSet = CharSet.Ansi)]
+        public unsafe static extern void *GetProcAddress(void* hModule, string procName);
+        
+        [DllImport("Kernel32.dll", CallingConvention = CallingConvention.Winapi, CharSet=CharSet.Ansi)]
+        public unsafe static extern void *LoadLibraryA(string fileName);
+        
+        [DllImport("Kernel32.dll", CallingConvention = CallingConvention.Winapi, EntryPoint = "RtlMoveMemory")]
+        internal unsafe static extern void MoveByteMemory(Byte* Destination, Byte* Source, Int32 LengthBytes);
 
         [DllImport("Kernel32.dll", CallingConvention = CallingConvention.Winapi)]
         public static extern int SetProcessPriorityBoost(IntPtr hProcess, int DisablePriorityBoost);

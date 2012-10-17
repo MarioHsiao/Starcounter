@@ -15,6 +15,11 @@ namespace Starcounter.Templates {
     {
        private double _DefaultValue = 0;
 
+       public override void ProcessInput(App app, byte[] rawValue)
+       {
+           throw new NotImplementedException();
+       }
+
         public double DefaultValue {
             get { return _DefaultValue; }
             set { _DefaultValue = value; }
