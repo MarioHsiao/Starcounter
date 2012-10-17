@@ -156,6 +156,10 @@ public:
 	// For debug. TODO: Remove it.
 	void show_linked_chunks(chunk_type* chunk_base, chunk_index head);
 	
+	std::size_t id() const {
+		return worker_id_;
+	}
+
 	// Help functions to work with the overflow_pool.
 
 private:
