@@ -60,7 +60,7 @@
     <Compile Include="ABCIPC\Internal\InternalNamedPipeServer.cs" />
     <Compile Include="ABCIPC\Internal\PipeProtocol.cs" />
     <Compile Include="ABCIPC\Internal\ServerFactory.cs" />
-    <Compile Include="ABCIPC\Internal\Utils.cs" />
+    <Compile Include="ABCIPC\Internal\InternalConsoleServer.cs" />
     <Compile Include="ABCIPC\Reply.cs" />
     <Compile Include="ABCIPC\Request.cs" />
     <Compile Include="ABCIPC\Server.cs" />
