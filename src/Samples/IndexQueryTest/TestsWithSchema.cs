@@ -48,7 +48,7 @@ namespace IndexQueryTest
 
         static void DropIndexUserLN()
         {
-            Db.SlowSQL("DROP INDEX UserLN ON AccountTest.User");
+            Db.SlowSQL("DROP INDEX UserLN ON AccountTest.user");
             Console.WriteLine("Dropped index userLN ON AccountTest.User");
         }
 
