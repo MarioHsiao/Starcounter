@@ -1,7 +1,7 @@
 ﻿using System;
 using Starcounter;
 
-namespace SqlTest.EmployeeDb
+namespace SQLTest.EmployeeDb
 {
     public enum LocationType
     {
@@ -79,7 +79,7 @@ namespace SqlTest.EmployeeDb
     }
 }
 
-namespace SqlTest.Test1b
+namespace SQLTest.Test1b
 {
     public class Person : Entity
     {
@@ -91,7 +91,7 @@ namespace SqlTest.Test1b
     }
 }
 
-namespace SqlTest.PointDb
+namespace SQLTest.PointDb
 {
     public class IntegerPoint : Entity
     {

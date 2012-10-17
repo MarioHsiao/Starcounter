@@ -817,52 +817,6 @@ chunk_index the_chunk_index) {
 	// reference used as shorthand
 	channel_type& the_channel = channel_[the_channel_index];
 	
-	///-------------------------------------------------------------------------
-									#if 0 /// how to: acquire_to_chunk_pool(), release_from_chunk_pool(),
-									/// acquire_linked_chunks(), and release_linked_chunks() from/to private
-									/// chunk_pool.
-
-									chunk_index head;
-									
-									// Acquiring from shared_chunk_pool to private chunk_pool.
-									shared_chunk_pool_->acquire_to_chunk_pool(this_scheduler_interface_->
-									chunk_pool(), a_bunch_of_chunks, 1000);
-									
-									// Acquiring from private chunk_pool.
-									if (this_scheduler_interface_->chunk_pool()
-									.acquire_linked_chunks(&chunk(0), head, 65536, the_channel.client()) ==
-									true) {
-										//std::cout << "scheduler: acquire_linked_chunks() OK!" << std::endl;
-										
-										// Releasing to private chunk_pool.
-										if (this_scheduler_interface_->chunk_pool()
-										.release_linked_chunks(&chunk(0), head, the_channel.client()) == true) {
-											//std::cout << "scheduler: release_linked_chunks() OK!" << std::endl;
-										}
-									}
-
-									// Releasing from private chunk_pool to shared_chunk_pool.
-									shared_chunk_pool_->release_from_chunk_pool(this_scheduler_interface_->
-									chunk_pool(), a_bunch_of_chunks, 1000);
-									
-									#endif /// how to
-	///-------------------------------------------------------------------------
-									/// DEBUG TEST. acquire_linked_chunk_indexes() behaves correctly.
-									#if 0
-									//std::cout << "Before linking:\n";
-									//show_linked_chunks(the_chunk_index);
-									chunk_index k = the_channel_index;
-									if (acquire_linked_chunk_indexes(the_channel_index,
-									the_chunk_index, 1) != 0) {
-										std::cout << "OUT OF MEMORY" << std::endl;
-										Sleep(INFINITE);
-									}
-									
-									//std::cout << "After linking:\n";
-									//show_linked_chunks(the_chunk_index);
-									#endif
-	///-------------------------------------------------------------------------
-
     // Checking if overflow pool is empty otherwise put into it.
 	if (this_scheduler_interface_->overflow_pool().empty() &&
         the_channel.out.try_push_front(the_chunk_index)) {
@@ -1027,8 +981,6 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 	/// Remove chunk indices from the overflow_pool targeted for this channel.
 	///=========================================================================
 	
-	//uint32_t overflow_indices_removed = 0;
-	
 	if (!this_scheduler_interface_->overflow_pool().empty()) {
 		// This type must be uint32_t.
 		uint32_t chunk_index_and_channel;
@@ -1045,9 +997,6 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 				this_scheduler_interface_->overflow_pool().push_front
 				(chunk_index_and_channel);
 			}
-			//else {
-			//	++overflow_indices_removed;
-			//}
 		}
 	}
 	

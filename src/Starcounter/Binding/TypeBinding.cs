@@ -96,7 +96,8 @@ namespace Starcounter.Binding
             {
                 PropertyBinding pb = propertyBindings[i];
                 propertyBindingsByName_.Add(pb.Name, pb);
-                propertyBindingsByName_.Add(pb.UpperName, pb);
+                if (pb.Name != pb.UpperName)
+                    propertyBindingsByName_.Add(pb.UpperName, pb);
             }
         }
 

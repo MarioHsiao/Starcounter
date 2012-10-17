@@ -6,6 +6,8 @@ using System.IO;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Starcounter.ABCIPC;
+using Starcounter.ABCIPC.Internal;
 
 namespace Starcounter.Apps.Bootstrap {
 
@@ -14,18 +16,6 @@ namespace Starcounter.Apps.Bootstrap {
     /// of App processes.
     /// </summary>
     public static class AppProcess {
-        /// <summary>
-        /// The name of the pipe we use.
-        /// </summary>
-        const string PipeName = "sc/apps/server";
-
-        /// <summary>
-        /// Signature of the delegate that receives notifications when an
-        /// executable request to start.
-        /// </summary>
-        /// <param name="startProperties"></param>
-        /// <returns></returns>
-        public delegate bool StartRequestHandler(Dictionary<string, string> startProperties);
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         public static extern int MessageBox(IntPtr hWnd, String text, String caption, uint type);
@@ -43,16 +33,6 @@ namespace Starcounter.Apps.Bootstrap {
 
             SendStartRequest(CreateStartInfoProperties());
             Environment.Exit(0);
-        }
-
-        /// <summary>
-        /// Method to be used by server-like processes, interested in getting
-        /// notifications when App executable processes requests to start.
-        /// </summary>
-        /// <param name="handler">A delegate that will be invoked as soon as
-        /// a request comes in.</param>
-        public static void WaitForStartRequests(StartRequestHandler handler) {
-            (new Thread(() => { RunWaitForStartRequestThread(handler); })).Start();
         }
 
         /// <summary>
@@ -85,31 +65,6 @@ namespace Starcounter.Apps.Bootstrap {
             toAppMain = appMain.ToArray();
         }
 
-        static void RunWaitForStartRequestThread(StartRequestHandler handler) {
-            NamedPipeServerStream pipe;
-            byte[] buffer;
-
-            pipe = new NamedPipeServerStream(AppProcess.PipeName, PipeDirection.InOut, 1, PipeTransmissionMode.Message);
-            buffer = new byte[1024];
-
-            while (true) {
-                pipe.WaitForConnection();
-
-                MemoryStream buffer2 = new MemoryStream(2048);
-                do {
-                    int readCount = pipe.Read(buffer, 0, buffer.Length);
-                    buffer2.Write(buffer, 0, readCount);
-
-                } while (!pipe.IsMessageComplete);
-
-                pipe.Disconnect();
-
-                Dictionary<string, string> properties = KeyValueBinary.ToDictionary(buffer2.ToArray());
-                if (!handler(properties))
-                    break;
-            }
-        }
-
         static Dictionary<string, string> CreateStartInfoProperties() {
             Dictionary<string, string> properties = new Dictionary<string, string>();
             string[] args = System.Environment.GetCommandLineArgs();
@@ -131,34 +86,37 @@ namespace Starcounter.Apps.Bootstrap {
             serializedArgs = KeyValueBinary.FromArray(args, 1);
 
             properties.Add("AssemblyPath", exeFileName);
-            properties.Add("WorkingDirectory", workingDirectory);
+            properties.Add("WorkingDir", workingDirectory);
             properties.Add("Args", serializedArgs.Value);
 
             return properties;
         }
 
         static void SendStartRequest(Dictionary<string, string> properties) {
-            NamedPipeClientStream pipe;
+            string serverName;
+            string responseMessage = string.Empty;
+            bool result;
 
-            try {
-                pipe = new NamedPipeClientStream(".", AppProcess.PipeName, PipeDirection.Out);
-            } catch (Exception e) {
-                MessageBox(IntPtr.Zero, string.Format("Failed to connect to server: {0}", e.Message), "Unable to connect to server", 0x00000030);
-                return;
-            }
+            serverName = string.Format("sc//{0}/personal", Environment.MachineName).ToLowerInvariant();
 
+            var client = ClientServerFactory.CreateClientUsingNamedPipes(serverName);
             try {
-                pipe.Connect(5000);
+                result = client.Send("ExecApp", properties, (Reply reply) => {
+                    if (reply.IsResponse) {
+                        responseMessage = reply.ToString();
+                    }
+                });
             } catch (TimeoutException) {
-                MessageBox(IntPtr.Zero, "The server did not respond. Is Starcounter server really running?", "Unable to start App.", 0x00000030);
-                return;
+                result = false;
+                responseMessage = string.Format("Connecting to server \"{0}\" timed out.", serverName);
             } catch (Exception e) {
-                MessageBox(IntPtr.Zero, string.Format("Failed to connect to server: {0}", e.Message), "Unable to connect to server", 0x00000030);
-                return;
+                result = false;
+                responseMessage = e.Message;
             }
-
-            byte[] request = KeyValueBinary.FromDictionary(properties).ToBytes();
-            pipe.Write(request, 0, request.Length);
+            
+            if (!result) {
+                MessageBox(IntPtr.Zero, responseMessage, string.Format("Start request failed (server: {0})", serverName), 0x00000030);
+            }
         }
 
         static bool IsDatabaseWorkerProcess(Process p) {

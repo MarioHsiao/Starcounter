@@ -2,7 +2,7 @@
 using Starcounter;
 using Starcounter.Binding;
 
-namespace SqlTest
+namespace SQLTest
 {
     class Program
     {
@@ -17,26 +17,27 @@ namespace SqlTest
 
         static Boolean Test1()
         {
-            SqlTest.EmployeeDb.EmployeeData.CreateData();
-            SqlTest.EmployeeDb.EmployeeData.DeleteData();
+            TestRunner.Initialize("SqlTest1", false, true, false);
+            SQLTest.EmployeeDb.EmployeeData.CreateData();
+            SQLTest.EmployeeDb.EmployeeData.DeleteData();
             return true;
         }
 
         static Boolean Test2()
         {
-            SqlTest.EmployeeDb.EmployeeData.CreateIndexes();
-            SqlTest.EmployeeDb.EmployeeData.CreateData();
-            SqlTest.EmployeeDb.EmployeeData.DeleteData();
-            SqlTest.EmployeeDb.EmployeeData.DropIndexes();
+            SQLTest.EmployeeDb.EmployeeData.CreateIndexes();
+            SQLTest.EmployeeDb.EmployeeData.CreateData();
+            SQLTest.EmployeeDb.EmployeeData.DeleteData();
+            SQLTest.EmployeeDb.EmployeeData.DropIndexes();
             return true;
         }
         
         static Boolean Test3()
         {
-            SqlTest.PointDb.PointData.CreateIndexes();
-            SqlTest.PointDb.PointData.CreateData();
-            SqlTest.PointDb.PointData.DeleteData();
-            SqlTest.PointDb.PointData.DropIndexes();
+            SQLTest.PointDb.PointData.CreateIndexes();
+            SQLTest.PointDb.PointData.CreateData();
+            SQLTest.PointDb.PointData.DeleteData();
+            SQLTest.PointDb.PointData.DropIndexes();
             return true;
         }
     }

@@ -40,7 +40,7 @@ public:
 		bits_in_mask_type = sizeof(mask_type) * CHAR_BIT,
 		mask_31 = bits_in_mask_type -1,
 		chunks_mask_size = chunks_total_number_max / bits_in_mask_type,
-		channels_mask_size = (/*max_number_of_schedulers * */ channels) / bits_in_mask_type
+		channels_mask_size = channels / bits_in_mask_type
 	};
 	
 	// Constructor.
