@@ -20,7 +20,6 @@ namespace Starcounter.ABCIPC {
         /// </summary>
         protected Func<string> Receiver { get; set; }
         
-
         /// <summary>
         /// Gets the method to use when replying to requests. The first
         /// parameter should hold the reply and the second bool parameter
@@ -28,6 +27,11 @@ namespace Starcounter.ABCIPC {
         /// least one more reply will come from the same request.
         /// </summary>
         internal Action<string, bool> Reply { get; set; }
+
+        /// <summary>
+        /// Event that occurs when the server receives a new request.
+        /// </summary>
+        public event EventHandler<string> ReceivedRequest;
 
         /// <summary>
         /// Initializes a <see cref="Server"/>.
@@ -66,6 +70,7 @@ namespace Starcounter.ABCIPC {
 
             while (!shutdown) {
                 string s = Receiver();
+                OnRequestReceived(s);
 
                 // Parse the input, validate it and invoke the handler.
                 //
@@ -149,6 +154,17 @@ namespace Starcounter.ABCIPC {
 
         Action<Request> GetHandler(string message) {
             return handlers[message];
+        }
+
+        /// <summary>
+        /// Notified on the arrival of a new request. Invoked before it
+        /// is parsed and handled.
+        /// </summary>
+        /// <param name="request">The request that just came in.</param>
+        protected virtual void OnRequestReceived(string request) {
+            if (this.ReceivedRequest != null) {
+                ReceivedRequest(this, request);
+            }
         }
     }
 }
