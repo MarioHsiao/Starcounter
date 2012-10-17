@@ -56,8 +56,6 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
             // that the out queue in this channel is not full.
 #if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 			// Use Windows Events to synchronize.
-			//HANDLE work = 0; /// TEST COMPILE - GETTING THE REAL HANDLE IS WORK IN PROGRESS
-			//the_channel.scheduler()->notify(work);
 			the_channel.scheduler()->notify(shared_int_.get_work_event
 			(the_channel.get_scheduler_number()));
 #else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
