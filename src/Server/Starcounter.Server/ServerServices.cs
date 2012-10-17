@@ -30,9 +30,9 @@ namespace Starcounter.Server {
         /// Define the classification of services.
         /// </summary>
         [Flags] internal enum ServiceClass {
-            Core,
-            Management,
-            All = Core | Management
+            Core = 1,
+            Management = 2,
+            All = (Core | Management)
         }
 
         public ServerServices(ServerEngine engine) {
