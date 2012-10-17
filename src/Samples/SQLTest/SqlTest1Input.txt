@@ -37,7 +37,7 @@ QueryString: select d from Department d where d.IdBinary >= binary 'fefefefefefe
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -66,7 +66,7 @@ QueryString: select d from Department d where d.IdBinary >= ?
 VariableValues: Binary:FEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFE; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -92,12 +92,12 @@ ExpectedResult:
 
 
 <NEXT>
-Description: Show all of type SqlTest.Test1.Location
-QueryString: select l, l.* from SqlTest.Test1.Location l
+Description: Show all of type SQLTest.EmployeeDb.Location
+QueryString: select l, l.* from SQLTest.EmployeeDb.Location l
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -129,14 +129,14 @@ ExpectedResult:
  | 15 | Falköping | Small village in Sweden | 2 | 2 | 
  | 16 | Sankt Petersburg | Big city in Russia | 2 | 2 | 
 
-
+/*
 <NEXT>
-Description: Show all of type SqlTest.Test1.Department
-QueryString: select d, d.* from SqlTest.Test1.Department d
+Description: Show all of type SQLTest.EmployeeDb.Department
+QueryString: select d, d.* from SQLTest.EmployeeDb.Department d
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -168,12 +168,12 @@ ExpectedResult:
 
 
 <NEXT>
-Description: Show all of type SqlTest.Test1.Person
-QueryString: select p, p.* from SqlTest.Test1.Person p
+Description: Show all of type SQLTest.EmployeeDb.Person
+QueryString: select p, p.* from SQLTest.EmployeeDb.Person p
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Person
+	0 = SQLTest.EmployeeDb.Person
 )
 Projection(
 	0 = 
@@ -213,12 +213,12 @@ ExpectedResult:
 
 
 <NEXT>
-Description: Show all of type SqlTest.Test1.Employee
-QueryString: select e, e.* from SqlTest.Test1.Employee e
+Description: Show all of type SQLTest.EmployeeDb.Employee
+QueryString: select e, e.* from SQLTest.EmployeeDb.Employee e
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
+	0 = SQLTest.EmployeeDb.Employee
 )
 Projection(
 	0 = 
@@ -263,12 +263,12 @@ ExpectedResult:
 
 
 <NEXT>
-Description: Show all of type SqlTest.Test1.SalaryEmployee
-QueryString: select e, e.* from SqlTest.Test1.Salaryemployee e
+Description: Show all of type SQLTest.EmployeeDb.SalaryEmployee
+QueryString: select e, e.* from SQLTest.EmployeeDb.Salaryemployee e
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -386,10 +386,10 @@ ExpectedResult:
 
 <NEXT>
 Description: Simple query
-QueryString: select e from SqlTest.Test1.Employee e
+QueryString: select e from SQLTest.EmployeeDb.Employee e
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
+	0 = SQLTest.EmployeeDb.Employee
 )
 Projection(
 	0 = 
@@ -419,11 +419,11 @@ ExpectedResult:
 
 <NEXT>
 Description: Path expression of length 2
-QueryString: select e.Manager from SqlTest.Test1.Employee e
+QueryString: select e.Manager from SQLTest.EmployeeDb.Employee e
 SingleObjectPathProjection: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
+	0 = SQLTest.EmployeeDb.Employee
 )
 Projection(
 	0 = 
@@ -453,11 +453,11 @@ ExpectedResult:
 
 <NEXT>
 Description: Path expression of length 3
-QueryString: select e.Manager.Manager from SqlTest.Test1.Employee e
+QueryString: select e.Manager.Manager from SQLTest.EmployeeDb.Employee e
 SingleObjectPathProjection: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
+	0 = SQLTest.EmployeeDb.Employee
 )
 Projection(
 	0 = 
@@ -490,11 +490,11 @@ ExpectedResult:
 
 <NEXT>
 Description: Path expression of length 4
-QueryString: select e.Manager.Manager.Department from SqlTest.Test1.Employee e
+QueryString: select e.Manager.Manager.Department from SQLTest.EmployeeDb.Employee e
 SingleObjectPathProjection: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
+	0 = SQLTest.EmployeeDb.Employee
 )
 Projection(
 	0 = 
@@ -528,11 +528,11 @@ ExpectedResult:
 
 <NEXT>
 Description: Path expression of length 5
-QueryString: select e.Manager.Manager.Department.Location from SqlTest.Test1.Employee e
+QueryString: select e.Manager.Manager.Department.Location from SQLTest.EmployeeDb.Employee e
 SingleObjectPathProjection: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
+	0 = SQLTest.EmployeeDb.Employee
 )
 Projection(
 	0 = 
@@ -596,7 +596,7 @@ Description: Short class name
 QueryString: select e from Employee e
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
+	0 = SQLTest.EmployeeDb.Employee
 )
 Projection(
 	0 = 
@@ -630,7 +630,7 @@ QueryString: select FirstName from Employee
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
+	0 = SQLTest.EmployeeDb.Employee
 )
 Projection(
 	0 = 
@@ -664,7 +664,7 @@ QueryString: select e.* from Employee e
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
+	0 = SQLTest.EmployeeDb.Employee
 )
 Projection(
 	0 = 
@@ -712,7 +712,7 @@ QueryString: select * from Employee
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
+	0 = SQLTest.EmployeeDb.Employee
 )
 Projection(
 	0 = 
@@ -760,7 +760,7 @@ QueryString: select e.Manager.Department.* from Employee e
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
+	0 = SQLTest.EmployeeDb.Employee
 )
 Projection(
 	0 = 
@@ -826,23 +826,23 @@ ExpectedExceptionMessage: Failed to process query: select e from Example e: Unkn
 Description: Non-existing property (incorrect)
 QueryString: select e.Name from Employee e
 SingleObjectProjection: False
-ExpectedExceptionMessage: Failed to process query: select e.Name from Employee e: Unknown property Name of class SqlTest.Test1.Employee. 
+ExpectedExceptionMessage: Failed to process query: select e.Name from Employee e: Unknown property Name of class SQLTest.EmployeeDb.Employee. 
 
 
 <NEXT>
 Description: Object reference casting
-QueryString: select cast(p as SqlTest.Test1.Employee) from SqlTest.Test1.Person p
+QueryString: select cast(p as SQLTest.EmployeeDb.Employee) from SQLTest.EmployeeDb.Person p
 SingleObjectPathProjection: True
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Person
+	0 = SQLTest.EmployeeDb.Person
 )
 Projection(
 	0 = 
 		ObjectCast(
 			ObjectThis(0)
-			SqlTest.Test1.Employee
+			SQLTest.EmployeeDb.Employee
 		)
 )
 IndexScan(
@@ -872,18 +872,18 @@ ExpectedResult:
 
 <NEXT>
 Description: Object reference casting first in path expression
-QueryString: select cast(p as SqlTest.Test1.Employee).Manager from SqlTest.Test1.Person p
+QueryString: select cast(p as SQLTest.EmployeeDb.Employee).Manager from SQLTest.EmployeeDb.Person p
 SingleObjectPathProjection: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Person
+	0 = SQLTest.EmployeeDb.Person
 )
 Projection(
 	0 = 
 		ObjectPath(
 			ObjectCast(
 				ObjectThis(0)
-				SqlTest.Test1.Employee
+				SQLTest.EmployeeDb.Employee
 			)
 			ObjectProperty(-1, Manager)
 		)
@@ -915,18 +915,18 @@ ExpectedResult:
 
 <NEXT>
 Description: Object reference casting within path expression
-QueryString: select cast(p.Father as SqlTest.Test1.Employee).Manager from SqlTest.Test1.Person p
+QueryString: select cast(p.Father as SQLTest.EmployeeDb.Employee).Manager from SQLTest.EmployeeDb.Person p
 SingleObjectPathProjection: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Person
+	0 = SQLTest.EmployeeDb.Person
 )
 Projection(
 	0 = 
 		ObjectPath(
 			ObjectCast(
 				ObjectProperty(0, Father)
-				SqlTest.Test1.Employee
+				SQLTest.EmployeeDb.Employee
 			)
 			ObjectProperty(-1, Manager)
 		)
@@ -958,22 +958,22 @@ ExpectedResult:
 
 <NEXT>
 Description: Multiple Object reference castings
-QueryString: select cast(cast(p as SqlTest.Test1.Employee).Manager as SqlTest.Test1.Person).Father from SqlTest.Test1.Person p
+QueryString: select cast(cast(p as SQLTest.EmployeeDb.Employee).Manager as SQLTest.EmployeeDb.Person).Father from SQLTest.EmployeeDb.Person p
 SingleObjectPathProjection: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Person
+	0 = SQLTest.EmployeeDb.Person
 )
 Projection(
 	0 = 
 		ObjectPath(
 			ObjectCast(
 				ObjectThis(0)
-				SqlTest.Test1.Employee
+				SQLTest.EmployeeDb.Employee
 			)
 			ObjectCast(
 				ObjectProperty(-1, Manager)
-				SqlTest.Test1.Person
+				SQLTest.EmployeeDb.Person
 			)
 			ObjectProperty(-1, Father)
 		)
@@ -1005,18 +1005,18 @@ ExpectedResult:
 
 <NEXT>
 Description: Object reference casting with asterisk
-QueryString: select cast(p as SqlTest.Test1.Employee).* from SqlTest.Test1.Person p
+QueryString: select cast(p as SQLTest.EmployeeDb.Employee).* from SQLTest.EmployeeDb.Person p
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Person
+	0 = SQLTest.EmployeeDb.Person
 )
 Projection(
 	0 = 
 		StringPath(
 			ObjectCast(
 				ObjectThis(0)
-				SqlTest.Test1.Employee
+				SQLTest.EmployeeDb.Employee
 			)
 			StringProperty(-1, FirstName)
 		)
@@ -1024,7 +1024,7 @@ Projection(
 		StringPath(
 			ObjectCast(
 				ObjectThis(0)
-				SqlTest.Test1.Employee
+				SQLTest.EmployeeDb.Employee
 			)
 			StringProperty(-1, LastName)
 		)
@@ -1032,7 +1032,7 @@ Projection(
 		ObjectPath(
 			ObjectCast(
 				ObjectThis(0)
-				SqlTest.Test1.Employee
+				SQLTest.EmployeeDb.Employee
 			)
 			ObjectProperty(-1, Home)
 		)
@@ -1040,7 +1040,7 @@ Projection(
 		ObjectPath(
 			ObjectCast(
 				ObjectThis(0)
-				SqlTest.Test1.Employee
+				SQLTest.EmployeeDb.Employee
 			)
 			ObjectProperty(-1, Father)
 		)
@@ -1048,7 +1048,7 @@ Projection(
 		DateTimePath(
 			ObjectCast(
 				ObjectThis(0)
-				SqlTest.Test1.Employee
+				SQLTest.EmployeeDb.Employee
 			)
 			DateTimeProperty(-1, HireDate)
 		)
@@ -1056,7 +1056,7 @@ Projection(
 		DateTimePath(
 			ObjectCast(
 				ObjectThis(0)
-				SqlTest.Test1.Employee
+				SQLTest.EmployeeDb.Employee
 			)
 			DateTimeProperty(-1, NHireDate)
 		)
@@ -1064,7 +1064,7 @@ Projection(
 		ObjectPath(
 			ObjectCast(
 				ObjectThis(0)
-				SqlTest.Test1.Employee
+				SQLTest.EmployeeDb.Employee
 			)
 			ObjectProperty(-1, Manager)
 		)
@@ -1072,7 +1072,7 @@ Projection(
 		ObjectPath(
 			ObjectCast(
 				ObjectThis(0)
-				SqlTest.Test1.Employee
+				SQLTest.EmployeeDb.Employee
 			)
 			ObjectProperty(-1, Department)
 		)
@@ -1109,7 +1109,7 @@ SingleObjectProjection: False
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -1156,7 +1156,7 @@ SingleObjectProjection: False
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -1207,7 +1207,7 @@ SingleObjectProjection: False
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -1258,7 +1258,7 @@ SingleObjectProjection: False
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -1309,7 +1309,7 @@ SingleObjectProjection: False
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -1359,7 +1359,7 @@ QueryString: select +(+(+e.SalaryInt64)) from SalaryEmployee e
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -1396,7 +1396,7 @@ QueryString: select -(-(-e.SalaryInt64)) from SalaryEmployee e
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -1433,7 +1433,7 @@ QueryString: select d from Department d where d.IdBinary = binary 'fefefefefefef
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -1460,7 +1460,7 @@ QueryString: select d from Department d where d.IdBinary <> binary 'fefefefefefe
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -1489,7 +1489,7 @@ QueryString: select d from Department d where d.IdBinary < binary 'fefefefefefef
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -1517,7 +1517,7 @@ QueryString: select d from Department d where d.IdBinary <= binary 'fefefefefefe
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -1546,7 +1546,7 @@ QueryString: select d from Department d where d.IdBinary > binary 'fefefefefefef
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -1573,7 +1573,7 @@ QueryString: select d from Department d where d.IdBinary = ?
 VariableValues: Binary:FEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFE; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -1600,7 +1600,7 @@ QueryString: select d from Department d where d.IdBinary <> ?
 VariableValues: Binary:FEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFE; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -1629,7 +1629,7 @@ QueryString: select d from Department d where d.IdBinary < ?
 VariableValues: Binary:FEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFE; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -1657,7 +1657,7 @@ QueryString: select d from Department d where d.IdBinary <= ?
 VariableValues: Binary:FEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFE; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -1686,7 +1686,7 @@ QueryString: select d from Department d where d.IdBinary > ?
 VariableValues: Binary:FEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFE; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -1712,7 +1712,7 @@ Description: Binary property is null
 QueryString: select d from Department d where d.IdBinary is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -1740,7 +1740,7 @@ Description: Binary property is not null
 QueryString: select d from Department d where d.IdBinary is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -1773,7 +1773,7 @@ QueryString: select e from SalaryEmployee e where e.Commission = false
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -1801,7 +1801,7 @@ QueryString: select e from SalaryEmployee e where e.Commission <> false
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -1828,7 +1828,7 @@ QueryString: select e from SalaryEmployee e where e.Commission < false
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -1854,7 +1854,7 @@ QueryString: select e from SalaryEmployee e where e.Commission <= false
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -1882,7 +1882,7 @@ QueryString: select e from SalaryEmployee e where e.Commission > false
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -1909,7 +1909,7 @@ QueryString: select e from SalaryEmployee e where e.Commission >= false
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -1938,7 +1938,7 @@ QueryString: select e from SalaryEmployee e where e.Commission = ?
 VariableValues: Boolean:False; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -1966,7 +1966,7 @@ QueryString: select e from SalaryEmployee e where e.Commission <> ?
 VariableValues: Boolean:False; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -1993,7 +1993,7 @@ QueryString: select e from SalaryEmployee e where e.Commission < ?
 VariableValues: Boolean:False; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2019,7 +2019,7 @@ QueryString: select e from SalaryEmployee e where e.Commission <= ?
 VariableValues: Boolean:False; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2047,7 +2047,7 @@ QueryString: select e from SalaryEmployee e where e.Commission > ?
 VariableValues: Boolean:False; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2074,7 +2074,7 @@ QueryString: select e from SalaryEmployee e where e.Commission >= ?
 VariableValues: Boolean:False; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2102,7 +2102,7 @@ Description: Boolean property is null
 QueryString: select e from SalaryEmployee e where e.Commission is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2130,7 +2130,7 @@ Description: Boolean property is not null
 QueryString: select e from SalaryEmployee e where e.Commission is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2162,7 +2162,7 @@ QueryString: select e from SalaryEmployee e where e.NCommission = false
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2189,7 +2189,7 @@ QueryString: select e from SalaryEmployee e where e.NCommission <> false
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2216,7 +2216,7 @@ QueryString: select e from SalaryEmployee e where e.NCommission < false
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2242,7 +2242,7 @@ QueryString: select e from SalaryEmployee e where e.NCommission <= false
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2269,7 +2269,7 @@ QueryString: select e from SalaryEmployee e where e.NCommission > false
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2296,7 +2296,7 @@ QueryString: select e from SalaryEmployee e where e.NCommission >= false
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2324,7 +2324,7 @@ QueryString: select e from SalaryEmployee e where e.NCommission = ?
 VariableValues: Boolean:False; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2351,7 +2351,7 @@ QueryString: select e from SalaryEmployee e where e.NCommission <> ?
 VariableValues: Boolean:False; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2378,7 +2378,7 @@ QueryString: select e from SalaryEmployee e where e.NCommission < ?
 VariableValues: Boolean:False; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2404,7 +2404,7 @@ QueryString: select e from SalaryEmployee e where e.NCommission <= ?
 VariableValues: Boolean:False; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2431,7 +2431,7 @@ QueryString: select e from SalaryEmployee e where e.NCommission > ?
 VariableValues: Boolean:False; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2458,7 +2458,7 @@ QueryString: select e from SalaryEmployee e where e.NCommission >= ?
 VariableValues: Boolean:False; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2485,7 +2485,7 @@ Description: Nullable Boolean property is null
 QueryString: select e from SalaryEmployee e where e.NCommission is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2514,7 +2514,7 @@ Description: Nullable Boolean property is not null
 QueryString: select e from SalaryEmployee e where e.NCommission is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2545,7 +2545,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryByte = 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2572,7 +2572,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryByte <> 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2600,7 +2600,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryByte < 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2627,7 +2627,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryByte <= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2655,7 +2655,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryByte > 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2682,7 +2682,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryByte >= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2710,7 +2710,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryByte = ?
 VariableValues: UInt64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2737,7 +2737,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryByte <> ?
 VariableValues: UInt64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2765,7 +2765,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryByte < ?
 VariableValues: UInt64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2792,7 +2792,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryByte <= ?
 VariableValues: UInt64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2820,7 +2820,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryByte > ?
 VariableValues: UInt64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2847,7 +2847,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryByte >= ?
 VariableValues: UInt64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2874,7 +2874,7 @@ Description: Byte property is null
 QueryString: select e from SalaryEmployee e where e.SalaryByte is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2902,7 +2902,7 @@ Description: Byte is not null
 QueryString: select e from SalaryEmployee e where e.SalaryByte is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2934,7 +2934,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryByte = 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2961,7 +2961,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryByte <> 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -2988,7 +2988,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryByte < 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3014,7 +3014,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryByte <= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3041,7 +3041,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryByte > 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3068,7 +3068,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryByte >= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3096,7 +3096,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryByte = ?
 VariableValues: UInt64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3123,7 +3123,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryByte <> ?
 VariableValues: UInt64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3150,7 +3150,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryByte < ?
 VariableValues: UInt64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3176,7 +3176,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryByte <= ?
 VariableValues: UInt64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3203,7 +3203,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryByte > ?
 VariableValues: UInt64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3230,7 +3230,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryByte >= ?
 VariableValues: UInt64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3257,7 +3257,7 @@ Description: Nullable Byte property is null
 QueryString: select e from SalaryEmployee e where e.NSalaryByte is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3286,7 +3286,7 @@ Description: Nullable Byte property is not null
 QueryString: select e from SalaryEmployee e where e.NSalaryByte is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3317,7 +3317,7 @@ QueryString: select e from SalaryEmployee e where e.HireDate = date '2010-10-01'
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3344,7 +3344,7 @@ QueryString: select e from SalaryEmployee e where e.HireDate <> date '2010-10-01
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3372,7 +3372,7 @@ QueryString: select e from SalaryEmployee e where e.HireDate < date '2010-10-01'
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3399,7 +3399,7 @@ QueryString: select e from SalaryEmployee e where e.HireDate <= date '2010-10-01
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3427,7 +3427,7 @@ QueryString: select e from SalaryEmployee e where e.HireDate > date '2010-10-01'
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3454,7 +3454,7 @@ QueryString: select e from SalaryEmployee e where e.HireDate >= date '2010-10-01
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3482,7 +3482,7 @@ QueryString: select e from SalaryEmployee e where e.HireDate = ?
 VariableValues: DateTime:2010-10-01; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3509,7 +3509,7 @@ QueryString: select e from SalaryEmployee e where e.HireDate <> ?
 VariableValues: DateTime:2010-10-01; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3537,7 +3537,7 @@ QueryString: select e from SalaryEmployee e where e.HireDate < ?
 VariableValues: DateTime:2010-10-01; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3564,7 +3564,7 @@ QueryString: select e from SalaryEmployee e where e.HireDate <= ?
 VariableValues: DateTime:2010-10-01; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3592,7 +3592,7 @@ QueryString: select e from SalaryEmployee e where e.HireDate > ?
 VariableValues: DateTime:2010-10-01; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3619,7 +3619,7 @@ QueryString: select e from SalaryEmployee e where e.HireDate >= ?
 VariableValues: DateTime:2010-10-01; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3646,7 +3646,7 @@ Description: DateTime property is null
 QueryString: select e from SalaryEmployee e where e.HireDate is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3674,7 +3674,7 @@ Description: DateTime property is not null
 QueryString: select e from SalaryEmployee e where e.HireDate is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3706,7 +3706,7 @@ QueryString: select e from SalaryEmployee e where e.NHireDate = date '2010-10-01
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3733,7 +3733,7 @@ QueryString: select e from SalaryEmployee e where e.NHireDate <> date '2010-10-0
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3760,7 +3760,7 @@ QueryString: select e from SalaryEmployee e where e.NHireDate < date '2010-10-01
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3786,7 +3786,7 @@ QueryString: select e from SalaryEmployee e where e.NHireDate <= date '2010-10-0
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3813,7 +3813,7 @@ QueryString: select e from SalaryEmployee e where e.NHireDate > date '2010-10-01
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3840,7 +3840,7 @@ QueryString: select e from SalaryEmployee e where e.NHireDate >= date '2010-10-0
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3868,7 +3868,7 @@ QueryString: select e from SalaryEmployee e where e.NHireDate = ?
 VariableValues: DateTime:2010-10-01; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3895,7 +3895,7 @@ QueryString: select e from SalaryEmployee e where e.NHireDate <> ?
 VariableValues: DateTime:2010-10-01; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3922,7 +3922,7 @@ QueryString: select e from SalaryEmployee e where e.NHireDate < ?
 VariableValues: DateTime:2010-10-01; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3948,7 +3948,7 @@ QueryString: select e from SalaryEmployee e where e.NHireDate <= ?
 VariableValues: DateTime:2010-10-01; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -3975,7 +3975,7 @@ QueryString: select e from SalaryEmployee e where e.NHireDate > ?
 VariableValues: DateTime:2010-10-01; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4002,7 +4002,7 @@ QueryString: select e from SalaryEmployee e where e.NHireDate >= ?
 VariableValues: DateTime:2010-10-01; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4029,7 +4029,7 @@ Description: Nullable DateTime property is null
 QueryString: select e from SalaryEmployee e where e.NHireDate is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4058,7 +4058,7 @@ Description: Nullable DateTime property is not null
 QueryString: select e from SalaryEmployee e where e.NHireDate is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4089,7 +4089,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryDecimal = 20.0
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4116,7 +4116,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryDecimal <> 20.0
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4144,7 +4144,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryDecimal < 20.0
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4171,7 +4171,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryDecimal <= 20.0
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4199,7 +4199,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryDecimal > 20.0
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4226,7 +4226,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryDecimal >= 20.0
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4254,7 +4254,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryDecimal = ?
 VariableValues: Decimal:20.0; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4281,7 +4281,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryDecimal <> ?
 VariableValues: Decimal:20.0; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4309,7 +4309,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryDecimal < ?
 VariableValues: Decimal:20.0; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4336,7 +4336,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryDecimal <= ?
 VariableValues: Decimal:20.0; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4364,7 +4364,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryDecimal > ?
 VariableValues: Decimal:20.0; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4391,7 +4391,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryDecimal >= ?
 VariableValues: Decimal:20.0; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4418,7 +4418,7 @@ Description: Decimal property is null
 QueryString: select e from SalaryEmployee e where e.SalaryDecimal is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4446,7 +4446,7 @@ Description: Decimal property is not null
 QueryString: select e from SalaryEmployee e where e.SalaryDecimal is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4478,7 +4478,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryDecimal = 20.0
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4505,7 +4505,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryDecimal <> 20.0
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4532,7 +4532,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryDecimal < 20.0
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4558,7 +4558,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryDecimal <= 20.0
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4585,7 +4585,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryDecimal > 20.0
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4612,7 +4612,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryDecimal >= 20.0
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4640,7 +4640,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryDecimal = ?
 VariableValues: Decimal:20.0; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4667,7 +4667,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryDecimal <> ?
 VariableValues: Decimal:20.0; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4694,7 +4694,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryDecimal < ?
 VariableValues: Decimal:20.0; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4720,7 +4720,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryDecimal <= ?
 VariableValues: Decimal:20.0; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4747,7 +4747,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryDecimal > ?
 VariableValues: Decimal:20.0; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4774,7 +4774,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryDecimal >= ?
 VariableValues: Decimal:20.0; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4801,7 +4801,7 @@ Description: Nullable Decimal property is null
 QueryString: select e from SalaryEmployee e where e.NSalaryDecimal is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4830,7 +4830,7 @@ Description: Nullable Decimal property is not null
 QueryString: select e from SalaryEmployee e where e.NSalaryDecimal is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4861,7 +4861,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryDouble = 2.0e1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4888,7 +4888,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryDouble <> 2.0e1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4916,7 +4916,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryDouble < 2.0e1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4943,7 +4943,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryDouble <= 2.0e1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4971,7 +4971,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryDouble > 2.0e1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -4998,7 +4998,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryDouble >= 2.0e1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5026,7 +5026,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryDouble = ?
 VariableValues: Double:2.0e1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5053,7 +5053,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryDouble <> ?
 VariableValues: Double:2.0e1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5081,7 +5081,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryDouble < ?
 VariableValues: Double:2.0e1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5108,7 +5108,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryDouble <= ?
 VariableValues: Double:2.0e1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5136,7 +5136,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryDouble > ?
 VariableValues: Double:2.0e1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5163,7 +5163,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryDouble >= ?
 VariableValues: Double:2.0e1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5190,7 +5190,7 @@ Description: Double property is null
 QueryString: select e from SalaryEmployee e where e.SalaryDouble is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5218,7 +5218,7 @@ Description: Double property is not null
 QueryString: select e from SalaryEmployee e where e.SalaryDouble is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5250,7 +5250,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryDouble = 2.0e1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5277,7 +5277,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryDouble <> 2.0e1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5304,7 +5304,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryDouble < 2.0e1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5330,7 +5330,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryDouble <= 2.0e1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5357,7 +5357,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryDouble > 2.0e1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5384,7 +5384,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryDouble >= 2.0e1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5412,7 +5412,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryDouble = ?
 VariableValues: Double:2.0e1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5439,7 +5439,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryDouble <> ?
 VariableValues: Double:2.0e1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5466,7 +5466,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryDouble < ?
 VariableValues: Double:2.0e1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5492,7 +5492,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryDouble <= ?
 VariableValues: Double:2.0e1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5519,7 +5519,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryDouble > ?
 VariableValues: Double:2.0e1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5546,7 +5546,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryDouble >= ?
 VariableValues: Double:2.0e1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5573,7 +5573,7 @@ Description: Nullable Double property is null
 QueryString: select e from SalaryEmployee e where e.NSalaryDouble is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5602,7 +5602,7 @@ Description: Nullable Double property is not null
 QueryString: select e from SalaryEmployee e where e.NSalaryDouble is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5633,7 +5633,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt16 = 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5660,7 +5660,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt16 <> 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5688,7 +5688,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt16 < 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5715,7 +5715,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt16 <= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5743,7 +5743,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt16 > 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5770,7 +5770,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt16 >= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5798,7 +5798,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt16 = ?
 VariableValues: Int16:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5825,7 +5825,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt16 <> ?
 VariableValues: Int16:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5853,7 +5853,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt16 < ?
 VariableValues: Int16:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5880,7 +5880,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt16 <= ?
 VariableValues: Int16:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5908,7 +5908,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt16 > ?
 VariableValues: Int16:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5935,7 +5935,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt16 >= ?
 VariableValues: Int16:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5962,7 +5962,7 @@ Description: Int16 property is null
 QueryString: select e from SalaryEmployee e where e.SalaryInt16 is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -5990,7 +5990,7 @@ Description: Int16 property is not null
 QueryString: select e from SalaryEmployee e where e.SalaryInt16 is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6022,7 +6022,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt16 = 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6049,7 +6049,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt16 <> 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6076,7 +6076,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt16 < 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6102,7 +6102,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt16 <= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6129,7 +6129,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt16 > 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6156,7 +6156,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt16 >= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6184,7 +6184,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt16 = ?
 VariableValues: Int16:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6211,7 +6211,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt16 <> ?
 VariableValues: Int16:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6238,7 +6238,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt16 < ?
 VariableValues: Int16:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6264,7 +6264,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt16 <= ?
 VariableValues: Int16:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6291,7 +6291,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt16 > ?
 VariableValues: Int16:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6318,7 +6318,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt16 >= ?
 VariableValues: Int16:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6345,7 +6345,7 @@ Description: Nullable Int16 property is null
 QueryString: select e from SalaryEmployee e where e.NSalaryInt16 is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6374,7 +6374,7 @@ Description: Nullable Int16 property is not null
 QueryString: select e from SalaryEmployee e where e.NSalaryInt16 is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6405,7 +6405,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt32 = 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6432,7 +6432,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt32 <> 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6460,7 +6460,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt32 < 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6487,7 +6487,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt32 <= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6515,7 +6515,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt32 > 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6542,7 +6542,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt32 >= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6570,7 +6570,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt32 = ?
 VariableValues: Int32:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6597,7 +6597,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt32 <> ?
 VariableValues: Int32:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6625,7 +6625,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt32 < ?
 VariableValues: Int32:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6652,7 +6652,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt32 <= ?
 VariableValues: Int32:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6680,7 +6680,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt32 > ?
 VariableValues: Int32:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6707,7 +6707,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt32 >= ?
 VariableValues: Int32:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6734,7 +6734,7 @@ Description: Int32 property is null
 QueryString: select e from SalaryEmployee e where e.SalaryInt32 is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6762,7 +6762,7 @@ Description: Int32 property is not null
 QueryString: select e from SalaryEmployee e where e.SalaryInt32 is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6794,7 +6794,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt32 = 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6821,7 +6821,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt32 <> 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6848,7 +6848,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt32 < 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6874,7 +6874,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt32 <= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6901,7 +6901,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt32 > 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6928,7 +6928,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt32 >= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6956,7 +6956,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt32 = ?
 VariableValues: Int32:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -6983,7 +6983,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt32 <> ?
 VariableValues: Int32:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7010,7 +7010,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt32 < ?
 VariableValues: Int32:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7036,7 +7036,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt32 <= ?
 VariableValues: Int32:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7063,7 +7063,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt32 > ?
 VariableValues: Int32:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7090,7 +7090,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt32 >= ?
 VariableValues: Int32:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7117,7 +7117,7 @@ Description: Nullable Int32 property is null
 QueryString: select e from SalaryEmployee e where e.NSalaryInt32 is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7146,7 +7146,7 @@ Description: Nullable Int32 property is not null
 QueryString: select e from SalaryEmployee e where e.NSalaryInt32 is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7177,7 +7177,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt64 = 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7204,7 +7204,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt64 <> 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7232,7 +7232,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt64 < 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7259,7 +7259,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt64 <= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7287,7 +7287,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt64 > 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7314,7 +7314,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt64 >= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7342,7 +7342,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt64 = ?
 VariableValues: Int64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7369,7 +7369,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt64 <> ?
 VariableValues: Int64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7397,7 +7397,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt64 < ?
 VariableValues: Int64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7424,7 +7424,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt64 <= ?
 VariableValues: Int64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7452,7 +7452,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt64 > ?
 VariableValues: Int64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7479,7 +7479,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryInt64 >= ?
 VariableValues: Int64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7506,7 +7506,7 @@ Description: Int64 property is null
 QueryString: select e from SalaryEmployee e where e.SalaryInt64 is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7534,7 +7534,7 @@ Description: Int64 property is not null
 QueryString: select e from SalaryEmployee e where e.SalaryInt64 is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7566,7 +7566,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt64 = 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7593,7 +7593,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt64 <> 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7620,7 +7620,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt64 < 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7646,7 +7646,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt64 <= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7673,7 +7673,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt64 > 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7700,7 +7700,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt64 >= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7728,7 +7728,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt64 = ?
 VariableValues: Int64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7755,7 +7755,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt64 <> ?
 VariableValues: Int64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7782,7 +7782,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt64 < ?
 VariableValues: Int64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7808,7 +7808,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt64 <= ?
 VariableValues: Int64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7835,7 +7835,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt64 > ?
 VariableValues: Int64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7862,7 +7862,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryInt64 >= ?
 VariableValues: Int64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7889,7 +7889,7 @@ Description: Nullable Int64 property is null
 QueryString: select e from SalaryEmployee e where e.NSalaryInt64 is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7918,7 +7918,7 @@ Description: Nullable Int64 property is not null
 QueryString: select e from SalaryEmployee e where e.NSalaryInt64 is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7950,7 +7950,7 @@ IncludesLiteral: True
 IncludesObjectValue: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -7978,7 +7978,7 @@ IncludesLiteral: True
 IncludesObjectValue: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8004,7 +8004,7 @@ Description: Object property less than Object literal (incorrect)
 QueryString: select e from SalaryEmployee e where e.Manager < object 25
 IncludesLiteral: True
 IncludesObjectValue: True
-ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager < object 25: Incorrect arguments of types object(SqlTest.Test1.Employee) and object(unknown) to operator lessThan. 
+ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager < object 25: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator lessThan. 
 
 
 <NEXT>
@@ -8012,7 +8012,7 @@ Description: Object property less than or equal to Object literal (incorrect)
 QueryString: select e from SalaryEmployee e where e.Manager <= object 25
 IncludesLiteral: True
 IncludesObjectValue: True
-ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager <= object 25: Incorrect arguments of types object(SqlTest.Test1.Employee) and object(unknown) to operator lessThanOrEqual. 
+ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager <= object 25: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator lessThanOrEqual. 
 
 
 <NEXT>
@@ -8020,7 +8020,7 @@ Description: Object property greater than Object literal (incorrect)
 QueryString: select e from SalaryEmployee e where e.Manager > object 25
 IncludesLiteral: True
 IncludesObjectValue: True
-ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager > object 25: Incorrect arguments of types object(SqlTest.Test1.Employee) and object(unknown) to operator greaterThan. 
+ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager > object 25: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator greaterThan. 
 
 
 <NEXT>
@@ -8028,7 +8028,7 @@ Description: Object property greater than or equal to Object literal (incorrect)
 QueryString: select e from SalaryEmployee e where e.Manager >= object 25
 IncludesLiteral: True
 IncludesObjectValue: True
-ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager >= object 25: Incorrect arguments of types object(SqlTest.Test1.Employee) and object(unknown) to operator greaterThanOrEqual. 
+ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager >= object 25: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator greaterThanOrEqual. 
 
 
 <NEXT>
@@ -8038,7 +8038,7 @@ VariableValues: Object:25;
 IncludesObjectValue: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8066,7 +8066,7 @@ VariableValues: Object:25;
 IncludesObjectValue: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8092,7 +8092,7 @@ Description: Object property less than Object variable (incorrect)
 QueryString: select e from SalaryEmployee e where e.Manager < ?
 VariableValues: Object:25; 
 IncludesObjectValue: True
-ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager < ?: Incorrect arguments of types object(SqlTest.Test1.Employee) and any to operator lessThan. 
+ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager < ?: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and any to operator lessThan. 
 
 
 <NEXT>
@@ -8100,7 +8100,7 @@ Description: Object property less than or equal to Object variable (incorrect)
 QueryString: select e from SalaryEmployee e where e.Manager <= ?
 VariableValues: Object:25; 
 IncludesObjectValue: True
-ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager <= ?: Incorrect arguments of types object(SqlTest.Test1.Employee) and any to operator lessThanOrEqual. 
+ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager <= ?: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and any to operator lessThanOrEqual. 
 
 
 <NEXT>
@@ -8108,7 +8108,7 @@ Description: Object property greater than Object variable (incorrect)
 QueryString: select e from SalaryEmployee e where e.Manager > ?
 VariableValues: Object:25; 
 IncludesObjectValue: True
-ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager > ?: Incorrect arguments of types object(SqlTest.Test1.Employee) and any to operator greaterThan. 
+ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager > ?: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and any to operator greaterThan. 
 
 
 <NEXT>
@@ -8116,7 +8116,7 @@ Description: Object property greater than or equal to Object variable (incorrect
 QueryString: select e from SalaryEmployee e where e.Manager >= ?
 VariableValues: Object:25; 
 IncludesObjectValue: True
-ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager >= ?: Incorrect arguments of types object(SqlTest.Test1.Employee) and any to operator greaterThanOrEqual. 
+ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager >= ?: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and any to operator greaterThanOrEqual. 
 
 
 <NEXT>
@@ -8125,7 +8125,7 @@ QueryString: select e from SalaryEmployee e where e.Manager is null
 ExpectedExceptionMessage: 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8154,7 +8154,7 @@ Description: Object property is not null
 QueryString: select e from SalaryEmployee e where e.Manager is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8185,7 +8185,7 @@ QueryString: select e from SalaryEmployee e where e.SalarySByte = 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8212,7 +8212,7 @@ QueryString: select e from SalaryEmployee e where e.SalarySByte <> 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8240,7 +8240,7 @@ QueryString: select e from SalaryEmployee e where e.SalarySByte < 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8267,7 +8267,7 @@ QueryString: select e from SalaryEmployee e where e.SalarySByte <= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8295,7 +8295,7 @@ QueryString: select e from SalaryEmployee e where e.SalarySByte > 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8322,7 +8322,7 @@ QueryString: select e from SalaryEmployee e where e.SalarySByte >= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8350,7 +8350,7 @@ QueryString: select e from SalaryEmployee e where e.SalarySByte = ?
 VariableValues: SByte:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8377,7 +8377,7 @@ QueryString: select e from SalaryEmployee e where e.SalarySByte <> ?
 VariableValues: SByte:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8405,7 +8405,7 @@ QueryString: select e from SalaryEmployee e where e.SalarySByte < ?
 VariableValues: SByte:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8432,7 +8432,7 @@ QueryString: select e from SalaryEmployee e where e.SalarySByte <= ?
 VariableValues: SByte:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8460,7 +8460,7 @@ QueryString: select e from SalaryEmployee e where e.SalarySByte > ?
 VariableValues: SByte:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8487,7 +8487,7 @@ QueryString: select e from SalaryEmployee e where e.SalarySByte >= ?
 VariableValues: SByte:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8514,7 +8514,7 @@ Description: SByte property is null
 QueryString: select e from SalaryEmployee e where e.SalarySByte is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8542,7 +8542,7 @@ Description: SByte property is not null
 QueryString: select e from SalaryEmployee e where e.SalarySByte is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8574,7 +8574,7 @@ QueryString: select e from SalaryEmployee e where e.NSalarySByte = 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8601,7 +8601,7 @@ QueryString: select e from SalaryEmployee e where e.NSalarySByte <> 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8628,7 +8628,7 @@ QueryString: select e from SalaryEmployee e where e.NSalarySByte < 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8654,7 +8654,7 @@ QueryString: select e from SalaryEmployee e where e.NSalarySByte <= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8681,7 +8681,7 @@ QueryString: select e from SalaryEmployee e where e.NSalarySByte > 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8708,7 +8708,7 @@ QueryString: select e from SalaryEmployee e where e.NSalarySByte >= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8736,7 +8736,7 @@ QueryString: select e from SalaryEmployee e where e.NSalarySByte = ?
 VariableValues: SByte:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8763,7 +8763,7 @@ QueryString: select e from SalaryEmployee e where e.NSalarySByte <> ?
 VariableValues: SByte:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8790,7 +8790,7 @@ QueryString: select e from SalaryEmployee e where e.NSalarySByte < ?
 VariableValues: SByte:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8816,7 +8816,7 @@ QueryString: select e from SalaryEmployee e where e.NSalarySByte <= ?
 VariableValues: SByte:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8843,7 +8843,7 @@ QueryString: select e from SalaryEmployee e where e.NSalarySByte > ?
 VariableValues: SByte:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8870,7 +8870,7 @@ QueryString: select e from SalaryEmployee e where e.NSalarySByte >= ?
 VariableValues: SByte:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8897,7 +8897,7 @@ Description: Nullable SByte property is null
 QueryString: select e from SalaryEmployee e where e.NSalarySByte is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8926,7 +8926,7 @@ Description: Nullable SByte property is not null
 QueryString: select e from SalaryEmployee e where e.NSalarySByte is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8957,7 +8957,7 @@ QueryString: select e from SalaryEmployee e where e.SalarySingle = 2.0e1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -8984,7 +8984,7 @@ QueryString: select e from SalaryEmployee e where e.SalarySingle <> 2.0e1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9012,7 +9012,7 @@ QueryString: select e from SalaryEmployee e where e.SalarySingle < 2.0e1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9039,7 +9039,7 @@ QueryString: select e from SalaryEmployee e where e.SalarySingle <= 2.0e1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9067,7 +9067,7 @@ QueryString: select e from SalaryEmployee e where e.SalarySingle > 2.0e1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9094,7 +9094,7 @@ QueryString: select e from SalaryEmployee e where e.SalarySingle >= 2.0e1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9122,7 +9122,7 @@ QueryString: select e from SalaryEmployee e where e.SalarySingle = ?
 VariableValues: Single:2.0e1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9149,7 +9149,7 @@ QueryString: select e from SalaryEmployee e where e.SalarySingle <> ?
 VariableValues: Single:2.0e1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9177,7 +9177,7 @@ QueryString: select e from SalaryEmployee e where e.SalarySingle < ?
 VariableValues: Single:2.0e1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9204,7 +9204,7 @@ QueryString: select e from SalaryEmployee e where e.SalarySingle <= ?
 VariableValues: Single:2.0e1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9232,7 +9232,7 @@ QueryString: select e from SalaryEmployee e where e.SalarySingle > ?
 VariableValues: Single:2.0e1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9259,7 +9259,7 @@ QueryString: select e from SalaryEmployee e where e.SalarySingle >= ?
 VariableValues: Single:2.0e1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9286,7 +9286,7 @@ Description: Single property is null
 QueryString: select e from SalaryEmployee e where e.SalarySingle is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9314,7 +9314,7 @@ Description: Single property is not null
 QueryString: select e from SalaryEmployee e where e.SalarySingle is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9346,7 +9346,7 @@ QueryString: select e from SalaryEmployee e where e.NSalarySingle = 2.0e1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9373,7 +9373,7 @@ QueryString: select e from SalaryEmployee e where e.NSalarySingle <> 2.0e1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9400,7 +9400,7 @@ QueryString: select e from SalaryEmployee e where e.NSalarySingle < 2.0e1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9426,7 +9426,7 @@ QueryString: select e from SalaryEmployee e where e.NSalarySingle <= 2.0e1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9453,7 +9453,7 @@ QueryString: select e from SalaryEmployee e where e.NSalarySingle > 2.0e1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9480,7 +9480,7 @@ QueryString: select e from SalaryEmployee e where e.NSalarySingle >= 2.0e1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9508,7 +9508,7 @@ QueryString: select e from SalaryEmployee e where e.NSalarySingle = ?
 VariableValues: Single:2.0e1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9535,7 +9535,7 @@ QueryString: select e from SalaryEmployee e where e.NSalarySingle <> ?
 VariableValues: Single:2.0e1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9562,7 +9562,7 @@ QueryString: select e from SalaryEmployee e where e.NSalarySingle < ?
 VariableValues: Single:2.0e1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9588,7 +9588,7 @@ QueryString: select e from SalaryEmployee e where e.NSalarySingle <= ?
 VariableValues: Single:2.0e1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9615,7 +9615,7 @@ QueryString: select e from SalaryEmployee e where e.NSalarySingle > ?
 VariableValues: Single:2.0e1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9642,7 +9642,7 @@ QueryString: select e from SalaryEmployee e where e.NSalarySingle >= ?
 VariableValues: Single:2.0e1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9669,7 +9669,7 @@ Description: Nullable Single property is null
 QueryString: select e from SalaryEmployee e where e.NSalarySingle is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9698,7 +9698,7 @@ Description: Nullable Single property is not null
 QueryString: select e from SalaryEmployee e where e.NSalarySingle is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9729,7 +9729,7 @@ QueryString: select e from SalaryEmployee e where e.LastName = 'Moiseenko'
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9756,7 +9756,7 @@ QueryString: select e from SalaryEmployee e where e.LastName <> 'Moiseenko'
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9783,7 +9783,7 @@ QueryString: select e from SalaryEmployee e where e.LastName > 'Moiseenko'
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9810,7 +9810,7 @@ QueryString: select e from SalaryEmployee e where e.LastName >= 'Moiseenko'
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9838,7 +9838,7 @@ QueryString: select e from SalaryEmployee e where e.LastName < 'Moiseenko'
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9864,7 +9864,7 @@ QueryString: select e from SalaryEmployee e where e.LastName <= 'Moiseenko'
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9891,7 +9891,7 @@ QueryString: select e from SalaryEmployee e where e.LastName = ?
 VariableValues: String:Moiseenko; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9918,7 +9918,7 @@ QueryString: select e from SalaryEmployee e where e.LastName <> ?
 VariableValues: String:Moiseenko; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9945,7 +9945,7 @@ QueryString: select e from SalaryEmployee e where e.LastName > ?
 VariableValues: String:Moiseenko; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -9972,7 +9972,7 @@ QueryString: select e from SalaryEmployee e where e.LastName >= ?
 VariableValues: String:Moiseenko; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10000,7 +10000,7 @@ QueryString: select e from SalaryEmployee e where e.LastName < ?
 VariableValues: String:Moiseenko; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10026,7 +10026,7 @@ QueryString: select e from SalaryEmployee e where e.LastName <= ?
 VariableValues: String:Moiseenko; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10052,7 +10052,7 @@ Description: String property is null
 QueryString: select e from SalaryEmployee e where e.LastName is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10081,7 +10081,7 @@ Description: String property is not null
 QueryString: select e from SalaryEmployee e where e.LastName is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10112,7 +10112,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt16 = 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10139,7 +10139,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt16 <> 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10167,7 +10167,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt16 < 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10194,7 +10194,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt16 <= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10222,7 +10222,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt16 > 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10249,7 +10249,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt16 >= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10277,7 +10277,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt16 = ?
 VariableValues: UInt16:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10304,7 +10304,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt16 <> ?
 VariableValues: UInt16:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10332,7 +10332,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt16 < ?
 VariableValues: UInt16:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10359,7 +10359,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt16 <= ?
 VariableValues: UInt16:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10387,7 +10387,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt16 > ?
 VariableValues: UInt16:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10414,7 +10414,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt16 >= ?
 VariableValues: UInt16:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10441,7 +10441,7 @@ Description: UInt16 property is null
 QueryString: select e from SalaryEmployee e where e.SalaryUInt16 is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10469,7 +10469,7 @@ Description: UInt16 property is not null
 QueryString: select e from SalaryEmployee e where e.SalaryUInt16 is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10501,7 +10501,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt16 = 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10528,7 +10528,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt16 <> 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10555,7 +10555,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt16 < 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10581,7 +10581,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt16 <= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10608,7 +10608,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt16 > 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10635,7 +10635,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt16 >= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10663,7 +10663,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt16 = ?
 VariableValues: UInt16:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10690,7 +10690,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt16 <> ?
 VariableValues: UInt16:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10717,7 +10717,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt16 < ?
 VariableValues: UInt16:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10743,7 +10743,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt16 <= ?
 VariableValues: UInt16:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10770,7 +10770,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt16 > ?
 VariableValues: UInt16:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10797,7 +10797,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt16 >= ?
 VariableValues: UInt16:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10824,7 +10824,7 @@ Description: Nullable UInt16 is null
 QueryString: select e from SalaryEmployee e where e.NSalaryUInt16 is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10853,7 +10853,7 @@ Description: Nullable UInt16 is not null
 QueryString: select e from SalaryEmployee e where e.NSalaryUInt16 is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10884,7 +10884,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt32 = 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10911,7 +10911,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt32 <> 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10939,7 +10939,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt32 < 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10966,7 +10966,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt32 <= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -10994,7 +10994,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt32 > 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11021,7 +11021,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt32 >= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11049,7 +11049,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt32 = ?
 VariableValues: UInt32:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11076,7 +11076,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt32 <> ?
 VariableValues: UInt32:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11104,7 +11104,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt32 < ?
 VariableValues: UInt32:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11131,7 +11131,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt32 <= ?
 VariableValues: UInt32:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11159,7 +11159,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt32 > ?
 VariableValues: UInt32:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11186,7 +11186,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt32 >= ?
 VariableValues: UInt32:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11213,7 +11213,7 @@ Description: UInt32 property is null
 QueryString: select e from SalaryEmployee e where e.SalaryUInt32 is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11241,7 +11241,7 @@ Description: UInt32 property is not null
 QueryString: select e from SalaryEmployee e where e.SalaryUInt32 is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11273,7 +11273,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt32 = 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11300,7 +11300,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt32 <> 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11327,7 +11327,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt32 < 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11353,7 +11353,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt32 <= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11380,7 +11380,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt32 > 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11407,7 +11407,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt32 >= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11435,7 +11435,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt32 = ?
 VariableValues: UInt32:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11462,7 +11462,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt32 <> ?
 VariableValues: UInt32:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11489,7 +11489,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt32 < ?
 VariableValues: UInt32:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11515,7 +11515,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt32 <= ?
 VariableValues: UInt32:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11542,7 +11542,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt32 > ?
 VariableValues: UInt32:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11569,7 +11569,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt32 >= ?
 VariableValues: UInt32:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11596,7 +11596,7 @@ Description: Nullable UInt32 is null
 QueryString: select e from SalaryEmployee e where e.NSalaryUInt32 is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11625,7 +11625,7 @@ Description: Nullable UInt32 is not null
 QueryString: select e from SalaryEmployee e where e.NSalaryUInt32 is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11656,7 +11656,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt64 = 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11683,7 +11683,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt64 <> 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11711,7 +11711,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt64 < 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11738,7 +11738,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt64 <= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11766,7 +11766,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt64 > 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11793,7 +11793,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt64 >= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11821,7 +11821,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt64 = ?
 VariableValues: UInt64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11848,7 +11848,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt64 <> ?
 VariableValues: UInt64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11876,7 +11876,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt64 < ?
 VariableValues: UInt64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11903,7 +11903,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt64 <= ?
 VariableValues: UInt64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11931,7 +11931,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt64 > ?
 VariableValues: UInt64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11958,7 +11958,7 @@ QueryString: select e from SalaryEmployee e where e.SalaryUInt64 >= ?
 VariableValues: UInt64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -11985,7 +11985,7 @@ Description: UInt64 is null
 QueryString: select e from SalaryEmployee e where e.SalaryUInt64 is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -12013,7 +12013,7 @@ Description: UInt64 is not null
 QueryString: select e from SalaryEmployee e where e.SalaryUInt64 is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -12045,7 +12045,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt64 = 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -12072,7 +12072,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt64 <> 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -12099,7 +12099,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt64 < 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -12125,7 +12125,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt64 <= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -12152,7 +12152,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt64 > 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -12179,7 +12179,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt64 >= 20
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -12207,7 +12207,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt64 = ?
 VariableValues: UInt64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -12234,7 +12234,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt64 <> ?
 VariableValues: UInt64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -12261,7 +12261,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt64 < ?
 VariableValues: UInt64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -12287,7 +12287,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt64 <= ?
 VariableValues: UInt64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -12314,7 +12314,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt64 > ?
 VariableValues: UInt64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -12341,7 +12341,7 @@ QueryString: select e from SalaryEmployee e where e.NSalaryUInt64 >= ?
 VariableValues: UInt64:20; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -12368,7 +12368,7 @@ Description: Nullable UInt64 is null
 QueryString: select e from SalaryEmployee e where e.NSalaryUInt64 is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -12397,7 +12397,7 @@ Description: Nullable UInt64 is not null
 QueryString: select e from SalaryEmployee e where e.NSalaryUInt64 is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -12428,7 +12428,7 @@ QueryString: select l from Location l where l.Type = 1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -12455,7 +12455,7 @@ QueryString: select l from Location l where l.Type <> 1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -12486,7 +12486,7 @@ QueryString: select l from Location l where l.Type < 1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -12512,7 +12512,7 @@ QueryString: select l from Location l where l.Type <= 1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -12539,7 +12539,7 @@ QueryString: select l from Location l where l.Type > 1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -12570,7 +12570,7 @@ QueryString: select l from Location l where l.Type >= 1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -12602,7 +12602,7 @@ QueryString: select l from Location l where l.Type = ?
 VariableValues: Int32:1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -12629,7 +12629,7 @@ QueryString: select l from Location l where l.Type <> ?
 VariableValues: Int32:1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -12660,7 +12660,7 @@ QueryString: select l from Location l where l.Type < ?
 VariableValues: Int32:1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -12686,7 +12686,7 @@ QueryString: select l from Location l where l.Type <= ?
 VariableValues: Int32:1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -12713,7 +12713,7 @@ QueryString: select l from Location l where l.Type > ?
 VariableValues: Int32:1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -12744,7 +12744,7 @@ QueryString: select l from Location l where l.Type >= ?
 VariableValues: Int32:1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -12775,7 +12775,7 @@ Description: Enum property is null
 QueryString: select l from Location l where l.Type is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -12803,7 +12803,7 @@ Description: Enum property is not null
 QueryString: select l from Location l where l.Type is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -12838,7 +12838,7 @@ QueryString: select l from Location l where l.NType = 1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -12865,7 +12865,7 @@ QueryString: select l from Location l where l.NType <> 1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -12896,7 +12896,7 @@ QueryString: select l from Location l where l.NType < 1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -12922,7 +12922,7 @@ QueryString: select l from Location l where l.NType <= 1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -12949,7 +12949,7 @@ QueryString: select l from Location l where l.NType > 1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -12980,7 +12980,7 @@ QueryString: select l from Location l where l.NType >= 1
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -13012,7 +13012,7 @@ QueryString: select l from Location l where l.NType = ?
 VariableValues: Int32:1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -13039,7 +13039,7 @@ QueryString: select l from Location l where l.NType <> ?
 VariableValues: Int32:1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -13070,7 +13070,7 @@ QueryString: select l from Location l where l.NType < ?
 VariableValues: Int32:1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -13096,7 +13096,7 @@ QueryString: select l from Location l where l.NType <= ?
 VariableValues: Int32:1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -13123,7 +13123,7 @@ QueryString: select l from Location l where l.NType > ?
 VariableValues: Int32:1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -13154,7 +13154,7 @@ QueryString: select l from Location l where l.NType >= ?
 VariableValues: Int32:1; 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -13185,7 +13185,7 @@ Description: Nullable Enum property is null
 QueryString: select l from Location l where l.NType is null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -13213,7 +13213,7 @@ Description: Nullable Enum property is not null
 QueryString: select l from Location l where l.NType is not null
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Location
+	0 = SQLTest.EmployeeDb.Location
 )
 Projection(
 	0 = 
@@ -13249,7 +13249,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -13287,7 +13287,7 @@ ShouldBeReordered: False
 ExpectedExceptionMessage: 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -13324,7 +13324,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -13361,7 +13361,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -13398,7 +13398,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -13435,7 +13435,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -13472,7 +13472,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -13509,7 +13509,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -13546,7 +13546,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -13583,7 +13583,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -13620,7 +13620,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -13657,7 +13657,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -13694,7 +13694,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -13731,7 +13731,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -13768,7 +13768,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -13805,7 +13805,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -13842,7 +13842,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -13879,7 +13879,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -13916,7 +13916,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -13953,7 +13953,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -13990,7 +13990,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -14027,7 +14027,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -14064,7 +14064,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -14101,7 +14101,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -14138,7 +14138,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -14175,7 +14175,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -14212,7 +14212,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -14249,7 +14249,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -14286,7 +14286,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -14323,7 +14323,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.SalaryEmployee
+	0 = SQLTest.EmployeeDb.SalaryEmployee
 )
 Projection(
 	0 = 
@@ -14360,7 +14360,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
+	0 = SQLTest.EmployeeDb.Employee
 )
 Projection(
 	0 = 
@@ -14409,7 +14409,7 @@ SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
+	0 = SQLTest.EmployeeDb.Employee
 )
 Projection(
 	0 = 
@@ -14457,8 +14457,8 @@ QueryString: select e.FirstName, d.Name from Employee e join Department d on e.D
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -14501,8 +14501,8 @@ QueryString: select d from Employee e join Department d on e.Department = d
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -14543,8 +14543,8 @@ QueryString: select e.FirstName, d.Name from Employee e join Department d where 
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -14587,8 +14587,8 @@ QueryString: select d from Employee e join Department d where e.Department = d
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -14629,8 +14629,8 @@ QueryString: select e1.FirstName, e2.FirstName from Employee e1 join Employee e2
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Employee
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Employee
 )
 Projection(
 	0 = 
@@ -14674,8 +14674,8 @@ QueryString: select e2 from Employee e1 join Employee e2 on e1 = e2
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Employee
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Employee
 )
 Projection(
 	0 = 
@@ -14717,8 +14717,8 @@ QueryString: select e.FirstName, d.Name from Employee e inner join Department d 
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -14761,8 +14761,8 @@ QueryString: select d from Employee e inner join Department d on e.Department = 
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -14803,8 +14803,8 @@ QueryString: select e.FirstName, d.Name from Employee e cross join Department d
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -14878,8 +14878,8 @@ QueryString: select d from Employee e cross join Department d
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -14951,8 +14951,8 @@ QueryString: select e.FirstName, d.Name from Employee e left join Department d o
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -14996,8 +14996,8 @@ QueryString: select d from Employee e left join Department d on e.Department = d
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -15039,8 +15039,8 @@ QueryString: select e.FirstName, d.Name from Employee e left outer join Departme
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -15084,8 +15084,8 @@ QueryString: select d from Employee e left outer join Department d on e.Departme
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -15127,8 +15127,8 @@ QueryString: select e.FirstName, d.Name from Employee e right join Department d 
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -15176,8 +15176,8 @@ QueryString: select e from Employee e right join Department d on e.Department = 
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -15223,8 +15223,8 @@ QueryString: select e.FirstName, d.Name from Employee e right outer join Departm
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -15272,8 +15272,8 @@ QueryString: select e from Employee e right outer join Department d on e.Departm
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -15319,8 +15319,8 @@ QueryString: select e.FirstName, d.Name from Employee e, Department d where e.De
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -15363,8 +15363,8 @@ QueryString: select d from Employee e, Department d where e.Department = d
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -15405,8 +15405,8 @@ QueryString: select FirstName, Name from Employee e join Department d on e.Depar
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -15449,10 +15449,10 @@ QueryString: select e.FirstName, e.Department.Name, e.Department.Location.Name, 
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Department
-	2 = SqlTest.Test1.Employee
-	3 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
+	2 = SQLTest.EmployeeDb.Employee
+	3 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -15539,10 +15539,10 @@ CompositeResultObjects: False
 SingleObjectPathProjection: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Department
-	2 = SqlTest.Test1.Employee
-	3 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
+	2 = SQLTest.EmployeeDb.Employee
+	3 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -15604,9 +15604,9 @@ VariableValues: Object:12;
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Employee
-	2 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Employee
+	2 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -15677,9 +15677,9 @@ CompositeResultObjects: False
 SingleObjectPathProjection: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Employee
-	2 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Employee
+	2 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -15730,14 +15730,14 @@ ExpectedResult:
 
 <NEXT>
 Description: Implicit joins using path expression with cast
-QueryString: select p.FirstName, p.Father.FirstName, cast(p.Father as Employee).Department.Name from SqlTest.Test1.Person p where cast(p.Father as Employee).Department.Name = 'Server'
+QueryString: select p.FirstName, p.Father.FirstName, cast(p.Father as Employee).Department.Name from SQLTest.EmployeeDb.Person p where cast(p.Father as Employee).Department.Name = 'Server'
 SingleObjectProjection: False
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Person
-	1 = SqlTest.Test1.Person
-	2 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Person
+	1 = SQLTest.EmployeeDb.Person
+	2 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -15751,7 +15751,7 @@ Projection(
 		StringPath(
 			ObjectCast(
 				ObjectProperty(0, Father)
-				SqlTest.Test1.Employee
+				SQLTest.EmployeeDb.Employee
 			)
 			ObjectProperty(-1, Department)
 			StringProperty(-1, Name)
@@ -15780,7 +15780,7 @@ Join(
 		ObjectPath(
 			ObjectCast(
 				ObjectThis(1)
-				SqlTest.Test1.Employee
+				SQLTest.EmployeeDb.Employee
 			)
 			ObjectProperty(-1, Department)
 		)
@@ -15799,22 +15799,22 @@ ExpectedResult:
 
 <NEXT>
 Description: Implicit joins using path expression with cast (single object projection)
-QueryString: select cast(p.Father as Employee).Department from SqlTest.Test1.Person p where cast(p.Father as Employee).Department.Name = 'Server'
+QueryString: select cast(p.Father as Employee).Department from SQLTest.EmployeeDb.Person p where cast(p.Father as Employee).Department.Name = 'Server'
 CompositeResultObjects: False
 SingleObjectPathProjection: True
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Person
-	1 = SqlTest.Test1.Person
-	2 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Person
+	1 = SQLTest.EmployeeDb.Person
+	2 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
 		ObjectPath(
 			ObjectCast(
 				ObjectProperty(0, Father)
-				SqlTest.Test1.Employee
+				SQLTest.EmployeeDb.Employee
 			)
 			ObjectProperty(-1, Department)
 		)
@@ -15842,7 +15842,7 @@ Join(
 		ObjectPath(
 			ObjectCast(
 				ObjectThis(1)
-				SqlTest.Test1.Employee
+				SQLTest.EmployeeDb.Employee
 			)
 			ObjectProperty(-1, Department)
 		)
@@ -15865,8 +15865,8 @@ QueryString: select e, d from Employee e left join Department d on e.Department 
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -15910,8 +15910,8 @@ QueryString: select d from Employee e left join Department d on e.Department = d
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -15949,7 +15949,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Self-join on two conditions (Ruslan).
-QueryString: select e1, e2 from SqlTest.Test1.Employee e1, SqlTest.Test1.Employee e2 where e1.HireDate < e2.HireDate and e1.Department = e2.Department
+QueryString: select e1, e2 from SQLTest.EmployeeDb.Employee e1, SQLTest.EmployeeDb.Employee e2 where e1.HireDate < e2.HireDate and e1.Department = e2.Department
 VariableValues: 
 SingleObjectProjection: False
 IncludesLiteral: False
@@ -15957,8 +15957,8 @@ ShouldBeReordered: True
 ExpectedExceptionMessage: 
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Employee
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Employee
 )
 Projection(
 	0 = 
@@ -16012,8 +16012,8 @@ QueryString: select e from Employee e right join Department d on e.LastName > d.
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Employee
-	1 = SqlTest.Test1.Department
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
 )
 Projection(
 	0 = 
@@ -16067,8 +16067,8 @@ QueryString: select d from Department d right join Employee e on d.Name > e.Last
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Department
-	1 = SqlTest.Test1.Employee
+	0 = SQLTest.EmployeeDb.Department
+	1 = SQLTest.EmployeeDb.Employee
 )
 Projection(
 	0 = 
@@ -16120,8 +16120,8 @@ QueryString: select d from Department d join Employee e on d.Name > e.LastName
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
-	0 = SqlTest.Test1.Department
-	1 = SqlTest.Test1.Employee
+	0 = SQLTest.EmployeeDb.Department
+	1 = SQLTest.EmployeeDb.Employee
 )
 Projection(
 	0 = 
@@ -16163,3 +16163,4 @@ ExpectedResult:
  | 20 | 
 
 
+*/

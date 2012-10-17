@@ -82,14 +82,14 @@ namespace SQLTest
             debugOutput = debug;
             generateInput = input;
             startedOnClient = onClient;
-            inputFilePath = AppDomain.CurrentDomain.BaseDirectory + @"\" + testName + "Input.txt";
+            inputFilePath = AppDomain.CurrentDomain.BaseDirectory + @"\s\SQLTest\" + testName + "Input.txt";
             if (startedOnClient)
             {
-                outputFilePath = AppDomain.CurrentDomain.BaseDirectory + @"\SqlTestInput.txt";
+                outputFilePath = AppDomain.CurrentDomain.BaseDirectory + @"\s\SQLTest\SqlTestInput.txt";
             }
             else
             {
-                outputFilePath = AppDomain.CurrentDomain.BaseDirectory + @"\..\SqlTestOutput.txt";
+                outputFilePath = AppDomain.CurrentDomain.BaseDirectory + @"\s\SQLTest\SqlTestOutput.txt";
                 logSource = new LogSource(testName);
             }
             testLogger = new TestLogger(testName, startedOnClient);
