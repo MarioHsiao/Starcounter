@@ -7,7 +7,6 @@ using System.Linq;
 
 namespace sccli {
     class Program {
-        const string pipeName = "referenceserver";
         
         static Dictionary<string, Action<Client, string[]>> supportedCommands;
         static Program() {
@@ -31,9 +30,17 @@ namespace sccli {
         }
 
         static void Main(string[] args) {
+            string pipeName;
             string command;
             Action<Client, string[]> action;
 
+            pipeName = Environment.GetEnvironmentVariable("sccli_servername");
+            if (string.IsNullOrEmpty(pipeName)) {
+                pipeName = "personal";
+            }
+            pipeName = string.Format("sc//{0}/{1}", Environment.MachineName, pipeName).ToLowerInvariant();
+
+            ToConsoleWithColor(string.Format("[Using server \"{0}\"]", pipeName), ConsoleColor.DarkGray);
             var client = ClientServerFactory.CreateClientUsingNamedPipes(pipeName);
             
             command = args.Length == 0 ? string.Empty : args[0].ToLowerInvariant();
