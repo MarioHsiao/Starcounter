@@ -7,6 +7,7 @@
 #include "tls_proto.hpp"
 #include "worker_db_interface.hpp"
 #include "worker.hpp"
+#include "common/macro_definitions.hpp"
 
 namespace starcounter {
 namespace network {
@@ -53,7 +54,14 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
 
             // A message on channel ch was received. Notify the database
             // that the out queue in this channel is not full.
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+			// Use Windows Events to synchronize.
+			HANDLE work = 0; /// TEST COMPILE - GETTING THE REAL HANDLE IS WORK IN PROGRESS
+			the_channel.scheduler()->notify(work);
+#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+			// Use Boost.Interprocess to synchronize.
             the_channel.scheduler()->notify();
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 
             //PrintCurrentTimeMs("After scheduler()->notify()");
 
@@ -164,7 +172,14 @@ uint32_t WorkerDbInterface::PushLinkedChunksToDb(
     {
         // A message on channel ch was received. Notify the database
         // that the out queue in this channel is not full.
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+		// Use Windows Events to synchronize.
+		HANDLE work = 0; /// TEST COMPILE - GETTING THE REAL HANDLE IS WORK IN PROGRESS
+		the_channel.scheduler()->notify(work);
+#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+		// Use Boost.Interprocess to synchronize.
         the_channel.scheduler()->notify();
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 
 #ifdef GW_CHUNKS_DIAG
         GW_PRINT_WORKER << "   successfully pushed: chunk " << chunk_index << std::endl;
