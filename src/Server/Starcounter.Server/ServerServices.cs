@@ -44,10 +44,10 @@ namespace Starcounter.Server {
             this.responseSerializer = new NewtonSoftJsonSerializer(engine);
         }
 
-        public ServerServices(ServerEngine engine, Func<string> requestReader, Action<string, bool> replyWriter) {
+        public ServerServices(ServerEngine engine, Starcounter.ABCIPC.Server ipcServer) {
             this.engine = engine;
             this.runtime = null;
-            this.ipcServer = new Starcounter.ABCIPC.Server(requestReader, replyWriter);
+            this.ipcServer = ipcServer;
             this.responseSerializer = new NewtonSoftJsonSerializer(engine);
         }
 
