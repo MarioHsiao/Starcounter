@@ -104,6 +104,12 @@ namespace IndexQueryTest
             HintQueryIndexUserLN();
         }
 
+        static void TestCreateIndexWithoutQuery()
+        {
+            Console.WriteLine("Test create/drop index without doing query");
+            CreateIndexUserLN();
+            DropIndexUserLN();
+        }
 #endif
     }
 }
