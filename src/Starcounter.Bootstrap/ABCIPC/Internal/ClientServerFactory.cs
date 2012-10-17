@@ -4,7 +4,7 @@ namespace Starcounter.ABCIPC.Internal {
     /// <summary>
     /// Exposes a set of factory methods for creation of servers.
     /// </summary>
-    public static class ServerFactory {
+    public static class ClientServerFactory {
 
         /// <summary>
         /// Creates a server based on named pipes, exposed to clients
@@ -13,7 +13,7 @@ namespace Starcounter.ABCIPC.Internal {
         /// <param name="pipeName">The name of the servers pipe.</param>
         /// <returns>A <see cref="Server"/> that reads requests from, and
         /// writes replies to, a named pipe.</returns>
-        public static Server CreateUsingNamedPipes(string pipeName) {
+        public static Server CreateServerUsingNamedPipes(string pipeName) {
             return new InternalNamedPipeServer(pipeName);
         }
 
@@ -24,7 +24,7 @@ namespace Starcounter.ABCIPC.Internal {
         /// </summary>
         /// <returns>A <see cref="Server"/> that reads requests from, and
         /// writes replies to, the console.</returns>
-        public static Server CreateUsingConsole() {
+        public static Server CreateServerUsingConsole() {
             return InternalConsoleServer.Create();
         }
     }
