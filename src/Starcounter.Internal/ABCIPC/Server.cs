@@ -12,18 +12,41 @@ namespace Starcounter.ABCIPC {
     /// reads requests from an opaque delegate, invokes a handler and
     /// replies to the request on an equal opaque output receiver delegate.
     /// </summary>
-    public sealed class Server {
-        readonly Func<string> receive;
+    public class Server {
         readonly Dictionary<string, Action<Request>> handlers;
 
+        /// <summary>
+        /// Gets or sets the receiving function of the server.
+        /// </summary>
+        protected Func<string> Receiver { get; set; }
+        
         /// <summary>
         /// Gets the method to use when replying to requests. The first
         /// parameter should hold the reply and the second bool parameter
         /// indicates if the reply ends the request - if it's not, at
         /// least one more reply will come from the same request.
         /// </summary>
-        internal readonly Action<string, bool> Reply;
-        
+        internal Action<string, bool> Reply { get; set; }
+
+        /// <summary>
+        /// Event that occurs when the server receives a new request.
+        /// </summary>
+        public event EventHandler<string> ReceivedRequest;
+
+        /// <summary>
+        /// Initializes a <see cref="Server"/>.
+        /// </summary>
+        /// <remarks>
+        /// Intended for internal use only, and only by inheritors that
+        /// wish to declare receive and reply delegates after the server
+        /// has been created.
+        /// </remarks>
+        protected Server() {
+            handlers = new Dictionary<string, Action<Request>>(StringComparer.InvariantCultureIgnoreCase);
+            this.Receiver = () => { throw new NotImplementedException("Receiver function has not been set."); };
+            this.Reply = (x, y) => { throw new NotImplementedException("Reply function has not been set."); };
+        }
+
         /// <summary>
         /// Initializes a <see cref="Server"/>.
         /// </summary>
@@ -33,9 +56,8 @@ namespace Starcounter.ABCIPC {
         /// send replies. The boolean parameter indicates if the reply
         /// being sent ends the request.</param>
         public Server(Func<string> recieve, Action<string, bool> reply) {
-            this.receive = recieve;
+            this.Receiver = recieve;
             this.Reply = reply;
-            handlers = new Dictionary<string, Action<Request>>(StringComparer.InvariantCultureIgnoreCase);
         }
 
         /// <summary>
@@ -47,7 +69,8 @@ namespace Starcounter.ABCIPC {
             bool shutdown = false;
 
             while (!shutdown) {
-                string s = receive();
+                string s = Receiver();
+                OnRequestReceived(s);
 
                 // Parse the input, validate it and invoke the handler.
                 //
@@ -131,6 +154,17 @@ namespace Starcounter.ABCIPC {
 
         Action<Request> GetHandler(string message) {
             return handlers[message];
+        }
+
+        /// <summary>
+        /// Notified on the arrival of a new request. Invoked before it
+        /// is parsed and handled.
+        /// </summary>
+        /// <param name="request">The request that just came in.</param>
+        protected virtual void OnRequestReceived(string request) {
+            if (this.ReceivedRequest != null) {
+                ReceivedRequest(this, request);
+            }
         }
     }
 }

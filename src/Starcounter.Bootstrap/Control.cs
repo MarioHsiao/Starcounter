@@ -123,7 +123,7 @@ namespace StarcounterInternal.Bootstrap
 
             if (!Console.IsInputRedirected)
             {
-                server = Utils.PromptHelper.CreateServerAttachedToPrompt();
+                server = ClientServerFactory.CreateServerUsingConsole();
             }
             else
             {

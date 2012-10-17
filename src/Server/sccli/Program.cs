@@ -1,16 +1,14 @@
-﻿using System;
+﻿
+using Starcounter.ABCIPC;
+using Starcounter.ABCIPC.Internal;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Starcounter.ABCIPC;
-using System.IO.Pipes;
 
 namespace sccli {
     class Program {
         const string pipeName = "referenceserver";
-        static NamedPipeClientStream pipe;
-
+        
         static Dictionary<string, Action<Client, string[]>> supportedCommands;
         static Program() {
             supportedCommands = new Dictionary<string, Action<Client, string[]>>();
@@ -36,7 +34,7 @@ namespace sccli {
             string command;
             Action<Client, string[]> action;
 
-            var client = new Client(SendRequest, ReceiveReply);
+            var client = ClientServerFactory.CreateClientUsingNamedPipes(pipeName);
             
             command = args.Length == 0 ? string.Empty : args[0].ToLowerInvariant();
             if (command.StartsWith("@")) {
@@ -116,29 +114,6 @@ namespace sccli {
 
         static void GetDatabases(Client client, string[] args) {
             client.Send("GetDatabases", (Reply reply) => WriteReplyToConsole(reply));
-        }
-
-        static void SendRequest(string request) {
-            pipe = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut);
-            pipe.Connect(3000);
-            var bytes = Encoding.UTF8.GetBytes(request);
-            pipe.Write(bytes, 0, bytes.Length);
-        }
-
-        static string ReceiveReply() {
-            int length;
-
-            // Replies are prefixed with size first when the
-            // reference server operates using named pipes.
-            
-            length = pipe.ReadByte() * 256;
-            length += pipe.ReadByte();
-            
-            var buffer = new byte[length];
-            var count = pipe.Read(buffer, 0, length);
-            pipe.Close();
-
-            return Encoding.UTF8.GetString(buffer, 0, count);
         }
 
         static void WriteReplyToConsole(Reply reply) {

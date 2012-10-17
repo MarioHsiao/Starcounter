@@ -1,15 +1,10 @@
 ﻿
+using Starcounter.ABCIPC.Internal;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
-using Starcounter.Configuration;
 using Starcounter.Server.Setup;
 using System;
 using System.Diagnostics;
-using System.IO;
-using System.Threading;
-
-using System.Text;
-using System.IO.Pipes;
 
 namespace Starcounter.Server {
 
@@ -19,8 +14,7 @@ namespace Starcounter.Server {
     /// </summary>
     class ReferenceServer {
         static ReferenceServer serverProgram;
-        NamedPipeServerStream pipe;
-
+        
         static void Main(string[] args) {
             serverProgram = new ReferenceServer();
             serverProgram.Run(args);
@@ -64,8 +58,9 @@ namespace Starcounter.Server {
                 string pipeName;
 
                 if (arguments.TryGetProperty("Pipe", out pipeName)) {
-                    pipe = new NamedPipeServerStream(pipeName, PipeDirection.InOut, 1, PipeTransmissionMode.Message);
-                    services = new ServerServices(engine, ReadRequestFromPipe, SendReplyOnPipe);
+                    var ipcServer = ClientServerFactory.CreateServerUsingNamedPipes(pipeName);
+                    ipcServer.ReceivedRequest += OnIPCServerReceivedRequest;
+                    services = new ServerServices(engine, ipcServer);
                     ToConsoleWithColor(string.Format("Accepting service calls on pipe '{0}'...", pipeName), ConsoleColor.DarkGray);
                 } else {
                     services = new ServerServices(engine);
@@ -76,6 +71,10 @@ namespace Starcounter.Server {
                 engine.Start();
                 services.Start();
             }
+        }
+
+        void OnIPCServerReceivedRequest(object sender, string request) {
+            ToConsoleWithColor(string.Format("Request: {0}", request), ConsoleColor.Yellow);
         }
 
         bool TryGetProgramArguments(string[] args, out ApplicationArguments arguments) {
@@ -140,50 +139,6 @@ namespace Starcounter.Server {
             }
 
             return true;
-        }
-
-        string ReadRequestFromPipe() {
-            byte[] buffer;
-            buffer = new byte[1024];
-            MemoryStream messageBuffer;
-            string request;
-            byte[] byteRequest;
-
-            pipe.WaitForConnection();
-            messageBuffer = new MemoryStream();
-
-            do {
-                int readCount = pipe.Read(buffer, 0, buffer.Length);
-                messageBuffer.Write(buffer, 0, readCount);
-            } while (!pipe.IsMessageComplete);
-
-            byteRequest = messageBuffer.ToArray();
-            request = Encoding.UTF8.GetString(byteRequest);
-            
-            ToConsoleWithColor(string.Format("Request ({0}): {1}", byteRequest.Length, request), ConsoleColor.Yellow);
-
-            return request;
-        }
-
-        void SendReplyOnPipe(string reply, bool endsRequest) {
-            byte[] byteReply = Encoding.UTF8.GetBytes(reply);
-            int length = byteReply.Length;
-            if (length > UInt16.MaxValue) {
-                length = (int)UInt16.MaxValue;
-            }
-
-            ToConsoleWithColor(string.Format("Reply ({0}): {1}", byteReply.Length, reply), endsRequest ? ConsoleColor.White : ConsoleColor.Red);
-            pipe.WriteByte((byte)(length / 256));
-            pipe.WriteByte((byte)(length & 255));
-            pipe.Write(byteReply, 0, byteReply.Length);
-            pipe.Flush();
-            
-            if (endsRequest) {
-                pipe.WaitForPipeDrain();
-                if (pipe.IsConnected) {
-                    pipe.Disconnect();
-                }
-            }
         }
 
         void Usage(IApplicationSyntax syntax, InvalidCommandLineException argumentException) {
