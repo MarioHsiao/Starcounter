@@ -183,7 +183,7 @@ public:
 	
 	// data size is constant
 	enum {
-		STATIC_DATA_SIZE = static_size -STATIC_HEADER_SIZE
+		STATIC_DATA_SIZE = static_size -STATIC_HEADER_SIZE -LINK_SIZE
 	};
 	
 	/// data_size() returns the number of bytes of the chunks data area. It does

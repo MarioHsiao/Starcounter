@@ -7,12 +7,13 @@
 #include "tls_proto.hpp"
 #include "worker_db_interface.hpp"
 #include "worker.hpp"
+#include "common/macro_definitions.hpp"
 
 namespace starcounter {
 namespace network {
 
 // Releases chunks from private chunk pool to the shared chunk pool.
-int32_t WorkerDbInterface::ReleaseToSharedChunkPool(int32_t num_chunks)
+uint32_t WorkerDbInterface::ReleaseToSharedChunkPool(int32_t num_chunks)
 {
     // Release chunks from this worker threads private chunk pool to the shared chunk pool.
     int32_t released_chunks_num = shared_int_.release_from_private_to_shared(
@@ -23,12 +24,12 @@ int32_t WorkerDbInterface::ReleaseToSharedChunkPool(int32_t num_chunks)
     {
         // Some problem with releasing chunks.
 #ifdef GW_ERRORS_DIAG
-        GW_COUT << "Problem releasing chunks to shared chunk pool." << std::endl;
+        GW_PRINT_WORKER << "Problem releasing chunks to shared chunk pool." << std::endl;
 #endif
+        return SCERRUNSPECIFIED;
     }
 
-    // Returning released number of chunks.
-    return released_chunks_num;
+    return 0;
 }
 
 // Scans all channels for any incoming chunks.
@@ -41,7 +42,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
     PushOverflowChunksIfAny();
 
     // Running through all channels.
-    for (int32_t i = 0; i < g_gateway.active_sched_num_read_only(); i++)
+    for (int32_t i = 0; i < g_gateway.get_num_schedulers(); i++)
     {
         // Obtaining the channel.
         core::channel_type& the_channel = shared_int_.channel(channels_[i]);
@@ -49,9 +50,20 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
         // Check if there is a message and process it.
         if (the_channel.out.try_pop_back(&chunk_index) == true)
         {
+            //PrintCurrentTimeMs("POP Time");
+
             // A message on channel ch was received. Notify the database
             // that the out queue in this channel is not full.
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+			// Use Windows Events to synchronize.
+			HANDLE work = 0; /// TEST COMPILE - GETTING THE REAL HANDLE IS WORK IN PROGRESS
+			the_channel.scheduler()->notify(work);
+#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+			// Use Boost.Interprocess to synchronize.
             the_channel.scheduler()->notify();
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+
+            //PrintCurrentTimeMs("After scheduler()->notify()");
 
             // Get the chunk.
             shared_memory_chunk* smc = (shared_memory_chunk*) &(shared_int_.chunk(chunk_index));
@@ -62,8 +74,12 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
                 // Changing number of owned chunks.
                 g_gateway.GetDatabase(db_index_)->ChangeNumUsedChunks(1);
 
+                //PrintCurrentTimeMs("Before EnterGlobalLock");
+
                 // Entering global lock.
                 gw->EnterGlobalLock();
+
+                //PrintCurrentTimeMs("After EnterGlobalLock");
 
                 // Handling management chunks.
                 errCode = HandleManagementChunks(gw, smc);
@@ -72,8 +88,8 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
                 // Releasing global lock.
                 gw->LeaveGlobalLock();
 
-                // Releasing management chunk.
-                ReturnLinkedChunksToPool(1, chunk_index);
+                // Releasing management chunks.
+                ReturnLinkedChunksToPool(smc, chunk_index);
 
                 continue;
             }
@@ -85,7 +101,8 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
             sd->set_chunk_index(chunk_index);
 
             // We need to check if its a multi-chunk response.
-            sd->CreateWSABuffersIfMultiChunks(shared_int_, smc);
+            if (!smc->is_terminated())
+                sd->CreateWSABuffers(this, smc);
 
             // Changing number of owned chunks.
             g_gateway.GetDatabase(db_index_)->ChangeNumUsedChunks(sd->get_num_chunks());
@@ -95,7 +112,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
                 continue;
 
 #ifdef GW_CHUNKS_DIAG
-            GW_COUT << "[" << gw->GetWorkerId() << "]: " << "Popping chunk: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
+            GW_PRINT_WORKER << "Popping chunk: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
 #endif
 
             // Resetting the data buffer.
@@ -112,7 +129,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
             if ((NULL == session) || (!session->CompareSocketStamps(sd->GetSocketStamp())))
             {
 #ifdef GW_ERRORS_DIAG
-                GW_COUT << "[" << gw->GetWorkerId() << "]: " << "Data from db has wrong session: " <<
+                GW_PRINT_WORKER << "Data from db has wrong session: " <<
                     sd->GetSocket() << " " << sd->GetChunkIndex() << ", current session socket: " << session->get_socket() << std::endl;
 #endif
 
@@ -134,15 +151,18 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
 }
 
 // Push given chunk to database queue.
-uint32_t WorkerDbInterface::PushChunkToDb(
+uint32_t WorkerDbInterface::PushLinkedChunksToDb(
     core::chunk_index chunk_index,
-    int32_t sched_num,
+    int32_t stats_num_chunks,
+    int32_t sched_id,
     bool not_overflow_chunk = true)
 {
-    // Obtaining the channel.
-    core::channel_type& the_channel = shared_int_.channel(channels_[sched_num]);
+    //PrintCurrentTimeMs("PUSH Time");
 
-    // Is overflow buffer empty?
+    // Obtaining the channel.
+    core::channel_type& the_channel = shared_int_.channel(channels_[sched_id]);
+
+    // Is overflow pool empty?
     bool overflow_is_empty = private_overflow_pool_.empty();
     if (!not_overflow_chunk)
         overflow_is_empty = true;
@@ -152,27 +172,34 @@ uint32_t WorkerDbInterface::PushChunkToDb(
     {
         // A message on channel ch was received. Notify the database
         // that the out queue in this channel is not full.
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+		// Use Windows Events to synchronize.
+		HANDLE work = 0; /// TEST COMPILE - GETTING THE REAL HANDLE IS WORK IN PROGRESS
+		the_channel.scheduler()->notify(work);
+#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+		// Use Boost.Interprocess to synchronize.
         the_channel.scheduler()->notify();
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 
 #ifdef GW_CHUNKS_DIAG
-        GW_COUT << "   successfully pushed: chunk " << chunk_index << std::endl;
+        GW_PRINT_WORKER << "   successfully pushed: chunk " << chunk_index << std::endl;
 #endif
     }
     else
     {
 #ifdef GW_ERRORS_DIAG
-        GW_COUT << "Couldn't push chunk into channel. Putting to overflow pool." << std::endl;
+        GW_PRINT_WORKER << "Couldn't push chunk into channel. Putting to overflow pool." << std::endl;
 #endif
 
         // Could not push the request to the channels in
         // queue - push it to the overflow_pool_ instead.
-        private_overflow_pool_.push_front(sched_num << 24 | chunk_index);
+        private_overflow_pool_.push_front(sched_id << 24 | chunk_index);
 
         return 1;
     }
 
-    // Chunk was pushed successfully.
-    g_gateway.GetDatabase(db_index_)->ChangeNumUsedChunks(-1);
+    // Chunk was pushed successfully either to channel or overflow pool.
+    g_gateway.GetDatabase(db_index_)->ChangeNumUsedChunks(-stats_num_chunks);
 
     return 0;
 }
@@ -181,14 +208,29 @@ uint32_t WorkerDbInterface::PushChunkToDb(
 uint32_t WorkerDbInterface::ReturnChunkToPool(GatewayWorker *gw, SocketDataChunk *sd)
 {
 #ifdef GW_CHUNKS_DIAG
-    GW_COUT << "[" << gw->GetWorkerId() << "]: " << "Returning chunk: " << sd->sock() << " " << sd->chunk_index() << std::endl;
+    GW_PRINT_WORKER << "Returning chunk: " << sd->sock() << " " << sd->chunk_index() << std::endl;
 #endif
 
-    return ReturnLinkedChunksToPool(sd->get_num_chunks(), sd->chunk_index());
+    uint32_t num_chunks = sd->get_num_chunks();
+
+    if (1 == num_chunks)
+    {
+        return ReturnLinkedChunksToPool(1, sd->chunk_index());
+    }
+    else
+    {
+        // First returning extra chunk.
+        uint32_t err_code = ReturnLinkedChunksToPool(1, sd->extra_chunk_index());
+        if (err_code)
+            return err_code;
+
+        // Returning linked multiple chunks.
+        return ReturnLinkedChunksToPool(num_chunks, sd->chunk_index());
+    }
 }
 
 // Returns given chunk to private chunk pool.
-uint32_t WorkerDbInterface::ReturnLinkedChunksToPool(uint32_t num_linked_chunks, core::chunk_index& chunk_index)
+uint32_t WorkerDbInterface::ReturnLinkedChunksToPool(int32_t num_linked_chunks, core::chunk_index& chunk_index)
 {
     // Releasing chunk to private pool.
     private_chunk_pool_.release_linked_chunks(&shared_int_.chunk(0), chunk_index);
@@ -200,25 +242,40 @@ uint32_t WorkerDbInterface::ReturnLinkedChunksToPool(uint32_t num_linked_chunks,
     // we need to release them to the shared chunk pool.
     if (private_chunk_pool_.size() >= MAX_CHUNKS_IN_PRIVATE_POOL)
     {
-        uint32_t errCode = ReleaseToSharedChunkPool(MAX_CHUNKS_IN_PRIVATE_POOL - NUM_CHUNKS_TO_LEAVE_IN_PRIVATE_POOL);
-        GW_ERR_CHECK(errCode);
+        uint32_t err_code = ReleaseToSharedChunkPool(MAX_CHUNKS_IN_PRIVATE_POOL - NUM_CHUNKS_TO_LEAVE_IN_PRIVATE_POOL);
+        GW_ERR_CHECK(err_code);
     }
 
     return 0;
+}
+
+// Returns given chunk to private chunk pool.
+uint32_t WorkerDbInterface::ReturnLinkedChunksToPool(shared_memory_chunk* smc, core::chunk_index& chunk_index)
+{
+    // Determine how many chunks are linked.
+    int32_t num_linked_chunks = 1;
+    while (shared_memory_chunk::LINK_TERMINATOR != smc->get_link())
+    {
+        smc = (shared_memory_chunk*) &(shared_int_.chunk(smc->get_link()));
+        num_linked_chunks++;
+    }
+
+    // Returning certain number of chunks.
+    return ReturnLinkedChunksToPool(num_linked_chunks, chunk_index);
 }
 
 // Push given chunk to database queue.
 uint32_t WorkerDbInterface::PushSocketDataToDb(GatewayWorker* gw, SocketDataChunk *sd, BMX_HANDLER_TYPE user_handler_id)
 {
 #ifdef GW_CHUNKS_DIAG
-    GW_COUT << "[" << gw->GetWorkerId() << "]: " << "Pushing chunk: socket " << sd->sock() << " chunk " << sd->chunk_index() << " handler_id " << user_handler_id << std::endl;
+    GW_PRINT_WORKER << "Pushing chunk: socket " << sd->sock() << " chunk " << sd->chunk_index() << " handler_id " << user_handler_id << std::endl;
 #endif
 
     // Checking if chunk belongs to this database.
     if (g_gateway.GetDatabase(db_index_)->unique_num() != sd->db_unique_seq_num())
     {
 #ifdef GW_ERRORS_DIAG
-        GW_COUT << "Socket data does not belong to this database." << std::endl;
+        GW_PRINT_WORKER << "Socket data does not belong to this database." << std::endl;
 #endif
         return 1;
     }
@@ -230,49 +287,61 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(GatewayWorker* gw, SocketDataChun
     smc->set_request_size(4);
 
     // Pushing socket data as a chunk.
-    return PushChunkToDb(sd->chunk_index(), sd->GetAttachedSession()->get_scheduler_id());
+    return PushLinkedChunksToDb(sd->chunk_index(), sd->get_num_chunks(), sd->GetAttachedSession()->get_scheduler_id());
 }
 
 // Registers push channel.
-uint32_t WorkerDbInterface::RegisterPushChannel()
+uint32_t WorkerDbInterface::RegisterPushChannel(int32_t sched_num)
 {
     // Get a reference to the chunk.
     shared_memory_chunk *smc = NULL;
 
     // Getting a free chunk.
-    core::chunk_index new_chunk = GetChunkFromPrivatePool(&smc);
+    core::chunk_index new_chunk;
+    uint32_t err_code = GetOneChunkFromPrivatePool(&new_chunk, &smc);
+    GW_ERR_CHECK(err_code);
 
     // Predefined BMX management handler.
     smc->set_bmx_protocol(bmx::BMX_MANAGEMENT_HANDLER);
-    smc->terminate_link();
+
+    request_chunk_part* request = smc->get_request_chunk();
+    request->reset_offset();
 
     // Writing BMX message type.
-    request_chunk_part* request = smc->get_request_chunk();
     request->write(bmx::BMX_REGISTER_PUSH_CHANNEL);
 
+    // No linked chunks.
+    smc->terminate_link();
+
     // Pushing the chunk.
-    return PushChunkToDb(new_chunk, 0);
+    return PushLinkedChunksToDb(new_chunk, 1, sched_num);
 }
 
 // Requesting previously registered handlers.
-uint32_t WorkerDbInterface::RequestRegisteredHandlers()
+uint32_t WorkerDbInterface::RequestRegisteredHandlers(int32_t sched_num)
 {
     // Get a reference to the chunk.
     shared_memory_chunk *smc = NULL;
 
     // Getting a free chunk.
-    core::chunk_index new_chunk = GetChunkFromPrivatePool(&smc);
+    core::chunk_index new_chunk; 
+    uint32_t err_code = GetOneChunkFromPrivatePool(&new_chunk, &smc);
+    GW_ERR_CHECK(err_code);
 
     // Filling the chunk as BMX management handler.
     smc->set_bmx_protocol(bmx::BMX_MANAGEMENT_HANDLER);
-    smc->terminate_link();
+
+    request_chunk_part* request = smc->get_request_chunk();
+    request->reset_offset();
 
     // Writing BMX message type.
-    request_chunk_part* request = smc->get_request_chunk();
     request->write(bmx::BMX_SEND_ALL_HANDLERS);
 
+    // No linked chunks.
+    smc->terminate_link();
+
     // Pushing the chunk.
-    return PushChunkToDb(new_chunk, 0);
+    return PushLinkedChunksToDb(new_chunk, 1, sched_num);
 }
 
 // Initializes shared memory interface.
@@ -282,47 +351,86 @@ uint32_t WorkerDbInterface::Init(
     GatewayWorker *gw)
 {
     db_index_ = new_slot_index;
+    worker_id_ = gw->get_worker_id();
     shared_int_ = workerSharedInt;
 
     // Getting unique client interface for this worker.
     if (!shared_int_.acquire_client_number())
     {
 #ifdef GW_ERRORS_DIAG
-        GW_COUT << "Can't acquire client interface." << std::endl;
+        GW_PRINT_WORKER << "Can't acquire client interface." << std::endl;
 #endif
         return 1;
     }
 
-#ifdef GW_GENERAL_DIAG
-    GW_COUT << "Acquired client interface number: " <<
-        shared_int_.get_client_number() << std::endl;
-
-    GW_COUT << "Acquired channel numbers: ";
+#ifdef GW_DATABASES_DIAG
+    // Diagnostics.
+    GW_PRINT_WORKER << "Database \"" << g_gateway.GetDatabase(db_index_)->get_db_name() <<
+        "\" acquired client interface " << shared_int_.get_client_number() << " and " << g_gateway.get_num_schedulers() << " channel(s): ";
 #endif
 
     // Acquiring unique channel for each scheduler.
-    for (std::size_t i = 0; i < g_gateway.active_sched_num_read_only(); ++i)
+    for (std::size_t i = 0; i < g_gateway.get_num_schedulers(); ++i)
     {
         if (!shared_int_.acquire_channel(&channels_[i], i))
             return 1;
 
-        GW_COUT << channels_[i] << " ";
+#ifdef GW_DATABASES_DIAG
+        GW_COUT << channels_[i] << ", ";
+#endif
     }
+
+#ifdef GW_DATABASES_DIAG
     GW_COUT << std::endl;
+#endif
 
-    uint32_t errCode;
+    return 0;
+}
 
-    // Only worker zero does the push channel and handlers registration.
-    if (gw->GetWorkerId() == 0)
+// Registers push channels on all schedulers.
+uint32_t WorkerDbInterface::RegisterAllPushChannels()
+{
+    uint32_t err_code;
+
+    // Sending push channel on each scheduler.
+    for (int32_t i = 0; i < g_gateway.get_num_schedulers(); ++i)
     {
         // Pushing registration chunk.
-        errCode = RegisterPushChannel();
-        GW_ERR_CHECK(errCode);
+        err_code = RegisterPushChannel(i);
+        GW_ERR_CHECK(err_code);
 
-        // Asking for existing handlers.
-        errCode = RequestRegisteredHandlers();
-        GW_ERR_CHECK(errCode);
+#ifdef GW_DATABASES_DIAG
+        GW_PRINT_WORKER << "Registered push channel on scheduler: " << i << std::endl;
+#endif
     }
+
+    // Sending 100 pings.
+    /*for (uint64_t i = 0; i < 100; i++)
+    {
+        shared_memory_chunk* smc;
+        core::chunk_index new_chunk;
+        err_code = GetOneChunkFromPrivatePool(&new_chunk, &smc);
+        GW_ERR_CHECK(err_code);
+
+        sc_bmx_construct_ping(i, smc);
+        PushLinkedChunksToDb(new_chunk, 1, 0);
+    }*/
+
+    return 0;
+}
+
+// Requests registered user handlers.
+uint32_t WorkerDbInterface::RequestRegisteredHandlers()
+{
+    uint32_t err_code;
+
+    // Asking for existing handlers on scheduler 0.
+    err_code = RequestRegisteredHandlers(0);
+    GW_ERR_CHECK(err_code);
+
+#ifdef GW_DATABASES_DIAG
+    GW_PRINT_WORKER << "Requested registered handlers." << std::endl;
+#endif
 
     return 0;
 }
@@ -334,7 +442,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
     response_chunk_part* resp_chunk = smc->get_response_chunk();
     uint32_t response_size = resp_chunk->get_offset();
     if (0 == response_size)
-        return 1;
+        return SCERRUNSPECIFIED;
 
     uint32_t err_code;
     uint32_t offset = 0;
@@ -347,6 +455,42 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
 
         switch (bmx_type)
         {
+            case bmx::BMX_PONG:
+            {
+                uint64_t ping_data = -1;
+                
+                // Jumping over 8 bytes because we reseted the offset.
+                resp_chunk->skip(8);
+
+                err_code = sc_bmx_parse_pong(smc, &ping_data);
+                GW_ERR_CHECK(err_code);
+
+                GW_PRINT_WORKER << "Pong with data: " << ping_data << std::endl;
+
+                return 0;
+            }
+
+            case bmx::BMX_REGISTER_PUSH_CHANNEL_RESPONSE:
+            {
+                // We have received a confirmation push channel chunk.
+                g_gateway.GetDatabase(db_index_)->ReceivedPushChannelConfirmation();
+
+                // Checking if we have all push channels confirmed from database.
+                if (g_gateway.GetDatabase(db_index_)->IsAllPushChannelsConfirmed())
+                {
+                    GW_PRINT_WORKER << "All push channels confirmed!" << std::endl;
+
+                    //PrintCurrentTimeMs("Before RequestRegisteredHandlers");
+
+                    // Requesting all registered handlers.
+                    err_code = RequestRegisteredHandlers();
+
+                    GW_ERR_CHECK(err_code);
+                }
+
+                return 0;
+            }
+
             case bmx::BMX_REGISTER_PORT:
             {
                 // Reading handler id.
@@ -355,7 +499,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 // Reading port number.
                 uint16_t port = resp_chunk->read_uint16();
 
-                GW_COUT << "New port " << port << " user handler registration with handler id: " << handler_id << std::endl;
+                GW_PRINT_WORKER << "New port " << port << " user handler registration with handler id: " << handler_id << std::endl;
 
                 // Registering handler on active database.
                 err_code = g_gateway.GetDatabase(db_index_)->get_user_handlers()->RegisterPortHandler(
@@ -381,7 +525,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 // Reading subport.
                 uint32_t subport = resp_chunk->read_uint32();
 
-                GW_COUT << "New subport " << subport << " port " << port << " user handler registration with handler id: " << handler_id << std::endl;
+                GW_PRINT_WORKER << "New subport " << subport << " port " << port << " user handler registration with handler id: " << handler_id << std::endl;
                 
                 // Registering handler on active database.
                 err_code = g_gateway.GetDatabase(db_index_)->get_user_handlers()->RegisterSubPortHandler(
@@ -412,7 +556,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 resp_chunk->read_string(uri, uri_len_chars, bmx::MAX_URI_STRING_LEN);
                 bmx::HTTP_METHODS http_method = (bmx::HTTP_METHODS)resp_chunk->read_uint8();
 
-                GW_COUT << "New URI handler \"" << uri << "\" on port " << port << " registration with handler id: " << handler_id << std::endl;
+                GW_PRINT_WORKER << "New URI handler \"" << uri << "\" on port " << port << " registration with handler id: " << handler_id << std::endl;
 
                 // Registering handler on active database.
                 HandlersTable* handlers_table = g_gateway.GetDatabase(db_index_)->get_user_handlers();
@@ -477,7 +621,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 // Reading handler id.
                 BMX_HANDLER_TYPE handler_id = resp_chunk->read_handler_id();
 
-                GW_COUT << "User handler unregistration for handler id: " << handler_id << std::endl;
+                GW_PRINT_WORKER << "User handler unregistration for handler id: " << handler_id << std::endl;
 
                 // Getting handlers list.
                 HandlersTable* handlers_table = g_gateway.GetDatabase(db_index_)->get_user_handlers();
@@ -507,12 +651,12 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 if (server_port->IsEmpty())
                     server_port->Erase();
 
-                break;
+                return 0;
             }
 
             default:
             {
-                return 1;
+                return SCERRUNSPECIFIED;
             }
         }
 

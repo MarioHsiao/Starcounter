@@ -9,12 +9,22 @@ namespace Starcounter.Templates {
     /// <summary>
     /// Defines a boolean property in an App object. 
     /// </summary>
-    public class BoolProperty : Property
+    public class BoolProperty : Property<bool>
 #if IAPP
         , IBoolTemplate
 #endif
     {
         private bool _DefaultValue = false;
+
+        public override void ProcessInput(App app, byte[] rawValue)
+        {
+            // TODO:
+            // Proper implementation.
+            if (rawValue != null && rawValue.Length == 4)
+                ProcessInput(app, true);
+            else
+                ProcessInput(app, false);
+        }
 
         /// <summary>
         /// The default value for a boolean property is false. For the

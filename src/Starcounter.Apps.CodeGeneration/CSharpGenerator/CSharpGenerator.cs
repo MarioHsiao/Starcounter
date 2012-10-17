@@ -136,7 +136,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                         WriteAppClassPrefix(node as NAppClass);
                     }
                     else if (node is NAppTemplateClass) {
-                        WriteAppTemplateClassPrefix(node as NAppTemplateClass);
+                        WriteAppTemplateConstructor((node as NAppTemplateClass).Constructor);
                     }
                 }
                 node.Suffix.Add("}");
@@ -282,7 +282,9 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         /// Writes the class declaration and constructor for an AppTemplate class
         /// </summary>
         /// <param name="a">The class declaration syntax node</param>
-        private void WriteAppTemplateClassPrefix(NAppTemplateClass a) {
+        private void WriteAppTemplateConstructor(NConstructor cst) {
+            NAppTemplateClass a = (NAppTemplateClass)cst.Parent;
+
             var sb = new StringBuilder();
             sb.Append("    public ");
             sb.Append(a.ClassName);
@@ -294,13 +296,17 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             sb.Append(a.NValueClass.FullClassName);
             sb.Append(");");
             a.Prefix.Add(sb.ToString());
+            
             sb = new StringBuilder();
             sb.Append("        ClassName = \"");
             sb.Append(a.NValueClass.ClassName);
             sb.Append("\";");
             a.Prefix.Add(sb.ToString());
-            foreach (var kid in a.Children) {
-                if (kid is NProperty) {
+
+            foreach (NBase kid in cst.Children)
+            {
+                if (kid is NProperty)
+                {
                     var mn = kid as NProperty;
                     sb = new StringBuilder();
                     sb.Append("        ");
@@ -310,19 +316,57 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     sb.Append(">(\"");
                     sb.Append(mn.MemberName);
                     sb.Append('"');
-                    if (mn.Template.Editable) {
+                    if (mn.Template.Editable)
+                    {
                         sb.Append(", Editable = true);");
                     }
-                    else {
+                    else
+                    {
                         sb.Append(");");
                     }
                     a.Prefix.Add(sb.ToString());
+                }
+                else if (kid is NInputBinding)
+                {
+                    a.Prefix.Add(GetAddInputHandlerCode((NInputBinding)kid));
                 }
             }
             a.Prefix.Add(
                 "    }");
         }
 
+        private String GetAddInputHandlerCode(NInputBinding ib)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("        ");
+            sb.Append(ib.BindsToProperty.Template.Name);       // {0}
+            sb.Append(".AddHandler((App app, Property<");
+            sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
+            sb.Append("> prop, ");
+            sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
+            sb.Append(" value) => { return (new ");
+            sb.Append(ib.InputTypeName);                       // {2}
+            sb.Append("() { App = (");
+            sb.Append(ib.PropertyAppClass.ClassName);          // {3}
+            sb.Append(")app, Template = (");
+            sb.Append(ib.BindsToProperty.Type.ClassName);      // {4}
+            sb.Append(")prop, Value = value }); }, (App app, Input<");
+            sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
+            sb.Append("> Input) => { ((");
+            sb.Append(ib.DeclaringAppClass.ClassName);         // {5}
+            sb.Append(")app");
+
+            for (Int32 i = 0; i < ib.AppParentCount; i++)
+            {
+                sb.Append(".Parent");
+            }
+
+            sb.Append(").Handle((");
+            sb.Append(ib.InputTypeName);                       // {2}
+            sb.Append(")Input); });");
+
+            return sb.ToString();
+        }
 
         /// <summary>
         /// Writes the class declaration and constructor for an AppTemplate class

@@ -6,6 +6,7 @@
 #include "socket_data.hpp"
 #include "tls_proto.hpp"
 #include "worker.hpp"
+#include "worker_db_interface.hpp"
 
 namespace starcounter {
 namespace network {
@@ -36,6 +37,7 @@ void SocketDataChunk::Init(
 
     sock_stamp_ = 0;
     chunk_index_ = chunk_index;
+    extra_chunk_index_ = INVALID_CHUNK_INDEX;
     data_to_user_flag_ = true;
 
     socket_attached_ = false;
@@ -88,6 +90,79 @@ SocketDataChunk *SocketDataChunk::CloneReceive(GatewayWorker *gw)
     sd->socket_attached_ = true;
 
     return sd;
+}
+
+// Getting and linking more receiving chunks.
+uint32_t SocketDataChunk::GetChunks(GatewayWorker *gw, uint32_t num_bytes)
+{
+    WorkerDbInterface* worker_db = gw->GetDatabase(db_index_);
+    if (!worker_db)
+        return SCERRUNSPECIFIED;
+
+    // Getting shared interface instance.
+    core::shared_interface* shared_int = worker_db->get_shared_int();
+
+    // Obtaining needed amount of chunks.
+    core::chunk_index chunk_index;
+    uint32_t err_code = worker_db->GetLinkedChunksFromPrivatePool(&chunk_index, num_bytes);
+    GW_ERR_CHECK(err_code);
+
+    if (INVALID_CHUNK_INDEX == chunk_index)
+        return SCERRUNSPECIFIED;
+
+    return 0;
+}
+
+// Create WSA buffers.
+uint32_t SocketDataChunk::CreateWSABuffers(WorkerDbInterface* worker_db, shared_memory_chunk* smc)
+{
+    // Getting total user data length.
+    uint32_t bytes_left = user_data_written_bytes_;
+    uint32_t cur_wsa_buf_offset = 0;
+
+    // Looping through all chunks and creating corresponding
+    // WSA buffers in the first chunk data blob.
+    uint32_t cur_chunk_data_size = bytes_left;
+    if (cur_chunk_data_size > starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK)
+        cur_chunk_data_size = starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK;
+
+    // Getting shared interface pointer.
+    core::shared_interface* shared_int = worker_db->get_shared_int();
+
+    // Extra WSABufs storage chunk.
+    shared_memory_chunk* wsa_bufs_smc;
+    uint32_t err_code = worker_db->GetOneChunkFromPrivatePool(&extra_chunk_index_, &wsa_bufs_smc);
+    GW_ERR_CHECK(err_code);
+
+    // Until we get the last chunk in chain.
+    core::chunk_index cur_chunk_index = smc->get_link();
+    while (cur_chunk_index != shared_memory_chunk::LINK_TERMINATOR)
+    {
+        // Obtaining chunk memory.
+        smc = (shared_memory_chunk*) &(shared_int->chunk(cur_chunk_index));
+
+        // Pointing to current WSABUF in blob.
+        WSABUF* wsa_buf = (WSABUF*) ((uint8_t*)wsa_bufs_smc + cur_wsa_buf_offset);
+        wsa_buf->len = cur_chunk_data_size;
+        wsa_buf->buf = (char *)smc;
+        cur_wsa_buf_offset += sizeof(WSABUF);
+
+        // Decreasing number of bytes left to be processed.
+        bytes_left -= cur_chunk_data_size;
+        if (bytes_left < starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK)
+            cur_chunk_data_size = bytes_left;
+
+        // Getting next chunk in chain.
+        cur_chunk_index = smc->get_link();
+
+        // Increasing number of used chunks.
+        num_chunks_++;
+    }
+
+    // Checking that maximum number of WSABUFs in chunk is correct.
+    assert ((num_chunks_ - 1) <= starcounter::bmx::MAX_NUM_LINKED_WSABUFS);
+
+    return 0;
 }
 
 // Checking that database and corresponding port handler exists.

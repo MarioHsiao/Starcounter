@@ -526,11 +526,12 @@ public:
     // Printing the registered URIs.
     void Print()
     {
-        GW_COUT << "Port " << port_number_ << " has following handlers registered: " << std::endl;
+        GW_PRINT_GLOBAL << "Port " << port_number_ << " has following handlers registered: ";
         for (uint32_t i = 0; i < handlers_.get_num_entries(); i++)
         {
-            GW_COUT << handlers_[i].GetNumberOfAttachedDbs() << std::endl;
+            GW_COUT << handlers_[i].GetNumberOfAttachedDbs() << ", ";
         }
+        GW_COUT << std::endl;
     }
 
     // Constructor.

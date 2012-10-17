@@ -13,6 +13,11 @@ namespace Starcounter.Internal.Application.CodeGeneration {
 
 //        public static Dictionary<AppTemplate, NClass> Instances = new Dictionary<AppTemplate, NClass>();
 
+        public NAppTemplateClass() : base()
+        {
+            Constructor = new NConstructor() { Parent = this };
+        }
+
         public override string ClassName {
             get {
                 if (NValueClass == null)
@@ -27,5 +32,6 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             get { return _Inherits; }
         }
 
+        public NConstructor Constructor;
     }
 }

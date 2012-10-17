@@ -8,10 +8,8 @@ namespace network {
 class GatewayWorker;
 class HttpWsProto;
 
-// Maximum possible data bytes in chunks.
-const uint32_t MAX_DATA_IN_CHUNK = core::chunk_size - shared_memory_chunk::LINK_SIZE;
-
 // Socket data chunk.
+class WorkerDbInterface;
 class SocketDataChunk
 {
     // Overlapped structure used for WinSock
@@ -36,6 +34,12 @@ class SocketDataChunk
 
     // Corresponding chunk index.
     core::chunk_index chunk_index_;
+
+    // Extra chunk index.
+    core::chunk_index extra_chunk_index_;
+
+    // Indicates if its a multi-chunk data.
+    uint32_t num_chunks_;
 
     // Socket to which this data belongs.
     SOCKET sock_;
@@ -70,9 +74,6 @@ class SocketDataChunk
     // Data buffer chunk.
     AccumBuffer data_buf_;
 
-    // Indicates if its a multi-chunk data.
-    uint32_t num_chunks_;
-
     // HTTP protocol instance.
     HttpWsProto http_ws_proto_;
 
@@ -102,50 +103,11 @@ public:
         return num_chunks_;
     }
 
+    // Getting and linking more receiving chunks.
+    uint32_t GetReceivingChunks(GatewayWorker *gw, uint32_t num_bytes);
+
     // Create WSA buffers.
-    uint32_t CreateWSABuffersIfMultiChunks(core::shared_interface& shared_int, shared_memory_chunk* smc)
-    {
-        // Checking if we have only one chunk data.
-        if (smc->is_terminated())
-            return 0;
-
-        // Getting total user data length.
-        uint32_t bytes_left = user_data_written_bytes_;
-        uint32_t cur_wsa_buf_offset = 0;
-
-        // Looping through all chunks and creating corresponding
-        // WSA buffers in the first chunk data blob.
-        uint32_t cur_chunk_data_size = bytes_left;
-        if (cur_chunk_data_size > MAX_DATA_IN_CHUNK)
-            cur_chunk_data_size = MAX_DATA_IN_CHUNK;
-
-        // Until we get the last chunk in chain.
-        core::chunk_index cur_chunk_index = smc->get_link();
-        while (cur_chunk_index != shared_memory_chunk::LINK_TERMINATOR)
-        {
-            // Obtaining chunk memory.
-            smc = (shared_memory_chunk*) &(shared_int.chunk(cur_chunk_index));
-
-            // Pointing to current WSABUF in blob.
-            WSABUF* wsa_buf = (WSABUF*) (data_blob_ + cur_wsa_buf_offset);
-            wsa_buf->len = cur_chunk_data_size;
-            wsa_buf->buf = (char *)smc;
-            cur_wsa_buf_offset += sizeof(WSABUF);
-
-            // Decreasing number of bytes left to be processed.
-            bytes_left -= cur_chunk_data_size;
-            if (bytes_left < MAX_DATA_IN_CHUNK)
-                cur_chunk_data_size = bytes_left;
-
-            // Getting next chunk in chain.
-            cur_chunk_index = smc->get_link();
-
-            // Increasing number of used chunks.
-            num_chunks_++;
-        }
-
-        return 0;
-    }
+    uint32_t CreateWSABuffers(WorkerDbInterface* worker_db, shared_memory_chunk* smc);
 
     // Get Http protocol instance.
     HttpWsProto* get_http_ws_proto()
@@ -263,6 +225,9 @@ public:
         return session_index_;
     }
 
+    // Getting and linking more receiving chunks.
+    uint32_t GetChunks(GatewayWorker *gw, uint32_t num_bytes);
+
     // Pointer to the attached session.
     SessionData* GetAttachedSession()
     {
@@ -273,6 +238,12 @@ public:
     uint64_t sock_stamp()
     {
         return sock_stamp_;
+    }
+
+    // Extra chunk index.
+    core::chunk_index& extra_chunk_index()
+    {
+        return extra_chunk_index_;
     }
 
     // Corresponding chunk index.
@@ -338,16 +309,19 @@ public:
     }
 
     // Start sending on socket.
-    uint32_t Send(uint32_t *numBytes)
+    uint32_t SendSingleChunk(uint32_t *numBytes)
     {
         type_of_network_oper_ = SEND_OPER;
         memset(&ovl_, 0, OVERLAPPED_SIZE);
+        return WSASend(sock_, (WSABUF *)&data_buf_, 1, (LPDWORD)numBytes, 0, &ovl_, NULL);
+    }
 
-        // Checking if we have multiple chunks to send.
-        if (num_chunks_ == 1)
-            return WSASend(sock_, (WSABUF *)&data_buf_, 1, (LPDWORD)numBytes, 0, &ovl_, NULL);
-        else
-            return WSASend(sock_, (WSABUF *)data_blob_, num_chunks_ - 1, (LPDWORD)numBytes, 0, &ovl_, NULL);
+    // Start sending on socket.
+    uint32_t SendMultipleChunks(core::shared_interface* shared_int, uint32_t *numBytes)
+    {
+        type_of_network_oper_ = SEND_OPER;
+        memset(&ovl_, 0, OVERLAPPED_SIZE);
+        return WSASend(sock_, (WSABUF*)&(shared_int->chunk(extra_chunk_index_)), num_chunks_ - 1, (LPDWORD)numBytes, 0, &ovl_, NULL);
     }
 
     // Start accepting on socket.

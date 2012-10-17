@@ -11,6 +11,7 @@ enum HttpWsFields
     GET_FIELD,
     POST_FIELD,
     COOKIE_FIELD,
+    CONTENT_LENGTH,
     ACCEPT_FIELD,
     ACCEPT_ENCODING_FIELD,
     COMPRESSION_FIELD,
@@ -280,10 +281,10 @@ public:
     // Printing the registered URIs.
     void Print(uint16_t port)
     {
-        GW_COUT << "Port " << port << " has following URIs registered: " << std::endl;
+        GW_PRINT_GLOBAL << "Port " << port << " has following URIs registered: " << std::endl;
         for (uint32_t i = 0; i < reg_uris_.get_num_entries(); i++)
         {
-            GW_COUT << "  \"" << reg_uris_[i].get_uri() << "\" with handlers lists: " <<
+            GW_COUT << "    \"" << reg_uris_[i].get_uri() << "\" with handlers lists: " <<
                 reg_uris_[i].GetHandlersListsNumber() << std::endl;
         }
     }
