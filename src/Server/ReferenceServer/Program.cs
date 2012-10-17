@@ -67,9 +67,9 @@ namespace Starcounter.Server {
                 }
                 services.Setup();
 
-                // Start the engine and the configured services.
+                // Start the engine and run the configured services.
                 engine.Start();
-                services.Start();
+                engine.Run(services);
             }
         }
 

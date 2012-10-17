@@ -25,6 +25,15 @@ namespace Starcounter.Server {
         IServerRuntime runtime;
         Server ipcServer;
         IResponseSerializer responseSerializer;
+        
+        /// <summary>
+        /// Define the classification of services.
+        /// </summary>
+        [Flags] internal enum ServiceClass {
+            Core,
+            Management,
+            All = Core | Management
+        }
 
         public ServerServices(ServerEngine engine) {
             // Assume for now interactive mode. This code is still just
@@ -52,10 +61,20 @@ namespace Starcounter.Server {
         }
 
         public void Setup() {
+            Setup(ServiceClass.All);
+        }
 
-            ipcServer.Handle("Ping", delegate(Request request) {
-                request.Respond(true);
-            });
+        internal void Setup(ServiceClass classes) {
+            if ((classes & ServiceClass.Core) != 0) {
+                SetupCoreServices();
+            }
+
+            if ((classes & ServiceClass.Management) != 0) {
+                SetupManagementServices();
+            }
+        }
+
+        void SetupManagementServices() {
 
             ipcServer.Handle("GetServerInfo", delegate(Request request) {
                 request.Respond(responseSerializer.SerializeResponse(runtime.GetServerInfo()));
@@ -94,39 +113,6 @@ namespace Starcounter.Server {
             ipcServer.Handle("GetCommands", delegate(Request request) {
                 var commands = runtime.GetCommands();
                 request.Respond(responseSerializer.SerializeResponse(commands));
-            });
-
-            ipcServer.Handle("ExecApp", delegate(Request request) {
-                IServerRuntime runtime;
-                string exePath;
-                string workingDirectory;
-                string args;
-                string[] argsArray;
-                bool synchronous;
-
-                var properties = request.GetParameter<Dictionary<string, string>>();
-                if (properties == null || !properties.TryGetValue("AssemblyPath", out exePath)) {
-                    request.Respond(false, "Missing required argument 'AssemblyPath'");
-                    return;
-                }
-                exePath = exePath.Trim('"').Trim('\\', '/');
-                exePath = Path.GetFullPath(exePath);
-
-                properties.TryGetValue("WorkingDir", out workingDirectory);
-                if (properties.TryGetValue("Args", out args)) {
-                    argsArray = KeyValueBinary.ToArray(args);
-                } else {
-                    argsArray = new string[0];
-                }
-                synchronous = properties.ContainsKey("@@Synchronous");
-                runtime = engine.CurrentPublicModel;
-
-                var info = engine.AppsService.EnqueueExecAppCommandWithDispatcher(exePath, workingDirectory, argsArray);
-                if (synchronous) {
-                    info = runtime.Wait(info.Id);
-                }
-
-                request.Respond(true, responseSerializer.SerializeResponse(info));
             });
 
             ipcServer.Handle("CreateDatabase", delegate(Request request) {
@@ -239,6 +225,48 @@ namespace Starcounter.Server {
             #endregion
         }
 
+        void SetupCoreServices() {
+            // Ping is considered a core service
+            ipcServer.Handle("Ping", delegate(Request request) {
+                request.Respond(true);
+            });
+
+            // Execution of apps is considered a core service too.
+            // Without it, apps can't execute from the shell.
+            ipcServer.Handle("ExecApp", delegate(Request request) {
+                IServerRuntime runtime;
+                string exePath;
+                string workingDirectory;
+                string args;
+                string[] argsArray;
+                bool synchronous;
+
+                var properties = request.GetParameter<Dictionary<string, string>>();
+                if (properties == null || !properties.TryGetValue("AssemblyPath", out exePath)) {
+                    request.Respond(false, "Missing required argument 'AssemblyPath'");
+                    return;
+                }
+                exePath = exePath.Trim('"').Trim('\\', '/');
+                exePath = Path.GetFullPath(exePath);
+
+                properties.TryGetValue("WorkingDir", out workingDirectory);
+                if (properties.TryGetValue("Args", out args)) {
+                    argsArray = KeyValueBinary.ToArray(args);
+                } else {
+                    argsArray = new string[0];
+                }
+                synchronous = properties.ContainsKey("@@Synchronous");
+                runtime = engine.CurrentPublicModel;
+
+                var info = engine.AppsService.EnqueueExecAppCommandWithDispatcher(exePath, workingDirectory, argsArray);
+                if (synchronous) {
+                    info = runtime.Wait(info.Id);
+                }
+
+                request.Respond(true, responseSerializer.SerializeResponse(info));
+            });
+        }
+
         /// <summary>
         /// Starts the <see cref="ServerServices"/>, blocking the calling
         /// thread until a request to shut down comes in.
@@ -248,7 +276,7 @@ namespace Starcounter.Server {
         /// <see cref="ServerEngine"/> upon shutdown; this is up to the
         /// caller.
         /// </remarks>
-        public void Start() {
+        internal void Start() {
             // We don't assign the runtime until we are started,
             // trusting the engine was started prior to us.
             this.runtime = this.engine.CurrentPublicModel;
