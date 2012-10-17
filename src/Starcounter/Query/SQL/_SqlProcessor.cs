@@ -289,11 +289,16 @@ internal static class SqlProcessor
             throw new SqlException("Found token after end of statement (maybe a semicolon is missing).");
         }
 
+        // Obtain correct table name
+        TypeBinding typeBind = TypeRepository.GetTypeBinding(typePath.ToUpper());
+        if (typeBind == null)
+            throw new SqlException("Table " + typePath + " is not found");
+
         // Call kernel
         UInt32 errorCode;
         unsafe
         {
-            errorCode = sccoredb.sccoredb_drop_index(typePath, indexName.ToUpper());
+            errorCode = sccoredb.sccoredb_drop_index(typeBind.Name, indexName.ToUpper());
         }
         if (errorCode != 0)
         {
