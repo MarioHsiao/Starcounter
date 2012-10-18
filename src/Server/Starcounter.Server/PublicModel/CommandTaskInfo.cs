@@ -13,7 +13,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public int ID {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -22,7 +22,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string ShortText {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string Description {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public TaskDuration Duration {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string ProgressUnits {
             get;
-            internal set;
+            set;
         }
     }
 }
