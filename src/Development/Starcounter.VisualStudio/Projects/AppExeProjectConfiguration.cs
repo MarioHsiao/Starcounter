@@ -157,6 +157,20 @@ namespace Starcounter.VisualStudio.Projects {
             WriteDebugLaunchStatus(null);
         }
 
+#if false
+        // This is the preferred way to attach the debugger to our database,
+        // but I just can't get it to work b/c of, I think, the database is a
+        // 64-bit process. I get the exact same symptoms as in this stackoverflow
+        // post:
+        // http://stackoverflow.com/questions/9523251/visual-studio-custom-debug-engine-attach-to-a-64-bit-process
+        // And no one seems to address it and/or respond.
+        // 
+        // Meanwhile, we can use the above attachment method (using process.Attach)
+        // but we lack in functionality, such as finetuning the attachment options,
+        // so I'll try to get back to this and experiement some more + find if we
+        // should go up one more version (Debugger3+LaunchDebugTargets3) instead, but
+        // right now there is no time. :(
+
         void LaunchDebugEngine2(__VSDBGLAUNCHFLAGS flags, AssemblyDebugConfiguration debugConfiguration, DatabaseInfo database) {
             var debugger = (IVsDebugger2)package.GetService(typeof(SVsShellDebugger));
             var info = new VsDebugTargetInfo2();
@@ -184,5 +198,6 @@ namespace Starcounter.VisualStudio.Projects {
                 }
             }
         }
+#endif
     }
 }
