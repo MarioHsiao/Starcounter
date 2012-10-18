@@ -8,8 +8,9 @@ using System.Reflection;
 namespace Starcounter.VisualStudio {
     public abstract class BaseVsPackage : Package {
         static ActivityLogWriter _logWriter = null;
-
-        static BaseVsPackage() {
+        static string installationDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        
+        static BaseVsPackage() {            
             AppDomain.CurrentDomain.AssemblyResolve += OnAssemblyResolve;
         }
 
@@ -31,32 +32,34 @@ namespace Starcounter.VisualStudio {
             // on this interface. When logging is off, the implementation for each method
             // is a fast no-op.
             AssemblyName reference;
-            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            
             TryWriteLogInformation(string.Format("Resolving assembly {0}", args.Name));
             try {
                 reference = new AssemblyName(args.Name);
             } catch (FileLoadException) {
                 return null;
             }
+
+            // Search for it among loaded assemblies
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (Assembly assembly in assemblies) {
                 if (AssemblyName.ReferenceMatchesDefinition(reference, assembly.GetName())) {
                     return assembly;
                 }
             }
 
-#if false
-        try
-        {
-            //string binDir = StarcounterEnvironment.SystemDirectory;
-            //string path = Path.Combine(binDir, reference.Name + ".dll");
-            //if (File.Exists(path))
-            //{
-            //    var assemblyName = AssemblyName.GetAssemblyName(path);
-            //    return Assembly.Load(assemblyName);
-            //}
-        }
-        catch { }
-#endif
+            // Search for it in the Starcounter installation directory, currently
+            // being resolved to the place from where this assembly (Starcounter.VisualStudio)
+            // has been loaded from.
+            try {
+                var installationDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                var path = Path.Combine(installationDir, reference.Name + ".dll");
+                if (File.Exists(path)) {
+                    var assemblyName = AssemblyName.GetAssemblyName(path);
+                    return Assembly.Load(assemblyName);
+                }
+            } catch { }
+
             return null;
         }
 
