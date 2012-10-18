@@ -1,15 +1,7 @@
 ﻿// ***********************************************************************
-// Assembly         : Starcounter.Errors
-// Author           : Starcounter AB
-// Created          : 10-17-2012
-//
-// Last Modified By : Starcounter AB
-// Last Modified On : 10-17-2012
-// ***********************************************************************
 // <copyright file="Severity.cs" company="Starcounter AB">
-//     . All rights reserved.
+//     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
-// <summary></summary>
 // ***********************************************************************
 
 namespace Starcounter.Errors
