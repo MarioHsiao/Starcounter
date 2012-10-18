@@ -19,11 +19,19 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string Value {
             get;
-            private set;
+            set;
         }
 
         private CommandId(Guid guid) {
             this.Value = Guid.NewGuid().ToString();
+        }
+
+        /// <summary>
+        /// Constructor enabling this type to be deserialized.
+        /// Use factory method <see cref="MakeNew"/> to create
+        /// a new instance.
+        /// </summary>
+        internal CommandId() {
         }
 
         /// <summary>

@@ -20,7 +20,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string Uri {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string Name {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace Starcounter.Server.PublicModel {
         /// </remarks>
         public long MaxImageSize {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace Starcounter.Server.PublicModel {
         /// </remarks>
         public long TransactionLogSize {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string CollationFile {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public bool SupportReplication {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public DatabaseConfiguration Configuration {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -109,7 +109,7 @@ namespace Starcounter.Server.PublicModel {
         /// </remarks>
         public AppInfo[] HostedApps {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -123,7 +123,7 @@ namespace Starcounter.Server.PublicModel {
         /// </remarks>
         public int HostProcessId {
             get;
-            internal set;
+            set;
         }
     }
 }
