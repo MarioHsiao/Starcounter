@@ -46,13 +46,10 @@ namespace Starcounter.VisualStudio.Projects {
 
             properties.Add("AssemblyPath", debugConfiguration.AssemblyPath);
             properties.Add("WorkingDir", debugConfiguration.WorkingDirectory);
+            if (debugConfiguration.Arguments.Length > 0) {
+                properties.Add("Args", KeyValueBinary.FromArray(debugConfiguration.Arguments).Value);
+            }
             
-            // TODO:
-            // Arguments we don't send just yet. We must parse the args string
-            // to a proper array and send that.
-            // properties.Add("Args", KeyValueBinary.FromArray(new string[] { "@@NoDb" }).Value);
-            // properties.Add("Args", arguments.Split());
-
             // Send the request to the server and dezerialize the reply
             // to get the information about the command.
             //   Then iterate until we see that the command has completed,
