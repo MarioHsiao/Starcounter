@@ -129,7 +129,7 @@ ExpectedResult:
  | 15 | Falköping | Small village in Sweden | 2 | 2 | 
  | 16 | Sankt Petersburg | Big city in Russia | 2 | 2 | 
 
-/*
+
 <NEXT>
 Description: Show all of type SQLTest.EmployeeDb.Department
 QueryString: select d, d.* from SQLTest.EmployeeDb.Department d
@@ -16163,4 +16163,3 @@ ExpectedResult:
  | 20 | 
 
 
-*/
