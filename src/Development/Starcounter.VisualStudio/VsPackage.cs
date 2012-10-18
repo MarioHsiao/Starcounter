@@ -185,6 +185,15 @@ namespace Starcounter.VisualStudio {
             return resourceValue;
         }
 
+        public string GetErrorInfo() {
+            string info = string.Empty;
+            try {
+                var result = this.uiShell.GetErrorInfo(out info);
+                if (result != VSConstants.S_OK) info = string.Empty;
+            } catch { /* Ingore exceptions; just get the info if available. */}
+            return info;
+        }
+
         public int ShowMessageBox(string pszText, OLEMSGBUTTON msgbtn, OLEMSGDEFBUTTON msgdefbtn, OLEMSGICON msgicon) {
             int result = 0;
             this.Invoke(() => result = this.ShowMessageBoxImpl(pszText, msgbtn, msgdefbtn, msgicon));
