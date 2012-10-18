@@ -1,5 +1,8 @@
-﻿
-
+﻿// ***********************************************************************
+// <copyright file="Base256Int.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System;
 using System.Text;
@@ -7,10 +10,20 @@ using System.Text;
 namespace Starcounter.Internal
 {
 
+    /// <summary>
+    /// Class Base256Int
+    /// </summary>
    public class Base256Int
    {
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+       /// <summary>
+       /// Writes the specified PTR.
+       /// </summary>
+       /// <param name="ptr">The PTR.</param>
+       /// <param name="value">The value.</param>
+       /// <returns>System.UInt32.</returns>
+       /// <exception cref="System.Exception">TODO!</exception>
       public static unsafe uint Write(IntPtr ptr, UInt64 value)
       {
          var buffer = (byte*)ptr;
@@ -32,6 +45,11 @@ namespace Starcounter.Internal
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      /// <summary>
+      /// Measures the size of the needed.
+      /// </summary>
+      /// <param name="value">The value.</param>
+      /// <returns>System.UInt32.</returns>
       public static unsafe uint MeasureNeededSize(UInt32 value)
       {
          if ((value & 0xFFFFFF00) != 0)
@@ -41,6 +59,13 @@ namespace Starcounter.Internal
 
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      /// <summary>
+      /// Reads the specified size.
+      /// </summary>
+      /// <param name="size">The size.</param>
+      /// <param name="ptr">The PTR.</param>
+      /// <returns>UInt64.</returns>
+      /// <exception cref="System.Exception">Size not supported</exception>
       public static unsafe UInt64 Read(int size, IntPtr ptr  )
       {
          var buffer = (byte*)ptr;
@@ -58,6 +83,11 @@ namespace Starcounter.Internal
          throw new Exception("Size not supported");
       }
 
+      /// <summary>
+      /// Fixes the string.
+      /// </summary>
+      /// <param name="buffer">The buffer.</param>
+      /// <returns>System.String.</returns>
       public static string FixString( byte[] buffer )
       {
          var sb = new StringBuilder();

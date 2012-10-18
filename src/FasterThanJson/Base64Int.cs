@@ -1,9 +1,13 @@
-﻿///////////////////////////////////////
+﻿// ***********************************************************************
+// <copyright file="Base64Int.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+///////////////////////////////////////
 // URL friendly Base64 encoded integers
 // TODO! Optimize
 ///////////////////////////////////////
-
-
 
 using System;
 using System.Data;
@@ -12,64 +16,187 @@ using System.Data;
 
 namespace Starcounter.Internal
 {
+    /// <summary>
+    /// Struct Base64x11
+    /// </summary>
    public struct Base64x11
    {
+       /// <summary>
+       /// The b0
+       /// </summary>
       public byte b0;
+      /// <summary>
+      /// The b1
+      /// </summary>
       public byte b1;
+      /// <summary>
+      /// The b2
+      /// </summary>
       public byte b2;
+      /// <summary>
+      /// The b3
+      /// </summary>
       public byte b3;
+      /// <summary>
+      /// The b4
+      /// </summary>
       public byte b4;
+      /// <summary>
+      /// The b5
+      /// </summary>
       public byte b5;
+      /// <summary>
+      /// The b6
+      /// </summary>
       public byte b6;
+      /// <summary>
+      /// The b7
+      /// </summary>
       public byte b7;
+      /// <summary>
+      /// The b8
+      /// </summary>
       public byte b8;
+      /// <summary>
+      /// The b9
+      /// </summary>
       public byte b9;
+      /// <summary>
+      /// The B10
+      /// </summary>
       public byte b10;
    }
+   /// <summary>
+   /// Struct Base64x6
+   /// </summary>
    public struct Base64x6
    {
+       /// <summary>
+       /// The b0
+       /// </summary>
       public byte b0;
+      /// <summary>
+      /// The b1
+      /// </summary>
       public byte b1;
+      /// <summary>
+      /// The b2
+      /// </summary>
       public byte b2;
+      /// <summary>
+      /// The b3
+      /// </summary>
       public byte b3;
+      /// <summary>
+      /// The b4
+      /// </summary>
       public byte b4;
+      /// <summary>
+      /// The b5
+      /// </summary>
       public byte b5;
    }
+   /// <summary>
+   /// Struct Base64x5
+   /// </summary>
    public struct Base64x5
    {
+       /// <summary>
+       /// The b0
+       /// </summary>
       public byte b0;
+      /// <summary>
+      /// The b1
+      /// </summary>
       public byte b1;
+      /// <summary>
+      /// The b2
+      /// </summary>
       public byte b2;
+      /// <summary>
+      /// The b3
+      /// </summary>
       public byte b3;
+      /// <summary>
+      /// The b4
+      /// </summary>
       public byte b4;
    }
+   /// <summary>
+   /// Struct Base64x4
+   /// </summary>
    public struct Base64x4
    {
+       /// <summary>
+       /// The b0
+       /// </summary>
       public byte b0;
+      /// <summary>
+      /// The b1
+      /// </summary>
       public byte b1;
+      /// <summary>
+      /// The b2
+      /// </summary>
       public byte b2;
+      /// <summary>
+      /// The b3
+      /// </summary>
       public byte b3;
    }
+   /// <summary>
+   /// Struct Base64x3
+   /// </summary>
    public struct Base64x3
    {
+       /// <summary>
+       /// The b0
+       /// </summary>
       public byte b0;
+      /// <summary>
+      /// The b1
+      /// </summary>
       public byte b1;
+      /// <summary>
+      /// The b2
+      /// </summary>
       public byte b2;
    }
+   /// <summary>
+   /// Struct Base64x2
+   /// </summary>
    public struct Base64x2
    {
+       /// <summary>
+       /// The b0
+       /// </summary>
       public byte b0;
+      /// <summary>
+      /// The b1
+      /// </summary>
       public byte b1;
    }
+   /// <summary>
+   /// Struct Base64x1
+   /// </summary>
    public struct Base64x1
    {
+       /// <summary>
+       /// The b0
+       /// </summary>
       public byte b0;
    }
 
 
 
+   /// <summary>
+   /// Class Base64Int
+   /// </summary>
    public class Base64Int
    {
+       /// <summary>
+       /// The b64e
+       /// </summary>
       private static byte[] b64e = new byte[]
                                       {
                                          (byte) '0', (byte) '1', (byte) '2', (byte) '3', (byte) '4', (byte) '5',
@@ -87,6 +214,9 @@ namespace Starcounter.Internal
                                          (byte) '-', (byte) '_'
                                       };
 
+      /// <summary>
+      /// The B64D
+      /// </summary>
       private static int[] b64d = new int[]
                                      {
                                         000, 000, 000, 000, 000, 000, 000, 000, 000, 000,
@@ -117,6 +247,11 @@ namespace Starcounter.Internal
                                         000, 000, 000, 000, 000, 000
                                      };
 
+      /// <summary>
+      /// Measures the size of the needed.
+      /// </summary>
+      /// <param name="value">The value.</param>
+      /// <returns>System.UInt32.</returns>
       public static unsafe uint MeasureNeededSize(UInt64 value)
       {
          if (value <= 0x3F)
@@ -161,12 +296,22 @@ namespace Starcounter.Internal
          return 6;
       }
 
+      /// <summary>
+      /// Writes the base64x1.
+      /// </summary>
+      /// <param name="value">The value.</param>
+      /// <param name="ptr">The PTR.</param>
       public static unsafe void WriteBase64x1(UInt64 value, IntPtr ptr)
       {
          var c = (Base64x1*) ptr;
          c->b0 = b64e[(value & 0x3F)];
       }
 
+      /// <summary>
+      /// Writes the base64x2.
+      /// </summary>
+      /// <param name="value">The value.</param>
+      /// <param name="ptr">The PTR.</param>
       public static unsafe void WriteBase64x2(UInt64 value, IntPtr ptr)
       {
          var c = (Base64x2*) ptr;
@@ -174,6 +319,11 @@ namespace Starcounter.Internal
          c->b1 = b64e[(value & 0x3F)];
       }
 
+      /// <summary>
+      /// Writes the base64x3.
+      /// </summary>
+      /// <param name="value">The value.</param>
+      /// <param name="ptr">The PTR.</param>
       public static unsafe void WriteBase64x3(UInt64 value, IntPtr ptr)
       {
          var c = (Base64x3*) ptr;
@@ -183,6 +333,11 @@ namespace Starcounter.Internal
       }
 
 
+      /// <summary>
+      /// Writes the base64x4.
+      /// </summary>
+      /// <param name="value">The value.</param>
+      /// <param name="ptr">The PTR.</param>
       public static unsafe void WriteBase64x4(UInt64 value, IntPtr ptr)
       {
          var c = (Base64x4*)ptr;
@@ -192,6 +347,11 @@ namespace Starcounter.Internal
          c->b3 = b64e[(value & 0x3F)];
       }
 
+      /// <summary>
+      /// Writes the base64x5.
+      /// </summary>
+      /// <param name="value">The value.</param>
+      /// <param name="ptr">The PTR.</param>
       public static unsafe void WriteBase64x5(UInt64 value, IntPtr ptr)
       {
          var c = (Base64x5*)ptr;
@@ -202,6 +362,11 @@ namespace Starcounter.Internal
          c->b4 = b64e[(value & 0x0000003F)];
       }
 
+      /// <summary>
+      /// Writes the base64x6.
+      /// </summary>
+      /// <param name="value">The value.</param>
+      /// <param name="ptr">The PTR.</param>
       public static unsafe void WriteBase64x6(UInt64 value, IntPtr ptr)
       {
          var c = (Base64x6*)ptr;
@@ -213,6 +378,11 @@ namespace Starcounter.Internal
          c->b5 = b64e[(value & 0x000000000000003FUL)];
       }
 
+      /// <summary>
+      /// Writes the base64x11.
+      /// </summary>
+      /// <param name="value">The value.</param>
+      /// <param name="ptr">The PTR.</param>
       public static unsafe void WriteBase64x11(UInt64 value, IntPtr ptr)
       {
          var c = (Base64x11*)ptr;
@@ -231,6 +401,12 @@ namespace Starcounter.Internal
 
 
 
+      /// <summary>
+      /// Writes the specified buffer.
+      /// </summary>
+      /// <param name="buffer">The buffer.</param>
+      /// <param name="value">The value.</param>
+      /// <returns>System.UInt32.</returns>
       public static unsafe uint Write(IntPtr buffer, UInt32 value)
       {
          var c = (Base64x5*) buffer;
@@ -266,6 +442,13 @@ namespace Starcounter.Internal
 
 
 
+      /// <summary>
+      /// Reads the specified size.
+      /// </summary>
+      /// <param name="size">The size.</param>
+      /// <param name="ptr">The PTR.</param>
+      /// <returns>UInt64.</returns>
+      /// <exception cref="System.Exception">Illegal size</exception>
       public static unsafe UInt64 Read( int size, IntPtr ptr)
       {
          switch (size)
@@ -293,24 +476,44 @@ namespace Starcounter.Internal
 		 //          (b64d[c->b2] << 12) + (b64d[c->b3] << 6) + b64d[c->b4]);
       }
 
+      /// <summary>
+      /// Reads the base64x1.
+      /// </summary>
+      /// <param name="ptr">The PTR.</param>
+      /// <returns>UInt64.</returns>
       public static unsafe UInt64 ReadBase64x1(IntPtr ptr)
       {
          var c = (Base64x1*)ptr;
          return (UInt64)(b64d[c->b0]);
       }
 
+      /// <summary>
+      /// Reads the base64x2.
+      /// </summary>
+      /// <param name="ptr">The PTR.</param>
+      /// <returns>UInt64.</returns>
       public static unsafe UInt64 ReadBase64x2(IntPtr ptr)
       {
          var c = (Base64x2*)ptr;
          return (UInt64)((b64d[c->b0] << 6) + b64d[c->b1]);
       }
 
+      /// <summary>
+      /// Reads the base64x3.
+      /// </summary>
+      /// <param name="ptr">The PTR.</param>
+      /// <returns>UInt64.</returns>
       public static unsafe UInt64 ReadBase64x3(IntPtr ptr)
       {
          var c = (Base64x3*)ptr;
          return (UInt64)((b64d[c->b0] << 12) + (b64d[c->b1] << 6) + b64d[c->b2]);
       }
 
+      /// <summary>
+      /// Reads the base64x4.
+      /// </summary>
+      /// <param name="ptr">The PTR.</param>
+      /// <returns>UInt64.</returns>
       public static unsafe UInt64 ReadBase64x4(IntPtr ptr)
       {
          var c = (Base64x4*)ptr;
@@ -318,6 +521,11 @@ namespace Starcounter.Internal
                    (b64d[c->b1] << 12) + (b64d[c->b2] << 6) + b64d[c->b3]);
       }
 
+      /// <summary>
+      /// Reads the base64x5.
+      /// </summary>
+      /// <param name="ptr">The PTR.</param>
+      /// <returns>UInt64.</returns>
       public static unsafe UInt64 ReadBase64x5(IntPtr ptr)
       {
          var c = (Base64x5*)ptr;
@@ -325,6 +533,11 @@ namespace Starcounter.Internal
                    (b64d[c->b2] << 12) + (b64d[c->b3] << 6) + b64d[c->b4]);
       }
 
+      /// <summary>
+      /// Reads the base64x6.
+      /// </summary>
+      /// <param name="ptr">The PTR.</param>
+      /// <returns>UInt64.</returns>
       public static unsafe UInt64 ReadBase64x6(IntPtr ptr)
       {
          var c = (Base64x6*)ptr;
@@ -332,6 +545,11 @@ namespace Starcounter.Internal
                    (((UInt64)b64d[c->b3] << 12)) + (((UInt64)b64d[c->b4] << 6)) + ((UInt64)b64d[c->b5]);
       }
 
+      /// <summary>
+      /// Reads the base64x11.
+      /// </summary>
+      /// <param name="ptr">The PTR.</param>
+      /// <returns>UInt64.</returns>
       public static unsafe UInt64 ReadBase64x11(IntPtr ptr)
       {
          var c = (Base64x11*)ptr;
