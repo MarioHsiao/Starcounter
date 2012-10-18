@@ -7,6 +7,7 @@
 #include "tls_proto.hpp"
 #include "worker_db_interface.hpp"
 #include "worker.hpp"
+#include "common/macro_definitions.hpp"
 
 namespace starcounter {
 namespace network {
@@ -49,9 +50,20 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
         // Check if there is a message and process it.
         if (the_channel.out.try_pop_back(&chunk_index) == true)
         {
+            //PrintCurrentTimeMs("POP Time");
+
             // A message on channel ch was received. Notify the database
             // that the out queue in this channel is not full.
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+			// Use Windows Events to synchronize.
+			the_channel.scheduler()->notify(shared_int_.get_work_event
+			(the_channel.get_scheduler_number()));
+#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+			// Use Boost.Interprocess to synchronize.
             the_channel.scheduler()->notify();
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+
+            //PrintCurrentTimeMs("After scheduler()->notify()");
 
             // Get the chunk.
             shared_memory_chunk* smc = (shared_memory_chunk*) &(shared_int_.chunk(chunk_index));
@@ -62,8 +74,12 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
                 // Changing number of owned chunks.
                 g_gateway.GetDatabase(db_index_)->ChangeNumUsedChunks(1);
 
+                //PrintCurrentTimeMs("Before EnterGlobalLock");
+
                 // Entering global lock.
                 gw->EnterGlobalLock();
+
+                //PrintCurrentTimeMs("After EnterGlobalLock");
 
                 // Handling management chunks.
                 errCode = HandleManagementChunks(gw, smc);
@@ -141,6 +157,8 @@ uint32_t WorkerDbInterface::PushLinkedChunksToDb(
     int32_t sched_id,
     bool not_overflow_chunk = true)
 {
+    //PrintCurrentTimeMs("PUSH Time");
+
     // Obtaining the channel.
     core::channel_type& the_channel = shared_int_.channel(channels_[sched_id]);
 
@@ -154,7 +172,14 @@ uint32_t WorkerDbInterface::PushLinkedChunksToDb(
     {
         // A message on channel ch was received. Notify the database
         // that the out queue in this channel is not full.
+#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+		// Use Windows Events to synchronize.
+		the_channel.scheduler()->notify(shared_int_.get_work_event
+		(the_channel.get_scheduler_number()));
+#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+		// Use Boost.Interprocess to synchronize.
         the_channel.scheduler()->notify();
+#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 
 #ifdef GW_CHUNKS_DIAG
         GW_PRINT_WORKER << "   successfully pushed: chunk " << chunk_index << std::endl;
@@ -272,7 +297,9 @@ uint32_t WorkerDbInterface::RegisterPushChannel(int32_t sched_num)
     shared_memory_chunk *smc = NULL;
 
     // Getting a free chunk.
-    core::chunk_index new_chunk = GetOneChunkFromPrivatePool(&smc);
+    core::chunk_index new_chunk;
+    uint32_t err_code = GetOneChunkFromPrivatePool(&new_chunk, &smc);
+    GW_ERR_CHECK(err_code);
 
     // Predefined BMX management handler.
     smc->set_bmx_protocol(bmx::BMX_MANAGEMENT_HANDLER);
@@ -297,7 +324,9 @@ uint32_t WorkerDbInterface::RequestRegisteredHandlers(int32_t sched_num)
     shared_memory_chunk *smc = NULL;
 
     // Getting a free chunk.
-    core::chunk_index new_chunk = GetOneChunkFromPrivatePool(&smc);
+    core::chunk_index new_chunk; 
+    uint32_t err_code = GetOneChunkFromPrivatePool(&new_chunk, &smc);
+    GW_ERR_CHECK(err_code);
 
     // Filling the chunk as BMX management handler.
     smc->set_bmx_protocol(bmx::BMX_MANAGEMENT_HANDLER);
@@ -375,6 +404,18 @@ uint32_t WorkerDbInterface::RegisterAllPushChannels()
 #endif
     }
 
+    // Sending 100 pings.
+    /*for (uint64_t i = 0; i < 100; i++)
+    {
+        shared_memory_chunk* smc;
+        core::chunk_index new_chunk;
+        err_code = GetOneChunkFromPrivatePool(&new_chunk, &smc);
+        GW_ERR_CHECK(err_code);
+
+        sc_bmx_construct_ping(i, smc);
+        PushLinkedChunksToDb(new_chunk, 1, 0);
+    }*/
+
     return 0;
 }
 
@@ -401,7 +442,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
     response_chunk_part* resp_chunk = smc->get_response_chunk();
     uint32_t response_size = resp_chunk->get_offset();
     if (0 == response_size)
-        return 1;
+        return SCERRUNSPECIFIED;
 
     uint32_t err_code;
     uint32_t offset = 0;
@@ -414,6 +455,21 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
 
         switch (bmx_type)
         {
+            case bmx::BMX_PONG:
+            {
+                uint64_t ping_data = -1;
+                
+                // Jumping over 8 bytes because we reseted the offset.
+                resp_chunk->skip(8);
+
+                err_code = sc_bmx_parse_pong(smc, &ping_data);
+                GW_ERR_CHECK(err_code);
+
+                GW_PRINT_WORKER << "Pong with data: " << ping_data << std::endl;
+
+                return 0;
+            }
+
             case bmx::BMX_REGISTER_PUSH_CHANNEL_RESPONSE:
             {
                 // We have received a confirmation push channel chunk.
@@ -424,13 +480,15 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 {
                     GW_PRINT_WORKER << "All push channels confirmed!" << std::endl;
 
+                    //PrintCurrentTimeMs("Before RequestRegisteredHandlers");
+
                     // Requesting all registered handlers.
                     err_code = RequestRegisteredHandlers();
 
                     GW_ERR_CHECK(err_code);
                 }
 
-                break;
+                return 0;
             }
 
             case bmx::BMX_REGISTER_PORT:
@@ -593,12 +651,12 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 if (server_port->IsEmpty())
                     server_port->Erase();
 
-                break;
+                return 0;
             }
 
             default:
             {
-                return 1;
+                return SCERRUNSPECIFIED;
             }
         }
 

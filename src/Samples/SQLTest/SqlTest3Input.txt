@@ -1,0 +1,554 @@
+﻿
+/********************************************************************************
+
+
+====== TEST3 ======
+
+Uses different combined indexes.
+
+
+====== SECTIONS ======
+
+=== Section 1 ===
+
+
+====== TODOS ======
+
+
+====== PROBLEMS ======
+
+
+====== ARCHIVE ======
+
+
+********************************************************************************/
+
+
+<NEXT>
+Description: Test of combined index IntegerPoint_X_Y_Z
+QueryString: select l.X, l.Y, l.Z from IntegerPoint l option index(l IntegerPoint_X_Y_Z)
+IncludesLiteral: True
+IncludesProjection: True
+SingleObjectProjection: False
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SqlTest.Test3.IntegerPoint
+)
+Projection(
+	0 = 
+		IntegerProperty(0, X)
+	1 = 
+		IntegerProperty(0, Y)
+	2 = 
+		IntegerProperty(0, Z)
+)
+IndexScan(
+	IntegerPoint_X_Y_Z
+	0
+	X
+	IntegerDynamicRange(
+	)
+	Y
+	IntegerDynamicRange(
+	)
+	Z
+	IntegerDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! 0:Int64 ! 1:Int64 ! 2:Int64 ! 
+ | <NULL> | <NULL> | <NULL> | 
+ | <NULL> | <NULL> | 1 | 
+ | <NULL> | <NULL> | 9223372036854775807 | 
+ | <NULL> | 1 | <NULL> | 
+ | <NULL> | 1 | 1 | 
+ | <NULL> | 1 | 9223372036854775807 | 
+ | <NULL> | 9223372036854775807 | <NULL> | 
+ | <NULL> | 9223372036854775807 | 1 | 
+ | <NULL> | 9223372036854775807 | 9223372036854775807 | 
+ | 1 | <NULL> | <NULL> | 
+ | 1 | <NULL> | 1 | 
+ | 1 | <NULL> | 9223372036854775807 | 
+ | 1 | 1 | <NULL> | 
+ | 1 | 1 | 1 | 
+ | 1 | 1 | 9223372036854775807 | 
+ | 1 | 9223372036854775807 | <NULL> | 
+ | 1 | 9223372036854775807 | 1 | 
+ | 1 | 9223372036854775807 | 9223372036854775807 | 
+ | 9223372036854775807 | <NULL> | <NULL> | 
+ | 9223372036854775807 | <NULL> | 1 | 
+ | 9223372036854775807 | <NULL> | 9223372036854775807 | 
+ | 9223372036854775807 | 1 | <NULL> | 
+ | 9223372036854775807 | 1 | 1 | 
+ | 9223372036854775807 | 1 | 9223372036854775807 | 
+ | 9223372036854775807 | 9223372036854775807 | <NULL> | 
+ | 9223372036854775807 | 9223372036854775807 | 1 | 
+ | 9223372036854775807 | 9223372036854775807 | 9223372036854775807 | 
+
+
+<NEXT>
+Description: Test of combined index IntegerPoint_X_Y_ZDESC
+QueryString: select l.X, l.Y, l.Z from IntegerPoint l option index(l IntegerPoint_X_Y_ZDESC)
+IncludesProjection: True
+IncludesLiteral: True
+SingleObjectProjection: False
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SqlTest.Test3.IntegerPoint
+)
+Projection(
+	0 = 
+		IntegerProperty(0, X)
+	1 = 
+		IntegerProperty(0, Y)
+	2 = 
+		IntegerProperty(0, Z)
+)
+IndexScan(
+	IntegerPoint_X_Y_ZDESC
+	0
+	X
+	IntegerDynamicRange(
+	)
+	Y
+	IntegerDynamicRange(
+	)
+	Z
+	IntegerDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! 0:Int64 ! 1:Int64 ! 2:Int64 ! 
+ | <NULL> | <NULL> | 9223372036854775807 | 
+ | <NULL> | <NULL> | 1 | 
+ | <NULL> | <NULL> | <NULL> | 
+ | <NULL> | 1 | 9223372036854775807 | 
+ | <NULL> | 1 | 1 | 
+ | <NULL> | 1 | <NULL> | 
+ | <NULL> | 9223372036854775807 | 9223372036854775807 | 
+ | <NULL> | 9223372036854775807 | 1 | 
+ | <NULL> | 9223372036854775807 | <NULL> | 
+ | 1 | <NULL> | 9223372036854775807 | 
+ | 1 | <NULL> | 1 | 
+ | 1 | <NULL> | <NULL> | 
+ | 1 | 1 | 9223372036854775807 | 
+ | 1 | 1 | 1 | 
+ | 1 | 1 | <NULL> | 
+ | 1 | 9223372036854775807 | 9223372036854775807 | 
+ | 1 | 9223372036854775807 | 1 | 
+ | 1 | 9223372036854775807 | <NULL> | 
+ | 9223372036854775807 | <NULL> | 9223372036854775807 | 
+ | 9223372036854775807 | <NULL> | 1 | 
+ | 9223372036854775807 | <NULL> | <NULL> | 
+ | 9223372036854775807 | 1 | 9223372036854775807 | 
+ | 9223372036854775807 | 1 | 1 | 
+ | 9223372036854775807 | 1 | <NULL> | 
+ | 9223372036854775807 | 9223372036854775807 | 9223372036854775807 | 
+ | 9223372036854775807 | 9223372036854775807 | 1 | 
+ | 9223372036854775807 | 9223372036854775807 | <NULL> | 
+
+
+<NEXT>
+Description: Test of combined index IntegerPoint_X_YDESC_Z
+QueryString: select l.X, l.Y, l.Z from IntegerPoint l option index(l IntegerPoint_X_YDESC_Z)
+IncludesProjection: True
+IncludesLiteral: True
+SingleObjectProjection: False
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SqlTest.Test3.IntegerPoint
+)
+Projection(
+	0 = 
+		IntegerProperty(0, X)
+	1 = 
+		IntegerProperty(0, Y)
+	2 = 
+		IntegerProperty(0, Z)
+)
+IndexScan(
+	IntegerPoint_X_YDESC_Z
+	0
+	X
+	IntegerDynamicRange(
+	)
+	Y
+	IntegerDynamicRange(
+	)
+	Z
+	IntegerDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! 0:Int64 ! 1:Int64 ! 2:Int64 ! 
+ | <NULL> | 9223372036854775807 | <NULL> | 
+ | <NULL> | 9223372036854775807 | 1 | 
+ | <NULL> | 9223372036854775807 | 9223372036854775807 | 
+ | <NULL> | 1 | <NULL> | 
+ | <NULL> | 1 | 1 | 
+ | <NULL> | 1 | 9223372036854775807 | 
+ | <NULL> | <NULL> | <NULL> | 
+ | <NULL> | <NULL> | 1 | 
+ | <NULL> | <NULL> | 9223372036854775807 | 
+ | 1 | 9223372036854775807 | <NULL> | 
+ | 1 | 9223372036854775807 | 1 | 
+ | 1 | 9223372036854775807 | 9223372036854775807 | 
+ | 1 | 1 | <NULL> | 
+ | 1 | 1 | 1 | 
+ | 1 | 1 | 9223372036854775807 | 
+ | 1 | <NULL> | <NULL> | 
+ | 1 | <NULL> | 1 | 
+ | 1 | <NULL> | 9223372036854775807 | 
+ | 9223372036854775807 | 9223372036854775807 | <NULL> | 
+ | 9223372036854775807 | 9223372036854775807 | 1 | 
+ | 9223372036854775807 | 9223372036854775807 | 9223372036854775807 | 
+ | 9223372036854775807 | 1 | <NULL> | 
+ | 9223372036854775807 | 1 | 1 | 
+ | 9223372036854775807 | 1 | 9223372036854775807 | 
+ | 9223372036854775807 | <NULL> | <NULL> | 
+ | 9223372036854775807 | <NULL> | 1 | 
+ | 9223372036854775807 | <NULL> | 9223372036854775807 | 
+
+
+<NEXT>
+Description: Test of combined index IntegerPoint_X_YDESC_ZDESC
+QueryString: select l.X, l.Y, l.Z from IntegerPoint l option index(l IntegerPoint_X_YDESC_ZDESC)
+IncludesProjection: True
+IncludesLiteral: True
+SingleObjectProjection: False
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SqlTest.Test3.IntegerPoint
+)
+Projection(
+	0 = 
+		IntegerProperty(0, X)
+	1 = 
+		IntegerProperty(0, Y)
+	2 = 
+		IntegerProperty(0, Z)
+)
+IndexScan(
+	IntegerPoint_X_YDESC_ZDESC
+	0
+	X
+	IntegerDynamicRange(
+	)
+	Y
+	IntegerDynamicRange(
+	)
+	Z
+	IntegerDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! 0:Int64 ! 1:Int64 ! 2:Int64 ! 
+ | <NULL> | 9223372036854775807 | 9223372036854775807 | 
+ | <NULL> | 9223372036854775807 | 1 | 
+ | <NULL> | 9223372036854775807 | <NULL> | 
+ | <NULL> | 1 | 9223372036854775807 | 
+ | <NULL> | 1 | 1 | 
+ | <NULL> | 1 | <NULL> | 
+ | <NULL> | <NULL> | 9223372036854775807 | 
+ | <NULL> | <NULL> | 1 | 
+ | <NULL> | <NULL> | <NULL> | 
+ | 1 | 9223372036854775807 | 9223372036854775807 | 
+ | 1 | 9223372036854775807 | 1 | 
+ | 1 | 9223372036854775807 | <NULL> | 
+ | 1 | 1 | 9223372036854775807 | 
+ | 1 | 1 | 1 | 
+ | 1 | 1 | <NULL> | 
+ | 1 | <NULL> | 9223372036854775807 | 
+ | 1 | <NULL> | 1 | 
+ | 1 | <NULL> | <NULL> | 
+ | 9223372036854775807 | 9223372036854775807 | 9223372036854775807 | 
+ | 9223372036854775807 | 9223372036854775807 | 1 | 
+ | 9223372036854775807 | 9223372036854775807 | <NULL> | 
+ | 9223372036854775807 | 1 | 9223372036854775807 | 
+ | 9223372036854775807 | 1 | 1 | 
+ | 9223372036854775807 | 1 | <NULL> | 
+ | 9223372036854775807 | <NULL> | 9223372036854775807 | 
+ | 9223372036854775807 | <NULL> | 1 | 
+ | 9223372036854775807 | <NULL> | <NULL> | 
+
+
+<NEXT>
+Description: Test of combined index IntegerPoint_XDESC_Y_Z
+QueryString: select l.X, l.Y, l.Z from IntegerPoint l option index(l IntegerPoint_XDESC_Y_Z)
+IncludesProjection: True
+IncludesLiteral: True
+SingleObjectProjection: False
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SqlTest.Test3.IntegerPoint
+)
+Projection(
+	0 = 
+		IntegerProperty(0, X)
+	1 = 
+		IntegerProperty(0, Y)
+	2 = 
+		IntegerProperty(0, Z)
+)
+IndexScan(
+	IntegerPoint_XDESC_Y_Z
+	0
+	X
+	IntegerDynamicRange(
+	)
+	Y
+	IntegerDynamicRange(
+	)
+	Z
+	IntegerDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! 0:Int64 ! 1:Int64 ! 2:Int64 ! 
+ | 9223372036854775807 | <NULL> | <NULL> | 
+ | 9223372036854775807 | <NULL> | 1 | 
+ | 9223372036854775807 | <NULL> | 9223372036854775807 | 
+ | 9223372036854775807 | 1 | <NULL> | 
+ | 9223372036854775807 | 1 | 1 | 
+ | 9223372036854775807 | 1 | 9223372036854775807 | 
+ | 9223372036854775807 | 9223372036854775807 | <NULL> | 
+ | 9223372036854775807 | 9223372036854775807 | 1 | 
+ | 9223372036854775807 | 9223372036854775807 | 9223372036854775807 | 
+ | 1 | <NULL> | <NULL> | 
+ | 1 | <NULL> | 1 | 
+ | 1 | <NULL> | 9223372036854775807 | 
+ | 1 | 1 | <NULL> | 
+ | 1 | 1 | 1 | 
+ | 1 | 1 | 9223372036854775807 | 
+ | 1 | 9223372036854775807 | <NULL> | 
+ | 1 | 9223372036854775807 | 1 | 
+ | 1 | 9223372036854775807 | 9223372036854775807 | 
+ | <NULL> | <NULL> | <NULL> | 
+ | <NULL> | <NULL> | 1 | 
+ | <NULL> | <NULL> | 9223372036854775807 | 
+ | <NULL> | 1 | <NULL> | 
+ | <NULL> | 1 | 1 | 
+ | <NULL> | 1 | 9223372036854775807 | 
+ | <NULL> | 9223372036854775807 | <NULL> | 
+ | <NULL> | 9223372036854775807 | 1 | 
+ | <NULL> | 9223372036854775807 | 9223372036854775807 | 
+
+
+<NEXT>
+Description: Test of combined index IntegerPoint_XDESC_Y_ZDESC
+QueryString: select l.X, l.Y, l.Z from IntegerPoint l option index(l IntegerPoint_XDESC_Y_ZDESC)
+IncludesProjection: True
+IncludesLiteral: True
+SingleObjectProjection: False
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SqlTest.Test3.IntegerPoint
+)
+Projection(
+	0 = 
+		IntegerProperty(0, X)
+	1 = 
+		IntegerProperty(0, Y)
+	2 = 
+		IntegerProperty(0, Z)
+)
+IndexScan(
+	IntegerPoint_XDESC_Y_ZDESC
+	0
+	X
+	IntegerDynamicRange(
+	)
+	Y
+	IntegerDynamicRange(
+	)
+	Z
+	IntegerDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! 0:Int64 ! 1:Int64 ! 2:Int64 ! 
+ | 9223372036854775807 | <NULL> | 9223372036854775807 | 
+ | 9223372036854775807 | <NULL> | 1 | 
+ | 9223372036854775807 | <NULL> | <NULL> | 
+ | 9223372036854775807 | 1 | 9223372036854775807 | 
+ | 9223372036854775807 | 1 | 1 | 
+ | 9223372036854775807 | 1 | <NULL> | 
+ | 9223372036854775807 | 9223372036854775807 | 9223372036854775807 | 
+ | 9223372036854775807 | 9223372036854775807 | 1 | 
+ | 9223372036854775807 | 9223372036854775807 | <NULL> | 
+ | 1 | <NULL> | 9223372036854775807 | 
+ | 1 | <NULL> | 1 | 
+ | 1 | <NULL> | <NULL> | 
+ | 1 | 1 | 9223372036854775807 | 
+ | 1 | 1 | 1 | 
+ | 1 | 1 | <NULL> | 
+ | 1 | 9223372036854775807 | 9223372036854775807 | 
+ | 1 | 9223372036854775807 | 1 | 
+ | 1 | 9223372036854775807 | <NULL> | 
+ | <NULL> | <NULL> | 9223372036854775807 | 
+ | <NULL> | <NULL> | 1 | 
+ | <NULL> | <NULL> | <NULL> | 
+ | <NULL> | 1 | 9223372036854775807 | 
+ | <NULL> | 1 | 1 | 
+ | <NULL> | 1 | <NULL> | 
+ | <NULL> | 9223372036854775807 | 9223372036854775807 | 
+ | <NULL> | 9223372036854775807 | 1 | 
+ | <NULL> | 9223372036854775807 | <NULL> | 
+
+
+<NEXT>
+Description: Test of combined index IntegerPoint_XDESC_YDESC_Z
+QueryString: select l.X, l.Y, l.Z from IntegerPoint l option index(l IntegerPoint_XDESC_YDESC_Z)
+IncludesProjection: True
+IncludesLiteral: True
+SingleObjectProjection: False
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SqlTest.Test3.IntegerPoint
+)
+Projection(
+	0 = 
+		IntegerProperty(0, X)
+	1 = 
+		IntegerProperty(0, Y)
+	2 = 
+		IntegerProperty(0, Z)
+)
+IndexScan(
+	IntegerPoint_XDESC_YDESC_Z
+	0
+	X
+	IntegerDynamicRange(
+	)
+	Y
+	IntegerDynamicRange(
+	)
+	Z
+	IntegerDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! 0:Int64 ! 1:Int64 ! 2:Int64 ! 
+ | 9223372036854775807 | 9223372036854775807 | <NULL> | 
+ | 9223372036854775807 | 9223372036854775807 | 1 | 
+ | 9223372036854775807 | 9223372036854775807 | 9223372036854775807 | 
+ | 9223372036854775807 | 1 | <NULL> | 
+ | 9223372036854775807 | 1 | 1 | 
+ | 9223372036854775807 | 1 | 9223372036854775807 | 
+ | 9223372036854775807 | <NULL> | <NULL> | 
+ | 9223372036854775807 | <NULL> | 1 | 
+ | 9223372036854775807 | <NULL> | 9223372036854775807 | 
+ | 1 | 9223372036854775807 | <NULL> | 
+ | 1 | 9223372036854775807 | 1 | 
+ | 1 | 9223372036854775807 | 9223372036854775807 | 
+ | 1 | 1 | <NULL> | 
+ | 1 | 1 | 1 | 
+ | 1 | 1 | 9223372036854775807 | 
+ | 1 | <NULL> | <NULL> | 
+ | 1 | <NULL> | 1 | 
+ | 1 | <NULL> | 9223372036854775807 | 
+ | <NULL> | 9223372036854775807 | <NULL> | 
+ | <NULL> | 9223372036854775807 | 1 | 
+ | <NULL> | 9223372036854775807 | 9223372036854775807 | 
+ | <NULL> | 1 | <NULL> | 
+ | <NULL> | 1 | 1 | 
+ | <NULL> | 1 | 9223372036854775807 | 
+ | <NULL> | <NULL> | <NULL> | 
+ | <NULL> | <NULL> | 1 | 
+ | <NULL> | <NULL> | 9223372036854775807 | 
+
+
+<NEXT>
+Description: Test of combined index IntegerPoint_XDESC_YDESC_ZDESC
+QueryString: select l.X, l.Y, l.Z from IntegerPoint l option index(l IntegerPoint_XDESC_YDESC_ZDESC)
+IncludesProjection: True
+IncludesLiteral: True
+SingleObjectProjection: False
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SqlTest.Test3.IntegerPoint
+)
+Projection(
+	0 = 
+		IntegerProperty(0, X)
+	1 = 
+		IntegerProperty(0, Y)
+	2 = 
+		IntegerProperty(0, Z)
+)
+IndexScan(
+	IntegerPoint_XDESC_YDESC_ZDESC
+	0
+	X
+	IntegerDynamicRange(
+	)
+	Y
+	IntegerDynamicRange(
+	)
+	Z
+	IntegerDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! 0:Int64 ! 1:Int64 ! 2:Int64 ! 
+ | 9223372036854775807 | 9223372036854775807 | 9223372036854775807 | 
+ | 9223372036854775807 | 9223372036854775807 | 1 | 
+ | 9223372036854775807 | 9223372036854775807 | <NULL> | 
+ | 9223372036854775807 | 1 | 9223372036854775807 | 
+ | 9223372036854775807 | 1 | 1 | 
+ | 9223372036854775807 | 1 | <NULL> | 
+ | 9223372036854775807 | <NULL> | 9223372036854775807 | 
+ | 9223372036854775807 | <NULL> | 1 | 
+ | 9223372036854775807 | <NULL> | <NULL> | 
+ | 1 | 9223372036854775807 | 9223372036854775807 | 
+ | 1 | 9223372036854775807 | 1 | 
+ | 1 | 9223372036854775807 | <NULL> | 
+ | 1 | 1 | 9223372036854775807 | 
+ | 1 | 1 | 1 | 
+ | 1 | 1 | <NULL> | 
+ | 1 | <NULL> | 9223372036854775807 | 
+ | 1 | <NULL> | 1 | 
+ | 1 | <NULL> | <NULL> | 
+ | <NULL> | 9223372036854775807 | 9223372036854775807 | 
+ | <NULL> | 9223372036854775807 | 1 | 
+ | <NULL> | 9223372036854775807 | <NULL> | 
+ | <NULL> | 1 | 9223372036854775807 | 
+ | <NULL> | 1 | 1 | 
+ | <NULL> | 1 | <NULL> | 
+ | <NULL> | <NULL> | 9223372036854775807 | 
+ | <NULL> | <NULL> | 1 | 
+ | <NULL> | <NULL> | <NULL> | 
+
+

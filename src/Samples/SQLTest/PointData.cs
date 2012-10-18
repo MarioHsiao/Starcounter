@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using Starcounter;
 
-namespace SqlTest.Test2
+namespace SQLTest.Test2
 {
     public static class Indexes
     {
     }
 }
 
-namespace SqlTest.PointDb
+namespace SQLTest.PointDb
 {
     public static class PointData
     {

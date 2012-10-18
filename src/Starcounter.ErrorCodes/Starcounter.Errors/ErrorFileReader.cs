@@ -1,4 +1,17 @@
-﻿
+﻿// ***********************************************************************
+// Assembly         : Starcounter.Errors
+// Author           : Starcounter AB
+// Created          : 10-17-2012
+//
+// Last Modified By : Starcounter AB
+// Last Modified On : 10-17-2012
+// ***********************************************************************
+// <copyright file="ErrorFileReader.cs" company="Starcounter AB">
+//     . All rights reserved.
+// </copyright>
+// <summary></summary>
+// ***********************************************************************
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -8,10 +21,21 @@ using System.Xml;
 
 namespace Starcounter.Errors
 {
+    /// <summary>
+    /// Class ErrorFileReader
+    /// </summary>
     public static class ErrorFileReader
     {
+        /// <summary>
+        /// The multiple whitespace
+        /// </summary>
         private static readonly Regex MultipleWhitespace = new Regex(@"\s+");
 
+        /// <summary>
+        /// Reads the error codes.
+        /// </summary>
+        /// <param name="instream">The instream.</param>
+        /// <returns>ErrorFile.</returns>
         public static ErrorFile ReadErrorCodes(Stream instream)
         {
             XmlReaderSettings settings;
@@ -45,6 +69,13 @@ namespace Starcounter.Errors
             return new ErrorFile(allCodes);
         }
 
+        /// <summary>
+        /// Nodes to error code.
+        /// </summary>
+        /// <param name="cnode">The cnode.</param>
+        /// <param name="facility">The facility.</param>
+        /// <returns>ErrorCode.</returns>
+        /// <exception cref="System.FormatException"></exception>
         static ErrorCode NodeToErrorCode(XmlNode cnode, Facility facility)
         {
             XmlElement e;
@@ -84,6 +115,12 @@ namespace Starcounter.Errors
             );
         }
 
+        /// <summary>
+        /// Nodes to facility.
+        /// </summary>
+        /// <param name="fnode">The fnode.</param>
+        /// <returns>Facility.</returns>
+        /// <exception cref="System.FormatException"></exception>
         static Facility NodeToFacility(XmlNode fnode)
         {
             XmlElement e;
@@ -101,6 +138,11 @@ namespace Starcounter.Errors
             return new Facility(name, code);
         }
 
+        /// <summary>
+        /// Trims the spaces and line breaks.
+        /// </summary>
+        /// <param name="s">The s.</param>
+        /// <returns>System.String.</returns>
         static string TrimSpacesAndLineBreaks(string s)
         {
             return MultipleWhitespace.Replace(s, " ").Trim(' ', '\r', '\n');

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Starcounter;
 
-namespace SqlTest.EmployeeDb
+namespace SQLTest.EmployeeDb
 {
     public static class EmployeeData
     {
@@ -313,7 +313,7 @@ namespace SqlTest.EmployeeDb
 
                 // Create instances of SqlTest.Test1b.Person (another namespace).
 
-                SqlTest.Test1b.Person person = new SqlTest.Test1b.Person();
+                SQLTest.Test1b.Person person = new SQLTest.Test1b.Person();
                 person.FirstName = "Adam";
                 person._LastName = "Adamsson";
                 objectList.Add(person);
@@ -340,7 +340,7 @@ namespace SqlTest.EmployeeDb
         public static bool CreateIndexes()
         {
             // Index on Enum property ASC.
-            Db.SlowSQL("create index Location_Type on SqlTest.EmployeeDb.Location (Type)");
+            Db.SlowSQL("create index Location_Type on SQLTest.EmployeeDb.Location (Type)");
             // Index on Nullable Enum property ASC.
             Db.SlowSQL("create index Location_NType on SqlTest.EmployeeDb.Location (NType)");
             // Index on Binary property. DOES NOT WORK!

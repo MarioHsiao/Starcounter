@@ -1,0 +1,180 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Starcounter.Errors</name>
+    </assembly>
+    <members>
+        <member name="T:Starcounter.Errors.ErrorCode">
+            <summary>
+            Class ErrorCode
+            </summary>
+        </member>
+        <member name="M:Starcounter.Errors.ErrorCode.#ctor(Starcounter.Errors.Facility,System.String,System.UInt16,Starcounter.Errors.Severity,System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Starcounter.Errors.ErrorCode"/> class.
+            </summary>
+            <param name="facility">The facility.</param>
+            <param name="name">The name.</param>
+            <param name="code">The code.</param>
+            <param name="severity">The severity.</param>
+            <param name="description">The description.</param>
+            <param name="remarkParagraphs">The remark paragraphs.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">code;Not a valid value (allowed range is 0-999): 0x</exception>
+        </member>
+        <member name="P:Starcounter.Errors.ErrorCode.Facility">
+            <summary>
+            Gets or sets the facility.
+            </summary>
+            <value>The facility.</value>
+        </member>
+        <member name="P:Starcounter.Errors.ErrorCode.Name">
+            <summary>
+            Gets or sets the name.
+            </summary>
+            <value>The name.</value>
+        </member>
+        <member name="P:Starcounter.Errors.ErrorCode.Code">
+            <summary>
+            Gets or sets the code.
+            </summary>
+            <value>The code.</value>
+        </member>
+        <member name="P:Starcounter.Errors.ErrorCode.Severity">
+            <summary>
+            Gets or sets the severity.
+            </summary>
+            <value>The severity.</value>
+        </member>
+        <member name="P:Starcounter.Errors.ErrorCode.Description">
+            <summary>
+            Gets or sets the description.
+            </summary>
+            <value>The description.</value>
+        </member>
+        <member name="P:Starcounter.Errors.ErrorCode.RemarkParagraphs">
+            <summary>
+            Gets the remark paragraphs.
+            </summary>
+            <value>The remark paragraphs.</value>
+        </member>
+        <member name="P:Starcounter.Errors.ErrorCode.ConstantName">
+            <summary>
+            Gets the name of the constant.
+            </summary>
+            <value>The name of the constant.</value>
+        </member>
+        <member name="P:Starcounter.Errors.ErrorCode.CodeWithFacility">
+            <summary>
+            Gets the code with facility.
+            </summary>
+            <value>The code with facility.</value>
+        </member>
+        <member name="T:Starcounter.Errors.ErrorFile">
+            <summary>
+            Class ErrorFile
+            </summary>
+        </member>
+        <member name="F:Starcounter.Errors.ErrorFile.ErrorCodes">
+            <summary>
+            The error codes
+            </summary>
+        </member>
+        <member name="M:Starcounter.Errors.ErrorFile.#ctor(System.Collections.Generic.IList{Starcounter.Errors.ErrorCode})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Starcounter.Errors.ErrorFile"/> class.
+            </summary>
+            <param name="codes">The codes.</param>
+        </member>
+        <member name="T:Starcounter.Errors.ErrorFileReader">
+            <summary>
+            Class ErrorFileReader
+            </summary>
+        </member>
+        <member name="F:Starcounter.Errors.ErrorFileReader.MultipleWhitespace">
+            <summary>
+            The multiple whitespace
+            </summary>
+        </member>
+        <member name="M:Starcounter.Errors.ErrorFileReader.ReadErrorCodes(System.IO.Stream)">
+            <summary>
+            Reads the error codes.
+            </summary>
+            <param name="instream">The instream.</param>
+            <returns>ErrorFile.</returns>
+        </member>
+        <member name="M:Starcounter.Errors.ErrorFileReader.NodeToErrorCode(System.Xml.XmlNode,Starcounter.Errors.Facility)">
+            <summary>
+            Nodes to error code.
+            </summary>
+            <param name="cnode">The cnode.</param>
+            <param name="facility">The facility.</param>
+            <returns>ErrorCode.</returns>
+            <exception cref="T:System.FormatException"></exception>
+        </member>
+        <member name="M:Starcounter.Errors.ErrorFileReader.NodeToFacility(System.Xml.XmlNode)">
+            <summary>
+            Nodes to facility.
+            </summary>
+            <param name="fnode">The fnode.</param>
+            <returns>Facility.</returns>
+            <exception cref="T:System.FormatException"></exception>
+        </member>
+        <member name="M:Starcounter.Errors.ErrorFileReader.TrimSpacesAndLineBreaks(System.String)">
+            <summary>
+            Trims the spaces and line breaks.
+            </summary>
+            <param name="s">The s.</param>
+            <returns>System.String.</returns>
+        </member>
+        <member name="T:Starcounter.Errors.Facility">
+            <summary>
+            Class Facility
+            </summary>
+        </member>
+        <member name="M:Starcounter.Errors.Facility.#ctor(System.String,System.UInt32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Starcounter.Errors.Facility"/> class.
+            </summary>
+            <param name="name">The name.</param>
+            <param name="code">The code.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">code;Not a valid 12-bit value: 0x</exception>
+        </member>
+        <member name="P:Starcounter.Errors.Facility.Name">
+            <summary>
+            Gets or sets the name.
+            </summary>
+            <value>The name.</value>
+        </member>
+        <member name="P:Starcounter.Errors.Facility.Code">
+            <summary>
+            Gets or sets the code.
+            </summary>
+            <value>The code.</value>
+        </member>
+        <member name="T:Starcounter.Errors.Severity">
+            <summary>
+            Enum Severity
+            </summary>
+        </member>
+        <member name="F:Starcounter.Errors.Severity.Success">
+            <summary>
+            The success
+            </summary>
+        </member>
+        <member name="F:Starcounter.Errors.Severity.Informational">
+            <summary>
+            The informational
+            </summary>
+        </member>
+        <member name="F:Starcounter.Errors.Severity.Warning">
+            <summary>
+            The warning
+            </summary>
+        </member>
+        <member name="F:Starcounter.Errors.Severity.Error">
+            <summary>
+            The error
+            </summary>
+        </member>
+    </members>
+</doc>

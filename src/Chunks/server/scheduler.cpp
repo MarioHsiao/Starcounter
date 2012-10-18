@@ -817,52 +817,6 @@ chunk_index the_chunk_index) {
 	// reference used as shorthand
 	channel_type& the_channel = channel_[the_channel_index];
 	
-	///-------------------------------------------------------------------------
-									#if 0 /// how to: acquire_to_chunk_pool(), release_from_chunk_pool(),
-									/// acquire_linked_chunks(), and release_linked_chunks() from/to private
-									/// chunk_pool.
-
-									chunk_index head;
-									
-									// Acquiring from shared_chunk_pool to private chunk_pool.
-									shared_chunk_pool_->acquire_to_chunk_pool(this_scheduler_interface_->
-									chunk_pool(), a_bunch_of_chunks, 1000);
-									
-									// Acquiring from private chunk_pool.
-									if (this_scheduler_interface_->chunk_pool()
-									.acquire_linked_chunks(&chunk(0), head, 65536, the_channel.client()) ==
-									true) {
-										//std::cout << "scheduler: acquire_linked_chunks() OK!" << std::endl;
-										
-										// Releasing to private chunk_pool.
-										if (this_scheduler_interface_->chunk_pool()
-										.release_linked_chunks(&chunk(0), head, the_channel.client()) == true) {
-											//std::cout << "scheduler: release_linked_chunks() OK!" << std::endl;
-										}
-									}
-
-									// Releasing from private chunk_pool to shared_chunk_pool.
-									shared_chunk_pool_->release_from_chunk_pool(this_scheduler_interface_->
-									chunk_pool(), a_bunch_of_chunks, 1000);
-									
-									#endif /// how to
-	///-------------------------------------------------------------------------
-									/// DEBUG TEST. acquire_linked_chunk_indexes() behaves correctly.
-									#if 0
-									//std::cout << "Before linking:\n";
-									//show_linked_chunks(the_chunk_index);
-									chunk_index k = the_channel_index;
-									if (acquire_linked_chunk_indexes(the_channel_index,
-									the_chunk_index, 1) != 0) {
-										std::cout << "OUT OF MEMORY" << std::endl;
-										Sleep(INFINITE);
-									}
-									
-									//std::cout << "After linking:\n";
-									//show_linked_chunks(the_chunk_index);
-									#endif
-	///-------------------------------------------------------------------------
-
     // Checking if overflow pool is empty otherwise put into it.
 	if (this_scheduler_interface_->overflow_pool().empty() &&
         the_channel.out.try_push_front(the_chunk_index)) {
@@ -1027,8 +981,6 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 	/// Remove chunk indices from the overflow_pool targeted for this channel.
 	///=========================================================================
 	
-	//uint32_t overflow_indices_removed = 0;
-	
 	if (!this_scheduler_interface_->overflow_pool().empty()) {
 		// This type must be uint32_t.
 		uint32_t chunk_index_and_channel;
@@ -1045,9 +997,6 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 				this_scheduler_interface_->overflow_pool().push_front
 				(chunk_index_and_channel);
 			}
-			//else {
-			//	++overflow_indices_removed;
-			//}
 		}
 	}
 	
@@ -1303,34 +1252,6 @@ unsigned long server_port::acquire_linked_chunk_indexes(unsigned long channel_nu
 	if (div_value.rem != 0) needed_chunks++;
 
 	uint8_t* current_chunk = (uint8_t*)&chunk_[start_chunk_index];
-	//--------------------------------------------------------------------------
-	
-																				#if 0 // Using obsolete API.
-																				// TODO: 
-																				// A method inside the chunk_pool should be used to avoid locking/unlocking 
-																				// for each call to acquire an index. And the owner_id should also be stamped
-																				// there.
-
-																				// TODO:
-																				// Need to handle if sufficient chunks are not available.
-																				for (uint32_t i = 0; i < needed_chunks; i++)
-																				{
-																					shared_chunk_pool_->pop_back(&the_chunk_index);
-																					*((uint32_t*)&current_chunk[chunk_size - 4]) = the_chunk_index;
-
-																					// The owner_id no longer resides in the chunk itself. It is found in
-																					// the client_interface owned by the caller, where it is marked in the
-																					// resource_map. This is not done when the caller is the database proc.
-																					//*((uint64_t*)&current_chunk[0]) = the_owner_id;
-
-																					current_chunk = (uint8_t*)&chunk_[the_chunk_index];
-																				}
-																				*((uint32_t*)&current_chunk[chunk_size - 4]) = ~0;
-																				return 0;
-																				#endif // Using obsolete API.
-	
-	//--------------------------------------------------------------------------
-	// Using new API:
 	chunk_index head;
 	
 	if (needed_chunks < a_bunch_of_chunks) {
@@ -1393,34 +1314,6 @@ unsigned long server_port::acquire_linked_chunk_indexes_counted(unsigned long ch
 	//uint64_t the_owner_id = the_channel.get_owner_id().get_owner_id();
 
 	uint8_t* current_chunk = (uint8_t*)&chunk_[start_chunk_index];
-	//--------------------------------------------------------------------------
-	
-																				#if 0 // Using obsolete API.
-																				// TODO: 
-																				// A method inside the chunk_pool should be used to avoid locking/unlocking 
-																				// for each call to acquire an index. And the owner_id should also be stamped
-																				// there.
-
-																				// TODO:
-																				// Need to handle if sufficient chunks are not available.
-																				for (uint32_t i = 0; i < needed_chunks; i++)
-																				{
-																					shared_chunk_pool_->pop_back(&the_chunk_index);
-																					*((uint32_t*)&current_chunk[chunk_size - 4]) = the_chunk_index;
-
-																					// The owner_id no longer resides in the chunk itself. It is found in
-																					// the client_interface owned by the caller, where it is marked in the
-																					// resource_map. This is not done when the caller is the database proc.
-																					//*((uint64_t*)&current_chunk[0]) = the_owner_id;
-
-																					current_chunk = (uint8_t*)&chunk_[the_chunk_index];
-																				}
-																				*((uint32_t*)&current_chunk[chunk_size - 4]) = ~0;
-																				return 0;
-																				#endif // Using obsolete API.
-	
-	//--------------------------------------------------------------------------
-	// Using new API:
 	chunk_index head;
 	
 	if (num_chunks < a_bunch_of_chunks) {
