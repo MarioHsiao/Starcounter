@@ -8,7 +8,11 @@ using System.Reflection;
 namespace Starcounter.VisualStudio {
     public abstract class BaseVsPackage : Package {
         static ActivityLogWriter _logWriter = null;
-        static string installationDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        
+        /// <summary>
+        /// Gets the full path to the Starcounter installation directory.
+        /// </summary>
+        internal static readonly string InstallationDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         
         static BaseVsPackage() {            
             AppDomain.CurrentDomain.AssemblyResolve += OnAssemblyResolve;
