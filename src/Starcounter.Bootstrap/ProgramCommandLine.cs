@@ -83,6 +83,11 @@ namespace StarcounterInternal.Bootstrap {
             /// not to connect to the database nor utilize the SQL engine.
             /// </summary>
             public const string NoDb = "NoDb";
+
+            /// <summary>
+            /// Indicates if this host Apps will utilize the network gateway.
+            /// </summary>
+            public const string NetworkApps = "NetworkApps";
         }
 
         internal static bool TryGetProgramArguments(string[] args, out ApplicationArguments arguments) {
@@ -128,6 +133,7 @@ namespace StarcounterInternal.Bootstrap {
             commandDefinition.DefineProperty(OptionNames.SQLProcessPort, "Specifies TCP/IP port to be used by StarcounterSQL.exe.");
             commandDefinition.DefineProperty(OptionNames.SchedulerCount, "Specifies the number of schedulers.");
             commandDefinition.DefineFlag(OptionNames.NoDb, "Instructs the program not to connect to the database nor use the SQL engine.");
+            commandDefinition.DefineFlag(OptionNames.NetworkApps, "Indicates that the host can communicate with network gateway.");
 
             // Create the syntax, validating it
             syntax = syntaxDefinition.CreateSyntax();
