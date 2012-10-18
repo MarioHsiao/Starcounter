@@ -19,6 +19,7 @@ namespace Starcounter.VisualStudio.Projects {
     internal sealed class AssemblyDebugConfiguration {
         string outputType;
         string startAction;
+        string startArgumentsString;
 
         /// <summary>
         /// Defines the set of output types we can allow.
@@ -41,6 +42,18 @@ namespace Starcounter.VisualStudio.Projects {
         internal string WorkingDirectory {
             get;
             private set;
+        }
+
+        internal string[] Arguments {
+            get {
+                // TODO PSA:
+                // The below is not sufficient for a production release,
+                // since it doesn't handle espaped strings and strings with
+                // spaces. It's in the backlog to fix it.
+                return string.IsNullOrEmpty(startArgumentsString)
+                    ? new string[] {}
+                    : startArgumentsString.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            }
         }
 
         internal bool IsConsoleApplication {
@@ -99,11 +112,7 @@ namespace Starcounter.VisualStudio.Projects {
             }
             this.WorkingDirectory = workingDirectory;
 
-            // Parse start arguments properly, and be sure we can send them
-            // through the infrastructure.
-            // TODO:
-
-            var arguments = cfg.GetPropertyValue(ConfigurationProperty.StartArguments);
+            this.startArgumentsString = cfg.GetPropertyValue(ConfigurationProperty.StartArguments);
         }
     }
 }
