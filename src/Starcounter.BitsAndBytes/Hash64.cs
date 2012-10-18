@@ -1,4 +1,18 @@
-﻿public class Hash64 {
+﻿// ***********************************************************************
+// <copyright file="Hash64.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+/// <summary>
+/// Class Hash64
+/// </summary>
+public class Hash64 {
+    /// <summary>
+    /// Computes the hash code.
+    /// </summary>
+    /// <param name="url">The URL.</param>
+    /// <returns>System.Int64.</returns>
     public static long ComputeHashCode(string url) {
         const ulong p = 1099511628211;
 
