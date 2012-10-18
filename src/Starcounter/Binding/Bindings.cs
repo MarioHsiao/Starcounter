@@ -33,6 +33,7 @@ namespace Starcounter.Binding
             {
                 typeDef = typeDefs[i];
                 typeDefsByName.Add(typeDef.Name, typeDef);
+                typeDefsByName.Add(typeDef.Name.ToUpper(), typeDef);
             }
 
             List<TypeDef> typeDefsById = new List<TypeDef>(typeDefsById_);
@@ -151,6 +152,7 @@ namespace Starcounter.Binding
         {
             Dictionary<string, TypeBinding> typeBindingsByName = new Dictionary<string, TypeBinding>(typeBindingsByName_);
             typeBindingsByName.Add(typeBinding.Name, typeBinding);
+            typeBindingsByName.Add(typeBinding.UpperName, typeBinding);
 
             List<TypeBinding> typeBindingsById = new List<TypeBinding>(typeBindingsById_);
             var tableId = typeBinding.TypeDef.TableDef.TableId;

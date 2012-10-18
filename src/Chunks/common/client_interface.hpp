@@ -283,6 +283,7 @@ public:
 			//std::cout << this << " client WaitForSingleObject() failed. Error" << ::GetLastError() << "\n"; /// DEBUG
 			return false;
 		}
+		return false;
 	}
 #else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
 	// Using Boost.Interprocess to synchronize.
