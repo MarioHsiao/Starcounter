@@ -1,38 +1,26 @@
 ﻿
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.IO;
+using Starcounter.Internal;
+using Starcounter.ABCIPC;
+using Starcounter.ABCIPC.Internal;
+using Starcounter.Server.PublicModel;
+using System.Threading;
+using EnvDTE;
+using EnvDTE90;
 
 namespace Starcounter.VisualStudio.Projects {
-    
+    using Thread = System.Threading.Thread;
+
     [ComVisible(false)]
     internal class AppExeProjectConfiguration : StarcounterProjectConfiguration {
-        /// <summary>
-        /// The names of the project properties utilized by this class.
-        /// </summary>
-        static class PropertyNames {
-            internal const string StartAction = "StartAction";
-            internal const string AssemblyPath = "TargetPath";
-            internal const string WorkingDirectory = "StartWorkingDirectory";
-            internal const string StartArguments = "StartArguments";
-        }
 
         public AppExeProjectConfiguration(VsPackage package, IVsHierarchy project, IVsProjectCfg baseConfiguration, IVsProjectFlavorCfg innerConfiguration)
             : base(package, project, baseConfiguration, innerConfiguration) {
-        }
-
-        protected override void DefineSupportedProperties(Dictionary<string, ProjectPropertySettings> properties) {
-            base.DefineSupportedProperties(properties);
-            properties[PropertyNames.StartAction] =
-                new ProjectPropertySettings(_PersistStorageType.PST_USER_FILE, true, ProjectStartAction.Project);
-            properties[PropertyNames.AssemblyPath] =
-                new ProjectPropertySettings(_PersistStorageType.PST_USER_FILE, true);
-            properties[PropertyNames.WorkingDirectory] =
-                new ProjectPropertySettings(_PersistStorageType.PST_USER_FILE, true);
-            properties[PropertyNames.StartArguments] =
-                new ProjectPropertySettings(_PersistStorageType.PST_USER_FILE, true);
         }
 
         protected override bool CanBeginDebug(__VSDBGLAUNCHFLAGS flags) {
@@ -40,43 +28,161 @@ namespace Starcounter.VisualStudio.Projects {
         }
 
         protected override bool BeginDebug(__VSDBGLAUNCHFLAGS flags) {
-            
-            // Do this:
-            // 1. Get the configured start action. Currently, we support only
-            // the project start action.
+            Dictionary<string, string> properties = new Dictionary<string, string>();
+            CommandInfo command = null;
+            DatabaseInfo database = null;
 
-            if (!string.Equals(
-                GetPropertyValue(PropertyNames.StartAction), 
-                ProjectStartAction.Project, StringComparison.InvariantCultureIgnoreCase)) {
+            var debugConfiguration = new AssemblyDebugConfiguration(this);
+            if (!debugConfiguration.IsStartProject) {
                 throw new NotSupportedException("Only 'Project' start action is currently supported.");
             }
 
-            // 2. Get the state we need: at a very minimum, the path to the executable.
-            // Also query the command-line and the working directory.
+            // Create a client object to be able to communicate with the server.
+            // We use the built-in ABCIPC core services of the server to execute
+            // assemblies.
+            
+            var client = ClientServerFactory.CreateClientUsingNamedPipes(
+                string.Format("sc//{0}/{1}", Environment.MachineName, "personal").ToLowerInvariant());
 
-            var targetAssembly = GetPropertyValue(PropertyNames.AssemblyPath);
-            if (string.IsNullOrEmpty(targetAssembly) || !File.Exists(targetAssembly)) {
-                throw new FileNotFoundException("Unable to find assembly to run.", targetAssembly);
+            properties.Add("AssemblyPath", debugConfiguration.AssemblyPath);
+            properties.Add("WorkingDir", debugConfiguration.WorkingDirectory);
+            
+            // TODO:
+            // Arguments we don't send just yet. We must parse the args string
+            // to a proper array and send that.
+            // properties.Add("Args", KeyValueBinary.FromArray(new string[] { "@@NoDb" }).Value);
+            // properties.Add("Args", arguments.Split());
+
+            // Send the request to the server and dezerialize the reply
+            // to get the information about the command.
+            //   Then iterate until we see that the command has completed,
+            // and evaluate the result.
+            
+            client.Send("ExecApp", properties, (Reply reply) => {
+                if (!reply.IsSuccess) throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, reply.ToString());
+                command = ServerUtility.DeserializeCarry<CommandInfo>(reply);
+            });
+
+            while (!command.IsCompleted) {
+                Thread.Sleep(150);
+
+                client.Send("GetCompletedCommand", command.Id.ToString(), (Reply reply) => {
+                    if (!reply.IsSuccess) throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, reply.ToString());
+                    if (reply.HasCarry) {
+                        command = ServerUtility.DeserializeCarry<CommandInfo>(reply);
+                    }
+                });
             }
-            var workingDirectory = GetPropertyValue(PropertyNames.WorkingDirectory);
-            if (string.IsNullOrEmpty(workingDirectory)) {
-                workingDirectory = Path.GetDirectoryName(targetAssembly);
+
+            // We now have the final result of the command.
+            // If it succeeded (i.e. has no errors) we should be able to get the
+            // database from the command.
+            if (command.HasError)
+                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, command.Errors[0].ToString());
+
+            // The exec command succeeded. It should mean we could now get
+            // the database information, including all we need to attach the
+            // debugger to the host process
+
+            client.Send("GetDatabase", ScUri.FromString(command.DatabaseUri).DatabaseName, (Reply reply) => {
+                if (!reply.IsSuccess) throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, reply.ToString());
+                database = ServerUtility.DeserializeCarry<DatabaseInfo>(reply);
+            });
+            
+            LaunchDebugEngine(flags, debugConfiguration, database);
+            return true;
+        }
+
+        void LaunchDebugEngine(__VSDBGLAUNCHFLAGS flags, AssemblyDebugConfiguration debugConfiguration, DatabaseInfo database) {
+            DTE dte;
+            bool attached;
+            string errorMessage;
+
+            this.debugLaunchDescription = string.Format("Attaching the debugger to database {0}", database.Name);
+            this.WriteDebugLaunchStatus(null);
+
+            try {
+                dte = this.package.DTE;
+                var debugger = (Debugger3)dte.Debugger;
+                attached = false;
+
+                foreach (Process3 process in debugger.LocalProcesses) {
+                    if (process.ProcessID == database.HostProcessId) {
+                        process.Attach();
+                        attached = true;
+                        break;
+                    }
+                }
+
+                if (attached == false) {
+                    this.ReportError(
+                        "Cannot attach the debugger to the database {0}. Process {1} not found.",
+                        database.Name,
+                        database.HostProcessId
+                        );
+                    return;
+                }
+            } catch (COMException comException) {
+                if (comException.ErrorCode == -2147221447) {
+                    // "Exception from HRESULT: 0x80040039"
+                    //
+                    // Occurs when the database runs with higher privileges than the user
+                    // running Visual Studio. In that case, the debugger is not allowed to
+                    // attach.
+                    //
+                    // http://msdn.microsoft.com/en-us/library/system.runtime.interopservices.externalexception.errorcode(v=VS.90).aspx
+                    // http://blogs.msdn.com/b/joshpoley/archive/2008/01/04/errors-004-facility-itf.aspx
+                    // http://msdn.microsoft.com/en-us/library/ms734241(v=vs.85).aspx
+
+                    errorMessage = string.Format(
+                        "Attaching the debugger to the database \"{0}\" in process {1} was not allowed. ",
+                        database.Name, database.HostProcessId);
+                    errorMessage +=
+                        "The database runs with higher privileges than Visual Studio. Either restart Visual Studio " +
+                        "and run it as an administrator, or make sure the database runs in non-elevated mode.";
+
+                    this.ReportError(errorMessage);
+                    return;
+                }
+
+                throw comException;
+            } finally {
+                this.debugLaunchPending = false;
             }
-            var arguments = GetPropertyValue(PropertyNames.StartArguments);
 
-            // 3. Ask the server to exec the executable. Just the same as when an app
-            // starts up (which must change for this to work, using the standard named pipes).
-            // TODO:
+            // The database is in fact running and the debugger is attached.
+            // Start the configured startup program.
 
-            // 4. Get back the process identity of the database in which the app now
-            // runs.
-            // TODO:
+            this.debugLaunchDescription = "Starting configured startup program";
+            WriteDebugLaunchStatus(null);
+        }
 
-            // 5. Attatch the debugger to that process (i.e. the database).
-            // TODO:
+        void LaunchDebugEngine2(__VSDBGLAUNCHFLAGS flags, AssemblyDebugConfiguration debugConfiguration, DatabaseInfo database) {
+            var debugger = (IVsDebugger2)package.GetService(typeof(SVsShellDebugger));
+            var info = new VsDebugTargetInfo2();
 
+            info.cbSize = (uint)Marshal.SizeOf(info);
+            info.bstrExe = Path.Combine(BaseVsPackage.InstallationDirectory, "boot.exe");
+            info.dlo = (uint)DEBUG_LAUNCH_OPERATION.DLO_AlreadyRunning;
+            info.LaunchFlags = (uint) flags;
+            info.dwProcessId = (uint)database.HostProcessId;
+            info.bstrRemoteMachine = null;
+            info.fSendToOutputWindow = 0;
 
-            throw new NotImplementedException();
+            IntPtr pInfo = Marshal.AllocCoTaskMem((int)info.cbSize);
+            Marshal.StructureToPtr(info, pInfo, false);
+
+            try {
+                int errorcode = debugger.LaunchDebugTargets2(1, pInfo);
+                if (errorcode != VSConstants.S_OK) {
+                    string errorInfo = this.package.GetErrorInfo();
+                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("Failed to attach debug engine ({0}={1})", errorcode, errorInfo));
+                }
+            } finally {
+                if (pInfo != IntPtr.Zero) {
+                    Marshal.FreeCoTaskMem(pInfo);
+                }
+            }
         }
     }
 }
