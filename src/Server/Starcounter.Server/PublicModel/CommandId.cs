@@ -23,7 +23,7 @@ namespace Starcounter.Server.PublicModel {
         }
 
         private CommandId(Guid guid) {
-            this.Value = Guid.NewGuid().ToString();
+            this.Value = guid.ToString();
         }
 
         /// <summary>
@@ -32,6 +32,7 @@ namespace Starcounter.Server.PublicModel {
         /// a new instance.
         /// </summary>
         internal CommandId() {
+            this.Value = CommandId.Null.ToString();
         }
 
         /// <summary>
