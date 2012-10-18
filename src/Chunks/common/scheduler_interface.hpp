@@ -117,7 +117,7 @@ public:
 	notify_(false),
 	predicate_(false),
 	client_interface_(0) {
-#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 		if (segment_name != 0) {
 			char notify_name[segment_and_notify_name_size];
 			wchar_t w_notify_name[segment_and_notify_name_size];
@@ -151,14 +151,14 @@ public:
 		else {
 			// TODO: Handle the error - no segment name. Throw an exception.
 		}
-#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	}
 	
-#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	~scheduler_interface() {
 		::CloseHandle(work_);
 	}
-#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 	void pop_back_channel_number(channel_number* the_channel_number) {
 		channel_number_.pop_back(the_channel_number);
@@ -267,8 +267,7 @@ public:
 	// Clients call notify() each time they push a message on a channel, or mark
 	// the channel for release, in order to wake up the scheduler it
 	// communicates with, if it is waiting.
-#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-	// Use Windows Events to synchronize.
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	void notify(HANDLE work) {
 		if (false /*get_notify_flag() == false*/) { /// DEBUG TEST - FORCE NOTIFICATION
 			// No need to notify the scheduler because it is not waiting.
@@ -281,8 +280,7 @@ public:
 			}
 		}
 	}
-#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-	// Use Boost.Interprocess to synchronize.
+#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
 	void notify() {
 		if (get_notify_flag() == false) {
 			// No need to notify the scheduler because it is not waiting.
@@ -299,25 +297,23 @@ public:
 			work_.notify_one(); // In the client interface we notify all.
 		}
 	}
-#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 	//--------------------------------------------------------------------------
 	// The monitor call try_to_notify_scheduler_to_do_clean_up() if a client
 	// process has crashed, in order to wake up the scheduler if it is waiting.
 	// A scheduler that is woken up is required to see if the channel is marked
 	// for clean-up. Maybe this is not at all required, it may be irrelevent.
-#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-	// Use Windows Events to synchronize.
-	bool try_to_notify_scheduler_to_do_clean_up(uint32_t timeout_milliseconds) {
-		if (!::SetEvent(work_)) {
-			//std::cout << this << ": SetEvent(" << work_ << ") <3> failed with the error: "
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
+	bool try_to_notify_scheduler_to_do_clean_up(HANDLE work) {
+		if (!::SetEvent(work)) {
+			//std::cout << this << ": SetEvent(" << work << ") <3> failed with the error: "
 			//<< ::GetLastError() << "\n"; /// DEBUG
 			return false;
 		}
 		return true;
 	}
-#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-	// Use Boost.Interprocess to synchronize.
+#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
 	bool try_to_notify_scheduler_to_do_clean_up(uint32_t timeout_milliseconds) {
 		const boost::system_time timeout = boost::posix_time::microsec_clock
 		::universal_time() +boost::posix_time::milliseconds
@@ -340,7 +336,7 @@ public:
 			return false;
 		}
 	}
-#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 	// Setting predicate to true means the condition is met
 	// and the wait is over, the thread waiting will not wait any more.
@@ -363,8 +359,7 @@ public:
 	 * @return false if the call is returning because the time period specified
 	 *		by timeout_milliseconds has elapsed, true otherwise.
 	 */
-#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-	// Use Windows Events to synchronize.
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	bool wait_for_work(unsigned int timeout_milliseconds) {
 		//std::cout << this << " scheduler is waiting...\n"; /// DEBUG
 		switch (::WaitForSingleObject(work_, timeout_milliseconds)) {
@@ -388,9 +383,9 @@ public:
 			//std::cout << this << " scheduler WaitForSingleObject() failed. Error" << ::GetLastError() << "\n"; /// DEBUG
 			return false;
 		}
+		return false;
 	}
-#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-	// Use Boost.Interprocess to synchronize.
+#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
 	bool wait_for_work(unsigned int timeout_milliseconds) {
 		// boost::get_system_time() also works.
 		const boost::system_time timeout
@@ -423,7 +418,7 @@ public:
 		//std::cout << this << " scheduler is running (timeout)\n"; /// DEBUG
 		return false;
 	}
-#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 	uint64_t get_client_interface_as_qword() {
 		boost::interprocess::scoped_lock
@@ -446,14 +441,12 @@ public:
 private:
 	// Condition to wait when the all of this scheduler's channels in queues,
 	// and the scheduler channels in queue are empty.
-#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-	// Use Windows Events to synchronize.
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	HANDLE work_;
-#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-	// Use Boost.Interprocess to synchronize.
+#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
 	boost::interprocess::interprocess_condition work_;
 	boost::interprocess::interprocess_mutex mutex_;
-#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 	// Sync access to client_interface - probably not needed.
 	boost::interprocess::interprocess_mutex client_interface_mutex_;

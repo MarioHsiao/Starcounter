@@ -854,22 +854,19 @@ unsigned long server_port::send_task_to_scheduler(unsigned long port_number,
 chunk_index the_chunk_index) {
 	scheduler_channel_type& the_channel = scheduler_task_channel_[port_number];
 	if (the_channel.in.try_push_front(the_chunk_index)) {
-#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-	// Using Windows Events to synchronize.
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 		// Get the work HANDLE...
 		HANDLE work = 0; /// TEST COMPILE
 		scheduler_interface_[port_number].notify(work);
-#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-	// Using Boost.Interprocess to synchronize.
+#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
 		scheduler_interface_[port_number].notify();
-#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 		return 0;
 	}
 	return _E_INPUT_QUEUE_FULL;
 }
 
-#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-	// Using Windows Events to synchronize.
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 unsigned long server_port::send_signal_to_scheduler(unsigned long port_number,
 chunk_index the_chunk_index) {
 	scheduler_channel_type& the_channel = scheduler_signal_channel_[port_number];
@@ -880,8 +877,7 @@ chunk_index the_chunk_index) {
 	}
 	return _E_INPUT_QUEUE_FULL;
 }
-#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-	// Using Boost.Interprocess to synchronize.
+#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
 unsigned long server_port::send_signal_to_scheduler(unsigned long port_number,
 chunk_index the_chunk_index) {
 	scheduler_channel_type& the_channel = scheduler_signal_channel_[port_number];
@@ -891,7 +887,7 @@ chunk_index the_chunk_index) {
 	}
 	return _E_INPUT_QUEUE_FULL;
 }
-#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 
 void server_port::add_ref_to_channel(unsigned long the_channel_index)
 {

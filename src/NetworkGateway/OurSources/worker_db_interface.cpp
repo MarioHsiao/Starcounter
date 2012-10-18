@@ -52,14 +52,12 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
         {
             // A message on channel ch was received. Notify the database
             // that the out queue in this channel is not full.
-#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-			// Use Windows Events to synchronize.
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 			the_channel.scheduler()->notify(shared_int_.get_work_event
 			(the_channel.get_scheduler_number()));
-#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-			// Use Boost.Interprocess to synchronize.
+#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
             the_channel.scheduler()->notify();
-#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 
             // Get the chunk.
             shared_memory_chunk* smc = (shared_memory_chunk*) &(shared_int_.chunk(chunk_index));
@@ -162,14 +160,12 @@ uint32_t WorkerDbInterface::PushLinkedChunksToDb(
     {
         // A message on channel ch was received. Notify the database
         // that the out queue in this channel is not full.
-#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-		// Use Windows Events to synchronize.
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 		the_channel.scheduler()->notify(shared_int_.get_work_event
 		(the_channel.get_scheduler_number()));
-#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-		// Use Boost.Interprocess to synchronize.
+#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
         the_channel.scheduler()->notify();
-#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 
 #ifdef GW_CHUNKS_DIAG
         GW_PRINT_WORKER << "   successfully pushed: chunk " << chunk_index << std::endl;
