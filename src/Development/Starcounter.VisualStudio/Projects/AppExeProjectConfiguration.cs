@@ -61,7 +61,7 @@ namespace Starcounter.VisualStudio.Projects {
             });
 
             while (!command.IsCompleted) {
-                Thread.Sleep(150);
+                Thread.Sleep(650);
 
                 client.Send("GetCompletedCommand", command.Id.ToString(), (Reply reply) => {
                     if (!reply.IsSuccess) throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, reply.ToString());
