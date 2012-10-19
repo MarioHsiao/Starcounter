@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="Control.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Runtime.InteropServices;
 using Starcounter.CommandLine;
@@ -12,11 +17,21 @@ using Error = Starcounter.Internal.Error;
 
 namespace StarcounterInternal.Bootstrap
 {
+    /// <summary>
+    /// Class Control
+    /// </summary>
     public class Control // TODO: Make internal.
     {
         // Loaded configuration info.
+        /// <summary>
+        /// The configuration
+        /// </summary>
         Configuration configuration = null;
 
+        /// <summary>
+        /// Defines the entry point of the application.
+        /// </summary>
+        /// <param name="args">The args.</param>
         public static void Main(string[] args)
         {
             try
@@ -36,9 +51,20 @@ namespace StarcounterInternal.Bootstrap
             }
         }
 
+        /// <summary>
+        /// The withdb_
+        /// </summary>
         private bool withdb_;
+        /// <summary>
+        /// The hsched_
+        /// </summary>
         private unsafe void* hsched_;
 
+        /// <summary>
+        /// Setups the specified args.
+        /// </summary>
+        /// <param name="args">The args.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         private unsafe bool Setup(string[] args)
         {
 #if false
@@ -101,6 +127,9 @@ namespace StarcounterInternal.Bootstrap
             return true;
         }
 
+        /// <summary>
+        /// Starts this instance.
+        /// </summary>
         private unsafe void Start()
         {
             uint e = sccorelib.cm2_start(hsched_);
@@ -108,6 +137,9 @@ namespace StarcounterInternal.Bootstrap
             throw ErrorCode.ToException(e);
         }
 
+        /// <summary>
+        /// Runs this instance.
+        /// </summary>
         private unsafe void Run()
         {
             var appDomain = AppDomain.CurrentDomain;
@@ -181,6 +213,9 @@ namespace StarcounterInternal.Bootstrap
             server.Receive();
         }
 
+        /// <summary>
+        /// Stops this instance.
+        /// </summary>
         private unsafe void Stop()
         {
             uint e = sccorelib.cm2_stop(hsched_, 1);
@@ -188,13 +223,23 @@ namespace StarcounterInternal.Bootstrap
             throw ErrorCode.ToException(e);
         }
 
+        /// <summary>
+        /// Cleanups this instance.
+        /// </summary>
         private void Cleanup()
         {
             DisconnectDatabase();
         }
 
+        /// <summary>
+        /// The process control_
+        /// </summary>
         private System.Threading.EventWaitHandle processControl_;
 
+        /// <summary>
+        /// Assures the name of the no other process with the same.
+        /// </summary>
+        /// <param name="c">The c.</param>
         private void AssureNoOtherProcessWithTheSameName(Configuration c)
         {
             try
@@ -214,6 +259,11 @@ namespace StarcounterInternal.Bootstrap
             throw ErrorCode.ToException(Error.SCERRAPPALREADYSTARTED);
         }
 
+        /// <summary>
+        /// Calculates the amount of memory needed for runtime environment.
+        /// </summary>
+        /// <param name="schedulerCount">The scheduler count.</param>
+        /// <returns>System.UInt32.</returns>
         private uint CalculateAmountOfMemoryNeededForRuntimeEnvironment(uint schedulerCount)
         {
             uint s =
@@ -232,6 +282,12 @@ namespace StarcounterInternal.Bootstrap
             return s;
         }
 
+        /// <summary>
+        /// Configures the memory.
+        /// </summary>
+        /// <param name="c">The c.</param>
+        /// <param name="mem128">The mem128.</param>
+        /// <returns>System.UInt64.</returns>
         private unsafe ulong ConfigureMemory(Configuration c, void* mem128)
         {
             uint slabs = (0xFFFFF000 - 4096) / 4096;  // 4 GB - 4 KB
@@ -240,6 +296,12 @@ namespace StarcounterInternal.Bootstrap
             throw ErrorCode.ToException(Error.SCERROUTOFMEMORY);
         }
 
+        /// <summary>
+        /// Configures the logging.
+        /// </summary>
+        /// <param name="c">The c.</param>
+        /// <param name="hmenv">The hmenv.</param>
+        /// <returns>System.UInt64.</returns>
         private unsafe ulong ConfigureLogging(Configuration c, ulong hmenv)
         {
             uint e;
@@ -257,6 +319,10 @@ namespace StarcounterInternal.Bootstrap
             return hlogs;
         }
 
+        /// <summary>
+        /// Configures the host.
+        /// </summary>
+        /// <param name="hlogs">The hlogs.</param>
         private unsafe void ConfigureHost(ulong hlogs)
         {
             uint e = sccoreapp.sccoreapp_init((void*)hlogs);
@@ -265,6 +331,13 @@ namespace StarcounterInternal.Bootstrap
             LogManager.Setup(hlogs);
         }
 
+        /// <summary>
+        /// Configures the scheduler.
+        /// </summary>
+        /// <param name="c">The c.</param>
+        /// <param name="mem">The mem.</param>
+        /// <param name="hmenv">The hmenv.</param>
+        /// <param name="schedulerCount">The scheduler count.</param>
         private unsafe void* ConfigureScheduler(Configuration c, void* mem, ulong hmenv, uint schedulerCount)
         {
             if (withdb_) orange.orange_setup(hmenv);
@@ -295,6 +368,10 @@ namespace StarcounterInternal.Bootstrap
             throw ErrorCode.ToException(e);
         }
 
+        /// <summary>
+        /// Configures the database.
+        /// </summary>
+        /// <param name="c">The c.</param>
         private unsafe void ConfigureDatabase(Configuration c)
         {
             uint e;
@@ -330,6 +407,13 @@ namespace StarcounterInternal.Bootstrap
             if (e != 0) throw ErrorCode.ToException(e);
         }
 
+        /// <summary>
+        /// Connects the database.
+        /// </summary>
+        /// <param name="configuration">The configuration.</param>
+        /// <param name="hsched">The hsched.</param>
+        /// <param name="hmenv">The hmenv.</param>
+        /// <param name="hlogs">The hlogs.</param>
         private unsafe void ConnectDatabase(Configuration configuration, void* hsched, ulong hmenv, ulong hlogs)
         {
             uint e;
@@ -350,6 +434,9 @@ namespace StarcounterInternal.Bootstrap
         }
 
 
+        /// <summary>
+        /// Disconnects the database.
+        /// </summary>
         private void DisconnectDatabase()
         {
             uint e = sccoredb.sccoredb_disconnect(0);
