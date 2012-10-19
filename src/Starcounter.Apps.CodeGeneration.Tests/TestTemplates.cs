@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="TestTemplates.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter;
 using System;
 using NUnit.Framework;
@@ -10,9 +15,15 @@ using System.IO;
 using System.Collections.Generic;
 
 namespace Test {
+    /// <summary>
+    /// Class TestTemplates
+    /// </summary>
     [TestFixture]
     public class TestTemplates {
 
+        /// <summary>
+        /// Creates the cs from js file.
+        /// </summary>
         [Test]
         public static void CreateCsFromJsFile() {
             AppTemplate templ = TemplateFromJs.ReadFile("MySampleApp.json");
@@ -20,6 +31,9 @@ namespace Test {
         }
 
 
+        /// <summary>
+        /// Generates the cs.
+        /// </summary>
         [Test]
         public static void GenerateCs() {
             AppTemplate actual = TemplateFromJs.ReadFile("MySampleApp.json");
@@ -29,6 +43,9 @@ namespace Test {
             Console.WriteLine(codegen.GenerateCode());
         }
 
+        /// <summary>
+        /// Generates the cs from simple js.
+        /// </summary>
         [Test]
         public static void GenerateCsFromSimpleJs() {
            AppTemplate actual = TemplateFromJs.ReadFile("simple.json");
@@ -45,6 +62,9 @@ namespace Test {
            Assert.AreEqual(facit, code);
         }
 
+        /// <summary>
+        /// Generates the cs with code behind.
+        /// </summary>
         [Test]
         public static void GenerateCsWithCodeBehind()
         {
