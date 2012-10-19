@@ -74,8 +74,9 @@ namespace StarcounterInternal.Bootstrap
             ulong hmenv = ConfigureMemory(configuration, mem);
             mem += 512;
 
-            // Initializing the bmx manager.
-            bmx.sc_init_bmx_manager();
+            // Initializing the BMX manager if we have network applications.
+            if (configuration.NetworkApps)
+                bmx.sc_init_bmx_manager();
 
             ulong hlogs = ConfigureLogging(configuration, hmenv);
 
@@ -163,9 +164,15 @@ namespace StarcounterInternal.Bootstrap
 
             if (withdb_) Loader.AddBasePackage(hsched_);
 
+            // TODO: Fix the proper BMX push channel registration with gateway.
+            // Waiting until BMX component is ready.
+            if (configuration.NetworkApps)
+                bmx.sc_wait_for_bmx_ready();
+
             // Executing auto-start task if any.
             if (configuration.AutoStartExePath != null)
             {
+                // Loading the given application.
                 Loader.ExecApp(hsched_, configuration.AutoStartExePath);
             }
 

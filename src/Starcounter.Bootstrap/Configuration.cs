@@ -165,9 +165,19 @@ namespace StarcounterInternal.Bootstrap
             }
         }
 
-        public bool NoDb {
-            get {
+        public bool NoDb
+        {
+            get
+            {
                 return this.ProgramArguments.ContainsFlag(ProgramCommandLine.OptionNames.NoDb);
+            }
+        }
+
+        public bool NetworkApps
+        {
+            get
+            {
+                return this.ProgramArguments.ContainsFlag(ProgramCommandLine.OptionNames.NetworkApps);
             }
         }
     }

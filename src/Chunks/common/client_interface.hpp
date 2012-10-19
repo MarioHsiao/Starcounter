@@ -113,7 +113,7 @@ public:
 	const char* segment_name = 0, int32_t id = -1)
 	: notify_(false), predicate_(false), owner_id_(owner_id::none),
 	allocated_channels_(0) {
-#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 		if (segment_name != 0) {
 			char notify_name[segment_and_notify_name_size];
 			wchar_t w_notify_name[segment_and_notify_name_size];
@@ -147,14 +147,14 @@ public:
 		else {
 			// TODO: Handle the error - no segment name. Throw an exception.
 		}
-#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	}
 	
-#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	~client_interface() {
 		::CloseHandle(work_);
 	}
-#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 	bool get_notify_flag() const {
 		return notify_;
@@ -174,8 +174,7 @@ public:
 	
 	/// Schedulers call notify() each time they push a message on a channel.
 	/// The monitor call notify() if the database goes down.
-#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-	// Use Windows Events to synchronize.
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	void notify() {
 		if (get_notify_flag() == false) {
 			// No need to notify the scheduler because it is not waiting.
@@ -188,8 +187,7 @@ public:
 			}
 		}
 	}
-#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-	// Use Boost.Interprocess to synchronize.
+#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
 	void notify() {
 		if (get_notify_flag() == false) {
 			// No need to notify, because no client thread is waiting,
@@ -212,7 +210,7 @@ public:
 			work_.notify_all();
 		}
 	}
-#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 	// Setting predicate to true means the condition is met and the wait is
 	// over. Threads that are waiting will not wait any more. Setting the
@@ -259,8 +257,7 @@ public:
 	 * @return false if the call is returning because the time period specified
 	 *		by timeout_milliseconds has elapsed, otherwise true.
 	 */
-#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-	// Using Windows Events to synchronize.
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	bool wait_for_work(unsigned int timeout_milliseconds) {
 		//std::cout << this << " client is waiting...\n"; /// DEBUG
 		switch (::WaitForSingleObject(work_, timeout_milliseconds)) {
@@ -285,8 +282,7 @@ public:
 		}
 		return false;
 	}
-#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-	// Using Boost.Interprocess to synchronize.
+#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
 	bool wait_for_work(uint32_t timeout_milliseconds) {
 		// boost::get_system_time() also works.
 		const boost::system_time timeout
@@ -319,7 +315,7 @@ public:
 		//std::cout << this << " client is running (wait timeout)\n"; /// DEBUG
 		return false;
 	}
-#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 	/// Set the owner_id when acquiring and releasing a client_interface.
 	/**
@@ -412,14 +408,12 @@ public:
 	}
 
 private:
-#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-	// Use Windows Events to synchronize.
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	HANDLE work_;
 	char cache_line_pad_0_[CACHE_LINE_SIZE
 	-sizeof(HANDLE) // work_
 	];
-#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-	// Use Boost.Interprocess to synchronize.
+#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
 	boost::interprocess::interprocess_mutex mutex_;
 	// Condition to wait when all of this clients channels out queues are empty.
 	boost::interprocess::interprocess_condition work_;
@@ -427,7 +421,7 @@ private:
 	-sizeof(boost::interprocess::interprocess_mutex) // mutex_
 	-sizeof(boost::interprocess::interprocess_condition) // work_
 	];
-#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 	volatile bool notify_;
 	char cache_line_pad_1_[CACHE_LINE_SIZE

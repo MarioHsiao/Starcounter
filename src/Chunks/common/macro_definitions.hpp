@@ -23,13 +23,16 @@
 /// code so that performance counters are not used because it degrades performance a bit.
 //#define STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS
 
-/// Define CONNECTIVITY_USE_EVENTS_TO_SYNC to use Windows Event synchronization in connectivity.
-/// Comment this out in order to use Boost.Interprocess condition synchronization.
+/// Define INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC to use Windows Event
+/// synchronization in interprocess communication. Comment this out in order to use
+/// Boost.Interprocess condition synchronization.
 /// The plan is to test the implementation with Windows Events and when stable, remove
 /// code using Boost.Interprocess condition variable and remove wrapping of the code
 /// with this macro. Using Windows Events is not yet fully implemented.
 /// While experimenting with this, don't define it when pushing code.
-//#define CONNECTIVITY_USE_EVENTS_TO_SYNC
+//#define INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC
+// REMEBER TO RESTORE: \Level1\src\Chunks\common\scheduler_interface.hpp : 273
+// if (false /*get_notify_flag() == false*/) { /// DEBUG TEST - FORCE NOTIFICATION
 
 // The SCHEDULERS macro is a bit malplaced but it works for now. It is only used
 // in the test server and test client. I think those two projects are more or less

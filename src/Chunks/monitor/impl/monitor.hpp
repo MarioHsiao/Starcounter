@@ -924,7 +924,8 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 											.get_owned_channels_mask(ch_index); mask; mask &= mask -1) {
 												uint32_t ch = bit_scan_forward(mask);
 												ch += ch_index << resource_map::shift_bits_in_mask_type;
-												scheduler_number the_scheduler_number = shared.channel(ch).get_scheduler_number();
+												channel_type& the_channel = shared.channel(ch);
+												scheduler_number the_scheduler_number = the_channel.get_scheduler_number();
 												scheduler_interface_type* scheduler_interface_ptr = 0;
 
 												if (the_scheduler_number != -1) {
@@ -939,17 +940,22 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 												// Mark channel to be released.
 												// After this the channel cannot
 												// be accessed by the monitor.
-												shared.channel(ch).set_to_be_released();
+												the_channel.set_to_be_released();
 												
 												// The scheduler may be waiting,
 												// so try to notify it.
 												
 												// Try to notify the scheduler
 												// that probes this channel.
-												// Wait up to 64 ms / channel.
 												if (scheduler_interface_ptr) {
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
+													if ((scheduler_interface_ptr->try_to_notify_scheduler_to_do_clean_up
+													(shared.get_work_event(the_channel.get_scheduler_number()))) == true) {
+#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
+													// Wait up to 64 ms / channel.
 													if ((scheduler_interface_ptr->try_to_notify_scheduler_to_do_clean_up
 													(64 /* ms to wait */)) == true) {
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 														// Log: Succeessfully
 														// notified the scheduler
 														// on this channel.
