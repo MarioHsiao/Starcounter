@@ -9,9 +9,13 @@ namespace SQLTest
         static void Main(string[] args)
         {
             Console.WriteLine("Started SQLTest.");
+#if true
             Test2();
             Test1();
             Test3();
+#else
+            TempTest();
+#endif
             Console.WriteLine("Finished SQLTest.");
         }
 
@@ -44,6 +48,19 @@ namespace SQLTest
             SQLTest.PointDb.PointData.DeleteData();
             SQLTest.PointDb.PointData.DropIndexes();
             return true;
+        }
+
+        static void TempTest()
+        {
+            Db.Transaction(delegate
+            {
+#if false
+                if (Db.SQL("select e from SalaryEmployee e where e.Manager = ?","object 25").First != null)
+                    Console.WriteLine("Not null.    ");
+                if (Db.SQL("select e from SalaryEmployee e where e.Manager = object 25").First != null)
+                    Console.WriteLine("Not null.    ");
+#endif
+            });
         }
     }
 }
