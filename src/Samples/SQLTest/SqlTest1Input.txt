@@ -586,58 +586,6 @@ IncludesObjectValue: True
 ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager >= object 25: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator greaterThanOrEqual. 
 
 
-== Order by on path expression ==
-
-
-<NEXT>
-Description: Order by on path expression
-QueryString: select e.FirstName, e.Manager.FirstName from Employee e order by e.Manager.FirstName
-SingleObjectProjection: False
-ShouldBeReordered: False
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Employee
-)
-Projection(
-	0 = 
-		StringProperty(0, FirstName)
-	1 = 
-		StringPath(
-			ObjectProperty(0, Manager)
-			StringProperty(-1, FirstName)
-		)
-)
-Sort(
-	IndexScan(
-		0
-		__InstantiatedFrom
-		ObjectDynamicRange(
-		)
-		LogicalValue(TRUE)
-		Ascending
-	)
-	StringComparer(
-		StringPath(
-			ObjectProperty(0, Manager)
-			StringProperty(-1, FirstName)
-		)
-		Ascending
-	)
-)
-
-ExpectedResult: 
- ! 0:String ! 1:String ! 
- | Alexey | <NULL> | 
- | Joachim | <NULL> | 
- | Petros | Åsa | 
- | Erik | Åsa | 
- | PETER | Åsa | 
- | Åsa | Joachim | 
- | Andreas | PETER | 
- | Christian | PETER | 
- | per | PETER | 
-
-
 == Inner join ==
 
 
@@ -16304,5 +16252,55 @@ QueryString: select e from SalaryEmployee e where e.Manager >= ?
 VariableValues: Object:80; 
 IncludesObjectValue: True
 ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager >= ?: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and any to operator greaterThanOrEqual. 
+
+
+<NEXT>
+Description: Order by on path expression
+QueryString: select e.FirstName, e.Manager.FirstName from Employee e order by e.Manager.FirstName
+SingleObjectProjection: False
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+)
+Projection(
+	0 = 
+		StringProperty(0, FirstName)
+	1 = 
+		StringPath(
+			ObjectProperty(0, Manager)
+			StringProperty(-1, FirstName)
+		)
+)
+Sort(
+	IndexScan(
+		auto
+		0
+		FirstName
+		StringDynamicRange(
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	StringComparer(
+		StringPath(
+			ObjectProperty(0, Manager)
+			StringProperty(-1, FirstName)
+		)
+		Ascending
+	)
+)
+
+ExpectedResult: 
+ ! 0:String ! 1:String ! 
+ | Alexey | <NULL> | 
+ | Joachim | <NULL> | 
+ | Erik | Åsa | 
+ | PETER | Åsa | 
+ | Petros | Åsa | 
+ | Åsa | Joachim | 
+ | Andreas | PETER | 
+ | Christian | PETER | 
+ | per | PETER | 
 
 
