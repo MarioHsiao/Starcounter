@@ -48,6 +48,9 @@ typedef uint32_t (__stdcall *GENERIC_HANDLER_CALLBACK)(
 // Initializes bmx manager.
 EXTERN_C uint32_t sc_init_bmx_manager();
 
+// Waits for BMX manager to be ready.
+EXTERN_C void sc_wait_for_bmx_ready();
+
 // Handles all incoming chunks.
 EXTERN_C uint32_t sc_handle_incoming_chunks(CM2_TASK_DATA* task_data);
 
@@ -424,7 +427,16 @@ namespace bmx
         // All registered handlers.
         HandlersList* registered_handlers_;
 
+        // Number of registered push channels.
+        int32_t num_registered_push_channels_;
+
     public:
+
+        // Gets the number of registered push channels.
+        int32_t get_num_registered_push_channels()
+        {
+            return num_registered_push_channels_;
+        }
 
         // Clones current BMX data.
         BmxData* Clone()
@@ -433,6 +445,7 @@ namespace bmx
             BmxData* new_copy = new BmxData(max_num_entries_ + 1);
 
             new_copy->max_num_entries_ = max_num_entries_;
+            new_copy->num_registered_push_channels_ = num_registered_push_channels_;
 
             // Note: for non-linear HandlersList structure, need to copy element by element.
             memcpy(new_copy->registered_handlers_, registered_handlers_, sizeof(registered_handlers_[0]) * max_num_entries_);
@@ -503,6 +516,7 @@ namespace bmx
         {
             registered_handlers_ = new HandlersList[max_total_handlers];
             max_num_entries_ = 0;
+            num_registered_push_channels_ = 0;
         }
 
         // Destructor.

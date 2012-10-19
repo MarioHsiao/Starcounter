@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="TupleReader.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Runtime.CompilerServices;
 
@@ -49,6 +54,9 @@ namespace Starcounter.Internal
       public const int MAXOFFSETSIZE=5;
 #endif
 #if BASE256
+       /// <summary>
+       /// MAXOFFSETSIZE
+       /// </summary>
       public const int MAXOFFSETSIZE=4;
 #endif
       internal const int OffsetElementSizeSize = 1; // The tuple begins with an integer telling the size. The size of this integer is always 1 byte.
@@ -82,10 +90,19 @@ namespace Starcounter.Internal
  //     public byte* OverflowLimit;
 
 #if GUESSSIZE
+       /// <summary>
+       /// OffsetElementSize
+       /// </summary>
       public uint OffsetElementSize;
 #endif
 
 #if GUESSSIZE
+       /// <summary>
+       /// Method
+       /// </summary>
+       /// <param name="start"></param>
+       /// <param name="valueCount"></param>
+       /// <param name="initialOffsetElementSize"></param>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public TupleWriter(byte* start, uint valueCount, uint initialOffsetElementSize )
       {
@@ -103,6 +120,11 @@ namespace Starcounter.Internal
          ValueCount = valueCount;
       }
 
+       /// <summary>
+       /// Method
+       /// </summary>
+       /// <param name="start"></param>
+       /// <param name="valueCount"></param>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public TupleWriter(byte* start, uint valueCount)
          : this(start, valueCount, TupleWriter.MAXOFFSETSIZE)
@@ -485,6 +507,10 @@ Retry:
       }
 #endif
 
+       /// <summary>
+       /// Method
+       /// </summary>
+       /// <returns></returns>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe uint SealTuple()
       {
@@ -559,6 +585,10 @@ Retry:
          //         Base64.WriteBase64x5(this.Size, &(this.Cached_Blob.Cached_Blob->RootParentOffsetArray)); // TODO! Parent might be another tuple. Write in correct place.
       }
 
+       /// <summary>
+       /// Method
+       /// </summary>
+       /// <returns></returns>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe uint FastSealTuple()
       {
@@ -566,11 +596,17 @@ Retry:
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+       /// <summary>
+       /// Length
+       /// </summary>
       public int Length
       {
          get { return (int) (AtEnd - AtStart); }
       }
 
+       /// <summary>
+       /// DebugString
+       /// </summary>
       public string DebugString
       {
          get

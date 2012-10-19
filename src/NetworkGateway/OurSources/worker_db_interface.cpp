@@ -50,20 +50,14 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
         // Check if there is a message and process it.
         if (the_channel.out.try_pop_back(&chunk_index) == true)
         {
-            //PrintCurrentTimeMs("POP Time");
-
             // A message on channel ch was received. Notify the database
             // that the out queue in this channel is not full.
-#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-			// Use Windows Events to synchronize.
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 			the_channel.scheduler()->notify(shared_int_.get_work_event
 			(the_channel.get_scheduler_number()));
-#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-			// Use Boost.Interprocess to synchronize.
+#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
             the_channel.scheduler()->notify();
-#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-
-            //PrintCurrentTimeMs("After scheduler()->notify()");
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 
             // Get the chunk.
             shared_memory_chunk* smc = (shared_memory_chunk*) &(shared_int_.chunk(chunk_index));
@@ -74,12 +68,8 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
                 // Changing number of owned chunks.
                 g_gateway.GetDatabase(db_index_)->ChangeNumUsedChunks(1);
 
-                //PrintCurrentTimeMs("Before EnterGlobalLock");
-
                 // Entering global lock.
                 gw->EnterGlobalLock();
-
-                //PrintCurrentTimeMs("After EnterGlobalLock");
 
                 // Handling management chunks.
                 errCode = HandleManagementChunks(gw, smc);
@@ -157,8 +147,6 @@ uint32_t WorkerDbInterface::PushLinkedChunksToDb(
     int32_t sched_id,
     bool not_overflow_chunk = true)
 {
-    //PrintCurrentTimeMs("PUSH Time");
-
     // Obtaining the channel.
     core::channel_type& the_channel = shared_int_.channel(channels_[sched_id]);
 
@@ -172,14 +160,12 @@ uint32_t WorkerDbInterface::PushLinkedChunksToDb(
     {
         // A message on channel ch was received. Notify the database
         // that the out queue in this channel is not full.
-#if defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-		// Use Windows Events to synchronize.
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 		the_channel.scheduler()->notify(shared_int_.get_work_event
 		(the_channel.get_scheduler_number()));
-#else // !defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
-		// Use Boost.Interprocess to synchronize.
+#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
         the_channel.scheduler()->notify();
-#endif // defined(CONNECTIVITY_USE_EVENTS_TO_SYNC)
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 
 #ifdef GW_CHUNKS_DIAG
         GW_PRINT_WORKER << "   successfully pushed: chunk " << chunk_index << std::endl;
@@ -479,8 +465,6 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 if (g_gateway.GetDatabase(db_index_)->IsAllPushChannelsConfirmed())
                 {
                     GW_PRINT_WORKER << "All push channels confirmed!" << std::endl;
-
-                    //PrintCurrentTimeMs("Before RequestRegisteredHandlers");
 
                     // Requesting all registered handlers.
                     err_code = RequestRegisteredHandlers();
