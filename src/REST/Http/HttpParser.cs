@@ -1,3 +1,9 @@
+// ***********************************************************************
+// <copyright file="HttpParser.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 /*
  * Parser a byte buffer to a structured Http request
  * 
