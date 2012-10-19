@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="DomGenerator.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Templates;
 using System;
 using System.Collections.Generic;
@@ -12,29 +17,25 @@ namespace Starcounter.Internal.Application.CodeGeneration
 {
 
     /// <summary>
-    /// Simple code-dom generator for the Template class. In a Template tree structure, 
-    /// each Template will be represented by a temporary CsGen_Template object. The reason 
-    /// for this is to avoid cluttering the original Template code with code generation 
-    /// concerns while still employing a polymorphic programming model to implement the 
+    /// Simple code-dom generator for the Template class. In a Template tree structure,
+    /// each Template will be represented by a temporary CsGen_Template object. The reason
+    /// for this is to avoid cluttering the original Template code with code generation
+    /// concerns while still employing a polymorphic programming model to implement the
     /// unique functionality of each type of Template (see the virtual functions).
     /// </summary>
-    /// <remarks>
-    /// Class nodes can easily be moved to a new parent by setting the Parent property on 
-    /// the node. This can been done after the DOM tree has been generated. This is used 
+    /// <remarks>Class nodes can easily be moved to a new parent by setting the Parent property on
+    /// the node. This can been done after the DOM tree has been generated. This is used
     /// to allow the generated code structure match the code behind structure. In this way,
-    /// there is no need for the programmer to have deep nesting of class declarations in 
-    /// JSON trees.
-    /// </remarks>
+    /// there is no need for the programmer to have deep nesting of class declarations in
+    /// JSON trees.</remarks>
     public class DomGenerator
     {
 
         /// <summary>
         /// Creates a dom generator for a template
         /// </summary>
+        /// <param name="mod">The mod.</param>
         /// <param name="template">The represented template</param>
-        /// <param name="parent">The code generators have a parallel parent/child tree 
-        /// to their represented Templates. This is the parent C# code generator 
-        /// (corresponding to the Parent of the Template parameter.</param>
         internal DomGenerator(CodeGenerationModule mod, Template template)
         { //, string typename, string templateClass, string metadataClass ) {
             Template = template;
@@ -44,7 +45,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// This is the main calling point to generate a dom tree for a application template.
         /// </summary>
         /// <param name="at">The App template (i.e. json tree prototype) to generate code for</param>
-        /// <param name="metadata"> </param>
+        /// <param name="metadata">The metadata.</param>
         /// <returns>An abstract code tree. Use CSharpGenerator to generate .CS code.</returns>
         public NRoot GenerateDomTree(AppTemplate at, CodeBehindMetadata metadata)
         {
@@ -114,6 +115,11 @@ namespace Starcounter.Internal.Application.CodeGeneration
             return root;
         }
 
+        /// <summary>
+        /// Connects the code behind classes.
+        /// </summary>
+        /// <param name="root">The root.</param>
+        /// <param name="metadata">The metadata.</param>
         private void ConnectCodeBehindClasses(NRoot root, CodeBehindMetadata metadata)
         {
             AppTemplate appTemplate;
@@ -157,6 +163,12 @@ namespace Starcounter.Internal.Application.CodeGeneration
             ReorderCodebehindClasses(classesInOrder, metadata.JsonPropertyMapList, root);
         }
 
+        /// <summary>
+        /// Reorders the codebehind classes.
+        /// </summary>
+        /// <param name="classesInOrder">The classes in order.</param>
+        /// <param name="mapInfos">The map infos.</param>
+        /// <param name="root">The root.</param>
         private void ReorderCodebehindClasses(AppTemplate[] classesInOrder,
                                               List<JsonMapInfo> mapInfos,
                                               NRoot root)
@@ -199,6 +211,12 @@ namespace Starcounter.Internal.Application.CodeGeneration
             }
         }
 
+        /// <summary>
+        /// Finds the class.
+        /// </summary>
+        /// <param name="className">Name of the class.</param>
+        /// <param name="parent">The parent.</param>
+        /// <returns>NClass.</returns>
         private NClass FindClass(String className, NBase parent)
         {
             NClass nClass;
@@ -213,6 +231,13 @@ namespace Starcounter.Internal.Application.CodeGeneration
             return null;
         }
 
+        /// <summary>
+        /// Finds the app template for.
+        /// </summary>
+        /// <param name="jsonMapName">Name of the json map.</param>
+        /// <param name="rootTemplate">The root template.</param>
+        /// <returns>AppTemplate.</returns>
+        /// <exception cref="System.Exception">Invalid property to bind codebehind.</exception>
         private AppTemplate FindAppTemplateFor(String jsonMapName, AppTemplate rootTemplate)
         {
             AppTemplate appTemplate;
@@ -281,6 +306,14 @@ namespace Starcounter.Internal.Application.CodeGeneration
             }
         }
 
+        /// <summary>
+        /// Generates the kids.
+        /// </summary>
+        /// <param name="appClassParent">The app class parent.</param>
+        /// <param name="templParent">The templ parent.</param>
+        /// <param name="metaParent">The meta parent.</param>
+        /// <param name="template">The template.</param>
+        /// <exception cref="System.Exception"></exception>
         private void GenerateKids(NAppClass appClassParent,
                                   NAppTemplateClass templParent,
                                   NClass metaParent,
@@ -323,14 +356,15 @@ namespace Starcounter.Internal.Application.CodeGeneration
         }
 
         /// <summary>
-        /// Generates the ast nodes for a custom app class and the corresponding 
+        /// Generates the ast nodes for a custom app class and the corresponding
         /// app template and app meta data custom classes.
         /// </summary>
-        /// <param name="at"></param>
-        /// <param name="appClassParent"></param>
-        /// <param name="templParent"></param>
-        /// <param name="metaParent"></param>
-        /// <param name="template"></param>
+        /// <param name="at">At.</param>
+        /// <param name="appClassParent">The app class parent.</param>
+        /// <param name="templParent">The templ parent.</param>
+        /// <param name="metaParent">The meta parent.</param>
+        /// <param name="template">The template.</param>
+        /// <exception cref="System.Exception"></exception>
         private void GenerateForApp(AppTemplate at,
                                     NAppClass appClassParent,
                                     NAppTemplateClass templParent,
@@ -397,6 +431,13 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 GenerateProperty(at, appClassParent, templParent, metaParent);
         }
 
+        /// <summary>
+        /// Generates the property.
+        /// </summary>
+        /// <param name="at">At.</param>
+        /// <param name="appClassParent">The app class parent.</param>
+        /// <param name="templParent">The templ parent.</param>
+        /// <param name="metaParent">The meta parent.</param>
         private void GenerateProperty(Template at,
                                       NAppClass appClassParent,
                                       NAppTemplateClass templParent,
@@ -428,6 +469,14 @@ namespace Starcounter.Internal.Application.CodeGeneration
             };
         }
 
+        /// <summary>
+        /// Generates for listing.
+        /// </summary>
+        /// <param name="alt">The alt.</param>
+        /// <param name="appClassParent">The app class parent.</param>
+        /// <param name="templParent">The templ parent.</param>
+        /// <param name="metaParent">The meta parent.</param>
+        /// <param name="template">The template.</param>
         private void GenerateForListing(ListingProperty alt, 
                                         NAppClass appClassParent, 
                                         NAppTemplateClass templParent, 
@@ -470,10 +519,10 @@ namespace Starcounter.Internal.Application.CodeGeneration
         }
 
         /// <summary>
-        /// The JSON attributes is a set of source code attributes (C# Attributes) 
-        /// used to annotate which user classes should be used for which JSON tree 
-        /// nodes (objects). This allows the user to write classes that are not deeply 
-        /// nested (unless he/she wants the class declarations nested). The function 
+        /// The JSON attributes is a set of source code attributes (C# Attributes)
+        /// used to annotate which user classes should be used for which JSON tree
+        /// nodes (objects). This allows the user to write classes that are not deeply
+        /// nested (unless he/she wants the class declarations nested). The function
         /// is recursive and calls itself.
         /// </summary>
         /// <param name="appClass">The node to generate attributes for</param>
@@ -497,11 +546,11 @@ namespace Starcounter.Internal.Application.CodeGeneration
         }
 
         /// <summary>
-        /// Used to generate Handle( ... ) event classes used by the user programmer 
+        /// Used to generate Handle( ... ) event classes used by the user programmer
         /// to catch events such as the Input event.
         /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="app"></param>
+        /// <param name="parent">The parent.</param>
+        /// <param name="app">The app.</param>
         /// <param name="eventName">The name of the event (i.e. "Input").</param>
         public void GeneratePrimitiveValueEvents(NBase parent, NClass app, string eventName)
         {
@@ -543,6 +592,12 @@ namespace Starcounter.Internal.Application.CodeGeneration
             }
         }
 
+        /// <summary>
+        /// Generates the input bindings.
+        /// </summary>
+        /// <param name="nApp">The n app.</param>
+        /// <param name="metadata">The metadata.</param>
+        /// <exception cref="System.Exception">Invalid Handle-method declared in class </exception>
         private void GenerateInputBindings(NAppTemplateClass nApp, 
                                            CodeBehindMetadata metadata)
         {
@@ -645,11 +700,12 @@ namespace Starcounter.Internal.Application.CodeGeneration
         }
 
         /// <summary>
-        ///  Finds the class where the Handle method is declared. This can be the same class
-        ///  as where the property is declared or a parentclass.
+        /// Finds the class where the Handle method is declared. This can be the same class
+        /// as where the property is declared or a parentclass.
         /// </summary>
-        /// <param name="binding"></param>
-        /// <param name="info"></param>
+        /// <param name="binding">The binding.</param>
+        /// <param name="info">The info.</param>
+        /// <exception cref="System.Exception">Could not find the app where Handle method is declared.</exception>
         private static void FindHandleDeclaringClass(NInputBinding binding, InputBindingInfo info)
         {
             Int32 parentCount = 0;
@@ -690,6 +746,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <summary>
         /// Employed by the template code generator.
         /// </summary>
+        /// <value>The global namespace.</value>
         internal string GlobalNamespace
         {
             get

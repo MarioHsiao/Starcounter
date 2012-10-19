@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="AppTemplateFactory.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Collections.Generic;
 using Starcounter;
@@ -6,11 +11,23 @@ using Starcounter.Templates;
 
 namespace Starcounter.Internal
 {
+    /// <summary>
+    /// Class MetaTemplate
+    /// </summary>
     internal class MetaTemplate
     {
+        /// <summary>
+        /// The _boolean properties
+        /// </summary>
         private static List<String> _booleanProperties;
+        /// <summary>
+        /// The _string properties
+        /// </summary>
         private static List<String> _stringProperties;
 
+        /// <summary>
+        /// Initializes static members of the <see cref="MetaTemplate" /> class.
+        /// </summary>
         static MetaTemplate()
         {
             _booleanProperties = new List<String>();
@@ -27,15 +44,31 @@ namespace Starcounter.Internal
             _stringProperties.Add("NAMESPACE");
         }
 
+        /// <summary>
+        /// The _template
+        /// </summary>
         private Starcounter.Templates.Template _template;
+        /// <summary>
+        /// The _debug info
+        /// </summary>
         private DebugInfo _debugInfo;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MetaTemplate" /> class.
+        /// </summary>
+        /// <param name="forTemplate">For template.</param>
+        /// <param name="debugInfo">The debug info.</param>
         internal MetaTemplate(Template forTemplate, DebugInfo debugInfo)
         {
             _template = forTemplate;
             _debugInfo = debugInfo;
         }
 
+        /// <summary>
+        /// Sets the specified name.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="v">if set to <c>true</c> [v].</param>
         public void Set(string name, bool v)
         {
             Property property;
@@ -76,6 +109,11 @@ namespace Starcounter.Internal
             }
         }
 
+        /// <summary>
+        /// Sets the specified name.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="v">The v.</param>
         public void Set(string name, string v)
         {
             ActionProperty actionTemplate;
@@ -154,6 +192,11 @@ namespace Starcounter.Internal
             }
         }
 
+        /// <summary>
+        /// Gets the name of the property from type.
+        /// </summary>
+        /// <param name="v">The v.</param>
+        /// <returns>Property.</returns>
         private Property GetPropertyFromTypeName(string v)
         {
             Property p = null;
@@ -186,6 +229,11 @@ namespace Starcounter.Internal
             return p;
         }
 
+        /// <summary>
+        /// Sets the compiler origin.
+        /// </summary>
+        /// <param name="t">The t.</param>
+        /// <param name="d">The d.</param>
         private void SetCompilerOrigin(Template t, DebugInfo d)
         {
             t.CompilerOrigin.LineNo = d.LineNo;
@@ -195,7 +243,7 @@ namespace Starcounter.Internal
     }
 
     /// <summary>
-    /// The template factory is intended for template parsers as a clean 
+    /// The template factory is intended for template parsers as a clean
     /// interface used to built Starcounter controller templates.
     /// It is used as a singleton.
     /// </summary>
@@ -204,17 +252,15 @@ namespace Starcounter.Internal
         /// <summary>
         /// Checks if the specified name already exists. If the name exists
         /// and is not used by an ReplaceableTemplate an exception is thrown.
-        /// 
-        /// In case the existing template is an ReplaceableTemplate all values 
-        /// set on it are copied to the new template, and the ReplaceableTemplate is 
+        /// In case the existing template is an ReplaceableTemplate all values
+        /// set on it are copied to the new template, and the ReplaceableTemplate is
         /// replaced with the new template.
-        /// 
         /// If no template exists, the new template is added to the parent.
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="newTemplate"></param>
-        /// <param name="parent"></param>
-        /// <param name="debugInfo"></param>
+        /// <param name="newTemplate">The new template.</param>
+        /// <param name="parent">The parent.</param>
+        /// <param name="debugInfo">The debug info.</param>
+        /// <returns>Template.</returns>
         private Template CheckAndAddOrReplaceTemplate(Template newTemplate, 
                                                        AppTemplate parent,
                                                        DebugInfo debugInfo)
@@ -259,6 +305,11 @@ namespace Starcounter.Internal
             return newTemplate;
         }
 
+        /// <summary>
+        /// Copies the replaceable template values.
+        /// </summary>
+        /// <param name="rt">The rt.</param>
+        /// <param name="newTemplate">The new template.</param>
         private void CopyReplaceableTemplateValues(ReplaceableTemplate rt, Template newTemplate)
         {
             Boolean boolVal;
@@ -282,11 +333,24 @@ namespace Starcounter.Internal
             }
         }
 
+        /// <summary>
+        /// Gets the meta template.
+        /// </summary>
+        /// <param name="templ">The templ.</param>
+        /// <param name="debugInfo">The debug info.</param>
+        /// <returns>System.Object.</returns>
         object ITemplateFactory.GetMetaTemplate(object templ, DebugInfo debugInfo)
         {
             return new MetaTemplate((Template)templ, debugInfo);
         }
 
+        /// <summary>
+        /// Gets the meta template for property.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="name">The name.</param>
+        /// <param name="debugInfo">The debug info.</param>
+        /// <returns>System.Object.</returns>
         object ITemplateFactory.GetMetaTemplateForProperty(object parent, 
                                                            string name,
                                                            DebugInfo debugInfo)
@@ -307,6 +371,14 @@ namespace Starcounter.Internal
             return new MetaTemplate(t, debugInfo);
         }
 
+        /// <summary>
+        /// Adds the string property.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="name">The name.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="debugInfo">The debug info.</param>
+        /// <returns>System.Object.</returns>
         object ITemplateFactory.AddStringProperty(object parent,
                                                   string name,
                                                   string value,
@@ -331,6 +403,14 @@ namespace Starcounter.Internal
             }
         }
 
+        /// <summary>
+        /// Adds the integer property.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="name">The name.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="debugInfo">The debug info.</param>
+        /// <returns>System.Object.</returns>
         object ITemplateFactory.AddIntegerProperty(object parent,
                                                    string name,
                                                    int value,
@@ -350,6 +430,14 @@ namespace Starcounter.Internal
             return null;
         }
 
+        /// <summary>
+        /// Adds the decimal property.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="name">The name.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="debugInfo">The debug info.</param>
+        /// <returns>System.Object.</returns>
         object ITemplateFactory.AddDecimalProperty(object parent,
                                                    string name,
                                                    decimal value,
@@ -369,6 +457,14 @@ namespace Starcounter.Internal
             return null;
         }
 
+        /// <summary>
+        /// Adds the double property.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="name">The name.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="debugInfo">The debug info.</param>
+        /// <returns>System.Object.</returns>
         object ITemplateFactory.AddDoubleProperty(object parent,
                                                   string name,
                                                   double value,
@@ -388,6 +484,14 @@ namespace Starcounter.Internal
             return null;
         }
 
+        /// <summary>
+        /// Adds the boolean property.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="name">The name.</param>
+        /// <param name="value">if set to <c>true</c> [value].</param>
+        /// <param name="debugInfo">The debug info.</param>
+        /// <returns>System.Object.</returns>
         object ITemplateFactory.AddBooleanProperty(object parent,
                                                    string name,
                                                    bool value,
@@ -411,6 +515,11 @@ namespace Starcounter.Internal
             }
         }
 
+        /// <summary>
+        /// Sets the compiler origin.
+        /// </summary>
+        /// <param name="t">The t.</param>
+        /// <param name="d">The d.</param>
         void SetCompilerOrigin(Template t, DebugInfo d)
         {
             t.CompilerOrigin.FileName = d.FileName;
@@ -418,6 +527,14 @@ namespace Starcounter.Internal
             t.CompilerOrigin.ColNo = d.ColNo;
         }
 
+        /// <summary>
+        /// Adds the event property.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="name">The name.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="debugInfo">The debug info.</param>
+        /// <returns>System.Object.</returns>
         object ITemplateFactory.AddEventProperty(object parent,
                                                  string name,
                                                  string value,
@@ -448,6 +565,13 @@ namespace Starcounter.Internal
             return newTemplate;
         }
 
+        /// <summary>
+        /// Adds the array property.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="name">The name.</param>
+        /// <param name="debugInfo">The debug info.</param>
+        /// <returns>System.Object.</returns>
         object ITemplateFactory.AddArrayProperty(object parent,
                                                  string name,
                                                  DebugInfo debugInfo)
@@ -480,6 +604,13 @@ namespace Starcounter.Internal
 //            return newTemplate;
 //        }
 
+        /// <summary>
+        /// Adds the app property.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="name">The name.</param>
+        /// <param name="debugInfo">The debug info.</param>
+        /// <returns>System.Object.</returns>
         object ITemplateFactory.AddAppProperty(object parent, string name, DebugInfo debugInfo)
         {
             Template newTemplate;
@@ -494,6 +625,12 @@ namespace Starcounter.Internal
             return newTemplate;
         }
 
+        /// <summary>
+        /// Adds the app element.
+        /// </summary>
+        /// <param name="array">The array.</param>
+        /// <param name="debugInfo">The debug info.</param>
+        /// <returns>System.Object.</returns>
         object ITemplateFactory.AddAppElement(object array, DebugInfo debugInfo)
         {
             var newTemplate = new AppTemplate(); // The type of the type array (an AppTemplate)
@@ -506,26 +643,58 @@ namespace Starcounter.Internal
             return newTemplate;
         }
 
+        /// <summary>
+        /// Adds the cargo property.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="debugInfo">The debug info.</param>
+        /// <returns>System.Object.</returns>
+        /// <exception cref="System.NotImplementedException"></exception>
         object ITemplateFactory.AddCargoProperty(object parent, DebugInfo debugInfo)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Adds the meta property.
+        /// </summary>
+        /// <param name="template">The template.</param>
+        /// <param name="debugInfo">The debug info.</param>
+        /// <returns>System.Object.</returns>
+        /// <exception cref="System.NotImplementedException"></exception>
         object ITemplateFactory.AddMetaProperty(object template, DebugInfo debugInfo)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Sets the editable property.
+        /// </summary>
+        /// <param name="template">The template.</param>
+        /// <param name="b">if set to <c>true</c> [b].</param>
+        /// <param name="debugInfo">The debug info.</param>
         void ITemplateFactory.SetEditableProperty(object template, bool b, DebugInfo debugInfo)
         {
             ((Template)template).Editable = b;
         }
 
+        /// <summary>
+        /// Sets the bound property.
+        /// </summary>
+        /// <param name="template">The template.</param>
+        /// <param name="b">if set to <c>true</c> [b].</param>
+        /// <param name="debugInfo">The debug info.</param>
         void ITemplateFactory.SetBoundProperty(object template, bool b, DebugInfo debugInfo)
         {
             ((Template)template).Bound = b;
         }
 
+        /// <summary>
+        /// Sets the class property.
+        /// </summary>
+        /// <param name="template">The template.</param>
+        /// <param name="className">Name of the class.</param>
+        /// <param name="debugInfo">The debug info.</param>
         void ITemplateFactory.SetClassProperty(object template,
                                                string className,
                                                DebugInfo debugInfo)
@@ -533,6 +702,12 @@ namespace Starcounter.Internal
             ((AppTemplate)template).ClassName = className;
         }
 
+        /// <summary>
+        /// Sets the include property.
+        /// </summary>
+        /// <param name="template">The template.</param>
+        /// <param name="className">Name of the class.</param>
+        /// <param name="debugInfo">The debug info.</param>
         void ITemplateFactory.SetIncludeProperty(object template,
                                                  string className,
                                                  DebugInfo debugInfo)
@@ -540,6 +715,12 @@ namespace Starcounter.Internal
             ((AppTemplate)template).Include = className;
         }
 
+        /// <summary>
+        /// Sets the namespace property.
+        /// </summary>
+        /// <param name="template">The template.</param>
+        /// <param name="namespaceName">Name of the namespace.</param>
+        /// <param name="debugInfo">The debug info.</param>
         void ITemplateFactory.SetNamespaceProperty(object template,
                                                    string namespaceName,
                                                    DebugInfo debugInfo)
@@ -547,6 +728,12 @@ namespace Starcounter.Internal
             ((AppTemplate)template).Namespace = namespaceName;
         }
 
+        /// <summary>
+        /// Sets the on update property.
+        /// </summary>
+        /// <param name="template">The template.</param>
+        /// <param name="functionName">Name of the function.</param>
+        /// <param name="debugInfo">The debug info.</param>
         void ITemplateFactory.SetOnUpdateProperty(object template, 
                                                   string functionName, 
                                                   DebugInfo debugInfo)
@@ -554,14 +741,30 @@ namespace Starcounter.Internal
             ((Template)template).OnUpdate = functionName;
         }
 
+        /// <summary>
+        /// Sets the bind property.
+        /// </summary>
+        /// <param name="template">The template.</param>
+        /// <param name="path">The path.</param>
+        /// <param name="debugInfo">The debug info.</param>
         void ITemplateFactory.SetBindProperty(object template, string path, DebugInfo debugInfo)
         {
             ((Template)template).Bind = path;
         }
     }
 
+    /// <summary>
+    /// Class ErrorHelper
+    /// </summary>
     internal static class ErrorHelper
     {
+        /// <summary>
+        /// Raises the wrong value for property error.
+        /// </summary>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="expectedType">The expected type.</param>
+        /// <param name="foundType">Type of the found.</param>
+        /// <param name="debugInfo">The debug info.</param>
         internal static void RaiseWrongValueForPropertyError(String propertyName, 
                                                              String expectedType, 
                                                              String foundType, 
@@ -576,6 +779,11 @@ namespace Starcounter.Internal
             );
         }
 
+        /// <summary>
+        /// Raises the invalid property error.
+        /// </summary>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="debugInfo">The debug info.</param>
         internal static void RaiseInvalidPropertyError(String propertyName, DebugInfo debugInfo)
         {
             Error.CompileError.Raise<Object>(
@@ -585,6 +793,10 @@ namespace Starcounter.Internal
             );
         }
 
+        /// <summary>
+        /// Raises the invalid type conversion error.
+        /// </summary>
+        /// <param name="debugInfo">The debug info.</param>
         internal static void RaiseInvalidTypeConversionError(DebugInfo debugInfo)
         {
             Error.CompileError.Raise<Object>(
@@ -594,11 +806,20 @@ namespace Starcounter.Internal
             );
         }
 
+        /// <summary>
+        /// Raises the invalid type conversion error.
+        /// </summary>
+        /// <param name="co">The co.</param>
         internal static void RaiseInvalidTypeConversionError(CompilerOrigin co)
         {
             RaiseInvalidTypeConversionError(new DebugInfo(co.LineNo, co.ColNo, co.FileName));
         }
 
+        /// <summary>
+        /// Raises the unknown property error.
+        /// </summary>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="debugInfo">The debug info.</param>
         internal static void RaiseUnknownPropertyError(String propertyName, DebugInfo debugInfo)
         {
             Error.CompileError.Raise<Object>(
@@ -608,6 +829,11 @@ namespace Starcounter.Internal
             );
         }
 
+        /// <summary>
+        /// Raises the unknown property type error.
+        /// </summary>
+        /// <param name="typeName">Name of the type.</param>
+        /// <param name="debugInfo">The debug info.</param>
         internal static void RaiseUnknownPropertyTypeError(String typeName, DebugInfo debugInfo)
         {
             Error.CompileError.Raise<Object>(
@@ -617,6 +843,11 @@ namespace Starcounter.Internal
             );
         }
 
+        /// <summary>
+        /// Raises the not implemented exception.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="debugInfo">The debug info.</param>
         internal static void RaiseNotImplementedException(String name, DebugInfo debugInfo)
         {
             Error.CompileError.Raise<Object>(

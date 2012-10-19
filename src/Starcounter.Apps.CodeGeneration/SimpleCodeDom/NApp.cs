@@ -1,4 +1,8 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="NApp.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using Starcounter.Templates;
 using System.Collections.Generic;
@@ -12,16 +16,24 @@ namespace Starcounter.Internal.Application.CodeGeneration {
 //        public NClass TemplateClass;
 //        public NClass MetaDataClass;
 
+        /// <summary>
+        /// Gets the template.
+        /// </summary>
+        /// <value>The template.</value>
         public AppTemplate Template {
             get { return (AppTemplate) (NTemplateClass.Template); }
         }
 
 
+        /// <summary>
+        /// The _ inherits
+        /// </summary>
         public string _Inherits;
 
         /// <summary>
         /// Can be used to set a specific base class for the generated App class.
         /// </summary>
+        /// <value>The inherits.</value>
         public override string Inherits {
             get { return _Inherits; }
         }
@@ -33,6 +45,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// set ClassName, the name will be amended such that it ends with
         /// the text "App".
         /// </summary>
+        /// <value>The name of the class.</value>
         public override string ClassName {
             get {
                 if (Template.ClassName != null)
@@ -54,6 +67,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// App template tree. If there is no ClassName, the property name
         /// of the App in the parent App is used.
         /// </summary>
+        /// <value>The stem.</value>
         public string Stem {
             get {
                 if (Template.ClassName != null)
@@ -81,10 +95,11 @@ namespace Starcounter.Internal.Application.CodeGeneration {
 
         /// <summary>
         /// Returns false if there are no children defined. This indicates that the property
-        /// that uses this node as a type should instead use the generic App class inside 
+        /// that uses this node as a type should instead use the generic App class inside
         /// the Starcounter library. This is done by the NApp node pretending to be the App class
         /// node to make DOM generation easier (this cheating is intentional).
         /// </summary>
+        /// <value><c>true</c> if this instance is custom app template; otherwise, <c>false</c>.</value>
         public bool IsCustomAppTemplate {
             get {
                 return (Template.Properties.Count > 0);

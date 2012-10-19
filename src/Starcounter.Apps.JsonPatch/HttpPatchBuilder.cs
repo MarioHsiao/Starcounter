@@ -1,4 +1,10 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="HttpPatchBuilder.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -7,12 +13,24 @@ using Starcounter.Templates;
 
 namespace Starcounter.Internal.JsonPatch
 {
+    /// <summary>
+    /// Class HttpPatchBuilder
+    /// </summary>
     internal class HttpPatchBuilder
     {
+        /// <summary>
+        /// The O K200_ WIT h_ JSO n_ PATCH
+        /// </summary>
         private static Byte[] OK200_WITH_JSON_PATCH;
+        /// <summary>
+        /// The HTT p_ HEADE r_ TERMINATOR
+        /// </summary>
         private static Byte[] HTTP_HEADER_TERMINATOR;
 
 
+        /// <summary>
+        /// Initializes static members of the <see cref="HttpPatchBuilder" /> class.
+        /// </summary>
         static HttpPatchBuilder()
         {
             String str;
@@ -24,6 +42,11 @@ namespace Starcounter.Internal.JsonPatch
             HTTP_HEADER_TERMINATOR = Encoding.UTF8.GetBytes(str);
         }
 
+        /// <summary>
+        /// Creates the HTTP patch response.
+        /// </summary>
+        /// <param name="changeLog">The change log.</param>
+        /// <returns>Byte[][].</returns>
         internal static Byte[] CreateHttpPatchResponse(ChangeLog changeLog)
         {
             Int32 responseOffset;
@@ -56,6 +79,12 @@ namespace Starcounter.Internal.JsonPatch
             return response;
         }
 
+        /// <summary>
+        /// Creates the content from change log.
+        /// </summary>
+        /// <param name="changeLog">The change log.</param>
+        /// <param name="buffer">The buffer.</param>
+        /// <returns>Int32.</returns>
         private static Int32 CreateContentFromChangeLog(ChangeLog changeLog, List<Byte> buffer)
         {
             // TODO: 
