@@ -226,6 +226,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sccoredbh", "Hosting\sccore
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "Chunks\test\test.vcxproj", "{E3390A15-3D80-4166-9D2F-BBEF33BB95A0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.VS.CSExeProjectTemplate", "Development\Starcounter.VS.CSExeProjectTemplate\Starcounter.VS.CSExeProjectTemplate.csproj", "{9EC88A3E-0A53-4982-8548-BF262F2DDDE7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -434,6 +436,9 @@ Global
 		{E3390A15-3D80-4166-9D2F-BBEF33BB95A0}.Debug|x64.Build.0 = Debug|x64
 		{E3390A15-3D80-4166-9D2F-BBEF33BB95A0}.Release|x64.ActiveCfg = Release|x64
 		{E3390A15-3D80-4166-9D2F-BBEF33BB95A0}.Release|x64.Build.0 = Release|x64
+		{9EC88A3E-0A53-4982-8548-BF262F2DDDE7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9EC88A3E-0A53-4982-8548-BF262F2DDDE7}.Debug|x64.Build.0 = Debug|Any CPU
+		{9EC88A3E-0A53-4982-8548-BF262F2DDDE7}.Release|x64.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -494,5 +499,6 @@ Global
 		{0E242B9D-C9FB-4975-B2A5-885DF7232582} = {B39115F7-A3E8-42CE-AAB8-932AB8D4DFB4}
 		{524A9D92-4E74-413B-85E1-B3E893B4A25A} = {B39115F7-A3E8-42CE-AAB8-932AB8D4DFB4}
 		{7DB7527C-79F6-4C05-A8CF-B7A52E5E7A19} = {B39115F7-A3E8-42CE-AAB8-932AB8D4DFB4}
+		{9EC88A3E-0A53-4982-8548-BF262F2DDDE7} = {B39115F7-A3E8-42CE-AAB8-932AB8D4DFB4}
 	EndGlobalSection
 EndGlobal
