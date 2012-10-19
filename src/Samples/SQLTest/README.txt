@@ -5,7 +5,8 @@ NOTE! THIS INFORMATION IS NOT UP TO DATE.
 
 === RUNNING SqlTest ===
 
-When running the application SqlTest in Starcounter the collation should be English.
+When running the application SqlTest in Starcounter the collation should be English. Before running the test the database should be recreated,
+since the tests compare objects by their ids.
 
 
 === ADDING MORE QUERIES TO SqlTest ===
