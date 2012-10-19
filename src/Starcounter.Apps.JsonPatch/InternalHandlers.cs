@@ -1,4 +1,10 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="InternalHandlers.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Text;
 using HttpStructs;
 using Starcounter.Internal.Application;
@@ -6,8 +12,14 @@ using Starcounter.Internal.Web;
 
 namespace Starcounter.Internal.JsonPatch
 {
+    /// <summary>
+    /// Class InternalHandlers
+    /// </summary>
     public class InternalHandlers : App
     {
+        /// <summary>
+        /// Registers this instance.
+        /// </summary>
         public static void Register()
         {
             Console.WriteLine("Registering internal handlers for patch and getting root apps");
