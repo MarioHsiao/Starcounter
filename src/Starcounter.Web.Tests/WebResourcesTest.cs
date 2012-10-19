@@ -1,12 +1,23 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="WebResourcesTest.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using Starcounter.Internal.Web;
 using NUnit.Framework;
 
 namespace Starcounter.Internal.Tests
 {
+    /// <summary>
+    /// Class WebResourcesTest
+    /// </summary>
    public class WebResourcesTest
    {
+       /// <summary>
+       /// Parses the file specifier.
+       /// </summary>
       [Test]
       public static void ParseFileSpecifier()
       {
@@ -36,6 +47,9 @@ namespace Starcounter.Internal.Tests
          Assert.AreEqual(fileExtensionExpected, fileExtension);
       }
 
+      /// <summary>
+      /// Parses the file specifier with query.
+      /// </summary>
       [Test]
       public static void ParseFileSpecifierWithQuery() {
           string serverPath = "c:";

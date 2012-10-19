@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="JsonToCsMsBuildTask.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.IO;
 using Microsoft.Build.Framework;
@@ -11,14 +16,29 @@ using Starcounter.Templates.Interfaces;
 
 namespace Starcounter.Internal.MsBuild
 {
+    /// <summary>
+    /// Class JsonToCsMsBuildTask
+    /// </summary>
 	public class JsonToCsMsBuildTask : Task, ITask
 	{
+        /// <summary>
+        /// Gets or sets the input files.
+        /// </summary>
+        /// <value>The input files.</value>
 		[Required]
 		public ITaskItem[] InputFiles { get; set; }
 
+        /// <summary>
+        /// Gets or sets the output files.
+        /// </summary>
+        /// <value>The output files.</value>
 		[Output]
 		public ITaskItem[] OutputFiles { get; set; }
 
+        /// <summary>
+        /// When overridden in a derived class, executes the task.
+        /// </summary>
+        /// <returns>true if the task successfully executed; otherwise, false.</returns>
 		public override bool Execute()
 		{
 			bool success = true;
@@ -52,6 +72,12 @@ namespace Starcounter.Internal.MsBuild
 			return success;
 		}
 
+        /// <summary>
+        /// Processes the js template file.
+        /// </summary>
+        /// <param name="jsonFilename">The json filename.</param>
+        /// <param name="codeBehindFilename">The code behind filename.</param>
+        /// <returns>System.String.</returns>
 		private string ProcessJsTemplateFile(string jsonFilename, string codeBehindFilename)
 		{
 			AppTemplate t;

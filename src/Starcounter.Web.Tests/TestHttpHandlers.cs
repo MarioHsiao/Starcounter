@@ -1,5 +1,8 @@
-﻿
-
+﻿// ***********************************************************************
+// <copyright file="TestHttpHandlers.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using NUnit.Framework;
 using Starcounter.Internal.Uri;
@@ -8,11 +11,17 @@ using System.Text;
 using HttpStructs;
 namespace Starcounter.Internal.Test {
 
+    /// <summary>
+    /// Class TestRoutes
+    /// </summary>
     [TestFixture]
     class TestRoutes : RequestHandler {
 
 
 
+        /// <summary>
+        /// Defines the entry point of the application.
+        /// </summary>
         public static void Main() {
 
             Reset();
@@ -70,6 +79,9 @@ namespace Starcounter.Internal.Test {
         }
 
 
+        /// <summary>
+        /// Generates the ast tree overview.
+        /// </summary>
         [Test]
         public void GenerateAstTreeOverview() {
 
@@ -82,6 +94,9 @@ namespace Starcounter.Internal.Test {
             Console.WriteLine(tree.ToString());
         }
 
+        /// <summary>
+        /// Generates the parse tree overview.
+        /// </summary>
         [Test]
         public void GenerateParseTreeOverview() {
 
@@ -95,6 +110,9 @@ namespace Starcounter.Internal.Test {
             Console.WriteLine(umb.CreateParseTree().ToString());
         }
 
+        /// <summary>
+        /// Generates the parse tree details.
+        /// </summary>
         [Test]
         public void GenerateParseTreeDetails() {
             Reset();
@@ -104,6 +122,9 @@ namespace Starcounter.Internal.Test {
             Console.WriteLine(umb.CreateParseTree().ToString(true));
         }
 
+        /// <summary>
+        /// Generates the request processor.
+        /// </summary>
         [Test]
         public void GenerateRequestProcessor() {
 
@@ -129,6 +150,9 @@ namespace Starcounter.Internal.Test {
 
         }
 
+        /// <summary>
+        /// Debugs the pregenerated request processor.
+        /// </summary>
         [Test]
         public void DebugPregeneratedRequestProcessor() {
             var um = new __urimatcher__.GeneratedRequestProcessor();
@@ -157,6 +181,9 @@ namespace Starcounter.Internal.Test {
             um.Invoke(new HttpRequest(h7));
         }
 
+        /// <summary>
+        /// Tests the simple rest handler.
+        /// </summary>
         [Test]
         public void TestSimpleRestHandler() {
 
@@ -196,6 +223,9 @@ namespace Starcounter.Internal.Test {
 
         }
 
+        /// <summary>
+        /// Tests the rest handler.
+        /// </summary>
         [Test]
         public void TestRestHandler() {
 

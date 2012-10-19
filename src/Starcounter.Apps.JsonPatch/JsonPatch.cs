@@ -1,4 +1,10 @@
-﻿	using System;
+﻿// ***********************************************************************
+// <copyright file="JsonPatch.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Starcounter.Internal;
@@ -10,11 +16,25 @@ namespace Starcounter.Internal.JsonPatch
     // TODO:
     // There already is a Metadata class for each property in an app.
     // We should use that one instead of this struct.
+    /// <summary>
+    /// Struct AppAndTemplate
+    /// </summary>
     public struct AppAndTemplate
     {
+        /// <summary>
+        /// The app
+        /// </summary>
         public readonly App App;
+        /// <summary>
+        /// The template
+        /// </summary>
         public readonly Template Template;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AppAndTemplate" /> struct.
+        /// </summary>
+        /// <param name="app">The app.</param>
+        /// <param name="template">The template.</param>
         public AppAndTemplate(App app, Template template)
         {
             App = app;
@@ -22,19 +42,49 @@ namespace Starcounter.Internal.JsonPatch
         }
     }
 
+    /// <summary>
+    /// Class JsonPatch
+    /// </summary>
     public class JsonPatch
     {
+        /// <summary>
+        /// The UNDEFINED
+        /// </summary>
         public const Int32 UNDEFINED = 0;
+        /// <summary>
+        /// The REMOVE
+        /// </summary>
         public const Int32 REMOVE = 1;
+        /// <summary>
+        /// The REPLACE
+        /// </summary>
         public const Int32 REPLACE = 2;
+        /// <summary>
+        /// The ADD
+        /// </summary>
         public const Int32 ADD = 3;
 
+        /// <summary>
+        /// The _patch type to string
+        /// </summary>
         private static String[] _patchTypeToString;
 
+        /// <summary>
+        /// The _add patch arr
+        /// </summary>
         private static Byte[] _addPatchArr;
+        /// <summary>
+        /// The _remove patch arr
+        /// </summary>
         private static Byte[] _removePatchArr;
+        /// <summary>
+        /// The _replace patch arr
+        /// </summary>
         private static Byte[] _replacePatchArr;
 
+        /// <summary>
+        /// Initializes static members of the <see cref="JsonPatch" /> class.
+        /// </summary>
         static JsonPatch()
         {
             _patchTypeToString = new String[4];
@@ -48,6 +98,12 @@ namespace Starcounter.Internal.JsonPatch
             _replacePatchArr = Encoding.UTF8.GetBytes(_patchTypeToString[REPLACE]);
         }
 
+        /// <summary>
+        /// Patches the type to string.
+        /// </summary>
+        /// <param name="patchType">Type of the patch.</param>
+        /// <returns>String.</returns>
+        /// <exception cref="System.ArgumentOutOfRangeException">patchType</exception>
         private static String PatchTypeToString(Int32 patchType)
         {
             if ((patchType < 0) || (patchType >= _patchTypeToString.Length))
@@ -55,6 +111,10 @@ namespace Starcounter.Internal.JsonPatch
             return _patchTypeToString[patchType];
         }
 
+        /// <summary>
+        /// Evaluates the patches.
+        /// </summary>
+        /// <param name="body">The body.</param>
         public static void EvaluatePatches(String body)
         {
             Byte[] contentArr;
@@ -97,6 +157,13 @@ namespace Starcounter.Internal.JsonPatch
             }
         }
 
+        /// <summary>
+        /// Handles the parsed patch.
+        /// </summary>
+        /// <param name="patchType">Type of the patch.</param>
+        /// <param name="pointer">The pointer.</param>
+        /// <param name="value">The value.</param>
+        /// <exception cref="System.Exception">Unable to handle input for property of type: </exception>
         private static void HandleParsedPatch(Int32 patchType, JsonPointer pointer, Byte[] value)
         {
             AppAndTemplate aat = JsonPatch.Evaluate(Session.Current.RootApp, pointer);
@@ -108,6 +175,14 @@ namespace Starcounter.Internal.JsonPatch
             property.ProcessInput(aat.App, value);
         }
 
+        /// <summary>
+        /// Gets the patch value.
+        /// </summary>
+        /// <param name="contentArr">The content arr.</param>
+        /// <param name="offset">The offset.</param>
+        /// <param name="value">The value.</param>
+        /// <returns>Int32.</returns>
+        /// <exception cref="System.Exception">Cannot find value in patch</exception>
         private static Int32 GetPatchValue(Byte[] contentArr, Int32 offset, out Byte[] value)
         {
             Byte current;
@@ -152,6 +227,14 @@ namespace Starcounter.Internal.JsonPatch
             return offset;
         }
 
+        /// <summary>
+        /// Gets the patch pointer.
+        /// </summary>
+        /// <param name="contentArr">The content arr.</param>
+        /// <param name="offset">The offset.</param>
+        /// <param name="pointer">The pointer.</param>
+        /// <returns>Int32.</returns>
+        /// <exception cref="System.Exception">Cannot find json pointer in patch</exception>
         private static Int32 GetPatchPointer(Byte[] contentArr, Int32 offset, out JsonPointer pointer)
         {
             Byte current;
@@ -201,6 +284,14 @@ namespace Starcounter.Internal.JsonPatch
             return offset;
         }
 
+        /// <summary>
+        /// Gets the patch verb.
+        /// </summary>
+        /// <param name="contentArr">The content arr.</param>
+        /// <param name="offset">The offset.</param>
+        /// <param name="patchType">Type of the patch.</param>
+        /// <returns>Int32.</returns>
+        /// <exception cref="System.Exception">Unsupported json-patch</exception>
         private static Int32 GetPatchVerb(Byte[] contentArr, Int32 offset, out Int32 patchType)
         {
             Boolean quotationMark = false;
@@ -229,6 +320,13 @@ namespace Starcounter.Internal.JsonPatch
             return offset;
         }
 
+        /// <summary>
+        /// Determines whether [is patch verb] [the specified field name].
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="buffer">The buffer.</param>
+        /// <param name="offset">The offset.</param>
+        /// <param name="length">The length.</param>
         private static Boolean IsPatchVerb(Byte[] fieldName, Byte[] buffer, Int32 offset, Int32 length)
         {
             Int32 i;
@@ -249,6 +347,12 @@ namespace Starcounter.Internal.JsonPatch
             return true;
         }
 
+        /// <summary>
+        /// Evaluates the specified main app.
+        /// </summary>
+        /// <param name="mainApp">The main app.</param>
+        /// <param name="jsonPtr">The json PTR.</param>
+        /// <returns>AppAndTemplate.</returns>
         internal static AppAndTemplate Evaluate(App mainApp, String jsonPtr)
         {
             return Evaluate(mainApp, new JsonPointer(jsonPtr));
@@ -257,8 +361,10 @@ namespace Starcounter.Internal.JsonPatch
         /// <summary>
         /// Enumerates the json patch and retrieves the value.
         /// </summary>
-        /// <param name="jsonPatch"></param>
-        /// <returns></returns>
+        /// <param name="mainApp">The main app.</param>
+        /// <param name="ptr">The PTR.</param>
+        /// <returns>AppAndTemplate.</returns>
+        /// <exception cref="System.Exception"></exception>
         internal static AppAndTemplate Evaluate(App mainApp, JsonPointer ptr)
         {
             Boolean nextTokenShouldBeIndex;
@@ -323,6 +429,15 @@ namespace Starcounter.Internal.JsonPatch
         // Change this to return a bytearray since that is the way we are going to send it
         // in the response, or make it so it creates a series of json patches in a submitted
         // buffer instead of allocating a new one here.
+        /// <summary>
+        /// Builds the json patch.
+        /// </summary>
+        /// <param name="patchType">Type of the patch.</param>
+        /// <param name="nearestApp">The nearest app.</param>
+        /// <param name="from">From.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>String.</returns>
         public static String BuildJsonPatch(Int32 patchType, App nearestApp, Template from, Object value, Int32 index)
         {
             List<String> pathList = new List<String>();
@@ -360,6 +475,12 @@ namespace Starcounter.Internal.JsonPatch
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Indexes the path to string.
+        /// </summary>
+        /// <param name="sb">The sb.</param>
+        /// <param name="from">From.</param>
+        /// <param name="nearestApp">The nearest app.</param>
         private static void IndexPathToString(StringBuilder sb, Template from, App nearestApp)
         {
             App app;

@@ -1,10 +1,25 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="InputBindingInfo.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Collections.Generic;
 
 namespace Starcounter.Internal.Application.CodeGeneration
 {
+    /// <summary>
+    /// Class InputBindingInfo
+    /// </summary>
     public class InputBindingInfo
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="InputBindingInfo" /> class.
+        /// </summary>
+        /// <param name="classNs">The class ns.</param>
+        /// <param name="className">Name of the class.</param>
+        /// <param name="fullInputTypename">The full input typename.</param>
         internal InputBindingInfo(String classNs, String className, String fullInputTypename)
         {
             DeclaringClassNamespace = classNs;

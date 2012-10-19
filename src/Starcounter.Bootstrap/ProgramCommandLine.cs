@@ -1,4 +1,10 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="ProgramCommandLine.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,11 +16,11 @@ namespace StarcounterInternal.Bootstrap {
 
     /// <summary>
     /// Contains a set of utility methods responsible for defining, parsing
-    /// and handling errors for the command line parameters given to this 
+    /// and handling errors for the command line parameters given to this
     /// program.
     /// </summary>
     internal static class ProgramCommandLine {
-        
+
         /// <summary>
         /// Defines the commands this program accepts.
         /// </summary>
@@ -90,6 +96,12 @@ namespace StarcounterInternal.Bootstrap {
             public const string NetworkApps = "NetworkApps";
         }
 
+        /// <summary>
+        /// Tries the get program arguments.
+        /// </summary>
+        /// <param name="args">The args.</param>
+        /// <param name="arguments">The arguments.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         internal static bool TryGetProgramArguments(string[] args, out ApplicationArguments arguments) {
             ApplicationSyntaxDefinition syntaxDefinition;
             CommandSyntaxDefinition commandDefinition;
@@ -159,6 +171,11 @@ namespace StarcounterInternal.Bootstrap {
             return true;
         }
 
+        /// <summary>
+        /// Usages the specified syntax.
+        /// </summary>
+        /// <param name="syntax">The syntax.</param>
+        /// <param name="argumentException">The argument exception.</param>
         internal static void Usage(
             IApplicationSyntax syntax,
             InvalidCommandLineException argumentException) {
