@@ -1,32 +1,62 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="HttpResponseBuilder.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace Starcounter.Internal.Web {
 
-   /// <summary>
-   /// 
-   /// </summary>
+    /// <summary>
+    /// Class HttpResponseBuilder
+    /// </summary>
    public class HttpResponseBuilder {
 
 
 
+       /// <summary>
+       /// The created201
+       /// </summary>
       public static byte[] Created201 = new byte[] { (byte)'H', (byte)'T', (byte)'T', (byte)'P', (byte)'/', (byte)'1', (byte)'.', (byte)'0', (byte)' ',
                                        (byte)'2', (byte)'0', (byte)'1', (byte)' ', (byte)'C', (byte)'r', (byte)'e', (byte)'a', (byte)'t', (byte)'e', (byte)'d', (byte)'\r', (byte)'\n', (byte)'\r', (byte)'\n' };
 
+      /// <summary>
+      /// The ok200
+      /// </summary>
       public static byte[] Ok200 = new byte[] { (byte)'H', (byte)'T', (byte)'T', (byte)'P', (byte)'/', (byte)'1', (byte)'.', (byte)'0', (byte)' ',
                                        (byte)'2', (byte)'0', (byte)'0', (byte)' ', (byte)'O', (byte)'K', (byte)'\n', (byte)'\n' };
+      /// <summary>
+      /// The ok200_ content
+      /// </summary>
       public static byte[] Ok200_Content = new byte[] { (byte)'H', (byte)'T', (byte)'T', (byte)'P', (byte)'/', (byte)'1', (byte)'.', (byte)'0', (byte)' ',
                                        (byte)'2', (byte)'0', (byte)'0', (byte)' ', (byte)'O', (byte)'K', (byte)'\n',
                                        (byte)'C', (byte)'o',(byte)'n',(byte)'t',(byte)'e',(byte)'n',(byte)'t', (byte)'-',(byte)'L',(byte)'e',(byte)'n',(byte)'g',(byte)'t',(byte)'h',  (byte)':'};
 
+      /// <summary>
+      /// The IS e500_ content
+      /// </summary>
       public static byte[] ISE500_Content;
 
+      /// <summary>
+      /// The ok response header
+      /// </summary>
       public static byte[] OkResponseHeader;
+      /// <summary>
+      /// The header sealing
+      /// </summary>
       public static byte[] HeaderSealing = Encoding.UTF8.GetBytes("\r\n\r\n");
+      /// <summary>
+      /// The ok response content length insertion point
+      /// </summary>
       public static uint OkResponseContentLengthInsertionPoint;
 
+      /// <summary>
+      /// Initializes static members of the <see cref="HttpResponseBuilder" /> class.
+      /// </summary>
       static HttpResponseBuilder() {
          var str = "HTTP/1.0 200 OK\r\nContent-Length:9999999999";
          OkResponseHeader = Encoding.UTF8.GetBytes(str);
@@ -66,6 +96,14 @@ namespace Starcounter.Internal.Web {
       }
 
 
+      /// <summary>
+      /// Creates the response.
+      /// </summary>
+      /// <param name="preamble">The preamble.</param>
+      /// <param name="content">The content.</param>
+      /// <param name="contentOffset">The content offset.</param>
+      /// <param name="contentLength">Length of the content.</param>
+      /// <returns>System.Byte[][].</returns>
       public static byte[] CreateResponse(byte[] preamble, byte[] content, uint contentOffset, uint contentLength) {
          unsafe {
             byte[] buffer = new byte[20];
@@ -89,6 +127,11 @@ namespace Starcounter.Internal.Web {
          }
       }
 
+      /// <summary>
+      /// Create500s the content of the with.
+      /// </summary>
+      /// <param name="content">The content.</param>
+      /// <returns>Byte[][].</returns>
         public static Byte[] Create500WithContent(Byte[] content)
         {
             Byte[] response;
@@ -116,11 +159,21 @@ namespace Starcounter.Internal.Web {
             return response;
         }
 
+        /// <summary>
+        /// Nots the found404.
+        /// </summary>
+        /// <param name="payload">The payload.</param>
+        /// <returns>System.Byte[][].</returns>
         public static byte[] NotFound404(String payload)
         {
             return NotFound404(System.Text.Encoding.UTF8.GetBytes(payload));
         }
 
+        /// <summary>
+        /// Nots the found404.
+        /// </summary>
+        /// <param name="payload">The payload.</param>
+        /// <returns>System.Byte[][].</returns>
       public static byte[] NotFound404(Byte[] payload) {
 
          long len = 0;
@@ -151,7 +204,12 @@ namespace Starcounter.Internal.Web {
   //       return FromText(text, SessionID.NullSession);
   //    }
 
-     
+
+      /// <summary>
+      /// Froms the text.
+      /// </summary>
+      /// <param name="text">The text.</param>
+      /// <returns>System.Byte[][].</returns>
       public static byte[] FromText(string text) {
 
          long len = 0;

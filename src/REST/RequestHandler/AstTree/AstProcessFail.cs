@@ -1,10 +1,21 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="AstProcessFail.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System;
 using System.Text;
 namespace Starcounter.Internal.Uri {
+    /// <summary>
+    /// Class AstProcessFail
+    /// </summary>
     internal class AstProcessFail : AstNode {
 
+        /// <summary>
+        /// Gets the debug string.
+        /// </summary>
+        /// <value>The debug string.</value>
         internal override string DebugString {
             get {
                 return "fail";
