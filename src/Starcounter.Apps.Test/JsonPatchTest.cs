@@ -1,4 +1,10 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="JsonPatchTest.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Runtime.InteropServices;
 using System.Text;
 using NUnit.Framework;
@@ -22,9 +28,15 @@ namespace Starcounter.Internal.JsonPatch.Test
     //    }
     //}
 
+    /// <summary>
+    /// Class JsonPatchTest
+    /// </summary>
     [TestFixture]
     public class JsonPatchTest
     {
+        /// <summary>
+        /// Tests the json pointer.
+        /// </summary>
         [Test]
         public static void TestJsonPointer()
         {
@@ -98,6 +110,9 @@ namespace Starcounter.Internal.JsonPatch.Test
             PrintPointer(jsonPtr, strPtr);
         }
 
+        /// <summary>
+        /// Tests the read json patch BLOB.
+        /// </summary>
         [Test]
         public static void TestReadJsonPatchBlob()
         {
@@ -118,6 +133,9 @@ namespace Starcounter.Internal.JsonPatch.Test
             });
         }
 
+        /// <summary>
+        /// Tests the read json patch.
+        /// </summary>
         [Test]
         public static void TestReadJsonPatch()
         {
@@ -162,6 +180,9 @@ namespace Starcounter.Internal.JsonPatch.Test
             ChangeLog.EndRequest();
         }
 
+        /// <summary>
+        /// Tests the write json patch.
+        /// </summary>
         [Test]
         public static void TestWriteJsonPatch()
         {
@@ -203,6 +224,9 @@ namespace Starcounter.Internal.JsonPatch.Test
             Console.WriteLine("Created {0} replace patches in {1} ms", repeat, (stop - start).TotalMilliseconds);
         }
 
+        /// <summary>
+        /// Tests the app index path.
+        /// </summary>
         [Test]
         public static void TestAppIndexPath()
         {
@@ -233,6 +257,11 @@ namespace Starcounter.Internal.JsonPatch.Test
             VerifyIndexPath(new Int32[] { 2, 1, 2 }, indexPath);
         }
 
+        /// <summary>
+        /// Verifies the index path.
+        /// </summary>
+        /// <param name="expected">The expected.</param>
+        /// <param name="received">The received.</param>
         private static void VerifyIndexPath(Int32[] expected, Int32[] received)
         {
             Assert.AreEqual(expected.Length, received.Length);
@@ -242,6 +271,9 @@ namespace Starcounter.Internal.JsonPatch.Test
             }
         }
 
+        /// <summary>
+        /// Tests the create HTTP response with patches.
+        /// </summary>
         [Test]
         public static void TestCreateHttpResponseWithPatches()
         {
@@ -287,7 +319,12 @@ namespace Starcounter.Internal.JsonPatch.Test
             Console.WriteLine("Created {0} responses in {1} ms", repeat, (stop - start).TotalMilliseconds);
             Console.WriteLine(Encoding.UTF8.GetString(response));
         }
- 
+
+        /// <summary>
+        /// Prints the pointer.
+        /// </summary>
+        /// <param name="ptr">The PTR.</param>
+        /// <param name="originalStr">The original STR.</param>
         private static void PrintPointer(JsonPointer ptr, String originalStr)
         {
             ptr.Reset();
@@ -301,6 +338,10 @@ namespace Starcounter.Internal.JsonPatch.Test
             Console.WriteLine();
         }
 
+        /// <summary>
+        /// Creates the sample app.
+        /// </summary>
+        /// <returns>AppAndTemplate.</returns>
         private static AppAndTemplate CreateSampleApp()
         {
             dynamic template = TemplateFromJs.ReadFile("SampleApp.json");
