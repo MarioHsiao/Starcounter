@@ -500,7 +500,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Object property equal to Object literal
-QueryString: select e from SalaryEmployee e where e.Manager = object 25
+QueryString: select e from SalaryEmployee e where e.Manager = object 80
 IncludesLiteral: True
 IncludesObjectValue: True
 ExpectedExecutionPlan: 
@@ -528,7 +528,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Object property not equal to Object literal
-QueryString: select e from SalaryEmployee e where e.Manager <> object 25
+QueryString: select e from SalaryEmployee e where e.Manager <> object 80
 IncludesLiteral: True
 IncludesObjectValue: True
 ExpectedExecutionPlan: 
@@ -556,7 +556,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Object property less than Object literal (incorrect)
-QueryString: select e from SalaryEmployee e where e.Manager < object 25
+QueryString: select e from SalaryEmployee e where e.Manager < object 80
 IncludesLiteral: True
 IncludesObjectValue: True
 ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager < object 25: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator lessThan. 
@@ -564,7 +564,7 @@ ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee 
 
 <NEXT>
 Description: Object property less than or equal to Object literal (incorrect)
-QueryString: select e from SalaryEmployee e where e.Manager <= object 25
+QueryString: select e from SalaryEmployee e where e.Manager <= object 80
 IncludesLiteral: True
 IncludesObjectValue: True
 ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager <= object 25: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator lessThanOrEqual. 
@@ -572,7 +572,7 @@ ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee 
 
 <NEXT>
 Description: Object property greater than Object literal (incorrect)
-QueryString: select e from SalaryEmployee e where e.Manager > object 25
+QueryString: select e from SalaryEmployee e where e.Manager > object 80
 IncludesLiteral: True
 IncludesObjectValue: True
 ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager > object 25: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator greaterThan. 
@@ -580,100 +580,10 @@ ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee 
 
 <NEXT>
 Description: Object property greater than or equal to Object literal (incorrect)
-QueryString: select e from SalaryEmployee e where e.Manager >= object 25
+QueryString: select e from SalaryEmployee e where e.Manager >= object 80
 IncludesLiteral: True
 IncludesObjectValue: True
 ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager >= object 25: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator greaterThanOrEqual. 
-
-
-== Object literal as parameter ==
-
-<NEXT>
-Description: Object property equal to Object variable
-QueryString: select e from SalaryEmployee e where e.Manager = ?
-VariableValues: Object:25; 
-IncludesObjectValue: True
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.SalaryEmployee
-)
-Projection(
-	0 = 
-		ObjectThis(0)
-)
-FullTableScan(
-	0
-	ComparisonObject(
-		Equal
-		ObjectProperty(0, Manager)
-		ObjectVariable(25)
-	)
-	Ascending
-)
-
-ExpectedResult: 
- ! Object ! 
- | 32 | 
-
-
-<NEXT>
-Description: Object property not equal to Object variable
-QueryString: select e from SalaryEmployee e where e.Manager <> ?
-VariableValues: Object:25; 
-IncludesObjectValue: True
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.SalaryEmployee
-)
-Projection(
-	0 = 
-		ObjectThis(0)
-)
-FullTableScan(
-	0
-	ComparisonObject(
-		NotEqual
-		ObjectProperty(0, Manager)
-		ObjectVariable(25)
-	)
-	Ascending
-)
-
-ExpectedResult: 
- ! Object ! 
- | 31 | 
-
-
-<NEXT>
-Description: Object property less than Object variable (incorrect)
-QueryString: select e from SalaryEmployee e where e.Manager < ?
-VariableValues: Object:25; 
-IncludesObjectValue: True
-ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager < ?: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and any to operator lessThan. 
-
-
-<NEXT>
-Description: Object property less than or equal to Object variable (incorrect)
-QueryString: select e from SalaryEmployee e where e.Manager <= ?
-VariableValues: Object:25; 
-IncludesObjectValue: True
-ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager <= ?: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and any to operator lessThanOrEqual. 
-
-
-<NEXT>
-Description: Object property greater than Object variable (incorrect)
-QueryString: select e from SalaryEmployee e where e.Manager > ?
-VariableValues: Object:25; 
-IncludesObjectValue: True
-ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager > ?: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and any to operator greaterThan. 
-
-
-<NEXT>
-Description: Object property greater than or equal to Object variable (incorrect)
-QueryString: select e from SalaryEmployee e where e.Manager >= ?
-VariableValues: Object:25; 
-IncludesObjectValue: True
-ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager >= ?: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and any to operator greaterThanOrEqual. 
 
 
 == Order by on path expression ==
@@ -16307,4 +16217,92 @@ ExpectedResult:
  | 75 | 
  | 75 | 
  | 75 | 
+
+<NEXT>
+Description: Object property equal to Object variable
+QueryString: select e from SalaryEmployee e where e.Manager = ?
+VariableValues: Object:80; 
+IncludesObjectValue: True
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.SalaryEmployee
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+FullTableScan(
+	0
+	ComparisonObject(
+		Equal
+		ObjectProperty(0, Manager)
+		ObjectVariable(80)
+	)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 87 | 
+
+
+<NEXT>
+Description: Object property not equal to Object variable
+QueryString: select e from SalaryEmployee e where e.Manager <> ?
+VariableValues: Object:80; 
+IncludesObjectValue: True
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.SalaryEmployee
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+FullTableScan(
+	0
+	ComparisonObject(
+		NotEqual
+		ObjectProperty(0, Manager)
+		ObjectVariable(80)
+	)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 86 | 
+
+
+<NEXT>
+Description: Object property less than Object variable (incorrect)
+QueryString: select e from SalaryEmployee e where e.Manager < ?
+VariableValues: Object:80; 
+IncludesObjectValue: True
+ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager < ?: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and any to operator lessThan. 
+
+
+<NEXT>
+Description: Object property less than or equal to Object variable (incorrect)
+QueryString: select e from SalaryEmployee e where e.Manager <= ?
+VariableValues: Object:80; 
+IncludesObjectValue: True
+ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager <= ?: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and any to operator lessThanOrEqual. 
+
+
+<NEXT>
+Description: Object property greater than Object variable (incorrect)
+QueryString: select e from SalaryEmployee e where e.Manager > ?
+VariableValues: Object:80; 
+IncludesObjectValue: True
+ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager > ?: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and any to operator greaterThan. 
+
+
+<NEXT>
+Description: Object property greater than or equal to Object variable (incorrect)
+QueryString: select e from SalaryEmployee e where e.Manager >= ?
+VariableValues: Object:80; 
+IncludesObjectValue: True
+ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager >= ?: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and any to operator greaterThanOrEqual. 
+
 
