@@ -426,9 +426,22 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
 
         case CONTENT_LENGTH:
         {
+            // Converting decimal string into number.
+            uint32_t body_length_bytes = 0;
+            int32_t mult = 1, i = length - 1;
+            while (true)
+            {
+                body_length_bytes += (at[i] - '0') * mult;
+
+                --i;
+                if (i < 0)
+                    break;
+
+                mult *= 10;
+            }
+
             // Setting body size parameter.
-            // TODO: Fix the length parsing.
-            //http->http_request_.body_len_bytes_ = length;
+            http->http_request_.body_len_bytes_ = body_length_bytes;
 
             break;
         }
@@ -593,13 +606,10 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         // Checking for any errors.
         if (err_code)
         {
-            // Disconnecting this socket.
-            gw->Disconnect(sd);
-
             // Returning error.
-            return 1;
+            return SCERRPARSINGMETHODANDURI;
 
-            // TODO!
+            // TODO: Continue receiving to parse the header!
 
             // Continue receiving.
             socketDataBuf->ContinueReceive();
@@ -625,13 +635,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
 
         // Checking if user handler was not found.
         if (uri_index < 0)
-        {
-            // Disconnecting this socket.
-            gw->Disconnect(sd);
-
-            // Returning error.
-            return 1;
-        }
+            return SCERRREQUESTONUNREGISTEREDURI;
 
         // Running determined handler now.
         *is_handled = true;

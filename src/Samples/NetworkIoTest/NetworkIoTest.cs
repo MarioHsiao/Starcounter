@@ -22,6 +22,9 @@ namespace NetworkIoTestApp
             GatewayHandlers.RegisterUriHandler(80, "GET /", HTTP_METHODS.GET_METHOD, OnHttpMessageRoot, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
+            GatewayHandlers.RegisterUriHandler(80, "POST /", HTTP_METHODS.POST_METHOD, OnHttpMessagePost, out handlerId);
+            Console.WriteLine("Successfully registered new handler: " + handlerId);
+
             GatewayHandlers.RegisterUriHandler(80, "GET /users", HTTP_METHODS.GET_METHOD, OnHttpMessageUsers, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
@@ -97,6 +100,36 @@ namespace NetworkIoTestApp
 
             // Writing back to channel.
             p.DataStream.Write(respBytes, 0, respBytes.Length);
+
+            return true;
+        }
+
+        // HTTP handler for POSTs.
+        private static Boolean OnHttpMessagePost(HttpRequest p)
+        {
+            String responseBody =
+                "<html>\r\n" +
+                "<body>\r\n" +
+                "<h1>Handler URI prefix: root(/) </h1>\r\n" +
+                p.ToString() +
+                "<h1>All cookies: " + p["Cookie"] + "</h1>" +
+                "<h1>Host: " + p["Host"] + "</h1>" +
+                "<h1>Method: " + p.HttpMethod + "</h1>" +
+                "</body>\r\n" +
+                "</html>\r\n";
+
+            String responseHeader =
+                "HTTP/1.1 200 OK\r\n" +
+                "Content-Type: text/html; charset=UTF-8\r\n" +
+                "Set-Cookie: " + p.SessionStruct.ConvertToSessionCookieFaster() + "; HttpOnly\r\n" +
+                "Content-Length: " + responseBody.Length + "\r\n" +
+                "\r\n";
+
+            // Converting string to byte array.
+            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + responseBody);
+
+            // Writing back to channel.
+            p.WriteResponse(respBytes, 0, respBytes.Length);
 
             return true;
         }

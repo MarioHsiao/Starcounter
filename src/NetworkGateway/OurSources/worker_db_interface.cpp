@@ -554,6 +554,8 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                     UriProcessData,
                     db_index_);
 
+                GW_ERR_CHECK(err_code);
+
                 // Search for handler index by URI string.
                 BMX_HANDLER_TYPE handler_index = handlers_table->FindUriUserHandlerIndex(port, uri, uri_len_chars);
 
