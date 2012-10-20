@@ -1,10 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
   <PropertyGroup>
     <GIT_LEVEL0_BRANCH Condition=" '$(GIT_LEVEL0_BRANCH)' == '' ">develop</GIT_LEVEL0_BRANCH>
     <BinariesFTP>\\scbuildserver\FTP</BinariesFTP>
     <BinariesFTPAccessible Condition="Exists('$(BinariesFTP)')">True</BinariesFTPAccessible>
   </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <OutputPath>..\..\bin\Release\</OutputPath>
   </PropertyGroup>
@@ -13,40 +15,30 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <ProjectGuid>{8B599BFF-B414-41A3-A270-96CDA0C522AF}</ProjectGuid>
+    <ProjectGuid>{EC69526F-72FB-4E26-AD8D-7CF22B145C93}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CopyDependencies</RootNamespace>
-    <AssemblyName>CopyDependencies</AssemblyName>
+    <RootNamespace>CopyDependenciesRemote</RootNamespace>
+    <AssemblyName>CopyDependenciesRemote</AssemblyName>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   
   <PropertyGroup>
-    <BlueSolution>..\..\..\Level0\src\Blue.sln</BlueSolution>
-    <BlueSolutionInclude>..\..\..\Level0\src\include</BlueSolutionInclude>
-    <GreyDll>..\Starcounter.ErrorCodes\scerrres\x64\$(Configuration)\scerrres.dll</GreyDll>
-    <StartAllScript>..\BuildSystem\Scripts\start_all.bat</StartAllScript>
-    <KillAllScript>..\BuildSystem\Scripts\kill_all.bat</KillAllScript>
-    <GatewayXML>..\NetworkGateway\scripts\ScGateway.xml</GatewayXML>
+    <LocalBlueSolution>..\..\..\Level0\src\Blue.sln</LocalBlueSolution>
   </PropertyGroup>
   
   <PropertyGroup>
-    <LocalBlueBinariesDir>..\..\..\Level0\src\x64\$(Configuration)</LocalBlueBinariesDir>
     <RemoteBlueBinariesDir>$(BinariesFTP)\SCBuilds\Level0\$(GIT_LEVEL0_BRANCH)\LatestStable\x64\$(Configuration)</RemoteBlueBinariesDir>
     <RemotePrologSQLParser>$(BinariesFTP)\SCDev\ThirdParty\PrologSQLParser\StarcounterSQL.exe</RemotePrologSQLParser>
   </PropertyGroup>
 
-  <Target Name="CopyExternalStaticFiles">
+  <Target Name="CopyRemoteFiles">
 
-    <!-- Building Blue solution if any. -->
-    <!-- <Exec Condition="Exists('$(BlueSolution)')" Command="C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe $(BlueSolution) /property:Configuration=$(Configuration);Platform=x64;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" /> -->
-    
     <!-- NOTE: Comment the following line in order to build without requiring FTP connection. -->
     <Error Text="Shared FTP folder is not accessible: $(BinariesFTP)" Condition="'$(BinariesFTPAccessible)' != 'True'" />
     
     <!-- Creating copied files lists. -->
     <ItemGroup>
-      <LocalBlueBinFiles Include="$(LocalBlueBinariesDir)\*" />
       <RemoteBlueBinFiles Include="$(RemoteBlueBinariesDir)\*" />
       <RemoteBlueIncludeFiles Include="$(BinariesFTP)\SCBuilds\Level0\$(GIT_LEVEL0_BRANCH)\LatestStable\Include\*" />
       <RemotePostSharpBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\PostSharp\*" />
@@ -56,23 +48,17 @@
     </ItemGroup>
 
     <!-- Remote files from FTP. -->
-    <Copy Condition="'$(BinariesFTPAccessible)' == 'True' AND !Exists('$(BlueSolution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteBlueBinFiles)" DestinationFiles="@(RemoteBlueBinFiles->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <Copy Condition="'$(BinariesFTPAccessible)' == 'True' AND !Exists('$(BlueSolution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteBlueIncludeFiles)" DestinationFolder="..\..\..\Level0\src\include" />
+    <Copy Condition="'$(BinariesFTPAccessible)' == 'True' AND !Exists('$(LocalBlueSolution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteBlueBinFiles)" DestinationFiles="@(RemoteBlueBinFiles->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy Condition="'$(BinariesFTPAccessible)' == 'True' AND !Exists('$(LocalBlueSolution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteBlueIncludeFiles)" DestinationFolder="..\..\..\Level0\src\include" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemotePostSharpBinaries)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(RemotePrologSQLParser)" DestinationFolder="$(OutputPath)\32BitComponents" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteMinGW64Binaries)" DestinationFiles="@(RemoteMinGW64Binaries->'$(OutputPath)\MinGW\%(RecursiveDir)%(Filename)%(Extension)')" />
 
-    <!-- Local files. -->
-    <Copy Condition="Exists('$(BlueSolution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalBlueBinFiles)" DestinationFiles="@(LocalBlueBinFiles->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(GreyDll)" DestinationFolder="$(OutputPath)" />
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(StartAllScript)" DestinationFolder="$(OutputPath)" />
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(KillAllScript)" DestinationFolder="$(OutputPath)" />
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(GatewayXML)" DestinationFolder="$(OutputPath)" />
-    
     <!-- Build system stuff. -->
     <Copy Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' != '' " SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteNuGetPackages)" DestinationFiles="@(RemoteNuGetPackages->'..\packages\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' != '' " SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteNuGetDir)" DestinationFiles="@(RemoteNuGetDir->'..\.nuget\%(RecursiveDir)%(Filename)%(Extension)')" />
+    
   </Target>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <Target Name="Build" DependsOnTargets="CopyExternalStaticFiles" />
+  <Target Name="Build" DependsOnTargets="CopyRemoteFiles" />
 </Project>
