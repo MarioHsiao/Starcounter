@@ -85,7 +85,7 @@ namespace Starcounter {
             CheckProcess();
         }
 
-        public static void CheckProcess() {
+        internal static void CheckProcess() {
             if (AlreadyCheckedProcess)
                 return;
             AlreadyCheckedProcess = true;
