@@ -80,15 +80,18 @@ namespace Starcounter {
             }
         }
 
+        private static bool AlreadyCheckedProcess = false;
         static App() {
             CheckProcess();
         }
 
-        public static void CheckProcess() {
-            Console.WriteLine("Inside App type initializer");
+        internal static void CheckProcess() {
+            if (AlreadyCheckedProcess)
+                return;
+            AlreadyCheckedProcess = true;
+            Console.WriteLine("Checking that the process is running inside Starcounter hosts.");
             if (!AppExeModule.IsRunningTests)
             {
-                Console.WriteLine("Checking process");
                 Process pr = Process.GetCurrentProcess();
                 string pn = pr.ProcessName;
                 if (pn != "boot" && pn != "AppsStarterMsSql" && pn != "AppsStarterMsSql.vshost" && pn != "scdbs" && pn != "scdbsw" && pn != "Fakeway" && pn != "Fakeway.vshost")
