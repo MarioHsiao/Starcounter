@@ -96,6 +96,7 @@ namespace Starcounter {
                 string pn = pr.ProcessName;
                 if (pn != "boot" && pn != "AppsStarterMsSql" && pn != "AppsStarterMsSql.vshost" && pn != "scdbs" && pn != "scdbsw" && pn != "Fakeway" && pn != "Fakeway.vshost")
                 {
+                    // TODO! Is this code still operational? TellServer does not do anything anymore.
                     Console.WriteLine();
                     Console.WriteLine(pn);
                     Console.WriteLine("Restarting this .EXE in the cloud.");
