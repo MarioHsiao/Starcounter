@@ -93,27 +93,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="HttpStructs">
-      <HintPath>..\..\..\bin\$(Configuration)\HttpStructs.dll</HintPath>
-    </Reference>
     <Reference Include="Starcounter, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d2df1e81d0ca3abf, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\bin\$(Configuration)\Starcounter.dll</HintPath>
-    </Reference>
-    <Reference Include="Starcounter.Apps">
-      <HintPath>..\..\..\bin\$(Configuration)\Starcounter.Apps.dll</HintPath>
-    </Reference>
-    <Reference Include="Starcounter.Apps.Interfaces">
-      <HintPath>..\..\..\bin\$(Configuration)\Starcounter.Apps.Interfaces.dll</HintPath>
-    </Reference>
-    <Reference Include="Starcounter.Apps.JsonPatch">
-      <HintPath>..\..\..\bin\$(Configuration)\Starcounter.Apps.JsonPatch.dll</HintPath>
-    </Reference>
-    <Reference Include="Starcounter.Hypermedia">
-      <HintPath>..\..\..\bin\$(Configuration)\Starcounter.Hypermedia.dll</HintPath>
-    </Reference>
-    <Reference Include="Starcounter.REST">
-      <HintPath>..\..\..\bin\$(Configuration)\Starcounter.REST.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -256,6 +238,32 @@
     <None Include="less\base.less">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\HTTP\HttpStructs.csproj">
+      <Project>{90d57166-b42e-4bbe-b9ec-cfb33e551b77}</Project>
+      <Name>HttpStructs</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\REST\Starcounter.Rest.csproj">
+      <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
+      <Name>Starcounter.Rest</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Starcounter.Apps.Interfaces\Starcounter.Apps.Interfaces.csproj">
+      <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
+      <Name>Starcounter.Apps.Interfaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Starcounter.Apps.JsonPatch\Starcounter.Apps.JsonPatch.csproj">
+      <Project>{828ecac2-9748-4e7f-bdc0-6d154c90b9c3}</Project>
+      <Name>Starcounter.Apps.JsonPatch</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Starcounter.Apps\Starcounter.Apps.csproj">
+      <Project>{bbaad98c-2661-42dc-85e4-3f2d11bbe010}</Project>
+      <Name>Starcounter.Apps</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Starcounter.Hypermedia\Starcounter.Hypermedia.csproj">
+      <Project>{42137e4c-afe5-4c60-b970-3343c3b3ec30}</Project>
+      <Name>Starcounter.Hypermedia</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- TODO: Temporary path. Use installation directory for starcounter 

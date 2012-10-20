@@ -15,6 +15,10 @@ partial class Master : App {
             return new Master() { View = "master.html" };
         });
 
+        GET("/abc", () => {
+            return Get("/empty");
+        });
+
         GET("/test", () => new TestApp() );
 
         GET("/products/@s", (string id) => {
@@ -57,7 +61,8 @@ partial class Master : App {
     private static void Bootstrap()
     {
         var fileserv = new StaticWebServer();
-        fileserv.UserAddedLocalFileDirectoryWithStaticContent(Path.GetDirectoryName(typeof(Master).Assembly.Location) + "\\..\\.." );
+        fileserv.UserAddedLocalFileDirectoryWithStaticContent(Path.GetDirectoryName(typeof(Master).Assembly.Location) + "\\..\\..");
+        fileserv.UserAddedLocalFileDirectoryWithStaticContent(Path.GetDirectoryName(typeof(Master).Assembly.Location) + "\\..\\..\\..\\..\\Browser\\AngularRemote");
         _appServer = new HttpAppServer(fileserv, new SessionDictionary());
 
         InternalHandlers.Register();
