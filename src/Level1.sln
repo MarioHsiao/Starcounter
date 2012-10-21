@@ -26,7 +26,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CopyDependenciesLocal", "External\CopyDependenciesLocal.csproj", "{8B599BFF-B414-41A3-A270-96CDA0C522AF}"
 	ProjectSection(ProjectDependencies) = postProject
 		{5A65D606-6613-4139-8853-B5F26313E4DF} = {5A65D606-6613-4139-8853-B5F26313E4DF}
-		{EC69526F-72FB-4E26-AD8D-7CF22B145C93} = {EC69526F-72FB-4E26-AD8D-7CF22B145C93}
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndexQueryTest", "Samples\IndexQueryTest\IndexQueryTest.csproj", "{917A2134-2267-4E27-9415-1D531AADF156}"
