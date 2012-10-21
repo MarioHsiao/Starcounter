@@ -22,22 +22,22 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   
-  <Target Name="CopyBuildSystemFiles">
+  <Target Name="CopyBuildServerFiles">
 
     <!-- NOTE: Comment the following line in order to build without requiring FTP connection. -->
     <Error Text="Shared FTP folder is not accessible: $(BinariesFTP)" Condition="'$(BinariesFTPAccessible)' != 'True'" />
     
     <!-- Creating copied files lists. -->
     <ItemGroup>
-      <RemoteNuGetPackages Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' != '' " Include="$(BinariesFTP)\SCDev\ThirdParty\packages\**\*" />
-      <RemoteNuGetDir Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' != '' " Include="$(BinariesFTP)\SCDev\ThirdParty\.nuget\**\*" />
+      <RemoteNuGetPackages Include="$(BinariesFTP)\SCDev\ThirdParty\packages\**\*" />
+      <RemoteNuGetDir Include="$(BinariesFTP)\SCDev\ThirdParty\.nuget\**\*" />
     </ItemGroup>
 
     <!-- Build system needed static files. -->
-    <Copy Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' != '' " SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteNuGetPackages)" DestinationFiles="@(RemoteNuGetPackages->'..\packages\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <Copy Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' != '' " SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteNuGetDir)" DestinationFiles="@(RemoteNuGetDir->'..\.nuget\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteNuGetPackages)" DestinationFiles="@(RemoteNuGetPackages->'..\packages\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteNuGetDir)" DestinationFiles="@(RemoteNuGetDir->'..\.nuget\%(RecursiveDir)%(Filename)%(Extension)')" />
     
   </Target>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <Target Name="Build" DependsOnTargets="CopyBuildSystemFiles" />
+  <Target Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' != '' " Name="Build" DependsOnTargets="CopyBuildServerFiles" />
 </Project>
