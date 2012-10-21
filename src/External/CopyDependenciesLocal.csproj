@@ -1,11 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <OutputPath>..\..\bin\Release\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <OutputPath>..\..\bin\Debug\</OutputPath>
   </PropertyGroup>
+  
   <PropertyGroup>
     <ProjectGuid>{8B599BFF-B414-41A3-A270-96CDA0C522AF}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -14,6 +16,7 @@
     <AssemblyName>CopyDependenciesLocal</AssemblyName>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
+  
   <PropertyGroup>
     <LocalBlueSolution>..\..\..\Level0\src\Blue.sln</LocalBlueSolution>
     <LocalGreyDll>..\Starcounter.ErrorCodes\scerrres\x64\$(Configuration)\scerrres.dll</LocalGreyDll>
@@ -21,15 +24,10 @@
     <LocalKillAllScript>..\BuildSystem\Scripts\kill_all.bat</LocalKillAllScript>
     <LocalGatewayXML>..\NetworkGateway\scripts\ScGateway.xml</LocalGatewayXML>
   </PropertyGroup>
+  
   <PropertyGroup>
     <LocalBlueBinariesDir>..\..\..\Level0\src\x64\$(Configuration)</LocalBlueBinariesDir>
   </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="CopyDependenciesRemote.csproj">
-      <Project>{ec69526f-72fb-4e26-ad8d-7cf22b145c93}</Project>
-      <Name>CopyDependenciesRemote</Name>
-    </ProjectReference>
-  </ItemGroup>
 
   <Target Name="CopyLocalFiles">
 
@@ -47,6 +45,7 @@
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalStartAllScript)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalKillAllScript)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalGatewayXML)" DestinationFolder="$(OutputPath)" />
+    
   </Target>
 
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
