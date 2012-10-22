@@ -321,8 +321,7 @@ namespace StarcounterInternal.Bootstrap
             //   Currently, named pipes is the standard means.
 
             if (!configuration.UseConsole) {
-                var pipeName = string.Format("sc//{0}/{1}/{2}", Environment.MachineName, configuration.ServerName, configuration.Name);
-                pipeName = pipeName.ToLowerInvariant();
+                var pipeName = ScUriExtensions.MakeLocalDatabasePipeString(configuration.ServerName, configuration.Name);
                 server = ClientServerFactory.CreateServerUsingNamedPipes(pipeName);
 
             } else {

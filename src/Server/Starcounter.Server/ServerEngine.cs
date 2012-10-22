@@ -95,7 +95,7 @@ namespace Starcounter.Server {
         /// </summary>
         internal string DefaultServicePipeName {
             get {
-                return string.Format("sc//{0}/{1}", Environment.MachineName, this.Name).ToLowerInvariant();
+                return ScUriExtensions.MakeLocalServerPipeString(this.Name);
             }
         }
 
