@@ -61,6 +61,20 @@ namespace Starcounter.Server {
     /// Representing the running server, hosted in a server program.
     /// </summary>
     public sealed class ServerEngine {
+        /// <summary>
+        /// Gets the simple name of the server.
+        /// </summary>
+        public readonly string Name;
+
+        /// <summary>
+        /// Gets the URI of this server.
+        /// </summary>
+        public readonly string Uri;
+
+        /// <summary>
+        /// Gets the installed <see cref="CommandDispatcher"/> the current
+        /// engine will utilize when executing commands.
+        /// </summary>
         internal readonly CommandDispatcher Dispatcher;
 
         /// <summary>
@@ -78,16 +92,6 @@ namespace Starcounter.Server {
         /// Gets the <see cref="DatabaseEngine"/> used by the current server.
         /// </summary>
         internal readonly DatabaseEngine DatabaseEngine;
-
-        /// <summary>
-        /// Gets the simple name of the server.
-        /// </summary>
-        internal readonly string Name;
-
-        /// <summary>
-        /// Gets the URI of this server.
-        /// </summary>
-        internal readonly string Uri;
 
         /// <summary>
         /// Gets the default name of the pipe the server use for it's
