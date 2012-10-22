@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="TemplateFromJs.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,13 +12,29 @@ using Starcounter.Templates;
 
 namespace Starcounter.Internal.Application.JsonReader
 {
+    /// <summary>
+    /// Class TemplateFromJs
+    /// </summary>
     public class TemplateFromJs
     {
+        /// <summary>
+        /// Creates from js.
+        /// </summary>
+        /// <param name="script2">The script2.</param>
+        /// <param name="restrictToDesigntimeVariable">if set to <c>true</c> [restrict to designtime variable].</param>
+        /// <returns>AppTemplate.</returns>
         public static AppTemplate CreateFromJs(string script2, bool restrictToDesigntimeVariable)
         {
             return _CreateFromJs(script2, "unknown", restrictToDesigntimeVariable); //ignoreNonDesignTimeAssignments);
         }
 
+        /// <summary>
+        /// _s the create from js.
+        /// </summary>
+        /// <param name="source">The source.</param>
+        /// <param name="sourceReference">The source reference.</param>
+        /// <param name="ignoreNonDesignTimeAssigments">if set to <c>true</c> [ignore non design time assigments].</param>
+        /// <returns>AppTemplate.</returns>
         private static AppTemplate _CreateFromJs(string source,
                                                  string sourceReference,
                                                  bool ignoreNonDesignTimeAssigments)
@@ -37,6 +58,10 @@ namespace Starcounter.Internal.Application.JsonReader
             return appTemplate;
         }
 
+        /// <summary>
+        /// Verifies the templates.
+        /// </summary>
+        /// <param name="parentTemplate">The parent template.</param>
         private static void VerifyTemplates(ParentTemplate parentTemplate)
         {
             CompilerOrigin co;
@@ -60,6 +85,11 @@ namespace Starcounter.Internal.Application.JsonReader
         }
 
 
+        /// <summary>
+        /// Reads the file.
+        /// </summary>
+        /// <param name="fileSpec">The file spec.</param>
+        /// <returns>AppTemplate.</returns>
         public static AppTemplate ReadFile(string fileSpec)
         {
             string content = ReadUtf8File(fileSpec);
@@ -71,6 +101,11 @@ namespace Starcounter.Internal.Application.JsonReader
             return t;
         }
 
+        /// <summary>
+        /// Reads the UTF8 file.
+        /// </summary>
+        /// <param name="fileSpec">The file spec.</param>
+        /// <returns>System.String.</returns>
         private static string ReadUtf8File(string fileSpec)
         {
 

@@ -20,10 +20,13 @@ test::test(int argc, wchar_t* argv[])
 : shared_(),
 active_schedulers_(0) {
 	///=========================================================================
-	/// Initialize the test.
+	/// Initialize the test. Change to the debug or release directory:
+	/// > cd %UserProfile%\code\Level1\bin\Debug
+	/// or
+	/// > cd %UserProfile%\code\Level1\bin\Release
+	///
 	/// The first argument is the name of the database, for example:
-	/// >cd %UserProfile%\Starcounter\Dev\Yellow\Main
-	/// >"%StarcounterBin%\ScNetGateway.exe" loadandlatency
+	/// >sc_ipc_test.exe MYDB
 	///=========================================================================
 	
 	if (argc > 1) {

@@ -36,7 +36,7 @@ namespace Starcounter.Server.Commands.Processors {
 
             // Get a client handle to the worker process.
 
-            var client = new Client(workerProcess.StandardInput.WriteLine, workerProcess.StandardOutput.ReadLine);
+            var client = this.Engine.DatabaseHostService.GetHostingInterface(database);
 
             // Send a ping, the means by which we check the "status" of the
             // worker process - if it answers, we consider it online.

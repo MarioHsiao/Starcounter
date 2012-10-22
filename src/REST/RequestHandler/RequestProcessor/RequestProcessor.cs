@@ -1,4 +1,10 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="RequestProcessor.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Text;
 using HttpStructs;
 
@@ -6,10 +12,9 @@ namespace Starcounter.Internal.Uri
 {
     /// <summary>
     /// A request processor represents a set of URI and verb handlers or a single uri and verb handler.
-    /// It matches, parses and, if the caller wants, invokes a certain handler. 
+    /// It matches, parses and, if the caller wants, invokes a certain handler.
     /// </summary>
-    /// <remarks>
-    /// Example:
+    /// <remarks>Example:
     /// The top most RequestProcessor might encapulate three SingleRequestProcessors:
     /// 
     /// "GET /test/{param}"
@@ -18,7 +23,7 @@ namespace Starcounter.Internal.Uri
     /// 
     /// The byte array containing the verb and URI would be passed to the Process function of the
     /// top level RequestProcessor and the matching would be done by calling child RequestProcessors.
-    /// In this example, there would only be two levels (the top level and the leaf level). 
+    /// In this example, there would only be two levels (the top level and the leaf level).
     /// 
     /// However, in the example below, there would be three levels and there is no immediate way for
     /// the top level to distinguish between to almost ambigous URIs without parsing the values.
@@ -35,14 +40,13 @@ namespace Starcounter.Internal.Uri
     /// 
     /// And the child "POST /hello..." RequestProcessor would have two children:
     /// "POST /hello/cruel/world"
-    /// "POST /hello/{param}/world"
-    /// </remarks>
+    /// "POST /hello/{param}/world"</remarks>
     public abstract class RequestProcessor {
         /// <summary>
         /// Tries to match and parse a verb and a URI. Can also envoke its handler.
         /// </summary>
         /// <param name="fragment">The buffer containing the verb and the URI</param>
-        /// <param name="fragmentOffset">Where in the fragment we can find the first letter in the verb</param>
+        /// <param name="fragmentSize">Size of the fragment.</param>
         /// <param name="invoke">If true, the handler (delegate) will be called with the parsed parameters</param>
         /// <param name="request">If the handler accepts a request as a parameter and invoke is true, this request will be passed as a parameter to the handler delegate</param>
         /// <param name="handler">The RequestProcessor matching the verb and URI provided in the fragment</param>
@@ -50,6 +54,11 @@ namespace Starcounter.Internal.Uri
         /// <returns>True if a match was made. If parsing of the parameter fails, false is returned. This allows the caller to try ambiguous handlers.</returns>
         public abstract bool Process( IntPtr fragment, int fragmentSize, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource);
 
+        /// <summary>
+        /// Invokes the specified request.
+        /// </summary>
+        /// <param name="request">The request.</param>
+        /// <returns>System.Object.</returns>
         public object Invoke( HttpRequest request ) {
             object resource;
             SingleRequestProcessorBase rp;
@@ -61,11 +70,25 @@ namespace Starcounter.Internal.Uri
             return resource;
         }
 
+        /// <summary>
+        /// Parses the URI int.
+        /// </summary>
+        /// <param name="ptr">The PTR.</param>
+        /// <param name="size">The size.</param>
+        /// <param name="value">The value.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public bool ParseUriInt(IntPtr ptr, int size, out int value) {
             value = (int)Utf8Helper.IntFastParseFromAscii(ptr, (uint)size);
             return true;
         }
 
+        /// <summary>
+        /// Parses the URI string.
+        /// </summary>
+        /// <param name="ptr">The PTR.</param>
+        /// <param name="size">The size.</param>
+        /// <param name="value">The value.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public bool ParseUriString(IntPtr ptr, int size, out string value) {
             byte[] buffer = new byte[size];
             unsafe {

@@ -12,7 +12,7 @@ namespace Starcounter.Server.PublicModel {
         /// <summary>
         /// Initializes a <see cref="CommandInfo"/> message object.
         /// </summary>
-        internal CommandInfo() {
+        public CommandInfo() {
         }
 
         /// <summary>
@@ -20,7 +20,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public CommandId Id {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public int CommandType {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string ServerUri {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace Starcounter.Server.PublicModel {
         /// </remarks>
         public string DatabaseUri {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -76,7 +76,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string Description {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public DateTime StartTime {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public DateTime? EndTime {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public CommandStatus Status {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -109,7 +109,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public CommandId CorrelatedCommandId {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -129,7 +129,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public ErrorInfo[] Errors {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -147,7 +147,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public ProgressInfo[] Progress {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>

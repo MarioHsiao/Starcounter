@@ -1,25 +1,71 @@
-﻿// TODO! Incomplete implementation
+﻿// ***********************************************************************
+// <copyright file="Base32Int.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
-
+// TODO! Incomplete implementation
 
 using System;
 
 namespace Starcounter.Internal
 {
+    /// <summary>
+    /// Struct Base32x13
+    /// </summary>
    public struct Base32x13
    {
+       /// <summary>
+       /// The b0
+       /// </summary>
       public byte b0;
+      /// <summary>
+      /// The b1
+      /// </summary>
       public byte b1;
+      /// <summary>
+      /// The b2
+      /// </summary>
       public byte b2;
+      /// <summary>
+      /// The b3
+      /// </summary>
       public byte b3;
+      /// <summary>
+      /// The b4
+      /// </summary>
       public byte b4;
+      /// <summary>
+      /// The b5
+      /// </summary>
       public byte b5;
+      /// <summary>
+      /// The b6
+      /// </summary>
       public byte b6;
+      /// <summary>
+      /// The b7
+      /// </summary>
       public byte b7;
+      /// <summary>
+      /// The b8
+      /// </summary>
       public byte b8;
+      /// <summary>
+      /// The b9
+      /// </summary>
       public byte b9;
+      /// <summary>
+      /// The B10
+      /// </summary>
       public byte b10;
+      /// <summary>
+      /// The B11
+      /// </summary>
       public byte b11;
+      /// <summary>
+      /// The B12
+      /// </summary>
       public byte b12;
    }
 //   public struct Base32x8
@@ -33,23 +79,68 @@ namespace Starcounter.Internal
 //      public byte b6;
 //      public byte b7;
 //   }
+   /// <summary>
+   /// Struct Base32x7
+   /// </summary>
    public struct Base32x7
    {
+       /// <summary>
+       /// The b0
+       /// </summary>
       public byte b0;
+      /// <summary>
+      /// The b1
+      /// </summary>
       public byte b1;
+      /// <summary>
+      /// The b2
+      /// </summary>
       public byte b2;
+      /// <summary>
+      /// The b3
+      /// </summary>
       public byte b3;
+      /// <summary>
+      /// The b4
+      /// </summary>
       public byte b4;
+      /// <summary>
+      /// The b5
+      /// </summary>
       public byte b5;
+      /// <summary>
+      /// The b6
+      /// </summary>
       public byte b6;
    }
+   /// <summary>
+   /// Struct Base32x6
+   /// </summary>
    public struct Base32x6
    {
+       /// <summary>
+       /// The b0
+       /// </summary>
       public byte b0;
+      /// <summary>
+      /// The b1
+      /// </summary>
       public byte b1;
+      /// <summary>
+      /// The b2
+      /// </summary>
       public byte b2;
+      /// <summary>
+      /// The b3
+      /// </summary>
       public byte b3;
+      /// <summary>
+      /// The b4
+      /// </summary>
       public byte b4;
+      /// <summary>
+      /// The b5
+      /// </summary>
       public byte b5;
    }
 //   public struct Base32x5
@@ -60,26 +151,68 @@ namespace Starcounter.Internal
 //      public byte b3;
 //      public byte b4;
 //   }
+   /// <summary>
+   /// Struct Base32x4
+   /// </summary>
    public struct Base32x4
    {
+       /// <summary>
+       /// The b0
+       /// </summary>
       public byte b0;
+      /// <summary>
+      /// The b1
+      /// </summary>
       public byte b1;
+      /// <summary>
+      /// The b2
+      /// </summary>
       public byte b2;
+      /// <summary>
+      /// The b3
+      /// </summary>
       public byte b3;
    }
+   /// <summary>
+   /// Struct Base32x3
+   /// </summary>
    public struct Base32x3
    {
+       /// <summary>
+       /// The b0
+       /// </summary>
       public byte b0;
+      /// <summary>
+      /// The b1
+      /// </summary>
       public byte b1;
+      /// <summary>
+      /// The b2
+      /// </summary>
       public byte b2;
    }
+   /// <summary>
+   /// Struct Base32x2
+   /// </summary>
    public struct Base32x2
    {
+       /// <summary>
+       /// The b0
+       /// </summary>
       public byte b0;
+      /// <summary>
+      /// The b1
+      /// </summary>
       public byte b1;
    }
+   /// <summary>
+   /// Struct Base32x1
+   /// </summary>
    public struct Base32x1
    {
+       /// <summary>
+       /// The b0
+       /// </summary>
       public byte b0;
    }
 
@@ -134,9 +267,18 @@ namespace Starcounter.Internal
    //  ` = 31
    //  a = 32
    // </remarks>
+   /// <summary>
+   /// Class Base32Int
+   /// </summary>
    public class Base32Int
    {
 
+       /// <summary>
+       /// Writes the specified buffer.
+       /// </summary>
+       /// <param name="buffer">The buffer.</param>
+       /// <param name="value">The value.</param>
+       /// <returns>System.UInt32.</returns>
       public static unsafe uint Write( IntPtr buffer, UInt32 value )
       {
          var c = (Base32x6*)buffer; 
@@ -175,6 +317,12 @@ namespace Starcounter.Internal
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      /// <summary>
+      /// Measures the size of the needed.
+      /// </summary>
+      /// <param name="value">The value.</param>
+      /// <returns>System.UInt32.</returns>
+      /// <exception cref="System.Exception">TODO!</exception>
       public static unsafe uint MeasureNeededSize(UInt64 value)
       {
          if ((value & 0xFFFFFFFFFFFFFFE0) == 0) // 11 11111 11111 11111 11111 11111 00000 (NOTE: groups of FIVE bits)
@@ -206,6 +354,11 @@ namespace Starcounter.Internal
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      /// <summary>
+      /// Writes the base32x6.
+      /// </summary>
+      /// <param name="value">The value.</param>
+      /// <param name="ptr">The PTR.</param>
       public static unsafe void WriteBase32x6(UInt64 value, IntPtr ptr )
       {
          var c = (Base32x6*) ptr;
@@ -221,6 +374,11 @@ namespace Starcounter.Internal
 
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      /// <summary>
+      /// Writes the base32x7.
+      /// </summary>
+      /// <param name="value">The value.</param>
+      /// <param name="ptr">The PTR.</param>
       public static unsafe void WriteBase32x7(UInt64 value, IntPtr ptr)
       {
          var c = (Base32x7*)ptr;
@@ -236,6 +394,11 @@ namespace Starcounter.Internal
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      /// <summary>
+      /// Writes the base32x13.
+      /// </summary>
+      /// <param name="value">The value.</param>
+      /// <param name="ptr">The PTR.</param>
       public static unsafe void WriteBase32x13(UInt64 value, IntPtr ptr)
       {
          var c = (Base32x13*)ptr;
@@ -258,12 +421,22 @@ namespace Starcounter.Internal
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      /// <summary>
+      /// Writes the base32x1.
+      /// </summary>
+      /// <param name="value">The value.</param>
+      /// <param name="c">The c.</param>
       public static unsafe void WriteBase32x1(UInt64 value, IntPtr c)
       {
          *((byte*)(c)) = (byte)( ( value & 0x1F ) | 0x40 );
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      /// <summary>
+      /// Writes the base32x2.
+      /// </summary>
+      /// <param name="value">The value.</param>
+      /// <param name="ptr">The PTR.</param>
       public static unsafe void WriteBase32x2(UInt64 value, IntPtr ptr)
       {
          var c = (Base32x2*)ptr;
@@ -275,6 +448,11 @@ namespace Starcounter.Internal
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      /// <summary>
+      /// Writes the base32x3.
+      /// </summary>
+      /// <param name="value">The value.</param>
+      /// <param name="ptr">The PTR.</param>
       public static unsafe void WriteBase32x3(UInt64 value, IntPtr ptr)
       {
          var c = (Base32x3*)ptr;
@@ -285,6 +463,11 @@ namespace Starcounter.Internal
       }
       
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      /// <summary>
+      /// Writes the base32x4.
+      /// </summary>
+      /// <param name="value">The value.</param>
+      /// <param name="ptr">The PTR.</param>
       public static unsafe void WriteBase32x4(UInt64 value, IntPtr ptr)
       {
          var c = (Base32x4*)ptr;
@@ -296,6 +479,13 @@ namespace Starcounter.Internal
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      /// <summary>
+      /// Reads the specified size.
+      /// </summary>
+      /// <param name="size">The size.</param>
+      /// <param name="ptr">The PTR.</param>
+      /// <returns>UInt64.</returns>
+      /// <exception cref="System.Exception"></exception>
       public static unsafe UInt64 Read(int size, IntPtr ptr )
       {
          switch (size)
@@ -321,6 +511,11 @@ namespace Starcounter.Internal
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      /// <summary>
+      /// Reads the base32x1.
+      /// </summary>
+      /// <param name="ptr">The PTR.</param>
+      /// <returns>UInt64.</returns>
       public static unsafe UInt64 ReadBase32x1(IntPtr ptr)
       {
          var c = (Base32x1*)ptr;
@@ -328,6 +523,11 @@ namespace Starcounter.Internal
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      /// <summary>
+      /// Reads the base32x2.
+      /// </summary>
+      /// <param name="ptr">The PTR.</param>
+      /// <returns>UInt64.</returns>
       public static unsafe UInt64 ReadBase32x2(IntPtr ptr)
       {
          var c = (Base32x2*)ptr;
@@ -335,6 +535,11 @@ namespace Starcounter.Internal
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      /// <summary>
+      /// Reads the base32x4.
+      /// </summary>
+      /// <param name="ptr">The PTR.</param>
+      /// <returns>UInt64.</returns>
       public static unsafe UInt64 ReadBase32x4(IntPtr ptr)
       {
          var c = (Base32x4*)ptr;
@@ -342,6 +547,11 @@ namespace Starcounter.Internal
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      /// <summary>
+      /// Reads the base32x3.
+      /// </summary>
+      /// <param name="ptr">The PTR.</param>
+      /// <returns>UInt64.</returns>
       public static unsafe UInt64 ReadBase32x3(IntPtr ptr)
       {
          var c = (Base32x3*)ptr;
@@ -349,6 +559,11 @@ namespace Starcounter.Internal
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      /// <summary>
+      /// Reads the base32x6.
+      /// </summary>
+      /// <param name="ptr">The PTR.</param>
+      /// <returns>UInt64.</returns>
       public static unsafe UInt64 ReadBase32x6(IntPtr ptr)
       {
          var c = (Base32x6*)ptr;
@@ -357,6 +572,11 @@ namespace Starcounter.Internal
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      /// <summary>
+      /// Reads the base32x7.
+      /// </summary>
+      /// <param name="ptr">The PTR.</param>
+      /// <returns>UInt64.</returns>
       public static unsafe UInt64 ReadBase32x7(IntPtr ptr)
       {
          var c = (Base32x7*)ptr;
@@ -365,6 +585,11 @@ namespace Starcounter.Internal
       }
 
       //[MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      /// <summary>
+      /// Reads the base32x13.
+      /// </summary>
+      /// <param name="ptr">The PTR.</param>
+      /// <returns>UInt64.</returns>
       public static unsafe UInt64 ReadBase32x13(IntPtr ptr)
       {
          var c = (Base32x13*)ptr;

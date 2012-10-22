@@ -19,29 +19,34 @@ namespace NetworkIoTestApp
         {
             UInt16 handlerId;
 
-            GatewayHandlers.RegisterUriHandler(80, "GET /", HTTP_METHODS.GET_METHOD, OnHttpMessageRoot, out handlerId);
+            GatewayHandlers.RegisterUriHandler(80, "GET /", OnHttpGetRoot, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
-            GatewayHandlers.RegisterUriHandler(80, "GET /users", HTTP_METHODS.GET_METHOD, OnHttpMessageUsers, out handlerId);
+            GatewayHandlers.RegisterUriHandler(80, "POST /", OnHttpPostRoot, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
-            GatewayHandlers.RegisterUriHandler(80, "GET /image", HTTP_METHODS.GET_METHOD, OnHttpMessageImage, out handlerId);
+            GatewayHandlers.RegisterUriHandler(80, "/", OnHttpRoot, out handlerId);
+            Console.WriteLine("Successfully registered new handler: " + handlerId);
+
+            GatewayHandlers.RegisterUriHandler(80, "/users", OnHttpUsers, out handlerId);
+            Console.WriteLine("Successfully registered new handler: " + handlerId);
+
+            GatewayHandlers.RegisterUriHandler(80, "GET /image", OnHttpGetImage, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
             /*
-            RegisterPortHandler(81, OnRawPortMessage, out handlerId);
+            RegisterPortHandler(81, OnRawPort, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
-            RegisterPortHandler(82, OnHttpMessagePort, out handlerId);
+            RegisterPortHandler(82, OnHttpPort, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
-            RegisterPortHandler(83, OnWsMessage, out handlerId);
+            RegisterPortHandler(83, OnWebSocket, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
             */
         }
 
-        // Raw port handler.
-        private static Boolean OnRawPortMessage(PortHandlerParams p)
+        private static Boolean OnRawPort(PortHandlerParams p)
         {
             Byte[] buffer = new Byte[p.DataStream.PayloadSize];
             p.DataStream.Read(buffer, 0, buffer.Length);
@@ -60,8 +65,7 @@ namespace NetworkIoTestApp
             return true;
         }
 
-        // WebSockets handler with no specific URI.
-        private static Boolean OnWsMessage(PortHandlerParams p)
+        private static Boolean OnWebSocket(PortHandlerParams p)
         {
             Byte[] buffer = new Byte[p.DataStream.PayloadSize];
             p.DataStream.Read(buffer, 0, buffer.Length);
@@ -80,8 +84,7 @@ namespace NetworkIoTestApp
             return true;
         }
 
-        // HTTP handler with no specific URI.
-        private static Boolean OnHttpMessagePort(PortHandlerParams p)
+        private static Boolean OnHttpPort(PortHandlerParams p)
         {
             // Creating response string.
             String response =
@@ -101,13 +104,70 @@ namespace NetworkIoTestApp
             return true;
         }
 
-        // HTTP handler with no specific URI.
-        private static Boolean OnHttpMessageRoot(HttpRequest p)
+        private static Boolean OnHttpRoot(HttpRequest p)
         {
             String responseBody =
                 "<html>\r\n" +
                 "<body>\r\n" +
-                "<h1>Handler URI prefix: root(/) </h1>\r\n" +
+                "<h1>URI handler: OnHttpRoot </h1>\r\n" +
+                p.ToString() +
+                "<h1>All cookies: " + p["Cookie"] + "</h1>" +
+                "<h1>Host: " + p["Host"] + "</h1>" +
+                "<h1>Method: " + p.HttpMethod + "</h1>" +
+                "</body>\r\n" +
+                "</html>\r\n";
+
+            String responseHeader =
+                "HTTP/1.1 200 OK\r\n" +
+                "Content-Type: text/html; charset=UTF-8\r\n" +
+                "Set-Cookie: " + p.SessionStruct.ConvertToSessionCookieFaster() + "; HttpOnly\r\n" +
+                "Content-Length: " + responseBody.Length + "\r\n" +
+                "\r\n";
+
+            // Converting string to byte array.
+            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + responseBody);
+
+            // Writing back to channel.
+            p.WriteResponse(respBytes, 0, respBytes.Length);
+
+            return true;
+        }
+
+        private static Boolean OnHttpPostRoot(HttpRequest p)
+        {
+            String responseBody =
+                "<html>\r\n" +
+                "<body>\r\n" +
+                "<h1>URI handler: OnHttpPostRoot </h1>\r\n" +
+                p.ToString() +
+                "<h1>All cookies: " + p["Cookie"] + "</h1>" +
+                "<h1>Host: " + p["Host"] + "</h1>" +
+                "<h1>Method: " + p.HttpMethod + "</h1>" +
+                "</body>\r\n" +
+                "</html>\r\n";
+
+            String responseHeader =
+                "HTTP/1.1 200 OK\r\n" +
+                "Content-Type: text/html; charset=UTF-8\r\n" +
+                "Set-Cookie: " + p.SessionStruct.ConvertToSessionCookieFaster() + "; HttpOnly\r\n" +
+                "Content-Length: " + responseBody.Length + "\r\n" +
+                "\r\n";
+
+            // Converting string to byte array.
+            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + responseBody);
+
+            // Writing back to channel.
+            p.WriteResponse(respBytes, 0, respBytes.Length);
+
+            return true;
+        }
+
+        private static Boolean OnHttpGetRoot(HttpRequest p)
+        {
+            String responseBody =
+                "<html>\r\n" +
+                "<body>\r\n" +
+                "<h1>URI handler: OnHttpGetRoot </h1>\r\n" +
                 p.ToString() +
                 "<h1>All cookies: " + p["Cookie"] + "</h1>" +
                 "<h1>Host: " + p["Host"] + "</h1>" +
@@ -130,13 +190,12 @@ namespace NetworkIoTestApp
             return true;
         }
 
-        // HTTP handler with no specific URI.
-        private static Boolean OnHttpMessageUsers(HttpRequest p)
+        private static Boolean OnHttpUsers(HttpRequest p)
         {
             String responseBody =
                 "<html>\r\n" +
                 "<body>\r\n" +
-                "<h1>Handler URI prefix: /users </h1>\r\n" +
+                "<h1>URI handler: OnHttpUsers </h1>\r\n" +
                 p.ToString() +
                 "<h1>All cookies: " + p["Cookie"] + "</h1>" +
                 "<h1>Host: " + p["Host"] + "</h1>" +
@@ -159,8 +218,7 @@ namespace NetworkIoTestApp
             return true;
         }
 
-        // HTTP handler with no specific URI.
-        private static Boolean OnHttpMessageImage(HttpRequest p)
+        private static Boolean OnHttpGetImage(HttpRequest p)
         {
             // Loading image file from disk.
             Byte[] bodyBytes = File.ReadAllBytes(@"c:\github\Level1\src\Samples\NetworkIoTest\image.png");

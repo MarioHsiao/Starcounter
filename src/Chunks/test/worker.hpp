@@ -37,7 +37,6 @@
 #include <boost/call_traits.hpp>
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/timer.hpp>
 #if defined(_MSC_VER)
 # define WIN32_LEAN_AND_MEAN
 # include <windows.h> /// TODO: thread_primitives.hpp might replace this include
@@ -205,12 +204,6 @@ private:
 	
 	// Number of acquired chunks.
 	uint64_t acquired_chunks_;
-	
-	// For statistics - to be removed.
-	boost::timer timer_;
-	double timestamp_;
-	uint64_t scan_counter_;
-	uint64_t empty_chunk_pool_counter_;
 };
 
 } // namespace interprocess_communication

@@ -38,6 +38,9 @@ namespace Starcounter.Internal
         public extern static UInt32 sc_init_bmx_manager();
 
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public extern static void sc_wait_for_bmx_ready();
+
+        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public unsafe extern static UInt32 sc_handle_incoming_chunks(sccorelib.CM2_TASK_DATA* task_data);
 
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]

@@ -7,9 +7,8 @@ using Starcounter.Internal.JsonPatch;
 using Starcounter.Internal.Web;
 
 partial class Master : App {
-
     static void Main(String[] args) {
-        
+
         Bootstrap();
 
         GET("/empty", () => {
@@ -66,8 +65,8 @@ partial class Master : App {
         App.UriMatcherBuilder.RegistrationListeners.Add((string verbAndUri) =>
         {
             UInt16 handlerId;
-            GatewayHandlers.RegisterUriHandler(80, "GET /", HTTP_METHODS.GET_METHOD, OnHttpMessageRoot, out handlerId);
-            GatewayHandlers.RegisterUriHandler(80, "PATCH /", HTTP_METHODS.PATCH_METHOD, OnHttpMessageRoot, out handlerId);
+            GatewayHandlers.RegisterUriHandler(8080, "GET /", OnHttpMessageRoot, out handlerId);
+            GatewayHandlers.RegisterUriHandler(8080, "PATCH /", OnHttpMessageRoot, out handlerId);
         });
     }
 

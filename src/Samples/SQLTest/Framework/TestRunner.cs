@@ -12,12 +12,12 @@ namespace SQLTest
         /// <summary>
         /// Path to debug output file to which debug output are written.
         /// </summary>
-        static readonly String debugFilePath = AppDomain.CurrentDomain.BaseDirectory + @"\..\SqlTestDebug.txt";
+        static String debugFilePath = null;
 
         /// <summary>
         /// Path to new input file generated from query results.
         /// </summary>
-        static readonly String generatedInputFilePath = AppDomain.CurrentDomain.BaseDirectory + @"\..\GeneratedInput.txt";
+        static String generatedInputFilePath = null;
 
         /// <summary>
         /// Path to input file with test queries.
@@ -82,16 +82,12 @@ namespace SQLTest
             debugOutput = debug;
             generateInput = input;
             startedOnClient = onClient;
-            inputFilePath = AppDomain.CurrentDomain.BaseDirectory + @"\" + testName + "Input.txt";
-            if (startedOnClient)
-            {
-                outputFilePath = AppDomain.CurrentDomain.BaseDirectory + @"\SqlTestInput.txt";
-            }
-            else
-            {
-                outputFilePath = AppDomain.CurrentDomain.BaseDirectory + @"\..\SqlTestOutput.txt";
+            inputFilePath = AppDomain.CurrentDomain.BaseDirectory + @"\s\SQLTest\" + testName + "Input.txt";
+            generatedInputFilePath = AppDomain.CurrentDomain.BaseDirectory + @"\s\SQLTest\" + testName + "Generated.txt";
+            debugFilePath = AppDomain.CurrentDomain.BaseDirectory + @"\s\SQLTest\" + testName + "Debug.txt";
+            outputFilePath = AppDomain.CurrentDomain.BaseDirectory + @"\s\SQLTest\" + testName + "Output.txt";
+            if (!startedOnClient)
                 logSource = new LogSource(testName);
-            }
             testLogger = new TestLogger(testName, startedOnClient);
         }
 

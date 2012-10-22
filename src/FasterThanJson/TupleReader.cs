@@ -1,16 +1,24 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="TupleReader.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Starcounter.Internal
 {
+    /// <summary>
+    /// Struct TupleReader
+    /// </summary>
    public unsafe struct TupleReader
    {
-      /// <summary>
-      /// Offset integer pointing to the end of the tuple with 0 being the beginning of the value count
-      /// Kept to speed up writing of offsets into the offset list
-      /// </summary>
+       /// <summary>
+       /// Offset integer pointing to the end of the tuple with 0 being the beginning of the value count
+       /// Kept to speed up writing of offsets into the offset list
+       /// </summary>
       public UInt32 ValueOffset;
 
       /// <summary>
@@ -33,8 +41,16 @@ namespace Starcounter.Internal
       /// </summary>
       public byte* AtEnd;
 
+      /// <summary>
+      /// The offset element size
+      /// </summary>
       public int OffsetElementSize;
 
+      /// <summary>
+      /// Initializes a new instance of the <see cref="TupleReader" /> struct.
+      /// </summary>
+      /// <param name="start">The start.</param>
+      /// <param name="valueCount">The value count.</param>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public TupleReader(byte* start, uint valueCount)
       {
@@ -51,6 +67,7 @@ namespace Starcounter.Internal
       /// <summary>
       /// Reads an unsigned 4 bit integer
       /// </summary>
+      /// <returns>System.UInt32.</returns>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe uint ReadQuartet()
       {
@@ -72,6 +89,7 @@ namespace Starcounter.Internal
       /// <summary>
       /// Reads an unsigned 5 bit integer
       /// </summary>
+      /// <returns>System.UInt32.</returns>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe uint ReadQuintet()
       {
@@ -90,6 +108,10 @@ namespace Starcounter.Internal
       }
 
 
+      /// <summary>
+      /// Reads the U int.
+      /// </summary>
+      /// <returns>System.UInt32.</returns>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
       public unsafe uint ReadUInt() {
 #if BASE32
@@ -137,6 +159,7 @@ namespace Starcounter.Internal
       /// <summary>
       /// Reads the next string from the tuple
       /// </summary>
+      /// <returns>System.String.</returns>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe string ReadString()
       {
@@ -160,6 +183,10 @@ namespace Starcounter.Internal
       }
 
 
+      /// <summary>
+      /// Gets the read byte count.
+      /// </summary>
+      /// <value>The read byte count.</value>
       public int ReadByteCount
       {
           [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
@@ -169,6 +196,10 @@ namespace Starcounter.Internal
          }
       }
 
+      /// <summary>
+      /// Gets the debug string.
+      /// </summary>
+      /// <value>The debug string.</value>
       public string DebugString
       {
          get

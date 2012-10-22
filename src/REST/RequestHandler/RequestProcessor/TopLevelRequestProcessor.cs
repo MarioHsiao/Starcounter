@@ -1,20 +1,24 @@
-﻿using System.Collections.Generic;
+﻿// ***********************************************************************
+// <copyright file="TopLevelRequestProcessor.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System.Collections.Generic;
 
 namespace Starcounter.Internal.Uri {
 
     /// <summary>
-    /// Used as a base class for the code generated request processor responsible for registring and handling
+    /// Used as a base class for the code generated request processor responsible for registering and handling
     /// the users rest style handlers.
     /// By matching and parsing the verb and URI, the correct user handler delegate will be called.
-    /// <summary"/>
-    /// <remarks>
-    /// The top level request processor also keeps a dictionary of URI templates such that
-    /// new handlers can be registred by the user.
-    /// </remarks>
+    /// </summary>
+    /// <remarks>The top level request processor also keeps a dictionary of URI templates such that
+    /// new handlers can be registred by the user.</remarks>
     public abstract class TopLevelRequestProcessor : RequestProcessor {
 
         /// <summary>
-        /// The user registred rest style handlers (verb+uri and hanlder code). 
+        /// The user registred rest style handlers (verb+uri and hanlder code).
         /// </summary>
         public Dictionary<string, SingleRequestProcessorBase> Registrations = new Dictionary<string,SingleRequestProcessorBase>();
 

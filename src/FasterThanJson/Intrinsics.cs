@@ -1,15 +1,34 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="Intrinsics.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System.Reflection.Emit;
 
 namespace Starcounter.Internal
 {
+    /// <summary>
+    /// Class Intrinsics
+    /// </summary>
    public unsafe class Intrinsics
    {
+       /// <summary>
+       /// Delegate MemCpyFunction
+       /// </summary>
+       /// <param name="des">The DES.</param>
+       /// <param name="src">The SRC.</param>
+       /// <param name="bytes">The bytes.</param>
       public delegate void MemCpyFunction(void* des, void* src, uint bytes);
 
+      /// <summary>
+      /// The mem cpy
+      /// </summary>
       public static readonly MemCpyFunction MemCpy;
 
+      /// <summary>
+      /// Initializes static members of the <see cref="Intrinsics" /> class.
+      /// </summary>
       static Intrinsics()
       {
          var dynamicMethod = new DynamicMethod

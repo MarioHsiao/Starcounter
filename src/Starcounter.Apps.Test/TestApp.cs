@@ -1,15 +1,30 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="TestApp.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using NUnit.Framework;
 using Starcounter.Templates;
 using Starcounter.Internal.ExeModule;
 using System.Diagnostics;
 
 namespace Starcounter.Internal.Test {
+    /// <summary>
+    /// Class TestApp
+    /// </summary>
     class TestApp {
+        /// <summary>
+        /// Initializes static members of the <see cref="TestApp" /> class.
+        /// </summary>
         static TestApp() {
             AppExeModule.IsRunningTests = true;
         }
 
+        /// <summary>
+        /// Tests the set get.
+        /// </summary>
         [Test]
         public static void TestSetGet() {
             var at = new AppTemplate();
@@ -20,6 +35,9 @@ namespace Starcounter.Internal.Test {
             Console.WriteLine(app.ToJson());
         }
 
+        /// <summary>
+        /// Tests the nested app.
+        /// </summary>
         [Test]
         public static void TestNestedApp() {
             var main = new AppTemplate();
@@ -32,6 +50,9 @@ namespace Starcounter.Internal.Test {
             Console.WriteLine(app.ToJson(false)); //, IncludeView.Never));
         }
 
+        /// <summary>
+        /// Tests the array.
+        /// </summary>
         [Test]
         public static void TestArray() {
             var appTemplate = new AppTemplate();

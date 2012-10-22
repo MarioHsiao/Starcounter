@@ -1,14 +1,26 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="Processor.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter;
 using Starcounter.Internal;
 using System;
 
 namespace StarcounterInternal.Hosting
 {
-    
+
+    /// <summary>
+    /// Class Processor
+    /// </summary>
     public static class Processor
     {
 
+        /// <summary>
+        /// Runs the message loop.
+        /// </summary>
+        /// <param name="hsched">The hsched.</param>
         public static unsafe void RunMessageLoop(void *hsched)
         {
             try

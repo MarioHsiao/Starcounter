@@ -60,8 +60,8 @@ namespace Starcounter.ABCIPC {
         //    }
         //}
 
-        public Client(Action<string> send, Func<string> recieve) {
-            Bind(send, receive);
+        public Client(Action<string> sendingMethod, Func<string> receivingMethod) {
+            Bind(sendingMethod, receivingMethod);
         }
 
         protected Client() {
@@ -142,9 +142,9 @@ namespace Starcounter.ABCIPC {
             return SendRequest(message, protocol, responseHandler);
         }
 
-        protected void Bind(Action<string> send, Func<string> recieve) {
-            this.send = send;
-            this.receive = recieve;
+        protected void Bind(Action<string> sendingMethod, Func<string> receivingMethod) {
+            this.send = sendingMethod;
+            this.receive = receivingMethod;
         }
 
         bool SendRequest(string message, string protocolMessage, Action<Reply> responseHandler) {
