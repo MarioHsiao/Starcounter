@@ -61,6 +61,14 @@ namespace StarcounterInternal.Bootstrap
         private unsafe void* hsched_;
 
         /// <summary>
+        /// The <see cref="Server"/> used as the interface to support local
+        /// requests such as the hosting/exeuting of executables and to handle
+        /// our servers management demands.
+        /// </summary>
+        /// <see cref="Control.ConfigureHost"/>
+        private Server server;
+
+        /// <summary>
         /// Setups the specified args.
         /// </summary>
         /// <param name="args">The args.</param>
@@ -106,7 +114,7 @@ namespace StarcounterInternal.Bootstrap
 
             ulong hlogs = ConfigureLogging(configuration, hmenv);
 
-            ConfigureHost(hlogs);
+            ConfigureHost(configuration, hlogs);
 
             hsched_ = ConfigureScheduler(configuration, mem, hmenv, schedulerCount);
             mem += (1024 + (schedulerCount * 512));
@@ -144,30 +152,11 @@ namespace StarcounterInternal.Bootstrap
         {
             var appDomain = AppDomain.CurrentDomain;
             appDomain.AssemblyResolve += new ResolveEventHandler(Loader.ResolveAssembly);
-            Server server;
-
-            // Create the server.
-            // If input has not been redirected, we let the server accept
-            // requests in a simple text format from the console.
-            // 
-            // If the input has been redirected, we force the parent process
-            // to use the "real" API's (i.e. the Client), just as the server
-            // will do, once it has been moved into Orange.
-
-            if (!Console.IsInputRedirected)
-            {
-                server = ClientServerFactory.CreateServerUsingConsole();
-            }
-            else
-            {
-                server = new Server(Console.In.ReadLine, delegate(string reply, bool endsRequest) {
-                    Console.Out.WriteLine(reply);
-                });
-            }
 
             // Install handlers for the type of requests we accept.
 
-            // Handles execution requests for Apps
+            // Handles execution requests for executables that support
+            // lauching into Starcounter from the OS shell.
             server.Handle("Exec", delegate(Request r)
             {
                 try
@@ -180,18 +169,12 @@ namespace StarcounterInternal.Bootstrap
                 }
             });
 
-            // Some test handlers to show a little more.
-            // To be removed.
+            // Ping, allowing clients to check the responsiveness of the
+            // code host.
 
             server.Handle("Ping", delegate(Request request)
             {
                 request.Respond(true);
-            });
-
-            server.Handle("Echo", delegate(Request request)
-            {
-                var response = request.GetParameter<string>();
-                request.Respond(response ?? "<NULL>");
             });
 
             if (withdb_) Loader.AddBasePackage(hsched_);
@@ -322,13 +305,46 @@ namespace StarcounterInternal.Bootstrap
         /// <summary>
         /// Configures the host.
         /// </summary>
+        /// <param name="configuration">The <see cref="Configuration"/> to use when
+        /// configuring the host.</param>
         /// <param name="hlogs">The hlogs.</param>
-        private unsafe void ConfigureHost(ulong hlogs)
+        private unsafe void ConfigureHost(Configuration configuration, ulong hlogs)
         {
             uint e = sccoreapp.sccoreapp_init((void*)hlogs);
             if (e != 0) throw ErrorCode.ToException(e);
 
             LogManager.Setup(hlogs);
+
+            // Decide what interface to expose locally, to handle requests
+            // from the server and from executables being loaded from the
+            // shell.
+            //   Currently, named pipes is the standard means.
+
+            bool useConsole = false;
+
+            if (!useConsole) {
+                var pipeName = string.Format("sc//{0}/{1}/{2}", Environment.MachineName, configuration.ServerName, configuration.Name);
+                pipeName = pipeName.ToLowerInvariant();
+                server = ClientServerFactory.CreateServerUsingNamedPipes(pipeName);
+
+            } else {
+                // Expose services via standard streams.
+                //
+                // If input has not been redirected, we let the server accept
+                // requests in a simple text format from the console.
+                // 
+                // If the input has been redirected, we force the parent process
+                // to use the "real" API's (i.e. the Client) and expose our
+                // services "raw" on the standard streams.
+
+                if (!Console.IsInputRedirected) {
+                    server = ClientServerFactory.CreateServerUsingConsole();
+                } else {
+                    server = new Server(Console.In.ReadLine, (string reply, bool endsRequest) => {
+                        Console.Out.WriteLine(reply);
+                    });
+                }
+            }
         }
 
         /// <summary>
