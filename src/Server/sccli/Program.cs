@@ -47,6 +47,7 @@ namespace sccli {
             command = args.Length == 0 ? string.Empty : args[0].ToLowerInvariant();
             if (command.StartsWith("@")) {
                 command = command.Substring(1);
+            } else if (!command.Equals(string.Empty)){
                 var args2 = new string[args.Length + 1];
                 Array.Copy(args, args2, args.Length);
                 args2[args2.Length - 1] = "@@Synchronous";
