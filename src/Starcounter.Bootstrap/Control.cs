@@ -320,9 +320,7 @@ namespace StarcounterInternal.Bootstrap
             // shell.
             //   Currently, named pipes is the standard means.
 
-            bool useConsole = false;
-
-            if (!useConsole) {
+            if (!configuration.UseConsole) {
                 var pipeName = string.Format("sc//{0}/{1}/{2}", Environment.MachineName, configuration.ServerName, configuration.Name);
                 pipeName = pipeName.ToLowerInvariant();
                 server = ClientServerFactory.CreateServerUsingNamedPipes(pipeName);

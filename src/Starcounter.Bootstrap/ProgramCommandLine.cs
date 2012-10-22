@@ -94,6 +94,13 @@ namespace StarcounterInternal.Bootstrap {
             /// Indicates if this host Apps will utilize the network gateway.
             /// </summary>
             public const string NetworkApps = "NetworkApps";
+
+            /// <summary>
+            /// Gets the string we support as a flag on the command-line to allow
+            /// the host process to accept management input on standard streams/console
+            /// rather than named pipes (with named pipes being the default).
+            /// </summary>
+            public const string UseConsole = "UseConsole";
         }
 
         /// <summary>
@@ -146,6 +153,7 @@ namespace StarcounterInternal.Bootstrap {
             commandDefinition.DefineProperty(OptionNames.SchedulerCount, "Specifies the number of schedulers.");
             commandDefinition.DefineFlag(OptionNames.NoDb, "Instructs the program not to connect to the database nor use the SQL engine.");
             commandDefinition.DefineFlag(OptionNames.NetworkApps, "Indicates that the host can communicate with network gateway.");
+            commandDefinition.DefineFlag(OptionNames.UseConsole, "Instructs the host to use the console to expose management features, like booting executables.");
 
             // Create the syntax, validating it
             syntax = syntaxDefinition.CreateSyntax();
