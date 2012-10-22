@@ -33,9 +33,28 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="HttpStructs, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\bin\Debug\HttpStructs.dll</HintPath>
+    </Reference>
     <Reference Include="Starcounter, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d2df1e81d0ca3abf, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\bin\Debug\Starcounter.dll</HintPath>
+    </Reference>
+    <Reference Include="Starcounter.Apps">
+      <HintPath>..\..\..\bin\Debug\Starcounter.Apps.dll</HintPath>
+    </Reference>
+    <Reference Include="Starcounter.Apps.Interfaces">
+      <HintPath>..\..\..\bin\Debug\Starcounter.Apps.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="Starcounter.Apps.JsonPatch">
+      <HintPath>..\..\..\bin\Debug\Starcounter.Apps.JsonPatch.dll</HintPath>
+    </Reference>
+    <Reference Include="Starcounter.Hypermedia">
+      <HintPath>..\..\..\bin\Debug\Starcounter.Hypermedia.dll</HintPath>
+    </Reference>
+    <Reference Include="Starcounter.REST">
+      <HintPath>..\..\..\bin\Debug\Starcounter.REST.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -46,13 +65,23 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestApp.json.cs">
+      <DependentUpon>TestApp.json</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <App Include="TestApp.json">
+      <Generator>MsBuild:Compile</Generator>
+    </App>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="TestApp.html" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- TODO: Temporary path. Use installation directory for starcounter 
+  	   later when Apps is integrated into main Starcounter -->
+  <Import Project="..\..\..\bin\$(Configuration)\Starcounter.MsBuild.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
