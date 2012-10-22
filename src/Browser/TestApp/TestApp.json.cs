@@ -53,9 +53,9 @@ partial class TestApp : App {
             UInt16 handlerId;
 
             // TODO! Alexey. Please allow to register to Gateway with only port (i.e without Verb and URI)
-            GatewayHandlers.RegisterUriHandler(8080, "GET /", HTTP_METHODS.GET_METHOD, OnHttpMessageRoot, out handlerId);
+            GatewayHandlers.RegisterUriHandler(8080, "GET /", OnHttpMessageRoot, out handlerId);
             // TODO! Alexey. Please allow to register to Gateway with only port (i.e without Verb and URI)
-            GatewayHandlers.RegisterUriHandler(8080, "PATCH /", HTTP_METHODS.PATCH_METHOD, OnHttpMessageRoot, out handlerId);
+            GatewayHandlers.RegisterUriHandler(8080, "PATCH /", OnHttpMessageRoot, out handlerId);
         });
     }
 
