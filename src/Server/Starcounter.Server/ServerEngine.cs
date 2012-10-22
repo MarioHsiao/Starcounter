@@ -161,6 +161,12 @@ namespace Starcounter.Server {
         internal SharedMemoryMonitor SharedMemoryMonitor { get; private set; }
 
         /// <summary>
+        /// Gets the <see cref="DatabaseHostingService"/> used by this server
+        /// to initiate local communication with database host processes.
+        /// </summary>
+        internal DatabaseHostingService DatabaseHostService { get; private set; }
+
+        /// <summary>
         /// Initializes a <see cref="ServerEngine"/>.
         /// </summary>
         /// <param name="serverConfigurationPath">Path to the server configuration
@@ -178,6 +184,7 @@ namespace Starcounter.Server {
             this.WeaverService = new Server.WeaverService(this);
             this.StorageService = new DatabaseStorageService(this);
             this.SharedMemoryMonitor = new SharedMemoryMonitor(this);
+            this.DatabaseHostService = new DatabaseHostingService(this);
         }
 
         /// <summary>
@@ -229,6 +236,7 @@ namespace Starcounter.Server {
             this.WeaverService.Setup();
             this.StorageService.Setup();
             this.SharedMemoryMonitor.Setup();
+            this.DatabaseHostService.Setup();
         }
 
         /// <summary>

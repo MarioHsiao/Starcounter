@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Starcounter.ABCIPC;
 using Starcounter.ABCIPC.Internal;
 
-namespace Starcounter.Server.CoreServices {
+namespace Starcounter.Server {
     /// <summary>
     /// Implements the functionality used by the server to interact with
     /// the the database host.
