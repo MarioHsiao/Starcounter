@@ -33,7 +33,7 @@ namespace SQLTest
             TestRunner.Initialize("SqlTest2", false, true, false);
             SQLTest.EmployeeDb.EmployeeData.CreateIndexes();
             SQLTest.EmployeeDb.EmployeeData.CreateData();
-            TestRunner.RunTest();
+            //TestRunner.RunTest();
             SQLTest.EmployeeDb.EmployeeData.DeleteData();
             SQLTest.EmployeeDb.EmployeeData.DropIndexes();
             return true;
@@ -44,7 +44,7 @@ namespace SQLTest
             TestRunner.Initialize("SqlTest3", false, true, false);
             SQLTest.PointDb.PointData.CreateIndexes();
             SQLTest.PointDb.PointData.CreateData();
-            TestRunner.RunTest();
+            //TestRunner.RunTest();
             SQLTest.PointDb.PointData.DeleteData();
             SQLTest.PointDb.PointData.DropIndexes();
             return true;
