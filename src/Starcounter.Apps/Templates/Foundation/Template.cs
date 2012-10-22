@@ -1,4 +1,8 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="Template.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System;
 using System.Collections.Generic;
@@ -22,36 +26,76 @@ namespace Starcounter.Templates {
         : ITemplate, IStatefullTemplate 
 #endif
     {
+        /// <summary>
+        /// Gets the type of the json.
+        /// </summary>
+        /// <value>The type of the json.</value>
         public virtual string JsonType {
             get {
                 return InstanceType.Name;
             }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether this instance is visible on client.
+        /// </summary>
+        /// <value><c>true</c> if this instance is visible on client; otherwise, <c>false</c>.</value>
         public virtual bool IsVisibleOnClient {
             get {
                 return true;
             }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether this instance has instance value on client.
+        /// </summary>
+        /// <value><c>true</c> if this instance has instance value on client; otherwise, <c>false</c>.</value>
         public abstract bool HasInstanceValueOnClient { get; }
+        /// <summary>
+        /// Gets a value indicating whether this instance has default properties on client.
+        /// </summary>
+        /// <value><c>true</c> if this instance has default properties on client; otherwise, <c>false</c>.</value>
         public virtual bool HasDefaultPropertiesOnClient {
             get {
                 return Editable;
             }
         }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether this <see cref="IStatefullTemplate" /> is editable.
+        /// </summary>
+        /// <value><c>true</c> if editable; otherwise, <c>false</c>.</value>
         public bool Editable { get; set; }
+        /// <summary>
+        /// Gets or sets a value indicating whether this <see cref="Template" /> is bound.
+        /// </summary>
+        /// <value><c>true</c> if bound; otherwise, <c>false</c>.</value>
         public bool Bound { get; set; }
+        /// <summary>
+        /// Gets or sets the on update.
+        /// </summary>
+        /// <value>The on update.</value>
         public string OnUpdate { get; set; }
+        /// <summary>
+        /// Gets or sets the bind.
+        /// </summary>
+        /// <value>The bind.</value>
         public string Bind { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Template" /> class.
+        /// </summary>
 		public Template()
 		{
 			Editable = false;
 		}
 
 //        public abstract object CreateInstance( IParent parent );
+        /// <summary>
+        /// The .NET type of the instance represented by this template.
+        /// </summary>
+        /// <value>The type of the instance.</value>
+        /// <exception cref="System.Exception">You are not allowed to set the InstanceType of a </exception>
         public virtual Type InstanceType {
             get { return null; }
             set {
@@ -59,6 +103,9 @@ namespace Starcounter.Templates {
             }
         }
 
+        /// <summary>
+        /// The _ parent
+        /// </summary>
         internal ParentTemplate _Parent;
 
         /// <summary>
@@ -66,6 +113,7 @@ namespace Starcounter.Templates {
         /// properties, the parent template is the AppTemplate. For App elements
         /// in an array (a list), the parent is the AppListTemplate.
         /// </summary>
+        /// <value>The parent.</value>
         public IParentTemplate Parent {
             get {
                 return _Parent;
@@ -79,27 +127,44 @@ namespace Starcounter.Templates {
             }
         }
 
+        /// <summary>
+        /// Each template with a parent has an internal position amongst its siblings
+        /// </summary>
+        /// <value>The index.</value>
         public int Index { get; internal set; }
 
+        /// <summary>
+        /// The _ name
+        /// </summary>
         private string _Name;
+        /// <summary>
+        /// The _ property name
+        /// </summary>
         private string _PropertyName;
 
+        /// <summary>
+        /// The compiler origin
+        /// </summary>
         public CompilerOrigin CompilerOrigin = new CompilerOrigin();
- 
+
         /// <summary>
         /// Tells if the property or child should be sent to the client.
         /// </summary>
+        /// <value><c>true</c> if visible; otherwise, <c>false</c>.</value>
         public bool Visible { get; set; }
 
         /// <summary>
         /// Tells if the property or child should be enabled on client. Disabled means that
         /// it or its children is not editable or invokable.
         /// </summary>
+        /// <value><c>true</c> if enabled; otherwise, <c>false</c>.</value>
         public bool Enabled { get; set; }
 
         /// <summary>
         /// If this property returns true, you are not allowed to alter the properties of this template.
         /// </summary>
+        /// <value><c>true</c> if sealed; otherwise, <c>false</c>.</value>
+        /// <exception cref="System.Exception">You are not allowed to set the IsSealed value</exception>
         public virtual bool Sealed {
             get {
                 if (Parent == null || !Parent.Sealed) {
@@ -116,6 +181,8 @@ namespace Starcounter.Templates {
         /// The Name of the property in the parent App. The allowed characters are the same as in JSON.
         /// See www.json.org.
         /// </summary>
+        /// <value>The name.</value>
+        /// <exception cref="System.Exception">Once the Name is set, it cannot be changed</exception>
         public string Name {
             get {
                 return _Name;
@@ -141,6 +208,8 @@ namespace Starcounter.Templates {
         /// in a .NET property, this property contains a sanitized (or a completely different) name that is used
         /// as the property identifier in the App.
         /// </summary>
+        /// <value>The name of the property.</value>
+        /// <exception cref="System.Exception">Once the PropertyName is set, it cannot be changed</exception>
         public string PropertyName {
             get {
                 return _PropertyName;
@@ -161,6 +230,8 @@ namespace Starcounter.Templates {
         /// Contains the default value for the property represented by this
         /// Template for each new App object.
         /// </summary>
+        /// <value>The default value as object.</value>
+        /// <exception cref="System.NotImplementedException">This template </exception>
         public virtual object DefaultValueAsObject {
             get {
                 return null;
@@ -170,18 +241,39 @@ namespace Starcounter.Templates {
             }
         }
 
+        /// <summary>
+        /// Gets the instance.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <returns>System.Object.</returns>
         public object GetInstance(AppNode parent) {
             return this.CreateInstance(parent);
         }
 
+        /// <summary>
+        /// Creates the instance.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <returns>System.Object.</returns>
         public virtual object CreateInstance(AppNode parent) {
             return DefaultValueAsObject;
         }
 
+        /// <summary>
+        /// As this template is represented by a runtime statefull object or value, we need to know how to create
+        /// a that object or value.
+        /// </summary>
+        /// <param name="parent">The host of the new object. Either a App or a AppList</param>
+        /// <returns>The value or object. For instance, if this is a StringTemplate, the default string
+        /// for the property to be in the new App object is returned.</returns>
         object IStatefullTemplate.CreateInstance(IAppNode parent) {
             return CreateInstance( (AppNode)parent );
         }
 
+        /// <summary>
+        /// Copies to.
+        /// </summary>
+        /// <param name="toTemplate">To template.</param>
         public virtual void CopyTo(Template toTemplate)
         {
             toTemplate._Name = _Name;
@@ -194,9 +286,21 @@ namespace Starcounter.Templates {
         }
     }
 
+    /// <summary>
+    /// Struct CompilerOrigin
+    /// </summary>
     public struct CompilerOrigin {
+        /// <summary>
+        /// The file name
+        /// </summary>
         public string FileName;
+        /// <summary>
+        /// The line no
+        /// </summary>
         public int LineNo;
+        /// <summary>
+        /// The col no
+        /// </summary>
         public int ColNo;
     }
 
