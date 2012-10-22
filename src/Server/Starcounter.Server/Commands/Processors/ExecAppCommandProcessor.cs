@@ -99,9 +99,9 @@ namespace Starcounter.Server.Commands {
             Engine.DatabaseEngine.StartDatabaseProcess(database);
             Engine.DatabaseEngine.StartWorkerProcess(database, command.NoDb, out workerProcess);
             
-            // Get a client handle to the worker process.
+            // Get a client handle to the hosting process.
 
-            var client = new Client(workerProcess.StandardInput.WriteLine, workerProcess.StandardOutput.ReadLine);
+            var client = this.Engine.DatabaseHostService.GetHostingInterface(database);
 
             // The current database worker protocol is "Exec c:\myfile.exe". We use
             // that until the full one is in place.
