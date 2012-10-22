@@ -136,7 +136,7 @@ namespace Starcounter.Internal.Web {
                         var app = (App)x;
                         //                       return new HttpResponse() { Uncompressed = HttpResponseBuilder.CreateMinimalOk200WithContent(data, 0, len) };
 
-                        request.Debug(" (new session)");
+                        request.Debug(" (new view model)");
 
                         session = Sessions.CreateSession();
                         session.AttachRootApp(app);
@@ -148,7 +148,7 @@ namespace Starcounter.Internal.Web {
                         {
                             request.IsAppView = true;
                             request.ViewModel = app.ToJsonUtf8(false, true);
-
+                            request.NeedsScriptInjection = true;
                             //                    request.CanUseStaticResponse = false; // We need to provide the view model, so we can use 
                             //                                                          // cached (and gziped) content, but not a complete cached
                             //                                                          // response.
