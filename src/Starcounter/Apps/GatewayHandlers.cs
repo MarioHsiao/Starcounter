@@ -213,16 +213,20 @@ namespace Starcounter
         public static void RegisterUriHandler(
             UInt16 port,
             String uri_string,
-            HTTP_METHODS http_method,
+            //HTTP_METHODS http_method,
             UriCallback uriCallback,
             out UInt16 handlerId)
         {
             UInt16 handler_id;
 
+            // Checking for root URI special case.
+            //if (String.IsNullOrEmpty(uri_string))
+            //    uri_string = "/";
+
             // Ensuring correct multi-threading handlers creation.
             lock (port_handlers_)
             {
-                UInt32 errorCode = bmx.sc_bmx_register_uri_handler(port, uri_string, (Byte)http_method, uri_outer_handler_, &handler_id);
+                UInt32 errorCode = bmx.sc_bmx_register_uri_handler(port, uri_string, (Byte)/*http_method*/HTTP_METHODS.OTHER_METHOD, uri_outer_handler_, &handler_id);
                 if (errorCode != 0)
                     throw ErrorCode.ToException(errorCode);
 
