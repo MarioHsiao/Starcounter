@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="RequestProcessorCompiler.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Roslyn.Compilers;
 using Roslyn.Compilers.CSharp;
 using System;
@@ -10,12 +15,27 @@ using System.Text;
 
 namespace Starcounter.Internal.Uri {
 
+    /// <summary>
+    /// Class RequestProcessorCompiler
+    /// </summary>
     public class RequestProcessorCompiler {
 
+        /// <summary>
+        /// The handlers
+        /// </summary>
         public List<RequestProcessorMetaData> Handlers = new List<RequestProcessorMetaData>();
 
+        /// <summary>
+        /// The generation
+        /// </summary>
         static public int Generation = 0;
 
+        /// <summary>
+        /// Generates the request processor source code.
+        /// </summary>
+        /// <param name="tree">The tree.</param>
+        /// <param name="namesp">The namesp.</param>
+        /// <returns>System.String.</returns>
         public string GenerateRequestProcessorSourceCode(AstNamespace tree, out string namesp) {
             Generation++;
             tree.Namespace = namesp = "__urimatcher" + Generation + "__";
@@ -26,6 +46,7 @@ namespace Starcounter.Internal.Uri {
         /// Creates a request processor (uri and verb matcher, parser and executor) for all registred
         /// http handlers (Get,Post,Put etc. delegate registrations)
         /// </summary>
+        /// <param name="node">The node.</param>
         /// <returns>The new matcher/executor/parser</returns>
         internal TopLevelRequestProcessor CreateMatcher( AstNamespace node ) {
             string namesp;

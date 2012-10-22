@@ -1,4 +1,10 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="TestHttpRequestWriter.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Diagnostics;
 using System.Text;
 using NUnit.Framework;
@@ -6,15 +12,27 @@ using Starcounter.Internal.Web;
 
 namespace Starcounter.Internal.Tests {
 
+    /// <summary>
+    /// Class TestHttpWriters
+    /// </summary>
    public class TestHttpWriters {
 
+       /// <summary>
+       /// The URI
+       /// </summary>
       static byte[] uri;
 
+      /// <summary>
+      /// Initializes static members of the <see cref="TestHttpWriters" /> class.
+      /// </summary>
       static TestHttpWriters() {
          var str = "/test/123";
          uri = Encoding.UTF8.GetBytes(str);
       }
 
+      /// <summary>
+      /// Benchmarks the create put URI.
+      /// </summary>
       [Test]
       public static void BenchmarkCreatePutUri() {
          int repeats = 1;
@@ -30,6 +48,9 @@ namespace Starcounter.Internal.Tests {
          Console.WriteLine(String.Format("Ran {0} times in {1} ms", repeats, sw.ElapsedMilliseconds));
       }
 
+      /// <summary>
+      /// Benchmarks the create get URI.
+      /// </summary>
       [Test]
       public static void BenchmarkCreateGetUri() {
          int repeats = 10;
@@ -48,6 +69,9 @@ namespace Starcounter.Internal.Tests {
       }
 
 
+      /// <summary>
+      /// Benchmarks the ok200_with_content.
+      /// </summary>
       [Test]
       public static void BenchmarkOk200_with_content() {
          int repeats = 1;

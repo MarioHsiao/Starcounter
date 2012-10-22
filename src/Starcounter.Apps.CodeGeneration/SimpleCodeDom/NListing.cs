@@ -1,4 +1,8 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="NListing.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using Starcounter.Templates;
 using System;
@@ -7,13 +11,19 @@ using System.Text;
 namespace Starcounter.Internal.Application.CodeGeneration {
 
     /// <summary>
-    /// The source code representation of each Listing<T1>, ListingProperty<T1,T2> 
-    /// or ListingMetadata<T1,T2> class where 
+    /// The source code representation of each Listing&lt;T1&gt;, ListingProperty&lt;T1,T2&gt; 
+    /// or ListingMetadata&lt;T1,T2&gt; class where 
     /// T1 is the link to the App class and T2 is the link to the AppTemplate class being used in the list.
     /// This means that there is one instance of this class for each T1,T2 combination used.
     /// </summary>
     public class NListingXXXClass : NClass {
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NListingXXXClass" /> class.
+        /// </summary>
+        /// <param name="typename">The typename.</param>
+        /// <param name="appType">Type of the app.</param>
+        /// <param name="templateType">Type of the template.</param>
         public NListingXXXClass(string typename, NClass appType, NClass templateType) {
             TypeName = typename;
             NApp = appType;
@@ -32,15 +42,24 @@ namespace Starcounter.Internal.Application.CodeGeneration {
 
      //   public NPredefinedClass NFixedSet;
 
+        /// <summary>
+        /// The type name
+        /// </summary>
         public string TypeName;
 
+        /// <summary>
+        /// Gets the inherits.
+        /// </summary>
+        /// <value>The inherits.</value>
+        /// <exception cref="System.NotImplementedException"></exception>
         public override string Inherits {
             get { throw new NotImplementedException(); }
         }
 
         /// <summary>
-        /// The class name is "ListingXXX<AppClass,AppTemplateClass>"
+        /// Gets the name of the class.
         /// </summary>
+        /// <value>The name of the class.</value>
         public override string ClassName {
             get {
                 var sb = new StringBuilder();

@@ -386,7 +386,7 @@ uint32_t OuterPortProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLE
             // Disconnecting this socket.
             gw->Disconnect(sd);
 
-            // Returning error.
+            // Returning error code.
             return 1;
         }
     }

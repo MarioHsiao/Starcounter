@@ -1,4 +1,8 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="IntExtension.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System;
 
@@ -7,6 +11,13 @@ namespace Starcounter.Internal {
     /// Adds methods to converts data to the BigEndian format (not standard x86/x64)
     /// </summary>
     public static class IntExtensions {
+        /// <summary>
+        /// To the big endian bytes.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source">The source.</param>
+        /// <returns>System.Byte[][].</returns>
+        /// <exception cref="System.InvalidCastException">Cannot be cast to T</exception>
         public static byte[] ToBigEndianBytes<T>(this int source) {
             byte[] bytes;
 
@@ -25,6 +36,12 @@ namespace Starcounter.Internal {
             return bytes;
         }
 
+        /// <summary>
+        /// To the little endian int.
+        /// </summary>
+        /// <param name="source">The source.</param>
+        /// <returns>System.Int32.</returns>
+        /// <exception cref="System.ArgumentException">Unsupported Size</exception>
         public static int ToLittleEndianInt(this byte[] source) {
             if (BitConverter.IsLittleEndian)
                 Array.Reverse(source);

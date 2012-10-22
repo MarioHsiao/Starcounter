@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="TestJsonOut.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using NUnit.Framework;
 using Starcounter.Internal.Application;
@@ -12,10 +17,16 @@ using Starcounter.Templates.Interfaces;
 namespace Starcounter.Client.Tests.Application
 {
 
+    /// <summary>
+    /// Class TestJson
+    /// </summary>
     [TestFixture]
     public class TestJson
     {
 
+        /// <summary>
+        /// Apps to json.
+        /// </summary>
         [Test]
 //        [Fact]
         public static void AppToJson()

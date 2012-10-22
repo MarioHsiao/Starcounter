@@ -1,5 +1,6 @@
 ﻿
 using System;
+using Starcounter.Internal;
 
 namespace Starcounter.Server.PublicModel.Commands {
     
@@ -45,9 +46,6 @@ namespace Starcounter.Server.PublicModel.Commands {
         /// <param name="description">Human-readable description of the command.</param>
         protected DatabaseCommand(ServerEngine engine, string databaseUri, string description)
             : base(engine, description) {
-            if (databaseUri == null) {
-                throw new ArgumentNullException("databaseUri");
-            }
             this.DatabaseUri = databaseUri;
         }
 
@@ -65,7 +63,7 @@ namespace Starcounter.Server.PublicModel.Commands {
         /// </remarks>
         public string DatabaseUri {
             get;
-            private set;
+            protected set;
         }
 
         /// <summary>
@@ -76,6 +74,13 @@ namespace Starcounter.Server.PublicModel.Commands {
             get {
                 return ScUri.FromString(this.DatabaseUri).DatabaseName;
             }
+        }
+
+        internal override void GetReadyToEnqueue() {
+            if (string.IsNullOrEmpty(this.DatabaseUri)) {
+                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Database URI must be set before the command is enqued.");
+            }
+            base.GetReadyToEnqueue();
         }
     }
 }

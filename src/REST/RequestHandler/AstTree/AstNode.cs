@@ -1,4 +1,10 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="AstNode.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,9 +13,13 @@ using System.Threading.Tasks;
 namespace Starcounter.Internal.Uri {
 
     /// <summary>
+    /// Class AstNode
     /// </summary>
     public abstract class AstNode {
 
+        /// <summary>
+        /// The INDENTATION
+        /// </summary>
         const int INDENTATION=3;
 
         /// <summary>
@@ -22,6 +32,8 @@ namespace Starcounter.Internal.Uri {
         /// making refactoring easier. The refactoring capabilities are used by the Json Attributes
         /// to enable the user to place class declarations without having to nest them deeply.
         /// </summary>
+        /// <value>The parent.</value>
+        /// <exception cref="System.Exception"></exception>
         public AstNode Parent {
             get {
                 return _Parent;
@@ -36,14 +48,21 @@ namespace Starcounter.Internal.Uri {
             }
         }
 
+        /// <summary>
+        /// The _ prefix
+        /// </summary>
         private List<string> _Prefix = new List<string>();
 
+        /// <summary>
+        /// The _ suffix
+        /// </summary>
         private List<string> _Suffix = new List<string>();
 
         /// <summary>
         /// Each node will carry source code in the form of text lines as either
         /// prefix or suffix blocks. This is the prefix block.
         /// </summary>
+        /// <value>The prefix.</value>
         internal List<string> Prefix { get { return _Prefix; } }
 
         /// <summary>
@@ -58,18 +77,28 @@ namespace Starcounter.Internal.Uri {
         /// Each node will carry source code in the form of text lines as either
         /// prefix or suffix blocks. This is the prefix block.
         /// </summary>
+        /// <value>The suffix.</value>
         internal List<string> Suffix { get { return _Suffix; } }
 
         /// <summary>
         /// Used by the code generator to calculation pretty text indentation for the generated source code.
         /// </summary>
+        /// <value>The indentation.</value>
         internal int Indentation { get; set; }
 
 
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <returns>A <see cref="System.String" /> that represents this instance.</returns>
         public override string ToString() {
             return DumpTree();
         }
 
+        /// <summary>
+        /// Gets the root.
+        /// </summary>
+        /// <value>The root.</value>
         internal AstNamespace Root {
             get {
                 if (this is AstNamespace)
@@ -78,6 +107,10 @@ namespace Starcounter.Internal.Uri {
             }
         }
 
+        /// <summary>
+        /// Gets the top class.
+        /// </summary>
+        /// <value>The top class.</value>
         internal AstRequestProcessorClass TopClass {
             get {
                 return Root.Children[0] as AstRequestProcessorClass;
@@ -105,6 +138,9 @@ namespace Starcounter.Internal.Uri {
             return sb.ToString();
         }
 
+        /// <summary>
+        /// _s the generate cs code.
+        /// </summary>
         internal void _GenerateCsCode() {
             GenerateCsCodeForNode();
             foreach ( var kid in Children ) {
@@ -112,14 +148,25 @@ namespace Starcounter.Internal.Uri {
             }
         }
 
+        /// <summary>
+        /// Gets the debug string.
+        /// </summary>
+        /// <value>The debug string.</value>
         internal virtual string DebugString {
             get {
                 return this.GetType().Name;
             }
         }
 
+        /// <summary>
+        /// Generates the cs code for node.
+        /// </summary>
         internal abstract void GenerateCsCodeForNode();
 
+        /// <summary>
+        /// Gets a value indicating whether [indent children].
+        /// </summary>
+        /// <value><c>true</c> if [indent children]; otherwise, <c>false</c>.</value>
         internal virtual bool IndentChildren {
             get {
                 return true;
@@ -127,7 +174,7 @@ namespace Starcounter.Internal.Uri {
         }
 
         /// <summary>
-        /// Appends the generated C# code to the supplied string builder. This 
+        /// Appends the generated C# code to the supplied string builder. This
         /// method recursivly adds the code of the child nodes
         /// </summary>
         /// <param name="sb">The stringbuilder used</param>
@@ -148,6 +195,11 @@ namespace Starcounter.Internal.Uri {
             }
         }
 
+        /// <summary>
+        /// Dumps the tree.
+        /// </summary>
+        /// <param name="sb">The sb.</param>
+        /// <param name="indent">The indent.</param>
         private void DumpTree(StringBuilder sb, int indent) {
             var str = DebugString;
             sb.Append(' ', indent);

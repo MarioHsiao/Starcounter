@@ -23,7 +23,7 @@ namespace Starcounter.Server.PublicModel {
         /// </remarks>
         public string Uri {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public ServerConfiguration Configuration {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public bool IsMonitoringSupported {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public long DefaultMaxImageSize {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public long DefaultTransactionLogSize {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string UserName {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -76,7 +76,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string ServerConfigurationPath {
             get;
-            internal set;
+            set;
         }
     }
 }

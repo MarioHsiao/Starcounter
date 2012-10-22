@@ -30,7 +30,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public int TaskIdentity { 
             get; 
-            internal set; 
+            set; 
         }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public int Value {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public int Maximum {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string Text {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>

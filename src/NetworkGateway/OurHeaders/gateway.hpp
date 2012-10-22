@@ -36,7 +36,7 @@ namespace starcounter {
 namespace network {
 
 // Some defines, e.g. debugging, statistics, etc.
-#define GW_GLOBAL_STATISTICS
+//#define GW_GLOBAL_STATISTICS
 //#define GW_SOCKET_DIAG
 //#define GW_HTTP_DIAG
 //#define GW_WEBSOCKET_DIAG

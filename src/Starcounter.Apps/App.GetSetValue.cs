@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="App.GetSetValue.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Templates;
 using Starcounter.Templates.Interfaces;
 using System;
@@ -9,7 +14,10 @@ namespace Starcounter.Client {
 #else
 namespace Starcounter {
 #endif
-    
+
+    /// <summary>
+    /// Class App
+    /// </summary>
     public partial class App
     {
         /// <summary>
@@ -19,6 +27,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The template representing the App property</param>
         /// <returns>The value of the property</returns>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public object GetValue(IValueTemplate property) {
 #if QUICKTUPLE
@@ -35,6 +44,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The template representing the App property</param>
         /// <param name="value">The new value to assign to the property</param>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(IValueTemplate property, object value) {
 #if QUICKTUPLE
@@ -51,6 +61,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The template representing the App property</param>
         /// <returns>The value of the property</returns>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool GetValue(BoolProperty property) {
 #if QUICKTUPLE
@@ -65,6 +76,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The template representing the App property</param>
         /// <returns>The value of the property</returns>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool GetValue(IBoolTemplate property) {
 #if QUICKTUPLE
@@ -79,6 +91,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The template representing the App property</param>
         /// <param name="value">The new value to assign to the property</param>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(IBoolTemplate property, bool value) {
 #if QUICKTUPLE
@@ -94,7 +107,8 @@ namespace Starcounter {
         /// Sets the value for a given boolean property in this App.
         /// </summary>
         /// <param name="property">The template representing the App property</param>
-        /// <param name="value">The new value to assign to the property</param> 
+        /// <param name="value">The new value to assign to the property</param>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(BoolProperty property, bool value) {
 #if QUICKTUPLE
@@ -126,6 +140,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The template representing the App property</param>
         /// <returns>The value of the property</returns>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public Entity GetValue(IObjectTemplate property) {
 #if QUICKTUPLE
@@ -140,6 +155,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The template representing the App property</param>
         /// <param name="value">The new value to assign to the property</param>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(IObjectTemplate property, Entity value) {
 #if QUICKTUPLE
@@ -165,6 +181,12 @@ namespace Starcounter {
 //#endif
 //        }
 
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>System.Decimal.</returns>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public decimal GetValue(DecimalProperty property) {
 #if QUICKTUPLE
@@ -173,6 +195,12 @@ namespace Starcounter {
             throw new JockeNotImplementedException();
 #endif
         }
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>System.Decimal.</returns>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public decimal GetValue(IDecimalTemplate property) {
 #if QUICKTUPLE
@@ -182,6 +210,12 @@ namespace Starcounter {
 #endif
         }
 
+        /// <summary>
+        /// Sets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="value">The value.</param>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(IDecimalTemplate property, decimal value) {
 #if QUICKTUPLE
@@ -193,6 +227,12 @@ namespace Starcounter {
             ChangeLog.UpdateValue(this, property);
         }
 
+        /// <summary>
+        /// Sets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="value">The value.</param>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(DecimalProperty property, decimal value) {
 #if QUICKTUPLE
@@ -204,6 +244,12 @@ namespace Starcounter {
             ChangeLog.UpdateValue(this, property);
         }
 
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>System.Double.</returns>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public double GetValue(DoubleProperty property) {
 #if QUICKTUPLE
@@ -213,6 +259,12 @@ namespace Starcounter {
 #endif
         }
 
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>System.Double.</returns>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public double GetValue(IDoubleTemplate property) {
 #if QUICKTUPLE
@@ -225,6 +277,12 @@ namespace Starcounter {
 //            return _Values[property.Index] = value;
 //        }
 
+        /// <summary>
+        /// Sets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="value">The value.</param>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(IDoubleTemplate property, double value) {
 #if QUICKTUPLE
@@ -236,6 +294,12 @@ namespace Starcounter {
             ChangeLog.UpdateValue(this, property);
         }
 
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>System.Int32.</returns>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public int GetValue(IntProperty property) {
 #if QUICKTUPLE
@@ -245,6 +309,12 @@ namespace Starcounter {
 #endif
         }
 
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>System.Int32.</returns>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public int GetValue(IIntTemplate property) {
 #if QUICKTUPLE
@@ -257,6 +327,12 @@ namespace Starcounter {
 //            return _Values[property.Index] = value;
 //        }
 
+        /// <summary>
+        /// Sets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="value">The value.</param>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(IIntTemplate property, int value) {
 #if QUICKTUPLE
@@ -268,6 +344,12 @@ namespace Starcounter {
             ChangeLog.UpdateValue(this, property);
         }
 
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>System.UInt64.</returns>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public ulong GetValue(OidProperty property) {
 #if QUICKTUPLE
@@ -277,6 +359,12 @@ namespace Starcounter {
 #endif
         }
 
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>System.UInt64.</returns>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public ulong GetValue(IOidTemplate property) {
 #if QUICKTUPLE
@@ -289,6 +377,12 @@ namespace Starcounter {
   //          return _Values[property.Index] = value;
   //      }
 
+        /// <summary>
+        /// Sets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="value">The value.</param>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(IOidTemplate property, UInt64 value) {
 #if QUICKTUPLE
@@ -300,6 +394,12 @@ namespace Starcounter {
             ChangeLog.UpdateValue(this, property);
         }
 
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>System.String.</returns>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public string GetValue(StringProperty property) {
 #if QUICKTUPLE
@@ -309,6 +409,12 @@ namespace Starcounter {
 #endif
         }
 
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>System.String.</returns>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public string GetValue(IStringTemplate property) {
 #if QUICKTUPLE
@@ -318,6 +424,12 @@ namespace Starcounter {
 #endif
         }
 
+        /// <summary>
+        /// Sets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="value">The value.</param>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(StringProperty property, string value) {
 #if QUICKTUPLE
@@ -329,6 +441,12 @@ namespace Starcounter {
             ChangeLog.UpdateValue(this, property);
         }
 
+        /// <summary>
+        /// Sets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="value">The value.</param>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(IStringTemplate property, string value) {
 #if QUICKTUPLE
@@ -340,6 +458,12 @@ namespace Starcounter {
             ChangeLog.UpdateValue(this, property);
         }
 
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>Action.</returns>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public Action GetValue(ActionProperty property) {
 #if QUICKTUPLE
@@ -349,6 +473,12 @@ namespace Starcounter {
 #endif
         }
 
+        /// <summary>
+        /// Sets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="value">The value.</param>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(ActionProperty property, Action value) {
 #if QUICKTUPLE
@@ -358,6 +488,12 @@ namespace Starcounter {
 #endif
         }
 
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>Listing.</returns>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public Listing GetValue(ListingProperty property) {
 #if QUICKTUPLE
@@ -367,17 +503,36 @@ namespace Starcounter {
 #endif
         }
 
+        /// <summary>
+        /// Sets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="data">The data.</param>
+        /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(ListingProperty property, SqlResult data) {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Sets the value.
+        /// </summary>
+        /// <param name="templ">The templ.</param>
+        /// <param name="data">The data.</param>
+        /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(ListingProperty templ, Listing data) {
             throw new NotImplementedException();
         }
 
 
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="property">The property.</param>
+        /// <returns>Listing{``0}.</returns>
+        /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public Listing<T> GetValue<T>(ListingProperty property) where T : App, new() {
 #if QUICKTUPLE
@@ -387,11 +542,25 @@ namespace Starcounter {
 #endif
         }
 
+        /// <summary>
+        /// Sets the value.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="templ">The templ.</param>
+        /// <param name="data">The data.</param>
+        /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue<T>(ListingProperty templ, SqlResult data) {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Sets the value.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="templ">The templ.</param>
+        /// <param name="data">The data.</param>
+        /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue<T>(ListingProperty templ, Listing<T> data) where T : App, new() {
             throw new NotImplementedException();
@@ -399,6 +568,12 @@ namespace Starcounter {
 
 
 
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>App.</returns>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public App GetValue(AppTemplate property) {
 #if QUICKTUPLE
@@ -410,6 +585,13 @@ namespace Starcounter {
 
 
 
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="property">The property.</param>
+        /// <returns>``0.</returns>
+        /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public T GetValue<T>(AppTemplate property) where T : App, new() {
 #if QUICKTUPLE
@@ -419,6 +601,12 @@ namespace Starcounter {
 #endif
         }
 
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>App.</returns>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public App GetValue(IAppTemplate property) {
 #if QUICKTUPLE
@@ -428,6 +616,12 @@ namespace Starcounter {
 #endif
         }
 
+        /// <summary>
+        /// Sets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="value">The value.</param>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(AppTemplate property, App value) {
 #if QUICKTUPLE
@@ -439,6 +633,12 @@ namespace Starcounter {
             ChangeLog.UpdateValue(this, property);
         }
 
+        /// <summary>
+        /// Sets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="value">The value.</param>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(IAppTemplate property, App value) {
 #if QUICKTUPLE
