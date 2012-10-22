@@ -18,7 +18,7 @@ namespace Starcounter.Server.PublicModel {
         /// <example>"Starts a database"</example>
         public string CommandDescription {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public int CommandType {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public TaskInfo[] Tasks {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>

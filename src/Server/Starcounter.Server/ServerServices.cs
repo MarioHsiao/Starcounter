@@ -115,6 +115,27 @@ namespace Starcounter.Server {
                 request.Respond(responseSerializer.SerializeResponse(commands));
             });
 
+            // Allows a client to get the latest copy of the command info for
+            // a command represented by it's ID.
+            ipcServer.Handle("GetCommand", delegate(Request request) {
+                var commandId = request.GetParameter<string>();
+                var command = runtime.GetCommand(CommandId.Parse(commandId));
+                request.Respond(responseSerializer.SerializeResponse(command));
+            });
+
+            // Allows a client to get the latest copy of the command info for
+            // a command represented by it's ID, if the command has completed.
+            // If it has not, an empty response (true) is returned.
+            ipcServer.Handle("GetCompletedCommand", delegate(Request request) {
+                var commandId = request.GetParameter<string>();
+                var command = runtime.GetCommand(CommandId.Parse(commandId));
+                if (!command.IsCompleted) {
+                    request.Respond(true);
+                } else {
+                    request.Respond(responseSerializer.SerializeResponse(command));
+                }
+            });
+
             ipcServer.Handle("CreateDatabase", delegate(Request request) {
                 IServerRuntime runtime;
                 CreateDatabaseCommand command;
