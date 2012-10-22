@@ -40,9 +40,9 @@ namespace Starcounter.VisualStudio.Projects {
             // Create a client object to be able to communicate with the server.
             // We use the built-in ABCIPC core services of the server to execute
             // assemblies.
-            
-            var client = ClientServerFactory.CreateClientUsingNamedPipes(
-                string.Format("sc//{0}/{1}", Environment.MachineName, "personal").ToLowerInvariant());
+
+            var pipeName = ScUriExtensions.MakeLocalServerPipeString("personal");
+            var client = ClientServerFactory.CreateClientUsingNamedPipes(pipeName);
 
             properties.Add("AssemblyPath", debugConfiguration.AssemblyPath);
             properties.Add("WorkingDir", debugConfiguration.WorkingDirectory);

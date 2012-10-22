@@ -42,8 +42,7 @@ namespace Starcounter.Server {
         /// <returns>A <see cref="Client"/> that can be used to send
         /// management commands to the host.</returns>
         internal Client GetHostingInterface(Database database) {
-            var pipeName = string.Format("sc//{0}/{1}/{2}", Environment.MachineName, engine.Name, database.Name);
-            pipeName = pipeName.ToLowerInvariant();
+            var pipeName = ScUriExtensions.MakeLocalDatabasePipeString(engine.Name, database.Name);
             return ClientServerFactory.CreateClientUsingNamedPipes(pipeName);
         }
     }

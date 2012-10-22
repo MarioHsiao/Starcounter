@@ -97,7 +97,7 @@ namespace Starcounter.Apps.Bootstrap {
             string responseMessage = string.Empty;
             bool result;
 
-            serverName = string.Format("sc//{0}/personal", Environment.MachineName).ToLowerInvariant();
+            serverName = ScUriExtensions.MakeLocalServerPipeString("personal");
 
             var client = ClientServerFactory.CreateClientUsingNamedPipes(serverName);
             try {
