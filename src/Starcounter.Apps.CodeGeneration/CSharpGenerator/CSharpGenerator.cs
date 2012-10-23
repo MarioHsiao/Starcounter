@@ -68,8 +68,6 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         /// </summary>
         /// <returns>The .cs source code as a string</returns>
         public string GenerateCode() {
-            System.Diagnostics.Debugger.Launch();
-
             //return Old.GenerateCodeOld();
             ProcessAllNodes();
 
