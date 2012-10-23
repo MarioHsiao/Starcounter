@@ -18,9 +18,11 @@ namespace Starcounter.VisualStudio.Projects {
 
     [ComVisible(false)]
     internal class AppExeProjectConfiguration : StarcounterProjectConfiguration {
+        readonly IVsOutputWindowPane outputWindowPane = null;
 
         public AppExeProjectConfiguration(VsPackage package, IVsHierarchy project, IVsProjectCfg baseConfiguration, IVsProjectFlavorCfg innerConfiguration)
             : base(package, project, baseConfiguration, innerConfiguration) {
+                this.outputWindowPane = package.StarcounterOutputPane;
         }
 
         protected override bool CanBeginDebug(__VSDBGLAUNCHFLAGS flags) {
@@ -30,8 +32,7 @@ namespace Starcounter.VisualStudio.Projects {
         protected override bool BeginDebug(__VSDBGLAUNCHFLAGS flags) {
             Dictionary<string, string> properties = new Dictionary<string, string>();
             CommandInfo command = null;
-            DatabaseInfo database = null;
-
+            
             var debugConfiguration = new AssemblyDebugConfiguration(this);
             if (!debugConfiguration.IsStartProject) {
                 throw new NotSupportedException("Only 'Project' start action is currently supported.");
@@ -54,14 +55,32 @@ namespace Starcounter.VisualStudio.Projects {
             // to get the information about the command.
             //   Then iterate until we see that the command has completed,
             // and evaluate the result.
-            
+            //
+            // We must get a way to check if anything lengthy will be
+            // needed when doing this, like creating a database, weaving,
+            // copying, or if the database is big and the schema must
+            // change. This is b/c if so, we must do this in another thread,
+            // or else the GUI will be locked up and be non-responsive.
+
+            this.debugLaunchDescription = string.Format("Requesting \"{0}\" to be hosted in Starcounter", Path.GetFileName(debugConfiguration.AssemblyPath));
+            this.WriteDebugLaunchStatus(null);
+
             client.Send("ExecApp", properties, (Reply reply) => {
                 if (!reply.IsSuccess) throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, reply.ToString());
                 command = ServerUtility.DeserializeCarry<CommandInfo>(reply);
             });
 
-            while (!command.IsCompleted) {
-                Thread.Sleep(650);
+            int threadSuspensionTimeout = 650;
+            int triesBeforeSwitchingThread = int.MaxValue;
+#if false
+            threadSuspensionTimeout = 200;
+            triesBeforeSwitchingThread = 10;
+#endif
+            for (int i = 0; i < triesBeforeSwitchingThread; i++) {
+                if (command.IsCompleted)
+                    break;
+
+                Thread.Sleep(threadSuspensionTimeout);
 
                 client.Send("GetCompletedCommand", command.Id.ToString(), (Reply reply) => {
                     if (!reply.IsSuccess) throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, reply.ToString());
@@ -71,31 +90,59 @@ namespace Starcounter.VisualStudio.Projects {
                 });
             }
 
+#if false
+            if (!command.IsCompleted) {
+                // We are switching to another thread. We must pass the
+                // command identity and the debug information along, since we'll
+                // need it when we must get back to the GUI thread again.
+                //
+                // If we decide to use this option, we should probably
+                // consider keeping a dedicated thread around, since it can
+                // indicate a long running task, and we shouldn't lock one
+                // from the pool up.
+
+                ThreadPool.QueueUserWorkItem(this.WaitForExecAssemblyCommandAndThenCallLauchDebugger, new object[] { client, command.Id, flags, debugConfiguration });
+                return true;
+            }
+#endif
+            // Invoke the method actually attaching the debugger, after
+            // we have assured the server has fully processed the exec assembly
+            // command.
+            
+            LaunchDebugEngineIfExecCommandSucceeded(client, command, flags, debugConfiguration);
+            return true;
+        }
+
+        void LaunchDebugEngineIfExecCommandSucceeded(
+            Client client,
+            CommandInfo execResult,
+            __VSDBGLAUNCHFLAGS flags, 
+            AssemblyDebugConfiguration debugConfiguration) {
+            DTE dte;
+            bool attached;
+            string errorMessage;
+            DatabaseInfo database;
+
             // We now have the final result of the command.
             // If it succeeded (i.e. has no errors) we should be able to get the
             // database from the command.
-            if (command.HasError)
-                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, command.Errors[0].ToString());
+            if (execResult.HasError)
+                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, execResult.Errors[0].ToString());
 
             // The exec command succeeded. It should mean we could now get
             // the database information, including all we need to attach the
             // debugger to the host process
 
-            client.Send("GetDatabase", ScUri.FromString(command.DatabaseUri).DatabaseName, (Reply reply) => {
+            this.debugLaunchDescription = string.Format("Retreiving info of database \"{0}\"", execResult.DatabaseUri);
+            this.WriteDebugLaunchStatus(null);
+
+            database = null;
+            client.Send("GetDatabase", ScUri.FromString(execResult.DatabaseUri).DatabaseName, (Reply reply) => {
                 if (!reply.IsSuccess) throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, reply.ToString());
                 database = ServerUtility.DeserializeCarry<DatabaseInfo>(reply);
             });
-            
-            LaunchDebugEngine(flags, debugConfiguration, database);
-            return true;
-        }
 
-        void LaunchDebugEngine(__VSDBGLAUNCHFLAGS flags, AssemblyDebugConfiguration debugConfiguration, DatabaseInfo database) {
-            DTE dte;
-            bool attached;
-            string errorMessage;
-
-            this.debugLaunchDescription = string.Format("Attaching the debugger to database {0}", database.Name);
+            this.debugLaunchDescription = string.Format("Attaching the debugger to database \"{0}\"", database.Name);
             this.WriteDebugLaunchStatus(null);
 
             try {
@@ -148,10 +195,67 @@ namespace Starcounter.VisualStudio.Projects {
             }
 
             // The database is in fact running and the debugger is attached.
-            // Start the configured startup program.
+            // We are done.
 
-            this.debugLaunchDescription = "Starting configured startup program";
+            this.debugLaunchDescription = null;
             WriteDebugLaunchStatus(null);
+        }
+
+#if false
+        /// <summary>
+        /// Continues waiting for the ExecApp command, that seems to be taking
+        /// some time (possibly creating a new database, weaving, etc).
+        /// </summary>
+        /// <remarks>
+        /// This method is called from a background thread, during the debug
+        /// launching sequence, joining back with the main GUI thread once the
+        /// server has finished processing the request.
+        /// </remarks>
+        /// <param name="state">The state we operate on (array of values).</param>
+        void WaitForExecAssemblyCommandAndThenCallLauchDebugger(object state) {
+            object[] args = (object[])state;
+            var client = (Client)args[0];
+            var commandId = (CommandId)args[1];
+            var flags = (__VSDBGLAUNCHFLAGS)args[2];
+            var debugConfiguration = (AssemblyDebugConfiguration)args[3];
+            CommandInfo command = null;
+
+            do {
+                Thread.Sleep(500);
+                client.Send("GetCompletedCommand", commandId.ToString(), (Reply reply) => {
+                    if (!reply.IsSuccess) throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, reply.ToString());
+                    if (reply.HasCarry) {
+                        command = ServerUtility.DeserializeCarry<CommandInfo>(reply);
+                    }
+                });
+            } while (!command.IsCompleted);
+
+            this.package.BeginInvoke(() => {
+                LaunchDebugEngineIfExecCommandSucceeded(client, command, flags, debugConfiguration);
+            });
+        }
+#endif
+
+        /// <summary>
+        /// Writes a message to the default underlying output pane (normally
+        /// the Starcounter output pane).
+        /// </summary>
+        /// <param name="format">The message to write.</param>
+        /// <param name="args">Message arguments</param>
+        public void WriteLine(string format, params object[] args) {
+            this.WriteLine(string.Format(format, args));
+        }
+
+        /// <summary>
+        /// Writes a message to the default underlying output pane (normally
+        /// the Starcounter output pane).
+        /// </summary>
+        /// <param name="message">The message to write.</param>
+        public void WriteLine(string message) {
+            if (this.outputWindowPane == null) {
+                return;
+            }
+            this.outputWindowPane.OutputStringThreadSafe(message + Environment.NewLine);
         }
 
 #if false
