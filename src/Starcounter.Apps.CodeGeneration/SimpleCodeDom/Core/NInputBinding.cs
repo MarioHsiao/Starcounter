@@ -6,17 +6,16 @@
 
 using System;
 using System.Text;
+using Starcounter.Templates;
 
-namespace Starcounter.Internal.Application.CodeGeneration
-{
+namespace Starcounter.Internal.Application.CodeGeneration {
     /// <summary>
     /// Defines an input handler in one app-class for a specified property.
     /// The handler can be declared either in the same class as the property
     /// or a parent app or in several places where each handler is called
     /// if the first one didn't handle it.
     /// </summary>
-    public class NInputBinding : NBase
-    {
+    public class NInputBinding : NBase {
         /// <summary>
         /// The property this binding binds to
         /// </summary>
@@ -50,10 +49,18 @@ namespace Starcounter.Internal.Application.CodeGeneration
         public String InputTypeName { get; set; }
 
         /// <summary>
+        /// If true the property is a valueproperty and not an action.
+        /// </summary>
+        public bool HasValue {
+            get {
+                return (!(BindsToProperty.Template is ActionProperty));
+            }
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="NInputBinding" /> class.
         /// </summary>
-        public NInputBinding()
-        {
+        public NInputBinding() {
 
         }
 

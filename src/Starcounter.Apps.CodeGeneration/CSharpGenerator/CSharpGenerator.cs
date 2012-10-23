@@ -7,6 +7,7 @@
 using Starcounter.Templates.Interfaces;
 using System.Text;
 using System;
+using Starcounter.Templates;
 
 namespace Starcounter.Internal.Application.CodeGeneration  {
     /// <summary>
@@ -67,6 +68,8 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         /// </summary>
         /// <returns>The .cs source code as a string</returns>
         public string GenerateCode() {
+            System.Diagnostics.Debugger.Launch();
+
             //return Old.GenerateCodeOld();
             ProcessAllNodes();
 
@@ -394,22 +397,46 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         /// <returns>String.</returns>
         private String GetAddInputHandlerCode(NInputBinding ib)
         {
+            bool hasValue = ib.HasValue;
             StringBuilder sb = new StringBuilder();
             sb.Append("        ");
             sb.Append(ib.BindsToProperty.Template.Name);       // {0}
-            sb.Append(".AddHandler((App app, Property<");
-            sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
-            sb.Append("> prop, ");
-            sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
-            sb.Append(" value) => { return (new ");
+            sb.Append(".AddHandler((App app, Property");
+
+            if (hasValue) {
+                sb.Append('<');
+                sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
+                sb.Append('>');
+            }
+            sb.Append(" prop");
+
+            if (hasValue) {
+                sb.Append(", ");
+                sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
+                sb.Append(" value");
+            }
+            sb.Append(") => { return (new ");
             sb.Append(ib.InputTypeName);                       // {2}
             sb.Append("() { App = (");
             sb.Append(ib.PropertyAppClass.ClassName);          // {3}
             sb.Append(")app, Template = (");
             sb.Append(ib.BindsToProperty.Type.ClassName);      // {4}
-            sb.Append(")prop, Value = value }); }, (App app, Input<");
-            sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
-            sb.Append("> Input) => { ((");
+            sb.Append(")prop");
+            
+            if (hasValue)
+            {
+                sb.Append(", Value = value");
+            }
+
+            sb.Append(" }); }, (App app, Starcounter.Input");
+
+            if (hasValue) {
+                sb.Append('<');
+                sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
+                sb.Append('>');
+            }
+
+            sb.Append(" input) => { ((");
             sb.Append(ib.DeclaringAppClass.ClassName);         // {5}
             sb.Append(")app");
 
@@ -420,7 +447,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
 
             sb.Append(").Handle((");
             sb.Append(ib.InputTypeName);                       // {2}
-            sb.Append(")Input); });");
+            sb.Append(")input); });");
 
             return sb.ToString();
         }
