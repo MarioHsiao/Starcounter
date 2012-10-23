@@ -96,7 +96,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\Starcounter.ErrorCodes\scerrres;c:\boost\x86\include\boost-1_46_1\</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <!-- <TreatWarningAsError>true</TreatWarningAsError> -->
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -115,7 +115,7 @@
       <AdditionalIncludeDirectories>..\..\Starcounter.ErrorCodes\scerrres;c:\boost\x86_64\include\boost-1_46_1\</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <AssemblerOutput>NoListing</AssemblerOutput>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <!-- <TreatWarningAsError>true</TreatWarningAsError> -->
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
