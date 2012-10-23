@@ -174,7 +174,7 @@ namespace Starcounter.Binding
             unsafe
             {
                 sccoredb.SC_INDEX_INFO ii;
-                uint r = sccoredb.sccoredb_get_index_info_by_name(DefinitionAddr, name, &ii);
+                uint r = sccoredb.sccoredb_get_index_info_by_name(TableId, name, &ii);
                 if (r == 0) return CreateIndexInfo(&ii);
                 if (r == Error.SCERRINDEXNOTFOUND) return null; // Index not found.
                 throw ErrorCode.ToException(r);

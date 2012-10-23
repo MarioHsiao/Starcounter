@@ -198,9 +198,9 @@ namespace Starcounter.Internal
             public Int16 attrIndexArr_10;
         };
 
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public unsafe extern static UInt32 sccoredb_get_index_info_by_name(
-            UInt64 definition_addr,
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        public unsafe extern static uint sccoredb_get_index_info_by_name(
+            ushort table_id,
             string name,
             SC_INDEX_INFO* pii
             );
