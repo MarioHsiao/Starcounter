@@ -1,3 +1,9 @@
+// ***********************************************************************
+// <copyright file="DatabaseAttribute.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -117,6 +123,10 @@ public partial class DatabaseAttribute : DatabaseSchemaElement
         }
     }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether this instance is public read.
+    /// </summary>
+    /// <value><c>true</c> if this instance is public read; otherwise, <c>false</c>.</value>
     public bool IsPublicRead { get; set; }
 
 //    public bool IsPublicWrite { get; set; }
@@ -344,6 +354,10 @@ public partial class DatabaseAttribute : DatabaseSchemaElement
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
     public override string ToString()
     {
         StringBuilder builder = new StringBuilder();
@@ -383,13 +397,25 @@ public partial class DatabaseAttribute : DatabaseSchemaElement
     }
 }
 
+/// <summary>
+/// 
+/// </summary>
 [Serializable]
 public class DatabaseAttributeCollection : KeyedCollection<string, DatabaseAttribute>
 {
+
+    /// <summary>
+    /// 
+    /// </summary>
     public DatabaseAttributeCollection()
     {
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="item"></param>
+    /// <returns></returns>
     protected override string GetKeyForItem(DatabaseAttribute item)
     {
         if (item == null)
@@ -423,6 +449,9 @@ public class DatabaseAttributeCollection : KeyedCollection<string, DatabaseAttri
     //}
 }
 
+/// <summary>
+/// 
+/// </summary>
 public class DatabaseAttributeArrayOnIndexCompararer : IComparer
 {
     #region IComparer Members
@@ -439,6 +468,9 @@ public class DatabaseAttributeArrayOnIndexCompararer : IComparer
     #endregion
 }
 
+/// <summary>
+/// 
+/// </summary>
 public enum DatabaseAttributeKind
 {
     /// <summary>
@@ -462,10 +494,19 @@ public enum DatabaseAttributeKind
     NotPersistentProperty
 }
 
+/// <summary>
+/// 
+/// </summary>
 [Serializable]
 public sealed class DatabasePersistentProperty
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public String AttributeFieldIndex;
+    /// <summary>
+    /// 
+    /// </summary>
     public String KernelFieldMapping;
 }
 }

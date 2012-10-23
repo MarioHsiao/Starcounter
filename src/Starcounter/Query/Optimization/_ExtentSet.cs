@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="_ExtentSet.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Query.Execution;
 using System;
 using System.Collections.Generic;
@@ -151,8 +156,9 @@ class ExtentSet
     /// which in the internal representation of the extent sets are represented by the integers
     /// [2, 3, 6, 7, 10, 11, 14, 15].
     /// </summary>
-    /// <param name="visitedNodeList"></param>
-    /// <returns></returns>
+    /// <param name="currentExtentNum">The current extent num.</param>
+    /// <param name="extentOrder">The extent order.</param>
+    /// <returns>List{ExtentSet}.</returns>
     internal static List<ExtentSet> CreateAllExtentSets(Int32 currentExtentNum, List<Int32> extentOrder)
     {
         if (extentOrder == null || extentOrder.Count == 0)

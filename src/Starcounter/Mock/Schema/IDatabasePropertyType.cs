@@ -1,3 +1,9 @@
+// ***********************************************************************
+// <copyright file="IDatabasePropertyType.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 namespace Sc.Server.Weaver.Schema
 {
 /// <summary>

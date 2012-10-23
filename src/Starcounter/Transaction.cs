@@ -1,10 +1,18 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="Transaction.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Internal;
 using System;
 
 namespace Starcounter
 {
-    
+
+    /// <summary>
+    /// Class Transaction
+    /// </summary>
     public static class Transaction
     {
 

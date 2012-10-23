@@ -1,3 +1,9 @@
+// ***********************************************************************
+// <copyright file="DatabaseSocietyClass.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 
 namespace Sc.Server.Weaver.Schema

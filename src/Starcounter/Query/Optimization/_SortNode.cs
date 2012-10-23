@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="_SortNode.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Query.Execution;
 using System;
 using System.Collections.Generic;
