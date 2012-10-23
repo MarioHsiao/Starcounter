@@ -18,8 +18,9 @@ public class DatabaseArrayType : DatabaseSchemaElement, IDatabaseAttributeType
     private readonly DatabaseSchemaElement parent;
 
     /// <summary>
-    /// Initializes a new <see cref="DatabaseArrayType"/>.
+    /// Initializes a new <see cref="DatabaseArrayType" />.
     /// </summary>
+    /// <param name="parent">The parent.</param>
     /// <param name="itemType">Type of array items.</param>
     public DatabaseArrayType(DatabaseSchemaElement parent, IDatabaseAttributeType itemType)
     {
@@ -50,6 +51,10 @@ public class DatabaseArrayType : DatabaseSchemaElement, IDatabaseAttributeType
 
     #region IDatabaseSchemaElement Members
 
+    /// <summary>
+    /// Gets the <see cref="DatabaseSchema" /> to which the current object belong.
+    /// </summary>
+    /// <value>The schema.</value>
     public override DatabaseSchema Schema
     {
         get

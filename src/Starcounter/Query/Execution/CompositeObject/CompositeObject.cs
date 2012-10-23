@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="CompositeObject.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter;
 using System;
 using System.Collections.Generic;
@@ -10,6 +15,9 @@ using Starcounter.Logging;
 
 namespace Starcounter.Query.Execution
 {
+    /// <summary>
+    /// Class CompositeObject
+    /// </summary>
 public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
 {
     CompositeTypeBinding typeBinding;
@@ -34,6 +42,10 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
         random = -1;
     }
 
+    /// <summary>
+    /// View type binding.
+    /// </summary>
+    /// <value>The type binding.</value>
     public ITypeBinding TypeBinding
     {
         get
@@ -63,6 +75,10 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
     //    return new CompositeObject(typeBinding);
     //}
 
+    /// <summary>
+    /// Returns a string that represents the current object.
+    /// </summary>
+    /// <returns>A string that represents the current object.</returns>
     override public String ToString()
     {
         String presentation = "";
@@ -297,6 +313,11 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
     public Nullable<Binary> GetBinary(Int32 index)
     {
         try
@@ -323,6 +344,11 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
     public Nullable<Boolean> GetBoolean(Int32 index)
     {
         try
@@ -349,6 +375,11 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
     public Nullable<Byte> GetByte(Int32 index)
     {
         try
@@ -375,6 +406,11 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
     public Nullable<DateTime> GetDateTime(Int32 index)
     {
         try
@@ -401,6 +437,11 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
     public Nullable<Decimal> GetDecimal(Int32 index)
     {
         try
@@ -435,6 +476,11 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
     public Nullable<Double> GetDouble(Int32 index)
     {
         try
@@ -462,6 +508,11 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
     public Nullable<Int16> GetInt16(Int32 index)
     {
         try
@@ -490,6 +541,11 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
     public Nullable<Int32> GetInt32(Int32 index)
     {
         try
@@ -520,6 +576,11 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
     public Nullable<Int64> GetInt64(Int32 index)
     {
         try
@@ -552,6 +613,11 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
     public IObjectView GetObject(Int32 index)
     {
         try
@@ -582,6 +648,11 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
     public Nullable<SByte> GetSByte(Int32 index)
     {
         try
@@ -608,6 +679,11 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
     public Nullable<Single> GetSingle(Int32 index)
     {
         try
@@ -634,6 +710,11 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
     public String GetString(Int32 index)
     {
         try
@@ -688,6 +769,11 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
     public Nullable<UInt16> GetUInt16(Int32 index)
     {
         try
@@ -716,6 +802,11 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
     public Nullable<UInt32> GetUInt32(Int32 index)
     {
         try
@@ -746,6 +837,11 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
     public Nullable<UInt64> GetUInt64(Int32 index)
     {
         try
@@ -778,6 +874,11 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
     public IObjectView GetExtension(Int32 index)
     {
         throw new NotSupportedException();
@@ -788,6 +889,11 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
         return Equals(obj);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="parameter"></param>
+    /// <returns></returns>
     public DynamicMetaObject GetMetaObject(Expression parameter)
     {
         return new CompositeMetaObject(parameter, this);

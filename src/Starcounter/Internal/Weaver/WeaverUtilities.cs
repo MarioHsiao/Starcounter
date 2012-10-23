@@ -152,7 +152,7 @@ namespace Starcounter.Internal.Weaver
         /// If the extraction was successfull, it is invalid to call this
         /// method, and a <see cref="InvalidOperationException"/> will be
         /// raised. To test if an assembly was properly extracted, consult
-        /// the <see cref="CachedAssembly.Assembly"/> property for null.
+        /// the see cref="CachedAssembly.Assembly" property for null.
         /// </remarks>
         /// <returns>A message describing the cause to why the assembly
         /// represented by <paramref name="cachedAssembly"/> was not properly

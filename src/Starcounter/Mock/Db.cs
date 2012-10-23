@@ -16,6 +16,9 @@ using Starcounter.Binding;
 
 namespace Starcounter
 {
+    /// <summary>
+    /// Class Db
+    /// </summary>
     public static partial class Db
     {
 

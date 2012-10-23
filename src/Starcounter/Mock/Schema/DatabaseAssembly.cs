@@ -40,9 +40,10 @@ public sealed class DatabaseAssembly : DatabaseSchemaElement
     private readonly Dictionary<string, string> dependencies = new Dictionary<string, string>();
 
     /// <summary>
-    /// Initializes a new <see cref="DatabaseAssembly"/>.
+    /// Initializes a new <see cref="DatabaseAssembly" />.
     /// </summary>
     /// <param name="name">Assembly name.</param>
+    /// <param name="fullName">The full name.</param>
     public DatabaseAssembly(string name, string fullName)
     {
         this.name = name;
@@ -248,6 +249,10 @@ public class DatabaseAssemblyCollection : ICollection<DatabaseAssembly>
         this.schema = schema;
     }
 
+    /// <summary>
+    /// Adds the specified item.
+    /// </summary>
+    /// <param name="item">The item.</param>
     public void Add(DatabaseAssembly item)
     {
         item.SetSchema(this.schema);

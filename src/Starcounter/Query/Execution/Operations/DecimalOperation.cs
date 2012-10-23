@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="DecimalOperation.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using Starcounter;
 using Starcounter.Query.Optimization;
@@ -51,7 +56,7 @@ internal class DecimalOperation : IDecimalExpression, INumericalOperation
     /// Constructor.
     /// </summary>
     /// <param name="numOp">The operator of the operation.</param>
-    /// <param name="logExpr">The operand of the operation.</param>
+    /// <param name="expr">The operand of the operation.</param>
     internal DecimalOperation(NumericalOperator numOp, INumericalExpression expr)
     : base()
     {

@@ -16,6 +16,11 @@ namespace Starcounter
     public static partial class Db
     {
 
+        /// <summary>
+        /// Lookups the table.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns>TableDef.</returns>
         public static TableDef LookupTable(string name)
         {
             unsafe

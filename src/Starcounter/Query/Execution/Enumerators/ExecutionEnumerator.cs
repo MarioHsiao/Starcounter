@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ExecutionEnumerator.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Query.Optimization;
 using System;
 using System.Collections.Generic;
@@ -319,7 +324,6 @@ internal abstract class ExecutionEnumerator
     /// Should be called when attached to a cache.
     /// </summary>
     /// <param name="fromCache">Cache where this enumerator should be returned.</param>
-    /// <param name="enumToAttach">Which enumerator should be attached.</param>
     public void AttachToCache(LinkedList<IExecutionEnumerator> fromCache)
     {
         // Attaching to the specified cache.
@@ -365,9 +369,11 @@ internal abstract class ExecutionEnumerator
     /// <summary>
     /// Does the continuous object properties fill up into the dedicated buffer.
     /// </summary>
-    /// <param name="buffer"></param>
-    /// <param name="bufLenBytes"></param>
-    /// <returns></returns>
+    /// <param name="results">The results.</param>
+    /// <param name="resultsMaxBytes">The results max bytes.</param>
+    /// <param name="resultsNum">The results num.</param>
+    /// <param name="flags">The flags.</param>
+    /// <returns>UInt32.</returns>
     public virtual unsafe UInt32 FillupFoundObjectIDs(Byte * results, UInt32 resultsMaxBytes, UInt32 * resultsNum, UInt32 * flags)
     {
         UInt64 slotsNum = 0;
@@ -562,7 +568,8 @@ internal abstract class ExecutionEnumerator
     /// <summary>
     /// Sets values to all SQL variables in the SQL query.
     /// </summary>
-    /// <param name="values">The new values of the variables in order of appearance.</param>
+    /// <param name="sqlParams">The SQL params.</param>
+    /// <exception cref="System.ArgumentException">Incorrect number of SQL parameters, which should be:</exception>
     public virtual void SetVariables(Object[] sqlParams)
     {
         Int32 numVariables = variableArray.Length;

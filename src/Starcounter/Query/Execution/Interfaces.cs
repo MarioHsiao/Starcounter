@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="Interfaces.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 // + IQueryObject
 // |
@@ -854,14 +859,14 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
     /// <summary>
     /// Sets a null value to an SQL variable.
     /// </summary>
-    /// <param name="number">The order number of the variable starting at 0.</param>
+    /// <param name="index">The order number of the variable starting at 0.</param>
     void SetVariableToNull(Int32 index);
 
     /// <summary>
     /// Sets a value to an SQL variable.
     /// </summary>
-    /// <param name="number">The order number of the variable starting at 0.</param>
-    /// <param name="value">The new value of the variable.</param>
+    /// <param name="index">The index.</param>
+    /// <param name="newValue">The new value.</param>
     void SetVariable(Int32 index, Binary newValue);
     void SetVariable(Int32 index, Byte[] newValue);
     void SetVariable(Int32 index, Boolean newValue);
@@ -884,7 +889,7 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
     /// <summary>
     /// Sets values to all SQL variables in the SQL query.
     /// </summary>
-    /// <param name="values">The new values of the variables in order of appearance.</param>
+    /// <param name="newValues">The new values of the variables in order of appearance.</param>
     void SetVariables(Object[] newValues);
 
     /// <summary>

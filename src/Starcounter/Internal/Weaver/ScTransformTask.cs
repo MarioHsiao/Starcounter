@@ -32,8 +32,10 @@ namespace Starcounter.Internal.Weaver {
     /// <see cref="IAdviceProvider" /> interface to provide advices to the low-level
     /// code weaver.
     /// </summary>
+#pragma warning disable 618
     public class ScTransformTask : Task, IAdviceProvider {
 #pragma warning restore 618
+
         /// <summary>
         /// The _constructor enhanced tag GUID
         /// </summary>

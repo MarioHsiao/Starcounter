@@ -115,7 +115,7 @@ namespace Starcounter.Internal.Weaver {
         /// fields unique and recognizable.</returns>
         /// <remarks>
         /// <example>
-        /// MakeAttributeIndexVariableName("FirstName") will return the string "<>0FirstName000".
+        /// MakeAttributeIndexVariableName("FirstName") will return the string "&lt;&gt;0FirstName000".
         /// </example>
         /// </remarks>
         public static string MakeAttributeIndexVariableName(string nakedAttributeName) {
@@ -142,7 +142,7 @@ namespace Starcounter.Internal.Weaver {
         /// <returns></returns>
         /// <remarks>
         /// <example>
-        /// TryGetNakedAttributeName("<>0FirstName000") will return true and the naked
+        /// TryGetNakedAttributeName("&lt;&gt;0FirstName000") will return true and the naked
         /// attribute string "FirstName".
         /// </example>
         /// </remarks>

@@ -92,7 +92,7 @@ public partial class DatabaseAttribute : DatabaseSchemaElement
     /// Gets or sets the field index in the database kernel.
     /// </summary>
     /// <remarks>
-    /// <para>This field is set only <i>after</i> calls the method <see cref="ITypeResolver.SetSchema"/>.</para>
+    /// <para>This field is set only <i>after</i> calls the method see cref="ITypeResolver.SetSchema".</para>
     /// <para>This property is only meaningful for persistent fields that are not synonymous.</para>
     /// </remarks>
     public ushort Index
@@ -186,14 +186,14 @@ public partial class DatabaseAttribute : DatabaseSchemaElement
         }
     }
 
-    /// <summary>
-    /// Gets or sets the 'parent' database field to which the current enumerable field relates,
-    /// when the current field is an enumerable (one-to-many relationship).
-    /// </summary>
-    /// <value>
-    /// The database attribute that is the second end of the one-to-many relationship, of <b>null</b>
-    /// if the current attribute is not an enumerable.
-    /// </value>
+    // <summary>
+    // Gets or sets the 'parent' database field to which the current enumerable field relates,
+    // when the current field is an enumerable (one-to-many relationship).
+    // </summary>
+    // <value>
+    // The database attribute that is the second end of the one-to-many relationship, of <b>null</b>
+    // if the current attribute is not an enumerable.
+    // </value>
 	//public DatabaseAttribute EnumerableRelatesTo
 	//{
 	//    get
@@ -263,10 +263,10 @@ public partial class DatabaseAttribute : DatabaseSchemaElement
         }
     }
 
-    /// <summary>
-    /// When the current attribute is a persistent property, gets or sets the name
-    /// of the field containing the index of the current persistent property.
-    /// </summary>
+    // <summary>
+    // When the current attribute is a persistent property, gets or sets the name
+    // of the field containing the index of the current persistent property.
+    // </summary>
     //public string IndexField
     //{
     //    get { return indexField; }
@@ -456,6 +456,12 @@ public class DatabaseAttributeArrayOnIndexCompararer : IComparer
 {
     #region IComparer Members
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <returns></returns>
     public int Compare(object x, object y)
     {
         // x < y -1, = 0, x > y +1
