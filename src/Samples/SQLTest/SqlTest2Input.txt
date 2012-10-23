@@ -20920,7 +20920,7 @@ ExpectedResult:
 
 
 <NEXT>
-Description: Self-join on two conditions (Ruslan).
+Description: Self-join on two conditions (Ruslan)
 QueryString: select e1, e2 from SQLTest.EmployeeDb.Employee e1, SQLTest.EmployeeDb.Employee e2 where e1.HireDate < e2.HireDate and e1.Department = e2.Department
 VariableValues: 
 SingleObjectProjection: False
