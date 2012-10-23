@@ -92,7 +92,6 @@ namespace StarcounterInternal.Hosting
                     new ColumnDef("internal_id", DbTypeCode.UInt64, false, false),
                     new ColumnDef("name", DbTypeCode.String, true, false),
                     new ColumnDef("base_name", DbTypeCode.String, true, false),
-                    new ColumnDef("table_id", DbTypeCode.UInt16, false, false),
                 }
                 );
 
@@ -113,6 +112,7 @@ namespace StarcounterInternal.Hosting
                 new ColumnDef[]
                 {
                     new ColumnDef("internal_id", DbTypeCode.UInt64, false, false),
+                    new ColumnDef("table_internal_id", DbTypeCode.UInt64, false, false),
                     new ColumnDef("name", DbTypeCode.String, true, false),
                     new ColumnDef("table_name", DbTypeCode.String, true, false),
                     new ColumnDef("description", DbTypeCode.String, true, false),
