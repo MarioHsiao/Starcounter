@@ -1,9 +1,14 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ProgressInfo.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 namespace Starcounter.Server.PublicModel {
     
     /// <summary>
     /// Represents the progress of a task, executing to fullfill the
-    /// execution of a <see cref="ServerCommand"/>.
+    /// execution of a <see cref="Starcounter.Server.PublicModel.Commands.ServerCommand"/>.
     /// </summary>
     public sealed class ProgressInfo {
         
@@ -14,9 +19,12 @@ namespace Starcounter.Server.PublicModel {
         }
 
         /// <summary>
-        /// Initializes a new <see cref="ProgressInfo"/>.
+        /// Initializes a new <see cref="ProgressInfo" />.
         /// </summary>
-        /// <param name="data">To be defined.</param>
+        /// <param name="taskID">The task ID.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="maximum">The maximum.</param>
+        /// <param name="text">The text.</param>
         internal ProgressInfo(int taskID, int value, int maximum, string text) {
             this.TaskIdentity = taskID;
             this.Value = value;

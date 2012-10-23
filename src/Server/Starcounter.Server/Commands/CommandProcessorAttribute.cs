@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="CommandProcessorAttribute.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System;
 
@@ -14,7 +19,7 @@ namespace Starcounter.Server.Commands {
         /// <summary>
         /// Initializes a new <see cref="CommandProcessorAttribute"/>.
         /// </summary>
-        /// <param name="commandType">A type derived from <see cref="ServerCommand"/>.</param>
+        /// <param name="commandType">A type derived from <see cref="Starcounter.Server.PublicModel.Commands.ServerCommand"/>.</param>
         public CommandProcessorAttribute(Type commandType) {
             this.commandType = commandType;
         }

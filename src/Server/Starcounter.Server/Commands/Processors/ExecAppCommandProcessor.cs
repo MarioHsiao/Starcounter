@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ExecAppCommandProcessor.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Server.PublicModel.Commands;
 using System;
 using System.IO;
@@ -23,7 +28,7 @@ namespace Starcounter.Server.Commands {
             : base(server, command) {
         }
 
-        /// </inheritdoc>
+        /// <inheritdoc />
         protected override void Execute() {
             ExecAppCommand command;
             WeaverService weaver;
