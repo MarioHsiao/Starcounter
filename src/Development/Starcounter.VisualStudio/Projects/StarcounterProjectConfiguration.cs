@@ -244,8 +244,11 @@ namespace Starcounter.VisualStudio.Projects {
 
             if (debugLaunchPending) return VSConstants.S_OK;
 
+            // Clean the IDE to make sure we start fresh.
             debugLaunchPending = true;
             debugLaunchDescription = "";
+            this.package.ErrorList.Tasks.Clear();
+            this.package.ErrorList.Refresh();
 
             try {
                 launchResult = BeginDebug((__VSDBGLAUNCHFLAGS)grfLaunch);
