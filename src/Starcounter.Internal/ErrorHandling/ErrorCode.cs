@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ErrorCode.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Internal;
 using System;
 using System.Diagnostics;
@@ -15,9 +20,19 @@ namespace Starcounter
     /// </summary>
     public static class ErrorCode
     {
+        /// <summary>
+        /// The EC_TRANSPORT_KEY
+        /// </summary>
         public const string EC_TRANSPORT_KEY = "554CD586-C9DB-4d4a-B952-EA9890D1FB96";
+        /// <summary>
+        /// The CodeDecorationPrefix
+        /// </summary>
         public const string CodeDecorationPrefix = "SCERR";
 
+        /// <summary>
+        /// Gets the exception factory.
+        /// </summary>
+        /// <value>The exception factory.</value>
         public static ExceptionFactory ExceptionFactory { get; private set; }
 
         private static bool TriedResolvingBadImageFormatException = false;
@@ -43,6 +58,11 @@ namespace Starcounter
             ErrorCode.ExceptionFactory = new ExceptionFactory();
         }
 
+        /// <summary>
+        /// To the message.
+        /// </summary>
+        /// <param name="errorCode">The error code.</param>
+        /// <returns>FactoryErrorMessage.</returns>
         public static FactoryErrorMessage ToMessage(uint errorCode)
         {
             return InternalToMessage(errorCode, string.Empty);
@@ -60,11 +80,24 @@ namespace Starcounter
         }
 #endif
 
+        /// <summary>
+        /// To the message.
+        /// </summary>
+        /// <param name="errorCode">The error code.</param>
+        /// <param name="postfix">The postfix.</param>
+        /// <returns>FactoryErrorMessage.</returns>
         public static FactoryErrorMessage ToMessage(uint errorCode, string postfix)
         {
             return InternalToMessage(errorCode, postfix);
         }
 
+        /// <summary>
+        /// To the message.
+        /// </summary>
+        /// <param name="prefix">The prefix.</param>
+        /// <param name="errorCode">The error code.</param>
+        /// <param name="postfix">The postfix.</param>
+        /// <returns>System.String.</returns>
         public static string ToMessage(string prefix, uint errorCode, string postfix)
         {
             string message = InternalToMessage(errorCode, postfix);
@@ -75,11 +108,23 @@ namespace Starcounter
             return message;
         }
 
+        /// <summary>
+        /// To the message with arguments.
+        /// </summary>
+        /// <param name="errorCode">The error code.</param>
+        /// <param name="messagePostfix">The message postfix.</param>
+        /// <param name="messageArguments">The message arguments.</param>
+        /// <returns>FactoryErrorMessage.</returns>
         public static FactoryErrorMessage ToMessageWithArguments(uint errorCode, string messagePostfix, params object[] messageArguments)
         {
             return InternalToMessage(errorCode, messagePostfix, messageArguments);
         }
 
+        /// <summary>
+        /// To the help link.
+        /// </summary>
+        /// <param name="errorCode">The error code.</param>
+        /// <returns>System.String.</returns>
         public static string ToHelpLink(uint errorCode)
         {
             return string.Format("{0}SCERR{1}",
@@ -142,6 +187,12 @@ namespace Starcounter
             return string.Concat(ErrorCode.CodeDecorationPrefix, errorCode);
         }
 
+        /// <summary>
+        /// Tries the get orig message.
+        /// </summary>
+        /// <param name="exception">The exception.</param>
+        /// <param name="origMessage">The orig message.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public static bool TryGetOrigMessage(Exception exception, out String origMessage)
         {
             if (exception == null)
@@ -229,6 +280,12 @@ namespace Starcounter
             return false;
         }
 
+        /// <summary>
+        /// Tries the get code.
+        /// </summary>
+        /// <param name="exception">The exception.</param>
+        /// <param name="errorCode">The error code.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public static bool TryGetCode(Exception exception, out uint errorCode)
         {
             if (exception == null)
@@ -279,46 +336,103 @@ namespace Starcounter
             return false;
         }
 
+        /// <summary>
+        /// To the facility code.
+        /// </summary>
+        /// <param name="errorCode">The error code.</param>
+        /// <returns>System.UInt32.</returns>
         public static uint ToFacilityCode(uint errorCode)
         {
             return errorCode / 1000;
         }
 
+        /// <summary>
+        /// To the exception.
+        /// </summary>
+        /// <param name="errorCode">The error code.</param>
+        /// <returns>Exception.</returns>
         public static Exception ToException(uint errorCode)
         {
             return InternalCreateException(errorCode, null, null, null, null);
         }
 
+        /// <summary>
+        /// To the exception.
+        /// </summary>
+        /// <param name="errorCode">The error code.</param>
+        /// <param name="customFactory">The custom factory.</param>
+        /// <returns>Exception.</returns>
         public static Exception ToException(uint errorCode, Func<string, Exception, Exception> customFactory)
         {
             return InternalCreateException(errorCode, null, null, customFactory, null);
         }
 
+        /// <summary>
+        /// To the exception.
+        /// </summary>
+        /// <param name="errorCode">The error code.</param>
+        /// <param name="innerException">The inner exception.</param>
+        /// <returns>Exception.</returns>
         public static Exception ToException(uint errorCode, Exception innerException)
         {
             return InternalCreateException(errorCode, innerException, null, null, null);
         }
 
+        /// <summary>
+        /// To the exception.
+        /// </summary>
+        /// <param name="errorCode">The error code.</param>
+        /// <param name="innerException">The inner exception.</param>
+        /// <param name="customFactory">The custom factory.</param>
+        /// <returns>Exception.</returns>
         public static Exception ToException(uint errorCode, Exception innerException, Func<string, Exception, Exception> customFactory)
         {
             return InternalCreateException(errorCode, innerException, null, customFactory, null);
         }
 
+        /// <summary>
+        /// To the exception.
+        /// </summary>
+        /// <param name="errorCode">The error code.</param>
+        /// <param name="messagePostfix">The message postfix.</param>
+        /// <returns>Exception.</returns>
         public static Exception ToException(uint errorCode, string messagePostfix)
         {
             return InternalCreateException(errorCode, null, messagePostfix, null, null);
         }
 
+        /// <summary>
+        /// To the exception.
+        /// </summary>
+        /// <param name="errorCode">The error code.</param>
+        /// <param name="messagePostfix">The message postfix.</param>
+        /// <param name="customFactory">The custom factory.</param>
+        /// <returns>Exception.</returns>
         public static Exception ToException(uint errorCode, string messagePostfix, Func<string, Exception, Exception> customFactory)
         {
             return InternalCreateException(errorCode, null, messagePostfix, customFactory, null);
         }
 
+        /// <summary>
+        /// To the exception.
+        /// </summary>
+        /// <param name="errorCode">The error code.</param>
+        /// <param name="innerException">The inner exception.</param>
+        /// <param name="messagePostfix">The message postfix.</param>
+        /// <returns>Exception.</returns>
         public static Exception ToException(uint errorCode, Exception innerException, string messagePostfix)
         {
             return InternalCreateException(errorCode, innerException, messagePostfix, null, null);
         }
 
+        /// <summary>
+        /// To the exception.
+        /// </summary>
+        /// <param name="errorCode">The error code.</param>
+        /// <param name="innerException">The inner exception.</param>
+        /// <param name="messagePostfix">The message postfix.</param>
+        /// <param name="customFactory">The custom factory.</param>
+        /// <returns>Exception.</returns>
         public static Exception ToException(
             uint errorCode,
             Exception innerException,
@@ -328,6 +442,13 @@ namespace Starcounter
             return InternalCreateException(errorCode, innerException, messagePostfix, customFactory, null);
         }
 
+        /// <summary>
+        /// To the exception.
+        /// </summary>
+        /// <param name="errorCode">The error code.</param>
+        /// <param name="customFactory">The custom factory.</param>
+        /// <param name="messageArguments">The message arguments.</param>
+        /// <returns>Exception.</returns>
         public static Exception ToException(
             uint errorCode,
             Func<string, Exception, Exception> customFactory,
@@ -337,6 +458,14 @@ namespace Starcounter
             return InternalCreateException(errorCode, null, null, customFactory, messageArguments);
         }
 
+        /// <summary>
+        /// To the exception.
+        /// </summary>
+        /// <param name="errorCode">The error code.</param>
+        /// <param name="innerException">The inner exception.</param>
+        /// <param name="customFactory">The custom factory.</param>
+        /// <param name="messageArguments">The message arguments.</param>
+        /// <returns>Exception.</returns>
         public static Exception ToException(
             uint errorCode,
             Exception innerException,
@@ -347,6 +476,14 @@ namespace Starcounter
             return InternalCreateException(errorCode, innerException, null, customFactory, messageArguments);
         }
 
+        /// <summary>
+        /// To the exception.
+        /// </summary>
+        /// <param name="errorCode">The error code.</param>
+        /// <param name="innerException">The inner exception.</param>
+        /// <param name="messagePostfix">The message postfix.</param>
+        /// <param name="messageArguments">The message arguments.</param>
+        /// <returns>Exception.</returns>
         public static Exception ToException(
             uint errorCode,
             Exception innerException,
@@ -357,6 +494,15 @@ namespace Starcounter
             return InternalCreateException(errorCode, innerException, messagePostfix, null, messageArguments);
         }
 
+        /// <summary>
+        /// To the exception.
+        /// </summary>
+        /// <param name="errorCode">The error code.</param>
+        /// <param name="innerException">The inner exception.</param>
+        /// <param name="messagePostfix">The message postfix.</param>
+        /// <param name="customFactory">The custom factory.</param>
+        /// <param name="messageArguments">The message arguments.</param>
+        /// <returns>Exception.</returns>
         public static Exception ToException(
             uint errorCode,
             Exception innerException,
@@ -368,6 +514,11 @@ namespace Starcounter
             return InternalCreateException(errorCode, innerException, messagePostfix, customFactory, messageArguments);
         }
 
+        /// <summary>
+        /// Sets the exception factory.
+        /// </summary>
+        /// <param name="factory">The factory.</param>
+        /// <exception cref="System.ArgumentNullException">factory</exception>
         public static void SetExceptionFactory(ExceptionFactory factory)
         {
             if (factory == null) throw new ArgumentNullException("factory");

@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="Request.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -157,11 +162,19 @@ namespace Starcounter.ABCIPC {
         internal bool IsResponded { get; private set; }
         internal int messageType;
 
+        /// <summary>
+        /// Gets the message.
+        /// </summary>
+        /// <value>The message.</value>
         public string Message {
             get;
             private set;
         }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether this instance is shutdown.
+        /// </summary>
+        /// <value><c>true</c> if this instance is shutdown; otherwise, <c>false</c>.</value>
         public bool IsShutdown {
             get;
             set;
@@ -180,6 +193,11 @@ namespace Starcounter.ABCIPC {
             this.ParameterData = data;
         }
 
+        /// <summary>
+        /// Gets the parameter.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns>``0.</returns>
         public T GetParameter<T>() where T : class {
             if (this.messageType == Request.Protocol.MessageWithStringArray || this.messageType == Request.Protocol.MessageWithStringArrayNULL) {
                 Trace.Assert(typeof(T) == typeof(string[]), string.Format("{0} is not a string[]", typeof(T).Name));
@@ -207,11 +225,20 @@ namespace Starcounter.ABCIPC {
             }
         }
 
+        /// <summary>
+        /// Responds the specified result.
+        /// </summary>
+        /// <param name="result">if set to <c>true</c> [result].</param>
         public void Respond(bool result) {
             InternalReply(
                 Reply.Protocol.MakeString(Reply.TypeFromResult(result)));
         }
 
+        /// <summary>
+        /// Responds the specified reply.
+        /// </summary>
+        /// <param name="reply">The reply.</param>
+        /// <exception cref="System.ArgumentNullException">reply</exception>
         public void Respond(string reply) {
             if (reply == null)
                 throw new ArgumentNullException("reply");
@@ -219,6 +246,12 @@ namespace Starcounter.ABCIPC {
             InternalReply(Reply.Protocol.MakeString(Reply.ReplyType.OKWithCarry, reply));
         }
 
+        /// <summary>
+        /// Responds the specified result.
+        /// </summary>
+        /// <param name="result">if set to <c>true</c> [result].</param>
+        /// <param name="reply">The reply.</param>
+        /// <exception cref="System.ArgumentNullException">reply</exception>
         public void Respond(bool result, string reply) {
             if (reply == null)
                 throw new ArgumentNullException("reply");
@@ -226,6 +259,10 @@ namespace Starcounter.ABCIPC {
             InternalReply(Reply.Protocol.MakeString(Reply.TypeFromResult(result, reply), reply));
         }
 
+        /// <summary>
+        /// Replies the status.
+        /// </summary>
+        /// <param name="reply">The reply.</param>
         public void ReplyStatus(string reply) {
             string protocol = reply == null ? 
                 Reply.Protocol.MakeString(Reply.ReplyType.Progress) : 
