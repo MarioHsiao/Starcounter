@@ -6,9 +6,11 @@
 
 using Starcounter.Server.PublicModel.Commands;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
 using Starcounter.ABCIPC;
+using Starcounter.Internal;
 
 namespace Starcounter.Server.Commands {
 
@@ -120,8 +122,13 @@ namespace Starcounter.Server.Commands {
                 // that until the full one is in place.
                 //   Grab the response message and utilize it if we fail.
 
+                var properties = new Dictionary<string, string>();
+                properties.Add("AssemblyPath", weavedExecutable);
+                properties.Add("WorkingDir", command.WorkingDirectory);
+                properties.Add("Args", KeyValueBinary.FromArray(command.ArgumentsToApplication).Value);
+
                 string responseMessage = string.Empty;
-                bool success = client.Send("Exec", string.Format("\"{0}\"", weavedExecutable), delegate(Reply reply) {
+                bool success = client.Send("Exec2", properties, delegate(Reply reply) {
                     if (reply.IsResponse && !reply.IsSuccess) {
                         reply.TryGetCarry(out responseMessage);
                     }

@@ -204,8 +204,16 @@ namespace StarcounterInternal.Hosting
         /// </summary>
         /// <param name="hsched">The hsched.</param>
         /// <param name="filePath">The file path.</param>
+        /// <param name="workingDirectory">The logical working directory the assembly
+        /// will execute in.</param>
+        /// <param name="entrypointArguments">Arguments to be passed to the assembly
+        /// entrypoint, if any.</param>
         /// <exception cref="StarcounterInternal.Hosting.LoaderException"></exception>
-        public static unsafe void ExecApp(void* hsched, string filePath)
+        public static unsafe void ExecApp(
+            void* hsched, 
+            string filePath, 
+            string workingDirectory = null, 
+            string[] entrypointArguments = null)
         {
             try
             {
@@ -249,6 +257,11 @@ namespace StarcounterInternal.Hosting
             var assembly = Assembly.LoadFile(inputFile.FullName);
 
             Package package = new Package(unregisteredTypeDefs.ToArray(), assembly);
+            if (!string.IsNullOrEmpty(workingDirectory)) {
+                package.WorkingDirectory = workingDirectory;
+            }
+            package.EntrypointArguments = entrypointArguments;
+
             IntPtr hPackage = (IntPtr)GCHandle.Alloc(package, GCHandleType.Normal);
 
             uint e = sccorelib.cm2_schedule(
