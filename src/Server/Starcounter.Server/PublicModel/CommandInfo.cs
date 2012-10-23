@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="CommandInfo.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System;
 using System.Xml.Serialization;
@@ -173,6 +178,9 @@ namespace Starcounter.Server.PublicModel {
     /// Statuses of a command.
     /// </summary>
     public enum CommandStatus {
+        /// <summary>
+        /// The created
+        /// </summary>
         Created,
 
         /// <summary>

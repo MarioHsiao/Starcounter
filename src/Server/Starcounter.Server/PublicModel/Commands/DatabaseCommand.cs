@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="DatabaseCommand.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using Starcounter.Internal;
 
@@ -22,12 +27,13 @@ namespace Starcounter.Server.PublicModel.Commands {
         }
 
         /// <summary>
-        /// Initializes a new <see cref="DatabaseCommand"/>.
+        /// Initializes a new <see cref="DatabaseCommand" />.
         /// </summary>
-        /// <param name="database">The URI of the <see cref="Database">database</see>
+        /// <param name="engine">The engine.</param>
+        /// <param name="databaseUri">The URI of the <see cref="Database">database</see>
         /// this commmand targets.</param>
         /// <param name="descriptionFormat">Formatting string of the command description.</param>
-        /// <param name="descriptionArgs">Arguments for <paramref name="descriptionFormat"/>.</param>
+        /// <param name="descriptionArgs">Arguments for <paramref name="descriptionFormat" />.</param>
         protected DatabaseCommand(
             ServerEngine engine,
             string databaseUri,
@@ -39,9 +45,10 @@ namespace Starcounter.Server.PublicModel.Commands {
 
 
         /// <summary>
-        /// Initializes a new <see cref="DatabaseCommand"/>.
+        /// Initializes a new <see cref="DatabaseCommand" />.
         /// </summary>
-        /// <param name="database">The URI of the <see cref="Database">database</see>
+        /// <param name="engine">The engine.</param>
+        /// <param name="databaseUri">The URI of the <see cref="Database">database</see>
         /// this commmand targets.</param>
         /// <param name="description">Human-readable description of the command.</param>
         protected DatabaseCommand(ServerEngine engine, string databaseUri, string description)
