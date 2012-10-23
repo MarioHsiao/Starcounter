@@ -41,7 +41,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="relativeUri">The uri without the server domain</param>
         /// <param name="req">The Starcounter session id</param>
         /// <returns>A cacheable resource item with at least one version (compressed or uncompressed).</returns>
-        public HttpResponse GetFileResource(HttpResponse cached,string relativeUri, HttpRequest req ) {
+        public HttpResponse GetFileResource(HttpResponse cached, string relativeUri, HttpRequest req) {
 
 
             req.Debug(" (FILE ACCESS)");
@@ -75,8 +75,25 @@ namespace Starcounter.Internal.Web {
                     try {
                         FileStream f = FileOpenAlternative(ref dir, ref fileName, ref fileExtension);
                         len = (int)f.Length;
+
+                        // Check for UTF-8 byte order mark (BOM) offset
+                        if (len >= 3) {
+                            int utf8Size = 3;                  // UTF 8 byte check
+                            byte[] bom = new byte[utf8Size];   // allocate place for UTF-8 check
+                            f.Read(bom, 0, utf8Size);
+                            if (bom[0] == 0xef && bom[1] == 0xbb && bom[2] == 0xbf) // UTF-8
+                            {
+                                len -= utf8Size;               // Adjust the payload size without the 'bom'
+                            }
+                            else {
+                                f.Position -= utf8Size;        // Reset the filestream position
+                            }
+                        }
+
                         payload = new byte[len];
+
                         f.Read(payload, 0, (int)len);
+
                         f.Close();
                         is404 = false;
                         break;
@@ -92,7 +109,7 @@ namespace Starcounter.Internal.Web {
                     }
                 }
                 if (is404) {
-                    payload = Encoding.UTF8.GetBytes(String.Format("Error 404: File {0} not found", relativeUri + "." ));
+                    payload = Encoding.UTF8.GetBytes(String.Format("Error 404: File {0} not found", relativeUri + "."));
                     mimeType = "plain/text";
                 }
                 else {
@@ -133,9 +150,10 @@ namespace Starcounter.Internal.Web {
             byte[] compressed = null;
             bool didCompress = false;
 
-            if ( req.NeedsScriptInjection && mimeType.StartsWith("text/html") ) {
+
+            if (req.NeedsScriptInjection && mimeType.StartsWith("text/html")) {
                 req.Debug(" (analysing html)");
-                fres.ScriptInjectionPoint = ScriptInjector.FindScriptInjectionPoint(payload, 0); 
+                fres.ScriptInjectionPoint = ScriptInjector.FindScriptInjectionPoint(payload, 0);
                 shouldCompress = false;
             }
 
@@ -143,7 +161,7 @@ namespace Starcounter.Internal.Web {
                 compressed = Compress(payload);
                 didCompress = compressed.Length + 100 < payload.Length; // Don't use compress version if the difference is too small
                 //didCompress = false;
-//                Console.WriteLine(String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
+                //                Console.WriteLine(String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
                 if (didCompress) {
                     req.Debug(" (compressing)"); // String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
                     len = compressed.Length;
@@ -158,16 +176,16 @@ namespace Starcounter.Internal.Web {
             str += "Content-Type:" + mimeType + "\r\n";
 
 
-//            if (!bigCookie)
-//                str += "Set-Cookie:sid=" + req.SessionID.ToString() + "\r\n";
-            
+            //            if (!bigCookie)
+            //                str += "Set-Cookie:sid=" + req.SessionID.ToString() + "\r\n";
+
             if (didCompress)
-                str +="Content-Encoding:gzip\r\n";
+                str += "Content-Encoding:gzip\r\n";
 
             if (req.IsAppView)
-               str += "Cache-control:private,max-age=0\r\n"; // Dont cache
-            else               
-               str += "Cache-control:public,max-age=31536000\r\n"; // 1 year cache
+                str += "Cache-control:private,max-age=0\r\n"; // Dont cache
+            else
+                str += "Cache-control:public,max-age=31536000\r\n"; // 1 year cache
 
             // Cache-Control:public,max-age=31536000
             // Age:0
@@ -198,19 +216,19 @@ namespace Starcounter.Internal.Web {
             header.CopyTo(response, 0);
 
             if (shouldBeCached && cached == null) {
-               CacheOnUri[relativeUri] = fres;
-               fres.Uris.Add(relativeUri);
-               string path = (dir + "\\" + fileName + "." + fileExtension);
-               string fileSignature = path.ToUpper();
-               fres.FilePath = fileSignature;
-               fres.FileDirectory = dir;
-               fres.FileName = fileName + "." + fileExtension;
-               fres.FileExists = !is404;
-               if (!is404) {
-                  fres.FileModified = File.GetLastWriteTime(path);
-               }
-               CacheOnFilePath[fileSignature] = fres;
-               WatchChange(dir, fileName + "." + fileExtension); //.DirectoryName,fi.Name);
+                CacheOnUri[relativeUri] = fres;
+                fres.Uris.Add(relativeUri);
+                string path = (dir + "\\" + fileName + "." + fileExtension);
+                string fileSignature = path.ToUpper();
+                fres.FilePath = fileSignature;
+                fres.FileDirectory = dir;
+                fres.FileName = fileName + "." + fileExtension;
+                fres.FileExists = !is404;
+                if (!is404) {
+                    fres.FileModified = File.GetLastWriteTime(path);
+                }
+                CacheOnFilePath[fileSignature] = fres;
+                WatchChange(dir, fileName + "." + fileExtension); //.DirectoryName,fi.Name);
             }
 
             //  if (found && isText)
