@@ -44,7 +44,7 @@ namespace SQLTest
             TestRunner.Initialize("SqlTest3", false, true, false);
             SQLTest.PointDb.PointData.CreateIndexes();
             SQLTest.PointDb.PointData.CreateData();
-            //TestRunner.RunTest();
+            TestRunner.RunTest();
             SQLTest.PointDb.PointData.DeleteData();
             SQLTest.PointDb.PointData.DropIndexes();
             return true;
