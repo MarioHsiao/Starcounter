@@ -1,3 +1,9 @@
+// ***********************************************************************
+// <copyright file="Severity.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 namespace Starcounter.Internal {
     /// <summary>
     /// Severity degrees for the Starcounter log.
