@@ -1,3 +1,9 @@
+// ***********************************************************************
+// <copyright file="InsteadOfFieldAccessAdvice.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using PostSharp.Sdk.CodeModel;
 using PostSharp.Sdk.CodeWeaver;
 using PostSharp.Sdk.Collections;
@@ -12,13 +18,25 @@ namespace Starcounter.Internal.Weaver {
     /// Advice of the low-level code weaver that changes field accesses to method calls.
     /// </summary>
     internal class InsteadOfFieldAccessAdvice : IAdvice {
+        /// <summary>
+        /// The next instruction
+        /// </summary>
         private OpCodeNumber nextInstruction;
+        /// <summary>
+        /// The get method
+        /// </summary>
         private readonly IMethod getMethod;
+        /// <summary>
+        /// The set method
+        /// </summary>
         private readonly IMethod setMethod;
+        /// <summary>
+        /// The field
+        /// </summary>
         private readonly IField field;
 
         /// <summary>
-        /// Initializes a new <see cref="InsteadOfFieldAccessAdvice"/>.
+        /// Initializes a new <see cref="InsteadOfFieldAccessAdvice" />.
         /// </summary>
         /// <param name="field">Field whose accesses should be replaced.</param>
         /// <param name="getMethod">Method getting the field value.</param>
@@ -32,6 +50,7 @@ namespace Starcounter.Internal.Weaver {
         /// <summary>
         /// Gets the aspect priority (not important since we have only one aspect).
         /// </summary>
+        /// <value>The priority.</value>
         public int Priority {
             get {
                 return 0;
@@ -62,6 +81,7 @@ namespace Starcounter.Internal.Weaver {
         /// <summary>
         /// Gets the field to which the current advice applis.
         /// </summary>
+        /// <value>The field.</value>
         public IField Field {
             get {
                 return this.field;
@@ -75,6 +95,7 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         /// <param name="context">Context.</param>
         /// <param name="block">Block into which we have to write our instructions.</param>
+        /// <exception cref="AssertionFailedException"></exception>
         public void Weave(WeavingContext context, InstructionBlock block) {
             InstructionSequence sequence = context.InstructionBlock.MethodBody.CreateInstructionSequence();
             block.AddInstructionSequence(sequence, NodePosition.After, null);

@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="HashHelper.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System;
 using System.Collections.Generic;
@@ -6,9 +11,17 @@ using System.Security.Cryptography;
 using System.Text;
 
 namespace Starcounter.Internal.Weaver {
-    
+
+    /// <summary>
+    /// Class HashHelper
+    /// </summary>
     internal static class HashHelper {
 
+        /// <summary>
+        /// Computes the hash.
+        /// </summary>
+        /// <param name="path">The path.</param>
+        /// <returns>System.String.</returns>
         public static string ComputeHash(string path) {
             HashAlgorithm hashAlgorithm = MD5.Create();
             // MD5 collisions have been proved "easily" reproduced, maybe we should turn

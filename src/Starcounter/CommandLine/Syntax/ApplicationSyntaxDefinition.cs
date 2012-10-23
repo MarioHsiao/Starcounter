@@ -1,19 +1,45 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ApplicationSyntaxDefinition.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Collections.Generic;
 
 namespace Starcounter.CommandLine.Syntax
 {
+    /// <summary>
+    /// Class ApplicationSyntaxDefinition
+    /// </summary>
     public sealed class ApplicationSyntaxDefinition : SyntaxDefinition, IApplicationSyntax
     {
+        /// <summary>
+        /// The commands
+        /// </summary>
         private Dictionary<string, CommandSyntaxDefinition> commands;
 
+        /// <summary>
+        /// Gets or sets the program description.
+        /// </summary>
+        /// <value>The program description.</value>
         public string ProgramDescription { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether [requires command].
+        /// </summary>
+        /// <value><c>true</c> if [requires command]; otherwise, <c>false</c>.</value>
         public bool RequiresCommand { get; set; }
 
+        /// <summary>
+        /// Gets or sets the default command.
+        /// </summary>
+        /// <value>The default command.</value>
         public string DefaultCommand { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ApplicationSyntaxDefinition" /> class.
+        /// </summary>
         public ApplicationSyntaxDefinition()
             : base()
         {
@@ -22,21 +48,52 @@ namespace Starcounter.CommandLine.Syntax
             this.RequiresCommand = false;
         }
 
+        /// <summary>
+        /// Defines the command.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="description">The description.</param>
+        /// <returns>CommandSyntaxDefinition.</returns>
         public CommandSyntaxDefinition DefineCommand(string name, string description)
         {
             return InternalDefineCommand(name, description, null, null);
         }
 
+        /// <summary>
+        /// Defines the command.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="description">The description.</param>
+        /// <param name="parameterCount">The parameter count.</param>
+        /// <returns>CommandSyntaxDefinition.</returns>
         public CommandSyntaxDefinition DefineCommand(string name, string description, int parameterCount)
         {
             return InternalDefineCommand(name, description, parameterCount, parameterCount);
         }
 
+        /// <summary>
+        /// Defines the command.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="description">The description.</param>
+        /// <param name="minParameterCount">The min parameter count.</param>
+        /// <param name="maxParameterCount">The max parameter count.</param>
+        /// <returns>CommandSyntaxDefinition.</returns>
         public CommandSyntaxDefinition DefineCommand(string name, string description, int minParameterCount, int maxParameterCount)
         {
             return InternalDefineCommand(name, description, minParameterCount, maxParameterCount);
         }
 
+        /// <summary>
+        /// Internals the define command.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="description">The description.</param>
+        /// <param name="minParameterCount">The min parameter count.</param>
+        /// <param name="maxParameterCount">The max parameter count.</param>
+        /// <returns>CommandSyntaxDefinition.</returns>
+        /// <exception cref="System.ArgumentNullException">name</exception>
+        /// <exception cref="System.ArgumentException"></exception>
         CommandSyntaxDefinition InternalDefineCommand(string name, string description, int? minParameterCount, int? maxParameterCount)
         {
             CommandSyntaxDefinition builder;
@@ -55,12 +112,19 @@ namespace Starcounter.CommandLine.Syntax
             return builder;
         }
 
+        /// <summary>
+        /// Creates the syntax.
+        /// </summary>
+        /// <returns>IApplicationSyntax.</returns>
         public IApplicationSyntax CreateSyntax()
         {
             VerifyConsistency();
             return this;
         }
 
+        /// <summary>
+        /// Verifies the consistency.
+        /// </summary>
         void VerifyConsistency()
         {
             int? minValue;
@@ -117,16 +181,28 @@ namespace Starcounter.CommandLine.Syntax
 
         #region IApplicationSyntax Members
 
+        /// <summary>
+        /// Gets a value indicating whether [requires command].
+        /// </summary>
+        /// <value><c>true</c> if [requires command]; otherwise, <c>false</c>.</value>
         bool IApplicationSyntax.RequiresCommand
         {
             get { return this.RequiresCommand; }
         }
 
+        /// <summary>
+        /// Gets the program description.
+        /// </summary>
+        /// <value>The program description.</value>
         string IApplicationSyntax.ProgramDescription
         {
             get { return this.ProgramDescription; }
         }
 
+        /// <summary>
+        /// Gets the properties.
+        /// </summary>
+        /// <value>The properties.</value>
         OptionInfo[] IApplicationSyntax.Properties
         {
             get
@@ -135,6 +211,10 @@ namespace Starcounter.CommandLine.Syntax
             }
         }
 
+        /// <summary>
+        /// Gets the flags.
+        /// </summary>
+        /// <value>The flags.</value>
         OptionInfo[] IApplicationSyntax.Flags
         {
             get
@@ -143,6 +223,10 @@ namespace Starcounter.CommandLine.Syntax
             }
         }
 
+        /// <summary>
+        /// Gets the commands.
+        /// </summary>
+        /// <value>The commands.</value>
         ICommandSyntax[] IApplicationSyntax.Commands
         {
             get
@@ -164,6 +248,12 @@ namespace Starcounter.CommandLine.Syntax
 
         #endregion
 
+        /// <summary>
+        /// Raises the inconsistent syntax exception.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="arguments">The arguments.</param>
+        /// <exception cref="System.FormatException"></exception>
         void RaiseInconsistentSyntaxException(string message, params object[] arguments)
         {
             throw new FormatException(string.Format(message, arguments));
