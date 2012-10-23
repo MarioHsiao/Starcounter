@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="CommandDescriptor.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Xml.Serialization;
 
@@ -9,6 +14,9 @@ namespace Starcounter.Server.PublicModel {
     /// underlying tasks.
     /// </summary>
     public sealed class CommandDescriptor {
+        /// <summary>
+        /// The empty
+        /// </summary>
         public static readonly CommandDescriptor Empty = new CommandDescriptor();
 
         /// <summary>
