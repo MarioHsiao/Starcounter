@@ -1,4 +1,10 @@
-﻿using System.IO.Pipes;
+﻿// ***********************************************************************
+// <copyright file="PipeProtocol.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System.IO.Pipes;
 using System.Text;
 
 namespace Starcounter.ABCIPC.Internal {
@@ -49,9 +55,9 @@ namespace Starcounter.ABCIPC.Internal {
         /// Reads a message from the given stream, using the protocol encapsulated
         /// by the current instance.
         /// </summary>
-        /// <seealso cref="WriteMessage"/>
         /// <param name="pipe">The pipe to read from.</param>
         /// <returns>The message read.</returns>
+        /// <seealso cref="WriteMesssage" />
         internal string ReadMessage(PipeStream pipe) {
             // We expect the message to be prefixed with the length
             // and encoded compatible with the encoding used for the

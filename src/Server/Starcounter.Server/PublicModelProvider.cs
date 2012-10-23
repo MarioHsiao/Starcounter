@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="PublicModelProvider.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Collections.Generic;
 using Starcounter.Server.PublicModel;
@@ -81,15 +86,15 @@ namespace Starcounter.Server {
                 throw new ArgumentException(String.Format("Database '{0}' doesn't exist.", database.Uri));
         }
 
-        /// </inheritdoc>
+        /// <inheritdoc />
         public CommandInfo Execute(ServerCommand command) {
             command.GetReadyToEnqueue();
             return this.engine.Dispatcher.Enqueue(command);
         }
 
-        /// </inheritdoc>
+        /// <inheritdoc />
         /// <remarks>The implementation of this method is based on
-        /// <see cref="Thread.Sleep"/>, which possibly will be changed
+        /// <see cref="System.Threading.Thread.Sleep(int)"/>, which possibly will be changed
         /// to use events in a future versions.</remarks>
         public CommandInfo Wait(CommandId id) {
             CommandInfo cmd;
@@ -109,22 +114,22 @@ namespace Starcounter.Server {
             return cmd;
         }
 
-        /// </inheritdoc>
+        /// <inheritdoc />
         public CommandInfo GetCommand(CommandId id) {
             return this.engine.Dispatcher.GetRecentCommand(id);
         }
 
-        /// </inheritdoc>
+        /// <inheritdoc />
         public CommandInfo[] GetCommands() {
             return this.engine.Dispatcher.GetRecentCommands();
         }
 
-        /// </inheritdoc>
+        /// <inheritdoc />
         public ServerInfo GetServerInfo() {
             return this.ServerInfo;
         }
 
-        /// </inheritdoc>
+        /// <inheritdoc />
         public DatabaseInfo GetDatabase(string databaseUri) {
             lock (databases) {
                 DatabaseInfo databaseInfo;
@@ -133,7 +138,7 @@ namespace Starcounter.Server {
             }
         }
 
-        /// </inheritdoc>
+        /// <inheritdoc />
         public DatabaseInfo[] GetDatabases() {
             lock (databases) {
                 DatabaseInfo[] copy = new DatabaseInfo[databases.Values.Count];

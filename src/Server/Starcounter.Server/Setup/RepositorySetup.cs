@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="RepositorySetup.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,7 +17,7 @@ namespace Starcounter.Server.Setup {
     /// Represents the process of creating a new repository.
     /// </summary>
     /// <example>
-    /// This sample shows the intended use of the <see cref="RepositorySetyp"/> class.
+    /// This sample shows the intended use of the <see cref="RepositorySetup"/> class.
     /// <code>
     /// class Program
     /// {
@@ -91,7 +96,8 @@ namespace Starcounter.Server.Setup {
         /// <param name="repositoryPath">The directory that makes up the root of the
         /// repository created. The name of the repository is fetched from the last
         /// part of the given path.</param>
-        /// <returns>A <see cref="RepositorySetup"/> representing the
+        /// <param name="serverPortRange">The server port range.</param>
+        /// <returns>A <see cref="RepositorySetup" /> representing the
         /// setup of the given value.</returns>
         internal static RepositorySetup NewDefault(string repositoryPath, int serverPortRange) {
             RepositoryStructure structure;
@@ -148,10 +154,8 @@ namespace Starcounter.Server.Setup {
         /// structure, a server configuration and an engine configuration.
         /// </summary>
         /// <param name="structure">A <see cref="RepositoryStructure"/> to use.</param>
-        /// <param name="serverConfiguration">The <see cref="AgentConfiguration"/> to
+        /// <param name="serverConfiguration">The <see cref="ServerConfiguration"/> to
         /// use.</param>
-        /// <param name="engineConfiguration">The <see cref="EngineConfiguration"/>
-        /// to use.</param>
         internal RepositorySetup(RepositoryStructure structure, ServerConfiguration serverConfiguration) {
             if (structure == null) {
                 throw new ArgumentNullException("structure");
@@ -165,8 +169,7 @@ namespace Starcounter.Server.Setup {
         }
 
         /// <summary>
-        /// Creates the repository on disk after first validating it with
-        /// <see cref="Validate"/>.
+        /// Creates the repository on disk.
         /// </summary>
         public void Execute() {
             this.Structure.Create();

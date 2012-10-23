@@ -236,14 +236,14 @@ namespace StarcounterInternal.Bootstrap
         }
 
         /// <summary>
-        /// Gets a value indicating whether [network apps].
+        /// Gets a value indicating whether network gateway should not be used.
         /// </summary>
-        /// <value><c>true</c> if [network apps]; otherwise, <c>false</c>.</value>
-        public bool NetworkApps
+        /// <value><c>true</c> if network gateway should not be used; otherwise, <c>false</c>.</value>
+        public bool NoNetworkGateway
         {
             get
             {
-                return this.ProgramArguments.ContainsFlag(ProgramCommandLine.OptionNames.NetworkApps);
+                return this.ProgramArguments.ContainsFlag(ProgramCommandLine.OptionNames.NoNetworkGateway);
             }
         }
 
