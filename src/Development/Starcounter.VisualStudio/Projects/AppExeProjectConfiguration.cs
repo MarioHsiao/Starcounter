@@ -65,6 +65,12 @@ namespace Starcounter.VisualStudio.Projects {
 
             this.debugLaunchDescription = string.Format("Requesting \"{0}\" to be hosted in Starcounter", Path.GetFileName(debugConfiguration.AssemblyPath));
             this.WriteDebugLaunchStatus(null);
+            
+            // Utilize the prepare-only solution to be able to debug the
+            // entrypoint. This will be slightly rewritten to be more of a
+            // final solution.
+
+            properties.Add("PrepareOnly", bool.TrueString);
 
             client.Send("ExecApp", properties, (Reply reply) => {
                 if (!reply.IsSuccess) throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, reply.ToString());
@@ -109,13 +115,37 @@ namespace Starcounter.VisualStudio.Projects {
             // Invoke the method actually attaching the debugger, after
             // we have assured the server has fully processed the exec assembly
             // command.
-            
+
             LaunchDebugEngineIfExecCommandSucceeded(client, command, flags, debugConfiguration);
             
+            // When utilizing PrepareOnly, we execute the entrypoint in a pooled thread.
+            // This will be slightly changed.
+            if (properties.Remove("PrepareOnly")) {
+                ThreadPool.QueueUserWorkItem(ExecuteAppEntrypointWithDebuggerAttached, new object[] { client, properties });
+            }
+
             var finish = DateTime.Now;
             this.WriteLine("Debug sequence time: {0}, using parameters {1}", finish.Subtract(start), string.Join(" ", debugConfiguration.Arguments));
             
             return true;
+        }
+
+        void ExecuteAppEntrypointWithDebuggerAttached(object state) {
+            object[] args = (object[])state;
+            var client = (Client)args[0];
+            var properties = (Dictionary<string, string>)args[1];
+            
+            // Currently, we don't bother waiting here since waiting will mean
+            // we are waiting for the entire entrypoint to be exeuced. We just
+            // want to return back before that.
+            //
+            // We have to take this another round to decide the final solution,
+            // to make sure we can guarantee that at least everything up until
+            // the invocation of the boot-handler executes.
+
+            client.Send("ExecApp", properties, (Reply reply) => {
+                if (!reply.IsSuccess) throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, reply.ToString());
+            });
         }
 
         void LaunchDebugEngineIfExecCommandSucceeded(

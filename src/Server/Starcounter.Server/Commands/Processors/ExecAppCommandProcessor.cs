@@ -103,35 +103,45 @@ namespace Starcounter.Server.Commands {
 
             Engine.DatabaseEngine.StartDatabaseProcess(database);
             Engine.DatabaseEngine.StartWorkerProcess(database, command.NoDb, out workerProcess);
-            
+
             // Get a client handle to the hosting process.
 
             var client = this.Engine.DatabaseHostService.GetHostingInterface(database);
 
-            // The current database worker protocol is "Exec c:\myfile.exe". We use
-            // that until the full one is in place.
-            //   Grab the response message and utilize it if we fail.
-
-            string responseMessage = string.Empty;
-            bool success = client.Send("Exec", string.Format("\"{0}\"", weavedExecutable), delegate(Reply reply) {
-                if (reply.IsResponse && !reply.IsSuccess) {
-                    reply.TryGetCarry(out responseMessage);
+            if (command.PrepareOnly) {
+                bool success = client.Send("Ping");
+                if (!success) {
+                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
                 }
-            });
-            if (!success) {
-                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, responseMessage);
+            }
+            else {
+                
+                // The current database worker protocol is "Exec c:\myfile.exe". We use
+                // that until the full one is in place.
+                //   Grab the response message and utilize it if we fail.
+
+                string responseMessage = string.Empty;
+                bool success = client.Send("Exec", string.Format("\"{0}\"", weavedExecutable), delegate(Reply reply) {
+                    if (reply.IsResponse && !reply.IsSuccess) {
+                        reply.TryGetCarry(out responseMessage);
+                    }
+                });
+                if (!success) {
+                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, responseMessage);
+                }
+
+                // The app is successfully loaded in the worker process. We should
+                // keep it referenced in the server and consider the execution of this
+                // processor a success.
+                app = new DatabaseApp() {
+                    OriginalExecutablePath = command.AssemblyPath,
+                    WorkingDirectory = command.WorkingDirectory,
+                    Arguments = command.Arguments,
+                    ExecutionPath = weavedExecutable
+                };
+                database.Apps.Add(app);
             }
 
-            // The app is successfully loaded in the worker process. We should
-            // keep it referenced in the server and consider the execution of this
-            // processor a success.
-            app = new DatabaseApp() {
-                OriginalExecutablePath = command.AssemblyPath,
-                WorkingDirectory = command.WorkingDirectory,
-                Arguments = command.Arguments,
-                ExecutionPath = weavedExecutable
-            };
-            database.Apps.Add(app);
             Engine.CurrentPublicModel.UpdateDatabase(database);
         }
 
