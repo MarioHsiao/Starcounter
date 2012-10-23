@@ -57,13 +57,14 @@ namespace Starcounter.Server {
                 ServerServices services;
                 string pipeName;
 
-                if (arguments.TryGetProperty("Pipe", out pipeName)) {
+                if (arguments.ContainsFlag("UseConsole")) {
+                    services = new ServerServices(engine);
+                } else {
+                    pipeName = ScUriExtensions.MakeLocalServerPipeString(engine.Name);
                     var ipcServer = ClientServerFactory.CreateServerUsingNamedPipes(pipeName);
                     ipcServer.ReceivedRequest += OnIPCServerReceivedRequest;
                     services = new ServerServices(engine, ipcServer);
                     ToConsoleWithColor(string.Format("Accepting service calls on pipe '{0}'...", pipeName), ConsoleColor.DarkGray);
-                } else {
-                    services = new ServerServices(engine);
                 }
                 services.Setup();
 
@@ -100,12 +101,12 @@ namespace Starcounter.Server {
             // Define the "Start" command, used to start the server. A single, mandatory
             // parameter - the path to the server configuration file - is expected.
 
-            commandDefinition = syntaxDefinition.DefineCommand("Start", "Starts the Starcounter server.", 1);
+            commandDefinition = syntaxDefinition.DefineCommand("Start", "Starts the Starcounter reference server.", 1);
 
             // Define the "Pipe" property, allowing the reference server to be run
             // using named pipes.
-            commandDefinition.DefineProperty("Pipe", 
-                "Allows the reference server to run using named pipes. The value should be the name of the pipe.");
+            commandDefinition.DefineFlag("UseConsole",
+                "Launches the reference server in console mode, i.e. allowing commands to be sent to the server from the console.");
 
             // Define the "CreateRepo" command, used to create a server repository
             // using built-in defaults. One parameter - the server repository path -

@@ -236,14 +236,31 @@ namespace StarcounterInternal.Bootstrap
         }
 
         /// <summary>
-        /// Gets a value indicating whether [network apps].
+        /// Gets a value indicating whether network gateway should not be used.
         /// </summary>
-        /// <value><c>true</c> if [network apps]; otherwise, <c>false</c>.</value>
-        public bool NetworkApps
+        /// <value><c>true</c> if network gateway should not be used; otherwise, <c>false</c>.</value>
+        public bool NoNetworkGateway
         {
             get
             {
-                return this.ProgramArguments.ContainsFlag(ProgramCommandLine.OptionNames.NetworkApps);
+                return this.ProgramArguments.ContainsFlag(ProgramCommandLine.OptionNames.NoNetworkGateway);
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating that the host should use standard
+        /// streams / the console to accept local management requests,
+        /// like the booting of executables.
+        /// </summary>
+        /// <remarks>
+        /// Corresponds to the <see cref="ProgramCommandLine.OptionNames.UseConsole"/>
+        /// flag.
+        /// </remarks>
+        /// <value><c>true</c> if standard streams should be used; otherwise,
+        /// <c>false</c>.</value>
+        public bool UseConsole {
+            get {
+                return this.ProgramArguments.ContainsFlag(ProgramCommandLine.OptionNames.UseConsole);
             }
         }
     }
