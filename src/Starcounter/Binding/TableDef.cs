@@ -133,10 +133,10 @@ namespace Starcounter.Binding
             unsafe
             {
                 ec = sccoredb.sccoredb_get_index_infos(
-                    DefinitionAddr,
+                    TableId,
                     &ic,
                     null
-                );
+                    );
                 if (ec != 0)
                 {
                     throw ErrorCode.ToException(ec);
@@ -150,10 +150,10 @@ namespace Starcounter.Binding
                 fixed (sccoredb.SC_INDEX_INFO* pii = &(iis[0]))
                 {
                     ec = sccoredb.sccoredb_get_index_infos(
-                        DefinitionAddr,
+                        TableId,
                         &ic,
                         pii
-                    );
+                        );
                     if (ec != 0)
                     {
                         throw ErrorCode.ToException(ec);
