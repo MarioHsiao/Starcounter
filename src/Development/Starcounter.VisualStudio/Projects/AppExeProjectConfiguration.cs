@@ -32,6 +32,7 @@ namespace Starcounter.VisualStudio.Projects {
         protected override bool BeginDebug(__VSDBGLAUNCHFLAGS flags) {
             Dictionary<string, string> properties = new Dictionary<string, string>();
             CommandInfo command = null;
+            DateTime start = DateTime.Now;
             
             var debugConfiguration = new AssemblyDebugConfiguration(this);
             if (!debugConfiguration.IsStartProject) {
@@ -110,6 +111,10 @@ namespace Starcounter.VisualStudio.Projects {
             // command.
             
             LaunchDebugEngineIfExecCommandSucceeded(client, command, flags, debugConfiguration);
+            
+            var finish = DateTime.Now;
+            this.WriteLine("Debug sequence time: {0}, using parameters {1}", finish.Subtract(start), string.Join(" ", debugConfiguration.Arguments));
+            
             return true;
         }
 
