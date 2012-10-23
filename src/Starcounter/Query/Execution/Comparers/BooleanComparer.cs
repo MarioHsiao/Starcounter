@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="BooleanComparer.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using Starcounter;
 using System;
@@ -13,12 +18,15 @@ namespace Starcounter.Query.Execution
 internal class BooleanComparer : ISingleComparer
 {
     protected IBooleanExpression expression;
+    /// <summary>
+    /// The ordering
+    /// </summary>
     protected SortOrder ordering;
 
     /// <summary>
     /// Constructor.
     /// </summary>
-    /// <param name="logExpr">The expression to be used in the comparison.</param>
+    /// <param name="expr">The expression to be used in the comparison.</param>
     /// <param name="ord">The sort ordering to be used in the comparison.</param>
     internal BooleanComparer(IBooleanExpression expr, SortOrder ord)
     {

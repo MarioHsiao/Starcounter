@@ -158,6 +158,11 @@ namespace Starcounter.Internal.Weaver {
 
         #region IMessageDispenser Members
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
         public string GetMessage(string key) {
             // We currently really don't implement anything other than
             // error handling through the new message source (Source),

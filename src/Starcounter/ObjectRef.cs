@@ -12,7 +12,13 @@ namespace Starcounter
     /// </summary>
     public struct ObjectRef
     {
+        /// <summary>
+        /// The object ID
+        /// </summary>
         public ulong ObjectID;
+        /// <summary>
+        /// The ETI
+        /// </summary>
         public ulong ETI;
     }
 }

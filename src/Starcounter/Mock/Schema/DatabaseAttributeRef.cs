@@ -102,26 +102,46 @@ public sealed class DatabaseAttributeRefCollection : DatabaseSchemaElement, ICol
 
     #region ICollection<DatabaseAttribute> Members
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="item"></param>
     public void Add(DatabaseAttribute item)
     {
         list.Add(DatabaseAttributeRef.MakeRef(item));
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public void Clear()
     {
         list.Clear();
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="item"></param>
+    /// <returns></returns>
     public bool Contains(DatabaseAttribute item)
     {
         throw new NotImplementedException();
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="array"></param>
+    /// <param name="arrayIndex"></param>
     public void CopyTo(DatabaseAttribute[] array, int arrayIndex)
     {
         throw new NotImplementedException();
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public int Count
     {
         get
@@ -130,6 +150,9 @@ public sealed class DatabaseAttributeRefCollection : DatabaseSchemaElement, ICol
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public bool IsReadOnly
     {
         get
@@ -138,6 +161,11 @@ public sealed class DatabaseAttributeRefCollection : DatabaseSchemaElement, ICol
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="item"></param>
+    /// <returns></returns>
     public bool Remove(DatabaseAttribute item)
     {
         throw new NotImplementedException();
@@ -147,6 +175,10 @@ public sealed class DatabaseAttributeRefCollection : DatabaseSchemaElement, ICol
 
     #region IEnumerable<DatabaseAttribute> Members
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
     public IEnumerator<DatabaseAttribute> GetEnumerator()
     {
         foreach (DatabaseAttributeRef attributeRef in list)
@@ -222,6 +254,9 @@ public sealed class DatabaseAttributeRefCollection : DatabaseSchemaElement, ICol
 
     #region IDatabaseSchemaElement Members
 
+    /// <summary>
+    /// 
+    /// </summary>
     public override DatabaseSchema Schema
     {
         get

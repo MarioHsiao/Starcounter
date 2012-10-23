@@ -12,10 +12,16 @@ namespace Starcounter
 {
 
 
+    /// <summary>
+    /// Class NotPersistentAttribute
+    /// </summary>
     [AttributeUsage(AttributeTargets.Field)]
     public sealed class NotPersistentAttribute : Attribute {
     }
-    
+
+    /// <summary>
+    /// Class Entity
+    /// </summary>
     public abstract class Entity : IObjectView
     {
 
@@ -76,18 +82,34 @@ namespace Starcounter
         internal ObjectRef ThisRef;
         private TypeBinding typeBinding_;
 
+        /// <summary>
+        /// 
+        /// </summary>
         protected Entity()
             : base() {
             throw ErrorCode.ToException(Error.SCERRCODENOTENHANCED);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="u"></param>
         protected Entity(Uninitialized u) { }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="typeAddr"></param>
+        /// <param name="typeBinding"></param>
+        /// <param name="u"></param>
         public Entity(ulong typeAddr, TypeBinding typeBinding, Uninitialized u)
         {
             DbState.Insert(this, typeAddr, typeBinding);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void Delete()
         {
             int br;
@@ -155,6 +177,11 @@ namespace Starcounter
             return Equals(obj as Entity);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public bool Equals(Entity obj)
         {
             if (obj != null)

@@ -115,6 +115,10 @@ public class PreciseTimer
     }
 
     // Returns the duration of the timer (in microseconds).
+    /// <summary>
+    /// Gets the duration MCS.
+    /// </summary>
+    /// <value>The duration MCS.</value>
     public Double DurationMcs
     {
         get
