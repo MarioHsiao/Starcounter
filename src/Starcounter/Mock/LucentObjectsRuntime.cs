@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="LucentObjectsRuntime.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter;
 using Starcounter.Binding;
 using Starcounter.Internal;
@@ -7,10 +12,18 @@ using System.Reflection;
 
 namespace Starcounter.LucentObjects
 {
-    
+
+    /// <summary>
+    /// Class LucentObjectsRuntime
+    /// </summary>
     public static class LucentObjectsRuntime
     {
 
+        /// <summary>
+        /// Initializes the client assembly.
+        /// </summary>
+        /// <param name="clientAssemblyTypeInitializer">The client assembly type initializer.</param>
+        /// <param name="type">The type.</param>
         public static void InitializeClientAssembly(Type clientAssemblyTypeInitializer, Type type)
         {
             string typeName = type.FullName;

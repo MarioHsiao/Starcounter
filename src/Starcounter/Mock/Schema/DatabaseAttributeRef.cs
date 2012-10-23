@@ -1,3 +1,9 @@
+// ***********************************************************************
+// <copyright file="DatabaseAttributeRef.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Collections.Generic;
 
@@ -76,12 +82,19 @@ internal sealed class DatabaseAttributeRef
     }
 }
 
+/// <summary>
+/// 
+/// </summary>
 [Serializable]
 public sealed class DatabaseAttributeRefCollection : DatabaseSchemaElement, ICollection<DatabaseAttribute>, ICollection<DatabaseAttributeRef>
 {
     private readonly DatabaseSchemaElement parent;
     readonly List<DatabaseAttributeRef> list = new List<DatabaseAttributeRef>();
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="parent"></param>
     public DatabaseAttributeRefCollection(DatabaseSchemaElement parent)
     {
         this.parent = parent;

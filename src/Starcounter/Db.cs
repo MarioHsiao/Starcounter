@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="Db.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Binding;
 using Starcounter.Internal;
 using System;
@@ -39,11 +44,20 @@ namespace Starcounter
             }
         }
 
+        /// <summary>
+        /// Creates the table.
+        /// </summary>
+        /// <param name="tableDef">The table def.</param>
         public static void CreateTable(TableDef tableDef)
         {
             CreateTable(tableDef, null);
         }
 
+        /// <summary>
+        /// Creates the table.
+        /// </summary>
+        /// <param name="tableDef">The table def.</param>
+        /// <param name="inheritedTableDef">The inherited table def.</param>
         public static void CreateTable(TableDef tableDef, TableDef inheritedTableDef)
         {
             unsafe
@@ -90,6 +104,11 @@ namespace Starcounter
             }
         }
 
+        /// <summary>
+        /// Renames the table.
+        /// </summary>
+        /// <param name="tableId">The table id.</param>
+        /// <param name="newName">The new name.</param>
         public static void RenameTable(ushort tableId, string newName)
         {
             uint e = sccoredb.sc_rename_table(tableId, newName);
@@ -97,6 +116,10 @@ namespace Starcounter
             throw ErrorCode.ToException(e);
         }
 
+        /// <summary>
+        /// Drops the table.
+        /// </summary>
+        /// <param name="name">The name.</param>
         public static void DropTable(string name)
         {
             uint e = sccoredb.sccoredb_drop_table(name);
@@ -104,6 +127,12 @@ namespace Starcounter
             throw ErrorCode.ToException(e);
         }
 
+        /// <summary>
+        /// Creates the index.
+        /// </summary>
+        /// <param name="definitionAddr">The definition addr.</param>
+        /// <param name="name">The name.</param>
+        /// <param name="columnIndex">Index of the column.</param>
         public static void CreateIndex(ulong definitionAddr, string name, short columnIndex) // TODO:
         {
             unsafe
@@ -117,6 +146,10 @@ namespace Starcounter
             }
         }
 
+        /// <summary>
+        /// Transactions the specified action.
+        /// </summary>
+        /// <param name="action">The action.</param>
         public static void Transaction(Action action)
         {
             uint maxRetries;

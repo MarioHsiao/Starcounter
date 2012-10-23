@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="SqlExecutableException.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 //using se.sics.prologbeans;
 //using Starcounter;
 //using System.Collections.Generic;
@@ -30,6 +35,11 @@ namespace Starcounter.Query.Sql
             : base(message, innerException)
         { }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SqlExecutableException" /> class.
+        /// </summary>
+        /// <param name="info">The info.</param>
+        /// <param name="context">The context.</param>
         protected SqlExecutableException(
             SerializationInfo info,
             StreamingContext context)

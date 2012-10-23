@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="TransactionAbortedException.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Runtime.Serialization;
 
@@ -12,6 +17,11 @@ namespace Starcounter {
 
         internal TransactionAbortedException(UInt32 errorCode, String message, Exception innerException) : base(errorCode, message, innerException) { }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TransactionAbortedException" /> class.
+        /// </summary>
+        /// <param name="info">The info.</param>
+        /// <param name="context">The context.</param>
         protected TransactionAbortedException(
             SerializationInfo info,
             StreamingContext context)
