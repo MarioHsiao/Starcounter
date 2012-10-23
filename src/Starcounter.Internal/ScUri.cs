@@ -590,6 +590,59 @@ namespace Starcounter {
     }
 
     /// <summary>
+    /// Extends the <see cref="ScUri"/> class with a set of utility
+    /// methods allowing uri's to be the foundation for other kind of
+    /// identifiers, such as named pipe names.
+    /// </summary>
+    public static class ScUriExtensions {
+        static string localMachineName = Environment.MachineName.ToLowerInvariant();
+        const string serverPipeTemplate = "sc//{0}/{1}";
+        const string databasePipeTemplate = "sc//{0}/{1}-{2}";
+
+        /// <summary>
+        /// Creates a local pipe name, based on the Starcounter URI syntax,
+        /// for a server with the given name.
+        /// </summary>
+        /// <param name="serverName">The name of the server we want to create
+        /// a local pipe name for.</param>
+        /// <returns>A local pipe name for a server with the given name.</returns>
+        public static string MakeLocalServerPipeString(string serverName) {
+            return string.Format(serverPipeTemplate, localMachineName, serverName.ToLowerInvariant());
+        }
+
+        /// <summary>
+        /// Creates a local pipe name, based on the Starcounter URI syntax,
+        /// for a database on a server with the given names. 
+        /// </summary>
+        /// <param name="serverName">The name of the server where the database
+        /// lives.</param>
+        /// <param name="databaseName">The name of the server we want to create
+        /// a local pipe name for.</param>
+        /// <returns>A local pipe name for a database with the given name,
+        /// running under the control of the given server.</returns>
+        public static string MakeLocalDatabasePipeString(string serverName, string databaseName) {
+            return string.Format(databasePipeTemplate, localMachineName, serverName.ToLowerInvariant(), databaseName.ToLowerInvariant());
+        }
+
+        /// <summary>
+        /// Converts a <see cref="ScUri"/> to a corresponding local named
+        /// pipe name.
+        /// </summary>
+        /// <param name="uri">The <see cref="ScUri"/> to be converted to
+        /// a local named pipe name.</param>
+        /// <returns>A local named pipe name corresponding to the resource
+        /// as referenced by the given <see cref="ScUri"/>.</returns>
+        public static string ToLocalPipeString(this ScUri uri) {
+            if (uri.Kind == ScUriKind.Machine)
+                throw new ArgumentOutOfRangeException("uri", "Only server- or database URI's are supported.");
+
+            return uri.Kind == ScUriKind.Server
+                ? MakeLocalServerPipeString(uri.ServerName)
+                : MakeLocalDatabasePipeString(uri.ServerName, uri.DatabaseName);
+        }
+    }
+
+    /// <summary>
     /// Kinds of Starcounter URI.
     /// </summary>
     public enum ScUriKind {

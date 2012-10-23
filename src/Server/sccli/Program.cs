@@ -1,4 +1,5 @@
 ﻿
+using Starcounter;
 using Starcounter.ABCIPC;
 using Starcounter.ABCIPC.Internal;
 using System;
@@ -38,14 +39,15 @@ namespace sccli {
             if (string.IsNullOrEmpty(pipeName)) {
                 pipeName = "personal";
             }
-            pipeName = string.Format("sc//{0}/{1}", Environment.MachineName, pipeName).ToLowerInvariant();
-
+            pipeName = ScUriExtensions.MakeLocalServerPipeString(pipeName);
+            
             ToConsoleWithColor(string.Format("[Using server \"{0}\"]", pipeName), ConsoleColor.DarkGray);
             var client = ClientServerFactory.CreateClientUsingNamedPipes(pipeName);
             
             command = args.Length == 0 ? string.Empty : args[0].ToLowerInvariant();
             if (command.StartsWith("@")) {
                 command = command.Substring(1);
+            } else if (!command.Equals(string.Empty)){
                 var args2 = new string[args.Length + 1];
                 Array.Copy(args, args2, args.Length);
                 args2[args2.Length - 1] = "@@Synchronous";

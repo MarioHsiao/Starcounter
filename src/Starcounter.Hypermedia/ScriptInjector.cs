@@ -38,7 +38,8 @@ namespace Starcounter.Internal.Web {
         /// the Content-Length). For this, see the Inject method.</remarks>
         public static int FindScriptInjectionPoint(byte[] response, int contentOffset) {
             HtmlDocument doc = new HtmlDocument();
-            doc.LoadHtml(Encoding.UTF8.GetString(response, contentOffset, response.Length - contentOffset));
+            var html = Encoding.UTF8.GetString(response, contentOffset, response.Length - contentOffset);
+            doc.LoadHtml(html);
             var script = doc.DocumentNode.SelectSingleNode("/script");
             HtmlNode headKid = null;
 
