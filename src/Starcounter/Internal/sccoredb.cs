@@ -220,9 +220,9 @@ namespace Starcounter.Internal
             );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 sccoredb_get_index_infos(
-            UInt64 definition_addr,
-            UInt32* pic,
+        public unsafe extern static uint sccoredb_get_index_infos(
+            ushort table_id,
+            uint* pic,
             SC_INDEX_INFO* piis
             );
 
