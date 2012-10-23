@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="WeaverUtilities.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using Starcounter;
 using System.Diagnostics;

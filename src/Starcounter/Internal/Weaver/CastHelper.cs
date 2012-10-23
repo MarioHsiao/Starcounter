@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="CastHelper.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System;
 using PostSharp.Sdk.CodeModel;
@@ -7,18 +12,33 @@ using PostSharp.Sdk.Collections;
 
 namespace Starcounter.Internal.Weaver {
     /// <summary>
-    /// Provides the method <see cref="EmitCast"/>, that emits instruction that change the
+    /// Provides the method <see cref="EmitCast" />, that emits instruction that change the
     /// type of a value, even using non-trivial transformations.
     /// </summary>
     internal class CastHelper {
+        /// <summary>
+        /// The module
+        /// </summary>
         private ModuleDeclaration module;
+        /// <summary>
+        /// The nullable type
+        /// </summary>
         private INamedType nullableType;
+        /// <summary>
+        /// The nullable has value method
+        /// </summary>
         private IMethod nullableHasValueMethod;
+        /// <summary>
+        /// The nullable get value method
+        /// </summary>
         private IMethod nullableGetValueMethod;
+        /// <summary>
+        /// The nullable non null constructor
+        /// </summary>
         private IMethod nullableNonNullConstructor;
 
         /// <summary>
-        /// Initializes a new <see cref="CastHelper"/>.
+        /// Initializes a new <see cref="CastHelper" />.
         /// </summary>
         /// <param name="module">Module into which the instructions will be emitted.</param>
         public CastHelper(ModuleDeclaration module) {
@@ -38,13 +58,13 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Finds a <see cref="MethodRefDeclaration"/> in a <see cref="TypeSpecDeclaration"/>.
+        /// Finds a <see cref="MethodRefDeclaration" /> in a <see cref="TypeSpecDeclaration" />.
         /// </summary>
-        /// <param name="typeSpec">The <see cref="TypeSpecDeclaration"/> in which the method should be found
+        /// <param name="typeSpec">The <see cref="TypeSpecDeclaration" /> in which the method should be found
         /// (or added).</param>
         /// <param name="method">The method to be located.</param>
-        /// <returns>The <see cref="MethodRefDeclaration"/> corresponding to
-        /// <paramref name="method"/> in <paramref name="typeSpec"/>.</returns>
+        /// <returns>The <see cref="MethodRefDeclaration" /> corresponding to
+        /// <paramref name="method" /> in <paramref name="typeSpec" />.</returns>
         private static MethodRefDeclaration FindMethodRef(TypeSpecDeclaration typeSpec, IMethod method) {
             return
                 (MethodRefDeclaration)
@@ -60,8 +80,8 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="sequence">Current sequence. If this method needs to emit branching instructions,
         /// this parameter will be updated to the sequence where the next instructions have to be written.</param>
         /// <returns><b>true</b> if a cast was found and instructions were successfully emitted,
-        /// <b>false</b> if no cast is known to convert <paramref name="sourceType"/>
-        /// into <paramref name="targetType"/>.</returns>
+        /// <b>false</b> if no cast is known to convert <paramref name="sourceType" />
+        /// into <paramref name="targetType" />.</returns>
         public bool EmitCast(ITypeSignature sourceType, ITypeSignature targetType, InstructionWriter writer,
                              ref InstructionSequence sequence) {
             if (sourceType.IsAssignableTo(targetType)) {

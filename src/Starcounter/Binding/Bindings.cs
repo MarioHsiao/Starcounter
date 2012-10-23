@@ -1,19 +1,42 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="Bindings.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Collections.Generic;
 
 namespace Starcounter.Binding
 {
-    
+
+    /// <summary>
+    /// Class Bindings
+    /// </summary>
     public static class Bindings
     {
 
+        /// <summary>
+        /// The type bindings by id_
+        /// </summary>
         private static TypeBinding[] typeBindingsById_ = new TypeBinding[0];
+        /// <summary>
+        /// The type bindings by name_
+        /// </summary>
         private static Dictionary<string, TypeBinding> typeBindingsByName_ = new Dictionary<string, TypeBinding>();
 
+        /// <summary>
+        /// The type defs by id_
+        /// </summary>
         private static TypeDef[] typeDefsById_ = new TypeDef[0];
+        /// <summary>
+        /// The type defs by name_
+        /// </summary>
         private static Dictionary<string, TypeDef> typeDefsByName_ = new Dictionary<string, TypeDef>();
 
+        /// <summary>
+        /// The sync root_
+        /// </summary>
         private static object syncRoot_ = new object();
 
         //
@@ -22,6 +45,10 @@ namespace Starcounter.Binding
         //
         // Only one thread at a time must be allowed to add type definitions.
         //
+        /// <summary>
+        /// Registers the type defs.
+        /// </summary>
+        /// <param name="typeDefs">The type defs.</param>
         internal static void RegisterTypeDefs(TypeDef[] typeDefs)
         {
             // We don't have to lock here since only one thread at a time will
@@ -52,11 +79,21 @@ namespace Starcounter.Binding
             typeDefsByName_ = typeDefsByName;
         }
 
+        /// <summary>
+        /// Gets the type def.
+        /// </summary>
+        /// <param name="tableId">The table id.</param>
+        /// <returns>TypeDef.</returns>
         public static TypeDef GetTypeDef(int tableId)
         {
             return typeDefsById_[tableId];
         }
 
+        /// <summary>
+        /// Gets the type def.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns>TypeDef.</returns>
         public static TypeDef GetTypeDef(string name)
         {
             TypeDef typeDef;
@@ -64,11 +101,20 @@ namespace Starcounter.Binding
             return typeDef;
         }
 
+        /// <summary>
+        /// Gets all type defs.
+        /// </summary>
+        /// <returns>IEnumerable{TypeDef}.</returns>
         internal static IEnumerable<TypeDef> GetAllTypeDefs()
         {
             return typeDefsByName_.Values;
         }
 
+        /// <summary>
+        /// Gets the type binding.
+        /// </summary>
+        /// <param name="tableId">The table id.</param>
+        /// <returns>TypeBinding.</returns>
         internal static TypeBinding GetTypeBinding(int tableId)
         {
             // TODO:
@@ -88,6 +134,11 @@ namespace Starcounter.Binding
             return BuildTypeBindingFromTypeDef(tableId);
         }
 
+        /// <summary>
+        /// Gets the type binding.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns>TypeBinding.</returns>
         internal static TypeBinding GetTypeBinding(string name)
         {
             try
@@ -99,6 +150,11 @@ namespace Starcounter.Binding
             return BuildTypeBindingFromTypeDef(name);
         }
 
+        /// <summary>
+        /// Builds the type binding from type def.
+        /// </summary>
+        /// <param name="tableId">The table id.</param>
+        /// <returns>TypeBinding.</returns>
         private static TypeBinding BuildTypeBindingFromTypeDef(int tableId)
         {
             try
@@ -111,6 +167,11 @@ namespace Starcounter.Binding
             }
         }
 
+        /// <summary>
+        /// Builds the type binding from type def.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns>TypeBinding.</returns>
         private static TypeBinding BuildTypeBindingFromTypeDef(string name)
         {
             TypeDef typeDef;
@@ -118,6 +179,11 @@ namespace Starcounter.Binding
             return BuildTypeBindingFromTypeDef(typeDef);
         }
 
+        /// <summary>
+        /// Builds the type binding from type def.
+        /// </summary>
+        /// <param name="typeDef">The type def.</param>
+        /// <returns>TypeBinding.</returns>
         private static TypeBinding BuildTypeBindingFromTypeDef(TypeDef typeDef)
         {
             if (typeDef == null) throw CreateExceptionOnTypeDefNotFound();
@@ -148,6 +214,10 @@ namespace Starcounter.Binding
             }
         }
 
+        /// <summary>
+        /// Adds the type binding.
+        /// </summary>
+        /// <param name="typeBinding">The type binding.</param>
         private static void AddTypeBinding(TypeBinding typeBinding)
         {
             Dictionary<string, TypeBinding> typeBindingsByName = new Dictionary<string, TypeBinding>(typeBindingsByName_);
@@ -163,6 +233,10 @@ namespace Starcounter.Binding
             typeBindingsByName_ = typeBindingsByName;
         }
 
+        /// <summary>
+        /// Creates the exception on type def not found.
+        /// </summary>
+        /// <returns>Exception.</returns>
         private static Exception CreateExceptionOnTypeDefNotFound()
         {
             // This should not happen. No one should be requesting type binding
