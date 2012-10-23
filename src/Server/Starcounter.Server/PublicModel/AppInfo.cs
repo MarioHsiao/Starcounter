@@ -22,7 +22,7 @@ namespace Starcounter.Server.PublicModel {
         /// </remarks>
         public string ExecutablePath {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string WorkingDirectory {
             get;
-            internal set;
+            set;
         }
     }
 }

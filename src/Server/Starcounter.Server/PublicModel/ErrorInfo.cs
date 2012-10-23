@@ -170,7 +170,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string ErrorId {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -180,7 +180,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string[] Arguments {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
