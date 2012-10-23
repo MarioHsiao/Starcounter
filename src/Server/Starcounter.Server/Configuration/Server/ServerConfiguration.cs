@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="ServerConfiguration.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System;
 using System.ComponentModel;
@@ -77,6 +82,7 @@ namespace Starcounter.Configuration {
         /// Gets or sets the default database storage properties
         /// for the server to use when creating new databases and
         /// no values are explicitly given.
+        /// </summary>
         [XmlElement(IsNullable = false)]
         public DatabaseStorageConfiguration DefaultDatabaseStorageConfiguration {
             get;

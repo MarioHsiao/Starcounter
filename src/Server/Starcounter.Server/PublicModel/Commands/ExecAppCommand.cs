@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ExecAppCommand.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.IO;
 using System.Linq;
@@ -92,7 +97,7 @@ namespace Starcounter.Server.PublicModel.Commands {
             this.Arguments = arguments;
         }
 
-        /// </inheritdoc>
+        /// <inheritdoc />
         internal override void GetReadyToEnqueue() {
             string[] scargs;
             string[] appargs;

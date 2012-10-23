@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="CommandTask.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Server.PublicModel;
 
 namespace Starcounter.Server.Commands {
