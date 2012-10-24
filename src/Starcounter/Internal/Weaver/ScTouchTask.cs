@@ -1,3 +1,9 @@
+// ***********************************************************************
+// <copyright file="ScTouchTask.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.IO;
 using PostSharp.Sdk.Extensibility;
@@ -8,12 +14,19 @@ namespace Starcounter.Internal.Weaver {
     /// PostSharp task that "touches" (changes the last write time) files.
     /// </summary>
     public class ScTouchTask : Task {
+        /// <summary>
+        /// The files
+        /// </summary>
         private string files;
+        /// <summary>
+        /// The timestamp
+        /// </summary>
         private DateTime timestamp;
 
         /// <summary>
         /// Gets or sets the semicolumn-separated list of files to be touched.
         /// </summary>
+        /// <value>The files.</value>
         [ConfigurableProperty(true)]
         public string Files {
             get {
@@ -27,6 +40,7 @@ namespace Starcounter.Internal.Weaver {
         /// <summary>
         /// Gets or sets the time to which the last write time of the files should be set.
         /// </summary>
+        /// <value>The timestamp.</value>
         [ConfigurableProperty(true)]
         public DateTime Timestamp {
             get {

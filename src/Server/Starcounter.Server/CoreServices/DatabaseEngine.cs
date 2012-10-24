@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="DatabaseEngine.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.ABCIPC;
 using Starcounter.Server.Commands;
 using Starcounter.Server.PublicModel;
@@ -242,7 +247,7 @@ namespace Starcounter.Server {
             // The process is alive; we should tell it to shut down and
             // release the reference.
 
-            var client = new Client(process.StandardInput.WriteLine, process.StandardOutput.ReadLine);
+            var client = this.Server.DatabaseHostService.GetHostingInterface(database);
             if (!client.SendShutdown()) {
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Shutdown request to worker process unsuccessfull.");
             }

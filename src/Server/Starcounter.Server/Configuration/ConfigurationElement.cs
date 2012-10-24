@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="ConfigurationElement.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System;
 using System.ComponentModel;
@@ -9,8 +14,6 @@ namespace Starcounter.Configuration {
     /// <summary>
     /// Base of all configuration elements.
     /// </summary>
-    /// <remarks>This class defines the <see cref="ExtensionElements"/>
-    /// property for forward-compatibility support between clients and servers.</remarks>
     [XmlType(Namespace = ConfigurationElement.Namespace)]
     [Serializable]
     public abstract class ConfigurationElement : IConfigurationElement, INotifyPropertyChanged {
@@ -118,7 +121,15 @@ namespace Starcounter.Configuration {
 
         #region INotifyPropertyChanged Members
 
+        /// <summary>
+        /// Occurs when [property changed].
+        /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// Called when [property changed].
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
         protected virtual void OnPropertyChanged(string fieldName) {
             if (PropertyChanged != null) {
                 PropertyChanged(this, new PropertyChangedEventArgs(fieldName));

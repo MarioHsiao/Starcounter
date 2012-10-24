@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="MaxValueObject.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter;
 using Starcounter.Binding;
 using System;

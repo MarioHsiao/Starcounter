@@ -1,11 +1,21 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="TestJsReader.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System;
 using NUnit.Framework;
 using Starcounter.Templates;
 namespace Starcounter.Internal.Application.JsonReader.Tests {
+    /// <summary>
+    /// Class TestJsReader
+    /// </summary>
     public class TestJsReader {
 
+        /// <summary>
+        /// Creates the simple template from string.
+        /// </summary>
         [Test]
         public static void CreateSimpleTemplateFromString() {
             const string script2 = @"
@@ -32,7 +42,10 @@ namespace Starcounter.Internal.Application.JsonReader.Tests {
             Console.WriteLine(actual);
         }
 
-        
+
+        /// <summary>
+        /// Creates the simple adorned template from js.
+        /// </summary>
       [Test]
       public static void CreateSimpleAdornedTemplateFromJs()
       {
@@ -50,6 +63,9 @@ namespace Starcounter.Internal.Application.JsonReader.Tests {
       }
 
 
+      /// <summary>
+      /// Creates the complex template from js.
+      /// </summary>
       [Test]
       public static void CreateComplexTemplateFromJs()
       {
@@ -82,7 +98,10 @@ namespace Starcounter.Internal.Application.JsonReader.Tests {
          Console.WriteLine(actual);
       }
 
-      
+
+      /// <summary>
+      /// Creates the even more complex template from js.
+      /// </summary>
       [Test]
       public static void CreateEvenMoreComplexTemplateFromJs() {
          const string script =

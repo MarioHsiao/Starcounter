@@ -1,3 +1,9 @@
+// ***********************************************************************
+// <copyright file="MonitoringConfiguration.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.ComponentModel;
 using System.Xml.Serialization;
@@ -13,9 +19,6 @@ namespace Starcounter.Configuration {
         /// <summary>
         /// Name of the engine that should run the current engine.
         /// </summary>
-        /// <remarks>
-        /// This property allows to pair the database to an <see cref="EngineConfiguration"/>.
-        /// </remarks>
         [DefaultValue(null)]
         public string Engine {
             get;

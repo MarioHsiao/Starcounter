@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="InterceptThread.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using Starcounter;
 using System;
@@ -5,8 +10,16 @@ using System.Threading;
 
 namespace Starcounter.Internal.Weaver {
 
+    /// <summary>
+    /// Class InterceptThread
+    /// </summary>
     internal static class InterceptThread {
 
+        /// <summary>
+        /// Set_s the priority.
+        /// </summary>
+        /// <param name="self">The self.</param>
+        /// <param name="value">The value.</param>
         public static void set_Priority(Thread self, ThreadPriority value) {
             // We don't allow setting priority on threads. Any attempt to do so
             // we simply ignore.
@@ -20,6 +33,11 @@ namespace Starcounter.Internal.Weaver {
             // can't allow setting priority on them either.
         }
 
+        /// <summary>
+        /// Sleeps the specified milliseconds timeout.
+        /// </summary>
+        /// <param name="millisecondsTimeout">The milliseconds timeout.</param>
+        /// <exception cref="System.ArgumentOutOfRangeException">millisecondsTimeout</exception>
         public static void Sleep(Int32 millisecondsTimeout) {
             if (millisecondsTimeout < -1) {
                 throw new ArgumentOutOfRangeException("millisecondsTimeout");
@@ -27,6 +45,11 @@ namespace Starcounter.Internal.Weaver {
             InternalSleep(millisecondsTimeout);
         }
 
+        /// <summary>
+        /// Sleeps the specified timeout.
+        /// </summary>
+        /// <param name="timeout">The timeout.</param>
+        /// <exception cref="System.ArgumentOutOfRangeException">timeout</exception>
         public static void Sleep(TimeSpan timeout) {
             Double d;
             Int32 i;
@@ -41,6 +64,10 @@ namespace Starcounter.Internal.Weaver {
             InternalSleep(i);
         }
 
+        /// <summary>
+        /// Internals the sleep.
+        /// </summary>
+        /// <param name="millisecondsTimeout">The milliseconds timeout.</param>
         private static void InternalSleep(Int32 millisecondsTimeout) {
             UInt32 ec;
 

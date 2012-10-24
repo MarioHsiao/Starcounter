@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="Client.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +26,9 @@ namespace Starcounter.ABCIPC {
     // 7) Ability to send/receive string[] and Dictionary<string, string>
     // using KeyValueBinary. Or make this extension methods?
 
+    /// <summary>
+    /// Class Client
+    /// </summary>
     public class Client {
         Action<string> send;
         Func<string> receive;
@@ -60,19 +68,36 @@ namespace Starcounter.ABCIPC {
         //    }
         //}
 
-        public Client(Action<string> send, Func<string> recieve) {
-            Bind(send, receive);
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Client" /> class.
+        /// </summary>
+        /// <param name="sendingMethod">The sending method.</param>
+        /// <param name="receivingMethod">The receiving method.</param>
+        public Client(Action<string> sendingMethod, Func<string> receivingMethod) {
+            Bind(sendingMethod, receivingMethod);
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Client" /> class.
+        /// </summary>
         protected Client() {
             this.send = (string request) => { throw new NotImplementedException("Request function has not yet been set."); };
             this.receive = () => { throw new NotImplementedException("Receiving function has not yet been set."); };
         }
 
+        /// <summary>
+        /// Sends the shutdown.
+        /// </summary>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public bool SendShutdown() {
             return SendShutdown(null);
         }
 
+        /// <summary>
+        /// Sends the shutdown.
+        /// </summary>
+        /// <param name="responseHandler">The response handler.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public bool SendShutdown(Action<Reply> responseHandler) {
             return SendRequest(Request.ShutdownMessage, Request.Protocol.ShutdownRequest, responseHandler);
         }
@@ -94,20 +119,44 @@ namespace Starcounter.ABCIPC {
         // if the call was a success (i.e the response was "OK"). Returned information and/or
         // error details are ignored/swallowed.
 
+        /// <summary>
+        /// Sends the specified message.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public bool Send(string message) {
             var protocolMessage = Request.Protocol.MakeRequestStringWithoutParameters(message);
             return SendRequest(message, protocolMessage, null);
         }
 
+        /// <summary>
+        /// Sends the specified message.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="responseHandler">The response handler.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public bool Send(string message, Action<Reply> responseHandler) {
             var protocolMessage = Request.Protocol.MakeRequestStringWithoutParameters(message);
             return SendRequest(message, protocolMessage, responseHandler);
         }
 
+        /// <summary>
+        /// Sends the specified message.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="parameter">The parameter.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public bool Send(string message, string parameter) {
             return Send(message, parameter, null);
         }
 
+        /// <summary>
+        /// Sends the specified message.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="parameter">The parameter.</param>
+        /// <param name="responseHandler">The response handler.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public bool Send(string message, string parameter, Action<Reply> responseHandler) {
             string protocolMessage;
 
@@ -120,10 +169,23 @@ namespace Starcounter.ABCIPC {
             return SendRequest(message, protocolMessage, responseHandler);
         }
 
+        /// <summary>
+        /// Sends the specified message.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="arguments">The arguments.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public bool Send(string message, string[] arguments) {
             return Send(message, arguments, null);
         }
 
+        /// <summary>
+        /// Sends the specified message.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="arguments">The arguments.</param>
+        /// <param name="responseHandler">The response handler.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public bool Send(string message, string[] arguments, Action<Reply> responseHandler) {
             string protocol = arguments == null ?
                 Request.Protocol.MakeRequestStringWithStringArrayNULL(message) :
@@ -131,10 +193,23 @@ namespace Starcounter.ABCIPC {
             return SendRequest(message, protocol, responseHandler);
         }
 
+        /// <summary>
+        /// Sends the specified message.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="arguments">The arguments.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public bool Send(string message, Dictionary<string, string> arguments) {
             return Send(message, arguments, null);
         }
 
+        /// <summary>
+        /// Sends the specified message.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="arguments">The arguments.</param>
+        /// <param name="responseHandler">The response handler.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public bool Send(string message, Dictionary<string, string> arguments, Action<Reply> responseHandler) {
             string protocol = arguments == null ?
                 Request.Protocol.MakeRequestStringWithDictionaryNULL(message) :
@@ -142,11 +217,23 @@ namespace Starcounter.ABCIPC {
             return SendRequest(message, protocol, responseHandler);
         }
 
-        protected void Bind(Action<string> send, Func<string> recieve) {
-            this.send = send;
-            this.receive = recieve;
+        /// <summary>
+        /// Binds the specified sending method.
+        /// </summary>
+        /// <param name="sendingMethod">The sending method.</param>
+        /// <param name="receivingMethod">The receiving method.</param>
+        protected void Bind(Action<string> sendingMethod, Func<string> receivingMethod) {
+            this.send = sendingMethod;
+            this.receive = receivingMethod;
         }
 
+        /// <summary>
+        /// Sends the request.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="protocolMessage">The protocol message.</param>
+        /// <param name="responseHandler">The response handler.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         bool SendRequest(string message, string protocolMessage, Action<Reply> responseHandler) {
             // int hash = protocolMessage.GetHashCode();
             send(protocolMessage);
@@ -175,11 +262,22 @@ namespace Starcounter.ABCIPC {
             return reply.IsSuccess;
         }
 
+        /// <summary>
+        /// Raises if message unknown.
+        /// </summary>
+        /// <param name="reply">The reply.</param>
+        /// <exception cref="System.NotSupportedException"></exception>
         void RaiseIfMessageUnknown(Reply reply) {
             if (reply._type == Reply.ReplyType.UnknownMessage)
                 throw new NotSupportedException(string.Format("The server didn't reconize the sent message. ({0}).", reply.ToString()));
         }
 
+        /// <summary>
+        /// Raises if bad signature.
+        /// </summary>
+        /// <param name="reply">The reply.</param>
+        /// <param name="message">The message.</param>
+        /// <exception cref="System.Exception"></exception>
         void RaiseIfBadSignature(Reply reply, string message) {
             if (reply._type == Reply.ReplyType.BadSignature)
                 throw new Exception(string.Format("The server side signature for message \"{0}\" did not match the call", message));

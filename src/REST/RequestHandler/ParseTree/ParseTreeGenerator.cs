@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ParseTreeGenerator.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Dynamic;
 using System.Collections.Generic;
@@ -37,16 +42,14 @@ namespace Starcounter.Internal.Uri {
         /// Helper function for CreateChildren to optimize the sorting an grouping
         /// where all handlers have the same characters.
         /// </summary>
-        /// <remarks>
-        /// Detects that all handlers in the supplied list has the same byte at a given
-        /// position. Used to find forks (branching) between verbs and uris.
-        /// The function also reports a difference if the special parse character '@'
-        /// is encountered or if the character is a parse type character (i.e. its
-        /// previous character is the special parse character '@')
-        /// </remarks>
         /// <param name="handlers">The verbs and uris to compare</param>
         /// <param name="characterIndex">The index</param>
         /// <returns>True if all verbs and uris have the same byte</returns>
+        /// <remarks>Detects that all handlers in the supplied list has the same byte at a given
+        /// position. Used to find forks (branching) between verbs and uris.
+        /// The function also reports a difference if the special parse character '@'
+        /// is encountered or if the character is a parse type character (i.e. its
+        /// previous character is the special parse character '@')</remarks>
         public static CompareVU DetectIgnoreBranch(IEnumerable<RequestProcessorMetaData> handlers, int characterIndex) {
             byte before = 0;
             bool eos = true;
@@ -94,7 +97,10 @@ namespace Starcounter.Internal.Uri {
         /// <summary>
         /// Called internally to build the tree
         /// </summary>
+        /// <param name="node">The node.</param>
+        /// <param name="allHandlers">All handlers.</param>
         /// <param name="handlers">The verbs and uris to match</param>
+        /// <param name="characterIndex">Index of the character.</param>
         public static void CreateChildren(ParseNode node, List<RequestProcessorMetaData> allHandlers, IEnumerable<RequestProcessorMetaData> handlers, int characterIndex) {
             var s = CompareVU.Ignore;
             var origin = characterIndex;

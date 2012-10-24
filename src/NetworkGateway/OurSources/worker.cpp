@@ -189,7 +189,10 @@ uint32_t GatewayWorker::Receive(SocketDataChunk *sd)
                 sd->chunk_index() << " Disconnecting socket..." << std::endl;
 #endif
             PrintLastError();
+
+            // Disconnecting this socket.
             Disconnect(sd);
+
             return 1;
         }
     }
@@ -198,7 +201,9 @@ uint32_t GatewayWorker::Receive(SocketDataChunk *sd)
         // Checking if socket is closed by the other peer.
         if (0 == numBytes)
         {
+            // Disconnecting this socket.
             Disconnect(sd);
+
             return 1;
         }
         else
@@ -254,7 +259,9 @@ uint32_t GatewayWorker::FinishReceive(SocketDataChunk *sd, int32_t numBytesRecei
 #ifdef GW_ERRORS_DIAG
             GW_PRINT_WORKER << "Data from abandoned/different socket received." << std::endl;
 #endif
+            // Disconnecting this socket.
             Disconnect(sd);
+
             return 0;
         }
     }
@@ -441,7 +448,7 @@ uint32_t GatewayWorker::Disconnect(SocketDataChunk *sd)
         {
             // Finish disconnect operation.
             FinishDisconnect(sd);
-            return 1;
+            return SCERRUNSPECIFIED;
         }
 
         // Checking for other errors.

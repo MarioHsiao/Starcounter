@@ -20,8 +20,8 @@ namespace SQLTest.EmployeeDb
 
     public class Department : Entity
     {
-        public String Name;
         public String Description;
+        public String Name;
         public Location Location;
         public Binary IdBinary;
 

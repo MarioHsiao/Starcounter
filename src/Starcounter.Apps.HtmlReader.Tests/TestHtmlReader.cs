@@ -1,12 +1,22 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="TestHtmlReader.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System;
 using NUnit.Framework;
 using Starcounter.Templates;
 namespace Starcounter.Internal.Application.JsonReader.Tests {
+    /// <summary>
+    /// Class JsToTemplateTests
+    /// </summary>
     public class JsToTemplateTests {
 
 
+        /// <summary>
+        /// Creates from HTML file.
+        /// </summary>
         [Test]
         public static void CreateFromHtmlFile() {
             AppTemplate template = TemplateFromHtml.CreateFromHtmlFile("testtemplate.html");
@@ -16,6 +26,9 @@ namespace Starcounter.Internal.Application.JsonReader.Tests {
         }
 
 
+        /// <summary>
+        /// Creates from HTML file_ misplaced.
+        /// </summary>
         [Test]
         public static void CreateFromHtmlFile_Misplaced() {
             try {

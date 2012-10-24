@@ -1,10 +1,25 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="AstProcessFunction.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System.Text;
 namespace Starcounter.Internal.Uri {
+    /// <summary>
+    /// Class AstProcessFunction
+    /// </summary>
     internal class AstProcessFunction : AstNode {
+        /// <summary>
+        /// Gets or sets the match.
+        /// </summary>
+        /// <value>The match.</value>
         internal char Match { get; set; }
 
+        /// <summary>
+        /// Gets the debug string.
+        /// </summary>
+        /// <value>The debug string.</value>
         internal override string DebugString {
             get {
                 return "void Process()";

@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ParsedErrorMessage.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Text.RegularExpressions;
 
@@ -11,12 +16,33 @@ namespace Starcounter.Internal
     /// </summary>
     public sealed class ParsedErrorMessage : ErrorMessage
     {
+        /// <summary>
+        /// The given message
+        /// </summary>
         private readonly string givenMessage;
+        /// <summary>
+        /// The code
+        /// </summary>
         private readonly uint code;
+        /// <summary>
+        /// The header
+        /// </summary>
         private readonly string header;
+        /// <summary>
+        /// The body
+        /// </summary>
         private readonly string body;
+        /// <summary>
+        /// The message
+        /// </summary>
         private readonly string message;
+        /// <summary>
+        /// The helplink
+        /// </summary>
         private readonly string helplink;
+        /// <summary>
+        /// The version
+        /// </summary>
         private readonly string version;
 
         /// <summary>
@@ -40,6 +66,12 @@ namespace Starcounter.Internal
             }
         }
 
+        /// <summary>
+        /// Internals the parse message.
+        /// </summary>
+        /// <param name="errorMessage">The error message.</param>
+        /// <returns>ParsedErrorMessage.</returns>
+        /// <exception cref="System.ArgumentNullException">errorMessage</exception>
         private static ParsedErrorMessage InternalParseMessage(string errorMessage)
         {
             int index;
@@ -145,6 +177,16 @@ namespace Starcounter.Internal
             return givenMessage;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ParsedErrorMessage" /> class.
+        /// </summary>
+        /// <param name="input">The input.</param>
+        /// <param name="code">The code.</param>
+        /// <param name="header">The header.</param>
+        /// <param name="body">The body.</param>
+        /// <param name="message">The message.</param>
+        /// <param name="version">The version.</param>
+        /// <param name="helplink">The helplink.</param>
         private ParsedErrorMessage(
             string input,
             uint code,
@@ -163,11 +205,22 @@ namespace Starcounter.Internal
             this.helplink = helplink;
         }
 
+        /// <summary>
+        /// To the parsing exception.
+        /// </summary>
+        /// <param name="parsedMessage">The parsed message.</param>
+        /// <returns>Exception.</returns>
         internal static Exception ToParsingException(string parsedMessage)
         {
             return ToParsingException(parsedMessage, null);
         }
 
+        /// <summary>
+        /// To the parsing exception.
+        /// </summary>
+        /// <param name="parsedMessage">The parsed message.</param>
+        /// <param name="innerException">The inner exception.</param>
+        /// <returns>Exception.</returns>
         internal static Exception ToParsingException(string parsedMessage, Exception innerException)
         {
             return ErrorCode.ToException(

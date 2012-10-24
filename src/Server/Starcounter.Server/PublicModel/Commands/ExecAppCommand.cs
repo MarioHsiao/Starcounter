@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ExecAppCommand.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.IO;
 using System.Linq;
@@ -9,7 +14,9 @@ namespace Starcounter.Server.PublicModel.Commands {
     /// <summary>
     /// A command representing the request to start an executable.
     /// </summary>
-    public sealed class ExecAppCommand : ServerCommand {
+    public sealed class ExecAppCommand : DatabaseCommand {
+        string databaseName;
+
         /// <summary>
         /// Gets the path to the assembly file requesting to start.
         /// </summary>
@@ -32,8 +39,11 @@ namespace Starcounter.Server.PublicModel.Commands {
         /// into.
         /// </summary>
         public string DatabaseName {
-            get;
-            set;
+            get { return databaseName; }
+            set {
+                databaseName = value;
+                DatabaseUri = ScUri.MakeDatabaseUri(ScUri.GetMachineName(), this.Engine.Name, this.databaseName);
+            }
         }
 
         /// <summary>
@@ -75,7 +85,7 @@ namespace Starcounter.Server.PublicModel.Commands {
         /// <param name="workingDirectory">Working directory the executable has requested to run in.</param>
         /// <param name="arguments">Arguments as passed to the requesting executable.</param>
         public ExecAppCommand(ServerEngine engine, string assemblyPath, string workingDirectory, string[] arguments)
-            : base(engine, "Starting {0}", Path.GetFileName(assemblyPath)) {
+            : base(engine, null, "Starting {0}", Path.GetFileName(assemblyPath)) {
             if (string.IsNullOrEmpty(assemblyPath)) {
                 throw new ArgumentNullException("assemblyPath");
             }
@@ -87,7 +97,7 @@ namespace Starcounter.Server.PublicModel.Commands {
             this.Arguments = arguments;
         }
 
-        /// </inheritdoc>
+        /// <inheritdoc />
         internal override void GetReadyToEnqueue() {
             string[] scargs;
             string[] appargs;
@@ -112,6 +122,8 @@ namespace Starcounter.Server.PublicModel.Commands {
             if (this.NoDb == false) {
                 this.NoDb = scargs.Contains<string>("NoDb", StringComparer.InvariantCultureIgnoreCase);
             }
+
+            base.GetReadyToEnqueue();
         }
     }
 }

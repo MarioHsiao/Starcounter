@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="BoolProperty.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using Starcounter.Templates.Interfaces;
 #if CLIENT
@@ -7,15 +12,23 @@ namespace Starcounter.Client.Template {
 namespace Starcounter.Templates {
 #endif
     /// <summary>
-    /// Defines a boolean property in an App object. 
+    /// Defines a boolean property in an App object.
     /// </summary>
     public class BoolProperty : Property<bool>
 #if IAPP
         , IBoolTemplate
 #endif
     {
+        /// <summary>
+        /// The _ default value
+        /// </summary>
         private bool _DefaultValue = false;
 
+        /// <summary>
+        /// Processes the input.
+        /// </summary>
+        /// <param name="app">The app.</param>
+        /// <param name="rawValue">The raw value.</param>
         public override void ProcessInput(App app, byte[] rawValue)
         {
             // TODO:
@@ -31,6 +44,7 @@ namespace Starcounter.Templates {
         /// property defined by this template, you can set an alternative
         /// default value (i.e. true).
         /// </summary>
+        /// <value><c>true</c> if [default value]; otherwise, <c>false</c>.</value>
         public bool DefaultValue {
             get { return _DefaultValue; }
             set { _DefaultValue = value; }
@@ -39,6 +53,7 @@ namespace Starcounter.Templates {
         /// <summary>
         /// Will return a boxed version of the DefaultValue property.
         /// </summary>
+        /// <value>The default value as object.</value>
         public override object DefaultValueAsObject {
             get {
                 return DefaultValue;
@@ -51,6 +66,7 @@ namespace Starcounter.Templates {
         /// <summary>
         /// Will return the Boolean runtime type
         /// </summary>
+        /// <value>The type of the instance.</value>
         public override Type InstanceType {
             get { return typeof(bool); }
         }

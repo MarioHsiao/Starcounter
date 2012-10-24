@@ -1,3 +1,9 @@
+// ***********************************************************************
+// <copyright file="DatabaseSchema.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;

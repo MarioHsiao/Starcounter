@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="_ExtentNode.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Query.Execution;
 using System;
 using System.Collections.Generic;
@@ -82,8 +87,10 @@ internal class ExtentNode : IOptimizationNode
     /// <summary>
     /// Constructor.
     /// </summary>
-    /// <param name="resultTypeBind"></param>
-    /// <param name="extentNumber"></param>
+    /// <param name="compTypeBind">The comp type bind.</param>
+    /// <param name="extentNumber">The extent number.</param>
+    /// <param name="varArr">The var arr.</param>
+    /// <param name="query">The query.</param>
     internal ExtentNode(CompositeTypeBinding compTypeBind, Int32 extentNumber, VariableArray varArr, String query)
     {
         if (compTypeBind == null)

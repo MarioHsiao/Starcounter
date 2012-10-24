@@ -1,4 +1,10 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="StaticWebServer.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -8,19 +14,21 @@ using Starcounter.Internal.REST;
 
 namespace Starcounter.Internal.Web {
 
-   /// <summary>Manages the loading and caching of web resources such as .html files and images. Also keeps track of non static web resources such as apps (havig dynamic
-   /// content). Each resource is represented by a WebResource instance.
-   /// <para><img src="http://www.rebelslounge.com/res/scweb/WebResource.png"/></para></summary>
+    /// <summary>
+    /// Manages the loading and caching of web resources such as .html files and images. Also keeps track of non static web resources such as apps (havig dynamic
+    /// content). Each resource is represented by a WebResource instance.
+    /// <para><img src="http://www.rebelslounge.com/res/scweb/WebResource.png" /></para>
+    /// </summary>
    public partial class StaticWebServer : HttpRestServer {
 
 
-      /// <summary>
-      /// The web server can accept multiple root catalogues/directories to resolve static
-      /// file resources. If the same file can be found in the same relative path in multiple
-      /// root directories, the first match is used. For this reason, directories should
-      /// be added in priority order with the most prioritised path first.
-      /// </summary>
-      /// <param name="path">The file path for the directory to add</param>
+       /// <summary>
+       /// The web server can accept multiple root catalogues/directories to resolve static
+       /// file resources. If the same file can be found in the same relative path in multiple
+       /// root directories, the first match is used. For this reason, directories should
+       /// be added in priority order with the most prioritised path first.
+       /// </summary>
+       /// <param name="path">The file path for the directory to add</param>
       public override void UserAddedLocalFileDirectoryWithStaticContent(string path) {
          Console.WriteLine("Adding path to static web server " + path);
          WorkingDirectories.Add(path);
@@ -77,12 +85,12 @@ namespace Starcounter.Internal.Web {
       }
  */
 
-       /// <summary>
-       /// As a HttpRestServer, the static file server needs to implement the
-       /// Handle method to provide a response to an http request.
-       /// </summary>
-       /// <param name="request">The http request</param>
-       /// <returns>The http response</returns>
+      /// <summary>
+      /// As a HttpRestServer, the static file server needs to implement the
+      /// Handle method to provide a response to an http request.
+      /// </summary>
+      /// <param name="request">The http request</param>
+      /// <returns>The http response</returns>
       public override HttpResponse Handle( HttpRequest request) {
          return GetStatic( request.Uri, request );
       }
@@ -153,6 +161,10 @@ namespace Starcounter.Internal.Web {
          return output;
       }
 
+      /// <summary>
+      /// Housekeeps this instance.
+      /// </summary>
+      /// <returns>System.Int32.</returns>
       public override int Housekeep() {
          //ClearCache(); // TODO! Only invalidate individual items
          var invalidated = new List<HttpResponse>(CacheOnFilePath.Count);

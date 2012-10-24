@@ -1,4 +1,10 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="ScriptInjector.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Text;
 using HtmlAgilityPack;
 
@@ -8,35 +14,32 @@ namespace Starcounter.Internal.Web {
     /// Helper class for super-fast code injection into exiting http responses containing
     /// html content.
     /// </summary>
-    /// <remarks>
-    /// Starcounter caches static html files in RAM as complete http responses.
+    /// <remarks>Starcounter caches static html files in RAM as complete http responses.
     /// To save request/response roundtrips
     /// (this is an important factor for browser speed), Starcounter can also use these
     /// static http responses to inject dynamic view models. This means that a view model
     /// does not have to be requested in a seperate XHR call as view models can be represented
-    /// in text (as either JSON or Faster-than-Json). To do this, Starcounter needs to 
+    /// in text (as either JSON or Faster-than-Json). To do this, Starcounter needs to
     /// parse the http header and html content to find an appropriate injection point.
     /// Using this injection point, Starcounter can later inject the view model and update
-    /// the http header accordingly (the Content-Length needs to be updated).
-    /// </remarks>
+    /// the http header accordingly (the Content-Length needs to be updated).</remarks>
     public class ScriptInjector {
 
         /// <summary>
         /// Given a http response with a known content offset, an offset where to
-        /// insert a <script> element that will execute prior to any other <script> 
+        /// insert a &lt;script&gt; element that will execute prior to any other &lt;script&gt;
         /// elements.
         /// </summary>
-        /// <remarks>
-        /// The current version expects UTF8 encoding. In order to inject code, you will also
-        /// need metadata provided by the http response (such as the header size, whereabouts of
-        /// the Content-Length). For this, see the Inject method.
-        /// </remarks>
         /// <param name="response">The byte array containing the http response</param>
         /// <param name="contentOffset">The first byte of the UTF8 encoded html content</param>
-        /// <returns>The offset where you can inject the new <script> tag</returns>
+        /// <returns>The offset where you can inject the new &lt;script&gt; tag</returns>
+        /// <remarks>The current version expects UTF8 encoding. In order to inject code, you will also
+        /// need metadata provided by the http response (such as the header size, whereabouts of
+        /// the Content-Length). For this, see the Inject method.</remarks>
         public static int FindScriptInjectionPoint(byte[] response, int contentOffset) {
             HtmlDocument doc = new HtmlDocument();
-            doc.LoadHtml(Encoding.UTF8.GetString(response, contentOffset, response.Length - contentOffset));
+            var html = Encoding.UTF8.GetString(response, contentOffset, response.Length - contentOffset);
+            doc.LoadHtml(html);
             var script = doc.DocumentNode.SelectSingleNode("/script");
             HtmlNode headKid = null;
 

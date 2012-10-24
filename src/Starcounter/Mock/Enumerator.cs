@@ -1,4 +1,10 @@
-﻿using Starcounter;
+﻿// ***********************************************************************
+// <copyright file="Enumerator.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using Starcounter;
 using Starcounter.Binding;
 using System;
 using System.Threading;
@@ -9,19 +15,42 @@ using Starcounter.Internal;
 namespace Starcounter
 {
 
+    /// <summary>
+    /// Class Enumerator
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public sealed class Enumerator<T> : Object, IEnumerator<T> where T : Entity
     {
         private T _current = null;
 
         private UInt64 _handle = 0;
+        /// <summary>
+        /// Gets the cursor handle.
+        /// </summary>
+        /// <value>The cursor handle.</value>
         public UInt64 CursorHandle { get { return _handle; } }
 
         private UInt64 _verify = 0; // Also used to check if enumerator has been disposed or not.
+        /// <summary>
+        /// Gets the cursor verify.
+        /// </summary>
+        /// <value>The cursor verify.</value>
         public UInt64 CursorVerify { get { return _verify; } }
 
         private FilterCallback _filterCallback = null;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Enumerator{T}" /> class.
+        /// </summary>
+        /// <param name="handle">The handle.</param>
+        /// <param name="verify">The verify.</param>
         public Enumerator(UInt64 handle, UInt64 verify) : this(handle, verify, null) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Enumerator{T}" /> class.
+        /// </summary>
+        /// <param name="handle">The handle.</param>
+        /// <param name="verify">The verify.</param>
+        /// <param name="filterCallback">The filter callback.</param>
         public Enumerator(UInt64 handle, UInt64 verify, FilterCallback filterCallback)
             : base()
         {
@@ -31,6 +60,11 @@ namespace Starcounter
         }
 
         // Enumerator already exists, we need to update the contents.
+        /// <summary>
+        /// Updates the cached.
+        /// </summary>
+        /// <param name="handle">The handle.</param>
+        /// <param name="verify">The verify.</param>
         public void UpdateCached(UInt64 handle, UInt64 verify)
         {
             if (handle == 0 || verify == 0)
@@ -43,11 +77,22 @@ namespace Starcounter
                 _verify = verify;
             }
         }
+        /// <summary>
+        /// Updates the filter.
+        /// </summary>
+        /// <param name="filterCallback">The filter callback.</param>
         public void UpdateFilter(FilterCallback filterCallback)
         {
             _filterCallback = filterCallback;
         }
 
+        /// <summary>
+        /// Gets the element in the collection at the current position of the enumerator.
+        /// </summary>
+        /// <value>The current.</value>
+        /// <exception cref="System.ObjectDisposedException">null</exception>
+        /// <exception cref="System.InvalidOperationException">The enumerator is positioned before the first element of the collection or after the last element.</exception>
+        /// <returns>The element in the collection at the current position of the enumerator.</returns>
         public T Current
         {
             get
@@ -66,6 +111,10 @@ namespace Starcounter
             }
         }
 
+        /// <summary>
+        /// Gets the current raw.
+        /// </summary>
+        /// <value>The current raw.</value>
         public T CurrentRaw
         {
             get
@@ -74,6 +123,9 @@ namespace Starcounter
             }
         }
 
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
         public void Dispose()
         {
             // Checking if enumerator was already disposed or not yet created.
@@ -126,6 +178,10 @@ namespace Starcounter
             return sccoredb.SCIteratorFillUp(_handle, _verify, results, resultsMaxBytes, resultsNum, flags);
         }
 
+        /// <summary>
+        /// Advances the enumerator to the next element of the collection.
+        /// </summary>
+        /// <returns>true if the enumerator was successfully advanced to the next element; false if the enumerator has passed the end of the collection.</returns>
         public Boolean MoveNext()
         {
             TypeBinding typeBinding = null;
@@ -207,6 +263,9 @@ namespace Starcounter
             _verify = 0;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void Reset()
         {
             throw new NotSupportedException();

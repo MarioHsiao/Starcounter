@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ByteArrayBuilder.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -6,6 +11,9 @@ using Starcounter.Internal;
 
 namespace Starcounter.Query.Execution
 {
+    /// <summary>
+    /// Class ByteArrayBuilder
+    /// </summary>
 public sealed class ByteArrayBuilder
 {
     Byte[] dataBuffer; // Data array.
@@ -54,6 +62,10 @@ public sealed class ByteArrayBuilder
     }
 
     // Getting key data stream.
+    /// <summary>
+    /// Gets the buffer cached.
+    /// </summary>
+    /// <returns>Byte[][].</returns>
     public unsafe Byte[] GetBufferCached()
     {
         // First four bytes represent the total length of the key.
@@ -129,6 +141,12 @@ public sealed class ByteArrayBuilder
         AppendNonNullValue(value.Value, embedType);
     }
 
+    /// <summary>
+    /// Precomputes the buffer.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <param name="embedType">Type of the embed.</param>
+    /// <returns>Byte[][].</returns>
     public static Byte[] PrecomputeBuffer(
         Nullable<Int64> value,
         Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
@@ -194,6 +212,12 @@ public sealed class ByteArrayBuilder
         AppendNonNullValue(value.Value, embedType);
     }
 
+    /// <summary>
+    /// Precomputes the buffer.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <param name="embedType">Type of the embed.</param>
+    /// <returns>Byte[][].</returns>
     public static Byte[] PrecomputeBuffer(
         Nullable<UInt64> value,
         Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
@@ -259,6 +283,12 @@ public sealed class ByteArrayBuilder
         AppendNonNullValue(value.Value, embedType);
     }
 
+    /// <summary>
+    /// Precomputes the buffer.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <param name="embedType">Type of the embed.</param>
+    /// <returns>Byte[][].</returns>
     public static Byte[] PrecomputeBuffer(
         Nullable<Double> value,
         Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
@@ -324,6 +354,12 @@ public sealed class ByteArrayBuilder
         AppendNonNullValue(value.Value, embedType);
     }
 
+    /// <summary>
+    /// Precomputes the buffer.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <param name="embedType">Type of the embed.</param>
+    /// <returns>Byte[][].</returns>
     public static Byte[] PrecomputeBuffer(
         Nullable<Decimal> value,
         Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
@@ -383,6 +419,12 @@ public sealed class ByteArrayBuilder
         AppendNonNullValue(value.Value, embedType);
     }
 
+    /// <summary>
+    /// Precomputes the buffer.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <param name="embedType">Type of the embed.</param>
+    /// <returns>Byte[][].</returns>
     public static Byte[] PrecomputeBuffer(
         Nullable<Binary> value,
         Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
@@ -470,6 +512,12 @@ public sealed class ByteArrayBuilder
         AppendNonNullValue(value.Value, embedType);
     }
 
+    /// <summary>
+    /// Precomputes the buffer.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <param name="embedType">Type of the embed.</param>
+    /// <returns>Byte[][].</returns>
     public static Byte[] PrecomputeBuffer(
         Nullable<Boolean> value,
         Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
@@ -505,6 +553,12 @@ public sealed class ByteArrayBuilder
         AppendNonNullValue(value.Value.Ticks, embedType);
     }
 
+    /// <summary>
+    /// Precomputes the buffer.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <param name="embedType">Type of the embed.</param>
+    /// <returns>Byte[][].</returns>
     public static Byte[] PrecomputeBuffer(
         Nullable<DateTime> value,
         Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
@@ -557,6 +611,12 @@ public sealed class ByteArrayBuilder
         position += 8;
     }
 
+    /// <summary>
+    /// Precomputes the buffer.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <param name="embedType">Type of the embed.</param>
+    /// <returns>Byte[][].</returns>
     public static Byte[] PrecomputeBuffer(
         IObjectView value,
         Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
@@ -629,6 +689,13 @@ public sealed class ByteArrayBuilder
         position += (outputLen + 4);
     }
 
+    /// <summary>
+    /// Precomputes the buffer.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <param name="appendMaxChar">The append max char.</param>
+    /// <param name="embedType">Type of the embed.</param>
+    /// <returns>Byte[][].</returns>
     public unsafe static Byte[] PrecomputeBuffer(
         String value,
         Boolean appendMaxChar,

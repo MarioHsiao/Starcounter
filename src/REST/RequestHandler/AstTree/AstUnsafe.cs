@@ -1,7 +1,14 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="AstUnsafe.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System.Text;
 namespace Starcounter.Internal.Uri {
+    /// <summary>
+    /// Class AstUnsafe
+    /// </summary>
     internal class AstUnsafe : AstNode {
 
        // internal string VerificationIndex;

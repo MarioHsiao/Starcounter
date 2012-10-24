@@ -1,3 +1,9 @@
+// ***********************************************************************
+// <copyright file="EntityConstructorCallAdvice.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System.Collections.Generic;
 using PostSharp.Sdk.CodeModel;
 using PostSharp.Sdk.CodeWeaver;
@@ -11,13 +17,19 @@ namespace Starcounter.Internal.Weaver {
     /// to calls to constructors that have been enhanced.
     /// </summary>
     internal sealed class EntityConstructorCallAdvice : IMethodLevelAdvice {
+        /// <summary>
+        /// The redirections
+        /// </summary>
         private readonly Dictionary<MetadataDeclaration, IMethod> redirections =
             new Dictionary<MetadataDeclaration, IMethod>();
 
+        /// <summary>
+        /// The target constructors
+        /// </summary>
         private readonly List<MethodDefDeclaration> targetConstructors = new List<MethodDefDeclaration>();
 
         /// <summary>
-        /// Initialize a new <see cref="EntityConstructorCallAdvice"/>.
+        /// Initialize a new <see cref="EntityConstructorCallAdvice" />.
         /// There should be one instance per type.
         /// </summary>
         public EntityConstructorCallAdvice() {
@@ -29,13 +41,11 @@ namespace Starcounter.Internal.Weaver {
         /// should replace calls of one method by another.
         /// </summary>
         /// <param name="originalConstructor">Method whose called have to be replaced.</param>
-        /// <param name="enhancedConstructor">Method by which calls of <paramref name="originalConstructor"/>
+        /// <param name="enhancedConstructor">Method by which calls of <paramref name="originalConstructor" />
         /// have to be replaced.</param>
-        /// <remarks>
-        /// The signature of <paramref name="enhancedConstructor"/> should be exactly identic to
-        /// the one of <paramref name="originalConstructor"/>, but there should be an additional
-        /// parameter at the end.
-        /// </remarks>
+        /// <remarks>The signature of <paramref name="enhancedConstructor" /> should be exactly identic to
+        /// the one of <paramref name="originalConstructor" />, but there should be an additional
+        /// parameter at the end.</remarks>
         public void AddRedirection(IMethod originalConstructor, IMethod enhancedConstructor) {
             this.redirections.Add((MetadataDeclaration)originalConstructor, enhancedConstructor);
         }
@@ -55,6 +65,7 @@ namespace Starcounter.Internal.Weaver {
         /// Gets the priority of this advice. We can return an aribitrary value since
         /// the current advice is the only one on this join point.
         /// </summary>
+        /// <value>The priority.</value>
         public int Priority {
             get {
                 return 0;
@@ -66,6 +77,7 @@ namespace Starcounter.Internal.Weaver {
         /// collection that should have been filled with all constructors of the
         /// type.
         /// </summary>
+        /// <value>The target methods.</value>
         public IEnumerable<MethodDefDeclaration> TargetMethods {
             get {
                 return this.targetConstructors;
@@ -76,6 +88,7 @@ namespace Starcounter.Internal.Weaver {
         /// Gets the set of operands to which this advice applies, that is,
         /// which are the methods whose calls have to be changed.
         /// </summary>
+        /// <value>The operands.</value>
         public IEnumerable<MetadataDeclaration> Operands {
             get {
                 return this.redirections.Keys;
@@ -85,6 +98,7 @@ namespace Starcounter.Internal.Weaver {
         /// <summary>
         /// Gets the kinds of join points we are interested in.
         /// </summary>
+        /// <value>The join point kinds.</value>
         public JoinPointKinds JoinPointKinds {
             get {
                 return JoinPointKinds.InsteadOfCall;

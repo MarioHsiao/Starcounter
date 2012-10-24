@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="ToolInvocationHelper.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System;
 using System.Collections.Generic;
@@ -49,10 +54,10 @@ namespace Starcounter.Server {
         }
 
         /// <summary>
-        /// Waits for a <see cref="System.Diagonostics.Process"/> to exit and then
+        /// Waits for a <see cref="System.Diagnostics.Process"/> to exit and then
         /// verifies it exited successfully (i.e. with code 0/zero).
         /// </summary>
-        /// <param name="process">The <see cref="System.Diagonostics.Process"/> to wait
+        /// <param name="process">The <see cref="System.Diagnostics.Process"/> to wait
         /// for and verify.</param>
         /// <remarks>
         /// If the process exits with another exit code, a <see cref="ToolInvocationException"/>
@@ -63,10 +68,10 @@ namespace Starcounter.Server {
         }
 
         /// <summary>
-        /// Waits for a <see cref="System.Diagonostics.Process"/> to exit and then
+        /// Waits for a <see cref="System.Diagnostics.Process"/> to exit and then
         /// verifies it exited with the given exit code.
         /// </summary>
-        /// <param name="process">The <see cref="System.Diagonostics.Process"/> to wait
+        /// <param name="process">The <see cref="System.Diagnostics.Process"/> to wait
         /// for and verify.</param>
         /// <param name="exitCode">The exit code to verify against.</param>
         /// <remarks>
@@ -80,10 +85,10 @@ namespace Starcounter.Server {
         }
 
         /// <summary>
-        /// Waits for a <see cref="System.Diagonostics.Process"/> to exit and then
+        /// Waits for a <see cref="System.Diagnostics.Process"/> to exit and then
         /// verifies it exited with a code represented in the given set of codes.
         /// </summary>
-        /// <param name="process">The <see cref="System.Diagonostics.Process"/> to wait
+        /// <param name="process">The <see cref="System.Diagnostics.Process"/> to wait
         /// for and verify.</param>
         /// <param name="expectedCodes">List of accepted codes.</param>
         /// <returns>The exit code, if the code was in the list.</returns>

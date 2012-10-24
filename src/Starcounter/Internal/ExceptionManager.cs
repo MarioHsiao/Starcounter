@@ -1,13 +1,25 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ExceptionManager.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Diagnostics;
 
 namespace Starcounter.Internal
 {
-    
+
+    /// <summary>
+    /// Class ExceptionManager
+    /// </summary>
     internal static class ExceptionManager
     {
 
+        /// <summary>
+        /// Handles the internal fatal error.
+        /// </summary>
+        /// <param name="code">The code.</param>
         public static void HandleInternalFatalError(uint code)
         {
             string stackTrace;

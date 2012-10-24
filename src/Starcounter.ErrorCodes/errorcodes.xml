@@ -3660,4 +3660,22 @@
       </message>
     </code>
   </facility>
+
+    <!-- Error codes related to network gateway -->
+    <facility name="NetworkGateway" hex="000D">
+        
+        <code hex="0001" severity="Error" name="ScErrRequestOnUnregisteredUri">
+            <message>
+                HTTP request made on unregistered URI.
+            </message>
+        </code>
+
+        <code hex="0002" severity="Error" name="ScErrParsingMethodAndUri">
+            <message>
+                Error while parsing HTTP method and URI.
+            </message>
+        </code>
+        
+    </facility>
+    
 </error-codes>

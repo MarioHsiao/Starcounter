@@ -1,14 +1,29 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="DbHelper.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Binding;
 using Starcounter.Internal;
 using System;
 
 namespace Starcounter
 {
-    
+
+    /// <summary>
+    /// Class DbHelper
+    /// </summary>
     public static class DbHelper
     {
 
+        /// <summary>
+        /// Strings the compare.
+        /// </summary>
+        /// <param name="str1">The STR1.</param>
+        /// <param name="str2">The STR2.</param>
+        /// <returns>System.Int32.</returns>
+        /// <exception cref="System.ArgumentNullException">str1</exception>
         public static int StringCompare(string str1, string str2)
         {
             // TODO: Implement efficient string comparison.
@@ -30,6 +45,11 @@ namespace Starcounter
             throw ErrorCode.ToException(ec);
         }
 
+        /// <summary>
+        /// Froms the ID.
+        /// </summary>
+        /// <param name="oid">The oid.</param>
+        /// <returns>Entity.</returns>
         public static Entity FromID(ulong oid)
         {
             Boolean br;
