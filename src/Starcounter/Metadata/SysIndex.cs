@@ -11,22 +11,22 @@ namespace Starcounter.Metadata
 
         public string Name
         {
-            get { return DbState.ReadString(this, 0); }
+            get { return DbState.ReadString(this, 2); }
         }
 
         public string TableName
         {
-            get { return DbState.ReadString(this, 1); }
+            get { return DbState.ReadString(this, 3); }
         }
 
         public string Description
         {
-            get { return DbState.ReadString(this, 2); }
+            get { return DbState.ReadString(this, 4); }
         }
 
         public bool Unique
         {
-            get { return DbState.ReadBoolean(this, 3); }
+            get { return DbState.ReadBoolean(this, 5); }
         }
     }
 }
