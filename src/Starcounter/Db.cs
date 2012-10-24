@@ -92,7 +92,7 @@ namespace Starcounter
 
         public static void RenameTable(ushort tableId, string newName)
         {
-            uint e = sccoredb.sc_rename_table(tableId, newName);
+            uint e = sccoredb.sccoredb_rename_table(tableId, newName);
             if (e == 0) return;
             throw ErrorCode.ToException(e);
         }
@@ -111,7 +111,7 @@ namespace Starcounter
                 short* column_indexes = stackalloc short[2];
                 column_indexes[0] = columnIndex;
                 column_indexes[1] = -1;
-                uint e = sccoredb.sc_create_index(definitionAddr, name, 0, column_indexes, 0);
+                uint e = sccoredb.sccoredb_create_index(definitionAddr, name, 0, column_indexes, 0);
                 if (e == 0) return;
                 throw ErrorCode.ToException(e);
             }

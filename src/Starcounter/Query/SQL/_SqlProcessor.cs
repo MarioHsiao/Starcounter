@@ -188,7 +188,7 @@ internal static class SqlProcessor
 
             fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0]))
             {
-                errorCode = sccoredb.sc_create_index(handle, indexName.ToUpper(), sortMask, attributeIndexesPointer, flags);
+                errorCode = sccoredb.sccoredb_create_index(handle, indexName.ToUpper(), sortMask, attributeIndexesPointer, flags);
             }
         }
         if (errorCode != 0)
