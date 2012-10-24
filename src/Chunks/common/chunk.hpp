@@ -309,7 +309,7 @@ public:
 		return *((chunk_index*)(elems + LINK_BEGIN))
 		== LINK_TERMINATOR;
 	}
-	
+
 	// Idéas:
 	// overload iterators and such, so that they start after the header and
 	// end at the link, etc.

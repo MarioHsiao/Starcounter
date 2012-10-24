@@ -53,7 +53,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
             // A message on channel ch was received. Notify the database
             // that the out queue in this channel is not full.
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-			the_channel.scheduler()->notify(shared_int_.get_work_event
+			the_channel.scheduler()->notify(shared_int_.scheduler_work_event
 			(the_channel.get_scheduler_number()));
 #else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
             the_channel.scheduler()->notify();
@@ -161,7 +161,7 @@ uint32_t WorkerDbInterface::PushLinkedChunksToDb(
         // A message on channel ch was received. Notify the database
         // that the out queue in this channel is not full.
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-		the_channel.scheduler()->notify(shared_int_.get_work_event
+		the_channel.scheduler()->notify(shared_int_.scheduler_work_event
 		(the_channel.get_scheduler_number()));
 #else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
         the_channel.scheduler()->notify();
