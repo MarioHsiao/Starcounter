@@ -1,4 +1,10 @@
-﻿using Starcounter;
+﻿// ***********************************************************************
+// <copyright file="CodeGenHelper.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using Starcounter;
 using Starcounter.Query.Sql;
 using System;
 using System.Collections;
@@ -23,10 +29,25 @@ namespace Starcounter.Query.Execution
         /// </summary>
         public enum CODE_SECTION_TYPE
         {
+            /// <summary>
+            /// The INCLUDES
+            /// </summary>
             INCLUDES,
+            /// <summary>
+            /// The DECLARATIONS
+            /// </summary>
             DECLARATIONS,
+            /// <summary>
+            /// The GLOBA l_ DATA
+            /// </summary>
             GLOBAL_DATA,
+            /// <summary>
+            /// The FUNCTIONS
+            /// </summary>
             FUNCTIONS,
+            /// <summary>
+            /// The INI t_ DATA
+            /// </summary>
             INIT_DATA
         }
 
@@ -55,6 +76,10 @@ namespace Starcounter.Query.Execution
         /// </summary>
         UInt64 uniqueQueryID = 0;
 
+        /// <summary>
+        /// Gets the unique query ID.
+        /// </summary>
+        /// <value>The unique query ID.</value>
         public UInt64 UniqueQueryID
         {
             get
@@ -67,6 +92,11 @@ namespace Starcounter.Query.Execution
         /// Sequential number
         /// </summary>
         UInt64 seqNumber = 0;
+
+        /// <summary>
+        /// Seqs the number.
+        /// </summary>
+        /// <returns>UInt64.</returns>
         public UInt64 SeqNumber()
         {
             return seqNumber++;
@@ -181,6 +211,9 @@ namespace Starcounter.Query.Execution
 #endif
     }
 
+    /// <summary>
+    /// Class CompilerHelper
+    /// </summary>
     public class CompilerHelper
     {
         /// <summary>
@@ -209,6 +242,7 @@ namespace Starcounter.Query.Execution
         /// Compiles the library and loads it.
         /// </summary>
         /// <param name="generatedCode">String containing code that has been generated.</param>
+        /// <param name="uniqueQueryID">The unique query ID.</param>
         /// <returns>String containing error description or 'null' if everything is fine.</returns>
         public static String CompileAndVerifyLibrary(String generatedCode, UInt64 uniqueQueryID)
         {

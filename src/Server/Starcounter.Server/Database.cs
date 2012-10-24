@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="Database.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -102,6 +107,7 @@ namespace Starcounter.Server {
         /// <returns>A <see cref="DatabaseInfo"/> representing the current state
         /// of this database.</returns>
         internal DatabaseInfo ToPublicModel() {
+            var process = GetRunningWorkerProcess();
             var info = new DatabaseInfo() {
                 CollationFile = null,
                 Configuration = this.Configuration.Clone(this.Configuration.ConfigurationFilePath),
@@ -115,7 +121,8 @@ namespace Starcounter.Server {
                         ExecutablePath = app.OriginalExecutablePath,
                         WorkingDirectory = app.WorkingDirectory
                     };
-                }).ToArray()
+                }).ToArray(),
+                HostProcessId = process != null ? process.Id : 0
             };
             return info;
         }

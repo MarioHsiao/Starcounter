@@ -1,3 +1,9 @@
+// ***********************************************************************
+// <copyright file="DatabaseEntityClass.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
@@ -56,6 +62,10 @@ public class DatabaseEntityClass : DatabaseClass
         }
     }
 
+    /// <summary>
+    /// Formats the current assembly and all its members to a writer.
+    /// </summary>
+    /// <param name="writer">The writer to which the object should be formatted.</param>
     public override void DebugOutput(IndentedTextWriter writer)
     {
         base.DebugOutput(writer);

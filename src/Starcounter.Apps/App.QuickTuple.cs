@@ -1,8 +1,16 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="App.QuickTuple.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System.Text;
 using Starcounter.Templates.Interfaces;
 using Starcounter.Templates;
 namespace Starcounter {
+    /// <summary>
+    /// Class App
+    /// </summary>
     public partial class App {
 
 #if QUICKTUPLE

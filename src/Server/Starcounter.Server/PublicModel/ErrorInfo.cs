@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="ErrorInfo.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using Starcounter.Internal;
 using System;
@@ -170,7 +175,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string ErrorId {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -180,7 +185,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string[] Arguments {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>

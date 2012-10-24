@@ -1,17 +1,36 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="AstTreeGenerator.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Text;
 
 namespace Starcounter.Internal.Uri {
 
+    /// <summary>
+    /// Class AstTreeGenerator
+    /// </summary>
     internal static class AstTreeGenerator {
 
+        /// <summary>
+        /// Builds the ast tree.
+        /// </summary>
+        /// <param name="parseTree">The parse tree.</param>
+        /// <returns>AstNamespace.</returns>
         internal static AstNamespace BuildAstTree(ParseNode parseTree) {
             var ns = new AstNamespace();
             CreateRpNode(parseTree, ns);
             return ns;
         }
 
+        /// <summary>
+        /// Creates the rp node.
+        /// </summary>
+        /// <param name="input">The input.</param>
+        /// <param name="parent">The parent.</param>
+        /// <returns>AstRequestProcessorClass.</returns>
         internal static AstRequestProcessorClass CreateRpNode(ParseNode input, AstNode parent) {
             AstRequestProcessorClass rpclass;
             rpclass = new AstRequestProcessorClass() {
@@ -82,6 +101,11 @@ namespace Starcounter.Internal.Uri {
             return rpclass;
         }
 
+        /// <summary>
+        /// Creates the code node.
+        /// </summary>
+        /// <param name="pn">The pn.</param>
+        /// <param name="parent">The parent.</param>
         internal static void CreateCodeNode(ParseNode pn, AstNode parent) {
             switch (pn.DetectedType) {
                 case NodeType.CharMatchNode:
@@ -141,6 +165,11 @@ namespace Starcounter.Internal.Uri {
             }
         }
 
+        /// <summary>
+        /// Creates the call processor and sub rp class.
+        /// </summary>
+        /// <param name="pn">The pn.</param>
+        /// <param name="parent">The parent.</param>
         internal static void CreateCallProcessorAndSubRpClass( ParseNode pn, AstNode parent ) {
             var rpClass = CreateRpNode(pn, parent.TopClass);
             var call = new AstIfCallSub() {
@@ -156,8 +185,19 @@ namespace Starcounter.Internal.Uri {
         }
     }
 
+    /// <summary>
+    /// Class AstError
+    /// </summary>
     internal class AstError : AstNode {
+        /// <summary>
+        /// Gets or sets the parse node.
+        /// </summary>
+        /// <value>The parse node.</value>
         internal ParseNode ParseNode { get; set; }
+        /// <summary>
+        /// Gets the debug string.
+        /// </summary>
+        /// <value>The debug string.</value>
         internal override string DebugString {
             get {
                 return "Error " + ParseNode.DetectedType;

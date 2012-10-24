@@ -180,7 +180,8 @@ public:
         sd->PrepareToDb();
 
         // Here we have to process socket data using handlers.
-        if (0 != sd->RunHandlers(this))
+        uint32_t err_code = sd->RunHandlers(this);
+        if (0 != err_code)
         {
             // Disconnecting socket.
             Disconnect(sd);
@@ -198,7 +199,8 @@ public:
         sd->PrepareFromDb();
 
         // Here we have to process socket data using handlers.
-        if (sd->RunHandlers(this) != 0)
+        uint32_t err_code = sd->RunHandlers(this);
+        if (0 != err_code)
         {
             // Disconnecting socket.
             Disconnect(sd);

@@ -1,4 +1,10 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="StaticWebServer.File.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -8,8 +14,14 @@ using Starcounter.Internal.REST;
 
 namespace Starcounter.Internal.Web {
 
+    /// <summary>
+    /// Class StaticWebServer
+    /// </summary>
     public partial class StaticWebServer {
 
+        /// <summary>
+        /// The watched paths
+        /// </summary>
         public Dictionary<string, FileSystemWatcher> WatchedPaths;
 
         /// <summary>
@@ -23,13 +35,13 @@ namespace Starcounter.Internal.Web {
         /// </summary>
         /// <param name="cached">If there is an existing cache entry, it is provided here. The cache entry may
         /// contain compressed or uncompressed versions whereas the request only targets one of these versions. This means
-        /// that a cache item may be built up by multiple calls to this method, each with a different version requested. If the 
+        /// that a cache item may be built up by multiple calls to this method, each with a different version requested. If the
         /// provided cached item already contains the version requested, the file is still read and the cached version is
         /// overwritten.</param>
         /// <param name="relativeUri">The uri without the server domain</param>
-        /// <param name="sid">The Starcounter session id</param>
+        /// <param name="req">The Starcounter session id</param>
         /// <returns>A cacheable resource item with at least one version (compressed or uncompressed).</returns>
-        public HttpResponse GetFileResource(HttpResponse cached,string relativeUri, HttpRequest req ) {
+        public HttpResponse GetFileResource(HttpResponse cached, string relativeUri, HttpRequest req) {
 
 
             req.Debug(" (FILE ACCESS)");
@@ -63,8 +75,25 @@ namespace Starcounter.Internal.Web {
                     try {
                         FileStream f = FileOpenAlternative(ref dir, ref fileName, ref fileExtension);
                         len = (int)f.Length;
+
+                        // Check for UTF-8 byte order mark (BOM) offset
+                        if (len >= 3) {
+                            int utf8Size = 3;                  // UTF 8 byte check
+                            byte[] bom = new byte[utf8Size];   // allocate place for UTF-8 check
+                            f.Read(bom, 0, utf8Size);
+                            if (bom[0] == 0xef && bom[1] == 0xbb && bom[2] == 0xbf) // UTF-8
+                            {
+                                len -= utf8Size;               // Adjust the payload size without the 'bom'
+                            }
+                            else {
+                                f.Position -= utf8Size;        // Reset the filestream position
+                            }
+                        }
+
                         payload = new byte[len];
+
                         f.Read(payload, 0, (int)len);
+
                         f.Close();
                         is404 = false;
                         break;
@@ -80,7 +109,7 @@ namespace Starcounter.Internal.Web {
                     }
                 }
                 if (is404) {
-                    payload = Encoding.UTF8.GetBytes(String.Format("Error 404: File {0} not found", relativeUri + "." ));
+                    payload = Encoding.UTF8.GetBytes(String.Format("Error 404: File {0} not found", relativeUri + "."));
                     mimeType = "plain/text";
                 }
                 else {
@@ -92,7 +121,7 @@ namespace Starcounter.Internal.Web {
                     //        "Uncertain mime type for file {0}. Should file extention {1} be mime type {2} or mime type {3}?",
                     //        fileName, ext, mimeType, mimeType2));
                     //                                                        
-                    ///}
+                    //}
                 }
 
             }
@@ -121,9 +150,10 @@ namespace Starcounter.Internal.Web {
             byte[] compressed = null;
             bool didCompress = false;
 
-            if ( req.NeedsScriptInjection && mimeType.StartsWith("text/html") ) {
+
+            if (req.NeedsScriptInjection && mimeType.StartsWith("text/html")) {
                 req.Debug(" (analysing html)");
-                fres.ScriptInjectionPoint = ScriptInjector.FindScriptInjectionPoint(payload, 0); 
+                fres.ScriptInjectionPoint = ScriptInjector.FindScriptInjectionPoint(payload, 0);
                 shouldCompress = false;
             }
 
@@ -131,7 +161,7 @@ namespace Starcounter.Internal.Web {
                 compressed = Compress(payload);
                 didCompress = compressed.Length + 100 < payload.Length; // Don't use compress version if the difference is too small
                 //didCompress = false;
-//                Console.WriteLine(String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
+                //                Console.WriteLine(String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
                 if (didCompress) {
                     req.Debug(" (compressing)"); // String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
                     len = compressed.Length;
@@ -146,16 +176,16 @@ namespace Starcounter.Internal.Web {
             str += "Content-Type:" + mimeType + "\r\n";
 
 
-//            if (!bigCookie)
-//                str += "Set-Cookie:sid=" + req.SessionID.ToString() + "\r\n";
-            
+            //            if (!bigCookie)
+            //                str += "Set-Cookie:sid=" + req.SessionID.ToString() + "\r\n";
+
             if (didCompress)
-                str +="Content-Encoding:gzip\r\n";
+                str += "Content-Encoding:gzip\r\n";
 
             if (req.IsAppView)
-               str += "Cache-control:private,max-age=0\r\n"; // Dont cache
-            else               
-               str += "Cache-control:public,max-age=31536000\r\n"; // 1 year cache
+                str += "Cache-control:private,max-age=0\r\n"; // Dont cache
+            else
+                str += "Cache-control:public,max-age=31536000\r\n"; // 1 year cache
 
             // Cache-Control:public,max-age=31536000
             // Age:0
@@ -186,19 +216,19 @@ namespace Starcounter.Internal.Web {
             header.CopyTo(response, 0);
 
             if (shouldBeCached && cached == null) {
-               CacheOnUri[relativeUri] = fres;
-               fres.Uris.Add(relativeUri);
-               string path = (dir + "\\" + fileName + "." + fileExtension);
-               string fileSignature = path.ToUpper();
-               fres.FilePath = fileSignature;
-               fres.FileDirectory = dir;
-               fres.FileName = fileName + "." + fileExtension;
-               fres.FileExists = !is404;
-               if (!is404) {
-                  fres.FileModified = File.GetLastWriteTime(path);
-               }
-               CacheOnFilePath[fileSignature] = fres;
-               WatchChange(dir, fileName + "." + fileExtension); //.DirectoryName,fi.Name);
+                CacheOnUri[relativeUri] = fres;
+                fres.Uris.Add(relativeUri);
+                string path = (dir + "\\" + fileName + "." + fileExtension);
+                string fileSignature = path.ToUpper();
+                fres.FilePath = fileSignature;
+                fres.FileDirectory = dir;
+                fres.FileName = fileName + "." + fileExtension;
+                fres.FileExists = !is404;
+                if (!is404) {
+                    fres.FileModified = File.GetLastWriteTime(path);
+                }
+                CacheOnFilePath[fileSignature] = fres;
+                WatchChange(dir, fileName + "." + fileExtension); //.DirectoryName,fi.Name);
             }
 
             //  if (found && isText)
@@ -213,8 +243,8 @@ namespace Starcounter.Internal.Web {
         /// the cache is invalidated. This allows the web server to always server fresh
         /// versions of any resource.
         /// </summary>
-        /// <param name="dir"></param>
-        /// <param name="fileName"></param>
+        /// <param name="dir">The dir.</param>
+        /// <param name="fileName">Name of the file.</param>
         private void WatchChange(string dir, string fileName) {
             FileSystemWatcher fsw;
             string fileSpecifier = dir + "\\" + fileName;
@@ -234,6 +264,11 @@ namespace Starcounter.Internal.Web {
         }
 
 
+        /// <summary>
+        /// Files the has changed.
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="e">The <see cref="FileSystemEventArgs" /> instance containing the event data.</param>
         internal void FileHasChanged(object sender, FileSystemEventArgs e) {
             string fileSignature = e.FullPath.ToUpper();
             HttpResponse cached;
@@ -248,6 +283,13 @@ namespace Starcounter.Internal.Web {
         }
 
 
+        /// <summary>
+        /// Files the open alternative.
+        /// </summary>
+        /// <param name="dir">The dir.</param>
+        /// <param name="fileName">Name of the file.</param>
+        /// <param name="fileExtension">The file extension.</param>
+        /// <returns>FileStream.</returns>
         public FileStream FileOpenAlternative(ref string dir, ref string fileName, ref string fileExtension) {
             try {
                 return File.OpenRead(dir + "/" + fileName + "." + fileExtension);
@@ -261,6 +303,14 @@ namespace Starcounter.Internal.Web {
             }
         }
 
+        /// <summary>
+        /// Parses the file specifier.
+        /// </summary>
+        /// <param name="serverPath">The server path.</param>
+        /// <param name="relativeUri">The relative URI.</param>
+        /// <param name="directory">The directory.</param>
+        /// <param name="fileName">Name of the file.</param>
+        /// <param name="fileExtension">The file extension.</param>
         public void ParseFileSpecifier(string serverPath, string relativeUri, out string directory, out string fileName, out string fileExtension) {
             if (!relativeUri.StartsWith("/")) {
                 Console.WriteLine(String.Format("Illegal URI for static resoruce {0}", relativeUri));
@@ -296,10 +346,18 @@ namespace Starcounter.Internal.Web {
             //    fileSpecifier = directory + @"\" + fileNameWithExtension;
         }
 
+        /// <summary>
+        /// Clears the watched parts.
+        /// </summary>
         public void ClearWatchedParts() {
             WatchedPaths = new Dictionary<string, FileSystemWatcher>();
         }
 
+        /// <summary>
+        /// Encodes to base64.
+        /// </summary>
+        /// <param name="toEncode">To encode.</param>
+        /// <returns>System.String.</returns>
         static public string EncodeToBase64(string toEncode) {
             byte[] toEncodeAsBytes
                   = System.Text.ASCIIEncoding.ASCII.GetBytes(toEncode);

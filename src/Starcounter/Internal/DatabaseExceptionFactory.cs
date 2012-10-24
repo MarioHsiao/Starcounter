@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="DatabaseExceptionFactory.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 
 namespace Starcounter.Internal {
@@ -8,6 +13,9 @@ namespace Starcounter.Internal {
     /// database worker process.
     /// </summary>
     public sealed class DatabaseExceptionFactory : ExceptionFactory {
+        /// <summary>
+        /// Installs the in current app domain.
+        /// </summary>
         public static void InstallInCurrentAppDomain() {
             if (ErrorCode.ExceptionFactory is DatabaseExceptionFactory)
                 return;
@@ -15,6 +23,9 @@ namespace Starcounter.Internal {
             ErrorCode.SetExceptionFactory(new DatabaseExceptionFactory());
         }
 
+        /// <summary>
+        /// Prevents a default instance of the <see cref="DatabaseExceptionFactory" /> class from being created.
+        /// </summary>
         private DatabaseExceptionFactory() {
         }
 

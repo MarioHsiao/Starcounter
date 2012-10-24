@@ -1,8 +1,16 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="DatabaseSetupProperties.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Configuration;
 
 namespace Starcounter.Server {
 
+    /// <summary>
+    /// Class DatabaseSetupProperties
+    /// </summary>
     public sealed class DatabaseSetupProperties {
         /// <summary>
         /// Gets the name of the database to which the current

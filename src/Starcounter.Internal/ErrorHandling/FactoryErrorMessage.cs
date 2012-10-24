@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="FactoryErrorMessage.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Text;
 
@@ -8,8 +13,8 @@ namespace Starcounter.Internal
     /// <summary>
     /// Represents a error message describing a certain Starcounter
     /// error. Instances of this class is materialized by the exception
-    /// factory classes and returned by the <see cref="ErrorCode.ToMessage"/>
-    /// methods (internally used by <see cref="ErrorCode.ToException"/>).
+    /// factory classes and returned by the <see cref="ErrorCode.ToMessage(uint)"/>
+    /// methods (internally used by <see cref="ErrorCode.ToException(uint)"/>).
     /// </summary>
     /// <remarks>
     /// The ErrorMessage class has an implicit conversion operator

@@ -1,4 +1,10 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="StartDatabaseCommandProcessor.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,7 +27,7 @@ namespace Starcounter.Server.Commands.Processors {
             : base(server, command) {
         }
 
-        /// </inheritdoc>
+        /// <inheritdoc />
         protected override void Execute() {
             StartDatabaseCommand command = (StartDatabaseCommand)this.Command;
             Database database;
@@ -36,7 +42,7 @@ namespace Starcounter.Server.Commands.Processors {
 
             // Get a client handle to the worker process.
 
-            var client = new Client(workerProcess.StandardInput.WriteLine, workerProcess.StandardOutput.ReadLine);
+            var client = this.Engine.DatabaseHostService.GetHostingInterface(database);
 
             // Send a ping, the means by which we check the "status" of the
             // worker process - if it answers, we consider it online.

@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="ServerCommand.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System;
 
@@ -10,18 +15,21 @@ namespace Starcounter.Server.PublicModel.Commands {
     public abstract class ServerCommand {
 
         /// <summary>
-        /// Initializes a new <see cref="ServerCommand"/>.
+        /// Initializes a new <see cref="ServerCommand" />.
         /// </summary>
+        /// <param name="engine">The engine.</param>
         /// <param name="descriptionFormat">Formatting string of the command description.</param>
-        /// <param name="descriptionArgs">Arguments for <paramref name="descriptionFormat"/>.</param>
+        /// <param name="descriptionArgs">Arguments for <paramref name="descriptionFormat" />.</param>
         protected ServerCommand(ServerEngine engine, string descriptionFormat, params object[] descriptionArgs) :
             this(engine, string.Format(descriptionFormat, descriptionArgs)) {
         }
 
         /// <summary>
-        /// Initializes a new <see cref="ServerCommand"/>.
+        /// Initializes a new <see cref="ServerCommand" />.
         /// </summary>
+        /// <param name="engine">The engine.</param>
         /// <param name="description">Human-readable description of the command.</param>
+        /// <exception cref="System.ArgumentNullException">description</exception>
         protected ServerCommand(ServerEngine engine, string description) {
             if (string.IsNullOrEmpty(description)) {
                 throw new ArgumentNullException("description");

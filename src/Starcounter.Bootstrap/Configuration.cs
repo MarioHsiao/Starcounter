@@ -1,26 +1,48 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="Configuration.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter;
 using Starcounter.CommandLine;
 using System;
 
 namespace StarcounterInternal.Bootstrap
 {
-    
+
     /// <summary>
     /// Basic host configuration.
     /// </summary>
     public class Configuration
     {
 
+        /// <summary>
+        /// Loads the specified program arguments.
+        /// </summary>
+        /// <param name="programArguments">The program arguments.</param>
+        /// <returns>Configuration.</returns>
         public static Configuration Load(ApplicationArguments programArguments)
         {
             return new Configuration(programArguments);
         }
 
+        /// <summary>
+        /// Gets or sets the program arguments.
+        /// </summary>
+        /// <value>The program arguments.</value>
         private ApplicationArguments ProgramArguments { get; set; }
 
+        /// <summary>
+        /// Gets the scheduler count.
+        /// </summary>
+        /// <value>The scheduler count.</value>
         public uint SchedulerCount { get; private set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Configuration" /> class.
+        /// </summary>
+        /// <param name="programArguments">The program arguments.</param>
         private Configuration(ApplicationArguments programArguments)
         {
             ProgramArguments = programArguments;
@@ -43,6 +65,10 @@ namespace StarcounterInternal.Bootstrap
             }
         }
 
+        /// <summary>
+        /// Gets the name.
+        /// </summary>
+        /// <value>The name.</value>
         public string Name
         {
             get 
@@ -51,6 +77,10 @@ namespace StarcounterInternal.Bootstrap
             }
         }
 
+        /// <summary>
+        /// Gets the compiler path.
+        /// </summary>
+        /// <value>The compiler path.</value>
         public string CompilerPath
         {
             get {
@@ -63,6 +93,10 @@ namespace StarcounterInternal.Bootstrap
             }
         }
 
+        /// <summary>
+        /// Gets the database directory.
+        /// </summary>
+        /// <value>The database directory.</value>
         public string DatabaseDirectory
         {
             get {
@@ -75,6 +109,10 @@ namespace StarcounterInternal.Bootstrap
             }
         }
 
+        /// <summary>
+        /// Gets the output directory.
+        /// </summary>
+        /// <value>The output directory.</value>
         public string OutputDirectory
         {
             get {
@@ -87,6 +125,10 @@ namespace StarcounterInternal.Bootstrap
             }
         }
 
+        /// <summary>
+        /// Gets the temp directory.
+        /// </summary>
+        /// <value>The temp directory.</value>
         public string TempDirectory
         {
             get {
@@ -99,6 +141,10 @@ namespace StarcounterInternal.Bootstrap
             }
         }
 
+        /// <summary>
+        /// Gets the auto start exe path.
+        /// </summary>
+        /// <value>The auto start exe path.</value>
         public string AutoStartExePath
         {
             get
@@ -112,6 +158,10 @@ namespace StarcounterInternal.Bootstrap
             }
         }
 
+        /// <summary>
+        /// Gets the name of the server.
+        /// </summary>
+        /// <value>The name of the server.</value>
         public string ServerName
         {
             get
@@ -128,6 +178,10 @@ namespace StarcounterInternal.Bootstrap
             }
         }
 
+        /// <summary>
+        /// Gets the chunks number.
+        /// </summary>
+        /// <value>The chunks number.</value>
         public uint ChunksNumber
         {
             get
@@ -151,6 +205,10 @@ namespace StarcounterInternal.Bootstrap
             }
         }
 
+        /// <summary>
+        /// Gets the SQL process port.
+        /// </summary>
+        /// <value>The SQL process port.</value>
         public int SQLProcessPort
         {
             get
@@ -165,6 +223,10 @@ namespace StarcounterInternal.Bootstrap
             }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether [no db].
+        /// </summary>
+        /// <value><c>true</c> if [no db]; otherwise, <c>false</c>.</value>
         public bool NoDb
         {
             get
@@ -173,11 +235,32 @@ namespace StarcounterInternal.Bootstrap
             }
         }
 
-        public bool NetworkApps
+        /// <summary>
+        /// Gets a value indicating whether network gateway should not be used.
+        /// </summary>
+        /// <value><c>true</c> if network gateway should not be used; otherwise, <c>false</c>.</value>
+        public bool NoNetworkGateway
         {
             get
             {
-                return this.ProgramArguments.ContainsFlag(ProgramCommandLine.OptionNames.NetworkApps);
+                return this.ProgramArguments.ContainsFlag(ProgramCommandLine.OptionNames.NoNetworkGateway);
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating that the host should use standard
+        /// streams / the console to accept local management requests,
+        /// like the booting of executables.
+        /// </summary>
+        /// <remarks>
+        /// Corresponds to the <see cref="ProgramCommandLine.OptionNames.UseConsole"/>
+        /// flag.
+        /// </remarks>
+        /// <value><c>true</c> if standard streams should be used; otherwise,
+        /// <c>false</c>.</value>
+        public bool UseConsole {
+            get {
+                return this.ProgramArguments.ContainsFlag(ProgramCommandLine.OptionNames.UseConsole);
             }
         }
     }

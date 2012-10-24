@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="TestDynamicApps.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System.Collections.Generic;
 using NUnit.Framework;
 using Starcounter.Client;
@@ -8,15 +13,25 @@ using Starcounter.Internal.ExeModule;
 
 namespace Starcounter.Client.Tests.Application {
 
+    /// <summary>
+    /// Class AppTests
+    /// </summary>
     [TestFixture]
     public class AppTests {
 
+        /// <summary>
+        /// Manuals the creation.
+        /// </summary>
         [Test]
         public static void ManualCreation() {
             AppExeModule.IsRunningTests = true;
             CreateSome();
         }
 
+        /// <summary>
+        /// Creates some.
+        /// </summary>
+        /// <returns>List{App}.</returns>
         private static List<App> CreateSome() {
             var personTmpl = new AppTemplate();
             var firstName = personTmpl.Add<StringProperty>("FirstName$");
@@ -58,6 +73,9 @@ namespace Starcounter.Client.Tests.Application {
             return ret;
         }
 
+        /// <summary>
+        /// Reads the dynamic.
+        /// </summary>
         [Test]
         public static void ReadDynamic() {
             return;
@@ -75,6 +93,9 @@ namespace Starcounter.Client.Tests.Application {
             //Assert.AreEqual(16, tim.Age);
         }
 
+        /// <summary>
+        /// Writes the dynamic.
+        /// </summary>
         [Test]
         public static void WriteDynamic() {
             return;

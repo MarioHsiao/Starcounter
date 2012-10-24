@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="StringOperation.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using Starcounter;
 using Starcounter.Query.Optimization;
@@ -24,7 +29,7 @@ internal class StringOperation : IStringExpression, IOperation
     /// <summary>
     /// Constructor.
     /// </summary>
-    /// <param name="numOp">The operator of the operation.</param>
+    /// <param name="strOp">The operator of the operation.</param>
     /// <param name="expr1">The first operand of the operation.</param>
     /// <param name="expr2">The second operand of the operation.</param>
     internal StringOperation(StringOperator strOp, IStringExpression expr1, IStringExpression expr2)
@@ -50,8 +55,8 @@ internal class StringOperation : IStringExpression, IOperation
     /// <summary>
     /// Constructor.
     /// </summary>
-    /// <param name="numOp">The operator of the operation.</param>
-    /// <param name="expr1">The operand of the operation.</param>
+    /// <param name="strOp">The operator of the operation.</param>
+    /// <param name="expr">The operand of the operation.</param>
     internal StringOperation(StringOperator strOp, IStringExpression expr)
     : base()
     {

@@ -1,3 +1,9 @@
+// ***********************************************************************
+// <copyright file="DatabaseClass.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
@@ -178,6 +184,9 @@ public abstract partial class DatabaseClass : DatabaseSchemaElement, IDatabaseAt
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public int WeaverDirectives
     {
         get
@@ -190,6 +199,10 @@ public abstract partial class DatabaseClass : DatabaseSchemaElement, IDatabaseAt
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
     public override string ToString()
     {
         return string.Format("{0} {1}",

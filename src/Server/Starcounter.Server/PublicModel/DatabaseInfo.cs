@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="DatabaseInfo.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System.Xml.Serialization;
 using Starcounter.Configuration;
 
@@ -20,7 +25,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string Uri {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -28,7 +33,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string Name {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -44,7 +49,7 @@ namespace Starcounter.Server.PublicModel {
         /// </remarks>
         public long MaxImageSize {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -66,7 +71,7 @@ namespace Starcounter.Server.PublicModel {
         /// </remarks>
         public long TransactionLogSize {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -75,7 +80,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string CollationFile {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -84,7 +89,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public bool SupportReplication {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -92,16 +97,38 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public DatabaseConfiguration Configuration {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
         /// Gets the set of "Apps" currently hosted in the database
         /// represented by this snapshot.
         /// </summary>
+        /// <remarks>
+        /// This property should be moved out to a smaller, runtime-specific
+        /// database information entity, along with all other runtime related
+        /// state, like process identity, to allow information that change
+        /// significantly less frequently to be updated only when needed (for
+        /// example, configuration).
+        /// <seealso cref="HostedApps"/>
+        /// </remarks>
         public AppInfo[] HostedApps {
             get;
-            internal set;
+            set;
+        }
+
+        /// <summary>
+        /// Gets the process ID of the database host process, if running.
+        /// </summary>
+        /// <remarks>
+        /// This property should be moved out to a smaller, runtime-specific
+        /// database information entity, along with all other runtime related
+        /// state, like info hosted apps.
+        /// <seealso cref="HostedApps"/>
+        /// </remarks>
+        public int HostProcessId {
+            get;
+            set;
         }
     }
 }

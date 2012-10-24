@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ExeModule.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +26,9 @@ namespace Starcounter.Internal.ExeModule {
         /// </summary>
         public string WorkingDirectory;
 
+        /// <summary>
+        /// The is running tests
+        /// </summary>
         public static bool IsRunningTests = false;
 
 
@@ -28,11 +36,13 @@ namespace Starcounter.Internal.ExeModule {
         /// After the server has started, the following expression is started using the command line start command. Observe that
         /// you can provide a http:// url as a start argument.
         /// </summary>
+        /// <value>The start.</value>
         public string Start { get; set; }
 
         /// <summary>
         /// A list of ports to use by default to listen to incoming http requests. If not set, port 80 will be used.
         /// </summary>
+        /// <value>The HTTP ports.</value>
         public UInt16 HttpPorts { get; set; }
 
         /// <summary>
