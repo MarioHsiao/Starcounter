@@ -134,7 +134,7 @@ namespace Starcounter.Internal
             public ulong RefDef;
         }
 
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         public extern static int Mdb_DefinitionFromCodeClassString(
             string name,
             out ulong etiDefinition
