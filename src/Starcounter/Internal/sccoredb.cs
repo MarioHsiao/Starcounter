@@ -168,13 +168,13 @@ namespace Starcounter.Internal
             SC_COLUMN_DEFINITION *column_definitions
             );
 
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public static extern uint sc_rename_table(
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        public static extern uint sccoredb_rename_table(
             ushort table_id,
             string new_name
             );
 
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         public static extern uint sccoredb_drop_table(string name);
 
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
@@ -228,8 +228,8 @@ namespace Starcounter.Internal
 
         public const UInt32 SC_INDEXCREATE_UNIQUE_CONSTRAINT = 0x00000001;
 
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public extern unsafe static UInt32 sc_create_index(
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        public extern unsafe static UInt32 sccoredb_create_index(
             ulong definition_addr,
             string name,
             ushort sort_mask,
