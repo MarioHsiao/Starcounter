@@ -185,6 +185,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{F5866E
 		Chunks\common\shared_interface.hpp = Chunks\common\shared_interface.hpp
 		Chunks\common\shared_memory_manager.hpp = Chunks\common\shared_memory_manager.hpp
 		Chunks\common\shared_memory_object.cpp = Chunks\common\shared_memory_object.cpp
+		Chunks\common\spinlock.hpp = Chunks\common\spinlock.hpp
 		Chunks\common\timeout.hpp = Chunks\common\timeout.hpp
 	EndProjectSection
 EndProject
@@ -404,7 +405,8 @@ Global
 		{75FD7F1C-71C9-4083-8F70-D20B2C665F77}.Release|x64.Build.0 = Release|Any CPU
 		{060B3C32-4504-4F5E-9089-A6FDE561AA23}.Debug|x64.ActiveCfg = Debug|x64
 		{060B3C32-4504-4F5E-9089-A6FDE561AA23}.Debug|x64.Build.0 = Debug|x64
-		{060B3C32-4504-4F5E-9089-A6FDE561AA23}.Release|x64.ActiveCfg = Release|Win32
+		{060B3C32-4504-4F5E-9089-A6FDE561AA23}.Release|x64.ActiveCfg = Release|x64
+		{060B3C32-4504-4F5E-9089-A6FDE561AA23}.Release|x64.Build.0 = Release|x64
 		{E3390A15-3D80-4166-9D2F-BBEF33BB95A0}.Debug|x64.ActiveCfg = Debug|x64
 		{E3390A15-3D80-4166-9D2F-BBEF33BB95A0}.Debug|x64.Build.0 = Debug|x64
 		{E3390A15-3D80-4166-9D2F-BBEF33BB95A0}.Release|x64.ActiveCfg = Release|x64
