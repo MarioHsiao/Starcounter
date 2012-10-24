@@ -99,7 +99,7 @@ public:
 	
 	// Construction/Destruction.
 	
-	///
+	/// Constructor.
 	/**
 	 * @param alloc The allocator.
 	 * @param segment_name The segment name.
@@ -111,48 +111,53 @@ public:
 	 */
 	explicit client_interface(const allocator_type& alloc = allocator_type(),
 	const char* segment_name = 0, int32_t id = -1)
-	: notify_(false), predicate_(false), owner_id_(owner_id::none),
+	: notify_(false),
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
+
+#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
+	predicate_(false),
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
+	owner_id_(owner_id::none),
 	allocated_channels_(0) {
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 		if (segment_name != 0) {
-			char notify_name[segment_and_notify_name_size];
-			wchar_t w_notify_name[segment_and_notify_name_size];
+			char work_notify_name[segment_and_notify_name_size];
 			std::size_t length;
 
 			// Format: "Local\<segment_name>_notify_client_<id>".
-			if ((length = _snprintf_s(notify_name, _countof(notify_name),
-			segment_and_notify_name_size -1 /* null */,
+			if ((length = _snprintf_s(work_notify_name, _countof
+			(work_notify_name), segment_and_notify_name_size -1 /* null */,
 			"Local\\%s_notify_client_%u", segment_name, id)) < 0) {
-				return; // error
+				return; // Throw exception error_code.
 			}
-			notify_name[length] = '\0';
-			//std::cout << "notify_client_name: " << notify_name << "\n"; /// DEBUG
+			work_notify_name[length] = '\0';
 
 			/// TODO: Fix insecure
-			if ((length = mbstowcs(w_notify_name, notify_name, segment_name_size)) < 0) {
-				//std::cout << this
-				//<< ": Failed to convert segment_name to multi-byte string. Error: "
-				//<< GetLastError() << "\n";
-				return; // throw exception
+			if ((length = mbstowcs(work_notify_name_, work_notify_name,
+			segment_name_size)) < 0) {
+				// Failed to convert work_notify_name to multi-byte string.
+				return; // Throw exception error_code.
 			}
-			w_notify_name[length] = L'\0';
+			work_notify_name_[length] = L'\0';
 
-			if ((work_ = ::CreateEvent(NULL, TRUE, FALSE, w_notify_name)) == NULL) {
+			if ((work_ = ::CreateEvent(NULL, TRUE, FALSE, work_notify_name_))
+			== NULL) {
 				// Failed to create event.
-				//std::cout << this << ": Failed to create event with error: "
-				//<< GetLastError() << "\n"; /// DEBUG
-				return; // throw exception
+				return; // Throw exception error_code.
 			}
 		}
 		else {
-			// TODO: Handle the error - no segment name. Throw an exception.
+			// Error: No segment name. Throw exception error_code.
 		}
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	}
 	
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	~client_interface() {
-		::CloseHandle(work_);
+		if (work_ != 0) {
+			::CloseHandle(work_);
+			work_ = 0;
+		}
 	}
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
@@ -181,9 +186,13 @@ public:
 			return;
 		}
 		else {
-			if (!::SetEvent(work_)) {
-				//std::cout << this << ": SetEvent(" << work_ << ") <1> failed with the error: "
-				//<< ::GetLastError() << "\n"; /// DEBUG
+			if (::SetEvent(work_)) {
+				// Successfully notified the client.
+				return;
+			}
+			else {
+				// Error. Failed to notify the client.
+				return;
 			}
 		}
 	}
@@ -201,6 +210,7 @@ public:
 			
 			set_predicate(true);
 			lock.unlock();
+
 			// In the scheduler interface we notify one. Here we notify all
 			// because all client threads with the same client number need to
 			// be awakened. One thread may be pushing to the in queue and
@@ -258,26 +268,23 @@ public:
 	 *		by timeout_milliseconds has elapsed, otherwise true.
 	 */
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-	bool wait_for_work(unsigned int timeout_milliseconds) {
-		//std::cout << this << " client is waiting...\n"; /// DEBUG
-		switch (::WaitForSingleObject(work_, timeout_milliseconds)) {
+	bool wait_for_work(HANDLE work, uint32_t timeout_milliseconds) {
+		switch (::WaitForSingleObject(work, timeout_milliseconds)) {
 		case WAIT_OBJECT_0:
 			// The client was notified that there is work to do.
-			//std::cout << this << " client is running (notified)\n"; /// DEBUG
-			
-			if (::ResetEvent(work_)) {
+			if (::ResetEvent(work)) {
 				return true;
 			}
 			else {
-				//std::cout << this << " client ResetEvent() failed. Error" << ::GetLastError() << "\n"; /// DEBUG
+				//std::cout << this << " client ResetEvent(" << work << ") <4> failed. Error" << ::GetLastError() << "\n"; /// DEBUG
 				return true; // Anyway.
 			}
 			return true;
 		case WAIT_TIMEOUT:
-			//std::cout << this << " client is running (timeout)\n"; /// DEBUG
+			std::cout << this << " <4> client is running (timeout)\n"; /// DEBUG
 			return false;
 		case WAIT_FAILED: // Windows system error code: 6 = The handle is invalid.
-			//std::cout << this << " client WaitForSingleObject() failed. Error" << ::GetLastError() << "\n"; /// DEBUG
+			//std::cout << this << " <4> client WaitForSingleObject() failed. Error" << ::GetLastError() << "\n"; /// DEBUG
 			return false;
 		}
 		return false;
@@ -407,6 +414,20 @@ public:
 		return resource_map_.owns_chunk(n);
 	}
 
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
+	/// Get the work notify name, used to open the event. In order to reduce the
+	/// time taken to open the work_ event the name is cached. Otherwise the
+	/// work notify name have to be formated before opening it.
+	/**
+	 * @return A const wchar_t pointer to the work notify name string in the
+	 *		format: L"Local\<segment_name>_notify_client_<id>". For example:
+	 *		L"Local\starcounter_PERSONAL_MYDB_64_notify_client_9".
+	 */
+	const wchar_t* work_notify_name() const {
+		return work_notify_name_;
+	}
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
+	
 private:
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	HANDLE work_;
@@ -443,6 +464,12 @@ private:
 	];
 	
 	resource_map resource_map_;
+
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
+	// In order to reduce the time taken to open the work_ event the name is
+	// cached. Otherwise the name have to be formated before opening it.
+	wchar_t work_notify_name_[segment_and_notify_name_size];
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 };
 
 typedef simple_shared_memory_allocator<channel_number>

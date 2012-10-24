@@ -99,7 +99,7 @@ public:
 		// more chunks than max_chunks after it has pushed chunk(s) to it, then
 		// it will move chunks_to_move number of chunks from its private
 		// chunk_pool_ to the shared_chunk_pool.
-		max_chunks = 512, // at least min_chunks +chunks_to_move.
+		max_chunks = 4096, // at least min_chunks +chunks_to_move.
 		
 		// The worker will try to keep at least min_chunks amount of chunks in
 		// its private chunk_pool, so that it does not have to move chunks from
@@ -110,6 +110,18 @@ public:
 		a_bunch_of_chunks = 64
 	};
 	
+	enum {
+		// The number of times to scan through all channels trying to push or
+		// pop before waiting, in case did not push or pop for spin_count_reset
+		// number of times. Need to experiment with this value.
+		// NOTE: scan_counter_preset must be > 0.
+		scan_counter_preset = 1 << 20,
+
+		// The thread can give up waiting after wait_for_work_milli_seconds, but
+		// if not, set it to INFINITE.
+		wait_for_work_milli_seconds = 1000
+	};
+
 	/// Construction.
 	/**
 	 * @throws starcounter::interprocess_communication::worker_exception if failing to start.
@@ -157,6 +169,14 @@ public:
 	
 	std::size_t id() const {
 		return worker_id_;
+	}
+
+	const shared_interface& shared() const {
+		return shared_;
+	}
+
+	shared_interface& shared() {
+		return shared_;
 	}
 
 	// Help functions to work with the overflow_pool.
