@@ -1561,12 +1561,12 @@ IndexScan(
 
 ExpectedResult: 
  ! 0:Object ! 1:String ! 2:String ! 3:Int32 ! 4:Int32 ! 
- | 66 | England | Part of United Kingdom | 1 | 1 | 
- | 67 | Stockholm | Capital of Sweden | 2 | 2 | 
- | 68 | Solna | Town just north of Stockholm | 2 | 2 | 
- | 69 | Danderyd | Rich suburb of Stockholm | 2 | 2 | 
- | 70 | Falköping | Small village in Sweden | 2 | 2 | 
- | 71 | Saint Petersburg | Big city in Russia | 2 | 2 | 
+ | 43 | England | Part of United Kingdom | 1 | 1 | 
+ | 44 | Stockholm | Capital of Sweden | 2 | 2 | 
+ | 45 | Solna | Town just north of Stockholm | 2 | 2 | 
+ | 46 | Danderyd | Rich suburb of Stockholm | 2 | 2 | 
+ | 47 | Falköping | Small village in Sweden | 2 | 2 | 
+ | 48 | Saint Petersburg | Big city in Russia | 2 | 2 | 
 
 
 <NEXT>
@@ -1601,10 +1601,10 @@ IndexScan(
 
 ExpectedResult: 
  ! 0:Object ! 1:String ! 2:String ! 3:Object ! 4:Binary ! 
- | 72 | Administration | Head office | 67 | FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF | 
- | 73 | Development of database kernel | Kernel | 70 | FEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFE | 
- | 74 | Development of database server | Server | 67 | FDFDFDFDFDFDFDFDFDFDFDFDFDFDFDFD | 
- | 75 | Sales and marketing | Sales | <NULL> | FDFDFDFDFDFDFDFDFDFDFDFDFDFDFDFD | 
+ | 49 | Administration | Head office | 44 | FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF | 
+ | 50 | Development of database kernel | Kernel | 47 | FEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFE | 
+ | 51 | Development of database server | Server | 44 | FDFDFDFDFDFDFDFDFDFDFDFDFDFDFDFD | 
+ | 52 | Sales and marketing | Sales | <NULL> | FDFDFDFDFDFDFDFDFDFDFDFDFDFDFDFD | 
 
 
 <NEXT>
@@ -1639,18 +1639,18 @@ IndexScan(
 
 ExpectedResult: 
  ! 0:Object ! 1:String ! 2:String ! 3:Object ! 4:Object ! 
- | 76 | Bengt | Idestam | <NULL> | <NULL> | 
- | 77 | Jon | Idestam | 67 | 76 | 
- | 78 | Joachim | Wester | 66 | <NULL> | 
- | 79 | Åsa | Holmström | 69 | <NULL> | 
- | 80 | PETER | <NULL> | 67 | 77 | 
- | 81 | Christian | Holmstrand | 68 | <NULL> | 
- | 82 | per | Samuelsson | 67 | <NULL> | 
- | 83 | Erik | Ohlsson | 70 | <NULL> | 
- | 84 | Lovisa | Idestam | 67 | 80 | 
- | 85 | Alexey | Moiseenko | 71 | <NULL> | 
- | 86 | Petros | <NULL> | <NULL> | <NULL> | 
- | 87 | Andreas | Thyrhaug | <NULL> | <NULL> | 
+ | 53 | Bengt | Idestam | <NULL> | <NULL> | 
+ | 54 | Jon | Idestam | 44 | 53 | 
+ | 55 | Joachim | Wester | 43 | <NULL> | 
+ | 56 | Åsa | Holmström | 46 | <NULL> | 
+ | 57 | PETER | <NULL> | 44 | 54 | 
+ | 58 | Christian | Holmstrand | 45 | <NULL> | 
+ | 59 | per | Samuelsson | 44 | <NULL> | 
+ | 60 | Erik | Ohlsson | 47 | <NULL> | 
+ | 61 | Lovisa | Idestam | 44 | 57 | 
+ | 62 | Alexey | Moiseenko | 48 | <NULL> | 
+ | 63 | Petros | <NULL> | <NULL> | <NULL> | 
+ | 64 | Andreas | Thyrhaug | <NULL> | <NULL> | 
 
 
 <NEXT>
@@ -1693,15 +1693,15 @@ IndexScan(
 
 ExpectedResult: 
  ! 0:Object ! 1:String ! 2:String ! 3:Object ! 4:Object ! 5:DateTime ! 6:DateTime ! 7:Object ! 8:Object ! 
- | 78 | Joachim | Wester | 66 | <NULL> | 2003-01-01 00:00:00Z | <NULL> | <NULL> | <NULL> | 
- | 79 | Åsa | Holmström | 69 | <NULL> | 2009-12-01 00:00:00Z | 2009-12-01 00:00:00Z | 78 | 72 | 
- | 80 | PETER | <NULL> | 67 | 77 | 2005-10-01 00:00:00Z | 2005-10-01 00:00:00Z | 79 | 74 | 
- | 81 | Christian | Holmstrand | 68 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 80 | 74 | 
- | 82 | per | Samuelsson | 67 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 80 | 74 | 
- | 83 | Erik | Ohlsson | 70 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 79 | 73 | 
- | 85 | Alexey | Moiseenko | 71 | <NULL> | 2010-09-01 00:00:00Z | <NULL> | <NULL> | 74 | 
- | 86 | Petros | <NULL> | <NULL> | <NULL> | 2010-10-01 00:00:00Z | 2010-10-01 00:00:00Z | 79 | 72 | 
- | 87 | Andreas | Thyrhaug | <NULL> | <NULL> | 2010-12-13 00:00:00Z | 2010-12-13 00:00:00Z | 80 | 73 | 
+ | 55 | Joachim | Wester | 43 | <NULL> | 2003-01-01 00:00:00Z | <NULL> | <NULL> | <NULL> | 
+ | 56 | Åsa | Holmström | 46 | <NULL> | 2009-12-01 00:00:00Z | 2009-12-01 00:00:00Z | 55 | 49 | 
+ | 57 | PETER | <NULL> | 44 | 54 | 2005-10-01 00:00:00Z | 2005-10-01 00:00:00Z | 56 | 51 | 
+ | 58 | Christian | Holmstrand | 45 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 57 | 51 | 
+ | 59 | per | Samuelsson | 44 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 57 | 51 | 
+ | 60 | Erik | Ohlsson | 47 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 56 | 50 | 
+ | 62 | Alexey | Moiseenko | 48 | <NULL> | 2010-09-01 00:00:00Z | <NULL> | <NULL> | 51 | 
+ | 63 | Petros | <NULL> | <NULL> | <NULL> | 2010-10-01 00:00:00Z | 2010-10-01 00:00:00Z | 56 | 49 | 
+ | 64 | Andreas | Thyrhaug | <NULL> | <NULL> | 2010-12-13 00:00:00Z | 2010-12-13 00:00:00Z | 57 | 50 | 
 
 
 <NEXT>
@@ -1792,9 +1792,9 @@ IndexScan(
 
 ExpectedResult: 
  ! 0:Object ! 1:String ! 2:String ! 3:Object ! 4:Object ! 5:DateTime ! 6:DateTime ! 7:Object ! 8:Object ! 9:Boolean ! 10:Boolean ! 11:SByte ! 12:SByte ! 13:Int16 ! 14:Int16 ! 15:Int32 ! 16:Int32 ! 17:Int64 ! 18:Int64 ! 19:Byte ! 20:Byte ! 21:UInt16 ! 22:UInt16 ! 23:UInt32 ! 24:UInt32 ! 25:UInt64 ! 26:UInt64 ! 27:Decimal ! 28:Decimal ! 29:Single ! 30:Single ! 31:Double ! 32:Double ! 
- | 85 | Alexey | Moiseenko | 71 | <NULL> | 2010-09-01 00:00:00Z | <NULL> | <NULL> | 74 | False | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 
- | 86 | Petros | <NULL> | <NULL> | <NULL> | 2010-10-01 00:00:00Z | 2010-10-01 00:00:00Z | 79 | 72 | False | False | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 
- | 87 | Andreas | Thyrhaug | <NULL> | <NULL> | 2010-12-13 00:00:00Z | 2010-12-13 00:00:00Z | 80 | 73 | True | True | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 
+ | 62 | Alexey | Moiseenko | 48 | <NULL> | 2010-09-01 00:00:00Z | <NULL> | <NULL> | 51 | False | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 
+ | 63 | Petros | <NULL> | <NULL> | <NULL> | 2010-10-01 00:00:00Z | 2010-10-01 00:00:00Z | 56 | 49 | False | False | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 
+ | 64 | Andreas | Thyrhaug | <NULL> | <NULL> | 2010-12-13 00:00:00Z | 2010-12-13 00:00:00Z | 57 | 50 | True | True | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 
 
 
 <NEXT>
@@ -1825,7 +1825,7 @@ IndexScan(
 
 ExpectedResult: 
  ! 0:Object ! 1:String ! 2:String ! 
- | 88 | Adam | Adamsson | 
+ | 65 | Adam | Adamsson | 
 
 
 <NEXT>
@@ -1851,15 +1851,15 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 78 | 
- | 79 | 
- | 80 | 
- | 81 | 
- | 82 | 
- | 83 | 
- | 85 | 
- | 86 | 
- | 87 | 
+ | 55 | 
+ | 56 | 
+ | 57 | 
+ | 58 | 
+ | 59 | 
+ | 60 | 
+ | 62 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -1888,13 +1888,13 @@ ExpectedResult:
  ! Object ! 
  | <NULL> | 
  | <NULL> | 
- | 78 | 
- | 79 | 
- | 79 | 
- | 79 | 
- | 80 | 
- | 80 | 
- | 80 | 
+ | 55 | 
+ | 56 | 
+ | 56 | 
+ | 56 | 
+ | 57 | 
+ | 57 | 
+ | 57 | 
 
 
 <NEXT>
@@ -1927,12 +1927,12 @@ ExpectedResult:
  | <NULL> | 
  | <NULL> | 
  | <NULL> | 
- | 78 | 
- | 78 | 
- | 78 | 
- | 79 | 
- | 79 | 
- | 79 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+ | 56 | 
+ | 56 | 
+ | 56 | 
 
 
 <NEXT>
@@ -1969,9 +1969,9 @@ ExpectedResult:
  | <NULL> | 
  | <NULL> | 
  | <NULL> | 
- | 72 | 
- | 72 | 
- | 72 | 
+ | 49 | 
+ | 49 | 
+ | 49 | 
 
 
 <NEXT>
@@ -2009,9 +2009,9 @@ ExpectedResult:
  | <NULL> | 
  | <NULL> | 
  | <NULL> | 
- | 67 | 
- | 67 | 
- | 67 | 
+ | 44 | 
+ | 44 | 
+ | 44 | 
 
 
 <NEXT>
@@ -2064,15 +2064,15 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 78 | 
- | 79 | 
- | 80 | 
- | 81 | 
- | 82 | 
- | 83 | 
- | 85 | 
- | 86 | 
- | 87 | 
+ | 55 | 
+ | 56 | 
+ | 57 | 
+ | 58 | 
+ | 59 | 
+ | 60 | 
+ | 62 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -2148,15 +2148,15 @@ IndexScan(
 
 ExpectedResult: 
  ! 0:String ! 1:String ! 2:Object ! 3:Object ! 4:DateTime ! 5:DateTime ! 6:Object ! 7:Object ! 
- | Alexey | Moiseenko | 71 | <NULL> | 2010-09-01 00:00:00Z | <NULL> | <NULL> | 74 | 
- | Andreas | Thyrhaug | <NULL> | <NULL> | 2010-12-13 00:00:00Z | 2010-12-13 00:00:00Z | 80 | 73 | 
- | Åsa | Holmström | 69 | <NULL> | 2009-12-01 00:00:00Z | 2009-12-01 00:00:00Z | 78 | 72 | 
- | Christian | Holmstrand | 68 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 80 | 74 | 
- | Erik | Ohlsson | 70 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 79 | 73 | 
- | Joachim | Wester | 66 | <NULL> | 2003-01-01 00:00:00Z | <NULL> | <NULL> | <NULL> | 
- | per | Samuelsson | 67 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 80 | 74 | 
- | PETER | <NULL> | 67 | 77 | 2005-10-01 00:00:00Z | 2005-10-01 00:00:00Z | 79 | 74 | 
- | Petros | <NULL> | <NULL> | <NULL> | 2010-10-01 00:00:00Z | 2010-10-01 00:00:00Z | 79 | 72 | 
+ | Alexey | Moiseenko | 48 | <NULL> | 2010-09-01 00:00:00Z | <NULL> | <NULL> | 51 | 
+ | Andreas | Thyrhaug | <NULL> | <NULL> | 2010-12-13 00:00:00Z | 2010-12-13 00:00:00Z | 57 | 50 | 
+ | Åsa | Holmström | 46 | <NULL> | 2009-12-01 00:00:00Z | 2009-12-01 00:00:00Z | 55 | 49 | 
+ | Christian | Holmstrand | 45 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 57 | 51 | 
+ | Erik | Ohlsson | 47 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 56 | 50 | 
+ | Joachim | Wester | 43 | <NULL> | 2003-01-01 00:00:00Z | <NULL> | <NULL> | <NULL> | 
+ | per | Samuelsson | 44 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 57 | 51 | 
+ | PETER | <NULL> | 44 | 54 | 2005-10-01 00:00:00Z | 2005-10-01 00:00:00Z | 56 | 51 | 
+ | Petros | <NULL> | <NULL> | <NULL> | 2010-10-01 00:00:00Z | 2010-10-01 00:00:00Z | 56 | 49 | 
 
 
 <NEXT>
@@ -2197,15 +2197,15 @@ IndexScan(
 
 ExpectedResult: 
  ! 0:String ! 1:String ! 2:Object ! 3:Object ! 4:DateTime ! 5:DateTime ! 6:Object ! 7:Object ! 
- | Alexey | Moiseenko | 71 | <NULL> | 2010-09-01 00:00:00Z | <NULL> | <NULL> | 74 | 
- | Andreas | Thyrhaug | <NULL> | <NULL> | 2010-12-13 00:00:00Z | 2010-12-13 00:00:00Z | 80 | 73 | 
- | Åsa | Holmström | 69 | <NULL> | 2009-12-01 00:00:00Z | 2009-12-01 00:00:00Z | 78 | 72 | 
- | Christian | Holmstrand | 68 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 80 | 74 | 
- | Erik | Ohlsson | 70 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 79 | 73 | 
- | Joachim | Wester | 66 | <NULL> | 2003-01-01 00:00:00Z | <NULL> | <NULL> | <NULL> | 
- | per | Samuelsson | 67 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 80 | 74 | 
- | PETER | <NULL> | 67 | 77 | 2005-10-01 00:00:00Z | 2005-10-01 00:00:00Z | 79 | 74 | 
- | Petros | <NULL> | <NULL> | <NULL> | 2010-10-01 00:00:00Z | 2010-10-01 00:00:00Z | 79 | 72 | 
+ | Alexey | Moiseenko | 48 | <NULL> | 2010-09-01 00:00:00Z | <NULL> | <NULL> | 51 | 
+ | Andreas | Thyrhaug | <NULL> | <NULL> | 2010-12-13 00:00:00Z | 2010-12-13 00:00:00Z | 57 | 50 | 
+ | Åsa | Holmström | 46 | <NULL> | 2009-12-01 00:00:00Z | 2009-12-01 00:00:00Z | 55 | 49 | 
+ | Christian | Holmstrand | 45 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 57 | 51 | 
+ | Erik | Ohlsson | 47 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 56 | 50 | 
+ | Joachim | Wester | 43 | <NULL> | 2003-01-01 00:00:00Z | <NULL> | <NULL> | <NULL> | 
+ | per | Samuelsson | 44 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 57 | 51 | 
+ | PETER | <NULL> | 44 | 54 | 2005-10-01 00:00:00Z | 2005-10-01 00:00:00Z | 56 | 51 | 
+ | Petros | <NULL> | <NULL> | <NULL> | 2010-10-01 00:00:00Z | 2010-10-01 00:00:00Z | 56 | 49 | 
 
 
 <NEXT>
@@ -2257,12 +2257,12 @@ ExpectedResult:
  | <NULL> | <NULL> | <NULL> | <NULL> | 
  | <NULL> | <NULL> | <NULL> | <NULL> | 
  | <NULL> | <NULL> | <NULL> | <NULL> | 
- | Administration | Head office | 67 | FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF | 
- | Administration | Head office | 67 | FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF | 
- | Administration | Head office | 67 | FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF | 
- | Development of database server | Server | 67 | FDFDFDFDFDFDFDFDFDFDFDFDFDFDFDFD | 
- | Development of database server | Server | 67 | FDFDFDFDFDFDFDFDFDFDFDFDFDFDFDFD | 
- | Development of database server | Server | 67 | FDFDFDFDFDFDFDFDFDFDFDFDFDFDFDFD | 
+ | Administration | Head office | 44 | FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF | 
+ | Administration | Head office | 44 | FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF | 
+ | Administration | Head office | 44 | FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF | 
+ | Development of database server | Server | 44 | FDFDFDFDFDFDFDFDFDFDFDFDFDFDFDFD | 
+ | Development of database server | Server | 44 | FDFDFDFDFDFDFDFDFDFDFDFDFDFDFDFD | 
+ | Development of database server | Server | 44 | FDFDFDFDFDFDFDFDFDFDFDFDFDFDFDFD | 
 
 
 <NEXT>
@@ -2640,7 +2640,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 73 | 
+ | 50 | 
 
 
 <NEXT>
@@ -2667,9 +2667,9 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 72 | 
- | 74 | 
- | 75 | 
+ | 49 | 
+ | 51 | 
+ | 52 | 
 
 
 <NEXT>
@@ -2696,8 +2696,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 74 | 
- | 75 | 
+ | 51 | 
+ | 52 | 
 
 
 <NEXT>
@@ -2724,9 +2724,9 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 73 | 
- | 74 | 
- | 75 | 
+ | 50 | 
+ | 51 | 
+ | 52 | 
 
 
 <NEXT>
@@ -2753,7 +2753,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 72 | 
+ | 49 | 
 
 
 <NEXT>
@@ -2780,7 +2780,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 73 | 
+ | 50 | 
 
 
 <NEXT>
@@ -2807,9 +2807,9 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 72 | 
- | 74 | 
- | 75 | 
+ | 49 | 
+ | 51 | 
+ | 52 | 
 
 
 <NEXT>
@@ -2836,8 +2836,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 74 | 
- | 75 | 
+ | 51 | 
+ | 52 | 
 
 
 <NEXT>
@@ -2864,9 +2864,9 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 73 | 
- | 74 | 
- | 75 | 
+ | 50 | 
+ | 51 | 
+ | 52 | 
 
 
 <NEXT>
@@ -2893,7 +2893,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 72 | 
+ | 49 | 
 
 
 <NEXT>
@@ -2952,10 +2952,10 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 72 | 
- | 73 | 
- | 74 | 
- | 75 | 
+ | 49 | 
+ | 50 | 
+ | 51 | 
+ | 52 | 
 
 
 <NEXT>
@@ -2982,8 +2982,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -3010,7 +3010,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -3063,8 +3063,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -3091,7 +3091,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -3118,9 +3118,9 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
- | 87 | 
+ | 62 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -3147,8 +3147,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -3175,7 +3175,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -3228,8 +3228,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -3256,7 +3256,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -3283,9 +3283,9 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
- | 87 | 
+ | 62 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -3344,9 +3344,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
- | 87 | 
+ | 62 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -3373,7 +3373,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -3400,7 +3400,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -3453,7 +3453,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -3480,7 +3480,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -3507,8 +3507,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -3535,7 +3535,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -3562,7 +3562,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -3615,7 +3615,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -3642,7 +3642,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -3669,8 +3669,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -3700,7 +3700,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -3730,8 +3730,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -3758,7 +3758,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -3785,8 +3785,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -3813,7 +3813,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -3840,8 +3840,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -3868,7 +3868,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -3895,8 +3895,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -3923,7 +3923,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -3950,8 +3950,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -3978,7 +3978,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -4005,8 +4005,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -4033,7 +4033,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -4060,8 +4060,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -4120,9 +4120,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
- | 87 | 
+ | 62 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -4149,7 +4149,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -4176,7 +4176,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -4229,7 +4229,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -4256,7 +4256,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -4283,8 +4283,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -4311,7 +4311,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -4338,7 +4338,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -4391,7 +4391,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -4418,7 +4418,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -4445,8 +4445,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -4476,7 +4476,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -4506,8 +4506,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -4534,7 +4534,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -4561,8 +4561,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -4589,7 +4589,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -4616,8 +4616,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -4644,7 +4644,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -4671,8 +4671,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -4699,7 +4699,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -4726,8 +4726,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -4754,7 +4754,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -4781,8 +4781,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -4809,7 +4809,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -4836,8 +4836,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -4896,9 +4896,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
- | 87 | 
+ | 62 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -4925,7 +4925,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -4952,7 +4952,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -5005,7 +5005,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -5032,7 +5032,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -5059,8 +5059,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -5087,7 +5087,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -5114,7 +5114,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -5167,7 +5167,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -5194,7 +5194,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -5221,8 +5221,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -5252,7 +5252,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -5282,8 +5282,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -5310,7 +5310,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -5337,8 +5337,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -5365,7 +5365,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -5392,8 +5392,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -5420,7 +5420,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -5447,8 +5447,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -5475,7 +5475,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -5502,8 +5502,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -5530,7 +5530,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -5557,8 +5557,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -5585,7 +5585,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -5612,8 +5612,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -5672,9 +5672,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
- | 87 | 
+ | 62 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -5701,7 +5701,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -5728,7 +5728,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -5781,7 +5781,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -5808,7 +5808,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -5835,8 +5835,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -5863,7 +5863,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -5890,7 +5890,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -5943,7 +5943,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -5970,7 +5970,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -5997,8 +5997,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -6028,7 +6028,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -6058,8 +6058,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -6086,7 +6086,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -6113,8 +6113,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -6141,7 +6141,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -6168,8 +6168,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -6196,7 +6196,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -6223,8 +6223,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -6251,7 +6251,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -6278,8 +6278,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -6306,7 +6306,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -6333,8 +6333,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -6361,7 +6361,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -6388,8 +6388,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -6448,9 +6448,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
- | 87 | 
+ | 62 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -6477,7 +6477,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -6504,7 +6504,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -6557,7 +6557,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -6584,7 +6584,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -6611,8 +6611,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -6639,7 +6639,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -6666,7 +6666,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -6719,7 +6719,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -6746,7 +6746,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -6773,8 +6773,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -6804,7 +6804,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -6834,8 +6834,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -6862,7 +6862,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -6889,8 +6889,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -6917,7 +6917,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -6944,8 +6944,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -6972,7 +6972,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -6999,8 +6999,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -7027,7 +7027,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -7054,8 +7054,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -7082,7 +7082,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -7109,8 +7109,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -7137,7 +7137,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -7164,8 +7164,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -7224,9 +7224,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
- | 87 | 
+ | 62 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -7253,7 +7253,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -7280,7 +7280,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -7333,7 +7333,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -7360,7 +7360,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -7387,8 +7387,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -7415,7 +7415,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -7442,7 +7442,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -7495,7 +7495,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -7522,7 +7522,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -7549,8 +7549,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -7580,7 +7580,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -7610,8 +7610,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -7638,7 +7638,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -7665,8 +7665,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -7693,7 +7693,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -7720,8 +7720,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -7748,7 +7748,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -7775,8 +7775,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -7803,7 +7803,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -7830,8 +7830,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -7858,7 +7858,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -7885,8 +7885,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -7913,7 +7913,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -7940,8 +7940,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -8000,9 +8000,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
- | 87 | 
+ | 62 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -8029,7 +8029,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -8056,7 +8056,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -8109,7 +8109,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -8136,7 +8136,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -8163,8 +8163,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -8191,7 +8191,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -8218,7 +8218,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -8271,7 +8271,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -8298,7 +8298,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -8325,8 +8325,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -8356,7 +8356,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -8386,8 +8386,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -8414,7 +8414,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -8441,8 +8441,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -8469,7 +8469,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -8496,8 +8496,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -8524,7 +8524,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -8551,8 +8551,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -8579,7 +8579,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -8606,8 +8606,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -8634,7 +8634,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -8661,8 +8661,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -8689,7 +8689,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -8716,8 +8716,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -8776,9 +8776,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
- | 87 | 
+ | 62 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -8805,7 +8805,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -8832,7 +8832,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -8885,7 +8885,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -8912,7 +8912,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -8939,8 +8939,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -8967,7 +8967,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -8994,7 +8994,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -9047,7 +9047,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -9074,7 +9074,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -9101,8 +9101,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -9132,7 +9132,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -9162,8 +9162,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -9194,7 +9194,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -9224,8 +9224,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -9252,7 +9252,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -9279,8 +9279,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -9307,7 +9307,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -9334,8 +9334,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -9362,7 +9362,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -9389,8 +9389,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -9417,7 +9417,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -9444,8 +9444,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -9472,7 +9472,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -9499,8 +9499,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -9527,7 +9527,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -9554,8 +9554,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -9614,9 +9614,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
- | 87 | 
+ | 62 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -9643,7 +9643,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -9670,7 +9670,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -9723,7 +9723,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -9750,7 +9750,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -9777,8 +9777,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -9805,7 +9805,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -9832,7 +9832,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -9885,7 +9885,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -9912,7 +9912,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -9939,8 +9939,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -9970,7 +9970,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -10000,8 +10000,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -10028,7 +10028,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -10055,8 +10055,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -10083,7 +10083,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -10110,8 +10110,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -10138,7 +10138,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -10165,8 +10165,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -10193,7 +10193,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -10220,8 +10220,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -10248,7 +10248,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -10275,8 +10275,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -10303,7 +10303,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -10330,8 +10330,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -10390,9 +10390,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
- | 87 | 
+ | 62 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -10419,7 +10419,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -10446,7 +10446,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -10499,7 +10499,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -10526,7 +10526,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -10553,8 +10553,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -10581,7 +10581,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -10608,7 +10608,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -10661,7 +10661,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -10688,7 +10688,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -10715,8 +10715,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -10746,7 +10746,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -10776,8 +10776,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -10804,7 +10804,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -10831,7 +10831,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -10858,7 +10858,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -10885,8 +10885,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -10939,7 +10939,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -10966,7 +10966,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -10993,7 +10993,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -11020,7 +11020,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -11047,8 +11047,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -11101,7 +11101,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -11131,7 +11131,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -11161,8 +11161,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -11189,7 +11189,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -11216,8 +11216,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -11244,7 +11244,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -11271,8 +11271,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -11299,7 +11299,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -11326,8 +11326,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -11354,7 +11354,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -11381,8 +11381,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -11409,7 +11409,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -11436,8 +11436,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -11464,7 +11464,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -11491,8 +11491,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -11551,9 +11551,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
- | 87 | 
+ | 62 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -11580,7 +11580,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -11607,7 +11607,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -11660,7 +11660,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -11687,7 +11687,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -11714,8 +11714,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -11742,7 +11742,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -11769,7 +11769,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -11822,7 +11822,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -11849,7 +11849,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -11876,8 +11876,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -11907,7 +11907,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -11937,8 +11937,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -11965,7 +11965,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -11992,8 +11992,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -12020,7 +12020,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -12047,8 +12047,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -12075,7 +12075,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -12102,8 +12102,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -12130,7 +12130,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -12157,8 +12157,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -12185,7 +12185,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -12212,8 +12212,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -12240,7 +12240,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -12267,8 +12267,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -12327,9 +12327,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
- | 87 | 
+ | 62 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -12356,7 +12356,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -12383,7 +12383,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -12436,7 +12436,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -12463,7 +12463,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -12490,8 +12490,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -12518,7 +12518,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -12545,7 +12545,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -12598,7 +12598,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -12625,7 +12625,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -12652,8 +12652,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -12683,7 +12683,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -12713,8 +12713,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -12741,7 +12741,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -12768,8 +12768,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -12796,7 +12796,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -12823,8 +12823,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -12851,7 +12851,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -12878,8 +12878,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -12906,7 +12906,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -12933,8 +12933,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 87 | 
+ | 62 | 
+ | 64 | 
 
 
 <NEXT>
@@ -12961,7 +12961,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -12988,8 +12988,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
+ | 62 | 
+ | 63 | 
 
 
 <NEXT>
@@ -13016,7 +13016,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -13043,8 +13043,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -13103,9 +13103,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
- | 86 | 
- | 87 | 
+ | 62 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -13132,7 +13132,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -13159,7 +13159,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -13212,7 +13212,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -13239,7 +13239,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -13266,8 +13266,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -13294,7 +13294,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -13321,7 +13321,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -13374,7 +13374,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
@@ -13401,7 +13401,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
@@ -13428,8 +13428,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -13459,7 +13459,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 85 | 
+ | 62 | 
 
 
 <NEXT>
@@ -13489,8 +13489,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
- | 87 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -13517,7 +13517,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 66 | 
+ | 43 | 
 
 
 <NEXT>
@@ -13544,11 +13544,11 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 67 | 
- | 68 | 
- | 69 | 
- | 70 | 
- | 71 | 
+ | 44 | 
+ | 45 | 
+ | 46 | 
+ | 47 | 
+ | 48 | 
 
 
 <NEXT>
@@ -13601,7 +13601,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 66 | 
+ | 43 | 
 
 
 <NEXT>
@@ -13628,11 +13628,11 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 67 | 
- | 68 | 
- | 69 | 
- | 70 | 
- | 71 | 
+ | 44 | 
+ | 45 | 
+ | 46 | 
+ | 47 | 
+ | 48 | 
 
 
 <NEXT>
@@ -13659,12 +13659,12 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 66 | 
- | 67 | 
- | 68 | 
- | 69 | 
- | 70 | 
- | 71 | 
+ | 43 | 
+ | 44 | 
+ | 45 | 
+ | 46 | 
+ | 47 | 
+ | 48 | 
 
 
 <NEXT>
@@ -13691,7 +13691,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 66 | 
+ | 43 | 
 
 
 <NEXT>
@@ -13718,11 +13718,11 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 67 | 
- | 68 | 
- | 69 | 
- | 70 | 
- | 71 | 
+ | 44 | 
+ | 45 | 
+ | 46 | 
+ | 47 | 
+ | 48 | 
 
 
 <NEXT>
@@ -13775,7 +13775,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 66 | 
+ | 43 | 
 
 
 <NEXT>
@@ -13802,11 +13802,11 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 67 | 
- | 68 | 
- | 69 | 
- | 70 | 
- | 71 | 
+ | 44 | 
+ | 45 | 
+ | 46 | 
+ | 47 | 
+ | 48 | 
 
 
 <NEXT>
@@ -13833,12 +13833,12 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 66 | 
- | 67 | 
- | 68 | 
- | 69 | 
- | 70 | 
- | 71 | 
+ | 43 | 
+ | 44 | 
+ | 45 | 
+ | 46 | 
+ | 47 | 
+ | 48 | 
 
 
 <NEXT>
@@ -13897,12 +13897,12 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 66 | 
- | 67 | 
- | 68 | 
- | 69 | 
- | 70 | 
- | 71 | 
+ | 43 | 
+ | 44 | 
+ | 45 | 
+ | 46 | 
+ | 47 | 
+ | 48 | 
 
 
 <NEXT>
@@ -13929,7 +13929,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 66 | 
+ | 43 | 
 
 
 <NEXT>
@@ -13956,11 +13956,11 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 67 | 
- | 68 | 
- | 69 | 
- | 70 | 
- | 71 | 
+ | 44 | 
+ | 45 | 
+ | 46 | 
+ | 47 | 
+ | 48 | 
 
 
 <NEXT>
@@ -14013,7 +14013,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 66 | 
+ | 43 | 
 
 
 <NEXT>
@@ -14040,11 +14040,11 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 67 | 
- | 68 | 
- | 69 | 
- | 70 | 
- | 71 | 
+ | 44 | 
+ | 45 | 
+ | 46 | 
+ | 47 | 
+ | 48 | 
 
 
 <NEXT>
@@ -14071,12 +14071,12 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 66 | 
- | 67 | 
- | 68 | 
- | 69 | 
- | 70 | 
- | 71 | 
+ | 43 | 
+ | 44 | 
+ | 45 | 
+ | 46 | 
+ | 47 | 
+ | 48 | 
 
 
 <NEXT>
@@ -14103,7 +14103,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 66 | 
+ | 43 | 
 
 
 <NEXT>
@@ -14130,11 +14130,11 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 67 | 
- | 68 | 
- | 69 | 
- | 70 | 
- | 71 | 
+ | 44 | 
+ | 45 | 
+ | 46 | 
+ | 47 | 
+ | 48 | 
 
 
 <NEXT>
@@ -14187,7 +14187,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 66 | 
+ | 43 | 
 
 
 <NEXT>
@@ -14214,11 +14214,11 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 67 | 
- | 68 | 
- | 69 | 
- | 70 | 
- | 71 | 
+ | 44 | 
+ | 45 | 
+ | 46 | 
+ | 47 | 
+ | 48 | 
 
 
 <NEXT>
@@ -14245,12 +14245,12 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 66 | 
- | 67 | 
- | 68 | 
- | 69 | 
- | 70 | 
- | 71 | 
+ | 43 | 
+ | 44 | 
+ | 45 | 
+ | 46 | 
+ | 47 | 
+ | 48 | 
 
 
 <NEXT>
@@ -14309,12 +14309,12 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 66 | 
- | 67 | 
- | 68 | 
- | 69 | 
- | 70 | 
- | 71 | 
+ | 43 | 
+ | 44 | 
+ | 45 | 
+ | 46 | 
+ | 47 | 
+ | 48 | 
 
 
 <NEXT>
@@ -14656,8 +14656,8 @@ Sort(
 ExpectedResult: 
  ! 0:String ! 1:Object ! 
  | Alexey | <NULL> | 
- | Petros | 79 | 
- | Andreas | 80 | 
+ | Petros | 56 | 
+ | Andreas | 57 | 
 
 
 <NEXT>
@@ -15225,8 +15225,8 @@ Sort(
 
 ExpectedResult: 
  ! 0:String ! 1:Object ! 
- | Andreas | 80 | 
- | Petros | 79 | 
+ | Andreas | 57 | 
+ | Petros | 56 | 
  | Alexey | <NULL> | 
 
 
@@ -15622,42 +15622,42 @@ Join(
 
 ExpectedResult: 
  ! Object ! 
- | 72 | 
- | 72 | 
- | 72 | 
- | 72 | 
- | 72 | 
- | 72 | 
- | 72 | 
- | 72 | 
- | 72 | 
- | 73 | 
- | 73 | 
- | 73 | 
- | 73 | 
- | 73 | 
- | 73 | 
- | 73 | 
- | 73 | 
- | 73 | 
- | 74 | 
- | 74 | 
- | 74 | 
- | 74 | 
- | 74 | 
- | 74 | 
- | 74 | 
- | 74 | 
- | 74 | 
- | 75 | 
- | 75 | 
- | 75 | 
- | 75 | 
- | 75 | 
- | 75 | 
- | 75 | 
- | 75 | 
- | 75 | 
+ | 49 | 
+ | 49 | 
+ | 49 | 
+ | 49 | 
+ | 49 | 
+ | 49 | 
+ | 49 | 
+ | 49 | 
+ | 49 | 
+ | 50 | 
+ | 50 | 
+ | 50 | 
+ | 50 | 
+ | 50 | 
+ | 50 | 
+ | 50 | 
+ | 50 | 
+ | 50 | 
+ | 51 | 
+ | 51 | 
+ | 51 | 
+ | 51 | 
+ | 51 | 
+ | 51 | 
+ | 51 | 
+ | 51 | 
+ | 51 | 
+ | 52 | 
+ | 52 | 
+ | 52 | 
+ | 52 | 
+ | 52 | 
+ | 52 | 
+ | 52 | 
+ | 52 | 
+ | 52 | 
 
 
 <NEXT>
@@ -15748,14 +15748,14 @@ Join(
 ExpectedResult: 
  ! Object ! 
  | <NULL> | 
- | 79 | 
- | 80 | 
- | 81 | 
- | 82 | 
- | 83 | 
- | 85 | 
- | 86 | 
- | 87 | 
+ | 56 | 
+ | 57 | 
+ | 58 | 
+ | 59 | 
+ | 60 | 
+ | 62 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -15846,14 +15846,14 @@ Join(
 ExpectedResult: 
  ! Object ! 
  | <NULL> | 
- | 79 | 
- | 80 | 
- | 81 | 
- | 82 | 
- | 83 | 
- | 85 | 
- | 86 | 
- | 87 | 
+ | 56 | 
+ | 57 | 
+ | 58 | 
+ | 59 | 
+ | 60 | 
+ | 62 | 
+ | 63 | 
+ | 64 | 
 
 
 <NEXT>
@@ -15907,13 +15907,13 @@ Join(
 
 ExpectedResult: 
  ! 0:Object ! 1:Object ! 
- | 79 | 86 | 
- | 80 | 85 | 
- | 81 | 80 | 
- | 81 | 85 | 
- | 82 | 80 | 
- | 82 | 85 | 
- | 83 | 87 | 
+ | 56 | 63 | 
+ | 57 | 62 | 
+ | 58 | 57 | 
+ | 58 | 62 | 
+ | 59 | 57 | 
+ | 59 | 62 | 
+ | 60 | 64 | 
 
 
 <NEXT>
@@ -15953,23 +15953,23 @@ Join(
 
 ExpectedResult: 
  ! Object ! 
- | 78 | 
- | 78 | 
- | 78 | 
- | 78 | 
- | 79 | 
- | 81 | 
- | 82 | 
- | 82 | 
- | 82 | 
- | 83 | 
- | 83 | 
- | 85 | 
- | 85 | 
- | 87 | 
- | 87 | 
- | 87 | 
- | 87 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+ | 56 | 
+ | 58 | 
+ | 59 | 
+ | 59 | 
+ | 59 | 
+ | 60 | 
+ | 60 | 
+ | 62 | 
+ | 62 | 
+ | 64 | 
+ | 64 | 
+ | 64 | 
+ | 64 | 
 
 
 <NEXT>
@@ -16013,17 +16013,17 @@ ExpectedResult:
  | <NULL> | 
  | <NULL> | 
  | <NULL> | 
- | 73 | 
- | 73 | 
- | 74 | 
- | 74 | 
- | 74 | 
- | 74 | 
- | 74 | 
- | 75 | 
- | 75 | 
- | 75 | 
- | 75 | 
+ | 50 | 
+ | 50 | 
+ | 51 | 
+ | 51 | 
+ | 51 | 
+ | 51 | 
+ | 51 | 
+ | 52 | 
+ | 52 | 
+ | 52 | 
+ | 52 | 
 
 
 <NEXT>
@@ -16063,22 +16063,22 @@ Join(
 
 ExpectedResult: 
  ! Object ! 
- | 73 | 
- | 73 | 
- | 74 | 
- | 74 | 
- | 74 | 
- | 74 | 
- | 74 | 
- | 75 | 
- | 75 | 
- | 75 | 
- | 75 | 
+ | 50 | 
+ | 50 | 
+ | 51 | 
+ | 51 | 
+ | 51 | 
+ | 51 | 
+ | 51 | 
+ | 52 | 
+ | 52 | 
+ | 52 | 
+ | 52 | 
 
 <NEXT>
 Description: Object property equal to Object variable
 QueryString: select e from SalaryEmployee e where e.Manager = ?
-VariableValues: Object:80; 
+VariableValues: Object:57; 
 IncludesObjectValue: True
 ExpectedExecutionPlan: 
 Tables(
@@ -16093,20 +16093,20 @@ FullTableScan(
 	ComparisonObject(
 		Equal
 		ObjectProperty(0, Manager)
-		ObjectVariable(80)
+		ObjectVariable(57)
 	)
 	Ascending
 )
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
 Description: Object property not equal to Object variable
 QueryString: select e from SalaryEmployee e where e.Manager <> ?
-VariableValues: Object:80; 
+VariableValues: Object:57; 
 IncludesObjectValue: True
 ExpectedExecutionPlan: 
 Tables(
@@ -16121,20 +16121,20 @@ FullTableScan(
 	ComparisonObject(
 		NotEqual
 		ObjectProperty(0, Manager)
-		ObjectVariable(80)
+		ObjectVariable(57)
 	)
 	Ascending
 )
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
 Description: Object property less than Object variable (incorrect)
 QueryString: select e from SalaryEmployee e where e.Manager < ?
-VariableValues: Object:80; 
+VariableValues: Object:57; 
 IncludesObjectValue: True
 ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager < ?: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and any to operator lessThan. 
 
@@ -16142,7 +16142,7 @@ ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee 
 <NEXT>
 Description: Object property less than or equal to Object variable (incorrect)
 QueryString: select e from SalaryEmployee e where e.Manager <= ?
-VariableValues: Object:80; 
+VariableValues: Object:57; 
 IncludesObjectValue: True
 ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager <= ?: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and any to operator lessThanOrEqual. 
 
@@ -16150,7 +16150,7 @@ ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee 
 <NEXT>
 Description: Object property greater than Object variable (incorrect)
 QueryString: select e from SalaryEmployee e where e.Manager > ?
-VariableValues: Object:80; 
+VariableValues: Object:57; 
 IncludesObjectValue: True
 ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager > ?: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and any to operator greaterThan. 
 
@@ -16158,7 +16158,7 @@ ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee 
 <NEXT>
 Description: Object property greater than or equal to Object variable (incorrect)
 QueryString: select e from SalaryEmployee e where e.Manager >= ?
-VariableValues: Object:80; 
+VariableValues: Object:57; 
 IncludesObjectValue: True
 ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager >= ?: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and any to operator greaterThanOrEqual. 
 
@@ -16215,7 +16215,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Object property equal to Object literal
-QueryString: select e from SalaryEmployee e where e.Manager = object 80
+QueryString: select e from SalaryEmployee e where e.Manager = object 57
 IncludesLiteral: True
 IncludesObjectValue: True
 ExpectedExecutionPlan: 
@@ -16231,19 +16231,19 @@ FullTableScan(
 	ComparisonObject(
 		Equal
 		ObjectProperty(0, Manager)
-		ObjectLiteral(80)
+		ObjectLiteral(57)
 	)
 	Ascending
 )
 
 ExpectedResult: 
  ! Object ! 
- | 87 | 
+ | 64 | 
 
 
 <NEXT>
 Description: Object property not equal to Object literal
-QueryString: select e from SalaryEmployee e where e.Manager <> object 80
+QueryString: select e from SalaryEmployee e where e.Manager <> object 57
 IncludesLiteral: True
 IncludesObjectValue: True
 ExpectedExecutionPlan: 
@@ -16259,45 +16259,45 @@ FullTableScan(
 	ComparisonObject(
 		NotEqual
 		ObjectProperty(0, Manager)
-		ObjectLiteral(80)
+		ObjectLiteral(57)
 	)
 	Ascending
 )
 
 ExpectedResult: 
  ! Object ! 
- | 86 | 
+ | 63 | 
 
 
 <NEXT>
 Description: Object property less than Object literal (incorrect)
-QueryString: select e from SalaryEmployee e where e.Manager < object 80
+QueryString: select e from SalaryEmployee e where e.Manager < object 57
 IncludesLiteral: True
 IncludesObjectValue: True
-ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager < object 80: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator lessThan. 
+ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager < object 57: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator lessThan. 
 
 
 <NEXT>
 Description: Object property less than or equal to Object literal (incorrect)
-QueryString: select e from SalaryEmployee e where e.Manager <= object 80
+QueryString: select e from SalaryEmployee e where e.Manager <= object 57
 IncludesLiteral: True
 IncludesObjectValue: True
-ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager <= object 80: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator lessThanOrEqual. 
+ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager <= object 57: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator lessThanOrEqual. 
 
 
 <NEXT>
 Description: Object property greater than Object literal (incorrect)
-QueryString: select e from SalaryEmployee e where e.Manager > object 80
+QueryString: select e from SalaryEmployee e where e.Manager > object 57
 IncludesLiteral: True
 IncludesObjectValue: True
-ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager > object 80: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator greaterThan. 
+ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager > object 57: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator greaterThan. 
 
 
 <NEXT>
 Description: Object property greater than or equal to Object literal (incorrect)
-QueryString: select e from SalaryEmployee e where e.Manager >= object 80
+QueryString: select e from SalaryEmployee e where e.Manager >= object 57
 IncludesLiteral: True
 IncludesObjectValue: True
-ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager >= object 80: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator greaterThanOrEqual. 
+ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager >= object 57: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator greaterThanOrEqual. 
 
 
