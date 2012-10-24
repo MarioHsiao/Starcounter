@@ -158,12 +158,12 @@ namespace Starcounter.Internal
         {
             public byte type;
             public byte is_nullable;
-            public byte* name;
+            public char* name;
         }
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe uint sc_create_table(
-            byte *name,
+        public static extern unsafe uint sccoredb_create_table(
+            char *name,
             ulong base_definition_addr,
             SC_COLUMN_DEFINITION *column_definitions
             );
