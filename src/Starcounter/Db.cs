@@ -62,25 +62,25 @@ namespace Starcounter
                 }
                 ColumnDef[] columns = tableDef.ColumnDefs;
                 sccoredb.SC_COLUMN_DEFINITION[] column_definitions = new sccoredb.SC_COLUMN_DEFINITION[columns.Length - inheritedColumnCount + 1];
+                char* name = null;
                 try
                 {
                     for (int cc = column_definitions.Length - 1, ci = inheritedColumnCount, di = 0; di < cc; ci++, di++)
                     {
-                        column_definitions[di].name = (byte*)Marshal.StringToCoTaskMemAnsi(columns[ci].Name);
+                        column_definitions[di].name = (char *)Marshal.StringToCoTaskMemUni(columns[ci].Name);
                         column_definitions[di].type = BindingHelper.ConvertDbTypeCodeToScTypeCode(columns[ci].Type);
                         column_definitions[di].is_nullable = columns[ci].IsNullable ? (byte)1 : (byte)0;
                     }
-                    fixed (byte* fixed_name = Encoding.ASCII.GetBytes(tableDef.Name))
+                    name = (char*)Marshal.StringToCoTaskMemUni(tableDef.Name);
+                    fixed (sccoredb.SC_COLUMN_DEFINITION* fixed_column_definitions = column_definitions)
                     {
-                        fixed (sccoredb.SC_COLUMN_DEFINITION* fixed_column_definitions = column_definitions)
-                        {
-                            uint e = sccoredb.sc_create_table(fixed_name, inheritedDefinitionAddr, fixed_column_definitions);
-                            if (e != 0) throw ErrorCode.ToException(e);
-                        }
+                        uint e = sccoredb.sccoredb_create_table(name, inheritedDefinitionAddr, fixed_column_definitions);
+                        if (e != 0) throw ErrorCode.ToException(e);
                     }
                 }
                 finally
                 {
+                    if (name != null) Marshal.FreeCoTaskMem((IntPtr)name);
                     for (int i = 0; i < column_definitions.Length; i++)
                     {
                         if (column_definitions[i].name != null)
