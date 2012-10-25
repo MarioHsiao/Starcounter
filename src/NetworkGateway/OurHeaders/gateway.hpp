@@ -99,7 +99,7 @@ const uint32_t INVALID_SCHEDULER_ID = ~0;
 const uint64_t INVALID_SESSION_SALT = 0;
 
 // Invalid Apps unique number.
-const uint64_t INVALID_APPS_UNIQUE_NUMBER = 0;
+const uint64_t INVALID_APPS_UNIQUE_SESSION_NUMBER = 0;
 
 // Maximum session salt during generation.
 const uint64_t MAX_SESSION_SALT = ~((uint64_t)0) - 2;
@@ -457,7 +457,7 @@ struct ScSessionStruct
     uint32_t scheduler_id_;
 
     // Unique number coming from Apps.
-    uint64_t apps_unique_num_;
+    uint64_t apps_unique_session_num_;
 
     // Default constructor.
     ScSessionStruct()
@@ -471,16 +471,16 @@ struct ScSessionStruct
         session_salt_ = INVALID_SESSION_SALT;
         session_index_ = INVALID_SESSION_INDEX;
         scheduler_id_ = INVALID_SCHEDULER_ID;
-        apps_unique_num_ = INVALID_APPS_UNIQUE_NUMBER;
+        apps_unique_session_num_ = INVALID_APPS_UNIQUE_SESSION_NUMBER;
     }
 
     // Initializes.
-    void Init(uint64_t session_salt, uint32_t session_index, uint64_t apps_unique_num, uint32_t scheduler_id)
+    void Init(uint64_t session_salt, uint32_t session_index, uint64_t apps_unique_session_num, uint32_t scheduler_id)
     {
         session_salt_ = session_salt;
         session_index_ = session_index;
         scheduler_id_ = scheduler_id;
-        apps_unique_num_ = apps_unique_num;
+        apps_unique_session_num_ = apps_unique_session_num;
     }
 
     // Comparing two sessions.
@@ -513,7 +513,7 @@ struct ScSessionStruct
         session_salt_ = session_struct->session_salt_;
         session_index_ = session_struct->session_index_;
         scheduler_id_ = session_struct->scheduler_id_;
-        apps_unique_num_ = session_struct->apps_unique_num_;
+        apps_unique_session_num_ = session_struct->apps_unique_session_num_;
     }
 
     // Scheduler ID.
@@ -536,7 +536,7 @@ struct ScSessionStruct
     }
 
     // Create new session based on random salt, linear index, scheduler.
-    void GenerateNewSession(uint64_t salt, uint32_t session_index, uint64_t apps_unique_num, uint32_t scheduler_id);
+    void GenerateNewSession(uint64_t salt, uint32_t session_index, uint64_t apps_unique_session_num, uint32_t scheduler_id);
 
     // Compare socket stamps of two sessions.
     bool CompareSalts(uint64_t session_salt)
@@ -1307,7 +1307,7 @@ public:
     }
 
     // Generates new global session.
-    ScSessionStruct* GenerateNewSession(uint64_t salt, uint64_t apps_unique_num, uint32_t scheduler_id)
+    ScSessionStruct* GenerateNewSession(uint64_t salt, uint64_t apps_unique_session_num, uint32_t scheduler_id)
     {
         // Checking that we have not reached maximum number of sessions.
         if (num_active_sessions_unsafe_ >= setting_maxConnections_)
@@ -1323,7 +1323,7 @@ public:
         all_sessions_unsafe_[free_session_index].GenerateNewSession(
             salt,
             free_session_index,
-            apps_unique_num,
+            apps_unique_session_num,
             scheduler_id);
 
         // Incrementing number of active sessions.

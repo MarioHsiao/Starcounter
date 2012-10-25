@@ -55,7 +55,7 @@ namespace Starcounter
         /// <summary>
         /// The SESSIO n_ INDE x_ OFFSET
         /// </summary>
-        public const Int32 SESSION_APPS_UNIQUE_NUMBER_OFFSET = GATEWAY_DATA_BEGIN + 16;
+        public const Int32 SESSION_APPS_UNIQUE_SESSION_NUMBER_OFFSET = GATEWAY_DATA_BEGIN + 16;
         
         /// <summary>
         /// The USE r_ DAT a_ OFFSET

@@ -307,6 +307,22 @@ uint32_t BmxData::SendRegisterPushChannelResponse(shared_memory_chunk* smc, TASK
     return err_code;
 }
 
+// Handles destroyed session message.
+uint32_t BmxData::HandleDestroyedSession(request_chunk_part* request, TASK_INFO_TYPE* task_info)
+{
+    // Entering critical section.
+    uint32_t err_code = 0;
+
+    // Reading Apps unique session number.
+    uint64_t apps_unique_session_num = request->read_uint64();
+
+    std::cout << "Session " << apps_unique_session_num << " was destroyed." << std::endl;
+
+    // TODO: Handle destroyed session.
+
+    return err_code;
+}
+
 // Sends information about all registered handlers.
 uint32_t BmxData::SendAllHandlersInfo(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info)
 {

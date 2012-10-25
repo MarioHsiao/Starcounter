@@ -109,7 +109,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
             if (INVALID_SESSION_INDEX != sd->get_session_index())
             {
                 // Checking if Apps unique number is valid.
-                if (INVALID_APPS_UNIQUE_NUMBER != sd->get_apps_unique_num())
+                if (INVALID_APPS_UNIQUE_SESSION_NUMBER != sd->get_apps_unique_session_num())
                 {
                     ScSessionStruct* session = g_gateway.GetSessionData(sd->get_session_index());
                     if (!session->CompareSalts(sd->get_session_salt()))
@@ -134,13 +134,13 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
             else
             {
                 // Checking if unique Apps number was supplied.
-                if (INVALID_APPS_UNIQUE_NUMBER != sd->get_apps_unique_num())
+                if (INVALID_APPS_UNIQUE_SESSION_NUMBER != sd->get_apps_unique_session_num())
                 {
                     // Session is newly created.
                     sd->set_new_session_created(true);
 
                     // Creating new session with this salt and scheduler id and attaching it.
-                    sd->AttachToSession(g_gateway.GenerateNewSession(gw->get_random()->uint64(), sd->get_apps_unique_num(), i));
+                    sd->AttachToSession(g_gateway.GenerateNewSession(gw->get_random()->uint64(), sd->get_apps_unique_session_num(), i));
                 }
             }
 
@@ -321,6 +321,36 @@ uint32_t WorkerDbInterface::RegisterPushChannel(int32_t sched_num)
 
     // Writing BMX message type.
     request->write(bmx::BMX_REGISTER_PUSH_CHANNEL);
+
+    // No linked chunks.
+    smc->terminate_link();
+
+    // Pushing the chunk.
+    return PushLinkedChunksToDb(new_chunk, 1, sched_num);
+}
+
+// Pushes session destroyed message.
+uint32_t WorkerDbInterface::PushSessionDestroyed(ScSessionStruct* session, int32_t sched_num)
+{
+    // Get a reference to the chunk.
+    shared_memory_chunk *smc = NULL;
+
+    // Getting a free chunk.
+    core::chunk_index new_chunk;
+    uint32_t err_code = GetOneChunkFromPrivatePool(&new_chunk, &smc);
+    GW_ERR_CHECK(err_code);
+
+    // Predefined BMX management handler.
+    smc->set_bmx_protocol(bmx::BMX_MANAGEMENT_HANDLER);
+
+    request_chunk_part* request = smc->get_request_chunk();
+    request->reset_offset();
+
+    // Writing BMX message type.
+    request->write(bmx::BMX_SESSION_DESTROYED);
+
+    // Writing Apps unique session number.
+    request->write(session->apps_unique_session_num_);
 
     // No linked chunks.
     smc->terminate_link();
@@ -664,6 +694,18 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                     server_port->Erase();
 
                 return 0;
+            }
+
+            case bmx::BMX_SESSION_DESTROYED:
+            {
+                // Reading Apps unique session number.
+                uint64_t apps_unique_session_num = resp_chunk->read_uint64();
+
+                // TODO: Handle destroyed session.
+
+                GW_PRINT_WORKER << "Session " << apps_unique_session_num << " was destroyed." << std::endl;
+
+                break;
             }
 
             default:
