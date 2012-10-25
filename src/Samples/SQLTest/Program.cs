@@ -16,7 +16,9 @@ namespace SQLTest
             nrFailedQueries += Test1and2(outputPath);
             nrFailedQueries += Test3(outputPath);
             Console.WriteLine("Finished SQLTest.");
-            return nrFailedQueries;
+            System.IO.File.Create(@"s\Starcounter\failedTest");
+            throw new Exception("The test is completed!");
+            //return nrFailedQueries;
         }
 
         static int Test1and2(String outputPath)
