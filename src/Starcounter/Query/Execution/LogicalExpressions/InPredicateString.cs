@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="InPredicateString.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using Starcounter;
 using Starcounter.Query.Optimization;
@@ -59,8 +64,8 @@ internal class InPredicateString : ILogicalExpression
     /// <summary>
     /// Constructor.
     /// </summary>
-    /// <param name="logExpr">The left argument to the in-predicate.</param>
-    /// <param name="currentLogExprList">The right argument to the in-predicate.</param>
+    /// <param name="expr">The left argument to the in-predicate.</param>
+    /// <param name="list">The right argument to the in-predicate.</param>
     internal InPredicateString(IStringExpression expr, List<IStringExpression> list)
     : base()
     {

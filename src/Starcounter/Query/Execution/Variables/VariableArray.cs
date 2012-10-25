@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="VariableArray.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Query.Optimization;
 using System;
 using System.Collections.Generic;
@@ -156,7 +161,7 @@ internal class VariableArray
     /// <summary>
     /// Initializes all query variables from given buffer.
     /// </summary>
-    /// <param name="queryParams"></param>
+    /// <param name="queryParamsBufOrig">The query params buf orig.</param>
     internal unsafe void InitFromBuffer(Byte *queryParamsBufOrig)
     {
         // Skipping first four bytes for the total length.

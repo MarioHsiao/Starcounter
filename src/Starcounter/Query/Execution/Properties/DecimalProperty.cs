@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="DecimalProperty.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Query.Optimization;
 using System;
 using Starcounter.Binding;
@@ -40,6 +45,8 @@ internal class DecimalProperty : Property, IDecimalPathItem
     }
 
     /// <summary>
+    /// 
+    /// </summary>
     public QueryTypeCode QueryTypeCode
     {
         get
@@ -89,6 +96,7 @@ internal class DecimalProperty : Property, IDecimalPathItem
         }
     }
     
+    /// <summary>
     /// Calculates the value of this property when evaluated on an input object.
     /// </summary>
     /// <param name="obj">The object on which to evaluate this property.</param>

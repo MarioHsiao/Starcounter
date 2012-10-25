@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="DbStateMethodProvider.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System;
 using System.Collections.Generic;
@@ -12,28 +17,56 @@ using System.Diagnostics;
 
 namespace Starcounter.Internal.Weaver {
     /// <summary>
-    /// Provides the method <see cref="GetGetMethod"/> and <see cref="GetSetMethod"/>, which determine
-    /// which method of the <see cref="DbState"/> class should be called to retrieve or store the value
+    /// Provides the method <see cref="GetGetMethod" /> and <see cref="GetSetMethod" />, which determine
+    /// which method of the <see cref="DbState" /> class should be called to retrieve or store the value
     /// of database fields, and which type conversion is necessary.
     /// </summary>
     internal class DbStateMethodProvider {
+        /// <summary>
+        /// Class MethodCastPair
+        /// </summary>
         private class MethodCastPair {
+            /// <summary>
+            /// The method
+            /// </summary>
             public IMethod Method;
+            /// <summary>
+            /// The cast type
+            /// </summary>
             public ITypeSignature CastType;
         }
 
+        /// <summary>
+        /// The read operation
+        /// </summary>
         private const string readOperation = "Read";
+        /// <summary>
+        /// The write operation
+        /// </summary>
         private const string writeOperation = "Write";
 
+        /// <summary>
+        /// The module
+        /// </summary>
         private readonly ModuleDeclaration module;
+        /// <summary>
+        /// The cache
+        /// </summary>
         private readonly Dictionary<string, MethodCastPair> cache = new Dictionary<string, MethodCastPair>();
+        /// <summary>
+        /// The db state type
+        /// </summary>
         private static readonly Type dbStateType = typeof(DbState);
+        /// <summary>
+        /// The code generated db state type
+        /// </summary>
         private readonly Type codeGeneratedDbStateType;
 
         /// <summary>
-        /// Initializes a new <see cref="DbStateMethodProvider"/>.
+        /// Initializes a new <see cref="DbStateMethodProvider" />.
         /// </summary>
-        /// <param name="module">Modules from which the <see cref="DbState"/> methods will be called.</param>
+        /// <param name="module">Modules from which the <see cref="DbState" /> methods will be called.</param>
+        /// <param name="dynamicLibDir">The dynamic lib dir.</param>
         public DbStateMethodProvider(ModuleDeclaration module, String dynamicLibDir) {
             Trace.Assert(string.IsNullOrEmpty(dynamicLibDir), "Currently, we don't support generated code.");
 
@@ -43,22 +76,22 @@ namespace Starcounter.Internal.Weaver {
 
         #region Helper methods
         /// <summary>
-        /// Gets the cache key of the type of a <see cref="DatabaseAttribute"/>.
+        /// Gets the cache key of the type of a <see cref="DatabaseAttribute" />.
         /// </summary>
-        /// <param name="databaseAttribute">A <see cref="DatabaseAttribute"/>.</param>
-        /// <returns>A string uniquely identifying the type of the <paramref name="databaseAttribute"/>.</returns>
+        /// <param name="databaseAttribute">A <see cref="DatabaseAttribute" />.</param>
+        /// <returns>A string uniquely identifying the type of the <paramref name="databaseAttribute" />.</returns>
         private static string GetAttributeTypeCacheKey(DatabaseAttribute databaseAttribute) {
             return databaseAttribute.AttributeType.ToString() + ", nullable=" + databaseAttribute.IsNullable.ToString();
         }
 
         /// <summary>
-        /// Gets a generic method instance of <see cref="DbState"/>. The method is supposed to have
+        /// Gets a generic method instance of <see cref="DbState" />. The method is supposed to have
         /// a single generic parameter.
         /// </summary>
         /// <param name="methodName">Name of the method instance.</param>
         /// <param name="itemType">Generic argument.</param>
-        /// <returns>A generic instance of the method of <see cref="DbState"/> named
-        /// <paramref name="methodName"/> with <paramref name="itemType"/> as the only generic
+        /// <returns>A generic instance of the method of <see cref="DbState" /> named
+        /// <paramref name="methodName" /> with <paramref name="itemType" /> as the only generic
         /// argument.</returns>
         private IMethod GetGenericMethodInstance(string methodName, ITypeSignature itemType) {
             MethodInfo methodInfo = dbStateType.GetMethod(methodName);
@@ -69,10 +102,10 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Maps a <see cref="DatabasePrimitive"/> on an <see cref="IntrinsicType"/>.
+        /// Maps a <see cref="DatabasePrimitive" /> on an <see cref="IntrinsicType" />.
         /// </summary>
-        /// <param name="primitive">A <see cref="DatabasePrimitive"/>.</param>
-        /// <returns>The <see cref="IntrinsicType"/> corresponding to <paramref name="primitive"/>.</returns>
+        /// <param name="primitive">A <see cref="DatabasePrimitive" />.</param>
+        /// <returns>The <see cref="IntrinsicType" /> corresponding to <paramref name="primitive" />.</returns>
         private static IntrinsicType MapDatabasePrimitiveToInstrinsic(DatabasePrimitive primitive) {
             switch (primitive) {
                 case DatabasePrimitive.Boolean:
@@ -107,16 +140,16 @@ namespace Starcounter.Internal.Weaver {
 
 
         /// <summary>
-        /// Determines which method of the <see cref="DbState"/> class should be called to retrieve or store the value
+        /// Determines which method of the <see cref="DbState" /> class should be called to retrieve or store the value
         /// of database fields, and which type conversion is necessary.
         /// </summary>
         /// <param name="fieldType">Type of the field or the replacing property, as viewed by user code.</param>
-        /// <param name="databaseAttribute"><see cref="DatabaseAttribute"/> for which the method
+        /// <param name="databaseAttribute"><see cref="DatabaseAttribute" /> for which the method
         /// is requested.</param>
-        /// <param name="operation">Operation (<see cref="readOperation"/> or <see cref="writeOperation"/>)</param>
-        /// <param name="method">Filled with the <see cref="DbState"/> method.</param>
+        /// <param name="operation">Operation (<see cref="readOperation" /> or <see cref="writeOperation" />)</param>
+        /// <param name="method">Filled with the <see cref="DbState" /> method.</param>
         /// <param name="castType">Filled with the type from / to which the value returned by / passed to
-        /// <paramref name="method"/> has to be casted, or <b>null</b> if no cast is necessary.</param>
+        /// <paramref name="method" /> has to be casted, or <b>null</b> if no cast is necessary.</param>
         /// <returns><b>true</b> if the method exist, otherwise <b>false</b> (happens for instance
         /// when the <b>write</b> operation is requested on an intrinsically read-only type).</returns>
         private bool GetMethod(ITypeSignature fieldType, DatabaseAttribute databaseAttribute, string operation,
@@ -203,16 +236,16 @@ namespace Starcounter.Internal.Weaver {
 
 
         /// <summary>
-        /// Determines which method of the <see cref="DbState"/> class should be called to retrieve
+        /// Determines which method of the <see cref="DbState" /> class should be called to retrieve
         /// the value
         /// of database fields, and which type conversion is necessary.
         /// </summary>
         /// <param name="fieldType">Type of the field or the replacing property, as viewed by user code.</param>
-        /// <param name="databaseAttribute"><see cref="DatabaseAttribute"/> for which the method
+        /// <param name="databaseAttribute"><see cref="DatabaseAttribute" /> for which the method
         /// is requested.</param>
-        /// <param name="getMethod">Filled with the <see cref="DbState"/> method.</param>
+        /// <param name="getMethod">Filled with the <see cref="DbState" /> method.</param>
         /// <param name="castType">Filled with the type from the value returned by
-        /// <paramref name="getMethod"/> has to be casted, or <b>null</b> if no cast is necessary.</param>
+        /// <paramref name="getMethod" /> has to be casted, or <b>null</b> if no cast is necessary.</param>
         /// <returns><b>true</b> if the method exist, otherwise <b>false</b>.</returns>
         public bool GetGetMethod(ITypeSignature fieldType, DatabaseAttribute databaseAttribute,
         out IMethod getMethod, out ITypeSignature castType) {
@@ -220,15 +253,15 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Determines which method of the <see cref="DbState"/> class should be called to store the value
+        /// Determines which method of the <see cref="DbState" /> class should be called to store the value
         /// of database fields, and which type conversion is necessary.
         /// </summary>
         /// <param name="fieldType">Type of the field or the replacing property, as viewed by user code.</param>
-        /// <param name="databaseAttribute"><see cref="DatabaseAttribute"/> for which the method
+        /// <param name="databaseAttribute"><see cref="DatabaseAttribute" /> for which the method
         /// is requested.</param>
-        /// <param name="setMethod">Filled with the <see cref="DbState"/> method.</param>
+        /// <param name="setMethod">Filled with the <see cref="DbState" /> method.</param>
         /// <param name="castType">Filled with the type to which the value passed to
-        /// <paramref name="setMethod"/> has to be casted, or <b>null</b> if no cast is necessary.</param>
+        /// <paramref name="setMethod" /> has to be casted, or <b>null</b> if no cast is necessary.</param>
         /// <returns><b>true</b> if the method exist, otherwise <b>false</b> (happens for instance
         /// when the <b>write</b> operation is requested on an intrinsically read-only type).</returns>
         public bool GetSetMethod(ITypeSignature fieldType, DatabaseAttribute databaseAttribute,
@@ -236,6 +269,12 @@ namespace Starcounter.Internal.Weaver {
             return GetMethod(fieldType, databaseAttribute, writeOperation, out setMethod, out castType);
         }
 
+        /// <summary>
+        /// Tries the name of the get generated method by.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="method">The method.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public bool TryGetGeneratedMethodByName(string name, out IMethod method) {
             MethodInfo generatedMethod;
 

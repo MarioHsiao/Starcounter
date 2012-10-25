@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="DbState.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter;
 using Starcounter.Binding;
 using Starcounter.Internal;
@@ -8,6 +13,9 @@ using System;
 namespace Starcounter.Internal
 {
 
+    /// <summary>
+    /// Class DbState
+    /// </summary>
     public static class DbState
     {
 
@@ -15,13 +23,12 @@ namespace Starcounter.Internal
         /// Inserts a new object/record of the specified type. The given proxy is
         /// assumed to match the type; if it's not, the behaviour is undefined.
         /// </summary>
+        /// <param name="proxy">Managed instance of the type we are about to instantiate.</param>
+        /// <param name="typeAddr">The address of the type.</param>
+        /// <param name="typeBinding">The <see cref="TypeBinding" /> representing the
+        /// type to the engine.</param>
         /// <remarks>This method is used by the Starcounter database engine and is
         /// not intended for developers.</remarks>
-        /// <param name="proxy">
-        /// Managed instance of the type we are about to instantiate.</param>
-        /// <param name="typeAddr">The address of the type.</param>
-        /// <param name="typeBinding">The <see cref="TypeBinding"/> representing the
-        /// type to the engine.</param>
         public static void Insert(Entity proxy, ulong typeAddr, TypeBinding typeBinding)
         {
             uint dr;
@@ -48,6 +55,12 @@ namespace Starcounter.Internal
 #endif
         }
 
+        /// <summary>
+        /// Reads the boolean.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Boolean.</returns>
         public static Boolean ReadBoolean(Entity obj, Int32 index)
         {
             Byte value;
@@ -67,6 +80,12 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
+        /// <summary>
+        /// Reads the nullable boolean.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Nullable{Boolean}.</returns>
         public static Nullable<Boolean> ReadNullableBoolean(Entity obj, Int32 index)
         {
             Byte value;
@@ -90,16 +109,34 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
+        /// <summary>
+        /// Reads the byte.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Byte.</returns>
         public static Byte ReadByte(Entity obj, Int32 index)
         {
             return (Byte)ReadUInt64(obj, index);
         }
 
+        /// <summary>
+        /// Reads the nullable byte.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Nullable{Byte}.</returns>
         public static Nullable<Byte> ReadNullableByte(Entity obj, Int32 index)
         {
             return (Byte?)ReadNullableUInt64(obj, index);
         }
 
+        /// <summary>
+        /// Reads the date time.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>DateTime.</returns>
         public static DateTime ReadDateTime(Entity obj, Int32 index)
         {
             UInt64 ticks;
@@ -123,6 +160,12 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
+        /// <summary>
+        /// Reads the nullable date time.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Nullable{DateTime}.</returns>
         public static Nullable<DateTime> ReadNullableDateTime(Entity obj, Int32 index)
         {
             UInt64 ticks;
@@ -146,6 +189,12 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
+        /// <summary>
+        /// Reads the decimal.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Decimal.</returns>
         public static Decimal ReadDecimal(Entity obj, Int32 index)
         {
             UInt16 flags;
@@ -172,6 +221,12 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
+        /// <summary>
+        /// Reads the nullable decimal.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Nullable{Decimal}.</returns>
         public static Nullable<Decimal> ReadNullableDecimal(Entity obj, Int32 index)
         {
             UInt16 flags;
@@ -205,6 +260,12 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
+        /// <summary>
+        /// Reads the double.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Double.</returns>
         public static Double ReadDouble(Entity obj, Int32 index)
         {
             Double value;
@@ -224,6 +285,12 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
+        /// <summary>
+        /// Reads the nullable double.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Nullable{Double}.</returns>
         public static Nullable<Double> ReadNullableDouble(Entity obj, Int32 index)
         {
             Double value;
@@ -247,26 +314,56 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
+        /// <summary>
+        /// Reads the int16.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Int16.</returns>
         public static Int16 ReadInt16(Entity obj, Int32 index)
         {
             return (Int16)ReadInt64(obj, index);
         }
 
+        /// <summary>
+        /// Reads the nullable int16.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Nullable{Int16}.</returns>
         public static Nullable<Int16> ReadNullableInt16(Entity obj, Int32 index)
         {
             return (Int16?)ReadNullableInt64(obj, index);
         }
 
+        /// <summary>
+        /// Reads the int32.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Int32.</returns>
         public static Int32 ReadInt32(Entity obj, Int32 index)
         {
             return (Int32)ReadInt64(obj, index);
         }
 
+        /// <summary>
+        /// Reads the nullable int32.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Nullable{Int32}.</returns>
         public static Nullable<Int32> ReadNullableInt32(Entity obj, Int32 index)
         {
             return (Int32?)ReadNullableInt64(obj, index);
         }
 
+        /// <summary>
+        /// Reads the int64.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Int64.</returns>
         public static Int64 ReadInt64(Entity obj, Int32 index)
         {
             Int64 value;
@@ -286,6 +383,12 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
+        /// <summary>
+        /// Reads the nullable int64.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Nullable{Int64}.</returns>
         public static Nullable<Int64> ReadNullableInt64(Entity obj, Int32 index)
         {
             Int64 value;
@@ -309,6 +412,12 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
+        /// <summary>
+        /// Reads the object.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Entity.</returns>
         public static Entity ReadObject(Entity obj, Int32 index)
         {
             ObjectRef thisRef;
@@ -342,16 +451,34 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
+        /// <summary>
+        /// Reads the S byte.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>SByte.</returns>
         public static SByte ReadSByte(Entity obj, Int32 index)
         {
             return (SByte)ReadInt64(obj, index);
         }
 
+        /// <summary>
+        /// Reads the nullable S byte.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Nullable{SByte}.</returns>
         public static Nullable<SByte> ReadNullableSByte(Entity obj, Int32 index)
         {
             return (SByte?)ReadNullableInt64(obj, index);
         }
 
+        /// <summary>
+        /// Reads the single.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Single.</returns>
         public static Single ReadSingle(Entity obj, Int32 index)
         {
             Single value;
@@ -371,6 +498,12 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
+        /// <summary>
+        /// Reads the nullable single.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Nullable{Single}.</returns>
         public static Nullable<Single> ReadNullableSingle(Entity obj, Int32 index)
         {
             Single value;
@@ -394,6 +527,12 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
+        /// <summary>
+        /// Reads the string.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>String.</returns>
         public static String ReadString(Entity obj, Int32 index)
         {
             unsafe
@@ -428,6 +567,12 @@ namespace Starcounter.Internal
             }
         }
 
+        /// <summary>
+        /// Reads the binary.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Binary.</returns>
         public static Binary ReadBinary(Entity obj, Int32 index)
         {
             UInt16 flags;
@@ -452,6 +597,12 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
+        /// <summary>
+        /// Reads the large binary.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>LargeBinary.</returns>
         public static LargeBinary ReadLargeBinary(Entity obj, Int32 index)
         {
             UInt16 flags;
@@ -474,11 +625,23 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
+        /// <summary>
+        /// Reads the time span.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>TimeSpan.</returns>
         public static TimeSpan ReadTimeSpan(Entity obj, Int32 index)
         {
             return new TimeSpan(ReadTimeSpanEx(obj, index));
         }
 
+        /// <summary>
+        /// Reads the nullable time span.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Nullable{TimeSpan}.</returns>
         public static Nullable<TimeSpan> ReadNullableTimeSpan(Entity obj, Int32 index)
         {
             UInt64 ticks;
@@ -502,6 +665,12 @@ namespace Starcounter.Internal
             return new Nullable<TimeSpan>(new TimeSpan((Int64)ticks));
         }
 
+        /// <summary>
+        /// Reads the time span ex.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Int64.</returns>
         private static Int64 ReadTimeSpanEx(Entity obj, Int32 index)
         {
             UInt64 ticks;
@@ -525,26 +694,56 @@ namespace Starcounter.Internal
             return (Int64)ticks;
         }
 
+        /// <summary>
+        /// Reads the U int16.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>UInt16.</returns>
         public static UInt16 ReadUInt16(Entity obj, Int32 index)
         {
             return (UInt16)ReadUInt64(obj, index);
         }
 
+        /// <summary>
+        /// Reads the nullable U int16.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Nullable{UInt16}.</returns>
         public static Nullable<UInt16> ReadNullableUInt16(Entity obj, Int32 index)
         {
             return (UInt16?)ReadNullableUInt64(obj, index);
         }
 
+        /// <summary>
+        /// Reads the U int32.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>UInt32.</returns>
         public static UInt32 ReadUInt32(Entity obj, Int32 index)
         {
             return (UInt32)ReadUInt64(obj, index);
         }
 
+        /// <summary>
+        /// Reads the nullable U int32.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Nullable{UInt32}.</returns>
         public static Nullable<UInt32> ReadNullableUInt32(Entity obj, Int32 index)
         {
             return (UInt32?)ReadNullableUInt64(obj, index);
         }
 
+        /// <summary>
+        /// Reads the U int64.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>UInt64.</returns>
         public static UInt64 ReadUInt64(Entity obj, Int32 index)
         {
             ObjectRef thisRef;
@@ -564,6 +763,12 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
+        /// <summary>
+        /// Reads the nullable U int64.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Nullable{UInt64}.</returns>
         public static Nullable<UInt64> ReadNullableUInt64(Entity obj, Int32 index)
         {
             ObjectRef thisRef;
@@ -587,6 +792,12 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
+        /// <summary>
+        /// Writes the boolean.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteBoolean(Entity obj, Int32 index, Boolean value)
         {
             ObjectRef thisRef;
@@ -600,6 +811,12 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
+        /// <summary>
+        /// Writes the nullable boolean.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteNullableBoolean(Entity obj, Int32 index, Nullable<Boolean> value)
         {
             if (value.HasValue)
@@ -612,11 +829,23 @@ namespace Starcounter.Internal
             }
         }
 
+        /// <summary>
+        /// Writes the byte.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteByte(Entity obj, Int32 index, Byte value)
         {
             WriteUInt64(obj, index, value);
         }
 
+        /// <summary>
+        /// Writes the nullable byte.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteNullableByte(Entity obj, Int32 index, Nullable<Byte> value)
         {
             if (value.HasValue)
@@ -629,11 +858,23 @@ namespace Starcounter.Internal
             }
         }
 
+        /// <summary>
+        /// Writes the date time.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteDateTime(Entity obj, Int32 index, DateTime value)
         {
             WriteDateTimeEx(obj, index, value.Ticks);
         }
 
+        /// <summary>
+        /// Writes the nullable date time.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteNullableDateTime(Entity obj, Int32 index, Nullable<DateTime> value)
         {
             if (value.HasValue)
@@ -646,6 +887,13 @@ namespace Starcounter.Internal
             }
         }
 
+        /// <summary>
+        /// Writes the date time ex.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
+        /// <exception cref="System.NotImplementedException">Negative timestamps are currently not supported.</exception>
         private static void WriteDateTimeEx(Entity obj, Int32 index, Int64 value)
         {
             ObjectRef thisRef;
@@ -663,6 +911,12 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
+        /// <summary>
+        /// Writes the decimal.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteDecimal(Entity obj, Int32 index, Decimal value)
         {
             ObjectRef thisRef;
@@ -678,6 +932,12 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
+        /// <summary>
+        /// Writes the nullable decimal.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteNullableDecimal(Entity obj, Int32 index, Nullable<Decimal> value)
         {
             if (value.HasValue)
@@ -690,6 +950,12 @@ namespace Starcounter.Internal
             }
         }
 
+        /// <summary>
+        /// Writes the double.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteDouble(Entity obj, Int32 index, Double value)
         {
             ObjectRef thisRef;
@@ -703,6 +969,12 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
+        /// <summary>
+        /// Writes the nullable double.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteNullableDouble(Entity obj, Int32 index, Nullable<Double> value)
         {
             if (value.HasValue)
@@ -715,11 +987,23 @@ namespace Starcounter.Internal
             }
         }
 
+        /// <summary>
+        /// Writes the int16.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteInt16(Entity obj, Int32 index, Int16 value)
         {
             WriteInt64(obj, index, value);
         }
 
+        /// <summary>
+        /// Writes the nullable int16.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteNullableInt16(Entity obj, Int32 index, Nullable<Int16> value)
         {
             if (value.HasValue)
@@ -732,11 +1016,23 @@ namespace Starcounter.Internal
             }
         }
 
+        /// <summary>
+        /// Writes the int32.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteInt32(Entity obj, Int32 index, Int32 value)
         {
             WriteInt64(obj, index, value);
         }
 
+        /// <summary>
+        /// Writes the nullable int32.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteNullableInt32(Entity obj, Int32 index, Nullable<Int32> value)
         {
             if (value.HasValue)
@@ -749,6 +1045,12 @@ namespace Starcounter.Internal
             }
         }
 
+        /// <summary>
+        /// Writes the int64.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteInt64(Entity obj, Int32 index, Int64 value)
         {
             ObjectRef thisRef;
@@ -762,6 +1064,12 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
+        /// <summary>
+        /// Writes the nullable int64.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteNullableInt64(Entity obj, Int32 index, Nullable<Int64> value)
         {
             if (value.HasValue)
@@ -774,6 +1082,12 @@ namespace Starcounter.Internal
             }
         }
 
+        /// <summary>
+        /// Writes the object.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteObject(Entity obj, Int32 index, Entity value)
         {
             ObjectRef thisRef;
@@ -803,11 +1117,23 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
+        /// <summary>
+        /// Writes the S byte.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteSByte(Entity obj, Int32 index, SByte value)
         {
             WriteInt64(obj, index, value);
         }
 
+        /// <summary>
+        /// Writes the nullable S byte.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteNullableSByte(Entity obj, Int32 index, Nullable<SByte> value)
         {
             if (value.HasValue)
@@ -820,6 +1146,12 @@ namespace Starcounter.Internal
             }
         }
 
+        /// <summary>
+        /// Writes the single.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteSingle(Entity obj, Int32 index, Single value)
         {
             ObjectRef thisRef;
@@ -833,6 +1165,12 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
+        /// <summary>
+        /// Writes the nullable single.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteNullableSingle(Entity obj, Int32 index, Nullable<Single> value)
         {
             if (value.HasValue)
@@ -845,6 +1183,12 @@ namespace Starcounter.Internal
             }
         }
 
+        /// <summary>
+        /// Writes the string.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteString(Entity obj, Int32 index, String value)
         {
             ObjectRef thisRef;
@@ -869,11 +1213,23 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
+        /// <summary>
+        /// Writes the time span.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteTimeSpan(Entity obj, Int32 index, TimeSpan value)
         {
             WriteTimeSpanEx(obj, index, value.Ticks);
         }
 
+        /// <summary>
+        /// Writes the nullable time span.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteNullableTimeSpan(Entity obj, Int32 index, Nullable<TimeSpan> value)
         {
             if (value.HasValue)
@@ -886,6 +1242,13 @@ namespace Starcounter.Internal
             }
         }
 
+        /// <summary>
+        /// Writes the time span ex.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
+        /// <exception cref="System.NotImplementedException">Negative timestamps are currently not supported.</exception>
         private static void WriteTimeSpanEx(Entity obj, Int32 index, Int64 value)
         {
             ObjectRef thisRef;
@@ -909,11 +1272,23 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
+        /// <summary>
+        /// Writes the U int16.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteUInt16(Entity obj, Int32 index, UInt16 value)
         {
             WriteUInt64(obj, index, value);
         }
 
+        /// <summary>
+        /// Writes the nullable U int16.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteNullableUInt16(Entity obj, Int32 index, Nullable<UInt16> value)
         {
             if (value.HasValue)
@@ -926,11 +1301,23 @@ namespace Starcounter.Internal
             }
         }
 
+        /// <summary>
+        /// Writes the U int32.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteUInt32(Entity obj, Int32 index, UInt32 value)
         {
             WriteUInt64(obj, index, value);
         }
 
+        /// <summary>
+        /// Writes the nullable U int32.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteNullableUInt32(Entity obj, Int32 index, Nullable<UInt32> value)
         {
             if (value.HasValue)
@@ -943,6 +1330,12 @@ namespace Starcounter.Internal
             }
         }
 
+        /// <summary>
+        /// Writes the U int64.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteUInt64(Entity obj, Int32 index, UInt64 value)
         {
             ObjectRef thisRef;
@@ -956,6 +1349,12 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
+        /// <summary>
+        /// Writes the nullable U int64.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteNullableUInt64(Entity obj, Int32 index, Nullable<UInt64> value)
         {
             if (value.HasValue)
@@ -968,6 +1367,12 @@ namespace Starcounter.Internal
             }
         }
 
+        /// <summary>
+        /// Writes the binary.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteBinary(Entity obj, Int32 index, Binary value)
         {
             ObjectRef thisRef;
@@ -986,6 +1391,12 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(ret);
         }
 
+        /// <summary>
+        /// Writes the large binary.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value.</param>
         public static void WriteLargeBinary(Entity obj, Int32 index, LargeBinary value)
         {
             ObjectRef thisRef;
@@ -1004,6 +1415,12 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(ret);
         }
 
+        /// <summary>
+        /// Writes the object.
+        /// </summary>
+        /// <param name="thisRef">The this ref.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="valueRef">The value ref.</param>
         internal static void WriteObject(ObjectRef thisRef, Int32 index, ObjectRef valueRef)
         {
             Boolean br;
@@ -1021,6 +1438,12 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
+        /// <summary>
+        /// Reads the object.
+        /// </summary>
+        /// <param name="thisRef">The this ref.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Entity.</returns>
         internal static Entity ReadObject(ObjectRef thisRef, Int32 index)
         {
             UInt16 flags;
@@ -1052,6 +1475,11 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
+        /// <summary>
+        /// Writes the null.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <param name="index">The index.</param>
         internal static void WriteNull(Entity obj, Int32 index)
         {
             ObjectRef thisRef;

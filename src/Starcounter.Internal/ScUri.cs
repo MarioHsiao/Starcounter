@@ -1,3 +1,9 @@
+// ***********************************************************************
+// <copyright file="ScUri.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Net;
 using Starcounter.Internal;
@@ -32,12 +38,15 @@ namespace Starcounter {
         public const string UriSchemeWithColon = UriScheme + ":";
 
         /// <summary>
-        /// Initializes a new <see cref="ScUri"/>.
+        /// Initializes a new <see cref="ScUri" />.
         /// </summary>
         /// <param name="kind">Kind of URI.</param>
         /// <param name="machine">Machine.</param>
+        /// <param name="port">The port.</param>
         /// <param name="server">Server. Optional</param>
         /// <param name="instance">Instance. Optional.</param>
+        /// <exception cref="System.ArgumentNullException">machine</exception>
+        /// <exception cref="System.ArgumentException">machine</exception>
         private ScUri(
             ScUriKind kind,
             string machine,
@@ -144,7 +153,10 @@ namespace Starcounter {
         /// Makes a machine URI.
         /// </summary>
         /// <param name="machineName">Machine name.</param>
+        /// <param name="port">The port.</param>
         /// <returns>The machine URI.</returns>
+        /// <exception cref="System.ArgumentNullException">machineName</exception>
+        /// <exception cref="System.ArgumentOutOfRangeException">port</exception>
         public static ScUri MakeMachineUri(string machineName, int port) {
             if (String.IsNullOrEmpty(machineName)) {
                 throw new ArgumentNullException("machineName");
@@ -171,8 +183,11 @@ namespace Starcounter {
         /// Makes an server URI.
         /// </summary>
         /// <param name="machineName">Machine name.</param>
+        /// <param name="port">The port.</param>
         /// <param name="server">server name.</param>
         /// <returns>The server URI.</returns>
+        /// <exception cref="System.ArgumentNullException">machineName</exception>
+        /// <exception cref="System.ArgumentOutOfRangeException">port</exception>
         public static ScUri MakeServerUri(string machineName, int port, string server) {
             if (String.IsNullOrEmpty(machineName)) {
                 throw new ArgumentNullException("machineName");
@@ -203,9 +218,12 @@ namespace Starcounter {
         /// Makes an instance URI.
         /// </summary>
         /// <param name="machineName">Machine name.</param>
+        /// <param name="port">The port.</param>
         /// <param name="server">server name.</param>
         /// <param name="instanceName">Instance name.</param>
         /// <returns>The instance URI.</returns>
+        /// <exception cref="System.ArgumentNullException">machineName</exception>
+        /// <exception cref="System.ArgumentOutOfRangeException">port</exception>
         public static ScUri MakeDatabaseUri(string machineName, int port, string server, string instanceName) {
             if (String.IsNullOrEmpty(machineName)) {
                 throw new ArgumentNullException("machineName");
@@ -261,10 +279,23 @@ namespace Starcounter {
 
         }
 
+        /// <summary>
+        /// Froms the URI.
+        /// </summary>
+        /// <param name="uri">The URI.</param>
+        /// <returns>ScUri.</returns>
         public static ScUri FromUri(Uri uri) {
             return FromUri(uri, true);
         }
 
+        /// <summary>
+        /// Froms the URI.
+        /// </summary>
+        /// <param name="uri">The URI.</param>
+        /// <param name="throwOnError">if set to <c>true</c> [throw on error].</param>
+        /// <returns>ScUri.</returns>
+        /// <exception cref="System.ArgumentNullException">uri</exception>
+        /// <exception cref="System.ArgumentOutOfRangeException">uri;Cannot parse the URI.</exception>
         public static ScUri FromUri(Uri uri, bool throwOnError) {
             if (throwOnError && uri == null) {
                 throw new ArgumentNullException("uri");
@@ -528,6 +559,11 @@ namespace Starcounter {
             return base.GetHashCode();
         }
 
+        /// <summary>
+        /// Equalses the specified URI string.
+        /// </summary>
+        /// <param name="uriString">The URI string.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public bool Equals(string uriString) {
             ScUri otherUri;
 
@@ -546,6 +582,11 @@ namespace Starcounter {
             return NotNullEquals(otherUri);
         }
 
+        /// <summary>
+        /// Equalses the specified other.
+        /// </summary>
+        /// <param name="other">The other.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public bool Equals(ScUri other) {
             return other == null
                 ? false
@@ -584,6 +625,10 @@ namespace Starcounter {
             return result;
         }
 
+        /// <summary>
+        /// Gets the name of the machine.
+        /// </summary>
+        /// <returns>System.String.</returns>
         public static string GetMachineName() {
             return Dns.GetHostEntry(String.Empty).HostName;
         }

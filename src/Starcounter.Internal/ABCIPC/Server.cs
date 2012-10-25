@@ -1,4 +1,10 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="Server.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -131,6 +137,11 @@ namespace Starcounter.ABCIPC {
             }
         }
 
+        /// <summary>
+        /// Handles the specified message.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="handler">The handler.</param>
         public void Handle(string message, Action<Request> handler) {
             handlers[message] = handler;
         }

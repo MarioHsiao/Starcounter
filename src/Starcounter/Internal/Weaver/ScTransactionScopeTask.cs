@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="ScTransactionScopeTask.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 // PSA 24/9 2012: Not aware of whats been decided about transcation
 // scopes, but since they are not part of even the mock, I'm not doing

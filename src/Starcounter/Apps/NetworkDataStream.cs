@@ -1,31 +1,96 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="NetworkDataStream.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Runtime.InteropServices;
 using HttpStructs;
 using Starcounter.Internal;
 
 namespace Starcounter
 {
+    /// <summary>
+    /// Struct NetworkDataStream
+    /// </summary>
     public unsafe struct NetworkDataStream : INetworkDataStream
     {
         // Data offset/size constants.
-        const Int32 BMX_HANDLER_SIZE = 2;
-        const Int32 BMX_PROTOCOL_BEGIN = 16;
-        const Int32 REQUEST_SIZE_BEGIN = BMX_PROTOCOL_BEGIN + BMX_HANDLER_SIZE;
-        const Int32 GATEWAY_CHUNK_BEGIN = 24;
-        const Int32 GATEWAY_DATA_BEGIN = GATEWAY_CHUNK_BEGIN + 32;
-
-        const Int32 SESSION_SALT_OFFSET = GATEWAY_DATA_BEGIN;
+        /// <summary>
+        /// The BM x_ HANDLE r_ SIZE
+        /// </summary>
+        public const Int32 BMX_HANDLER_SIZE = 2;
+        
+        /// <summary>
+        /// The BM x_ PROTOCO l_ BEGIN
+        /// </summary>
+        public const Int32 BMX_PROTOCOL_BEGIN = 16;
+        
+        /// <summary>
+        /// The REQUES t_ SIZ e_ BEGIN
+        /// </summary>
+        public const Int32 REQUEST_SIZE_BEGIN = BMX_PROTOCOL_BEGIN + BMX_HANDLER_SIZE;
+        
+        /// <summary>
+        /// The GATEWA y_ CHUN k_ BEGIN
+        /// </summary>
+        public const Int32 GATEWAY_CHUNK_BEGIN = 24;
+        
+        /// <summary>
+        /// The GATEWA y_ DAT a_ BEGIN
+        /// </summary>
+        public const Int32 GATEWAY_DATA_BEGIN = GATEWAY_CHUNK_BEGIN + 32;
+        
+        /// <summary>
+        /// The SESSIO n_ SAL T_ OFFSET
+        /// </summary>
+        public const Int32 SESSION_SALT_OFFSET = GATEWAY_DATA_BEGIN;
+       
+        /// <summary>
+        /// The SESSIO n_ INDE x_ OFFSET
+        /// </summary>
         public const Int32 SESSION_INDEX_OFFSET = GATEWAY_DATA_BEGIN + 8;
-        const Int32 SESSION_APPS_UNIQUE_NUMBER_OFFSET = GATEWAY_DATA_BEGIN + 16;
+        
+        /// <summary>
+        /// The SESSIO n_ INDE x_ OFFSET
+        /// </summary>
+        public const Int32 SESSION_APPS_UNIQUE_NUMBER_OFFSET = GATEWAY_DATA_BEGIN + 16;
+        
+        /// <summary>
+        /// The USE r_ DAT a_ OFFSET
+        /// </summary>
+        public const Int32 USER_DATA_OFFSET = GATEWAY_DATA_BEGIN + 24;
+        
+        /// <summary>
+        /// The MA x_ USE r_ DAT a_ BYTE s_ OFFSET
+        /// </summary>
+        public const Int32 MAX_USER_DATA_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 28;
+        
+        /// <summary>
+        /// The USE r_ DAT a_ WRITTE n_ BYTE s_ OFFSET
+        /// </summary>
+        public const Int32 USER_DATA_WRITTEN_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 32;
 
-        const Int32 USER_DATA_OFFSET = GATEWAY_DATA_BEGIN + 24;
-        const Int32 MAX_USER_DATA_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 28;
-        const Int32 USER_DATA_WRITTEN_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 32;
-
+        /// <summary>
+        /// The unmanaged_chunk_
+        /// </summary>
         Byte* unmanaged_chunk_;
+        /// <summary>
+        /// The single_chunk_
+        /// </summary>
         Boolean single_chunk_;
+        /// <summary>
+        /// The chunk_index_
+        /// </summary>
         UInt32 chunk_index_;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NetworkDataStream" /> struct.
+        /// </summary>
+        /// <param name="unmanagedChunk">The unmanaged chunk.</param>
+        /// <param name="isSingleChunk">The is single chunk.</param>
+        /// <param name="chunkIndex">Index of the chunk.</param>
         internal NetworkDataStream(
             Byte* unmanagedChunk,
             Boolean isSingleChunk,
@@ -36,6 +101,12 @@ namespace Starcounter
             chunk_index_ = chunkIndex;
         }
 
+        /// <summary>
+        /// Inits the specified unmanaged chunk.
+        /// </summary>
+        /// <param name="unmanagedChunk">The unmanaged chunk.</param>
+        /// <param name="isSingleChunk">The is single chunk.</param>
+        /// <param name="chunkIndex">Index of the chunk.</param>
         public void Init(
             Byte* unmanagedChunk,
             Boolean isSingleChunk,
@@ -46,6 +117,10 @@ namespace Starcounter
             chunk_index_ = chunkIndex;
         }
 
+        /// <summary>
+        /// Gets the size of the payload.
+        /// </summary>
+        /// <value>The size of the payload.</value>
         public Int32 PayloadSize
         {
             get
@@ -54,6 +129,14 @@ namespace Starcounter
             }
         }
 
+        /// <summary>
+        /// Reads the specified buffer.
+        /// </summary>
+        /// <param name="buffer">The buffer.</param>
+        /// <param name="offset">The offset.</param>
+        /// <param name="length">The length.</param>
+        /// <exception cref="System.ArgumentNullException">dest</exception>
+        /// <exception cref="System.ArgumentException">Not enough free space in destination buffer.</exception>
         public void Read(Byte[] buffer, Int32 offset, Int32 length)
         {
             UInt32 ec;
@@ -103,6 +186,12 @@ namespace Starcounter
                 throw ErrorCode.ToException(ec);
         }
 
+        /// <summary>
+        /// Writes the specified buffer.
+        /// </summary>
+        /// <param name="buffer">The buffer.</param>
+        /// <param name="offset">The offset.</param>
+        /// <param name="length">The length.</param>
         public void Write(Byte[] buffer, Int32 offset, Int32 length)
         {
             // TODO:

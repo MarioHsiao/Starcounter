@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ServerServices.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,6 +40,10 @@ namespace Starcounter.Server {
             All = (Core | Management)
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ServerServices" /> class.
+        /// </summary>
+        /// <param name="engine">The engine.</param>
         public ServerServices(ServerEngine engine) {
             // Assume for now interactive mode. This code is still just
             // to get up and running. We'll eventually utilize pipes and
@@ -53,6 +62,11 @@ namespace Starcounter.Server {
             this.responseSerializer = new NewtonSoftJsonSerializer(engine);
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ServerServices" /> class.
+        /// </summary>
+        /// <param name="engine">The engine.</param>
+        /// <param name="ipcServer">The ipc server.</param>
         public ServerServices(ServerEngine engine, Starcounter.ABCIPC.Server ipcServer) {
             this.engine = engine;
             this.runtime = null;
@@ -60,6 +74,9 @@ namespace Starcounter.Server {
             this.responseSerializer = new NewtonSoftJsonSerializer(engine);
         }
 
+        /// <summary>
+        /// Setups this instance.
+        /// </summary>
         public void Setup() {
             Setup(ServiceClass.All);
         }

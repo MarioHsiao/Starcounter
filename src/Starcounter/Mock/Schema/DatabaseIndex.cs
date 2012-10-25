@@ -1,8 +1,18 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="DatabaseIndex.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Diagnostics;
 
 namespace Sc.Server.Weaver.Schema
 {
+
+    /// <summary>
+    /// Class DatabaseIndex
+    /// </summary>
 	[Serializable]
 	internal class DatabaseIndex : Object
 	{

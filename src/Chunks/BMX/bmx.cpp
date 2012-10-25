@@ -418,7 +418,7 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
     cm3_get_cpun(0, &task_info.scheduler_number);
     task_info.chunk_index = (uint32_t)task_data->Output2;
 
-do_work:
+//do_work:
     loop_count = 0;
 
     // Retrieve the chunk.
@@ -457,8 +457,8 @@ do_work:
     if (err_code)
         goto finish;
 
+/*
 try_receive:
-
     // Check if more chunks are available. If so repeat from beginning.
     err_code = cm_try_receive_from_client((DWORD*)&task_info.chunk_index);
     if (!err_code) goto do_work;
@@ -467,7 +467,7 @@ try_receive:
     loop_count++;
     if (loop_count < SCHEDULER_SPIN_COUNT) goto try_receive;
     err_code = 0;
-
+*/
 finish:
 
     // Resetting current transaction.

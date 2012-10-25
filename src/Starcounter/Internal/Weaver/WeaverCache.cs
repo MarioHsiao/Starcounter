@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="WeaverCache.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,9 +17,7 @@ namespace Starcounter.Internal.Weaver {
     /// Represents, and implements the functionality behind, the cache used
     /// by the Starcounter code weaver system.
     /// </summary>
-    /// <remarks>
-    /// This class is not thread-safe.
-    /// </remarks>
+    /// <remarks>This class is not thread-safe.</remarks>
     public sealed class WeaverCache {
         /// <summary>
         /// Represents the result of an assembly extracted from the weaver
@@ -36,6 +39,7 @@ namespace Starcounter.Internal.Weaver {
             /// If it was not, this field is null and other properties will
             /// reveal the reason why the assembly was not extracted.
             /// </summary>
+            /// <value>The assembly.</value>
             public DatabaseAssembly Assembly { get; internal set; }
 
             /// <summary>
@@ -44,6 +48,7 @@ namespace Starcounter.Internal.Weaver {
             /// for (because of some previous failure, or the cache being
             /// disabled) or it was found.
             /// </summary>
+            /// <value><c>true</c> if [not found]; otherwise, <c>false</c>.</value>
             public bool NotFound { get; internal set; }
 
             /// <summary>
@@ -52,6 +57,7 @@ namespace Starcounter.Internal.Weaver {
             /// False means either it was not queried for (because of some previous
             /// failure, or the cache being disabled) or it was found.
             /// </summary>
+            /// <value><c>true</c> if [transformation not found]; otherwise, <c>false</c>.</value>
             public bool TransformationNotFound { get; internal set; }
 
             /// <summary>
@@ -60,12 +66,14 @@ namespace Starcounter.Internal.Weaver {
             /// queried for (because of some previous failure, or the cache being
             /// disabled) or it was up-to-date.
             /// </summary>
+            /// <value><c>true</c> if [transformation outdated]; otherwise, <c>false</c>.</value>
             public bool TransformationOutdated { get; internal set; }
 
             /// <summary>
             /// Gets a reference to an exception happening when trying to
             /// deserialize the assembly from the cache.
             /// </summary>
+            /// <value>The deserialization exception.</value>
             public Exception DeserializationException { get; internal set; }
 
             /// <summary>
@@ -73,19 +81,21 @@ namespace Starcounter.Internal.Weaver {
             /// that was out of date, i.e. it was hashed but the value didn't
             /// match the one in the cache.
             /// </summary>
+            /// <value>The broken dependency.</value>
             public string BrokenDependency { get; internal set; }
 
             /// <summary>
             /// Gets the name of an assembly this cached assembly depend upon
             /// that was not found.
             /// </summary>
+            /// <value>The missing dependency.</value>
             public string MissingDependency { get; internal set; }
 
             /// <summary>
-            /// Initializes an instance of <see cref="CachedAssembly"/>.
+            /// Initializes an instance of <see cref="CachedAssembly" />.
             /// </summary>
-            /// <param name="cache"></param>
-            /// <param name="name"></param>
+            /// <param name="cache">The cache.</param>
+            /// <param name="name">The name.</param>
             internal CachedAssembly(WeaverCache cache, string name) {
                 this.Cache = cache;
                 this.Name = name;
@@ -112,6 +122,7 @@ namespace Starcounter.Internal.Weaver {
         /// <summary>
         /// Gets the directory where cached files are stored.
         /// </summary>
+        /// <value>The cache directory.</value>
         public string CacheDirectory { get; private set; }
 
         /// <summary>
@@ -119,17 +130,20 @@ namespace Starcounter.Internal.Weaver {
         /// cache should utilize when it needs to find the binary of
         /// a referenced dependency assembly.
         /// </summary>
+        /// <value>The assembly search directories.</value>
         public List<string> AssemblySearchDirectories { get; private set; }
 
         /// <summary>
         /// Indicates the cache is disabled. Every attempt to extract an
         /// assembly from the cache will be ignored.
         /// </summary>
+        /// <value><c>true</c> if disabled; otherwise, <c>false</c>.</value>
         public bool Disabled { get; set; }
 
         /// <summary>
         /// Gets the schema extracted from the cache.
         /// </summary>
+        /// <value>The schema.</value>
         public DatabaseSchema Schema {
             get {
                 return this.schema;
@@ -137,15 +151,13 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Initializes a <see cref="WeaverCache"/> instance.
+        /// Initializes a <see cref="WeaverCache" /> instance.
         /// </summary>
-        /// <remarks>
-        /// After a schema instance has been created, it includes the
+        /// <param name="cacheDirectory">The directory possibly holding cached files.</param>
+        /// <exception cref="System.IO.DirectoryNotFoundException"></exception>
+        /// <remarks>After a schema instance has been created, it includes the
         /// built-in Starcounter assembly only. To populate the cache,
-        /// use the <see cref="Extract"/> method.
-        /// </remarks>
-        /// <param name="cacheDirectory">
-        /// The directory possibly holding cached files.</param>
+        /// use the <see cref="Extract" /> method.</remarks>
         public WeaverCache(string cacheDirectory) {
             if (!Directory.Exists(cacheDirectory))
                 throw new DirectoryNotFoundException(string.Format("Directory {0} does not exist."));
@@ -164,8 +176,7 @@ namespace Starcounter.Internal.Weaver {
         /// known to the cache, i.e. if it was not found, if it was
         /// out of date, etc. If it was up to date, the Assembly
         /// property of the returned object is not null and includes
-        /// the deserialized schema of the cached assembly.
-        /// </returns>
+        /// the deserialized schema of the cached assembly.</returns>
         public CachedAssembly Get(string assemblyName) {
             return Extract(assemblyName, null);
         }
@@ -176,17 +187,15 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="assemblyName">Name of the assembly to extract.
         /// The name expected is the simple name of the assembly, not
         /// including the extension.</param>
-        /// <param name="targetDirectory">
-        /// Target directory where the assembly is to be extracted to.
+        /// <param name="targetDirectory">Target directory where the assembly is to be extracted to.
         /// If null, and the extraction is considered a success, the
-        /// assembly is read into the cached schema but not copied.
-        /// </param>
+        /// assembly is read into the cached schema but not copied.</param>
         /// <returns>An object describing the way the assembly was
         /// known to the cache, i.e. if it was not found, if it was
         /// out of date, etc. If it was up to date, the Assembly
         /// property of the returned object is not null and includes
-        /// the deserialized schema of the cached assembly.
-        /// </returns>
+        /// the deserialized schema of the cached assembly.</returns>
+        /// <exception cref="System.ArgumentNullException">assemblyName</exception>
         public CachedAssembly Extract(string assemblyName, string targetDirectory) {
             CachedAssembly result;
             DatabaseAssembly candidate;
@@ -294,7 +303,7 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Gets a value indicating if an assembly named <paramref name="assemblyName"/>
+        /// Gets a value indicating if an assembly named <paramref name="assemblyName" />
         /// is part of the cached schema.
         /// </summary>
         /// <param name="assemblyName">The name of the assembly to be checked.</param>
@@ -304,6 +313,9 @@ namespace Starcounter.Internal.Weaver {
             return this.schema.Assemblies.FirstOrDefault(assembly => assembly.Name == assemblyName) != null;
         }
 
+        /// <summary>
+        /// Initializes this instance.
+        /// </summary>
         private void Initialize() {
             this.schema = new DatabaseSchema();
             this.schema.AddStarcounterAssembly();
@@ -314,11 +326,9 @@ namespace Starcounter.Internal.Weaver {
         /// Gets the hash value of the assembly with the given name. If the
         /// assembly could not be found, null is returned.
         /// </summary>
-        /// <param name="assemblyName">
-        /// The name of the assembly whose hash we need.</param>
+        /// <param name="assemblyName">The name of the assembly whose hash we need.</param>
         /// <returns>Hash value of the given assembly, or null if the an
-        /// assembly with the given name could not be found.
-        /// </returns>
+        /// assembly with the given name could not be found.</returns>
         private string GetAssemblyHash(string assemblyName) {
             Assembly starcounterAssembly;
             string assemblyPath;

@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="GivenOption.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 namespace Starcounter.CommandLine
 {
     /// <summary>
@@ -25,6 +30,7 @@ namespace Starcounter.CommandLine
         /// Gets a value indicating if the given option represents
         /// a flag.
         /// </summary>
+        /// <value><c>true</c> if this instance is flag; otherwise, <c>false</c>.</value>
         internal bool IsFlag
         {
             get { return string.IsNullOrEmpty(this.Value); }
