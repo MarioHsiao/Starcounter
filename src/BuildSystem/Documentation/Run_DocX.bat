@@ -16,5 +16,5 @@ set DocumentationResultFolder=build
 :: SCTESTSRV01
 net use Z: %SRVwebappsPath% /user:%SRVusername% %SRVpassword%
 rd /s /q "Z:\%DocumentationParentFolder%"
-xcopy .\%DocumentationProjectPath%\%DocumentationResultFolder%\* Z: /s /i
+robocopy .\%DocumentationProjectPath%\%DocumentationResultFolder%\ Z: /e
 net use Z: /delete
