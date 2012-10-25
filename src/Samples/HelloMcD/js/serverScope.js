@@ -12,7 +12,7 @@ angular.module('StarcounterLib', ['panelApp'])
             scope[i] = data[i];
           }
         }
-        FindAndSetWatchers(scope);
+        findAndSetWatchers(scope);
       }
 
       function patchRoot(scope, patch) {
@@ -80,7 +80,7 @@ angular.module('StarcounterLib', ['panelApp'])
         }
       }
 
-      function FindAndSetWatchers(scope) {
+      function findAndSetWatchers(scope) {
           var tree = appContext.getScopeTree(scope);
           var watched = [];
 
