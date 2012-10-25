@@ -105,32 +105,50 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
             GW_PRINT_WORKER << "Popping chunk: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
 #endif
 
+            // Checking if new session was generated.
+            if (INVALID_SESSION_INDEX != sd->get_session_index())
+            {
+                // Checking if Apps unique number is valid.
+                if (INVALID_APPS_UNIQUE_NUMBER != sd->get_apps_unique_num())
+                {
+                    ScSessionStruct* session = g_gateway.GetSessionData(sd->get_session_index());
+                    if (!session->CompareSalts(sd->get_session_salt()))
+                    {
+#ifdef GW_SESSIONS_DIAG
+                        GW_PRINT_WORKER << "Wrong session attached to socket: " << sd->get_session_salt() << std::endl;
+#endif
+                        // The session was killed.
+                        sd->ResetSession();
+                    }
+                }
+                else
+                {
+#ifdef GW_SESSIONS_DIAG
+                    GW_PRINT_WORKER << "Session was killed: " << sd->get_session_index() << ":" << sd->get_session_salt() << std::endl;
+#endif
+
+                    // Killing global session.
+                    sd->KillSession();
+                }
+            }
+            else
+            {
+                // Checking if unique Apps number was supplied.
+                if (INVALID_APPS_UNIQUE_NUMBER != sd->get_apps_unique_num())
+                {
+                    // Session is newly created.
+                    sd->set_new_session_created(true);
+
+                    // Creating new session with this salt and scheduler id and attaching it.
+                    sd->AttachToSession(g_gateway.GenerateNewSession(gw->get_random()->uint64(), sd->get_apps_unique_num(), i));
+                }
+            }
+
             // Resetting the data buffer.
             sd->get_data_buf()->Init(DATA_BLOB_SIZE_BYTES, sd->data_blob());
 
             // Setting the database index and sequence number.
             sd->AttachToDatabase(db_index_);
-
-            /*
-            // Getting attached session.
-            SessionData *session = sd->GetAttachedSession();
-
-            // Check that data received belongs to the correct session (not coming from abandoned connection).
-            if ((NULL == session) || (!session->CompareSocketStamps(sd->GetSocketStamp())))
-            {
-#ifdef GW_ERRORS_DIAG
-                GW_PRINT_WORKER << "Data from db has wrong session: " <<
-                    sd->GetSocket() << " " << sd->GetChunkIndex() << ", current session socket: " << session->get_socket() << std::endl;
-#endif
-
-                // Setting in session attribute (to return to pool).
-                sd->set_in_session(true);
-
-                // Silently disconnecting socket.
-                gw->Disconnect(sd);
-
-                continue;
-            }*/
 
             // Put the chunk into from database queue.
             gw->RunFromDbHandlers(sd);
@@ -258,7 +276,7 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(GatewayWorker* gw, SocketDataChun
 #endif
 
     // Checking if chunk belongs to this database.
-    if (g_gateway.GetDatabase(db_index_)->unique_num() != sd->db_unique_seq_num())
+    if ((g_gateway.GetDatabase(db_index_)->unique_num()) != sd->db_unique_seq_num())
     {
 #ifdef GW_ERRORS_DIAG
         GW_PRINT_WORKER << "Socket data does not belong to this database." << std::endl;
@@ -272,8 +290,16 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(GatewayWorker* gw, SocketDataChun
     smc->terminate_link();
     smc->set_request_size(4);
 
+    // Obtaining the current scheduler id.
+    ScSessionStruct* session = sd->GetAttachedSession();
+    uint32_t sched_id;
+    if (session)
+        sched_id = session->get_scheduler_id();
+    else
+        sched_id = g_gateway.obtain_scheduler_id();
+
     // Pushing socket data as a chunk.
-    return PushLinkedChunksToDb(sd->chunk_index(), sd->get_num_chunks(), sd->GetAttachedSession()->get_scheduler_id());
+    return PushLinkedChunksToDb(sd->chunk_index(), sd->get_num_chunks(), sched_id);
 }
 
 // Registers push channel.

@@ -195,20 +195,20 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunk *sd)
     respBufferSize += kWsHsResponseLen;
 
     // Set-Cookie.
-    if (sd->GetAttachedSession() == NULL)
+    /*if (sd->GetAttachedSession() == NULL)
     {
         // Copying cookie header.
         memcpy(respDataBegin + respBufferSize, kWsCookie, kWsCookieLen);
 
         // Generating and attaching new session.
-        sd->AttachToSession(g_gateway.GenerateNewSession(gw), gw);
+        sd->AttachToSession(g_gateway.GenerateNewSession(gw));
 
         // Converting session to string.
         char temp[32];
         int32_t sessionStringLen = sd->GetAttachedSession()->ConvertToString(temp);
         memcpy(respDataBegin + respBufferSize + kWsSessionIdOffset, temp, sessionStringLen);
         respBufferSize += kWsCookieLen;
-    }
+    }*/
 
     // Empty line.
     memcpy(respDataBegin + respBufferSize, "\r\n", 2);
@@ -373,7 +373,7 @@ uint8_t *WsProto::WriteData(
     if (masking)
     {
         // Create some random mask for use.
-        uint32_t mask = gw->Random->uint64();
+        uint32_t mask = gw->get_random()->uint64();
 
         // Writing mask.
         *(uint32_t *)destData = mask;

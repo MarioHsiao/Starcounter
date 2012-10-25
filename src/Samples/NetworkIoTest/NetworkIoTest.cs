@@ -31,6 +31,12 @@ namespace NetworkIoTestApp
             GatewayHandlers.RegisterUriHandler(80, "/users", OnHttpUsers, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
+            GatewayHandlers.RegisterUriHandler(80, "/session", OnHttpSession, out handlerId);
+            Console.WriteLine("Successfully registered new handler: " + handlerId);
+
+            GatewayHandlers.RegisterUriHandler(80, "/killsession", OnHttpKillSession, out handlerId);
+            Console.WriteLine("Successfully registered new handler: " + handlerId);
+
             GatewayHandlers.RegisterUriHandler(80, "GET /image", OnHttpGetImage, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
@@ -111,7 +117,7 @@ namespace NetworkIoTestApp
                 "<body>\r\n" +
                 "<h1>URI handler: OnHttpRoot </h1>\r\n" +
                 p.ToString() +
-                "<h1>All cookies: " + p["Cookie"] + "</h1>" +
+                "<h1>Presented cookies: " + p["Cookie"] + "</h1>" +
                 "<h1>Host: " + p["Host"] + "</h1>" +
                 "<h1>Method: " + p.HttpMethod + "</h1>" +
                 "</body>\r\n" +
@@ -120,12 +126,10 @@ namespace NetworkIoTestApp
             String responseHeader =
                 "HTTP/1.1 200 OK\r\n" +
                 "Content-Type: text/html; charset=UTF-8\r\n" +
-                "Set-Cookie: " + p.SessionStruct.ConvertToSessionCookieFaster() + "; HttpOnly\r\n" +
-                "Content-Length: " + responseBody.Length + "\r\n" +
-                "\r\n";
+                "Content-Length: " + responseBody.Length + "\r\n";
 
             // Converting string to byte array.
-            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + responseBody);
+            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
 
             // Writing back to channel.
             p.WriteResponse(respBytes, 0, respBytes.Length);
@@ -140,7 +144,7 @@ namespace NetworkIoTestApp
                 "<body>\r\n" +
                 "<h1>URI handler: OnHttpPostRoot </h1>\r\n" +
                 p.ToString() +
-                "<h1>All cookies: " + p["Cookie"] + "</h1>" +
+                "<h1>Presented cookies: " + p["Cookie"] + "</h1>" +
                 "<h1>Host: " + p["Host"] + "</h1>" +
                 "<h1>Method: " + p.HttpMethod + "</h1>" +
                 "</body>\r\n" +
@@ -149,12 +153,10 @@ namespace NetworkIoTestApp
             String responseHeader =
                 "HTTP/1.1 200 OK\r\n" +
                 "Content-Type: text/html; charset=UTF-8\r\n" +
-                "Set-Cookie: " + p.SessionStruct.ConvertToSessionCookieFaster() + "; HttpOnly\r\n" +
-                "Content-Length: " + responseBody.Length + "\r\n" +
-                "\r\n";
+                "Content-Length: " + responseBody.Length + "\r\n";
 
             // Converting string to byte array.
-            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + responseBody);
+            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
 
             // Writing back to channel.
             p.WriteResponse(respBytes, 0, respBytes.Length);
@@ -169,7 +171,7 @@ namespace NetworkIoTestApp
                 "<body>\r\n" +
                 "<h1>URI handler: OnHttpGetRoot </h1>\r\n" +
                 p.ToString() +
-                "<h1>All cookies: " + p["Cookie"] + "</h1>" +
+                "<h1>Presented cookies: " + p["Cookie"] + "</h1>" +
                 "<h1>Host: " + p["Host"] + "</h1>" +
                 "</body>\r\n" +
                 "</html>\r\n";
@@ -177,12 +179,82 @@ namespace NetworkIoTestApp
             String responseHeader =
                 "HTTP/1.1 200 OK\r\n" +
                 "Content-Type: text/html; charset=UTF-8\r\n" +
-                "Set-Cookie: " + p.SessionStruct.ConvertToSessionCookieFaster() + "; HttpOnly\r\n" +
-                "Content-Length: " + responseBody.Length + "\r\n" +
-                "\r\n";
+                "Content-Length: " + responseBody.Length + "\r\n";
 
             // Converting string to byte array.
-            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + responseBody);
+            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
+
+            // Writing back to channel.
+            p.WriteResponse(respBytes, 0, respBytes.Length);
+
+            return true;
+        }
+
+        private static Boolean OnHttpKillSession(HttpRequest p)
+        {
+            String responseBody =
+                "<html>\r\n" +
+                "<body>\r\n" +
+                "<h1>URI handler: OnHttpKillSession </h1>\r\n" +
+                p.ToString() +
+                "<h1>Presented cookies: " + p["Cookie"] + "</h1>" +
+                "<h1>Host: " + p["Host"] + "</h1>" +
+                "</body>\r\n" +
+                "</html>\r\n";
+
+            String responseHeader =
+                "HTTP/1.1 200 OK\r\n" +
+                "Content-Type: text/html; charset=UTF-8\r\n" +
+                "Content-Length: " + responseBody.Length + "\r\n";
+
+            // Generating new session cookie if needed.
+            if (p.HasSession)
+            {
+                // Generating and writing new session.
+                p.KillSession();
+            }
+
+            // Converting string to byte array.
+            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
+
+            // Writing back to channel.
+            p.WriteResponse(respBytes, 0, respBytes.Length);
+
+            return true;
+        }
+
+        private static Boolean OnHttpSession(HttpRequest p)
+        {
+            String responseBody =
+                "<html>\r\n" +
+                "<body>\r\n" +
+                "<h1>URI handler: OnHttpSession </h1>\r\n" +
+                p.ToString() +
+                "<h1>Presented cookies: " + p["Cookie"] + "</h1>" +
+                "<h1>Host: " + p["Host"] + "</h1>" +
+                "</body>\r\n" +
+                "</html>\r\n";
+
+            String responseHeader =
+                "HTTP/1.1 200 OK\r\n" +
+                "Content-Type: text/html; charset=UTF-8\r\n" +
+                "Content-Length: " + responseBody.Length + "\r\n";
+
+            // Generating new session cookie if needed.
+            if (!p.HasSession)
+            {
+                // Generating and writing new session.
+                p.GenerateNewSession();
+
+                // Displaying new session unique number.
+                Console.WriteLine("Generated new session with number: " + p.UniqueSessionNumber);
+
+                // Adding the session cookie stub.
+                responseHeader += "Set-Cookie: " + p.SessionStruct.SessionCookieStubString + "; HttpOnly\r\n";
+            }
+
+            // Converting string to byte array.
+            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
 
             // Writing back to channel.
             p.WriteResponse(respBytes, 0, respBytes.Length);
@@ -197,7 +269,7 @@ namespace NetworkIoTestApp
                 "<body>\r\n" +
                 "<h1>URI handler: OnHttpUsers </h1>\r\n" +
                 p.ToString() +
-                "<h1>All cookies: " + p["Cookie"] + "</h1>" +
+                "<h1>Presented cookies: " + p["Cookie"] + "</h1>" +
                 "<h1>Host: " + p["Host"] + "</h1>" +
                 "</body>\r\n" +
                 "</html>\r\n";
@@ -205,12 +277,10 @@ namespace NetworkIoTestApp
             String responseHeader = 
                 "HTTP/1.1 200 OK\r\n" +
                 "Content-Type: text/html; charset=UTF-8\r\n" +
-                "Set-Cookie: " + p.SessionStruct.ConvertToSessionCookieFaster() + "; HttpOnly\r\n" +
-                "Content-Length: " + responseBody.Length + "\r\n" +
-                "\r\n";
+                "Content-Length: " + responseBody.Length + "\r\n";
 
             // Converting string to byte array.
-            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + responseBody);
+            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
 
             // Writing back to channel.
             p.WriteResponse(respBytes, 0, respBytes.Length);
@@ -226,7 +296,6 @@ namespace NetworkIoTestApp
             String headerString =
                 "HTTP/1.1 200 OK\r\n" +
                 "Content-Type: image/png\r\n" +
-                "Set-Cookie: " + p.SessionStruct.ConvertToSessionCookieFaster() + "; HttpOnly\r\n" +
                 "Content-Length: " + bodyBytes.Length + "\r\n" +
                 "\r\n";
 

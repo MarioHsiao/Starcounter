@@ -36,7 +36,7 @@ namespace Starcounter
 	public unsafe class GatewayHandlers
 	{
         // Offset in bytes for HttpRequest structure.
-        const Int32 HTTP_REQUEST_OFFSET_BYTES = 192;
+        const Int32 HTTP_REQUEST_OFFSET_BYTES = 200;
 
         // Maximum size of BMX header in the beginning of the chunk
         // after which the gateway data can be placed.

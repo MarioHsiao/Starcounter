@@ -30,7 +30,7 @@ uint32_t PrintLastError();
 const uint64_t INVALID_CONVERTED_NUMBER = 0xFFFFFFFFFFFFFFFF;
 
 // Converts uint64_t number to hexadecimal string.
-inline int32_t uint64_to_hex_string(uint64_t number, char *str_out, int32_t num_4bits)
+inline int32_t uint64_to_hex_string(uint64_t number, char *str_out, int32_t num_4bits, bool null_string)
 {
     char hex_table[16] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F' };
     int32_t n = 0;
@@ -47,7 +47,10 @@ inline int32_t uint64_to_hex_string(uint64_t number, char *str_out, int32_t num_
         str_out[n] = '0';
         n++;
     }
-    str_out[n] = '\0';
+
+    // Checking if string should be null terminated.
+    if (null_string)
+        str_out[n] = '\0';
 
     // Returning length.
     return n;

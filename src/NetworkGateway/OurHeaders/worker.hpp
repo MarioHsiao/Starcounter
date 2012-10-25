@@ -34,7 +34,16 @@ class GatewayWorker
     // Some worker temporary data.
     char uri_lower_case_[bmx::MAX_URI_STRING_LEN];
 
+    // Random generator.
+    random_generator* rand_gen_;
+
 public:
+
+    // Getting random generator.
+    random_generator* get_random()
+    {
+        return rand_gen_;
+    }
 
     // Getting worker temporary URI.
     char* get_uri_lower_case()
@@ -118,9 +127,6 @@ public:
     {
         return worker_stats_last_bound_num_;
     }
-
-    // Random generator.
-    random_generator* Random;
 
     // Worker initialization function.
     int32_t Init(int32_t workerId);

@@ -68,6 +68,7 @@ namespace HttpStructs
         /// <param name="isSingleChunk">The is single chunk.</param>
         /// <param name="chunkIndex">Index of the chunk.</param>
         unsafe void Init(Byte* unmanagedChunk, Boolean isSingleChunk, UInt32 chunkIndex);
+
         /// <summary>
         /// Reads the specified buffer.
         /// </summary>
@@ -75,6 +76,7 @@ namespace HttpStructs
         /// <param name="offset">The offset.</param>
         /// <param name="length">The length.</param>
         void Read(Byte[] buffer, Int32 offset, Int32 length);
+
         /// <summary>
         /// Writes the specified buffer.
         /// </summary>
@@ -91,9 +93,9 @@ namespace HttpStructs
     {
         // Session random salt.
         /// <summary>
-        /// The random_salt_
+        /// The session random salt.
         /// </summary>
-        public UInt64 random_salt_;
+        public UInt64 session_salt_;
 
         // Unique session linear index.
         // Points to the element in sessions linear array.
@@ -108,17 +110,23 @@ namespace HttpStructs
         /// </summary>
         public UInt32 scheduler_id_;
 
-        // Hex table used for conversion.
         /// <summary>
-        /// The hex_table_
+        /// Unique number coming from Apps.
         /// </summary>
-        static Byte[] hex_table_ = new Byte[] { (Byte)'0', (Byte)'1', (Byte)'2', (Byte)'3', (Byte)'4', (Byte)'5', (Byte)'6', (Byte)'7', (Byte)'8', (Byte)'9', (Byte)'A', (Byte)'B', (Byte)'C', (Byte)'D', (Byte)'E', (Byte)'F' };
+        public UInt64 apps_unique_num_;
 
         // Session string length in characters.
         /// <summary>
         /// The S c_ SESSIO n_ STRIN g_ LE n_ CHARS
         /// </summary>
         const Int32 SC_SESSION_STRING_LEN_CHARS = 24;
+
+        /*
+        // Hex table used for conversion.
+        /// <summary>
+        /// The hex_table_
+        /// </summary>
+        static Byte[] hex_table_ = new Byte[] { (Byte)'0', (Byte)'1', (Byte)'2', (Byte)'3', (Byte)'4', (Byte)'5', (Byte)'6', (Byte)'7', (Byte)'8', (Byte)'9', (Byte)'A', (Byte)'B', (Byte)'C', (Byte)'D', (Byte)'E', (Byte)'F' };
 
         // Session cookie prefix.
         /// <summary>
@@ -168,7 +176,7 @@ namespace HttpStructs
             Int32 sessionStringLen = uint64_to_hex_string(session_index_, str_out, 0, 8);
 
             // Translating session random salt.
-            sessionStringLen += uint64_to_hex_string(random_salt_, str_out, sessionStringLen, 16);
+            sessionStringLen += uint64_to_hex_string(session_salt_, str_out, sessionStringLen, 16);
 
             return sessionStringLen;
         }
@@ -183,11 +191,10 @@ namespace HttpStructs
             // Allocating string bytes.
             Byte[] str_bytes = new Byte[SC_SESSION_STRING_LEN_CHARS];
 
-            // Translating session index.
             Int32 sessionStringLen = uint64_to_hex_string(session_index_, str_bytes, 0, 8);
 
             // Translating session random salt.
-            sessionStringLen += uint64_to_hex_string(random_salt_, str_bytes, sessionStringLen, 16);
+            sessionStringLen += uint64_to_hex_string(session_salt_, str_bytes, sessionStringLen, 16);
 
             // Converting byte array to string.
             return UTF8Encoding.ASCII.GetString(str_bytes);
@@ -245,7 +252,7 @@ namespace HttpStructs
             Int32 sessionStringLen = uint64_to_hex_string(session_index_, str_out, 0, 8);
 
             // Translating session random salt.
-            sessionStringLen += uint64_to_hex_string(random_salt_, str_out, sessionStringLen, 16);
+            sessionStringLen += uint64_to_hex_string(session_salt_, str_out, sessionStringLen, 16);
 
             return sessionStringLen;
         }
@@ -266,7 +273,7 @@ namespace HttpStructs
                 Int32 sessionStringLen = uint64_to_hex_string(session_index_, str_bytes, 0, 8);
 
                 // Translating session random salt.
-                sessionStringLen += uint64_to_hex_string(random_salt_, str_bytes, sessionStringLen, 16);
+                sessionStringLen += uint64_to_hex_string(session_salt_, str_bytes, sessionStringLen, 16);
 
                 // Converting byte array to string.
                 return Marshal.PtrToStringAnsi((IntPtr)str_bytes, SC_SESSION_STRING_LEN_CHARS);
@@ -282,6 +289,19 @@ namespace HttpStructs
         {
             return SessionCookiePrefix + ConvertToStringFaster();
         }
+        */
+        
+        /// <summary>
+        /// Returns constant session cookie stub.
+        /// </summary>
+        /// <returns></returns>
+        public String SessionCookieStubString
+        {
+            get
+            {
+                return "ScSessionId=########################";
+            }
+        }
     }
 
     /// <summary>
@@ -289,11 +309,21 @@ namespace HttpStructs
     /// </summary>
     public class HttpRequest
     {
+        /// <summary>
+        /// Offset in bytes for the session.
+        /// </summary>
+        const Int32 SESSION_OFFSET_BYTES = 32;
+
         // Internal structure with HTTP request information.
         /// <summary>
         /// The http_request_
         /// </summary>
         unsafe HttpRequestInternal* http_request_;
+
+        /// <summary>
+        /// Direct pointer to session data.
+        /// </summary>
+        unsafe ScSessionStruct* session_;
 
         // Network data stream.
         /// <summary>
@@ -319,6 +349,7 @@ namespace HttpStructs
                     BitsAndBytes.MemCpy(pnew, pbuf, (uint)buf.Length);
                 }
             }*/
+
             throw new NotImplementedException();
         }
 
@@ -329,18 +360,19 @@ namespace HttpStructs
         /// <param name="chunk_data">The chunk_data.</param>
         /// <param name="single_chunk">The single_chunk.</param>
         /// <param name="chunk_index">The chunk_index.</param>
-        /// <param name="http_request">The http_request.</param>
+        /// <param name="http_request_begin">The http_request_begin.</param>
         /// <param name="socket_data">The socket_data.</param>
         /// <param name="data_stream">The data_stream.</param>
         public unsafe HttpRequest(
             Byte* chunk_data,
             Boolean single_chunk,
             UInt32 chunk_index,
-            Byte* http_request,
+            Byte* http_request_begin,
             Byte* socket_data,
             INetworkDataStream data_stream)
         {
-            http_request_ = (HttpRequestInternal*)http_request;
+            http_request_ = (HttpRequestInternal*)http_request_begin;
+            session_ = (ScSessionStruct*)(socket_data + SESSION_OFFSET_BYTES);
             http_request_->sd_ = socket_data;
             data_stream_ = data_stream;
             data_stream_.Init(chunk_data, single_chunk, chunk_index);
@@ -569,6 +601,71 @@ namespace HttpStructs
         }
 
         /// <summary>
+        /// Invalid session index.
+        /// </summary>
+        const UInt32 INVALID_SESSION_INDEX = UInt32.MaxValue;
+
+        /// <summary>
+        /// Invalid Apps unique number.
+        /// </summary>
+        const UInt64 INVALID_APPS_UNIQUE_NUMBER = 0;
+
+        /// <summary>
+        /// Checks if HTTP request already has session.
+        /// </summary>
+        public Boolean HasSession
+        {
+            get
+            {
+                unsafe
+                {
+                    return INVALID_APPS_UNIQUE_NUMBER != (session_->apps_unique_num_);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Generates session number and writes it to response.
+        /// </summary>
+        public void GenerateNewSession()
+        {
+            unsafe
+            {
+                // Resetting the session index.
+                session_->session_index_ = INVALID_SESSION_INDEX;
+
+                // Generating new session and assigning it to current.
+                session_->apps_unique_num_ = GlobalSessions.AllSessions.GenerateUniqueNumber();
+            }
+        }
+
+        /// <summary>
+        /// Kills the existing session.
+        /// </summary>
+        public void KillSession()
+        {
+            unsafe
+            {
+                // Killing this session by setting invalid unique number.
+                session_->apps_unique_num_ = INVALID_APPS_UNIQUE_NUMBER;
+            }
+        }
+
+        /// <summary>
+        /// Returns unique session number.
+        /// </summary>
+        public UInt64 UniqueSessionNumber
+        {
+            get
+            {
+                unsafe
+                {
+                    return session_->apps_unique_num_;
+                }
+            }
+        }
+
+        /// <summary>
         /// Gets the session struct.
         /// </summary>
         /// <value>The session struct.</value>
@@ -576,7 +673,7 @@ namespace HttpStructs
         {
             get
             {
-                unsafe { return http_request_->session_struct_; }
+                unsafe { return *session_; }
             }
         }
 
@@ -728,12 +825,6 @@ namespace HttpStructs
         /// The num_headers_
         /// </summary>
         public UInt32 num_headers_;
-
-        // Session structure.
-        /// <summary>
-        /// The session_struct_
-        /// </summary>
-        public ScSessionStruct session_struct_;
 
         // HTTP method.
         /// <summary>
@@ -994,8 +1085,6 @@ namespace HttpStructs
                    "<h1>URI: " + Uri + "</h1>\r\n" +
                    "<h1>BodyLength: " + body_len_bytes_ + "</h1>\r\n" +
                    "<h1>GZip accepted: " + is_gzip_accepted_ + "</h1>\r\n" +
-                   "<h1>Session index: " + session_struct_.session_index_ + "</h1>\r\n" +
-                   "<h1>Session scheduler: " + session_struct_.scheduler_id_ + "</h1>\r\n" +
                    "<h1>Session string: " + GetSessionString() + "</h1>\r\n"
                    ;
         }

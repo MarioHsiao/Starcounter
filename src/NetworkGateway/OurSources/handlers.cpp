@@ -405,11 +405,11 @@ uint32_t PortProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYP
     if (sd->data_to_user_flag())
     {
         // Looking for attached session or generating a new one.
-        if (sd->GetAttachedSession() == NULL)
+        /*if (sd->GetAttachedSession() == NULL)
         {
             // Generating and attaching new session.
-            sd->AttachToSession(g_gateway.GenerateNewSession(gw), gw);
-        }
+            sd->AttachToSession(g_gateway.GenerateNewSession(gw));
+        }*/
 
         // Push chunk to corresponding channel/scheduler.
         gw->PushSocketDataToDb(sd, user_handler_id);
