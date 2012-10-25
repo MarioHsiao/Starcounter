@@ -105,24 +105,10 @@ namespace Starcounter.Internal.JsonPatch
             buffer.Add((byte)'[');
             foreach (Change change in changeLog)
             {
-                // TODO:
-                // Better way to get the changed value.
-                obj = null;
                 template = change.Template;
+                obj = GetValueFromChange(change);
 
                 buffer.Add((byte)'{');
-                if (template is StringProperty)
-                {
-                    obj = change.App.GetValue((StringProperty)template);
-                }
-                else if (template is ListingProperty)
-                {
-                    Listing appList = (Listing)change.App.GetValue((ListingProperty)template);
-
-                    // TODO:
-                    // Need to convert App to jsonformat.
-                    obj = appList[change.Index];
-                }
 
                 patch = JsonPatch.BuildJsonPatch(change.ChangeType, change.App, change.Template, obj, change.Index);
                 Byte[] patchArr = Encoding.UTF8.GetBytes(patch);
@@ -139,6 +125,35 @@ namespace Starcounter.Internal.JsonPatch
             buffer.Add((byte)']');
             
             return buffer.Count - startIndex;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="change"></param>
+        /// <returns></returns>
+        private static object GetValueFromChange(Change change) {
+            object ret = null;
+            Template template = change.Template;
+
+            // TODO:
+            // Need a faster way than checking type and casting to get the value.
+                
+            if (template is StringProperty) {
+                ret = change.App.GetValue((StringProperty)template);
+            } else if (template is ListingProperty) {
+                Listing appList = (Listing)change.App.GetValue((ListingProperty)template);
+                ret = appList[change.Index];
+            } else if (template is IntProperty) {
+                ret = change.App.GetValue((IntProperty)template);
+            } else if (template is BoolProperty) {
+                ret = change.App.GetValue((BoolProperty)template);
+            } else if (template is DoubleProperty) {
+                ret = change.App.GetValue((DoubleProperty)template);
+            } else if (template is DecimalProperty) {
+                ret = change.App.GetValue((IntProperty)template);
+            }
+            return ret;
         }
     }
 }
