@@ -20,7 +20,7 @@ namespace HttpStructs
         public static GlobalSessions AllSessions = new GlobalSessions();
 
         // Unique Apps number.
-        Int64 apps_unique_num_ = 0;
+        Int64 apps_unique_session_num_ = 0;
 
         /// <summary>
         /// Generates new Apps unique number.
@@ -28,7 +28,7 @@ namespace HttpStructs
         /// <returns></returns>
         public UInt64 GenerateUniqueNumber()
         {
-            return (UInt64)Interlocked.Increment(ref apps_unique_num_);
+            return (UInt64)Interlocked.Increment(ref apps_unique_session_num_);
         }
     }
 }
