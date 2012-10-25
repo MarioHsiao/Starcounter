@@ -104,9 +104,9 @@ public:
     }
 
     // Getting Apps unique number.
-    uint64_t get_apps_unique_num()
+    uint64_t get_apps_unique_session_num()
     {
-        return session_.apps_unique_num_;
+        return session_.apps_unique_session_num_;
     }
 
     // Getting session salt.

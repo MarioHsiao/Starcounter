@@ -113,7 +113,7 @@ namespace HttpStructs
         /// <summary>
         /// Unique number coming from Apps.
         /// </summary>
-        public UInt64 apps_unique_num_;
+        public UInt64 apps_unique_session_num_;
 
         // Session string length in characters.
         /// <summary>
@@ -608,7 +608,7 @@ namespace HttpStructs
         /// <summary>
         /// Invalid Apps unique number.
         /// </summary>
-        const UInt64 INVALID_APPS_UNIQUE_NUMBER = 0;
+        const UInt64 INVALID_APPS_UNIQUE_SESSION_NUMBER = 0;
 
         /// <summary>
         /// Checks if HTTP request already has session.
@@ -619,7 +619,7 @@ namespace HttpStructs
             {
                 unsafe
                 {
-                    return INVALID_APPS_UNIQUE_NUMBER != (session_->apps_unique_num_);
+                    return INVALID_APPS_UNIQUE_SESSION_NUMBER != (session_->apps_unique_session_num_);
                 }
             }
         }
@@ -627,7 +627,7 @@ namespace HttpStructs
         /// <summary>
         /// Generates session number and writes it to response.
         /// </summary>
-        public void GenerateNewSession()
+        public UInt64 GenerateNewSession()
         {
             unsafe
             {
@@ -635,7 +635,10 @@ namespace HttpStructs
                 session_->session_index_ = INVALID_SESSION_INDEX;
 
                 // Generating new session and assigning it to current.
-                session_->apps_unique_num_ = GlobalSessions.AllSessions.GenerateUniqueNumber();
+                session_->apps_unique_session_num_ = GlobalSessions.AllSessions.GenerateUniqueNumber();
+
+                // Returning Apps unique number.
+                return session_->apps_unique_session_num_;
             }
         }
 
@@ -647,7 +650,7 @@ namespace HttpStructs
             unsafe
             {
                 // Killing this session by setting invalid unique number.
-                session_->apps_unique_num_ = INVALID_APPS_UNIQUE_NUMBER;
+                session_->apps_unique_session_num_ = INVALID_APPS_UNIQUE_SESSION_NUMBER;
             }
         }
 
@@ -660,7 +663,7 @@ namespace HttpStructs
             {
                 unsafe
                 {
-                    return session_->apps_unique_num_;
+                    return session_->apps_unique_session_num_;
                 }
             }
         }
