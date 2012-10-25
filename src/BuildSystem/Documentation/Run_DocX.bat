@@ -14,9 +14,9 @@ set DocumentationResultFolder=build
 "%DocumentX%" ".\%DocumentationProjectPath%\%DocumentationProjectName%" [/buildconfiguration="%DocumentationBuildConf%"]
 
 :: SCTESTSRV01
-net use Z: %SRVwebappsPath% /user:%SRVusername% %SRVpassword%
-rd /s /q "Z:\%DocumentationParentFolder%"
-robocopy .\%DocumentationProjectPath%\%DocumentationResultFolder%\ Z: /e
-net use Z: /delete
+net use Q: %SRVwebappsPath% /user:%SRVusername% %SRVpassword%
+rd /s /q "Q:\%DocumentationParentFolder%"
+robocopy .\%DocumentationProjectPath%\%DocumentationResultFolder%\ Q: /e
+net use Q: /delete
 
 exit 0
