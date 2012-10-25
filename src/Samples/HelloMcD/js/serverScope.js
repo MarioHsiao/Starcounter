@@ -57,9 +57,13 @@ angular.module('StarcounterLib', ['panelApp'])
         for (var i = 0, ilen = props.length; i < ilen; i++) {
           scope.$watch(props[i], (function (prop) {
             return (function (current, previous, scope) {
-              if (rootLoaded) {
-                updateServer(scope, '/' + prop.replace(/\./g, '/'), current);
-              }
+                if (rootLoaded) {
+					// Quick fix for not sending patch to server when watch is set.
+                    if (current === previous) {
+                        return;
+                    }
+                    updateServer(scope, '/' + prop.replace(/\./g, '/'), current);
+                }
             })
           })(props[i]), true);
         }
