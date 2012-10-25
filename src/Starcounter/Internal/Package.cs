@@ -14,8 +14,15 @@ using System.IO;
 
 namespace Starcounter.Internal {
 
+    /// <summary>
+    /// Class Package
+    /// </summary>
     public class Package {
 
+        /// <summary>
+        /// Processes the specified h package.
+        /// </summary>
+        /// <param name="hPackage">The h package.</param>
         public static void Process(IntPtr hPackage) {
             GCHandle gcHandle = (GCHandle)hPackage;
             Package p = (Package)gcHandle.Target;
