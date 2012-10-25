@@ -170,6 +170,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     }
                     else if (node is NAppTemplateClass) {
                         WriteAppTemplateConstructor((node as NAppTemplateClass).Constructor);
+                        WriteAppTemplateCreateInstance(node as NAppTemplateClass);
                     }
                 }
                 node.Suffix.Add("}");
@@ -329,6 +330,18 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             sb.Append(m.MemberName);
             sb.Append(';');
             m.Prefix.Add(sb.ToString());
+        }
+
+        /// <summary>
+        /// Writes override method for creating default appinstance from template.
+        /// </summary>
+        /// <param name="node"></param>
+        private void WriteAppTemplateCreateInstance(NAppTemplateClass node) {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("    public override object CreateInstance(AppNode parent) { return new ");
+            sb.Append(node.NValueClass.ClassName);
+            sb.Append("() { Parent = parent }; }");
+            node.Prefix.Add(sb.ToString());
         }
 
         /// <summary>

@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="IPropertyBinding.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter;
 using System;
 
@@ -17,25 +22,29 @@ namespace Starcounter.Binding
         /// <summary>
         /// Property index.
         /// </summary>
+        /// <value>The index.</value>
         Int32 Index { get; }
 
         /// <summary>
         /// Property name.
         /// </summary>
+        /// <value>The name.</value>
         String Name { get; }
 
         /// <summary>
         /// Binding used by the property type if any.
         /// </summary>
+        /// <value>The type binding.</value>
         /// <returns>
         /// A type binding. Null if the target is a literal, only set if a
         /// reference property.
-        /// </returns>
+        ///   </returns>
         ITypeBinding TypeBinding { get; } // TODO: Rename: TargetTypeBinding
 
         /// <summary>
         /// Property value type code.
         /// </summary>
+        /// <value>The type code.</value>
         DbTypeCode TypeCode { get; }
     }
 }

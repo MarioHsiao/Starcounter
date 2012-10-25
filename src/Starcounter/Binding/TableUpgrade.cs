@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="TableUpgrade.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
@@ -6,25 +11,58 @@ using System.Collections.Generic;
 namespace Starcounter.Binding
 {
 
+    /// <summary>
+    /// Class TableUpgrade
+    /// </summary>
     internal class TableUpgrade
     {
 
+        /// <summary>
+        /// The pending update table name prefix
+        /// </summary>
         public const string PendingUpdateTableNamePrefix = "0";
 
+        /// <summary>
+        /// Creates the name of the pending update table.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns>System.String.</returns>
         public static string CreatePendingUpdateTableName(string name)
         {
             // TODO: Restrict name size and format on non upgrade table.
             return string.Concat(PendingUpdateTableNamePrefix, name); 
         }
 
+        /// <summary>
+        /// Delegate RecordHandler
+        /// </summary>
+        /// <param name="obj">The obj.</param>
         private delegate void RecordHandler(ObjectRef obj);
 
+        /// <summary>
+        /// The table name_
+        /// </summary>
         private readonly string tableName_;
+        /// <summary>
+        /// The old table def_
+        /// </summary>
         private readonly TableDef oldTableDef_;
+        /// <summary>
+        /// The new table def_
+        /// </summary>
         private TableDef newTableDef_;
 
+        /// <summary>
+        /// The column value transfer set_
+        /// </summary>
         private ColumnValueTransfer[] columnValueTransferSet_;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TableUpgrade" /> class.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <param name="oldTableDef">The old table def.</param>
+        /// <param name="newTableDef">The new table def.</param>
         public TableUpgrade(string tableName, TableDef oldTableDef, TableDef newTableDef)
         {
             tableName_ = tableName;
@@ -32,6 +70,10 @@ namespace Starcounter.Binding
             newTableDef_ = newTableDef;
         }
 
+        /// <summary>
+        /// Evals this instance.
+        /// </summary>
+        /// <returns>TableDef.</returns>
         public TableDef Eval()
         {
             CreateNewTable();
@@ -63,6 +105,10 @@ namespace Starcounter.Binding
             return newTableDef_;
         }
 
+        /// <summary>
+        /// Continues the eval.
+        /// </summary>
+        /// <returns>TableDef.</returns>
         public TableDef ContinueEval()
         {
             if (oldTableDef_ != null)
@@ -122,6 +168,9 @@ namespace Starcounter.Binding
             return newTableDef_;
         }
 
+        /// <summary>
+        /// Creates the new table.
+        /// </summary>
         private void CreateNewTable()
         {
             newTableDef_ = newTableDef_.Clone();
@@ -130,6 +179,10 @@ namespace Starcounter.Binding
             newTableDef_ = tableCreate.Eval();
         }
 
+        /// <summary>
+        /// Upgrades the inheriting table.
+        /// </summary>
+        /// <param name="oldInheritingTableDef">The old inheriting table def.</param>
         private void UpgradeInheritingTable(TableDef oldInheritingTableDef)
         {
             List<ColumnDef> newColumnDefs = new List<ColumnDef>();
@@ -159,6 +212,10 @@ namespace Starcounter.Binding
             tableUpgrade.Eval();
         }
 
+        /// <summary>
+        /// Continues the upgrade inheriting table.
+        /// </summary>
+        /// <param name="oldInheritingTableDef">The old inheriting table def.</param>
         private void ContinueUpgradeInheritingTable(TableDef oldInheritingTableDef)
         {
             var tableName = oldInheritingTableDef.Name;
@@ -180,6 +237,10 @@ namespace Starcounter.Binding
             }
         }
 
+        /// <summary>
+        /// Builds the column value transfer set.
+        /// </summary>
+        /// <exception cref="System.NotSupportedException"></exception>
         private void BuildColumnValueTransferSet()
         {
             List<ColumnValueTransfer> output = new List<ColumnValueTransfer>();
@@ -244,6 +305,9 @@ namespace Starcounter.Binding
             columnValueTransferSet_ = output.ToArray();
         }
 
+        /// <summary>
+        /// Moves the records to new table.
+        /// </summary>
         private void MoveRecordsToNewTable()
         {
             var indexInfo = oldTableDef_.GetAllIndexInfos()[0];
@@ -261,6 +325,11 @@ namespace Starcounter.Binding
             while (c != 0);
         }
 
+        /// <summary>
+        /// Gets the directly inherited table defs.
+        /// </summary>
+        /// <param name="baseDefinitionAddr">The base definition addr.</param>
+        /// <returns>TableDef[][].</returns>
         private unsafe TableDef[] GetDirectlyInheritedTableDefs(ulong baseDefinitionAddr)
         {
             TableDef[] output = null;
@@ -294,16 +363,26 @@ namespace Starcounter.Binding
             return output;
         }
 
+        /// <summary>
+        /// Drops the old table.
+        /// </summary>
         private void DropOldTable()
         {
             Db.DropTable(oldTableDef_.Name);
         }
 
+        /// <summary>
+        /// Renames the new table.
+        /// </summary>
         private void RenameNewTable()
         {
             Db.RenameTable(newTableDef_.TableId, tableName_);
         }
 
+        /// <summary>
+        /// Moves the record.
+        /// </summary>
+        /// <param name="source">The source.</param>
         private void MoveRecord(ObjectRef source)
         {
             ColumnValueTransfer[] columnValueTransfers = columnValueTransferSet_;
@@ -333,6 +412,14 @@ namespace Starcounter.Binding
             }
         }
 
+        /// <summary>
+        /// Builds the scan range keys.
+        /// </summary>
+        /// <param name="indexInfo">The index info.</param>
+        /// <param name="lk">The lk.</param>
+        /// <param name="hk">The hk.</param>
+        /// <exception cref="System.NotImplementedException"></exception>
+        /// <exception cref="System.NotSupportedException"></exception>
         private unsafe void BuildScanRangeKeys(IndexInfo indexInfo, out Byte[] lk, out Byte[] hk)
         {
             lk = new Byte[64];
@@ -385,6 +472,15 @@ namespace Starcounter.Binding
             }
         }
 
+        /// <summary>
+        /// Scans the do.
+        /// </summary>
+        /// <param name="indexHandle">The index handle.</param>
+        /// <param name="lk">The lk.</param>
+        /// <param name="hk">The hk.</param>
+        /// <param name="max">The max.</param>
+        /// <param name="handler">The handler.</param>
+        /// <returns>System.UInt64.</returns>
         private unsafe ulong ScanDo(ulong indexHandle, byte[] lk, byte[] hk, ulong max, RecordHandler handler)
         {
             uint e;
@@ -443,19 +539,43 @@ namespace Starcounter.Binding
     }
 
 
+    /// <summary>
+    /// Class ColumnValueTransfer
+    /// </summary>
     internal abstract class ColumnValueTransfer
     {
 
+        /// <summary>
+        /// Class UpgradeRecord
+        /// </summary>
         internal sealed class UpgradeRecord : Entity
         {
 
+            /// <summary>
+            /// Initializes a new instance of the <see cref="UpgradeRecord" /> class.
+            /// </summary>
+            /// <param name="u">The u.</param>
             public UpgradeRecord(Uninitialized u) : base(u) { }
         }
 
+        /// <summary>
+        /// The rec_
+        /// </summary>
         protected UpgradeRecord rec_;
+        /// <summary>
+        /// The source index_
+        /// </summary>
         protected readonly int sourceIndex_;
+        /// <summary>
+        /// The target index_
+        /// </summary>
         protected readonly int targetIndex_;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ColumnValueTransfer" /> class.
+        /// </summary>
+        /// <param name="sourceIndex">Index of the source.</param>
+        /// <param name="targetIndex">Index of the target.</param>
         public ColumnValueTransfer(int sourceIndex, int targetIndex)
         {
             rec_ = new UpgradeRecord((Uninitialized)null);
@@ -463,24 +583,51 @@ namespace Starcounter.Binding
             targetIndex_ = targetIndex;
         }
 
+        /// <summary>
+        /// Reads the specified source.
+        /// </summary>
+        /// <param name="source">The source.</param>
         public abstract void Read(ObjectRef source);
 
+        /// <summary>
+        /// Writes the specified target.
+        /// </summary>
+        /// <param name="target">The target.</param>
         public abstract void Write(ObjectRef target);
     }
 
+    /// <summary>
+    /// Class BooleanColumnValueTransfer
+    /// </summary>
     internal class BooleanColumnValueTransfer : ColumnValueTransfer
     {
 
+        /// <summary>
+        /// The value_
+        /// </summary>
         private bool? value_;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BooleanColumnValueTransfer" /> class.
+        /// </summary>
+        /// <param name="sourceIndex">Index of the source.</param>
+        /// <param name="targetIndex">Index of the target.</param>
         public BooleanColumnValueTransfer(int sourceIndex, int targetIndex) : base(sourceIndex, targetIndex) { }
 
+        /// <summary>
+        /// Reads the specified source.
+        /// </summary>
+        /// <param name="source">The source.</param>
         public override void Read(ObjectRef source)
         {
             rec_.ThisRef = source;
             value_ = DbState.ReadNullableBoolean(rec_, sourceIndex_);
         }
 
+        /// <summary>
+        /// Writes the specified target.
+        /// </summary>
+        /// <param name="target">The target.</param>
         public override void Write(ObjectRef target)
         {
             rec_.ThisRef = target;
@@ -489,19 +636,38 @@ namespace Starcounter.Binding
         }
     }
 
+    /// <summary>
+    /// Class BinaryColumnValueTransfer
+    /// </summary>
     internal class BinaryColumnValueTransfer : ColumnValueTransfer
     {
 
+        /// <summary>
+        /// The value_
+        /// </summary>
         private Binary value_;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BinaryColumnValueTransfer" /> class.
+        /// </summary>
+        /// <param name="sourceIndex">Index of the source.</param>
+        /// <param name="targetIndex">Index of the target.</param>
         public BinaryColumnValueTransfer(int sourceIndex, int targetIndex) : base(sourceIndex, targetIndex) { }
 
+        /// <summary>
+        /// Reads the specified source.
+        /// </summary>
+        /// <param name="source">The source.</param>
         public override void Read(ObjectRef source)
         {
             rec_.ThisRef = source;
             value_ = DbState.ReadBinary(rec_, sourceIndex_);
         }
 
+        /// <summary>
+        /// Writes the specified target.
+        /// </summary>
+        /// <param name="target">The target.</param>
         public override void Write(ObjectRef target)
         {
             rec_.ThisRef = target;
@@ -509,19 +675,38 @@ namespace Starcounter.Binding
         }
     }
 
+    /// <summary>
+    /// Class DecimalColumnValueTransfer
+    /// </summary>
     internal class DecimalColumnValueTransfer : ColumnValueTransfer
     {
 
+        /// <summary>
+        /// The value_
+        /// </summary>
         private decimal? value_;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DecimalColumnValueTransfer" /> class.
+        /// </summary>
+        /// <param name="sourceIndex">Index of the source.</param>
+        /// <param name="targetIndex">Index of the target.</param>
         public DecimalColumnValueTransfer(int sourceIndex, int targetIndex) : base(sourceIndex, targetIndex) { }
 
+        /// <summary>
+        /// Reads the specified source.
+        /// </summary>
+        /// <param name="source">The source.</param>
         public override void Read(ObjectRef source)
         {
             rec_.ThisRef = source;
             value_ = DbState.ReadNullableDecimal(rec_, sourceIndex_);
         }
 
+        /// <summary>
+        /// Writes the specified target.
+        /// </summary>
+        /// <param name="target">The target.</param>
         public override void Write(ObjectRef target)
         {
             rec_.ThisRef = target;
@@ -530,19 +715,38 @@ namespace Starcounter.Binding
         }
     }
 
+    /// <summary>
+    /// Class DoubleColumnValueTransfer
+    /// </summary>
     internal class DoubleColumnValueTransfer : ColumnValueTransfer
     {
 
+        /// <summary>
+        /// The value_
+        /// </summary>
         private double? value_;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DoubleColumnValueTransfer" /> class.
+        /// </summary>
+        /// <param name="sourceIndex">Index of the source.</param>
+        /// <param name="targetIndex">Index of the target.</param>
         public DoubleColumnValueTransfer(int sourceIndex, int targetIndex) : base(sourceIndex, targetIndex) { }
 
+        /// <summary>
+        /// Reads the specified source.
+        /// </summary>
+        /// <param name="source">The source.</param>
         public override void Read(ObjectRef source)
         {
             rec_.ThisRef = source;
             value_ = DbState.ReadNullableDouble(rec_, sourceIndex_);
         }
 
+        /// <summary>
+        /// Writes the specified target.
+        /// </summary>
+        /// <param name="target">The target.</param>
         public override void Write(ObjectRef target)
         {
             rec_.ThisRef = target;
@@ -551,19 +755,38 @@ namespace Starcounter.Binding
         }
     }
 
+    /// <summary>
+    /// Class Int64ColumnValueTransfer
+    /// </summary>
     internal class Int64ColumnValueTransfer : ColumnValueTransfer
     {
 
+        /// <summary>
+        /// The value_
+        /// </summary>
         private long? value_;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Int64ColumnValueTransfer" /> class.
+        /// </summary>
+        /// <param name="sourceIndex">Index of the source.</param>
+        /// <param name="targetIndex">Index of the target.</param>
         public Int64ColumnValueTransfer(int sourceIndex, int targetIndex) : base(sourceIndex, targetIndex) { }
 
+        /// <summary>
+        /// Reads the specified source.
+        /// </summary>
+        /// <param name="source">The source.</param>
         public override void Read(ObjectRef source)
         {
             rec_.ThisRef = source;
             value_ = DbState.ReadNullableInt64(rec_, sourceIndex_);
         }
 
+        /// <summary>
+        /// Writes the specified target.
+        /// </summary>
+        /// <param name="target">The target.</param>
         public override void Write(ObjectRef target)
         {
             rec_.ThisRef = target;
@@ -572,19 +795,38 @@ namespace Starcounter.Binding
         }
     }
 
+    /// <summary>
+    /// Class LargeBinaryColumnValueTransfer
+    /// </summary>
     internal class LargeBinaryColumnValueTransfer : ColumnValueTransfer
     {
 
+        /// <summary>
+        /// The value_
+        /// </summary>
         private LargeBinary value_;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LargeBinaryColumnValueTransfer" /> class.
+        /// </summary>
+        /// <param name="sourceIndex">Index of the source.</param>
+        /// <param name="targetIndex">Index of the target.</param>
         public LargeBinaryColumnValueTransfer(int sourceIndex, int targetIndex) : base(sourceIndex, targetIndex) { }
 
+        /// <summary>
+        /// Reads the specified source.
+        /// </summary>
+        /// <param name="source">The source.</param>
         public override void Read(ObjectRef source)
         {
             rec_.ThisRef = source;
             value_ = DbState.ReadLargeBinary(rec_, sourceIndex_);
         }
 
+        /// <summary>
+        /// Writes the specified target.
+        /// </summary>
+        /// <param name="target">The target.</param>
         public override void Write(ObjectRef target)
         {
             rec_.ThisRef = target;
@@ -592,18 +834,38 @@ namespace Starcounter.Binding
         }
     }
 
+    /// <summary>
+    /// Class ObjectColumnValueTransfer
+    /// </summary>
     internal class ObjectColumnValueTransfer : ColumnValueTransfer
     {
 
+        /// <summary>
+        /// The value_
+        /// </summary>
         private ObjectRef value_;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ObjectColumnValueTransfer" /> class.
+        /// </summary>
+        /// <param name="sourceIndex">Index of the source.</param>
+        /// <param name="targetIndex">Index of the target.</param>
         public ObjectColumnValueTransfer(int sourceIndex, int targetIndex) : base(sourceIndex, targetIndex) { }
 
+        /// <summary>
+        /// Reads the specified source.
+        /// </summary>
+        /// <param name="source">The source.</param>
         public override void Read(ObjectRef source)
         {
             value_ = DoRead(source);
         }
 
+        /// <summary>
+        /// Does the read.
+        /// </summary>
+        /// <param name="source">The source.</param>
+        /// <returns>ObjectRef.</returns>
         private ObjectRef DoRead(ObjectRef source)
         {
             UInt16 flags;
@@ -640,6 +902,10 @@ namespace Starcounter.Binding
             throw ErrorCode.ToException(ec);
         }
 
+        /// <summary>
+        /// Writes the specified target.
+        /// </summary>
+        /// <param name="target">The target.</param>
         public override void Write(ObjectRef target)
         {
             if (value_.ObjectID != sccoredb.MDBIT_OBJECTID)
@@ -661,19 +927,38 @@ namespace Starcounter.Binding
         }
     }
 
+    /// <summary>
+    /// Class SingleColumnValueTransfer
+    /// </summary>
     internal class SingleColumnValueTransfer : ColumnValueTransfer
     {
 
+        /// <summary>
+        /// The value_
+        /// </summary>
         private float? value_;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SingleColumnValueTransfer" /> class.
+        /// </summary>
+        /// <param name="sourceIndex">Index of the source.</param>
+        /// <param name="targetIndex">Index of the target.</param>
         public SingleColumnValueTransfer(int sourceIndex, int targetIndex) : base(sourceIndex, targetIndex) { }
 
+        /// <summary>
+        /// Reads the specified source.
+        /// </summary>
+        /// <param name="source">The source.</param>
         public override void Read(ObjectRef source)
         {
             rec_.ThisRef = source;
             value_ = DbState.ReadNullableSingle(rec_, sourceIndex_);
         }
 
+        /// <summary>
+        /// Writes the specified target.
+        /// </summary>
+        /// <param name="target">The target.</param>
         public override void Write(ObjectRef target)
         {
             rec_.ThisRef = target;
@@ -682,19 +967,38 @@ namespace Starcounter.Binding
         }
     }
 
+    /// <summary>
+    /// Class StringColumnValueTransfer
+    /// </summary>
     internal class StringColumnValueTransfer : ColumnValueTransfer
     {
 
+        /// <summary>
+        /// The value_
+        /// </summary>
         private string value_;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StringColumnValueTransfer" /> class.
+        /// </summary>
+        /// <param name="sourceIndex">Index of the source.</param>
+        /// <param name="targetIndex">Index of the target.</param>
         public StringColumnValueTransfer(int sourceIndex, int targetIndex) : base(sourceIndex, targetIndex) { }
 
+        /// <summary>
+        /// Reads the specified source.
+        /// </summary>
+        /// <param name="source">The source.</param>
         public override void Read(ObjectRef source)
         {
             rec_.ThisRef = source;
             value_ = DbState.ReadString(rec_, sourceIndex_);
         }
 
+        /// <summary>
+        /// Writes the specified target.
+        /// </summary>
+        /// <param name="target">The target.</param>
         public override void Write(ObjectRef target)
         {
             rec_.ThisRef = target;
@@ -702,19 +1006,38 @@ namespace Starcounter.Binding
         }
     }
 
+    /// <summary>
+    /// Class UInt64ColumnValueTransfer
+    /// </summary>
     internal class UInt64ColumnValueTransfer : ColumnValueTransfer
     {
 
+        /// <summary>
+        /// The value_
+        /// </summary>
         private ulong? value_;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UInt64ColumnValueTransfer" /> class.
+        /// </summary>
+        /// <param name="sourceIndex">Index of the source.</param>
+        /// <param name="targetIndex">Index of the target.</param>
         public UInt64ColumnValueTransfer(int sourceIndex, int targetIndex) : base(sourceIndex, targetIndex) { }
 
+        /// <summary>
+        /// Reads the specified source.
+        /// </summary>
+        /// <param name="source">The source.</param>
         public override void Read(ObjectRef source)
         {
             rec_.ThisRef = source;
             value_ = DbState.ReadNullableUInt64(rec_, sourceIndex_);
         }
 
+        /// <summary>
+        /// Writes the specified target.
+        /// </summary>
+        /// <param name="target">The target.</param>
         public override void Write(ObjectRef target)
         {
             rec_.ThisRef = target;

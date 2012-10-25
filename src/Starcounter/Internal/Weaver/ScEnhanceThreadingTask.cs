@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ScEnhanceThreadingTask.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Threading;
 using PostSharp.Sdk.CodeModel;
@@ -7,7 +12,14 @@ using PostSharp.Sdk.Extensibility;
 using PostSharp.Sdk.Extensibility.Tasks;
 
 namespace Starcounter.Internal.Weaver {
+    /// <summary>
+    /// Class ScEnhanceThreadingTask
+    /// </summary>
     public sealed class ScEnhanceThreadingTask : Task {
+        /// <summary>
+        /// Executes this instance.
+        /// </summary>
+        /// <returns>Boolean.</returns>
         public override Boolean Execute() {
             ScAnalysisTask analysisTask;
             ModuleDeclaration module;
@@ -36,6 +48,10 @@ namespace Starcounter.Internal.Weaver {
             return true;
         }
 
+        /// <summary>
+        /// Thread_s the priority.
+        /// </summary>
+        /// <param name="module">The module.</param>
         private void Thread_Priority(ModuleDeclaration module) {
             TypeRefDeclaration threadTypeRef = (TypeRefDeclaration)module.FindType(
                                                    typeof(Thread),
@@ -79,6 +95,10 @@ namespace Starcounter.Internal.Weaver {
             ReplaceMethodCalls(affectedMethods, threadSetPriorityMethod, interceptThreadSetPriorityMethod);
         }
 
+        /// <summary>
+        /// Thread_s the sleep A.
+        /// </summary>
+        /// <param name="module">The module.</param>
         private void Thread_SleepA(ModuleDeclaration module) {
             TypeRefDeclaration threadType = (TypeRefDeclaration)module.FindType(
                                                 typeof(Thread),
@@ -118,6 +138,10 @@ namespace Starcounter.Internal.Weaver {
             ReplaceMethodCalls(affectedMethods, threadSleepMethod, interceptThreadSleepMethod);
         }
 
+        /// <summary>
+        /// Thread_s the sleep B.
+        /// </summary>
+        /// <param name="module">The module.</param>
         private void Thread_SleepB(ModuleDeclaration module) {
             TypeRefDeclaration threadType = (TypeRefDeclaration)module.FindType(
                 typeof(Thread),
@@ -157,6 +181,11 @@ namespace Starcounter.Internal.Weaver {
             ReplaceMethodCalls(affectedMethods, threadSleepMethod, interceptThreadSleepMethod);
         }
 
+        /// <summary>
+        /// Finds the affected methods.
+        /// </summary>
+        /// <param name="methodRef">The method ref.</param>
+        /// <returns>Set{MethodDefDeclaration}.</returns>
         private static Set<MethodDefDeclaration> FindAffectedMethods(MethodRefDeclaration methodRef) {
             Set<MethodDefDeclaration> affectedMethods = new Set<MethodDefDeclaration>(64);
 #pragma warning disable 612
@@ -167,6 +196,12 @@ namespace Starcounter.Internal.Weaver {
             return affectedMethods;
         }
 
+        /// <summary>
+        /// Replaces the method calls.
+        /// </summary>
+        /// <param name="affectedMethods">The affected methods.</param>
+        /// <param name="toReplace">To replace.</param>
+        /// <param name="replaceWith">The replace with.</param>
         private void ReplaceMethodCalls(Set<MethodDefDeclaration> affectedMethods, IMethod toReplace,
         IMethod replaceWith) {
             InstructionWriter writer = new InstructionWriter();
@@ -181,6 +216,14 @@ namespace Starcounter.Internal.Weaver {
             }
         }
 
+        /// <summary>
+        /// Processes the block.
+        /// </summary>
+        /// <param name="block">The block.</param>
+        /// <param name="reader">The reader.</param>
+        /// <param name="writer">The writer.</param>
+        /// <param name="toReplace">To replace.</param>
+        /// <param name="replaceWith">The replace with.</param>
         private static void ProcessBlock(InstructionBlock block, InstructionReader reader, InstructionWriter writer,
         IMethod toReplace, IMethod replaceWith) {
             if (block.HasChildrenBlocks) {
@@ -198,6 +241,14 @@ namespace Starcounter.Internal.Weaver {
             }
         }
 
+        /// <summary>
+        /// Processes the sequence.
+        /// </summary>
+        /// <param name="sequence">The sequence.</param>
+        /// <param name="reader">The reader.</param>
+        /// <param name="writer">The writer.</param>
+        /// <param name="toReplace">To replace.</param>
+        /// <param name="replaceWith">The replace with.</param>
         private static void ProcessSequence(InstructionSequence sequence, InstructionReader reader, InstructionWriter writer,
         IMethod toReplace, IMethod replaceWith) {
             OpCodeNumber opCodeToReplace = toReplace.GetMethodDefinition().IsStatic ? OpCodeNumber.Call : OpCodeNumber.Callvirt;

@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="Loader.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Binding;
 using System;
 using System.Collections.Generic;
@@ -12,9 +17,18 @@ using Starcounter.Internal.Weaver;
 namespace Starcounter.Internal
 {
 
+    /// <summary>
+    /// Class LoaderHelper
+    /// </summary>
     internal static class LoaderHelper
     {
 
+        /// <summary>
+        /// Maps the property defs to column defs.
+        /// </summary>
+        /// <param name="columnDefs">The column defs.</param>
+        /// <param name="propertyDefs">The property defs.</param>
+        /// <exception cref="System.Exception"></exception>
         internal static void MapPropertyDefsToColumnDefs(ColumnDef[] columnDefs, PropertyDef[] propertyDefs)
         {
             for (int pi = 0; pi < propertyDefs.Length; pi++)
@@ -44,11 +58,22 @@ namespace Starcounter.Internal
         }
     }
 
+    /// <summary>
+    /// Class SchemaLoader
+    /// </summary>
     public static class SchemaLoader
     {
 
+        /// <summary>
+        /// The root class name
+        /// </summary>
         private const string rootClassName = "Starcounter.Entity";
 
+        /// <summary>
+        /// Loads the and convert schema.
+        /// </summary>
+        /// <param name="inputDir">The input dir.</param>
+        /// <returns>List{TypeDef}.</returns>
         public static List<TypeDef> LoadAndConvertSchema(DirectoryInfo inputDir)
         {
             var schemaFiles = inputDir.GetFiles("*.schema");
@@ -84,6 +109,12 @@ namespace Starcounter.Internal
             return typeDefs;
         }
 
+        /// <summary>
+        /// Entities the class to type def.
+        /// </summary>
+        /// <param name="databaseClass">The database class.</param>
+        /// <param name="typeLoader">The type loader.</param>
+        /// <returns>TypeDef.</returns>
         private static TypeDef EntityClassToTypeDef(DatabaseEntityClass databaseClass, TypeLoader typeLoader)
         {
             var columnDefs = new List<ColumnDef>();
@@ -103,6 +134,14 @@ namespace Starcounter.Internal
             return typeDef;
         }
 
+        /// <summary>
+        /// Gathers the column and property defs.
+        /// </summary>
+        /// <param name="databaseClass">The database class.</param>
+        /// <param name="columnDefs">The column defs.</param>
+        /// <param name="propertyDefs">The property defs.</param>
+        /// <param name="subClass">if set to <c>true</c> [sub class].</param>
+        /// <exception cref="System.Exception"></exception>
         private static void GatherColumnAndPropertyDefs(DatabaseEntityClass databaseClass, List<ColumnDef> columnDefs, List<PropertyDef> propertyDefs, bool subClass)
         {
             var baseDatabaseClass = databaseClass.BaseClass as DatabaseEntityClass;
@@ -240,6 +279,12 @@ namespace Starcounter.Internal
             }
         }
 
+        /// <summary>
+        /// Primitives to type code.
+        /// </summary>
+        /// <param name="primitive">The primitive.</param>
+        /// <returns>DbTypeCode.</returns>
+        /// <exception cref="System.NotSupportedException"></exception>
         private static DbTypeCode PrimitiveToTypeCode(DatabasePrimitive primitive)
         {
             switch (primitive)

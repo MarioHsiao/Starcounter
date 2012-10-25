@@ -1,3 +1,9 @@
+// ***********************************************************************
+// <copyright file="DatabaseClassRef.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 
 namespace Sc.Server.Weaver.Schema
@@ -41,6 +47,11 @@ internal sealed class DatabaseClassRef : IEquatable<DatabaseClassRef>, IDatabase
         return databaseClass == null ? null : new DatabaseClassRef(databaseClass);
     }
 
+    /// <summary>
+    /// Makes the ref.
+    /// </summary>
+    /// <param name="attributeType">Type of the attribute.</param>
+    /// <returns>IDatabaseAttributeType.</returns>
     public static IDatabaseAttributeType MakeRef(IDatabaseAttributeType attributeType)
     {
         DatabaseClass dbClass = attributeType as DatabaseClass;
@@ -89,11 +100,20 @@ internal sealed class DatabaseClassRef : IEquatable<DatabaseClassRef>, IDatabase
         }
     }
 
+    /// <summary>
+    /// Returns a <see cref="System.String" /> that represents this instance.
+    /// </summary>
+    /// <returns>A <see cref="System.String" /> that represents this instance.</returns>
     public override string ToString()
     {
         return "@" + this.className;
     }
 
+    /// <summary>
+    /// Equalses the specified other.
+    /// </summary>
+    /// <param name="other">The other.</param>
+    /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
     public bool Equals(DatabaseClassRef other)
     {
         if (other == null)
@@ -104,11 +124,21 @@ internal sealed class DatabaseClassRef : IEquatable<DatabaseClassRef>, IDatabase
                this.className == other.className;
     }
 
+    /// <summary>
+    /// Determines whether the specified <see cref="System.Object" /> is equal to this instance.
+    /// </summary>
+    /// <param name="obj">The object to compare with the current object.</param>
+    /// <returns><c>true</c> if the specified <see cref="System.Object" /> is equal to this instance; otherwise, <c>false</c>.</returns>
     public override bool Equals(object obj)
     {
         return this.Equals(obj as DatabaseClassRef);
     }
 
+
+    /// <summary>
+    /// Returns a hash code for this instance.
+    /// </summary>
+    /// <returns>A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.</returns>
     public override int GetHashCode()
     {
         return this.className.GetHashCode();

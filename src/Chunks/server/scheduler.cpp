@@ -375,7 +375,6 @@ private:
 			if (signaled) {
 				// This scheduler has been notified that there is work to do.
 				// Turn off notifications.
-				///this_scheduler_interface_->set_notify_flag(false);
 				return 0;
 			}
 			// Not signaled it was a timeout.
@@ -541,6 +540,8 @@ sc_io_event& the_io_event) try {
             // Reference used as shorthand.
             if (!channel_[ch].out.try_push_front(the_chunk_index))
                     break;
+
+			channel_[ch].client()->notify();
 
             // Now really popping the chunk since it was successfully pushed.
             this_scheduler_interface_->overflow_pool().pop_back(&chunk_index_and_channel);
@@ -821,6 +822,7 @@ chunk_index the_chunk_index) {
 	if (this_scheduler_interface_->overflow_pool().empty() &&
         the_channel.out.try_push_front(the_chunk_index)) {
 		// Successfully pushed the response message to the channel.
+
 		return;
 	}
 	else {

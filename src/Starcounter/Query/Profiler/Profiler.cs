@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="Profiler.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.IO;
 using System.Diagnostics;
@@ -11,6 +16,9 @@ using Starcounter;
 
 namespace Starcounter
 {
+    /// <summary>
+    /// Class PreciseTimer
+    /// </summary>
 public class PreciseTimer
 {
     [DllImport("Kernel32.dll")]
@@ -23,6 +31,9 @@ public class PreciseTimer
 
     static Double freqMs = 0, freqMcs = 0;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PreciseTimer" /> class.
+    /// </summary>
     public PreciseTimer()
     {
         startTicks = 0;
@@ -46,6 +57,9 @@ public class PreciseTimer
     }
 
     // Start the timer.
+    /// <summary>
+    /// Starts this instance.
+    /// </summary>
     public void Start()
     {
         startedCount++;
@@ -53,6 +67,9 @@ public class PreciseTimer
     }
 
     // Stop the timer.
+    /// <summary>
+    /// Stops this instance.
+    /// </summary>
     public void Stop()
     {
         QueryPerformanceCounter(out stopTicks);
@@ -60,6 +77,9 @@ public class PreciseTimer
     }
 
     // Reset all counters.
+    /// <summary>
+    /// Resets this instance.
+    /// </summary>
     public void Reset()
     {
         startTicks = 0;
@@ -69,6 +89,10 @@ public class PreciseTimer
     }
 
     // Returns the number of times the timer was started.
+    /// <summary>
+    /// Gets the start count.
+    /// </summary>
+    /// <value>The start count.</value>
     public Int64 StartCount
     {
         get
@@ -78,6 +102,10 @@ public class PreciseTimer
     }
 
     // Returns the duration of the timer (in milliseconds).
+    /// <summary>
+    /// Gets the duration.
+    /// </summary>
+    /// <value>The duration.</value>
     public Double Duration
     {
         get
@@ -87,6 +115,10 @@ public class PreciseTimer
     }
 
     // Returns the duration of the timer (in microseconds).
+    /// <summary>
+    /// Gets the duration MCS.
+    /// </summary>
+    /// <value>The duration MCS.</value>
     public Double DurationMcs
     {
         get
@@ -96,6 +128,9 @@ public class PreciseTimer
     }
 }
 
+/// <summary>
+/// Class Profiler
+/// </summary>
 public class Profiler
 {
     // Each profiler has a descriptive name.
@@ -109,6 +144,9 @@ public class Profiler
     // Maximum amount of profilers in the system.
     const Int32 maxTimersNum = 64;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Profiler" /> class.
+    /// </summary>
     public Profiler()
     {
         profilerNames = new String[maxTimersNum];

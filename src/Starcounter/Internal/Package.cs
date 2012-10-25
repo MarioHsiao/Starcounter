@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="Package.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Binding;
 using Starcounter.Query;
 using System;
@@ -18,8 +23,17 @@ namespace Starcounter.Internal {
             p.Process();
         }
 
+        /// <summary>
+        /// The unregistered type defs_
+        /// </summary>
         private readonly TypeDef[] unregisteredTypeDefs_;
+        /// <summary>
+        /// The assembly_
+        /// </summary>
         private readonly Assembly assembly_;
+        /// <summary>
+        /// The processed event_
+        /// </summary>
         private readonly ManualResetEvent processedEvent_;
 
         /// <summary>
@@ -40,6 +54,11 @@ namespace Starcounter.Internal {
             set;
         }
 
+		/// <summary>
+        /// Initializes a new instance of the <see cref="Package" /> class.
+        /// </summary>
+        /// <param name="unregisteredTypeDefs">The unregistered type defs.</param>
+        /// <param name="assembly">The assembly.</param>
         public Package(
             TypeDef[] unregisteredTypeDefs, // Previously unregistered type definitions.
             Assembly assembly               // Entry point assembly.
@@ -49,8 +68,13 @@ namespace Starcounter.Internal {
             processedEvent_ = new ManualResetEvent(false);
         }
 
-        internal void Process() {
-            try {
+        /// <summary>
+        /// Processes this instance.
+        /// </summary>
+        internal void Process()
+        {
+            try
+            {
                 UpdateDatabaseSchemaAndRegisterTypes();
 
                 ExecuteEntryPoint();
@@ -59,14 +83,23 @@ namespace Starcounter.Internal {
             }
         }
 
+        /// <summary>
+        /// Waits the until processed.
+        /// </summary>
         public void WaitUntilProcessed() {
             processedEvent_.WaitOne();
         }
 
+        /// <summary>
+        /// Disposes this instance.
+        /// </summary>
         public void Dispose() {
             processedEvent_.Dispose();
         }
 
+        /// <summary>
+        /// Updates the database schema and register types.
+        /// </summary>
         private void UpdateDatabaseSchemaAndRegisterTypes() {
             var typeDefs = unregisteredTypeDefs_;
 
@@ -90,6 +123,11 @@ namespace Starcounter.Internal {
             }
         }
 
+        /// <summary>
+        /// Creates the or update database table.
+        /// </summary>
+        /// <param name="tableDef">The table def.</param>
+        /// <returns>TableDef.</returns>
         private TableDef CreateOrUpdateDatabaseTable(TableDef tableDef) {
             string tableName = tableDef.Name;
             TableDef storedTableDef = null;
@@ -130,6 +168,9 @@ namespace Starcounter.Internal {
             return storedTableDef;
         }
 
+        /// <summary>
+        /// Executes the entry point.
+        /// </summary>
         private void ExecuteEntryPoint() {
             if (assembly_ != null) {
                 var arguments = this.EntrypointArguments ?? new string[] { };

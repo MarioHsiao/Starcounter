@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="ScCopyTask.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,15 +15,20 @@ namespace Starcounter.Internal.Weaver {
     /// PostSharp task that just copy files.
     /// </summary>
     public sealed class ScCopyTask : Task {
+        /// <summary>
+        /// The input files
+        /// </summary>
         private string inputFiles;
+        /// <summary>
+        /// The output files
+        /// </summary>
         private string outputFiles;
 
         /// <summary>
         /// Gets or sets a semi-column separated list of input files.
         /// </summary>
-        /// <remarks>
-        /// This property is configured from the PostSharp project file.
-        /// </remarks>
+        /// <value>The input files.</value>
+        /// <remarks>This property is configured from the PostSharp project file.</remarks>
         [ConfigurableProperty(true)]
         public string InputFiles {
             get {
@@ -31,11 +41,10 @@ namespace Starcounter.Internal.Weaver {
 
         /// <summary>
         /// Gets or sets a semi-column separated list of output files. This list should have
-        /// the same number of items as <see cref="InputFiles"/>.
+        /// the same number of items as <see cref="InputFiles" />.
         /// </summary>
-        /// <remarks>
-        /// This property is configured from the PostSharp project file.
-        /// </remarks>
+        /// <value>The output files.</value>
+        /// <remarks>This property is configured from the PostSharp project file.</remarks>
         [ConfigurableProperty(true)]
         public string OutputFiles {
             get {
@@ -50,6 +59,7 @@ namespace Starcounter.Internal.Weaver {
         /// Executes the task.
         /// </summary>
         /// <returns><b>true</b> (success).</returns>
+        /// <exception cref="System.InvalidOperationException">The number of input files should be the same as the number of output files.</exception>
         public override bool Execute() {
             string[] parsedInputFiles = this.inputFiles.Split(';');
             string[] parsedOutputFiles = this.outputFiles.Split(';');

@@ -1,20 +1,51 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="WeaverNamingConventions.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Text;
 using PostSharp.Sdk.CodeModel;
 
 namespace Starcounter.Internal.Weaver {
+    /// <summary>
+    /// Class WeaverNamingConventions
+    /// </summary>
     internal static class WeaverNamingConventions {
+        /// <summary>
+        /// The implementation details type name
+        /// </summary>
         public const string ImplementationDetailsTypeName = "<>Starcounter.ImplementationDetails";
         //public const string LucentObjectsClientAssemblyInitializerName = "LucentObjectsClientAssemblyInitialize";
 
+        /// <summary>
+        /// The attribute index variable prefix
+        /// </summary>
         public const string AttributeIndexVariablePrefix = "<>0";
+        /// <summary>
+        /// The attribute index variable suffix
+        /// </summary>
         public const string AttributeIndexVariableSuffix = "000";
 
+        /// <summary>
+        /// The static type address field name
+        /// </summary>
         public const string StaticTypeAddressFieldName = "__typeAddress";
+        /// <summary>
+        /// The static type binding field name
+        /// </summary>
         public const string StaticTypeBindingFieldName = "__typeBinding";
+        /// <summary>
+        /// The static type field name
+        /// </summary>
         public const string StaticTypeFieldName = "__type";
 
+        /// <summary>
+        /// Gets the name of the type address field.
+        /// </summary>
+        /// <param name="typeDef">The type def.</param>
+        /// <returns>System.String.</returns>
         public static string GetTypeAddressFieldName(TypeDefDeclaration typeDef) {
             StringBuilder builder = new StringBuilder();
             typeDef.WriteReflectionName(builder, ReflectionNameOptions.None);
@@ -22,10 +53,20 @@ namespace Starcounter.Internal.Weaver {
             return builder.ToString();
         }
 
+        /// <summary>
+        /// Gets the name of the type address field.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <returns>System.String.</returns>
         public static string GetTypeAddressFieldName(Type type) {
             return type.ToString() + StaticTypeAddressFieldName;
         }
 
+        /// <summary>
+        /// Gets the name of the type binding field.
+        /// </summary>
+        /// <param name="typeDef">The type def.</param>
+        /// <returns>System.String.</returns>
         public static string GetTypeBindingFieldName(TypeDefDeclaration typeDef) {
             StringBuilder builder = new StringBuilder();
             typeDef.WriteReflectionName(builder, ReflectionNameOptions.None);
@@ -33,10 +74,20 @@ namespace Starcounter.Internal.Weaver {
             return builder.ToString();
         }
 
+        /// <summary>
+        /// Gets the name of the type binding field.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <returns>System.String.</returns>
         public static string GetTypeBindingFieldName(Type type) {
             return type.ToString() + StaticTypeBindingFieldName;
         }
 
+        /// <summary>
+        /// Gets the name of the type field.
+        /// </summary>
+        /// <param name="typeDef">The type def.</param>
+        /// <returns>System.String.</returns>
         public static string GetTypeFieldName(TypeDefDeclaration typeDef) {
             StringBuilder builder = new StringBuilder();
             typeDef.WriteReflectionName(builder, ReflectionNameOptions.None);
@@ -44,6 +95,11 @@ namespace Starcounter.Internal.Weaver {
             return builder.ToString();
         }
 
+        /// <summary>
+        /// Gets the name of the type field.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <returns>System.String.</returns>
         public static string GetTypeFieldName(Type type) {
             return type.ToString() + StaticTypeFieldName;
         }
@@ -59,7 +115,7 @@ namespace Starcounter.Internal.Weaver {
         /// fields unique and recognizable.</returns>
         /// <remarks>
         /// <example>
-        /// MakeAttributeIndexVariableName("FirstName") will return the string "<>0FirstName000".
+        /// MakeAttributeIndexVariableName("FirstName") will return the string "&lt;&gt;0FirstName000".
         /// </example>
         /// </remarks>
         public static string MakeAttributeIndexVariableName(string nakedAttributeName) {
@@ -86,7 +142,7 @@ namespace Starcounter.Internal.Weaver {
         /// <returns></returns>
         /// <remarks>
         /// <example>
-        /// TryGetNakedAttributeName("<>0FirstName000") will return true and the naked
+        /// TryGetNakedAttributeName("&lt;&gt;0FirstName000") will return true and the naked
         /// attribute string "FirstName".
         /// </example>
         /// </remarks>

@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="BooleanMethod.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using Starcounter;
 using Starcounter.Query.Optimization;
@@ -26,8 +31,8 @@ internal class BooleanMethod : IBooleanPathItem, IMethod
     /// <param name="extNum">The extent number to which this method belongs.
     /// If it does not belong to any extent number, which is the case for path expressions,
     /// then the number should be -1.</param>
-    /// <param name="thisTypeBind">The type resultTypeBind of the object to which this method belongs.</param>
-    /// <param name="returnTypeBind">The type resultTypeBind of the return object.</param>
+    /// <param name="typeBind">The type resultTypeBind of the object to which this method belongs.</param>
+    /// <param name="argument">The type resultTypeBind of the return object.</param>
     internal BooleanMethod(Int32 extNum, ITypeBinding typeBind, IObjectExpression argument)
     : base()
     {

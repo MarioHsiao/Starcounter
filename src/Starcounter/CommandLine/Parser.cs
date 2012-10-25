@@ -1,10 +1,18 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="Parser.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.CommandLine.Syntax;
 using System;
 using System.Linq;
 
 namespace Starcounter.CommandLine
 {
+    /// <summary>
+    /// Class Parser
+    /// </summary>
     public sealed class Parser
     {
         /// <summary>
@@ -16,20 +24,20 @@ namespace Starcounter.CommandLine
         /// Known option prefixes.
         /// </summary>
         public static readonly string[] OptionPrefixes = { "-", "--" };
-        
+
         /// <summary>
         /// Known option suffixes.
         /// </summary>
         public static char[] OptionSuffixes = new char[] { ':', '=' };
-        
+
         /// <summary>
         /// Keyword used to distinguish a flag from a property.
         /// </summary>
         public const string FlagKeyword = "FLAG";
 
         /// <summary>
-        /// Initializes a <see cref="Parser"/> using the arguments
-        /// returned from <see cref="Environment.GetCommandLineArgs"/>.
+        /// Initializes a <see cref="Parser" /> using the arguments
+        /// returned from <see cref="Environment.GetCommandLineArgs" />.
         /// </summary>
         public Parser()
         {
@@ -44,20 +52,32 @@ namespace Starcounter.CommandLine
         }
 
         /// <summary>
-        /// Initializes a <see cref="Parser"/> by specifying the
+        /// Initializes a <see cref="Parser" /> by specifying the
         /// arguments to be parsed.
         /// </summary>
+        /// <param name="args">The args.</param>
+        /// <exception cref="System.ArgumentNullException">args</exception>
         public Parser(string[] args)
         {
             if (args == null) throw new ArgumentNullException("args");
             this.Arguments = args;
         }
 
+        /// <summary>
+        /// Parses this instance.
+        /// </summary>
+        /// <returns>IApplicationInput.</returns>
         public IApplicationInput Parse()
         {
             return InternalParse(null);
         }
 
+        /// <summary>
+        /// Parses the specified syntax.
+        /// </summary>
+        /// <param name="syntax">The syntax.</param>
+        /// <returns>ApplicationArguments.</returns>
+        /// <exception cref="System.ArgumentNullException">syntax</exception>
         public ApplicationArguments Parse(IApplicationSyntax syntax)
         {
             if (syntax == null)
@@ -66,6 +86,11 @@ namespace Starcounter.CommandLine
             return InternalParse(syntax);
         }
 
+        /// <summary>
+        /// Internals the parse.
+        /// </summary>
+        /// <param name="syntax">The syntax.</param>
+        /// <returns>ApplicationArguments.</returns>
         ApplicationArguments InternalParse(IApplicationSyntax syntax)
         {
             ApplicationArguments parsedArguments;
@@ -232,8 +257,8 @@ namespace Starcounter.CommandLine
         /// has provided an option and a value with no spaces in between, like
         /// "-myOption:MyValue".
         /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
+        /// <param name="value">The value.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         bool StartsWithOptionPrefix(string value)
         {
             value = value.Trim();
@@ -243,11 +268,22 @@ namespace Starcounter.CommandLine
             });
         }
 
+        /// <summary>
+        /// Determines whether [is option flag] [the specified value].
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns><c>true</c> if [is option flag] [the specified value]; otherwise, <c>false</c>.</returns>
         bool IsOptionFlag(string value)
         {
             return value.Equals(Parser.FlagKeyword, StringComparison.InvariantCultureIgnoreCase);
         }
 
+        /// <summary>
+        /// Parses the option string.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="optionName">Name of the option.</param>
+        /// <param name="optionValue">The option value.</param>
         void ParseOptionString(string value, out string optionName, out string optionValue)
         {
             // The given value starts with any of the prefixes. We should
@@ -291,6 +327,13 @@ namespace Starcounter.CommandLine
             }
         }
 
+        /// <summary>
+        /// Raises the syntax error exception.
+        /// </summary>
+        /// <param name="errorCode">The error code.</param>
+        /// <param name="argument">The argument.</param>
+        /// <param name="message">The message.</param>
+        /// <param name="messageParameters">The message parameters.</param>
         void RaiseSyntaxErrorException(
             uint errorCode,
             int argument, 
@@ -313,6 +356,11 @@ namespace Starcounter.CommandLine
             throw ErrorCode.ToException(errorCode, postfix);
         }
 
+        /// <summary>
+        /// Raises the option with no value exception.
+        /// </summary>
+        /// <param name="specifiedOption">The specified option.</param>
+        /// <param name="illegalArgument">The illegal argument.</param>
         void RaiseOptionWithNoValueException(string specifiedOption, int illegalArgument)
         {
             uint code;
