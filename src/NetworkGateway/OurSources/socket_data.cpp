@@ -35,13 +35,14 @@ void SocketDataChunk::Init(
     user_data_written_bytes_ = 0;
     fixed_handler_id_ = 0;
 
-    sock_stamp_ = 0;
+    session_.Reset();
+
     chunk_index_ = chunk_index;
     extra_chunk_index_ = INVALID_CHUNK_INDEX;
-    data_to_user_flag_ = true;
 
+    data_to_user_flag_ = true;
     socket_attached_ = false;
-    session_index_ = INVALID_SESSION_INDEX;
+    new_session_created_ = false;
 
     type_of_network_oper_ = UNKNOWN_OPER;
     recv_flags_ = 0;
@@ -56,8 +57,8 @@ void SocketDataChunk::Reset()
 {
     // Resetting flags.
     data_to_user_flag_ = true;
-
     socket_attached_ = false;
+    new_session_created_ = false;
 
     type_of_network_oper_ = DISCONNECT_OPER;
 
@@ -65,7 +66,7 @@ void SocketDataChunk::Reset()
     //g_gateway.ClearSession(sessionIndex);
 
     // Removing reference to/from session.
-    session_index_ = INVALID_SESSION_INDEX;
+    session_.Reset();
 
     // Resetting HTTP/WS stuff.
     http_ws_proto_.Reset();
@@ -81,8 +82,7 @@ SocketDataChunk *SocketDataChunk::CloneReceive(GatewayWorker *gw)
     socket_attached_ = false;
 
     SocketDataChunk *sd = gw->CreateSocketData(sock_, port_index_, db_index_);
-    sd->sock_stamp_ = sock_stamp_;
-    sd->session_index_ = session_index_;
+    sd->session_ = session_;
     sd->data_to_user_flag_ = true;
     sd->http_ws_proto_.set_web_sockets_upgrade(http_ws_proto_.get_web_sockets_upgrade());
 
@@ -181,25 +181,50 @@ bool SocketDataChunk::CheckSocketIsValid(GatewayWorker* gw)
     ActiveDatabase* active_db = g_gateway.GetDatabase(db_index_);
 
     // Checking that attached database is correct.
-    if ((active_db != NULL) && (active_db->unique_num() == db_unique_seq_num_))
+    if ((active_db != NULL) && (db_unique_seq_num_ == active_db->unique_num()))
     {
         ServerPort* serverPort = g_gateway.get_server_port(port_index_);
         if (serverPort != NULL)
             return true;
     }
 
-    // Vanishing socket.
+    // Vanishing socket data.
     gw->VanishSocketData(this);
 
     return false;
 }
 
 // Attaches socket data to session.
-void SocketDataChunk::AttachToSession(SessionData *session, GatewayWorker *gw)
+void SocketDataChunk::AttachToSession(ScSessionStruct* session)
 {
-    g_gateway.AttachSocketToSession(session, sock_, gw->Random->uint64());
-    session_index_ = session->session_index();
-    sock_stamp_ = session->socket_stamp();
+    // Setting session for this socket data.
+    session_ = *session;
+
+    // Attaching new session to this socket.
+    g_gateway.get_all_sockets_unsafe()[sock_].set_session_index(session_.session_index_);
+}
+
+// Kills the session.
+void SocketDataChunk::KillSession()
+{
+    // Killing global session.
+    g_gateway.KillSession(session_.session_index_);
+
+    // Resetting session data.
+    session_.Reset();
+
+    // Detaching session from corresponding socket.
+    g_gateway.get_all_sockets_unsafe()[sock_].set_session_index(session_.session_index_);
+}
+
+// Resets socket session.
+void SocketDataChunk::ResetSession()
+{
+    // Resetting session data.
+    session_.Reset();
+
+    // Detaching session from corresponding socket.
+    g_gateway.get_all_sockets_unsafe()[sock_].set_session_index(session_.session_index_);
 }
 
 } // namespace network

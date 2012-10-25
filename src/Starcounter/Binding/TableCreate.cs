@@ -1,17 +1,36 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="TableCreate.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 namespace Starcounter.Binding
 {
 
+    /// <summary>
+    /// Class TableCreate
+    /// </summary>
     internal class TableCreate
     {
 
+        /// <summary>
+        /// The table def_
+        /// </summary>
         private readonly TableDef tableDef_;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TableCreate" /> class.
+        /// </summary>
+        /// <param name="tableDef">The table def.</param>
         public TableCreate(TableDef tableDef)
         {
             tableDef_ = tableDef;
         }
 
+        /// <summary>
+        /// Evals this instance.
+        /// </summary>
+        /// <returns>TableDef.</returns>
         public TableDef Eval()
         {
             TableDef tableDef = tableDef_;

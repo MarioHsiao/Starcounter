@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="BinaryProperty.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Query.Optimization;
 using System;
 using Starcounter.Binding;
@@ -40,6 +45,8 @@ internal class BinaryProperty : Property, IBinaryPathItem
     }
 
     /// <summary>
+    /// 
+    /// </summary>
     public QueryTypeCode QueryTypeCode
     {
         get
@@ -89,6 +96,7 @@ internal class BinaryProperty : Property, IBinaryPathItem
         }
     }
     
+    /// <summary>
     /// Calculates the value of this property when evaluated on an input object.
     /// </summary>
     /// <param name="obj">The object on which to evaluate this property.</param>

@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ApplicationArguments.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.CommandLine.Syntax;
 using System;
 using System.Collections.Generic;
@@ -7,27 +12,56 @@ using System.Linq;
 
 namespace Starcounter.CommandLine
 {
+    /// <summary>
+    /// Class ApplicationArguments
+    /// </summary>
     public sealed class ApplicationArguments : IApplicationInput
     {
+        /// <summary>
+        /// The global options
+        /// </summary>
         readonly StringDictionary GlobalOptions;
+        /// <summary>
+        /// The command options
+        /// </summary>
         readonly StringDictionary CommandOptions;
+        /// <summary>
+        /// The option index
+        /// </summary>
         Dictionary<string, GivenOption> OptionIndex;
 
         #region Standard API, used by clients to consult given input
 
+        /// <summary>
+        /// The command parameters
+        /// </summary>
         public readonly StringCollection CommandParameters;
 
+        /// <summary>
+        /// Gets the command.
+        /// </summary>
+        /// <value>The command.</value>
         public string Command
         {
             get;
             internal set;
         }
 
+        /// <summary>
+        /// Gets a value indicating whether this instance has commmand.
+        /// </summary>
+        /// <value><c>true</c> if this instance has commmand; otherwise, <c>false</c>.</value>
         public bool HasCommmand
         {
             get { return string.IsNullOrEmpty(this.Command) == false; }
         }
 
+        /// <summary>
+        /// Determines whether the specified command is command.
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <returns><c>true</c> if the specified command is command; otherwise, <c>false</c>.</returns>
+        /// <exception cref="System.ArgumentNullException">command</exception>
         public bool IsCommand(string command)
         {
             if (string.IsNullOrEmpty(command))
@@ -39,11 +73,11 @@ namespace Starcounter.CommandLine
         }
 
         /// <summary>
-        /// Returns the value of a property identified by <paramref name="name"/>.
+        /// Returns the value of a property identified by <paramref name="name" />.
         /// If invoked with a name that is not found, null is returned.
         /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
+        /// <param name="name">The name.</param>
+        /// <returns>System.String.</returns>
         public string GetProperty(string name)
         {
             GivenOption option = GetOptionFromIndex(name, OptionAttributes.Default, null);
@@ -52,6 +86,12 @@ namespace Starcounter.CommandLine
                 : option.Value;
         }
 
+        /// <summary>
+        /// Gets the property.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="section">The section.</param>
+        /// <returns>System.String.</returns>
         public string GetProperty(string name, CommandLineSection section)
         {
             GivenOption option = GetOptionFromIndex(name, OptionAttributes.Default, section);
@@ -60,6 +100,12 @@ namespace Starcounter.CommandLine
                 : option.Value;
         }
 
+        /// <summary>
+        /// Tries the get property.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="value">The value.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public bool TryGetProperty(string name, out string value)
         {
             GivenOption option;
@@ -73,6 +119,13 @@ namespace Starcounter.CommandLine
             return found;
         }
 
+        /// <summary>
+        /// Tries the get property.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="section">The section.</param>
+        /// <param name="value">The value.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public bool TryGetProperty(string name, CommandLineSection section, out string value)
         {
             GivenOption option;
@@ -86,30 +139,61 @@ namespace Starcounter.CommandLine
             return found;
         }
 
+        /// <summary>
+        /// Determines whether the specified name contains property.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns><c>true</c> if the specified name contains property; otherwise, <c>false</c>.</returns>
         public bool ContainsProperty(string name)
         {
             GivenOption option;
             return TryGetOptionFromIndex(name, OptionAttributes.Default, null, out option);
         }
 
+        /// <summary>
+        /// Determines whether the specified name contains property.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="section">The section.</param>
+        /// <returns><c>true</c> if the specified name contains property; otherwise, <c>false</c>.</returns>
         public bool ContainsProperty(string name, CommandLineSection section)
         {
             GivenOption option;
             return TryGetOptionFromIndex(name, OptionAttributes.Default, section, out option);
         }
 
+        /// <summary>
+        /// Determines whether the specified name contains flag.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns><c>true</c> if the specified name contains flag; otherwise, <c>false</c>.</returns>
         public bool ContainsFlag(string name)
         {
             GivenOption option;
             return TryGetOptionFromIndex(name, OptionAttributes.Flag, null, out option);
         }
 
+        /// <summary>
+        /// Determines whether the specified name contains flag.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="section">The section.</param>
+        /// <returns><c>true</c> if the specified name contains flag; otherwise, <c>false</c>.</returns>
         public bool ContainsFlag(string name, CommandLineSection section)
         {
             GivenOption option;
             return TryGetOptionFromIndex(name, OptionAttributes.Flag, section, out option);
         }
 
+        /// <summary>
+        /// Gets the index of the option from.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="attributes">The attributes.</param>
+        /// <param name="section">The section.</param>
+        /// <returns>GivenOption.</returns>
+        /// <exception cref="System.ArgumentNullException">name</exception>
+        /// <exception cref="System.ArgumentOutOfRangeException">section</exception>
         GivenOption GetOptionFromIndex(string name, OptionAttributes attributes, CommandLineSection? section)
         {
             GivenOption option;
@@ -133,6 +217,14 @@ namespace Starcounter.CommandLine
                 : option;
         }
 
+        /// <summary>
+        /// Tries the index of the get option from.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="attributes">The attributes.</param>
+        /// <param name="section">The section.</param>
+        /// <param name="option">The option.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         bool TryGetOptionFromIndex(string name, OptionAttributes attributes, CommandLineSection? section, out GivenOption option)
         {
             bool found;
@@ -164,31 +256,56 @@ namespace Starcounter.CommandLine
 
         #region Implementation of, and support for, IApplicationInput functionality
 
+        /// <summary>
+        /// Gets the global options.
+        /// </summary>
+        /// <value>The global options.</value>
         StringDictionary IApplicationInput.GlobalOptions
         {
             get { return this.GlobalOptions; }
         }
 
+        /// <summary>
+        /// Gets the command options.
+        /// </summary>
+        /// <value>The command options.</value>
         StringDictionary IApplicationInput.CommandOptions
         {
             get { return this.CommandOptions; }
         }
 
+        /// <summary>
+        /// Gets the command parameters.
+        /// </summary>
+        /// <value>The command parameters.</value>
         StringCollection IApplicationInput.CommandParameters
         {
             get { return this.CommandParameters; }
         }
 
+        /// <summary>
+        /// Gets the command.
+        /// </summary>
+        /// <value>The command.</value>
         string IApplicationInput.Command
         {
             get { return this.Command; }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether this instance has command.
+        /// </summary>
+        /// <value><c>true</c> if this instance has command; otherwise, <c>false</c>.</value>
         bool IApplicationInput.HasCommand
         {
             get { return this.HasCommmand; }
         }
 
+        /// <summary>
+        /// Gets the property.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns>System.String.</returns>
         string IApplicationInput.GetProperty(string name)
         {
             IApplicationInput input = GetInput();
@@ -197,6 +314,12 @@ namespace Starcounter.CommandLine
                 ?? input.GetProperty(name, CommandLineSection.GlobalOptions);
         }
 
+        /// <summary>
+        /// Gets the property.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="section">The section.</param>
+        /// <returns>System.String.</returns>
         string IApplicationInput.GetProperty(string name, CommandLineSection section)
         {
             string value;
@@ -207,16 +330,32 @@ namespace Starcounter.CommandLine
                 : null;
         }
 
+        /// <summary>
+        /// Determines whether the specified name contains property.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns><c>true</c> if the specified name contains property; otherwise, <c>false</c>.</returns>
         bool IApplicationInput.ContainsProperty(string name)
         {
             return GetInput().GetProperty(name) != null;
         }
 
+        /// <summary>
+        /// Determines whether the specified name contains property.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="section">The section.</param>
+        /// <returns><c>true</c> if the specified name contains property; otherwise, <c>false</c>.</returns>
         bool IApplicationInput.ContainsProperty(string name, CommandLineSection section)
         {
             return GetInput().GetProperty(name, section) != null;
         }
 
+        /// <summary>
+        /// Determines whether the specified name contains flag.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns><c>true</c> if the specified name contains flag; otherwise, <c>false</c>.</returns>
         bool IApplicationInput.ContainsFlag(string name)
         {
             IApplicationInput input = GetInput();
@@ -226,6 +365,12 @@ namespace Starcounter.CommandLine
                 : input.ContainsFlag(name, CommandLineSection.GlobalOptions);
         }
 
+        /// <summary>
+        /// Determines whether the specified name contains flag.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="section">The section.</param>
+        /// <returns><c>true</c> if the specified name contains flag; otherwise, <c>false</c>.</returns>
         bool IApplicationInput.ContainsFlag(string name, CommandLineSection section)
         {
             string value;
@@ -233,11 +378,23 @@ namespace Starcounter.CommandLine
             return value != null && value.Equals(string.Empty);
         }
 
+        /// <summary>
+        /// Gets the input.
+        /// </summary>
+        /// <returns>IApplicationInput.</returns>
         IApplicationInput GetInput()
         {
             return this;
         }
 
+        /// <summary>
+        /// Gets the option from input.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="section">The section.</param>
+        /// <returns>System.String.</returns>
+        /// <exception cref="System.ArgumentNullException">name</exception>
+        /// <exception cref="System.ArgumentOutOfRangeException">section</exception>
         string GetOptionFromInput(string name, CommandLineSection section)
         {
             string value;
@@ -264,6 +421,9 @@ namespace Starcounter.CommandLine
 
         #endregion
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ApplicationArguments" /> class.
+        /// </summary>
         internal ApplicationArguments()
         {
             this.GlobalOptions = new StringDictionary();
@@ -271,6 +431,10 @@ namespace Starcounter.CommandLine
             this.CommandParameters = new StringCollection();
         }
 
+        /// <summary>
+        /// Enforces the syntax.
+        /// </summary>
+        /// <param name="syntax">The syntax.</param>
         internal void EnforceSyntax(IApplicationSyntax syntax)
         {
             ICommandSyntax commandSyntax;
@@ -346,6 +510,11 @@ namespace Starcounter.CommandLine
             EnforceCommandOptionSyntax(commandSyntax.Flags, OptionAttributes.Flag);
         }
 
+        /// <summary>
+        /// Enforces the command option syntax.
+        /// </summary>
+        /// <param name="options">The options.</param>
+        /// <param name="attributes">The attributes.</param>
         void EnforceCommandOptionSyntax(OptionInfo[] options, OptionAttributes attributes)
         {
             GivenOption givenOption;
@@ -370,6 +539,11 @@ namespace Starcounter.CommandLine
             }
         }
 
+        /// <summary>
+        /// Enforces the global option syntax.
+        /// </summary>
+        /// <param name="options">The options.</param>
+        /// <param name="attributes">The attributes.</param>
         void EnforceGlobalOptionSyntax(OptionInfo[] options, OptionAttributes attributes)
         {
             GivenOption givenOption;
@@ -402,6 +576,12 @@ namespace Starcounter.CommandLine
 
         #region Emission API, used by the parser
 
+        /// <summary>
+        /// Adds the property.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="value">The value.</param>
+        /// <exception cref="System.ArgumentNullException">name</exception>
         internal void AddProperty(string name, string value)
         {
             if (string.IsNullOrEmpty(name))
@@ -413,6 +593,11 @@ namespace Starcounter.CommandLine
             AddOptionToDictionary(name, value);
         }
 
+        /// <summary>
+        /// Adds the flag.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <exception cref="System.ArgumentNullException">name</exception>
         internal void AddFlag(string name)
         {
             if (string.IsNullOrEmpty(name))
@@ -421,6 +606,11 @@ namespace Starcounter.CommandLine
             AddOptionToDictionary(name, string.Empty);
         }
 
+        /// <summary>
+        /// Adds the parameter.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <exception cref="System.ArgumentNullException">value</exception>
         internal void AddParameter(string value)
         {
             if (string.IsNullOrEmpty(value))
@@ -429,6 +619,11 @@ namespace Starcounter.CommandLine
             this.CommandParameters.Add(value);
         }
 
+        /// <summary>
+        /// Adds the option to dictionary.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <param name="value">The value.</param>
         void AddOptionToDictionary(string key, string value)
         {
             StringDictionary dictionary;
@@ -442,6 +637,12 @@ namespace Starcounter.CommandLine
 
         #endregion
 
+        /// <summary>
+        /// Creates the index of the option.
+        /// </summary>
+        /// <param name="syntax">The syntax.</param>
+        /// <param name="commandSyntax">The command syntax.</param>
+        /// <returns>Dictionary{System.StringGivenOption}.</returns>
         Dictionary<string, GivenOption> CreateOptionIndex(IApplicationSyntax syntax, ICommandSyntax commandSyntax)
         {
             Func<OptionInfo, bool> infoMatchPredicate;
@@ -505,6 +706,11 @@ namespace Starcounter.CommandLine
             return resolvedOptions;
         }
 
+        /// <summary>
+        /// Raises the syntax error exception.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="arguments">The arguments.</param>
         void RaiseSyntaxErrorException(string message, params object[] arguments)
         {
             string postfix;

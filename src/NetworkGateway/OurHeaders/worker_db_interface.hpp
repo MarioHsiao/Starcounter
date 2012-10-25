@@ -54,6 +54,9 @@ class WorkerDbInterface
     // Registers push channel.
     uint32_t RegisterPushChannel(int32_t sched_num);
 
+    // Sends session destroyed message.
+    uint32_t PushSessionDestroyed(ScSessionStruct* session, int32_t sched_num);
+
     // Requesting previously registered handlers.
     uint32_t RequestRegisteredHandlers(int32_t sched_num);
 

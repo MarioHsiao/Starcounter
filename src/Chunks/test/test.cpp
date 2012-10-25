@@ -32,7 +32,7 @@ try {
 	(new starcounter::interprocess_communication::test(argc, argv));
 	
 	app->run(200 /* interval time milliseconds */,
-	60000 /* duration time milliseconds */);
+	600000 /* duration time milliseconds */);
 	
 	/// After 10 seconds, all worker threads are signaled to exit their worker
 	/// loop and release their resources. This shall simulate a test to

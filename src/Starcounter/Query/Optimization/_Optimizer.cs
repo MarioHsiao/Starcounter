@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="_Optimizer.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Query.Execution;
 using System;
 using System.Collections.Generic;
@@ -14,7 +19,7 @@ internal static class Optimizer
     /// <param name="nodeTree">An initial node-tree corresponding to the structure of the query.</param>
     /// <param name="conditionDict">A dictionary of conditions present in the query.</param>
     /// <param name="fetchNumExpr">A specification of maximal number of objects/rows to be returned.</param>
-    /// <param name="fetchOffsetKeySpec">An index offset key specifying particular positions within the used indexes.</param>
+    /// <param name="fetchOffsetKeyExpr">The fetch offset key expr.</param>
     /// <param name="hintSpec">A hint specification given by the user on how to execute the query.</param>
     /// <returns>An execution enumerator corresponding to an optimized query execution plan.</returns>
     internal static IExecutionEnumerator Optimize(IOptimizationNode nodeTree, ConditionDictionary conditionDict,

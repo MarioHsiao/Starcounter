@@ -936,7 +936,7 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 												// completed when marking it to be released.
 												_mm_mfence();
 												_mm_lfence(); // serializes instructions
-
+												
 												// Mark channel to be released.
 												// After this the channel cannot
 												// be accessed by the monitor.
@@ -950,7 +950,7 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 												if (scheduler_interface_ptr) {
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 													if ((scheduler_interface_ptr->try_to_notify_scheduler_to_do_clean_up
-													(shared.get_work_event(the_channel.get_scheduler_number()))) == true) {
+													(shared.scheduler_work_event(the_channel.get_scheduler_number()))) == true) {
 #else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
 													// Wait up to 64 ms / channel.
 													if ((scheduler_interface_ptr->try_to_notify_scheduler_to_do_clean_up

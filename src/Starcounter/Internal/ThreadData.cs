@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ThreadData.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Internal;
 using System;
 
@@ -12,9 +17,16 @@ namespace Starcounter
     public sealed class ThreadData : Object
     {
 
+        /// <summary>
+        /// The current
+        /// </summary>
         [ThreadStatic]
         public static ThreadData Current;
 
+        /// <summary>
+        /// Gets the current if attached and reattach if auto detached.
+        /// </summary>
+        /// <returns>ThreadData.</returns>
         internal static ThreadData GetCurrentIfAttachedAndReattachIfAutoDetached()
         {
             ThreadData current;
@@ -51,10 +63,21 @@ namespace Starcounter
         // methods supported by this class need be thread-safe.
         //
 
+        /// <summary>
+        /// The scheduler
+        /// </summary>
         public readonly Scheduler Scheduler;
 
+        /// <summary>
+        /// The _p state share
+        /// </summary>
         private readonly unsafe UInt32* _pStateShare;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ThreadData" /> class.
+        /// </summary>
+        /// <param name="schedulerNumber">The scheduler number.</param>
+        /// <param name="pStateShare">The p state share.</param>
         public unsafe ThreadData(Byte schedulerNumber, UInt32* pStateShare)
         {
             Scheduler = Scheduler.GetInstance(schedulerNumber);

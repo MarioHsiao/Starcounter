@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="LargeBinary.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -12,18 +17,39 @@ namespace Starcounter
     public struct LargeBinary
     {
 
+        /// <summary>
+        /// The null
+        /// </summary>
         public static readonly LargeBinary Null = new LargeBinary();
 
+        /// <summary>
+        /// Equalses the specified LB1.
+        /// </summary>
+        /// <param name="lb1">The LB1.</param>
+        /// <param name="lb2">The LB2.</param>
+        /// <returns>Boolean.</returns>
         public static Boolean Equals(LargeBinary lb1, LargeBinary lb2)
         {
             return DoCompare(lb1, lb2);
         }
 
+        /// <summary>
+        /// Implements the ==.
+        /// </summary>
+        /// <param name="lb1">The LB1.</param>
+        /// <param name="lb2">The LB2.</param>
+        /// <returns>The result of the operator.</returns>
         public static Boolean operator ==(LargeBinary lb1, LargeBinary lb2)
         {
             return DoCompare(lb1, lb2);
         }
 
+        /// <summary>
+        /// Implements the !=.
+        /// </summary>
+        /// <param name="lb1">The LB1.</param>
+        /// <param name="lb2">The LB2.</param>
+        /// <returns>The result of the operator.</returns>
         public static Boolean operator !=(LargeBinary lb1, LargeBinary lb2)
         {
             return !DoCompare(lb1, lb2);
@@ -95,6 +121,10 @@ namespace Starcounter
         //
         private Byte[] _buffer;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LargeBinary" /> struct.
+        /// </summary>
+        /// <param name="data">The data.</param>
         public LargeBinary(Byte[] data)
             : this()
         {
@@ -112,6 +142,10 @@ namespace Starcounter
             return;
         }
 
+        /// <summary>
+        /// Gets the is null.
+        /// </summary>
+        /// <value>The is null.</value>
         public Boolean IsNull
         {
             get
@@ -132,6 +166,11 @@ namespace Starcounter
             }
         }
 
+        /// <summary>
+        /// Indicates whether this instance and a specified object are equal.
+        /// </summary>
+        /// <param name="obj">Another object to compare to.</param>
+        /// <returns>true if <paramref name="obj" /> and this instance are the same type and represent the same value; otherwise, false.</returns>
         public override Boolean Equals(Object obj)
         {
             if (obj == null)
@@ -145,6 +184,10 @@ namespace Starcounter
             return false;
         }
 
+        /// <summary>
+        /// Returns the hash code for this instance.
+        /// </summary>
+        /// <returns>A 32-bit signed integer that is the hash code for this instance.</returns>
         public override Int32 GetHashCode()
         {
             Int32 ret;
@@ -179,6 +222,11 @@ namespace Starcounter
             return ret;
         }
 
+        /// <summary>
+        /// Equalses the specified lb.
+        /// </summary>
+        /// <param name="lb">The lb.</param>
+        /// <returns>Boolean.</returns>
         public Boolean Equals(LargeBinary lb)
         {
             return DoCompare(this, lb);
@@ -218,6 +266,9 @@ namespace Starcounter
         }
     }
 
+    /// <summary>
+    /// Class LargeBinaryStream
+    /// </summary>
     public sealed class LargeBinaryStream : Stream
     {
 
@@ -230,8 +281,15 @@ namespace Starcounter
         private Boolean _isWritable;
         private Boolean _isFrozen;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LargeBinaryStream" /> class.
+        /// </summary>
         public LargeBinaryStream() : this(DEFAULT_CAPACITY) { }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LargeBinaryStream" /> class.
+        /// </summary>
+        /// <param name="initialCapacity">The initial capacity.</param>
         public LargeBinaryStream(Int32 initialCapacity)
         {
             _buffer = new Byte[AdjustInput(initialCapacity)];
@@ -254,6 +312,9 @@ namespace Starcounter
             _isFrozen = true;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public override Boolean CanRead
         {
             get
@@ -262,6 +323,9 @@ namespace Starcounter
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public override Boolean CanSeek
         {
             get
@@ -270,6 +334,9 @@ namespace Starcounter
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public override Boolean CanWrite
         {
             get
@@ -278,8 +345,14 @@ namespace Starcounter
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public override void Flush() { }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public Int32 Capacity
         {
             get
@@ -314,6 +387,9 @@ namespace Starcounter
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public override Int64 Length
         {
             get
@@ -322,6 +398,9 @@ namespace Starcounter
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public override Int64 Position
         {
             get
@@ -339,6 +418,10 @@ namespace Starcounter
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public override Int32 ReadByte()
         {
             if (!_isOpen)
@@ -352,6 +435,13 @@ namespace Starcounter
             return _buffer[_position++];
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
         public override Int32 Read(Byte[] buffer, Int32 offset, Int32 count)
         {
             if (!_isOpen)
@@ -388,6 +478,12 @@ namespace Starcounter
             return toRead;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="offset"></param>
+        /// <param name="origin"></param>
+        /// <returns></returns>
         public override Int64 Seek(Int64 offset, SeekOrigin origin)
         {
             if (!_isOpen)
@@ -422,6 +518,10 @@ namespace Starcounter
             return (Int64)Position;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
         public override void SetLength(Int64 value)
         {
             if (!_isOpen)
@@ -453,6 +553,10 @@ namespace Starcounter
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
         public override void WriteByte(Byte value)
         {
             Int32 nlen;
@@ -474,6 +578,12 @@ namespace Starcounter
             _buffer[_position++] = value;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
         public override void Write(Byte[] buffer, Int32 offset, Int32 count)
         {
             if (!_isOpen)
@@ -511,6 +621,10 @@ namespace Starcounter
             _position += count;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="lb"></param>
         public void Write(LargeBinary lb)
         {
             Byte[] buffer;
@@ -541,12 +655,20 @@ namespace Starcounter
             _position += count;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public LargeBinary ToLargeBinary()
         {
             _isFrozen = true;
             return LargeBinary.FromStream(_buffer, _length);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="disposing"></param>
         protected override void Dispose(Boolean disposing)
         {
             _isOpen = false;

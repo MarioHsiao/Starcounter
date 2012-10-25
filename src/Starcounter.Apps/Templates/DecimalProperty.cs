@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using System;
+using System.Text;
 using Starcounter.Templates.Interfaces;
 #if CLIENT
 namespace Starcounter.Client.Template {
@@ -33,7 +34,11 @@ namespace Starcounter.Templates {
         /// <exception cref="System.NotImplementedException"></exception>
         public override void ProcessInput(App app, byte[] rawValue)
         {
-            throw new NotImplementedException();
+            // TODO:
+            // Superslow way of parsing the decimal value. Needs to be rewritten.
+            decimal value;
+            decimal.TryParse(Encoding.UTF8.GetString(rawValue), out value);
+            ProcessInput(app, value);
         }
 
         /// <summary>

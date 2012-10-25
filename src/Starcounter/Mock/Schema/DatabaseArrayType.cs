@@ -1,3 +1,9 @@
+// ***********************************************************************
+// <copyright file="DatabaseArrayType.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 
 namespace Sc.Server.Weaver.Schema
@@ -12,8 +18,9 @@ public class DatabaseArrayType : DatabaseSchemaElement, IDatabaseAttributeType
     private readonly DatabaseSchemaElement parent;
 
     /// <summary>
-    /// Initializes a new <see cref="DatabaseArrayType"/>.
+    /// Initializes a new <see cref="DatabaseArrayType" />.
     /// </summary>
+    /// <param name="parent">The parent.</param>
     /// <param name="itemType">Type of array items.</param>
     public DatabaseArrayType(DatabaseSchemaElement parent, IDatabaseAttributeType itemType)
     {
@@ -32,6 +39,10 @@ public class DatabaseArrayType : DatabaseSchemaElement, IDatabaseAttributeType
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
     public override string ToString()
     {
         return "array of " + this.itemType.ToString();
@@ -40,6 +51,10 @@ public class DatabaseArrayType : DatabaseSchemaElement, IDatabaseAttributeType
 
     #region IDatabaseSchemaElement Members
 
+    /// <summary>
+    /// Gets the <see cref="DatabaseSchema" /> to which the current object belong.
+    /// </summary>
+    /// <value>The schema.</value>
     public override DatabaseSchema Schema
     {
         get

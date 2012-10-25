@@ -1,7 +1,7 @@
 //
 // client_number.hpp
 //
-// Copyright © 2006-2011 Starcounter AB. All rights reserved.
+// Copyright © 2006-2012 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 // Within each client process, any number of clients may be running with the
@@ -25,7 +25,7 @@ namespace core {
 //typedef std::size_t client_number;
 typedef uint32_t client_number;
 
-const client_number no_client_number = ~0;
+const client_number no_client_number = -1;
 
 } // namespace core
 } // namespace starcounter

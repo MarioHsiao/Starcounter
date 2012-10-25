@@ -142,7 +142,7 @@ namespace Starcounter {
         /// to this specific instance.
         /// </summary>
         /// <value>The index path.</value>
-        public Int32[] IndexPath
+        internal Int32[] IndexPath
         {
             get
             {

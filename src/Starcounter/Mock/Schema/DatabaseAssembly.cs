@@ -1,3 +1,9 @@
+// ***********************************************************************
+// <copyright file="DatabaseAssembly.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.CodeDom.Compiler;
 using System.Collections;
@@ -34,9 +40,10 @@ public sealed class DatabaseAssembly : DatabaseSchemaElement
     private readonly Dictionary<string, string> dependencies = new Dictionary<string, string>();
 
     /// <summary>
-    /// Initializes a new <see cref="DatabaseAssembly"/>.
+    /// Initializes a new <see cref="DatabaseAssembly" />.
     /// </summary>
     /// <param name="name">Assembly name.</param>
+    /// <param name="fullName">The full name.</param>
     public DatabaseAssembly(string name, string fullName)
     {
         this.name = name;
@@ -197,6 +204,9 @@ public sealed class DatabaseAssembly : DatabaseSchemaElement
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public void OnSchemaComplete()
     {
         foreach (DatabaseClass databaseClass in databaseClasses)
@@ -205,6 +215,10 @@ public sealed class DatabaseAssembly : DatabaseSchemaElement
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
     public override string ToString()
     {
         return "Assembly " + this.name;
@@ -235,6 +249,10 @@ public class DatabaseAssemblyCollection : ICollection<DatabaseAssembly>
         this.schema = schema;
     }
 
+    /// <summary>
+    /// Adds the specified item.
+    /// </summary>
+    /// <param name="item">The item.</param>
     public void Add(DatabaseAssembly item)
     {
         item.SetSchema(this.schema);
@@ -246,26 +264,47 @@ public class DatabaseAssemblyCollection : ICollection<DatabaseAssembly>
         this.dictionary.Add(item.Name, item);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public void Clear()
     {
         this.dictionary.Clear();
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="item"></param>
+    /// <returns></returns>
     public bool Contains(DatabaseAssembly item)
     {
         return this.dictionary.ContainsKey(item.Name);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="array"></param>
+    /// <param name="arrayIndex"></param>
     public void CopyTo(DatabaseAssembly[] array, int arrayIndex)
     {
         this.dictionary.Values.CopyTo(array, arrayIndex);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="item"></param>
+    /// <returns></returns>
     public bool Remove(DatabaseAssembly item)
     {
         return this.dictionary.Remove(item.Name);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public int Count
     {
         get
@@ -274,6 +313,9 @@ public class DatabaseAssemblyCollection : ICollection<DatabaseAssembly>
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public bool IsReadOnly
     {
         get
@@ -282,16 +324,29 @@ public class DatabaseAssemblyCollection : ICollection<DatabaseAssembly>
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
     public IEnumerator<DatabaseAssembly> GetEnumerator()
     {
         return this.dictionary.Values.GetEnumerator();
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
     IEnumerator IEnumerable.GetEnumerator()
     {
         return this.GetEnumerator();
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
     public DatabaseAssembly this[string name]
     {
         get
