@@ -320,11 +320,13 @@ namespace Starcounter.Internal.JsonPatch {
         /// <returns>AppAndTemplate.</returns>
         /// <exception cref="System.Exception"></exception>
         internal static AppAndTemplate Evaluate(App mainApp, JsonPointer ptr) {
+            Boolean currentIsAppTemplate;
             Boolean nextTokenShouldBeIndex;
             Int32 index;
             Object current = null;
 
             nextTokenShouldBeIndex = false;
+            currentIsAppTemplate = false;
             while (ptr.MoveNext()) {
                 if (nextTokenShouldBeIndex) {
                     // Previous object was a Set. This token should be an index
@@ -335,6 +337,11 @@ namespace Starcounter.Internal.JsonPatch {
                     Listing list = mainApp.GetValue((ListingProperty)current);
                     current = list[index];
                 } else {
+                    if (currentIsAppTemplate) {
+                        mainApp = mainApp.GetValue((AppTemplate)current);
+                        currentIsAppTemplate = false;
+                    }
+
                     Template t = mainApp.Template.Properties.GetTemplateByName(ptr.Current);
 
                     if (t == null) {
@@ -351,6 +358,8 @@ namespace Starcounter.Internal.JsonPatch {
 
                 if (current is App) {
                     mainApp = current as App;
+                } else if (current is AppTemplate) {
+                    currentIsAppTemplate = true;
                 } else if (current is ListingProperty) {
                     nextTokenShouldBeIndex = true;
                 } else {
@@ -407,6 +416,8 @@ namespace Starcounter.Internal.JsonPatch {
                     sb.Append('"');
                 } else if (value is App) {
                     sb.Append(((App)value).ToJson());
+                } else {
+                    sb.Append(value);
                 }
             }
             return sb.ToString();
@@ -452,6 +463,8 @@ namespace Starcounter.Internal.JsonPatch {
                         // next index in the path is the index in the list.
                         listProp = (ListingProperty)template;
                         nextIndexIsPositionInList = true;
+                    } else if (template is AppTemplate) {
+                        app = app.GetValue((AppTemplate)template);
                     }
                 }
             }
