@@ -911,11 +911,11 @@ uint32_t Gateway::GlobalCleanup()
 void ScSessionStruct::GenerateNewSession(
     uint64_t salt,
     uint32_t session_index,
-    uint64_t apps_unique_num,
+    uint64_t apps_unique_session_num,
     uint32_t scheduler_id)
 {
     // Initializing the new session.
-    Init(salt, session_index, apps_unique_num, scheduler_id);
+    Init(salt, session_index, apps_unique_session_num, scheduler_id);
 
 #ifdef GW_SESSIONS_DIAG
     GW_COUT << "New session generated: " << session_index_ << ":" << session_salt_ << std::endl;
