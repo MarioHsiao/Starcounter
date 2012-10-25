@@ -244,7 +244,7 @@ namespace NetworkIoTestApp
             if (!p.HasSession)
             {
                 // Generating and writing new session.
-                p.GenerateNewSession();
+                UInt64 uniqueSessionNumber = p.GenerateNewSession();
 
                 // Displaying new session unique number.
                 Console.WriteLine("Generated new session with number: " + p.UniqueSessionNumber);

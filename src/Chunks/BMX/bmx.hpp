@@ -110,7 +110,7 @@ namespace bmx
 
     const uint32_t SESSION_SALT_OFFSET = GATEWAY_DATA_BEGIN;
     const uint32_t SESSION_INDEX_OFFSET = GATEWAY_DATA_BEGIN + 8;
-    const uint32_t SESSION_APPS_UNIQUE_NUMBER_OFFSET = GATEWAY_DATA_BEGIN + 16;
+    const uint32_t SESSION_APPS_UNIQUE_SESSION_NUMBER_OFFSET = GATEWAY_DATA_BEGIN + 16;
 
     const uint32_t USER_DATA_OFFSET = GATEWAY_DATA_BEGIN + 24;
     const uint32_t MAX_USER_DATA_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 28;
@@ -144,6 +144,8 @@ namespace bmx
     const uint8_t BMX_REGISTER_PUSH_CHANNEL_RESPONSE = 6;
     const uint8_t BMX_DEREGISTER_PUSH_CHANNEL = 7;
     const uint8_t BMX_SEND_ALL_HANDLERS = 8;
+    const uint8_t BMX_SESSION_CREATED = 9;
+    const uint8_t BMX_SESSION_DESTROYED = 10;
     const uint8_t BMX_PING = 254;
     const uint8_t BMX_PONG = 255;
 
@@ -489,6 +491,7 @@ namespace bmx
         uint32_t PushRegisteredSubportHandler(BMX_HANDLER_TYPE handler_id, uint16_t port, uint32_t subport);
         uint32_t PushRegisteredUriHandler(BMX_HANDLER_TYPE handler_id, uint16_t port, char* uri, uint32_t uri_len_chars, HTTP_METHODS http_method);
         uint32_t SendRegisterPushChannelResponse(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info);
+        uint32_t HandleDestroyedSession(request_chunk_part* request, TASK_INFO_TYPE* task_info);
 
         // Sends information about all registered handlers.
         uint32_t SendAllHandlersInfo(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info);
