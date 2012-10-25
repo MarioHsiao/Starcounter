@@ -76,7 +76,7 @@ namespace SQLTest
         /// <param name="debug">If debug output should be written.</param>
         /// <param name="input">If new input file shuould be generated.</param>
         /// <param name="onClient">If the code was started on client.</param>
-        public static void Initialize(String name, Boolean debug, Boolean input, Boolean onClient)
+        public static void Initialize(String name, String outputPath, Boolean debug, Boolean input, Boolean onClient)
         {
             testName = name;
             debugOutput = debug;
@@ -85,7 +85,14 @@ namespace SQLTest
             inputFilePath = AppDomain.CurrentDomain.BaseDirectory + @"\s\SQLTest\" + testName + "Input.txt";
             generatedInputFilePath = AppDomain.CurrentDomain.BaseDirectory + @"\s\SQLTest\" + testName + "Generated.txt";
             debugFilePath = AppDomain.CurrentDomain.BaseDirectory + @"\s\SQLTest\" + testName + "Debug.txt";
-            outputFilePath = AppDomain.CurrentDomain.BaseDirectory + @"\s\SQLTest\" + testName + "Output.txt";
+            if (outputPath == null)
+                outputFilePath = AppDomain.CurrentDomain.BaseDirectory + @"\s\SQLTest\" + testName + "Output.txt";
+            else {
+                if (outputPath[outputPath.Length - 1] == '\\')
+                    outputFilePath = outputPath + testName + "Output.txt";
+                else
+                    outputFilePath = outputPath + @"\" + testName + "Output.txt";
+            }
             if (!startedOnClient)
                 logSource = new LogSource(testName);
             testLogger = new TestLogger(testName, startedOnClient);
@@ -119,7 +126,7 @@ namespace SQLTest
         /// <summary>
         /// Runs the test on server or client.
         /// </summary>
-        public static void RunTest()
+        public static int RunTest()
         {
             // Checking if we need to skip the process.
             if ((!startedOnClient) && (TestLogger.SkipInProcessTests()))
@@ -127,7 +134,7 @@ namespace SQLTest
                 // Creating file indicating finish of the work.
                 testLogger.Log("SqlTestX in-process test is skipped!", TestLogger.LogMsgType.MSG_SUCCESS);
 
-                return;
+                return 0;
             }
 
             Int32 counter = -1;
@@ -198,16 +205,15 @@ namespace SQLTest
             }
 
             // Checking if there are any failed queries.
-            if (nrFailedQueries <= 0)
-            {
-                LogEvent(testName + " finished successfully!", TestLogger.LogMsgType.MSG_SUCCESS);
-            }
-            else
+            if (nrFailedQueries > 0)
             {
                 LogEvent(testName + " has finished with errors!", TestLogger.LogMsgType.MSG_ERROR);
                 if (File.Exists(outputFilePath))
                     testLogger.Log(File.ReadAllText(outputFilePath));
             }
+            else
+                LogEvent(testName + " finished successfully!", TestLogger.LogMsgType.MSG_SUCCESS);
+            return nrFailedQueries;
         }
 
         static Int32 EvaluateTestResult(List<TestQuery> queryList)
