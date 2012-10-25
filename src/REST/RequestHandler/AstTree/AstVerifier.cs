@@ -1,8 +1,22 @@
-﻿using System.Text;
+﻿// ***********************************************************************
+// <copyright file="AstVerifier.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System.Text;
 
 namespace Starcounter.Internal.Uri {
+    /// <summary>
+    /// Class AstVerifier
+    /// </summary>
     internal abstract class AstVerifier : AstNode {
 
+        /// <summary>
+        /// Gens the verifier.
+        /// </summary>
+        /// <param name="n">The n.</param>
+        /// <param name="breakInsteadOfReturn">if set to <c>true</c> [break instead of return].</param>
         internal void GenVerifier(int n, bool breakInsteadOfReturn) {
             if (n > 0) {
                 var compareBytes = n;
@@ -43,6 +57,10 @@ namespace Starcounter.Internal.Uri {
             }
         }
 
+        /// <summary>
+        /// Adds the break or return.
+        /// </summary>
+        /// <param name="doBreak">if set to <c>true</c> [do break].</param>
         void AddBreakOrReturn(bool doBreak) {
             if (doBreak) {
                 Prefix.Add("    break;");

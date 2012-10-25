@@ -1,9 +1,16 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="InternalNamedPipeClient.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO.Pipes;
+using Starcounter.Internal;
 
 namespace Starcounter.ABCIPC.Internal {
     /// <summary>
@@ -23,7 +30,15 @@ namespace Starcounter.ABCIPC.Internal {
 
         void SendRequestOnPipe(string request) {
             pipe = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut);
-            pipe.Connect(3000);
+            try {
+                pipe.Connect(3000);
+            } catch (TimeoutException timeout) {
+                throw ErrorCode.ToException(
+                    Error.SCERRCONNECTTIMEDOUT,
+                    timeout,
+                    string.Format("Connecting to server on pipe {0} timed out.", pipeName),
+                    (string message, Exception inner) => { return new TimeoutException(message, inner); });
+            }
             protocol.WriteMesssage(pipe, request);
         }
 

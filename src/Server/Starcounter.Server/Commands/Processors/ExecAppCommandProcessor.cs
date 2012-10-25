@@ -1,9 +1,16 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ExecAppCommandProcessor.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Server.PublicModel.Commands;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
 using Starcounter.ABCIPC;
+using Starcounter.Internal;
 
 namespace Starcounter.Server.Commands {
 
@@ -23,7 +30,7 @@ namespace Starcounter.Server.Commands {
             : base(server, command) {
         }
 
-        /// </inheritdoc>
+        /// <inheritdoc />
         protected override void Execute() {
             ExecAppCommand command;
             WeaverService weaver;
@@ -46,10 +53,22 @@ namespace Starcounter.Server.Commands {
                         command.AssemblyPath, StringComparison.InvariantCultureIgnoreCase);
                 });
                 if (app != null) {
-                    // Running the same executable more than once is not considered an
-                    // error. We just log it as a notice and consider the processing done.
-                    Log.LogNotice("Executable {0} is already running in database {1}.", app.OriginalExecutablePath, command.DatabaseName);
-                    return;
+                    // If the app is running inside the database, we must stop the host,
+                    // or validate it's up-to-date.
+                    // We currently dont implement checking if the app is up-to-date,
+                    // we simply restart the host every time.
+                    // Two TODO's here:
+                    // 1) Make sure we restart other apps that runs in the same host if
+                    // we drop the host.
+                    // 2) Check if the app is up-to-date.
+                    if (IsUpToDate(app)) {
+                        // Running the same executable more than once is not considered an
+                        // error. We just log it as a notice and consider the processing done.
+                        this.Log.LogNotice("Executable {0} is already running in database {1}.", app.OriginalExecutablePath, command.DatabaseName);
+                        return;
+                    }
+
+                    Engine.DatabaseEngine.StopWorkerProcess(database);
                 }
             }
 
@@ -86,36 +105,55 @@ namespace Starcounter.Server.Commands {
 
             Engine.DatabaseEngine.StartDatabaseProcess(database);
             Engine.DatabaseEngine.StartWorkerProcess(database, command.NoDb, out workerProcess);
-            
-            // Get a client handle to the worker process.
 
-            var client = new Client(workerProcess.StandardInput.WriteLine, workerProcess.StandardOutput.ReadLine);
+            // Get a client handle to the hosting process.
 
-            // The current database worker protocol is "Exec c:\myfile.exe". We use
-            // that until the full one is in place.
-            //   Grab the response message and utilize it if we fail.
+            var client = this.Engine.DatabaseHostService.GetHostingInterface(database);
 
-            string responseMessage = string.Empty;
-            bool success = client.Send("Exec", string.Format("\"{0}\"", weavedExecutable), delegate(Reply reply) {
-                if (reply.IsResponse && !reply.IsSuccess) {
-                    reply.TryGetCarry(out responseMessage);
+            if (command.PrepareOnly) {
+                bool success = client.Send("Ping");
+                if (!success) {
+                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
                 }
-            });
-            if (!success) {
-                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, responseMessage);
+            }
+            else {
+                
+                // The current database worker protocol is "Exec c:\myfile.exe". We use
+                // that until the full one is in place.
+                //   Grab the response message and utilize it if we fail.
+
+                var properties = new Dictionary<string, string>();
+                properties.Add("AssemblyPath", weavedExecutable);
+                properties.Add("WorkingDir", command.WorkingDirectory);
+                properties.Add("Args", KeyValueBinary.FromArray(command.ArgumentsToApplication).Value);
+
+                string responseMessage = string.Empty;
+                bool success = client.Send("Exec2", properties, delegate(Reply reply) {
+                    if (reply.IsResponse && !reply.IsSuccess) {
+                        reply.TryGetCarry(out responseMessage);
+                    }
+                });
+                if (!success) {
+                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, responseMessage);
+                }
+
+                // The app is successfully loaded in the worker process. We should
+                // keep it referenced in the server and consider the execution of this
+                // processor a success.
+                app = new DatabaseApp() {
+                    OriginalExecutablePath = command.AssemblyPath,
+                    WorkingDirectory = command.WorkingDirectory,
+                    Arguments = command.Arguments,
+                    ExecutionPath = weavedExecutable
+                };
+                database.Apps.Add(app);
             }
 
-            // The app is successfully loaded in the worker process. We should
-            // keep it referenced in the server and consider the execution of this
-            // processor a success.
-            app = new DatabaseApp() {
-                OriginalExecutablePath = command.AssemblyPath,
-                WorkingDirectory = command.WorkingDirectory,
-                Arguments = command.Arguments,
-                ExecutionPath = weavedExecutable
-            };
-            database.Apps.Add(app);
             Engine.CurrentPublicModel.UpdateDatabase(database);
+        }
+
+        bool IsUpToDate(DatabaseApp app) {
+            return false;
         }
 
         string GetAppRuntimeDirectory(string baseDirectory, string assemblyPath) {

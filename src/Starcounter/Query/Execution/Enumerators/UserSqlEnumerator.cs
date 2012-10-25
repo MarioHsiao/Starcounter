@@ -1,4 +1,10 @@
-﻿using Starcounter;
+﻿// ***********************************************************************
+// <copyright file="UserSqlEnumerator.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using Starcounter;
 using Starcounter.Binding;
 using Starcounter.Query.Sql;
 using System;
@@ -518,9 +524,12 @@ namespace Starcounter.Query.Execution
         /// <summary>
         /// Does the continuous object ETIs and IDs fill up into the dedicated buffer.
         /// </summary>
-        /// <param name="buffer"></param>
-        /// <param name="bufLenBytes"></param>
-        /// <returns></returns>
+        /// <param name="results">The results.</param>
+        /// <param name="resultsMaxBytes">The results max bytes.</param>
+        /// <param name="resultsNum">The results num.</param>
+        /// <param name="flags">The flags.</param>
+        /// <returns>UInt32.</returns>
+        /// <exception cref="System.NotImplementedException"></exception>
         public override unsafe UInt32 FillupFoundObjectIDs(Byte* results, UInt32 resultsMaxBytes, UInt32* resultsNum, UInt32* flags)
         {
             // Client side enumerator does not need to implement this function.
@@ -876,7 +885,7 @@ namespace Starcounter.Query.Execution
         /// <summary>
         /// Sets values to all SQL variables in the SQL query.
         /// </summary>
-        /// <param name="values">The new values of the variables in order of appearance.</param>
+        /// <param name="sqlParams">The SQL params.</param>
         public override void SetVariables(Object[] sqlParams)
         {
             // Running throw all variables in the array.

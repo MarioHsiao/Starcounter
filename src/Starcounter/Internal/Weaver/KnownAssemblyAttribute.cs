@@ -1,3 +1,9 @@
+// ***********************************************************************
+// <copyright file="KnownAssemblyAttribute.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.IO;
 using System.Security.Cryptography;
@@ -9,15 +15,27 @@ namespace Starcounter.Internal.Weaver {
     /// is <i>known</i>, that is, <i>trusted</i>. Known assemblies may use
     /// constructions that are forbidden to normal user code. Known assemblies
     /// may required to be processed specially by the weaver, by means of
-    /// <see cref="WeaverDirectives"/>.
+    /// <see cref="WeaverDirectives" />.
     /// </summary>
     [AttributeUsage(AttributeTargets.Assembly)]
     public sealed class KnownAssemblyAttribute : Attribute {
+        /// <summary>
+        /// The weaver directives
+        /// </summary>
         private readonly WeaverDirectives weaverDirectives;
+        /// <summary>
+        /// The proof
+        /// </summary>
         private readonly string proof;
 
+        /// <summary>
+        /// The RSA decoder
+        /// </summary>
         private static readonly RSACryptoServiceProvider rsaDecoder;
 
+        /// <summary>
+        /// Initializes static members of the <see cref="KnownAssemblyAttribute" /> class.
+        /// </summary>
         static KnownAssemblyAttribute() {
             // Initialize the crypto object that will verify the proofs.
             // Read the public key stored as a managed resource.
@@ -37,11 +55,11 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Initializes a new <see cref="KnownAssemblyAttribute"/>.
+        /// Initializes a new <see cref="KnownAssemblyAttribute" />.
         /// </summary>
         /// <param name="directives">Weaver directives.</param>
         /// <param name="proof">Proof that the assembly to which the current custom attribute
-        /// is trusted (a signature generated with the <see cref="MakeProof"/> method.</param>
+        /// is trusted (a signature generated with the <see cref="MakeProof" /> method.</param>
         public KnownAssemblyAttribute(WeaverDirectives directives, string proof) {
             this.proof = proof;
             this.weaverDirectives = directives;
@@ -51,6 +69,7 @@ namespace Starcounter.Internal.Weaver {
         /// Gets the weaver directives for the assembly on which the current custom attribute
         /// was applied.
         /// </summary>
+        /// <value>The weaver directives.</value>
         public WeaverDirectives WeaverDirectives {
             get {
                 return weaverDirectives;
@@ -61,6 +80,7 @@ namespace Starcounter.Internal.Weaver {
         /// Gets the proof that the assembly on which the current custom attribute
         /// is applied, is really trusted.
         /// </summary>
+        /// <value>The proof.</value>
         public string Proof {
             get {
                 return proof;

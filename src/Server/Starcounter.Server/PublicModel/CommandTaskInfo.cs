@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="CommandTaskInfo.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 namespace Starcounter.Server.PublicModel {
     
     /// <summary>
@@ -13,7 +18,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public int ID {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -22,7 +27,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string ShortText {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -30,7 +35,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string Description {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -38,7 +43,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public TaskDuration Duration {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -48,7 +53,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string ProgressUnits {
             get;
-            internal set;
+            set;
         }
     }
 }

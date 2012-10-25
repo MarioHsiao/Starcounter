@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="App.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Apps.Bootstrap;
 
 namespace Starcounter {
@@ -8,6 +13,9 @@ namespace Starcounter {
     /// </summary>
     public class AppNew
     {
+        /// <summary>
+        /// Initializes static members of the <see cref="AppNew" /> class.
+        /// </summary>
         static AppNew()
         {
             AppProcess.AssertInDatabaseOrSendStartRequest();

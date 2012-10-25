@@ -1,4 +1,10 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="AppInfo.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,7 +28,7 @@ namespace Starcounter.Server.PublicModel {
         /// </remarks>
         public string ExecutablePath {
             get;
-            internal set;
+            set;
         }
 
         /// <summary>
@@ -30,7 +36,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string WorkingDirectory {
             get;
-            internal set;
+            set;
         }
     }
 }

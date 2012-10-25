@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="ScAnalysisTask.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System;
 using System.Collections.Generic;
@@ -19,19 +24,37 @@ using Sc.Server.Weaver.Schema;
 using Starcounter;
 
 namespace Starcounter.Internal.Weaver {
-    
+
     /// <summary>
     /// Analytic part of the weaver. Discovers database classes in data assemblies,
     /// build the database schema and validates it against many rules.
     /// </summary>
     public class ScAnalysisTask : Task {
+        /// <summary>
+        /// The _root society object type name
+        /// </summary>
         private const String _rootSocietyObjectTypeName = "Concepts.Ring1.Something";
 
+        /// <summary>
+        /// The _schema
+        /// </summary>
         private static readonly DatabaseSchema _schema = new DatabaseSchema();
+        /// <summary>
+        /// The _initialization blocks
+        /// </summary>
         private static readonly Set<InstructionBlock> _initializationBlocks = new Set<InstructionBlock>();
+        /// <summary>
+        /// The _DB classes in current module
+        /// </summary>
         private readonly Dictionary<TypeDefDeclaration, DatabaseClass> _dbClassesInCurrentModule = new Dictionary<TypeDefDeclaration, DatabaseClass>();
+        /// <summary>
+        /// The _writer
+        /// </summary>
         private readonly InstructionWriter _writer = new InstructionWriter();
 
+        /// <summary>
+        /// The _forbidden assemblies
+        /// </summary>
         private readonly String[] _forbiddenAssemblies = new[] {
             "starcounter.configuration",
             "starcounter.framework",
@@ -43,26 +66,55 @@ namespace Starcounter.Internal.Weaver {
             "starcounter.management.win32"
         };
 
+        /// <summary>
+        /// The _SC app assembly ref
+        /// </summary>
         private AssemblyRefDeclaration _scAppAssemblyRef;
+        /// <summary>
+        /// The _database assembly
+        /// </summary>
         private DatabaseAssembly _databaseAssembly;
+        /// <summary>
+        /// The _discover database class cache
+        /// </summary>
         private Dictionary<ITypeSignature, DatabaseClass> _discoverDatabaseClassCache;
+        /// <summary>
+        /// The _default constructor signature
+        /// </summary>
         private MethodSignature _defaultConstructorSignature;
+        /// <summary>
+        /// The _module
+        /// </summary>
         private ModuleDeclaration _module;
+        /// <summary>
+        /// The _weaver directives
+        /// </summary>
         private WeaverDirectives _weaverDirectives;
+        /// <summary>
+        /// The _weaving helper
+        /// </summary>
         private WeavingHelper _weavingHelper;
+        /// <summary>
+        /// The _not persistent attribute type
+        /// </summary>
         private IType _notPersistentAttributeType;
+        /// <summary>
+        /// The _entity type
+        /// </summary>
         private IType _entityType;
+        /// <summary>
+        /// The _DB object type
+        /// </summary>
         private ITypeSignature _dbObjectType;
 
         /// <summary>
-        /// Gets the <see cref="DatabaseSchema"/> for the current application.
+        /// Gets the <see cref="DatabaseSchema" /> for the current application.
         /// </summary>
-        /// <remarks>
-        /// The database schema is a static property shared among all 
-        /// instances of <see cref="ScAnalysisTask"/>. There is one instance 
-        /// <see cref="ScAnalysisTask"/> for each module composing the application,
-        /// but there is a single schema.
-        /// </remarks>
+        /// <value>The database schema.</value>
+        /// <remarks>The database schema is a static property shared among all
+        /// instances of <see cref="ScAnalysisTask" />. There is one instance
+        /// <see cref="ScAnalysisTask" /> for each module composing the application,
+        /// but there is a single schema.</remarks>
         public static DatabaseSchema DatabaseSchema {
             get {
                 return _schema;
@@ -70,13 +122,11 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Finds the <see cref="ScAnalysisTask"/> instance in a PostSharp project.
+        /// Finds the <see cref="ScAnalysisTask" /> instance in a PostSharp project.
         /// </summary>
         /// <param name="project">The PostSharp project.</param>
-        /// <returns>
-        /// The <see cref="ScAnalysisTask"/>, or <b>null</b> if the project did not 
-        /// contain this task.
-        /// </returns>
+        /// <returns>The <see cref="ScAnalysisTask" />, or <b>null</b> if the project did not
+        /// contain this task.</returns>
         public static ScAnalysisTask GetTask(Project project) {
             return (ScAnalysisTask)project.Tasks["ScAnalyze"];
         }
@@ -84,6 +134,7 @@ namespace Starcounter.Internal.Weaver {
         /// <summary>
         /// Gets the collection of database classes defined in the current module.
         /// </summary>
+        /// <value>The database classes in current module.</value>
         public ICollection<DatabaseClass> DatabaseClassesInCurrentModule {
             get {
                 return _dbClassesInCurrentModule.Values;
@@ -93,9 +144,8 @@ namespace Starcounter.Internal.Weaver {
         /// <summary>
         /// Gets or sets the path of the file to which the schema should be saved.
         /// </summary>
-        /// <remarks>
-        /// This property is configured from the PostSharp project file.
-        /// </remarks>
+        /// <value>The save to.</value>
+        /// <remarks>This property is configured from the PostSharp project file.</remarks>
         [ConfigurableProperty]
         public string SaveTo {
             get;
@@ -103,12 +153,11 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Gets or sets the timestamp with which the save file (see <see cref="SaveTo"/>)
+        /// Gets or sets the timestamp with which the save file (see <see cref="SaveTo" />)
         /// should be touched.
         /// </summary>
-        /// <remarks>
-        /// This property is configured from the PostSharp project file.
-        /// </remarks>
+        /// <value>The timestamp.</value>
+        /// <remarks>This property is configured from the PostSharp project file.</remarks>
         [ConfigurableProperty]
         public DateTime Timestamp {
             get;
@@ -118,6 +167,7 @@ namespace Starcounter.Internal.Weaver {
         /// <summary>
         /// Gets a value describing the type of transformation we are to execute.
         /// </summary>
+        /// <value>The kind of the transformation.</value>
         public WeaverTransformationKind TransformationKind {
             get;
             private set;
@@ -129,6 +179,7 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         /// <param name="type">The type to be found.</param>
         /// <returns>The PostSharp model type or null, if it was not found.</returns>
+        /// <exception cref="System.InvalidOperationException"></exception>
         private IType FindStarcounterType(Type type) {
             if (_scAppAssemblyRef == null) {
                 throw new InvalidOperationException();
@@ -182,7 +233,7 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="evaluated">A list of modules already considered, to guard
         /// against infinate lookup.</param>
         /// <returns>A reference to the Starcounter assembly or null, if no reference
-        ///  could be found.</returns>
+        /// could be found.</returns>
         private static AssemblyRefDeclaration FindStarcounterAssemblyReferenceRecursive(
             ModuleDeclaration module,
             StringComparison comparison,
@@ -233,12 +284,10 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Adds a dependency to the <see cref="DatabaseAssembly"/>
+        /// Adds a dependency to the <see cref="DatabaseAssembly" />
         /// representing the module currently being analyzed.
         /// </summary>
-        /// <param name="assembly">
-        /// The assembly that is a dependency of the current assembly.
-        /// </param>
+        /// <param name="moduleDependency">The module dependency.</param>
         private void AddModuleDependencyRecursive(ModuleDeclaration moduleDependency) {
             String name = moduleDependency.Name;
 
@@ -274,7 +323,7 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Adds a dependency to the <see cref="DatabaseAssembly"/>
+        /// Adds a dependency to the <see cref="DatabaseAssembly" />
         /// representing the module currently being analyzed.
         /// </summary>
         /// <param name="name">Name of the reference.</param>
@@ -608,10 +657,10 @@ namespace Starcounter.Internal.Weaver {
         #region Validate custom attribute usage
 
         /// <summary>
-        /// 
+        /// Gets the name of the type reflection.
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
+        /// <param name="type">The type.</param>
+        /// <returns>String.</returns>
         public static String GetTypeReflectionName(IType type) {
             StringBuilder builder = new StringBuilder(100);
             type.WriteReflectionName(builder, ReflectionNameOptions.None);
@@ -622,11 +671,9 @@ namespace Starcounter.Internal.Weaver {
         /// Emit errors if Starcounter custom attributes have been used on unexpected
         /// declaration.
         /// </summary>
-        /// <remarks>
-        /// This method is called after the discovery, so we apply the rule: if the
+        /// <remarks>This method is called after the discovery, so we apply the rule: if the
         /// custom attribute was not discovered by the discovery process, it's because
-        /// it is used improperly.
-        /// </remarks>
+        /// it is used improperly.</remarks>
         private void ValidateCustomAttributeUsage() {
             AnnotationRepositoryTask annotationRepositoryTask;
 //            DatabaseAttribute databaseAttribute;
@@ -687,9 +734,7 @@ namespace Starcounter.Internal.Weaver {
         /// <summary>
         /// Validates a kind class.
         /// </summary>
-        /// <param name="databaseClass">
-        /// The kind class.
-        /// </param>
+        /// <param name="databaseClass">The kind class.</param>
         private void ValidateDatabaseKindClass(DatabaseKindClass databaseClass) {
             BindingOptions bindOpts = BindingOptions.OnlyExisting
                                         | BindingOptions.DontThrowException;
@@ -792,7 +837,7 @@ namespace Starcounter.Internal.Weaver {
         /// <summary>
         /// Validates a database class (which may be an entity class or an extension class).
         /// </summary>
-        /// <param name="databaseClass"></param>
+        /// <param name="databaseClass">The database class.</param>
         private void ValidateDatabaseClass(DatabaseClass databaseClass) {
             BindingOptions bindOpts = BindingOptions.DontThrowException
                                             | BindingOptions.OnlyExisting;
@@ -832,12 +877,12 @@ namespace Starcounter.Internal.Weaver {
         #region Helper methods
 
         /// <summary>
-        /// Determines whether a <see cref="Type"/> inherits a parent type, given
+        /// Determines whether a <see cref="Type" /> inherits a parent type, given
         /// the name of the parent type.
         /// </summary>
-        /// <param name="child">Child <see cref="Type"/>.</param>
+        /// <param name="child">Child <see cref="Type" />.</param>
         /// <param name="parentName">Name of the parent type.</param>
-        /// <returns><b>true</b> if <paramref name="child"/> derives from a type named <paramref name="parentName"/>,
+        /// <returns><b>true</b> if <paramref name="child" /> derives from a type named <paramref name="parentName" />,
         /// otherwise <b>false</b>.</returns>
         private static bool Inherits(IType child, string parentName) {
             TypeDefDeclaration cursor = child.GetTypeDefinition();
@@ -855,19 +900,19 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Determines whether a <see cref="Type"/> is a society object / society class.
+        /// Determines whether a <see cref="Type" /> is a society object / society class.
         /// </summary>
-        /// <param name="type">A <see cref="Type"/>.</param>
-        /// <returns><b>true</b> if <paramref name="type"/> is a society object, otherwise <b>false</b>.</returns>
+        /// <param name="type">A <see cref="Type" />.</param>
+        /// <returns><b>true</b> if <paramref name="type" /> is a society object, otherwise <b>false</b>.</returns>
         private static bool IsSocietyObject(IType type) {
             return Inherits(type, _rootSocietyObjectTypeName);
         }
 
         /// <summary>
-        /// Determines whether a <see cref="Type"/> is a kind class.
+        /// Determines whether a <see cref="Type" /> is a kind class.
         /// </summary>
-        /// <param name="type">A <see cref="Type"/>.</param>
-        /// <returns><b>true</b> if <paramref name="type"/> is a kind class, otherwise <b>false</b>.</returns>
+        /// <param name="type">A <see cref="Type" />.</param>
+        /// <returns><b>true</b> if <paramref name="type" /> is a kind class, otherwise <b>false</b>.</returns>
         private static bool IsSocietyObjectKind(IType type) {
             return Inherits(type, _rootSocietyObjectTypeName + "+Kind");
         }
@@ -877,11 +922,11 @@ namespace Starcounter.Internal.Weaver {
         #region Parse attribute types
 
         /// <summary>
-        /// Gets the <see cref="DatabasePrimitive"/> corresponding to a reflection <paramref name="type"/>.
+        /// Gets the <see cref="DatabasePrimitive" /> corresponding to a reflection <paramref name="type" />.
         /// </summary>
-        /// <param name="type">A reflection <see cref="Type"/>.</param>
-        /// <returns>A <see cref="DatabasePrimitive"/>, or <see cref="DatabasePrimitive.None"/> if
-        /// <paramref name="type"/> is not a database primitive.</returns>
+        /// <param name="type">A reflection <see cref="Type" />.</param>
+        /// <returns>A <see cref="DatabasePrimitive" />, or <see cref="DatabasePrimitive.None" /> if
+        /// <paramref name="type" /> is not a database primitive.</returns>
         private static DatabasePrimitive GetPrimitive(ITypeSignature type) {
             IntrinsicTypeSignature intrinsicType = type as IntrinsicTypeSignature;
             if (intrinsicType != null) {
@@ -935,16 +980,14 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Gets the <see cref="IDatabaseAttributeType"/> corresponding to a reflection <see cref="Type"/>,
-        /// when the <see cref="Type"/> is 'simple': <see cref="DatabasePrimitiveType"/>,
-        /// <see cref="DatabaseEnumType"/> or <see cref="DiscoverDatabaseClass"/>.
+        /// Gets the <see cref="IDatabaseAttributeType" /> corresponding to a reflection <see cref="Type" />,
+        /// when the <see cref="Type" /> is 'simple': <see cref="DatabasePrimitiveType" />,
+        /// <see cref="DatabaseEnumType" /> or <see cref="DiscoverDatabaseClass" />.
         /// </summary>
-        /// <remarks>
-        /// Enumerable and arrays are considered as composed types, since they take a simple type as
-        /// argument.
-        /// </remarks>
-        /// <param name="type">The <see cref="Type"/> to parse.</param>
-        /// <returns></returns>
+        /// <param name="type">The <see cref="Type" /> to parse.</param>
+        /// <returns>IDatabaseAttributeType.</returns>
+        /// <remarks>Enumerable and arrays are considered as composed types, since they take a simple type as
+        /// argument.</remarks>
         private IDatabaseAttributeType GetSimpleType(ITypeSignature type) {
             // Test enumerations.
             if (type.BelongsToClassification(TypeClassifications.Enum)) {
@@ -964,10 +1007,10 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Set the type of a <see cref="DatabaseAttribute"/> given reflection information
-        /// (<see cref="FieldInfo"/> or <see cref="PropertyInfo"/>).
+        /// Set the type of a <see cref="DatabaseAttribute" /> given reflection information
+        /// (<see cref="FieldInfo" /> or <see cref="PropertyInfo" />).
         /// </summary>
-        /// <param name="member">Member (<see cref="FieldInfo"/> or <see cref="PropertyInfo"/>)
+        /// <param name="member">Member (<see cref="FieldInfo" /> or <see cref="PropertyInfo" />)
         /// from which type information has to be read.</param>
         /// <param name="requireSupportedType"><b>true</b> if an error should be emitted
         /// if the type is not supported by the database kernel, otherwise <b>false</b>.</param>
@@ -1049,15 +1092,13 @@ namespace Starcounter.Internal.Weaver {
         #region Process database classes
 
         /// <summary>
-        /// Inspects a <see cref="Type"/>, detects whether it is a database class, and if yet
-        /// build the proper schema object (<see cref="DatabaseClass"/>) and insert it in the schema.
+        /// Inspects a <see cref="Type" />, detects whether it is a database class, and if yet
+        /// build the proper schema object (<see cref="DatabaseClass" />) and insert it in the schema.
         /// </summary>
-        /// <remarks>
-        /// This method may be safely called many times with the same argument.
-        /// </remarks>
         /// <param name="type">Type to be discovered.</param>
-        /// <returns>The <see cref="DatabaseClass"/> corresponding to <paramref name="type"/>,
+        /// <returns>The <see cref="DatabaseClass" /> corresponding to <paramref name="type" />,
         /// otherwise <b>false</b>.</returns>
+        /// <remarks>This method may be safely called many times with the same argument.</remarks>
         private DatabaseClass DiscoverDatabaseClass(ITypeSignature type) {
             // First of all look in the cache of the current module.
             DatabaseClass databaseClass;
@@ -1264,10 +1305,10 @@ namespace Starcounter.Internal.Weaver {
         #region Process database attribute
 
         /// <summary>
-        /// Inspects a reflection <see cref="FieldInfo"/> and builds the corresponding schema object
-        /// (<see cref="DatabaseAttribute"/>), and inserts it in the schema.
+        /// Inspects a reflection <see cref="FieldInfo" /> and builds the corresponding schema object
+        /// (<see cref="DatabaseAttribute" />), and inserts it in the schema.
         /// </summary>
-        /// <param name="databaseClass">The <see cref="DatabaseClass"/> to which the field belong.</param>
+        /// <param name="databaseClass">The <see cref="DatabaseClass" /> to which the field belong.</param>
         /// <param name="field">Field to be inspected.</param>
         private void DiscoverDatabaseField(DatabaseClass databaseClass, FieldDefDeclaration field) {
             ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseField: processing field {0}.{1} of type {2}.",
@@ -1303,12 +1344,12 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Inspects a reflection <see cref="PropertyDeclaration"/> originating from the IPC weaver
+        /// Inspects a reflection <see cref="PropertyDeclaration" /> originating from the IPC weaver
         /// and hence representing a persistent field that was removed. From this, builds the corresponding
-        /// schema object (<see cref="DatabaseAttribute"/>), and inserts it in the schema.
+        /// schema object (<see cref="DatabaseAttribute" />), and inserts it in the schema.
         /// </summary>
-        /// <param name="databaseClass">The <see cref="DatabaseClass"/> to which the property belong.</param>
-        /// <param name="field">Property to be inspected.</param>
+        /// <param name="databaseClass">The <see cref="DatabaseClass" /> to which the property belong.</param>
+        /// <param name="property">The property.</param>
         private void DiscoverIPCWeavedProperty(DatabaseClass databaseClass, PropertyDeclaration property) {
             DatabaseAttribute databaseAttribute;
 
@@ -1362,14 +1403,13 @@ namespace Starcounter.Internal.Weaver {
         //        }
         //    }
         //}
-        
+
         /// <summary>
-        /// Inspects a reflection <see cref="PropertyInfo"/> and builds the corresponding schema object
-        ///  (<see cref="DatabaseAttribute"/>), and inserts it in the schema.
+        /// Inspects a reflection <see cref="PropertyInfo" /> and builds the corresponding schema object
+        /// (<see cref="DatabaseAttribute" />), and inserts it in the schema.
         /// </summary>
-        /// <param name="databaseClass">The <see cref="DatabaseClass"/> to which the property belong.</param>
+        /// <param name="databaseClass">The <see cref="DatabaseClass" /> to which the property belong.</param>
         /// <param name="property">Property to be inspected.</param>
-        // ReSharper disable SuggestBaseTypeForParameter
         private void DiscoverDatabaseProperty(DatabaseClass databaseClass, PropertyDeclaration property)
             // ReSharper restore SuggestBaseTypeForParameter
         {
@@ -1382,6 +1422,11 @@ namespace Starcounter.Internal.Weaver {
             databaseAttribute.IsPublicRead = property.Getter != null ? property.Getter.IsPublic() : false;
         }
 
+        /// <summary>
+        /// Reads the real instruction.
+        /// </summary>
+        /// <param name="reader">The reader.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         private static bool ReadRealInstruction(InstructionReader reader) {
             while (reader.ReadInstruction()) {
                 if (reader.CurrentInstruction.OpCodeNumber != OpCodeNumber.Nop) {
@@ -1391,6 +1436,11 @@ namespace Starcounter.Internal.Weaver {
             return false;
         }
 
+        /// <summary>
+        /// Scans the property getter.
+        /// </summary>
+        /// <param name="databaseAttribute">The database attribute.</param>
+        /// <returns>DatabaseAttribute.</returns>
         private static DatabaseAttribute ScanPropertyGetter(DatabaseAttribute databaseAttribute) {
             MethodDefDeclaration methodDef = databaseAttribute.GetPropertyDefinition().Getter;
             if (!methodDef.MayHaveBody) {
@@ -1453,10 +1503,10 @@ namespace Starcounter.Internal.Weaver {
         /// Inspects all constructors of a database class, checks validation rules and discovers
         /// initial values.
         /// </summary>
-        /// <param name="databaseClass"><see cref="DatabaseClass"/> whose constructors have
+        /// <param name="databaseClass"><see cref="DatabaseClass" /> whose constructors have
         /// to be inspected.</param>
-        /// <param name="typeDef"><see cref="TypeDefDeclaration"/> corresponding to
-        /// <paramref name="databaseClass"/>.</param>
+        /// <param name="typeDef"><see cref="TypeDefDeclaration" /> corresponding to
+        /// <paramref name="databaseClass" />.</param>
         private void InspectConstructors(DatabaseClass databaseClass, TypeDefDeclaration typeDef) {
             // Process constructors.
             foreach (MethodDefDeclaration methodDef in typeDef.Methods.GetByName(".ctor")) {
@@ -1464,17 +1514,20 @@ namespace Starcounter.Internal.Weaver {
             }
         }
 
+        /// <summary>
+        /// Determines whether [is initialization block] [the specified block].
+        /// </summary>
+        /// <param name="block">The block.</param>
+        /// <returns><c>true</c> if [is initialization block] [the specified block]; otherwise, <c>false</c>.</returns>
         public static bool IsInitializationBlock(InstructionBlock block) {
             return _initializationBlocks.Contains(block);
         }
 
         /// <summary>
-        /// Inspect a given constructor, checks validation rules and discovers
-        /// initial values.
+        /// Inspects the constructor.
         /// </summary>
-        /// </summary>
-        /// <param name="methodDef">The constructor to be inspected.</param>
-        /// <param name="databaseClass"><see cref="DatabaseClass"/> to which</param>
+        /// <param name="methodDef">The method def.</param>
+        /// <param name="databaseClass">The database class.</param>
         private void InspectConstructor(MethodDefDeclaration methodDef, DatabaseClass databaseClass) {
             ScAnalysisTrace.Instance.WriteLine("Inspecting the constructor {{{0}}}.", methodDef);
             // Analyze the constructor. Separate the "this uninitialized" zone.
@@ -1807,6 +1860,9 @@ namespace Starcounter.Internal.Weaver {
 
         #endregion
 
+        /// <summary>
+        /// Inspects the load field address.
+        /// </summary>
         private void InspectLoadFieldAddress() {
             IEnumerator<MetadataDeclaration> methodsEnumerator =
                 this._module.GetDeclarationEnumerator(TokenType.MethodDef);

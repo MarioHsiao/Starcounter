@@ -1,3 +1,9 @@
+// ***********************************************************************
+// <copyright file="Enumerations.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 
 namespace Starcounter.Query.Execution
@@ -70,7 +76,6 @@ namespace Starcounter.Query.Execution
         Undecided, Inner, LeftOuter, RightOuter
     }
     /// <summary>
-
     /// Format for key-values used for index ranges.
     /// </summary>
     internal enum KeyValueFormat

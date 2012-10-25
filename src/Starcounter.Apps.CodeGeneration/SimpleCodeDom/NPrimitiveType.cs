@@ -1,15 +1,33 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="NPrimitiveType.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using Starcounter.Templates;
 
 namespace Starcounter.Internal.Application.CodeGeneration
 {
+    /// <summary>
+    /// Class NPrimitiveType
+    /// </summary>
     public class NPrimitiveType : NValueClass
     {
+        /// <summary>
+        /// Gets the inherits.
+        /// </summary>
+        /// <value>The inherits.</value>
+        /// <exception cref="System.NotImplementedException"></exception>
         public override string Inherits
         {
             get { throw new NotImplementedException(); }
         }
 
+        /// <summary>
+        /// Gets the name of the class.
+        /// </summary>
+        /// <value>The name of the class.</value>
         public override string ClassName
         {
             get

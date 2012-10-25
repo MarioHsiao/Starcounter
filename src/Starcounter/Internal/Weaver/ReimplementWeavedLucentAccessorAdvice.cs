@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ReimplementWeavedLucentAccessorAdvice.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using PostSharp.Sdk.CodeModel;
 using PostSharp.Sdk.CodeWeaver;
@@ -15,13 +20,35 @@ namespace Starcounter.LucentObjects
     /// </summary>
     internal class ReimplementWeavedLucentAccessorAdvice : IAdvice
     {
+        /// <summary>
+        /// The attribute index
+        /// </summary>
         private int attributeIndex;
+        /// <summary>
+        /// The state method provider
+        /// </summary>
         private DbStateMethodProvider stateMethodProvider;
+        /// <summary>
+        /// The generated getter
+        /// </summary>
         private IMethod generatedGetter;
+        /// <summary>
+        /// The generated setter
+        /// </summary>
         private IMethod generatedSetter;
 
+        /// <summary>
+        /// Gets the accessor property.
+        /// </summary>
+        /// <value>The accessor property.</value>
         public PropertyDeclaration AccessorProperty { get; private set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ReimplementWeavedLucentAccessorAdvice" /> class.
+        /// </summary>
+        /// <param name="methodProvider">The method provider.</param>
+        /// <param name="property">The property.</param>
+        /// <param name="attributeIndex">Index of the attribute.</param>
         public ReimplementWeavedLucentAccessorAdvice(
             DbStateMethodProvider methodProvider,
             PropertyDeclaration property,
@@ -35,6 +62,7 @@ namespace Starcounter.LucentObjects
         /// <summary>
         /// Gets the aspect priority (not important since we have only one aspect).
         /// </summary>
+        /// <value>The priority.</value>
         public int Priority
         {
             get
@@ -43,6 +71,11 @@ namespace Starcounter.LucentObjects
             }
         }
 
+        /// <summary>
+        /// Requireses the weave.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public bool RequiresWeave(WeavingContext context)
         {
             // We weave all get field instructions inside accessors, since we
@@ -76,6 +109,11 @@ namespace Starcounter.LucentObjects
             return true;
         }
 
+        /// <summary>
+        /// Weaves the specified context.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <param name="block">The block.</param>
         public void Weave(WeavingContext context, InstructionBlock block)
         {
             InstructionSequence sequence;

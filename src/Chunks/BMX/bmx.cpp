@@ -307,6 +307,22 @@ uint32_t BmxData::SendRegisterPushChannelResponse(shared_memory_chunk* smc, TASK
     return err_code;
 }
 
+// Handles destroyed session message.
+uint32_t BmxData::HandleDestroyedSession(request_chunk_part* request, TASK_INFO_TYPE* task_info)
+{
+    // Entering critical section.
+    uint32_t err_code = 0;
+
+    // Reading Apps unique session number.
+    uint64_t apps_unique_session_num = request->read_uint64();
+
+    std::cout << "Session " << apps_unique_session_num << " was destroyed." << std::endl;
+
+    // TODO: Handle destroyed session.
+
+    return err_code;
+}
+
 // Sends information about all registered handlers.
 uint32_t BmxData::SendAllHandlersInfo(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info)
 {
@@ -418,7 +434,7 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
     cm3_get_cpun(0, &task_info.scheduler_number);
     task_info.chunk_index = (uint32_t)task_data->Output2;
 
-do_work:
+//do_work:
     loop_count = 0;
 
     // Retrieve the chunk.
@@ -457,8 +473,8 @@ do_work:
     if (err_code)
         goto finish;
 
+/*
 try_receive:
-
     // Check if more chunks are available. If so repeat from beginning.
     err_code = cm_try_receive_from_client((DWORD*)&task_info.chunk_index);
     if (!err_code) goto do_work;
@@ -467,7 +483,7 @@ try_receive:
     loop_count++;
     if (loop_count < SCHEDULER_SPIN_COUNT) goto try_receive;
     err_code = 0;
-
+*/
 finish:
 
     // Resetting current transaction.

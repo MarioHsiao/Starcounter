@@ -1,4 +1,10 @@
-﻿using Starcounter.Query.Optimization;
+﻿// ***********************************************************************
+// <copyright file="NumericalProperty.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using Starcounter.Query.Optimization;
 using System;
 using Starcounter.Binding;
 
@@ -329,6 +335,7 @@ namespace Starcounter.Query.Execution
             return contextObj;
         }
 
+        /// <summary>
         /// Calculates the value of this property when evaluated on an input object.
         /// </summary>
         /// <param name="obj">The object on which to evaluate this property.</param>
@@ -409,6 +416,7 @@ namespace Starcounter.Query.Execution
             }
         }
         
+        /// <summary>
         /// Calculates the value of this property when evaluated on an input object.
         /// </summary>
         /// <param name="obj">The object on which to evaluate this property.</param>

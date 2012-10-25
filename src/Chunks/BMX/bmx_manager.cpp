@@ -301,6 +301,17 @@ uint32_t starcounter::bmx::OnIncomingBmxMessage(
             break;
         }
 
+        case BMX_SESSION_DESTROYED:
+        {
+            // Handling session destruction.
+            err_code = g_bmx_data->HandleDestroyedSession(request, task_info);
+
+            if (err_code)
+                return err_code;
+
+            break;
+        }
+
         default:
         {
             return SCERRUNSPECIFIED; // SCERRUNKNOWNBMXMESSAGE;

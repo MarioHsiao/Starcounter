@@ -197,6 +197,9 @@ class Program
         writer.WriteLine();
         writer.WriteLine("namespace Sc.Server.Internal");
         writer.WriteLine("{");
+        writer.WriteLine(Indent + "/// <summary>");
+        writer.WriteLine(Indent + "/// Class Error");
+        writer.WriteLine(Indent + "/// </summary>");
         writer.WriteLine(Indent + "public static partial class ErrorCode");
         writer.WriteLine(Indent + "{");
 
@@ -270,6 +273,9 @@ class Program
         writer.WriteLine();
         writer.WriteLine(string.Concat("namespace ", namespaceString));
         writer.WriteLine("{");
+        writer.WriteLine(Indent + "/// <summary>");
+        writer.WriteLine(Indent + "/// Class Error");
+        writer.WriteLine(Indent + "/// </summary>");
         writer.WriteLine(Indent + "public static partial class Error");
         writer.WriteLine(Indent + "{");
 

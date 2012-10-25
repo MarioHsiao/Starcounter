@@ -449,12 +449,14 @@ public:
     }
 
     // Find certain URI entry.
-    int32_t SearchMatchingUriHandler(char* uri, uint32_t uri_len_chars)
+    int32_t SearchMatchingUriHandler(char* uri, uint32_t uri_len_chars, int32_t& out_max_matched_chars)
     {
         // Going through all entries.
-        uint32_t same_chars = 0, max_matched_chars = 0;
+        int32_t same_chars = 0;
+        out_max_matched_chars = 0;
+
         int32_t matched_index = -1;
-        for (uint32_t i = 0; i < reg_uris_.get_num_entries(); i++)
+        for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)
         {
             // Checking if this row is similar to previous more than same chars.
             if (reg_uris_[i].get_num_same_prev_chars() > same_chars)
@@ -468,7 +470,7 @@ public:
             {
                 // Checking if we have a longer match.
                 if ((same_chars >= reg_uris_[i].get_uri_len_chars()) && // Checking full registered URI match.
-                    (same_chars >= max_matched_chars)) // Checking for longer string match.
+                    (same_chars >= out_max_matched_chars)) // Checking for longer string match.
                 {
                     // Checking if we have correct URI start with.
                     if ((uri_len_chars > same_chars) &&
@@ -480,9 +482,9 @@ public:
 
                     // That was a correct match.
                     matched_index = i;
-                    max_matched_chars = same_chars;
+                    out_max_matched_chars = same_chars;
                 }
-                else if (same_chars < max_matched_chars)
+                else if (same_chars < out_max_matched_chars)
                 {
                     // By this search has finished.
                     break;
@@ -534,9 +536,6 @@ struct HttpRequest
     uint32_t header_value_offsets_[MAX_HTTP_HEADERS];
     uint32_t header_value_len_bytes_[MAX_HTTP_HEADERS];
     uint32_t num_headers_;
-
-    // Session structure.
-    ScSessionStruct session_struct_;
 
     // HTTP method.
     bmx::HTTP_METHODS http_method_;
@@ -631,8 +630,8 @@ public:
     // Standard HTTP/WS handler once URI is determined.
     uint32_t HttpWsProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);
 
-    // Attaching socket data.
-    void AttachSocket(GatewayWorker *gw, SocketDataChunk *sd)
+    // Attaching socket data and gateway worker to parser.
+    void AttachToParser(GatewayWorker *gw, SocketDataChunk *sd)
     {
         gw_ref_temp_ = gw;
         sd_ref_ = sd;

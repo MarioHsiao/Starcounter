@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ParseNode.PrettyPrint.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Text;
 namespace Starcounter.Internal.Uri {
@@ -8,9 +13,7 @@ namespace Starcounter.Internal.Uri {
     /// code to quickly and efficient find the correct code to execute when
     /// a http call (or other verb+uri call) comes in to the server.
     /// </summary>
-    /// <remarks>
-    /// 
-    /// Example:
+    /// <remarks>Example:
     /// There are three handlers that looks like follows:
     /// 
     /// "GET /mydemo/foo"
@@ -33,8 +36,7 @@ namespace Starcounter.Internal.Uri {
     ///                 { Match:'y'}
     ///             ]}
     ///         ]
-    /// }
-    /// </remarks>
+    /// }</remarks>
     public partial class ParseNode {
 
 
@@ -45,11 +47,10 @@ namespace Starcounter.Internal.Uri {
         /// child candidates of this node. However, for easy of debugging, we show
         /// the complete fragment string in this property.
         /// </summary>
-        /// <remarks>
-        /// Used to pretty print a trailing string rather than the individual
-        /// character used for matching this node in the parent nodes candidate 
-        /// list. Does not affect the procesing logic.
-        /// </remarks>
+        /// <value>The debug match fragment.</value>
+        /// <remarks>Used to pretty print a trailing string rather than the individual
+        /// character used for matching this node in the parent nodes candidate
+        /// list. Does not affect the procesing logic.</remarks>
         internal string DebugMatchFragment {
             get {
                 //                if (Match == 0)
@@ -112,8 +113,10 @@ namespace Starcounter.Internal.Uri {
         /// <summary>
         /// Used for debug purposes to pretty print a tree. Called by ToString().
         /// </summary>
+        /// <param name="fullDebug">if set to <c>true</c> [full debug].</param>
         /// <param name="sb">A string builder to which the tree string is appended</param>
         /// <param name="indentation">The current indentation level</param>
+        /// <returns>System.String.</returns>
         private string BuildPrettyPrintDebugString(bool fullDebug, StringBuilder sb, int indentation) {
             sb.Append(' ', indentation);
             //          sb.AppendLine("{");
@@ -228,6 +231,11 @@ namespace Starcounter.Internal.Uri {
         }
 
 
+        /// <summary>
+        /// Gets the debug detected.
+        /// </summary>
+        /// <value>The debug detected.</value>
+        /// <exception cref="System.Exception"></exception>
         internal string DebugDetected {
             get {
                 switch (DetectedType) {

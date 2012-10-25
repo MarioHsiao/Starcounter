@@ -1,13 +1,27 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="BindingHelper.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Internal;
 using System;
 
 namespace Starcounter.Binding
 {
 
+    /// <summary>
+    /// Class BindingHelper
+    /// </summary>
     internal static class BindingHelper
     {
 
+        /// <summary>
+        /// Converts the db type code to sc type code.
+        /// </summary>
+        /// <param name="t">The t.</param>
+        /// <returns>System.Byte.</returns>
+        /// <exception cref="System.ArgumentException"></exception>
         internal static byte ConvertDbTypeCodeToScTypeCode(DbTypeCode t)
         {
             switch (t)
@@ -33,6 +47,12 @@ namespace Starcounter.Binding
             };
         }
 
+        /// <summary>
+        /// Converts the sc type code to db type code.
+        /// </summary>
+        /// <param name="t">The t.</param>
+        /// <returns>DbTypeCode.</returns>
+        /// <exception cref="System.ArgumentException"></exception>
         internal static DbTypeCode ConvertScTypeCodeToDbTypeCode(byte t)
         {
             switch (t)

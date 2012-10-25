@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ObjectProperty.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Query.Optimization;
 using System;
 using Starcounter.Binding;
@@ -51,6 +56,8 @@ internal class ObjectProperty : Property, IObjectPathItem
     }
 
     /// <summary>
+    /// 
+    /// </summary>
     public QueryTypeCode QueryTypeCode
     {
         get
@@ -99,7 +106,8 @@ internal class ObjectProperty : Property, IObjectPathItem
             key.Append(EvaluateToObject(obj));
         }
     }
-    
+
+    /// <summary>
     /// Calculates the value of this property when evaluated on an input object.
     /// </summary>
     /// <param name="obj">The object on which to evaluate this property.</param>

@@ -37,7 +37,7 @@ int32_t GatewayWorker::Init(int32_t newWorkerId)
         active_dbs_[i] = NULL;
 
     // Creating random generator with current time seed.
-    Random = new random_generator(timeGetTime());
+    rand_gen_ = new random_generator(timeGetTime());
 
     // Initializing profilers.
     profiler_.Init(64);
@@ -189,7 +189,10 @@ uint32_t GatewayWorker::Receive(SocketDataChunk *sd)
                 sd->chunk_index() << " Disconnecting socket..." << std::endl;
 #endif
             PrintLastError();
+
+            // Disconnecting this socket.
             Disconnect(sd);
+
             return 1;
         }
     }
@@ -198,7 +201,9 @@ uint32_t GatewayWorker::Receive(SocketDataChunk *sd)
         // Checking if socket is closed by the other peer.
         if (0 == numBytes)
         {
+            // Disconnecting this socket.
             Disconnect(sd);
+
             return 1;
         }
         else
@@ -245,17 +250,29 @@ uint32_t GatewayWorker::FinishReceive(SocketDataChunk *sd, int32_t numBytesRecei
     worker_stats_recv_num_++;
 
     // Getting attached session if any.
-    SessionData *session = sd->GetAttachedSession();
+    ScSessionStruct* session = sd->GetAttachedSession();
     if (session)
     {
         // Check that data received belongs to the correct session (not coming from abandoned connection).
-        if (!session->CompareSocketStamps(sd->sock_stamp()))
+        if (!session->CompareSalts(sd->get_session_salt()))
         {
 #ifdef GW_ERRORS_DIAG
             GW_PRINT_WORKER << "Data from abandoned/different socket received." << std::endl;
 #endif
+            // Disconnecting this socket.
             Disconnect(sd);
+
             return 0;
+        }
+    }
+    else
+    {
+        // If session was already created, just attaching to it.
+        uint32_t session_index = (g_gateway.get_all_sockets_unsafe()[sd->get_socket()]).get_session_index();
+        if (INVALID_SESSION_INDEX != session_index)
+        {
+            ScSessionStruct* session = g_gateway.GetSessionData(session_index);
+            sd->AttachToSession(session);
         }
     }
 
@@ -441,7 +458,7 @@ uint32_t GatewayWorker::Disconnect(SocketDataChunk *sd)
         {
             // Finish disconnect operation.
             FinishDisconnect(sd);
-            return 1;
+            return SCERRUNSPECIFIED;
         }
 
         // Checking for other errors.
@@ -503,6 +520,9 @@ inline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunk *sd)
 #ifdef GW_SOCKET_DIAG
     GW_PRINT_WORKER << "FinishDisconnect: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
 #endif
+
+    // Removing tracked session.
+    (g_gateway.get_all_sockets_unsafe()[sd->get_socket()]).Reset();
 
     // Stop tracking this socket.
     g_gateway.GetDatabase(sd->get_db_index())->UntrackSocket(sd->sock());
@@ -682,11 +702,12 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunk *sd, int32_t numBytesReceiv
 uint32_t GatewayWorker::WorkerRoutine()
 {
     BOOL complStatus = false;
-    OVERLAPPED_ENTRY *removedOvls = new OVERLAPPED_ENTRY[g_gateway.setting_max_fetched_ovls()];
+    OVERLAPPED_ENTRY *removedOvls = new OVERLAPPED_ENTRY[MAX_FETCHED_OVLS];
     ULONG removedOvlsNum = 0;
     uint32_t errCode = 0;
     uint32_t numBytes = 0, flags = 0, oldTimeMs = timeGetTime(), newTimeMs;
-    uint32_t waitForIocp = 0;
+    uint32_t waitForIocpMs = INFINITE;
+    bool found_something = false;
 
     // Starting worker infinite loop.
     while (TRUE)
@@ -695,7 +716,12 @@ uint32_t GatewayWorker::WorkerRoutine()
 
         // Getting IOCP status.
         //profiler.Start("GetQueuedCompletionStatusEx", 7);
-        complStatus = GetQueuedCompletionStatusEx(worker_iocp_, removedOvls, g_gateway.setting_max_fetched_ovls(), &removedOvlsNum, waitForIocp, FALSE);
+        complStatus = GetQueuedCompletionStatusEx(worker_iocp_, removedOvls, MAX_FETCHED_OVLS, &removedOvlsNum, waitForIocpMs, TRUE);
+
+        // Check if global lock is set.
+        if (g_gateway.global_lock())
+            g_gateway.SuspendWorker(this);
+
         //profiler.Stop(7);
 
         // Checking if operation successfully completed.
@@ -792,18 +818,35 @@ uint32_t GatewayWorker::WorkerRoutine()
                 }
             }
         }
+        else
+        {
+            errCode = WSAGetLastError();
+
+            // Checking if it was an APC event.
+            if (STATUS_USER_APC != errCode &&
+                STATUS_TIMEOUT != errCode)
+            {
+                PrintLastError();
+                return errCode;
+            }
+        }
 
         // Scanning all channels.
-        errCode = ScanChannels();
+        found_something = false;
+        errCode = ScanChannels(&found_something);
         GW_ERR_CHECK(errCode);
 
-        // Check if global lock is set.
-        if (g_gateway.global_lock())
-            g_gateway.SuspendWorker(this);
-
-        // Sleeping if needed.
-        if (g_gateway.get_global_sleep_ms())
-            Sleep(g_gateway.get_global_sleep_ms());
+        // Checking if something was found.
+        if (found_something)
+        {
+            // Making at least one more round.
+            waitForIocpMs = 0;
+        }
+        else
+        {
+            // Going to wait infinitely for network events.
+            waitForIocpMs = INFINITE;
+        }
 
         //profiler.Stop(0);
 
@@ -822,7 +865,8 @@ uint32_t GatewayWorker::WorkerRoutine()
 }
 
 // Scans all channels for any incoming chunks.
-uint32_t GatewayWorker::ScanChannels()
+void __stdcall EmptyApcFunction(ULONG_PTR arg);
+uint32_t GatewayWorker::ScanChannels(bool* found_something)
 {
     uint32_t errCode;
 
@@ -833,7 +877,7 @@ uint32_t GatewayWorker::ScanChannels()
         if (NULL != db)
         {
             // Scanning channels first.
-            errCode = db->ScanChannels(this);
+            errCode = db->ScanChannels(this, found_something);
             GW_ERR_CHECK(errCode);
 
             // Checking that database is ready for deletion (i.e. no pending sockets).

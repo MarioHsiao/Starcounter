@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="TableDef.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Query.Execution;
 using Starcounter.Internal;
 using System;
@@ -13,6 +18,12 @@ namespace Starcounter.Binding
     public sealed class TableDef
     {
 
+        /// <summary>
+        /// Constructs the table def.
+        /// </summary>
+        /// <param name="definitionAddr">The definition addr.</param>
+        /// <param name="definitionInfo">The definition info.</param>
+        /// <returns>TableDef.</returns>
         internal unsafe static TableDef ConstructTableDef(ulong definitionAddr, sccoredb.Mdb_DefinitionInfo definitionInfo)
         {
             string name = new String(definitionInfo.table_name);
@@ -58,20 +69,54 @@ namespace Starcounter.Binding
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
+        /// <summary>
+        /// The name
+        /// </summary>
         public string Name;
 
+        /// <summary>
+        /// The base name
+        /// </summary>
         public string BaseName;
 
+        /// <summary>
+        /// The column defs
+        /// </summary>
         public ColumnDef[] ColumnDefs;
 
+        /// <summary>
+        /// The table id
+        /// </summary>
         public ushort TableId;
 
+        /// <summary>
+        /// The definition addr
+        /// </summary>
         public ulong DefinitionAddr;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TableDef" /> class.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="columnsDefs">The columns defs.</param>
         public TableDef(string name, ColumnDef[] columnsDefs) : this(name, null, columnsDefs, 0xFFFF, sccoredb.INVALID_DEFINITION_ADDR) { }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TableDef" /> class.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="baseName">Name of the base.</param>
+        /// <param name="columnsDefs">The columns defs.</param>
         public TableDef(string name, string baseName, ColumnDef[] columnsDefs) : this(name, baseName, columnsDefs, 0xFFFF, sccoredb.INVALID_DEFINITION_ADDR) { }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TableDef" /> class.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="baseName">Name of the base.</param>
+        /// <param name="columnsDefs">The columns defs.</param>
+        /// <param name="tableId">The table id.</param>
+        /// <param name="definitionAddr">The definition addr.</param>
         public TableDef(string name, string baseName, ColumnDef[] columnsDefs, ushort tableId, ulong definitionAddr)
         {
             Name = name;
@@ -82,6 +127,10 @@ namespace Starcounter.Binding
             DefinitionAddr = definitionAddr;
         }
 
+        /// <summary>
+        /// Gets the short name.
+        /// </summary>
+        /// <value>The short name.</value>
         public string ShortName
         {
             get
@@ -95,6 +144,10 @@ namespace Starcounter.Binding
             }
         }
 
+        /// <summary>
+        /// Clones this instance.
+        /// </summary>
+        /// <returns>TableDef.</returns>
         public TableDef Clone()
         {
             ColumnDef[] clonedColumnDefs = new ColumnDef[ColumnDefs.Length];
@@ -105,6 +158,11 @@ namespace Starcounter.Binding
             return new TableDef(Name, BaseName, clonedColumnDefs, TableId, DefinitionAddr);
         }
 
+        /// <summary>
+        /// Equalses the specified table def.
+        /// </summary>
+        /// <param name="tableDef">The table def.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public bool Equals(TableDef tableDef)
         {
             bool b =
@@ -123,6 +181,10 @@ namespace Starcounter.Binding
             return b;
         }
 
+        /// <summary>
+        /// Gets all index infos.
+        /// </summary>
+        /// <returns>IndexInfo[][].</returns>
         internal IndexInfo[] GetAllIndexInfos()
         {
             uint ec;
@@ -169,6 +231,11 @@ namespace Starcounter.Binding
             }
         }
 
+        /// <summary>
+        /// Gets the index info.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns>IndexInfo.</returns>
         internal IndexInfo GetIndexInfo(string name)
         {
             unsafe
@@ -181,6 +248,11 @@ namespace Starcounter.Binding
             }
         }
 
+        /// <summary>
+        /// Creates the index info.
+        /// </summary>
+        /// <param name="pii">The pii.</param>
+        /// <returns>IndexInfo.</returns>
         internal unsafe IndexInfo CreateIndexInfo(sccoredb.SC_INDEX_INFO* pii)
         {
             string name;

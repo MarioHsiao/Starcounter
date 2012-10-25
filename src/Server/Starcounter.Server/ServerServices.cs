@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ServerServices.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,6 +40,10 @@ namespace Starcounter.Server {
             All = (Core | Management)
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ServerServices" /> class.
+        /// </summary>
+        /// <param name="engine">The engine.</param>
         public ServerServices(ServerEngine engine) {
             // Assume for now interactive mode. This code is still just
             // to get up and running. We'll eventually utilize pipes and
@@ -53,6 +62,11 @@ namespace Starcounter.Server {
             this.responseSerializer = new NewtonSoftJsonSerializer(engine);
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ServerServices" /> class.
+        /// </summary>
+        /// <param name="engine">The engine.</param>
+        /// <param name="ipcServer">The ipc server.</param>
         public ServerServices(ServerEngine engine, Starcounter.ABCIPC.Server ipcServer) {
             this.engine = engine;
             this.runtime = null;
@@ -60,6 +74,9 @@ namespace Starcounter.Server {
             this.responseSerializer = new NewtonSoftJsonSerializer(engine);
         }
 
+        /// <summary>
+        /// Setups this instance.
+        /// </summary>
         public void Setup() {
             Setup(ServiceClass.All);
         }
@@ -113,6 +130,27 @@ namespace Starcounter.Server {
             ipcServer.Handle("GetCommands", delegate(Request request) {
                 var commands = runtime.GetCommands();
                 request.Respond(responseSerializer.SerializeResponse(commands));
+            });
+
+            // Allows a client to get the latest copy of the command info for
+            // a command represented by it's ID.
+            ipcServer.Handle("GetCommand", delegate(Request request) {
+                var commandId = request.GetParameter<string>();
+                var command = runtime.GetCommand(CommandId.Parse(commandId));
+                request.Respond(responseSerializer.SerializeResponse(command));
+            });
+
+            // Allows a client to get the latest copy of the command info for
+            // a command represented by it's ID, if the command has completed.
+            // If it has not, an empty response (true) is returned.
+            ipcServer.Handle("GetCompletedCommand", delegate(Request request) {
+                var commandId = request.GetParameter<string>();
+                var command = runtime.GetCommand(CommandId.Parse(commandId));
+                if (!command.IsCompleted) {
+                    request.Respond(true);
+                } else {
+                    request.Respond(responseSerializer.SerializeResponse(command));
+                }
             });
 
             ipcServer.Handle("CreateDatabase", delegate(Request request) {
@@ -235,6 +273,7 @@ namespace Starcounter.Server {
             // Without it, apps can't execute from the shell.
             ipcServer.Handle("ExecApp", delegate(Request request) {
                 IServerRuntime runtime;
+                ExecAppCommand command;
                 string exePath;
                 string workingDirectory;
                 string args;
@@ -258,7 +297,12 @@ namespace Starcounter.Server {
                 synchronous = properties.ContainsKey("@@Synchronous");
                 runtime = engine.CurrentPublicModel;
 
-                var info = engine.AppsService.EnqueueExecAppCommandWithDispatcher(exePath, workingDirectory, argsArray);
+                command = new ExecAppCommand(this.engine, exePath, workingDirectory, argsArray);
+                if (properties.ContainsKey("PrepareOnly")) {
+                    command.PrepareOnly = true;
+                }
+
+                var info = runtime.Execute(command);
                 if (synchronous) {
                     info = runtime.Wait(info.Id);
                 }

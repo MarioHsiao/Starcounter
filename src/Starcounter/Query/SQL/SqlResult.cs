@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="SqlResult.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Collections;
 using System.Diagnostics;
@@ -8,6 +13,9 @@ using Sc.Query.Execution;
 
 namespace Starcounter
 {
+    /// <summary>
+    /// Class SqlResult
+    /// </summary>
     public class SqlResult : IEnumerable
     {
         UInt64 transactionId; // The handle of the transaction to which this SQL result belongs.
@@ -25,6 +33,11 @@ namespace Starcounter
         }
 
         // Obtaining only the first hit/result and disposing the enumerator.
+        /// <summary>
+        /// Gets the first.
+        /// </summary>
+        /// <value>The first.</value>
+        /// <exception cref="Starcounter.SqlException">Literal in query is not supported. Use variable and parameter instead.</exception>
         public dynamic First
         {
             get
@@ -65,6 +78,11 @@ namespace Starcounter
         }
 
         // Getting enumerator for manual use.
+        /// <summary>
+        /// Gets the enumerator.
+        /// </summary>
+        /// <returns>ISqlEnumerator.</returns>
+        /// <exception cref="Starcounter.SqlException">Literal in query is not supported. Use variable and parameter instead.</exception>
         public ISqlEnumerator GetEnumerator()
         {
 #if true // TODO EOH2: Lucent objects.

@@ -1,3 +1,9 @@
+// ***********************************************************************
+// <copyright file="ScUri.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Net;
 using Starcounter.Internal;
@@ -32,12 +38,15 @@ namespace Starcounter {
         public const string UriSchemeWithColon = UriScheme + ":";
 
         /// <summary>
-        /// Initializes a new <see cref="ScUri"/>.
+        /// Initializes a new <see cref="ScUri" />.
         /// </summary>
         /// <param name="kind">Kind of URI.</param>
         /// <param name="machine">Machine.</param>
+        /// <param name="port">The port.</param>
         /// <param name="server">Server. Optional</param>
         /// <param name="instance">Instance. Optional.</param>
+        /// <exception cref="System.ArgumentNullException">machine</exception>
+        /// <exception cref="System.ArgumentException">machine</exception>
         private ScUri(
             ScUriKind kind,
             string machine,
@@ -144,7 +153,10 @@ namespace Starcounter {
         /// Makes a machine URI.
         /// </summary>
         /// <param name="machineName">Machine name.</param>
+        /// <param name="port">The port.</param>
         /// <returns>The machine URI.</returns>
+        /// <exception cref="System.ArgumentNullException">machineName</exception>
+        /// <exception cref="System.ArgumentOutOfRangeException">port</exception>
         public static ScUri MakeMachineUri(string machineName, int port) {
             if (String.IsNullOrEmpty(machineName)) {
                 throw new ArgumentNullException("machineName");
@@ -171,8 +183,11 @@ namespace Starcounter {
         /// Makes an server URI.
         /// </summary>
         /// <param name="machineName">Machine name.</param>
+        /// <param name="port">The port.</param>
         /// <param name="server">server name.</param>
         /// <returns>The server URI.</returns>
+        /// <exception cref="System.ArgumentNullException">machineName</exception>
+        /// <exception cref="System.ArgumentOutOfRangeException">port</exception>
         public static ScUri MakeServerUri(string machineName, int port, string server) {
             if (String.IsNullOrEmpty(machineName)) {
                 throw new ArgumentNullException("machineName");
@@ -203,9 +218,12 @@ namespace Starcounter {
         /// Makes an instance URI.
         /// </summary>
         /// <param name="machineName">Machine name.</param>
+        /// <param name="port">The port.</param>
         /// <param name="server">server name.</param>
         /// <param name="instanceName">Instance name.</param>
         /// <returns>The instance URI.</returns>
+        /// <exception cref="System.ArgumentNullException">machineName</exception>
+        /// <exception cref="System.ArgumentOutOfRangeException">port</exception>
         public static ScUri MakeDatabaseUri(string machineName, int port, string server, string instanceName) {
             if (String.IsNullOrEmpty(machineName)) {
                 throw new ArgumentNullException("machineName");
@@ -261,10 +279,23 @@ namespace Starcounter {
 
         }
 
+        /// <summary>
+        /// Froms the URI.
+        /// </summary>
+        /// <param name="uri">The URI.</param>
+        /// <returns>ScUri.</returns>
         public static ScUri FromUri(Uri uri) {
             return FromUri(uri, true);
         }
 
+        /// <summary>
+        /// Froms the URI.
+        /// </summary>
+        /// <param name="uri">The URI.</param>
+        /// <param name="throwOnError">if set to <c>true</c> [throw on error].</param>
+        /// <returns>ScUri.</returns>
+        /// <exception cref="System.ArgumentNullException">uri</exception>
+        /// <exception cref="System.ArgumentOutOfRangeException">uri;Cannot parse the URI.</exception>
         public static ScUri FromUri(Uri uri, bool throwOnError) {
             if (throwOnError && uri == null) {
                 throw new ArgumentNullException("uri");
@@ -528,6 +559,11 @@ namespace Starcounter {
             return base.GetHashCode();
         }
 
+        /// <summary>
+        /// Equalses the specified URI string.
+        /// </summary>
+        /// <param name="uriString">The URI string.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public bool Equals(string uriString) {
             ScUri otherUri;
 
@@ -546,6 +582,11 @@ namespace Starcounter {
             return NotNullEquals(otherUri);
         }
 
+        /// <summary>
+        /// Equalses the specified other.
+        /// </summary>
+        /// <param name="other">The other.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public bool Equals(ScUri other) {
             return other == null
                 ? false
@@ -584,8 +625,65 @@ namespace Starcounter {
             return result;
         }
 
+        /// <summary>
+        /// Gets the name of the machine.
+        /// </summary>
+        /// <returns>System.String.</returns>
         public static string GetMachineName() {
             return Dns.GetHostEntry(String.Empty).HostName;
+        }
+    }
+
+    /// <summary>
+    /// Extends the <see cref="ScUri"/> class with a set of utility
+    /// methods allowing uri's to be the foundation for other kind of
+    /// identifiers, such as named pipe names.
+    /// </summary>
+    public static class ScUriExtensions {
+        static string localMachineName = Environment.MachineName.ToLowerInvariant();
+        const string serverPipeTemplate = "sc//{0}/{1}";
+        const string databasePipeTemplate = "sc//{0}/{1}-{2}";
+
+        /// <summary>
+        /// Creates a local pipe name, based on the Starcounter URI syntax,
+        /// for a server with the given name.
+        /// </summary>
+        /// <param name="serverName">The name of the server we want to create
+        /// a local pipe name for.</param>
+        /// <returns>A local pipe name for a server with the given name.</returns>
+        public static string MakeLocalServerPipeString(string serverName) {
+            return string.Format(serverPipeTemplate, localMachineName, serverName.ToLowerInvariant());
+        }
+
+        /// <summary>
+        /// Creates a local pipe name, based on the Starcounter URI syntax,
+        /// for a database on a server with the given names. 
+        /// </summary>
+        /// <param name="serverName">The name of the server where the database
+        /// lives.</param>
+        /// <param name="databaseName">The name of the server we want to create
+        /// a local pipe name for.</param>
+        /// <returns>A local pipe name for a database with the given name,
+        /// running under the control of the given server.</returns>
+        public static string MakeLocalDatabasePipeString(string serverName, string databaseName) {
+            return string.Format(databasePipeTemplate, localMachineName, serverName.ToLowerInvariant(), databaseName.ToLowerInvariant());
+        }
+
+        /// <summary>
+        /// Converts a <see cref="ScUri"/> to a corresponding local named
+        /// pipe name.
+        /// </summary>
+        /// <param name="uri">The <see cref="ScUri"/> to be converted to
+        /// a local named pipe name.</param>
+        /// <returns>A local named pipe name corresponding to the resource
+        /// as referenced by the given <see cref="ScUri"/>.</returns>
+        public static string ToLocalPipeString(this ScUri uri) {
+            if (uri.Kind == ScUriKind.Machine)
+                throw new ArgumentOutOfRangeException("uri", "Only server- or database URI's are supported.");
+
+            return uri.Kind == ScUriKind.Server
+                ? MakeLocalServerPipeString(uri.ServerName)
+                : MakeLocalDatabasePipeString(uri.ServerName, uri.DatabaseName);
         }
     }
 

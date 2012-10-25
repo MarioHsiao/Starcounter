@@ -16,7 +16,7 @@ Release
 *.ipch
 src/Starcounter/Error.cs
 src/Starcounter.Internal/Error.cs
-*.ncrunchsolution
+src/_NCrunch_Level1
 src/packages
 .nuget
 
@@ -26,3 +26,5 @@ src/Starcounter.ErrorCodes/ErrorCodeCompiler/scerrcc.pdb
 src/Starcounter.ErrorCodes/ErrorCodeCompiler/Starcounter.Errors.dll
 src/Starcounter.ErrorCodes/ErrorCodeCompiler/Starcounter.Errors.pdb
 src/Starcounter.ErrorCodes/scerrres/scerrres.h
+
+*.ncrunchsolution

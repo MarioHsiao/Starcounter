@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="MainApp.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter;
 using System;
 using NUnit.Framework;
@@ -6,8 +11,14 @@ using HttpStructs;
 
 namespace PlayersDemoApp {
 
+    /// <summary>
+    /// Class MainApp
+    /// </summary>
     partial class MainApp : RequestHandler {
 
+        /// <summary>
+        /// Defines the entry point of the application.
+        /// </summary>
         public static void Main() {
 
 //            GET("/{x}/test/test", (int playerId) => {

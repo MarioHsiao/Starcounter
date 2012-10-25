@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="TemplateFromHtml.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.IO;
 using System.Text;
@@ -6,9 +11,17 @@ using HtmlAgilityPack;
 using Starcounter.Templates;
 
 namespace Starcounter.Internal.Application.JsonReader {
+    /// <summary>
+    /// Class TemplateFromHtml
+    /// </summary>
     public class TemplateFromHtml {
 
 
+        /// <summary>
+        /// Reads the UTF8 file.
+        /// </summary>
+        /// <param name="fileSpec">The file spec.</param>
+        /// <returns>System.String.</returns>
         private static string ReadUtf8File(string fileSpec) {
             FileStream fs = File.OpenRead(fileSpec);
             long len = fs.Length;
@@ -18,6 +31,12 @@ namespace Starcounter.Internal.Application.JsonReader {
             return Encoding.UTF8.GetString(buffer);
         }
 
+        /// <summary>
+        /// Creates from HTML file.
+        /// </summary>
+        /// <param name="fileSpec">The file spec.</param>
+        /// <returns>AppTemplate.</returns>
+        /// <exception cref="System.Exception"></exception>
         public static AppTemplate CreateFromHtmlFile(string fileSpec) {
             string str = ReadUtf8File(fileSpec);
             AppTemplate template = null;

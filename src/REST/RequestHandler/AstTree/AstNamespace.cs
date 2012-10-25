@@ -1,12 +1,31 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="AstNamespace.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System.Text;
 namespace Starcounter.Internal.Uri {
+    /// <summary>
+    /// Class AstNamespace
+    /// </summary>
     public class AstNamespace : AstNode {
 
+        /// <summary>
+        /// The next class no
+        /// </summary>
         private int NextClassNo = 0;
 
+        /// <summary>
+        /// Gets or sets the namespace.
+        /// </summary>
+        /// <value>The namespace.</value>
         internal string Namespace { get; set; }
-        
+
+        /// <summary>
+        /// Gets the next class no.
+        /// </summary>
+        /// <returns>System.Int32.</returns>
         internal int GetNextClassNo() {
             return NextClassNo++;
         }
@@ -15,6 +34,7 @@ namespace Starcounter.Internal.Uri {
         /// <summary>
         /// Generates C# source code for this abstract syntax tree (AST) node
         /// </summary>
+        /// <value>The debug string.</value>
         internal override string DebugString {
             get {
                 return "namespace " + Namespace;

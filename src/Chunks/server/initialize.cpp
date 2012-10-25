@@ -164,12 +164,9 @@ is_system, uint32_t chunks_total_number) try {
 	p = psegment_manager->create_named_block
 	(starcounter_core_shared_memory_shared_chunk_pool_name,
 	sizeof(shared_chunk_pool_type));
-	
+
 	shared_chunk_pool_type* shared_chunk_pool = new(p) shared_chunk_pool_type
-	(chunks_total_number, shared_chunk_pool_alloc_inst);
-	
-	/// Obsolete:
-	//shared_chunk_pool->set_spin_count(spin_count);
+	(chunks_total_number, shared_chunk_pool_alloc_inst /*, segment_name*/);
 	
 	// Initialize the shared_chunk_pool by pushing in chunk_indexes.
 	// These chunk_indexes represents free chunks.

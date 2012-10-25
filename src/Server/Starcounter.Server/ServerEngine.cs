@@ -1,4 +1,8 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ServerEngine.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using Starcounter;
 using Starcounter.ABCIPC;
@@ -61,6 +65,20 @@ namespace Starcounter.Server {
     /// Representing the running server, hosted in a server program.
     /// </summary>
     public sealed class ServerEngine {
+        /// <summary>
+        /// Gets the simple name of the server.
+        /// </summary>
+        public readonly string Name;
+
+        /// <summary>
+        /// Gets the URI of this server.
+        /// </summary>
+        public readonly string Uri;
+
+        /// <summary>
+        /// Gets the installed <see cref="CommandDispatcher"/> the current
+        /// engine will utilize when executing commands.
+        /// </summary>
         internal readonly CommandDispatcher Dispatcher;
 
         /// <summary>
@@ -80,22 +98,12 @@ namespace Starcounter.Server {
         internal readonly DatabaseEngine DatabaseEngine;
 
         /// <summary>
-        /// Gets the simple name of the server.
-        /// </summary>
-        internal readonly string Name;
-
-        /// <summary>
-        /// Gets the URI of this server.
-        /// </summary>
-        internal readonly string Uri;
-
-        /// <summary>
         /// Gets the default name of the pipe the server use for it's
         /// core services.
         /// </summary>
         internal string DefaultServicePipeName {
             get {
-                return string.Format("sc//{0}/{1}", Environment.MachineName, this.Name).ToLowerInvariant();
+                return ScUriExtensions.MakeLocalServerPipeString(this.Name);
             }
         }
 
@@ -161,6 +169,12 @@ namespace Starcounter.Server {
         internal SharedMemoryMonitor SharedMemoryMonitor { get; private set; }
 
         /// <summary>
+        /// Gets the <see cref="DatabaseHostingService"/> used by this server
+        /// to initiate local communication with database host processes.
+        /// </summary>
+        internal DatabaseHostingService DatabaseHostService { get; private set; }
+
+        /// <summary>
         /// Initializes a <see cref="ServerEngine"/>.
         /// </summary>
         /// <param name="serverConfigurationPath">Path to the server configuration
@@ -178,6 +192,7 @@ namespace Starcounter.Server {
             this.WeaverService = new Server.WeaverService(this);
             this.StorageService = new DatabaseStorageService(this);
             this.SharedMemoryMonitor = new SharedMemoryMonitor(this);
+            this.DatabaseHostService = new DatabaseHostingService(this);
         }
 
         /// <summary>
@@ -229,6 +244,7 @@ namespace Starcounter.Server {
             this.WeaverService.Setup();
             this.StorageService.Setup();
             this.SharedMemoryMonitor.Setup();
+            this.DatabaseHostService.Setup();
         }
 
         /// <summary>
