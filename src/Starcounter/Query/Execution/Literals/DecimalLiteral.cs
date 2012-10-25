@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="DecimalLiteral.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Query.Optimization;
 using System;
 using System.Globalization;

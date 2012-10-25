@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="DbException.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Runtime.Serialization;
 
@@ -33,6 +38,11 @@ namespace Starcounter {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="info"></param>
+        /// <param name="context"></param>
         protected DbException(
             SerializationInfo info,
             StreamingContext context)
@@ -40,6 +50,11 @@ namespace Starcounter {
             _errorCode = info.GetUInt32("_errorCode");
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="info"></param>
+        /// <param name="context"></param>
         public override void GetObjectData(SerializationInfo info, StreamingContext context) {
             base.GetObjectData(info, context);
             info.AddValue("_errorCode", _errorCode);

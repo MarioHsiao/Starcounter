@@ -1,3 +1,9 @@
+// ***********************************************************************
+// <copyright file="ScTransformTask.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -23,43 +29,116 @@ using IMethod = PostSharp.Sdk.CodeModel.IMethod;
 namespace Starcounter.Internal.Weaver {
     /// <summary>
     /// PostSharp task responsible for transforming the assembly. It also implements the
-    ///  <see cref="IAdviceProvider"/> interface to provide advices to the low-level
+    /// <see cref="IAdviceProvider" /> interface to provide advices to the low-level
     /// code weaver.
     /// </summary>
 #pragma warning disable 618
     public class ScTransformTask : Task, IAdviceProvider {
 #pragma warning restore 618
+
+        /// <summary>
+        /// The _constructor enhanced tag GUID
+        /// </summary>
         private static readonly TagId _constructorEnhancedTagGuid
                                         = TagId.Register("{A7296EEE-BD8D-4220-9153-B5AAE974FA98}");
 
+        /// <summary>
+        /// The _field accessors
+        /// </summary>
         private readonly Dictionary<String, MethodPair> _fieldAccessors;
+        /// <summary>
+        /// The _writer
+        /// </summary>
         private readonly InstructionWriter _writer;
+        /// <summary>
+        /// The _static constructors
+        /// </summary>
         private readonly List<MethodDefDeclaration> _staticConstructors;
+        /// <summary>
+        /// The _field advices
+        /// </summary>
         private readonly List<InsteadOfFieldAccessAdvice> _fieldAdvices;
+        /// <summary>
+        /// The _method advices
+        /// </summary>
         private readonly List<IMethodLevelAdvice> _methodAdvices;
+        /// <summary>
+        /// The _weaved lucent accessor advices
+        /// </summary>
         private readonly List<ReimplementWeavedLucentAccessorAdvice> _weavedLucentAccessorAdvices;
 
+        /// <summary>
+        /// The _cast helper
+        /// </summary>
         private CastHelper _castHelper;
+        /// <summary>
+        /// The _DB state method provider
+        /// </summary>
         private DbStateMethodProvider _dbStateMethodProvider;
+        /// <summary>
+        /// The _adapter get property method
+        /// </summary>
         private IMethod _adapterGetPropertyMethod;
+        /// <summary>
+        /// The _adapter resolve index method
+        /// </summary>
         private IMethod _adapterResolveIndexMethod;
+        /// <summary>
+        /// The _object constructor
+        /// </summary>
         private IMethod _objectConstructor;
+        /// <summary>
+        /// The _obj view prop index attr constructor
+        /// </summary>
         private IMethod _objViewPropIndexAttrConstructor;
+        /// <summary>
+        /// The _uninitialized constructor signature
+        /// </summary>
         private IMethodSignature _uninitializedConstructorSignature;
+        /// <summary>
+        /// The _nullable type
+        /// </summary>
         private INamedType _nullableType;
+        /// <summary>
+        /// The _uninitialized type
+        /// </summary>
         private IType _uninitializedType;
+        /// <summary>
+        /// The _type binding type
+        /// </summary>
         private ITypeSignature _typeBindingType;
+        /// <summary>
+        /// The _ulong type
+        /// </summary>
         private ITypeSignature _ulongType;
+        /// <summary>
+        /// The _object view type
+        /// </summary>
         private ITypeSignature _objectViewType;
+        /// <summary>
+        /// The _module
+        /// </summary>
         private ModuleDeclaration _module;
+        /// <summary>
+        /// The _starcounter implementation type def
+        /// </summary>
         private TypeDefDeclaration _starcounterImplementationTypeDef;
         //private MethodDefDeclaration _lucentClientAssemblyInitializerMethod;
+        /// <summary>
+        /// The _weaving helper
+        /// </summary>
         private WeavingHelper _weavingHelper;
+        /// <summary>
+        /// The _weave for IPC
+        /// </summary>
         private bool _weaveForIPC;
+        /// <summary>
+        /// The _starcounter assembly reference
+        /// </summary>
         private AssemblyRefDeclaration _starcounterAssemblyReference;
 
         /// <summary>
-        /// 
+        /// Initializes a new instance of the <see cref="ScTransformTask" /> class.
         /// </summary>
         public ScTransformTask() {
             _fieldAccessors = new Dictionary<String, MethodPair>();
@@ -73,8 +152,8 @@ namespace Starcounter.Internal.Weaver {
         /// <summary>
         /// Gets the field name, but without the assembly name.
         /// </summary>
-        /// <param name="field"></param>
-        /// <returns></returns>
+        /// <param name="field">The field.</param>
+        /// <returns>System.String.</returns>
         private static string GetFieldName(IMember field) {
             StringBuilder sb = new StringBuilder();
             field.DeclaringType.WriteReflectionName(sb, ReflectionNameOptions.None);
@@ -130,7 +209,13 @@ namespace Starcounter.Internal.Weaver {
         /// Used to store a pair of get and set accessors in a dictionary.
         /// </summary>
         private class MethodPair {
+            /// <summary>
+            /// The get method
+            /// </summary>
             public IMethod GetMethod;
+            /// <summary>
+            /// The set method
+            /// </summary>
             public IMethod SetMethod;
         }
 
@@ -331,6 +416,11 @@ namespace Starcounter.Internal.Weaver {
             return true;
         }
 
+        /// <summary>
+        /// Executes the on IPC weaved assembly.
+        /// </summary>
+        /// <param name="analysisTask">The analysis task.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         private bool ExecuteOnIPCWeavedAssembly(ScAnalysisTask analysisTask) {
             TypeDefDeclaration typeDef;
             string attributeIndexVariableName;
@@ -374,6 +464,9 @@ namespace Starcounter.Internal.Weaver {
             return true;
         }
 
+        /// <summary>
+        /// Initializes for all transformation kinds.
+        /// </summary>
         private void InitializeForAllTransformationKinds() {
             string dynamicLibDir;
 
@@ -389,6 +482,9 @@ namespace Starcounter.Internal.Weaver {
             _castHelper = new CastHelper(_module);
         }
 
+        /// <summary>
+        /// Initializes for user code weavers.
+        /// </summary>
         private void InitializeForUserCodeWeavers() {
             this.Initialize();
         }
@@ -474,9 +570,7 @@ namespace Starcounter.Internal.Weaver {
         /// <summary>
         /// Searching for the Starcounter assembly reference from the current modules references.
         /// </summary>
-        /// <returns>
-        /// The assembly reference, or null if not found.
-        /// </returns>
+        /// <returns>The assembly reference, or null if not found.</returns>
         private AssemblyRefDeclaration FindStarcounterAssembly() {
             AssemblyRefDeclaration scAssemblyRef = null;
             StringComparison strComp = StringComparison.InvariantCultureIgnoreCase;
@@ -496,10 +590,11 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// 
+        /// Finds the type of the starcounter.
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
+        /// <param name="type">The type.</param>
+        /// <returns>IType.</returns>
+        /// <exception cref="System.InvalidOperationException"></exception>
         private IType FindStarcounterType(Type type) {
             if (_starcounterAssemblyReference == null) {
                 throw new InvalidOperationException();
@@ -512,9 +607,9 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// 
+        /// Enhances the type of the anonymous.
         /// </summary>
-        /// <param name="typeDef"></param>
+        /// <param name="typeDef">The type def.</param>
         private void EnhanceAnonymousType(TypeDefDeclaration typeDef) {
             // TODO: This method really needs to be refactored and broken down into 
             // smaller pieces. As it is now it's really hard to get an overview of all the code.
@@ -814,10 +909,9 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// 
+        /// Determines whether [is anonymous type] [the specified type def].
         /// </summary>
-        /// <param name="typeDef"></param>
-        /// <returns></returns>
+        /// <param name="typeDef">The type def.</param>
         private static Boolean IsAnonymousType(TypeDefDeclaration typeDef) {
             return typeDef.Name.StartsWith("<>f__AnonymousType")
                     || typeDef.Name.StartsWith("VB$AnonymousType");
@@ -826,12 +920,9 @@ namespace Starcounter.Internal.Weaver {
         /// <summary>
         /// Adds a kind reference field to a society object.
         /// </summary>
-        /// <param name="declaringTypeDef">
-        /// <see cref="TypeDefDeclaration"/> of the society object.
-        /// </param>
-        /// <param name="databaseSocietyClass">
-        /// The society object.
-        /// </param>
+        /// <param name="declaringTypeDef"><see cref="TypeDefDeclaration" /> of the society object.</param>
+        /// <param name="databaseSocietyClass">The society object.</param>
+        /// <exception cref="System.NotImplementedException"></exception>
         private void AddKindReferenceField(
             TypeDefDeclaration declaringTypeDef,
             DatabaseSocietyClass databaseSocietyClass) {
@@ -881,12 +972,10 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Method called by the code weaver when it wants to know which advices 
+        /// Method called by the code weaver when it wants to know which advices
         /// we want to provide.
         /// </summary>
-        /// <param name="codeWeaver">
-        /// The code weaver to which we should provide advices.
-        /// </param>
+        /// <param name="codeWeaver">The code weaver to which we should provide advices.</param>
         public void ProvideAdvices(PostSharp.Sdk.CodeWeaver.Weaver codeWeaver) {
             Singleton<MetadataDeclaration> metaSingleton;
             StaticConstructorAdvice staticConstructorAdvice;
@@ -964,13 +1053,11 @@ namespace Starcounter.Internal.Weaver {
         /// Generates the <b>get</b> and <b>set</b> accessors for a field, generate a property,
         /// and add an advice to replace field accesses.
         /// </summary>
-        /// <param name="databaseAttribute">
-        /// The <see cref="DatabaseAttribute"/> for which accessors have to be generated.
-        /// </param>
-        /// <param name="field">
-        /// The <see cref="FieldDefDeclaration"/> corresponding 
-        /// to <paramref name="databaseAttribute"/>.
-        /// </param>
+        /// <param name="databaseAttribute">The <see cref="DatabaseAttribute" /> for which accessors have to be generated.</param>
+        /// <param name="field">The <see cref="FieldDefDeclaration" /> corresponding
+        /// to <paramref name="databaseAttribute" />.</param>
+        /// <exception cref="System.Exception"></exception>
+        /// <exception cref="System.NotSupportedException"></exception>
         private void GenerateFieldAccessors(DatabaseAttribute databaseAttribute,
                                             FieldDefDeclaration field) {
             // TODO: This method really needs to be refactored and broken down into 
@@ -1191,10 +1278,10 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// 
+        /// Enhances the constructors.
         /// </summary>
-        /// <param name="typeDef"></param>
-        /// <param name="databaseClass"></param>
+        /// <param name="typeDef">The type def.</param>
+        /// <param name="databaseClass">The database class.</param>
         private void EnhanceConstructors(TypeDefDeclaration typeDef, DatabaseClass databaseClass) {
             CustomAttributeDeclaration customAttr;
             IMethod baseUninitializedConstructor;

@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="ErrorInfo.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using Starcounter.Internal;
 using System;

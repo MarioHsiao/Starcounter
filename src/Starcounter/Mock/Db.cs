@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="Db.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System;
 //using System.Data;
@@ -11,6 +16,9 @@ using Starcounter.Binding;
 
 namespace Starcounter
 {
+    /// <summary>
+    /// Class Db
+    /// </summary>
     public static partial class Db
     {
 
@@ -19,10 +27,21 @@ namespace Starcounter
         /// </summary>
         public const String NullString = "<NULL>";
 
+        /// <summary>
+        /// The no id string
+        /// </summary>
         public const String NoIdString = "<NoId>";
+        /// <summary>
+        /// The field separator
+        /// </summary>
         public const String FieldSeparator = " | ";
 
 #if true
+        /// <summary>
+        /// Binaries to hex.
+        /// </summary>
+        /// <param name="binValue">The bin value.</param>
+        /// <returns>String.</returns>
         public static String BinaryToHex(Binary binValue)
         {
             if (binValue == null)
@@ -32,6 +51,11 @@ namespace Starcounter
             return hexString.Replace("-", "");
         }
 
+        /// <summary>
+        /// Hexes to binary.
+        /// </summary>
+        /// <param name="hexString">The hex string.</param>
+        /// <returns>Binary.</returns>
         public static Binary HexToBinary(String hexString)
         {
             if (hexString == null)

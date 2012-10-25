@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="LucentClassInitializerMethodAdvice.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Reflection;
 using Sc.Server.Weaver;
@@ -8,10 +13,20 @@ using PostSharp.Sdk.Collections;
 using Starcounter.Internal.Weaver;
 
 namespace Starcounter.LucentObjects {
+    /// <summary>
+    /// Class LucentClassInitializerMethodAdvice
+    /// </summary>
     internal sealed class LucentClassInitializerMethodAdvice : IAdvice {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LucentClassInitializerMethodAdvice" /> class.
+        /// </summary>
         public LucentClassInitializerMethodAdvice() {
         }
 
+        /// <summary>
+        /// Gets the priority.
+        /// </summary>
+        /// <value>The priority.</value>
         public int Priority {
             get {
                 return 0;

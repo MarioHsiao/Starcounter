@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ComparisonNumerical.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter;
 using Starcounter.Query.Optimization;
 using Starcounter.Query.Sql;
@@ -504,7 +509,7 @@ internal class ComparisonNumerical : CodeGenFilterNode, IComparison
     /// Gets a path that eventually (if there is a corresponding index) can be used for
     /// an index scan for the extent with the input extent number, if there is such a path.
     /// </summary>
-    /// <param name="extentNumber">Input extent number.</param>
+    /// <param name="extentNum">Input extent number.</param>
     /// <returns>A path, if an appropriate path is found, otherwise null.</returns>
     public IPath GetIndexPath(Int32 extentNum)
     {

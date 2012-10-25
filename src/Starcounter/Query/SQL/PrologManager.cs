@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="PrologManager.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using se.sics.prologbeans;
 using Starcounter;

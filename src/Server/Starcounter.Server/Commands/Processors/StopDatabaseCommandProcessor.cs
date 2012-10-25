@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="StopDatabaseCommandProcessor.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using Starcounter.Server.PublicModel.Commands;
 
@@ -16,7 +21,7 @@ namespace Starcounter.Server.Commands.Processors {
             : base(server, command) {
         }
 
-        /// </inheritdoc>
+        /// <inheritdoc />
         protected override void Execute() {
             StopDatabaseCommand command = (StopDatabaseCommand)this.Command;
             Database database;

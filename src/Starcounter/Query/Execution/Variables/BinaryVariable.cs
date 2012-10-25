@@ -17,7 +17,7 @@ internal class BinaryVariable : Variable, IVariable, IBinaryExpression
     /// <summary>
     /// Constructor.
     /// </summary>
-    /// <param name="name">The name of the variable.</param>
+    /// <param name="number">The number.</param>
     internal BinaryVariable(Int32 number)
     {
         this.number = number;
@@ -27,15 +27,12 @@ internal class BinaryVariable : Variable, IVariable, IBinaryExpression
     /// <summary>
     /// Constructor.
     /// </summary>
-    /// <param name="name">The name of the variable.</param>
+    /// <param name="number">The number.</param>
     /// <param name="value">The value of the variable.</param>
     internal BinaryVariable(Int32 number, Nullable<Binary> value)
     {
         this.number = number;
         this.value = value;
-        /// <summary>
-        /// The name of this variable.
-        /// </summary>
     }
 
     /// <summary>

@@ -119,37 +119,33 @@ public:
 	client_interface_(0) {
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 		if (segment_name != 0) {
-			char notify_name[segment_and_notify_name_size];
-			wchar_t w_notify_name[segment_and_notify_name_size];
+			char work_notify_name[segment_and_notify_name_size];
 			std::size_t length;
 
 			// Format: "Local\<segment_name>_notify_scheduler_<id>".
-			if ((length = _snprintf_s(notify_name, _countof(notify_name),
-			segment_and_notify_name_size -1 /* null */,
+			if ((length = _snprintf_s(work_notify_name, _countof
+			(work_notify_name), segment_and_notify_name_size -1 /* null */,
 			"Local\\%s_notify_scheduler_%u", segment_name, id)) < 0) {
-				return; // error
+				return; // Throw exception error_code.
 			}
-			notify_name[length] = '\0';
-			//std::cout << "notify_name: " << notify_name << "\n"; /// DEBUG
+			work_notify_name[length] = '\0';
 
 			/// TODO: Fix insecure
-			if ((length = mbstowcs(w_notify_name, notify_name, segment_name_size)) < 0) {
-				//std::cout << this
-				//<< ": Failed to convert segment_name to multi-byte string. Error: "
-				//<< GetLastError() << "\n";
-				return; // throw exception
+			if ((length = mbstowcs(work_notify_name_, work_notify_name,
+			segment_name_size)) < 0) {
+				// Failed to convert work_notify_name to multi-byte string.
+				return; // Throw exception error_code.
 			}
-			w_notify_name[length] = L'\0';
+			work_notify_name_[length] = L'\0';
 
-			if ((work_ = ::CreateEvent(NULL, TRUE, FALSE, w_notify_name)) == NULL) {
+			if ((work_ = ::CreateEvent(NULL, TRUE, FALSE, work_notify_name_))
+			== NULL) {
 				// Failed to create event.
-				//std::cout << this << ": Failed to create event with error: "
-				//<< GetLastError() << "\n"; /// DEBUG
-				return; // throw exception
+				return; // Throw exception error_code.
 			}
 		}
 		else {
-			// TODO: Handle the error - no segment name. Throw an exception.
+			// Error: No segment name. Throw exception error_code.
 		}
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	}
@@ -263,24 +259,53 @@ public:
 		_mm_mfence();
 	}
 	
-	//--------------------------------------------------------------------------
-	// Clients call notify() each time they push a message on a channel, or mark
-	// the channel for release, in order to wake up the scheduler it
-	// communicates with, if it is waiting.
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
+	/// Clients call notify() each time they push a message to a channel, or
+	/// mark the channel for release, in order to wake up the scheduler it
+	/// communicates with, if but only if it is waiting for work.
+	/**
+	 * @param work The named event that the client have opened.
+	 */
 	void notify(HANDLE work) {
-		if (false /*get_notify_flag() == false*/) { /// DEBUG TEST - FORCE NOTIFICATION
+		if (get_notify_flag() == false) {
 			// No need to notify the scheduler because it is not waiting.
 			return;
 		}
 		else {
-			if (!::SetEvent(work)) {
-				//std::cout << this << ": SetEvent(" << work_ << ") <2> failed with the error: "
-				//<< ::GetLastError() << "\n"; /// DEBUG
+			if (::SetEvent(work)) {
+				// Successfully notified the scheduler.
+				return;
+			}
+			else {
+				// Error. Failed to notify the scheduler.
+				return;
+			}
+		}
+	}
+
+	/// Schedulers call notify() each time they push a message to a task or
+	/// signal channel, in order to wake up the scheduler it communicates with,
+	/// if but only if it is waiting for work.
+	void notify() {
+		if (get_notify_flag() == false) {
+			// No need to notify the scheduler because it is not waiting.
+			return;
+		}
+		else {
+			if (::SetEvent(work_)) {
+				// Successfully notified the scheduler.
+				return;
+			}
+			else {
+				// Error. Failed to notify the scheduler.
+				return;
 			}
 		}
 	}
 #else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
+	/// Clients call notify() each time they push a message to a channel, or
+	/// mark the channel for release, in order to wake up the scheduler it
+	/// communicates with, if but only if it is waiting for work.
 	void notify() {
 		if (get_notify_flag() == false) {
 			// No need to notify the scheduler because it is not waiting.
@@ -305,15 +330,26 @@ public:
 	// A scheduler that is woken up is required to see if the channel is marked
 	// for clean-up. Maybe this is not at all required, it may be irrelevent.
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
+	/// try_to_notify_scheduler_to_do_clean_up() is used by the monitor only.
+	/**
+	 * @param work The named event that the monitor have opened.
+	 * @return true if successfully notified, otherwise false.
+	 */
 	bool try_to_notify_scheduler_to_do_clean_up(HANDLE work) {
-		if (!::SetEvent(work)) {
-			//std::cout << this << ": SetEvent(" << work << ") <3> failed with the error: "
-			//<< ::GetLastError() << "\n"; /// DEBUG
-			return false;
+		if (::SetEvent(work)) {
+			// Successfully notified the scheduler.
+			return true;
 		}
-		return true;
+		// Error. Failed to notify the scheduler.
+		return false;
 	}
 #else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
+	/// try_to_notify_scheduler_to_do_clean_up() is used by the monitor only.
+	/**
+	 * @param timeout_milliseconds The number of milliseconds to wait before
+	 *		giving up.
+	 * @return true if successfully notified, otherwise false.
+	 */
 	bool try_to_notify_scheduler_to_do_clean_up(uint32_t timeout_milliseconds) {
 		const boost::system_time timeout = boost::posix_time::microsec_clock
 		::universal_time() +boost::posix_time::milliseconds
@@ -361,26 +397,24 @@ public:
 	 */
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	bool wait_for_work(unsigned int timeout_milliseconds) {
-		//std::cout << this << " scheduler is waiting...\n"; /// DEBUG
 		switch (::WaitForSingleObject(work_, timeout_milliseconds)) {
 		case WAIT_OBJECT_0:
 			// The scheduler was notified that there is work to do.
-			//std::cout << this << " scheduler is running (NOTIFIED)\n"; /// DEBUG
 			
 			if (::ResetEvent(work_)) {
-				//std::cout << "::ResetEvent(" << work_ << ")\n"; /// DEBUG
+			    // Successfully reset the event.
 				return true;
 			}
 			else {
-				//std::cout << this << " scheduler ResetEvent() failed. Error" << ::GetLastError() << "\n"; /// DEBUG
-				return true; // Anyway.
+			    // Failed to reset the event. return success anyway.
+				return true;
 			}
 			return true;
 		case WAIT_TIMEOUT:
-			//std::cout << this << " scheduler is running (timeout)\n"; /// DEBUG
+			// The scheduler was not notified. A timeout occurred.
 			return false;
-		case WAIT_FAILED: // Windows system error code: 6 = The handle is invalid.
-			//std::cout << this << " scheduler WaitForSingleObject() failed. Error" << ::GetLastError() << "\n"; /// DEBUG
+		case WAIT_FAILED:
+			// The scheduler was not notified. An error occurred.
 			return false;
 		}
 		return false;
@@ -397,25 +431,20 @@ public:
 		
 		if (!lock.owns()) {
 			// The timeout_milliseconds time period has elapsed.
-			//std::cout << this << " scheduler is running (timeout no lock)\n"; /// DEBUG
 			return false;
 		}
 		
-		//std::cout << this << " scheduler is waiting...\n"; /// DEBUG
-
 		// Wait until at least one message has been pushed into some channel,
 		// or the timeout_milliseconds time period has elapsed.
 		if (work_.timed_wait(lock, timeout,
 		boost::bind(&scheduler_interface_type::do_work, this)) == true) {
 			// The scheduler was notified that there is work to do.
-			//std::cout << this << " scheduler is running (notified)\n"; /// DEBUG
 			set_predicate(false);
 			return true;
 		}
 		
 		// The timeout_milliseconds time period has elapsed.
 		// Shall the predicate be set to false on timeout? I think not.
-		//std::cout << this << " scheduler is running (timeout)\n"; /// DEBUG
 		return false;
 	}
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
@@ -437,6 +466,20 @@ public:
 		<boost::interprocess::interprocess_mutex> lock(client_interface_mutex_);
 		client_interface_ = reinterpret_cast<uint64_t>(p);
 	}
+	
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
+	/// Get the work notify name, used to open the event. In order to reduce the
+	/// time taken to open the work_ event the name is cached. Otherwise the
+	/// work notify name have to be formated before opening it.
+	/**
+	 * @return A const wchar_t pointer to the work notify name string in the
+	 *		format: L"Local\<segment_name>_notify_scheduler_<id>". For example:
+	 *		L"Local\starcounter_PERSONAL_MYDB_64_notify_scheduler_9".
+	 */
+	const wchar_t* work_notify_name() const {
+		return work_notify_name_;
+	}
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 private:
 	// Condition to wait when the all of this scheduler's channels in queues,
@@ -473,6 +516,12 @@ private:
 	// server and 32-bit client.
 	uint64_t client_interface_; // client_interface_type*
 	char cache_line_pad_5_[CACHE_LINE_SIZE -sizeof(uint64_t)];
+
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
+	// In order to reduce the time taken to open the work_ event the name is
+	// cached. Otherwise the name have to be formated before opening it.
+	wchar_t work_notify_name_[segment_and_notify_name_size];
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 };
 
 typedef starcounter::core::simple_shared_memory_allocator<channel_number>
