@@ -18,3 +18,5 @@ net use Z: %SRVwebappsPath% /user:%SRVusername% %SRVpassword%
 rd /s /q "Z:\%DocumentationParentFolder%"
 robocopy .\%DocumentationProjectPath%\%DocumentationResultFolder%\ Z: /e
 net use Z: /delete
+
+exit 0
