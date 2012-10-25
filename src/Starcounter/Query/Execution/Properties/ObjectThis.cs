@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="ObjectThis.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using Starcounter.Query.Optimization;
 using System;
@@ -24,7 +29,7 @@ internal class ObjectThis : CodeGenFilterNode, IObjectExpression, IProperty
     /// <summary>
     /// Constructor.
     /// </summary>
-    /// <param name="extNum">The extent number to which this pseudo property belongs.
+    /// <param name="extNum">The extent number to which this pseudo property belongs.</param>
     /// <param name="typeBind">The type binding of this pseudo property (object).</param>
     internal ObjectThis(Int32 extNum, ITypeBinding typeBind)
     {

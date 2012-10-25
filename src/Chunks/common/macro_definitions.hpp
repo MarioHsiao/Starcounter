@@ -23,6 +23,11 @@
 /// code so that performance counters are not used because it degrades performance a bit.
 //#define STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS
 
+/// Define INTERPROCESS_COMMUNICATION_USE_SMP_SPINLOCK_TO_SYNC to use spinlocks to
+/// synchronize access to certain objects. Currently these objects involve:
+/// shared_chunk_pool
+//#define INTERPROCESS_COMMUNICATION_USE_SMP_SPINLOCK_TO_SYNC
+
 /// Define INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC to use Windows Event
 /// synchronization in interprocess communication. Comment this out in order to use
 /// Boost.Interprocess condition synchronization.
@@ -30,9 +35,7 @@
 /// code using Boost.Interprocess condition variable and remove wrapping of the code
 /// with this macro. Using Windows Events is not yet fully implemented.
 /// While experimenting with this, don't define it when pushing code.
-//#define INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC
-// REMEBER TO RESTORE: \Level1\src\Chunks\common\scheduler_interface.hpp : 273
-// if (false /*get_notify_flag() == false*/) { /// DEBUG TEST - FORCE NOTIFICATION
+#define INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC
 
 // The SCHEDULERS macro is a bit malplaced but it works for now. It is only used
 // in the test server and test client. I think those two projects are more or less
@@ -84,6 +87,14 @@
 # define XMM_ALIGN __attribute__ ((aligned (XMM_SIZE)))
 # define YMM_ALIGN __attribute__ ((aligned (YMM_SIZE)))
 #endif // defined(__INTEL_COMPILER)
+
+#if defined(__GNUC__)
+# define ALWAYS_INLINE inline __attribute__((always_inline))
+#elif defined(_MSC_VER)
+# define ALWAYS_INLINE __forceinline
+#else
+# define ALWAYS_INLINE inline
+#endif
 
 #if defined(__GNUC__)
 # define FORCE_INLINE inline __attribute__((always_inline))

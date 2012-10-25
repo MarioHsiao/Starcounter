@@ -41,18 +41,18 @@ void worker::start() {
 	/// Initialize
 	///=========================================================================
 	
-	if (!shared_.acquire_client_number()) {
+	if (!shared().acquire_client_number()) {
 		std::cout << "worker[" << worker_id_ << "]: "
 		"failed to acquire client number." << std::endl;
 		throw worker_exception(4000);
 	}
 	
 	//std::cout << "worker[" << worker_id_ << "]:" << " acquired client number "
-	//<< shared_.get_client_number() << std::endl;
+	//<< shared().get_client_number() << std::endl;
 	
 	// Acquire a channel_number for each scheduler.
 	for (scheduler_number i = 0; i < num_active_schedulers_; ++i) {
-		if (!shared_.acquire_channel(&channel_[i], i /*scheduler_number*/)) {
+		if (!shared().acquire_channel(&channel_[i], i /*scheduler_number*/)) {
 			std::cout << " worker[" << worker_id_ << "] error: "
 			"invalid channel number." << std::endl;
 		}
@@ -95,7 +95,12 @@ void worker::work()
 try {
 	chunk_index request_chunk_index;
 	chunk_index response_chunk_index;
-	
+
+	// worked indicates if this worker did some work during the last iteration,
+	// scanning the set of channels to push or pop chunks, etc.
+	bool worked = false;
+	uint64_t scan_counter = scan_counter_preset;
+
 	///=========================================================================
 	/// Worker loop
 	///=========================================================================
@@ -104,7 +109,7 @@ try {
 	
 	while (is_running()) {
 		///=====================================================================
-		/// For each channel, try to send a Blast PING message.
+		/// For each channel, try to send a BMX ping message.
 		///=====================================================================
 
 		for (std::size_t n = 0; n < num_channels_; ++n) {
@@ -135,15 +140,17 @@ try {
 					
 					// Try to push the request_chunk_index via channel ch.
 					
-					channel_type& the_channel = shared_.channel(ch);
+					channel_type& the_channel = shared().channel(ch);
 					
 					if (the_channel.in.try_push_front(request_chunk_index)
 					== true) {
 						// Successfully pushed the chunk_index. Notify the
 						// scheduler.
+						worked = true;
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-						the_channel.scheduler()->notify(shared_.get_work_event
-						(the_channel.get_scheduler_number()));
+						the_channel.scheduler()->notify(shared()
+						.scheduler_work_event(the_channel
+						.get_scheduler_number()));
 #else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
 						the_channel.scheduler()->notify();
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
@@ -162,53 +169,30 @@ acquire_chunk_from_private_chunk_pool:
 			/// Try to get a chunk from the private chunk_pool_.
 			///=================================================================
 			
-			if (chunk_pool_.acquire_linked_chunks(&shared_.chunk(0),
+			if (chunk_pool_.acquire_linked_chunks(&shared().chunk(0),
 			request_chunk_index, 1) == true) {
 				///=============================================================
 				/// Got a chunk. Writing a BMX ping message into it.
 				///=============================================================
 				
-																				///-------------------------------------------------------------
-																				/// Experimenting to test acquire_linked_chunks() and allocate
-																				/// 100000 bytes more, and link it to the request_chunk_index.
-																				
-																				#if 0
-																				chunk_index head;
-																				
-																				if (chunk_pool_.acquire_linked_chunks(&shared_.chunk_base(),
-																				head, 30000) == true) {
-																					// Successfully got the requested bytes as linked chunks.
-																					// Now linking my current chunk to that:
-																					//shared_.chunk(request_chunk_index).set_link(head);
-																					
-																					show_linked_chunks(&shared_.chunk_base(), head);
-																					Sleep(5000);
-																					chunk_pool_.release_linked_chunks(&shared_.chunk_base(), head);
-																					Sleep(INFINITE);
-																				}
-																				else {
-																					// Failed.
-																				}
-																				#endif
-																				///-------------------------------------------------------------
-				
 				// Constructing the BMX Ping chunk.
 		        shared_memory_chunk* smc = static_cast<shared_memory_chunk*>
-				(&shared_.chunk(request_chunk_index));
+				(&shared().chunk(request_chunk_index));
 				
 				sc_bmx_construct_ping(0, smc);
 				
 				// Reference used as shorthand.
-				channel_type& the_channel = shared_.channel(channel_[n]);
+				channel_type& the_channel = shared().channel(channel_[n]);
 				
 				// Send the request to the database.
 				if (the_channel.in.try_push_front(request_chunk_index) == true)
 				{
 					// Successfully pushed the chunk_index. Notify the
 					// scheduler.
+					worked = true;
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-					the_channel.scheduler()->notify(shared_.get_work_event
-					(the_channel.get_scheduler_number()));
+					the_channel.scheduler()->notify(shared()
+					.scheduler_work_event(the_channel.get_scheduler_number()));
 #else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
 					the_channel.scheduler()->notify();
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
@@ -227,11 +211,11 @@ acquire_chunk_from_private_chunk_pool:
 				// chunks_to_move chunks from the shared_chunk_pool and move
 				// them to the private chunk_pool_.
 				if (acquired_chunks_ < worker::max_chunks) {
-					acquired_chunks_ += shared_.acquire_from_shared_to_private
+					acquired_chunks_ += shared().acquire_from_shared_to_private
 					(chunk_pool_, a_bunch_of_chunks,
-					&shared_.client_interface(), 1000);
+					&shared().client_interface(), 1000);
 					
-					std::size_t chunks_flagged = shared_.client_interface()
+					std::size_t chunks_flagged = shared().client_interface()
 					.get_resource_map().count_chunk_flags_set();
 					
 					// If the worker has some chunks, retry:
@@ -260,24 +244,26 @@ acquire_chunk_from_private_chunk_pool:
 		///=====================================================================
 		
 		for (std::size_t n = 0; n < num_channels_; ++n) {
-			channel_type& the_channel = shared_.channel(channel_[n]);
+			channel_type& the_channel = shared().channel(channel_[n]);
 			// Check if there is a message and process it.
 			if (the_channel.out.try_pop_back(&response_chunk_index) == true) {
 				// A message on channel ch was received. Notify the database
 				// that the out queue in this channel is not full.
+				worked = true;
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-				the_channel.scheduler()->notify(shared_.get_work_event
-				(the_channel.get_scheduler_number()));
+				/// No reason, nobody waits!
+				//the_channel.scheduler()->notify(shared().scheduler_work_event
+				//(the_channel.get_scheduler_number()));
 #else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-				the_channel.scheduler()->notify();
+				//the_channel.scheduler()->notify();
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 				
 				///=============================================================
 				/// Handle all responses in this chunk.
 				///=============================================================
 				
-				shared_memory_chunk* smc
-				= (shared_memory_chunk*) &(shared_.chunk(response_chunk_index));
+				shared_memory_chunk* smc = (shared_memory_chunk*) &(shared()
+				.chunk(response_chunk_index));
 				
 				uint64_t ping_data;
 				uint32_t error_code = sc_bmx_parse_pong(smc, &ping_data);
@@ -293,7 +279,7 @@ acquire_chunk_from_private_chunk_pool:
 				}
 				
 				// Release the chunk.
-				chunk_pool_.release_linked_chunks(&shared_.chunk(0),
+				chunk_pool_.release_linked_chunks(&shared().chunk(0),
 				response_chunk_index);
 				if (chunk_pool_.size() <= max_chunks) {
 					continue;
@@ -307,10 +293,70 @@ acquire_chunk_from_private_chunk_pool:
 						chunks_to_move = a_bunch_of_chunks;
 					}
 					
-					acquired_chunks_ -= shared_.release_from_private_to_shared
-					(chunk_pool_, chunks_to_move, &shared_.client_interface(),
+					acquired_chunks_ -= shared().release_from_private_to_shared
+					(chunk_pool_, chunks_to_move, &shared().client_interface(),
 					1000);
 				}
+			}
+		}
+		
+		// Check if this worker wait for work. Assuming not.
+		if (worked) {
+			// Did some work (pushing or popping, etc.) during last scan.
+			scan_counter = scan_counter_preset;
+			worked = false;
+			continue;
+		}
+		else {
+			// Did not find work to do during last scan.
+			if (scan_counter > 1) {
+				--scan_counter;
+				_mm_pause();
+				continue;
+			}
+			else if (scan_counter == 1) {
+				// Preparing to wait.
+				shared().client_interface().set_notify_flag(true);
+				// Therefore need to scan one more time, just in case a
+				// scheduler read the notify flag as false just before it was
+				// set, and pushed or popped on any channel without notifying.
+				--scan_counter;
+				_mm_pause();
+				//std::cout << this << " preparing to wait.\n"; /// DEBUG
+				continue;
+			}
+			else if (scan_counter == 0) {
+				//std::cout << "get_notify=" << shared().client_interface().get_notify_flag() << std::endl;
+
+				// Nothing was pushed or popped for scan_count_reset number of
+				// iterations. This thread will now wait for any scheduler to
+				// push or pop on any of this worker's channels.
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
+				if (shared().client_interface().wait_for_work
+				(shared().client_work_event(), wait_for_work_milli_seconds)
+				== true) {
+					// This worker was notified there is work to do.
+					shared().client_interface().set_notify_flag(false);
+					scan_counter = scan_counter_preset;
+				}
+				else {
+					// A timeout occurred.
+					shared().client_interface().set_notify_flag(false);
+					scan_counter = scan_counter_preset; // or 1?
+				}
+#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
+				if (shared().client_interface().wait_for_work
+				(wait_for_work_milli_seconds) == true) {
+					// This worker was notified there is work to do.
+					shared().client_interface().set_notify_flag(false);
+					scan_counter = scan_counter_preset;
+				}
+				else {
+					// A timeout occurred.
+					shared().client_interface().set_notify_flag(false);
+					scan_counter = scan_counter_preset; // or 1?
+				}
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 			}
 		}
 	}
@@ -343,7 +389,7 @@ inline worker& worker::set_active_schedulers(std::size_t n) {
 
 inline worker& worker::set_shared_interface() {
 	_mm_mfence();
-	shared_.init(segment_name_, monitor_interface_name_, pid_, owner_id_);
+	shared().init(segment_name_, monitor_interface_name_, pid_, owner_id_);
 	_mm_mfence();
 	return *this;
 }
@@ -399,30 +445,30 @@ inline void worker::show_linked_chunks(chunk_type* chunk_base, chunk_index head)
 inline void worker::release_all_resources() {
 	///-------------------------------------------------------------------------
 	for (std::size_t n = 0; n < num_channels_; ++n) {
-		channel_type& the_channel = shared_.channel(channel_[n]);
+		channel_type& the_channel = shared().channel(channel_[n]);
 		the_channel.set_to_be_released();
 		the_channel.scheduler()->notify();
 	}
 	///-------------------------------------------------------------------------
-	shared_.common_client_interface().increment_client_interfaces_to_clean_up();
+	shared().common_client_interface().increment_client_interfaces_to_clean_up();
 	// I think it is important that the increment above is done before
 	// marking for clean up below. Not sure about the order, the monitor does it
 	// in this order.
 	///-------------------------------------------------------------------------
 	_mm_mfence();
-	shared_.client_interface().get_owner_id().mark_for_clean_up();
+	shared().client_interface().get_owner_id().mark_for_clean_up();
 }
 #endif // NOT COMPLETE
 
 inline void worker::release_all_resources() {
-	shared_.common_client_interface().increment_client_interfaces_to_clean_up();
+	shared().common_client_interface().increment_client_interfaces_to_clean_up();
 	
 	// I think it is important that the increment above is done before marking
 	// for clean up below.
 	_mm_mfence();
 	
 	// Mark the client_interface for clean up.
-	shared_.client_interface().get_owner_id().mark_for_clean_up();
+	shared().client_interface().get_owner_id().mark_for_clean_up();
 	
 	// For each of the channels the client thread own, try to notify the
 	// scheduler(s) via those channels.
@@ -430,19 +476,19 @@ inline void worker::release_all_resources() {
 	// For each mask word, bitscan to find the channel indices.
 	for (uint32_t ch_index = 0; ch_index < resource_map::channels_mask_size;
 	++ch_index) {
-		for (resource_map::mask_type mask = shared_.client_interface()
+		for (resource_map::mask_type mask = shared().client_interface()
 		.get_resource_map().get_owned_channels_mask(ch_index); mask;
 		mask &= mask -1) {
 			uint32_t ch = bit_scan_forward(mask);
 			ch += ch_index << resource_map::shift_bits_in_mask_type;
-			channel_type& the_channel = shared_.channel(ch);
+			channel_type& the_channel = shared().channel(ch);
 			scheduler_number the_scheduler_number = the_channel
 			.get_scheduler_number();
 			
 			/// TODO: Check if the_scheduler_number is out of range!!!
 			//std::cout << "ch " << ch << " -> scheduler_number " << the_scheduler_number << std::endl; /// DEBUG
 			
-			scheduler_interface_type* scheduler_interface_ptr = &shared_
+			scheduler_interface_type* scheduler_interface_ptr = &shared()
 			.scheduler_interface(the_scheduler_number);
 			
 			// A fence is needed so that all accesses to the channel is
@@ -457,7 +503,7 @@ inline void worker::release_all_resources() {
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events
 				// The scheduler may be waiting so notify it.
 				if ((scheduler_interface_ptr->try_to_notify_scheduler_to_do_clean_up
-				(shared_.get_work_event(the_channel.get_scheduler_number())))
+				(shared().scheduler_work_event(the_channel.get_scheduler_number())))
 				== true) {
 					// Succeessfully notified the scheduler on this channel.
 				}

@@ -1,4 +1,10 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="AppServer.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Text;
 using Starcounter.Internal.REST;
 using Starcounter.Internal.Application;
@@ -6,25 +12,50 @@ using HttpStructs;
 
 namespace Starcounter.Internal.Web {
 
+    /// <summary>
+    /// Class HardcodedStuff
+    /// </summary>
     public class HardcodedStuff
     {
+        /// <summary>
+        /// The HTTP request
+        /// </summary>
         public HttpRequest HttpRequest;
+        /// <summary>
+        /// The sessions
+        /// </summary>
         public SessionDictionary Sessions;
 
+        /// <summary>
+        /// The here
+        /// </summary>
         [ThreadStatic]
         public static HardcodedStuff Here;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HardcodedStuff" /> class.
+        /// </summary>
+        /// <param name="request">The request.</param>
+        /// <param name="sessions">The sessions.</param>
         private HardcodedStuff(HttpRequest request, SessionDictionary sessions)
         {
             HttpRequest = request;
             Sessions = sessions;
         }
 
+        /// <summary>
+        /// Begins the request.
+        /// </summary>
+        /// <param name="request">The request.</param>
+        /// <param name="sessions">The sessions.</param>
         public static void BeginRequest(HttpRequest request, SessionDictionary sessions)
         {
             Here = new HardcodedStuff(request, sessions);
         }
 
+        /// <summary>
+        /// Ends the request.
+        /// </summary>
         public static void EndRequest()
         {
             Here = null;
@@ -34,13 +65,11 @@ namespace Starcounter.Internal.Web {
     /// <summary>
     /// Wrapps the file based http web resource resolver and the App view model resolver.
     /// </summary>
-    /// <remarks>
-    /// Supports Http as well as proprietary protocols.
+    /// <remarks>Supports Http as well as proprietary protocols.
     /// If the URI does not point to a App view model or a user implemented
     /// handler, the request is routed to a standard file based static resource
     /// web serving implementation that will serve html, png, jpg etc. using the file system.
-    /// This file based resolver will be injected into the constructor of this class.
-    /// </remarks>
+    /// This file based resolver will be injected into the constructor of this class.</remarks>
     public partial class HttpAppServer : HttpRestServer {
 
         /// <summary>
@@ -51,9 +80,17 @@ namespace Starcounter.Internal.Web {
         /// </summary>
         public StaticWebServer StaticFileServer;
 
+        /// <summary>
+        /// The sessions
+        /// </summary>
         protected SessionDictionary Sessions;
 
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HttpAppServer" /> class.
+        /// </summary>
+        /// <param name="staticFileServer">The static file server.</param>
+        /// <param name="sessions">The sessions.</param>
         public HttpAppServer(StaticWebServer staticFileServer, SessionDictionary sessions ) {
             StaticFileServer = staticFileServer;
             Sessions = sessions;
@@ -61,13 +98,11 @@ namespace Starcounter.Internal.Web {
 
         /// <summary>
         /// The GET Method. Returns a representation of a resource.
-        /// 
         /// Works for http and web sockets.
         /// </summary>
-        /// <param name="relativeUri">The uri to match. "/__apps/" will return 
-        /// the complete view model of the session.</param>
-        /// <param name="protocol">The protocol of the request</param>
+        /// <param name="request">The request.</param>
         /// <returns>The bytes according to the appropriate protocol</returns>
+        /// <exception cref="System.NotImplementedException"></exception>
         public override HttpResponse Handle(  HttpRequest request ) {
             Session session;
             // TODO!
@@ -101,7 +136,7 @@ namespace Starcounter.Internal.Web {
                         var app = (App)x;
                         //                       return new HttpResponse() { Uncompressed = HttpResponseBuilder.CreateMinimalOk200WithContent(data, 0, len) };
 
-                        request.Debug(" (new session)");
+                        request.Debug(" (new view model)");
 
                         session = Sessions.CreateSession();
                         session.AttachRootApp(app);
@@ -113,7 +148,7 @@ namespace Starcounter.Internal.Web {
                         {
                             request.IsAppView = true;
                             request.ViewModel = app.ToJsonUtf8(false, true);
-
+                            request.NeedsScriptInjection = true;
                             //                    request.CanUseStaticResponse = false; // We need to provide the view model, so we can use 
                             //                                                          // cached (and gziped) content, but not a complete cached
                             //                                                          // response.
@@ -167,13 +202,11 @@ namespace Starcounter.Internal.Web {
         /// This is where the AppServer calls to get a resource from the file system.
         /// If needed, script injection optimization is also performed.
         /// </summary>
-        /// <remarks>
-        /// To save an additional http request, in the event of a html resource request,
-        /// the Starcounter App view model is embedded in a script tag.
-        /// </remarks>
         /// <param name="relativeUri">The uri to resolve</param>
         /// <param name="request">The http request</param>
         /// <returns>The http response</returns>
+        /// <remarks>To save an additional http request, in the event of a html resource request,
+        /// the Starcounter App view model is embedded in a script tag.</remarks>
         private byte[] ResolveAndPrepareFile(string relativeUri, HttpRequest request) {
             HttpResponse ri = StaticFileServer.GetStatic(relativeUri, request);
             byte[] original = ri.GetBytes(request);
@@ -186,6 +219,11 @@ namespace Starcounter.Internal.Web {
             return original;
         }
 
+        /// <summary>
+        /// Gets the exception string.
+        /// </summary>
+        /// <param name="ex">The ex.</param>
+        /// <returns>String.</returns>
 		private String GetExceptionString(Exception ex)
 		{
 			Exception inner;
@@ -209,18 +247,20 @@ namespace Starcounter.Internal.Web {
 
 
         /// <summary>
-        /// Sent from the Node when the user runs a module (an .EXE). 
+        /// Sent from the Node when the user runs a module (an .EXE).
         /// </summary>
-        /// <remarks>
-        /// There is no need to add the directory to the static resolver as the static resolver
+        /// <param name="path">The path.</param>
+        /// <remarks>There is no need to add the directory to the static resolver as the static resolver
         /// will already be bootstrapped as a lower priority handler for stuff that this
-        /// AppServer does not handle.
-        /// </remarks>
-        /// <param name="path"></param>
+        /// AppServer does not handle.</remarks>
         public override void UserAddedLocalFileDirectoryWithStaticContent(string path) {
             StaticFileServer.UserAddedLocalFileDirectoryWithStaticContent(path);
         }
 
+        /// <summary>
+        /// Housekeeps this instance.
+        /// </summary>
+        /// <returns>System.Int32.</returns>
         public override int Housekeep() {
            return StaticFileServer.Housekeep();
         }

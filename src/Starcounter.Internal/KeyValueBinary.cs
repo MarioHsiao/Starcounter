@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="KeyValueBinary.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,7 +14,7 @@ namespace Starcounter.Internal
 {
     /// <summary>
     /// Utility class allowing a simple and fast serialization/deserialization
-    /// of key-value pairs, usually given as a <see cref="Dictionary"/>.
+    /// of key-value pairs, usually given as a <see cref="System.Collections.Generic.Dictionary&lt;TKey, TValue&gt;"/>.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -55,7 +60,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// The (opaque) value representing the key/value data after
         /// it has been serialized using a factory method, like the
-        /// <see cref="FromDirectory"/> method.
+        /// <see cref="FromDictionary"/> method.
         /// </summary>
         public string Value
         {
@@ -64,12 +69,12 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
-        /// Serializes the given <see cref="Dictionary"/> to a in instance of
+        /// Serializes the given <see cref="System.Collections.Generic.Dictionary&lt;TKey, TValue&gt;"/> to a in instance of
         /// <see cref="KeyValueBinary"/>.
         /// </summary>
-        /// <param name="dictionary">The <see cref="Dictionary"/> to serialize.</param>
+        /// <param name="dictionary">The <see cref="System.Collections.Generic.Dictionary&lt;TKey, TValue&gt;"/> to serialize.</param>
         /// <returns>A <see cref="KeyValueBinary"/> holding all items serialized from the 
-        /// given <see cref="Dictionary"/>.</returns>
+        /// given <see cref="System.Collections.Generic.Dictionary&lt;TKey, TValue&gt;"/>.</returns>
         public static KeyValueBinary FromDictionary(Dictionary<string, string> dictionary)
         {
             StringBuilder buffer = new StringBuilder();
@@ -82,7 +87,7 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
-        /// Serializes the given <see cref="object[]"/> to a in instance of
+        /// Serializes the given <see cref="T:object[]"/> to a in instance of
         /// <see cref="KeyValueBinary"/>. The actual data that will be serialized
         /// is produced by calling <see cref="object.ToString()"/> on each item
         /// before it is serialized.
@@ -93,14 +98,14 @@ namespace Starcounter.Internal
         /// </remarks>
         /// <param name="array">The array to serialize.</param>
         /// <returns>A <see cref="KeyValueBinary"/> holding all items serialized from the 
-        /// given <see cref="object[]"/>.</returns>
+        /// given <see cref="T:object[]"/>.</returns>
         public static KeyValueBinary FromArray(object[] array)
         {
             return FromArray(array, 0);
         }
 
         /// <summary>
-        /// Serializes the given <see cref="object[]"/> to a in instance of
+        /// Serializes the given <see cref="T:object[]"/> to a in instance of
         /// <see cref="KeyValueBinary"/>. The actual data that will be serialized
         /// is produced by calling <see cref="object.ToString()"/> on each item
         /// before it is serialized.
@@ -113,7 +118,7 @@ namespace Starcounter.Internal
         /// <param name="startIndex">The index to start from when retreiving
         /// the items to serialize from the given array.</param>
         /// <returns>A <see cref="KeyValueBinary"/> holding all items serialized from the 
-        /// given <see cref="object[]"/>.</returns>
+        /// given <see cref="T:object[]"/>.</returns>
         public static KeyValueBinary FromArray(object[] array, int startIndex)
         {
             StringBuilder buffer = new StringBuilder();
@@ -132,7 +137,7 @@ namespace Starcounter.Internal
         /// <see cref="FromDictionary"/> method.
         /// </summary>
         /// <param name="binary">The data to deserialized</param>
-        /// <returns>A <see cref="Dictionary"/> with all key/value pairs found
+        /// <returns>A <see cref="System.Collections.Generic.Dictionary&lt;TKey, TValue&gt;"/> with all key/value pairs found
         /// in the given binary.</returns>
         public static Dictionary<string, string> ToDictionary(byte[] binary)
         {
@@ -145,7 +150,7 @@ namespace Starcounter.Internal
         /// of the factory methods, e.g <see cref="FromDictionary"/>.
         /// </summary>
         /// <param name="content">The string to deserialize</param>
-        /// <returns>A <see cref="Dictionary"/> with all key/value pairs found
+        /// <returns>A <see cref="System.Collections.Generic.Dictionary&lt;TKey, TValue&gt;"/> with all key/value pairs found
         /// in the given string.</returns>
         public static Dictionary<string, string> ToDictionary(string content)
         {
@@ -160,7 +165,7 @@ namespace Starcounter.Internal
         /// </summary>
         /// <seealso cref="ToArray()"/>
         /// <param name="content">The serialized content to deserialize.</param>
-        /// <returns>A <see cref="string[]"/> with all values found in the
+        /// <returns>A <see cref="T:string[]"/> with all values found in the
         /// serialized instance of <see cref="KeyValueBinary"/> represented by
         /// the given <paramref name="content"/>.</returns>
         public static string[] ToArray(string content)
@@ -182,7 +187,7 @@ namespace Starcounter.Internal
 
         /// <summary>
         /// Returns the value of the current <see cref="KeyValueBinary"/>
-        /// as a <see cref="Dictionary"/>.
+        /// as a <see cref="System.Collections.Generic.Dictionary&lt;TKey, TValue&gt;"/>.
         /// </summary>
         /// <returns></returns>
         public Dictionary<string, string> ToDictionary()
@@ -195,7 +200,7 @@ namespace Starcounter.Internal
         /// using one of the factory methods, usually <see cref="FromArray(object[])"/>.
         /// </summary>
         /// <returns>
-        /// A <see cref="string[]"/> with all values found in the current serialized
+        /// A <see cref="T:string[]"/> with all values found in the current serialized
         /// instance of <see cref="KeyValueBinary"/>. Keys are ignored.
         /// </returns>
         public string[] ToArray()
@@ -203,6 +208,11 @@ namespace Starcounter.Internal
             return KeyValueBinary.ToArray(this.Value);
         }
 
+        /// <summary>
+        /// Parses the content.
+        /// </summary>
+        /// <param name="content">The content.</param>
+        /// <param name="receiver">The receiver.</param>
         static void ParseContent(string content, Action<string, string> receiver)
         {
             int contentLength;
@@ -233,6 +243,12 @@ namespace Starcounter.Internal
             }
         }
 
+        /// <summary>
+        /// Serializes the key value pair.
+        /// </summary>
+        /// <param name="builder">The builder.</param>
+        /// <param name="key">The key.</param>
+        /// <param name="value">The value.</param>
         static void SerializeKeyValuePair(StringBuilder builder, string key, string value)
         {
             Trace.Assert(!key.Contains(KeyValueBinary.Delimiter));
@@ -250,6 +266,11 @@ namespace Starcounter.Internal
             }
         }
 
+        /// <summary>
+        /// Appends the terminator and convert to string.
+        /// </summary>
+        /// <param name="buffer">The buffer.</param>
+        /// <returns>System.String.</returns>
         static string AppendTerminatorAndConvertToString(StringBuilder buffer)
         {
             buffer.Append("000");

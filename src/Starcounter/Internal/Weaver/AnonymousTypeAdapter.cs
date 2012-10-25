@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="AnonymousTypeAdapter.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System;
 using System.Collections.Generic;
@@ -6,19 +11,44 @@ using System.Text;
 using System.Collections;
 
 namespace Starcounter.Internal.Weaver {
+    /// <summary>
+    /// Interface IAnonymousType
+    /// </summary>
     public interface IAnonymousType {
+        /// <summary>
+        /// Gets the underlying object.
+        /// </summary>
+        /// <value>The underlying object.</value>
         IObjectView UnderlyingObject {
             get;
         }
     }
 
+    /// <summary>
+    /// Class AnonymousTypeAdapter
+    /// </summary>
     public sealed class AnonymousTypeAdapter {
+        /// <summary>
+        /// The indices
+        /// </summary>
         private readonly int[] indices;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AnonymousTypeAdapter" /> class.
+        /// </summary>
+        /// <param name="indices">The indices.</param>
         public AnonymousTypeAdapter(int[] indices) {
             this.indices = indices;
         }
 
+        /// <summary>
+        /// Gets the property.
+        /// </summary>
+        /// <param name="objectView">The object view.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="targetType">Type of the target.</param>
+        /// <returns>System.Object.</returns>
+        /// <exception cref="System.NotImplementedException"></exception>
         public object GetProperty(IObjectView objectView, int index, Type targetType) {
             int resolvedIndex = ResolveIndex(index);
             // Determine whether the type is nullable and get the underlying type.
@@ -72,10 +102,22 @@ namespace Starcounter.Internal.Weaver {
             }
         }
 
+        /// <summary>
+        /// Resolves the index.
+        /// </summary>
+        /// <param name="index">The index.</param>
+        /// <returns>System.Int32.</returns>
         public int ResolveIndex(int index) {
             return indices[index];
         }
 
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value">The value.</param>
+        /// <param name="targetIsNullable">if set to <c>true</c> [target is nullable].</param>
+        /// <returns>System.Object.</returns>
         private static object GetValue<T>(T? value, bool targetIsNullable) where T : struct {
             return targetIsNullable ? (object)value : value.Value;
         }

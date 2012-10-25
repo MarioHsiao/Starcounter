@@ -1,14 +1,33 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="AstIfCallSub.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System.Text;
 namespace Starcounter.Internal.Uri {
+    /// <summary>
+    /// Class AstIfCallSub
+    /// </summary>
     internal class AstIfCallSub : AstNode {
 
+        /// <summary>
+        /// Gets or sets the rp class.
+        /// </summary>
+        /// <value>The rp class.</value>
         internal AstRequestProcessorClass RpClass { get; set; }
+        /// <summary>
+        /// Gets or sets the parse node.
+        /// </summary>
+        /// <value>The parse node.</value>
         internal ParseNode ParseNode { get; set; }
 
 //        internal string Statement { get; set; }
 
+        /// <summary>
+        /// Gets the debug string.
+        /// </summary>
+        /// <value>The debug string.</value>
         internal override string DebugString {
             get {
                 string str;

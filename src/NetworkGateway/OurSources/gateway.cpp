@@ -61,12 +61,6 @@ Gateway::Gateway()
     // Maximum total number of sockets.
     setting_maxConnections_ = 0;
 
-    // Maximum number of same operations processed in a queue.
-    setting_max_same_ops_in_queue_ = 1000;
-
-    // Maximum amount of overlapped structures fetched at once.
-    setting_max_fetched_ovls_ = 1000;
-
     // Starcounter server type.
     setting_sc_server_type_ = "Personal";
 
@@ -90,7 +84,6 @@ Gateway::Gateway()
     num_schedulers_ = 0;
 
     server_addr_ = NULL;
-    global_sleep_ms_ = 0;
 
     // Initializing critical sections.
     InitializeCriticalSection(&cs_session_);
@@ -326,13 +319,17 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     }
 
     // Allocating data for worker sessions.
-    all_sessions_unsafe_ = new SessionData[setting_maxConnections_];
-    free_session_indexes_unsafe_ = new int32_t[setting_maxConnections_];
+    all_sessions_unsafe_ = new ScSessionStruct[setting_maxConnections_];
+    all_sockets_unsafe_ = new SocketData[setting_maxConnections_];
+    free_session_indexes_unsafe_ = new uint32_t[setting_maxConnections_];
     num_active_sessions_unsafe_ = 0;
 
     // Filling up indexes linearly.
     for (int32_t i = 0; i < setting_maxConnections_; i++)
+    {
+        all_sockets_unsafe_[i].Reset();
         free_session_indexes_unsafe_[i] = i;
+    }
 
     delete [] config_contents;
     return 0;
@@ -400,6 +397,43 @@ uint32_t Gateway::CreateNewConnectionsAllWorkers(int32_t how_many, uint16_t port
     {
         uint32_t errCode = gw_workers_[i].CreateNewConnections(how_many, port_index, db_index);
         GW_ERR_CHECK(errCode);
+    }
+
+    return 0;
+}
+
+// Stub APC function that does nothing.
+void __stdcall EmptyApcFunction(ULONG_PTR arg) {
+    // Does nothing.
+}
+
+// Database channels events monitor thread.
+uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
+{
+    // Index of the database as parameter.
+    int32_t db_index = *(int32_t*)params;
+
+    // TODO: Fix multiple workers events.
+    // Determine the worker by interface or channel,
+    // and wake up that worker.
+
+    WorkerDbInterface* db_int = g_gateway.get_worker(0/*WorkerId*/)->GetDatabase(db_index);
+    core::shared_interface* db_shared_int = db_int->get_shared_int();
+
+    // Waiting for all channels.
+    db_shared_int->client_interface().set_notify_flag(true);
+
+    // Sending APC on the determined worker.
+    HANDLE worker_thread_handle = g_gateway.get_worker_thread_handle(0/*WorkerId*/);
+
+    // Looping until the database dies (TODO, does not work, forcedly killed).
+    while (!g_gateway.GetDatabase(db_index)->IsEmpty())
+    {
+        // Waking up the worker thread with APC.
+        QueueUserAPC(EmptyApcFunction, worker_thread_handle, 0);
+
+        // Waiting forever for more events on channels.
+        db_shared_int->client_interface().wait_for_work(db_shared_int->client_work_event(), INFINITE);
     }
 
     return 0;
@@ -494,6 +528,15 @@ uint32_t Gateway::ScanDatabases()
                 }
             }
 
+            // Spawning channels events monitor.
+            err_code = active_databases_[empty_db_index].SpawnChannelsEventsMonitor();
+            if (err_code)
+            {
+                // Leaving global lock.
+                LeaveGlobalLock();
+                return err_code;
+            }
+
             // Leaving global lock.
             LeaveGlobalLock();
 
@@ -517,6 +560,9 @@ uint32_t Gateway::ScanDatabases()
 
             // Start database deletion.
             active_databases_[s].StartDeletion();
+
+            // Killing channels events monitor thread.
+            active_databases_[s].KillChannelsEventsMonitor();
 
             // Leaving global lock.
             LeaveGlobalLock();
@@ -618,6 +664,9 @@ void ActiveDatabase::CloseSockets()
 // Initializes WinSock, all core data structures, binds server sockets.
 uint32_t Gateway::Init()
 {
+    // Resetting session unique number.
+    unique_socket_stamp_ = 0;
+
     // Checking if already initialized.
     if ((gw_workers_ != NULL) || (worker_thread_handles_ != NULL))
     {
@@ -764,7 +813,7 @@ uint32_t Gateway::InitSharedMemory(std::string setting_databaseName,
     {
         // Failed to register this client process pid.
         GW_COUT << "Can't register client process, error code: " << error_code << std::endl;
-        return 1;
+        return error_code;
     }
 
     // Open the database shared memory segment.
@@ -811,6 +860,12 @@ void Gateway::SuspendWorker(GatewayWorker* gw)
     LeaveCriticalSection(&cs_global_lock_);
 }
 
+// Getting specific worker information.
+GatewayWorker* Gateway::get_worker(int32_t worker_id)
+{
+    return gw_workers_ + worker_id;
+}
+
 // Delete all information associated with given database from server ports.
 uint32_t Gateway::DeletePortsForDb(int32_t db_index)
 {
@@ -843,6 +898,9 @@ void Gateway::WaitAllWorkersSuspended()
 {
     int32_t num_worker_locked = 0;
 
+    // First waking up all workers.
+    WakeUpAllWorkers();
+
     // Waiting for all workers to suspend.
     while (num_worker_locked < setting_num_workers_)
     {
@@ -853,6 +911,20 @@ void Gateway::WaitAllWorkersSuspended()
             if (gw_workers_[i].worker_suspended())
                 num_worker_locked++;
         }
+    }
+}
+
+// Waking up all workers if they are sleeping.
+void Gateway::WakeUpAllWorkers()
+{
+    // Waking up all the workers if needed.
+    for (int32_t i = 0; i < g_gateway.setting_num_workers(); i++)
+    {
+        // Obtaining worker thread handle to call an APC event.
+        HANDLE worker_thread_handle = g_gateway.get_worker_thread_handle(i);
+
+        // Waking up the worker with APC.
+        QueueUserAPC(EmptyApcFunction, worker_thread_handle, 0);
     }
 }
 
@@ -879,6 +951,20 @@ uint32_t __stdcall GatewayWorkerRoutine(LPVOID params)
     return ((GatewayWorker *)params)->WorkerRoutine();
 }
 
+// Entry point for channels events monitor.
+uint32_t __stdcall AllDatabasesChannelsEventsMonitorRoutine(LPVOID params)
+{
+    /*while (1)
+    {
+        for (int32_t i = 0; i < g_gateway.get_num_dbs_slots(); i++)
+        {
+
+        }
+    }*/
+
+    return 0;
+}
+
 // Cleaning up all global resources.
 uint32_t Gateway::GlobalCleanup()
 {
@@ -901,16 +987,17 @@ uint32_t Gateway::GlobalCleanup()
 }
 
 // Create new session based on random salt, linear index, scheduler.
-void SessionData::GenerateNewSession(GatewayWorker *gw, uint32_t sessionIndex, uint32_t schedulerId)
+void ScSessionStruct::GenerateNewSession(
+    uint64_t salt,
+    uint32_t session_index,
+    uint64_t apps_unique_session_num,
+    uint32_t scheduler_id)
 {
-    session_struct_.Init(gw->Random->uint64(), sessionIndex, schedulerId);
-
-    num_visits_ = 0;
-    attached_socket_ = INVALID_SOCKET;
-    socket_stamp_ = gw->Random->uint64();
+    // Initializing the new session.
+    Init(salt, session_index, apps_unique_session_num, scheduler_id);
 
 #ifdef GW_SESSIONS_DIAG
-    GW_COUT << "New session generated: " << session_struct_.session_index_ << ":" << session_struct_.random_salt_ << std::endl;
+    GW_COUT << "New session generated: " << session_index_ << ":" << session_salt_ << std::endl;
 #endif
 }
 
@@ -988,12 +1075,6 @@ uint32_t Gateway::GatewayStatisticsAndMonitoringRoutine()
         double recv_bandwidth_mbit_total = ((diffBytesReceivedAllWorkers * 8) / 1000000.0);
         double send_bandwidth_mbit_total = ((diffBytesSentAllWorkers * 8) / 1000000.0);
 
-        // Calculating global sleep interval.
-        if ((diffRecvNumAllWorkers > 0) || (diffSentNumAllWorkers > 0))
-            global_sleep_ms_ = 0;
-        else
-            global_sleep_ms_ = 1;
-        
 #ifdef GW_GLOBAL_STATISTICS
 
         // Global statistics.
@@ -1041,7 +1122,8 @@ uint32_t Gateway::GatewayStatisticsAndMonitoringRoutine()
 // Starts gateway workers and statistics printer.
 uint32_t Gateway::StartWorkerAndManagementThreads(
     LPTHREAD_START_ROUTINE workerRoutine,
-    LPTHREAD_START_ROUTINE scanDbsRoutine)
+    LPTHREAD_START_ROUTINE scanDbsRoutine,
+    LPTHREAD_START_ROUTINE channelsEventsMonitorRoutine)
 {
     // Allocating threads-related data structures.
     uint32_t *workerThreadIds = new uint32_t[setting_num_workers_];
@@ -1076,6 +1158,17 @@ uint32_t Gateway::StartWorkerAndManagementThreads(
         NULL, // Argument to thread function.
         0, // Use default creation flags.
         (LPDWORD)&dbScanThreadId); // Returns the thread identifier.
+
+    uint32_t channelsEventsThreadId;
+
+    // Starting channels events monitor thread.
+    channels_events_thread_handle_ = CreateThread(
+        NULL, // Default security attributes.
+        0, // Use default stack size.
+        channelsEventsMonitorRoutine, // Thread function name.
+        NULL, // Argument to thread function.
+        0, // Use default creation flags.
+        (LPDWORD)&channelsEventsThreadId); // Returns the thread identifier.
 
     // Printing statistics.
     uint32_t err_code = g_gateway.GatewayStatisticsAndMonitoringRoutine();
@@ -1112,7 +1205,8 @@ int32_t Gateway::StartGateway()
     // Starting workers and statistics printer.
     errCode = StartWorkerAndManagementThreads(
         (LPTHREAD_START_ROUTINE)GatewayWorkerRoutine,
-        (LPTHREAD_START_ROUTINE)ScanDatabasesRoutine);
+        (LPTHREAD_START_ROUTINE)ScanDatabasesRoutine,
+        (LPTHREAD_START_ROUTINE)AllDatabasesChannelsEventsMonitorRoutine);
 
     if (errCode != 0)
         return errCode;

@@ -1,4 +1,10 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="CodeBehindAnalyzer.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -6,15 +12,18 @@ using Roslyn.Compilers.CSharp;
 
 namespace Starcounter.Internal.Application.CodeGeneration
 {
+    /// <summary>
+    /// Class CodeBehindAnalyzer
+    /// </summary>
     public static class CodeBehindAnalyzer
     {
         /// <summary>
         /// Parses the specified c# file using Roslyn and builds a metadata
         /// structure used to generate code for json Apps.
         /// </summary>
-        /// <param name="className"></param>
-        /// <param name="codeBehindFilename"></param>
-        /// <returns></returns>
+        /// <param name="className">Name of the class.</param>
+        /// <param name="codeBehindFilename">The code behind filename.</param>
+        /// <returns>CodeBehindMetadata.</returns>
         public static CodeBehindMetadata Analyze(string className, string codeBehindFilename)
         {
             SyntaxNode root;
@@ -38,13 +47,14 @@ namespace Starcounter.Internal.Application.CodeGeneration
 
             return new CodeBehindMetadata(ns, mapList, inputList);
         }
-        
+
         /// <summary>
         /// Gets the namespace for the class with the specified shortname.
         /// </summary>
-        /// <param name="className"></param>
-        /// <param name="root"></param>
-        /// <returns></returns>
+        /// <param name="className">Name of the class.</param>
+        /// <param name="root">The root.</param>
+        /// <returns>System.String.</returns>
+        /// <exception cref="System.Exception">No class with name </exception>
         private static string GetNamespaceForClass(string className, SyntaxNode root)
         {
             ClassDeclarationSyntax cd = FindClassDeclarationFor(className, root);
@@ -55,6 +65,11 @@ namespace Starcounter.Internal.Application.CodeGeneration
             return FindNamespaceForClassDeclaration(cd);
         }
 
+        /// <summary>
+        /// Finds the namespace for class declaration.
+        /// </summary>
+        /// <param name="cd">The cd.</param>
+        /// <returns>String.</returns>
         private static String FindNamespaceForClassDeclaration(ClassDeclarationSyntax cd)
         {
             StringBuilder nsBuilder;
@@ -79,9 +94,9 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <summary>
         /// Finds the Roslyn ClassDeclatation node for a class with the specified shortname.
         /// </summary>
-        /// <param name="className"></param>
-        /// <param name="current"></param>
-        /// <returns></returns>
+        /// <param name="className">Name of the class.</param>
+        /// <param name="current">The current.</param>
+        /// <returns>ClassDeclarationSyntax.</returns>
         private static ClassDeclarationSyntax FindClassDeclarationFor(string className, SyntaxNode current)
         {
             ClassDeclarationSyntax cd;
@@ -106,8 +121,8 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// Searches through the syntaxtree and adds all found info where an method
         /// that ís called 'Handle' with one parameter of type Input is declared.
         /// </summary>
-        /// <param name="node"></param>
-        /// <param name="list"></param>
+        /// <param name="node">The node.</param>
+        /// <param name="list">The list.</param>
         private static void FillListWithHandleInputInfo(SyntaxNode node, List<InputBindingInfo> list)
         {
             MethodDeclarationSyntax methodDecl;
@@ -132,8 +147,9 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// Creates a HandleInputInfo object and sets the fields with values from
         /// the specified MethodDeclaration node.
         /// </summary>
-        /// <param name="methodNode"></param>
-        /// <returns></returns>
+        /// <param name="methodNode">The method node.</param>
+        /// <returns>InputBindingInfo.</returns>
+        /// <exception cref="System.Exception">No return values are allowed in an app Handle method.</exception>
         private static InputBindingInfo GetHandleInputInfoFrom(MethodDeclarationSyntax methodNode)
         {
             ClassDeclarationSyntax classDecl;
@@ -164,9 +180,9 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// Searches through the syntaxtree and adds all found info where an attribute
         /// that starts with the classname is found.
         /// </summary>
-        /// <param name="className"></param>
-        /// <param name="node"></param>
-        /// <param name="list"></param>
+        /// <param name="className">Name of the class.</param>
+        /// <param name="node">The node.</param>
+        /// <param name="list">The list.</param>
         private static void FillListWithJsonMapInfo(String className, SyntaxNode node, List<JsonMapInfo> list)
         {
             AttributeSyntax attribute;
@@ -191,8 +207,8 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// Creates a JsonMapInfo object with values taken from the specified
         /// attributenode.
         /// </summary>
-        /// <param name="attributeNode"></param>
-        /// <returns></returns>
+        /// <param name="attributeNode">The attribute node.</param>
+        /// <returns>JsonMapInfo.</returns>
         private static JsonMapInfo GetJsonMapInfoFrom(AttributeSyntax attributeNode)
         {
             ClassDeclarationSyntax classDecl;
@@ -224,9 +240,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// Checks if the specified attribute node is an json map attribute. I.e
         /// starts with the classname.
         /// </summary>
-        /// <param name="attribute"></param>
-        /// <param name="className"></param>
-        /// <returns></returns>
+        /// <param name="attribute">The attribute.</param>
         private static Boolean IsJsonMapAttribute(AttributeSyntax attribute)
         {
             String attributeName = attribute.Name.ToString();
@@ -235,6 +249,11 @@ namespace Starcounter.Internal.Application.CodeGeneration
             return false;
         }
 
+        /// <summary>
+        /// Finds the class.
+        /// </summary>
+        /// <param name="fromNode">From node.</param>
+        /// <returns>ClassDeclarationSyntax.</returns>
         private static ClassDeclarationSyntax FindClass(SyntaxNode fromNode)
         {
             return fromNode.FirstAncestorOrSelf<ClassDeclarationSyntax>(_ => { return true; });

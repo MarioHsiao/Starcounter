@@ -1,9 +1,17 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="SqlException.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Collections.Generic;
 
 namespace Starcounter
 {
+    /// <summary>
+    /// Class SqlException
+    /// </summary>
 [Serializable]
 public class SqlException : Exception
 {
@@ -67,6 +75,11 @@ public class SqlException : Exception
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="info"></param>
+    /// <param name="context"></param>
     public override void GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
     {
         base.GetObjectData(info, context);
@@ -75,6 +88,11 @@ public class SqlException : Exception
         info.AddValue("endPosition", endPosition);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="info"></param>
+    /// <param name="context"></param>
     protected SqlException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
     : base(info, context)
     {

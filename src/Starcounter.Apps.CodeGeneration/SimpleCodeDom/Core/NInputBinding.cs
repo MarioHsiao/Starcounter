@@ -1,45 +1,66 @@
-﻿using System;
-using System.Text;
+﻿// ***********************************************************************
+// <copyright file="NInputBinding.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
-namespace Starcounter.Internal.Application.CodeGeneration
-{
+using System;
+using System.Text;
+using Starcounter.Templates;
+
+namespace Starcounter.Internal.Application.CodeGeneration {
     /// <summary>
     /// Defines an input handler in one app-class for a specified property.
     /// The handler can be declared either in the same class as the property
-    /// or a parent app or in several places where each handler is called 
+    /// or a parent app or in several places where each handler is called
     /// if the first one didn't handle it.
     /// </summary>
-    public class NInputBinding : NBase
-    {
+    public class NInputBinding : NBase {
         /// <summary>
         /// The property this binding binds to
         /// </summary>
+        /// <value>The binds to property.</value>
         public NProperty BindsToProperty { get; set; }
 
         /// <summary>
         /// The app where the property is declared.
         /// </summary>
+        /// <value>The property app class.</value>
         public NAppClass PropertyAppClass { get; set; }
 
         /// <summary>
         /// The App that declares the Handle-method. Might not be the same
         /// app as the property is declared in.
         /// </summary>
+        /// <value>The declaring app class.</value>
         public NAppClass DeclaringAppClass { get; set; }
 
         /// <summary>
         /// Count on how many parent calls are needed to go from the property
         /// appclass to the class where the handle method is declared.
         /// </summary>
+        /// <value>The app parent count.</value>
         public Int32 AppParentCount { get; set; }
 
         /// <summary>
         /// The full name of the Input-type for this binding.
         /// </summary>
+        /// <value>The name of the input type.</value>
         public String InputTypeName { get; set; }
 
-        public NInputBinding()
-        {
+        /// <summary>
+        /// If true the property is a valueproperty and not an action.
+        /// </summary>
+        public bool HasValue {
+            get {
+                return (!(BindsToProperty.Template is ActionProperty));
+            }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NInputBinding" /> class.
+        /// </summary>
+        public NInputBinding() {
 
         }
 

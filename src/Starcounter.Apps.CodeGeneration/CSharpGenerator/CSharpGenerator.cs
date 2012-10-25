@@ -1,14 +1,38 @@
-﻿using Starcounter.Templates.Interfaces;
+﻿// ***********************************************************************
+// <copyright file="CSharpGenerator.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using Starcounter.Templates.Interfaces;
 using System.Text;
 using System;
+using Starcounter.Templates;
 
 namespace Starcounter.Internal.Application.CodeGeneration  {
+    /// <summary>
+    /// Class CSharpGenerator
+    /// </summary>
     public class CSharpGenerator : ITemplateCodeGenerator {
+        /// <summary>
+        /// The output
+        /// </summary>
         internal StringBuilder Output = new StringBuilder();
 
+        /// <summary>
+        /// The root
+        /// </summary>
         public NRoot Root;
+        /// <summary>
+        /// Gets or sets the indentation.
+        /// </summary>
+        /// <value>The indentation.</value>
         public int Indentation { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CSharpGenerator" /> class.
+        /// </summary>
+        /// <param name="root">The root.</param>
         public CSharpGenerator(NRoot root ) {
             Root = root;
             Indentation = 4;
@@ -24,6 +48,12 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Dumps the tree.
+        /// </summary>
+        /// <param name="sb">The sb.</param>
+        /// <param name="node">The node.</param>
+        /// <param name="indent">The indent.</param>
         private void DumpTree( StringBuilder sb, NBase node, int indent ) {
             sb.Append(' ', indent);
             sb.AppendLine(node.ToString());
@@ -33,10 +63,9 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         }
 
         /// <summary>
-        /// Generates source code for the simple code dom tree generated from the Starcounter 
+        /// Generates source code for the simple code dom tree generated from the Starcounter
         /// application view document template.
         /// </summary>
-        /// <param name="root">The dom tree has a single root passed in here</param>
         /// <returns>The .cs source code as a string</returns>
         public string GenerateCode() {
             //return Old.GenerateCodeOld();
@@ -52,6 +81,10 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             return Output.ToString();
         }
 
+        /// <summary>
+        /// Processes all nodes.
+        /// </summary>
+        /// <exception cref="System.Exception">Unable to generate code. Invalid node found. Expected App but found: </exception>
         private void ProcessAllNodes() {
             NAppClass napp;
             NAppClass previousAppClass;
@@ -137,6 +170,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     }
                     else if (node is NAppTemplateClass) {
                         WriteAppTemplateConstructor((node as NAppTemplateClass).Constructor);
+                        WriteAppTemplateCreateInstance(node as NAppTemplateClass);
                     }
                 }
                 node.Suffix.Add("}");
@@ -154,6 +188,10 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             }
         }
 
+        /// <summary>
+        /// Writes the node.
+        /// </summary>
+        /// <param name="node">The node.</param>
         private void WriteNode( NBase node ) {
             foreach (var x in node.Prefix) {
                 Output.Append(' ', node.Indentation);
@@ -171,6 +209,10 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             }
         }
 
+        /// <summary>
+        /// Writes the app member prefix.
+        /// </summary>
+        /// <param name="m">The m.</param>
         private void WriteAppMemberPrefix(NProperty m) {
             var sb = new StringBuilder();
             sb.Append("public ");
@@ -202,6 +244,10 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             m.Prefix.Add(sb.ToString());
         }
 
+        /// <summary>
+        /// Writes the app class prefix.
+        /// </summary>
+        /// <param name="a">A.</param>
         private void WriteAppClassPrefix(NAppClass a) {
             a.Prefix.Add(
                 "    public static " +
@@ -246,6 +292,10 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         }
 
 
+        /// <summary>
+        /// Writes the app template member prefix.
+        /// </summary>
+        /// <param name="m">The m.</param>
         private void WriteAppTemplateMemberPrefix(NProperty m) {
             var sb = new StringBuilder();
             sb.Append("public ");
@@ -256,6 +306,10 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             m.Prefix.Add(sb.ToString());
         }
 
+        /// <summary>
+        /// Writes the app metadata member prefix.
+        /// </summary>
+        /// <param name="m">The m.</param>
         private void WriteAppMetadataMemberPrefix(NProperty m) {
             var sb = new StringBuilder();
             sb.Append("public ");
@@ -279,9 +333,21 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         }
 
         /// <summary>
+        /// Writes override method for creating default appinstance from template.
+        /// </summary>
+        /// <param name="node"></param>
+        private void WriteAppTemplateCreateInstance(NAppTemplateClass node) {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("    public override object CreateInstance(AppNode parent) { return new ");
+            sb.Append(node.NValueClass.ClassName);
+            sb.Append("() { Parent = parent }; }");
+            node.Prefix.Add(sb.ToString());
+        }
+
+        /// <summary>
         /// Writes the class declaration and constructor for an AppTemplate class
         /// </summary>
-        /// <param name="a">The class declaration syntax node</param>
+        /// <param name="cst">The CST.</param>
         private void WriteAppTemplateConstructor(NConstructor cst) {
             NAppTemplateClass a = (NAppTemplateClass)cst.Parent;
 
@@ -335,24 +401,53 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 "    }");
         }
 
+        /// <summary>
+        /// Gets the add input handler code.
+        /// </summary>
+        /// <param name="ib">The ib.</param>
+        /// <returns>String.</returns>
         private String GetAddInputHandlerCode(NInputBinding ib)
         {
+            bool hasValue = ib.HasValue;
             StringBuilder sb = new StringBuilder();
             sb.Append("        ");
             sb.Append(ib.BindsToProperty.Template.Name);       // {0}
-            sb.Append(".AddHandler((App app, Property<");
-            sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
-            sb.Append("> prop, ");
-            sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
-            sb.Append(" value) => { return (new ");
+            sb.Append(".AddHandler((App app, Property");
+
+            if (hasValue) {
+                sb.Append('<');
+                sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
+                sb.Append('>');
+            }
+            sb.Append(" prop");
+
+            if (hasValue) {
+                sb.Append(", ");
+                sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
+                sb.Append(" value");
+            }
+            sb.Append(") => { return (new ");
             sb.Append(ib.InputTypeName);                       // {2}
             sb.Append("() { App = (");
             sb.Append(ib.PropertyAppClass.ClassName);          // {3}
             sb.Append(")app, Template = (");
             sb.Append(ib.BindsToProperty.Type.ClassName);      // {4}
-            sb.Append(")prop, Value = value }); }, (App app, Input<");
-            sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
-            sb.Append("> Input) => { ((");
+            sb.Append(")prop");
+            
+            if (hasValue)
+            {
+                sb.Append(", Value = value");
+            }
+
+            sb.Append(" }); }, (App app, Starcounter.Input");
+
+            if (hasValue) {
+                sb.Append('<');
+                sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
+                sb.Append('>');
+            }
+
+            sb.Append(" input) => { ((");
             sb.Append(ib.DeclaringAppClass.ClassName);         // {5}
             sb.Append(")app");
 
@@ -363,7 +458,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
 
             sb.Append(").Handle((");
             sb.Append(ib.InputTypeName);                       // {2}
-            sb.Append(")Input); });");
+            sb.Append(")input); });");
 
             return sb.ToString();
         }
@@ -432,6 +527,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         /// Writes the header of the CSharp file, including using directives.
         /// </summary>
         /// <param name="fileName">The name of the original json file</param>
+        /// <param name="h">The h.</param>
         static internal void WriteHeader( string fileName, StringBuilder h ) {
             h.Append("// This is a system generated file. It reflects the Starcounter App Template defined in the file \"");
             h.Append(fileName);

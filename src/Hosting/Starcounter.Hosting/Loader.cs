@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="Loader.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Binding;
 using System;
 using System.Collections.Generic;
@@ -14,11 +19,21 @@ using Starcounter.Internal.Weaver;
 namespace StarcounterInternal.Hosting
 {
 
+    /// <summary>
+    /// Class BinBriefcase
+    /// </summary>
     internal class BinBriefcase
     {
 
+        /// <summary>
+        /// The assembly file infos by name_
+        /// </summary>
         private Dictionary<string, FileInfo> assemblyFileInfosByName_ = new Dictionary<string, FileInfo>();
 
+        /// <summary>
+        /// Adds from directory.
+        /// </summary>
+        /// <param name="inputDir">The input dir.</param>
         internal void AddFromDirectory(DirectoryInfo inputDir)
         {
             List<FileInfo> fileInfos = new List<FileInfo>();
@@ -40,6 +55,11 @@ namespace StarcounterInternal.Hosting
             }
         }
 
+        /// <summary>
+        /// Gets the assembly file.
+        /// </summary>
+        /// <param name="assemblyFileName">Name of the assembly file.</param>
+        /// <returns>FileInfo.</returns>
         internal FileInfo GetAssemblyFile(string assemblyFileName)
         {
             FileInfo ret;
@@ -48,17 +68,36 @@ namespace StarcounterInternal.Hosting
         }
     }
 
+    /// <summary>
+    /// Class LoaderException
+    /// </summary>
     public class LoaderException : Exception
     {
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LoaderException" /> class.
+        /// </summary>
+        /// <param name="message">The message.</param>
         public LoaderException(string message) : base(message) { }
     }
 
+    /// <summary>
+    /// Class Loader
+    /// </summary>
     public static class Loader
     {
 
+        /// <summary>
+        /// The private bin briefcase_
+        /// </summary>
         private static readonly BinBriefcase privateBinBriefcase_ = new BinBriefcase();
 
+        /// <summary>
+        /// Resolves the assembly.
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="args">The <see cref="ResolveEventArgs" /> instance containing the event data.</param>
+        /// <returns>Assembly.</returns>
         public static Assembly ResolveAssembly(object sender, ResolveEventArgs args)
         {
             Assembly assembly = null;
@@ -81,6 +120,10 @@ namespace StarcounterInternal.Hosting
             return assembly;
         }
 
+        /// <summary>
+        /// Adds the base package.
+        /// </summary>
+        /// <param name="hsched">The hsched.</param>
         public static unsafe void AddBasePackage(void* hsched)
         {
             TableDef systemTableDef;
@@ -158,7 +201,21 @@ namespace StarcounterInternal.Hosting
             package.Dispose();
         }
 
-        public static unsafe void ExecApp(void* hsched, string filePath)
+        /// <summary>
+        /// Execs the app.
+        /// </summary>
+        /// <param name="hsched">The hsched.</param>
+        /// <param name="filePath">The file path.</param>
+        /// <param name="workingDirectory">The logical working directory the assembly
+        /// will execute in.</param>
+        /// <param name="entrypointArguments">Arguments to be passed to the assembly
+        /// entrypoint, if any.</param>
+        /// <exception cref="StarcounterInternal.Hosting.LoaderException"></exception>
+        public static unsafe void ExecApp(
+            void* hsched, 
+            string filePath, 
+            string workingDirectory = null, 
+            string[] entrypointArguments = null)
         {
             try
             {
@@ -202,6 +259,11 @@ namespace StarcounterInternal.Hosting
             var assembly = Assembly.LoadFile(inputFile.FullName);
 
             Package package = new Package(unregisteredTypeDefs.ToArray(), assembly);
+            if (!string.IsNullOrEmpty(workingDirectory)) {
+                package.WorkingDirectory = workingDirectory;
+            }
+            package.EntrypointArguments = entrypointArguments;
+
             IntPtr hPackage = (IntPtr)GCHandle.Alloc(package, GCHandleType.Normal);
 
             uint e = sccorelib.cm2_schedule(

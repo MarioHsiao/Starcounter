@@ -1,4 +1,10 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="TellServerToStartMe.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
@@ -14,6 +20,9 @@ namespace Starcounter.Internal.ExeModule
     /// </summary>
     public class TellServerToStartMe
     {
+        /// <summary>
+        /// Tells the server.
+        /// </summary>
         public static void TellServer()
         {
             // TODO: Establish connection to boot!
@@ -72,6 +81,14 @@ namespace Starcounter.Internal.ExeModule
             //RegisterApp(appName, fileSpec, workingDir, args);
         }
 
+        /// <summary>
+        /// Registers the app.
+        /// </summary>
+        /// <param name="appName">Name of the app.</param>
+        /// <param name="dllOrExePath">The DLL or exe path.</param>
+        /// <param name="workingDir">The working dir.</param>
+        /// <param name="startupArgs">The startup args.</param>
+        /// <exception cref="System.ArgumentNullException">appName</exception>
         public static void RegisterApp(String appName, String dllOrExePath, String workingDir, String[] startupArgs)
         {
             if (appName == null) throw new ArgumentNullException("appName");
@@ -102,6 +119,14 @@ namespace Starcounter.Internal.ExeModule
         }
 
         // Use DllImport to import the Win32 MessageBox function.
+        /// <summary>
+        /// Messages the box.
+        /// </summary>
+        /// <param name="hWnd">The h WND.</param>
+        /// <param name="text">The text.</param>
+        /// <param name="caption">The caption.</param>
+        /// <param name="type">The type.</param>
+        /// <returns>System.Int32.</returns>
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         public static extern int MessageBox(IntPtr hWnd, String text, String caption, uint type);
     }

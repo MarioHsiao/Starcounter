@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ExceptionFactory.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.IO;
 using System.Security;
@@ -127,6 +132,12 @@ namespace Starcounter.Internal
             return DecorateException(ex, errorCode);
         }
 
+        /// <summary>
+        /// Decorates the exception.
+        /// </summary>
+        /// <param name="exception">The exception.</param>
+        /// <param name="errorCode">The error code.</param>
+        /// <returns>Exception.</returns>
         protected Exception DecorateException(Exception exception, uint errorCode)
         {
             return ErrorCode.DecorateException(exception, errorCode);

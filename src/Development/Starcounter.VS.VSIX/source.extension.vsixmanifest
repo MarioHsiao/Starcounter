@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Vsix xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="1.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2010">
+  <Identifier Id="Starcounter.VS.VSIX.DCCF9B11-E0CD-4D4F-BCE6-55EEA5AA1325">
+    <Name>Starcounter VS2012</Name>
+    <Author>Starcounter</Author>
+    <Version>1.0</Version>
+    <Description xml:space="preserve">A Visual Studio 2012 extension aiding developers of Starcounter applications to easily build and debug their projects.</Description>
+    <Locale>1033</Locale>
+    <MoreInfoUrl>http://www.starcounter.com/wiki/MoreInfoAboutExtension11</MoreInfoUrl>
+    <GettingStartedGuide>http://www.starcounter.com/wiki/GettingStartedFromExtension11</GettingStartedGuide>
+    <Icon>Starcounter.ico</Icon>
+    <PreviewImage>StarcounterLogo.jpg</PreviewImage>
+    <SupportedProducts>
+      <VisualStudio Version="11.0">
+        <Edition>Pro</Edition>
+        <Edition>Premium</Edition>
+        <Edition>Ultimate</Edition>
+      </VisualStudio>
+    </SupportedProducts>
+    <SupportedFrameworkRuntimeEdition MinVersion="4.0" MaxVersion="4.5"/>
+  </Identifier>
+  <References/>
+  <Content>
+    <VsPackage>Starcounter.VisualStudio.pkgdef</VsPackage>
+    <ProjectTemplate>ProjectTemplates</ProjectTemplate>
+  </Content>
+</Vsix>

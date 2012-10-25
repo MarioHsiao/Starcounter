@@ -1,6 +1,12 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="Control.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
 using Starcounter.CommandLine;
 using Starcounter; // TODO:
 using Starcounter.ABCIPC;
@@ -12,11 +18,21 @@ using Error = Starcounter.Internal.Error;
 
 namespace StarcounterInternal.Bootstrap
 {
+    /// <summary>
+    /// Class Control
+    /// </summary>
     public class Control // TODO: Make internal.
     {
         // Loaded configuration info.
+        /// <summary>
+        /// The configuration
+        /// </summary>
         Configuration configuration = null;
 
+        /// <summary>
+        /// Defines the entry point of the application.
+        /// </summary>
+        /// <param name="args">The args.</param>
         public static void Main(string[] args)
         {
             try
@@ -36,9 +52,28 @@ namespace StarcounterInternal.Bootstrap
             }
         }
 
+        /// <summary>
+        /// The withdb_
+        /// </summary>
         private bool withdb_;
+        /// <summary>
+        /// The hsched_
+        /// </summary>
         private unsafe void* hsched_;
 
+        /// <summary>
+        /// The <see cref="Server"/> used as the interface to support local
+        /// requests such as the hosting/exeuting of executables and to handle
+        /// our servers management demands.
+        /// </summary>
+        /// <see cref="Control.ConfigureHost"/>
+        private Server server;
+
+        /// <summary>
+        /// Setups the specified args.
+        /// </summary>
+        /// <param name="args">The args.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         private unsafe bool Setup(string[] args)
         {
 #if false
@@ -74,13 +109,13 @@ namespace StarcounterInternal.Bootstrap
             ulong hmenv = ConfigureMemory(configuration, mem);
             mem += 512;
 
-            // Initializing the BMX manager if we have network applications.
-            if (configuration.NetworkApps)
+            // Initializing the BMX manager if network gateway is used.
+            if (!configuration.NoNetworkGateway)
                 bmx.sc_init_bmx_manager();
 
             ulong hlogs = ConfigureLogging(configuration, hmenv);
 
-            ConfigureHost(hlogs);
+            ConfigureHost(configuration, hlogs);
 
             hsched_ = ConfigureScheduler(configuration, mem, hmenv, schedulerCount);
             mem += (1024 + (schedulerCount * 512));
@@ -101,6 +136,9 @@ namespace StarcounterInternal.Bootstrap
             return true;
         }
 
+        /// <summary>
+        /// Starts this instance.
+        /// </summary>
         private unsafe void Start()
         {
             uint e = sccorelib.cm2_start(hsched_);
@@ -108,34 +146,20 @@ namespace StarcounterInternal.Bootstrap
             throw ErrorCode.ToException(e);
         }
 
+        /// <summary>
+        /// Runs this instance.
+        /// </summary>
         private unsafe void Run()
         {
             var appDomain = AppDomain.CurrentDomain;
             appDomain.AssemblyResolve += new ResolveEventHandler(Loader.ResolveAssembly);
-            Server server;
-
-            // Create the server.
-            // If input has not been redirected, we let the server accept
-            // requests in a simple text format from the console.
-            // 
-            // If the input has been redirected, we force the parent process
-            // to use the "real" API's (i.e. the Client), just as the server
-            // will do, once it has been moved into Orange.
-
-            if (!Console.IsInputRedirected)
-            {
-                server = ClientServerFactory.CreateServerUsingConsole();
-            }
-            else
-            {
-                server = new Server(Console.In.ReadLine, delegate(string reply, bool endsRequest) {
-                    Console.Out.WriteLine(reply);
-                });
-            }
 
             // Install handlers for the type of requests we accept.
 
-            // Handles execution requests for Apps
+            // Handles execution requests for executables that support
+            // lauching into Starcounter from the OS shell. This handler
+            // requires only a single parameter - the path to the assembly
+            // file - and will use the defaults based on that.
             server.Handle("Exec", delegate(Request r)
             {
                 try
@@ -148,25 +172,39 @@ namespace StarcounterInternal.Bootstrap
                 }
             });
 
-            // Some test handlers to show a little more.
-            // To be removed.
+            server.Handle("Exec2", delegate(Request r) {
+                try {
+                    var properties = r.GetParameter<Dictionary<string, string>>();
+                    string assemblyPath = properties["AssemblyPath"];
+                    string workingDirectory = null;
+                    string argsString = null;
+                    string[] args = null;
+
+                    properties.TryGetValue("WorkingDir", out workingDirectory);
+                    if (properties.TryGetValue("Args", out argsString)) {
+                        args = KeyValueBinary.ToArray(argsString);
+                    }
+
+                    Loader.ExecApp(hsched_, assemblyPath, workingDirectory, args);
+
+                } catch (LoaderException ex) {
+                    r.Respond(false, ex.Message);
+                }
+            });
+
+            // Ping, allowing clients to check the responsiveness of the
+            // code host.
 
             server.Handle("Ping", delegate(Request request)
             {
                 request.Respond(true);
             });
 
-            server.Handle("Echo", delegate(Request request)
-            {
-                var response = request.GetParameter<string>();
-                request.Respond(response ?? "<NULL>");
-            });
-
             if (withdb_) Loader.AddBasePackage(hsched_);
 
             // TODO: Fix the proper BMX push channel registration with gateway.
             // Waiting until BMX component is ready.
-            if (configuration.NetworkApps)
+            if (!configuration.NoNetworkGateway)
                 bmx.sc_wait_for_bmx_ready();
 
             // Executing auto-start task if any.
@@ -181,6 +219,9 @@ namespace StarcounterInternal.Bootstrap
             server.Receive();
         }
 
+        /// <summary>
+        /// Stops this instance.
+        /// </summary>
         private unsafe void Stop()
         {
             uint e = sccorelib.cm2_stop(hsched_, 1);
@@ -188,13 +229,23 @@ namespace StarcounterInternal.Bootstrap
             throw ErrorCode.ToException(e);
         }
 
+        /// <summary>
+        /// Cleanups this instance.
+        /// </summary>
         private void Cleanup()
         {
             DisconnectDatabase();
         }
 
+        /// <summary>
+        /// The process control_
+        /// </summary>
         private System.Threading.EventWaitHandle processControl_;
 
+        /// <summary>
+        /// Assures the name of the no other process with the same.
+        /// </summary>
+        /// <param name="c">The c.</param>
         private void AssureNoOtherProcessWithTheSameName(Configuration c)
         {
             try
@@ -214,6 +265,11 @@ namespace StarcounterInternal.Bootstrap
             throw ErrorCode.ToException(Error.SCERRAPPALREADYSTARTED);
         }
 
+        /// <summary>
+        /// Calculates the amount of memory needed for runtime environment.
+        /// </summary>
+        /// <param name="schedulerCount">The scheduler count.</param>
+        /// <returns>System.UInt32.</returns>
         private uint CalculateAmountOfMemoryNeededForRuntimeEnvironment(uint schedulerCount)
         {
             uint s =
@@ -232,6 +288,12 @@ namespace StarcounterInternal.Bootstrap
             return s;
         }
 
+        /// <summary>
+        /// Configures the memory.
+        /// </summary>
+        /// <param name="c">The c.</param>
+        /// <param name="mem128">The mem128.</param>
+        /// <returns>System.UInt64.</returns>
         private unsafe ulong ConfigureMemory(Configuration c, void* mem128)
         {
             uint slabs = (0xFFFFF000 - 4096) / 4096;  // 4 GB - 4 KB
@@ -240,6 +302,12 @@ namespace StarcounterInternal.Bootstrap
             throw ErrorCode.ToException(Error.SCERROUTOFMEMORY);
         }
 
+        /// <summary>
+        /// Configures the logging.
+        /// </summary>
+        /// <param name="c">The c.</param>
+        /// <param name="hmenv">The hmenv.</param>
+        /// <returns>System.UInt64.</returns>
         private unsafe ulong ConfigureLogging(Configuration c, ulong hmenv)
         {
             uint e;
@@ -257,14 +325,55 @@ namespace StarcounterInternal.Bootstrap
             return hlogs;
         }
 
-        private unsafe void ConfigureHost(ulong hlogs)
+        /// <summary>
+        /// Configures the host.
+        /// </summary>
+        /// <param name="configuration">The <see cref="Configuration"/> to use when
+        /// configuring the host.</param>
+        /// <param name="hlogs">The hlogs.</param>
+        private unsafe void ConfigureHost(Configuration configuration, ulong hlogs)
         {
             uint e = sccoreapp.sccoreapp_init((void*)hlogs);
             if (e != 0) throw ErrorCode.ToException(e);
 
             LogManager.Setup(hlogs);
+
+            // Decide what interface to expose locally, to handle requests
+            // from the server and from executables being loaded from the
+            // shell.
+            //   Currently, named pipes is the standard means.
+
+            if (!configuration.UseConsole) {
+                var pipeName = ScUriExtensions.MakeLocalDatabasePipeString(configuration.ServerName, configuration.Name);
+                server = ClientServerFactory.CreateServerUsingNamedPipes(pipeName);
+
+            } else {
+                // Expose services via standard streams.
+                //
+                // If input has not been redirected, we let the server accept
+                // requests in a simple text format from the console.
+                // 
+                // If the input has been redirected, we force the parent process
+                // to use the "real" API's (i.e. the Client) and expose our
+                // services "raw" on the standard streams.
+
+                if (!Console.IsInputRedirected) {
+                    server = ClientServerFactory.CreateServerUsingConsole();
+                } else {
+                    server = new Server(Console.In.ReadLine, (string reply, bool endsRequest) => {
+                        Console.Out.WriteLine(reply);
+                    });
+                }
+            }
         }
 
+        /// <summary>
+        /// Configures the scheduler.
+        /// </summary>
+        /// <param name="c">The c.</param>
+        /// <param name="mem">The mem.</param>
+        /// <param name="hmenv">The hmenv.</param>
+        /// <param name="schedulerCount">The scheduler count.</param>
         private unsafe void* ConfigureScheduler(Configuration c, void* mem, ulong hmenv, uint schedulerCount)
         {
             if (withdb_) orange.orange_setup(hmenv);
@@ -295,6 +404,10 @@ namespace StarcounterInternal.Bootstrap
             throw ErrorCode.ToException(e);
         }
 
+        /// <summary>
+        /// Configures the database.
+        /// </summary>
+        /// <param name="c">The c.</param>
         private unsafe void ConfigureDatabase(Configuration c)
         {
             uint e;
@@ -330,6 +443,13 @@ namespace StarcounterInternal.Bootstrap
             if (e != 0) throw ErrorCode.ToException(e);
         }
 
+        /// <summary>
+        /// Connects the database.
+        /// </summary>
+        /// <param name="configuration">The configuration.</param>
+        /// <param name="hsched">The hsched.</param>
+        /// <param name="hmenv">The hmenv.</param>
+        /// <param name="hlogs">The hlogs.</param>
         private unsafe void ConnectDatabase(Configuration configuration, void* hsched, ulong hmenv, ulong hlogs)
         {
             uint e;
@@ -350,6 +470,9 @@ namespace StarcounterInternal.Bootstrap
         }
 
 
+        /// <summary>
+        /// Disconnects the database.
+        /// </summary>
         private void DisconnectDatabase()
         {
             uint e = sccoredb.sccoredb_disconnect(0);

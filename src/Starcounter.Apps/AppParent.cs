@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="AppParent.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Templates.Interfaces;
 using System;
 
@@ -21,8 +26,16 @@ namespace Starcounter {
     {
 
 
+        /// <summary>
+        /// The _ template
+        /// </summary>
         internal ParentTemplate _Template;
 
+        /// <summary>
+        /// The schema element of this app instance
+        /// </summary>
+        /// <value>The template.</value>
+        /// <exception cref="System.Exception">Template is already set for App. Cannot change template once it is set</exception>
         public IParentTemplate Template {
             set {
                 if (_Template != null) {
@@ -43,16 +56,31 @@ namespace Starcounter {
         }
 
 #if QUICKTUPLE
+        /// <summary>
+        /// _s the initialize values.
+        /// </summary>
         protected virtual void _InitializeValues() {
         }
 
 #endif
+        /// <summary>
+        /// Called when [set parent].
+        /// </summary>
+        /// <param name="child">The child.</param>
         internal virtual void OnSetParent(AppNode child) {
             child._parent = this;
         }
 
+        /// <summary>
+        /// The _parent
+        /// </summary>
         internal AppNode _parent;
 
+        /// <summary>
+        /// Gets or sets the parent.
+        /// </summary>
+        /// <value>The parent.</value>
+        /// <exception cref="System.Exception">Cannot change parent in Apps</exception>
         public AppNode Parent {
             get {
                 return _parent;
@@ -65,6 +93,10 @@ namespace Starcounter {
             }
         }
 
+        /// <summary>
+        /// Gets or sets the parent.
+        /// </summary>
+        /// <value>The parent.</value>
         IAppNode IAppNode.Parent {
             get {
                 return Parent;
@@ -82,6 +114,7 @@ namespace Starcounter {
         /// <summary>
         /// Returns the depth of this AppNode.
         /// </summary>
+        /// <value>The index path depth.</value>
         internal int IndexPathDepth
         {
             get
@@ -98,6 +131,7 @@ namespace Starcounter {
         /// Returns the depth of any child for this AppNode. Since all children
         /// will have the same depth, a specific childinstance is not needed.
         /// </summary>
+        /// <value>The child path depth.</value>
         internal int ChildPathDepth
         {
             get { return IndexPathDepth + 1; }
@@ -107,7 +141,8 @@ namespace Starcounter {
         /// Returns an array of indexes starting from the rootapp on how to get
         /// to this specific instance.
         /// </summary>
-        public Int32[] IndexPath
+        /// <value>The index path.</value>
+        internal Int32[] IndexPath
         {
             get
             {
@@ -122,8 +157,8 @@ namespace Starcounter {
         /// Returns an array of indexes starting from the rootapp on how to get
         /// the instance of the specified template.
         /// </summary>
-        /// <param name="template"></param>
-        /// <returns></returns>
+        /// <param name="template">The template.</param>
+        /// <returns>Int32[][].</returns>
         internal Int32[] IndexPathFor(Template template)
         {
             Int32[] path = new Int32[ChildPathDepth];
@@ -132,6 +167,11 @@ namespace Starcounter {
             return path;
         }
 
+        /// <summary>
+        /// Fills the index path.
+        /// </summary>
+        /// <param name="path">The path.</param>
+        /// <param name="pos">The pos.</param>
         internal virtual void FillIndexPath(Int32[] path, Int32 pos)
         {
             path[pos] = Template.Index;

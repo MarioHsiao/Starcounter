@@ -1,4 +1,10 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="ParseNode.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,9 +16,7 @@ namespace Starcounter.Internal.Uri {
     /// code to quickly and efficient find the correct code to execute when
     /// a http call (or other verb+uri call) comes in to the server.
     /// </summary>
-    /// <remarks>
-    /// 
-    /// Example:
+    /// <remarks>Example:
     /// There are three handlers that looks like follows:
     /// 
     /// "GET /mydemo/foo"
@@ -35,12 +39,11 @@ namespace Starcounter.Internal.Uri {
     ///                 { Match:'y'}
     ///             ]}
     ///         ]
-    /// }
-    /// </remarks>
+    /// }</remarks>
     public partial class ParseNode {
 
         /// <summary>
-        /// The parse tree uses Children and Parent to allow traversing up (Parent) or down (Candidates) 
+        /// The parse tree uses Children and Parent to allow traversing up (Parent) or down (Candidates)
         /// the tree. Each element in the Candidates list will have its parent set to this object.
         /// </summary>
         internal ParseNode Parent;
@@ -58,8 +61,10 @@ namespace Starcounter.Internal.Uri {
 
         /// <summary>
         /// Categorizes the node in order to make the generation of the abstract syntax tree (AST)
-        /// easier. 
+        /// easier.
         /// </summary>
+        /// <value>The type of the detected.</value>
+        /// <exception cref="System.Exception"></exception>
         internal NodeType DetectedType {
             get {
 //                return NodeType.CharMatchNode;
@@ -76,8 +81,15 @@ namespace Starcounter.Internal.Uri {
                 throw new Exception();
             }
         }
+        /// <summary>
+        /// The empty parse types
+        /// </summary>
         static readonly string[] EmptyParseTypes = new string[0];
 
+        /// <summary>
+        /// Gets the handler.
+        /// </summary>
+        /// <value>The handler.</value>
         internal RequestProcessorMetaData Handler {
             get {
                 if (HandlerIndex == -1)
@@ -90,6 +102,8 @@ namespace Starcounter.Internal.Uri {
         /// If this node is a  '@' node (i.e. a parent parse node), this method will return
         /// a list of types that should be parsed.
         /// </summary>
+        /// <value>The parse types.</value>
+        /// <exception cref="System.NotImplementedException">Implement more types</exception>
         internal IEnumerable<string> ParseTypes {
             get {
                 if (IsParseNode) {
@@ -114,10 +128,11 @@ namespace Starcounter.Internal.Uri {
 
         /// <summary>
         /// A parse node ('@' node) is followed by a parse type node (i.e. 'i', 's', etc).
-        /// For example, in the template "GET /players/{?}" and the handler lambda (string name) => {...},
+        /// For example, in the template "GET /players/{?}" and the handler lambda (string name) =&gt; {...},
         /// the prepared template will evaluate to "GET /players/@s". In this example, this node
         /// would be corresponsing to the character 'i'.
         /// </summary>
+        /// <value><c>true</c> if this instance is parse type node; otherwise, <c>false</c>.</value>
         internal bool IsParseTypeNode {
             get {
                 return (Parent != null && Parent.Match=='@' );
@@ -126,10 +141,11 @@ namespace Starcounter.Internal.Uri {
 
         /// <summary>
         /// A parse node ('@' node) represents variable to be parsed using a specific type.
-        /// For example, in the template "GET /players/{?}" and the handler lambda (string name) => {...},
+        /// For example, in the template "GET /players/{?}" and the handler lambda (string name) =&gt; {...},
         /// the prepared template will evaluate to "GET /players/@s". In this example, this node
         /// would be corresponsing to the character '@'.
         /// </summary>
+        /// <value><c>true</c> if this instance is parse node; otherwise, <c>false</c>.</value>
         internal bool IsParseNode {
             get {
                 return (Match == '@');
@@ -140,6 +156,7 @@ namespace Starcounter.Internal.Uri {
         /// All the handlers in the top level processor. This is the list used
         /// by the HandlerIndex property.
         /// </summary>
+        /// <value>All handlers.</value>
         internal List<RequestProcessorMetaData> AllHandlers { get; set; }
 
         /// <summary>
@@ -182,6 +199,7 @@ namespace Starcounter.Internal.Uri {
         /// <summary>
         /// The index relative to the first character of the verb and uri template
         /// </summary>
+        /// <value>The match parse char in template relative to switch.</value>
         internal int MatchParseCharInTemplateRelativeToSwitch {
             get {
                 if (Parent == null || DetectedType == NodeType.CharMatchNode)
@@ -209,6 +227,7 @@ namespace Starcounter.Internal.Uri {
         /// <summary>
         /// The index relative to the first character of the verb and uri template
         /// </summary>
+        /// <value>The match char in template absolute.</value>
         internal int MatchCharInTemplateAbsolute {
             get {
                 if (Parent != null)
@@ -228,7 +247,7 @@ namespace Starcounter.Internal.Uri {
         /// any leaf not, its use is limited to retrieve the VerbAndUri text
         /// in the part that is identical in all candidates.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>RequestProcessorMetaData.</returns>
         private RequestProcessorMetaData GetAnyCandidateHandler() {
             if (HandlerIndex != -1)
                 return AllHandlers[HandlerIndex];
@@ -239,6 +258,7 @@ namespace Starcounter.Internal.Uri {
         /// If true, this node (and also all of its siblings) represents a bransch of
         /// differentiating characters at a specific location in a sequence of the template.
         /// </summary>
+        /// <value><c>true</c> if this instance is char match node; otherwise, <c>false</c>.</value>
         internal bool IsCharMatchNode {
             get {
                 return (Match != 0 && !IsParseNode && !Parent.IsParseNode);

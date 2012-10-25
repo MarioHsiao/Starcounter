@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="KnownTypeAttribute.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System;
 using Starcounter;
@@ -21,28 +26,55 @@ namespace Starcounter.Internal.Weaver {
     //      Introduce possibility to force and/or suggest index for a field
     //      For the entity class, it must be forced.
 
+    /// <summary>
+    /// Enum WeaverDirectives
+    /// </summary>
     [Flags]
     public enum WeaverDirectives {
+        /// <summary>
+        /// The none
+        /// </summary>
         None = 0,
+        /// <summary>
+        /// The exclude constraint validation
+        /// </summary>
         ExcludeConstraintValidation = 0x01,
+        /// <summary>
+        /// The exclude any transformation
+        /// </summary>
         ExcludeAnyTransformation = 0x02,
+        /// <summary>
+        /// The exclude schema discovery
+        /// </summary>
         ExcludeSchemaDiscovery = 0x04,
+        /// <summary>
+        /// The exclude constructor transformation
+        /// </summary>
         ExcludeConstructorTransformation = 0x08,
+        /// <summary>
+        /// The allow forbidden declarations
+        /// </summary>
         AllowForbiddenDeclarations = 0x10,
+        /// <summary>
+        /// The exclude all
+        /// </summary>
         ExcludeAll = 0xFF
     }
 
     /// <summary>
     /// Custom attribute that, when applied on a type, means that this type requires a
     /// special processing from the analyzer or the weaver. Known types may be
-    /// only present in known assemblies (see <see cref="KnownAssemblyAttribute"/>).
+    /// only present in known assemblies (see <see cref="KnownAssemblyAttribute" />).
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class KnownTypeAttribute : Attribute {
+        /// <summary>
+        /// The directives
+        /// </summary>
         private readonly WeaverDirectives directives;
 
         /// <summary>
-        /// Initializes a new <see cref="KnownTypeAttribute"/>.
+        /// Initializes a new <see cref="KnownTypeAttribute" />.
         /// </summary>
         /// <param name="weaverDirectives">Weaver directives for the type to which the
         /// custom attribute is applied.</param>
@@ -54,6 +86,7 @@ namespace Starcounter.Internal.Weaver {
         /// Gets the weaver directives for the type to which the
         /// custom attribute is applied.
         /// </summary>
+        /// <value>The weaver directives.</value>
         public WeaverDirectives WeaverDirectives {
             get {
                 return this.directives;

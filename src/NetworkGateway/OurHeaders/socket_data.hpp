@@ -16,11 +16,8 @@ class SocketDataChunk
     // (must be 8-bytes aligned).
     OVERLAPPED ovl_;
 
-    // Unique socket stamp for the session.
-    uint64_t sock_stamp_;
-
-    // Index into a cell in session array that contains the session information.
-    int32_t session_index_;
+    // Starcounter session information.
+    ScSessionStruct session_;
 
     // Offset in bytes from the beginning of the chunk to place
     // where user data should be written.
@@ -56,6 +53,9 @@ class SocketDataChunk
     // Is socket attached to session.
     bool socket_attached_;
 
+    // Indicates if a new session is created.
+    bool new_session_created_;
+
     // Port handlers index.
     int32_t port_index_;
 
@@ -84,6 +84,42 @@ class SocketDataChunk
     uint8_t data_blob_[DATA_BLOB_SIZE_BYTES];
 
 public:
+
+    // Indicates if a new session is created.
+    void set_new_session_created(bool new_session_created)
+    {
+        new_session_created_ = new_session_created;
+    }
+
+    // Indicates if a new session is created.
+    bool get_new_session_created()
+    {
+        return new_session_created_;
+    }
+
+    // Getting session index.
+    uint32_t get_session_index()
+    {
+        return session_.session_index_;
+    }
+
+    // Getting Apps unique number.
+    uint64_t get_apps_unique_session_num()
+    {
+        return session_.apps_unique_session_num_;
+    }
+
+    // Getting session salt.
+    uint64_t get_session_salt()
+    {
+        return session_.session_salt_;
+    }
+
+    // Returns socket.
+    SOCKET get_socket()
+    {
+        return sock_;
+    }
 
     // Set new chunk index.
     void set_chunk_index(core::chunk_index chunk_index)
@@ -219,25 +255,13 @@ public:
         db_index_ = db_index;
     }
 
-    // Returns session index.
-    int32_t session_index()
-    {
-        return session_index_;
-    }
-
     // Getting and linking more receiving chunks.
     uint32_t GetChunks(GatewayWorker *gw, uint32_t num_bytes);
 
     // Pointer to the attached session.
-    SessionData* GetAttachedSession()
+    ScSessionStruct* GetAttachedSession()
     {
-        return g_gateway.GetSessionData(session_index_);
-    }
-
-    // Unique socket stamp for the session.
-    uint64_t sock_stamp()
-    {
-        return sock_stamp_;
+        return g_gateway.GetSessionData(session_.session_index_);
     }
 
     // Extra chunk index.
@@ -279,8 +303,14 @@ public:
     // Checking that database and corresponding port handler exists.
     bool CheckSocketIsValid(GatewayWorker* gw);
 
+    // Resets socket session.
+    void ResetSession();
+
+    // Kills the session.
+    void KillSession();
+
     // Attaches socket data to session.
-    void AttachToSession(SessionData *session, GatewayWorker *gw);
+    void AttachToSession(ScSessionStruct* session);
 
     // Returns pointer to the beginning of user data.
     uint8_t* UserDataBuffer()

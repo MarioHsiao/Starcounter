@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="BindingBuilder.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Internal;
 using System;
 using System.Reflection;
@@ -6,15 +11,34 @@ using System.Reflection.Emit;
 
 namespace Starcounter.Binding
 {
-    
+
+    /// <summary>
+    /// Class BindingBuilder
+    /// </summary>
     internal sealed class BindingBuilder
     {
 
+        /// <summary>
+        /// The _type def
+        /// </summary>
         private readonly TypeDef _typeDef;
+        /// <summary>
+        /// The _assembly name
+        /// </summary>
         private readonly string _assemblyName;
+        /// <summary>
+        /// The _assembly builder
+        /// </summary>
         private readonly AssemblyBuilder _assemblyBuilder;
+        /// <summary>
+        /// The _module builder
+        /// </summary>
         private readonly ModuleBuilder _moduleBuilder;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BindingBuilder" /> class.
+        /// </summary>
+        /// <param name="typeDef">The type def.</param>
         internal BindingBuilder(TypeDef typeDef)
         {
             _typeDef = typeDef;
@@ -31,11 +55,18 @@ namespace Starcounter.Binding
             _moduleBuilder = _assemblyBuilder.DefineDynamicModule(string.Concat(_assemblyName, ".dll"), string.Concat(_assemblyName, ".dll"));
         }
 
+        /// <summary>
+        /// Writes the assembly to disk.
+        /// </summary>
         internal void WriteAssemblyToDisk()
         {
             _assemblyBuilder.Save(String.Concat(_assemblyBuilder.GetName().Name, ".dll"));
         }
 
+        /// <summary>
+        /// Creates the type binding.
+        /// </summary>
+        /// <returns>TypeBinding.</returns>
         internal TypeBinding CreateTypeBinding()
         {
             TypeDef typeDef;
@@ -116,8 +147,16 @@ namespace Starcounter.Binding
             return typeBinding;
         }
 
+        /// <summary>
+        /// The entity type
+        /// </summary>
         private static Type entityType = typeof(Entity);
 
+        /// <summary>
+        /// Sets the type binding flags.
+        /// </summary>
+        /// <param name="binding">The binding.</param>
+        /// <param name="type">The type.</param>
         private void SetTypeBindingFlags(TypeBinding binding, Type type)
         {
             TypeBindingFlags bindingFlags = 0;
@@ -143,6 +182,12 @@ namespace Starcounter.Binding
         }
 
 
+        /// <summary>
+        /// Builds the property binding list.
+        /// </summary>
+        /// <param name="typeBinding">The type binding.</param>
+        /// <param name="type">The type.</param>
+        /// <exception cref="System.NotSupportedException"></exception>
         private void BuildPropertyBindingList(TypeBinding typeBinding, Type type)
         {
             PropertyDef[] propertyDefs = typeBinding.TypeDef.PropertyDefs;
@@ -221,10 +266,25 @@ namespace Starcounter.Binding
             typeBinding.SetPropertyBindings(propertyBindings);
         }
 
+        /// <summary>
+        /// The bool property binding base type
+        /// </summary>
         private static Type boolPropertyBindingBaseType = typeof(BooleanPropertyBinding);
+        /// <summary>
+        /// The bool property binding return type
+        /// </summary>
         private static Type boolPropertyBindingReturnType = typeof(Boolean);
+        /// <summary>
+        /// The nullable bool property binding return type
+        /// </summary>
         private static Type nullableBoolPropertyBindingReturnType = typeof(Nullable<Boolean>);
 
+        /// <summary>
+        /// Creates the boolean property binding.
+        /// </summary>
+        /// <param name="propertyDef">The property def.</param>
+        /// <param name="thisType">Type of the this.</param>
+        /// <returns>PropertyBinding.</returns>
         private PropertyBinding CreateBooleanPropertyBinding(PropertyDef propertyDef, Type thisType)
         {
             return GeneratePropertyBindingDefault(
@@ -237,10 +297,25 @@ namespace Starcounter.Binding
                 );
         }
 
+        /// <summary>
+        /// The datetime property binding base type
+        /// </summary>
         private static Type datetimePropertyBindingBaseType = typeof(DateTimePropertyBinding);
+        /// <summary>
+        /// The datetime property binding return type
+        /// </summary>
         private static Type datetimePropertyBindingReturnType = typeof(DateTime);
+        /// <summary>
+        /// The nullable datetime property binding return type
+        /// </summary>
         private static Type nullableDatetimePropertyBindingReturnType = typeof(Nullable<DateTime>);
 
+        /// <summary>
+        /// Creates the date time property binding.
+        /// </summary>
+        /// <param name="propertyDef">The property def.</param>
+        /// <param name="thisType">Type of the this.</param>
+        /// <returns>PropertyBinding.</returns>
         private PropertyBinding CreateDateTimePropertyBinding(PropertyDef propertyDef, Type thisType)
         {
             return GeneratePropertyBindingDefault(
@@ -253,10 +328,25 @@ namespace Starcounter.Binding
                 );
         }
 
+        /// <summary>
+        /// The decimal property binding base type
+        /// </summary>
         private static Type decimalPropertyBindingBaseType = typeof(DecimalPropertyBinding);
+        /// <summary>
+        /// The decimal property binding return type
+        /// </summary>
         private static Type decimalPropertyBindingReturnType = typeof(Decimal);
+        /// <summary>
+        /// The nullable decimal property binding return type
+        /// </summary>
         private static Type nullableDecimalPropertyBindingReturnType = typeof(Nullable<Decimal>);
 
+        /// <summary>
+        /// Creates the decimal property binding.
+        /// </summary>
+        /// <param name="propertyDef">The property def.</param>
+        /// <param name="thisType">Type of the this.</param>
+        /// <returns>PropertyBinding.</returns>
         private PropertyBinding CreateDecimalPropertyBinding(PropertyDef propertyDef, Type thisType)
         {
             return GeneratePropertyBindingDefault(
@@ -269,10 +359,25 @@ namespace Starcounter.Binding
                 );
         }
 
+        /// <summary>
+        /// The double property binding base type
+        /// </summary>
         private static Type doublePropertyBindingBaseType = typeof(DoublePropertyBinding);
+        /// <summary>
+        /// The double property binding return type
+        /// </summary>
         private static Type doublePropertyBindingReturnType = typeof(Double);
+        /// <summary>
+        /// The nullable double property binding return type
+        /// </summary>
         private static Type nullableDoublePropertyBindingReturnType = typeof(Nullable<Double>);
 
+        /// <summary>
+        /// Creates the double property binding.
+        /// </summary>
+        /// <param name="propertyDef">The property def.</param>
+        /// <param name="thisType">Type of the this.</param>
+        /// <returns>PropertyBinding.</returns>
         private PropertyBinding CreateDoublePropertyBinding(PropertyDef propertyDef, Type thisType)
         {
             return GeneratePropertyBindingDefault(
@@ -285,10 +390,25 @@ namespace Starcounter.Binding
                 );
         }
 
+        /// <summary>
+        /// The single property binding base type
+        /// </summary>
         private static Type singlePropertyBindingBaseType = typeof(SinglePropertyBinding);
+        /// <summary>
+        /// The single property binding return type
+        /// </summary>
         private static Type singlePropertyBindingReturnType = typeof(Single);
+        /// <summary>
+        /// The nullable single property binding return type
+        /// </summary>
         private static Type nullableSinglePropertyBindingReturnType = typeof(Nullable<Single>);
 
+        /// <summary>
+        /// Creates the single property binding.
+        /// </summary>
+        /// <param name="propertyDef">The property def.</param>
+        /// <param name="thisType">Type of the this.</param>
+        /// <returns>PropertyBinding.</returns>
         private PropertyBinding CreateSinglePropertyBinding(PropertyDef propertyDef, Type thisType)
         {
             return GeneratePropertyBindingDefault(
@@ -301,9 +421,21 @@ namespace Starcounter.Binding
                 );
         }
 
+        /// <summary>
+        /// The object property binding base type
+        /// </summary>
         private static Type objectPropertyBindingBaseType = typeof(ObjectPropertyBinding);
+        /// <summary>
+        /// The object property binding return type
+        /// </summary>
         private static Type objectPropertyBindingReturnType = typeof(Entity);
 
+        /// <summary>
+        /// Creates the object property binding.
+        /// </summary>
+        /// <param name="propertyDef">The property def.</param>
+        /// <param name="thisType">Type of the this.</param>
+        /// <returns>PropertyBinding.</returns>
         private PropertyBinding CreateObjectPropertyBinding(PropertyDef propertyDef, Type thisType)
         {
             PropertyInfo propertyInfo;
@@ -337,10 +469,25 @@ namespace Starcounter.Binding
             return propertyBinding;
         }
 
+        /// <summary>
+        /// The int8 property binding base type
+        /// </summary>
         private static Type int8PropertyBindingBaseType = typeof(SBytePropertyBinding);
+        /// <summary>
+        /// The int8 property binding return type
+        /// </summary>
         private static Type int8PropertyBindingReturnType = typeof(SByte);
+        /// <summary>
+        /// The nullable int8 property binding return type
+        /// </summary>
         private static Type nullableInt8PropertyBindingReturnType = typeof(Nullable<SByte>);
 
+        /// <summary>
+        /// Creates the S byte property binding.
+        /// </summary>
+        /// <param name="propertyDef">The property def.</param>
+        /// <param name="thisType">Type of the this.</param>
+        /// <returns>PropertyBinding.</returns>
         private PropertyBinding CreateSBytePropertyBinding(PropertyDef propertyDef, Type thisType)
         {
             return GeneratePropertyBindingDefault(
@@ -353,10 +500,25 @@ namespace Starcounter.Binding
                 );
         }
 
+        /// <summary>
+        /// The int16 property binding base type
+        /// </summary>
         private static Type int16PropertyBindingBaseType = typeof(Int16PropertyBinding);
+        /// <summary>
+        /// The int16 property binding return type
+        /// </summary>
         private static Type int16PropertyBindingReturnType = typeof(Int16);
+        /// <summary>
+        /// The nullable int16 property binding return type
+        /// </summary>
         private static Type nullableInt16PropertyBindingReturnType = typeof(Nullable<Int16>);
 
+        /// <summary>
+        /// Creates the int16 property binding.
+        /// </summary>
+        /// <param name="propertyDef">The property def.</param>
+        /// <param name="thisType">Type of the this.</param>
+        /// <returns>PropertyBinding.</returns>
         private PropertyBinding CreateInt16PropertyBinding(PropertyDef propertyDef, Type thisType)
         {
             return GeneratePropertyBindingDefault(
@@ -369,10 +531,25 @@ namespace Starcounter.Binding
                 );
         }
 
+        /// <summary>
+        /// The int32 property binding base type
+        /// </summary>
         private static Type int32PropertyBindingBaseType = typeof(Int32PropertyBinding);
+        /// <summary>
+        /// The int32 property binding return type
+        /// </summary>
         private static Type int32PropertyBindingReturnType = typeof(Int32);
+        /// <summary>
+        /// The nullable int32 property binding return type
+        /// </summary>
         private static Type nullableInt32PropertyBindingReturnType = typeof(Nullable<Int32>);
 
+        /// <summary>
+        /// Creates the int32 property binding.
+        /// </summary>
+        /// <param name="propertyDef">The property def.</param>
+        /// <param name="thisType">Type of the this.</param>
+        /// <returns>PropertyBinding.</returns>
         private PropertyBinding CreateInt32PropertyBinding(PropertyDef propertyDef, Type thisType)
         {
             return GeneratePropertyBindingDefault(
@@ -385,10 +562,25 @@ namespace Starcounter.Binding
                 );
         }
 
+        /// <summary>
+        /// The int64 property binding base type
+        /// </summary>
         private static Type int64PropertyBindingBaseType = typeof(Int64PropertyBinding);
+        /// <summary>
+        /// The int64 property binding return type
+        /// </summary>
         private static Type int64PropertyBindingReturnType = typeof(Int64);
+        /// <summary>
+        /// The nullable int64 property binding return type
+        /// </summary>
         private static Type nullableInt64PropertyBindingReturnType = typeof(Nullable<Int64>);
 
+        /// <summary>
+        /// Creates the int64 property binding.
+        /// </summary>
+        /// <param name="propertyDef">The property def.</param>
+        /// <param name="thisType">Type of the this.</param>
+        /// <returns>PropertyBinding.</returns>
         private PropertyBinding CreateInt64PropertyBinding(PropertyDef propertyDef, Type thisType)
         {
             return GeneratePropertyBindingDefault(
@@ -401,9 +593,21 @@ namespace Starcounter.Binding
                 );
         }
 
+        /// <summary>
+        /// The string property binding base type
+        /// </summary>
         private static Type stringPropertyBindingBaseType = typeof(StringPropertyBinding);
+        /// <summary>
+        /// The string property binding return type
+        /// </summary>
         private static Type stringPropertyBindingReturnType = typeof(String);
 
+        /// <summary>
+        /// Creates the string property binding.
+        /// </summary>
+        /// <param name="propertyDef">The property def.</param>
+        /// <param name="thisType">Type of the this.</param>
+        /// <returns>PropertyBinding.</returns>
         private PropertyBinding CreateStringPropertyBinding(PropertyDef propertyDef, Type thisType)
         {
             return GeneratePropertyBindingNoNullOut(
@@ -415,10 +619,25 @@ namespace Starcounter.Binding
                 );
         }
 
+        /// <summary>
+        /// The uint8 property binding base type
+        /// </summary>
         private static Type uint8PropertyBindingBaseType = typeof(BytePropertyBinding);
+        /// <summary>
+        /// The uint8 property binding return type
+        /// </summary>
         private static Type uint8PropertyBindingReturnType = typeof(Byte);
+        /// <summary>
+        /// The nullable uint8 property binding return type
+        /// </summary>
         private static Type nullableUint8PropertyBindingReturnType = typeof(Nullable<Byte>);
 
+        /// <summary>
+        /// Creates the byte property binding.
+        /// </summary>
+        /// <param name="propertyDef">The property def.</param>
+        /// <param name="thisType">Type of the this.</param>
+        /// <returns>PropertyBinding.</returns>
         private PropertyBinding CreateBytePropertyBinding(PropertyDef propertyDef, Type thisType)
         {
             return GeneratePropertyBindingDefault(
@@ -431,10 +650,25 @@ namespace Starcounter.Binding
                 );
         }
 
+        /// <summary>
+        /// The uint16 property binding base type
+        /// </summary>
         private static Type uint16PropertyBindingBaseType = typeof(UInt16PropertyBinding);
+        /// <summary>
+        /// The uint16 property binding return type
+        /// </summary>
         private static Type uint16PropertyBindingReturnType = typeof(UInt16);
+        /// <summary>
+        /// The nullable uint16 property binding return type
+        /// </summary>
         private static Type nullableUint16PropertyBindingReturnType = typeof(Nullable<UInt16>);
 
+        /// <summary>
+        /// Creates the U int16 property binding.
+        /// </summary>
+        /// <param name="propertyDef">The property def.</param>
+        /// <param name="thisType">Type of the this.</param>
+        /// <returns>PropertyBinding.</returns>
         private PropertyBinding CreateUInt16PropertyBinding(PropertyDef propertyDef, Type thisType)
         {
             return GeneratePropertyBindingDefault(
@@ -447,10 +681,25 @@ namespace Starcounter.Binding
                 );
         }
 
+        /// <summary>
+        /// The uint32 property binding base type
+        /// </summary>
         private static Type uint32PropertyBindingBaseType = typeof(UInt32PropertyBinding);
+        /// <summary>
+        /// The uint32 property binding return type
+        /// </summary>
         private static Type uint32PropertyBindingReturnType = typeof(UInt32);
+        /// <summary>
+        /// The nullable uint32 property binding return type
+        /// </summary>
         private static Type nullableUint32PropertyBindingReturnType = typeof(Nullable<UInt32>);
 
+        /// <summary>
+        /// Creates the U int32 property binding.
+        /// </summary>
+        /// <param name="propertyDef">The property def.</param>
+        /// <param name="thisType">Type of the this.</param>
+        /// <returns>PropertyBinding.</returns>
         private PropertyBinding CreateUInt32PropertyBinding(PropertyDef propertyDef, Type thisType)
         {
             return GeneratePropertyBindingDefault(
@@ -463,10 +712,25 @@ namespace Starcounter.Binding
                 );
         }
 
+        /// <summary>
+        /// The uint64 property binding base type
+        /// </summary>
         private static Type uint64PropertyBindingBaseType = typeof(UInt64PropertyBinding);
+        /// <summary>
+        /// The uint64 property binding return type
+        /// </summary>
         private static Type uint64PropertyBindingReturnType = typeof(UInt64);
+        /// <summary>
+        /// The nullable uint64 property binding return type
+        /// </summary>
         private static Type nullableUint64PropertyBindingReturnType = typeof(Nullable<UInt64>);
 
+        /// <summary>
+        /// Creates the U int64 property binding.
+        /// </summary>
+        /// <param name="propertyDef">The property def.</param>
+        /// <param name="thisType">Type of the this.</param>
+        /// <returns>PropertyBinding.</returns>
         private PropertyBinding CreateUInt64PropertyBinding(PropertyDef propertyDef, Type thisType)
         {
             return GeneratePropertyBindingDefault(
@@ -479,9 +743,21 @@ namespace Starcounter.Binding
                 );
         }
 
+        /// <summary>
+        /// The binary property binding base type
+        /// </summary>
         private static Type binaryPropertyBindingBaseType = typeof(BinaryPropertyBinding);
+        /// <summary>
+        /// The binary property binding return type
+        /// </summary>
         private static Type binaryPropertyBindingReturnType = typeof(Binary);
 
+        /// <summary>
+        /// Creates the binary property binding.
+        /// </summary>
+        /// <param name="propertyDef">The property def.</param>
+        /// <param name="thisType">Type of the this.</param>
+        /// <returns>PropertyBinding.</returns>
         private PropertyBinding CreateBinaryPropertyBinding(PropertyDef propertyDef, Type thisType)
         {
             return GeneratePropertyBindingNoNullOut(
@@ -493,8 +769,17 @@ namespace Starcounter.Binding
                 );
         }
 
+        /// <summary>
+        /// The largebinary property binding return type
+        /// </summary>
         private static Type largebinaryPropertyBindingReturnType = typeof(LargeBinary);
 
+        /// <summary>
+        /// Creates the large binary property binding.
+        /// </summary>
+        /// <param name="propertyDef">The property def.</param>
+        /// <param name="thisType">Type of the this.</param>
+        /// <returns>PropertyBinding.</returns>
         private PropertyBinding CreateLargeBinaryPropertyBinding(PropertyDef propertyDef, Type thisType)
         {
             PropertyInfo propertyInfo = thisType.GetProperty(propertyDef.Name, BindingFlags.Public | BindingFlags.Instance);
@@ -502,6 +787,16 @@ namespace Starcounter.Binding
             return new LargeBinaryPropertyBinding();
         }
 
+        /// <summary>
+        /// Generates the property binding default.
+        /// </summary>
+        /// <param name="propertyDef">The property def.</param>
+        /// <param name="bindingBaseType">Type of the binding base.</param>
+        /// <param name="methodName">Name of the method.</param>
+        /// <param name="returnType">Type of the return.</param>
+        /// <param name="nullableReturnType">Type of the nullable return.</param>
+        /// <param name="thisType">Type of the this.</param>
+        /// <returns>PropertyBinding.</returns>
         private PropertyBinding GeneratePropertyBindingDefault(PropertyDef propertyDef, Type bindingBaseType, String methodName, Type returnType, Type nullableReturnType, Type thisType)
         {
             PropertyInfo propertyInfo;
@@ -543,8 +838,20 @@ namespace Starcounter.Binding
             return (PropertyBinding)(propBindingType.GetConstructor(Type.EmptyTypes).Invoke(null));
         }
 
+        /// <summary>
+        /// The property binding get params
+        /// </summary>
         private static Type[] propertyBindingGetParams = new Type[] { typeof(Object) };
 
+        /// <summary>
+        /// Generates the property binding default.
+        /// </summary>
+        /// <param name="typeBuilder">The type builder.</param>
+        /// <param name="methodName">Name of the method.</param>
+        /// <param name="implReturnType">Type of the impl return.</param>
+        /// <param name="targetReturnType">Type of the target return.</param>
+        /// <param name="thisType">Type of the this.</param>
+        /// <param name="propertyInfo">The property info.</param>
         private void GeneratePropertyBindingDefault(TypeBuilder typeBuilder, String methodName, Type implReturnType, Type targetReturnType, Type thisType, PropertyInfo propertyInfo)
         {
             MethodInfo methodInfo;
@@ -574,6 +881,14 @@ namespace Starcounter.Binding
             ilGenerator.EndScope();
         }
 
+        /// <summary>
+        /// Generates the property binding default nullable.
+        /// </summary>
+        /// <param name="typeBuilder">The type builder.</param>
+        /// <param name="methodName">Name of the method.</param>
+        /// <param name="returnType">Type of the return.</param>
+        /// <param name="thisType">Type of the this.</param>
+        /// <param name="propertyInfo">The property info.</param>
         private void GeneratePropertyBindingDefaultNullable(TypeBuilder typeBuilder, String methodName, Type returnType, Type thisType, PropertyInfo propertyInfo)
         {
             MethodInfo methodInfo;
@@ -600,6 +915,15 @@ namespace Starcounter.Binding
             ilGenerator.EndScope();
         }
 
+        /// <summary>
+        /// Generates the property binding no null out.
+        /// </summary>
+        /// <param name="propertyDef">The property def.</param>
+        /// <param name="bindingBaseType">Type of the binding base.</param>
+        /// <param name="methodName">Name of the method.</param>
+        /// <param name="returnType">Type of the return.</param>
+        /// <param name="thisType">Type of the this.</param>
+        /// <returns>PropertyBinding.</returns>
         private PropertyBinding GeneratePropertyBindingNoNullOut(PropertyDef propertyDef, Type bindingBaseType, String methodName, Type returnType, Type thisType)
         {
             PropertyInfo propertyInfo;
@@ -628,6 +952,14 @@ namespace Starcounter.Binding
             return (PropertyBinding)(propBindingType.GetConstructor(Type.EmptyTypes).Invoke(null));
         }
 
+        /// <summary>
+        /// Generates the property binding no null out.
+        /// </summary>
+        /// <param name="typeBuilder">The type builder.</param>
+        /// <param name="methodName">Name of the method.</param>
+        /// <param name="returnType">Type of the return.</param>
+        /// <param name="thisType">Type of the this.</param>
+        /// <param name="propertyInfo">The property info.</param>
         private void GeneratePropertyBindingNoNullOut(TypeBuilder typeBuilder, String methodName, Type returnType, Type thisType, PropertyInfo propertyInfo)
         {
             MethodInfo methodInfo;
@@ -656,6 +988,11 @@ namespace Starcounter.Binding
             ilGenerator.EndScope();
         }
 
+        /// <summary>
+        /// Verifies the property.
+        /// </summary>
+        /// <param name="propertyInfo">The property info.</param>
+        /// <param name="returnType">Type of the return.</param>
         private void VerifyProperty(PropertyInfo propertyInfo, Type returnType)
         {
             var propertyType = propertyInfo.PropertyType;
@@ -697,6 +1034,10 @@ namespace Starcounter.Binding
             throw ErrorCode.ToException(Error.SCERRSCHEMACODEMISMATCH, "VerifyProperty failed.");
         }
 
+        /// <summary>
+        /// Verifies the object property.
+        /// </summary>
+        /// <param name="propertyInfo">The property info.</param>
         private void VerifyObjectProperty(PropertyInfo propertyInfo)
         {
             if (

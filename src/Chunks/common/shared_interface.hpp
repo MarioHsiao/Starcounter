@@ -34,7 +34,6 @@
 #include "../common/scheduler_interface.hpp"
 #include "../common/common_client_interface.hpp"
 #include "../common/client_interface.hpp"
-#include "../common/scheduler_channel.hpp"
 #include "../common/scheduler_number.hpp"
 #include "../common/owner_id.hpp"
 #include "../common/pid_type.hpp"
@@ -401,7 +400,67 @@ public:
 	client_number get_client_number() const;
 	
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-	HANDLE get_work_event(std::size_t i) const;
+	//--------------------------------------------------------------------------
+	/// Only clients: Open client work event and return a reference to it.
+	/// NOTE: Get a client_number first, because this function will use what
+	/// get_client_number() returns.
+	/// Before attempting to open the event, this function sets the event to 0
+	/// regardless of if the event is already open or not.
+	/**
+	 * @param i The clients's number, related to client number i. Normally use
+	 *		get_client_number() to pass the value of i.
+	 * @return A reference to the client work event, or 0 if failed to open.
+	 */ 
+	HANDLE& open_client_work_event(std::size_t i);
+
+	/// Close client work event. It does not actually close the event, the
+	/// database do that before terminating, instead it sets the event to 0.
+	void close_client_work_event();
+
+	/// Get a reference to the client work event.
+	/**
+	 * @return A reference to the client work event.
+	 */ 
+	HANDLE& client_work_event();
+	
+	/// Get a const reference to the client work event.
+	/**
+	 * @param A const reference to the client work event.
+	 */ 
+	const HANDLE& client_work_event() const;
+
+	//--------------------------------------------------------------------------
+	/// Open scheduler work event (i) and return a reference to it.
+	/// NOTE: Before attempting to open the event, sets the event to 0
+	/// regardless of if the event is already open or not.
+	/**
+	 * @param i The scheduler's number, related to scheduler number i.
+	 * @return A reference to scheduler work event (i). NULL if failed to open.
+	 */ 
+	HANDLE& open_scheduler_work_event(std::size_t i);
+
+	/// Close scheduler work event (i). It does not actually close the event,
+	/// the database do that before terminating, instead it sets the event to 0.
+	/**
+	 * @param i The scheduler's number, related to scheduler number i.
+	 */ 
+	void close_scheduler_work_event(std::size_t i);
+
+	/// Get a reference to scheduler work event (i).
+	/**
+	 * @param i The scheduler's number, related to
+	 *		scheduler_interface[i].
+	 * @return A reference to scheduler work event (i).
+	 */ 
+	HANDLE& scheduler_work_event(std::size_t i);
+	
+	/// Get a const reference to scheduler work event (i).
+	/**
+	 * @param i The scheduler's number, related to
+	 *		scheduler_interface[i].
+	 * @param A const reference to scheduler work event (i).
+	 */ 
+	const HANDLE& scheduler_work_event(std::size_t i) const;
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 private:
@@ -430,10 +489,12 @@ private:
 	mapped_region mapped_region_;
 	
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-	// Each client need to have all events (HANDLEs) already opened and ready to be used,
-	// to notify any scheduler. In this array of HANDLEs, only those that correspond to
+	// Each client need to have all events (HANDLEs) already opened and ready to be used.
+	HANDLE client_work_;
+
+	// To notify any scheduler. In this array of HANDLEs, only those that correspond to
 	// an active scheduler will be opened/closed.
-	HANDLE work_[max_number_of_schedulers];
+	HANDLE scheduler_work_[max_number_of_schedulers];
 
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	

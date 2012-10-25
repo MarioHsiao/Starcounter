@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="RequestProcessorBuilder.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Dynamic;
 using System.Collections.Generic;
@@ -20,16 +25,30 @@ namespace Starcounter.Internal.Uri {
     /// </summary>
     public partial class RequestProcessorBuilder {
 
+        /// <summary>
+        /// The handlers
+        /// </summary>
         public List<RequestProcessorMetaData> Handlers = new List<RequestProcessorMetaData>();
 
+        /// <summary>
+        /// The _ registration listeners
+        /// </summary>
         private List<Action<string>> _RegistrationListeners = new List<Action<string>>();
 
+        /// <summary>
+        /// Gets the registration listeners.
+        /// </summary>
+        /// <value>The registration listeners.</value>
         public List<Action<string>> RegistrationListeners {
             get {
                 return _RegistrationListeners;
             }
         }
 
+        /// <summary>
+        /// Creates the compiler.
+        /// </summary>
+        /// <returns>RequestProcessorCompiler.</returns>
         public RequestProcessorCompiler CreateCompiler() {
             var compiler = new RequestProcessorCompiler();
             compiler.Handlers = Handlers;
@@ -53,6 +72,7 @@ namespace Starcounter.Internal.Uri {
         /// <summary>
         /// Registers a handler with one parameter
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="verbAndUri">The verb and uri of the request. For example GET /things/123</param>
         /// <param name="handler">The code to call when receiving the request</param>
         public void RegisterHandler<T>(string verbAndUri, Func<T, object> handler) {
@@ -68,6 +88,8 @@ namespace Starcounter.Internal.Uri {
         /// <summary>
         /// Registers a handler with two parameters
         /// </summary>
+        /// <typeparam name="T1">The type of the t1.</typeparam>
+        /// <typeparam name="T2">The type of the t2.</typeparam>
         /// <param name="verbAndUri">The verb and uri of the request. For example GET /things/123</param>
         /// <param name="handler">The code to call when receiving the request</param>
         public void RegisterHandler<T1, T2>(string verbAndUri, Func<T1, T2, object> handler) {
@@ -84,6 +106,9 @@ namespace Starcounter.Internal.Uri {
         /// <summary>
         /// Registers a handler with three parameters
         /// </summary>
+        /// <typeparam name="T1">The type of the t1.</typeparam>
+        /// <typeparam name="T2">The type of the t2.</typeparam>
+        /// <typeparam name="T3">The type of the t3.</typeparam>
         /// <param name="verbAndUri">The verb and uri of the request. For example GET /things/123</param>
         /// <param name="handler">The code to call when receiving the request</param>
         public void RegisterHandler<T1, T2, T3>(string verbAndUri, Func<T1, T2, T3, object> handler) {
@@ -98,14 +123,26 @@ namespace Starcounter.Internal.Uri {
             m.HandlerIndex = Handlers.IndexOf(m);
         }
 
+        /// <summary>
+        /// Creates the parse tree.
+        /// </summary>
+        /// <returns>ParseNode.</returns>
         public ParseNode CreateParseTree() {
             return ParseTreeGenerator.BuildParseTree(Handlers);
         }
 
+        /// <summary>
+        /// Creates the ast tree.
+        /// </summary>
+        /// <returns>AstNamespace.</returns>
         public AstNamespace CreateAstTree() {
             return AstTreeGenerator.BuildAstTree(CreateParseTree());
         }
 
+        /// <summary>
+        /// Invokes the listeners.
+        /// </summary>
+        /// <param name="verbAndUri">The verb and URI.</param>
         private void InvokeListeners(string verbAndUri) {
             foreach (var listener in RegistrationListeners) {
                 listener.Invoke(verbAndUri);

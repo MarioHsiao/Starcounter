@@ -1,15 +1,30 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="orange.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Internal;
 using System.Runtime.InteropServices;
 
 namespace StarcounterInternal.Hosting
 {
-    
+
+    /// <summary>
+    /// Class orange
+    /// </summary>
     public static class orange
     {
 
+        /// <summary>
+        /// The hmenv_
+        /// </summary>
         private static ulong hmenv_;
 
+        /// <summary>
+        /// Orange_setups the specified hmenv.
+        /// </summary>
+        /// <param name="hmenv">The hmenv.</param>
         public static void orange_setup(ulong hmenv)
         {
             hmenv_ = hmenv;
@@ -19,10 +34,16 @@ namespace StarcounterInternal.Hosting
         private static unsafe sccorelib.THREAD_ENTER th_enter = new sccorelib.THREAD_ENTER(orange_thread_enter);
         private static unsafe sccorelib.THREAD_LEAVE th_leave = new sccorelib.THREAD_LEAVE(orange_thread_leave);
 #endif
+        /// <summary>
+        /// The th_start
+        /// </summary>
         private static unsafe sccorelib.THREAD_START th_start = new sccorelib.THREAD_START(orange_thread_start);
 #if false
         private static unsafe sccorelib.THREAD_RESET th_reset = new sccorelib.THREAD_RESET(orange_thread_reset);
 #endif
+        /// <summary>
+        /// The th_yield
+        /// </summary>
         private static unsafe sccorelib.THREAD_YIELD th_yield = new sccorelib.THREAD_YIELD(orange_thread_yield);
 #if false
         private static unsafe sccorelib.VPROC_BGTASK vp_bgtask = new sccorelib.VPROC_BGTASK(orange_vproc_bgtask);
@@ -30,14 +51,26 @@ namespace StarcounterInternal.Hosting
         private static unsafe sccorelib.VPROC_IDLE vp_idle = new sccorelib.VPROC_IDLE(orange_vproc_idle);
         private static unsafe sccorelib.VPROC_WAIT vp_wait = new sccorelib.VPROC_WAIT(orange_vproc_wait);
 #endif
+        /// <summary>
+        /// The al_stall
+        /// </summary>
         private static unsafe sccorelib.ALERT_STALL al_stall = new sccorelib.ALERT_STALL(orange_alert_stall);
 #if false
         private static unsafe sccorelib.ALERT_LOWMEM al_lowmem = new sccorelib.ALERT_LOWMEM(orange_alert_lowmem);
 #endif
 
+        /// <summary>
+        /// Sccoredbh_inits the specified hmenv.
+        /// </summary>
+        /// <param name="hmenv">The hmenv.</param>
+        /// <returns>System.UInt32.</returns>
         [DllImport("sccoredbh.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern unsafe uint sccoredbh_init(ulong hmenv);
 
+        /// <summary>
+        /// Orange_configure_scheduler_callbackses the specified setup.
+        /// </summary>
+        /// <param name="setup">The setup.</param>
         public static unsafe void orange_configure_scheduler_callbacks(ref sccorelib.CM2_SETUP setup)
         {
             sccoredbh_init(hmenv_);
@@ -75,8 +108,15 @@ namespace StarcounterInternal.Hosting
 
         }
 
+        /// <summary>
+        /// The on_new_schema
+        /// </summary>
         private static sccoredb.ON_NEW_SCHEMA on_new_schema = new sccoredb.ON_NEW_SCHEMA(orange_on_new_schema);
 
+        /// <summary>
+        /// Orange_configure_database_callbackses the specified config.
+        /// </summary>
+        /// <param name="config">The config.</param>
         public static unsafe void orange_configure_database_callbacks(ref sccoredb.sccoredb_config config)
         {
             config.on_new_schema = (void*)Marshal.GetFunctionPointerForDelegate(on_new_schema);
@@ -99,6 +139,10 @@ namespace StarcounterInternal.Hosting
         }
 #endif
 
+        /// <summary>
+        /// Called when [thread start].
+        /// </summary>
+        /// <param name="sf">The sf.</param>
         private static void OnThreadStart(uint sf)
         {
             if ((sf & sccorelib.CM5_START_FLAG_FIRST_THREAD) != 0)
@@ -109,6 +153,13 @@ namespace StarcounterInternal.Hosting
             }
         }
 
+        /// <summary>
+        /// Orange_thread_starts the specified hsched.
+        /// </summary>
+        /// <param name="hsched">The hsched.</param>
+        /// <param name="cpun">The cpun.</param>
+        /// <param name="p">The p.</param>
+        /// <param name="sf">The sf.</param>
         private static unsafe void orange_thread_start(void* hsched, byte cpun, void* p, uint sf)
         {
             OnThreadStart(sf);
@@ -128,6 +179,14 @@ namespace StarcounterInternal.Hosting
         }
 #endif
 
+        /// <summary>
+        /// Orange_thread_yields the specified hsched.
+        /// </summary>
+        /// <param name="hsched">The hsched.</param>
+        /// <param name="cpun">The cpun.</param>
+        /// <param name="p">The p.</param>
+        /// <param name="yr">The yr.</param>
+        /// <returns>System.Int32.</returns>
         private static unsafe int orange_thread_yield(void* hsched, byte cpun, void* p, uint yr)
         {
             // Disallow yield because timesup or manual yields if managed
@@ -175,6 +234,14 @@ namespace StarcounterInternal.Hosting
         private static unsafe void orange_vproc_wait(void* hsched, byte cpun, void* p) { }
 #endif
 
+        /// <summary>
+        /// Orange_alert_stalls the specified hsched.
+        /// </summary>
+        /// <param name="hsched">The hsched.</param>
+        /// <param name="p">The p.</param>
+        /// <param name="cpun">The cpun.</param>
+        /// <param name="sr">The sr.</param>
+        /// <param name="sc">The sc.</param>
         private static unsafe void orange_alert_stall(void* hsched, void* p, byte cpun, uint sr, uint sc)
         {
             // We have a stalling scheduler....
@@ -214,6 +281,10 @@ namespace StarcounterInternal.Hosting
         }
 #endif
 
+        /// <summary>
+        /// Orange_on_new_schemas the specified generation.
+        /// </summary>
+        /// <param name="generation">The generation.</param>
         private static void orange_on_new_schema(ulong generation)
         {
             // Thread is yield blocked. Thread is always attached.
@@ -228,6 +299,10 @@ namespace StarcounterInternal.Hosting
             }
         }
 
+        /// <summary>
+        /// Orange_fatal_errors the specified e.
+        /// </summary>
+        /// <param name="e">The e.</param>
         private static void orange_fatal_error(uint e)
         {
             sccoreapp.sccoreapp_log_critical_code(e);
@@ -235,28 +310,75 @@ namespace StarcounterInternal.Hosting
         }
     }
 
+    /// <summary>
+    /// Class orange_nodb
+    /// </summary>
     public static class orange_nodb
     {
 
+        /// <summary>
+        /// The hmenv_
+        /// </summary>
         private static ulong hmenv_;
 
+        /// <summary>
+        /// Orange_setups the specified hmenv.
+        /// </summary>
+        /// <param name="hmenv">The hmenv.</param>
         public static void orange_setup(ulong hmenv)
         {
             hmenv_ = hmenv;
         }
 
+        /// <summary>
+        /// The th_enter
+        /// </summary>
         private static unsafe sccorelib.THREAD_ENTER th_enter = new sccorelib.THREAD_ENTER(orange_thread_enter);
+        /// <summary>
+        /// The th_leave
+        /// </summary>
         private static unsafe sccorelib.THREAD_LEAVE th_leave = new sccorelib.THREAD_LEAVE(orange_thread_leave);
+        /// <summary>
+        /// The th_start
+        /// </summary>
         private static unsafe sccorelib.THREAD_START th_start = new sccorelib.THREAD_START(orange_thread_start);
+        /// <summary>
+        /// The th_reset
+        /// </summary>
         private static unsafe sccorelib.THREAD_RESET th_reset = new sccorelib.THREAD_RESET(orange_thread_reset);
+        /// <summary>
+        /// The th_yield
+        /// </summary>
         private static unsafe sccorelib.THREAD_YIELD th_yield = new sccorelib.THREAD_YIELD(orange_thread_yield);
+        /// <summary>
+        /// The vp_bgtask
+        /// </summary>
         private static unsafe sccorelib.VPROC_BGTASK vp_bgtask = new sccorelib.VPROC_BGTASK(orange_vproc_bgtask);
+        /// <summary>
+        /// The vp_ctick
+        /// </summary>
         private static unsafe sccorelib.VPROC_CTICK vp_ctick = new sccorelib.VPROC_CTICK(orange_vproc_ctick);
+        /// <summary>
+        /// The vp_idle
+        /// </summary>
         private static unsafe sccorelib.VPROC_IDLE vp_idle = new sccorelib.VPROC_IDLE(orange_vproc_idle);
+        /// <summary>
+        /// The vp_wait
+        /// </summary>
         private static unsafe sccorelib.VPROC_WAIT vp_wait = new sccorelib.VPROC_WAIT(orange_vproc_wait);
+        /// <summary>
+        /// The al_stall
+        /// </summary>
         private static unsafe sccorelib.ALERT_STALL al_stall = new sccorelib.ALERT_STALL(orange_alert_stall);
+        /// <summary>
+        /// The al_lowmem
+        /// </summary>
         private static unsafe sccorelib.ALERT_LOWMEM al_lowmem = new sccorelib.ALERT_LOWMEM(orange_alert_lowmem);
 
+        /// <summary>
+        /// Orange_configure_scheduler_callbackses the specified setup.
+        /// </summary>
+        /// <param name="setup">The setup.</param>
         public static unsafe void orange_configure_scheduler_callbacks(ref sccorelib.CM2_SETUP setup)
         {
             setup.th_enter = (void*)Marshal.GetFunctionPointerForDelegate(th_enter);
@@ -274,20 +396,55 @@ namespace StarcounterInternal.Hosting
 
         }
 
+        /// <summary>
+        /// Orange_thread_enters the specified hsched.
+        /// </summary>
+        /// <param name="hsched">The hsched.</param>
+        /// <param name="cpun">The cpun.</param>
+        /// <param name="p">The p.</param>
+        /// <param name="init">The init.</param>
         private static unsafe void orange_thread_enter(void* hsched, byte cpun, void* p, int init) { }
 
+        /// <summary>
+        /// Orange_thread_leaves the specified hsched.
+        /// </summary>
+        /// <param name="hsched">The hsched.</param>
+        /// <param name="cpun">The cpun.</param>
+        /// <param name="p">The p.</param>
+        /// <param name="yr">The yr.</param>
         private static unsafe void orange_thread_leave(void* hsched, byte cpun, void* p, uint yr) { }
 
+        /// <summary>
+        /// Orange_thread_starts the specified hsched.
+        /// </summary>
+        /// <param name="hsched">The hsched.</param>
+        /// <param name="cpun">The cpun.</param>
+        /// <param name="p">The p.</param>
+        /// <param name="ignore">The ignore.</param>
         private static unsafe void orange_thread_start(void* hsched, byte cpun, void* p, uint ignore)
         {
             Processor.RunMessageLoop(hsched);
         }
 
+        /// <summary>
+        /// Orange_thread_resets the specified hsched.
+        /// </summary>
+        /// <param name="hsched">The hsched.</param>
+        /// <param name="cpun">The cpun.</param>
+        /// <param name="p">The p.</param>
         private static unsafe void orange_thread_reset(void* hsched, byte cpun, void* p)
         {
             sccorelog.SCNewActivity();
         }
 
+        /// <summary>
+        /// Orange_thread_yields the specified hsched.
+        /// </summary>
+        /// <param name="hsched">The hsched.</param>
+        /// <param name="cpun">The cpun.</param>
+        /// <param name="p">The p.</param>
+        /// <param name="yr">The yr.</param>
+        /// <returns>System.Int32.</returns>
         private static unsafe int orange_thread_yield(void* hsched, byte cpun, void* p, uint yr)
         {
             // Disallow yield because timesup or manual yields if managed
@@ -303,8 +460,20 @@ namespace StarcounterInternal.Hosting
             }
         }
 
+        /// <summary>
+        /// Orange_vproc_bgtasks the specified hsched.
+        /// </summary>
+        /// <param name="hsched">The hsched.</param>
+        /// <param name="cpun">The cpun.</param>
+        /// <param name="p">The p.</param>
         private static unsafe void orange_vproc_bgtask(void* hsched, byte cpun, void* p) { }
 
+        /// <summary>
+        /// Orange_vproc_cticks the specified hsched.
+        /// </summary>
+        /// <param name="hsched">The hsched.</param>
+        /// <param name="cpun">The cpun.</param>
+        /// <param name="psec">The psec.</param>
         private static unsafe void orange_vproc_ctick(void* hsched, byte cpun, uint psec)
         {
             if (cpun == 0)
@@ -313,15 +482,42 @@ namespace StarcounterInternal.Hosting
             }
         }
 
+        /// <summary>
+        /// Orange_vproc_idles the specified hsched.
+        /// </summary>
+        /// <param name="hsched">The hsched.</param>
+        /// <param name="cpun">The cpun.</param>
+        /// <param name="p">The p.</param>
+        /// <returns>System.Int32.</returns>
         private static unsafe int orange_vproc_idle(void* hsched, byte cpun, void* p)
         {
             return 0;
         }
 
+        /// <summary>
+        /// Orange_vproc_waits the specified hsched.
+        /// </summary>
+        /// <param name="hsched">The hsched.</param>
+        /// <param name="cpun">The cpun.</param>
+        /// <param name="p">The p.</param>
         private static unsafe void orange_vproc_wait(void* hsched, byte cpun, void* p) { }
 
+        /// <summary>
+        /// Orange_alert_stalls the specified hsched.
+        /// </summary>
+        /// <param name="hsched">The hsched.</param>
+        /// <param name="p">The p.</param>
+        /// <param name="cpun">The cpun.</param>
+        /// <param name="sr">The sr.</param>
+        /// <param name="sc">The sc.</param>
         private static unsafe void orange_alert_stall(void* hsched, void* p, byte cpun, uint sr, uint sc) { }
 
+        /// <summary>
+        /// Orange_alert_lowmems the specified hsched.
+        /// </summary>
+        /// <param name="hsched">The hsched.</param>
+        /// <param name="p">The p.</param>
+        /// <param name="lr">The lr.</param>
         private static unsafe void orange_alert_lowmem(void* hsched, void* p, uint lr)
         {
             byte cpun;
@@ -344,6 +540,10 @@ namespace StarcounterInternal.Hosting
             }
         }
 
+        /// <summary>
+        /// Orange_fatal_errors the specified e.
+        /// </summary>
+        /// <param name="e">The e.</param>
         private static void orange_fatal_error(uint e)
         {
             sccoreapp.sccoreapp_log_critical_code(e);

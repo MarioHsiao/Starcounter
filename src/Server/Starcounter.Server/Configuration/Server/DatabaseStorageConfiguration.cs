@@ -1,4 +1,10 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="DatabaseStorageConfiguration.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,7 +20,7 @@ namespace Starcounter.Configuration {
     /// <remarks>
     /// <para>
     /// The principal difference between this configuration and those
-    /// of <see cref="DatabaseConfiguration"/> and <see cref="DatabaseRuntimeConfigurat"/>
+    /// of <see cref="DatabaseConfiguration"/> and <see cref="DatabaseRuntimeConfiguration"/>
     /// is that the server doesn't maintain these values on disk
     /// (except for a single, server-global set that defines the
     /// configured defaults) for every database, simply because they

@@ -1,3 +1,9 @@
+// ***********************************************************************
+// <copyright file="DatabasePrimitiveType.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using System;
 using System.Collections.Generic;
 
@@ -49,6 +55,10 @@ public class DatabasePrimitiveType : IDatabaseAttributeType
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
     public override string ToString()
     {
         return this.primitive.ToString();

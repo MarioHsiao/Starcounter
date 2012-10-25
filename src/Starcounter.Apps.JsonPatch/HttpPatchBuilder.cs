@@ -1,4 +1,10 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="HttpPatchBuilder.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -7,12 +13,24 @@ using Starcounter.Templates;
 
 namespace Starcounter.Internal.JsonPatch
 {
+    /// <summary>
+    /// Class HttpPatchBuilder
+    /// </summary>
     internal class HttpPatchBuilder
     {
+        /// <summary>
+        /// The O K200_ WIT h_ JSO n_ PATCH
+        /// </summary>
         private static Byte[] OK200_WITH_JSON_PATCH;
+        /// <summary>
+        /// The HTT p_ HEADE r_ TERMINATOR
+        /// </summary>
         private static Byte[] HTTP_HEADER_TERMINATOR;
 
 
+        /// <summary>
+        /// Initializes static members of the <see cref="HttpPatchBuilder" /> class.
+        /// </summary>
         static HttpPatchBuilder()
         {
             String str;
@@ -24,6 +42,11 @@ namespace Starcounter.Internal.JsonPatch
             HTTP_HEADER_TERMINATOR = Encoding.UTF8.GetBytes(str);
         }
 
+        /// <summary>
+        /// Creates the HTTP patch response.
+        /// </summary>
+        /// <param name="changeLog">The change log.</param>
+        /// <returns>Byte[][].</returns>
         internal static Byte[] CreateHttpPatchResponse(ChangeLog changeLog)
         {
             Int32 responseOffset;
@@ -56,6 +79,12 @@ namespace Starcounter.Internal.JsonPatch
             return response;
         }
 
+        /// <summary>
+        /// Creates the content from change log.
+        /// </summary>
+        /// <param name="changeLog">The change log.</param>
+        /// <param name="buffer">The buffer.</param>
+        /// <returns>Int32.</returns>
         private static Int32 CreateContentFromChangeLog(ChangeLog changeLog, List<Byte> buffer)
         {
             // TODO: 
@@ -76,24 +105,10 @@ namespace Starcounter.Internal.JsonPatch
             buffer.Add((byte)'[');
             foreach (Change change in changeLog)
             {
-                // TODO:
-                // Better way to get the changed value.
-                obj = null;
                 template = change.Template;
+                obj = GetValueFromChange(change);
 
                 buffer.Add((byte)'{');
-                if (template is StringProperty)
-                {
-                    obj = change.App.GetValue((StringProperty)template);
-                }
-                else if (template is ListingProperty)
-                {
-                    Listing appList = (Listing)change.App.GetValue((ListingProperty)template);
-
-                    // TODO:
-                    // Need to convert App to jsonformat.
-                    obj = appList[change.Index];
-                }
 
                 patch = JsonPatch.BuildJsonPatch(change.ChangeType, change.App, change.Template, obj, change.Index);
                 Byte[] patchArr = Encoding.UTF8.GetBytes(patch);
@@ -110,6 +125,35 @@ namespace Starcounter.Internal.JsonPatch
             buffer.Add((byte)']');
             
             return buffer.Count - startIndex;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="change"></param>
+        /// <returns></returns>
+        private static object GetValueFromChange(Change change) {
+            object ret = null;
+            Template template = change.Template;
+
+            // TODO:
+            // Need a faster way than checking type and casting to get the value.
+                
+            if (template is StringProperty) {
+                ret = change.App.GetValue((StringProperty)template);
+            } else if (template is ListingProperty) {
+                Listing appList = (Listing)change.App.GetValue((ListingProperty)template);
+                ret = appList[change.Index];
+            } else if (template is IntProperty) {
+                ret = change.App.GetValue((IntProperty)template);
+            } else if (template is BoolProperty) {
+                ret = change.App.GetValue((BoolProperty)template);
+            } else if (template is DoubleProperty) {
+                ret = change.App.GetValue((DoubleProperty)template);
+            } else if (template is DecimalProperty) {
+                ret = change.App.GetValue((IntProperty)template);
+            }
+            return ret;
         }
     }
 }

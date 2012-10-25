@@ -1,3 +1,8 @@
+// ***********************************************************************
+// <copyright file="CommandId.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System;
 
@@ -19,11 +24,20 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public string Value {
             get;
-            private set;
+            set;
         }
 
         private CommandId(Guid guid) {
-            this.Value = Guid.NewGuid().ToString();
+            this.Value = guid.ToString();
+        }
+
+        /// <summary>
+        /// Constructor enabling this type to be deserialized.
+        /// Use factory method <see cref="MakeNew"/> to create
+        /// a new instance.
+        /// </summary>
+        internal CommandId() {
+            this.Value = CommandId.Null.ToString();
         }
 
         /// <summary>
@@ -32,6 +46,18 @@ namespace Starcounter.Server.PublicModel {
         /// <returns>A new command identifier.</returns>
         public static CommandId MakeNew() {
             return new CommandId(Guid.NewGuid());
+        }
+
+        /// <summary>
+        /// Reconstructs a <see cref="CommandId"/> based on the
+        /// given value.
+        /// </summary>
+        /// <param name="value">The value of a previously created
+        /// command.</param>
+        /// <returns>A new <see cref="CommandId"/> based on the
+        /// given value.</returns>
+        public static CommandId Parse(string value) {
+            return new CommandId(Guid.Parse(value));
         }
 
         /// <inheritdoc />

@@ -1,10 +1,17 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="Serialization.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Reflection;
 using System.IO;
+using Newtonsoft.Json;
 
 namespace Starcounter.Server.PublicModel {
 
@@ -16,21 +23,14 @@ namespace Starcounter.Server.PublicModel {
     }
 
     internal sealed class NewtonSoftJsonSerializer : IResponseSerializer {
-        MethodInfo jsonSerializeObject;
+        readonly ServerEngine engine;
 
         internal NewtonSoftJsonSerializer(ServerEngine server) {
-            var jsonPath = Path.Combine(server.InstallationDirectory, "Newtonsoft.Json.dll");
-            if (File.Exists(jsonPath)) {
-                var assembly = Assembly.LoadFrom(jsonPath);
-                var converter = assembly.GetType("Newtonsoft.Json.JsonConvert");
-                if (converter != null) {
-                    jsonSerializeObject = converter.GetMethod("SerializeObject", new Type[] { typeof(object) });
-                }
-            }
+            this.engine = server;
         }
 
         public string SerializeResponse(object response) {
-            return (string) jsonSerializeObject.Invoke(null, new object[] { response });
+            return JsonConvert.SerializeObject(response);
         }
     }
 }

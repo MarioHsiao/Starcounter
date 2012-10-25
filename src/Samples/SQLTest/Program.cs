@@ -6,44 +6,45 @@ namespace SQLTest
 {
     class Program
     {
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
+            int nrFailedQueries = 0;
+            String outputPath = null;
+            if (args != null)
+                outputPath = args[0];
             Console.WriteLine("Started SQLTest.");
-            Test2();
-            Test1();
-            Test3();
+            nrFailedQueries += Test1and2(outputPath);
+            nrFailedQueries += Test3(outputPath);
             Console.WriteLine("Finished SQLTest.");
+            System.IO.File.Create(@"s\Starcounter\failedTest");
+            throw new Exception("The test is completed!");
+            //return nrFailedQueries;
         }
 
-        static Boolean Test1()
+        static int Test1and2(String outputPath)
         {
-            TestRunner.Initialize("SqlTest1", false, true, false);
-            SQLTest.EmployeeDb.EmployeeData.CreateData();
-            TestRunner.RunTest();
-            SQLTest.EmployeeDb.EmployeeData.DeleteData();
-            return true;
-        }
-
-        static Boolean Test2()
-        {
-            TestRunner.Initialize("SqlTest2", false, true, false);
+            int nrFailedQueries = 0;
+            TestRunner.Initialize("SqlTest2", outputPath, false, true, false);
             SQLTest.EmployeeDb.EmployeeData.CreateIndexes();
             SQLTest.EmployeeDb.EmployeeData.CreateData();
-            TestRunner.RunTest();
-            SQLTest.EmployeeDb.EmployeeData.DeleteData();
+            nrFailedQueries += TestRunner.RunTest();
             SQLTest.EmployeeDb.EmployeeData.DropIndexes();
-            return true;
+            TestRunner.Initialize("SqlTest1", outputPath, false, true, false);
+            nrFailedQueries += TestRunner.RunTest();
+            SQLTest.EmployeeDb.EmployeeData.DeleteData();
+            return nrFailedQueries;
         }
-        
-        static Boolean Test3()
+
+        static int Test3(String outputPath)
         {
-            TestRunner.Initialize("SqlTest3", false, true, false);
-            SQLTest.PointDb.PointData.CreateIndexes();
+            int nrFailedQueries = 0;
+            TestRunner.Initialize("SqlTest3", outputPath, false, true, false);
             SQLTest.PointDb.PointData.CreateData();
-            TestRunner.RunTest();
+            SQLTest.PointDb.PointData.CreateIndexes();
+            nrFailedQueries += TestRunner.RunTest();
             SQLTest.PointDb.PointData.DeleteData();
             SQLTest.PointDb.PointData.DropIndexes();
-            return true;
+            return nrFailedQueries;
         }
     }
 }

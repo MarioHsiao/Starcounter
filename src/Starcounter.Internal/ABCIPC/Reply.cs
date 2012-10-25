@@ -1,4 +1,10 @@
-﻿using System;
+﻿// ***********************************************************************
+// <copyright file="Reply.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,6 +22,10 @@ namespace Starcounter.ABCIPC {
     //  82: Unknown message (no handler)
     //  83: Wrong signature (not parameters, for example)
     //  84: Exception in handler (contains carry, e.g. e.ToString());
+    
+    /// <summary>
+    /// Class Reply
+    /// </summary>
     public sealed class Reply {
 
         internal static class Protocol {
@@ -86,18 +96,30 @@ namespace Starcounter.ABCIPC {
         internal readonly ReplyType _type;
         internal readonly string _carry;
 
+        /// <summary>
+        /// Gets a value indicating whether this instance is response.
+        /// </summary>
+        /// <value><c>true</c> if this instance is response; otherwise, <c>false</c>.</value>
         public bool IsResponse {
             get {
                 return _type != ReplyType.Progress && _type != ReplyType.ProgressWithCarry;
             }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether this instance is success.
+        /// </summary>
+        /// <value><c>true</c> if this instance is success; otherwise, <c>false</c>.</value>
         public bool IsSuccess {
             get {
                 return _type == ReplyType.OK || _type == ReplyType.OKWithCarry || !IsResponse;
             }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether this instance has carry.
+        /// </summary>
+        /// <value><c>true</c> if this instance has carry; otherwise, <c>false</c>.</value>
         public bool HasCarry {
             get {
                 return TypeHasCarry(_type);
@@ -130,6 +152,11 @@ namespace Starcounter.ABCIPC {
             _carry = carry;
         }
 
+        /// <summary>
+        /// Tries the get carry.
+        /// </summary>
+        /// <param name="carry">The carry.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public bool TryGetCarry(out string carry) {
             if (HasCarry) {
                 carry = _carry;
@@ -139,6 +166,10 @@ namespace Starcounter.ABCIPC {
             return false;
         }
 
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <returns>A <see cref="System.String" /> that represents this instance.</returns>
         public override string ToString() {
             string c;
             if (TryGetCarry(out c)) {

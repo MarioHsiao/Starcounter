@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="_SortSpecification.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Binding;
 using Starcounter.Internal;
 using Starcounter.Query.Execution;
@@ -135,7 +140,12 @@ internal class SortSpecification
             sccoredb.SCCOREDB_SORT_SPEC_ELEM[] sort_spec = new sccoredb.SCCOREDB_SORT_SPEC_ELEM[pathComparerList.Count + 1];
             for (int i = 0; i < pathComparerList.Count; i++)
             {
-                sort_spec[i].column_index = (Int16)typeBind.GetPropertyBinding(pathComparerList[i].Path.FullName).GetDataIndex();
+                PropertyBinding prop = typeBind.GetPropertyBinding(pathComparerList[i].Path.FullName);
+                if (prop == null)
+                    return null;
+                sort_spec[i].column_index = (Int16)prop.GetDataIndex();
+                if (sort_spec[i].column_index < 0)
+                    return null;
                 sort_spec[i].sort = (Byte)pathComparerList[i].SortOrdering;
             }
             sort_spec[pathComparerList.Count].column_index = -1;

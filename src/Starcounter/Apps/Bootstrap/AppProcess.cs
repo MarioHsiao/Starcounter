@@ -1,4 +1,10 @@
-﻿using Starcounter.Internal;
+﻿// ***********************************************************************
+// <copyright file="AppProcess.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,6 +23,14 @@ namespace Starcounter.Apps.Bootstrap {
     /// </summary>
     public static class AppProcess {
 
+        /// <summary>
+        /// Messages the box.
+        /// </summary>
+        /// <param name="hWnd">The h WND.</param>
+        /// <param name="text">The text.</param>
+        /// <param name="caption">The caption.</param>
+        /// <param name="type">The type.</param>
+        /// <returns>System.Int32.</returns>
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         public static extern int MessageBox(IntPtr hWnd, String text, String caption, uint type);
 
@@ -44,8 +58,7 @@ namespace Starcounter.Apps.Bootstrap {
         /// <param name="toStarcounter">The subset of arguments that are
         /// considred meant for Starcounter.</param>
         /// <param name="toAppMain">The subset of arguments that are considred
-        /// meant for the App Main entrypoint once loaded into Starcounter.
-        /// </param>
+        /// meant for the App Main entrypoint once loaded into Starcounter.</param>
         public static void ParseArguments(string[] allArguments, out string[] toStarcounter, out string[] toAppMain) {
             List<string> starcounter;
             List<string> appMain;
@@ -65,6 +78,10 @@ namespace Starcounter.Apps.Bootstrap {
             toAppMain = appMain.ToArray();
         }
 
+        /// <summary>
+        /// Creates the start info properties.
+        /// </summary>
+        /// <returns>Dictionary{System.StringSystem.String}.</returns>
         static Dictionary<string, string> CreateStartInfoProperties() {
             Dictionary<string, string> properties = new Dictionary<string, string>();
             string[] args = System.Environment.GetCommandLineArgs();
@@ -92,12 +109,16 @@ namespace Starcounter.Apps.Bootstrap {
             return properties;
         }
 
+        /// <summary>
+        /// Sends the start request.
+        /// </summary>
+        /// <param name="properties">The properties.</param>
         static void SendStartRequest(Dictionary<string, string> properties) {
             string serverName;
             string responseMessage = string.Empty;
             bool result;
 
-            serverName = string.Format("sc//{0}/personal", Environment.MachineName).ToLowerInvariant();
+            serverName = ScUriExtensions.MakeLocalServerPipeString("personal");
 
             var client = ClientServerFactory.CreateClientUsingNamedPipes(serverName);
             try {
@@ -119,6 +140,11 @@ namespace Starcounter.Apps.Bootstrap {
             }
         }
 
+        /// <summary>
+        /// Determines whether [is database worker process] [the specified p].
+        /// </summary>
+        /// <param name="p">The p.</param>
+        /// <returns><c>true</c> if [is database worker process] [the specified p]; otherwise, <c>false</c>.</returns>
         static bool IsDatabaseWorkerProcess(Process p) {
             return p.ProcessName.Equals("boot");
         }

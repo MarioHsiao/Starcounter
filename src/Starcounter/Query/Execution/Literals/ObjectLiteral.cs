@@ -1,4 +1,9 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="ObjectLiteral.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
 using Starcounter.Query.Optimization;
 using System;
 using System.Globalization;
@@ -93,6 +98,7 @@ internal class ObjectLiteral : Literal, ILiteral, IObjectPathItem
 
     /// <summary>
     /// The type resultTypeBind of the object.
+    /// </summary>
     public QueryTypeCode QueryTypeCode
     {
         get
@@ -100,6 +106,9 @@ internal class ObjectLiteral : Literal, ILiteral, IObjectPathItem
             return QueryTypeCode.Object;
         }
     }
+    
+    /// <summary>
+    /// 
     /// </summary>
     public ITypeBinding TypeBinding
     {

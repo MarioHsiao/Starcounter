@@ -34,7 +34,16 @@ class GatewayWorker
     // Some worker temporary data.
     char uri_lower_case_[bmx::MAX_URI_STRING_LEN];
 
+    // Random generator.
+    random_generator* rand_gen_;
+
 public:
+
+    // Getting random generator.
+    random_generator* get_random()
+    {
+        return rand_gen_;
+    }
 
     // Getting worker temporary URI.
     char* get_uri_lower_case()
@@ -119,9 +128,6 @@ public:
         return worker_stats_last_bound_num_;
     }
 
-    // Random generator.
-    random_generator* Random;
-
     // Worker initialization function.
     int32_t Init(int32_t workerId);
 
@@ -180,7 +186,8 @@ public:
         sd->PrepareToDb();
 
         // Here we have to process socket data using handlers.
-        if (0 != sd->RunHandlers(this))
+        uint32_t err_code = sd->RunHandlers(this);
+        if (0 != err_code)
         {
             // Disconnecting socket.
             Disconnect(sd);
@@ -198,7 +205,8 @@ public:
         sd->PrepareFromDb();
 
         // Here we have to process socket data using handlers.
-        if (sd->RunHandlers(this) != 0)
+        uint32_t err_code = sd->RunHandlers(this);
+        if (0 != err_code)
         {
             // Disconnecting socket.
             Disconnect(sd);
@@ -213,7 +221,7 @@ public:
     uint32_t PushSocketDataToDb(SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id);
 
     // Scans all channels for any incoming chunks.
-    uint32_t ScanChannels();
+    uint32_t ScanChannels(bool* found_something);
 
     // Creates the socket data structure.
     SocketDataChunk* CreateSocketData(

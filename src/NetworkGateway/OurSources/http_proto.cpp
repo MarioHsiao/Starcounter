@@ -60,9 +60,15 @@ const char* kHttpBadRequest =
 const int32_t kHttpNoContentLen = strlen(kHttpNoContent) + 1;
 
 // Fetches method and URI from HTTP request data.
-inline uint32_t GetMethodAndUri(char* http_data, uint32_t http_data_len, char* out_uri_lower_case, uint32_t* out_len, uint32_t uri_max_len)
+inline uint32_t GetMethodAndUri(
+    char* http_data,
+    uint32_t http_data_len,
+    char* out_methoduri_lower_case,
+    uint32_t* out_len,
+    uint32_t* out_uri_offset,
+    uint32_t uri_max_len)
 {
-    int32_t pos = 0;
+    uint32_t pos = 0;
 
     // Reading method.
     while (pos < http_data_len)
@@ -72,6 +78,9 @@ inline uint32_t GetMethodAndUri(char* http_data, uint32_t http_data_len, char* o
 
         pos++;
     }
+
+    // Copying offset to URI.
+    *out_uri_offset = pos + 1;
 
     // Reading URI.
     pos++;
@@ -104,10 +113,10 @@ inline uint32_t GetMethodAndUri(char* http_data, uint32_t http_data_len, char* o
     if (pos < uri_max_len)
     {
         // Copying string.
-        strncpy_s(out_uri_lower_case, pos + 1, http_data, pos);
+        strncpy_s(out_methoduri_lower_case, pos + 1, http_data, pos);
 
         // Converting to lower case.
-        _strlwr_s(out_uri_lower_case, pos + 1);
+        _strlwr_s(out_methoduri_lower_case, pos + 1);
 
         // Setting output length.
         *out_len = pos;
@@ -361,7 +370,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
 
                 // Reading received session index (skipping session header name and equality).
                 uint32_t sessionIndex = hex_string_to_uint64(at + ScSessionIdStringLen + 1, 8);
-                if (sessionIndex == INVALID_CONVERTED_NUMBER)
+                if (INVALID_CONVERTED_NUMBER == sessionIndex)
                 {
                     GW_COUT << "Session index stored in the HTTP header has wrong format." << std::endl;
                     return 1;
@@ -369,7 +378,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
 
                 // Reading received session random salt.
                 uint64_t randomSalt = hex_string_to_uint64(at + ScSessionIdStringLen + 1 + 8, 16);
-                if (randomSalt == INVALID_CONVERTED_NUMBER)
+                if (INVALID_CONVERTED_NUMBER == randomSalt)
                 {
                     GW_COUT << "Session random salt stored in the HTTP header has wrong format." << std::endl;
                     return 1;
@@ -388,19 +397,17 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
                 else
                 {
                     // Attaching to existing or creating a new session.
-                    SessionData *existingSession = g_gateway.GetSessionData(sessionIndex);
+                    ScSessionStruct *existingSession = g_gateway.GetSessionData(sessionIndex);
                     if ((existingSession != NULL) && (existingSession->Compare(randomSalt, sessionIndex)))
                     {
                         // Attaching existing session.
-                        http->sd_ref_->AttachToSession(existingSession, http->gw_ref_temp_);
-
-                        // Just increase number of visits.
-                        if (http->resp_type_ == HTTP_STANDARD_RESPONSE)
-                            http->sd_ref_->GetAttachedSession()->IncreaseVisits();
+                        http->sd_ref_->AttachToSession(existingSession);
                     }
                     else
                     {
+#ifdef GW_SESSIONS_DIAG
                         GW_COUT << "Given session does not exist: " << sessionIndex << ":" << randomSalt << std::endl;
+#endif
 
                         // Given session does not exist, dropping the connection.
                         //return 1;
@@ -426,9 +433,22 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
 
         case CONTENT_LENGTH:
         {
+            // Converting decimal string into number.
+            uint32_t body_length_bytes = 0;
+            int32_t mult = 1, i = length - 1;
+            while (true)
+            {
+                body_length_bytes += (at[i] - '0') * mult;
+
+                --i;
+                if (i < 0)
+                    break;
+
+                mult *= 10;
+            }
+
             // Setting body size parameter.
-            // TODO: Fix the length parsing.
-            //http->http_request_.body_len_bytes_ = length;
+            http->http_request_.body_len_bytes_ = body_length_bytes;
 
             break;
         }
@@ -565,7 +585,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         AccumBuffer* socketDataBuf = sd->get_data_buf();
 
         // Attaching a socket.
-        AttachSocket(gw, sd);
+        AttachToParser(gw, sd);
 
         // Checking if we are already passed the WebSockets handshake.
         if(sd->get_http_ws_proto()->get_web_sockets_upgrade() == true)
@@ -579,27 +599,25 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         }
 
         // Obtaining method and URI.
-        char* uri_lower_case = gw->get_uri_lower_case();
-        uint32_t uri_len;
+        char* method_and_uri_lower_case = gw->get_uri_lower_case();
+        uint32_t method_and_uri_len, uri_offset;
 
         // Checking for any errors.
         uint32_t err_code = GetMethodAndUri(
             (char*)(sd->get_data_buf()->get_orig_buf_ptr()),
             sd->get_data_buf()->get_accum_len_bytes(),
-            uri_lower_case,
-            &uri_len,
+            method_and_uri_lower_case,
+            &method_and_uri_len,
+            &uri_offset,
             bmx::MAX_URI_STRING_LEN);
 
         // Checking for any errors.
         if (err_code)
         {
-            // Disconnecting this socket.
-            gw->Disconnect(sd);
-
             // Returning error.
-            return 1;
+            return SCERRPARSINGMETHODANDURI;
 
-            // TODO!
+            // TODO: Continue receiving to parse the header!
 
             // Continue receiving.
             socketDataBuf->ContinueReceive();
@@ -613,29 +631,48 @@ uint32_t HttpWsProto::HttpUriDispatcher(
             return 0;
         }
 
-        // Now we have URI and ready to search specific URI handler.
+        // Now we have method and URI and ready to search specific URI handler.
 
         // Getting the corresponding port number.
         ServerPort* server_port = g_gateway.get_server_port(sd->get_port_index());
         uint16_t port_num = server_port->get_port_number();
         RegisteredUris* reg_uris = server_port->get_registered_uris();
 
-        // Searching matching URI.
-        int32_t uri_index = reg_uris->SearchMatchingUriHandler(uri_lower_case, uri_len);
+        // Searching matching method and URI.
+        int32_t max_matched_chars_method_and_uri;
+        int32_t matched_index_method_and_uri = reg_uris->SearchMatchingUriHandler(method_and_uri_lower_case, method_and_uri_len, max_matched_chars_method_and_uri);
+        max_matched_chars_method_and_uri -= uri_offset;
 
-        // Checking if user handler was not found.
-        if (uri_index < 0)
+        // Searching on URIs only now.
+        int32_t max_matched_chars_just_uri;
+        int32_t matched_index_just_uri = reg_uris->SearchMatchingUriHandler(method_and_uri_lower_case + uri_offset, method_and_uri_len - uri_offset, max_matched_chars_just_uri);
+
+        // Determining which matched handler to pick.
+        int32_t matched_index = -1;
+        if (matched_index_method_and_uri >= 0)
         {
-            // Disconnecting this socket.
-            gw->Disconnect(sd);
+            matched_index = matched_index_method_and_uri;
 
-            // Returning error.
-            return 1;
+            // Checking if pure URI was matched as well.
+            if (matched_index_just_uri >= 0)
+            {
+                // Comparing which URI is longer.
+                if (max_matched_chars_just_uri > max_matched_chars_method_and_uri)
+                    matched_index = matched_index_just_uri;
+            }
         }
+        else if (matched_index_just_uri >= 0)
+        {
+            matched_index = matched_index_just_uri;
+        }
+
+        // Checking if we failed to find again.
+        if (matched_index < 0)
+            return SCERRREQUESTONUNREGISTEREDURI;
 
         // Running determined handler now.
         *is_handled = true;
-        return reg_uris->GetEntryByIndex(uri_index).RunHandlers(gw, sd);
+        return reg_uris->GetEntryByIndex(matched_index).RunHandlers(gw, sd);
     }
     else
     {
@@ -663,7 +700,7 @@ uint32_t HttpWsProto::HttpWsProcessData(
         AccumBuffer* socketDataBuf = sd->get_data_buf();
 
         // Attaching a socket.
-        AttachSocket(gw, sd);
+        AttachToParser(gw, sd);
 
         // Checking if we are already passed the WebSockets handshake.
         if(sd->get_http_ws_proto()->get_web_sockets_upgrade() == true)
@@ -789,22 +826,27 @@ uint32_t HttpWsProto::HttpWsProcessData(
             // but no session cookie is presented.
             if ((0 == http_request_.session_string_offset_) && (sd->GetAttachedSession() != NULL))
             {
-                GW_COUT << "HTTP packet does not contain session cookie!" << std::endl;
-                return 1;
+                sd->ResetSession();
+                //GW_COUT << "HTTP packet does not contain session cookie!" << std::endl;
+                //return 1;
             }
 
             if (resp_type_ == HTTP_STANDARD_RESPONSE)
             {
                 // Checking if already visited before.
-                if (sd->GetAttachedSession() == NULL)
+                /*if (sd->GetAttachedSession() == NULL)
                 {
                     // Generating and attaching new session.
-                    sd->AttachToSession(g_gateway.GenerateNewSession(gw), gw);
-                }
+                    sd->AttachToSession(g_gateway.GenerateNewSession(gw));
+                }*/
 
                 // Setting session structure fields.
                 http_request_.request_offset_ = socketDataBuf->get_orig_buf_ptr() - (uint8_t*)sd;
-                http_request_.session_struct_.Copy(sd->GetAttachedSession()->get_session_struct());
+
+                // TODO:
+                // Copying session information to the HTTP request struct.
+                //http_request_.session_struct_.Init(sd->get_session_salt(), sd->get_session_index(), ~0);
+
                 http_request_.request_len_bytes_ = socketDataBuf->get_accum_len_bytes();
 
                 // Getting the payload pointer.
@@ -909,6 +951,23 @@ uint32_t HttpWsProto::HttpWsProcessData(
         // Prepare buffer to send outside.
         sd->get_data_buf()->PrepareForSend(payload - httpHeaderLen, payloadLen + httpHeaderLen);
         */
+
+        // Correcting the session cookie.
+        if (sd->get_new_session_created())
+        {
+            // New session cookie was created searching for it.
+            char* session_cookie = strstr((char*)sd->get_data_blob(), ScSessionIdString);
+            assert(NULL != session_cookie);
+
+            // Skipping cookie header and equality symbol.
+            session_cookie += ScSessionIdStringLen + 1;
+
+            // Writing gateway session index.
+            g_gateway.GetSessionData(sd->get_session_index())->ConvertToString(session_cookie);
+
+            // Session has been created.
+            sd->set_new_session_created(false);
+        }
 
         // Prepare buffer to send outside.
         sd->get_data_buf()->PrepareForSend(payload, payloadLen);
