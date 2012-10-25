@@ -37,7 +37,7 @@ int32_t GatewayWorker::Init(int32_t newWorkerId)
         active_dbs_[i] = NULL;
 
     // Creating random generator with current time seed.
-    Random = new random_generator(timeGetTime());
+    rand_gen_ = new random_generator(timeGetTime());
 
     // Initializing profilers.
     profiler_.Init(64);
@@ -250,11 +250,11 @@ uint32_t GatewayWorker::FinishReceive(SocketDataChunk *sd, int32_t numBytesRecei
     worker_stats_recv_num_++;
 
     // Getting attached session if any.
-    SessionData *session = sd->GetAttachedSession();
+    ScSessionStruct* session = sd->GetAttachedSession();
     if (session)
     {
         // Check that data received belongs to the correct session (not coming from abandoned connection).
-        if (!session->CompareSocketStamps(sd->sock_stamp()))
+        if (!session->CompareSalts(sd->get_session_salt()))
         {
 #ifdef GW_ERRORS_DIAG
             GW_PRINT_WORKER << "Data from abandoned/different socket received." << std::endl;
@@ -263,6 +263,16 @@ uint32_t GatewayWorker::FinishReceive(SocketDataChunk *sd, int32_t numBytesRecei
             Disconnect(sd);
 
             return 0;
+        }
+    }
+    else
+    {
+        // If session was already created, just attaching to it.
+        uint32_t session_index = (g_gateway.get_all_sockets_unsafe()[sd->get_socket()]).get_session_index();
+        if (INVALID_SESSION_INDEX != session_index)
+        {
+            ScSessionStruct* session = g_gateway.GetSessionData(session_index);
+            sd->AttachToSession(session);
         }
     }
 
@@ -510,6 +520,9 @@ inline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunk *sd)
 #ifdef GW_SOCKET_DIAG
     GW_PRINT_WORKER << "FinishDisconnect: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
 #endif
+
+    // Removing tracked session.
+    (g_gateway.get_all_sockets_unsafe()[sd->get_socket()]).Reset();
 
     // Stop tracking this socket.
     g_gateway.GetDatabase(sd->get_db_index())->UntrackSocket(sd->sock());

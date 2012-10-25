@@ -8,15 +8,19 @@ namespace Starcounter
     public unsafe struct NetworkDataStream : INetworkDataStream
     {
         // Data offset/size constants.
-        public const Int32 BMX_HANDLER_SIZE = 2;
-        public const Int32 BMX_PROTOCOL_BEGIN = 16;
-        public const Int32 REQUEST_SIZE_BEGIN = BMX_PROTOCOL_BEGIN + BMX_HANDLER_SIZE;
-        public const Int32 GATEWAY_CHUNK_BEGIN = 24;
-        public const Int32 GATEWAY_DATA_BEGIN = GATEWAY_CHUNK_BEGIN + 32;
+        const Int32 BMX_HANDLER_SIZE = 2;
+        const Int32 BMX_PROTOCOL_BEGIN = 16;
+        const Int32 REQUEST_SIZE_BEGIN = BMX_PROTOCOL_BEGIN + BMX_HANDLER_SIZE;
+        const Int32 GATEWAY_CHUNK_BEGIN = 24;
+        const Int32 GATEWAY_DATA_BEGIN = GATEWAY_CHUNK_BEGIN + 32;
+
+        const Int32 SESSION_SALT_OFFSET = GATEWAY_DATA_BEGIN;
         public const Int32 SESSION_INDEX_OFFSET = GATEWAY_DATA_BEGIN + 8;
-        public const Int32 USER_DATA_OFFSET = GATEWAY_DATA_BEGIN + 12;
-        public const Int32 MAX_USER_DATA_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 16;
-        public const Int32 USER_DATA_WRITTEN_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 20;
+        const Int32 SESSION_APPS_UNIQUE_NUMBER_OFFSET = GATEWAY_DATA_BEGIN + 16;
+
+        const Int32 USER_DATA_OFFSET = GATEWAY_DATA_BEGIN + 24;
+        const Int32 MAX_USER_DATA_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 28;
+        const Int32 USER_DATA_WRITTEN_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 32;
 
         Byte* unmanaged_chunk_;
         Boolean single_chunk_;

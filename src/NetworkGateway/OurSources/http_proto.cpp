@@ -370,7 +370,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
 
                 // Reading received session index (skipping session header name and equality).
                 uint32_t sessionIndex = hex_string_to_uint64(at + ScSessionIdStringLen + 1, 8);
-                if (sessionIndex == INVALID_CONVERTED_NUMBER)
+                if (INVALID_CONVERTED_NUMBER == sessionIndex)
                 {
                     GW_COUT << "Session index stored in the HTTP header has wrong format." << std::endl;
                     return 1;
@@ -378,7 +378,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
 
                 // Reading received session random salt.
                 uint64_t randomSalt = hex_string_to_uint64(at + ScSessionIdStringLen + 1 + 8, 16);
-                if (randomSalt == INVALID_CONVERTED_NUMBER)
+                if (INVALID_CONVERTED_NUMBER == randomSalt)
                 {
                     GW_COUT << "Session random salt stored in the HTTP header has wrong format." << std::endl;
                     return 1;
@@ -397,15 +397,11 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
                 else
                 {
                     // Attaching to existing or creating a new session.
-                    SessionData *existingSession = g_gateway.GetSessionData(sessionIndex);
+                    ScSessionStruct *existingSession = g_gateway.GetSessionData(sessionIndex);
                     if ((existingSession != NULL) && (existingSession->Compare(randomSalt, sessionIndex)))
                     {
                         // Attaching existing session.
-                        http->sd_ref_->AttachToSession(existingSession, http->gw_ref_temp_);
-
-                        // Just increase number of visits.
-                        if (http->resp_type_ == HTTP_STANDARD_RESPONSE)
-                            http->sd_ref_->GetAttachedSession()->IncreaseVisits();
+                        http->sd_ref_->AttachToSession(existingSession);
                     }
                     else
                     {
@@ -587,7 +583,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         AccumBuffer* socketDataBuf = sd->get_data_buf();
 
         // Attaching a socket.
-        AttachSocket(gw, sd);
+        AttachToParser(gw, sd);
 
         // Checking if we are already passed the WebSockets handshake.
         if(sd->get_http_ws_proto()->get_web_sockets_upgrade() == true)
@@ -702,7 +698,7 @@ uint32_t HttpWsProto::HttpWsProcessData(
         AccumBuffer* socketDataBuf = sd->get_data_buf();
 
         // Attaching a socket.
-        AttachSocket(gw, sd);
+        AttachToParser(gw, sd);
 
         // Checking if we are already passed the WebSockets handshake.
         if(sd->get_http_ws_proto()->get_web_sockets_upgrade() == true)
@@ -828,22 +824,27 @@ uint32_t HttpWsProto::HttpWsProcessData(
             // but no session cookie is presented.
             if ((0 == http_request_.session_string_offset_) && (sd->GetAttachedSession() != NULL))
             {
-                GW_COUT << "HTTP packet does not contain session cookie!" << std::endl;
-                return 1;
+                sd->ResetSession();
+                //GW_COUT << "HTTP packet does not contain session cookie!" << std::endl;
+                //return 1;
             }
 
             if (resp_type_ == HTTP_STANDARD_RESPONSE)
             {
                 // Checking if already visited before.
-                if (sd->GetAttachedSession() == NULL)
+                /*if (sd->GetAttachedSession() == NULL)
                 {
                     // Generating and attaching new session.
-                    sd->AttachToSession(g_gateway.GenerateNewSession(gw), gw);
-                }
+                    sd->AttachToSession(g_gateway.GenerateNewSession(gw));
+                }*/
 
                 // Setting session structure fields.
                 http_request_.request_offset_ = socketDataBuf->get_orig_buf_ptr() - (uint8_t*)sd;
-                http_request_.session_struct_.Copy(sd->GetAttachedSession()->get_session_struct());
+
+                // TODO:
+                // Copying session information to the HTTP request struct.
+                //http_request_.session_struct_.Init(sd->get_session_salt(), sd->get_session_index(), ~0);
+
                 http_request_.request_len_bytes_ = socketDataBuf->get_accum_len_bytes();
 
                 // Getting the payload pointer.
@@ -948,6 +949,23 @@ uint32_t HttpWsProto::HttpWsProcessData(
         // Prepare buffer to send outside.
         sd->get_data_buf()->PrepareForSend(payload - httpHeaderLen, payloadLen + httpHeaderLen);
         */
+
+        // Correcting the session cookie.
+        if (sd->get_new_session_created())
+        {
+            // New session cookie was created searching for it.
+            char* session_cookie = strstr((char*)sd->get_data_blob(), ScSessionIdString);
+            assert(NULL != session_cookie);
+
+            // Skipping cookie header and equality symbol.
+            session_cookie += ScSessionIdStringLen + 1;
+
+            // Writing gateway session index.
+            g_gateway.GetSessionData(sd->get_session_index())->ConvertToString(session_cookie);
+
+            // Session has been created.
+            sd->set_new_session_created(false);
+        }
 
         // Prepare buffer to send outside.
         sd->get_data_buf()->PrepareForSend(payload, payloadLen);

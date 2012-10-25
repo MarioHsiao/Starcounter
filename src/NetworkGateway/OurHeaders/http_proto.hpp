@@ -537,9 +537,6 @@ struct HttpRequest
     uint32_t header_value_len_bytes_[MAX_HTTP_HEADERS];
     uint32_t num_headers_;
 
-    // Session structure.
-    ScSessionStruct session_struct_;
-
     // HTTP method.
     bmx::HTTP_METHODS http_method_;
 
@@ -633,8 +630,8 @@ public:
     // Standard HTTP/WS handler once URI is determined.
     uint32_t HttpWsProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);
 
-    // Attaching socket data.
-    void AttachSocket(GatewayWorker *gw, SocketDataChunk *sd)
+    // Attaching socket data and gateway worker to parser.
+    void AttachToParser(GatewayWorker *gw, SocketDataChunk *sd)
     {
         gw_ref_temp_ = gw;
         sd_ref_ = sd;

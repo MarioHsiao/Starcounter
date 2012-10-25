@@ -44,7 +44,7 @@ namespace network {
 #define GW_WARNINGS_DIAG
 //#define GW_CHUNKS_DIAG
 #define GW_DATABASES_DIAG
-//#define GW_SESSIONS_DIAG
+#define GW_SESSIONS_DIAG
 
 // Maximum number of ports the gateway operates with.
 const int32_t MAX_PORTS_NUM = 16;
@@ -90,7 +90,19 @@ const int32_t CHUNK_INDEX_SIZE = sizeof(core::chunk_index);
 const uint32_t INVALID_CHUNK_INDEX = ~0;
 
 // Bad linear session index.
-const int32_t INVALID_SESSION_INDEX = -1;
+const uint32_t INVALID_SESSION_INDEX = ~0;
+
+// Bad scheduler index.
+const uint32_t INVALID_SCHEDULER_ID = ~0;
+
+// Bad session salt.
+const uint64_t INVALID_SESSION_SALT = 0;
+
+// Invalid Apps unique number.
+const uint64_t INVALID_APPS_UNIQUE_NUMBER = 0;
+
+// Maximum session salt during generation.
+const uint64_t MAX_SESSION_SALT = ~((uint64_t)0) - 2;
 
 // Maximum number of chunks to keep in private chunk pool
 // until we release them to shared chunk pool.
@@ -435,7 +447,7 @@ public:
 struct ScSessionStruct
 {
     // Session random salt.
-    uint64_t random_salt_;
+    uint64_t session_salt_;
 
     // Unique session linear index.
     // Points to the element in sessions linear array.
@@ -444,34 +456,53 @@ struct ScSessionStruct
     // Scheduler ID.
     uint32_t scheduler_id_;
 
-    // Initializes.
-    void Init(uint64_t random_salt, uint32_t session_index, uint32_t scheduler_id)
+    // Unique number coming from Apps.
+    uint64_t apps_unique_num_;
+
+    // Default constructor.
+    ScSessionStruct()
     {
-        random_salt_ = random_salt;
+        Reset();
+    }
+
+    // Reset.
+    void Reset()
+    {
+        session_salt_ = INVALID_SESSION_SALT;
+        session_index_ = INVALID_SESSION_INDEX;
+        scheduler_id_ = INVALID_SCHEDULER_ID;
+        apps_unique_num_ = INVALID_APPS_UNIQUE_NUMBER;
+    }
+
+    // Initializes.
+    void Init(uint64_t session_salt, uint32_t session_index, uint64_t apps_unique_num, uint32_t scheduler_id)
+    {
+        session_salt_ = session_salt;
         session_index_ = session_index;
         scheduler_id_ = scheduler_id;
+        apps_unique_num_ = apps_unique_num;
     }
 
     // Comparing two sessions.
-    bool IsEqual(uint64_t random_salt, uint32_t session_index)
+    bool IsEqual(uint64_t session_salt, uint32_t session_index)
     {
-        return (random_salt_ == random_salt) && (session_index_ == session_index);
+        return (session_salt_ == session_salt) && (session_index_ == session_index);
     }
 
     // Comparing two sessions.
-    bool IsEqual(ScSessionStruct& session_struct)
+    bool IsEqual(ScSessionStruct* session_struct)
     {
-        return IsEqual(session_struct.random_salt_, session_struct.session_index_);
+        return IsEqual(session_struct->session_salt_, session_struct->session_index_);
     }
 
     // Converts session to string.
     int32_t ConvertToString(char *str_out)
     {
         // Translating session index.
-        int32_t sessionStringLen = uint64_to_hex_string(session_index_, str_out, 8);
+        int32_t sessionStringLen = uint64_to_hex_string(session_index_, str_out, 8, false);
 
         // Translating session random salt.
-        sessionStringLen += uint64_to_hex_string(random_salt_, str_out + sessionStringLen, 16);
+        sessionStringLen += uint64_to_hex_string(session_salt_, str_out + sessionStringLen, 16, false);
 
         return sessionStringLen;
     }
@@ -479,114 +510,86 @@ struct ScSessionStruct
     // Copying one session structure into another.
     void Copy(ScSessionStruct* session_struct)
     {
-        random_salt_ = session_struct->random_salt_;
+        session_salt_ = session_struct->session_salt_;
         session_index_ = session_struct->session_index_;
         scheduler_id_ = session_struct->scheduler_id_;
-    }
-};
-
-// Session related data.
-class GatewayWorker;
-class SessionData
-{
-    // Session structure.
-    ScSessionStruct session_struct_;
-
-    // Used to track one-to-one relationship between attached socket and user session.
-    uint64_t socket_stamp_;
-
-    // Number of visits.
-    uint32_t num_visits_;
-
-    // Socket to which this session is attached.
-    SOCKET attached_socket_;
-
-public:
-
-    // Getting session structure.
-    ScSessionStruct* get_session_struct()
-    {
-        return &session_struct_;
-    }
-
-    // Gets attached socket.
-    SOCKET attached_socket()
-    {
-        return attached_socket_;
+        apps_unique_num_ = session_struct->apps_unique_num_;
     }
 
     // Scheduler ID.
     uint32_t get_scheduler_id()
     {
-        return session_struct_.scheduler_id_;
+        return scheduler_id_;
     }
 
-    // Number of visits.
-    uint32_t num_visits()
+    // Getting session unique salt.
+    uint64_t get_session_salt()
     {
-        return num_visits_;
+        return session_salt_;
     }
 
     // Unique session linear index.
     // Points to the element in sessions linear array.
-    uint32_t session_index()
+    uint32_t get_session_index()
     {
-        return session_struct_.session_index_;
-    }
-
-    // Used to track one-to-one relationship between attached socket and user session.
-    uint64_t socket_stamp()
-    {
-        return socket_stamp_;
-    }
-
-    // Attaches a new socket.
-    void AttachSocket(SOCKET newSocket, uint64_t newStamp)
-    {
-#ifdef GW_SESSIONS_DIAG
-        GW_COUT << "Session: " << session_struct_.session_index_ << ":" << session_struct_.random_salt_ << ", new socket attached: " << newSocket << std::endl;
-#endif
-        attached_socket_ = newSocket;
-        socket_stamp_ = newStamp;
+        return session_index_;
     }
 
     // Create new session based on random salt, linear index, scheduler.
-    void GenerateNewSession(GatewayWorker *gw, uint32_t sessionIndex, uint32_t schedulerId);
-
-    // Increase number of visits in this session.
-    void IncreaseVisits()
-    {
-        num_visits_++;
-    }
+    void GenerateNewSession(uint64_t salt, uint32_t session_index, uint64_t apps_unique_num, uint32_t scheduler_id);
 
     // Compare socket stamps of two sessions.
-    bool CompareSocketStamps(uint64_t socketStamp)
+    bool CompareSalts(uint64_t session_salt)
     {
-        return socket_stamp_ == socketStamp;
-    }
-
-    // Compare random salt of two sessions.
-    bool CompareSalt(uint64_t randomSalt)
-    {
-        return session_struct_.random_salt_ == randomSalt;
+        return session_salt_ == session_salt;
     }
 
     // Compare two sessions.
     bool Compare(uint64_t randomSalt, uint32_t sessionIndex)
     {
-        return session_struct_.IsEqual(randomSalt, sessionIndex);
+        return IsEqual(randomSalt, sessionIndex);
     }
 
     // Compare two sessions.
-    bool Compare(SessionData *sessionData)
+    bool Compare(ScSessionStruct *session_struct)
     {
-        return session_struct_.IsEqual(sessionData->session_struct_);
+        return IsEqual(session_struct);
+    }
+};
+
+class SocketData
+{
+    // Index into existing session or INVALID_SESSION_INDEX.
+    uint32_t session_index_;
+
+    // Unique socket stamp.
+    uint64_t socket_stamp_;
+
+public:
+
+    // Gets sessions index.
+    uint32_t get_session_index()
+    {
+        return session_index_;
     }
 
-    // Converts session to string.
-    int32_t ConvertToString(char *str_out)
+    // Sets session index.
+    void set_session_index(uint32_t session_index)
     {
-        return session_struct_.ConvertToString(str_out);
+        session_index_ = session_index;
+    }
+
+    // Gets socket stamp.
+    uint32_t get_socket_stamp()
+    {
+        return socket_stamp_;
+    }
+
+    // Reset.
+    void Reset()
+    {
+        session_index_ = INVALID_SESSION_INDEX;
+        socket_stamp_ = 0;
     }
 };
 
@@ -857,7 +860,6 @@ public:
 };
 
 class GatewayWorker;
-class SessionData;
 class Gateway
 {
     ////////////////////////
@@ -928,14 +930,20 @@ class Gateway
     // SESSIONS
     ////////////////////////
 
+    // Unique session sequence number.
+    uint64_t unique_socket_stamp_;
+
     // All sessions information.
-    SessionData *all_sessions_unsafe_;
+    ScSessionStruct* all_sessions_unsafe_;
+
+    // All sockets information.
+    SocketData* all_sockets_unsafe_;
 
     // Free session indexes.
-    int32_t *free_session_indexes_unsafe_;
+    uint32_t *free_session_indexes_unsafe_;
 
     // Number of active sessions.
-    volatile int32_t num_active_sessions_unsafe_;
+    volatile uint32_t num_active_sessions_unsafe_;
 
     // Round-robin global scheduler number.
     uint32_t global_scheduler_id_unsafe_;
@@ -985,6 +993,27 @@ class Gateway
     volatile int32_t global_sleep_ms_;
 
 public:
+
+    // Returning all sockets data.
+    SocketData* get_all_sockets_unsafe()
+    {
+        return all_sockets_unsafe_;
+    }
+
+    // Increments and gets unique socket stamp number.
+    uint64_t ObtainUniqueSocketStamp()
+    {
+        return ++unique_socket_stamp_;
+    }
+
+    // Round-robin global scheduler number.
+    uint32_t obtain_scheduler_id()
+    {
+        if (++global_scheduler_id_unsafe_ >= num_schedulers_)
+            global_scheduler_id_unsafe_ = 0;
+
+        return global_scheduler_id_unsafe_;
+    }
 
     // Getting state of the socket.
     bool ShouldSocketBeDeleted(SOCKET sock)
@@ -1257,30 +1286,19 @@ public:
     int32_t StartGateway();
 
     // Deletes existing session.
-    uint32_t DeleteSession(uint32_t sessionIndex)
+    uint32_t KillSession(uint32_t session_index)
     {
-        // Checking validity of linear session index.
-        if (sessionIndex >= num_active_sessions_unsafe_)
-            return 1;
+        assert(INVALID_SESSION_INDEX != session_index);
 
         // Entering the critical section.
         EnterCriticalSection(&cs_session_);
 
-        // Fetching the session by index.
-        SessionData *sessionData = &all_sessions_unsafe_[sessionIndex];
-
-        // Comparing two session data.
-        if (!sessionData->Compare(sessionData))
-        {
-            // Leaving the critical section.
-            LeaveCriticalSection(&cs_session_);
-
-            return 1;
-        }
+        // Resetting the session cell.
+        all_sessions_unsafe_[session_index].Reset();
 
         // Decrementing number of active sessions.
         num_active_sessions_unsafe_--;
-        free_session_indexes_unsafe_[num_active_sessions_unsafe_] = sessionIndex;    
+        free_session_indexes_unsafe_[num_active_sessions_unsafe_] = session_index;
 
         // Leaving the critical section.
         LeaveCriticalSection(&cs_session_);
@@ -1289,7 +1307,7 @@ public:
     }
 
     // Generates new global session.
-    SessionData* GenerateNewSession(GatewayWorker *gw)
+    ScSessionStruct* GenerateNewSession(uint64_t salt, uint64_t apps_unique_num, uint32_t scheduler_id)
     {
         // Checking that we have not reached maximum number of sessions.
         if (num_active_sessions_unsafe_ >= setting_maxConnections_)
@@ -1299,12 +1317,14 @@ public:
         EnterCriticalSection(&cs_session_);
 
         // Getting index of a free session data.
-        int32_t freeSessionIndex = free_session_indexes_unsafe_[num_active_sessions_unsafe_];
+        uint32_t free_session_index = free_session_indexes_unsafe_[num_active_sessions_unsafe_];
 
         // Creating an instance of new unique session.
-        all_sessions_unsafe_[freeSessionIndex].GenerateNewSession(gw, freeSessionIndex, global_scheduler_id_unsafe_++);
-        if (global_scheduler_id_unsafe_ >= num_schedulers_)
-            global_scheduler_id_unsafe_ = 0;
+        all_sessions_unsafe_[free_session_index].GenerateNewSession(
+            salt,
+            free_session_index,
+            apps_unique_num,
+            scheduler_id);
 
         // Incrementing number of active sessions.
         num_active_sessions_unsafe_++;
@@ -1313,25 +1333,18 @@ public:
         LeaveCriticalSection(&cs_session_);
 
         // Returning new critical section.
-        return all_sessions_unsafe_ + freeSessionIndex;
+        return all_sessions_unsafe_ + free_session_index;
     }
 
     // Gets session data by index.
-    SessionData *GetSessionData(uint32_t sessionIndex)
+    ScSessionStruct* GetSessionData(uint32_t sessionIndex)
     {
         // Checking validity of linear session index.
-        if (sessionIndex >= num_active_sessions_unsafe_)
+        if (INVALID_SESSION_INDEX == sessionIndex)
             return NULL;
 
         // Fetching the session by index.
         return all_sessions_unsafe_ + sessionIndex;
-    }
-
-    // Attaches new socket to existing session.
-    void AttachSocketToSession(SessionData *existingSession, SOCKET newSocket, uint64_t newStamp)
-    {
-        // Attaching new socket.
-        existingSession->AttachSocket(newSocket, newStamp);
     }
 };
 
