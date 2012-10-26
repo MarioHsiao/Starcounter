@@ -22,7 +22,7 @@ if %errorlevel% neq 0 goto FAILED
 rd /s /q "Q:\%DocumentationParentFolder%"
 :: "rd" doesn't return errorlevel value
 robocopy .\%DocumentationProjectPath%\%DocumentationResultFolder%\ Q: /e
-if %errorlevel% neq 0 goto FAILED
+if %errorlevel% gtr 8 goto FAILED
 net use Q: /delete
 if %errorlevel% neq 0 goto FAILED
 
