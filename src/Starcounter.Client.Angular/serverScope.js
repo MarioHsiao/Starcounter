@@ -1,3 +1,5 @@
+
+
 angular.module('StarcounterLib', ['panelApp'])
   .directive('serverScope', ['$http', 'appContext', function ($http, appContext) {
   var directiveDefinitionObject = {
@@ -12,7 +14,6 @@ angular.module('StarcounterLib', ['panelApp'])
             scope[i] = data[i];
           }
         }
-        FindAndSetWatchers(scope);
       }
 
       function patchRoot(scope, patch) {
@@ -66,43 +67,56 @@ angular.module('StarcounterLib', ['panelApp'])
       }
 
       return function postLink(scope, element, attrs, controller) {
+
+        // Check if we should load local json file as a scope
+        if (attrs.serverScope) {
+            // Load local file
+            console.log("Loading local file");
+            $http.get(attrs.serverScope).success(function (data, status, headers, config) {
+
+                // json file loaded
+                console.log("NOTICE: Local scope was loaded (" + attrs.serverScope + ")");
+
+                // apply loaded data to scope
+                overwriteRoot(scope, data);
+
+            }).error(function (data, status, headers, config) {
+                console.log("ERROR: Loading "+attrs.serverScope+" ("+status+")");
+            });
+
+            return;
+        }
+
         if (typeof window.__elim_rq !== 'undefined') {
-          overwriteRoot(scope, window.__elim_rq);
+            overwriteRoot(scope, window.__elim_rq);
           rootLoaded = true;
         }
         else {
-          parseViewModelId(scope);
+            parseViewModelId(scope);
           getRoot(scope);
         }
-      }
 
-      function FindAndSetWatchers(scope) {
-          var tree = appContext.getScopeTree(scope);
-          var watched = [];
+        var tree = appContext.getScopeTree(scope);
+        var watched = [];
 
-          function findWatchedRecursive(watched, obj, parent) {
-              parent = parent || '';
-              for (var i in obj) {
-                  if (i == "View-Model") continue;
-
-                  if (obj.hasOwnProperty(i)) {
-                      if (Object.prototype.toString.apply(obj[i]) === '[object Object]') {
-                          findWatchedRecursive(watched, obj[i], parent + i + '.');
-                      }
-                      else if (Object.prototype.toString.apply(obj[i]) === '[object Array]') {
-                          findWatchedRecursive(watched, obj[i], parent + i + '.');
-                      }
-                      else if (typeof obj[i] !== "function") {
-                          watched.push(parent + i);
-                      }
-                  }
+        function findWatchedRecursive(watched, obj, parent) {
+          parent = parent || '';
+          for (var i in obj) {
+            if (obj.hasOwnProperty(i)) {
+              if (Object.prototype.toString.apply(obj[i]) === '[object Object]') {
+                findWatchedRecursive(watched, obj[i], parent + i + '.');
               }
+              else if (typeof obj[i] !== "function") {
+                watched.push(parent + i);
+              }
+            }
           }
+        }
 
-          findWatchedRecursive(watched, tree.locals);
-          setWatchers(scope, watched);
+        findWatchedRecursive(watched, tree.locals);
+
+        setWatchers(scope, watched);
       }
-
     }
   };
   return directiveDefinitionObject;
