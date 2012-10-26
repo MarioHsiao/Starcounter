@@ -22,6 +22,9 @@ namespace Starcounter.Binding
         /// The _type def
         /// </summary>
         private readonly TypeDef _typeDef;
+
+        private readonly ushort[] _currentAndBaseTableIds;
+
         /// <summary>
         /// The _assembly name
         /// </summary>
@@ -39,9 +42,11 @@ namespace Starcounter.Binding
         /// Initializes a new instance of the <see cref="BindingBuilder" /> class.
         /// </summary>
         /// <param name="typeDef">The type def.</param>
-        internal BindingBuilder(TypeDef typeDef)
+        /// <param name="currentAndBaseTableIds">The baseTableIds.</param>
+        internal BindingBuilder(TypeDef typeDef, ushort[] currentAndBaseTableIds)
         {
             _typeDef = typeDef;
+            _currentAndBaseTableIds = currentAndBaseTableIds;
 
             _assemblyName = string.Concat("gen.", typeDef.Name);
 
@@ -139,6 +144,7 @@ namespace Starcounter.Binding
             typeBinding.Name = typeDef.Name;
             typeBinding.TableId = typeDef.TableDef.TableId;
             typeBinding.TypeDef = typeDef;
+            typeBinding.SetCurrentAndBaseTableIds(_currentAndBaseTableIds);
 
             SetTypeBindingFlags(typeBinding, type);
 
