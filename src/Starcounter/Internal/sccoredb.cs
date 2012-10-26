@@ -379,12 +379,11 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
-        /// MDB_s the definition from code class string.
         /// </summary>
-        /// <param name="name">The name.</param>
-        /// <param name="etiDefinition">The eti definition.</param>
-        /// <returns>System.Int32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        /// <param name="name"></param>
+        /// <param name="etiDefinition"></param>
+        /// <returns></returns>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         public extern static int Mdb_DefinitionFromCodeClassString(
             string name,
             out ulong etiDefinition
@@ -430,10 +429,11 @@ namespace Starcounter.Internal
             /// The is_nullable
             /// </summary>
             public byte is_nullable;
+
             /// <summary>
             /// The name
             /// </summary>
-            public byte* name;
+            public char* name;
         }
 
         /// <summary>
@@ -444,8 +444,8 @@ namespace Starcounter.Internal
         /// <param name="column_definitions">The column_definitions.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe uint sc_create_table(
-            byte *name,
+        public static extern unsafe uint sccoredb_create_table(
+            char *name,
             ulong base_definition_addr,
             SC_COLUMN_DEFINITION *column_definitions
             );
@@ -456,8 +456,8 @@ namespace Starcounter.Internal
         /// <param name="table_id">The table_id.</param>
         /// <param name="new_name">The new_name.</param>
         /// <returns>System.UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public static extern uint sc_rename_table(
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        public static extern uint sccoredb_rename_table(
             ushort table_id,
             string new_name
             );
@@ -467,7 +467,7 @@ namespace Starcounter.Internal
         /// </summary>
         /// <param name="name">The name.</param>
         /// <returns>System.UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         public static extern uint sccoredb_drop_table(string name);
 
         /// <summary>
@@ -543,15 +543,14 @@ namespace Starcounter.Internal
         };
 
         /// <summary>
-        /// Sccoredb_get_index_info_by_names the specified definition_addr.
         /// </summary>
-        /// <param name="definition_addr">The definition_addr.</param>
-        /// <param name="name">The name.</param>
-        /// <param name="pii">The pii.</param>
-        /// <returns>UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public unsafe extern static UInt32 sccoredb_get_index_info_by_name(
-            UInt64 definition_addr,
+        /// <param name="table_id"></param>
+        /// <param name="name"></param>
+        /// <param name="pii"></param>
+        /// <returns></returns>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        public unsafe extern static uint sccoredb_get_index_info_by_name(
+            ushort table_id,
             string name,
             SC_INDEX_INFO* pii
             );
@@ -589,33 +588,31 @@ namespace Starcounter.Internal
         /// <summary>
         /// Sccoredb_get_index_infoses the specified definition_addr.
         /// </summary>
-        /// <param name="definition_addr">The definition_addr.</param>
+        /// <param name="table_id"></param>
         /// <param name="pic">The pic.</param>
         /// <param name="piis">The piis.</param>
         /// <returns>UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 sccoredb_get_index_infos(
-            UInt64 definition_addr,
-            UInt32* pic,
+        public unsafe extern static uint sccoredb_get_index_infos(
+            ushort table_id,
+            uint* pic,
             SC_INDEX_INFO* piis
             );
 
         /// <summary>
-        /// The S c_ INDEXCREAT e_ UNIQU e_ CONSTRAINT
         /// </summary>
         public const UInt32 SC_INDEXCREATE_UNIQUE_CONSTRAINT = 0x00000001;
 
         /// <summary>
-        /// Sc_create_indexes the specified definition_addr.
         /// </summary>
-        /// <param name="definition_addr">The definition_addr.</param>
-        /// <param name="name">The name.</param>
-        /// <param name="sort_mask">The sort_mask.</param>
-        /// <param name="column_indexes">The column_indexes.</param>
-        /// <param name="flags">The flags.</param>
-        /// <returns>UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public extern unsafe static UInt32 sc_create_index(
+        /// <param name="definition_addr"></param>
+        /// <param name="name"></param>
+        /// <param name="sort_mask"></param>
+        /// <param name="column_indexes"></param>
+        /// <param name="flags"></param>
+        /// <returns></returns>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        public extern unsafe static UInt32 sccoredb_create_index(
             ulong definition_addr,
             string name,
             ushort sort_mask,
@@ -624,12 +621,11 @@ namespace Starcounter.Internal
             );
 
         /// <summary>
-        /// Sccoredb_drop_indexes the specified table_name.
         /// </summary>
-        /// <param name="table_name">The table_name.</param>
-        /// <param name="name">The name.</param>
-        /// <returns>UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        /// <param name="table_name"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         public extern unsafe static UInt32 sccoredb_drop_index(
             string table_name,
             string name
