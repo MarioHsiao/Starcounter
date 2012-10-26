@@ -104,9 +104,15 @@ public:
     }
 
     // Getting Apps unique number.
-    uint64_t get_apps_unique_session_num()
+    apps_unique_session_num_type get_apps_unique_session_num()
     {
         return session_.apps_unique_session_num_;
+    }
+
+    // Setting Apps unique number.
+    void set_apps_unique_session_num(apps_unique_session_num_type apps_unique_session_num)
+    {
+        session_.apps_unique_session_num_ = apps_unique_session_num;
     }
 
     // Getting session salt.

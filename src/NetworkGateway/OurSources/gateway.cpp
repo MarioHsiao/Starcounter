@@ -59,7 +59,7 @@ Gateway::Gateway()
     setting_is_master_ = true;
 
     // Maximum total number of sockets.
-    setting_maxConnections_ = 0;
+    setting_max_connections_ = 0;
 
     // Starcounter server type.
     setting_sc_server_type_ = "Personal";
@@ -279,7 +279,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     setting_num_workers_ = atoi(rootElem->first_node("WorkersNumber")->value());
 
     // Getting maximum connection number.
-    setting_maxConnections_ = atoi(rootElem->first_node("MaxConnections")->value());
+    setting_max_connections_ = atoi(rootElem->first_node("MaxConnections")->value());
 
     // Creating double output object.
     g_log_stream = new std::ofstream(setting_log_file_path_, std::ios::out | std::ios::app);
@@ -319,13 +319,13 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     }
 
     // Allocating data for worker sessions.
-    all_sessions_unsafe_ = new ScSessionStruct[setting_maxConnections_];
-    all_sockets_unsafe_ = new SocketData[setting_maxConnections_];
-    free_session_indexes_unsafe_ = new uint32_t[setting_maxConnections_];
+    all_sessions_unsafe_ = new ScSessionStruct[setting_max_connections_];
+    all_sockets_unsafe_ = new SocketData[setting_max_connections_];
+    free_session_indexes_unsafe_ = new uint32_t[setting_max_connections_];
     num_active_sessions_unsafe_ = 0;
 
     // Filling up indexes linearly.
-    for (int32_t i = 0; i < setting_maxConnections_; i++)
+    for (int32_t i = 0; i < setting_max_connections_; i++)
     {
         all_sockets_unsafe_[i].Reset();
         free_session_indexes_unsafe_[i] = i;
@@ -575,13 +575,23 @@ uint32_t Gateway::ScanDatabases()
 // Active database constructor.
 ActiveDatabase::ActiveDatabase()
 {
+    apps_sessions_ = NULL;
     user_handlers_ = NULL;
+
     StartDeletion();
 }
 
 // Initializes this active database slot.
 void ActiveDatabase::Init(std::string db_name, uint64_t unique_num, int32_t db_index)
 {
+    // Creating new Apps sessions up to maximum number of connections.
+    if (!apps_sessions_)
+        apps_sessions_ = new apps_unique_session_num_type[g_gateway.setting_max_connections()];
+
+    // Cleaning all Apps session numbers.
+    for (int32_t i = 0; i < g_gateway.setting_max_connections(); i++)
+        apps_sessions_[i] = INVALID_APPS_UNIQUE_SESSION_NUMBER;
+
     // Creating fresh handlers table.
     user_handlers_ = new HandlersTable();
 
@@ -988,13 +998,13 @@ uint32_t Gateway::GlobalCleanup()
 
 // Create new session based on random salt, linear index, scheduler.
 void ScSessionStruct::GenerateNewSession(
-    uint64_t salt,
-    uint32_t session_index,
-    uint64_t apps_unique_session_num,
+    session_salt_type session_salt,
+    session_index_type session_index,
+    apps_unique_session_num_type apps_unique_session_num,
     uint32_t scheduler_id)
 {
     // Initializing the new session.
-    Init(salt, session_index, apps_unique_session_num, scheduler_id);
+    Init(session_salt, session_index, apps_unique_session_num, scheduler_id);
 
 #ifdef GW_SESSIONS_DIAG
     GW_COUT << "New session generated: " << session_index_ << ":" << session_salt_ << std::endl;
