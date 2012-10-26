@@ -3,7 +3,7 @@
  * (c) 2012 Starcounter. http://www.starcounter.com
  */
 
-angular.module('StarcounterLibStandalone', ['ui','ngResource'])
+angular.module('StarcounterLibStandalone', [])
   .directive('serverScope', ['$http',  function ($http) {
   var directiveDefinitionObject = {
     restrict: 'A',
