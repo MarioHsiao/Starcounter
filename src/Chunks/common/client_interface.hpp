@@ -268,7 +268,41 @@ public:
 	 *		by timeout_milliseconds has elapsed, otherwise true.
 	 */
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-	bool wait_for_work(HANDLE work, uint32_t timeout_milliseconds) {
+	void reset_work_event() {
+		::ResetEvent(work_);
+	}
+
+	bool wait_for_work(std::size_t& work_event_index, const HANDLE* work_event,
+	std::size_t number_of_work_events, bool reset = true, uint32_t
+	timeout_milliseconds = INFINITE) {
+		uint32_t event_code = ::WaitForMultipleObjects(number_of_work_events,
+		work_event, false, timeout_milliseconds);
+
+		if (event_code < static_cast<uint32_t>(number_of_work_events)) {
+			// An event in the vector was set.
+			if (reset) {
+				// Reset the event.
+				::ResetEvent(work_event[event_code]);
+				//std::cout << "ResetEvent(" << work_event[event_code] << ")\n"; /// DEBUG
+			}
+			work_event_index = event_code;
+			return true;
+		}
+		else switch (event_code) {
+		case WAIT_TIMEOUT:
+			//std::cout << "client_interface::wait_for_work() <multiple>: WAIT_TIMEOUT occurred. event_code = " << event_code << "\n"; /// DEBUG
+			return false;
+		case WAIT_FAILED:
+			//std::cout << "client_interface::wait_for_work() <multiple>: WAIT_FAILED: OS err: " <<  GetLastError() << "\n"; /// DEBUG
+			return false;
+		default:
+			//std::cout << "client_interface::wait_for_work() <multiple>: Unknown error occured: OS err: " <<  GetLastError() << "\n"; /// DEBUG
+			return false;
+		}
+		return false;
+	}
+
+	bool wait_for_work(HANDLE work, uint32_t timeout_milliseconds = INFINITE) {
 		switch (::WaitForSingleObject(work, timeout_milliseconds)) {
 		case WAIT_OBJECT_0:
 			// The client was notified that there is work to do.
@@ -284,7 +318,6 @@ public:
 			std::cout << this << " <4> client is running (timeout)\n"; /// DEBUG
 			return false;
 		case WAIT_FAILED: // Windows system error code: 6 = The handle is invalid.
-			//std::cout << this << " <4> client WaitForSingleObject() failed. Error" << ::GetLastError() << "\n"; /// DEBUG
 			return false;
 		}
 		return false;
@@ -415,6 +448,10 @@ public:
 	}
 
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
+	HANDLE get_work_event() const {
+		return work_;
+	}
+
 	/// Get the work notify name, used to open the event. In order to reduce the
 	/// time taken to open the work_ event the name is cached. Otherwise the
 	/// work notify name have to be formated before opening it.
