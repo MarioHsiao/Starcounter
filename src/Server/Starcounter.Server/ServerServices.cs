@@ -273,6 +273,7 @@ namespace Starcounter.Server {
             // Without it, apps can't execute from the shell.
             ipcServer.Handle("ExecApp", delegate(Request request) {
                 IServerRuntime runtime;
+                ExecAppCommand command;
                 string exePath;
                 string workingDirectory;
                 string args;
@@ -296,7 +297,12 @@ namespace Starcounter.Server {
                 synchronous = properties.ContainsKey("@@Synchronous");
                 runtime = engine.CurrentPublicModel;
 
-                var info = engine.AppsService.EnqueueExecAppCommandWithDispatcher(exePath, workingDirectory, argsArray);
+                command = new ExecAppCommand(this.engine, exePath, workingDirectory, argsArray);
+                if (properties.ContainsKey("PrepareOnly")) {
+                    command.PrepareOnly = true;
+                }
+
+                var info = runtime.Execute(command);
                 if (synchronous) {
                     info = runtime.Wait(info.Id);
                 }
