@@ -6,6 +6,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
 using Starcounter.CommandLine;
 using Starcounter; // TODO:
 using Starcounter.ABCIPC;
@@ -156,7 +157,9 @@ namespace StarcounterInternal.Bootstrap
             // Install handlers for the type of requests we accept.
 
             // Handles execution requests for executables that support
-            // lauching into Starcounter from the OS shell.
+            // lauching into Starcounter from the OS shell. This handler
+            // requires only a single parameter - the path to the assembly
+            // file - and will use the defaults based on that.
             server.Handle("Exec", delegate(Request r)
             {
                 try
@@ -165,6 +168,26 @@ namespace StarcounterInternal.Bootstrap
                 }
                 catch (LoaderException ex)
                 {
+                    r.Respond(false, ex.Message);
+                }
+            });
+
+            server.Handle("Exec2", delegate(Request r) {
+                try {
+                    var properties = r.GetParameter<Dictionary<string, string>>();
+                    string assemblyPath = properties["AssemblyPath"];
+                    string workingDirectory = null;
+                    string argsString = null;
+                    string[] args = null;
+
+                    properties.TryGetValue("WorkingDir", out workingDirectory);
+                    if (properties.TryGetValue("Args", out argsString)) {
+                        args = KeyValueBinary.ToArray(argsString);
+                    }
+
+                    Loader.ExecApp(hsched_, assemblyPath, workingDirectory, args);
+
+                } catch (LoaderException ex) {
                     r.Respond(false, ex.Message);
                 }
             });

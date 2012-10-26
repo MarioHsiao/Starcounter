@@ -12,7 +12,7 @@ angular.module('StarcounterLib', ['panelApp'])
             scope[i] = data[i];
           }
         }
-        FindAndSetWatchers(scope);
+        findAndSetWatchers(scope);
       }
 
       function patchRoot(scope, patch) {
@@ -57,9 +57,13 @@ angular.module('StarcounterLib', ['panelApp'])
         for (var i = 0, ilen = props.length; i < ilen; i++) {
           scope.$watch(props[i], (function (prop) {
             return (function (current, previous, scope) {
-              if (rootLoaded) {
-                updateServer(scope, '/' + prop.replace(/\./g, '/'), current);
-              }
+                if (rootLoaded) {
+					// Quick fix for not sending patch to server when watch is set.
+                    if (current === previous) {
+                        return;
+                    }
+                    updateServer(scope, '/' + prop.replace(/\./g, '/'), current);
+                }
             })
           })(props[i]), true);
         }
@@ -76,7 +80,7 @@ angular.module('StarcounterLib', ['panelApp'])
         }
       }
 
-      function FindAndSetWatchers(scope) {
+      function findAndSetWatchers(scope) {
           var tree = appContext.getScopeTree(scope);
           var watched = [];
 

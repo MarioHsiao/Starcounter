@@ -61,6 +61,21 @@ namespace Starcounter.Server.PublicModel.Commands {
         }
 
         /// <summary>
+        /// Gets or sets a value instructing the processor of this command to
+        /// prepare the hosting of the specified assembly, but never issue the
+        /// call to actually host it.
+        /// </summary>
+        /// <remarks>
+        /// Used by the infrastructure in the development integration to be
+        /// able to run everything up until hosting, and then attach the debugger
+        /// before actually hosting the assembly.
+        /// </remarks>
+        public bool PrepareOnly {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets all arguments targeting Starcounter.
         /// </summary>
         internal string[] ArgumentsToStarcounter {

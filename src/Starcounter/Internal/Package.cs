@@ -10,22 +10,20 @@ using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.IO;
 
-namespace Starcounter.Internal
-{
+namespace Starcounter.Internal {
 
     /// <summary>
     /// Class Package
     /// </summary>
-    public class Package
-    {
+    public class Package {
 
         /// <summary>
         /// Processes the specified h package.
         /// </summary>
         /// <param name="hPackage">The h package.</param>
-        public static void Process(IntPtr hPackage)
-        {
+        public static void Process(IntPtr hPackage) {
             GCHandle gcHandle = (GCHandle)hPackage;
             Package p = (Package)gcHandle.Target;
             gcHandle.Free();
@@ -46,6 +44,24 @@ namespace Starcounter.Internal
         private readonly ManualResetEvent processedEvent_;
 
         /// <summary>
+        /// Gets or sets the logical working directory the entrypoint
+        /// assembly runs in.
+        /// </summary>
+        public string WorkingDirectory {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Gets or sets the entrypoint arguments to be given to the
+        /// entrypoint when invoked.
+        /// </summary>
+        public string[] EntrypointArguments {
+            get;
+            set;
+        }
+
+		/// <summary>
         /// Initializes a new instance of the <see cref="Package" /> class.
         /// </summary>
         /// <param name="unregisteredTypeDefs">The unregistered type defs.</param>
@@ -53,8 +69,7 @@ namespace Starcounter.Internal
         public Package(
             TypeDef[] unregisteredTypeDefs, // Previously unregistered type definitions.
             Assembly assembly               // Entry point assembly.
-            )
-        {
+            ) {
             unregisteredTypeDefs_ = unregisteredTypeDefs;
             assembly_ = assembly;
             processedEvent_ = new ManualResetEvent(false);
@@ -70,9 +85,7 @@ namespace Starcounter.Internal
                 UpdateDatabaseSchemaAndRegisterTypes();
 
                 ExecuteEntryPoint();
-            }
-            finally
-            {
+            } finally {
                 processedEvent_.Set();
             }
         }
@@ -80,28 +93,24 @@ namespace Starcounter.Internal
         /// <summary>
         /// Waits the until processed.
         /// </summary>
-        public void WaitUntilProcessed()
-        {
+        public void WaitUntilProcessed() {
             processedEvent_.WaitOne();
         }
 
         /// <summary>
         /// Disposes this instance.
         /// </summary>
-        public void Dispose()
-        {
+        public void Dispose() {
             processedEvent_.Dispose();
         }
 
         /// <summary>
         /// Updates the database schema and register types.
         /// </summary>
-        private void UpdateDatabaseSchemaAndRegisterTypes()
-        {
+        private void UpdateDatabaseSchemaAndRegisterTypes() {
             var typeDefs = unregisteredTypeDefs_;
 
-            for (int i = 0; i < typeDefs.Length; i++)
-            {
+            for (int i = 0; i < typeDefs.Length; i++) {
                 var typeDef = typeDefs[i];
                 var tableDef = typeDef.TableDef;
 
@@ -116,8 +125,7 @@ namespace Starcounter.Internal
 
             Bindings.RegisterTypeDefs(typeDefs);
 
-            if (typeDefs.Length != 0)
-            {
+            if (typeDefs.Length != 0) {
                 QueryModule.UpdateSchemaInfo(typeDefs);
             }
         }
@@ -127,43 +135,35 @@ namespace Starcounter.Internal
         /// </summary>
         /// <param name="tableDef">The table def.</param>
         /// <returns>TableDef.</returns>
-        private TableDef CreateOrUpdateDatabaseTable(TableDef tableDef)
-        {
+        private TableDef CreateOrUpdateDatabaseTable(TableDef tableDef) {
             string tableName = tableDef.Name;
             TableDef storedTableDef = null;
             TableDef pendingUpgradeTableDef = null;
 
-            Db.Transaction(() =>
-            {
+            Db.Transaction(() => {
                 storedTableDef = Db.LookupTable(tableName);
                 pendingUpgradeTableDef = Db.LookupTable(TableUpgrade.CreatePendingUpdateTableName(tableName));
             });
 
-            if (pendingUpgradeTableDef != null)
-            {
+            if (pendingUpgradeTableDef != null) {
                 var continueTableUpgrade = new TableUpgrade(tableName, storedTableDef, pendingUpgradeTableDef);
                 storedTableDef = continueTableUpgrade.ContinueEval();
             }
 
-            if (storedTableDef == null)
-            {
+            if (storedTableDef == null) {
                 var tableCreate = new TableCreate(tableDef);
                 storedTableDef = tableCreate.Eval();
-            }
-            else if (!storedTableDef.Equals(tableDef))
-            {
+            } else if (!storedTableDef.Equals(tableDef)) {
                 var tableUpgrade = new TableUpgrade(tableName, storedTableDef, tableDef);
                 storedTableDef = tableUpgrade.Eval();
             }
 
 #if true
             bool hasIndex = false;
-            Db.Transaction(() =>
-            {
+            Db.Transaction(() => {
                 hasIndex = storedTableDef.GetAllIndexInfos().Length != 0;
             });
-            if (!hasIndex)
-            {
+            if (!hasIndex) {
                 Db.CreateIndex(
                     storedTableDef.DefinitionAddr,
                     "auto",
@@ -178,11 +178,10 @@ namespace Starcounter.Internal
         /// <summary>
         /// Executes the entry point.
         /// </summary>
-        private void ExecuteEntryPoint()
-        {
-            if (assembly_ != null)
-            {
-                assembly_.EntryPoint.Invoke(null, new object[] { null });
+        private void ExecuteEntryPoint() {
+            if (assembly_ != null) {
+                var arguments = this.EntrypointArguments ?? new string[] { };
+                assembly_.EntryPoint.Invoke(null, new object[] { arguments });
             }
         }
     }
