@@ -268,7 +268,7 @@ uint32_t GatewayWorker::FinishReceive(SocketDataChunk *sd, int32_t numBytesRecei
     else
     {
         // If session was already created, just attaching to it.
-        uint32_t session_index = (g_gateway.get_all_sockets_unsafe()[sd->get_socket()]).get_session_index();
+        session_index_type session_index = (g_gateway.get_all_sockets_unsafe()[sd->get_socket()]).get_session_index();
         if (INVALID_SESSION_INDEX != session_index)
         {
             ScSessionStruct* session = g_gateway.GetSessionData(session_index);
