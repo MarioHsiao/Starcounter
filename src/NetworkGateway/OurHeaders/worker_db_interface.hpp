@@ -4,10 +4,22 @@
 
 namespace starcounter {
 namespace network {
-    
+
 class GatewayWorker;
 class WorkerDbInterface
 {
+    enum {
+        // The number of times to scan through all channels trying to push or
+        // pop before waiting, in case did not push or pop for spin_count_reset
+        // number of times. Need to experiment with this value.
+        // NOTE: scan_counter_preset must be > 0.
+        scan_counter_preset = 1 << 20,
+
+        // The thread can give up waiting after wait_for_work_milli_seconds, but
+        // if not, set it to INFINITE.
+        wait_for_work_milli_seconds = 1000
+    };
+
     // Each worker has a copy of the gateway's shared_interface. The pointers to
     // various objects in shared memory are copied, but each worker will
     // initialize its own client_number.
@@ -169,7 +181,7 @@ public:
     uint32_t ReleaseToSharedChunkPool(int32_t num_chunks);
 
     // Scans all channels for any incoming chunks.
-    uint32_t ScanChannels(GatewayWorker *gw);
+    uint32_t ScanChannels(GatewayWorker *gw, bool* found_something);
 
     // Obtains chunk from a private pool if its not empty
     // (otherwise fetches from shared chunk pool).

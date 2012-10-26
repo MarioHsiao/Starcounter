@@ -33,7 +33,7 @@ uint32_t WorkerDbInterface::ReleaseToSharedChunkPool(int32_t num_chunks)
 }
 
 // Scans all channels for any incoming chunks.
-uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
+uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_something)
 {
     core::chunk_index chunk_index;
     uint32_t errCode;
@@ -41,20 +41,37 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
     // Push everything from overflow pool.
     PushOverflowChunksIfAny();
 
-    // Running through all channels.
-    for (int32_t i = 0; i < g_gateway.get_num_schedulers(); i++)
-    {
-        // Obtaining the channel.
-        core::channel_type& the_channel = shared_int_.channel(channels_[i]);
+    // Number of popped chunks on all channels.
+    int32_t num_popped_chunks = 0;
 
-        // Check if there is a message and process it.
-        if (the_channel.out.try_pop_back(&chunk_index) == true)
+    // Indicates if chunk was popped on any channel.
+    bool chunk_popped = true;
+
+    // Looping until we have chunks to pop and we don't exceed the maximum number.
+    while (chunk_popped && (num_popped_chunks < MAX_CHUNKS_TO_POP_AT_ONCE))
+    {
+        // Flag will be set if any chunk is popped.
+        chunk_popped = false;
+
+        // Running through all channels.
+        for (int32_t i = 0; i < g_gateway.get_num_schedulers(); i++)
         {
+            // Obtaining the channel.
+            core::channel_type& the_channel = shared_int_.channel(channels_[i]);
+
+            // Trying to pop the chunk from channel.
+            if (false == the_channel.out.try_pop_back(&chunk_index))
+                continue;
+
+            // Chunk was found.
+            chunk_popped = true;
+            num_popped_chunks++;
+
             // A message on channel ch was received. Notify the database
             // that the out queue in this channel is not full.
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-			the_channel.scheduler()->notify(shared_int_.scheduler_work_event
-			(the_channel.get_scheduler_number()));
+            the_channel.scheduler()->notify(shared_int_.scheduler_work_event
+                (the_channel.get_scheduler_number()));
 #else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
             the_channel.scheduler()->notify();
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
@@ -154,6 +171,10 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw)
             gw->RunFromDbHandlers(sd);
         }
     }
+
+    // Checking if any chunks were popped.
+    if (num_popped_chunks > 0)
+        *found_something = true;
 
     return 0;
 }

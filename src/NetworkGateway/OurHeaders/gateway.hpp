@@ -64,6 +64,12 @@ const int32_t ACCEPT_DATA_SIZE_BYTES = 64;
 // Maximum number of receive/send WSABUFs.
 const int32_t MAX_WSA_BUFS = 32;
 
+// Maximum number of chunks to pop at once.
+const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 128;
+
+// Maximum number of fetched OVLs at once.
+const int32_t MAX_FETCHED_OVLS = 256;
+
 // Number of sockets to increase the accept roof.
 const int32_t ACCEPT_ROOF_STEP_SIZE = 1;
 
@@ -594,6 +600,7 @@ public:
 };
 
 // Represents an active database.
+uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params);
 class HandlersTable;
 class RegisteredUris;
 class ActiveDatabase
@@ -625,7 +632,34 @@ class ActiveDatabase
     // Number of confirmed register push channels.
     int32_t num_confirmed_push_channels_;
 
+    // Channels events monitor thread handle.
+    HANDLE channels_events_thread_handle_;
+
 public:
+
+    // Spawns channels events monitor thread.
+    uint32_t SpawnChannelsEventsMonitor()
+    {
+        uint32_t channelsEventsThreadId;
+
+        // Starting channels events monitor thread.
+        channels_events_thread_handle_ = CreateThread(
+            NULL, // Default security attributes.
+            0, // Use default stack size.
+            (LPTHREAD_START_ROUTINE)DatabaseChannelsEventsMonitorRoutine, // Thread function name.
+            &db_index_, // Argument to thread function.
+            0, // Use default creation flags.
+            (LPDWORD)&channelsEventsThreadId); // Returns the thread identifier.
+
+        return (NULL == channels_events_thread_handle_);
+    }
+
+    // Kill the channels events monitor.
+    void KillChannelsEventsMonitor()
+    {
+        TerminateThread(channels_events_thread_handle_, 0);
+        channels_events_thread_handle_ = NULL;
+    }
 
     // Checks if its enough confirmed push channels.
     bool IsAllPushChannelsConfirmed();
@@ -888,12 +922,6 @@ class Gateway
     // Local network interfaces to bind on.
     std::vector<std::string> setting_local_interfaces_;
 
-    // Maximum number of same operations processed in a queue.
-    int32_t setting_max_same_ops_in_queue_;
-
-    // Maximum amount of overlapped structures fetched at once.
-    int32_t setting_max_fetched_ovls_;
-
     // Number of worker threads.
     int32_t setting_num_workers_;
 
@@ -925,6 +953,9 @@ class Gateway
 
     // Database scanning thread handle.
     HANDLE db_scan_thread_handle_;
+
+    // Channels events monitor thread handle.
+    HANDLE channels_events_thread_handle_;
 
     ////////////////////////
     // SESSIONS
@@ -989,10 +1020,16 @@ class Gateway
     // Global IOCP handle.
     HANDLE iocp_;
 
-    // Global sleep interval.
-    volatile int32_t global_sleep_ms_;
-
 public:
+
+    // Getting specific worker information.
+    GatewayWorker* get_worker(int32_t worker_id);
+
+    // Getting specific worker handle.
+    HANDLE get_worker_thread_handle(int32_t worker_id)
+    {
+        return worker_thread_handles_[worker_id];
+    }
 
     // Returning all sockets data.
     SocketData* get_all_sockets_unsafe()
@@ -1102,12 +1139,6 @@ public:
         return num_server_ports_;
     }
 
-    // Gets global sleep interval.
-    int32_t get_global_sleep_ms()
-    {
-        return global_sleep_ms_;
-    }
-
     // Gets server address.
     sockaddr_in* get_server_addr()
     {
@@ -1130,7 +1161,10 @@ public:
         // Entering the critical section.
         EnterCriticalSection(&cs_global_lock_);
 
+        // Setting the global lock key.
         global_lock_ = true;
+
+        // Waiting until all workers reach the safe point and freeze there.
         WaitAllWorkersSuspended();
 
         // Now we are sure that all workers are suspended.
@@ -1138,6 +1172,9 @@ public:
 
     // Waits for all workers to suspend.
     void WaitAllWorkersSuspended();
+
+    // Waking up all workers.
+    void WakeUpAllWorkers();
 
     // Releases global lock.
     void LeaveGlobalLock()
@@ -1174,18 +1211,6 @@ public:
 
     // Reading command line arguments.
     uint32_t ReadArguments(int argc, wchar_t* argv[]);
-
-    // Maximum number of same operations processed in a queue.
-    int32_t setting_max_same_ops_in_queue()
-    {
-        return setting_max_same_ops_in_queue_;
-    }
-
-    // Maximum amount of overlapped structures fetched at once.
-    int32_t setting_max_fetched_ovls()
-    {
-        return setting_max_fetched_ovls_;
-    }
 
     // Master node IP address.
     std::string setting_master_ip()
@@ -1277,7 +1302,8 @@ public:
     // Start workers.
     uint32_t StartWorkerAndManagementThreads(
         LPTHREAD_START_ROUTINE workerRoutine,
-        LPTHREAD_START_ROUTINE scanDbsRoutine);
+        LPTHREAD_START_ROUTINE scanDbsRoutine,
+        LPTHREAD_START_ROUTINE channelsEventsMonitorRoutine);
 
     // Cleanup resources.
     uint32_t GlobalCleanup();

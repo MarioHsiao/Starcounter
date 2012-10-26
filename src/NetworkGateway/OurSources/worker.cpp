@@ -702,11 +702,12 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunk *sd, int32_t numBytesReceiv
 uint32_t GatewayWorker::WorkerRoutine()
 {
     BOOL complStatus = false;
-    OVERLAPPED_ENTRY *removedOvls = new OVERLAPPED_ENTRY[g_gateway.setting_max_fetched_ovls()];
+    OVERLAPPED_ENTRY *removedOvls = new OVERLAPPED_ENTRY[MAX_FETCHED_OVLS];
     ULONG removedOvlsNum = 0;
     uint32_t errCode = 0;
     uint32_t numBytes = 0, flags = 0, oldTimeMs = timeGetTime(), newTimeMs;
-    uint32_t waitForIocp = 0;
+    uint32_t waitForIocpMs = INFINITE;
+    bool found_something = false;
 
     // Starting worker infinite loop.
     while (TRUE)
@@ -715,7 +716,12 @@ uint32_t GatewayWorker::WorkerRoutine()
 
         // Getting IOCP status.
         //profiler.Start("GetQueuedCompletionStatusEx", 7);
-        complStatus = GetQueuedCompletionStatusEx(worker_iocp_, removedOvls, g_gateway.setting_max_fetched_ovls(), &removedOvlsNum, waitForIocp, FALSE);
+        complStatus = GetQueuedCompletionStatusEx(worker_iocp_, removedOvls, MAX_FETCHED_OVLS, &removedOvlsNum, waitForIocpMs, TRUE);
+
+        // Check if global lock is set.
+        if (g_gateway.global_lock())
+            g_gateway.SuspendWorker(this);
+
         //profiler.Stop(7);
 
         // Checking if operation successfully completed.
@@ -812,18 +818,35 @@ uint32_t GatewayWorker::WorkerRoutine()
                 }
             }
         }
+        else
+        {
+            errCode = WSAGetLastError();
+
+            // Checking if it was an APC event.
+            if (STATUS_USER_APC != errCode &&
+                STATUS_TIMEOUT != errCode)
+            {
+                PrintLastError();
+                return errCode;
+            }
+        }
 
         // Scanning all channels.
-        errCode = ScanChannels();
+        found_something = false;
+        errCode = ScanChannels(&found_something);
         GW_ERR_CHECK(errCode);
 
-        // Check if global lock is set.
-        if (g_gateway.global_lock())
-            g_gateway.SuspendWorker(this);
-
-        // Sleeping if needed.
-        if (g_gateway.get_global_sleep_ms())
-            Sleep(g_gateway.get_global_sleep_ms());
+        // Checking if something was found.
+        if (found_something)
+        {
+            // Making at least one more round.
+            waitForIocpMs = 0;
+        }
+        else
+        {
+            // Going to wait infinitely for network events.
+            waitForIocpMs = INFINITE;
+        }
 
         //profiler.Stop(0);
 
@@ -842,7 +865,8 @@ uint32_t GatewayWorker::WorkerRoutine()
 }
 
 // Scans all channels for any incoming chunks.
-uint32_t GatewayWorker::ScanChannels()
+void __stdcall EmptyApcFunction(ULONG_PTR arg);
+uint32_t GatewayWorker::ScanChannels(bool* found_something)
 {
     uint32_t errCode;
 
@@ -853,7 +877,7 @@ uint32_t GatewayWorker::ScanChannels()
         if (NULL != db)
         {
             // Scanning channels first.
-            errCode = db->ScanChannels(this);
+            errCode = db->ScanChannels(this, found_something);
             GW_ERR_CHECK(errCode);
 
             // Checking that database is ready for deletion (i.e. no pending sockets).
