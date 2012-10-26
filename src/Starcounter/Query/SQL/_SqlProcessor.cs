@@ -188,12 +188,10 @@ internal static class SqlProcessor
         // Call kenrel
         unsafe
         {
-            UInt64 handle;
-            sccoredb.Mdb_DefinitionFromCodeClassString(typeBind.Name, out handle);
-
+            UInt64 handle = typeBind.DefHandle;
             fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0]))
             {
-                errorCode = sccoredb.sc_create_index(handle, indexName.ToUpper(), sortMask, attributeIndexesPointer, flags);
+                errorCode = sccoredb.sccoredb_create_index(handle, indexName.ToUpper(), sortMask, attributeIndexesPointer, flags);
             }
         }
         if (errorCode != 0)

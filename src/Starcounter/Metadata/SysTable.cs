@@ -27,7 +27,7 @@ namespace Starcounter.Metadata
         /// <value>The name.</value>
         public string Name
         {
-            get { return DbState.ReadString(this, 0); }
+            get { return DbState.ReadString(this, 1); }
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace Starcounter.Metadata
         /// <value>The name of the base.</value>
         public string BaseName
         {
-            get { return DbState.ReadString(this, 1); }
+            get { return DbState.ReadString(this, 2); }
         }
     }
 }

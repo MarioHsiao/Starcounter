@@ -10,13 +10,22 @@ set SRVpassword=showme
 set DocumentationParentFolder=Internal
 set DocumentationResultFolder=build
 
+
 :: Run DocumentX build
 "%DocumentX%" ".\%DocumentationProjectPath%\%DocumentationProjectName%" [/buildconfiguration="%DocumentationBuildConf%"]
+if %errorlevel% neq 0 goto FAILED
+
 
 :: SCTESTSRV01
 net use Q: %SRVwebappsPath% /user:%SRVusername% %SRVpassword%
 rd /s /q "Q:\%DocumentationParentFolder%"
 robocopy .\%DocumentationProjectPath%\%DocumentationResultFolder%\ Q: /e
+if %errorlevel% gtr 8 goto FAILED
 net use Q: /delete
 
+
+:: Success
 exit 0
+:: Failed
+:FAILED
+exit 1
