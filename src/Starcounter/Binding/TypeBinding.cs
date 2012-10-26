@@ -85,11 +85,19 @@ namespace Starcounter.Binding
         /// The uppername_
         /// </summary>
         private string uppername_;
+
         /// <summary>
         /// Gets the name of the upper.
         /// </summary>
         /// <value>The name of the upper.</value>
         public string UpperName { get { return uppername_; } internal set { uppername_ = value; } }
+
+        private ushort[] currentAndBaseTableIds_; // Sorted lowest to highest.
+
+        internal void SetCurrentAndBaseTableIds(ushort[] currentAndBaseTableIds)
+        {
+            currentAndBaseTableIds_ = currentAndBaseTableIds;
+        }
 
         /// <summary>
         /// News the uninitialized inst.
@@ -120,14 +128,30 @@ namespace Starcounter.Binding
         }
 
         /// <summary>
-        /// Subs the type of.
+        /// Controls if this type-binding represents a subtype of the type of the input type-binding (superTypeBind).
         /// </summary>
-        /// <param name="tb">The tb.</param>
-        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
-        /// <exception cref="System.NotImplementedException"></exception>
-        internal bool SubTypeOf(TypeBinding tb)
+        /// <param name="superTypeBind">Input type-binding.</param>
+        /// <returns>True, if this type-binding represents a subtype of (or equals) the type of the input type-binding (superTypeBind),
+        /// otherwise false.</returns>
+        public bool SubTypeOf(TypeBinding superTypeBind)
         {
-            throw new System.NotImplementedException();
+            try
+            {
+                var superTableId = superTypeBind.tableId_;
+                var currentAndBaseTableIds = currentAndBaseTableIds_;
+                for (var i = 0; i < currentAndBaseTableIds.Length; i++)
+                {
+                    var tableId = currentAndBaseTableIds[i];
+                    if (tableId == superTableId) return true;
+                    if (tableId > superTableId) return false;
+                }
+                return false;
+            }
+            catch (NullReferenceException)
+            {
+                if (superTypeBind == null) return false;
+                throw;
+            }
         }
 
         /// <summary>
