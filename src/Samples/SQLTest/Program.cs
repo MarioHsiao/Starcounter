@@ -11,14 +11,15 @@ namespace SQLTest
             int nrFailedQueries = 0;
             String outputPath = null;
             if (args != null)
-                outputPath = args[0];
+                if (args.Length == 1)
+                    outputPath = args[0];
             Console.WriteLine("Started SQLTest.");
             nrFailedQueries += Test1and2(outputPath);
             nrFailedQueries += Test3(outputPath);
             Console.WriteLine("Finished SQLTest.");
-            System.IO.File.Create(@"s\Starcounter\failedTest");
-            throw new Exception("The test is completed!");
-            //return nrFailedQueries;
+            //System.IO.File.Create(@"s\Starcounter\failedTest");
+            Environment.Exit(nrFailedQueries);
+            return nrFailedQueries;
         }
 
         static int Test1and2(String outputPath)
