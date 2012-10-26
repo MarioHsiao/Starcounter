@@ -35,7 +35,7 @@
 /// code using Boost.Interprocess condition variable and remove wrapping of the code
 /// with this macro. Using Windows Events is not yet fully implemented.
 /// While experimenting with this, don't define it when pushing code.
-//#define INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC
+#define INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC
 
 // The SCHEDULERS macro is a bit malplaced but it works for now. It is only used
 // in the test server and test client. I think those two projects are more or less

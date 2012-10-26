@@ -221,7 +221,7 @@ public:
     uint32_t PushSocketDataToDb(SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id);
 
     // Scans all channels for any incoming chunks.
-    uint32_t ScanChannels();
+    uint32_t ScanChannels(bool* found_something);
 
     // Creates the socket data structure.
     SocketDataChunk* CreateSocketData(
