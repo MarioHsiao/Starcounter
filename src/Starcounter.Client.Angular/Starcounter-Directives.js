@@ -1,9 +1,9 @@
 ﻿
 /*
- * StarcounterDirectives v0.1.0
+ * starcounter.directives v0.1.1
  * (c) 2012 Starcounter. http://www.starcounter.com
  */
-angular.module('StarcounterDirectives', [])
+angular.module('starcounter.directives', [])
  
 .directive('typeahead', function() {
     return {

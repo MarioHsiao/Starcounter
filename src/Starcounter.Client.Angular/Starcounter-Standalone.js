@@ -1,9 +1,9 @@
 ﻿/*
- * StarcounterLibStandalone v0.1.0
+ * starcounter-standalone v0.1.1
  * (c) 2012 Starcounter. http://www.starcounter.com
  */
 
-angular.module('StarcounterLibStandalone', [])
+angular.module('starcounter-standalone', [])
   .directive('serverScope', ['$http',  function ($http) {
   var directiveDefinitionObject = {
     restrict: 'A',
