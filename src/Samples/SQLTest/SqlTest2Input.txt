@@ -67,16 +67,16 @@ ExpectedResult:
  ! Object ! 
  | <NULL> | 
  | <NULL> | 
- | 55 | 
- | 56 | 
- | 57 | 
- | 58 | 
  | 59 | 
  | 60 | 
- | <NULL> | 
+ | 61 | 
  | 62 | 
  | 63 | 
  | 64 | 
+ | <NULL> | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -120,13 +120,13 @@ ExpectedResult:
  | <NULL> | 
  | <NULL> | 
  | <NULL> | 
- | 55 | 
- | 56 | 
- | 56 | 
- | 56 | 
- | 57 | 
- | 57 | 
- | 57 | 
+ | 59 | 
+ | 60 | 
+ | 60 | 
+ | 60 | 
+ | 61 | 
+ | 61 | 
+ | 61 | 
 
 
 <NEXT>
@@ -176,7 +176,7 @@ ExpectedResult:
  | <NULL> | 
  | <NULL> | 
  | <NULL> | 
- | 56 | 
+ | 60 | 
 
 
 <NEXT>
@@ -228,9 +228,9 @@ ExpectedResult:
  | <NULL> | 
  | <NULL> | 
  | <NULL> | 
- | 54 | 
- | 54 | 
- | 54 | 
+ | 58 | 
+ | 58 | 
+ | 58 | 
 
 
 <NEXT>
@@ -328,15 +328,15 @@ ExpectedResult:
  | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | 
  | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | 
  | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | 
- | Alexey | Moiseenko | 48 | <NULL> | 2010-09-01 00:00:00Z | <NULL> | <NULL> | 51 | 
- | Andreas | Thyrhaug | <NULL> | <NULL> | 2010-12-13 00:00:00Z | 2010-12-13 00:00:00Z | 57 | 50 | 
- | Åsa | Holmström | 46 | <NULL> | 2009-12-01 00:00:00Z | 2009-12-01 00:00:00Z | 55 | 49 | 
- | Christian | Holmstrand | 45 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 57 | 51 | 
- | Erik | Ohlsson | 47 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 56 | 50 | 
- | Joachim | Wester | 43 | <NULL> | 2003-01-01 00:00:00Z | <NULL> | <NULL> | <NULL> | 
- | per | Samuelsson | 44 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 57 | 51 | 
- | PETER | <NULL> | 44 | 54 | 2005-10-01 00:00:00Z | 2005-10-01 00:00:00Z | 56 | 51 | 
- | Petros | <NULL> | <NULL> | <NULL> | 2010-10-01 00:00:00Z | 2010-10-01 00:00:00Z | 56 | 49 | 
+ | Alexey | Moiseenko | 52 | <NULL> | 2010-09-01 00:00:00Z | <NULL> | <NULL> | 55 | 
+ | Andreas | Thyrhaug | <NULL> | <NULL> | 2010-12-13 00:00:00Z | 2010-12-13 00:00:00Z | 61 | 54 | 
+ | Åsa | Holmström | 50 | <NULL> | 2009-12-01 00:00:00Z | 2009-12-01 00:00:00Z | 59 | 53 | 
+ | Christian | Holmstrand | 49 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 61 | 55 | 
+ | Erik | Ohlsson | 51 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 60 | 54 | 
+ | Joachim | Wester | 47 | <NULL> | 2003-01-01 00:00:00Z | <NULL> | <NULL> | <NULL> | 
+ | per | Samuelsson | 48 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 61 | 55 | 
+ | PETER | <NULL> | 48 | 58 | 2005-10-01 00:00:00Z | 2005-10-01 00:00:00Z | 60 | 55 | 
+ | Petros | <NULL> | <NULL> | <NULL> | 2010-10-01 00:00:00Z | 2010-10-01 00:00:00Z | 60 | 53 | 
 
 
 <NEXT>
@@ -417,14 +417,14 @@ Join(
 
 ExpectedResult: 
  ! Object ! 
- | 49 | 
- | 49 | 
- | 50 | 
- | 50 | 
- | 51 | 
- | 51 | 
- | 51 | 
- | 51 | 
+ | 53 | 
+ | 53 | 
+ | 54 | 
+ | 54 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
 
 
 <NEXT>
@@ -505,14 +505,14 @@ Join(
 
 ExpectedResult: 
  ! Object ! 
- | 49 | 
- | 49 | 
- | 50 | 
- | 50 | 
- | 51 | 
- | 51 | 
- | 51 | 
- | 51 | 
+ | 53 | 
+ | 53 | 
+ | 54 | 
+ | 54 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
 
 
 <NEXT>
@@ -594,15 +594,15 @@ Join(
 
 ExpectedResult: 
  ! Object ! 
- | 55 | 
- | 56 | 
- | 57 | 
- | 58 | 
  | 59 | 
  | 60 | 
+ | 61 | 
  | 62 | 
  | 63 | 
  | 64 | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -683,14 +683,14 @@ Join(
 
 ExpectedResult: 
  ! Object ! 
- | 49 | 
- | 49 | 
- | 50 | 
- | 50 | 
- | 51 | 
- | 51 | 
- | 51 | 
- | 51 | 
+ | 53 | 
+ | 53 | 
+ | 54 | 
+ | 54 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
 
 
 <NEXT>
@@ -773,14 +773,14 @@ Join(
 ExpectedResult: 
  ! Object ! 
  | <NULL> | 
- | 49 | 
- | 49 | 
- | 50 | 
- | 50 | 
- | 51 | 
- | 51 | 
- | 51 | 
- | 51 | 
+ | 53 | 
+ | 53 | 
+ | 54 | 
+ | 54 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
 
 
 <NEXT>
@@ -863,14 +863,14 @@ Join(
 ExpectedResult: 
  ! Object ! 
  | <NULL> | 
- | 49 | 
- | 49 | 
- | 50 | 
- | 50 | 
- | 51 | 
- | 51 | 
- | 51 | 
- | 51 | 
+ | 53 | 
+ | 53 | 
+ | 54 | 
+ | 54 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
 
 
 <NEXT>
@@ -951,14 +951,14 @@ Join(
 
 ExpectedResult: 
  ! Object ! 
- | 49 | 
- | 49 | 
- | 50 | 
- | 50 | 
- | 51 | 
- | 51 | 
- | 51 | 
- | 51 | 
+ | 53 | 
+ | 53 | 
+ | 54 | 
+ | 54 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
 
 
 <NEXT>
@@ -1156,10 +1156,10 @@ Join(
 
 ExpectedResult: 
  ! Object ! 
- | 44 | 
- | 44 | 
- | 44 | 
- | 44 | 
+ | 48 | 
+ | 48 | 
+ | 48 | 
+ | 48 | 
 
 
 <NEXT>
@@ -1287,12 +1287,12 @@ Join(
 
 ExpectedResult: 
  ! Object ! 
- | 44 | 
- | 44 | 
- | 44 | 
- | 44 | 
- | 44 | 
- | 44 | 
+ | 48 | 
+ | 48 | 
+ | 48 | 
+ | 48 | 
+ | 48 | 
+ | 48 | 
 
 
 <NEXT>
@@ -1423,7 +1423,7 @@ Join(
 
 ExpectedResult: 
  ! Object ! 
- | 51 | 
+ | 55 | 
 
 
 <NEXT>
@@ -1461,15 +1461,15 @@ Join(
 
 ExpectedResult: 
  ! 0:Object ! 1:Object ! 
- | 55 | <NULL> | 
- | 56 | 49 | 
- | 57 | 51 | 
- | 58 | 51 | 
- | 59 | 51 | 
- | 60 | 50 | 
- | 62 | 51 | 
- | 63 | 49 | 
- | 64 | 50 | 
+ | 59 | <NULL> | 
+ | 60 | 53 | 
+ | 61 | 55 | 
+ | 62 | 55 | 
+ | 63 | 55 | 
+ | 64 | 54 | 
+ | 66 | 55 | 
+ | 67 | 53 | 
+ | 68 | 54 | 
 
 
 <NEXT>
@@ -1506,14 +1506,14 @@ Join(
 ExpectedResult: 
  ! Object ! 
  | <NULL> | 
- | 49 | 
- | 49 | 
- | 50 | 
- | 50 | 
- | 51 | 
- | 51 | 
- | 51 | 
- | 51 | 
+ | 53 | 
+ | 53 | 
+ | 54 | 
+ | 54 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
 
 
 == Binary properties ==
@@ -1558,7 +1558,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 50 | 
+ | 54 | 
 
 
 <NEXT>
@@ -1591,9 +1591,9 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 49 | 
- | 51 | 
- | 52 | 
+ | 53 | 
+ | 55 | 
+ | 56 | 
 
 
 <NEXT>
@@ -1627,8 +1627,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 51 | 
- | 52 | 
+ | 55 | 
+ | 56 | 
 
 
 <NEXT>
@@ -1662,9 +1662,9 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 50 | 
- | 51 | 
- | 52 | 
+ | 54 | 
+ | 55 | 
+ | 56 | 
 
 
 <NEXT>
@@ -1698,7 +1698,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 49 | 
+ | 53 | 
 
 
 <NEXT>
@@ -1732,8 +1732,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 49 | 
- | 50 | 
+ | 53 | 
+ | 54 | 
 
 
 <NEXT>
@@ -1775,7 +1775,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 50 | 
+ | 54 | 
 
 
 <NEXT>
@@ -1809,9 +1809,9 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 49 | 
- | 51 | 
- | 52 | 
+ | 53 | 
+ | 55 | 
+ | 56 | 
 
 
 <NEXT>
@@ -1845,8 +1845,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 51 | 
- | 52 | 
+ | 55 | 
+ | 56 | 
 
 
 <NEXT>
@@ -1880,9 +1880,9 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 50 | 
- | 51 | 
- | 52 | 
+ | 54 | 
+ | 55 | 
+ | 56 | 
 
 
 <NEXT>
@@ -1916,7 +1916,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 49 | 
+ | 53 | 
 
 
 <NEXT>
@@ -1989,10 +1989,10 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 49 | 
- | 50 | 
- | 51 | 
- | 52 | 
+ | 53 | 
+ | 54 | 
+ | 55 | 
+ | 56 | 
 
 
 ********************************************************************************/
@@ -2025,10 +2025,10 @@ Projection(
 		IntegerProperty(0, NType)
 )
 IndexScan(
-	LOCATION_NTYPE
+	auto
 	0
-	NType
-	IntegerDynamicRange(
+	Name
+	StringDynamicRange(
 	)
 	LogicalValue(TRUE)
 	Ascending
@@ -2036,12 +2036,12 @@ IndexScan(
 
 ExpectedResult: 
  ! 0:Object ! 1:String ! 2:String ! 3:Int32 ! 4:Int32 ! 
- | 43 | England | Part of United Kingdom | 1 | 1 | 
- | 44 | Stockholm | Capital of Sweden | 2 | 2 | 
- | 45 | Solna | Town just north of Stockholm | 2 | 2 | 
- | 46 | Danderyd | Rich suburb of Stockholm | 2 | 2 | 
- | 47 | Falköping | Small village in Sweden | 2 | 2 | 
- | 48 | Saint Petersburg | Big city in Russia | 2 | 2 | 
+ | 47 | England | Part of United Kingdom | 1 | 1 | 
+ | 48 | Stockholm | Capital of Sweden | 2 | 2 | 
+ | 49 | Solna | Town just north of Stockholm | 2 | 2 | 
+ | 50 | Danderyd | Rich suburb of Stockholm | 2 | 2 | 
+ | 51 | Falköping | Small village in Sweden | 2 | 2 | 
+ | 52 | Saint Petersburg | Big city in Russia | 2 | 2 | 
 
 
 <NEXT>
@@ -2071,10 +2071,10 @@ Projection(
 		BinaryProperty(0, IdBinary)
 )
 IndexScan(
-	DEPARTMENT_IDBINARY
+	auto
 	0
-	IdBinary
-	BinaryDynamicRange(
+	Description
+	StringDynamicRange(
 	)
 	LogicalValue(TRUE)
 	Ascending
@@ -2082,10 +2082,10 @@ IndexScan(
 
 ExpectedResult: 
  ! 0:Object ! 1:String ! 2:String ! 3:Object ! 4:Binary ! 
- | 49 | Administration | Head office | 44 | FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF | 
- | 50 | Development of database kernel | Kernel | 47 | FEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFE | 
- | 51 | Development of database server | Server | 44 | FDFDFDFDFDFDFDFDFDFDFDFDFDFDFDFD | 
- | 52 | Sales and marketing | Sales | <NULL> | FDFDFDFDFDFDFDFDFDFDFDFDFDFDFDFD | 
+ | 53 | Administration | Head office | 48 | FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF | 
+ | 54 | Development of database kernel | Kernel | 51 | FEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFE | 
+ | 55 | Development of database server | Server | 48 | FDFDFDFDFDFDFDFDFDFDFDFDFDFDFDFD | 
+ | 56 | Sales and marketing | Sales | <NULL> | FDFDFDFDFDFDFDFDFDFDFDFDFDFDFDFD | 
 
 
 <NEXT>
@@ -2127,18 +2127,18 @@ IndexScan(
 
 ExpectedResult: 
  ! 0:Object ! 1:String ! 2:String ! 3:Object ! 4:Object ! 
- | 53 | Bengt | Idestam | <NULL> | <NULL> | 
- | 54 | Jon | Idestam | 44 | 53 | 
- | 55 | Joachim | Wester | 43 | <NULL> | 
- | 56 | Åsa | Holmström | 46 | <NULL> | 
- | 57 | PETER | <NULL> | 44 | 54 | 
- | 58 | Christian | Holmstrand | 45 | <NULL> | 
- | 59 | per | Samuelsson | 44 | <NULL> | 
- | 60 | Erik | Ohlsson | 47 | <NULL> | 
- | 61 | Lovisa | Idestam | 44 | 57 | 
- | 62 | Alexey | Moiseenko | 48 | <NULL> | 
- | 63 | Petros | <NULL> | <NULL> | <NULL> | 
- | 64 | Andreas | Thyrhaug | <NULL> | <NULL> | 
+ | 57 | Bengt | Idestam | <NULL> | <NULL> | 
+ | 58 | Jon | Idestam | 48 | 57 | 
+ | 59 | Joachim | Wester | 47 | <NULL> | 
+ | 60 | Åsa | Holmström | 50 | <NULL> | 
+ | 61 | PETER | <NULL> | 48 | 58 | 
+ | 62 | Christian | Holmstrand | 49 | <NULL> | 
+ | 63 | per | Samuelsson | 48 | <NULL> | 
+ | 64 | Erik | Ohlsson | 51 | <NULL> | 
+ | 65 | Lovisa | Idestam | 48 | 61 | 
+ | 66 | Alexey | Moiseenko | 52 | <NULL> | 
+ | 67 | Petros | <NULL> | <NULL> | <NULL> | 
+ | 68 | Andreas | Thyrhaug | <NULL> | <NULL> | 
 
 
 <NEXT>
@@ -2177,10 +2177,10 @@ Projection(
 		ObjectProperty(0, Department)
 )
 IndexScan(
-	EMPLOYEE_DEPARTMENT
+	auto
 	0
-	Department
-	ObjectDynamicRange(
+	FirstName
+	StringDynamicRange(
 	)
 	LogicalValue(TRUE)
 	Ascending
@@ -2188,15 +2188,15 @@ IndexScan(
 
 ExpectedResult: 
  ! 0:Object ! 1:String ! 2:String ! 3:Object ! 4:Object ! 5:DateTime ! 6:DateTime ! 7:Object ! 8:Object ! 
- | 55 | Joachim | Wester | 43 | <NULL> | 2003-01-01 00:00:00Z | <NULL> | <NULL> | <NULL> | 
- | 56 | Åsa | Holmström | 46 | <NULL> | 2009-12-01 00:00:00Z | 2009-12-01 00:00:00Z | 55 | 49 | 
- | 57 | PETER | <NULL> | 44 | 54 | 2005-10-01 00:00:00Z | 2005-10-01 00:00:00Z | 56 | 51 | 
- | 58 | Christian | Holmstrand | 45 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 57 | 51 | 
- | 59 | per | Samuelsson | 44 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 57 | 51 | 
- | 60 | Erik | Ohlsson | 47 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 56 | 50 | 
- | 62 | Alexey | Moiseenko | 48 | <NULL> | 2010-09-01 00:00:00Z | <NULL> | <NULL> | 51 | 
- | 63 | Petros | <NULL> | <NULL> | <NULL> | 2010-10-01 00:00:00Z | 2010-10-01 00:00:00Z | 56 | 49 | 
- | 64 | Andreas | Thyrhaug | <NULL> | <NULL> | 2010-12-13 00:00:00Z | 2010-12-13 00:00:00Z | 57 | 50 | 
+ | 59 | Joachim | Wester | 47 | <NULL> | 2003-01-01 00:00:00Z | <NULL> | <NULL> | <NULL> | 
+ | 60 | Åsa | Holmström | 50 | <NULL> | 2009-12-01 00:00:00Z | 2009-12-01 00:00:00Z | 59 | 53 | 
+ | 61 | PETER | <NULL> | 48 | 58 | 2005-10-01 00:00:00Z | 2005-10-01 00:00:00Z | 60 | 55 | 
+ | 62 | Christian | Holmstrand | 49 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 61 | 55 | 
+ | 63 | per | Samuelsson | 48 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 61 | 55 | 
+ | 64 | Erik | Ohlsson | 51 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 60 | 54 | 
+ | 66 | Alexey | Moiseenko | 52 | <NULL> | 2010-09-01 00:00:00Z | <NULL> | <NULL> | 55 | 
+ | 67 | Petros | <NULL> | <NULL> | <NULL> | 2010-10-01 00:00:00Z | 2010-10-01 00:00:00Z | 60 | 53 | 
+ | 68 | Andreas | Thyrhaug | <NULL> | <NULL> | 2010-12-13 00:00:00Z | 2010-12-13 00:00:00Z | 61 | 54 | 
 
 
 <NEXT>
@@ -2283,10 +2283,10 @@ Projection(
 		DoubleProperty(0, NSalaryDouble)
 )
 IndexScan(
-	SALARYEMPLOYEE_COMMISSION
+	auto
 	0
-	Commission
-	BooleanDynamicRange(
+	FirstName
+	StringDynamicRange(
 	)
 	LogicalValue(TRUE)
 	Ascending
@@ -2294,9 +2294,9 @@ IndexScan(
 
 ExpectedResult: 
  ! 0:Object ! 1:String ! 2:String ! 3:Object ! 4:Object ! 5:DateTime ! 6:DateTime ! 7:Object ! 8:Object ! 9:Boolean ! 10:Boolean ! 11:SByte ! 12:SByte ! 13:Int16 ! 14:Int16 ! 15:Int32 ! 16:Int32 ! 17:Int64 ! 18:Int64 ! 19:Byte ! 20:Byte ! 21:UInt16 ! 22:UInt16 ! 23:UInt32 ! 24:UInt32 ! 25:UInt64 ! 26:UInt64 ! 27:Decimal ! 28:Decimal ! 29:Single ! 30:Single ! 31:Double ! 32:Double ! 
- | 62 | Alexey | Moiseenko | 48 | <NULL> | 2010-09-01 00:00:00Z | <NULL> | <NULL> | 51 | False | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 
- | 63 | Petros | <NULL> | <NULL> | <NULL> | 2010-10-01 00:00:00Z | 2010-10-01 00:00:00Z | 56 | 49 | False | False | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 
- | 64 | Andreas | Thyrhaug | <NULL> | <NULL> | 2010-12-13 00:00:00Z | 2010-12-13 00:00:00Z | 57 | 50 | True | True | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 
+ | 66 | Alexey | Moiseenko | 52 | <NULL> | 2010-09-01 00:00:00Z | <NULL> | <NULL> | 55 | False | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 10 | <NULL> | 
+ | 67 | Petros | <NULL> | <NULL> | <NULL> | 2010-10-01 00:00:00Z | 2010-10-01 00:00:00Z | 60 | 53 | False | False | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 
+ | 68 | Andreas | Thyrhaug | <NULL> | <NULL> | 2010-12-13 00:00:00Z | 2010-12-13 00:00:00Z | 61 | 54 | True | True | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 30 | 
 
 
 <NEXT>
@@ -2334,7 +2334,7 @@ IndexScan(
 
 ExpectedResult: 
  ! 0:Object ! 1:String ! 2:String ! 
- | 65 | Adam | Adamsson | 
+ | 69 | Adam | Adamsson | 
 
 
 <NEXT>
@@ -2357,10 +2357,10 @@ Projection(
 		ObjectThis(0)
 )
 IndexScan(
-	EMPLOYEE_DEPARTMENT
+	auto
 	0
-	Department
-	ObjectDynamicRange(
+	FirstName
+	StringDynamicRange(
 	)
 	LogicalValue(TRUE)
 	Ascending
@@ -2368,15 +2368,15 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 55 | 
- | 56 | 
- | 57 | 
- | 58 | 
  | 59 | 
  | 60 | 
+ | 61 | 
  | 62 | 
  | 63 | 
  | 64 | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -2399,10 +2399,10 @@ Projection(
 		ObjectProperty(0, Manager)
 )
 IndexScan(
-	EMPLOYEE_DEPARTMENT
+	auto
 	0
-	Department
-	ObjectDynamicRange(
+	FirstName
+	StringDynamicRange(
 	)
 	LogicalValue(TRUE)
 	Ascending
@@ -2412,13 +2412,13 @@ ExpectedResult:
  ! Object ! 
  | <NULL> | 
  | <NULL> | 
- | 55 | 
- | 56 | 
- | 56 | 
- | 56 | 
- | 57 | 
- | 57 | 
- | 57 | 
+ | 59 | 
+ | 60 | 
+ | 60 | 
+ | 60 | 
+ | 61 | 
+ | 61 | 
+ | 61 | 
 
 
 <NEXT>
@@ -2444,10 +2444,10 @@ Projection(
 		)
 )
 IndexScan(
-	EMPLOYEE_DEPARTMENT
+	auto
 	0
-	Department
-	ObjectDynamicRange(
+	FirstName
+	StringDynamicRange(
 	)
 	LogicalValue(TRUE)
 	Ascending
@@ -2458,12 +2458,12 @@ ExpectedResult:
  | <NULL> | 
  | <NULL> | 
  | <NULL> | 
- | 55 | 
- | 55 | 
- | 55 | 
- | 56 | 
- | 56 | 
- | 56 | 
+ | 59 | 
+ | 59 | 
+ | 59 | 
+ | 60 | 
+ | 60 | 
+ | 60 | 
 
 
 <NEXT>
@@ -2490,10 +2490,10 @@ Projection(
 		)
 )
 IndexScan(
-	EMPLOYEE_DEPARTMENT
+	auto
 	0
-	Department
-	ObjectDynamicRange(
+	FirstName
+	StringDynamicRange(
 	)
 	LogicalValue(TRUE)
 	Ascending
@@ -2507,9 +2507,9 @@ ExpectedResult:
  | <NULL> | 
  | <NULL> | 
  | <NULL> | 
- | 49 | 
- | 49 | 
- | 49 | 
+ | 53 | 
+ | 53 | 
+ | 53 | 
 
 
 <NEXT>
@@ -2537,10 +2537,10 @@ Projection(
 		)
 )
 IndexScan(
-	EMPLOYEE_DEPARTMENT
+	auto
 	0
-	Department
-	ObjectDynamicRange(
+	FirstName
+	StringDynamicRange(
 	)
 	LogicalValue(TRUE)
 	Ascending
@@ -2554,9 +2554,9 @@ ExpectedResult:
  | <NULL> | 
  | <NULL> | 
  | <NULL> | 
- | 44 | 
- | 44 | 
- | 44 | 
+ | 48 | 
+ | 48 | 
+ | 48 | 
 
 
 <NEXT>
@@ -2613,10 +2613,10 @@ Projection(
 		ObjectThis(0)
 )
 IndexScan(
-	EMPLOYEE_DEPARTMENT
+	auto
 	0
-	Department
-	ObjectDynamicRange(
+	FirstName
+	StringDynamicRange(
 	)
 	LogicalValue(TRUE)
 	Ascending
@@ -2624,15 +2624,15 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 55 | 
- | 56 | 
- | 57 | 
- | 58 | 
  | 59 | 
  | 60 | 
+ | 61 | 
  | 62 | 
  | 63 | 
  | 64 | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -2655,10 +2655,10 @@ Projection(
 		StringProperty(0, FirstName)
 )
 IndexScan(
-	EMPLOYEE_DEPARTMENT
+	auto
 	0
-	Department
-	ObjectDynamicRange(
+	FirstName
+	StringDynamicRange(
 	)
 	LogicalValue(TRUE)
 	Ascending
@@ -2711,10 +2711,10 @@ Projection(
 		ObjectProperty(0, Department)
 )
 IndexScan(
-	EMPLOYEE_DEPARTMENT
+	auto
 	0
-	Department
-	ObjectDynamicRange(
+	FirstName
+	StringDynamicRange(
 	)
 	LogicalValue(TRUE)
 	Ascending
@@ -2722,15 +2722,15 @@ IndexScan(
 
 ExpectedResult: 
  ! 0:String ! 1:String ! 2:Object ! 3:Object ! 4:DateTime ! 5:DateTime ! 6:Object ! 7:Object ! 
- | Alexey | Moiseenko | 48 | <NULL> | 2010-09-01 00:00:00Z | <NULL> | <NULL> | 51 | 
- | Andreas | Thyrhaug | <NULL> | <NULL> | 2010-12-13 00:00:00Z | 2010-12-13 00:00:00Z | 57 | 50 | 
- | Åsa | Holmström | 46 | <NULL> | 2009-12-01 00:00:00Z | 2009-12-01 00:00:00Z | 55 | 49 | 
- | Christian | Holmstrand | 45 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 57 | 51 | 
- | Erik | Ohlsson | 47 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 56 | 50 | 
- | Joachim | Wester | 43 | <NULL> | 2003-01-01 00:00:00Z | <NULL> | <NULL> | <NULL> | 
- | per | Samuelsson | 44 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 57 | 51 | 
- | PETER | <NULL> | 44 | 54 | 2005-10-01 00:00:00Z | 2005-10-01 00:00:00Z | 56 | 51 | 
- | Petros | <NULL> | <NULL> | <NULL> | 2010-10-01 00:00:00Z | 2010-10-01 00:00:00Z | 56 | 49 | 
+ | Alexey | Moiseenko | 52 | <NULL> | 2010-09-01 00:00:00Z | <NULL> | <NULL> | 55 | 
+ | Andreas | Thyrhaug | <NULL> | <NULL> | 2010-12-13 00:00:00Z | 2010-12-13 00:00:00Z | 61 | 54 | 
+ | Åsa | Holmström | 50 | <NULL> | 2009-12-01 00:00:00Z | 2009-12-01 00:00:00Z | 59 | 53 | 
+ | Christian | Holmstrand | 49 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 61 | 55 | 
+ | Erik | Ohlsson | 51 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 60 | 54 | 
+ | Joachim | Wester | 47 | <NULL> | 2003-01-01 00:00:00Z | <NULL> | <NULL> | <NULL> | 
+ | per | Samuelsson | 48 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 61 | 55 | 
+ | PETER | <NULL> | 48 | 58 | 2005-10-01 00:00:00Z | 2005-10-01 00:00:00Z | 60 | 55 | 
+ | Petros | <NULL> | <NULL> | <NULL> | 2010-10-01 00:00:00Z | 2010-10-01 00:00:00Z | 60 | 53 | 
 
 
 <NEXT>
@@ -2767,10 +2767,10 @@ Projection(
 		ObjectProperty(0, Department)
 )
 IndexScan(
-	EMPLOYEE_DEPARTMENT
+	auto
 	0
-	Department
-	ObjectDynamicRange(
+	FirstName
+	StringDynamicRange(
 	)
 	LogicalValue(TRUE)
 	Ascending
@@ -2778,15 +2778,15 @@ IndexScan(
 
 ExpectedResult: 
  ! 0:String ! 1:String ! 2:Object ! 3:Object ! 4:DateTime ! 5:DateTime ! 6:Object ! 7:Object ! 
- | Alexey | Moiseenko | 48 | <NULL> | 2010-09-01 00:00:00Z | <NULL> | <NULL> | 51 | 
- | Andreas | Thyrhaug | <NULL> | <NULL> | 2010-12-13 00:00:00Z | 2010-12-13 00:00:00Z | 57 | 50 | 
- | Åsa | Holmström | 46 | <NULL> | 2009-12-01 00:00:00Z | 2009-12-01 00:00:00Z | 55 | 49 | 
- | Christian | Holmstrand | 45 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 57 | 51 | 
- | Erik | Ohlsson | 47 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 56 | 50 | 
- | Joachim | Wester | 43 | <NULL> | 2003-01-01 00:00:00Z | <NULL> | <NULL> | <NULL> | 
- | per | Samuelsson | 44 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 57 | 51 | 
- | PETER | <NULL> | 44 | 54 | 2005-10-01 00:00:00Z | 2005-10-01 00:00:00Z | 56 | 51 | 
- | Petros | <NULL> | <NULL> | <NULL> | 2010-10-01 00:00:00Z | 2010-10-01 00:00:00Z | 56 | 49 | 
+ | Alexey | Moiseenko | 52 | <NULL> | 2010-09-01 00:00:00Z | <NULL> | <NULL> | 55 | 
+ | Andreas | Thyrhaug | <NULL> | <NULL> | 2010-12-13 00:00:00Z | 2010-12-13 00:00:00Z | 61 | 54 | 
+ | Åsa | Holmström | 50 | <NULL> | 2009-12-01 00:00:00Z | 2009-12-01 00:00:00Z | 59 | 53 | 
+ | Christian | Holmstrand | 49 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 61 | 55 | 
+ | Erik | Ohlsson | 51 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 60 | 54 | 
+ | Joachim | Wester | 47 | <NULL> | 2003-01-01 00:00:00Z | <NULL> | <NULL> | <NULL> | 
+ | per | Samuelsson | 48 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 61 | 55 | 
+ | PETER | <NULL> | 48 | 58 | 2005-10-01 00:00:00Z | 2005-10-01 00:00:00Z | 60 | 55 | 
+ | Petros | <NULL> | <NULL> | <NULL> | 2010-10-01 00:00:00Z | 2010-10-01 00:00:00Z | 60 | 53 | 
 
 
 <NEXT>
@@ -2831,10 +2831,10 @@ Projection(
 		)
 )
 IndexScan(
-	EMPLOYEE_DEPARTMENT
+	auto
 	0
-	Department
-	ObjectDynamicRange(
+	FirstName
+	StringDynamicRange(
 	)
 	LogicalValue(TRUE)
 	Ascending
@@ -2845,12 +2845,12 @@ ExpectedResult:
  | <NULL> | <NULL> | <NULL> | <NULL> | 
  | <NULL> | <NULL> | <NULL> | <NULL> | 
  | <NULL> | <NULL> | <NULL> | <NULL> | 
- | Administration | Head office | 44 | FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF | 
- | Administration | Head office | 44 | FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF | 
- | Administration | Head office | 44 | FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF | 
- | Development of database server | Server | 44 | FDFDFDFDFDFDFDFDFDFDFDFDFDFDFDFD | 
- | Development of database server | Server | 44 | FDFDFDFDFDFDFDFDFDFDFDFDFDFDFDFD | 
- | Development of database server | Server | 44 | FDFDFDFDFDFDFDFDFDFDFDFDFDFDFDFD | 
+ | Administration | Head office | 48 | FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF | 
+ | Administration | Head office | 48 | FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF | 
+ | Administration | Head office | 48 | FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF | 
+ | Development of database server | Server | 48 | FDFDFDFDFDFDFDFDFDFDFDFDFDFDFDFD | 
+ | Development of database server | Server | 48 | FDFDFDFDFDFDFDFDFDFDFDFDFDFDFDFD | 
+ | Development of database server | Server | 48 | FDFDFDFDFDFDFDFDFDFDFDFDFDFDFDFD | 
 
 
 <NEXT>
@@ -2929,10 +2929,10 @@ Projection(
 		)
 )
 IndexScan(
-	SALARYEMPLOYEE_COMMISSION
+	auto
 	0
-	Commission
-	BooleanDynamicRange(
+	FirstName
+	StringDynamicRange(
 	)
 	ComparisonString(
 		Equal
@@ -3048,10 +3048,10 @@ Projection(
 		)
 )
 IndexScan(
-	SALARYEMPLOYEE_COMMISSION
+	auto
 	0
-	Commission
-	BooleanDynamicRange(
+	FirstName
+	StringDynamicRange(
 	)
 	LogicalValue(TRUE)
 	Ascending
@@ -3093,10 +3093,10 @@ Projection(
 		)
 )
 IndexScan(
-	SALARYEMPLOYEE_COMMISSION
+	auto
 	0
-	Commission
-	BooleanDynamicRange(
+	FirstName
+	StringDynamicRange(
 	)
 	LogicalValue(TRUE)
 	Ascending
@@ -3148,8 +3148,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -3183,7 +3183,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -3266,8 +3266,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -3305,7 +3305,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -3343,9 +3343,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
- | 64 | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -3387,8 +3387,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -3422,7 +3422,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -3505,8 +3505,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -3544,7 +3544,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -3582,9 +3582,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
- | 64 | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -3659,9 +3659,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
- | 64 | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -3703,7 +3703,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -3737,7 +3737,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -3820,7 +3820,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -3858,7 +3858,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -3896,8 +3896,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -3939,7 +3939,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -3973,7 +3973,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -4056,7 +4056,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -4094,7 +4094,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -4132,8 +4132,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -4171,7 +4171,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -4209,8 +4209,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -4252,7 +4252,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -4286,8 +4286,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -4329,7 +4329,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -4371,8 +4371,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -4410,7 +4410,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -4448,8 +4448,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -4491,7 +4491,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -4525,8 +4525,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -4568,7 +4568,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -4610,8 +4610,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -4649,7 +4649,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -4687,8 +4687,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -4763,9 +4763,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
- | 64 | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -4807,7 +4807,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -4841,7 +4841,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -4924,7 +4924,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -4962,7 +4962,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -5000,8 +5000,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -5043,7 +5043,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -5077,7 +5077,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -5160,7 +5160,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -5198,7 +5198,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -5236,8 +5236,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -5275,7 +5275,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -5313,8 +5313,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -5356,7 +5356,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -5390,8 +5390,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -5433,7 +5433,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -5475,8 +5475,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -5514,7 +5514,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -5552,8 +5552,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -5595,7 +5595,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -5629,8 +5629,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -5672,7 +5672,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -5714,8 +5714,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -5753,7 +5753,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -5791,8 +5791,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -5867,9 +5867,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
- | 64 | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -5911,7 +5911,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -5945,7 +5945,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -6028,7 +6028,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -6066,7 +6066,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -6104,8 +6104,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -6147,7 +6147,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -6181,7 +6181,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -6264,7 +6264,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -6302,7 +6302,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -6340,8 +6340,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -6379,7 +6379,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -6417,8 +6417,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -6460,7 +6460,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -6494,8 +6494,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -6537,7 +6537,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -6579,8 +6579,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -6618,7 +6618,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -6656,8 +6656,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -6732,9 +6732,9 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
- | 64 | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -6776,9 +6776,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
- | 64 | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -6820,9 +6820,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
- | 64 | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -6971,9 +6971,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
- | 64 | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -7015,7 +7015,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -7049,7 +7049,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -7132,7 +7132,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -7170,7 +7170,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -7208,8 +7208,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -7284,8 +7284,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -7327,8 +7327,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -7370,8 +7370,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -7483,7 +7483,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -7521,8 +7521,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -7556,7 +7556,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -7590,8 +7590,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -7625,7 +7625,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -7659,8 +7659,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -7694,7 +7694,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -7728,8 +7728,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -7763,7 +7763,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -7797,8 +7797,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -7832,7 +7832,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -7866,8 +7866,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -7901,7 +7901,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -7935,8 +7935,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -7959,10 +7959,10 @@ Projection(
 		ObjectThis(0)
 )
 IndexScan(
-	SALARYEMPLOYEE_COMMISSION
+	auto
 	0
-	Commission
-	BooleanDynamicRange(
+	FirstName
+	StringDynamicRange(
 	)
 	ComparisonNumerical(
 		IS
@@ -7996,10 +7996,10 @@ Projection(
 		ObjectThis(0)
 )
 IndexScan(
-	SALARYEMPLOYEE_COMMISSION
+	auto
 	0
-	Commission
-	BooleanDynamicRange(
+	FirstName
+	StringDynamicRange(
 	)
 	ComparisonNumerical(
 		ISNOT
@@ -8011,9 +8011,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
- | 64 | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -8047,7 +8047,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -8081,7 +8081,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -8148,7 +8148,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -8182,7 +8182,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -8216,8 +8216,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -8251,7 +8251,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -8285,7 +8285,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -8352,7 +8352,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -8386,7 +8386,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -8420,8 +8420,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -8444,10 +8444,10 @@ Projection(
 		ObjectThis(0)
 )
 IndexScan(
-	SALARYEMPLOYEE_COMMISSION
+	auto
 	0
-	Commission
-	BooleanDynamicRange(
+	FirstName
+	StringDynamicRange(
 	)
 	ComparisonNumerical(
 		IS
@@ -8459,7 +8459,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -8482,10 +8482,10 @@ Projection(
 		ObjectThis(0)
 )
 IndexScan(
-	SALARYEMPLOYEE_COMMISSION
+	auto
 	0
-	Commission
-	BooleanDynamicRange(
+	FirstName
+	StringDynamicRange(
 	)
 	ComparisonNumerical(
 		ISNOT
@@ -8497,8 +8497,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -8540,7 +8540,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -8574,8 +8574,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -8617,7 +8617,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -8659,8 +8659,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -8698,7 +8698,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -8736,8 +8736,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -8779,7 +8779,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -8813,8 +8813,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -8856,7 +8856,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -8898,8 +8898,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -8937,7 +8937,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -8975,8 +8975,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -9051,9 +9051,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
- | 64 | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -9095,7 +9095,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -9129,7 +9129,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -9212,7 +9212,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -9250,7 +9250,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -9288,8 +9288,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -9331,7 +9331,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -9365,7 +9365,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -9448,7 +9448,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -9486,7 +9486,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -9524,8 +9524,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -9563,7 +9563,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -9601,8 +9601,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -9644,7 +9644,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -9678,8 +9678,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -9721,7 +9721,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -9763,8 +9763,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -9802,7 +9802,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -9840,8 +9840,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -9883,7 +9883,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -9917,8 +9917,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -9960,7 +9960,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -10002,8 +10002,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -10041,7 +10041,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -10079,8 +10079,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -10155,9 +10155,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
- | 64 | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -10199,7 +10199,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -10233,7 +10233,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -10316,7 +10316,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -10354,7 +10354,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -10392,8 +10392,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -10435,7 +10435,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -10469,7 +10469,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -10552,7 +10552,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -10590,7 +10590,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -10628,8 +10628,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -10667,7 +10667,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -10705,8 +10705,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -10748,7 +10748,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -10782,8 +10782,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -10825,7 +10825,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -10867,8 +10867,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -10906,7 +10906,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -10944,8 +10944,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -10987,7 +10987,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -11021,8 +11021,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -11064,7 +11064,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -11106,8 +11106,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -11145,7 +11145,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -11183,8 +11183,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -11259,9 +11259,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
- | 64 | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -11303,7 +11303,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -11337,7 +11337,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -11420,7 +11420,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -11458,7 +11458,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -11496,8 +11496,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -11539,7 +11539,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -11573,7 +11573,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -11656,7 +11656,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -11694,7 +11694,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -11732,8 +11732,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -11771,7 +11771,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -11809,13 +11809,13 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
 Description: Object property equal to Object literal
-QueryString: select e from SalaryEmployee e where e.Manager = object 57
+QueryString: select e from SalaryEmployee e where e.Manager = object 61
 VariableValues: 
 DataManipulation: False
 SingleObjectProjection: True
@@ -11839,11 +11839,11 @@ IndexScan(
 	ObjectDynamicRange(
 		ObjectRangePoint(
 			GreaterThanOrEqual
-			ObjectLiteral(57)
+			ObjectLiteral(61)
 		)
 		ObjectRangePoint(
 			LessThanOrEqual
-			ObjectLiteral(57)
+			ObjectLiteral(61)
 		)
 	)
 	LogicalValue(TRUE)
@@ -11852,12 +11852,12 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
 Description: Object property not equal to Object literal
-QueryString: select e from SalaryEmployee e where e.Manager <> object 57
+QueryString: select e from SalaryEmployee e where e.Manager <> object 61
 VariableValues: 
 DataManipulation: False
 SingleObjectProjection: True
@@ -11879,19 +11879,19 @@ FullTableScan(
 	ComparisonObject(
 		NotEqual
 		ObjectProperty(0, Manager)
-		ObjectLiteral(57)
+		ObjectLiteral(61)
 	)
 	Ascending
 )
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
 Description: Object property less than Object literal (incorrect)
-QueryString: select e from SalaryEmployee e where e.Manager < object 57
+QueryString: select e from SalaryEmployee e where e.Manager < object 61
 VariableValues: 
 DataManipulation: False
 SingleObjectProjection: True
@@ -11899,7 +11899,7 @@ IncludesLiteral: True
 IncludesObjectValue: True
 
 ShouldBeReordered: True
-ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager < object 57: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator lessThan. 
+ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager < object 61: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator lessThan. 
 ExpectedExecutionPlan: 
 
 ExpectedResult: 
@@ -11907,7 +11907,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Object property less than or equal to Object literal (incorrect)
-QueryString: select e from SalaryEmployee e where e.Manager <= object 57
+QueryString: select e from SalaryEmployee e where e.Manager <= object 61
 VariableValues: 
 DataManipulation: False
 SingleObjectProjection: True
@@ -11915,7 +11915,7 @@ IncludesLiteral: True
 IncludesObjectValue: True
 
 ShouldBeReordered: True
-ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager <= object 57: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator lessThanOrEqual. 
+ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager <= object 61: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator lessThanOrEqual. 
 ExpectedExecutionPlan: 
 
 ExpectedResult: 
@@ -11923,7 +11923,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Object property greater than Object literal (incorrect)
-QueryString: select e from SalaryEmployee e where e.Manager > object 57
+QueryString: select e from SalaryEmployee e where e.Manager > object 61
 VariableValues: 
 DataManipulation: False
 SingleObjectProjection: True
@@ -11931,7 +11931,7 @@ IncludesLiteral: True
 IncludesObjectValue: True
 
 ShouldBeReordered: True
-ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager > object 57: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator greaterThan. 
+ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager > object 61: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator greaterThan. 
 ExpectedExecutionPlan: 
 
 ExpectedResult: 
@@ -11939,7 +11939,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Object property greater than or equal to Object literal (incorrect)
-QueryString: select e from SalaryEmployee e where e.Manager >= object 57
+QueryString: select e from SalaryEmployee e where e.Manager >= object 61
 VariableValues: 
 DataManipulation: False
 SingleObjectProjection: True
@@ -11947,7 +11947,7 @@ IncludesLiteral: True
 IncludesObjectValue: True
 
 ShouldBeReordered: True
-ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager >= object 57: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator greaterThanOrEqual. 
+ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager >= object 61: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator greaterThanOrEqual. 
 ExpectedExecutionPlan: 
 
 ExpectedResult: 
@@ -11956,7 +11956,7 @@ ExpectedResult:
 <NEXT>
 Description: Object property equal to Object variable
 QueryString: select e from SalaryEmployee e where e.Manager = ?
-VariableValues: Object:57; 
+VariableValues: Object:61; 
 DataManipulation: False
 SingleObjectProjection: True
 IncludesLiteral: False
@@ -11979,11 +11979,11 @@ IndexScan(
 	ObjectDynamicRange(
 		ObjectRangePoint(
 			GreaterThanOrEqual
-			ObjectVariable(57)
+			ObjectVariable(61)
 		)
 		ObjectRangePoint(
 			LessThanOrEqual
-			ObjectVariable(57)
+			ObjectVariable(61)
 		)
 	)
 	LogicalValue(TRUE)
@@ -11992,13 +11992,13 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
 Description: Object property not equal to Object variable
 QueryString: select e from SalaryEmployee e where e.Manager <> ?
-VariableValues: Object:57; 
+VariableValues: Object:61; 
 DataManipulation: False
 SingleObjectProjection: True
 IncludesLiteral: False
@@ -12019,20 +12019,20 @@ FullTableScan(
 	ComparisonObject(
 		NotEqual
 		ObjectProperty(0, Manager)
-		ObjectVariable(57)
+		ObjectVariable(61)
 	)
 	Ascending
 )
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
 Description: Object property less than Object variable (incorrect)
 QueryString: select e from SalaryEmployee e where e.Manager < ?
-VariableValues: Object:57; 
+VariableValues: Object:61; 
 DataManipulation: False
 SingleObjectProjection: True
 IncludesLiteral: False
@@ -12048,7 +12048,7 @@ ExpectedResult:
 <NEXT>
 Description: Object property less than or equal to Object variable (incorrect)
 QueryString: select e from SalaryEmployee e where e.Manager <= ?
-VariableValues: Object:57; 
+VariableValues: Object:61; 
 DataManipulation: False
 SingleObjectProjection: True
 IncludesLiteral: False
@@ -12064,7 +12064,7 @@ ExpectedResult:
 <NEXT>
 Description: Object property greater than Object variable (incorrect)
 QueryString: select e from SalaryEmployee e where e.Manager > ?
-VariableValues: Object:57; 
+VariableValues: Object:61; 
 DataManipulation: False
 SingleObjectProjection: True
 IncludesLiteral: False
@@ -12080,7 +12080,7 @@ ExpectedResult:
 <NEXT>
 Description: Object property greater than or equal to Object variable (incorrect)
 QueryString: select e from SalaryEmployee e where e.Manager >= ?
-VariableValues: Object:57; 
+VariableValues: Object:61; 
 DataManipulation: False
 SingleObjectProjection: True
 IncludesLiteral: False
@@ -12128,7 +12128,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -12166,8 +12166,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -12209,7 +12209,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -12243,8 +12243,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -12286,7 +12286,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -12328,8 +12328,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -12367,7 +12367,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -12405,8 +12405,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -12448,7 +12448,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -12482,8 +12482,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -12525,7 +12525,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -12567,8 +12567,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -12606,7 +12606,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -12644,8 +12644,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -12720,9 +12720,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
- | 64 | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -12764,7 +12764,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -12798,7 +12798,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -12881,7 +12881,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -12919,7 +12919,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -12957,8 +12957,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -13000,7 +13000,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -13034,7 +13034,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -13117,7 +13117,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -13155,7 +13155,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -13193,8 +13193,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -13232,7 +13232,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -13270,8 +13270,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -13305,7 +13305,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -13339,8 +13339,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -13374,7 +13374,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -13408,8 +13408,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -13443,7 +13443,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -13477,8 +13477,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -13512,7 +13512,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -13546,8 +13546,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -13581,7 +13581,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -13615,8 +13615,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -13650,7 +13650,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -13684,8 +13684,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -13708,10 +13708,10 @@ Projection(
 		ObjectThis(0)
 )
 IndexScan(
-	SALARYEMPLOYEE_COMMISSION
+	auto
 	0
-	Commission
-	BooleanDynamicRange(
+	FirstName
+	StringDynamicRange(
 	)
 	ComparisonNumerical(
 		IS
@@ -13745,10 +13745,10 @@ Projection(
 		ObjectThis(0)
 )
 IndexScan(
-	SALARYEMPLOYEE_COMMISSION
+	auto
 	0
-	Commission
-	BooleanDynamicRange(
+	FirstName
+	StringDynamicRange(
 	)
 	ComparisonNumerical(
 		ISNOT
@@ -13760,9 +13760,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
- | 64 | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -13796,7 +13796,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -13830,7 +13830,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -13897,7 +13897,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -13931,7 +13931,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -13965,8 +13965,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -14000,7 +14000,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -14034,7 +14034,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -14101,7 +14101,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -14135,7 +14135,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -14169,8 +14169,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -14193,10 +14193,10 @@ Projection(
 		ObjectThis(0)
 )
 IndexScan(
-	SALARYEMPLOYEE_COMMISSION
+	auto
 	0
-	Commission
-	BooleanDynamicRange(
+	FirstName
+	StringDynamicRange(
 	)
 	ComparisonNumerical(
 		IS
@@ -14208,7 +14208,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -14231,10 +14231,10 @@ Projection(
 		ObjectThis(0)
 )
 IndexScan(
-	SALARYEMPLOYEE_COMMISSION
+	auto
 	0
-	Commission
-	BooleanDynamicRange(
+	FirstName
+	StringDynamicRange(
 	)
 	ComparisonNumerical(
 		ISNOT
@@ -14246,8 +14246,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -14289,7 +14289,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -14323,7 +14323,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -14361,7 +14361,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -14399,8 +14399,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -14483,7 +14483,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -14525,7 +14525,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -14559,7 +14559,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -14597,7 +14597,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -14635,8 +14635,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -14719,7 +14719,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -14757,7 +14757,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -14795,8 +14795,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -14838,7 +14838,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -14872,8 +14872,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -14915,7 +14915,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -14957,8 +14957,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -14996,7 +14996,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -15034,8 +15034,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -15077,7 +15077,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -15111,8 +15111,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -15154,7 +15154,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -15196,8 +15196,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -15235,7 +15235,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -15273,8 +15273,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -15349,9 +15349,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
- | 64 | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -15393,7 +15393,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -15427,7 +15427,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -15510,7 +15510,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -15548,7 +15548,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -15586,8 +15586,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -15629,7 +15629,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -15663,7 +15663,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -15746,7 +15746,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -15784,7 +15784,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -15822,8 +15822,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -15861,7 +15861,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -15899,8 +15899,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -15942,7 +15942,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -15976,8 +15976,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -16019,7 +16019,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -16061,8 +16061,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -16100,7 +16100,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -16138,8 +16138,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -16181,7 +16181,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -16215,8 +16215,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -16258,7 +16258,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -16300,8 +16300,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -16339,7 +16339,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -16377,8 +16377,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -16453,9 +16453,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
- | 64 | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -16497,7 +16497,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -16531,7 +16531,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -16614,7 +16614,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -16652,7 +16652,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -16690,8 +16690,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -16733,7 +16733,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -16767,7 +16767,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -16850,7 +16850,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -16888,7 +16888,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -16926,8 +16926,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -16965,7 +16965,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -17003,8 +17003,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -17046,7 +17046,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -17080,8 +17080,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -17123,7 +17123,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -17165,8 +17165,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -17204,7 +17204,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -17242,8 +17242,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -17285,7 +17285,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -17319,8 +17319,8 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 64 | 
+ | 66 | 
+ | 68 | 
 
 
 <NEXT>
@@ -17362,7 +17362,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -17404,8 +17404,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
+ | 66 | 
+ | 67 | 
 
 
 <NEXT>
@@ -17443,7 +17443,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -17481,8 +17481,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -17557,9 +17557,9 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
- | 63 | 
- | 64 | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -17601,7 +17601,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -17635,7 +17635,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -17718,7 +17718,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -17756,7 +17756,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -17794,8 +17794,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -17837,7 +17837,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -17871,7 +17871,7 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -17954,7 +17954,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
+ | 67 | 
 
 
 <NEXT>
@@ -17992,7 +17992,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 64 | 
+ | 68 | 
 
 
 <NEXT>
@@ -18030,8 +18030,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -18069,7 +18069,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 62 | 
+ | 66 | 
 
 
 <NEXT>
@@ -18107,8 +18107,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 63 | 
- | 64 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -18150,7 +18150,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 43 | 
+ | 47 | 
 
 
 <NEXT>
@@ -18184,11 +18184,11 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 44 | 
- | 45 | 
- | 46 | 
- | 47 | 
  | 48 | 
+ | 49 | 
+ | 50 | 
+ | 51 | 
+ | 52 | 
 
 
 <NEXT>
@@ -18271,7 +18271,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 43 | 
+ | 47 | 
 
 
 <NEXT>
@@ -18309,11 +18309,11 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 44 | 
- | 45 | 
- | 46 | 
- | 47 | 
  | 48 | 
+ | 49 | 
+ | 50 | 
+ | 51 | 
+ | 52 | 
 
 
 <NEXT>
@@ -18351,12 +18351,12 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 43 | 
- | 44 | 
- | 45 | 
- | 46 | 
  | 47 | 
  | 48 | 
+ | 49 | 
+ | 50 | 
+ | 51 | 
+ | 52 | 
 
 
 <NEXT>
@@ -18398,7 +18398,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 43 | 
+ | 47 | 
 
 
 <NEXT>
@@ -18432,11 +18432,11 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 44 | 
- | 45 | 
- | 46 | 
- | 47 | 
  | 48 | 
+ | 49 | 
+ | 50 | 
+ | 51 | 
+ | 52 | 
 
 
 <NEXT>
@@ -18519,7 +18519,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 43 | 
+ | 47 | 
 
 
 <NEXT>
@@ -18557,11 +18557,11 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 44 | 
- | 45 | 
- | 46 | 
- | 47 | 
  | 48 | 
+ | 49 | 
+ | 50 | 
+ | 51 | 
+ | 52 | 
 
 
 <NEXT>
@@ -18599,12 +18599,12 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 43 | 
- | 44 | 
- | 45 | 
- | 46 | 
  | 47 | 
  | 48 | 
+ | 49 | 
+ | 50 | 
+ | 51 | 
+ | 52 | 
 
 
 <NEXT>
@@ -18679,12 +18679,12 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 43 | 
- | 44 | 
- | 45 | 
- | 46 | 
  | 47 | 
  | 48 | 
+ | 49 | 
+ | 50 | 
+ | 51 | 
+ | 52 | 
 
 
 <NEXT>
@@ -18726,7 +18726,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 43 | 
+ | 47 | 
 
 
 <NEXT>
@@ -18760,11 +18760,11 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 44 | 
- | 45 | 
- | 46 | 
- | 47 | 
  | 48 | 
+ | 49 | 
+ | 50 | 
+ | 51 | 
+ | 52 | 
 
 
 <NEXT>
@@ -18847,7 +18847,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 43 | 
+ | 47 | 
 
 
 <NEXT>
@@ -18885,11 +18885,11 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 44 | 
- | 45 | 
- | 46 | 
- | 47 | 
  | 48 | 
+ | 49 | 
+ | 50 | 
+ | 51 | 
+ | 52 | 
 
 
 <NEXT>
@@ -18927,12 +18927,12 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 43 | 
- | 44 | 
- | 45 | 
- | 46 | 
  | 47 | 
  | 48 | 
+ | 49 | 
+ | 50 | 
+ | 51 | 
+ | 52 | 
 
 
 <NEXT>
@@ -18974,7 +18974,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 43 | 
+ | 47 | 
 
 
 <NEXT>
@@ -19008,11 +19008,11 @@ FullTableScan(
 
 ExpectedResult: 
  ! Object ! 
- | 44 | 
- | 45 | 
- | 46 | 
- | 47 | 
  | 48 | 
+ | 49 | 
+ | 50 | 
+ | 51 | 
+ | 52 | 
 
 
 <NEXT>
@@ -19095,7 +19095,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 43 | 
+ | 47 | 
 
 
 <NEXT>
@@ -19133,11 +19133,11 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 44 | 
- | 45 | 
- | 46 | 
- | 47 | 
  | 48 | 
+ | 49 | 
+ | 50 | 
+ | 51 | 
+ | 52 | 
 
 
 <NEXT>
@@ -19175,12 +19175,12 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 43 | 
- | 44 | 
- | 45 | 
- | 46 | 
  | 47 | 
  | 48 | 
+ | 49 | 
+ | 50 | 
+ | 51 | 
+ | 52 | 
 
 
 <NEXT>
@@ -19255,12 +19255,12 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 43 | 
- | 44 | 
- | 45 | 
- | 46 | 
  | 47 | 
  | 48 | 
+ | 49 | 
+ | 50 | 
+ | 51 | 
+ | 52 | 
 
 
 <NEXT>
@@ -19438,10 +19438,10 @@ Projection(
 )
 Sort(
 	IndexScan(
-		SALARYEMPLOYEE_COMMISSION
+		auto
 		0
-		Commission
-		BooleanDynamicRange(
+		FirstName
+		StringDynamicRange(
 		)
 		LogicalValue(TRUE)
 		Ascending
@@ -19607,8 +19607,8 @@ IndexScan(
 ExpectedResult: 
  ! 0:String ! 1:Object ! 
  | Alexey | <NULL> | 
- | Petros | 56 | 
- | Andreas | 57 | 
+ | Petros | 60 | 
+ | Andreas | 61 | 
 
 
 <NEXT>
@@ -19672,10 +19672,10 @@ Projection(
 )
 Sort(
 	IndexScan(
-		SALARYEMPLOYEE_COMMISSION
+		auto
 		0
-		Commission
-		BooleanDynamicRange(
+		FirstName
+		StringDynamicRange(
 		)
 		LogicalValue(TRUE)
 		Ascending
@@ -20020,10 +20020,10 @@ Projection(
 )
 Sort(
 	IndexScan(
-		SALARYEMPLOYEE_COMMISSION
+		auto
 		0
-		Commission
-		BooleanDynamicRange(
+		FirstName
+		StringDynamicRange(
 		)
 		LogicalValue(TRUE)
 		Ascending
@@ -20188,8 +20188,8 @@ IndexScan(
 
 ExpectedResult: 
  ! 0:String ! 1:Object ! 
- | Andreas | 57 | 
- | Petros | 56 | 
+ | Andreas | 61 | 
+ | Petros | 60 | 
  | Alexey | <NULL> | 
 
 
@@ -20254,10 +20254,10 @@ Projection(
 )
 Sort(
 	IndexScan(
-		SALARYEMPLOYEE_COMMISSION
+		auto
 		0
-		Commission
-		BooleanDynamicRange(
+		FirstName
+		StringDynamicRange(
 		)
 		LogicalValue(TRUE)
 		Ascending
@@ -20450,10 +20450,10 @@ Projection(
 )
 Sort(
 	IndexScan(
-		EMPLOYEE_DEPARTMENT
+		auto
 		0
-		Department
-		ObjectDynamicRange(
+		FirstName
+		StringDynamicRange(
 		)
 		LogicalValue(TRUE)
 		Ascending
@@ -20509,10 +20509,10 @@ Projection(
 )
 Sort(
 	IndexScan(
-		EMPLOYEE_DEPARTMENT
+		auto
 		0
-		Department
-		ObjectDynamicRange(
+		FirstName
+		StringDynamicRange(
 		)
 		LogicalValue(TRUE)
 		Ascending
@@ -20528,11 +20528,11 @@ Sort(
 
 ExpectedResult: 
  ! 0:String ! 1:String ! 
- | Joachim | <NULL> | 
  | Alexey | <NULL> | 
- | Petros | Åsa | 
+ | Joachim | <NULL> | 
  | Erik | Åsa | 
  | PETER | Åsa | 
+ | Petros | Åsa | 
  | Åsa | Joachim | 
  | Andreas | PETER | 
  | Christian | PETER | 
@@ -20557,19 +20557,19 @@ Projection(
 Join(
 	Inner
 	IndexScan(
-		EMPLOYEE_DEPARTMENT
+		auto
 		0
-		Department
-		ObjectDynamicRange(
+		FirstName
+		StringDynamicRange(
 		)
 		LogicalValue(TRUE)
 		Ascending
 	)
 	IndexScan(
-		DEPARTMENT_IDBINARY
+		auto
 		1
-		IdBinary
-		BinaryDynamicRange(
+		Description
+		StringDynamicRange(
 		)
 		LogicalValue(TRUE)
 		Ascending
@@ -20632,19 +20632,19 @@ Projection(
 Join(
 	Inner
 	IndexScan(
-		EMPLOYEE_DEPARTMENT
+		auto
 		0
-		Department
-		ObjectDynamicRange(
+		FirstName
+		StringDynamicRange(
 		)
 		LogicalValue(TRUE)
 		Ascending
 	)
 	IndexScan(
-		DEPARTMENT_IDBINARY
+		auto
 		1
-		IdBinary
-		BinaryDynamicRange(
+		Description
+		StringDynamicRange(
 		)
 		LogicalValue(TRUE)
 		Ascending
@@ -20653,42 +20653,42 @@ Join(
 
 ExpectedResult: 
  ! Object ! 
- | 49 | 
- | 49 | 
- | 49 | 
- | 49 | 
- | 49 | 
- | 49 | 
- | 49 | 
- | 49 | 
- | 49 | 
- | 50 | 
- | 50 | 
- | 50 | 
- | 50 | 
- | 50 | 
- | 50 | 
- | 50 | 
- | 50 | 
- | 50 | 
- | 51 | 
- | 51 | 
- | 51 | 
- | 51 | 
- | 51 | 
- | 51 | 
- | 51 | 
- | 51 | 
- | 51 | 
- | 52 | 
- | 52 | 
- | 52 | 
- | 52 | 
- | 52 | 
- | 52 | 
- | 52 | 
- | 52 | 
- | 52 | 
+ | 53 | 
+ | 53 | 
+ | 53 | 
+ | 53 | 
+ | 53 | 
+ | 53 | 
+ | 53 | 
+ | 53 | 
+ | 53 | 
+ | 54 | 
+ | 54 | 
+ | 54 | 
+ | 54 | 
+ | 54 | 
+ | 54 | 
+ | 54 | 
+ | 54 | 
+ | 54 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+ | 56 | 
+ | 56 | 
+ | 56 | 
+ | 56 | 
+ | 56 | 
+ | 56 | 
+ | 56 | 
+ | 56 | 
+ | 56 | 
 
 
 <NEXT>
@@ -20709,10 +20709,10 @@ Projection(
 Join(
 	LeftOuter
 	IndexScan(
-		DEPARTMENT_IDBINARY
+		auto
 		1
-		IdBinary
-		BinaryDynamicRange(
+		Description
+		StringDynamicRange(
 		)
 		LogicalValue(TRUE)
 		Ascending
@@ -20765,10 +20765,10 @@ Projection(
 Join(
 	LeftOuter
 	IndexScan(
-		DEPARTMENT_IDBINARY
+		auto
 		1
-		IdBinary
-		BinaryDynamicRange(
+		Description
+		StringDynamicRange(
 		)
 		LogicalValue(TRUE)
 		Ascending
@@ -20795,14 +20795,14 @@ Join(
 ExpectedResult: 
  ! Object ! 
  | <NULL> | 
- | 56 | 
- | 57 | 
- | 58 | 
- | 59 | 
  | 60 | 
+ | 61 | 
  | 62 | 
  | 63 | 
  | 64 | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -20823,10 +20823,10 @@ Projection(
 Join(
 	LeftOuter
 	IndexScan(
-		DEPARTMENT_IDBINARY
+		auto
 		1
-		IdBinary
-		BinaryDynamicRange(
+		Description
+		StringDynamicRange(
 		)
 		LogicalValue(TRUE)
 		Ascending
@@ -20879,10 +20879,10 @@ Projection(
 Join(
 	LeftOuter
 	IndexScan(
-		DEPARTMENT_IDBINARY
+		auto
 		1
-		IdBinary
-		BinaryDynamicRange(
+		Description
+		StringDynamicRange(
 		)
 		LogicalValue(TRUE)
 		Ascending
@@ -20909,14 +20909,14 @@ Join(
 ExpectedResult: 
  ! Object ! 
  | <NULL> | 
- | 56 | 
- | 57 | 
- | 58 | 
- | 59 | 
  | 60 | 
+ | 61 | 
  | 62 | 
  | 63 | 
  | 64 | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
 
 
 <NEXT>
@@ -20941,10 +20941,10 @@ Projection(
 Join(
 	Inner
 	IndexScan(
-		EMPLOYEE_DEPARTMENT
+		auto
 		0
-		Department
-		ObjectDynamicRange(
+		FirstName
+		StringDynamicRange(
 		)
 		LogicalValue(TRUE)
 		Ascending
@@ -20974,13 +20974,13 @@ Join(
 
 ExpectedResult: 
  ! 0:Object ! 1:Object ! 
- | 56 | 63 | 
- | 57 | 62 | 
- | 58 | 57 | 
- | 58 | 62 | 
- | 59 | 57 | 
- | 59 | 62 | 
- | 60 | 64 | 
+ | 60 | 67 | 
+ | 61 | 66 | 
+ | 62 | 61 | 
+ | 62 | 66 | 
+ | 63 | 61 | 
+ | 63 | 66 | 
+ | 64 | 68 | 
 
 
 
