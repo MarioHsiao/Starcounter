@@ -124,35 +124,47 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
 #endif
 
             // Checking if new session was generated.
-            if (INVALID_SESSION_INDEX != sd->get_session_index())
+            session_index_type session_index = sd->get_session_index();
+            if (INVALID_SESSION_INDEX != session_index)
             {
                 // Checking if Apps unique number is valid.
                 if (INVALID_APPS_UNIQUE_SESSION_NUMBER != sd->get_apps_unique_session_num())
                 {
-                    ScSessionStruct* session = g_gateway.GetSessionData(sd->get_session_index());
+                    ScSessionStruct* session = g_gateway.GetSessionData(session_index);
                     if (!session->CompareSalts(sd->get_session_salt()))
                     {
 #ifdef GW_SESSIONS_DIAG
                         GW_PRINT_WORKER << "Wrong session attached to socket: " << sd->get_session_salt() << std::endl;
 #endif
+                        // Killing session number for this Apps.
+                        current_db->SetAppsSessionValue(session_index, INVALID_APPS_UNIQUE_SESSION_NUMBER);
+
                         // The session was killed.
                         sd->ResetSession();
-
-                        // Killing session number for this Apps.
-                        current_db->SetAppsSessionValue(sd->get_session_index(), INVALID_APPS_UNIQUE_SESSION_NUMBER);
                     }
                 }
                 else
                 {
-#ifdef GW_SESSIONS_DIAG
-                    GW_PRINT_WORKER << "Session was killed: " << sd->get_session_index() << ":" << sd->get_session_salt() << std::endl;
-#endif
-
                     // Killing session number for this Apps session.
-                    current_db->SetAppsSessionValue(sd->get_session_index(), INVALID_APPS_UNIQUE_SESSION_NUMBER);
+                    current_db->SetAppsSessionValue(session_index, INVALID_APPS_UNIQUE_SESSION_NUMBER);
 
-                    // Killing global session.
-                    sd->KillSession();
+                    // Killing session only if its the same.
+                    ScSessionStruct* session = g_gateway.GetSessionData(session_index);
+                    if (!session->CompareSalts(sd->get_session_salt()))
+                    {
+#ifdef GW_SESSIONS_DIAG
+                        GW_PRINT_WORKER << "Trying to kill a wrong session: " << session_index << ":" << sd->get_session_salt() << std::endl;
+#endif
+                    }
+                    else
+                    {
+                        // Killing global session.
+                        sd->KillSession();
+
+#ifdef GW_SESSIONS_DIAG
+                        GW_PRINT_WORKER << "Session was killed: " << session_index << ":" << sd->get_session_salt() << std::endl;
+#endif
+                    }
                 }
             }
             else

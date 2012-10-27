@@ -11,14 +11,22 @@ namespace NetworkIoTestApp
     {
         internal static void Main(String[] args)
         {
-            RegisterHandlers();
+            String db_number_string = Environment.GetEnvironmentVariable("DB_NUMBER");
+            Int32 db_number = 0;
+            
+            if (!String.IsNullOrWhiteSpace(db_number_string))
+                db_number = Int32.Parse(db_number_string);
+
+            RegisterHandlers(db_number);
         }
 
         // Handlers registration.
-        private static void RegisterHandlers()
+        private static void RegisterHandlers(Int32 db_number)
         {
-            UInt16 handlerId;
+            String db_postfix = "_db" + db_number;
+            UInt16 handler_id;
 
+            /*
             GatewayHandlers.RegisterUriHandler(80, "GET /", OnHttpGetRoot, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
@@ -27,18 +35,23 @@ namespace NetworkIoTestApp
 
             GatewayHandlers.RegisterUriHandler(80, "/", OnHttpRoot, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
+            */
 
-            GatewayHandlers.RegisterUriHandler(80, "/users", OnHttpUsers, out handlerId);
-            Console.WriteLine("Successfully registered new handler: " + handlerId);
+            String handler_uri = "/users" + db_postfix;
+            GatewayHandlers.RegisterUriHandler(80, handler_uri, OnHttpUsers, out handler_id);
+            Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
-            GatewayHandlers.RegisterUriHandler(80, "/session", OnHttpSession, out handlerId);
-            Console.WriteLine("Successfully registered new handler: " + handlerId);
+            handler_uri = "/session" + db_postfix;
+            GatewayHandlers.RegisterUriHandler(80, handler_uri, OnHttpSession, out handler_id);
+            Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
-            GatewayHandlers.RegisterUriHandler(80, "/killsession", OnHttpKillSession, out handlerId);
-            Console.WriteLine("Successfully registered new handler: " + handlerId);
+            handler_uri = "/killsession" + db_postfix;
+            GatewayHandlers.RegisterUriHandler(80, handler_uri, OnHttpKillSession, out handler_id);
+            Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
-            GatewayHandlers.RegisterUriHandler(80, "GET /image", OnHttpGetImage, out handlerId);
-            Console.WriteLine("Successfully registered new handler: " + handlerId);
+            handler_uri = "GET /image" + db_postfix;
+            GatewayHandlers.RegisterUriHandler(80, handler_uri, OnHttpGetImage, out handler_id);
+            Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
             /*
             RegisterPortHandler(81, OnRawPort, out handlerId);
