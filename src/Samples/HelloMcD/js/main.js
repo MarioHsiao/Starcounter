@@ -2,7 +2,7 @@
  * Main Module 
  *
  */
-var myModule = angular.module('mainApp', ['ui','ngResource', 'StarcounterLib'], function ($routeProvider, $locationProvider) {
+var myModule = angular.module('mainApp', ['ui','ngResource', 'StarcounterLib','starcounter.directives'], function ($routeProvider, $locationProvider) {
  
 });
 
