@@ -188,30 +188,54 @@ namespace Starcounter.Binding
         {
             if (typeDef == null) throw CreateExceptionOnTypeDefNotFound();
 
+            var currentAndBaseTableIds = BuildCurrentAndBaseTableIdArray(typeDef);
+
             lock (syncRoot_)
             {
-                // Check if some other thread has added a type binding for the
-                // specific type while we where waiting to acquire the lock.
-
-                TypeBinding tb = null;
-                var tableId = typeDef.TableDef.TableId;
-                if (typeBindingsById_.Length > tableId)
-                {
-                    tb = typeBindingsById_[tableId];
-                }
-
-                if (tb == null)
-                {
-                    BindingBuilder builder = new BindingBuilder(typeDef);
-                    tb = builder.CreateTypeBinding();
-#if false
-                    builder.WriteAssemblyToDisk();
-#endif
-                    AddTypeBinding(tb);
-                }
-
-                return tb;
+                return LockedBuildTypeBindingFromTypeDef(typeDef, currentAndBaseTableIds);
             }
+        }
+
+        private static ushort[] BuildCurrentAndBaseTableIdArray(TypeDef typeDef)
+        {
+            // Output is expected to be sorted lesser to greater.
+
+            var currentAndBaseTableIdList = new List<ushort>();
+            var typeDef2 = typeDef;
+            for (; ; )
+            {
+                currentAndBaseTableIdList.Add(typeDef2.TableDef.TableId);
+                if (typeDef2.BaseName == null) break;
+                typeDef2 = GetTypeDef(typeDef2.BaseName);
+            }
+            currentAndBaseTableIdList.Sort();
+            var currentAndBaseTableIds = currentAndBaseTableIdList.ToArray();
+            return currentAndBaseTableIds;
+        }
+
+        private static TypeBinding LockedBuildTypeBindingFromTypeDef(TypeDef typeDef, ushort[] currentAndBaseTableIds)
+        {
+            // Check if some other thread has added a type binding for the
+            // specific type while we where waiting to acquire the lock.
+
+            TypeBinding tb = null;
+            var tableId = typeDef.TableDef.TableId;
+            if (typeBindingsById_.Length > tableId)
+            {
+                tb = typeBindingsById_[tableId];
+            }
+
+            if (tb == null)
+            {
+                BindingBuilder builder = new BindingBuilder(typeDef, currentAndBaseTableIds);
+                tb = builder.CreateTypeBinding();
+#if false
+                builder.WriteAssemblyToDisk();
+#endif
+                AddTypeBinding(tb);
+            }
+
+            return tb;
         }
 
         /// <summary>
