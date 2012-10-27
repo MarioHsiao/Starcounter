@@ -413,16 +413,17 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
     // Index of the database as parameter.
     int32_t db_index = *(int32_t*)params;
 
-    // TODO: Fix multiple workers events.
     // Determine the worker by interface or channel,
     // and wake up that worker.
-	HANDLE worker_thread_handle[256];
-	HANDLE work_events[256]; /// TODO: Choose max num clients (32)
+	HANDLE worker_thread_handle[MAX_WORKER_THREADS];
+	HANDLE work_events[MAX_WORKER_THREADS];
 	std::size_t number_of_work_events = 0;
 	core::shared_interface* db_shared_int = 0;
 	std::size_t work_event_index = 0;
 	
-	for (std::size_t worker_id = 0; worker_id < g_gateway.setting_num_workers(); ++worker_id) {
+    // Setting checking events for each worker.
+	for (std::size_t worker_id = 0; worker_id < g_gateway.setting_num_workers(); ++worker_id)
+    {
 		WorkerDbInterface* db_int = g_gateway.get_worker(worker_id)->GetDatabase(db_index);
 		db_shared_int = db_int->get_shared_int();
 

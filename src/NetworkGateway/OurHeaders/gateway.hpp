@@ -133,6 +133,9 @@ const int32_t SOCKADDR_SIZE_EXT = sizeof(sockaddr_in) + 16;
 // Maximum number of active databases.
 const int32_t MAX_ACTIVE_DATABASES = 32;
 
+// Maximum number of workers.
+const int32_t MAX_WORKER_THREADS = 32;
+
 // Maximum number of active server ports.
 const int32_t MAX_ACTIVE_SERVER_PORTS = 32;
 
@@ -1351,6 +1354,9 @@ public:
 
         // Entering the critical section.
         EnterCriticalSection(&cs_session_);
+
+        // Number of active sessions should always be correct.
+        assert(num_active_sessions_unsafe_ > 0);
 
         // Resetting the session cell.
         all_sessions_unsafe_[session_index].Reset();
