@@ -106,7 +106,12 @@ namespace Starcounter.Internal.JsonPatch
             foreach (Change change in changeLog)
             {
                 template = change.Template;
-                obj = GetValueFromChange(change);
+
+                if (change.ChangeType != Change.REMOVE) {
+                    obj = GetValueFromChange(change);
+                } else {
+                    obj = null;
+                }
 
                 buffer.Add((byte)'{');
 
