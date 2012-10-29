@@ -7,6 +7,7 @@
 using Starcounter.Binding;
 using Starcounter.Query;
 using System;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -34,10 +35,14 @@ namespace Starcounter.Internal {
         /// The unregistered type defs_
         /// </summary>
         private readonly TypeDef[] unregisteredTypeDefs_;
+
         /// <summary>
         /// The assembly_
         /// </summary>
         private readonly Assembly assembly_;
+
+        private readonly Stopwatch stopwatch_;
+        
         /// <summary>
         /// The processed event_
         /// </summary>
@@ -68,10 +73,12 @@ namespace Starcounter.Internal {
         /// <param name="assembly">The assembly.</param>
         public Package(
             TypeDef[] unregisteredTypeDefs, // Previously unregistered type definitions.
-            Assembly assembly               // Entry point assembly.
+            Assembly assembly,              // Entry point assembly.
+            Stopwatch stopwatch             // Stopwatch used to measure package load times.
             ) {
             unregisteredTypeDefs_ = unregisteredTypeDefs;
             assembly_ = assembly;
+            stopwatch_ = stopwatch;
             processedEvent_ = new ManualResetEvent(false);
         }
 
@@ -82,10 +89,14 @@ namespace Starcounter.Internal {
         {
             try
             {
+                OnProcessingStarted();
+
                 UpdateDatabaseSchemaAndRegisterTypes();
 
                 ExecuteEntryPoint();
             } finally {
+                OnProcessingCompleted();
+
                 processedEvent_.Set();
             }
         }
@@ -110,23 +121,31 @@ namespace Starcounter.Internal {
         private void UpdateDatabaseSchemaAndRegisterTypes() {
             var typeDefs = unregisteredTypeDefs_;
 
-            for (int i = 0; i < typeDefs.Length; i++) {
-                var typeDef = typeDefs[i];
-                var tableDef = typeDef.TableDef;
+            if (typeDefs.Length != 0)
+            {
+                for (int i = 0; i < typeDefs.Length; i++)
+                {
+                    var typeDef = typeDefs[i];
+                    var tableDef = typeDef.TableDef;
 
-                tableDef = CreateOrUpdateDatabaseTable(tableDef);
-                typeDef.TableDef = tableDef;
+                    tableDef = CreateOrUpdateDatabaseTable(tableDef);
+                    typeDef.TableDef = tableDef;
 
-                // Remap properties representing columns in case the column
-                // order has changed.
+                    // Remap properties representing columns in case the column
+                    // order has changed.
 
-                LoaderHelper.MapPropertyDefsToColumnDefs(tableDef.ColumnDefs, typeDef.PropertyDefs);
-            }
+                    LoaderHelper.MapPropertyDefsToColumnDefs(tableDef.ColumnDefs, typeDef.PropertyDefs);
+                }
 
-            Bindings.RegisterTypeDefs(typeDefs);
+                OnDatabaseSchemaCheckedAndUpdated();
 
-            if (typeDefs.Length != 0) {
+                Bindings.RegisterTypeDefs(typeDefs);
+
+                OnTypeDefsRegistered();
+
                 QueryModule.UpdateSchemaInfo(typeDefs);
+
+                OnQueryModuleSchemaInfoUpdated();
             }
         }
 
@@ -182,7 +201,21 @@ namespace Starcounter.Internal {
             if (assembly_ != null) {
                 var arguments = this.EntrypointArguments ?? new string[] { };
                 assembly_.EntryPoint.Invoke(null, new object[] { arguments });
+                OnEntryPointExecuted();
             }
+        }
+
+        private void OnProcessingStarted() { OutputElapsedTime("Processing started"); }
+        private void OnDatabaseSchemaCheckedAndUpdated() { OutputElapsedTime("Database schema checked and updated"); }
+        private void OnTypeDefsRegistered() { OutputElapsedTime("Type definitions registered"); }
+        private void OnQueryModuleSchemaInfoUpdated() { OutputElapsedTime("Query module schema information updated"); }
+        private void OnEntryPointExecuted() { OutputElapsedTime("Entry point executed"); }
+        private void OnProcessingCompleted() { OutputElapsedTime("Processing completed"); }
+
+        private void OutputElapsedTime(string tag)
+        {
+            long elapsedTicks = stopwatch_.ElapsedTicks;
+            Console.WriteLine(string.Concat(elapsedTicks / 10000, ".", elapsedTicks % 10000, ":", tag));
         }
     }
 }
