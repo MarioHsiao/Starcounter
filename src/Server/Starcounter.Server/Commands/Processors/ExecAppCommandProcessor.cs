@@ -69,6 +69,8 @@ namespace Starcounter.Server.Commands {
                     }
 
                     Engine.DatabaseEngine.StopWorkerProcess(database);
+
+                    OnExistingWorkerProcessStopped();
                 }
             }
 
@@ -89,6 +91,8 @@ namespace Starcounter.Server.Commands {
                 appRuntimeDirectory = GetAppRuntimeDirectory(this.Engine.Configuration.TempDirectory, command.AssemblyPath);
                 weaver = Engine.WeaverService;
                 weavedExecutable = weaver.Weave(command.AssemblyPath, appRuntimeDirectory);
+
+                OnWeavingCompleted();
             }
 
             // Create the database if it does not exist and if not told otherwise.
@@ -96,25 +100,39 @@ namespace Starcounter.Server.Commands {
             if (!databaseExist) {
                 var setup = new DatabaseSetup(this.Engine, new DatabaseSetupProperties(this.Engine, command.DatabaseName));
                 database = setup.CreateDatabase();
+
+                OnDatabaseCreated();
+
                 Engine.Databases.Add(database.Name, database);
                 Engine.CurrentPublicModel.AddDatabase(database);
+
+                OnDatabaseRegistered();
             }
 
             // Assure the database is started and that there is user code worker
             // process on top of it where we can inject the booting executable.
 
             Engine.DatabaseEngine.StartDatabaseProcess(database);
+
+            OnDatabaseProcessStarted();
+
             Engine.DatabaseEngine.StartWorkerProcess(database, command.NoDb, out workerProcess);
+
+            OnWorkerProcessStarted();
 
             // Get a client handle to the hosting process.
 
             var client = this.Engine.DatabaseHostService.GetHostingInterface(database);
+
+            OnHostingInterfaceConnected();
 
             if (command.PrepareOnly) {
                 bool success = client.Send("Ping");
                 if (!success) {
                     throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
                 }
+            
+                OnPingRequestProcessed();
             }
             else {
                 
@@ -137,6 +155,8 @@ namespace Starcounter.Server.Commands {
                     throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, responseMessage);
                 }
 
+                OnExec2RequestProcessed();
+
                 // The app is successfully loaded in the worker process. We should
                 // keep it referenced in the server and consider the execution of this
                 // processor a success.
@@ -147,9 +167,13 @@ namespace Starcounter.Server.Commands {
                     ExecutionPath = weavedExecutable
                 };
                 database.Apps.Add(app);
+
+                OnDatabaseAppRegistered();
             }
 
             Engine.CurrentPublicModel.UpdateDatabase(database);
+
+            OnDatabaseStatusUpdated();
         }
 
         bool IsUpToDate(DatabaseApp app) {
@@ -166,5 +190,17 @@ namespace Starcounter.Server.Commands {
 
             return Path.Combine(baseDirectory, key);
         }
+
+        void OnExistingWorkerProcessStopped() { OutputTrace("Existing worker process stopped."); }
+        void OnWeavingCompleted() { OutputTrace("Weaving completed."); }
+        void OnDatabaseCreated() { OutputTrace("Database created."); }
+        void OnDatabaseRegistered() { OutputTrace("Database registered."); }
+        void OnDatabaseProcessStarted() { OutputTrace("Database process started."); }
+        void OnWorkerProcessStarted() { OutputTrace("Worker process started."); }
+        void OnHostingInterfaceConnected() { OutputTrace("Hosting interface connected."); }
+        void OnPingRequestProcessed() { OutputTrace("Ping request processed."); }
+        void OnExec2RequestProcessed() { OutputTrace("Exec2 request processed."); }
+        void OnDatabaseAppRegistered() { OutputTrace("Database app registered."); }
+        void OnDatabaseStatusUpdated() { OutputTrace("Database status updated."); }
     }
 }
