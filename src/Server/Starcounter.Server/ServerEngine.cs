@@ -175,6 +175,12 @@ namespace Starcounter.Server {
         internal DatabaseHostingService DatabaseHostService { get; private set; }
 
         /// <summary>
+        /// Gets the <see cref="GatewayService"/> running under the current
+        /// server engine.
+        /// </summary>
+        internal GatewayService GatewayService { get; private set; }
+
+        /// <summary>
         /// Initializes a <see cref="ServerEngine"/>.
         /// </summary>
         /// <param name="serverConfigurationPath">Path to the server configuration
@@ -193,6 +199,7 @@ namespace Starcounter.Server {
             this.StorageService = new DatabaseStorageService(this);
             this.SharedMemoryMonitor = new SharedMemoryMonitor(this);
             this.DatabaseHostService = new DatabaseHostingService(this);
+            this.GatewayService = new GatewayService(this);
         }
 
         /// <summary>
@@ -245,6 +252,7 @@ namespace Starcounter.Server {
             this.StorageService.Setup();
             this.SharedMemoryMonitor.Setup();
             this.DatabaseHostService.Setup();
+            this.GatewayService.Setup();
         }
 
         /// <summary>
@@ -261,11 +269,7 @@ namespace Starcounter.Server {
         /// </returns>
         public IServerRuntime Start() {
             this.SharedMemoryMonitor.Start();
-            // this.AppsService.Start();
-
-            // Start all other built-in standard components, like the gateway,
-            // the process monitor, etc.
-            // TODO:
+            this.GatewayService.Start();
 
             return this.CurrentPublicModel;
         }
