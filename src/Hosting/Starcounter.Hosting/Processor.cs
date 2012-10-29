@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using Starcounter;
+using Starcounter.Hosting;
 using Starcounter.Internal;
 using System;
 

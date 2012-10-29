@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using Starcounter.Binding;
+using Starcounter.Internal;
 using Starcounter.Query;
 using System;
 using System.Diagnostics;
@@ -13,7 +14,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.IO;
 
-namespace Starcounter.Internal {
+namespace Starcounter.Hosting {
 
     /// <summary>
     /// Class Package
@@ -180,7 +181,7 @@ namespace Starcounter.Internal {
 #if true
             bool hasIndex = false;
             Db.Transaction(() => {
-                hasIndex = storedTableDef.GetAllIndexInfos().Length != 0;
+                hasIndex = storedTableDef.HasIndex();
             });
             if (!hasIndex) {
                 Db.CreateIndex(
