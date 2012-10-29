@@ -18,7 +18,9 @@
   <TemplateContent>
     <Project File="AppsProjectTemplate.csproj" ReplaceParameters="true">
       <ProjectItem ReplaceParameters="true" TargetFileName="Properties\AssemblyInfo.cs">AssemblyInfo.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" OpenInEditor="true">Program.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" OpenInEditor="true">Master.json.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" OpenInEditor="true">Master.json</ProjectItem>
+      <ProjectItem ReplaceParameters="true" OpenInEditor="true">Model.cs</ProjectItem>
     </Project>
   </TemplateContent>
 </VSTemplate>
