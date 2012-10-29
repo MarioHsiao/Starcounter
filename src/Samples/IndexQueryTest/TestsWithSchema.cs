@@ -105,12 +105,14 @@ namespace IndexQueryTest
         }
 
         static void TestJoinWIndex() {
-            Console.Write("Test path expression as join with index");
+            Console.WriteLine("Test path expression as join with index");
             CreateIndexUserLN();
-            foreach (AccountTest.Account a in Db.SQL("select a from account a where a.Client.lastname = ?", "Popov")) {
-                Console.WriteLine(a.Client.ToString());
-                Console.WriteLine(a.ToString());
-            }
+            Db.Transaction(delegate {
+                foreach (AccountTest.Account a in Db.SQL("select a from account a where a.Client.lastname = ?", "Popov")) {
+                    Console.WriteLine(a.Client.ToString());
+                    Console.WriteLine(a.ToString());
+                }
+            });
             DropIndexUserLN();
         }
 
@@ -119,7 +121,6 @@ namespace IndexQueryTest
             Console.WriteLine("Test create/drop index without doing query");
             CreateIndexUserLN();
             DropIndexUserLN();
-            TestJoinWIndex();
         }
 #endif
     }
