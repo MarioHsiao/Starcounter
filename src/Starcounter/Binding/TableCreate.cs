@@ -10,7 +10,7 @@ namespace Starcounter.Binding
     /// <summary>
     /// Class TableCreate
     /// </summary>
-    internal class TableCreate
+    public class TableCreate
     {
 
         /// <summary>

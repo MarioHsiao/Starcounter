@@ -72,7 +72,10 @@ namespace Starcounter.Query
             tickCount = Environment.TickCount - tickCount;
         }
 
-        internal static void UpdateSchemaInfo(TypeDef[] typeDefArray)
+        /// <summary>
+        /// </summary>
+        /// <param name="typeDefArray"></param>
+        public static void UpdateSchemaInfo(TypeDef[] typeDefArray)
         {
             Starcounter.ThreadHelper.SetYieldBlock();
             try
