@@ -23,11 +23,6 @@ namespace StarcounterInternal.Bootstrap
     /// </summary>
     public class Control // TODO: Make internal.
     {
-        // Loaded configuration info.
-        /// <summary>
-        /// The configuration
-        /// </summary>
-        Configuration configuration = null;
 
         /// <summary>
         /// Defines the entry point of the application.
@@ -38,7 +33,9 @@ namespace StarcounterInternal.Bootstrap
             try
             {
                 Control c = new Control();
-                if (c.Setup(args))
+                c.OnProcessInitialized();
+                bool b = c.Setup(args);
+                if (b)
                 {
                     c.Start();
                     c.Run();
@@ -53,9 +50,15 @@ namespace StarcounterInternal.Bootstrap
         }
 
         /// <summary>
+        /// Loaded configuration info.
+        /// </summary>
+        private Configuration configuration;
+
+        /// <summary>
         /// The withdb_
         /// </summary>
         private bool withdb_;
+
         /// <summary>
         /// The hsched_
         /// </summary>
@@ -76,6 +79,8 @@ namespace StarcounterInternal.Bootstrap
         /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         private unsafe bool Setup(string[] args)
         {
+            try {
+
 #if false
             // Disables priority boost for all the threads in the process.
             // Often a good idea when using spin-locks. Not sure it worth
@@ -86,44 +91,55 @@ namespace StarcounterInternal.Bootstrap
 #endif
 
             DatabaseExceptionFactory.InstallInCurrentAppDomain();
+            OnExceptionFactoryInstalled();
 
             ApplicationArguments arguments;
             if (!ProgramCommandLine.TryGetProgramArguments(args, out arguments))
                 return false;
+            OnCommandLineParsed();
 
             configuration = Configuration.Load(arguments);
+            OnConfigurationLoaded();
 
             withdb_ = !configuration.NoDb;
 
             AssureNoOtherProcessWithTheSameName(configuration);
+            OnAssuredNoOtherProcessWithTheSameName();
 
             uint schedulerCount = configuration.SchedulerCount;
-
             uint memSize = CalculateAmountOfMemoryNeededForRuntimeEnvironment(schedulerCount);
-
             byte* mem = (byte*)Kernel32.VirtualAlloc((void *)0, (IntPtr)memSize, Kernel32.MEM_COMMIT, Kernel32.PAGE_READWRITE);
+            OnGlobalMemoryAllocated();
 
             // Note that we really only need 128 bytes. See method
             // CalculateAmountOfMemoryNeededForRuntimeEnvironment for details.
 
             ulong hmenv = ConfigureMemory(configuration, mem);
             mem += 512;
+            OnKernelMemoryConfigured();
 
             // Initializing the BMX manager if network gateway is used.
             if (!configuration.NoNetworkGateway)
+            {
                 bmx.sc_init_bmx_manager();
+                OnBmxManagerInitialized();
+            }
 
             ulong hlogs = ConfigureLogging(configuration, hmenv);
+            OnLoggingConfigured();
 
             ConfigureHost(configuration, hlogs);
+            OnHostConfigured();
 
             hsched_ = ConfigureScheduler(configuration, mem, hmenv, schedulerCount);
             mem += (1024 + (schedulerCount * 512));
+            OnSchedulerConfigured();
 
             if (withdb_)
             {
                 ConfigureDatabase(configuration);
                 ConnectDatabase(configuration, hsched_, hmenv, hlogs);
+                OnDatabaseConnected();
             }
 
             // Query module.
@@ -131,9 +147,12 @@ namespace StarcounterInternal.Bootstrap
             if (withdb_)
             {
                 Starcounter.Query.QueryModule.Initiate(configuration.SQLProcessPort);
+                OnQueryModuleInitiated();
             }
 
             return true;
+
+            } finally { OnEndSetup(); }
         }
 
         /// <summary>
@@ -141,18 +160,17 @@ namespace StarcounterInternal.Bootstrap
         /// </summary>
         private unsafe void Start()
         {
-            uint e = sccorelib.cm2_start(hsched_);
-            if (e == 0) return;
-            throw ErrorCode.ToException(e);
-        }
+            try {
 
-        /// <summary>
-        /// Runs this instance.
-        /// </summary>
-        private unsafe void Run()
-        {
+            uint e = sccorelib.cm2_start(hsched_);
+            if (e != 0) throw ErrorCode.ToException(e);
+
+            OnSchedulerStarted();
+
             var appDomain = AppDomain.CurrentDomain;
             appDomain.AssemblyResolve += new ResolveEventHandler(Loader.ResolveAssembly);
+
+            OnAppDomainConfigured();
 
             // Install handlers for the type of requests we accept.
 
@@ -172,8 +190,10 @@ namespace StarcounterInternal.Bootstrap
                 }
             });
 
-            server.Handle("Exec2", delegate(Request r) {
-                try {
+            server.Handle("Exec2", delegate(Request r)
+            {
+                try
+                {
                     var properties = r.GetParameter<Dictionary<string, string>>();
                     string assemblyPath = properties["AssemblyPath"];
                     string workingDirectory = null;
@@ -181,13 +201,16 @@ namespace StarcounterInternal.Bootstrap
                     string[] args = null;
 
                     properties.TryGetValue("WorkingDir", out workingDirectory);
-                    if (properties.TryGetValue("Args", out argsString)) {
+                    if (properties.TryGetValue("Args", out argsString))
+                    {
                         args = KeyValueBinary.ToArray(argsString);
                     }
 
                     Loader.ExecApp(hsched_, assemblyPath, workingDirectory, args);
 
-                } catch (LoaderException ex) {
+                }
+                catch (LoaderException ex)
+                {
                     r.Respond(false, ex.Message);
                 }
             });
@@ -200,23 +223,45 @@ namespace StarcounterInternal.Bootstrap
                 request.Respond(true);
             });
 
-            if (withdb_) Loader.AddBasePackage(hsched_);
+            OnServerCommandHandlersRegistered();
+
+            if (withdb_)
+            {
+                Loader.AddBasePackage(hsched_);
+                OnBasePackageLoaded();
+            }
 
             // TODO: Fix the proper BMX push channel registration with gateway.
             // Waiting until BMX component is ready.
             if (!configuration.NoNetworkGateway)
+            {
                 bmx.sc_wait_for_bmx_ready();
+                OnNetworkGatewayConnected();
+            }
+            
+            } finally { OnEndStart(); }
+        }
+
+        /// <summary>
+        /// Runs this instance.
+        /// </summary>
+        private unsafe void Run()
+        {
+            try {
 
             // Executing auto-start task if any.
             if (configuration.AutoStartExePath != null)
             {
                 // Loading the given application.
                 Loader.ExecApp(hsched_, configuration.AutoStartExePath);
+                OnAutoStartModuleExecuted();
             }
-
+                
             // Receive until we are told to shutdown.
 
             server.Receive();
+
+            } finally { OnEndRun(); }
         }
 
         /// <summary>
@@ -224,9 +269,13 @@ namespace StarcounterInternal.Bootstrap
         /// </summary>
         private unsafe void Stop()
         {
+            try {
+
             uint e = sccorelib.cm2_stop(hsched_, 1);
             if (e == 0) return;
             throw ErrorCode.ToException(e);
+
+            } finally { OnEndStop(); }
         }
 
         /// <summary>
@@ -234,7 +283,11 @@ namespace StarcounterInternal.Bootstrap
         /// </summary>
         private void Cleanup()
         {
+            try {
+
             DisconnectDatabase();
+
+            } finally { OnEndCleanup(); }
         }
 
         /// <summary>
@@ -469,7 +522,6 @@ namespace StarcounterInternal.Bootstrap
             if (e != 0) throw ErrorCode.ToException(e);
         }
 
-
         /// <summary>
         /// Disconnects the database.
         /// </summary>
@@ -479,5 +531,50 @@ namespace StarcounterInternal.Bootstrap
             if (e == 0) return;
             throw ErrorCode.ToException(e);
         }
+
+        private long ticksElapsedBetweenProcessStartAndMain_;
+        private System.Diagnostics.Stopwatch stopwatch_;
+        
+        private void OutputElapsedTime(string tag)
+        {
+            long elapsedTicks = stopwatch_.ElapsedTicks + ticksElapsedBetweenProcessStartAndMain_;
+            Console.WriteLine(string.Concat(elapsedTicks / 10000, ".", elapsedTicks % 10000, ":", tag));
+        }
+
+        private void OnProcessInitialized()
+        {
+            ticksElapsedBetweenProcessStartAndMain_ = (DateTime.Now - System.Diagnostics.Process.GetCurrentProcess().StartTime).Ticks;
+            stopwatch_ = System.Diagnostics.Stopwatch.StartNew();
+
+            OutputElapsedTime("Process initialized");
+        }
+
+        private void OnExceptionFactoryInstalled() { OutputElapsedTime("Exception factory installed"); }
+        private void OnCommandLineParsed() { OutputElapsedTime("Command line parsed"); }
+        private void OnConfigurationLoaded() { OutputElapsedTime("Configuration loaded"); }
+        private void OnAssuredNoOtherProcessWithTheSameName() { OutputElapsedTime("Assured no other process with the same name"); }
+        private void OnGlobalMemoryAllocated() { OutputElapsedTime("Global memory allocated"); }
+        private void OnKernelMemoryConfigured() { OutputElapsedTime("Kernel memory configured"); }
+        private void OnBmxManagerInitialized() { OutputElapsedTime("BMX manager initialized"); }
+        private void OnLoggingConfigured() { OutputElapsedTime("Logging configured"); }
+        private void OnHostConfigured() { OutputElapsedTime("Host configured"); }
+        private void OnSchedulerConfigured() { OutputElapsedTime("Scheduler configured"); }
+        private void OnDatabaseConnected() { OutputElapsedTime("Database connected"); }
+        private void OnQueryModuleInitiated() { OutputElapsedTime("Query module initiated"); }
+
+        private void OnEndSetup() { OutputElapsedTime("Setup completed"); }
+
+        private void OnSchedulerStarted() { OutputElapsedTime("Scheduler started"); }
+        private void OnAppDomainConfigured() { OutputElapsedTime("App domain configured"); }
+        private void OnServerCommandHandlersRegistered() { OutputElapsedTime("Server command handlers registered"); }
+        private void OnBasePackageLoaded() { OutputElapsedTime("Base package loaded"); }
+        private void OnNetworkGatewayConnected() { OutputElapsedTime("Network gateway connected"); }
+        private void OnAutoStartModuleExecuted() { OutputElapsedTime("Auto start module executed"); }
+
+        private void OnEndStart() { OutputElapsedTime("Start completed"); }
+        
+        private void OnEndRun() { OutputElapsedTime("Run completed"); }
+        private void OnEndStop() { OutputElapsedTime("Stop completed"); }
+        private void OnEndCleanup() { OutputElapsedTime("Cleanup completed"); }
     }
 }
