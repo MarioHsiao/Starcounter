@@ -9,6 +9,7 @@ using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Starcounter.Server.Commands {
 
@@ -32,6 +33,8 @@ namespace Starcounter.Server.Commands {
 
         private NotifyCommandStatusChangedCallback _notifyStatusChangedCallback;
 
+        private Stopwatch stopwatch;
+
         /// <summary>
         /// Initializes a new <see cref="CommandProcessor"/>.
         /// </summary>
@@ -47,6 +50,8 @@ namespace Starcounter.Server.Commands {
             this.Id = CommandId.MakeNew();
             this.typeIdentity = CreateToken(GetType());
             this.IsPublic = !isInternal;
+
+            stopwatch = Stopwatch.StartNew();
         }
 
         /// <summary>
@@ -207,7 +212,12 @@ namespace Starcounter.Server.Commands {
 
                 NotifyStatusChanged();
 
+                OnBeginExecute();
+
                 this.Execute();
+
+                OnEndExecute();
+
                 this.SetCompleted();
 
             } catch (Exception e) {
@@ -340,6 +350,25 @@ namespace Starcounter.Server.Commands {
             get {
                 return ServerLogSources.Default;
             }
+        }
+
+        private void OnBeginExecute()
+        {
+            OutputTrace("Executing");
+        }
+
+        private void OnEndExecute()
+        {
+            OutputTrace("Execution completed");
+        }
+
+        protected void OutputTrace(string message)
+        {
+            string tag = "server";
+            long elapsedTicks = stopwatch.ElapsedTicks;
+            string elapsedTime = string.Concat(elapsedTicks / 10000, ".", elapsedTicks % 10000);
+            string output = string.Concat(elapsedTime, " ", tag, ":", message);
+            Console.WriteLine(output);
         }
 
         #region Progress tracking
