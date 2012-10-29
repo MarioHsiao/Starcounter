@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 
 using Sc.Server.Weaver.Schema;
 using Starcounter;
+using Starcounter.Hosting;
 using Starcounter.Internal;
 using Starcounter.Internal.Weaver;
 
@@ -316,17 +317,16 @@ namespace StarcounterInternal.Hosting
             stopwatch_ = null;
         }
 
-        private static void OnInputVerifiedAndAssemblyResolverUpdated() { OutputElapsedTime("Input verified and assembly resolver updated"); }
-        private static void OnSchemaVerifiedAndLoaded() { OutputElapsedTime("Schema verified and loaded"); }
-        private static void OnUnregisteredTypeDefsDetermined() { OutputElapsedTime("Unregistered type definitions determined"); }
-        private static void OnTargetAssemblyLoaded() { OutputElapsedTime("Target assembly loaded"); }
-        private static void OnPackageCreated() { OutputElapsedTime("Package created"); }
-        private static void OnPackageProcessed() { OutputElapsedTime("Package processed"); }
+        private static void OnInputVerifiedAndAssemblyResolverUpdated() { OutputElapsedTime("Input verified and assembly resolver updated."); }
+        private static void OnSchemaVerifiedAndLoaded() { OutputElapsedTime("Schema verified and loaded."); }
+        private static void OnUnregisteredTypeDefsDetermined() { OutputElapsedTime("Unregistered type definitions determined."); }
+        private static void OnTargetAssemblyLoaded() { OutputElapsedTime("Target assembly loaded."); }
+        private static void OnPackageCreated() { OutputElapsedTime("Package created."); }
+        private static void OnPackageProcessed() { OutputElapsedTime("Package processed."); }
 
-        private static void OutputElapsedTime(string tag)
+        private static void OutputElapsedTime(string message)
         {
-            long elapsedTicks = stopwatch_.ElapsedTicks;
-            Console.WriteLine(string.Concat(elapsedTicks / 10000, ".", elapsedTicks % 10000, ":", tag));
+            Diagnostics.OutputTrace("loader", stopwatch_.ElapsedTicks, message);
         }
     }
 }
