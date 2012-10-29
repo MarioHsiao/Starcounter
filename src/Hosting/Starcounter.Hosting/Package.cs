@@ -206,17 +206,16 @@ namespace Starcounter.Hosting {
             }
         }
 
-        private void OnProcessingStarted() { OutputElapsedTime("Processing started"); }
-        private void OnDatabaseSchemaCheckedAndUpdated() { OutputElapsedTime("Database schema checked and updated"); }
-        private void OnTypeDefsRegistered() { OutputElapsedTime("Type definitions registered"); }
-        private void OnQueryModuleSchemaInfoUpdated() { OutputElapsedTime("Query module schema information updated"); }
-        private void OnEntryPointExecuted() { OutputElapsedTime("Entry point executed"); }
-        private void OnProcessingCompleted() { OutputElapsedTime("Processing completed"); }
+        private void OnProcessingStarted() { OutputElapsedTime("Processing started."); }
+        private void OnDatabaseSchemaCheckedAndUpdated() { OutputElapsedTime("Database schema checked and updated."); }
+        private void OnTypeDefsRegistered() { OutputElapsedTime("Type definitions registered."); }
+        private void OnQueryModuleSchemaInfoUpdated() { OutputElapsedTime("Query module schema information updated."); }
+        private void OnEntryPointExecuted() { OutputElapsedTime("Entry point executed."); }
+        private void OnProcessingCompleted() { OutputElapsedTime("Processing completed."); }
 
-        private void OutputElapsedTime(string tag)
+        private void OutputElapsedTime(string message)
         {
-            long elapsedTicks = stopwatch_.ElapsedTicks;
-            Console.WriteLine(string.Concat(elapsedTicks / 10000, ".", elapsedTicks % 10000, ":", tag));
+            Diagnostics.OutputTrace("loader", stopwatch_.ElapsedTicks, message);
         }
     }
 }
