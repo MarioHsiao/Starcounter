@@ -114,6 +114,7 @@
     <Compile Include="PublicModel\Serialization.cs" />
     <Compile Include="PublicModel\ServerInfo.cs" />
     <Compile Include="PublicModel\TaskDuration.cs" />
+    <Compile Include="ServerHost.cs" />
     <Compile Include="ServerLogSources.cs" />
     <Compile Include="ServerEngine.cs" />
     <Compile Include="ServerServices.cs" />
