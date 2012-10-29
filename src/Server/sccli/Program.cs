@@ -68,6 +68,16 @@ namespace sccli {
                 }
                 throw;
             }
+
+#if false
+            ToConsoleWithColor(
+                string.Format(
+                    "Command executed in {0} ms.",
+                    (DateTime.Now - System.Diagnostics.Process.GetCurrentProcess().StartTime).TotalMilliseconds
+                    ),
+                ConsoleColor.Green
+                );
+#endif
         }
 
         static void Ping(Client client, string[] args) {
