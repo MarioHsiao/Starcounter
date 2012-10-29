@@ -7,6 +7,7 @@
 using Starcounter.Binding;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -92,6 +93,8 @@ namespace StarcounterInternal.Hosting
         /// </summary>
         private static readonly BinBriefcase privateBinBriefcase_ = new BinBriefcase();
 
+        private static Stopwatch stopwatch_;
+
         /// <summary>
         /// Resolves the assembly.
         /// </summary>
@@ -126,6 +129,8 @@ namespace StarcounterInternal.Hosting
         /// <param name="hsched">The hsched.</param>
         public static unsafe void AddBasePackage(void* hsched)
         {
+            stopwatch_ = Stopwatch.StartNew();
+
             TableDef systemTableDef;
 
             systemTableDef = new TableDef(
@@ -177,8 +182,10 @@ namespace StarcounterInternal.Hosting
                 systemTableDef
                 );
 
-            Package package = new Package(new TypeDef[] { sysTableTypeDef, sysIndexTypeDef }, null);
+            Package package = new Package(new TypeDef[] { sysTableTypeDef, sysIndexTypeDef }, null, stopwatch_);
             IntPtr hPackage = (IntPtr)GCHandle.Alloc(package, GCHandleType.Normal);
+
+            OnPackageCreated();
 
             uint e = sccorelib.cm2_schedule(
                 hsched,
@@ -199,6 +206,10 @@ namespace StarcounterInternal.Hosting
 
             package.WaitUntilProcessed();
             package.Dispose();
+
+            OnPackageProcessed();
+
+            stopwatch_ = null;
         }
 
         /// <summary>
@@ -212,11 +223,13 @@ namespace StarcounterInternal.Hosting
         /// entrypoint, if any.</param>
         /// <exception cref="StarcounterInternal.Hosting.LoaderException"></exception>
         public static unsafe void ExecApp(
-            void* hsched, 
-            string filePath, 
-            string workingDirectory = null, 
+            void* hsched,
+            string filePath,
+            string workingDirectory = null,
             string[] entrypointArguments = null)
         {
+            stopwatch_ = Stopwatch.StartNew();
+
             try
             {
                 filePath = filePath.Trim('\"', '\\');
@@ -238,7 +251,12 @@ namespace StarcounterInternal.Hosting
 
             privateBinBriefcase_.AddFromDirectory(inputFile.Directory);
 
+            OnInputVerifiedAndAssemblyResolverUpdated();
+
             var typeDefs = SchemaLoader.LoadAndConvertSchema(inputFile.Directory);
+
+            OnSchemaVerifiedAndLoaded();
+
             var unregisteredTypeDefs = new List<TypeDef>(typeDefs.Count);
             for (int i = 0; i < typeDefs.Count; i++)
             {
@@ -256,15 +274,22 @@ namespace StarcounterInternal.Hosting
                 }
             }
 
+            OnUnregisteredTypeDefsDetermined();
+
             var assembly = Assembly.LoadFile(inputFile.FullName);
 
-            Package package = new Package(unregisteredTypeDefs.ToArray(), assembly);
-            if (!string.IsNullOrEmpty(workingDirectory)) {
+            OnTargetAssemblyLoaded();
+
+            Package package = new Package(unregisteredTypeDefs.ToArray(), assembly, stopwatch_);
+            if (!string.IsNullOrEmpty(workingDirectory))
+            {
                 package.WorkingDirectory = workingDirectory;
             }
             package.EntrypointArguments = entrypointArguments;
 
             IntPtr hPackage = (IntPtr)GCHandle.Alloc(package, GCHandleType.Normal);
+
+            OnPackageCreated();
 
             uint e = sccorelib.cm2_schedule(
                 hsched,
@@ -285,6 +310,23 @@ namespace StarcounterInternal.Hosting
 
             package.WaitUntilProcessed();
             package.Dispose();
+
+            OnPackageProcessed();
+
+            stopwatch_ = null;
+        }
+
+        private static void OnInputVerifiedAndAssemblyResolverUpdated() { OutputElapsedTime("Input verified and assembly resolver updated"); }
+        private static void OnSchemaVerifiedAndLoaded() { OutputElapsedTime("Schema verified and loaded"); }
+        private static void OnUnregisteredTypeDefsDetermined() { OutputElapsedTime("Unregistered type definitions determined"); }
+        private static void OnTargetAssemblyLoaded() { OutputElapsedTime("Target assembly loaded"); }
+        private static void OnPackageCreated() { OutputElapsedTime("Package created"); }
+        private static void OnPackageProcessed() { OutputElapsedTime("Package processed"); }
+
+        private static void OutputElapsedTime(string tag)
+        {
+            long elapsedTicks = stopwatch_.ElapsedTicks;
+            Console.WriteLine(string.Concat(elapsedTicks / 10000, ".", elapsedTicks % 10000, ":", tag));
         }
     }
 }

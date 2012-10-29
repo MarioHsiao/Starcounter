@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using Starcounter.CommandLine;
@@ -533,7 +534,7 @@ namespace StarcounterInternal.Bootstrap
         }
 
         private long ticksElapsedBetweenProcessStartAndMain_;
-        private System.Diagnostics.Stopwatch stopwatch_;
+        private Stopwatch stopwatch_;
         
         private void OutputElapsedTime(string tag)
         {
@@ -543,8 +544,8 @@ namespace StarcounterInternal.Bootstrap
 
         private void OnProcessInitialized()
         {
-            ticksElapsedBetweenProcessStartAndMain_ = (DateTime.Now - System.Diagnostics.Process.GetCurrentProcess().StartTime).Ticks;
-            stopwatch_ = System.Diagnostics.Stopwatch.StartNew();
+            ticksElapsedBetweenProcessStartAndMain_ = (DateTime.Now - Process.GetCurrentProcess().StartTime).Ticks;
+            stopwatch_ = Stopwatch.StartNew();
 
             OutputElapsedTime("Process initialized");
         }
