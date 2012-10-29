@@ -191,7 +191,7 @@ internal static class SqlProcessor
             UInt64 handle = typeBind.DefHandle;
             fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0]))
             {
-                errorCode = sccoredb.sccoredb_create_index(handle, indexName.ToUpper(), sortMask, attributeIndexesPointer, flags);
+                errorCode = sccoredb.sccoredb_create_index(handle, indexName, sortMask, attributeIndexesPointer, flags);
             }
         }
         if (errorCode != 0)
@@ -301,7 +301,7 @@ internal static class SqlProcessor
         UInt32 errorCode;
         unsafe
         {
-            errorCode = sccoredb.sccoredb_drop_index(typeBind.Name, indexName.ToUpper());
+            errorCode = sccoredb.sccoredb_drop_index(typeBind.Name, indexName);
         }
         if (errorCode != 0)
         {
