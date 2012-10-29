@@ -57,6 +57,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Diagnostics.cs" />
     <Compile Include="ExceptionManager.cs" />
     <Compile Include="Loader.cs" />
     <Compile Include="orange.cs" />
