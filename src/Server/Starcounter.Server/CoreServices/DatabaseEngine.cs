@@ -305,8 +305,8 @@ namespace Starcounter.Server {
             }
             // args.Append(" --FLAG:NoNetworkGateway");
 
-            if (database.Configuration.Runtime.VirtualProcessorCount.HasValue) {
-                args.AppendFormat(" --SchedulerCount {0}", database.Configuration.Runtime.VirtualProcessorCount.Value);
+            if (database.Configuration.Runtime.SchedulerCount.HasValue) {
+                args.AppendFormat(" --SchedulerCount {0}", database.Configuration.Runtime.SchedulerCount.Value);
             }
             
             processStart = new ProcessStartInfo(this.WorkerProcessExePath, args.ToString().Trim());
