@@ -302,7 +302,7 @@ namespace Starcounter.Server {
             if (startWithNoDb) {
                 args.Append(" --FLAG:NoDb");
             }
-            args.Append(" --FLAG:NoNetworkGateway");
+            // args.Append(" --FLAG:NoNetworkGateway");
             
             processStart = new ProcessStartInfo(this.WorkerProcessExePath, args.ToString().Trim());
             processStart.CreateNoWindow = true;

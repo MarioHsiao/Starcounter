@@ -104,6 +104,18 @@ namespace IndexQueryTest
             HintQueryIndexUserLN();
         }
 
+        static void TestJoinWIndex() {
+            Console.WriteLine("Test path expression as join with index");
+            CreateIndexUserLN();
+            Db.Transaction(delegate {
+                foreach (AccountTest.Account a in Db.SQL("select a from account a where a.Client.lastname = ?", "Popov")) {
+                    Console.WriteLine(a.Client.ToString());
+                    Console.WriteLine(a.ToString());
+                }
+            });
+            DropIndexUserLN();
+        }
+
         static void TestCreateIndexWithoutQuery()
         {
             Console.WriteLine("Test create/drop index without doing query");

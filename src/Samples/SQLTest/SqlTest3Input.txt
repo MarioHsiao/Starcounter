@@ -25,8 +25,8 @@ Uses different combined indexes.
 
 
 <NEXT>
-Description: Test of combined index INTEGERPOINT_X_Y_Z
-QueryString: select l.X, l.Y, l.Z from IntegerPoint l option index(l INTEGERPOINT_X_Y_Z)
+Description: Test of combined index IntegerPoint_X_Y_Z
+QueryString: select l.X, l.Y, l.Z from IntegerPoint l option index(l IntegerPoint_X_Y_Z)
 IncludesLiteral: True
 IncludesProjection: True
 SingleObjectProjection: False
@@ -44,7 +44,7 @@ Projection(
 		IntegerProperty(0, Z)
 )
 IndexScan(
-	INTEGERPOINT_X_Y_Z
+	IntegerPoint_X_Y_Z
 	0
 	X
 	IntegerDynamicRange(
@@ -91,8 +91,8 @@ ExpectedResult:
 
 
 <NEXT>
-Description: Test of combined index INTEGERPOINT_X_Y_ZDESC
-QueryString: select l.X, l.Y, l.Z from IntegerPoint l option index(l INTEGERPOINT_X_Y_ZDESC)
+Description: Test of combined index IntegerPoint_X_Y_ZDESC
+QueryString: select l.X, l.Y, l.Z from IntegerPoint l option index(l IntegerPoint_X_Y_ZDESC)
 IncludesProjection: True
 IncludesLiteral: True
 SingleObjectProjection: False
@@ -110,7 +110,7 @@ Projection(
 		IntegerProperty(0, Z)
 )
 IndexScan(
-	INTEGERPOINT_X_Y_ZDESC
+	IntegerPoint_X_Y_ZDESC
 	0
 	X
 	IntegerDynamicRange(
@@ -157,8 +157,8 @@ ExpectedResult:
 
 
 <NEXT>
-Description: Test of combined index INTEGERPOINT_X_YDESC_Z
-QueryString: select l.X, l.Y, l.Z from IntegerPoint l option index(l INTEGERPOINT_X_YDESC_Z)
+Description: Test of combined index IntegerPoint_X_YDESC_Z
+QueryString: select l.X, l.Y, l.Z from IntegerPoint l option index(l IntegerPoint_X_YDESC_Z)
 IncludesProjection: True
 IncludesLiteral: True
 SingleObjectProjection: False
@@ -176,7 +176,7 @@ Projection(
 		IntegerProperty(0, Z)
 )
 IndexScan(
-	INTEGERPOINT_X_YDESC_Z
+	IntegerPoint_X_YDESC_Z
 	0
 	X
 	IntegerDynamicRange(
@@ -223,8 +223,8 @@ ExpectedResult:
 
 
 <NEXT>
-Description: Test of combined index INTEGERPOINT_X_YDESC_ZDESC
-QueryString: select l.X, l.Y, l.Z from IntegerPoint l option index(l INTEGERPOINT_X_YDESC_ZDESC)
+Description: Test of combined index IntegerPoint_X_YDESC_ZDESC
+QueryString: select l.X, l.Y, l.Z from IntegerPoint l option index(l IntegerPoint_X_YDESC_ZDESC)
 IncludesProjection: True
 IncludesLiteral: True
 SingleObjectProjection: False
@@ -242,7 +242,7 @@ Projection(
 		IntegerProperty(0, Z)
 )
 IndexScan(
-	INTEGERPOINT_X_YDESC_ZDESC
+	IntegerPoint_X_YDESC_ZDESC
 	0
 	X
 	IntegerDynamicRange(
@@ -308,7 +308,7 @@ Projection(
 		IntegerProperty(0, Z)
 )
 IndexScan(
-	INTEGERPOINT_XDESC_Y_Z
+	IntegerPoint_XDESC_Y_Z
 	0
 	X
 	IntegerDynamicRange(
@@ -374,7 +374,7 @@ Projection(
 		IntegerProperty(0, Z)
 )
 IndexScan(
-	INTEGERPOINT_XDESC_Y_ZDESC
+	IntegerPoint_XDESC_Y_ZDESC
 	0
 	X
 	IntegerDynamicRange(
@@ -440,7 +440,7 @@ Projection(
 		IntegerProperty(0, Z)
 )
 IndexScan(
-	INTEGERPOINT_XDESC_YDESC_Z
+	IntegerPoint_XDESC_YDESC_Z
 	0
 	X
 	IntegerDynamicRange(
@@ -506,7 +506,7 @@ Projection(
 		IntegerProperty(0, Z)
 )
 IndexScan(
-	INTEGERPOINT_XDESC_YDESC_ZDESC
+	IntegerPoint_XDESC_YDESC_ZDESC
 	0
 	X
 	IntegerDynamicRange(

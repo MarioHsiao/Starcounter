@@ -25,6 +25,8 @@ namespace IndexQueryTest
             TestCreateDropIndex();
             TestOrderBy();
             TestHint();
+            TestJoinWIndex();
+
             //CreateDropIndexParallelTest();
 #endif
 #if ACCOUNTTEST_MODEL_NO
