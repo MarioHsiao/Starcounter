@@ -731,7 +731,7 @@ public:
     }
 
     // Closes all tracked sockets.
-    void CloseSockets();
+    void CloseSocketsData();
 
     // Tracks certain socket.
     uint32_t TrackSocket(SOCKET s)
@@ -998,7 +998,10 @@ class Gateway
     ScSessionStruct* all_sessions_unsafe_;
 
     // All sockets information.
-    SocketData* all_sockets_unsafe_;
+    SocketData sockets_data_unsafe_[MAX_SOCKET_HANDLE];
+
+    // Represents delete state for all sockets.
+    bool deleted_sockets_[MAX_SOCKET_HANDLE];
 
     // Free session indexes.
     uint32_t *free_session_indexes_unsafe_;
@@ -1025,9 +1028,6 @@ class Gateway
     ////////////////////////
     // OTHER STUFF
     ////////////////////////
-
-    // Represents delete state for all sockets.
-    bool deleted_sockets_[MAX_SOCKET_HANDLE];
 
     // Gateway handlers.
     HandlersTable* gw_handlers_;
@@ -1067,10 +1067,12 @@ public:
         return worker_thread_handles_[worker_id];
     }
 
-    // Returning all sockets data.
-    SocketData* get_all_sockets_unsafe()
+    // Returns certain socket data.
+    SocketData* GetSocketData(SOCKET sock_number)
     {
-        return all_sockets_unsafe_;
+        assert (sock_number < MAX_SOCKET_HANDLE);
+
+        return sockets_data_unsafe_ + sock_number;
     }
 
     // Increments and gets unique socket stamp number.
