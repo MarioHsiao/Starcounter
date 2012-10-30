@@ -17,7 +17,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\..\bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;_MANAGED</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -350,6 +350,13 @@
     <Compile Include="Query\prologbeans\QueryAnswer.cs" />
     <Compile Include="Query\prologbeans\SupportClass.cs" />
     <Compile Include="Query\prologbeans\Term.cs" />
+    <Compile Include="Query\RawParserAnalyzer\ParserAnalyzerErrors.cs" />
+    <Compile Include="Query\RawParserAnalyzer\ParserAnalyzerTestHelp.cs" />
+    <Compile Include="Query\RawParserAnalyzer\ParserAnalyzerUtils.cs" />
+    <Compile Include="Query\RawParserAnalyzer\RawParserAnalyzer.cs" />
+    <Compile Include="Query\RawParserAnalyzer\rawparser_enums.cs" />
+    <Compile Include="Query\RawParserAnalyzer\SelectStmtAnalyzer.cs" />
+    <Compile Include="Query\RawParserAnalyzer\UnmanagedParserInterface.cs" />
     <Compile Include="Query\SQL\PrologManager.cs" />
     <Compile Include="Query\SQL\PrologProcess.cs" />
     <Compile Include="Query\SQL\SqlException.cs" />
