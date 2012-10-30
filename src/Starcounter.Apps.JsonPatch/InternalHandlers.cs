@@ -26,10 +26,15 @@ namespace Starcounter.Internal.JsonPatch
 
             GET("/__vm/@s", (string sessionId) =>
             {
+                HttpResponse response = null;
                 Session s = HardcodedStuff.Here.Sessions.GetSession(sessionId);
 
-                Byte[] json = s.RootApp.ToJsonUtf8(false);
-                return new HttpResponse() { Uncompressed = HttpResponseBuilder.CreateMinimalOk200WithContent(json, 0, (uint)json.Length) };
+                s.Execute(HardcodedStuff.Here.HttpRequest, () => {
+                    Byte[] json = s.RootApp.ToJsonUtf8(false);
+                    response = new HttpResponse() { Uncompressed = HttpResponseBuilder.CreateMinimalOk200WithContent(json, 0, (uint)json.Length) };
+                });
+
+                return response;
             });
 
             PATCH("/__vm/@s", (string sessionId) =>
@@ -42,7 +47,7 @@ namespace Starcounter.Internal.JsonPatch
                     App rootApp = Session.Current.RootApp;
                     HttpRequest request = Session.Current.HttpRequest;
 
-                    JsonPatch.EvaluatePatches(request.GetBodyStringUtf8());
+                    JsonPatch.EvaluatePatches(request.GetBodyByteArray());
 
                     response = new HttpResponse();
                     response.Uncompressed = HttpPatchBuilder.CreateHttpPatchResponse(Session.Current._changeLog);

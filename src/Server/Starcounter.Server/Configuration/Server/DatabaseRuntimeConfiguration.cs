@@ -134,15 +134,15 @@ namespace Starcounter.Configuration {
         private int _sharedMemoryChunksNumber;
 
         /// <summary>
-        /// Number of virtual processors.
+        /// Number of schedulers the database host should utilize.
         /// </summary>
         /// <remarks>
-        /// Allowed values are 1, 2, 4 for x64 and 1 on Win32.
-        /// Default: The number of cores on the machine up to the maximum
-        /// value for x64 or one for win32.
+        /// The current default, applied if this property is set to NULL, is
+        /// the number of processors on the hosting machine, as returned by
+        /// <see cref="Environment.ProcessorCount"/>.
         /// </remarks>
         [DefaultValue(null)]
-        public int? VirtualProcessorCount {
+        public int? SchedulerCount {
             get;
             set;
         }
