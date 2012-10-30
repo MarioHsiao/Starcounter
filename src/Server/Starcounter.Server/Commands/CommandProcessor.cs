@@ -354,12 +354,12 @@ namespace Starcounter.Server.Commands {
 
         private void OnBeginExecute()
         {
-            OutputTrace("Executing");
+            OutputTrace("Executing.");
         }
 
         private void OnEndExecute()
         {
-            OutputTrace("Execution completed");
+            OutputTrace("Execution completed.");
         }
 
         protected void OutputTrace(string message)
