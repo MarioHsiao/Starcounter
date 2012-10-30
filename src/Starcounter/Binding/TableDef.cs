@@ -181,6 +181,9 @@ namespace Starcounter.Binding
             return b;
         }
 
+        /// <summary>
+        /// </summary>
+        /// <returns></returns>
         public bool HasIndex() { return GetAllIndexInfos().Length != 0; }
 
         /// <summary>

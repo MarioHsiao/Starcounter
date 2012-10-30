@@ -72,6 +72,7 @@ namespace Starcounter.Hosting {
         /// </summary>
         /// <param name="unregisteredTypeDefs">The unregistered type defs.</param>
         /// <param name="assembly">The assembly.</param>
+        /// <param name="stopwatch"></param>
         public Package(
             TypeDef[] unregisteredTypeDefs, // Previously unregistered type definitions.
             Assembly assembly,              // Entry point assembly.
