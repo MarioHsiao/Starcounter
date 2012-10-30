@@ -129,7 +129,7 @@ namespace Starcounter.Internal.JsonPatch.Test
             session.Execute(null, () =>
             {
                 Session.Current.AttachRootApp(CreateSampleApp().App);
-                JsonPatch.EvaluatePatches(patchBlob);
+                JsonPatch.EvaluatePatches(System.Text.Encoding.UTF8.GetBytes(patchBlob));
             });
         }
 
