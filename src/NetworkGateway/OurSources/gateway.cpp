@@ -320,18 +320,25 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
 
     // Allocating data for worker sessions.
     all_sessions_unsafe_ = new ScSessionStruct[setting_max_connections_];
-    all_sockets_unsafe_ = new SocketData[setting_max_connections_];
     free_session_indexes_unsafe_ = new uint32_t[setting_max_connections_];
     num_active_sessions_unsafe_ = 0;
 
-    // Filling up indexes linearly.
+    // Cleaning all sessions and free session indexes.
     for (int32_t i = 0; i < setting_max_connections_; i++)
     {
-        all_sockets_unsafe_[i].Reset();
+        // Filling up indexes linearly.
         free_session_indexes_unsafe_[i] = i;
+
+        // Resetting all sessions.
+        all_sessions_unsafe_[i].Reset();
     }
 
+    // Cleaning all sockets data.
+    for (int32_t i = 0; i < MAX_SOCKET_HANDLE; i++)
+        sockets_data_unsafe_[i].Reset();
+
     delete [] config_contents;
+
     return 0;
 }
 
@@ -651,12 +658,12 @@ void ActiveDatabase::StartDeletion()
     unique_num_ = 0;
     db_name_ = "";
 
-    // Closing all database sockets.
-    CloseSockets();
+    // Closing all database sockets data.
+    CloseSocketsData();
 }
 
 // Closes all tracked sockets.
-void ActiveDatabase::CloseSockets()
+void ActiveDatabase::CloseSocketsData()
 {
     // Checking if sockets were already closed.
     if (were_sockets_closed_)
@@ -673,6 +680,15 @@ void ActiveDatabase::CloseSockets()
         {
             // Marking deleted socket.
             g_gateway.MarkDeleteSocket(s);
+
+            // Resetting socket data.
+            SocketData* socket_data = g_gateway.GetSocketData(s);
+            session_index_type session_index = socket_data->get_session_index();
+            socket_data->Reset();
+
+            // Cleaning the associated session if any.
+            ScSessionStruct* session = g_gateway.GetSessionData(session_index);
+            if (session) session->Reset();
 
             // Closing socket which will results in Disconnect.
             if (closesocket(s))
