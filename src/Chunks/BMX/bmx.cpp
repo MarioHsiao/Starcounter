@@ -8,11 +8,11 @@ using namespace starcounter::core;
 // Pushes registered port handler.
 uint32_t HandlersList::PushRegisteredPortHandler(BmxData* bmx_data)
 {
-    uint32_t chunk_index;
+    starcounter::core::chunk_index chunk_index;
     shared_memory_chunk* smc;
 
     // If have a channel to push on: Lets send the registration immediately.
-    uint32_t err_code = bmx_data->AcquireNewChunk(smc, chunk_index);
+    uint32_t err_code = cm_acquire_shared_memory_chunk(&chunk_index, (uint8_t**)&smc);
     if (err_code)
         return err_code;
 
@@ -38,11 +38,11 @@ uint32_t HandlersList::PushRegisteredPortHandler(BmxData* bmx_data)
 // Pushes registered subport handler.
 uint32_t HandlersList::PushRegisteredSubportHandler(BmxData* bmx_data)
 {
-    uint32_t chunk_index;
+    starcounter::core::chunk_index chunk_index;
     shared_memory_chunk* smc;
 
     // If have a channel to push on: Lets send the registration immediately.
-    uint32_t err_code = bmx_data->AcquireNewChunk(smc, chunk_index);
+    uint32_t err_code = cm_acquire_shared_memory_chunk(&chunk_index, (uint8_t**)&smc);
     if (err_code)
         return err_code;
 
@@ -68,11 +68,11 @@ uint32_t HandlersList::PushRegisteredSubportHandler(BmxData* bmx_data)
 // Pushes registered URI handler.
 uint32_t HandlersList::PushRegisteredUriHandler(BmxData* bmx_data)
 {
-    uint32_t chunk_index;
+    starcounter::core::chunk_index chunk_index;
     shared_memory_chunk* smc;
 
     // If have a channel to push on: Lets send the registration immediately.
-    uint32_t err_code = bmx_data->AcquireNewChunk(smc, chunk_index);
+    uint32_t err_code = cm_acquire_shared_memory_chunk(&chunk_index, (uint8_t**)&smc);
     if (err_code)
         return err_code;
 
@@ -596,11 +596,11 @@ uint32_t BmxData::CheckAndSwitchSession(TASK_INFO_TYPE* task_info, uint64_t sess
 // Pushes unregistered handler.
 uint32_t BmxData::PushHandlerUnregistration(BMX_HANDLER_TYPE handler_id)
 {
-    uint32_t chunk_index;
+    starcounter::core::chunk_index chunk_index;
     shared_memory_chunk* smc;
 
     // If have a channel to push on: Lets send the registration immediately.
-    uint32_t err_code = AcquireNewChunk(smc, chunk_index);
+    uint32_t err_code = cm_acquire_shared_memory_chunk(&chunk_index, (uint8_t**)&smc);
     if (err_code)
         return err_code;
 
@@ -620,26 +620,4 @@ uint32_t BmxData::PushHandlerUnregistration(BMX_HANDLER_TYPE handler_id)
     err_code = cm_send_to_client(chunk_index);
 
     return err_code;
-}
-
-uint32_t BmxData::AcquireNewChunk(shared_memory_chunk*& chunk, uint32_t& chunk_index)
-{
-    uint8_t* raw_chunk;
-    uint32_t errorcode;
-    DWORD tmp_chunk_index;
-
-    // TODO: 
-    // Combine these 2 cm calls into one.
-    errorcode = cm_acquire_shared_memory_chunk(&tmp_chunk_index);
-    if (errorcode == 0)
-    {
-        errorcode = cm_get_shared_memory_chunk(tmp_chunk_index, &raw_chunk);
-        if (errorcode == 0)
-        {
-            chunk_index = tmp_chunk_index;
-            chunk = (shared_memory_chunk*)raw_chunk;
-        }
-    }
-
-    return errorcode;
 }

@@ -32,7 +32,7 @@ struct TASK_INFO_TYPE {
     uint8_t scheduler_number;
     BMX_HANDLER_TYPE handler_id;
     uint8_t fill1;
-    uint32_t chunk_index;
+    starcounter::core::chunk_index chunk_index;
     uint64_t transaction_handle;
     SC_SESSION_ID session_id;
 };
@@ -116,7 +116,7 @@ namespace bmx
     const uint32_t MAX_USER_DATA_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 28;
     const uint32_t USER_DATA_WRITTEN_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 32;
 
-    const uint32_t SOCKET_DATA_NUM_CLONE_BYTES = GATEWAY_CHUNK_BEGIN + 160;
+    const uint32_t SOCKET_DATA_NUM_CLONE_BYTES = GATEWAY_CHUNK_BEGIN + 168;
     const uint32_t HTTP_REQUEST_OFFSET = GATEWAY_CHUNK_BEGIN + 200;
 
     // Size of the usable chunk data.
@@ -535,9 +535,6 @@ namespace bmx
 
         // Checks if session has changed from current one.
         uint32_t CheckAndSwitchSession(TASK_INFO_TYPE* task_info, uint64_t session_id);
-
-        // Acquires new chunk.
-        uint32_t AcquireNewChunk(shared_memory_chunk*& chunk, uint32_t& chunk_index);
 
         // Pushes unregistered handler.
         uint32_t PushHandlerUnregistration(BMX_HANDLER_TYPE handler_id);
