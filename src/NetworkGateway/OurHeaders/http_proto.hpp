@@ -599,7 +599,9 @@ public:
         sd_ref_ = NULL;
         gw_ref_temp_ = NULL;
         web_sockets_upgrade_ = false;
-        ResetParser();
+
+        // Remove this since parser is reset before actual parsing.
+        //ResetParser();
     }
 
     // Resets the HTTP/WS structure.
