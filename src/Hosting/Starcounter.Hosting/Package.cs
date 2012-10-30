@@ -207,16 +207,17 @@ namespace Starcounter.Hosting {
             }
         }
 
-        private void OnProcessingStarted() { OutputElapsedTime("Processing started."); }
-        private void OnDatabaseSchemaCheckedAndUpdated() { OutputElapsedTime("Database schema checked and updated."); }
-        private void OnTypeDefsRegistered() { OutputElapsedTime("Type definitions registered."); }
-        private void OnQueryModuleSchemaInfoUpdated() { OutputElapsedTime("Query module schema information updated."); }
-        private void OnEntryPointExecuted() { OutputElapsedTime("Entry point executed."); }
-        private void OnProcessingCompleted() { OutputElapsedTime("Processing completed."); }
+        private void OnProcessingStarted() { Trace("Processing started."); }
+        private void OnDatabaseSchemaCheckedAndUpdated() { Trace("Database schema checked and updated."); }
+        private void OnTypeDefsRegistered() { Trace("Type definitions registered."); }
+        private void OnQueryModuleSchemaInfoUpdated() { Trace("Query module schema information updated."); }
+        private void OnEntryPointExecuted() { Trace("Entry point executed."); }
+        private void OnProcessingCompleted() { Trace("Processing completed."); }
 
-        private void OutputElapsedTime(string message)
+        [Conditional("TRACE")]
+        private void Trace(string message)
         {
-            Diagnostics.OutputTrace("loader", stopwatch_.ElapsedTicks, message);
+            Diagnostics.WriteTrace("loader", stopwatch_.ElapsedTicks, message);
         }
     }
 }

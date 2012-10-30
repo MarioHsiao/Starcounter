@@ -1,7 +1,8 @@
 ﻿
 using System;
+using System.Diagnostics;
 
-namespace Starcounter.Hosting
+namespace Starcounter.Internal
 {
     
     /// <summary>
@@ -11,14 +12,15 @@ namespace Starcounter.Hosting
 
         /// <summary>
         /// </summary>
-        /// <param name="tag"></param>
+        /// <param name="source"></param>
         /// <param name="elapsedTicks"></param>
         /// <param name="message"></param>
-        public static void OutputTrace(string tag, long elapsedTicks, string message)
+        [Conditional("TRACE")]
+        public static void WriteTrace(string source, long elapsedTicks, string message)
         {
             string elapsedTime = string.Concat(elapsedTicks / 10000, ".", elapsedTicks % 10000);
-            string output = string.Concat(elapsedTime, " ", tag, ":", message);
-            Console.WriteLine(output);
+            string output = string.Concat(elapsedTime, " ", source, ":", message);
+            Trace.WriteLine(output);
         }
     }
 }

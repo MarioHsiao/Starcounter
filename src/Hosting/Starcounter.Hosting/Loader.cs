@@ -317,16 +317,17 @@ namespace StarcounterInternal.Hosting
             stopwatch_ = null;
         }
 
-        private static void OnInputVerifiedAndAssemblyResolverUpdated() { OutputElapsedTime("Input verified and assembly resolver updated."); }
-        private static void OnSchemaVerifiedAndLoaded() { OutputElapsedTime("Schema verified and loaded."); }
-        private static void OnUnregisteredTypeDefsDetermined() { OutputElapsedTime("Unregistered type definitions determined."); }
-        private static void OnTargetAssemblyLoaded() { OutputElapsedTime("Target assembly loaded."); }
-        private static void OnPackageCreated() { OutputElapsedTime("Package created."); }
-        private static void OnPackageProcessed() { OutputElapsedTime("Package processed."); }
+        private static void OnInputVerifiedAndAssemblyResolverUpdated() { Trace("Input verified and assembly resolver updated."); }
+        private static void OnSchemaVerifiedAndLoaded() { Trace("Schema verified and loaded."); }
+        private static void OnUnregisteredTypeDefsDetermined() { Trace("Unregistered type definitions determined."); }
+        private static void OnTargetAssemblyLoaded() { Trace("Target assembly loaded."); }
+        private static void OnPackageCreated() { Trace("Package created."); }
+        private static void OnPackageProcessed() { Trace("Package processed."); }
 
-        private static void OutputElapsedTime(string message)
+        [Conditional("TRACE")]
+        private static void Trace(string message)
         {
-            Diagnostics.OutputTrace("loader", stopwatch_.ElapsedTicks, message);
+            Diagnostics.WriteTrace("loader", stopwatch_.ElapsedTicks, message);
         }
     }
 }

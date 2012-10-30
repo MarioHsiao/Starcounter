@@ -537,10 +537,11 @@ namespace StarcounterInternal.Bootstrap
         private long ticksElapsedBetweenProcessStartAndMain_;
         private Stopwatch stopwatch_;
         
-        private void OutputElapsedTime(string message)
+        [Conditional("TRACE")]
+        private void Trace(string message)
         {
             long elapsedTicks = stopwatch_.ElapsedTicks + ticksElapsedBetweenProcessStartAndMain_;
-            Diagnostics.OutputTrace("control", elapsedTicks, message);
+            Diagnostics.WriteTrace("control", elapsedTicks, message);
         }
 
         private void OnProcessInitialized()
@@ -548,35 +549,35 @@ namespace StarcounterInternal.Bootstrap
             ticksElapsedBetweenProcessStartAndMain_ = (DateTime.Now - Process.GetCurrentProcess().StartTime).Ticks;
             stopwatch_ = Stopwatch.StartNew();
 
-            OutputElapsedTime("Process initialized.");
+            Trace("Process initialized.");
         }
 
-        private void OnExceptionFactoryInstalled() { OutputElapsedTime("Exception factory installed."); }
-        private void OnCommandLineParsed() { OutputElapsedTime("Command line parsed."); }
-        private void OnConfigurationLoaded() { OutputElapsedTime("Configuration loaded."); }
-        private void OnAssuredNoOtherProcessWithTheSameName() { OutputElapsedTime("Assured no other process with the same name."); }
-        private void OnGlobalMemoryAllocated() { OutputElapsedTime("Global memory allocated."); }
-        private void OnKernelMemoryConfigured() { OutputElapsedTime("Kernel memory configured."); }
-        private void OnBmxManagerInitialized() { OutputElapsedTime("BMX manager initialized."); }
-        private void OnLoggingConfigured() { OutputElapsedTime("Logging configured."); }
-        private void OnHostConfigured() { OutputElapsedTime("Host configured."); }
-        private void OnSchedulerConfigured() { OutputElapsedTime("Scheduler configured."); }
-        private void OnDatabaseConnected() { OutputElapsedTime("Database connected."); }
-        private void OnQueryModuleInitiated() { OutputElapsedTime("Query module initiated."); }
+        private void OnExceptionFactoryInstalled() { Trace("Exception factory installed."); }
+        private void OnCommandLineParsed() { Trace("Command line parsed."); }
+        private void OnConfigurationLoaded() { Trace("Configuration loaded."); }
+        private void OnAssuredNoOtherProcessWithTheSameName() { Trace("Assured no other process with the same name."); }
+        private void OnGlobalMemoryAllocated() { Trace("Global memory allocated."); }
+        private void OnKernelMemoryConfigured() { Trace("Kernel memory configured."); }
+        private void OnBmxManagerInitialized() { Trace("BMX manager initialized."); }
+        private void OnLoggingConfigured() { Trace("Logging configured."); }
+        private void OnHostConfigured() { Trace("Host configured."); }
+        private void OnSchedulerConfigured() { Trace("Scheduler configured."); }
+        private void OnDatabaseConnected() { Trace("Database connected."); }
+        private void OnQueryModuleInitiated() { Trace("Query module initiated."); }
 
-        private void OnEndSetup() { OutputElapsedTime("Setup completed."); }
+        private void OnEndSetup() { Trace("Setup completed."); }
 
-        private void OnSchedulerStarted() { OutputElapsedTime("Scheduler started."); }
-        private void OnAppDomainConfigured() { OutputElapsedTime("App domain configured."); }
-        private void OnServerCommandHandlersRegistered() { OutputElapsedTime("Server command handlers registered."); }
-        private void OnBasePackageLoaded() { OutputElapsedTime("Base package loaded."); }
-        private void OnNetworkGatewayConnected() { OutputElapsedTime("Network gateway connected."); }
-        private void OnAutoStartModuleExecuted() { OutputElapsedTime("Auto start module executed."); }
+        private void OnSchedulerStarted() { Trace("Scheduler started."); }
+        private void OnAppDomainConfigured() { Trace("App domain configured."); }
+        private void OnServerCommandHandlersRegistered() { Trace("Server command handlers registered."); }
+        private void OnBasePackageLoaded() { Trace("Base package loaded."); }
+        private void OnNetworkGatewayConnected() { Trace("Network gateway connected."); }
+        private void OnAutoStartModuleExecuted() { Trace("Auto start module executed."); }
 
-        private void OnEndStart() { OutputElapsedTime("Start completed."); }
+        private void OnEndStart() { Trace("Start completed."); }
 
-        private void OnEndRun() { OutputElapsedTime("Run completed."); }
-        private void OnEndStop() { OutputElapsedTime("Stop completed."); }
-        private void OnEndCleanup() { OutputElapsedTime("Cleanup completed."); }
+        private void OnEndRun() { Trace("Run completed."); }
+        private void OnEndStop() { Trace("Stop completed."); }
+        private void OnEndCleanup() { Trace("Cleanup completed."); }
     }
 }

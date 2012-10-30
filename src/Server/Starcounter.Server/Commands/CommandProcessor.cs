@@ -4,6 +4,7 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.Internal;
 using Starcounter.Logging;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
@@ -354,21 +355,18 @@ namespace Starcounter.Server.Commands {
 
         private void OnBeginExecute()
         {
-            OutputTrace("Executing.");
+            Trace("Executing.");
         }
 
         private void OnEndExecute()
         {
-            OutputTrace("Execution completed.");
+            Trace("Execution completed.");
         }
 
-        protected void OutputTrace(string message)
+        [Conditional("TRACE")]
+        protected void Trace(string message)
         {
-            string tag = "server";
-            long elapsedTicks = stopwatch.ElapsedTicks;
-            string elapsedTime = string.Concat(elapsedTicks / 10000, ".", elapsedTicks % 10000);
-            string output = string.Concat(elapsedTime, " ", tag, ":", message);
-            Console.WriteLine(output);
+            Diagnostics.WriteTrace("server", stopwatch.ElapsedTicks, message);
         }
 
         #region Progress tracking

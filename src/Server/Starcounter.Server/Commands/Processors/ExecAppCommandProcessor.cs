@@ -191,16 +191,16 @@ namespace Starcounter.Server.Commands {
             return Path.Combine(baseDirectory, key);
         }
 
-        void OnExistingWorkerProcessStopped() { OutputTrace("Existing worker process stopped."); }
-        void OnWeavingCompleted() { OutputTrace("Weaving completed."); }
-        void OnDatabaseCreated() { OutputTrace("Database created."); }
-        void OnDatabaseRegistered() { OutputTrace("Database registered."); }
-        void OnDatabaseProcessStarted() { OutputTrace("Database process started."); }
-        void OnWorkerProcessStarted() { OutputTrace("Worker process started."); }
-        void OnHostingInterfaceConnected() { OutputTrace("Hosting interface connected."); }
-        void OnPingRequestProcessed() { OutputTrace("Ping request processed."); }
-        void OnExec2RequestProcessed() { OutputTrace("Exec2 request processed."); }
-        void OnDatabaseAppRegistered() { OutputTrace("Database app registered."); }
-        void OnDatabaseStatusUpdated() { OutputTrace("Database status updated."); }
+        void OnExistingWorkerProcessStopped() { Trace("Existing worker process stopped."); }
+        void OnWeavingCompleted() { Trace("Weaving completed."); }
+        void OnDatabaseCreated() { Trace("Database created."); }
+        void OnDatabaseRegistered() { Trace("Database registered."); }
+        void OnDatabaseProcessStarted() { Trace("Database process started."); }
+        void OnWorkerProcessStarted() { Trace("Worker process started."); }
+        void OnHostingInterfaceConnected() { Trace("Hosting interface connected."); }
+        void OnPingRequestProcessed() { Trace("Ping request processed."); }
+        void OnExec2RequestProcessed() { Trace("Exec2 request processed."); }
+        void OnDatabaseAppRegistered() { Trace("Database app registered."); }
+        void OnDatabaseStatusUpdated() { Trace("Database status updated."); }
     }
 }
