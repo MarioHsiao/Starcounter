@@ -88,1444 +88,6 @@ ExpectedResult:
  | 28 | 
 
 
-=== NOT IMPLEMENTED IN BETA 2.2 ===
-== CAST ==
-
-<NEXT>
-Description: Object reference casting
-QueryString: select cast(p as SQLTest.EmployeeDb.Employee) from SQLTest.EmployeeDb.Person p
-SingleObjectPathProjection: True
-ShouldBeReordered: False
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Person
-)
-Projection(
-	0 = 
-		ObjectCast(
-			ObjectThis(0)
-			SQLTest.EmployeeDb.Employee
-		)
-)
-IndexScan(
-	0
-	__InstantiatedFrom
-	ObjectDynamicRange(
-	)
-	LogicalValue(TRUE)
-	Ascending
-)
-
-ExpectedResult: 
- ! Object ! 
- | <NULL> | 
- | <NULL> | 
- | 23 | 
- | 24 | 
- | 25 | 
- | 26 | 
- | 27 | 
- | 28 | 
- | <NULL> | 
- | 30 | 
- | 31 | 
- | 32 | 
-
-
-<NEXT>
-Description: Object reference casting first in path expression
-QueryString: select cast(p as SQLTest.EmployeeDb.Employee).Manager from SQLTest.EmployeeDb.Person p
-SingleObjectPathProjection: True
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Person
-)
-Projection(
-	0 = 
-		ObjectPath(
-			ObjectCast(
-				ObjectThis(0)
-				SQLTest.EmployeeDb.Employee
-			)
-			ObjectProperty(-1, Manager)
-		)
-)
-IndexScan(
-	0
-	__InstantiatedFrom
-	ObjectDynamicRange(
-	)
-	LogicalValue(TRUE)
-	Ascending
-)
-
-ExpectedResult: 
- ! Object ! 
- | <NULL> | 
- | <NULL> | 
- | <NULL> | 
- | <NULL> | 
- | <NULL> | 
- | 23 | 
- | 24 | 
- | 24 | 
- | 24 | 
- | 25 | 
- | 25 | 
- | 25 | 
-
-
-<NEXT>
-Description: Object reference casting within path expression
-QueryString: select cast(p.Father as SQLTest.EmployeeDb.Employee).Manager from SQLTest.EmployeeDb.Person p
-SingleObjectPathProjection: True
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Person
-)
-Projection(
-	0 = 
-		ObjectPath(
-			ObjectCast(
-				ObjectProperty(0, Father)
-				SQLTest.EmployeeDb.Employee
-			)
-			ObjectProperty(-1, Manager)
-		)
-)
-IndexScan(
-	0
-	__InstantiatedFrom
-	ObjectDynamicRange(
-	)
-	LogicalValue(TRUE)
-	Ascending
-)
-
-ExpectedResult: 
- ! Object ! 
- | <NULL> | 
- | <NULL> | 
- | <NULL> | 
- | <NULL> | 
- | <NULL> | 
- | <NULL> | 
- | <NULL> | 
- | <NULL> | 
- | <NULL> | 
- | <NULL> | 
- | <NULL> | 
- | 24 | 
-
-
-<NEXT>
-Description: Multiple Object reference castings
-QueryString: select cast(cast(p as SQLTest.EmployeeDb.Employee).Manager as SQLTest.EmployeeDb.Person).Father from SQLTest.EmployeeDb.Person p
-SingleObjectPathProjection: True
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Person
-)
-Projection(
-	0 = 
-		ObjectPath(
-			ObjectCast(
-				ObjectThis(0)
-				SQLTest.EmployeeDb.Employee
-			)
-			ObjectCast(
-				ObjectProperty(-1, Manager)
-				SQLTest.EmployeeDb.Person
-			)
-			ObjectProperty(-1, Father)
-		)
-)
-IndexScan(
-	0
-	__InstantiatedFrom
-	ObjectDynamicRange(
-	)
-	LogicalValue(TRUE)
-	Ascending
-)
-
-ExpectedResult: 
- ! Object ! 
- | <NULL> | 
- | <NULL> | 
- | <NULL> | 
- | <NULL> | 
- | <NULL> | 
- | <NULL> | 
- | <NULL> | 
- | <NULL> | 
- | <NULL> | 
- | 22 | 
- | 22 | 
- | 22 | 
-
-
-<NEXT>
-Description: Object reference casting with asterisk
-QueryString: select cast(p as SQLTest.EmployeeDb.Employee).* from SQLTest.EmployeeDb.Person p
-SingleObjectProjection: False
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Person
-)
-Projection(
-	0 = 
-		StringPath(
-			ObjectCast(
-				ObjectThis(0)
-				SQLTest.EmployeeDb.Employee
-			)
-			StringProperty(-1, FirstName)
-		)
-	1 = 
-		StringPath(
-			ObjectCast(
-				ObjectThis(0)
-				SQLTest.EmployeeDb.Employee
-			)
-			StringProperty(-1, LastName)
-		)
-	2 = 
-		ObjectPath(
-			ObjectCast(
-				ObjectThis(0)
-				SQLTest.EmployeeDb.Employee
-			)
-			ObjectProperty(-1, Home)
-		)
-	3 = 
-		ObjectPath(
-			ObjectCast(
-				ObjectThis(0)
-				SQLTest.EmployeeDb.Employee
-			)
-			ObjectProperty(-1, Father)
-		)
-	4 = 
-		DateTimePath(
-			ObjectCast(
-				ObjectThis(0)
-				SQLTest.EmployeeDb.Employee
-			)
-			DateTimeProperty(-1, HireDate)
-		)
-	5 = 
-		DateTimePath(
-			ObjectCast(
-				ObjectThis(0)
-				SQLTest.EmployeeDb.Employee
-			)
-			DateTimeProperty(-1, NHireDate)
-		)
-	6 = 
-		ObjectPath(
-			ObjectCast(
-				ObjectThis(0)
-				SQLTest.EmployeeDb.Employee
-			)
-			ObjectProperty(-1, Manager)
-		)
-	7 = 
-		ObjectPath(
-			ObjectCast(
-				ObjectThis(0)
-				SQLTest.EmployeeDb.Employee
-			)
-			ObjectProperty(-1, Department)
-		)
-)
-IndexScan(
-	0
-	__InstantiatedFrom
-	ObjectDynamicRange(
-	)
-	LogicalValue(TRUE)
-	Ascending
-)
-
-ExpectedResult: 
- ! 0:String ! 1:String ! 2:Object ! 3:Object ! 4:DateTime ! 5:DateTime ! 6:Object ! 7:Object ! 
- | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | 
- | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | 
- | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | 
- | Alexey | Moiseenko | 16 | <NULL> | 2010-09-01 00:00:00Z | <NULL> | <NULL> | 19 | 
- | Andreas | Thyrhaug | <NULL> | <NULL> | 2010-12-13 00:00:00Z | 2010-12-13 00:00:00Z | 25 | 18 | 
- | Åsa | Holmström | 14 | <NULL> | 2009-12-01 00:00:00Z | 2009-12-01 00:00:00Z | 23 | 17 | 
- | Christian | Holmstrand | 13 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 25 | 19 | 
- | Erik | Ohlsson | 15 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 24 | 18 | 
- | Joachim | Wester | 11 | <NULL> | 2003-01-01 00:00:00Z | <NULL> | <NULL> | <NULL> | 
- | per | Samuelsson | 12 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 25 | 19 | 
- | PETER | <NULL> | 12 | 22 | 2005-10-01 00:00:00Z | 2005-10-01 00:00:00Z | 24 | 19 | 
- | Petros | <NULL> | <NULL> | <NULL> | 2010-10-01 00:00:00Z | 2010-10-01 00:00:00Z | 24 | 17 | 
-
-
-<NEXT>
-Description: Implicit joins using path expression with cast
-QueryString: select p.FirstName, p.Father.FirstName, cast(p.Father as Employee).Department.Name from SQLTest.EmployeeDb.Person p where cast(p.Father as Employee).Department.Name = 'Server'
-SingleObjectProjection: False
-IncludesLiteral: True
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Person
-	1 = SQLTest.EmployeeDb.Person
-	2 = SQLTest.EmployeeDb.Department
-)
-Projection(
-	0 = 
-		StringProperty(0, FirstName)
-	1 = 
-		StringPath(
-			ObjectProperty(0, Father)
-			StringProperty(-1, FirstName)
-		)
-	2 = 
-		StringPath(
-			ObjectCast(
-				ObjectProperty(0, Father)
-				SQLTest.EmployeeDb.Employee
-			)
-			ObjectProperty(-1, Department)
-			StringProperty(-1, Name)
-		)
-)
-Join(
-	Inner
-	Join(
-		Inner
-		IndexScan(
-			0
-			__InstantiatedFrom
-			ObjectDynamicRange(
-			)
-			LogicalValue(TRUE)
-			Ascending
-		)
-		ReferenceLookup(
-			1
-			ObjectProperty(0, Father)
-			LogicalValue(TRUE)
-		)
-	)
-	ReferenceLookup(
-		2
-		ObjectPath(
-			ObjectCast(
-				ObjectThis(1)
-				SQLTest.EmployeeDb.Employee
-			)
-			ObjectProperty(-1, Department)
-		)
-		ComparisonString(
-			Equal
-			StringProperty(2, Name)
-			StringLiteral(Server)
-		)
-	)
-)
-
-ExpectedResult: 
- ! 0:String ! 1:String ! 2:String ! 
- | Lovisa | PETER | Server | 
-
-
-<NEXT>
-Description: Implicit joins using path expression with cast (single object projection)
-QueryString: select cast(p.Father as Employee).Department from SQLTest.EmployeeDb.Person p where cast(p.Father as Employee).Department.Name = 'Server'
-CompositeResultObjects: False
-SingleObjectPathProjection: True
-IncludesLiteral: True
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Person
-	1 = SQLTest.EmployeeDb.Person
-	2 = SQLTest.EmployeeDb.Department
-)
-Projection(
-	0 = 
-		ObjectPath(
-			ObjectCast(
-				ObjectProperty(0, Father)
-				SQLTest.EmployeeDb.Employee
-			)
-			ObjectProperty(-1, Department)
-		)
-)
-Join(
-	Inner
-	Join(
-		Inner
-		IndexScan(
-			0
-			__InstantiatedFrom
-			ObjectDynamicRange(
-			)
-			LogicalValue(TRUE)
-			Ascending
-		)
-		ReferenceLookup(
-			1
-			ObjectProperty(0, Father)
-			LogicalValue(TRUE)
-		)
-	)
-	ReferenceLookup(
-		2
-		ObjectPath(
-			ObjectCast(
-				ObjectThis(1)
-				SQLTest.EmployeeDb.Employee
-			)
-			ObjectProperty(-1, Department)
-		)
-		ComparisonString(
-			Equal
-			StringProperty(2, Name)
-			StringLiteral(Server)
-		)
-	)
-)
-
-ExpectedResult: 
- ! Object ! 
- | 19 | 
-
-
-== Inner join ==
-
-
-<NEXT>
-Description: Join using on
-QueryString: select e.FirstName, d.Name from Employee e join Department d on e.Department = d
-SingleObjectProjection: False
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Employee
-	1 = SQLTest.EmployeeDb.Department
-)
-Projection(
-	0 = 
-		StringProperty(0, FirstName)
-	1 = 
-		StringProperty(1, Name)
-)
-Join(
-	Inner
-	IndexScan(
-		0
-		__InstantiatedFrom
-		ObjectDynamicRange(
-		)
-		LogicalValue(TRUE)
-		Ascending
-	)
-	ReferenceLookup(
-		1
-		ObjectProperty(0, Department)
-		LogicalValue(TRUE)
-	)
-)
-
-ExpectedResult: 
- ! 0:String ! 1:String ! 
- | Alexey | Server | 
- | Andreas | Kernel | 
- | Åsa | Head office | 
- | Christian | Server | 
- | Erik | Kernel | 
- | per | Server | 
- | PETER | Server | 
- | Petros | Head office | 
-
-
-<NEXT>
-Description: Join using on (single object projection)
-QueryString: select d from Employee e join Department d on e.Department = d
-CompositeResultObjects: False
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Employee
-	1 = SQLTest.EmployeeDb.Department
-)
-Projection(
-	0 = 
-		ObjectThis(1)
-)
-Join(
-	Inner
-	IndexScan(
-		0
-		__InstantiatedFrom
-		ObjectDynamicRange(
-		)
-		LogicalValue(TRUE)
-		Ascending
-	)
-	ReferenceLookup(
-		1
-		ObjectProperty(0, Department)
-		LogicalValue(TRUE)
-	)
-)
-
-ExpectedResult: 
- ! Object ! 
- | 17 | 
- | 17 | 
- | 18 | 
- | 18 | 
- | 19 | 
- | 19 | 
- | 19 | 
- | 19 | 
-
-
-<NEXT>
-Description: Join using where
-QueryString: select e.FirstName, d.Name from Employee e join Department d where e.Department = d
-SingleObjectProjection: False
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Employee
-	1 = SQLTest.EmployeeDb.Department
-)
-Projection(
-	0 = 
-		StringProperty(0, FirstName)
-	1 = 
-		StringProperty(1, Name)
-)
-Join(
-	Inner
-	IndexScan(
-		0
-		__InstantiatedFrom
-		ObjectDynamicRange(
-		)
-		LogicalValue(TRUE)
-		Ascending
-	)
-	ReferenceLookup(
-		1
-		ObjectProperty(0, Department)
-		LogicalValue(TRUE)
-	)
-)
-
-ExpectedResult: 
- ! 0:String ! 1:String ! 
- | Alexey | Server | 
- | Andreas | Kernel | 
- | Åsa | Head office | 
- | Christian | Server | 
- | Erik | Kernel | 
- | per | Server | 
- | PETER | Server | 
- | Petros | Head office | 
-
-
-<NEXT>
-Description: Join using where (single object projection)
-QueryString: select d from Employee e join Department d where e.Department = d
-CompositeResultObjects: False
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Employee
-	1 = SQLTest.EmployeeDb.Department
-)
-Projection(
-	0 = 
-		ObjectThis(1)
-)
-Join(
-	Inner
-	IndexScan(
-		0
-		__InstantiatedFrom
-		ObjectDynamicRange(
-		)
-		LogicalValue(TRUE)
-		Ascending
-	)
-	ReferenceLookup(
-		1
-		ObjectProperty(0, Department)
-		LogicalValue(TRUE)
-	)
-)
-
-ExpectedResult: 
- ! Object ! 
- | 17 | 
- | 17 | 
- | 18 | 
- | 18 | 
- | 19 | 
- | 19 | 
- | 19 | 
- | 19 | 
-
-
-<NEXT>
-Description: Join of the same extent
-QueryString: select e1.FirstName, e2.FirstName from Employee e1 join Employee e2 on e1 = e2
-SingleObjectProjection: False
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Employee
-	1 = SQLTest.EmployeeDb.Employee
-)
-Projection(
-	0 = 
-		StringProperty(0, FirstName)
-	1 = 
-		StringProperty(1, FirstName)
-)
-Join(
-	Inner
-	IndexScan(
-		0
-		__InstantiatedFrom
-		ObjectDynamicRange(
-		)
-		LogicalValue(TRUE)
-		Ascending
-	)
-	ReferenceLookup(
-		1
-		ObjectThis(0)
-		LogicalValue(TRUE)
-	)
-)
-
-ExpectedResult: 
- ! 0:String ! 1:String ! 
- | Alexey | Alexey | 
- | Andreas | Andreas | 
- | Åsa | Åsa | 
- | Christian | Christian | 
- | Erik | Erik | 
- | Joachim | Joachim | 
- | per | per | 
- | PETER | PETER | 
- | Petros | Petros | 
-
-
-<NEXT>
-Description: Join of the same extent (single object projection)
-QueryString: select e2 from Employee e1 join Employee e2 on e1 = e2
-CompositeResultObjects: False
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Employee
-	1 = SQLTest.EmployeeDb.Employee
-)
-Projection(
-	0 = 
-		ObjectThis(1)
-)
-Join(
-	Inner
-	IndexScan(
-		0
-		__InstantiatedFrom
-		ObjectDynamicRange(
-		)
-		LogicalValue(TRUE)
-		Ascending
-	)
-	ReferenceLookup(
-		1
-		ObjectThis(0)
-		LogicalValue(TRUE)
-	)
-)
-
-ExpectedResult: 
- ! Object ! 
- | 23 | 
- | 24 | 
- | 25 | 
- | 26 | 
- | 27 | 
- | 28 | 
- | 30 | 
- | 31 | 
- | 32 | 
-
-
-<NEXT>
-Description: Inner join
-QueryString: select e.FirstName, d.Name from Employee e inner join Department d on e.Department = d
-SingleObjectProjection: False
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Employee
-	1 = SQLTest.EmployeeDb.Department
-)
-Projection(
-	0 = 
-		StringProperty(0, FirstName)
-	1 = 
-		StringProperty(1, Name)
-)
-Join(
-	Inner
-	IndexScan(
-		0
-		__InstantiatedFrom
-		ObjectDynamicRange(
-		)
-		LogicalValue(TRUE)
-		Ascending
-	)
-	ReferenceLookup(
-		1
-		ObjectProperty(0, Department)
-		LogicalValue(TRUE)
-	)
-)
-
-ExpectedResult: 
- ! 0:String ! 1:String ! 
- | Alexey | Server | 
- | Andreas | Kernel | 
- | Åsa | Head office | 
- | Christian | Server | 
- | Erik | Kernel | 
- | per | Server | 
- | PETER | Server | 
- | Petros | Head office | 
-
-
-<NEXT>
-Description: Inner join (single object projection)
-QueryString: select d from Employee e inner join Department d on e.Department = d
-CompositeResultObjects: False
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Employee
-	1 = SQLTest.EmployeeDb.Department
-)
-Projection(
-	0 = 
-		ObjectThis(1)
-)
-Join(
-	Inner
-	IndexScan(
-		0
-		__InstantiatedFrom
-		ObjectDynamicRange(
-		)
-		LogicalValue(TRUE)
-		Ascending
-	)
-	ReferenceLookup(
-		1
-		ObjectProperty(0, Department)
-		LogicalValue(TRUE)
-	)
-)
-
-ExpectedResult: 
- ! Object ! 
- | 17 | 
- | 17 | 
- | 18 | 
- | 18 | 
- | 19 | 
- | 19 | 
- | 19 | 
- | 19 | 
-
-
-<NEXT>
-Description: Old form of join
-QueryString: select e.FirstName, d.Name from Employee e, Department d where e.Department = d
-SingleObjectProjection: False
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Employee
-	1 = SQLTest.EmployeeDb.Department
-)
-Projection(
-	0 = 
-		StringProperty(0, FirstName)
-	1 = 
-		StringProperty(1, Name)
-)
-Join(
-	Inner
-	IndexScan(
-		0
-		__InstantiatedFrom
-		ObjectDynamicRange(
-		)
-		LogicalValue(TRUE)
-		Ascending
-	)
-	ReferenceLookup(
-		1
-		ObjectProperty(0, Department)
-		LogicalValue(TRUE)
-	)
-)
-
-ExpectedResult: 
- ! 0:String ! 1:String ! 
- | Alexey | Server | 
- | Andreas | Kernel | 
- | Åsa | Head office | 
- | Christian | Server | 
- | Erik | Kernel | 
- | per | Server | 
- | PETER | Server | 
- | Petros | Head office | 
-
-
-<NEXT>
-Description: Old form of join (single object projection)
-QueryString: select d from Employee e, Department d where e.Department = d
-CompositeResultObjects: False
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Employee
-	1 = SQLTest.EmployeeDb.Department
-)
-Projection(
-	0 = 
-		ObjectThis(1)
-)
-Join(
-	Inner
-	IndexScan(
-		0
-		__InstantiatedFrom
-		ObjectDynamicRange(
-		)
-		LogicalValue(TRUE)
-		Ascending
-	)
-	ReferenceLookup(
-		1
-		ObjectProperty(0, Department)
-		LogicalValue(TRUE)
-	)
-)
-
-ExpectedResult: 
- ! Object ! 
- | 17 | 
- | 17 | 
- | 18 | 
- | 18 | 
- | 19 | 
- | 19 | 
- | 19 | 
- | 19 | 
-
-
-<NEXT>
-Description: Unqualified field names in join
-QueryString: select FirstName, Name from Employee e join Department d on e.Department = d
-SingleObjectProjection: False
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Employee
-	1 = SQLTest.EmployeeDb.Department
-)
-Projection(
-	0 = 
-		StringProperty(0, FirstName)
-	1 = 
-		StringProperty(1, Name)
-)
-Join(
-	Inner
-	IndexScan(
-		0
-		__InstantiatedFrom
-		ObjectDynamicRange(
-		)
-		LogicalValue(TRUE)
-		Ascending
-	)
-	ReferenceLookup(
-		1
-		ObjectProperty(0, Department)
-		LogicalValue(TRUE)
-	)
-)
-
-ExpectedResult: 
- ! 0:String ! 1:String ! 
- | Alexey | Server | 
- | Andreas | Kernel | 
- | Åsa | Head office | 
- | Christian | Server | 
- | Erik | Kernel | 
- | per | Server | 
- | PETER | Server | 
- | Petros | Head office | 
-
-
-<NEXT>
-Description: Implicit joins using two path expressions
-QueryString: select e.FirstName, e.Department.Name, e.Department.Location.Name, e.Manager.FirstName, e.Manager.Department.Name, e.Manager.Department.Location.Name from Employee e where e.Department.Location = e.Manager.Department.Location
-SingleObjectProjection: False
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Employee
-	1 = SQLTest.EmployeeDb.Department
-	2 = SQLTest.EmployeeDb.Employee
-	3 = SQLTest.EmployeeDb.Department
-)
-Projection(
-	0 = 
-		StringProperty(0, FirstName)
-	1 = 
-		StringPath(
-			ObjectProperty(0, Department)
-			StringProperty(-1, Name)
-		)
-	2 = 
-		StringPath(
-			ObjectProperty(0, Department)
-			ObjectProperty(-1, Location)
-			StringProperty(-1, Name)
-		)
-	3 = 
-		StringPath(
-			ObjectProperty(0, Manager)
-			StringProperty(-1, FirstName)
-		)
-	4 = 
-		StringPath(
-			ObjectProperty(0, Manager)
-			ObjectProperty(-1, Department)
-			StringProperty(-1, Name)
-		)
-	5 = 
-		StringPath(
-			ObjectProperty(0, Manager)
-			ObjectProperty(-1, Department)
-			ObjectProperty(-1, Location)
-			StringProperty(-1, Name)
-		)
-)
-Join(
-	Inner
-	Join(
-		Inner
-		Join(
-			Inner
-			IndexScan(
-				0
-				__InstantiatedFrom
-				ObjectDynamicRange(
-				)
-				LogicalValue(TRUE)
-				Ascending
-			)
-			ReferenceLookup(
-				1
-				ObjectProperty(0, Department)
-				LogicalValue(TRUE)
-			)
-		)
-		ReferenceLookup(
-			2
-			ObjectProperty(0, Manager)
-			LogicalValue(TRUE)
-		)
-	)
-	ReferenceLookup(
-		3
-		ObjectProperty(2, Department)
-		ComparisonObject(
-			Equal
-			ObjectProperty(1, Location)
-			ObjectProperty(3, Location)
-		)
-	)
-)
-
-ExpectedResult: 
- ! 0:String ! 1:String ! 2:String ! 3:String ! 4:String ! 5:String ! 
- | Christian | Server | Stockholm | PETER | Server | Stockholm | 
- | per | Server | Stockholm | PETER | Server | Stockholm | 
- | PETER | Server | Stockholm | Åsa | Head office | Stockholm | 
- | Petros | Head office | Stockholm | Åsa | Head office | Stockholm | 
-
-
-<NEXT>
-Description: Implicit joins using two path expressions (single object projection)
-QueryString: select e.Manager.Department.Location from Employee e where e.Department.Location = e.Manager.Department.Location
-CompositeResultObjects: False
-SingleObjectPathProjection: True
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Employee
-	1 = SQLTest.EmployeeDb.Department
-	2 = SQLTest.EmployeeDb.Employee
-	3 = SQLTest.EmployeeDb.Department
-)
-Projection(
-	0 = 
-		ObjectPath(
-			ObjectProperty(0, Manager)
-			ObjectProperty(-1, Department)
-			ObjectProperty(-1, Location)
-		)
-)
-Join(
-	Inner
-	Join(
-		Inner
-		Join(
-			Inner
-			IndexScan(
-				0
-				__InstantiatedFrom
-				ObjectDynamicRange(
-				)
-				LogicalValue(TRUE)
-				Ascending
-			)
-			ReferenceLookup(
-				1
-				ObjectProperty(0, Department)
-				LogicalValue(TRUE)
-			)
-		)
-		ReferenceLookup(
-			2
-			ObjectProperty(0, Manager)
-			LogicalValue(TRUE)
-		)
-	)
-	ReferenceLookup(
-		3
-		ObjectProperty(2, Department)
-		ComparisonObject(
-			Equal
-			ObjectProperty(1, Location)
-			ObjectProperty(3, Location)
-		)
-	)
-)
-
-ExpectedResult: 
- ! Object ! 
- | 12 | 
- | 12 | 
- | 12 | 
- | 12 | 
-
-
-<NEXT>
-Description: Implicit joins using path expression and variable
-QueryString: select e.FirstName, e.Manager.FirstName, e.Manager.Department.Name, e.Manager.Department.Location.Name from Employee e where e.Manager.Department.Location = ?
-VariableValues: Object:12; 
-SingleObjectProjection: False
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Employee
-	1 = SQLTest.EmployeeDb.Employee
-	2 = SQLTest.EmployeeDb.Department
-)
-Projection(
-	0 = 
-		StringProperty(0, FirstName)
-	1 = 
-		StringPath(
-			ObjectProperty(0, Manager)
-			StringProperty(-1, FirstName)
-		)
-	2 = 
-		StringPath(
-			ObjectProperty(0, Manager)
-			ObjectProperty(-1, Department)
-			StringProperty(-1, Name)
-		)
-	3 = 
-		StringPath(
-			ObjectProperty(0, Manager)
-			ObjectProperty(-1, Department)
-			ObjectProperty(-1, Location)
-			StringProperty(-1, Name)
-		)
-)
-Join(
-	Inner
-	Join(
-		Inner
-		IndexScan(
-			0
-			__InstantiatedFrom
-			ObjectDynamicRange(
-			)
-			LogicalValue(TRUE)
-			Ascending
-		)
-		ReferenceLookup(
-			1
-			ObjectProperty(0, Manager)
-			LogicalValue(TRUE)
-		)
-	)
-	ReferenceLookup(
-		2
-		ObjectProperty(1, Department)
-		ComparisonObject(
-			Equal
-			ObjectProperty(2, Location)
-			ObjectVariable(12)
-		)
-	)
-)
-
-ExpectedResult: 
- ! 0:String ! 1:String ! 2:String ! 3:String ! 
- | Andreas | PETER | Server | Stockholm | 
- | Christian | PETER | Server | Stockholm | 
- | Erik | Åsa | Head office | Stockholm | 
- | per | PETER | Server | Stockholm | 
- | PETER | Åsa | Head office | Stockholm | 
- | Petros | Åsa | Head office | Stockholm | 
-
-
-<NEXT>
-Description: Implicit joins using path expression and variable (single object projection)
-QueryString: select e.Manager.Department.Location from Employee e where e.Manager.Department.Location = ?
-VariableValues: Object:12; 
-CompositeResultObjects: False
-SingleObjectPathProjection: True
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Employee
-	1 = SQLTest.EmployeeDb.Employee
-	2 = SQLTest.EmployeeDb.Department
-)
-Projection(
-	0 = 
-		ObjectPath(
-			ObjectProperty(0, Manager)
-			ObjectProperty(-1, Department)
-			ObjectProperty(-1, Location)
-		)
-)
-Join(
-	Inner
-	Join(
-		Inner
-		IndexScan(
-			0
-			__InstantiatedFrom
-			ObjectDynamicRange(
-			)
-			LogicalValue(TRUE)
-			Ascending
-		)
-		ReferenceLookup(
-			1
-			ObjectProperty(0, Manager)
-			LogicalValue(TRUE)
-		)
-	)
-	ReferenceLookup(
-		2
-		ObjectProperty(1, Department)
-		ComparisonObject(
-			Equal
-			ObjectProperty(2, Location)
-			ObjectVariable(12)
-		)
-	)
-)
-
-ExpectedResult: 
- ! Object ! 
- | 12 | 
- | 12 | 
- | 12 | 
- | 12 | 
- | 12 | 
- | 12 | 
-
-
-== Left outer join ==
-
-
-<NEXT>
-Description: Left join
-QueryString: select e.FirstName, d.Name from Employee e left join Department d on e.Department = d
-SingleObjectProjection: False
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Employee
-	1 = SQLTest.EmployeeDb.Department
-)
-Projection(
-	0 = 
-		StringProperty(0, FirstName)
-	1 = 
-		StringProperty(1, Name)
-)
-Join(
-	LeftOuter
-	IndexScan(
-		0
-		__InstantiatedFrom
-		ObjectDynamicRange(
-		)
-		LogicalValue(TRUE)
-		Ascending
-	)
-	ReferenceLookup(
-		1
-		ObjectProperty(0, Department)
-		LogicalValue(TRUE)
-	)
-)
-
-ExpectedResult: 
- ! 0:String ! 1:String ! 
- | Alexey | Server | 
- | Andreas | Kernel | 
- | Åsa | Head office | 
- | Christian | Server | 
- | Erik | Kernel | 
- | Joachim | <NULL> | 
- | per | Server | 
- | PETER | Server | 
- | Petros | Head office | 
-
-
-<NEXT>
-Description: Left join (single object projection)
-QueryString: select d from Employee e left join Department d on e.Department = d
-CompositeResultObjects: False
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Employee
-	1 = SQLTest.EmployeeDb.Department
-)
-Projection(
-	0 = 
-		ObjectThis(1)
-)
-Join(
-	LeftOuter
-	IndexScan(
-		0
-		__InstantiatedFrom
-		ObjectDynamicRange(
-		)
-		LogicalValue(TRUE)
-		Ascending
-	)
-	ReferenceLookup(
-		1
-		ObjectProperty(0, Department)
-		LogicalValue(TRUE)
-	)
-)
-
-ExpectedResult: 
- ! Object ! 
- | <NULL> | 
- | 17 | 
- | 17 | 
- | 18 | 
- | 18 | 
- | 19 | 
- | 19 | 
- | 19 | 
- | 19 | 
-
-
-<NEXT>
-Description: Left outer join
-QueryString: select e.FirstName, d.Name from Employee e left outer join Department d on e.Department = d
-SingleObjectProjection: False
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Employee
-	1 = SQLTest.EmployeeDb.Department
-)
-Projection(
-	0 = 
-		StringProperty(0, FirstName)
-	1 = 
-		StringProperty(1, Name)
-)
-Join(
-	LeftOuter
-	IndexScan(
-		0
-		__InstantiatedFrom
-		ObjectDynamicRange(
-		)
-		LogicalValue(TRUE)
-		Ascending
-	)
-	ReferenceLookup(
-		1
-		ObjectProperty(0, Department)
-		LogicalValue(TRUE)
-	)
-)
-
-ExpectedResult: 
- ! 0:String ! 1:String ! 
- | Alexey | Server | 
- | Andreas | Kernel | 
- | Åsa | Head office | 
- | Christian | Server | 
- | Erik | Kernel | 
- | Joachim | <NULL> | 
- | per | Server | 
- | PETER | Server | 
- | Petros | Head office | 
-
-
-<NEXT>
-Description: Left outer join (single object projection)
-QueryString: select d from Employee e left outer join Department d on e.Department = d
-CompositeResultObjects: False
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Employee
-	1 = SQLTest.EmployeeDb.Department
-)
-Projection(
-	0 = 
-		ObjectThis(1)
-)
-Join(
-	LeftOuter
-	IndexScan(
-		0
-		__InstantiatedFrom
-		ObjectDynamicRange(
-		)
-		LogicalValue(TRUE)
-		Ascending
-	)
-	ReferenceLookup(
-		1
-		ObjectProperty(0, Department)
-		LogicalValue(TRUE)
-	)
-)
-
-ExpectedResult: 
- ! Object ! 
- | <NULL> | 
- | 17 | 
- | 17 | 
- | 18 | 
- | 18 | 
- | 19 | 
- | 19 | 
- | 19 | 
- | 19 | 
-
-
-<NEXT>
-Description: Null and not NullObject should be returned
-QueryString: select e, d from Employee e left join Department d on e.Department = d
-SingleObjectProjection: False
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Employee
-	1 = SQLTest.EmployeeDb.Department
-)
-Projection(
-	0 = 
-		ObjectThis(0)
-	1 = 
-		ObjectThis(1)
-)
-Join(
-	LeftOuter
-	IndexScan(
-		0
-		__InstantiatedFrom
-		ObjectDynamicRange(
-		)
-		LogicalValue(TRUE)
-		Ascending
-	)
-	ReferenceLookup(
-		1
-		ObjectProperty(0, Department)
-		LogicalValue(TRUE)
-	)
-)
-
-ExpectedResult: 
- ! 0:Object ! 1:Object ! 
- | 23 | <NULL> | 
- | 24 | 17 | 
- | 25 | 19 | 
- | 26 | 19 | 
- | 27 | 19 | 
- | 28 | 18 | 
- | 30 | 19 | 
- | 31 | 17 | 
- | 32 | 18 | 
-
-
-<NEXT>
-Description: Null and not NullObject should be returned (single object projection)
-QueryString: select d from Employee e left join Department d on e.Department = d
-CompositeResultObjects: False
-ExpectedExecutionPlan: 
-Tables(
-	0 = SQLTest.EmployeeDb.Employee
-	1 = SQLTest.EmployeeDb.Department
-)
-Projection(
-	0 = 
-		ObjectThis(1)
-)
-Join(
-	LeftOuter
-	IndexScan(
-		0
-		__InstantiatedFrom
-		ObjectDynamicRange(
-		)
-		LogicalValue(TRUE)
-		Ascending
-	)
-	ReferenceLookup(
-		1
-		ObjectProperty(0, Department)
-		LogicalValue(TRUE)
-	)
-)
-
-ExpectedResult: 
- ! Object ! 
- | <NULL> | 
- | 17 | 
- | 17 | 
- | 18 | 
- | 18 | 
- | 19 | 
- | 19 | 
- | 19 | 
- | 19 | 
-
-
 ********************************************************************************/
 
 
@@ -16301,3 +14863,1461 @@ IncludesObjectValue: True
 ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee e where e.Manager >= object 61: Incorrect arguments of types object(SQLTest.EmployeeDb.Employee) and object(unknown) to operator greaterThanOrEqual. 
 
 
+<NEXT>
+Description: Object reference casting
+QueryString: select cast(p as SQLTest.EmployeeDb.Employee) from SQLTest.EmployeeDb.Person p
+SingleObjectPathProjection: True
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Person
+)
+Projection(
+	0 = 
+		ObjectCast(
+			ObjectThis(0)
+			SQLTest.EmployeeDb.Employee
+		)
+)
+IndexScan(
+	auto
+	0
+	FirstName
+	StringDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 66 | 
+ | 68 | 
+ | 60 | 
+ | <NULL> | 
+ | 62 | 
+ | 64 | 
+ | 59 | 
+ | <NULL> | 
+ | <NULL> | 
+ | 63 | 
+ | 61 | 
+ | 67 | 
+
+
+<NEXT>
+Description: Object reference casting first in path expression
+QueryString: select cast(p as SQLTest.EmployeeDb.Employee).Manager from SQLTest.EmployeeDb.Person p
+SingleObjectPathProjection: True
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Person
+)
+Projection(
+	0 = 
+		ObjectPath(
+			ObjectCast(
+				ObjectThis(0)
+				SQLTest.EmployeeDb.Employee
+			)
+			ObjectProperty(-1, Manager)
+		)
+)
+IndexScan(
+	auto
+	0
+	FirstName
+	StringDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | <NULL> | 
+ | <NULL> | 
+ | <NULL> | 
+ | <NULL> | 
+ | <NULL> | 
+ | 59 | 
+ | 60 | 
+ | 60 | 
+ | 60 | 
+ | 61 | 
+ | 61 | 
+ | 61 | 
+
+
+<NEXT>
+Description: Object reference casting within path expression
+QueryString: select cast(p.Father as SQLTest.EmployeeDb.Employee).Manager from SQLTest.EmployeeDb.Person p
+SingleObjectPathProjection: True
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Person
+)
+Projection(
+	0 = 
+		ObjectPath(
+			ObjectCast(
+				ObjectProperty(0, Father)
+				SQLTest.EmployeeDb.Employee
+			)
+			ObjectProperty(-1, Manager)
+		)
+)
+IndexScan(
+	auto
+	0
+	FirstName
+	StringDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | <NULL> | 
+ | <NULL> | 
+ | <NULL> | 
+ | <NULL> | 
+ | <NULL> | 
+ | <NULL> | 
+ | <NULL> | 
+ | <NULL> | 
+ | <NULL> | 
+ | <NULL> | 
+ | <NULL> | 
+ | 60 | 
+
+
+<NEXT>
+Description: Multiple Object reference castings
+QueryString: select cast(cast(p as SQLTest.EmployeeDb.Employee).Manager as SQLTest.EmployeeDb.Person).Father from SQLTest.EmployeeDb.Person p
+SingleObjectPathProjection: True
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Person
+)
+Projection(
+	0 = 
+		ObjectPath(
+			ObjectCast(
+				ObjectThis(0)
+				SQLTest.EmployeeDb.Employee
+			)
+			ObjectCast(
+				ObjectProperty(-1, Manager)
+				SQLTest.EmployeeDb.Person
+			)
+			ObjectProperty(-1, Father)
+		)
+)
+IndexScan(
+	auto
+	0
+	FirstName
+	StringDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | <NULL> | 
+ | <NULL> | 
+ | <NULL> | 
+ | <NULL> | 
+ | <NULL> | 
+ | <NULL> | 
+ | <NULL> | 
+ | <NULL> | 
+ | <NULL> | 
+ | 58 | 
+ | 58 | 
+ | 58 | 
+
+
+<NEXT>
+Description: Object reference casting with asterisk
+QueryString: select cast(p as SQLTest.EmployeeDb.Employee).* from SQLTest.EmployeeDb.Person p
+SingleObjectProjection: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Person
+)
+Projection(
+	0 = 
+		StringPath(
+			ObjectCast(
+				ObjectThis(0)
+				SQLTest.EmployeeDb.Employee
+			)
+			StringProperty(-1, FirstName)
+		)
+	1 = 
+		StringPath(
+			ObjectCast(
+				ObjectThis(0)
+				SQLTest.EmployeeDb.Employee
+			)
+			StringProperty(-1, LastName)
+		)
+	2 = 
+		ObjectPath(
+			ObjectCast(
+				ObjectThis(0)
+				SQLTest.EmployeeDb.Employee
+			)
+			ObjectProperty(-1, Home)
+		)
+	3 = 
+		ObjectPath(
+			ObjectCast(
+				ObjectThis(0)
+				SQLTest.EmployeeDb.Employee
+			)
+			ObjectProperty(-1, Father)
+		)
+	4 = 
+		DateTimePath(
+			ObjectCast(
+				ObjectThis(0)
+				SQLTest.EmployeeDb.Employee
+			)
+			DateTimeProperty(-1, HireDate)
+		)
+	5 = 
+		DateTimePath(
+			ObjectCast(
+				ObjectThis(0)
+				SQLTest.EmployeeDb.Employee
+			)
+			DateTimeProperty(-1, NHireDate)
+		)
+	6 = 
+		ObjectPath(
+			ObjectCast(
+				ObjectThis(0)
+				SQLTest.EmployeeDb.Employee
+			)
+			ObjectProperty(-1, Manager)
+		)
+	7 = 
+		ObjectPath(
+			ObjectCast(
+				ObjectThis(0)
+				SQLTest.EmployeeDb.Employee
+			)
+			ObjectProperty(-1, Department)
+		)
+)
+IndexScan(
+	auto
+	0
+	FirstName
+	StringDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! 0:String ! 1:String ! 2:Object ! 3:Object ! 4:DateTime ! 5:DateTime ! 6:Object ! 7:Object ! 
+ | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | 
+ | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | 
+ | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | <NULL> | 
+ | Alexey | Moiseenko | 52 | <NULL> | 2010-09-01 00:00:00Z | <NULL> | <NULL> | 55 | 
+ | Andreas | Thyrhaug | <NULL> | <NULL> | 2010-12-13 00:00:00Z | 2010-12-13 00:00:00Z | 61 | 54 | 
+ | Åsa | Holmström | 50 | <NULL> | 2009-12-01 00:00:00Z | 2009-12-01 00:00:00Z | 59 | 53 | 
+ | Christian | Holmstrand | 49 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 61 | 55 | 
+ | Erik | Ohlsson | 51 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 60 | 54 | 
+ | Joachim | Wester | 47 | <NULL> | 2003-01-01 00:00:00Z | <NULL> | <NULL> | <NULL> | 
+ | per | Samuelsson | 48 | <NULL> | 2003-01-01 00:00:00Z | 2003-01-01 00:00:00Z | 61 | 55 | 
+ | PETER | <NULL> | 48 | 58 | 2005-10-01 00:00:00Z | 2005-10-01 00:00:00Z | 60 | 55 | 
+ | Petros | <NULL> | <NULL> | <NULL> | 2010-10-01 00:00:00Z | 2010-10-01 00:00:00Z | 60 | 53 | 
+
+
+<NEXT>
+Description: Implicit joins using path expression with cast
+QueryString: select p.FirstName, p.Father.FirstName, cast(p.Father as Employee).Department.Name from SQLTest.EmployeeDb.Person p where cast(p.Father as Employee).Department.Name = 'Server'
+SingleObjectProjection: False
+IncludesLiteral: True
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Person
+	1 = SQLTest.EmployeeDb.Person
+	2 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		StringProperty(0, FirstName)
+	1 = 
+		StringPath(
+			ObjectProperty(0, Father)
+			StringProperty(-1, FirstName)
+		)
+	2 = 
+		StringPath(
+			ObjectCast(
+				ObjectProperty(0, Father)
+				SQLTest.EmployeeDb.Employee
+			)
+			ObjectProperty(-1, Department)
+			StringProperty(-1, Name)
+		)
+)
+Join(
+	Inner
+	Join(
+		Inner
+		IndexScan(
+			auto
+			0
+			FirstName
+			StringDynamicRange(
+			)
+			LogicalValue(TRUE)
+			Ascending
+		)
+		ReferenceLookup(
+			1
+			ObjectProperty(0, Father)
+			LogicalValue(TRUE)
+		)
+	)
+	ReferenceLookup(
+		2
+		ObjectPath(
+			ObjectCast(
+				ObjectThis(1)
+				SQLTest.EmployeeDb.Employee
+			)
+			ObjectProperty(-1, Department)
+		)
+		ComparisonString(
+			Equal
+			StringProperty(2, Name)
+			StringLiteral(Server)
+		)
+	)
+)
+
+ExpectedResult: 
+ ! 0:String ! 1:String ! 2:String ! 
+ | Lovisa | PETER | Server | 
+
+
+<NEXT>
+Description: Implicit joins using path expression with cast (single object projection)
+QueryString: select cast(p.Father as Employee).Department from SQLTest.EmployeeDb.Person p where cast(p.Father as Employee).Department.Name = 'Server'
+CompositeResultObjects: False
+SingleObjectPathProjection: True
+IncludesLiteral: True
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Person
+	1 = SQLTest.EmployeeDb.Person
+	2 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		ObjectPath(
+			ObjectCast(
+				ObjectProperty(0, Father)
+				SQLTest.EmployeeDb.Employee
+			)
+			ObjectProperty(-1, Department)
+		)
+)
+Join(
+	Inner
+	Join(
+		Inner
+		IndexScan(
+			auto
+			0
+			FirstName
+			StringDynamicRange(
+			)
+			LogicalValue(TRUE)
+			Ascending
+		)
+		ReferenceLookup(
+			1
+			ObjectProperty(0, Father)
+			LogicalValue(TRUE)
+		)
+	)
+	ReferenceLookup(
+		2
+		ObjectPath(
+			ObjectCast(
+				ObjectThis(1)
+				SQLTest.EmployeeDb.Employee
+			)
+			ObjectProperty(-1, Department)
+		)
+		ComparisonString(
+			Equal
+			StringProperty(2, Name)
+			StringLiteral(Server)
+		)
+	)
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 55 | 
+
+
+== Inner join ==
+
+
+<NEXT>
+Description: Join using on
+QueryString: select e.FirstName, d.Name from Employee e join Department d on e.Department = d
+SingleObjectProjection: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		StringProperty(0, FirstName)
+	1 = 
+		StringProperty(1, Name)
+)
+Join(
+	Inner
+	IndexScan(
+		auto
+		0
+		FirstName
+		StringDynamicRange(
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	ReferenceLookup(
+		1
+		ObjectProperty(0, Department)
+		LogicalValue(TRUE)
+	)
+)
+
+ExpectedResult: 
+ ! 0:String ! 1:String ! 
+ | Alexey | Server | 
+ | Andreas | Kernel | 
+ | Åsa | Head office | 
+ | Christian | Server | 
+ | Erik | Kernel | 
+ | per | Server | 
+ | PETER | Server | 
+ | Petros | Head office | 
+
+
+<NEXT>
+Description: Join using on (single object projection)
+QueryString: select d from Employee e join Department d on e.Department = d
+CompositeResultObjects: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		ObjectThis(1)
+)
+Join(
+	Inner
+	IndexScan(
+		auto
+		0
+		FirstName
+		StringDynamicRange(
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	ReferenceLookup(
+		1
+		ObjectProperty(0, Department)
+		LogicalValue(TRUE)
+	)
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 53 | 
+ | 53 | 
+ | 54 | 
+ | 54 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+
+
+<NEXT>
+Description: Join using where
+QueryString: select e.FirstName, d.Name from Employee e join Department d where e.Department = d
+SingleObjectProjection: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		StringProperty(0, FirstName)
+	1 = 
+		StringProperty(1, Name)
+)
+Join(
+	Inner
+	IndexScan(
+		auto
+		0
+		FirstName
+		StringDynamicRange(
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	ReferenceLookup(
+		1
+		ObjectProperty(0, Department)
+		LogicalValue(TRUE)
+	)
+)
+
+ExpectedResult: 
+ ! 0:String ! 1:String ! 
+ | Alexey | Server | 
+ | Andreas | Kernel | 
+ | Åsa | Head office | 
+ | Christian | Server | 
+ | Erik | Kernel | 
+ | per | Server | 
+ | PETER | Server | 
+ | Petros | Head office | 
+
+
+<NEXT>
+Description: Join using where (single object projection)
+QueryString: select d from Employee e join Department d where e.Department = d
+CompositeResultObjects: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		ObjectThis(1)
+)
+Join(
+	Inner
+	IndexScan(
+		auto
+		0
+		FirstName
+		StringDynamicRange(
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	ReferenceLookup(
+		1
+		ObjectProperty(0, Department)
+		LogicalValue(TRUE)
+	)
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 53 | 
+ | 53 | 
+ | 54 | 
+ | 54 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+
+
+<NEXT>
+Description: Join of the same extent
+QueryString: select e1.FirstName, e2.FirstName from Employee e1 join Employee e2 on e1 = e2
+SingleObjectProjection: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Employee
+)
+Projection(
+	0 = 
+		StringProperty(0, FirstName)
+	1 = 
+		StringProperty(1, FirstName)
+)
+Join(
+	Inner
+	IndexScan(
+		auto
+		0
+		FirstName
+		StringDynamicRange(
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	ReferenceLookup(
+		1
+		ObjectThis(0)
+		LogicalValue(TRUE)
+	)
+)
+
+ExpectedResult: 
+ ! 0:String ! 1:String ! 
+ | Alexey | Alexey | 
+ | Andreas | Andreas | 
+ | Åsa | Åsa | 
+ | Christian | Christian | 
+ | Erik | Erik | 
+ | Joachim | Joachim | 
+ | per | per | 
+ | PETER | PETER | 
+ | Petros | Petros | 
+
+
+<NEXT>
+Description: Join of the same extent (single object projection)
+QueryString: select e2 from Employee e1 join Employee e2 on e1 = e2
+CompositeResultObjects: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Employee
+)
+Projection(
+	0 = 
+		ObjectThis(1)
+)
+Join(
+	Inner
+	IndexScan(
+		auto
+		0
+		FirstName
+		StringDynamicRange(
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	ReferenceLookup(
+		1
+		ObjectThis(0)
+		LogicalValue(TRUE)
+	)
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 59 | 
+ | 60 | 
+ | 61 | 
+ | 62 | 
+ | 63 | 
+ | 64 | 
+ | 66 | 
+ | 67 | 
+ | 68 | 
+
+
+<NEXT>
+Description: Inner join
+QueryString: select e.FirstName, d.Name from Employee e inner join Department d on e.Department = d
+SingleObjectProjection: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		StringProperty(0, FirstName)
+	1 = 
+		StringProperty(1, Name)
+)
+Join(
+	Inner
+	IndexScan(
+		auto
+		0
+		FirstName
+		StringDynamicRange(
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	ReferenceLookup(
+		1
+		ObjectProperty(0, Department)
+		LogicalValue(TRUE)
+	)
+)
+
+ExpectedResult: 
+ ! 0:String ! 1:String ! 
+ | Alexey | Server | 
+ | Andreas | Kernel | 
+ | Åsa | Head office | 
+ | Christian | Server | 
+ | Erik | Kernel | 
+ | per | Server | 
+ | PETER | Server | 
+ | Petros | Head office | 
+
+
+<NEXT>
+Description: Inner join (single object projection)
+QueryString: select d from Employee e inner join Department d on e.Department = d
+CompositeResultObjects: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		ObjectThis(1)
+)
+Join(
+	Inner
+	IndexScan(
+		auto
+		0
+		FirstName
+		StringDynamicRange(
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	ReferenceLookup(
+		1
+		ObjectProperty(0, Department)
+		LogicalValue(TRUE)
+	)
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 53 | 
+ | 53 | 
+ | 54 | 
+ | 54 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+
+
+<NEXT>
+Description: Old form of join
+QueryString: select e.FirstName, d.Name from Employee e, Department d where e.Department = d
+SingleObjectProjection: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		StringProperty(0, FirstName)
+	1 = 
+		StringProperty(1, Name)
+)
+Join(
+	Inner
+	IndexScan(
+		auto
+		0
+		FirstName
+		StringDynamicRange(
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	ReferenceLookup(
+		1
+		ObjectProperty(0, Department)
+		LogicalValue(TRUE)
+	)
+)
+
+ExpectedResult: 
+ ! 0:String ! 1:String ! 
+ | Alexey | Server | 
+ | Andreas | Kernel | 
+ | Åsa | Head office | 
+ | Christian | Server | 
+ | Erik | Kernel | 
+ | per | Server | 
+ | PETER | Server | 
+ | Petros | Head office | 
+
+
+<NEXT>
+Description: Old form of join (single object projection)
+QueryString: select d from Employee e, Department d where e.Department = d
+CompositeResultObjects: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		ObjectThis(1)
+)
+Join(
+	Inner
+	IndexScan(
+		auto
+		0
+		FirstName
+		StringDynamicRange(
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	ReferenceLookup(
+		1
+		ObjectProperty(0, Department)
+		LogicalValue(TRUE)
+	)
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 53 | 
+ | 53 | 
+ | 54 | 
+ | 54 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+
+
+<NEXT>
+Description: Unqualified field names in join
+QueryString: select FirstName, Name from Employee e join Department d on e.Department = d
+SingleObjectProjection: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		StringProperty(0, FirstName)
+	1 = 
+		StringProperty(1, Name)
+)
+Join(
+	Inner
+	IndexScan(
+		auto
+		0
+		FirstName
+		StringDynamicRange(
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	ReferenceLookup(
+		1
+		ObjectProperty(0, Department)
+		LogicalValue(TRUE)
+	)
+)
+
+ExpectedResult: 
+ ! 0:String ! 1:String ! 
+ | Alexey | Server | 
+ | Andreas | Kernel | 
+ | Åsa | Head office | 
+ | Christian | Server | 
+ | Erik | Kernel | 
+ | per | Server | 
+ | PETER | Server | 
+ | Petros | Head office | 
+
+
+<NEXT>
+Description: Implicit joins using two path expressions
+QueryString: select e.FirstName, e.Department.Name, e.Department.Location.Name, e.Manager.FirstName, e.Manager.Department.Name, e.Manager.Department.Location.Name from Employee e where e.Department.Location = e.Manager.Department.Location
+SingleObjectProjection: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
+	2 = SQLTest.EmployeeDb.Employee
+	3 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		StringProperty(0, FirstName)
+	1 = 
+		StringPath(
+			ObjectProperty(0, Department)
+			StringProperty(-1, Name)
+		)
+	2 = 
+		StringPath(
+			ObjectProperty(0, Department)
+			ObjectProperty(-1, Location)
+			StringProperty(-1, Name)
+		)
+	3 = 
+		StringPath(
+			ObjectProperty(0, Manager)
+			StringProperty(-1, FirstName)
+		)
+	4 = 
+		StringPath(
+			ObjectProperty(0, Manager)
+			ObjectProperty(-1, Department)
+			StringProperty(-1, Name)
+		)
+	5 = 
+		StringPath(
+			ObjectProperty(0, Manager)
+			ObjectProperty(-1, Department)
+			ObjectProperty(-1, Location)
+			StringProperty(-1, Name)
+		)
+)
+Join(
+	Inner
+	Join(
+		Inner
+		Join(
+			Inner
+			IndexScan(
+				auto
+				0
+				FirstName
+				StringDynamicRange(
+				)
+				LogicalValue(TRUE)
+				Ascending
+			)
+			ReferenceLookup(
+				1
+				ObjectProperty(0, Department)
+				LogicalValue(TRUE)
+			)
+		)
+		ReferenceLookup(
+			2
+			ObjectProperty(0, Manager)
+			LogicalValue(TRUE)
+		)
+	)
+	ReferenceLookup(
+		3
+		ObjectProperty(2, Department)
+		ComparisonObject(
+			Equal
+			ObjectProperty(1, Location)
+			ObjectProperty(3, Location)
+		)
+	)
+)
+
+ExpectedResult: 
+ ! 0:String ! 1:String ! 2:String ! 3:String ! 4:String ! 5:String ! 
+ | Christian | Server | Stockholm | PETER | Server | Stockholm | 
+ | per | Server | Stockholm | PETER | Server | Stockholm | 
+ | PETER | Server | Stockholm | Åsa | Head office | Stockholm | 
+ | Petros | Head office | Stockholm | Åsa | Head office | Stockholm | 
+
+
+<NEXT>
+Description: Implicit joins using two path expressions (single object projection)
+QueryString: select e.Manager.Department.Location from Employee e where e.Department.Location = e.Manager.Department.Location
+CompositeResultObjects: False
+SingleObjectPathProjection: True
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
+	2 = SQLTest.EmployeeDb.Employee
+	3 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		ObjectPath(
+			ObjectProperty(0, Manager)
+			ObjectProperty(-1, Department)
+			ObjectProperty(-1, Location)
+		)
+)
+Join(
+	Inner
+	Join(
+		Inner
+		Join(
+			Inner
+			IndexScan(
+				auto
+				0
+				FirstName
+				StringDynamicRange(
+				)
+				LogicalValue(TRUE)
+				Ascending
+			)
+			ReferenceLookup(
+				1
+				ObjectProperty(0, Department)
+				LogicalValue(TRUE)
+			)
+		)
+		ReferenceLookup(
+			2
+			ObjectProperty(0, Manager)
+			LogicalValue(TRUE)
+		)
+	)
+	ReferenceLookup(
+		3
+		ObjectProperty(2, Department)
+		ComparisonObject(
+			Equal
+			ObjectProperty(1, Location)
+			ObjectProperty(3, Location)
+		)
+	)
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 48 | 
+ | 48 | 
+ | 48 | 
+ | 48 | 
+
+
+<NEXT>
+Description: Implicit joins using path expression and variable
+QueryString: select e.FirstName, e.Manager.FirstName, e.Manager.Department.Name, e.Manager.Department.Location.Name from Employee e where e.Manager.Department.Location = ?
+VariableValues: Object:48; 
+SingleObjectProjection: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Employee
+	2 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		StringProperty(0, FirstName)
+	1 = 
+		StringPath(
+			ObjectProperty(0, Manager)
+			StringProperty(-1, FirstName)
+		)
+	2 = 
+		StringPath(
+			ObjectProperty(0, Manager)
+			ObjectProperty(-1, Department)
+			StringProperty(-1, Name)
+		)
+	3 = 
+		StringPath(
+			ObjectProperty(0, Manager)
+			ObjectProperty(-1, Department)
+			ObjectProperty(-1, Location)
+			StringProperty(-1, Name)
+		)
+)
+Join(
+	Inner
+	Join(
+		Inner
+		IndexScan(
+			auto
+			0
+			FirstName
+			StringDynamicRange(
+			)
+			LogicalValue(TRUE)
+			Ascending
+		)
+		ReferenceLookup(
+			1
+			ObjectProperty(0, Manager)
+			LogicalValue(TRUE)
+		)
+	)
+	ReferenceLookup(
+		2
+		ObjectProperty(1, Department)
+		ComparisonObject(
+			Equal
+			ObjectProperty(2, Location)
+			ObjectVariable(48)
+		)
+	)
+)
+
+ExpectedResult: 
+ ! 0:String ! 1:String ! 2:String ! 3:String ! 
+ | Andreas | PETER | Server | Stockholm | 
+ | Christian | PETER | Server | Stockholm | 
+ | Erik | Åsa | Head office | Stockholm | 
+ | per | PETER | Server | Stockholm | 
+ | PETER | Åsa | Head office | Stockholm | 
+ | Petros | Åsa | Head office | Stockholm | 
+
+
+<NEXT>
+Description: Implicit joins using path expression and variable (single object projection)
+QueryString: select e.Manager.Department.Location from Employee e where e.Manager.Department.Location = ?
+VariableValues: Object:48; 
+CompositeResultObjects: False
+SingleObjectPathProjection: True
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Employee
+	2 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		ObjectPath(
+			ObjectProperty(0, Manager)
+			ObjectProperty(-1, Department)
+			ObjectProperty(-1, Location)
+		)
+)
+Join(
+	Inner
+	Join(
+		Inner
+		IndexScan(
+			auto
+			0
+			FirstName
+			StringDynamicRange(
+			)
+			LogicalValue(TRUE)
+			Ascending
+		)
+		ReferenceLookup(
+			1
+			ObjectProperty(0, Manager)
+			LogicalValue(TRUE)
+		)
+	)
+	ReferenceLookup(
+		2
+		ObjectProperty(1, Department)
+		ComparisonObject(
+			Equal
+			ObjectProperty(2, Location)
+			ObjectVariable(48)
+		)
+	)
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 48 | 
+ | 48 | 
+ | 48 | 
+ | 48 | 
+ | 48 | 
+ | 48 | 
+
+
+<NEXT>
+Description: Left join
+QueryString: select e.FirstName, d.Name from Employee e left join Department d on e.Department = d
+SingleObjectProjection: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		StringProperty(0, FirstName)
+	1 = 
+		StringProperty(1, Name)
+)
+Join(
+	LeftOuter
+	IndexScan(
+		auto
+		0
+		FirstName
+		StringDynamicRange(
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	ReferenceLookup(
+		1
+		ObjectProperty(0, Department)
+		LogicalValue(TRUE)
+	)
+)
+
+ExpectedResult: 
+ ! 0:String ! 1:String ! 
+ | Alexey | Server | 
+ | Andreas | Kernel | 
+ | Åsa | Head office | 
+ | Christian | Server | 
+ | Erik | Kernel | 
+ | Joachim | <NULL> | 
+ | per | Server | 
+ | PETER | Server | 
+ | Petros | Head office | 
+
+
+<NEXT>
+Description: Left join (single object projection)
+QueryString: select d from Employee e left join Department d on e.Department = d
+CompositeResultObjects: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		ObjectThis(1)
+)
+Join(
+	LeftOuter
+	IndexScan(
+		auto
+		0
+		FirstName
+		StringDynamicRange(
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	ReferenceLookup(
+		1
+		ObjectProperty(0, Department)
+		LogicalValue(TRUE)
+	)
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | <NULL> | 
+ | 53 | 
+ | 53 | 
+ | 54 | 
+ | 54 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+
+
+<NEXT>
+Description: Left outer join
+QueryString: select e.FirstName, d.Name from Employee e left outer join Department d on e.Department = d
+SingleObjectProjection: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		StringProperty(0, FirstName)
+	1 = 
+		StringProperty(1, Name)
+)
+Join(
+	LeftOuter
+	IndexScan(
+		auto
+		0
+		FirstName
+		StringDynamicRange(
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	ReferenceLookup(
+		1
+		ObjectProperty(0, Department)
+		LogicalValue(TRUE)
+	)
+)
+
+ExpectedResult: 
+ ! 0:String ! 1:String ! 
+ | Alexey | Server | 
+ | Andreas | Kernel | 
+ | Åsa | Head office | 
+ | Christian | Server | 
+ | Erik | Kernel | 
+ | Joachim | <NULL> | 
+ | per | Server | 
+ | PETER | Server | 
+ | Petros | Head office | 
+
+
+<NEXT>
+Description: Left outer join (single object projection)
+QueryString: select d from Employee e left outer join Department d on e.Department = d
+CompositeResultObjects: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		ObjectThis(1)
+)
+Join(
+	LeftOuter
+	IndexScan(
+		auto
+		0
+		FirstName
+		StringDynamicRange(
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	ReferenceLookup(
+		1
+		ObjectProperty(0, Department)
+		LogicalValue(TRUE)
+	)
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | <NULL> | 
+ | 53 | 
+ | 53 | 
+ | 54 | 
+ | 54 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+
+
+<NEXT>
+Description: Null and not NullObject should be returned
+QueryString: select e, d from Employee e left join Department d on e.Department = d
+SingleObjectProjection: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+	1 = 
+		ObjectThis(1)
+)
+Join(
+	LeftOuter
+	IndexScan(
+		auto
+		0
+		FirstName
+		StringDynamicRange(
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	ReferenceLookup(
+		1
+		ObjectProperty(0, Department)
+		LogicalValue(TRUE)
+	)
+)
+
+ExpectedResult: 
+ ! 0:Object ! 1:Object ! 
+ | 59 | <NULL> | 
+ | 60 | 53 | 
+ | 61 | 55 | 
+ | 62 | 55 | 
+ | 63 | 55 | 
+ | 64 | 54 | 
+ | 66 | 55 | 
+ | 67 | 53 | 
+ | 68 | 54 | 
+
+
+<NEXT>
+Description: Null and not NullObject should be returned (single object projection)
+QueryString: select d from Employee e left join Department d on e.Department = d
+CompositeResultObjects: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		ObjectThis(1)
+)
+Join(
+	LeftOuter
+	IndexScan(
+		auto
+		0
+		FirstName
+		StringDynamicRange(
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	ReferenceLookup(
+		1
+		ObjectProperty(0, Department)
+		LogicalValue(TRUE)
+	)
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | <NULL> | 
+ | 53 | 
+ | 53 | 
+ | 54 | 
+ | 54 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 
+ | 55 | 

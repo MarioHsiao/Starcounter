@@ -299,10 +299,15 @@ namespace Starcounter.Server {
             args.AppendFormat(" --OutputDir \"{0}\"", database.Server.Configuration.LogDirectory);
             args.AppendFormat(" --TempDir \"{0}\"", database.Configuration.Runtime.TempDirectory);
             args.AppendFormat(" --CompilerPath \"{0}\"", this.MinGWCompilerPath);
+            
             if (startWithNoDb) {
                 args.Append(" --FLAG:NoDb");
             }
-            args.Append(" --FLAG:NoNetworkGateway");
+            // args.Append(" --FLAG:NoNetworkGateway");
+
+            if (database.Configuration.Runtime.SchedulerCount.HasValue) {
+                args.AppendFormat(" --SchedulerCount {0}", database.Configuration.Runtime.SchedulerCount.Value);
+            }
             
             processStart = new ProcessStartInfo(this.WorkerProcessExePath, args.ToString().Trim());
             processStart.CreateNoWindow = true;

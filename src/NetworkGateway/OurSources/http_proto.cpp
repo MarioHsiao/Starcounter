@@ -369,8 +369,8 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
                 http->http_request_.session_string_len_bytes_ = SC_SESSION_STRING_LEN_CHARS;
 
                 // Reading received session index (skipping session header name and equality).
-                uint32_t sessionIndex = hex_string_to_uint64(at + ScSessionIdStringLen + 1, 8);
-                if (INVALID_CONVERTED_NUMBER == sessionIndex)
+                session_index_type session_index = hex_string_to_uint64(at + ScSessionIdStringLen + 1, 8);
+                if (INVALID_CONVERTED_NUMBER == session_index)
                 {
                     GW_COUT << "Session index stored in the HTTP header has wrong format." << std::endl;
                     return 1;
@@ -388,7 +388,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
                 if (http->sd_ref_->GetAttachedSession() != NULL)
                 {
                     // Compare this session with existing one.
-                    if (!http->sd_ref_->GetAttachedSession()->Compare(randomSalt, sessionIndex))
+                    if (!http->sd_ref_->GetAttachedSession()->Compare(randomSalt, session_index))
                     {
                         GW_COUT << "Session stored in the HTTP header is wrong." << std::endl;
                         return 1;
@@ -397,8 +397,8 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
                 else
                 {
                     // Attaching to existing or creating a new session.
-                    ScSessionStruct *existingSession = g_gateway.GetSessionData(sessionIndex);
-                    if ((existingSession != NULL) && (existingSession->Compare(randomSalt, sessionIndex)))
+                    ScSessionStruct *existingSession = g_gateway.GetSessionData(session_index);
+                    if ((existingSession != NULL) && (existingSession->Compare(randomSalt, session_index)))
                     {
                         // Attaching existing session.
                         http->sd_ref_->AttachToSession(existingSession);
@@ -406,7 +406,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
                     else
                     {
 #ifdef GW_SESSIONS_DIAG
-                        GW_COUT << "Given session does not exist: " << sessionIndex << ":" << randomSalt << std::endl;
+                        GW_COUT << "Given session does not exist: " << session_index << ":" << randomSalt << std::endl;
 #endif
 
                         // Given session does not exist, dropping the connection.

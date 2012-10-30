@@ -464,12 +464,43 @@ namespace HttpStructs
         }
 
         /// <summary>
-        /// Gets the body.
+        /// Gets the body raw pointer.
         /// </summary>
-        /// <returns>String.</returns>
-        public String GetBody()
+        /// <param name="ptr">The PTR.</param>
+        /// <param name="sizeBytes">The size bytes.</param>
+        public void GetBodyRaw(out IntPtr ptr, out UInt32 sizeBytes)
         {
-            unsafe { return http_request_->GetBody(); }
+            unsafe { http_request_->GetBodyRaw(out ptr, out sizeBytes); }
+        }
+
+        /// <summary>
+        /// Gets the body as byte array.
+        /// </summary>
+        /// <returns>Body bytes.</returns>
+        public Byte[] GetBodyByteArray()
+        {
+            unsafe { return http_request_->GetBodyByteArray(); }
+        }
+
+        /// <summary>
+        /// Gets the body as UTF8 string.
+        /// </summary>
+        /// <returns>UTF8 string.</returns>
+        public String GetBodyStringUtf8()
+        {
+            unsafe { return http_request_->GetBodyStringUtf8(); }
+        }
+
+        /// <summary>
+        /// Gets the length of the body in bytes.
+        /// </summary>
+        /// <value>The length of the body.</value>
+        public UInt32 BodyLength
+        {
+            get
+            {
+                unsafe { return http_request_->body_len_bytes_; }
+            }
         }
 
         /// <summary>
@@ -488,19 +519,9 @@ namespace HttpStructs
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawRequest(out IntPtr ptr, out UInt32 sizeBytes)
+        public void GetRequestRaw(out IntPtr ptr, out UInt32 sizeBytes)
         {
-            unsafe { http_request_->GetRawRequest(out ptr, out sizeBytes); }
-        }
-
-        /// <summary>
-        /// Gets the raw body.
-        /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawBody(out IntPtr ptr, out UInt32 sizeBytes)
-        {
-            unsafe { http_request_->GetRawBody(out ptr, out sizeBytes); }
+            unsafe { http_request_->GetRequestRaw(out ptr, out sizeBytes); }
         }
 
         /// <summary>
@@ -585,18 +606,6 @@ namespace HttpStructs
             get
             {
                 unsafe { return http_request_->GetHeaderValue(name); }
-            }
-        }
-
-        /// <summary>
-        /// Gets the length of the body.
-        /// </summary>
-        /// <value>The length of the body.</value>
-        public UInt32 BodyLength
-        {
-            get
-            {
-                unsafe { return http_request_->body_len_bytes_; }
             }
         }
 
@@ -852,7 +861,7 @@ namespace HttpStructs
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawRequest(out IntPtr ptr, out UInt32 sizeBytes)
+        public void GetRequestRaw(out IntPtr ptr, out UInt32 sizeBytes)
         {
             ptr = new IntPtr(sd_ + request_offset_);
             sizeBytes = request_len_bytes_;
@@ -860,11 +869,11 @@ namespace HttpStructs
 
         // TODO: Plain big buffer!
         /// <summary>
-        /// Gets the raw body.
+        /// Gets the body raw pointer.
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawBody(out IntPtr ptr, out UInt32 sizeBytes)
+        public void GetBodyRaw(out IntPtr ptr, out UInt32 sizeBytes)
         {
             if (body_len_bytes_ <= 0) ptr = IntPtr.Zero;
             else { ptr = new IntPtr(sd_ + body_offset_); }
@@ -873,12 +882,25 @@ namespace HttpStructs
 
         // TODO: Plain big buffer!
         /// <summary>
-        /// Gets the body.
+        /// Gets the body as byte array.
         /// </summary>
-        /// <returns>String.</returns>
-        public String GetBody()
+        /// <returns>Body bytes.</returns>
+        public Byte[] GetBodyByteArray()
         {
-            return Marshal.PtrToStringAnsi((IntPtr)(sd_ + body_offset_), (Int32)body_len_bytes_);
+            Byte[] body_bytes = new Byte[(Int32)body_len_bytes_];
+            Marshal.Copy((IntPtr)(sd_ + body_offset_), body_bytes, 0, (Int32)body_len_bytes_);
+
+            return body_bytes;
+        }
+
+        // TODO: Plain big buffer!
+        /// <summary>
+        /// Gets the body as UTF8 string.
+        /// </summary>
+        /// <returns>UTF8 string.</returns>
+        public String GetBodyStringUtf8()
+        {
+            return new String((SByte*)(sd_ + body_offset_), 0, (Int32)body_len_bytes_, Encoding.UTF8);
         }
 
         /// <summary>
