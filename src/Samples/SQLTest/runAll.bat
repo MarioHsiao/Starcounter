@@ -1,4 +1,4 @@
-@ECHO OFF
+:: @ECHO OFF
 
 :: clean up the database and processes
 CMD /C kill_all.bat 2> NUL

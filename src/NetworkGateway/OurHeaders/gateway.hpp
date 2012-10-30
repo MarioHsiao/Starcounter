@@ -35,6 +35,12 @@
 namespace starcounter {
 namespace network {
 
+// Data types definitions.
+typedef uint32_t channel_chunk;
+typedef uint64_t apps_unique_session_num_type;
+typedef uint64_t session_salt_type;
+typedef uint32_t session_index_type;
+
 // Some defines, e.g. debugging, statistics, etc.
 //#define GW_GLOBAL_STATISTICS
 //#define GW_SOCKET_DIAG
@@ -96,19 +102,16 @@ const int32_t CHUNK_INDEX_SIZE = sizeof(core::chunk_index);
 const uint32_t INVALID_CHUNK_INDEX = ~0;
 
 // Bad linear session index.
-const uint32_t INVALID_SESSION_INDEX = ~0;
+const session_index_type INVALID_SESSION_INDEX = ~0;
 
 // Bad scheduler index.
 const uint32_t INVALID_SCHEDULER_ID = ~0;
 
 // Bad session salt.
-const uint64_t INVALID_SESSION_SALT = 0;
+const session_salt_type INVALID_SESSION_SALT = 0;
 
 // Invalid Apps unique number.
 const uint64_t INVALID_APPS_UNIQUE_SESSION_NUMBER = 0;
-
-// Maximum session salt during generation.
-const uint64_t MAX_SESSION_SALT = ~((uint64_t)0) - 2;
 
 // Maximum number of chunks to keep in private chunk pool
 // until we release them to shared chunk pool.
@@ -130,6 +133,9 @@ const int32_t SOCKADDR_SIZE_EXT = sizeof(sockaddr_in) + 16;
 // Maximum number of active databases.
 const int32_t MAX_ACTIVE_DATABASES = 32;
 
+// Maximum number of workers.
+const int32_t MAX_WORKER_THREADS = 32;
+
 // Maximum number of active server ports.
 const int32_t MAX_ACTIVE_SERVER_PORTS = 32;
 
@@ -149,9 +155,6 @@ const int32_t WS_BLOB_USER_DATA_OFFSET = 16;
 
 // Error code type.
 #define GW_ERR_CHECK(err_code) if (0 != err_code) return err_code
-
-// Channel chunk type.
-typedef uint32_t channel_chunk;
 
 // Printing prefixes.
 #define GW_PRINT_WORKER (GW_COUT << "[" << worker_id_ << "]: ")
@@ -453,17 +456,17 @@ public:
 struct ScSessionStruct
 {
     // Session random salt.
-    uint64_t session_salt_;
+    session_salt_type session_salt_;
 
     // Unique session linear index.
     // Points to the element in sessions linear array.
-    uint32_t session_index_;
+    session_index_type session_index_;
 
     // Scheduler ID.
     uint32_t scheduler_id_;
 
     // Unique number coming from Apps.
-    uint64_t apps_unique_session_num_;
+    apps_unique_session_num_type apps_unique_session_num_;
 
     // Default constructor.
     ScSessionStruct()
@@ -481,7 +484,11 @@ struct ScSessionStruct
     }
 
     // Initializes.
-    void Init(uint64_t session_salt, uint32_t session_index, uint64_t apps_unique_session_num, uint32_t scheduler_id)
+    void Init(
+        session_salt_type session_salt,
+        session_index_type session_index,
+        apps_unique_session_num_type apps_unique_session_num,
+        uint32_t scheduler_id)
     {
         session_salt_ = session_salt;
         session_index_ = session_index;
@@ -490,7 +497,9 @@ struct ScSessionStruct
     }
 
     // Comparing two sessions.
-    bool IsEqual(uint64_t session_salt, uint32_t session_index)
+    bool IsEqual(
+        session_salt_type session_salt,
+        session_index_type session_index)
     {
         return (session_salt_ == session_salt) && (session_index_ == session_index);
     }
@@ -529,31 +538,35 @@ struct ScSessionStruct
     }
 
     // Getting session unique salt.
-    uint64_t get_session_salt()
+    session_salt_type get_session_salt()
     {
         return session_salt_;
     }
 
     // Unique session linear index.
     // Points to the element in sessions linear array.
-    uint32_t get_session_index()
+    session_index_type get_session_index()
     {
         return session_index_;
     }
 
     // Create new session based on random salt, linear index, scheduler.
-    void GenerateNewSession(uint64_t salt, uint32_t session_index, uint64_t apps_unique_session_num, uint32_t scheduler_id);
+    void GenerateNewSession(
+        session_salt_type session_salt,
+        session_index_type session_index,
+        apps_unique_session_num_type apps_unique_session_num,
+        uint32_t scheduler_id);
 
     // Compare socket stamps of two sessions.
-    bool CompareSalts(uint64_t session_salt)
+    bool CompareSalts(session_salt_type session_salt)
     {
         return session_salt_ == session_salt;
     }
 
     // Compare two sessions.
-    bool Compare(uint64_t randomSalt, uint32_t sessionIndex)
+    bool Compare(session_salt_type session_salt, session_index_type sessionIndex)
     {
-        return IsEqual(randomSalt, sessionIndex);
+        return IsEqual(session_salt, sessionIndex);
     }
 
     // Compare two sessions.
@@ -566,7 +579,7 @@ struct ScSessionStruct
 class SocketData
 {
     // Index into existing session or INVALID_SESSION_INDEX.
-    uint32_t session_index_;
+    session_index_type session_index_;
 
     // Unique socket stamp.
     uint64_t socket_stamp_;
@@ -574,19 +587,19 @@ class SocketData
 public:
 
     // Gets sessions index.
-    uint32_t get_session_index()
+    session_index_type get_session_index()
     {
         return session_index_;
     }
 
     // Sets session index.
-    void set_session_index(uint32_t session_index)
+    void set_session_index(session_index_type session_index)
     {
         session_index_ = session_index;
     }
 
     // Gets socket stamp.
-    uint32_t get_socket_stamp()
+    uint64_t get_socket_stamp()
     {
         return socket_stamp_;
     }
@@ -635,7 +648,24 @@ class ActiveDatabase
     // Channels events monitor thread handle.
     HANDLE channels_events_thread_handle_;
 
+    // Apps session numbers.
+    apps_unique_session_num_type* apps_sessions_;
+
 public:
+
+    // Sets value for Apps specific session.
+    void SetAppsSessionValue(
+        session_index_type session_index,
+        apps_unique_session_num_type apps_session_value)
+    {
+        apps_sessions_[session_index] = apps_session_value;
+    }
+
+    // Gets value for Apps specific session.
+    apps_unique_session_num_type GetAppsSessionValue(session_index_type session_index)
+    {
+        return apps_sessions_[session_index];
+    }
 
     // Spawns channels events monitor thread.
     uint32_t SpawnChannelsEventsMonitor()
@@ -701,7 +731,7 @@ public:
     }
 
     // Closes all tracked sockets.
-    void CloseSockets();
+    void CloseSocketAndSessionData();
 
     // Tracks certain socket.
     uint32_t TrackSocket(SOCKET s)
@@ -901,7 +931,7 @@ class Gateway
     ////////////////////////
 
     // Maximum total number of sockets aka connections.
-    int32_t setting_maxConnections_;
+    int32_t setting_max_connections_;
 
     // Master node IP address.
     std::string setting_master_ip_;
@@ -968,7 +998,10 @@ class Gateway
     ScSessionStruct* all_sessions_unsafe_;
 
     // All sockets information.
-    SocketData* all_sockets_unsafe_;
+    SocketData sockets_data_unsafe_[MAX_SOCKET_HANDLE];
+
+    // Represents delete state for all sockets.
+    bool deleted_sockets_[MAX_SOCKET_HANDLE];
 
     // Free session indexes.
     uint32_t *free_session_indexes_unsafe_;
@@ -996,9 +1029,6 @@ class Gateway
     // OTHER STUFF
     ////////////////////////
 
-    // Represents delete state for all sockets.
-    bool deleted_sockets_[MAX_SOCKET_HANDLE];
-
     // Gateway handlers.
     HandlersTable* gw_handlers_;
 
@@ -1022,6 +1052,12 @@ class Gateway
 
 public:
 
+    // Getting maximum number of connections.
+    int32_t setting_max_connections()
+    {
+        return setting_max_connections_;
+    }
+
     // Getting specific worker information.
     GatewayWorker* get_worker(int32_t worker_id);
 
@@ -1031,10 +1067,12 @@ public:
         return worker_thread_handles_[worker_id];
     }
 
-    // Returning all sockets data.
-    SocketData* get_all_sockets_unsafe()
+    // Returns certain socket data.
+    SocketData* GetSocketData(SOCKET sock_number)
     {
-        return all_sockets_unsafe_;
+        assert (sock_number < MAX_SOCKET_HANDLE);
+
+        return sockets_data_unsafe_ + sock_number;
     }
 
     // Increments and gets unique socket stamp number.
@@ -1312,12 +1350,15 @@ public:
     int32_t StartGateway();
 
     // Deletes existing session.
-    uint32_t KillSession(uint32_t session_index)
+    uint32_t KillSession(session_index_type session_index)
     {
         assert(INVALID_SESSION_INDEX != session_index);
 
         // Entering the critical section.
         EnterCriticalSection(&cs_session_);
+
+        // Number of active sessions should always be correct.
+        assert(num_active_sessions_unsafe_ > 0);
 
         // Resetting the session cell.
         all_sessions_unsafe_[session_index].Reset();
@@ -1333,10 +1374,13 @@ public:
     }
 
     // Generates new global session.
-    ScSessionStruct* GenerateNewSession(uint64_t salt, uint64_t apps_unique_session_num, uint32_t scheduler_id)
+    ScSessionStruct* GenerateNewSession(
+        session_salt_type session_salt,
+        apps_unique_session_num_type apps_unique_session_num,
+        uint32_t scheduler_id)
     {
         // Checking that we have not reached maximum number of sessions.
-        if (num_active_sessions_unsafe_ >= setting_maxConnections_)
+        if (num_active_sessions_unsafe_ >= setting_max_connections_)
             return NULL;
 
         // Entering the critical section.
@@ -1347,7 +1391,7 @@ public:
 
         // Creating an instance of new unique session.
         all_sessions_unsafe_[free_session_index].GenerateNewSession(
-            salt,
+            session_salt,
             free_session_index,
             apps_unique_session_num,
             scheduler_id);
@@ -1363,14 +1407,14 @@ public:
     }
 
     // Gets session data by index.
-    ScSessionStruct* GetSessionData(uint32_t sessionIndex)
+    ScSessionStruct* GetSessionData(session_index_type session_index)
     {
         // Checking validity of linear session index.
-        if (INVALID_SESSION_INDEX == sessionIndex)
+        if (INVALID_SESSION_INDEX == session_index)
             return NULL;
 
         // Fetching the session by index.
-        return all_sessions_unsafe_ + sessionIndex;
+        return all_sessions_unsafe_ + session_index;
     }
 };
 

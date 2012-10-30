@@ -59,7 +59,7 @@ Gateway::Gateway()
     setting_is_master_ = true;
 
     // Maximum total number of sockets.
-    setting_maxConnections_ = 0;
+    setting_max_connections_ = 0;
 
     // Starcounter server type.
     setting_sc_server_type_ = "Personal";
@@ -279,7 +279,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     setting_num_workers_ = atoi(rootElem->first_node("WorkersNumber")->value());
 
     // Getting maximum connection number.
-    setting_maxConnections_ = atoi(rootElem->first_node("MaxConnections")->value());
+    setting_max_connections_ = atoi(rootElem->first_node("MaxConnections")->value());
 
     // Creating double output object.
     g_log_stream = new std::ofstream(setting_log_file_path_, std::ios::out | std::ios::app);
@@ -319,19 +319,26 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     }
 
     // Allocating data for worker sessions.
-    all_sessions_unsafe_ = new ScSessionStruct[setting_maxConnections_];
-    all_sockets_unsafe_ = new SocketData[setting_maxConnections_];
-    free_session_indexes_unsafe_ = new uint32_t[setting_maxConnections_];
+    all_sessions_unsafe_ = new ScSessionStruct[setting_max_connections_];
+    free_session_indexes_unsafe_ = new uint32_t[setting_max_connections_];
     num_active_sessions_unsafe_ = 0;
 
-    // Filling up indexes linearly.
-    for (int32_t i = 0; i < setting_maxConnections_; i++)
+    // Cleaning all sessions and free session indexes.
+    for (int32_t i = 0; i < setting_max_connections_; i++)
     {
-        all_sockets_unsafe_[i].Reset();
+        // Filling up indexes linearly.
         free_session_indexes_unsafe_[i] = i;
+
+        // Resetting all sessions.
+        all_sessions_unsafe_[i].Reset();
     }
 
+    // Cleaning all sockets data.
+    for (int32_t i = 0; i < MAX_SOCKET_HANDLE; i++)
+        sockets_data_unsafe_[i].Reset();
+
     delete [] config_contents;
+
     return 0;
 }
 
@@ -413,16 +420,17 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
     // Index of the database as parameter.
     int32_t db_index = *(int32_t*)params;
 
-    // TODO: Fix multiple workers events.
     // Determine the worker by interface or channel,
     // and wake up that worker.
-	HANDLE worker_thread_handle[256];
-	HANDLE work_events[256]; /// TODO: Choose max num clients (32)
+	HANDLE worker_thread_handle[MAX_WORKER_THREADS];
+	HANDLE work_events[MAX_WORKER_THREADS];
 	std::size_t number_of_work_events = 0;
 	core::shared_interface* db_shared_int = 0;
 	std::size_t work_event_index = 0;
 	
-	for (std::size_t worker_id = 0; worker_id < g_gateway.setting_num_workers(); ++worker_id) {
+    // Setting checking events for each worker.
+	for (std::size_t worker_id = 0; worker_id < g_gateway.setting_num_workers(); ++worker_id)
+    {
 		WorkerDbInterface* db_int = g_gateway.get_worker(worker_id)->GetDatabase(db_index);
 		db_shared_int = db_int->get_shared_int();
 
@@ -589,13 +597,23 @@ uint32_t Gateway::ScanDatabases()
 // Active database constructor.
 ActiveDatabase::ActiveDatabase()
 {
+    apps_sessions_ = NULL;
     user_handlers_ = NULL;
+
     StartDeletion();
 }
 
 // Initializes this active database slot.
 void ActiveDatabase::Init(std::string db_name, uint64_t unique_num, int32_t db_index)
 {
+    // Creating new Apps sessions up to maximum number of connections.
+    if (!apps_sessions_)
+        apps_sessions_ = new apps_unique_session_num_type[g_gateway.setting_max_connections()];
+
+    // Cleaning all Apps session numbers.
+    for (int32_t i = 0; i < g_gateway.setting_max_connections(); i++)
+        apps_sessions_[i] = INVALID_APPS_UNIQUE_SESSION_NUMBER;
+
     // Creating fresh handlers table.
     user_handlers_ = new HandlersTable();
 
@@ -640,12 +658,12 @@ void ActiveDatabase::StartDeletion()
     unique_num_ = 0;
     db_name_ = "";
 
-    // Closing all database sockets.
-    CloseSockets();
+    // Closing all database sockets/sessions data.
+    CloseSocketAndSessionData();
 }
 
 // Closes all tracked sockets.
-void ActiveDatabase::CloseSockets()
+void ActiveDatabase::CloseSocketAndSessionData()
 {
     // Checking if sockets were already closed.
     if (were_sockets_closed_)
@@ -662,6 +680,15 @@ void ActiveDatabase::CloseSockets()
         {
             // Marking deleted socket.
             g_gateway.MarkDeleteSocket(s);
+
+            // Resetting socket data.
+            SocketData* socket_data = g_gateway.GetSocketData(s);
+            session_index_type session_index = socket_data->get_session_index();
+            socket_data->Reset();
+
+            // Cleaning the associated session if any.
+            ScSessionStruct* session = g_gateway.GetSessionData(session_index);
+            if (session) session->Reset();
 
             // Closing socket which will results in Disconnect.
             if (closesocket(s))
@@ -1002,13 +1029,13 @@ uint32_t Gateway::GlobalCleanup()
 
 // Create new session based on random salt, linear index, scheduler.
 void ScSessionStruct::GenerateNewSession(
-    uint64_t salt,
-    uint32_t session_index,
-    uint64_t apps_unique_session_num,
+    session_salt_type session_salt,
+    session_index_type session_index,
+    apps_unique_session_num_type apps_unique_session_num,
     uint32_t scheduler_id)
 {
     // Initializing the new session.
-    Init(salt, session_index, apps_unique_session_num, scheduler_id);
+    Init(session_salt, session_index, apps_unique_session_num, scheduler_id);
 
 #ifdef GW_SESSIONS_DIAG
     GW_COUT << "New session generated: " << session_index_ << ":" << session_salt_ << std::endl;

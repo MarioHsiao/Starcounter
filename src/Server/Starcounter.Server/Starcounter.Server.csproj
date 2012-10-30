@@ -75,6 +75,7 @@
     <Compile Include="CoreServices\DatabaseSetup.cs" />
     <Compile Include="CoreServices\DatabaseSetupProperties.cs" />
     <Compile Include="CoreServices\DatabaseStorageService.cs" />
+    <Compile Include="CoreServices\GatewayService.cs" />
     <Compile Include="CoreServices\SharedMemoryMonitor.cs" />
     <Compile Include="CoreServices\WeaverService.cs" />
     <Compile Include="DatabaseApp.cs" />
@@ -113,6 +114,7 @@
     <Compile Include="PublicModel\Serialization.cs" />
     <Compile Include="PublicModel\ServerInfo.cs" />
     <Compile Include="PublicModel\TaskDuration.cs" />
+    <Compile Include="ServerHost.cs" />
     <Compile Include="ServerLogSources.cs" />
     <Compile Include="ServerEngine.cs" />
     <Compile Include="ServerServices.cs" />

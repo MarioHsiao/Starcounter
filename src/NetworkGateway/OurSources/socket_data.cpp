@@ -201,7 +201,7 @@ void SocketDataChunk::AttachToSession(ScSessionStruct* session)
     session_ = *session;
 
     // Attaching new session to this socket.
-    g_gateway.get_all_sockets_unsafe()[sock_].set_session_index(session_.session_index_);
+    g_gateway.GetSocketData(sock_)->set_session_index(session_.session_index_);
 }
 
 // Kills the session.
@@ -214,7 +214,7 @@ void SocketDataChunk::KillSession()
     session_.Reset();
 
     // Detaching session from corresponding socket.
-    g_gateway.get_all_sockets_unsafe()[sock_].set_session_index(session_.session_index_);
+    g_gateway.GetSocketData(sock_)->set_session_index(session_.session_index_);
 }
 
 // Resets socket session.
@@ -224,7 +224,7 @@ void SocketDataChunk::ResetSession()
     session_.Reset();
 
     // Detaching session from corresponding socket.
-    g_gateway.get_all_sockets_unsafe()[sock_].set_session_index(session_.session_index_);
+    g_gateway.GetSocketData(sock_)->set_session_index(session_.session_index_);
 }
 
 } // namespace network

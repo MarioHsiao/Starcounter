@@ -4,6 +4,8 @@ TASKKILL /f /t /im Scpmm.exe
 TASKKILL /f /t /im ScGateway.exe
 TASKKILL /f /t /im ScConnMonitor.exe
 
+TASKKILL /f /t /im StarcounterSQL.exe
+
 :: TASKKILL /f /t /im DaemonObserver.exe
 :: TASKKILL /f /t /im Postsharp*
 :: TASKKILL /f /t /im Starcounter*
