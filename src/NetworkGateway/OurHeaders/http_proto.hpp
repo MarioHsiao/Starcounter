@@ -137,8 +137,7 @@ public:
     bool Remove(HandlersList* handlers_list)
     {
         // Going through all handler list.
-        uint32_t initial_num = handler_lists_.get_num_entries();
-        for (uint32_t i = 0; i < initial_num; i++)
+        for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++)
         {
             // Checking if handlers list is the same.
             if (handler_lists_[i].get_handlers_list() == handlers_list)
@@ -165,7 +164,7 @@ public:
     int32_t FindDb(int32_t db_index)
     {
         // Going through all handler list.
-        for (uint32_t i = 0; i < handler_lists_.get_num_entries(); i++)
+        for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++)
         {
             if (handler_lists_[i].get_db_index() == db_index)
             {
@@ -180,8 +179,7 @@ public:
     bool Remove(int32_t db_index)
     {
         // Going through all handler list.
-        uint32_t initial_num = handler_lists_.get_num_entries();
-        for (uint32_t i = 0; i < initial_num; i++)
+        for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++)
         {
             // Checking if database index is the same.
             if (handler_lists_[i].get_db_index() == db_index)
@@ -236,7 +234,7 @@ public:
         uint32_t err_code;
 
         // Going through all handler list.
-        for (uint32_t i = 0; i < handler_lists_.get_num_entries(); i++)
+        for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++)
         {
             err_code = handler_lists_[i].get_handlers_list()->RunHandlers(gw, sd);
 
@@ -268,7 +266,7 @@ public:
         reg_uris_.Sort();
 
         // Going through sorted URIs and detecting same starts.
-        for (uint32_t i = 0; i < (reg_uris_.get_num_entries() - 1); i++)
+        for (int32_t i = 0; i < (reg_uris_.get_num_entries() - 1); i++)
         {
             // Checking if second URI starts with first.
             uint32_t same_chars = reg_uris_[i].StartsWith(reg_uris_[i + 1].get_uri(), reg_uris_[i + 1].get_uri_len_chars(), 0);
@@ -282,7 +280,7 @@ public:
     void Print(uint16_t port)
     {
         GW_PRINT_GLOBAL << "Port " << port << " has following URIs registered: " << std::endl;
-        for (uint32_t i = 0; i < reg_uris_.get_num_entries(); i++)
+        for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)
         {
             GW_COUT << "    \"" << reg_uris_[i].get_uri() << "\" with handlers lists: " <<
                 reg_uris_[i].GetHandlersListsNumber() << std::endl;
@@ -338,14 +336,14 @@ public:
     bool RemoveEntry(HandlersList* handlers_list)
     {
         // Going through all entries.
-        uint32_t initial_num = reg_uris_.get_num_entries();
-        for (uint32_t i = 0; i < initial_num; i++)
+        for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)
         {
             // Removing corresponding entry.
             if (reg_uris_[i].Remove(handlers_list))
             {
                 // Removing entry.
                 reg_uris_.RemoveByIndex(i);
+                --i;
             }
 
             // Checking all entries.
@@ -365,14 +363,14 @@ public:
     bool RemoveEntry(int32_t db_index)
     {
         // Going through all entries.
-        uint32_t initial_num = reg_uris_.get_num_entries();
-        for (uint32_t i = 0; i < initial_num; i++)
+        for (int32_t i = 0; i < reg_uris_.get_num_entries(); ++i)
         {
             // Removing corresponding entry.
             if (reg_uris_[i].Remove(db_index))
             {
                 // Removing entry.
                 reg_uris_.RemoveByIndex(i);
+                --i;
             }
 
             // Checking all entries.
@@ -435,7 +433,7 @@ public:
     int32_t FindRegisteredUri(char* uri, uint32_t uri_len_chars)
     {
         // Going through all entries.
-        for (uint32_t i = 0; i < reg_uris_.get_num_entries(); i++)
+        for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)
         {
             // Doing exact comparison.
             if (!strcmp(uri, reg_uris_[i].get_uri()))

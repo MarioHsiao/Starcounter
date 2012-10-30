@@ -527,7 +527,7 @@ public:
     void Print()
     {
         GW_PRINT_GLOBAL << "Port " << port_number_ << " has following handlers registered: ";
-        for (uint32_t i = 0; i < handlers_.get_num_entries(); i++)
+        for (int32_t i = 0; i < handlers_.get_num_entries(); i++)
         {
             GW_COUT << handlers_[i].GetNumberOfAttachedDbs() << ", ";
         }
@@ -550,7 +550,7 @@ public:
     bool RemoveEntry(GENERIC_HANDLER_CALLBACK handler)
     {
         // Going through all handler lists.
-        for (uint32_t i = 0; i < handlers_.get_num_entries(); ++i)
+        for (int32_t i = 0; i < handlers_.get_num_entries(); ++i)
         {
             // Checking if handler is the same.
             if (handlers_[i].get_handler() == handler)
@@ -577,14 +577,16 @@ public:
     bool RemoveEntry(int32_t db_index)
     {
         // Going through all handler lists.
-        uint32_t initial_num = handlers_.get_num_entries();
-        for (uint32_t i = 0; i < initial_num; ++i)
+        for (int32_t i = 0; i < handlers_.get_num_entries(); ++i)
         {
             if (handlers_[i].Remove(db_index))
             {
                 // Checking if there are no databases left.
                 if (handlers_[i].IsEmpty())
+                {
                     handlers_.RemoveByIndex(i);
+                    --i;
+                }
 
                 // Not stopping, going through all entries.
             }
@@ -601,7 +603,7 @@ public:
     int32_t GetEntryIndex(int32_t db_index)
     {
         // Going through all handler lists.
-        for (uint32_t i = 0; i < handlers_.get_num_entries(); ++i)
+        for (int32_t i = 0; i < handlers_.get_num_entries(); ++i)
         {
             if (handlers_[i].get_db_indexes()->Find(db_index))
             {
@@ -616,7 +618,7 @@ public:
     int32_t GetEntryIndex(GENERIC_HANDLER_CALLBACK handler)
     {
         // Going through all handler lists.
-        for (uint32_t i = 0; i < handlers_.get_num_entries(); ++i)
+        for (int32_t i = 0; i < handlers_.get_num_entries(); ++i)
         {
             if (handlers_[i].get_handler() == handler)
             {
@@ -631,7 +633,7 @@ public:
     int32_t GetEntryIndex(int32_t db_index, GENERIC_HANDLER_CALLBACK handler)
     {
         // Going through all handler lists.
-        for (uint32_t i = 0; i < handlers_.get_num_entries(); ++i)
+        for (int32_t i = 0; i < handlers_.get_num_entries(); ++i)
         {
             if ((handlers_[i].get_db_indexes()->Find(db_index)) &&
                 (handlers_[i].get_handler() == handler))
@@ -684,7 +686,7 @@ public:
         bool is_handled = false;
 
         // Going through all handler list.
-        for (uint32_t i = 0; i < handlers_.get_num_entries(); ++i)
+        for (int32_t i = 0; i < handlers_.get_num_entries(); ++i)
         {
             err_code = (handlers_[i].get_handler())(gw, sd, -1, &is_handled);
 
