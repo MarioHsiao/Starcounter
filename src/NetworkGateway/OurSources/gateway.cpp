@@ -658,12 +658,12 @@ void ActiveDatabase::StartDeletion()
     unique_num_ = 0;
     db_name_ = "";
 
-    // Closing all database sockets data.
-    CloseSocketsData();
+    // Closing all database sockets/sessions data.
+    CloseSocketAndSessionData();
 }
 
 // Closes all tracked sockets.
-void ActiveDatabase::CloseSocketsData()
+void ActiveDatabase::CloseSocketAndSessionData()
 {
     // Checking if sockets were already closed.
     if (were_sockets_closed_)
