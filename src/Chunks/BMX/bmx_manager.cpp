@@ -4,7 +4,7 @@ using namespace starcounter::bmx;
 using namespace starcounter::core;
 
 // Global BMX data structures.
-BmxData* starcounter::bmx::g_bmx_data;
+static BmxData* starcounter::bmx::g_bmx_data;
 CRITICAL_SECTION g_bmx_cs_;
 std::list<BmxData*> g_bmx_old_clones_;
 
@@ -92,12 +92,16 @@ uint32_t sc_bmx_register_port_handler(
     BMX_HANDLER_TYPE* handler_id
     )
 {
-    BmxData* g_bmx_data_copy = EnterSafeBmxManagement();
-
     // Performing operation on a copy.
+    BmxData* g_bmx_data_copy = EnterSafeBmxManagement();
     uint32_t err_code = g_bmx_data_copy->RegisterPortHandler(port, callback, handler_id);
-
     LeaveSafeBmxManagement(g_bmx_data_copy);
+
+    if (err_code)
+        return err_code;
+
+    // Pushing registered handler.
+    err_code = g_bmx_data->GetRegisteredHandler(*handler_id)->PushRegisteredPortHandler(g_bmx_data);
 
     return err_code;
 };
@@ -110,11 +114,16 @@ uint32_t sc_bmx_register_subport_handler(
     BMX_HANDLER_TYPE* handler_id
     )
 {
+    // Performing operation on a copy.
     BmxData* g_bmx_data_copy = EnterSafeBmxManagement();
-
     uint32_t err_code = g_bmx_data_copy->RegisterSubPortHandler(port, sub_port, callback, handler_id);
-
     LeaveSafeBmxManagement(g_bmx_data_copy);
+
+    if (err_code)
+        return err_code;
+
+    // Pushing registered handler.
+    err_code = g_bmx_data->GetRegisteredHandler(*handler_id)->PushRegisteredSubportHandler(g_bmx_data);
 
     return err_code;
 }
@@ -128,11 +137,16 @@ uint32_t sc_bmx_register_uri_handler(
     BMX_HANDLER_TYPE* handler_id
     )
 {
+    // Performing operation on a copy.
     BmxData* g_bmx_data_copy = EnterSafeBmxManagement();
-
     uint32_t err_code = g_bmx_data_copy->RegisterUriHandler(port, uri_string, (HTTP_METHODS)http_method, callback, handler_id);
-
     LeaveSafeBmxManagement(g_bmx_data_copy);
+
+    if (err_code)
+        return err_code;
+
+    // Pushing registered handler.
+    err_code = g_bmx_data->GetRegisteredHandler(*handler_id)->PushRegisteredUriHandler(g_bmx_data);
 
     return err_code;
 }
@@ -140,11 +154,19 @@ uint32_t sc_bmx_register_uri_handler(
 // Unregisters a handler.
 uint32_t sc_bmx_unregister_handler(BMX_HANDLER_TYPE handler_id)
 {
+    bool is_empty_handler;
+
+    // Performing operation on a copy.
     BmxData* g_bmx_data_copy = EnterSafeBmxManagement();
-
-    uint32_t err_code = g_bmx_data_copy->UnregisterHandler(handler_id);
-
+    uint32_t err_code = g_bmx_data_copy->UnregisterHandler(handler_id, &is_empty_handler);
     LeaveSafeBmxManagement(g_bmx_data_copy);
+
+    if (err_code)
+        return err_code;
+
+    // Pushing notification to the client if handler is empty.
+    if (is_empty_handler)
+        err_code = g_bmx_data->PushHandlerUnregistration(handler_id);
 
     return err_code;
 }
@@ -260,17 +282,11 @@ uint32_t starcounter::bmx::OnIncomingBmxMessage(
 
         case BMX_REGISTER_PUSH_CHANNEL:
         {
-            // Entering critical section.
-            EnterCriticalSection(&g_bmx_cs_);
-
             //std::cout << "Received chunk: " << task_info->chunk_index << " on scheduler: " << (int32_t)task_info->scheduler_number << std::endl;
             //std::cout << "Received BMX_REGISTER_PUSH_CHANNEL." << std::endl;
 
             // Calling push channel registration.
             err_code = g_bmx_data->SendRegisterPushChannelResponse(smc, task_info);
-
-            // Entering critical section.
-            LeaveCriticalSection(&g_bmx_cs_);
 
             //std::cout << "Left critical section." << std::endl;
 
@@ -282,16 +298,11 @@ uint32_t starcounter::bmx::OnIncomingBmxMessage(
 
         case BMX_SEND_ALL_HANDLERS:
         {
-            // Entering critical section.
-            EnterCriticalSection(&g_bmx_cs_);
-
             //std::cout << "Received chunk: " << task_info->chunk_index << " on scheduler: " << (int32_t)task_info->scheduler_number << std::endl;
             //std::cout << "Received BMX_SEND_ALL_HANDLERS." << std::endl;
 
+            // Sending all currently registered handlers to gateway.
             err_code = g_bmx_data->SendAllHandlersInfo(smc, task_info);
-
-            // Entering critical section.
-            LeaveCriticalSection(&g_bmx_cs_);
 
             //std::cout << "Left critical section." << std::endl;
 
