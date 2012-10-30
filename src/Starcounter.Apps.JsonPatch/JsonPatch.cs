@@ -106,7 +106,7 @@ namespace Starcounter.Internal.JsonPatch {
         /// Evaluates the patches.
         /// </summary>
         /// <param name="body">The body.</param>
-        public static void EvaluatePatches(String body) {
+        public static void EvaluatePatches(byte[] body) {
             Byte[] contentArr;
             Byte current;
             Int32 bracketCount;
@@ -116,7 +116,7 @@ namespace Starcounter.Internal.JsonPatch {
             Byte[] value = null;
 
             bracketCount = 0;
-            contentArr = Encoding.UTF8.GetBytes(body);
+            contentArr = body;
 
             Int32 offset = 0;
             while (offset < contentArr.Length) {
@@ -196,7 +196,6 @@ namespace Starcounter.Internal.JsonPatch {
             Byte[] ret = new Byte[length];
             Buffer.BlockCopy(contentArr, start, ret, 0, length);
             value = ret;
-            //            value = Encoding.UTF8.GetString(contentArr, start, length);
             return offset;
         }
 
