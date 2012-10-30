@@ -32,3 +32,5 @@ src/Starcounter.ErrorCodes/scerrres/scerrres.h
 src/Starcounter.SqlParser/Parser/gram.c
 src/Starcounter.SqlParser/Parser/gram.h
 src/Starcounter.SqlParser/Parser/scan.c
+
+*.output
