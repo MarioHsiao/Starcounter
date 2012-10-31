@@ -17,6 +17,7 @@ namespace Sc.Query.RawParserAnalyzer
             ListCell* curCell = extent->namespaces->head;
             while (curCell != null) {
                 name += new String(((Value*)curCell->data.ptr_value)->val.str);
+                name += '.';
                 curCell = curCell->next;
             }
             return name + new String(extent->relname);
@@ -29,8 +30,8 @@ namespace Sc.Query.RawParserAnalyzer
             TypeBinding theType = null;
             try {
                 theType = Bindings.GetTypeBinding(relName);
-            } catch {
-                theType = null;
+            } catch (Exception ex) {
+                throw ErrorCode.ToException(Error.SCERRSQLUNKNOWNNAME, ex, LocationMessageForError((Node*)extent, relName));
             }
             if (theType != null)
                 return theType;
