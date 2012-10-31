@@ -731,7 +731,7 @@ public:
     }
 
     // Closes all tracked sockets.
-    void CloseSocketAndSessionData();
+    void CloseSocketData();
 
     // Tracks certain socket.
     uint32_t TrackSocket(SOCKET s)

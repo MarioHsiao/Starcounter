@@ -21,6 +21,8 @@ namespace Starcounter.Server {
         }
 
         void Run(string[] args) {
+            //Trace.Listeners.Add(new ConsoleTraceListener());
+
             ApplicationArguments arguments;
 
             if (TryGetProgramArguments(args, out arguments)) {

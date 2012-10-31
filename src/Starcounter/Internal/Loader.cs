@@ -20,7 +20,7 @@ namespace Starcounter.Internal
     /// <summary>
     /// Class LoaderHelper
     /// </summary>
-    internal static class LoaderHelper
+    public static class LoaderHelper
     {
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace Starcounter.Internal
         /// <param name="columnDefs">The column defs.</param>
         /// <param name="propertyDefs">The property defs.</param>
         /// <exception cref="System.Exception"></exception>
-        internal static void MapPropertyDefsToColumnDefs(ColumnDef[] columnDefs, PropertyDef[] propertyDefs)
+        public static void MapPropertyDefsToColumnDefs(ColumnDef[] columnDefs, PropertyDef[] propertyDefs)
         {
             for (int pi = 0; pi < propertyDefs.Length; pi++)
             {

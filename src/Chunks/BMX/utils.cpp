@@ -4,7 +4,7 @@
 // TODO:
 // Add checks for buffer sizes and null pointers.
 EXTERN_C uint32_t __stdcall sc_bmx_read_from_chunk(
-	uint32_t chunk_index,
+	starcounter::core::chunk_index chunk_index,
 	uint8_t* raw_chunk, 
 	uint32_t length,
 	uint8_t* dest_buffer, 
@@ -42,19 +42,14 @@ EXTERN_C __forceinline uint32_t __stdcall sc_bmx_clone_chunk(
     uint32_t err_code;
 
     // Acquiring new chunk.
-    err_code = cm_acquire_shared_memory_chunk((DWORD *)new_chunk_index);
+    uint8_t* new_chunk_buf;
+    err_code = cm_acquire_shared_memory_chunk(new_chunk_index, &new_chunk_buf);
     if (err_code)
         return err_code;
 
     // Getting chunk memory address.
     uint8_t* src_chunk_buf;
     err_code = cm_get_shared_memory_chunk(src_chunk_index, &src_chunk_buf);
-    if (err_code)
-        return err_code;
-
-    // Getting chunk memory address.
-    uint8_t* new_chunk_buf;
-    err_code = cm_get_shared_memory_chunk(*new_chunk_index, &new_chunk_buf);
     if (err_code)
         return err_code;
 

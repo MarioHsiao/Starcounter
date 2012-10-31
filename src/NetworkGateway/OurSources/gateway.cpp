@@ -659,11 +659,11 @@ void ActiveDatabase::StartDeletion()
     db_name_ = "";
 
     // Closing all database sockets/sessions data.
-    CloseSocketAndSessionData();
+    CloseSocketData();
 }
 
 // Closes all tracked sockets.
-void ActiveDatabase::CloseSocketAndSessionData()
+void ActiveDatabase::CloseSocketData()
 {
     // Checking if sockets were already closed.
     if (were_sockets_closed_)
@@ -686,9 +686,7 @@ void ActiveDatabase::CloseSocketAndSessionData()
             session_index_type session_index = socket_data->get_session_index();
             socket_data->Reset();
 
-            // Cleaning the associated session if any.
-            ScSessionStruct* session = g_gateway.GetSessionData(session_index);
-            if (session) session->Reset();
+            // NOTE: Can't kill the session here, because it can be used by other databases.
 
             // Closing socket which will results in Disconnect.
             if (closesocket(s))

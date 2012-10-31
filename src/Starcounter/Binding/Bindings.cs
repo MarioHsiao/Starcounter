@@ -49,7 +49,7 @@ namespace Starcounter.Binding
         /// Registers the type defs.
         /// </summary>
         /// <param name="typeDefs">The type defs.</param>
-        internal static void RegisterTypeDefs(TypeDef[] typeDefs)
+        public static void RegisterTypeDefs(TypeDef[] typeDefs)
         {
             // We don't have to lock here since only one thread at a time will
             // be adding type definitions.
@@ -60,8 +60,8 @@ namespace Starcounter.Binding
             {
                 typeDef = typeDefs[i];
                 typeDefsByName.Add(typeDef.Name, typeDef);
-                if (typeDef.Name != typeDef.Name.ToUpper())
-                    typeDefsByName.Add(typeDef.Name.ToUpper(), typeDef);
+                if (typeDef.Name != typeDef.Name.ToLower())
+                    typeDefsByName.Add(typeDef.Name.ToLower(), typeDef);
             }
 
             List<TypeDef> typeDefsById = new List<TypeDef>(typeDefsById_);
@@ -99,6 +99,17 @@ namespace Starcounter.Binding
         {
             TypeDef typeDef;
             typeDefsByName_.TryGetValue(name, out typeDef);
+            return typeDef;
+        }
+
+        /// <summary>
+        /// Gets the type def.
+        /// </summary>
+        /// <param name="name">The name, which case doesn't need match.</param>
+        /// <returns>TypeDef.</returns>
+        public static TypeDef GetTypeDefInsensitive(string name) {
+            TypeDef typeDef;
+            typeDefsByName_.TryGetValue(name.ToLower(), out typeDef);
             return typeDef;
         }
 
@@ -149,6 +160,19 @@ namespace Starcounter.Binding
             catch (KeyNotFoundException) { }
 
             return BuildTypeBindingFromTypeDef(name);
+        }
+
+        /// <summary>
+        /// Gets the type binding.
+        /// </summary>
+        /// <param name="name">The name, which case doesn't need to match.</param>
+        /// <returns>TypeBinding.</returns>
+        internal static TypeBinding GetTypeBindingInsensitive(string name) {
+            try {
+                return typeBindingsByName_[name.ToLower()];
+            } catch (KeyNotFoundException) { }
+
+            return BuildTypeBindingFromTypeDef(name.ToLower());
         }
 
         /// <summary>
@@ -247,7 +271,7 @@ namespace Starcounter.Binding
         {
             Dictionary<string, TypeBinding> typeBindingsByName = new Dictionary<string, TypeBinding>(typeBindingsByName_);
             typeBindingsByName.Add(typeBinding.Name, typeBinding);
-            typeBindingsByName.Add(typeBinding.UpperName, typeBinding);
+            typeBindingsByName.Add(typeBinding.LowerName, typeBinding);
 
             List<TypeBinding> typeBindingsById = new List<TypeBinding>(typeBindingsById_);
             var tableId = typeBinding.TypeDef.TableDef.TableId;
