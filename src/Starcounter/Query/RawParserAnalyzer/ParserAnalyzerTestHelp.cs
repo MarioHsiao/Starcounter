@@ -4,9 +4,9 @@
 using System;
 using Starcounter.Binding;
 
-namespace Sc.Query.RawParserAnalyzer
+namespace Starcounter.Query.RawParserAnalyzer
 {
-    internal partial class RawParserAnalyzer
+    internal partial class ParserAnalyzer
     {
         internal static String GetTypeFor(String typeName)
         {
