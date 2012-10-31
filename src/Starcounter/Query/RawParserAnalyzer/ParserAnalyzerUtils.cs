@@ -9,17 +9,35 @@ namespace Sc.Query.RawParserAnalyzer
 {
     internal partial class RawParserAnalyzer
     {
+        // I should investigate the exception first, since it might be not related
+        internal unsafe String GetFullName(RangeVar* extent) {
+            String name = null;
+            if (extent->namespaces == null)
+                return new String(extent->relname);
+            ListCell* curCell = extent->namespaces->head;
+            while (curCell != null) {
+                name += new String(((Value*)curCell->data.ptr_value)->val.str);
+                curCell = curCell->next;
+            }
+            return name + new String(extent->relname);
+        }
+
         internal unsafe TypeBinding GetTypeBindingFor(RangeVar* extent)
         {
             Debug.Assert(extent->relname != null);
-            String shortname = new String(extent->relname);
-            TypeBinding theType = TypeRepository.GetTypeBinding(shortname);
+            String relName = GetFullName(extent);
+            TypeBinding theType = null;
+            try {
+                theType = Bindings.GetTypeBinding(relName);
+            } catch {
+                theType = null;
+            }
             if (theType != null)
                 return theType;
-            int res = TypeRepository.TryGetTypeBindingByShortName(shortname, out theType);
-            if (res == 1)
-                return theType;
-            throw ErrorCode.ToException(Error.SCERRSQLUNKNOWNNAME, LocationMessageForError((Node*)extent, shortname));
+            //int res = TypeRepository.TryGetTypeBindingByShortName(shortname, out theType);
+            //if (res == 1)
+            //    return theType;
+            throw ErrorCode.ToException(Error.SCERRSQLUNKNOWNNAME, LocationMessageForError((Node*)extent, relName));
         }
 
         internal bool CompareTo(IExecutionEnumerator otherOptimizedPlan)

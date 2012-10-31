@@ -13,7 +13,7 @@ namespace IndexQueryTest
             bool populated = false;
             Db.Transaction(delegate
             {
-                if (Db.SQL("select u from User u").First == null)
+                if (Db.SQL("select u from Accounttest.User u").First == null)
                 {
                     AccountTest.User user = new AccountTest.User
                     {
@@ -45,7 +45,7 @@ namespace IndexQueryTest
             int nrPrintedObjs = 0;
             Db.Transaction(delegate
             {
-                foreach (AccountTest.User u in Db.SQL("select u from User u"))
+                foreach (AccountTest.User u in Db.SQL("select u from Accounttest.User u"))
                 {
                     Console.WriteLine("User " + u.FirstName + " " + u.LastName + " with ID " + u.UserId);
                     nrPrintedObjs++;
@@ -53,7 +53,7 @@ namespace IndexQueryTest
             });
             Db.Transaction(delegate
             {
-                foreach (AccountTest.Account a in Db.SQL("select a from Account a"))
+                foreach (AccountTest.Account a in Db.SQL("select a from Accounttest.Account a"))
                 {
                     Console.WriteLine("Account " + a.AccountId + " with amount " + a.Amount + " of user " + a.Client.UserId);
                     nrPrintedObjs++;
