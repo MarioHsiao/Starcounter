@@ -65,7 +65,7 @@ namespace Starcounter.Binding
             internal set
             {
                 name_ = value;
-                uppername_ = value.ToUpper();
+                lowername_ = value.ToLower();
             }
         }
 
@@ -84,13 +84,13 @@ namespace Starcounter.Binding
         /// <summary>
         /// The uppername_
         /// </summary>
-        private string uppername_;
+        private string lowername_;
 
         /// <summary>
         /// Gets the name of the upper.
         /// </summary>
         /// <value>The name of the upper.</value>
-        public string UpperName { get { return uppername_; } internal set { uppername_ = value; } }
+        public string LowerName { get { return lowername_; } internal set { lowername_ = value; } }
 
         private ushort[] currentAndBaseTableIds_; // Sorted lowest to highest.
 
@@ -183,6 +183,17 @@ namespace Starcounter.Binding
         }
 
         /// <summary>
+        /// Gets the property binding.
+        /// </summary>
+        /// <param name="name">The name, which case does not need to match.</param>
+        /// <returns>PropertyBinding.</returns>
+        internal PropertyBinding GetPropertyBindingInsensitive(string name) {
+            PropertyBinding pb;
+            propertyBindingsByName_.TryGetValue(name.ToLower(), out pb);
+            return pb;
+        }
+
+        /// <summary>
         /// Gets all index infos.
         /// </summary>
         /// <returns>IndexInfo[][].</returns>
@@ -214,8 +225,8 @@ namespace Starcounter.Binding
             {
                 PropertyBinding pb = propertyBindings[i];
                 propertyBindingsByName_.Add(pb.Name, pb);
-                if (pb.Name != pb.UpperName)
-                    propertyBindingsByName_.Add(pb.UpperName, pb);
+                if (pb.Name != pb.LowerName)
+                    propertyBindingsByName_.Add(pb.LowerName, pb);
             }
         }
 

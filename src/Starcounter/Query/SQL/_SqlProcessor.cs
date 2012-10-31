@@ -167,7 +167,7 @@ internal static class SqlProcessor
         }
 
         // Prepare array of attributes
-        TypeBinding typeBind = TypeRepository.GetTypeBinding(typePath.ToUpper());
+        TypeBinding typeBind = Bindings.GetTypeBindingInsensitive(typePath);
         PropertyBinding propBind = null;
         //if (typeBind == null)
         //    TypeRepository.TryGetTypeBindingByShortName(typePath, out typeBind);
@@ -176,7 +176,7 @@ internal static class SqlProcessor
         attributeIndexArr = new Int16[propertyList.Count + 1];
         for (Int32 i = 0; i < propertyList.Count; i++)
         {
-            propBind = typeBind.GetPropertyBinding(propertyList[i].ToUpper());
+            propBind = typeBind.GetPropertyBindingInsensitive(propertyList[i]);
             if (propBind == null)
                 throw new SqlException("Column " + propBind + "is not found in table " + typeBind.Name);
             attributeIndexArr[i] = (Int16)propBind.GetDataIndex();
@@ -293,7 +293,7 @@ internal static class SqlProcessor
         }
 
         // Obtain correct table name
-        TypeBinding typeBind = TypeRepository.GetTypeBinding(typePath.ToUpper());
+        TypeBinding typeBind = Bindings.GetTypeBindingInsensitive(typePath);
         if (typeBind == null)
             throw new SqlException("Table " + typePath + " is not found");
 
