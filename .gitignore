@@ -28,3 +28,9 @@ src/Starcounter.ErrorCodes/ErrorCodeCompiler/Starcounter.Errors.pdb
 src/Starcounter.ErrorCodes/scerrres/scerrres.h
 
 *.ncrunchsolution
+
+src/Starcounter.SqlParser/Parser/gram.c
+src/Starcounter.SqlParser/Parser/gram.h
+src/Starcounter.SqlParser/Parser/scan.c
+
+*.output
