@@ -9,6 +9,7 @@
 					{"Description":"Big Mac & Co", "Image":"bigmac_co.png", "Pick$":null}					
 				]
 			},
+			"Price":99,
 			"Quantity$":5
 	}],
 
