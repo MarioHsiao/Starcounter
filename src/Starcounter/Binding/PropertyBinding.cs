@@ -32,7 +32,7 @@ namespace Starcounter.Binding
         /// <summary>
         /// The _uppername
         /// </summary>
-        internal String _uppername;
+        internal String _lowername;
 
         /// <summary>
         /// Property index.
@@ -50,7 +50,7 @@ namespace Starcounter.Binding
         /// Gets the name of the upper.
         /// </summary>
         /// <value>The name of the upper.</value>
-        public String UpperName { get { return _uppername; } }
+        public String LowerName { get { return _lowername; } }
 
         /// <summary>
         /// Binding used by the property type if any.
@@ -380,7 +380,7 @@ namespace Starcounter.Binding
         internal void SetName(String name)
         {
             _name = name;
-            _uppername = name.ToUpper();
+            _lowername = name.ToLower();
         }
     }
 }
