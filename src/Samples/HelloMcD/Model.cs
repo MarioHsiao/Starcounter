@@ -1,31 +1,48 @@
 ﻿using Starcounter;
 using System.Collections.Generic;
+using System.Collections;
+using Starcounter.Query.Execution;
 
-public class Product : Entity {
-    public string Image;
-    public string ProductId;
-    public string Description;
-    public decimal Price;
-}
+namespace HelloMcd {
+    public class Product : Entity {
+        public string Image;
+        public string ProductId;
+        public string Description;
+        public decimal Price;
+    }
 
-public class Order : Entity {
-    public long OrderNo;
+    public class Order : Entity {
+        public long OrderNo;
 
-    public decimal Total {
-        get {
-            return (decimal)App.SQL("SELECT Sum(Price+Quantity) FROM OrderItem WHERE Order=?", this).First;
+        public decimal Total {
+            get {
+                // TODO: 
+                // This query returns a CompositeObject and not the value.
+//                return (decimal)Db.SlowSQL("SELECT Sum(Price*Quantity) FROM OrderItem").First;
+
+                // TODO:
+                // This doesn't seem to work either. NotSupportedException is thrown. 
+//                return (decimal)Db.SlowSQL("SELECT Sum(Price*Quantity) FROM OrderItem").First.GetDecimal(0);
+
+                CompositeObject co = Db.SlowSQL("SELECT Sum(Price*Quantity) FROM OrderItem").First;
+                return (decimal)co.GetDecimal(0);                
+            }
+        }
+
+        // TODO:
+        // SqlResult is not generic and you cannot cast directly to a generic type from a non-generic one.
+//        public IEnumerable<OrderItem> Items {
+        public IEnumerable Items {
+            get {
+                return Db.SQL("SELECT item FROM OrderItem item WHERE item.Order=?", this);
+            }
         }
     }
-    public IEnumerable<OrderItem> Items {
-        get {
-            return (IEnumerable<OrderItem>)App.SQL("SELECT OrderItem FROM OrderItem WHERE Order=?", this);
-        }
-    }
-}
 
-public class OrderItem: Entity {
-    public Order Order;
-    public Product Product;
-    public decimal Price;
-    public int Quantity;
+    public class OrderItem : Entity {
+        public Order Order;
+        public Product Product;
+        public decimal Price;
+        public int Quantity;
+    }
 }
