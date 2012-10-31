@@ -76,19 +76,12 @@ namespace Starcounter.Server.Commands {
 
             // The application doesn't run inside the database, or the database
             // doesn't exist. Process furhter: weaving first.
+            // (Make sure we respect the (temporary) NoDb switch if applied).
 
-            // Make sure we respect the (temporary) NoDb switch if applied.
-
+            appRuntimeDirectory = GetAppRuntimeDirectory(this.Engine.Configuration.TempDirectory, command.AssemblyPath);
             if (command.NoDb) {
-                // TODO PSA:
-                // We most likely want to copy all binaries to a temporary runtime
-                // directory anyway, since with the current approach, we will lock
-                // future builds from succeeding if the host process keeps any of
-                // the binaries loaded.
-                appRuntimeDirectory = Path.GetDirectoryName(command.AssemblyPath);
-                weavedExecutable = command.AssemblyPath;
+                weavedExecutable = CopyAllFilesToRunNoDbApplication(command.AssemblyPath, appRuntimeDirectory);
             } else {
-                appRuntimeDirectory = GetAppRuntimeDirectory(this.Engine.Configuration.TempDirectory, command.AssemblyPath);
                 weaver = Engine.WeaverService;
                 weavedExecutable = weaver.Weave(command.AssemblyPath, appRuntimeDirectory);
 
@@ -189,6 +182,22 @@ namespace Starcounter.Server.Commands {
             key += ("@" + Path.GetFileNameWithoutExtension(assemblyPath));
 
             return Path.Combine(baseDirectory, key);
+        }
+
+        /// <summary>
+        /// Adapts to the (temporary) NoDb switch by copying all binary
+        /// files possibly referenced by the starting assembly, as given
+        /// by <paramref name="assemblyPath"/>, including the starting
+        /// assembly itself.
+        /// </summary>
+        /// <param name="assemblyPath">Full path to the original assembly,
+        /// i.e. the assembly we are told to execute.</param>
+        /// <param name="runtimeDirectory">The runtime directory where the
+        /// assembly will actually run from, when hosted in Starcounter.</param>
+        /// <returns>Full path to the assembly that is about to be executed.
+        /// </returns>
+        string CopyAllFilesToRunNoDbApplication(string assemblyPath, string runtimeDirectory) {
+            throw new NotImplementedException();
         }
 
         void OnExistingWorkerProcessStopped() { Trace("Existing worker process stopped."); }
