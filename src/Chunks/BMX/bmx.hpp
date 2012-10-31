@@ -180,6 +180,8 @@ namespace bmx
         URI_HANDLER
     };
 
+    class BmxData;
+
     // Handler list.
     class HandlersList
     {
@@ -356,6 +358,69 @@ namespace bmx
             return 0;
         }
 
+        // Writes needed port handler data into chunk.
+        uint32_t WriteRegisteredPortHandler(response_chunk_part *resp_chunk)
+        {
+            // Checking if message fits the chunk.
+            if ((starcounter::core::chunk_size - resp_chunk->get_offset() - shared_memory_chunk::LINK_SIZE) <=
+                sizeof(BMX_REGISTER_PORT) + sizeof(handler_id_) + sizeof(port_))
+            {
+                return 0;
+            }
+
+            resp_chunk->write(BMX_REGISTER_PORT);
+            resp_chunk->write(handler_id_);
+            resp_chunk->write(port_);
+
+            return resp_chunk->get_offset();
+        }
+
+        // Writes needed subport handler data into chunk.
+        uint32_t WriteRegisteredSubPortHandler(response_chunk_part *resp_chunk)
+        {
+            // Checking if message fits the chunk.
+            if ((starcounter::core::chunk_size - resp_chunk->get_offset() - shared_memory_chunk::LINK_SIZE) <=
+                sizeof(BMX_REGISTER_PORT_SUBPORT) + sizeof(handler_id_) + sizeof(port_) + sizeof(subport_))
+            {
+                return 0;
+            }
+
+            resp_chunk->write(BMX_REGISTER_PORT_SUBPORT);
+            resp_chunk->write(handler_id_);
+            resp_chunk->write(port_);
+            resp_chunk->write(subport_);
+
+            return resp_chunk->get_offset();
+        }
+
+        // Writes needed URI handler data into chunk.
+        uint32_t WriteRegisteredUriHandler(response_chunk_part *resp_chunk)
+        {
+            // Checking if message fits the chunk.
+            if ((starcounter::core::chunk_size - resp_chunk->get_offset() - shared_memory_chunk::LINK_SIZE) <=
+                sizeof(BMX_REGISTER_URI) + sizeof(handler_id_) + sizeof(port_) + uri_len_chars_ * sizeof(char) + 1)
+            {
+                return 0;
+            }
+
+            resp_chunk->write(BMX_REGISTER_URI);
+            resp_chunk->write(handler_id_);
+            resp_chunk->write(port_);
+            resp_chunk->write_string(uri_string_, uri_len_chars_);
+            resp_chunk->write((uint8_t)http_method_);
+
+            return resp_chunk->get_offset();
+        }
+
+        // Pushes registered URI handler.
+        uint32_t PushRegisteredUriHandler(BmxData* bmx_data);
+
+        // Pushes registered port handler.
+        uint32_t PushRegisteredPortHandler(BmxData* bmx_data);
+
+        // Pushes registered subport handler.
+        uint32_t PushRegisteredSubportHandler(BmxData* bmx_data);
+
         // Should be called when whole handlers list should be unregistered.
         uint32_t Unregister()
         {
@@ -441,6 +506,12 @@ namespace bmx
 
     public:
 
+        // Gets specific registered handler.
+        HandlersList* GetRegisteredHandler(BMX_HANDLER_TYPE handler_id)
+        {
+            return registered_handlers_ + handler_id;
+        }
+
         // Gets the number of registered push channels.
         int32_t get_num_registered_push_channels()
         {
@@ -465,31 +536,11 @@ namespace bmx
         // Checks if session has changed from current one.
         uint32_t CheckAndSwitchSession(TASK_INFO_TYPE* task_info, uint64_t session_id);
 
+        // Acquires new chunk.
         uint32_t AcquireNewChunk(shared_memory_chunk*& chunk, uint32_t& chunk_index);
 
-        uint32_t WriteRegisteredPortHandler(
-            response_chunk_part *response,
-            BMX_HANDLER_TYPE handler_id,
-            uint16_t port);
-
-        uint32_t WriteRegisteredSubPortHandler(
-            response_chunk_part *response,
-            BMX_HANDLER_TYPE handler_id,
-            uint16_t port,
-            uint32_t subport);
-
-        uint32_t WriteRegisteredUriHandler(
-            response_chunk_part *response,
-            BMX_HANDLER_TYPE handler_id,
-            uint16_t port,
-            char* uri_string,
-            uint32_t uri_len_bytes,
-            HTTP_METHODS http_method);
-
+        // Pushes unregistered handler.
         uint32_t PushHandlerUnregistration(BMX_HANDLER_TYPE handler_id);
-        uint32_t PushRegisteredPortHandler(BMX_HANDLER_TYPE handler_id, uint16_t port_num);
-        uint32_t PushRegisteredSubportHandler(BMX_HANDLER_TYPE handler_id, uint16_t port, uint32_t subport);
-        uint32_t PushRegisteredUriHandler(BMX_HANDLER_TYPE handler_id, uint16_t port, char* uri, uint32_t uri_len_chars, HTTP_METHODS http_method);
         uint32_t SendRegisterPushChannelResponse(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info);
         uint32_t HandleDestroyedSession(request_chunk_part* request, TASK_INFO_TYPE* task_info);
 
@@ -497,8 +548,8 @@ namespace bmx
         uint32_t SendAllHandlersInfo(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info);
 
         // Unregisters certain handler.
-        uint32_t UnregisterHandler(BMX_HANDLER_TYPE handler_id);
-        uint32_t UnregisterHandler(BMX_HANDLER_TYPE handler_id, GENERIC_HANDLER_CALLBACK user_handler);
+        uint32_t UnregisterHandler(BMX_HANDLER_TYPE handler_id, bool* is_empty_handler);
+        uint32_t UnregisterHandler(BMX_HANDLER_TYPE handler_id, GENERIC_HANDLER_CALLBACK user_handler, bool* is_empty_handler);
 
         // Registers port handler.
         uint32_t RegisterPortHandler(
