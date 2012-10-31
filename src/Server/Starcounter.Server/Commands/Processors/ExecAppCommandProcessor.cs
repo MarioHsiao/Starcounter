@@ -4,13 +4,13 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.ABCIPC;
+using Starcounter.Internal;
 using Starcounter.Server.PublicModel.Commands;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Diagnostics;
-using Starcounter.ABCIPC;
-using Starcounter.Internal;
+using System.IO;
 
 namespace Starcounter.Server.Commands {
 
@@ -197,7 +197,38 @@ namespace Starcounter.Server.Commands {
         /// <returns>Full path to the assembly that is about to be executed.
         /// </returns>
         string CopyAllFilesToRunNoDbApplication(string assemblyPath, string runtimeDirectory) {
-            throw new NotImplementedException();
+            #region Copying of a single binary + it's symbol file (i.e. pdb)
+            Action<string, string> copyBinary = (string sourceFile, string targetDirectory) => {
+                string sourceDirectory;
+                string fileNameNoExtension;
+                string symbolFileName;
+                string sourceSymbolFile;
+
+                sourceDirectory = Path.GetDirectoryName(sourceFile);
+                fileNameNoExtension = Path.GetFileNameWithoutExtension(sourceFile);
+                symbolFileName = string.Concat(fileNameNoExtension, ".pdb");
+                sourceSymbolFile = Path.Combine(sourceDirectory, symbolFileName);
+
+                File.Copy(sourceFile, Path.Combine(targetDirectory, Path.GetFileName(sourceFile)), true);
+                if (File.Exists(sourceSymbolFile)) {
+                    File.Copy(sourceSymbolFile, Path.Combine(targetDirectory, symbolFileName), true);
+                }
+            };
+            #endregion
+
+            Directory.CreateDirectory(runtimeDirectory);
+
+            var extensions = new string[] { ".dll", ".exe" };
+            foreach (var extension in extensions) {
+                foreach (var item in Directory.GetFiles(Path.GetDirectoryName(assemblyPath), "*" + extension, SearchOption.TopDirectoryOnly)) {
+                    if (item.EndsWith(".vshost.exe"))
+                        continue;
+
+                    copyBinary(item, runtimeDirectory);
+                }
+            }
+
+            return Path.Combine(runtimeDirectory, Path.GetFileName(assemblyPath));
         }
 
         void OnExistingWorkerProcessStopped() { Trace("Existing worker process stopped."); }
