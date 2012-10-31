@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 
 //[assembly: InternalsVisibleTo("SQLParserTest, PublicKey=0024000004800000940000000602000000240000525341310004000001000100cb72cb1b43c21cfd712282069ce84d8adf9126b15ab29f3124e26b8f92203ec713d42db86b516796d7b94bf2363a9188ba1295ade13e0bf8b47aafacf6d92ce56e4915c2829bea0fa882e3d9648d44db97ccf64a3206ce3b8cd58a60da73aad221e872557734fecb141b98df46e167e2ba1656041b29624b31f64905d4a0f1c1")]
 
-namespace Sc.Query.RawParserAnalyzer
+namespace Starcounter.Query.RawParserAnalyzer
 {
     internal static class UnmanagedParserInterface
     {

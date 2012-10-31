@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using Starcounter;
 
-namespace Sc.Query.RawParserAnalyzer
+namespace Starcounter.Query.RawParserAnalyzer
 {
-    internal partial class RawParserAnalyzer
+    internal partial class ParserAnalyzer
     {
         /// <summary>
         /// Checks the error code if an error was returned by parser. If so the error 

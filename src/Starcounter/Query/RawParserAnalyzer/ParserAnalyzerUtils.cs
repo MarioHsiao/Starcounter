@@ -5,9 +5,9 @@ using Starcounter;
 using Starcounter.Binding;
 using Starcounter.Query.Execution;
 
-namespace Sc.Query.RawParserAnalyzer
+namespace Starcounter.Query.RawParserAnalyzer
 {
-    internal partial class RawParserAnalyzer
+    internal partial class ParserAnalyzer
     {
         // I should investigate the exception first, since it might be not related
         internal unsafe String GetFullName(RangeVar* extent) {

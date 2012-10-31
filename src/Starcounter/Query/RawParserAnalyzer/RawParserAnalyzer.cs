@@ -7,12 +7,12 @@ using Starcounter;
 using Starcounter.Query.Execution;
 using Starcounter.Query.Optimization;
 
-namespace Sc.Query.RawParserAnalyzer
+namespace Starcounter.Query.RawParserAnalyzer
 {
     /// <summary>
     /// Contains methods to analyze raw parsed tree and generate necessary structures for current optimizer.
     /// </summary>
-    internal partial class RawParserAnalyzer
+    internal partial class ParserAnalyzer
     {
         /// <summary>
         /// Keeps knowledge if an open parser exists in this thread. It is important to have maximum one open parser per thread.
@@ -63,7 +63,7 @@ namespace Sc.Query.RawParserAnalyzer
             {
                 // The result error code. If 0 then parsing was successful.
                 // Calls unmanaged parser, which returns the parsed tree
-                Sc.Query.RawParserAnalyzer.List* parsedTree = UnmanagedParserInterface.ParseQuery(query, &scerrorcode);
+                List* parsedTree = UnmanagedParserInterface.ParseQuery(query, &scerrorcode);
                 try
                 {
                     // Throw exception if error
@@ -87,7 +87,7 @@ namespace Sc.Query.RawParserAnalyzer
             {
                 // The result error code. If 0 then parsing was successful.
                 // Calls unmanaged parser, which returns the parsed tree
-                Sc.Query.RawParserAnalyzer.List* parsedTree = UnmanagedParserInterface.ParseQuery(query, &scerrorcode);
+                List* parsedTree = UnmanagedParserInterface.ParseQuery(query, &scerrorcode);
                 UnmanagedParserInterface.CleanMemoryContext(); // Otherwise memory leaks
             }
             IsOpenParserThread = false; // Important to allow calling parser again
@@ -97,7 +97,7 @@ namespace Sc.Query.RawParserAnalyzer
         /// Entry point of analyzer.
         /// </summary>
         /// <param name="parsedTree">Parsed tree produced by the unmanaged bison-based parser.</param>
-        internal unsafe void AnalyzeParseTree(Sc.Query.RawParserAnalyzer.List* parsedTree)
+        internal unsafe void AnalyzeParseTree(List* parsedTree)
         {
             Debug.Assert(parsedTree != null, "Parsed tree should not be null");
             Debug.Assert(parsedTree->type == NodeTag.T_List, "Parsed tree should be of T_List, but was " + parsedTree->type.ToString());

@@ -16,7 +16,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using Starcounter.Binding;
-using Sc.Query.RawParserAnalyzer;
 
 namespace Starcounter.Query.Sql
 {
@@ -141,10 +140,10 @@ namespace Starcounter.Query.Sql
             // Optimize and create enumerator.
             IExecutionEnumerator prologParsedQueryPlan;
             //String prologParsedQueryPlanStr = prologParsedQueryPlan.ToString();
-            RawParserAnalyzer newAnalyzer = new RawParserAnalyzer();
+            Starcounter.Query.RawParserAnalyzer.ParserAnalyzer newAnalyzer = new Starcounter.Query.RawParserAnalyzer.ParserAnalyzer();
             try {
                 newAnalyzer.ParseAndAnalyzeQuery(query);
-            } catch (SQLParserAssertException) {
+            } catch (Starcounter.Query.RawParserAnalyzer.SQLParserAssertException) {
                 prologParsedQueryPlan = Optimizer.Optimize(nodeTree, conditionDict, fetchNumExpr, fetchOffsetKeyExpr, hintSpec);
                 LogSources.Sql.LogNotice("Using Prolog-based parser");
                 Console.WriteLine("Using Prolog-based parser");

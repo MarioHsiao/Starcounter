@@ -5,9 +5,9 @@ using Starcounter.Query.Execution;
 using Starcounter.Query.Optimization;
 using Starcounter.Query.Sql;
 
-namespace Sc.Query.RawParserAnalyzer
+namespace Starcounter.Query.RawParserAnalyzer
 {
-    internal partial class RawParserAnalyzer
+    internal partial class ParserAnalyzer
     {
         /// <summary>
         /// Analyze select statement and creates structures for optimizer.
