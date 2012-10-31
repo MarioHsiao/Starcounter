@@ -138,7 +138,7 @@ namespace Starcounter.Internal.Web {
 
                         request.Debug(" (new view model)");
 
-                        session = Sessions.CreateSession();
+                        session = Sessions.GetSession(1);
                         session.AttachRootApp(app);
 
                         // TODO:
@@ -195,6 +195,9 @@ namespace Starcounter.Internal.Web {
             finally
             {
                 HardcodedStuff.EndRequest();
+                if (LongRunningTransaction.Current != null) {
+                    LongRunningTransaction.Current.ReleaseCurrentTransaction();
+                }
             }
         }
 
