@@ -19,13 +19,26 @@ namespace Starcounter.Internal.JsonPatch
     internal class HttpPatchBuilder
     {
         /// <summary>
-        /// The O K200_ WIT h_ JSO n_ PATCH
+        /// 
         /// </summary>
         private static Byte[] OK200_WITH_JSON_PATCH;
+
         /// <summary>
-        /// The HTT p_ HEADE r_ TERMINATOR
+        /// 
+        /// </summary>
+        private static byte[] ERROR415_WITH_CONTENT;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private static byte[] ERROR400_WITH_CONTENT;
+
+        /// <summary>
+        /// 
         /// </summary>
         private static Byte[] HTTP_HEADER_TERMINATOR;
+
+        
 
 
         /// <summary>
@@ -33,49 +46,85 @@ namespace Starcounter.Internal.JsonPatch
         /// </summary>
         static HttpPatchBuilder()
         {
-            String str;
+            String headerStr;
 
-            str = "HTTP/1.1 200 OK\r\nContent-Type: application/json-patch\r\nContent-Length: ";
-            OK200_WITH_JSON_PATCH = Encoding.UTF8.GetBytes(str);
+            headerStr = "HTTP/1.1 200 OK\r\nContent-Type: application/json-patch\r\nContent-Length: ";
+            OK200_WITH_JSON_PATCH = Encoding.UTF8.GetBytes(headerStr);
 
-            str = "\r\n\r\n";
-            HTTP_HEADER_TERMINATOR = Encoding.UTF8.GetBytes(str);
+            headerStr = "HTTP/1.1 400 Bad Request\r\nContent-Type: text/plain\r\nContent-Length: ";
+            ERROR400_WITH_CONTENT = Encoding.UTF8.GetBytes(headerStr);
+
+            headerStr = "HTTP/1.1 415 Unsupported Media Type\r\nContent-Type: text/plain\r\nContent-Length: ";
+            ERROR415_WITH_CONTENT = Encoding.UTF8.GetBytes(headerStr);
+
+            headerStr = "\r\n\r\n";
+            HTTP_HEADER_TERMINATOR = Encoding.UTF8.GetBytes(headerStr);
         }
 
         /// <summary>
-        /// Creates the HTTP patch response.
+        /// Creates an 200 ok response with all patches as content.
         /// </summary>
-        /// <param name="changeLog">The change log.</param>
-        /// <returns>Byte[][].</returns>
-        internal static Byte[] CreateHttpPatchResponse(ChangeLog changeLog)
-        {
-            Int32 responseOffset;
-            Int32 contentLength;
-            Byte[] contentLengthBuffer = new Byte[10];
-            Int32 contentLengthLength;
-
+        /// <param name="changeLog">A log of the current changes</param>
+        /// <returns>The httpresponse as a bytearray</returns>
+        internal static byte[] CreateHttpPatchResponse(ChangeLog changeLog) {
             List<Byte> content = new List<Byte>(100);
-            contentLength = CreateContentFromChangeLog(changeLog, content);
-            contentLengthLength = (Int32)Utf8Helper.WriteUIntAsUtf8Man(contentLengthBuffer, 0, (UInt64)contentLength);
+            CreateContentFromChangeLog(changeLog, content);
+            return CreateResponse(OK200_WITH_JSON_PATCH, content.ToArray());
+        }
 
-            Int32 responseLength = OK200_WITH_JSON_PATCH.Length 
-                                   + contentLengthLength 
-                                   + HTTP_HEADER_TERMINATOR.Length 
-                                   + content.Count;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        internal static byte[] Create400Response(string content) {
+            byte[] contentArr = Encoding.UTF8.GetBytes(content);
+            return CreateResponse(ERROR400_WITH_CONTENT, contentArr);
+        }
 
-            Byte[] response = new Byte[responseLength];
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        internal static byte[] Create415Response(string content) {
+            byte[] contentArr = Encoding.UTF8.GetBytes(content);
+            return CreateResponse(ERROR400_WITH_CONTENT, contentArr);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="responseType"></param>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        private static byte[] CreateResponse(byte[] responseType, byte[] content) {
+            byte[] contentLengthBuffer;
+            byte[] response;
+            int contentLengthLength;
+            int totalLength;
+            int offset;
+
+            contentLengthBuffer = new Byte[10];
+            contentLengthLength = (Int32)Utf8Helper.WriteUIntAsUtf8Man(contentLengthBuffer, 0, (UInt64)content.Length);
+
+            totalLength = responseType.Length
+                             + contentLengthLength
+                             + HTTP_HEADER_TERMINATOR.Length
+                             + content.Length;
             
-            Buffer.BlockCopy(OK200_WITH_JSON_PATCH, 0, response, 0, OK200_WITH_JSON_PATCH.Length);
-            responseOffset = OK200_WITH_JSON_PATCH.Length;
+            response = new byte[totalLength];
 
-            Buffer.BlockCopy(contentLengthBuffer, 0, response, responseOffset, contentLengthLength);
-            responseOffset += contentLengthLength;
+            Buffer.BlockCopy(responseType, 0, response, 0, responseType.Length);
+            offset = responseType.Length;
 
-            Buffer.BlockCopy(HTTP_HEADER_TERMINATOR, 0, response, responseOffset, HTTP_HEADER_TERMINATOR.Length);
-            responseOffset += HTTP_HEADER_TERMINATOR.Length;
+            Buffer.BlockCopy(contentLengthBuffer, 0, response, offset, contentLengthLength);
+            offset += contentLengthLength;
 
-            content.CopyTo(response, responseOffset);
+            Buffer.BlockCopy(HTTP_HEADER_TERMINATOR, 0, response, offset, HTTP_HEADER_TERMINATOR.Length);
+            offset += HTTP_HEADER_TERMINATOR.Length;
 
+            content.CopyTo(response, offset);
             return response;
         }
 
