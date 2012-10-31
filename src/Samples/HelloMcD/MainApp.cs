@@ -7,19 +7,24 @@ using Starcounter.Internal.JsonPatch;
 using Starcounter.Internal.Web;
 
 partial class MainApp : App {
+    private static String RESOURCE_DIRECTORY = @"d:\Code\Level1\src\Samples\HelloMcd";
+
     static void Main(String[] args) {
         Bootstrap();
 
         GET("/order", () => {
-//            AssureSampleData();
+            AssureSampleData();
 
-            OrderApp order = new OrderApp();
+            LongRunningTransaction transaction = LongRunningTransaction.NewCurrent();
+
+            Order order = new Order();
             order.OrderNo = 666;
-            order.View = "index.html";
-            OrderApp.ItemsApp item = order.Items.Add();
-//            item.Product = new OrderApp.OrderItemProductApp();
 
-            return order;
+            OrderApp orderApp = new OrderApp();
+            orderApp.Data = order;
+            orderApp.View = "index.html";
+
+            return orderApp;
         });
 
         GET("/empty", () => {
@@ -28,19 +33,26 @@ partial class MainApp : App {
     }
 
     private static void AssureSampleData() {
-        Product p = SQL("SELECT p from Product p").First;
-        if (p == null) {
-            Transaction(() => {
-                p = new Product();
-                p.Description = "Big Mc";
-                p.Price = 39;
-                p.ProductId = "123";
+        Product p;
+        StreamReader reader;
+        String productStr;
 
-                p = new Product();
-                p.Description = "QP Cheese";
-                p.Price = 39;
-                p.ProductId = "124";
-            });
+        p = SQL("SELECT p from Product p").First;
+        if (p == null) {
+            using (reader = new StreamReader(RESOURCE_DIRECTORY + "\\Products.txt")) {
+                Db.Transaction(() => {
+
+                    // TODO:
+                    // Add prices and id to file.
+                    while (!reader.EndOfStream) {
+                        productStr = reader.ReadLine();
+                        p = new Product();
+                        p.Description = productStr;
+                        p.Price = 99;
+                        p.ProductId = productStr;
+                    }
+                });
+            }
         }
     }
 
@@ -56,7 +68,8 @@ partial class MainApp : App {
     private static void Bootstrap()
     {
         var fileserv = new StaticWebServer();
-        fileserv.UserAddedLocalFileDirectoryWithStaticContent(Path.GetDirectoryName(typeof(MainApp).Assembly.Location) + "\\..\\.." );
+//        fileserv.UserAddedLocalFileDirectoryWithStaticContent(Path.GetDirectoryName(typeof(MainApp).Assembly.Location) + "\\..\\.." );
+        fileserv.UserAddedLocalFileDirectoryWithStaticContent(RESOURCE_DIRECTORY);
         _appServer = new HttpAppServer(fileserv, new SessionDictionary());
 
         InternalHandlers.Register();
