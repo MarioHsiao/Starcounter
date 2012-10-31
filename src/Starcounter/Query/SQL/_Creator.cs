@@ -147,6 +147,7 @@ namespace Starcounter.Query.Sql
             } catch (SQLParserAssertException) {
                 prologParsedQueryPlan = Optimizer.Optimize(nodeTree, conditionDict, fetchNumExpr, fetchOffsetKeyExpr, hintSpec);
                 LogSources.Sql.LogNotice("Using Prolog-based parser");
+                Console.WriteLine("Using Prolog-based parser");
                 return prologParsedQueryPlan;
             }
 #if false
@@ -167,6 +168,7 @@ namespace Starcounter.Query.Sql
             //String bisonParsedQueryPlanStr = newAnalyzer.OptimizedPlan.ToString();
             //Debug.Assert(newAnalyzer.CompareTo(prologParsedQueryPlan),"Query plans produces by Prolog-based and Bison-based optimizers should be the same.");
             LogSources.Sql.LogNotice("Using Bison-based parser");
+            Console.WriteLine("Using Bison-based parser");
             return newAnalyzer.OptimizedPlan;
             //            return Optimizer.Optimize(nodeTree, conditionDict, fetchNumExpr, fetchOffsetKeyExpr, hintSpec);
         }

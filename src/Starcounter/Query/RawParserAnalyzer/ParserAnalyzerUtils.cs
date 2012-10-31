@@ -29,8 +29,8 @@ namespace Sc.Query.RawParserAnalyzer
             String relName = GetFullName(extent);
             TypeBinding theType = null;
             try {
-                theType = Bindings.GetTypeBinding(relName);
-            } catch (Exception ex) {
+                theType = Bindings.GetTypeBindingInsensitive(relName);
+            } catch (DbException ex) {
                 throw ErrorCode.ToException(Error.SCERRSQLUNKNOWNNAME, ex, LocationMessageForError((Node*)extent, relName));
             }
             if (theType != null)
