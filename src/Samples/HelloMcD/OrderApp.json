@@ -9,11 +9,11 @@
 					{"Description":"Big Mac & Co", "Image":"bigmac_co.png", "Pick$":null}					
 				]
 			},
-			"Price":99,
+			"Price":99.00,
 			"Quantity$":5
 	}],
 
-	"Total": 50,
+	"Total": 50.00,
 	"Save$": null,
 	"Cancel$": null
 }
