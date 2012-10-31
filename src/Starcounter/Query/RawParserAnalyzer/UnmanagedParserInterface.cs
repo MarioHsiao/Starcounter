@@ -12,36 +12,36 @@ namespace Sc.Query.RawParserAnalyzer
     {
         /// Methods to deal with parser
 
-        [DllImport("Starcounter.SQLParser.dll")]
+        [DllImport("Starcounter.SqlParser.dll")]
         internal static extern void InitParser();
 
-        [DllImport("Starcounter.SQLParser.dll")]
+        [DllImport("Starcounter.SqlParser.dll")]
         internal static unsafe extern List* ParseQuery(string query, int* scerrorcode);
 
-        [DllImport("Starcounter.SQLParser.dll")]
+        [DllImport("Starcounter.SqlParser.dll")]
         internal static unsafe extern ScError* GetScError();
 
-        [DllImport("Starcounter.SQLParser.dll")]
+        [DllImport("Starcounter.SqlParser.dll")]
         internal static extern void ResetMemoryContext();
 
-        [DllImport("Starcounter.SQLParser.dll")]
+        [DllImport("Starcounter.SqlParser.dll")]
         internal static extern bool DumpMemoryLeaks();
 
-        [DllImport("Starcounter.SQLParser.dll")]
+        [DllImport("Starcounter.SqlParser.dll")]
         internal static extern bool CleanMemoryContext();
 
         /// Interface to help methods on unmanaged structures
 
-        [DllImport("Starcounter.SQLParser.dll")]
+        [DllImport("Starcounter.SqlParser.dll")]
         internal static unsafe extern sbyte* StrVal(Node* node);
 
-        [DllImport("Starcounter.SQLParser.dll")]
+        [DllImport("Starcounter.SqlParser.dll")]
         internal static unsafe extern int Location(Node* node);
 
-        [DllImport("Starcounter.SQLParser.dll")]
+        [DllImport("Starcounter.SqlParser.dll")]
         internal static unsafe extern List* LAppend(List* flist, Node* slist);
 
-        [DllImport("Starcounter.SQLParser.dll")]
+        [DllImport("Starcounter.SqlParser.dll")]
         internal static unsafe extern List* LCons(Node* flist, List* slist);
     }
 

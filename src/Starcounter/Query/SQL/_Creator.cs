@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using Starcounter.Binding;
+using Sc.Query.RawParserAnalyzer;
 
 namespace Starcounter.Query.Sql
 {
@@ -138,7 +139,36 @@ namespace Starcounter.Query.Sql
             // Create hint specification.
             HintSpecification hintSpec = CreateHintSpecification(resultTypeBind, hintListTerm, varArray);
             // Optimize and create enumerator.
-            return Optimizer.Optimize(nodeTree, conditionDict, fetchNumExpr, fetchOffsetKeyExpr, hintSpec);
+            IExecutionEnumerator prologParsedQueryPlan;
+            //String prologParsedQueryPlanStr = prologParsedQueryPlan.ToString();
+            RawParserAnalyzer newAnalyzer = new RawParserAnalyzer();
+            try {
+                newAnalyzer.ParseAndAnalyzeQuery(query);
+            } catch (SQLParserAssertException) {
+                prologParsedQueryPlan = Optimizer.Optimize(nodeTree, conditionDict, fetchNumExpr, fetchOffsetKeyExpr, hintSpec);
+                LogSources.Sql.LogNotice("Using Prolog-based parser");
+                return prologParsedQueryPlan;
+            }
+#if false
+            Debug.Assert(newAnalyzer.JoinTree.AssertEquals(nodeTree), "Join trees are not the same!");
+            Debug.Assert(newAnalyzer.WhereCondition.AssertEquals(conditionDict), "Logical conditions are not the same!");
+            if (newAnalyzer.FetchNumExpr == null)
+                Debug.Assert(fetchNumExpr == null, "Fetch limit expression is not expected to be null.");
+            else
+                Debug.Assert(newAnalyzer.FetchNumExpr.AssertEquals(fetchNumExpr), "Fetch limit expression is not the same!");
+            if (newAnalyzer.FetchOffsetKeyExpr == null)
+                Debug.Assert(fetchOffsetKeyExpr == null, "Fetch offset expression is not expected to be null.");
+            else
+                Debug.Assert(newAnalyzer.FetchOffsetKeyExpr.AssertEquals(fetchOffsetKeyExpr), "Fetch offset expression is not the same");
+            Debug.Assert(newAnalyzer.HintSpec.AssertEquals(hintSpec), "Hint expressions are not the same");
+#endif
+            prologParsedQueryPlan = Optimizer.Optimize(nodeTree, conditionDict, fetchNumExpr, fetchOffsetKeyExpr, hintSpec);
+            newAnalyzer.Optimize();
+            //String bisonParsedQueryPlanStr = newAnalyzer.OptimizedPlan.ToString();
+            //Debug.Assert(newAnalyzer.CompareTo(prologParsedQueryPlan),"Query plans produces by Prolog-based and Bison-based optimizers should be the same.");
+            LogSources.Sql.LogNotice("Using Bison-based parser");
+            return newAnalyzer.OptimizedPlan;
+            //            return Optimizer.Optimize(nodeTree, conditionDict, fetchNumExpr, fetchOffsetKeyExpr, hintSpec);
         }
 
         // Output is returned in arguments fetchNumExpr and fetchOffsetKeyExpr.

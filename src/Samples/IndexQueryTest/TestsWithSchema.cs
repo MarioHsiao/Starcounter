@@ -11,7 +11,7 @@ namespace IndexQueryTest
         {
             Db.Transaction(delegate
             {
-                if (Db.SQL("select u from user u").First == null)
+                if (Db.SQL("select u from user Accounttest.u").First == null)
                 {
                     Console.WriteLine("It seems that User table was deleted");
                     PrintAllObjects();

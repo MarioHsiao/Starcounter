@@ -54,6 +54,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ModuleDefinitionFile>Starcounter.SQLParser.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -125,6 +126,7 @@
     <ClCompile Include="Utils\snprintf.c" />
     <ClCompile Include="Utils\stringinfo.c" />
     <ClCompile Include="Utils\wchar.c" />
+    <None Include="Starcounter.SqlParser.def" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Parser\gram.y">

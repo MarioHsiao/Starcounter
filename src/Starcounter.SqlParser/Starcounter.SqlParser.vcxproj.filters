@@ -204,5 +204,8 @@
     <None Include="Parser\scan.c">
       <Filter>Source Files\Parser</Filter>
     </None>
+    <None Include="Starcounter.SqlParser.def">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
