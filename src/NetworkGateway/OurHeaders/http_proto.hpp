@@ -265,6 +265,9 @@ public:
         // Sorting the URIs.
         reg_uris_.Sort();
 
+        // Setting zero same previous characters for the first entry.
+        reg_uris_[0].set_num_same_prev_chars(0);
+
         // Going through sorted URIs and detecting same starts.
         for (int32_t i = 0; i < (reg_uris_.get_num_entries() - 1); i++)
         {

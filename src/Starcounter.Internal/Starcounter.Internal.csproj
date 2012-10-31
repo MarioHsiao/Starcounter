@@ -53,6 +53,7 @@
     <Compile Include="ABCIPC\Request.cs" />
     <Compile Include="ABCIPC\Server.cs" />
     <Compile Include="CommandLine\InvalidCommandLineException.cs" />
+    <Compile Include="Diagnostics.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="ErrorHandling\ErrorCode.cs" />
     <Compile Include="ErrorHandling\ErrorMessage.cs" />
