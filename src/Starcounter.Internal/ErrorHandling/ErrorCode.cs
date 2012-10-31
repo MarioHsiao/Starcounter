@@ -673,7 +673,11 @@ namespace Starcounter
             moduleHandle = IntPtr.Zero;
             try
             {
-                resourceBinaryPath = typeof(ErrorCode).Assembly.Location;
+                resourceBinaryPath = Path.GetDirectoryName(typeof(ErrorCode).Assembly.Location);
+                if (IntPtr.Size == 4) {
+                    resourceBinaryPath = Path.Combine(resourceBinaryPath, "32BitComponents");
+                }
+
                 moduleHandle = LoadLibrary(Path.Combine(resourceBinaryPath, "scerrres.dll"));
             }
             catch { }
