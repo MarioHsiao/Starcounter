@@ -187,14 +187,14 @@ namespace SQLTest
                 // And printing it to console.
                 if (endLine)
                 {
-                    if (_turnOffImportantMessages)
+                    if (_turnOffImportantMessages || (type != LogMsgType.MSG_ERROR))
                         Console.WriteLine(fullMessage);
                     else
                         Console.Error.WriteLine(fullMessage);
                 }
                 else
                 {
-                    if (_turnOffImportantMessages)
+                    if (_turnOffImportantMessages || (type != LogMsgType.MSG_ERROR))
                         Console.Write(fullMessage);
                     else
                         Console.Error.Write(fullMessage);

@@ -371,7 +371,6 @@
     <Compile Include="Binding\TableDef.cs" />
     <Compile Include="Db.cs" />
     <Compile Include="Internal\Loader.cs" />
-    <Compile Include="Internal\Package.cs" />
     <Compile Include="Internal\sccoredb.cs" />
     <Compile Include="Internal\sccorelib.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

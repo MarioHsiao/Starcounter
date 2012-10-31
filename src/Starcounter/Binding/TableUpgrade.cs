@@ -14,7 +14,7 @@ namespace Starcounter.Binding
     /// <summary>
     /// Class TableUpgrade
     /// </summary>
-    internal class TableUpgrade
+    public class TableUpgrade
     {
 
         /// <summary>

@@ -49,7 +49,7 @@ namespace Starcounter.Binding
         /// Registers the type defs.
         /// </summary>
         /// <param name="typeDefs">The type defs.</param>
-        internal static void RegisterTypeDefs(TypeDef[] typeDefs)
+        public static void RegisterTypeDefs(TypeDef[] typeDefs)
         {
             // We don't have to lock here since only one thread at a time will
             // be adding type definitions.
