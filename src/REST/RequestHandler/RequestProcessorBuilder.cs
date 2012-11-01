@@ -44,11 +44,12 @@ namespace Starcounter.Internal.Uri {
 
         /// <summary>
         /// Underlying variable for the RegistrationListeners property.
-        /// <summary>
+        /// </summary>
         private List<Action<string>> _RegistrationListeners = new List<Action<string>>();
 
-        /// You can register listeners that will trigger whenever a new handler is registred or replaced.
         /// <summary>
+        /// You can register listeners that will trigger whenever a new handler is registred or replaced.
+        /// </summary>
         /// <remarks>
         /// Starcounter uses these listeners internally to allow the Starcounter Network gateway to
         /// keep track on how to route incomming HTTP requests to the correct datababase.
