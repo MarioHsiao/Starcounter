@@ -84,20 +84,24 @@ namespace Starcounter.Internal.Uri {
             fs.Write(ilCode, 0, ilCode.Length);
             fs.Close();
 
-            AssemblyBuilder ab = AppDomain.CurrentDomain.DefineDynamicAssembly(
-                    new AssemblyName(node.Namespace), AssemblyBuilderAccess.RunAndCollect);
-            ModuleBuilder uriMatcherModuleBuilder = ab.DefineDynamicModule("UriMatcherModule");
-            ReflectionEmitResult result = compilation.Emit(uriMatcherModuleBuilder);
+            var a = Assembly.Load(ilCode);
+            var topRp = (TopLevelRequestProcessor)a.CreateInstance(node.Namespace + ".GeneratedRequestProcessor");
 
-            if (!result.Success) {
-                foreach (var d in result.Diagnostics) {
-                    Console.WriteLine(d);
-                }
-                return null;
-            }
-            var topRp = (TopLevelRequestProcessor)Activator.CreateInstance(
-                uriMatcherModuleBuilder.GetType(node.Namespace + ".GeneratedRequestProcessor"),
-                null, null);
+
+//            AssemblyBuilder ab = AppDomain.CurrentDomain.DefineDynamicAssembly(
+//                    new AssemblyName(node.Namespace), AssemblyBuilderAccess.RunAndCollect);
+//            ModuleBuilder uriMatcherModuleBuilder = ab.DefineDynamicModule("UriMatcherModule");
+//            ReflectionEmitResult result = compilation.Emit(uriMatcherModuleBuilder);
+
+//            if (!result.Success) {
+//                foreach (var d in result.Diagnostics) {
+//                    Console.WriteLine(d);
+//                }
+//                return null;
+//            }
+//            var topRp = (TopLevelRequestProcessor)Activator.CreateInstance(
+//                uriMatcherModuleBuilder.GetType(node.Namespace + ".GeneratedRequestProcessor"),
+//                null, null);
 
 
 
