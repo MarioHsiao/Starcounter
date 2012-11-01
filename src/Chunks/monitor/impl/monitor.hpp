@@ -64,13 +64,31 @@ internal_chron_() {
 
 		temp_buf[length++] = SLASH;
 		temp_buf[length++] = '\0';
-		monitor_log_dir_path_ = std::string(temp_buf);
+
+		monitor_log_dir_path_ = std::string(temp_buf) + DEFAULT_MONITOR_DIR_NAME + SLASH;
+
+        // Trying to create monitor directory.
+        if ((!CreateDirectoryA(monitor_log_dir_path_.c_str(), NULL)) &&
+            (ERROR_ALREADY_EXISTS != GetLastError()))
+        {
+            throw bad_monitor("can't create monitor log directory!");
+        }
+
+        // Constructing path to active databases directory.
+        std::string active_databases_dir_path = monitor_log_dir_path_ + DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME;
+
+        // Trying to create active databases directory.
+        if ((!CreateDirectoryA(active_databases_dir_path.c_str(), NULL)) &&
+            (ERROR_ALREADY_EXISTS != GetLastError()))
+        {
+            throw bad_monitor("can't create monitor active databases directory!");
+        }
 	}
 	else {
 		// The first argument (name of the server that started this monitor),
 		// and the second argument (path to the dir where the monitor's log file
 		// is to be stored), must be provided. At least one is missing.
-		throw bad_monitor("required arguments are missing"); 
+		throw bad_monitor("required arguments are missing");
 	}
 	
 	if (argc > 3) {
@@ -85,8 +103,18 @@ internal_chron_() {
 		log_file_name_ = std::string(DEFAULT_MONITOR_LOG_FILE_NAME);
 	}
 	
-	active_databases_file_name_
-	= std::string(DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME);
+    // Constructing the full path to active databases file.
+    active_databases_file_path_ = monitor_log_dir_path_ +DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME +SLASH
+        /*+server_name_ +'_' */ +DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME;
+
+    // Checking if old active databases file already exists and deleting it.
+    if (GetFileAttributesA(active_databases_file_path_.c_str()) != INVALID_FILE_ATTRIBUTES)
+    {
+        if (!DeleteFileA(active_databases_file_path_.c_str()))
+        {
+            throw bad_monitor("can't delete monitor active databases file!");
+        }
+    }
 	
 	//--------------------------------------------------------------------------
 	// Initialize the monitor_interface shared memory object.
@@ -1474,9 +1502,6 @@ bool monitor::erase_database_name(const std::string& database_name) {
 }
 
 void monitor::update_active_databases_file() {
-	std::string active_databases_file_name = monitor_log_dir_path_
-	/*+server_name_ +'_' */ +active_databases_file_name_;
-	
 	do {
 		boost::mutex::scoped_lock active_databases_lock
 		(active_databases_mutex_);
@@ -1487,7 +1512,7 @@ void monitor::update_active_databases_file() {
 		
 		// Try to open the active databases file in text mode.
 		for (std::size_t retries = 6; retries > 0; --retries) {
-			monitor_active_databases_file_.open(active_databases_file_name,
+			monitor_active_databases_file_.open(active_databases_file_path_,
 			std::ios::out);
 			
 			if (!monitor_active_databases_file_.is_open()) {
