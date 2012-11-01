@@ -62,8 +62,8 @@ namespace Starcounter {
                 }
                 if (!input.Cancelled)
                 {
-                    Console.WriteLine("Setting value after custom handler: " + value);
-                    app.SetValue(this, value);
+                    Console.WriteLine("Setting value after custom handler: " + input.Value);
+                    app.SetValue(this, input.Value);
                 }
                 else
                 {

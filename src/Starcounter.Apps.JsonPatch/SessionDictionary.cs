@@ -20,7 +20,7 @@ namespace Starcounter.Internal.Application {
         /// The hardcoded
         /// </summary>
         private static Session Hardcoded;
-//        private Dictionary<SessionID, Session> Sessions = new Dictionary<SessionID,Session>();
+        //        private Dictionary<SessionID, Session> Sessions = new Dictionary<SessionID,Session>();
 
         //public App GetRootApp(SessionID session)
         //{
@@ -32,10 +32,10 @@ namespace Starcounter.Internal.Application {
         /// </summary>
         /// <returns>Session.</returns>
         internal Session CreateSession() {
-//            var sid = SessionID.CreateSession();
+            //            var sid = SessionID.CreateSession();
             var session = new Session(1);
             Hardcoded = session;
-//            Sessions[sid] = session;
+            //            Sessions[sid] = session;
             return session;
         }
 
@@ -44,11 +44,14 @@ namespace Starcounter.Internal.Application {
         /// </summary>
         /// <param name="id">The id.</param>
         /// <returns>Session.</returns>
-        internal Session GetSession(Int32 id)
-        {
+        internal Session GetSession(Int32 id) {
             //Session session;
             //Sessions.TryGetValue(sid, out session);
             //return session;
+            if (Hardcoded == null) {
+                CreateSession();
+            }
+
             return Hardcoded;
         }
 
@@ -57,8 +60,7 @@ namespace Starcounter.Internal.Application {
         /// </summary>
         /// <param name="sessionString">The session string.</param>
         /// <returns>Session.</returns>
-        public Session GetSession(string sessionString)
-        {
+        public Session GetSession(string sessionString) {
             // TODO:
             // How do we convert string to SessionID???
             //SessionID sid = SessionID.NullSession;
@@ -70,8 +72,7 @@ namespace Starcounter.Internal.Application {
     /// <summary>
     /// Class Session
     /// </summary>
-    public class Session
-    {
+    public class Session {
         /// <summary>
         /// The _current
         /// </summary>
@@ -90,6 +91,7 @@ namespace Starcounter.Internal.Application {
         /// The _root app
         /// </summary>
         private App _rootApp;
+
         /// <summary>
         /// The _request
         /// </summary>
@@ -105,16 +107,14 @@ namespace Starcounter.Internal.Application {
         /// Initializes a new instance of the <see cref="Session" /> class.
         /// </summary>
         internal Session()
-            : this(1)
-        {
+            : this(1) {
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Session" /> class.
         /// </summary>
         /// <param name="sid">The sid.</param>
-        internal Session(Int32 sid)
-        {
+        internal Session(Int32 sid) {
             _changeLog = new ChangeLog();
             _sessionID = sid;
         }
@@ -123,8 +123,7 @@ namespace Starcounter.Internal.Application {
         /// Attaches the root app.
         /// </summary>
         /// <param name="rootApp">The root app.</param>
-        internal void AttachRootApp(App rootApp)
-        {
+        internal void AttachRootApp(App rootApp) {
             _rootApp = rootApp;
         }
 
@@ -132,8 +131,7 @@ namespace Starcounter.Internal.Application {
         /// Gets the root app.
         /// </summary>
         /// <value>The root app.</value>
-        public App RootApp
-        {
+        public App RootApp {
             get { return _rootApp; }
         }
 
@@ -141,8 +139,7 @@ namespace Starcounter.Internal.Application {
         /// Gets the HTTP request.
         /// </summary>
         /// <value>The HTTP request.</value>
-        public HttpRequest HttpRequest
-        {
+        public HttpRequest HttpRequest {
             get { return _request; }
         }
 
@@ -151,20 +148,26 @@ namespace Starcounter.Internal.Application {
         /// </summary>
         /// <param name="request">The request.</param>
         /// <param name="action">The action.</param>
-        internal void Execute(HttpRequest request, Action action)
-        {
-            try
-            {
+        internal void Execute(HttpRequest request, Action action) {
+            LongRunningTransaction transaction = null;
+
+            try {
                 _request = request;
                 _current = this;
                 ChangeLog.BeginRequest(_changeLog);
+
+                transaction = (RootApp != null) ? RootApp.GetAttachedTransaction() : null;
+                if (transaction != null && transaction != LongRunningTransaction.Current)
+                    transaction.SetTransactionAsCurrent();
+
                 action();
-            }
-            finally
-            {
+
+            } finally {
                 ChangeLog.EndRequest();
                 _current = null;
                 _request = null;
+                if (transaction != null)
+                    transaction.ReleaseCurrentTransaction();
             }
         }
     }

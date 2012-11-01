@@ -46,29 +46,44 @@ angular.module('StarcounterLib', ['panelApp'])
           });
         }
 
-        function updateServer(scope, update) {
+        function updateServer(scope, path, value) {
+          var data = {
+            "replace": path,
+            "value": value
+          };
           $http({
             method: 'PATCH', 
             url: getRequestUrl(scope), 
-            data: update
+            data: data
           }).success(function (data, status, headers, config) {
             patchRoot(scope, data);
           });
         }
         
-        window.updateServer = updateServer;
-        
         function findAndSetWatchers(scope) {
           var tree = appContext.getScopeTree(scope);
           var watched = [];
-          for (var i in tree.locals) {
-            if (i == "View-Model") {
-              continue;
-            }
-            if (tree.locals.hasOwnProperty(i)) {
-              watched.push(i);
+
+          function findWatchedRecursive(watched, obj, parent) {
+            parent = parent || '';
+            for (var i in obj) {
+              if (i == "View-Model") continue;
+
+              if (obj.hasOwnProperty(i)) {
+                if (Object.prototype.toString.apply(obj[i]) === '[object Object]') {
+                  findWatchedRecursive(watched, obj[i], parent + i + '.');
+                }
+                else if (Object.prototype.toString.apply(obj[i]) === '[object Array]') {
+                  findWatchedRecursive(watched, obj[i], parent + i + '.');
+                }
+                else if (typeof obj[i] !== "function") {
+                  watched.push(parent + i);
+                }
+              }
             }
           }
+
+          findWatchedRecursive(watched, tree.locals);
           setWatchers(scope, watched);
         }
 
@@ -81,23 +96,7 @@ angular.module('StarcounterLib', ['panelApp'])
                   if (current === previous) {
                     return;
                   }
-                  var update = [];
-                  if(scope[prop + '_deepChangeInfo']) {
-                    for(var i=0, ilen=scope[prop + '_deepChangeInfo'].length; i<ilen; i++) {
-                      update.push({
-                        "replace": '/' + prop.replace(/\./g, '/') + '/' + scope[prop + '_deepChangeInfo'][i][0] + '/' + scope[prop + '_deepChangeInfo'][i][1].replace(/\./g, '/'),
-                        "value": scope[prop + '_deepChangeInfo'][i][3]
-                      });
-                    }
-                    scope[prop + '_deepChangeInfo'] = null;
-                  }
-                  else {
-                    update.push({
-                      "replace": '/' + prop.replace(/\./g, '/'),
-                      "value": current
-                    });
-                  }
-                  updateServer(scope, update);
+                  updateServer(scope, '/' + prop.replace(/\./g, '/'), current);
                 }
               })
             })(props[i]), true);

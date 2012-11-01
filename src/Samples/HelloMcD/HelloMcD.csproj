@@ -3,121 +3,70 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
+    <ProductVersion>9.0.20706</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
+    <ProjectTypeGuids>{C86118D7-451E-4933-BFEE-A1EFDB162FD7};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <ProjectGuid>{2F1B4CDB-2A7E-405E-A774-EC9D9AF9BD3F}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>HelloWeb</RootNamespace>
-    <AssemblyName>HelloMcD</AssemblyName>
+    <RootNamespace>HelloMcd</RootNamespace>
+    <AssemblyName>HelloMcd</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <PublishUrl>publish\</PublishUrl>
-    <Install>true</Install>
-    <InstallFrom>Disk</InstallFrom>
-    <UpdateEnabled>false</UpdateEnabled>
-    <UpdateMode>Foreground</UpdateMode>
-    <UpdateInterval>7</UpdateInterval>
-    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
-    <UpdatePeriodically>false</UpdatePeriodically>
-    <UpdateRequired>false</UpdateRequired>
-    <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
-    <UseApplicationTrust>false</UseApplicationTrust>
-    <BootstrapperEnabled>true</BootstrapperEnabled>
-    <TargetFrameworkProfile />
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\debug\</OutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <UseVSHostingProcess>false</UseVSHostingProcess>
-    <Prefer32Bit>false</Prefer32Bit>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\release\</OutputPath>
+    <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <UseVSHostingProcess>false</UseVSHostingProcess>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <NoWarn>;2008</NoWarn>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <CodeAnalysisLogFile>..\..\..\www.jockepocke.com\bin\debug\HelloWeb.dll.CodeAnalysisLog.xml</CodeAnalysisLogFile>
-    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
-    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 11.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
-    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
-    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 11.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
-    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
-    <Prefer32Bit>false</Prefer32Bit>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <NoWarn>;2008</NoWarn>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <CodeAnalysisLogFile>..\..\..\www.jockepocke.com\bin\debug\HelloWeb.dll.CodeAnalysisLog.xml</CodeAnalysisLogFile>
-    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
-    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 11.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
-    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
-    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 11.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
-    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject />
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="HttpStructs">
-      <HintPath>..\..\..\bin\Debug\HttpStructs.dll</HintPath>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
-    <Reference Include="Starcounter, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d2df1e81d0ca3abf, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\bin\$(Configuration)\Starcounter.dll</HintPath>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Starcounter">
+      <HintPath>$(StarcounterBin)\Starcounter.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Starcounter.Apps">
-      <HintPath>..\..\..\bin\$(Configuration)\Starcounter.Apps.dll</HintPath>
+      <HintPath>$(StarcounterBin)\Starcounter.Apps.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Starcounter.Apps.Interfaces">
-      <HintPath>..\..\..\bin\$(Configuration)\Starcounter.Apps.Interfaces.dll</HintPath>
+      <HintPath>$(StarcounterBin)\Starcounter.Apps.Interfaces.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Starcounter.Apps.JsonPatch">
-      <HintPath>..\..\..\bin\$(Configuration)\Starcounter.Apps.JsonPatch.dll</HintPath>
+      <HintPath>$(StarcounterBin)\Starcounter.Apps.JsonPatch.dll</HintPath>
+      <Private>False</Private>
     </Reference>
-    <Reference Include="Starcounter.Hypermedia">
-      <HintPath>..\..\..\bin\$(Configuration)\Starcounter.Hypermedia.dll</HintPath>
+    <Reference Include="Starcounter.HyperMedia">
+      <HintPath>$(StarcounterBin)\Starcounter.HyperMedia.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Starcounter.REST">
-      <HintPath>..\..\..\bin\$(Configuration)\Starcounter.REST.dll</HintPath>
+      <HintPath>$(StarcounterBin)\Starcounter.REST.dll</HintPath>
+      <Private>False</Private>
     </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="HttpStructs">
+      <HintPath>$(StarcounterBin)\HttpStructs.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MainApp.cs" />
@@ -128,55 +77,40 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="css\angular-ui.css" />
-    <Content Include="css\angular-ui.min.css" />
-    <Content Include="css\bootstrap.min-2.1.1.css" />
-    <Content Include="index.html" />
-    <Content Include="js\angular-ui\angular-ui-ieshiv.min.js" />
-    <Content Include="js\angular-ui\angular-ui.min.js" />
-    <Content Include="js\angular\angular-resource.min.js" />
-    <Content Include="js\angular\angular.min.js" />
-    <Content Include="js\bootstrap.min.js" />
-    <Content Include="js\jquery-1.8.2.js" />
-    <Content Include="js\main.js" />
-    <Content Include="js\serverScope.js" />
-    <Content Include="js\starcounter-directives.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <BootstrapperPackage Include=".NETFramework,Version=v4.0">
-      <Visible>False</Visible>
-      <ProductName>Microsoft .NET Framework 4 %28x86 and x64%29</ProductName>
-      <Install>true</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
-      <Install>false</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1</ProductName>
-      <Install>false</Install>
-    </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
     <App Include="OrderApp.json">
-      <Generator>MSBuild:Compile</Generator>
+      <Generator>MsBuild:Compile</Generator>
     </App>
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
-    <None Include="model.json" />
+    <None Include="css\angular-ui.css" />
+    <None Include="css\angular-ui.min.css" />
+    <None Include="css\bootstrap.min-2.1.1.css" />
+    <None Include="index.html" />
+    <None Include="js\angular-ui\angular-ui-ieshiv.min.js" />
+    <None Include="js\angular-ui\angular-ui.min.js" />
+    <None Include="js\angular\angular-resource.min.js" />
+    <None Include="js\angular\angular.min.js" />
+    <None Include="js\appContext.js" />
+    <None Include="js\bootstrap.min.js" />
+    <None Include="js\jquery-1.8.2.js" />
+    <None Include="js\jsonpatch.js" />
+    <None Include="js\main.js" />
+    <None Include="js\serverScope.js" />
+    <None Include="js\starcounter-directives.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="js\angular-datagrid\angular-datagrid.js" />
+    <None Include="Products.txt" />
+    <None Include="js\angular-datagrid\handsontable\jquery.handsontable.css" />
+    <None Include="js\angular-datagrid\handsontable\jquery.handsontable.js" />
+    <None Include="js\angular-datagrid\handsontable\lib\bootstrap-typeahead.js" />
+    <None Include="js\angular-datagrid\handsontable\lib\jQuery-contextMenu\jquery.contextMenu.css" />
+    <None Include="js\angular-datagrid\handsontable\lib\jQuery-contextMenu\jquery.contextMenu.js" />
+    <None Include="js\angular-datagrid\handsontable\lib\jQuery-contextMenu\jquery.ui.position.js" />
+    <None Include="js\angular-datagrid\handsontable\lib\jquery.min.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- TODO: Temporary path. Use installation directory for starcounter 
-  	   later when Apps is integrated into main Starcounter -->
-  <Import Project="..\..\..\bin\$(Configuration)\Starcounter.MsBuild.targets" />
-  <ProjectExtensions>
-    <VisualStudio>
-      <UserProperties DocumentXCommentEditorState="&lt;HtmlEditState&gt;&#xA;  &lt;Attributes&gt;&#xA;    &lt;Attribute key=&quot;dtscrollpos&quot; valuetype=&quot;integer&quot;&gt;0&lt;/Attribute&gt;&#xA;    &lt;Attribute key=&quot;lang_VB&quot; valuetype=&quot;string&quot;&gt;on&lt;/Attribute&gt;&#xA;    &lt;Attribute key=&quot;lang_VBUsage&quot; valuetype=&quot;string&quot;&gt;on&lt;/Attribute&gt;&#xA;    &lt;Attribute key=&quot;lang_CS&quot; valuetype=&quot;string&quot;&gt;on&lt;/Attribute&gt;&#xA;    &lt;Attribute key=&quot;lang_CPP2005&quot; valuetype=&quot;string&quot;&gt;on&lt;/Attribute&gt;&#xA;    &lt;Attribute key=&quot;inheritedMembers&quot; valuetype=&quot;string&quot;&gt;on&lt;/Attribute&gt;&#xA;    &lt;Attribute key=&quot;protectedMembers&quot; valuetype=&quot;string&quot;&gt;on&lt;/Attribute&gt;&#xA;    &lt;Attribute key=&quot;SyntaxGroup_SelectedTab&quot; valuetype=&quot;string&quot;&gt;SyntaxTab_VB&lt;/Attribute&gt;&#xA;  &lt;/Attributes&gt;&#xA;&lt;/HtmlEditState&gt;" />
-    </VisualStudio>
-  </ProjectExtensions>
+  <Import Project="$(StarcounterBin)\Starcounter.MsBuild.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

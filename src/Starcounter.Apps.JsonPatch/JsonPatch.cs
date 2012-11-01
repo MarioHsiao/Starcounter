@@ -270,7 +270,7 @@ namespace Starcounter.Internal.JsonPatch {
                 patchType = REPLACE;
                 offset += _replacePatchArr.Length + 1;
             } else {
-                throw new Exception("Unsupported json-patch");
+                throw new NotSupportedException();
             }
 
             if (quotationMark)
