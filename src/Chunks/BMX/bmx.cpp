@@ -368,7 +368,7 @@ uint32_t BmxData::SendRegisterPushChannelResponse(shared_memory_chunk* smc, TASK
         return err_code;
 
     // Increasing number of registered push channels.
-    num_registered_push_channels_++;
+    InterlockedIncrement(&num_registered_push_channels_);
 
     response_chunk_part *response = smc->get_response_chunk();
     response->reset_offset();

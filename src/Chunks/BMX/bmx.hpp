@@ -502,7 +502,7 @@ namespace bmx
         HandlersList* registered_handlers_;
 
         // Number of registered push channels.
-        int32_t num_registered_push_channels_;
+        volatile uint32_t num_registered_push_channels_;
 
     public:
 
@@ -513,7 +513,7 @@ namespace bmx
         }
 
         // Gets the number of registered push channels.
-        int32_t get_num_registered_push_channels()
+        uint32_t get_num_registered_push_channels()
         {
             return num_registered_push_channels_;
         }
