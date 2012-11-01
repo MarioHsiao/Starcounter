@@ -139,7 +139,6 @@ namespace Starcounter.Query.Sql
             HintSpecification hintSpec = CreateHintSpecification(resultTypeBind, hintListTerm, varArray);
             // Optimize and create enumerator.
             IExecutionEnumerator prologParsedQueryPlan;
-            //String prologParsedQueryPlanStr = prologParsedQueryPlan.ToString();
             Starcounter.Query.RawParserAnalyzer.ParserAnalyzer newAnalyzer = new Starcounter.Query.RawParserAnalyzer.ParserAnalyzer();
             try {
                 newAnalyzer.ParseAndAnalyzeQuery(query);
@@ -164,7 +163,9 @@ namespace Starcounter.Query.Sql
 #endif
             prologParsedQueryPlan = Optimizer.Optimize(nodeTree, conditionDict, fetchNumExpr, fetchOffsetKeyExpr, hintSpec);
             newAnalyzer.Optimize();
-            //String bisonParsedQueryPlanStr = newAnalyzer.OptimizedPlan.ToString();
+            String prologParsedQueryPlanStr = prologParsedQueryPlan.ToString();
+            String bisonParsedQueryPlanStr = newAnalyzer.OptimizedPlan.ToString();
+            Debug.Assert(bisonParsedQueryPlanStr == prologParsedQueryPlanStr, "Strings of executions plans should be equally");
             //Debug.Assert(newAnalyzer.CompareTo(prologParsedQueryPlan),"Query plans produces by Prolog-based and Bison-based optimizers should be the same.");
             LogSources.Sql.LogNotice("Using Bison-based parser");
             Console.WriteLine("Using Bison-based parser");
