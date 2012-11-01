@@ -251,6 +251,18 @@ namespace Starcounter.Internal.Test {
             um.Invoke(new HttpRequest(h7));
 
         }
+
+
+        [Test]
+        public static void TestAssemblyCache() {
+            Main();
+
+            var umb = RequestHandler.UriMatcherBuilder;
+
+            Console.WriteLine("Assembly signature:" + umb.HandlerSetChecksum);
+
+        }
+
     }
 
 }
