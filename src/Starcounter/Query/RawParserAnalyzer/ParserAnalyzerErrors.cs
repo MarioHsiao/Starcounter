@@ -42,7 +42,7 @@ namespace Starcounter.Query.RawParserAnalyzer
         /// Generates a string reporting position and token in the given query for an error.
         /// </summary>
         /// <param name="node">Node of unmanaged tree where error happened.</param>
-        /// <returns></returns>
+        /// <returns>Part of error message about location of the error.</returns>
         internal unsafe String LocationMessageForError(Node* node)
         {
             return LocationMessageForError(node, new String(UnmanagedParserInterface.StrVal(node)));

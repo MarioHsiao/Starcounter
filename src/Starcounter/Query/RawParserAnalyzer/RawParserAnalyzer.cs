@@ -2,17 +2,19 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Starcounter;
 using Starcounter.Query.Execution;
 using Starcounter.Query.Optimization;
 
+[assembly: InternalsVisibleTo("Starcounter.SqlParser.Tests")]
 namespace Starcounter.Query.RawParserAnalyzer
 {
     /// <summary>
     /// Contains methods to analyze raw parsed tree and generate necessary structures for current optimizer.
     /// </summary>
-    internal partial class ParserAnalyzer
+    internal partial class ParserAnalyzer : IDisposable
     {
         /// <summary>
         /// Keeps knowledge if an open parser exists in this thread. It is important to have maximum one open parser per thread.
@@ -79,18 +81,55 @@ namespace Starcounter.Query.RawParserAnalyzer
             }
         }
 
+        /// <summary>
+        /// Calls parser for a query. If parsing fails then exception is thrown.
+        /// </summary>
+        /// <param name="query">The query to parse.</param>
+        /// <returns></returns>
         internal unsafe void ParseQuery(string query)
         {
             IsOpenParserThread = true; // Important to avoid destroying global variables in unmanaged parser.
+            Query = query;
             int scerrorcode = 0;
             unsafe
             {
                 // The result error code. If 0 then parsing was successful.
                 // Calls unmanaged parser, which returns the parsed tree
                 List* parsedTree = UnmanagedParserInterface.ParseQuery(query, &scerrorcode);
-                UnmanagedParserInterface.CleanMemoryContext(); // Otherwise memory leaks
+                try {
+                    // Throw exception if error
+                    RawParserError(scerrorcode);
+                } finally {
+                    UnmanagedParserInterface.CleanMemoryContext(); // Otherwise memory leaks
+                    IsOpenParserThread = false; // Important to allow calling parser again
+                }
             }
-            IsOpenParserThread = false; // Important to allow calling parser again
+        }
+
+        /// <summary>
+        /// Calls parser for a quey. If error is unexpected then exception is thrown.
+        /// </summary>
+        /// <param name="query">The query to parser.</param>
+        /// <param name="errorExpected">If error expected or not</param>
+        /// <returns>Error code.</returns>
+        internal unsafe int ParseQuery(string query, bool errorExpected) {
+            IsOpenParserThread = true; // Important to avoid destroying global variables in unmanaged parser.
+            Query = query;
+            int scerrorcode = 0;
+            unsafe {
+                // The result error code. If 0 then parsing was successful.
+                // Calls unmanaged parser, which returns the parsed tree
+                List* parsedTree = UnmanagedParserInterface.ParseQuery(query, &scerrorcode);
+                try {
+                    if (!errorExpected)
+                        // Throw exception if error
+                        RawParserError(scerrorcode);
+                } finally {
+                    UnmanagedParserInterface.CleanMemoryContext(); // Otherwise memory leaks
+                    IsOpenParserThread = false; // Important to allow calling parser again
+                }
+            }
+            return scerrorcode;
         }
 
         /// <summary>
@@ -121,6 +160,16 @@ namespace Starcounter.Query.RawParserAnalyzer
         {
             Debug.Assert(JoinTree != null && WhereCondition != null && HintSpec != null, "Query should parsed and analyzed before optimization");
             OptimizedPlan = Optimizer.Optimize(JoinTree, WhereCondition, FetchNumExpr, FetchOffsetKeyExpr, HintSpec);
+        }
+
+        /// <summary>
+        /// Checks if native parser was closed, i.e., memory was cleaned. If not then calls memory clean up.
+        /// </summary>
+        public void Dispose() {
+            if (IsOpenParserThread) {
+                UnmanagedParserInterface.CleanMemoryContext();
+                IsOpenParserThread = false;
+            }
         }
     }
 }
