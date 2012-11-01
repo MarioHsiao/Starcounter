@@ -34,7 +34,7 @@ namespace HelloMcd {
 //        public IEnumerable<OrderItem> Items {
         public IEnumerable Items {
             get {
-                return Db.SQL("SELECT item FROM OrderItem item WHERE item.Order=?", this);
+                return Db.SQL("SELECT item FROM OrderItem item WHERE item.[Order]=?", this);
             }
         }
     }
