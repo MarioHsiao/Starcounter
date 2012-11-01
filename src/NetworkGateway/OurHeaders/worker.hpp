@@ -89,9 +89,6 @@ public:
     // Getting one of the active databases.
     WorkerDbInterface* GetDatabase(int32_t dbSlotIndex)
     {
-        if (active_dbs_[dbSlotIndex] == NULL)
-            return NULL;
-
         return active_dbs_[dbSlotIndex];
     }
 

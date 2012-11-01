@@ -214,14 +214,14 @@ public:
 
     // Obtains needed linked chunks from a private pool if its not empty
     // (otherwise fetches them from shared chunk pool).
-    uint32_t GetLinkedChunksFromPrivatePool(core::chunk_index* chunk_index, uint32_t num_bytes)
+    uint32_t GetLinkedChunksFromPrivatePool(core::chunk_index* out_chunk_index, uint32_t num_bytes)
     {
         // Determining number of chunks needed.
-        uint32_t num_chunks_needed = num_bytes / starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK;
+        uint32_t num_chunks_needed = num_bytes / bmx::MAX_DATA_BYTES_IN_CHUNK;
 
         // Trying to fetch chunk from private pool.
         uint32_t err_code;
-        while (!private_chunk_pool_.acquire_linked_chunks(&shared_int_.chunk(0), *chunk_index, num_bytes))
+        while (!private_chunk_pool_.acquire_linked_chunks(&shared_int_.chunk(0), *out_chunk_index, num_bytes))
         {
             // Getting chunks from shared chunk pool.
             err_code = AcquireChunksFromSharedPool(num_chunks_needed);
@@ -235,7 +235,7 @@ public:
         //(*chunk_data) = (shared_memory_chunk *)(&shared_int_.chunk(chunk_index));
 
 #ifdef GW_CHUNKS_DIAG
-        GW_COUT << "Getting new linked chunks: " << *chunk_index << std::endl;
+        GW_COUT << "Getting new linked chunks: " << *out_chunk_index << std::endl;
 #endif
 
         return 0;

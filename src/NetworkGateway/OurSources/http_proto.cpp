@@ -5,6 +5,7 @@
 #include "http_proto.hpp"
 #include "socket_data.hpp"
 #include "tls_proto.hpp"
+#include "worker_db_interface.hpp"
 #include "worker.hpp"
 
 namespace starcounter {
@@ -146,8 +147,8 @@ inline int HttpWsProto::OnHeadersComplete(http_parser* p)
 
     HttpWsProto *http = (HttpWsProto *)p;
 
-    // Setting complete data flag.
-    http->complete_data_ = true;
+    // Setting complete header flag.
+    http->complete_header_ = true;
     
     // Setting headers length (skipping 4 bytes for \r\n\r\n).
     http->http_request_.headers_len_bytes_ = p->nread - 4 - http->http_request_.headers_len_bytes_;
@@ -329,6 +330,25 @@ inline const char* GetSessionIdValue(const char *at, size_t length)
     return NULL;
 }
 
+// Parses decimal string into unsigned number.
+inline uint32_t ParseDecimalStringToUint(const char *at, size_t length)
+{
+    uint32_t result = 0;
+    int32_t mult = 1, i = length - 1;
+    while (true)
+    {
+        result += (at[i] - '0') * mult;
+
+        --i;
+        if (i < 0)
+            break;
+
+        mult *= 10;
+    }
+
+    return result;
+}
+
 inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t length)
 {
 #ifdef GW_HTTP_DIAG
@@ -433,22 +453,8 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
 
         case CONTENT_LENGTH:
         {
-            // Converting decimal string into number.
-            uint32_t body_length_bytes = 0;
-            int32_t mult = 1, i = length - 1;
-            while (true)
-            {
-                body_length_bytes += (at[i] - '0') * mult;
-
-                --i;
-                if (i < 0)
-                    break;
-
-                mult *= 10;
-            }
-
-            // Setting body size parameter.
-            http->http_request_.body_len_bytes_ = body_length_bytes;
+            // Calculating body length.
+            http->http_request_.body_len_bytes_ = ParseDecimalStringToUint(at, length);
 
             break;
         }
@@ -690,6 +696,8 @@ uint32_t HttpWsProto::HttpWsProcessData(
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled)
 {
+    uint32_t err_code;
+
     // Not handled yet.
     *is_handled = false;
 
@@ -730,7 +738,7 @@ uint32_t HttpWsProto::HttpWsProcessData(
         bool isWebSocket = http_parser_.upgrade;
 
         // Checking if we have complete data.
-        if ((!complete_data_) && (bytes_parsed == socketDataBuf->get_accum_len_bytes()))
+        if ((!complete_header_) && (bytes_parsed == socketDataBuf->get_accum_len_bytes()))
         {
             // Continue receiving.
             socketDataBuf->ContinueReceive();
@@ -812,11 +820,23 @@ uint32_t HttpWsProto::HttpWsProcessData(
             // Checking if we have complete body.
             if (http_request_.body_len_bytes_ > (DATA_BLOB_SIZE_BYTES - bytes_parsed))
             {
+                GW_COUT << "HTTP request has too big body!" << std::endl;
+                return SCERRUNSPECIFIED;
+
+                // Determining the maximum bytes we can accumulate.
+                uint32_t max_bytes = http_request_.body_len_bytes_ + bmx::MAX_DATA_BYTES_IN_CHUNK;
+                if (max_bytes < bmx::MAX_DATA_BYTES_IN_CHUNK)
+                    max_bytes = http_request_.body_len_bytes_;
+
+                // Getting linked chunks to proceed with any size request.
+                core::chunk_index new_chunk_index;
+                err_code = gw->GetDatabase(sd->get_db_index())->GetLinkedChunksFromPrivatePool(&new_chunk_index, max_bytes);
+                if (err_code)
+                    return SCERRACQUIRELINKEDCHUNKS;
+
+                // Running through all chunks and constructing WSA pointers table.
+
                 // We need to continue receiving up to certain accumulation point.
-
-                
-
-                GW_COUT << "HTTP packet has incorrect data!" << std::endl;
             }
 
             // Data is complete, posting parallel receive.

@@ -566,7 +566,7 @@ class HttpWsProto
     HttpWsFields last_field_;
     HttpWsResponseType resp_type_;
     WsProto ws_proto_;
-    bool complete_data_;
+    bool complete_header_;
 
     // Indicates if URI was parsed already.
     bool uri_parsed_;
@@ -619,7 +619,7 @@ public:
     {
         last_field_ = UNKNOWN_FIELD;
         resp_type_ = HTTP_STANDARD_RESPONSE;
-        complete_data_ = false;
+        complete_header_ = false;
 
         memset(&http_request_, 0, sizeof(http_request_));
         uri_parsed_ = false;

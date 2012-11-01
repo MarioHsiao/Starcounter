@@ -3,7 +3,7 @@ TASKKILL /f /t /im Boot.exe
 TASKKILL /f /t /im Scpmm.exe
 TASKKILL /f /t /im ScGateway.exe
 TASKKILL /f /t /im ScConnMonitor.exe
-
+TASKKILL /f /t /im ReferenceServer.exe
 TASKKILL /f /t /im StarcounterSQL.exe
 
 :: TASKKILL /f /t /im DaemonObserver.exe

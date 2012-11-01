@@ -119,7 +119,18 @@ uint32_t Gateway::ReadArguments(int argc, wchar_t* argv[])
     setting_sc_server_type_ = temp;
     setting_config_file_path_ = argv[2];
     setting_log_file_dir_ = argv[3];
-    setting_log_file_path_ = setting_log_file_dir_ + L"\\NetworkGateway.log";
+    setting_log_file_dir_ += L"\\network_gateway";
+
+    // Trying to create network gateway log directory.
+    if ((!CreateDirectory(setting_log_file_dir_.c_str(), NULL)) &&
+        (ERROR_ALREADY_EXISTS != GetLastError()))
+    {
+        std::wcout << L"Can't create network gateway log directory: " << setting_log_file_dir_ << std::endl;
+
+        return 1;
+    }
+
+    setting_log_file_path_ = setting_log_file_dir_ + L"\\network_gateway.log";
 
     return 0;
 }
@@ -461,15 +472,16 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
     return 0;
 }
 
-// Scans for new/existing databases and updates corresponding shared memory structures.
-uint32_t Gateway::ScanDatabases()
+// Checks for new/existing databases and updates corresponding shared memory structures.
+uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
 {
-    int32_t server_name_len = setting_sc_server_type_.length();
-    std::ifstream ad_file(setting_log_file_dir_ + L"\\active_databases");
+    std::ifstream ad_file(active_dbs_file_path);
 
     // Just quiting if file can't be opened.
     if (ad_file.is_open() == false)
         return 0;
+
+    int32_t server_name_len = setting_sc_server_type_.length();
 
     // Enabling database down tracking flag.
     for (int32_t i = 0; i < num_dbs_slots_; i++)
@@ -967,18 +979,83 @@ void Gateway::WakeUpAllWorkers()
     }
 }
 
-// Entry point for scanning databases thread.
-uint32_t __stdcall ScanDatabasesRoutine(LPVOID params)
+// Entry point for monitoring databases thread.
+uint32_t __stdcall MonitorDatabasesRoutine(LPVOID params)
 {
     uint32_t err_code = 0;
+
+    // Creating path to IPC monitor directory active databases.
+    std::wstring active_databases_dir = g_gateway.get_setting_log_file_dir() + L"\\..\\"+ W_DEFAULT_MONITOR_DIR_NAME + L"\\" + W_DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME + L"\\";
+
+    // Obtaining full path to IPC monitor directory.
+    wchar_t active_databases_dir_full[1024];
+    if (!GetFullPathName(active_databases_dir.c_str(), 1024, active_databases_dir_full, NULL))
+    {
+        GW_PRINT_GLOBAL << "Can't obtain full path for IPC monitor output directory: " << PrintLastError() << std::endl;
+        return SCERRUNSPECIFIED;
+    }
+
+    // Waiting until active databases directory is up.
+    while (GetFileAttributes(active_databases_dir_full) == INVALID_FILE_ATTRIBUTES)
+    {
+        GW_PRINT_GLOBAL << "Please start the IPC monitor process first!" << std::endl;
+        Sleep(500);
+    }
+
+    // Creating path to active databases file.
+    std::wstring active_databases_file_path = active_databases_dir_full;
+    active_databases_file_path += W_DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME;
+
+    // Setting listener on monitor output directory.
+    HANDLE dir_changes_hook_handle = FindFirstChangeNotification(active_databases_dir_full, FALSE, FILE_NOTIFY_CHANGE_LAST_WRITE);
+    if ((INVALID_HANDLE_VALUE == dir_changes_hook_handle) || (NULL == dir_changes_hook_handle))
+    {
+        GW_PRINT_GLOBAL << "Can't listen for active databases directory changes: " << PrintLastError() << std::endl;
+        FindCloseChangeNotification(dir_changes_hook_handle);
+
+        return SCERRUNSPECIFIED;
+    }
+
     while (1)
     {
-        err_code = g_gateway.ScanDatabases();
-        if (err_code)
-            return err_code;
+        // Waiting infinitely on directory changes.
+        DWORD wait_status = WaitForSingleObject(dir_changes_hook_handle, INFINITE);
+        GW_PRINT_GLOBAL << "Changes in active databases directory detected." << std::endl;
 
-        // NOTE: Pause between scans until synchronous named pipes are fixed.
-        Sleep(500);
+        switch (wait_status)
+        {
+            case WAIT_OBJECT_0:
+            {
+                // Checking for any database changes in active databases file.
+                err_code = g_gateway.CheckDatabaseChanges(active_databases_file_path);
+
+                if (err_code)
+                {
+                    FindCloseChangeNotification(dir_changes_hook_handle);
+                    return err_code;
+                }
+
+                // Requests that the operating system signal a change notification
+                // handle the next time it detects an appropriate change.
+                if (FindNextChangeNotification(dir_changes_hook_handle) == FALSE)
+                {
+                    GW_PRINT_GLOBAL << "Failed to find next change notification on monitor active databases directory: " << PrintLastError() << std::endl;
+                    FindCloseChangeNotification(dir_changes_hook_handle);
+
+                    return SCERRUNSPECIFIED;
+                }
+
+                break;
+            }
+
+            default:
+            {
+                GW_PRINT_GLOBAL << "Error listening for active databases directory changes: " << PrintLastError() << std::endl;
+                FindCloseChangeNotification(dir_changes_hook_handle);
+
+                return SCERRUNSPECIFIED;
+            }
+        }
     }
 
     return 0;
@@ -1076,10 +1153,10 @@ uint32_t Gateway::GatewayStatisticsAndMonitoringRoutine()
             }
         }
 
-        // Checking if database scanning thread is alive.
-        if (!WaitForSingleObject(db_scan_thread_handle_, 0))
+        // Checking if database monitor thread is alive.
+        if (!WaitForSingleObject(db_monitor_thread_handle_, 0))
         {
-            GW_COUT << "Database scanning thread is dead. Quiting..." << std::endl;
+            GW_COUT << "Active databases monitor thread is dead. Quiting..." << std::endl;
             return 1;
         }
 
@@ -1161,7 +1238,7 @@ uint32_t Gateway::GatewayStatisticsAndMonitoringRoutine()
 // Starts gateway workers and statistics printer.
 uint32_t Gateway::StartWorkerAndManagementThreads(
     LPTHREAD_START_ROUTINE workerRoutine,
-    LPTHREAD_START_ROUTINE scanDbsRoutine,
+    LPTHREAD_START_ROUTINE monitorDatabasesRoutine,
     LPTHREAD_START_ROUTINE channelsEventsMonitorRoutine)
 {
     // Allocating threads-related data structures.
@@ -1190,10 +1267,10 @@ uint32_t Gateway::StartWorkerAndManagementThreads(
     uint32_t dbScanThreadId;
 
     // Starting database scanning thread.
-    db_scan_thread_handle_ = CreateThread(
+    db_monitor_thread_handle_ = CreateThread(
         NULL, // Default security attributes.
         0, // Use default stack size.
-        scanDbsRoutine, // Thread function name.
+        monitorDatabasesRoutine, // Thread function name.
         NULL, // Argument to thread function.
         0, // Use default creation flags.
         (LPDWORD)&dbScanThreadId); // Returns the thread identifier.
@@ -1244,7 +1321,7 @@ int32_t Gateway::StartGateway()
     // Starting workers and statistics printer.
     errCode = StartWorkerAndManagementThreads(
         (LPTHREAD_START_ROUTINE)GatewayWorkerRoutine,
-        (LPTHREAD_START_ROUTINE)ScanDatabasesRoutine,
+        (LPTHREAD_START_ROUTINE)MonitorDatabasesRoutine,
         (LPTHREAD_START_ROUTINE)AllDatabasesChannelsEventsMonitorRoutine);
 
     if (errCode != 0)
