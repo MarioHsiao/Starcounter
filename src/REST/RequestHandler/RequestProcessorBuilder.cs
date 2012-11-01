@@ -10,6 +10,9 @@ using System.Collections.Generic;
 using System.Text;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
 
 [assembly: InternalsVisibleTo("Starconter.WebServer.Tests")]
 
@@ -68,6 +71,17 @@ namespace Starcounter.Internal.Uri {
                 // Console.WriteLine("SHA-1 " + str + " encaplulates " + total);
 
                 return str;
+            }
+        }
+
+        /// <summary>
+        /// To allow dynamically added REST handlers, each generated request processor needs a unique namespace.
+        /// This is aschieved by using the SHA-1 checksum of the verb and uri strings for all handlers in the
+        /// processor.
+        /// </summary>
+        public string Namespace {
+            get {
+                return "__RP_" + HandlerSetChecksum;
             }
         }
 
@@ -193,6 +207,55 @@ namespace Starcounter.Internal.Uri {
                 listener.Invoke(verbAndUri);
             }
         }
+
+        /// <summary>
+        /// This is the main method to generate and instantiate a top level request processor, i.e. the
+        /// processor that matches and parses all request handlers registed to the application domain.
+        /// </summary>
+        /// <remarks>
+        /// The file system is checked for a cached assembly containing the request processor for the
+        /// current set of user handlers. If no assembly is found, a request generator is code generated.
+        /// </remarks>
+        /// <returns>The processor</returns>
+        public TopLevelRequestProcessor InstantiateRequestProcessor() {
+            Stopwatch sw = new Stopwatch();
+
+            TopLevelRequestProcessor topRp;
+
+            string fileName = Namespace + ".dll";
+
+            if (File.Exists(fileName)) {
+                sw.Start();
+                MemoryStream ms = new MemoryStream();
+                using (var fs = File.Open(fileName,FileMode.Open)) {
+                    fs.CopyTo(ms);
+                }
+                var a = Assembly.Load(ms.GetBuffer());
+                topRp = (TopLevelRequestProcessor)a.CreateInstance(Namespace + ".GeneratedRequestProcessor");
+                sw.Stop();
+                Console.WriteLine(String.Format("Found cached assembly {0} ({1} seconds spent).", fileName, (double)sw.ElapsedMilliseconds / 1000));
+            }
+            else {
+                sw.Start();
+                var compiler = CreateCompiler();
+                var pt = ParseTreeGenerator.BuildParseTree(Handlers);
+                var ast = AstTreeGenerator.BuildAstTree(pt);
+                ast.Namespace = Namespace;
+                topRp = compiler.CreateMatcher(ast,fileName);
+                sw.Stop();
+                Console.WriteLine(String.Format("Time to create request processor is {0} seconds.", (double)sw.ElapsedMilliseconds / 1000));
+            }
+
+            foreach (var h in Handlers) {
+                topRp.Register(h.PreparedVerbAndUri, h.Code);
+            }
+
+
+
+            return topRp;
+        }
+
+
     }
 
 }

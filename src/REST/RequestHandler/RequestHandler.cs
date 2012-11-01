@@ -6,6 +6,7 @@
 
 using Starcounter.Internal.Uri;
 using System;
+using System.Diagnostics;
 using System.Text;
 
 namespace Starcounter
@@ -38,10 +39,7 @@ namespace Starcounter
         public static TopLevelRequestProcessor RequestProcessor {
             get {
                 if (_RequestProcessor == null) {
-                    var compiler = UriMatcherBuilder.CreateCompiler();
-                    var pt = ParseTreeGenerator.BuildParseTree(UriMatcherBuilder.Handlers);
-                    var ast = AstTreeGenerator.BuildAstTree( pt );
-                    _RequestProcessor = compiler.CreateMatcher( ast );
+                    _RequestProcessor = UriMatcherBuilder.InstantiateRequestProcessor();
                 }
                 return _RequestProcessor;
             }
