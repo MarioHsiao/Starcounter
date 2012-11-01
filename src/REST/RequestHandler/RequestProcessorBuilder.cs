@@ -229,6 +229,7 @@ namespace Starcounter.Internal.Uri {
                 MemoryStream ms = new MemoryStream();
                 using (var fs = File.Open(fileName,FileMode.Open)) {
                     fs.CopyTo(ms);
+                    fs.Close();
                 }
                 var a = Assembly.Load(ms.GetBuffer());
                 topRp = (TopLevelRequestProcessor)a.CreateInstance(Namespace + ".GeneratedRequestProcessor");
