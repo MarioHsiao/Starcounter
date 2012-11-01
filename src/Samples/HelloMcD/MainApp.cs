@@ -12,10 +12,11 @@ namespace HelloMcd {
 
         static void Main(String[] args) {
             Bootstrap();
-            AssureSampleData();
 
             TestIt();
 
+            AssureSampleData();
+           
             GET("/order", () => {
                 LongRunningTransaction.NewCurrent();
                 Order order = new Order() { OrderNo = 666 };
