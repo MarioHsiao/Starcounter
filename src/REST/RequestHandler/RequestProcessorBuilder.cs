@@ -26,19 +26,33 @@ namespace Starcounter.Internal.Uri {
     public partial class RequestProcessorBuilder {
 
         /// <summary>
-        /// The handlers
+        /// The application developers Verb + URI handlers. A handler is registred
+        /// using the HTTP verb and URI together with a delegate function. For instance,
+        /// GET("/demo", () => { return "HelloWorld"; } );
         /// </summary>
         public List<RequestProcessorMetaData> Handlers = new List<RequestProcessorMetaData>();
 
         /// <summary>
-        /// The _ registration listeners
+        /// The handler signature is a unique checksum that is used to cache a request processor.
+        /// In this way, Starcounter can reuse an assembly with precompiled code to save start up time.
         /// </summary>
-        private List<Action<string>> _RegistrationListeners = new List<Action<string>>();
+        public UInt64 HandlerSetSignature {
+            get {
+                return 123; // TODO!
+            }
+        }
 
         /// <summary>
-        /// Gets the registration listeners.
-        /// </summary>
-        /// <value>The registration listeners.</value>
+        /// Underlying variable for the RegistrationListeners property.
+        /// <summary>
+        private List<Action<string>> _RegistrationListeners = new List<Action<string>>();
+
+        /// You can register listeners that will trigger whenever a new handler is registred or replaced.
+        /// <summary>
+        /// <remarks>
+        /// Starcounter uses these listeners internally to allow the Starcounter Network gateway to
+        /// keep track on how to route incomming HTTP requests to the correct datababase.
+        /// </remarks>
         public List<Action<string>> RegistrationListeners {
             get {
                 return _RegistrationListeners;
@@ -46,9 +60,10 @@ namespace Starcounter.Internal.Uri {
         }
 
         /// <summary>
-        /// Creates the compiler.
+        /// Creates an object that can be used to generate and compile sourced code that
+        /// processes incomming HTTP requests by matching them and potentially invoking them.
         /// </summary>
-        /// <returns>RequestProcessorCompiler.</returns>
+        /// <returns>The object capable of code generation/compilation</returns>
         public RequestProcessorCompiler CreateCompiler() {
             var compiler = new RequestProcessorCompiler();
             compiler.Handlers = Handlers;
