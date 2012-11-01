@@ -8,8 +8,8 @@ namespace HelloMcd {
             // Remove when databinding is in place.
             this.OrderNo = (int)Data.OrderNo;
 
-         //   if (Items.Count == 0)
-//                Items.Add(new OrderItem() { Order = this.Data, Quantity = 1 });
+            if (Items.Count == 0)
+                Items.Add(new OrderItem() { Order = this.Data, Quantity = 1 });
         }
 
         void Handle(Input.Items.Product._Search search) {
@@ -36,7 +36,7 @@ namespace HelloMcd {
 
         void Handle(Input.Items.Product._Options.Pick pick) {
             ((App)pick.App.Parent.Parent).Data = pick.App.Data;
-//            this.Items.Add(new OrderItem() { Order = this.Data, Quantity = 1 }); // Add a new empty row;
+            this.Items.Add(new OrderItem() { Order = this.Data, Quantity = 1 }); // Add a new empty row;
         }
 
         void Handle(Input.Save save) {
