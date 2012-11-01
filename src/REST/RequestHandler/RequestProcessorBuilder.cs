@@ -9,6 +9,7 @@ using System.Dynamic;
 using System.Collections.Generic;
 using System.Text;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 
 [assembly: InternalsVisibleTo("Starconter.WebServer.Tests")]
 
@@ -33,12 +34,40 @@ namespace Starcounter.Internal.Uri {
         public List<RequestProcessorMetaData> Handlers = new List<RequestProcessorMetaData>();
 
         /// <summary>
-        /// The handler signature is a unique checksum that is used to cache a request processor.
+        /// The handler checksum is a probabilistic identifier for a set of handlers.
+        /// It is used to recognize a cached code generated request processor.
         /// In this way, Starcounter can reuse an assembly with precompiled code to save start up time.
         /// </summary>
-        public UInt64 HandlerSetSignature {
+        /// <remarks>
+        /// The Sha-1 checksum is deemed as a unique identifier for the purpose. If you whish to
+        /// remove the probabilistic of a false positive, you should remove all cached RequestProcessor
+        /// assemblies when you deploy a new version of your application. These files begin with the
+        /// "RequestProc_" prefix.
+        /// 
+        /// I.e. the file "RequestProc_F894E0A7E54CBC4AEA31999A624665E75CE70F30.dll" contains
+        /// the parser  for GET /players/{?} (int playerId), GET /dashboard/{?} (int playerId)
+        /// and some other verb and uri templates.
+        /// </remarks>
+        public string HandlerSetChecksum {
             get {
-                return 123; // TODO!
+                var total = "";
+
+                foreach (var h in Handlers) {
+                    total += "\r\n" + h.PreparedVerbAndUri;
+                }
+                
+                var str = "";
+                using (var sha1 = new SHA1Managed()) {
+                    byte[] hash = sha1.ComputeHash( Encoding.UTF8.GetBytes(total) );
+
+                    foreach (byte b in hash) {
+                        str += b.ToString("X2");
+                    }
+                }
+
+                // Console.WriteLine("SHA-1 " + str + " encaplulates " + total);
+
+                return str;
             }
         }
 
