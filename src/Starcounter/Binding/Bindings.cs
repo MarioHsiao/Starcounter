@@ -127,7 +127,11 @@ namespace Starcounter.Binding
         /// </summary>
         /// <param name="tableId">The table id.</param>
         /// <returns>TypeBinding.</returns>
+#if ERIK_TEST
+        public static TypeBinding GetTypeBinding(int tableId)
+#else
         internal static TypeBinding GetTypeBinding(int tableId)
+#endif
         {
             // TODO:
             // Can we make this so that not found always raised exception?
