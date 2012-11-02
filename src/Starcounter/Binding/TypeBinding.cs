@@ -109,7 +109,11 @@ namespace Starcounter.Binding
         /// News the instance uninit.
         /// </summary>
         /// <returns>Entity.</returns>
+#if ERIK_TEST
+        public Entity NewInstanceUninit()
+#else
         internal Entity NewInstanceUninit()
+#endif
         {
             return NewUninitializedInst();
         }

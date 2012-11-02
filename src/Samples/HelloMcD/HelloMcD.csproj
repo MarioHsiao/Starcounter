@@ -23,6 +23,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -100,6 +101,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="js\angular-datagrid\angular-datagrid.js" />
+    <None Include="js\jsondiffpatch.js" />
     <None Include="Products.txt" />
     <None Include="js\angular-datagrid\handsontable\jquery.handsontable.css" />
     <None Include="js\angular-datagrid\handsontable\jquery.handsontable.js" />

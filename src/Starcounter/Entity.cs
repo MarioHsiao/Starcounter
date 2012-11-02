@@ -233,7 +233,15 @@ namespace Starcounter
             // putting any code here in other words.
         }
 
+        /// <summary>
+        /// </summary>
+        /// <param name="objectRef"></param>
+        /// <param name="typeBinding"></param>
+#if ERIK_TEST
+        public void Attach(ObjectRef objectRef, TypeBinding typeBinding)
+#else
         internal void Attach(ObjectRef objectRef, TypeBinding typeBinding)
+#endif
         {
             ThisRef.ETI = objectRef.ETI;
             ThisRef.ObjectID = objectRef.ObjectID;
