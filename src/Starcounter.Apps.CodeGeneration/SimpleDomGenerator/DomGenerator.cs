@@ -53,7 +53,8 @@ namespace Starcounter.Internal.Application.CodeGeneration
             var acn = new NAppClass()
             {
                 Parent = root,
-                IsPartial = true
+                IsPartial = true,
+                AutoBindPropertiesToEntity = metadata.AutoBindToEntity
             };
 
             var tcn = new NAppTemplateClass()
@@ -156,6 +157,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
 
                 nAppClass.IsPartial = true;
                 nAppClass._Inherits = null;
+                nAppClass.AutoBindPropertiesToEntity = mapInfo.AutoBindToEntity;
 
                 classesInOrder[i] = appTemplate;
             }
@@ -391,7 +393,8 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 acn = racn = new NAppClass()
                 {
                     Parent = appClassParent,
-                    _Inherits = "App"
+                    _Inherits = "App",
+                    AutoBindPropertiesToEntity = false // TODO:
                 };
                 tcn = new NAppTemplateClass()
                 {
@@ -443,29 +446,42 @@ namespace Starcounter.Internal.Application.CodeGeneration
                                       NAppTemplateClass templParent,
                                       NClass metaParent)
         {
+            // TODO: 
+            // How do we set notbound on an autobound property?
+            bool bound = false;
+            if (!(at is ActionProperty))
+            {
+                bound = (at.Bound || (appClassParent.AutoBindPropertiesToEntity));
+            }
+            
             new NProperty()
             {
                 Parent = appClassParent,
                 Template = at,
                 Type = NValueClass.Find(at),
+                Bound = bound
             };
             new NProperty()
             {
                 Parent = templParent,
                 Template = at,
                 Type = NTemplateClass.Find(at),
+                Bound = bound
             };
             new NProperty()
             {
                 Parent = templParent.Constructor,
                 Template = at,
-                Type = NTemplateClass.Find(at)
+                Type = NTemplateClass.Find(at),
+                Bound = bound
+
             };
             new NProperty()
             {
                 Parent = metaParent,
                 Template = at,
                 Type = NMetadataClass.Find(at),
+                Bound = bound
             };
         }
 
