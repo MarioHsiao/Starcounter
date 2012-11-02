@@ -27,7 +27,7 @@ uint32_t TlsProtocol::ProcessTlsData(GatewayWorker *gw, SocketDataChunk *sd, BMX
 uint32_t HttpsProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
     // Checking if data goes to private pool.
-    if (sd->data_to_user_flag())
+    if (sd->get_to_database_direction_flag())
         return 0;
 
     return 1;

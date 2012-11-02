@@ -8,6 +8,13 @@ namespace network {
 class GatewayWorker;
 class HttpWsProto;
 
+enum SOCKET_DATA_FLAGS
+{
+    SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION = 1,
+    SOCKET_DATA_FLAGS_RECEIVING = 2,
+    SOCKET_DATA_FLAGS_NEW_SESSION = 4
+};
+
 // Socket data chunk.
 class WorkerDbInterface;
 class SocketDataChunk
@@ -47,14 +54,8 @@ class SocketDataChunk
     // Current type of network operation.
     SocketOperType type_of_network_oper_;
 
-    // Specific socket data direction.
-    bool data_to_user_flag_;
-
-    // Is socket attached to session.
-    bool socket_attached_;
-
-    // Indicates if a new session is created.
-    bool new_session_created_;
+    // Socket data flags.
+    uint32_t flags_;
 
     // Port handlers index.
     int32_t port_index_;
@@ -85,16 +86,49 @@ class SocketDataChunk
 
 public:
 
-    // Indicates if a new session is created.
-    void set_new_session_created(bool new_session_created)
+    // Getting to database direction flag.
+    bool get_to_database_direction_flag()
     {
-        new_session_created_ = new_session_created;
+        return flags_ & SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION;
     }
 
-    // Indicates if a new session is created.
-    bool get_new_session_created()
+    // Setting to database direction flag.
+    void set_to_database_direction_flag(bool value)
     {
-        return new_session_created_;
+        if (value)
+            flags_ |= SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION;
+        else
+            flags_ &= ~SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION;
+    }
+
+    // Getting receiving flag.
+    bool get_receiving_flag()
+    {
+        return flags_ & SOCKET_DATA_FLAGS_RECEIVING;
+    }
+
+    // Setting receiving flag.
+    void set_receiving_flag(bool value)
+    {
+        if (value)
+            flags_ |= SOCKET_DATA_FLAGS_RECEIVING;
+        else
+            flags_ &= ~SOCKET_DATA_FLAGS_RECEIVING;
+    }
+
+    // Getting new session flag.
+    bool get_new_session_flag()
+    {
+        return flags_ & SOCKET_DATA_FLAGS_NEW_SESSION;
+    }
+
+    // Setting new session flag.
+    void set_new_session_flag(bool value)
+    {
+        if (value)
+            flags_ |= SOCKET_DATA_FLAGS_NEW_SESSION;
+        else
+            flags_ &= ~SOCKET_DATA_FLAGS_NEW_SESSION;
     }
 
     // Getting session index.
@@ -149,7 +183,12 @@ public:
     uint32_t GetReceivingChunks(GatewayWorker *gw, uint32_t num_bytes);
 
     // Create WSA buffers.
-    uint32_t CreateWSABuffers(WorkerDbInterface* worker_db, shared_memory_chunk* smc);
+    uint32_t CreateWSABuffers(
+        WorkerDbInterface* worker_db,
+        shared_memory_chunk* head_smc,
+        uint32_t head_chunk_offset_bytes,
+        uint32_t head_chunk_num_bytes,
+        uint32_t total_bytes);
 
     // Get Http protocol instance.
     HttpWsProto* get_http_ws_proto()
@@ -219,27 +258,9 @@ public:
     }
 
     // Data buffer chunk.
-    AccumBuffer* get_data_buf()
+    AccumBuffer* get_accum_buf()
     {
         return &data_buf_;
-    }
-
-    // Getting data to user flag.
-    bool data_to_user_flag()
-    {
-        return data_to_user_flag_;
-    }
-
-    // Getting socket attached flag.
-    bool socket_attached()
-    {
-        return socket_attached_;
-    }
-
-    // Setting socket attached flag.
-    void set_socket_attached(bool value)
-    {
-        socket_attached_ = value;
     }
 
     // Index into databases array.
@@ -337,11 +358,19 @@ public:
     }
 
     // Start receiving on socket.
-    uint32_t Receive(uint32_t *numBytes)
+    uint32_t ReceiveSingleChunk(uint32_t *numBytes)
     {
         type_of_network_oper_ = RECEIVE_OPER;
         memset(&ovl_, 0, OVERLAPPED_SIZE);
         return WSARecv(sock_, (WSABUF *)&data_buf_, 1, (LPDWORD)numBytes, (LPDWORD)&recv_flags_, &ovl_, NULL);
+    }
+
+    // Start receiving on socket using multiple chunks.
+    uint32_t ReceiveMultipleChunks(core::shared_interface* shared_int, uint32_t *numBytes)
+    {
+        type_of_network_oper_ = RECEIVE_OPER;
+        memset(&ovl_, 0, OVERLAPPED_SIZE);
+        return WSARecv(sock_, (WSABUF*)&(shared_int->chunk(extra_chunk_index_)), num_chunks_ - 1, (LPDWORD)numBytes, (LPDWORD)&recv_flags_, &ovl_, NULL);
     }
 
     // Start sending on socket.
@@ -403,8 +432,8 @@ public:
         // Setting network operation type.
         type_of_network_oper_ = TO_DB_OPER;
 
-        // Setting data direction flag.
-        data_to_user_flag_ = true;
+        // Setting database data direction flag.
+        set_to_database_direction_flag(true);
     }
 
     // Puts socket data from database.
@@ -413,8 +442,8 @@ public:
         // Setting network operation type.
         type_of_network_oper_ = FROM_DB_OPER;
 
-        // Removing data direction flag.
-        data_to_user_flag_ = false;
+        // Removing database data direction flag.
+        set_to_database_direction_flag(false);
     }
 
     // Clones existing socket data chunk.

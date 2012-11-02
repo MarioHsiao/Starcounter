@@ -428,6 +428,12 @@ public:
         return orig_buf_len_bytes_;
     }
 
+    // Getting current buffer length in bytes.
+    ULONG get_buf_len_bytes()
+    {
+        return buf_len_bytes_;
+    }
+
     // Setting the number of bytes retrieved at last receive.
     void SetLastReceivedBytes(ULONG lenBytes)
     {

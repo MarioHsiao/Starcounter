@@ -174,8 +174,17 @@ uint32_t GatewayWorker::Receive(SocketDataChunk *sd)
 
     // Start receiving on socket.
     //profiler.Start("Receive()", 5);
-    uint32_t numBytes;
-    uint32_t errCode = sd->Receive(&numBytes);
+    uint32_t numBytes, errCode;
+
+    // Checking if we have one or multiple chunks to receive.
+    if (1 == sd->get_num_chunks())
+    {
+        errCode = sd->ReceiveSingleChunk(&numBytes);
+    }
+    else
+    {
+        errCode = sd->ReceiveMultipleChunks(active_dbs_[sd->get_db_index()]->get_shared_int(), &numBytes);
+    }
     //profiler.Stop(5);
 
     // Checking if operation completed immediately.
@@ -224,11 +233,11 @@ uint32_t GatewayWorker::FinishReceive(SocketDataChunk *sd, int32_t numBytesRecei
     GW_PRINT_WORKER << "FinishReceive: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
 #endif
 
-    // Checking if socket is closed by the other peer.
+    // If we received 0 bytes, the remote side has close the connection.
     if (0 == numBytesReceived)
     {
 #ifdef GW_ERRORS_DIAG
-        GW_PRINT_WORKER << "Zero-bytes receive on socket: " << sd->sock() << std::endl;
+        GW_PRINT_WORKER << "Zero-bytes receive on socket: " << sd->sock() << ". Remote side closed the connection." << std::endl;
 #endif
 
         // Disconnecting this socket.
@@ -238,10 +247,10 @@ uint32_t GatewayWorker::FinishReceive(SocketDataChunk *sd, int32_t numBytesRecei
     }
 
     // Assigning last received bytes.
-    sd->get_data_buf()->SetLastReceivedBytes(numBytesReceived);
+    sd->get_accum_buf()->SetLastReceivedBytes(numBytesReceived);
 
     // Adding to accumulated bytes.
-    sd->get_data_buf()->AddAccumulatedBytes(numBytesReceived);
+    sd->get_accum_buf()->AddAccumulatedBytes(numBytesReceived);
 
     // Incrementing statistics.
     worker_stats_bytes_received_ += numBytesReceived;
@@ -404,10 +413,10 @@ uint32_t GatewayWorker::FinishSend(SocketDataChunk *sd, int32_t numBytesSent)
     sd->ResetUserDataOffset();
 
     // Resetting buffer information.
-    sd->get_data_buf()->ResetBufferForNewOperation();
+    sd->get_accum_buf()->ResetBufferForNewOperation();
 
-    // Checking if socket is attached.
-    if (sd->socket_attached())
+    // Checking if socket data is for receiving.
+    if (sd->get_receiving_flag())
     {
         // Performing receive.
         Receive(sd);
@@ -431,7 +440,7 @@ uint32_t GatewayWorker::Disconnect(SocketDataChunk *sd)
 #endif
 
     // Checking if we need to return chunk to private pool.
-    if (!sd->socket_attached())
+    if (!sd->get_receiving_flag())
     {
         // Returning chunk to private chunk pool.
         WorkerDbInterface *db = active_dbs_[sd->get_db_index()];
@@ -629,7 +638,7 @@ uint32_t GatewayWorker::Accept(SocketDataChunk *sd)
 #endif
 
     // Socket is attached to this socket data.
-    sd->set_socket_attached(true);
+    sd->set_receiving_flag(true);
 
     // Start accepting on socket.
     //profiler.Start("Accept()", 7);
@@ -930,7 +939,7 @@ SocketDataChunk *GatewayWorker::CreateSocketData(
     socket_data->Init(sock, port_index, db_index, chunk_index);
 
     // Configuring data buffer.
-    socket_data->get_data_buf()->Init(DATA_BLOB_SIZE_BYTES, socket_data->data_blob());
+    socket_data->get_accum_buf()->Init(DATA_BLOB_SIZE_BYTES, socket_data->data_blob());
 
     // Returning created accumulative buffer.
     return socket_data;
