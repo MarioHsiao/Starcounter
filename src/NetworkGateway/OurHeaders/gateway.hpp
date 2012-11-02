@@ -52,6 +52,8 @@ typedef uint32_t session_index_type;
 #define GW_DATABASES_DIAG
 #define GW_SESSIONS_DIAG
 
+//#define GW_PONG_MODE
+
 // Maximum number of ports the gateway operates with.
 const int32_t MAX_PORTS_NUM = 16;
 

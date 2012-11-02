@@ -27,6 +27,7 @@ enum HttpWsResponseType
 {
     HTTP_NO_CONTENT_RESPONSE,
     HTTP_STANDARD_RESPONSE,
+    HTTP_GATEWAY_PONG_RESPONSE,
     WS_HANDSHAKE_RESPONSE,
     WS_BAD_REQUEST_RESPONSE
 };
@@ -671,6 +672,11 @@ public:
     {
         last_field_ = UNKNOWN_FIELD;
         resp_type_ = HTTP_STANDARD_RESPONSE;
+
+#ifdef GW_PONG_MODE
+        resp_type_ = HTTP_GATEWAY_PONG_RESPONSE;
+#endif
+
         flags_ = 0;
 
         memset(&http_request_, 0, sizeof(http_request_));
