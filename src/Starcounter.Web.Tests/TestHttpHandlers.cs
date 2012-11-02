@@ -86,7 +86,6 @@ namespace Starcounter.Internal.Test {
         public void GenerateAstTreeOverview() {
 
             Reset();
-            RequestProcessorCompiler.Generation = 0;
 
             Main(); // Register some handlers
             var umb = RequestHandler.UriMatcherBuilder;
@@ -101,7 +100,6 @@ namespace Starcounter.Internal.Test {
         public void GenerateParseTreeOverview() {
 
             Reset();
-            RequestProcessorCompiler.Generation = 0;
 
             Main(); // Register some handlers
             var umb = RequestHandler.UriMatcherBuilder;
@@ -116,7 +114,6 @@ namespace Starcounter.Internal.Test {
         [Test]
         public void GenerateParseTreeDetails() {
             Reset();
-            RequestProcessorCompiler.Generation = 0;
             Main(); // Register some handlers
             var umb = RequestHandler.UriMatcherBuilder;
             Console.WriteLine(umb.CreateParseTree().ToString(true));
@@ -127,8 +124,6 @@ namespace Starcounter.Internal.Test {
         /// </summary>
         [Test]
         public void GenerateRequestProcessor() {
-
-            RequestProcessorCompiler.Generation = 0;
 
             byte[] h1 = Encoding.UTF8.GetBytes("GET /players/123");
             byte[] h2 = Encoding.UTF8.GetBytes("GET /dashboard/123");
@@ -141,10 +136,9 @@ namespace Starcounter.Internal.Test {
             Main(); // Register some handlers
             var umb = RequestHandler.UriMatcherBuilder;
 
-            string ns;
             var ast = umb.CreateAstTree();
             var compiler = umb.CreateCompiler();
-            var str = compiler.GenerateRequestProcessorSourceCode( ast, out ns );
+            var str = compiler.GenerateRequestProcessorSourceCode( ast );
 
             Console.WriteLine( str );
 
@@ -187,7 +181,6 @@ namespace Starcounter.Internal.Test {
         [Test]
         public void TestSimpleRestHandler() {
 
-            RequestProcessorCompiler.Generation = 0;
             Reset();
 
             GET("/", () => {
@@ -202,11 +195,10 @@ namespace Starcounter.Internal.Test {
 
             var umb = RequestHandler.UriMatcherBuilder;
 
-            string ns;
             var pt = umb.CreateParseTree();
             var ast = umb.CreateAstTree();
             var compiler = umb.CreateCompiler();
-            var str = compiler.GenerateRequestProcessorSourceCode(ast, out ns);
+            var str = compiler.GenerateRequestProcessorSourceCode(ast);
 
             Console.WriteLine(pt.ToString(false));
 //            Console.WriteLine(pt.ToString(true));
@@ -229,8 +221,6 @@ namespace Starcounter.Internal.Test {
         [Test]
         public void TestRestHandler() {
 
-            RequestProcessorCompiler.Generation = 0;
-            
             byte[] h1 = Encoding.UTF8.GetBytes("GET /players/123");
             byte[] h2 = Encoding.UTF8.GetBytes("GET /dashboard/123");
             byte[] h3 = Encoding.UTF8.GetBytes("GET /players?KalleKula");
@@ -251,6 +241,18 @@ namespace Starcounter.Internal.Test {
             um.Invoke(new HttpRequest(h7));
 
         }
+
+
+        [Test]
+        public static void TestAssemblyCache() {
+            Main();
+
+            var umb = RequestHandler.UriMatcherBuilder;
+
+            Console.WriteLine("Assembly signature:" + umb.HandlerSetChecksum);
+
+        }
+
     }
 
 }

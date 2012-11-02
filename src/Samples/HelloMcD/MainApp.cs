@@ -8,14 +8,12 @@ using Starcounter.Internal.Web;
 
 namespace HelloMcd {
     partial class MainApp : App {
-        private static String RESOURCE_DIRECTORY = @"d:\Code\Level1\src\Samples\HelloMcd";
+        private static String RESOURCE_DIRECTORY = @"c:\Code\Level1\src\Samples\HelloMcd";
 
         static void Main(String[] args) {
             Bootstrap();
             AssureSampleData();
-
-            TestIt();
-
+           
             GET("/order", () => {
                 LongRunningTransaction.NewCurrent();
                 Order order = new Order() { OrderNo = 666 };

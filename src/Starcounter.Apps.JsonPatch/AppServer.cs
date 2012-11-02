@@ -126,13 +126,10 @@ namespace Starcounter.Internal.Web {
 
             HardcodedStuff.BeginRequest(request, Sessions);
 
-            try
-            {
+            try {
                 Object x = RequestHandler.RequestProcessor.Invoke(request);
-                if (x != null)
-                {
-                    if (x is App)
-                    {
+                if (x != null) {
+                    if (x is App) {
                         var app = (App)x;
                         //                       return new HttpResponse() { Uncompressed = HttpResponseBuilder.CreateMinimalOk200WithContent(data, 0, len) };
 
@@ -144,8 +141,7 @@ namespace Starcounter.Internal.Web {
                         // TODO:
                         // Just need it here to be able to get the sessionId when serializing app.
                         // Needs to be rewritten.
-                        session.Execute(request, () =>
-                        {
+                        session.Execute(request, () => {
                             request.IsAppView = true;
                             request.ViewModel = app.ToJsonUtf8(false, true);
                             request.NeedsScriptInjection = true;
@@ -153,26 +149,20 @@ namespace Starcounter.Internal.Web {
                             //                                                          // cached (and gziped) content, but not a complete cached
                             //                                                          // response.
                         });
-                        
+
                         var view = (string)app.View;
-                        if (view == null)
-                        {
+                        if (view == null) {
                             view = app.Template.ClassName + ".html";
                         }
                         view = "/" + view;
                         request.GzipAdvisable = false;
                         return new HttpResponse() { Uncompressed = ResolveAndPrepareFile(view, request) };
                     }
-                    if (x is HttpResponse)
-                    {
+                    if (x is HttpResponse) {
                         return x as HttpResponse;
-                    }
-                    else if (x is string)
-                    {
+                    } else if (x is string) {
                         return new HttpResponse() { Uncompressed = HttpResponseBuilder.FromText((string)x/*, sid*/) };
-                    }
-                    else
-                    {
+                    } else {
                         throw new NotImplementedException();
                     }
                     //                else
@@ -191,6 +181,9 @@ namespace Starcounter.Internal.Web {
                     //                }
                 }
                 return new HttpResponse() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
+            } catch (Exception ex) {
+                byte[] error = Encoding.UTF8.GetBytes(this.GetExceptionString(ex));
+                return new HttpResponse() { Uncompressed = HttpResponseBuilder.Create500WithContent(error) };
             }
             finally
             {

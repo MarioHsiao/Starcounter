@@ -9,6 +9,10 @@ using System.Dynamic;
 using System.Collections.Generic;
 using System.Text;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
 
 [assembly: InternalsVisibleTo("Starconter.WebServer.Tests")]
 
@@ -26,19 +30,73 @@ namespace Starcounter.Internal.Uri {
     public partial class RequestProcessorBuilder {
 
         /// <summary>
-        /// The handlers
+        /// The application developers Verb + URI handlers. A handler is registred
+        /// using the HTTP verb and URI together with a delegate function. For instance,
+        /// GET("/demo", () => { return "HelloWorld"; } );
         /// </summary>
         public List<RequestProcessorMetaData> Handlers = new List<RequestProcessorMetaData>();
 
         /// <summary>
-        /// The _ registration listeners
+        /// The handler checksum is a probabilistic identifier for a set of handlers.
+        /// It is used to recognize a cached code generated request processor.
+        /// In this way, Starcounter can reuse an assembly with precompiled code to save start up time.
+        /// </summary>
+        /// <remarks>
+        /// The Sha-1 checksum is deemed as a unique identifier for the purpose. If you whish to
+        /// remove the probabilistic of a false positive, you should remove all cached RequestProcessor
+        /// assemblies when you deploy a new version of your application. These files begin with the
+        /// "RequestProc_" prefix.
+        /// 
+        /// I.e. the file "RequestProc_F894E0A7E54CBC4AEA31999A624665E75CE70F30.dll" contains
+        /// the parser  for GET /players/{?} (int playerId), GET /dashboard/{?} (int playerId)
+        /// and some other verb and uri templates.
+        /// </remarks>
+        public string HandlerSetChecksum {
+            get {
+                var total = "";
+
+                foreach (var h in Handlers) {
+                    total += "\r\n" + h.PreparedVerbAndUri;
+                }
+                
+                var str = "";
+                using (var sha1 = new SHA1Managed()) {
+                    byte[] hash = sha1.ComputeHash( Encoding.UTF8.GetBytes(total) );
+
+                    foreach (byte b in hash) {
+                        str += b.ToString("X2");
+                    }
+                }
+
+                // Console.WriteLine("SHA-1 " + str + " encaplulates " + total);
+
+                return str;
+            }
+        }
+
+        /// <summary>
+        /// To allow dynamically added REST handlers, each generated request processor needs a unique namespace.
+        /// This is aschieved by using the SHA-1 checksum of the verb and uri strings for all handlers in the
+        /// processor.
+        /// </summary>
+        public string Namespace {
+            get {
+                return "__RP_" + HandlerSetChecksum;
+            }
+        }
+
+        /// <summary>
+        /// Underlying variable for the RegistrationListeners property.
         /// </summary>
         private List<Action<string>> _RegistrationListeners = new List<Action<string>>();
 
         /// <summary>
-        /// Gets the registration listeners.
+        /// You can register listeners that will trigger whenever a new handler is registred or replaced.
         /// </summary>
-        /// <value>The registration listeners.</value>
+        /// <remarks>
+        /// Starcounter uses these listeners internally to allow the Starcounter Network gateway to
+        /// keep track on how to route incomming HTTP requests to the correct datababase.
+        /// </remarks>
         public List<Action<string>> RegistrationListeners {
             get {
                 return _RegistrationListeners;
@@ -46,9 +104,10 @@ namespace Starcounter.Internal.Uri {
         }
 
         /// <summary>
-        /// Creates the compiler.
+        /// Creates an object that can be used to generate and compile sourced code that
+        /// processes incomming HTTP requests by matching them and potentially invoking them.
         /// </summary>
-        /// <returns>RequestProcessorCompiler.</returns>
+        /// <returns>The object capable of code generation/compilation</returns>
         public RequestProcessorCompiler CreateCompiler() {
             var compiler = new RequestProcessorCompiler();
             compiler.Handlers = Handlers;
@@ -148,6 +207,56 @@ namespace Starcounter.Internal.Uri {
                 listener.Invoke(verbAndUri);
             }
         }
+
+        /// <summary>
+        /// This is the main method to generate and instantiate a top level request processor, i.e. the
+        /// processor that matches and parses all request handlers registed to the application domain.
+        /// </summary>
+        /// <remarks>
+        /// The file system is checked for a cached assembly containing the request processor for the
+        /// current set of user handlers. If no assembly is found, a request generator is code generated.
+        /// </remarks>
+        /// <returns>The processor</returns>
+        public TopLevelRequestProcessor InstantiateRequestProcessor() {
+            Stopwatch sw = new Stopwatch();
+
+            TopLevelRequestProcessor topRp;
+
+            string fileName = Namespace + ".dll";
+
+            if (File.Exists(fileName)) {
+                sw.Start();
+                MemoryStream ms = new MemoryStream();
+                using (var fs = File.Open(fileName,FileMode.Open)) {
+                    fs.CopyTo(ms);
+                    fs.Close();
+                }
+                var a = Assembly.Load(ms.GetBuffer());
+                topRp = (TopLevelRequestProcessor)a.CreateInstance(Namespace + ".GeneratedRequestProcessor");
+                sw.Stop();
+                Console.WriteLine(String.Format("Found cached assembly {0} ({1} seconds spent).", fileName, (double)sw.ElapsedMilliseconds / 1000));
+            }
+            else {
+                sw.Start();
+                var compiler = CreateCompiler();
+                var pt = ParseTreeGenerator.BuildParseTree(Handlers);
+                var ast = AstTreeGenerator.BuildAstTree(pt);
+                ast.Namespace = Namespace;
+                topRp = compiler.CreateMatcher(ast,fileName);
+                sw.Stop();
+                Console.WriteLine(String.Format("Time to create request processor is {0} seconds.", (double)sw.ElapsedMilliseconds / 1000));
+            }
+
+            foreach (var h in Handlers) {
+                topRp.Register(h.PreparedVerbAndUri, h.Code);
+            }
+
+
+
+            return topRp;
+        }
+
+
     }
 
 }
