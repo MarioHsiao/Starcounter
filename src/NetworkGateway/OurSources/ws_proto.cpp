@@ -60,7 +60,7 @@ const int32_t kWsBadProtoLen = strlen(kWsBadProto) + 1;
 
 uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE user_handler_id)
 {
-    uint8_t *payload = GetFrameInfo(&frame_info_, sd->get_data_buf()->get_orig_buf_ptr());
+    uint8_t *payload = GetFrameInfo(&frame_info_, sd->get_accum_buf()->get_orig_buf_ptr());
 
 #ifdef GW_WEBSOCKET_DIAG
     GW_COUT << "[" << gw->get_worker_id() << "]: " << "WS_OPCODE: " << frame_info_.opcode_ << std::endl;
@@ -127,7 +127,7 @@ uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunk *sd, BMX_
             payload = WriteData(gw, WS_OPCODE_PONG, false, WS_FRAME_SINGLE, payload, &payloadLen);
 
             // Prepare buffer to send outside.
-            sd->get_data_buf()->PrepareForSend(payload, payloadLen);
+            sd->get_accum_buf()->PrepareForSend(payload, payloadLen);
 
             // Sending data.
             gw->Send(sd);
@@ -158,7 +158,7 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunk *sd, BM
     payload = WriteData(gw, frame_info_.opcode_, false, WS_FRAME_SINGLE, payload, &payloadLen);
 
     // Prepare buffer to send outside.
-    sd->get_data_buf()->PrepareForSend(payload, payloadLen);
+    sd->get_accum_buf()->PrepareForSend(payload, payloadLen);
 
     // Sending data.
     gw->Send(sd);
@@ -169,7 +169,7 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunk *sd, BM
 uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunk *sd)
 {
     // Pointing to the beginning of the data.
-    uint8_t *respDataBegin = sd->get_data_buf()->ResponseDataStart();
+    uint8_t *respDataBegin = sd->get_accum_buf()->ResponseDataStart();
     uint32_t respBufferSize = 0;
 
     // Copying template in response buffer.
@@ -215,10 +215,10 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunk *sd)
     respBufferSize += 2;
 
     // Prepare buffer to send outside.
-    sd->get_data_buf()->PrepareForSend(respDataBegin, respBufferSize);
+    sd->get_accum_buf()->PrepareForSend(respDataBegin, respBufferSize);
 
     // Setting WebSocket handshake flag.
-    sd->get_http_ws_proto()->set_web_sockets_upgrade(true);
+    sd->get_http_ws_proto()->set_web_sockets_upgrade_flag(true);
 
     // Sending data.
     gw->Send(sd);

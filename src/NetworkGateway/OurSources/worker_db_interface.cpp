@@ -109,7 +109,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
 
             // We need to check if its a multi-chunk response.
             if (!smc->is_terminated())
-                sd->CreateWSABuffers(this, smc);
+                sd->CreateWSABuffers(this, smc, 0, 0, sd->get_user_data_written_bytes());
 
             // Changing number of owned chunks.
             ActiveDatabase* current_db = g_gateway.GetDatabase(db_index_);
@@ -173,7 +173,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
                 if (INVALID_APPS_UNIQUE_SESSION_NUMBER != sd->get_apps_unique_session_num())
                 {
                     // Session is newly created.
-                    sd->set_new_session_created(true);
+                    sd->set_new_session_flag(true);
 
                     // Creating new session with this salt and scheduler id.
                     ScSessionStruct* new_session = g_gateway.GenerateNewSession(gw->get_random()->uint64(), sd->get_apps_unique_session_num(), i);
@@ -187,7 +187,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
             }
 
             // Resetting the data buffer.
-            sd->get_data_buf()->Init(DATA_BLOB_SIZE_BYTES, sd->data_blob());
+            sd->get_accum_buf()->Init(DATA_BLOB_SIZE_BYTES, sd->data_blob());
 
             // Setting the database index and sequence number.
             sd->AttachToDatabase(db_index_);
