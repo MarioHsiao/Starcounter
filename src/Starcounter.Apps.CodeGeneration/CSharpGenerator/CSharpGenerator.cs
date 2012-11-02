@@ -242,6 +242,46 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             sb.Append(m.MemberName);
             sb.Append(", value); } }");
             m.Prefix.Add(sb.ToString());
+
+            if (m.Bound) {
+                WriteBoundGetterAndSetter(m);
+            }
+        }
+
+        /// <summary>
+        /// Writes a getter and setter bound to the underlying entity using
+        /// either the name from Bind or the same name as the property.
+        /// </summary>
+        /// <param name="m"></param>
+        private void WriteBoundGetterAndSetter(NProperty m) {
+            String bindTo;
+            StringBuilder sb;
+
+            // TODO: 
+            // Add support for binding directly to en Enumerable of entities.
+            bindTo = (String.IsNullOrEmpty(m.Template.Bind)) ? m.MemberName : m.Template.Bind;
+            sb = new StringBuilder();
+            sb.Append("private ");
+            sb.Append(m.Type.FullClassName);
+            sb.Append(" __data_");
+            sb.Append(m.MemberName);
+            sb.Append(" { get { return (");
+            sb.Append(m.Type.FullClassName);
+            sb.Append(")Data.");
+            sb.Append(bindTo);
+            sb.Append("; } ");
+
+            // TODO:
+            // We need another parameter saying if it's bound to a readonly property or not.
+            if (m.Template.Editable) {
+                sb.Append(" set { Data.");
+                sb.Append(bindTo);
+                sb.Append(" = value; } }");
+            } else {
+                sb.Append('}');
+            }
+
+            m.Prefix.Add(sb.ToString());
         }
 
         /// <summary>

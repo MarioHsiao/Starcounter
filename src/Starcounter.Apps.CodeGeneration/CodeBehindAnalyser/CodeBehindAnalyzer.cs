@@ -10,13 +10,11 @@ using System.IO;
 using System.Text;
 using Roslyn.Compilers.CSharp;
 
-namespace Starcounter.Internal.Application.CodeGeneration
-{
+namespace Starcounter.Internal.Application.CodeGeneration {
     /// <summary>
     /// Class CodeBehindAnalyzer
     /// </summary>
-    public static class CodeBehindAnalyzer
-    {
+    public static class CodeBehindAnalyzer {
         /// <summary>
         /// Parses the specified c# file using Roslyn and builds a metadata
         /// structure used to generate code for json Apps.
@@ -24,18 +22,28 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="className">Name of the class.</param>
         /// <param name="codeBehindFilename">The code behind filename.</param>
         /// <returns>CodeBehindMetadata.</returns>
-        public static CodeBehindMetadata Analyze(string className, string codeBehindFilename)
-        {
+        public static CodeBehindMetadata Analyze(string className, string codeBehindFilename) {
+            bool autoBindToEntity;
+            ClassDeclarationSyntax classDecl;
             SyntaxNode root;
-            SyntaxTree tree;   
-            String ns;
+            SyntaxTree tree;
+            string baseList;
+            string ns;
             List<JsonMapInfo> mapList;
             List<InputBindingInfo> inputList;
 
-            if (!File.Exists(codeBehindFilename)) return CodeBehindMetadata.Empty;
+            if (!File.Exists(codeBehindFilename))
+                return CodeBehindMetadata.Empty;
 
             tree = SyntaxTree.ParseFile(codeBehindFilename);
             root = tree.GetRoot();
+
+
+            classDecl = FindClassDeclarationFor(className, root);
+            baseList = classDecl.BaseList.ToString();
+            autoBindToEntity = false;
+            if (baseList.Contains("App<"))
+                autoBindToEntity = true;
 
             ns = GetNamespaceForClass(className, root);
 
@@ -45,7 +53,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             inputList = new List<InputBindingInfo>();
             FillListWithHandleInputInfo(root, inputList);
 
-            return new CodeBehindMetadata(ns, mapList, inputList);
+            return new CodeBehindMetadata(ns, autoBindToEntity, mapList, inputList);
         }
 
         /// <summary>
@@ -55,8 +63,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="root">The root.</param>
         /// <returns>System.String.</returns>
         /// <exception cref="System.Exception">No class with name </exception>
-        private static string GetNamespaceForClass(string className, SyntaxNode root)
-        {
+        private static string GetNamespaceForClass(string className, SyntaxNode root) {
             ClassDeclarationSyntax cd = FindClassDeclarationFor(className, root);
 
             if (cd == null)
@@ -70,15 +77,13 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// </summary>
         /// <param name="cd">The cd.</param>
         /// <returns>String.</returns>
-        private static String FindNamespaceForClassDeclaration(ClassDeclarationSyntax cd)
-        {
+        private static String FindNamespaceForClassDeclaration(ClassDeclarationSyntax cd) {
             StringBuilder nsBuilder;
             NamespaceDeclarationSyntax ns;
 
             nsBuilder = new StringBuilder();
             ns = cd.FirstAncestorOrSelf<NamespaceDeclarationSyntax>(_ => { return true; });
-            while (ns != null)
-            {
+            while (ns != null) {
                 nsBuilder.Insert(0, ns.Name.GetText());
 
                 if (ns.Parent != null)
@@ -86,7 +91,8 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 else
                     ns = null;
 
-                if (ns != null) nsBuilder.Insert(0, '.');
+                if (ns != null)
+                    nsBuilder.Insert(0, '.');
             }
             return nsBuilder.ToString().TrimEnd();
         }
@@ -97,22 +103,20 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="className">Name of the class.</param>
         /// <param name="current">The current.</param>
         /// <returns>ClassDeclarationSyntax.</returns>
-        private static ClassDeclarationSyntax FindClassDeclarationFor(string className, SyntaxNode current)
-        {
+        private static ClassDeclarationSyntax FindClassDeclarationFor(string className, SyntaxNode current) {
             ClassDeclarationSyntax cd;
             ClassDeclarationSyntax ret = null;
 
-            if (current.Kind == SyntaxKind.ClassDeclaration)
-            {
+            if (current.Kind == SyntaxKind.ClassDeclaration) {
                 cd = (ClassDeclarationSyntax)current;
                 if (cd.Identifier != null && cd.Identifier.ValueText.Equals(className))
                     return cd;
             }
 
-            foreach (SyntaxNode child in current.ChildNodes())
-            {
+            foreach (SyntaxNode child in current.ChildNodes()) {
                 ret = FindClassDeclarationFor(className, child);
-                if (ret != null) break;
+                if (ret != null)
+                    break;
             }
             return ret;
         }
@@ -123,22 +127,18 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// </summary>
         /// <param name="node">The node.</param>
         /// <param name="list">The list.</param>
-        private static void FillListWithHandleInputInfo(SyntaxNode node, List<InputBindingInfo> list)
-        {
+        private static void FillListWithHandleInputInfo(SyntaxNode node, List<InputBindingInfo> list) {
             MethodDeclarationSyntax methodDecl;
 
-            if (node.Kind == SyntaxKind.MethodDeclaration)
-            {
+            if (node.Kind == SyntaxKind.MethodDeclaration) {
                 methodDecl = (MethodDeclarationSyntax)node;
-                if (methodDecl.Identifier.ValueText.Equals("Handle", StringComparison.CurrentCultureIgnoreCase))
-                {
+                if (methodDecl.Identifier.ValueText.Equals("Handle", StringComparison.CurrentCultureIgnoreCase)) {
                     list.Add(GetHandleInputInfoFrom(methodDecl));
                     return;
                 }
             }
 
-            foreach (SyntaxNode child in node.ChildNodes())
-            {
+            foreach (SyntaxNode child in node.ChildNodes()) {
                 FillListWithHandleInputInfo(child, list);
             }
         }
@@ -150,8 +150,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="methodNode">The method node.</param>
         /// <returns>InputBindingInfo.</returns>
         /// <exception cref="System.Exception">No return values are allowed in an app Handle method.</exception>
-        private static InputBindingInfo GetHandleInputInfoFrom(MethodDeclarationSyntax methodNode)
-        {
+        private static InputBindingInfo GetHandleInputInfoFrom(MethodDeclarationSyntax methodNode) {
             ClassDeclarationSyntax classDecl;
             String className;
             String classNs;
@@ -162,8 +161,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 throw new Exception("No return values are allowed in an app Handle method.");
 
             paramType = null;
-            foreach (ParameterSyntax par in methodNode.ParameterList.ChildNodes())
-            {
+            foreach (ParameterSyntax par in methodNode.ParameterList.ChildNodes()) {
                 if (paramType != null)
                     throw new Exception("Only one parameter is allowed on an app Handle method.");
                 paramType = par.Type.ToString();
@@ -183,22 +181,18 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="className">Name of the class.</param>
         /// <param name="node">The node.</param>
         /// <param name="list">The list.</param>
-        private static void FillListWithJsonMapInfo(String className, SyntaxNode node, List<JsonMapInfo> list)
-        {
+        private static void FillListWithJsonMapInfo(String className, SyntaxNode node, List<JsonMapInfo> list) {
             AttributeSyntax attribute;
-            
-            if (node.Kind == SyntaxKind.Attribute)
-            {
+
+            if (node.Kind == SyntaxKind.Attribute) {
                 attribute = (AttributeSyntax)node;
-                if (IsJsonMapAttribute(attribute))
-                {
+                if (IsJsonMapAttribute(attribute)) {
                     list.Add(GetJsonMapInfoFrom(attribute));
                     return;
                 }
             }
 
-            foreach (SyntaxNode child in node.ChildNodes())
-            {
+            foreach (SyntaxNode child in node.ChildNodes()) {
                 FillListWithJsonMapInfo(className, child, list);
             }
         }
@@ -209,21 +203,26 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// </summary>
         /// <param name="attributeNode">The attribute node.</param>
         /// <returns>JsonMapInfo.</returns>
-        private static JsonMapInfo GetJsonMapInfoFrom(AttributeSyntax attributeNode)
-        {
+        private static JsonMapInfo GetJsonMapInfoFrom(AttributeSyntax attributeNode) {
+            bool autoBindToEntity;
             ClassDeclarationSyntax classDecl;
             ClassDeclarationSyntax parentClassDecl;
-            List<String> parentClassNames = new List<String>();
+            List<string> parentClassNames = new List<string>();
+            string baseList;
 
             // Find the class the attribute was declared on.
             classDecl = FindClass(attributeNode.Parent);
+
+            baseList = classDecl.BaseList.ToString();
+            autoBindToEntity = false;
+            if (baseList.Contains("App<"))
+                autoBindToEntity = true;
 
             // If the class is an inner class we need to get the full name of all classes
             // to be able to connect the generated code in the same structure as the 
             // codebehind.
             parentClassDecl = FindClass(classDecl.Parent);
-            while (parentClassDecl != null)
-            {
+            while (parentClassDecl != null) {
                 parentClassNames.Add(parentClassDecl.Identifier.ValueText);
                 parentClassDecl = FindClass(parentClassDecl.Parent);
             }
@@ -231,6 +230,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             return new JsonMapInfo(
                         FindNamespaceForClassDeclaration(classDecl),
                         classDecl.Identifier.ValueText,
+                        autoBindToEntity,
                         parentClassNames,
                         attributeNode.Name.ToString()
                    );
@@ -241,11 +241,11 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// starts with the classname.
         /// </summary>
         /// <param name="attribute">The attribute.</param>
-        private static Boolean IsJsonMapAttribute(AttributeSyntax attribute)
-        {
+        private static Boolean IsJsonMapAttribute(AttributeSyntax attribute) {
             String attributeName = attribute.Name.ToString();
-            
-            if (attributeName.StartsWith("Json.")) return true;
+
+            if (attributeName.StartsWith("Json."))
+                return true;
             return false;
         }
 
@@ -254,8 +254,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// </summary>
         /// <param name="fromNode">From node.</param>
         /// <returns>ClassDeclarationSyntax.</returns>
-        private static ClassDeclarationSyntax FindClass(SyntaxNode fromNode)
-        {
+        private static ClassDeclarationSyntax FindClass(SyntaxNode fromNode) {
             return fromNode.FirstAncestorOrSelf<ClassDeclarationSyntax>(_ => { return true; });
         }
     }

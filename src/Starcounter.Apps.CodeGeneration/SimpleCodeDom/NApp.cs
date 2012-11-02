@@ -6,22 +6,22 @@
 
 using Starcounter.Templates;
 using System.Collections.Generic;
-namespace Starcounter.Internal.Application.CodeGeneration {
 
+namespace Starcounter.Internal.Application.CodeGeneration {
     /// <summary>
     /// Represents a App class definition in template tree.
     /// </summary>
     public class NAppClass : NValueClass {
-//        public NAppClass AppClassClass;
-//        public NClass TemplateClass;
-//        public NClass MetaDataClass;
+        //        public NAppClass AppClassClass;
+        //        public NClass TemplateClass;
+        //        public NClass MetaDataClass;
 
         /// <summary>
         /// Gets the template.
         /// </summary>
         /// <value>The template.</value>
         public AppTemplate Template {
-            get { return (AppTemplate) (NTemplateClass.Template); }
+            get { return (AppTemplate)(NTemplateClass.Template); }
         }
 
 
@@ -52,12 +52,10 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                     return Template.ClassName;
                 else if (!IsCustomAppTemplate) {
                     return "App";
-                }
-                else if (Template.Parent is ListingProperty) {
+                } else if (Template.Parent is ListingProperty) {
                     var alt = (ListingProperty)Template.Parent;
                     return AppifyName(alt.PropertyName); // +"App";
-                }
-                else
+                } else
                     return AppifyName(Template.PropertyName); // +"App";
             }
         }
@@ -75,8 +73,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 else if (Template.Parent is ListingProperty) {
                     var alt = (ListingProperty)Template.Parent;
                     return alt.PropertyName;
-                }
-                else
+                } else
                     return Template.PropertyName;
             }
         }
@@ -87,9 +84,9 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="name">The name to amend</param>
         /// <returns>A name that ends with the text "App"</returns>
         public static string AppifyName(string name) {
-//            if (name.EndsWith("s")) {
-//                name = name.Substring(0, name.Length - 1);
-//            }
+            //            if (name.EndsWith("s")) {
+            //                name = name.Substring(0, name.Length - 1);
+            //            }
             return name + "App";
         }
 
@@ -106,6 +103,10 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             }
         }
 
-
+        /// <summary>
+        /// If set to true all properties in this appclass will be automatically 
+        /// bound, if not specified otherwise on the property, to the underlying Entity.
+        /// </summary>
+        public bool AutoBindPropertiesToEntity { get; set; }
     }
 }
