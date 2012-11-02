@@ -11,7 +11,8 @@
 namespace starcounter {
 namespace network {
 
-char *kHttpResponse[3] = {
+char *kHttpResponse[3] =
+{
     "HTTP/1.1 200 OK\r\n"
     //"Cache-Control: private, no-cache\r\n"
     "Content-Type: text/html; charset=UTF-8\r\n"
@@ -25,7 +26,18 @@ char *kHttpResponse[3] = {
     "<h1>Your unique session: @                           </h1>\r\n"
     "<h1>Number of visits during one session: #              </h1>\r\n"
     "</body>\r\n"
-    "</html>\r\n" };
+    "</html>\r\n"
+};
+
+char *kHttpGatewayPongResponse =
+{
+    "HTTP/1.1 200 OK\r\n"
+    "Content-Type: text/html; charset=UTF-8\r\n"
+    "Content-Length: 5\r\n"
+    "\r\n"
+    "Pong!"
+};
+const int32_t kHttpGatewayPongResponseLength = strlen(kHttpGatewayPongResponse);
 
 const int32_t kHttpContentLengthOffset = abs(kHttpResponse[0] - strstr(kHttpResponse[0], "@"));
 const int32_t kHttpCookieOffset = abs(kHttpResponse[1] - strstr(kHttpResponse[1], "@"));
@@ -866,56 +878,85 @@ uint32_t HttpWsProto::HttpWsProcessData(
                 //return 1;
             }
 
-            if (resp_type_ == HTTP_STANDARD_RESPONSE)
+            // Checking type of response.
+            switch (resp_type_)
             {
-                // Checking if already visited before.
-                /*if (sd->GetAttachedSession() == NULL)
+                case HTTP_STANDARD_RESPONSE:
                 {
-                    // Generating and attaching new session.
-                    sd->AttachToSession(g_gateway.GenerateNewSession(gw));
-                }*/
+                    // Checking if already visited before.
+                    /*if (sd->GetAttachedSession() == NULL)
+                    {
+                        // Generating and attaching new session.
+                        sd->AttachToSession(g_gateway.GenerateNewSession(gw));
+                    }*/
 
-                // Setting session structure fields.
-                http_request_.request_offset_ = socketDataBuf->get_orig_buf_ptr() - (uint8_t*)sd;
+                    // Setting session structure fields.
+                    http_request_.request_offset_ = socketDataBuf->get_orig_buf_ptr() - (uint8_t*)sd;
 
-                // TODO:
-                // Copying session information to the HTTP request struct.
-                //http_request_.session_struct_.Init(sd->get_session_salt(), sd->get_session_index(), ~0);
+                    // TODO:
+                    // Copying session information to the HTTP request struct.
+                    //http_request_.session_struct_.Init(sd->get_session_salt(), sd->get_session_index(), ~0);
 
-                http_request_.request_len_bytes_ = socketDataBuf->get_accum_len_bytes();
+                    http_request_.request_len_bytes_ = socketDataBuf->get_accum_len_bytes();
 
-                // Getting the payload pointer.
-                uint8_t *payload = sd->get_accum_buf()->ResponseDataStart();
-                uint32_t uri_len = http_request_.uri_len_bytes_;
+                    // Getting the payload pointer.
+                    uint8_t *payload = sd->get_accum_buf()->ResponseDataStart();
+                    uint32_t uri_len = http_request_.uri_len_bytes_;
 
-                // Copying needed resource URI.
-                memcpy(payload, &uri_len, 2);
-                memcpy(payload + 2, (uint8_t*)sd + http_request_.uri_offset_, uri_len);
+                    // Copying needed resource URI.
+                    memcpy(payload, &uri_len, 2);
+                    memcpy(payload + 2, (uint8_t*)sd + http_request_.uri_offset_, uri_len);
 
-                // Setting user data length and pointer.
-                sd->set_user_data_written_bytes(uri_len + 2);
+                    // Setting user data length and pointer.
+                    sd->set_user_data_written_bytes(uri_len + 2);
 
-                // TODO: Decide if lower 2 lines are needed.
-                //sd->set_user_data_offset(payload - ((uint8_t *)sd));
-                //sd->set_max_user_data_bytes(DATA_BLOB_SIZE_BYTES - (payload - sd->get_data_blob()));
+                    // TODO: Decide if lower 2 lines are needed.
+                    //sd->set_user_data_offset(payload - ((uint8_t *)sd));
+                    //sd->set_max_user_data_bytes(DATA_BLOB_SIZE_BYTES - (payload - sd->get_data_blob()));
 
-                // Resetting user data parameters.
-                sd->ResetUserDataOffset();
-                sd->ResetMaxUserDataBytes();
+                    // Resetting user data parameters.
+                    sd->ResetUserDataOffset();
+                    sd->ResetMaxUserDataBytes();
 
-                // Push chunk to corresponding channel/scheduler.
-                gw->PushSocketDataToDb(sd, handler_id);
-            }
-            else
-            {
-                // Copying no-content response.
-                memcpy(respDataBegin + respDataSize, kHttpNoContent, kHttpNoContentLen);
+                    // Push chunk to corresponding channel/scheduler.
+                    gw->PushSocketDataToDb(sd, handler_id);
 
-                // Prepare buffer to send outside.
-                socketDataBuf->PrepareForSend(respDataBegin, kHttpNoContentLen);
+                    break;
+                }
+                    
+                case HTTP_GATEWAY_PONG_RESPONSE:
+                {
+                    // Copying no-content response.
+                    memcpy(respDataBegin + respDataSize, kHttpGatewayPongResponse, kHttpGatewayPongResponseLength);
 
-                // Sending data.
-                gw->Send(sd);
+                    // Setting user data length and pointer.
+                    sd->set_user_data_written_bytes(kHttpGatewayPongResponseLength);
+
+                    // Prepare buffer to send outside.
+                    socketDataBuf->PrepareForSend(respDataBegin, kHttpGatewayPongResponseLength);
+
+                    // Sending data.
+                    gw->Send(sd);
+
+                    break;
+                }
+
+                default:
+                {
+                    // Copying no-content response.
+                    memcpy(respDataBegin + respDataSize, kHttpNoContent, kHttpNoContentLen);
+
+                    // Setting user data length and pointer.
+                    sd->set_user_data_written_bytes(kHttpNoContentLen);
+
+                    // Prepare buffer to send outside.
+                    socketDataBuf->PrepareForSend(respDataBegin, kHttpNoContentLen);
+
+                    // Sending data.
+                    gw->Send(sd);
+
+                    break;
+                }
             }
 
             // Printing the outgoing packet.

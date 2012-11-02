@@ -173,7 +173,7 @@ uint32_t GatewayWorker::Receive(SocketDataChunk *sd)
 #endif
 
     // Start receiving on socket.
-    //profiler.Start("Receive()", 5);
+    //profiler_.Start("Receive()", 5);
     uint32_t numBytes, errCode;
 
     // Checking if we have one or multiple chunks to receive.
@@ -185,7 +185,7 @@ uint32_t GatewayWorker::Receive(SocketDataChunk *sd)
     {
         errCode = sd->ReceiveMultipleChunks(active_dbs_[sd->get_db_index()]->get_shared_int(), &numBytes);
     }
-    //profiler.Stop(5);
+    //profiler_.Stop(5);
 
     // Checking if operation completed immediately.
     if (0 != errCode)
@@ -349,7 +349,7 @@ uint32_t GatewayWorker::Send(SocketDataChunk *sd)
 #endif
 
     // Start sending on socket.
-    //profiler.Start("Send()", 6);
+    //profiler_.Start("Send()", 6);
     uint32_t numBytes, errCode;
 
     // Checking if we have one or multiple chunks to send.
@@ -361,7 +361,7 @@ uint32_t GatewayWorker::Send(SocketDataChunk *sd)
     {
         errCode = sd->SendMultipleChunks(active_dbs_[sd->get_db_index()]->get_shared_int(), &numBytes);
     }
-    //profiler.Stop(6);
+    //profiler_.Stop(6);
 
     // Checking if operation completed immediately.
     if (0 != errCode)
@@ -451,9 +451,9 @@ uint32_t GatewayWorker::Disconnect(SocketDataChunk *sd)
     }
 
     // Start disconnecting socket.
-    //profiler.Start("Disconnect()", 4);
+    //profiler_.Start("Disconnect()", 4);
     uint32_t errCode = sd->Disconnect();
-    //profiler.Stop(4);
+    //profiler_.Stop(4);
 
     // Checking if operation completed immediately. 
     if (TRUE != errCode)
@@ -571,9 +571,9 @@ uint32_t GatewayWorker::Connect(SocketDataChunk *sd, sockaddr_in *serverAddr)
     while(TRUE)
     {
         // Start connecting socket.
-        //profiler.Start("Connect()", 3);
+        //profiler_.Start("Connect()", 3);
         uint32_t errCode = sd->Connect(serverAddr);
-        //profiler.Stop(3);
+        //profiler_.Stop(3);
 
         // Checking if operation completed immediately.
         if (TRUE != errCode)
@@ -641,9 +641,9 @@ uint32_t GatewayWorker::Accept(SocketDataChunk *sd)
     sd->set_receiving_flag(true);
 
     // Start accepting on socket.
-    //profiler.Start("Accept()", 7);
+    //profiler_.Start("Accept()", 7);
     uint32_t errCode = sd->Accept(this);
-    //profiler.Stop(7);
+    //profiler_.Stop(7);
  
     // Checking if operation completed immediately.
     if (TRUE != errCode)
@@ -719,17 +719,15 @@ uint32_t GatewayWorker::WorkerRoutine()
     // Starting worker infinite loop.
     while (TRUE)
     {
-        //profiler.Start("WHILE(TRUE)", 0);
-
         // Getting IOCP status.
-        //profiler.Start("GetQueuedCompletionStatusEx", 7);
         complStatus = GetQueuedCompletionStatusEx(worker_iocp_, removedOvls, MAX_FETCHED_OVLS, &removedOvlsNum, waitForIocpMs, TRUE);
+        //profiler_.Start("ProcessingCycle", 1);
 
         // Check if global lock is set.
         if (g_gateway.global_lock())
             g_gateway.SuspendWorker(this);
 
-        //profiler.Stop(7);
+        //profiler_.Stop(7);
 
         // Checking if operation successfully completed.
         if (TRUE == complStatus)
@@ -855,14 +853,15 @@ uint32_t GatewayWorker::WorkerRoutine()
             waitForIocpMs = INFINITE;
         }
 
-        //profiler.Stop(0);
+        //profiler_.Stop(1);
+        //profiler_.DrawResults();
 
         // Printing profiling results.
         /*
         newTimeMs = timeGetTime();
         if ((newTimeMs - oldTimeMs) >= 1000)
         {
-            profiler.DrawResults();
+            profiler_.DrawResults();
             oldTimeMs = timeGetTime();
         }
         */
