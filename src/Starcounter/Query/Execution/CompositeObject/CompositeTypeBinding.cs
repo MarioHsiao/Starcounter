@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -276,5 +277,82 @@ internal class CompositeTypeBinding : ITypeBinding
         }
         stringBuilder.AppendLine(tabs, ")");
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    internal bool AssertEquals(CompositeTypeBinding other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check cardinalities of collections
+        Debug.Assert(this.propertyList.Count == other.propertyList.Count);
+        if (this.propertyList.Count != other.propertyList.Count)
+            return false;
+        if (this.propertyListArr == null) {
+            Debug.Assert(other.propertyListArr == null);
+            if (other.propertyListArr != null)
+                return false;
+        } else {
+            Debug.Assert(this.propertyListArr.Length == other.propertyListArr.Length);
+            if (this.propertyListArr.Length != other.propertyListArr.Length)
+                return false;
+        }
+        // Check collections of basic types
+        if (this.extentOrder == null) {
+            Debug.Assert(other.extentOrder == null);
+            if (other.extentOrder != null)
+                return false;
+        } else {
+            Debug.Assert(this.extentOrder.Count == other.extentOrder.Count);
+            if (this.extentOrder.Count != other.extentOrder.Count)
+                return false;
+            for (int i = 0; i < this.extentOrder.Count; i++) {
+                Debug.Assert(this.extentOrder[i] == other.extentOrder[i]);
+                if (this.extentOrder[i] != other.extentOrder[i])
+                    return false;
+            }
+        }
+        if (this.propertyIndexDictByName.Count != other.propertyIndexDictByName.Count)
+            return false;
+        foreach (KeyValuePair<String, Int32> kvp in this.propertyIndexDictByName) {
+            Int32 otherVal;
+            Debug.Assert(other.propertyIndexDictByName.TryGetValue(kvp.Key, out otherVal));
+            if (!other.propertyIndexDictByName.TryGetValue(kvp.Key, out otherVal))
+                return false;
+            Debug.Assert(kvp.Value == otherVal);
+            if (kvp.Value != otherVal)
+                return false;
+        }
+        Debug.Assert(this.typeBindingList.Count == other.typeBindingList.Count);
+        if (this.typeBindingList.Count != other.typeBindingList.Count)
+            return false;
+        for (int i = 0; i < this.typeBindingList.Count; i++) {
+            Debug.Assert(this.typeBindingList[i] == other.typeBindingList[i]);
+            if (this.typeBindingList[i] != other.typeBindingList[i])
+                return false;
+        }
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = true;
+        // Check collections of objects
+        for (int i = 0; i < this.propertyList.Count && areEquals; i++)
+            areEquals = this.propertyList[i].AssertEquals(other.propertyList[i]);
+        if (this.propertyListArr != null)
+            for (int i = 0; i < this.propertyListArr.Length && areEquals; i++) {
+                areEquals = this.propertyListArr[i].Count == other.propertyListArr[i].Count;
+                for (int j = 0; j < this.propertyListArr[i].Count && areEquals; j++)
+                    areEquals = this.propertyListArr[i][j].AssertEquals(other.propertyListArr[i][j]);
+            }
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }

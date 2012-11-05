@@ -185,6 +185,10 @@ internal interface ITypeExpression : IConditionTreeNode
     /// <param name="varArray">Variables array.</param>
     /// <returns>Clone of the expression.</returns>
     ITypeExpression Clone(VariableArray varArray);
+
+#if DEBUG
+    bool AssertEquals(ITypeExpression other);
+#endif
 }
 
 /// <summary>
