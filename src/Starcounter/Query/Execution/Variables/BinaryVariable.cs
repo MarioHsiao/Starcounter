@@ -51,7 +51,7 @@ internal class BinaryVariable : Variable, IVariable, IBinaryExpression
     }
 
     /// <summary>
-    /// The order number (starting at 0) of this variable in an SQL statement.
+    /// The DbTypeCode of this variable.
     /// </summary>
     public override DbTypeCode DbTypeCode
     {

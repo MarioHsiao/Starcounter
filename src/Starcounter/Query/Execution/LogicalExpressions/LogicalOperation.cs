@@ -98,6 +98,11 @@ internal class LogicalOperation : CodeGenFilterNode, ILogicalExpression
         }
     }
 
+    public Boolean InvolvesCodeExecution()
+    {
+        return (condition1.InvolvesCodeExecution() || (condition2 != null && condition2.InvolvesCodeExecution()));
+    }
+
     /// <summary>
     /// Calculates the truth value of this operation when evaluated on an input object.
     /// All properties in this operation are evaluated on the input object.

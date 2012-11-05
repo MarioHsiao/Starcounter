@@ -52,6 +52,8 @@ typedef uint32_t session_index_type;
 #define GW_DATABASES_DIAG
 #define GW_SESSIONS_DIAG
 
+//#define GW_PONG_MODE
+
 // Maximum number of ports the gateway operates with.
 const int32_t MAX_PORTS_NUM = 16;
 
@@ -426,6 +428,12 @@ public:
     ULONG get_orig_buf_len_bytes()
     {
         return orig_buf_len_bytes_;
+    }
+
+    // Getting current buffer length in bytes.
+    ULONG get_buf_len_bytes()
+    {
+        return buf_len_bytes_;
     }
 
     // Setting the number of bytes retrieved at last receive.

@@ -372,7 +372,7 @@ uint32_t OuterPortProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLE
     HandlersTable* handlers_table = g_gateway.GetDatabase(sd->get_db_index())->get_user_handlers();
 
     // Checking if data goes to user code.
-    if (sd->data_to_user_flag())
+    if (sd->get_to_database_direction_flag())
     {
         // Getting the corresponding port number.
         uint16_t port_num = g_gateway.get_server_port(sd->get_port_index())->get_port_number();
@@ -402,7 +402,7 @@ uint32_t PortProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYP
     *is_handled = false;
 
     // Checking if data goes to user code.
-    if (sd->data_to_user_flag())
+    if (sd->get_to_database_direction_flag())
     {
         // Looking for attached session or generating a new one.
         /*if (sd->GetAttachedSession() == NULL)
@@ -423,7 +423,7 @@ uint32_t PortProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYP
     else
     {
         // Prepare buffer to send outside.
-        sd->get_data_buf()->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_written_bytes());
+        sd->get_accum_buf()->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_written_bytes());
 
         // Sending data.
         gw->Send(sd);
