@@ -114,6 +114,11 @@ internal class NumericalOperation : INumericalExpression, INumericalOperation
         }
     }
 
+    public Boolean InvolvesCodeExecution()
+    {
+        return (expr1.InvolvesCodeExecution() || (expr2 != null && expr2.InvolvesCodeExecution()));
+    }
+
     /// <summary>
     /// Calculates the value of this operation as a nullable Decimal.
     /// All properties in this operation are evaluated on the input object.

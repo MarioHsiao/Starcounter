@@ -84,12 +84,25 @@ internal class StringPath : Path, IStringExpression, IPath
             return DbTypeCode.String;
         }
     }
+
     public QueryTypeCode QueryTypeCode
     {
         get
         {
             return QueryTypeCode.String;
         }
+    }
+
+    public Boolean InvolvesCodeExecution()
+    {
+        Boolean codeExecution = member.InvolvesCodeExecution();
+        Int32 i = 0;
+        while (codeExecution == false && i < pathList.Count)
+        {
+            codeExecution = pathList[i].InvolvesCodeExecution();
+            i++;
+        }
+        return codeExecution;
     }
 
     /// <summary>

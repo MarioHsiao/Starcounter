@@ -82,12 +82,18 @@ internal class DoubleOperation : IDoubleExpression, INumericalOperation
             return DbTypeCode.Double;
         }
     }
+
     public QueryTypeCode QueryTypeCode
     {
         get
         {
             return QueryTypeCode.Double;
         }
+    }
+
+    public Boolean InvolvesCodeExecution()
+    {
+        return (expr1.InvolvesCodeExecution() || (expr2 != null && expr2.InvolvesCodeExecution()));
     }
 
     /// <summary>

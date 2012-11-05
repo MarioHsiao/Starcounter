@@ -40,9 +40,8 @@ void SocketDataChunk::Init(
     chunk_index_ = chunk_index;
     extra_chunk_index_ = INVALID_CHUNK_INDEX;
 
-    data_to_user_flag_ = true;
-    socket_attached_ = false;
-    new_session_created_ = false;
+    flags_ = 0;
+    set_to_database_direction_flag(true);
 
     type_of_network_oper_ = UNKNOWN_OPER;
     recv_flags_ = 0;
@@ -56,9 +55,8 @@ void SocketDataChunk::Init(
 void SocketDataChunk::Reset()
 {
     // Resetting flags.
-    data_to_user_flag_ = true;
-    socket_attached_ = false;
-    new_session_created_ = false;
+    flags_ = 0;
+    set_to_database_direction_flag(true);
 
     type_of_network_oper_ = DISCONNECT_OPER;
 
@@ -79,15 +77,15 @@ void SocketDataChunk::Reset()
 SocketDataChunk *SocketDataChunk::CloneReceive(GatewayWorker *gw)
 {
     // Since another socket is going to be attached.
-    socket_attached_ = false;
+    set_receiving_flag(false);
 
     SocketDataChunk *sd = gw->CreateSocketData(sock_, port_index_, db_index_);
     sd->session_ = session_;
-    sd->data_to_user_flag_ = true;
-    sd->http_ws_proto_.set_web_sockets_upgrade(http_ws_proto_.get_web_sockets_upgrade());
+    sd->set_to_database_direction_flag(true);
+    sd->http_ws_proto_.set_web_sockets_upgrade_flag(http_ws_proto_.get_web_sockets_upgrade_flag());
 
     // This socket becomes attached.
-    sd->socket_attached_ = true;
+    sd->set_receiving_flag(true);
 
     return sd;
 }
@@ -114,11 +112,15 @@ uint32_t SocketDataChunk::GetChunks(GatewayWorker *gw, uint32_t num_bytes)
 }
 
 // Create WSA buffers.
-uint32_t SocketDataChunk::CreateWSABuffers(WorkerDbInterface* worker_db, shared_memory_chunk* smc)
+uint32_t SocketDataChunk::CreateWSABuffers(
+    WorkerDbInterface* worker_db,
+    shared_memory_chunk* head_smc,
+    uint32_t head_chunk_offset_bytes,
+    uint32_t head_chunk_num_bytes,
+    uint32_t total_bytes)
 {
     // Getting total user data length.
-    uint32_t bytes_left = user_data_written_bytes_;
-    uint32_t cur_wsa_buf_offset = 0;
+    uint32_t bytes_left = total_bytes, cur_wsa_buf_offset = 0;
 
     // Looping through all chunks and creating corresponding
     // WSA buffers in the first chunk data blob.
@@ -131,10 +133,37 @@ uint32_t SocketDataChunk::CreateWSABuffers(WorkerDbInterface* worker_db, shared_
 
     // Extra WSABufs storage chunk.
     shared_memory_chunk* wsa_bufs_smc;
-    uint32_t err_code = worker_db->GetOneChunkFromPrivatePool(&extra_chunk_index_, &wsa_bufs_smc);
-    GW_ERR_CHECK(err_code);
+    uint32_t err_code;
+
+    // Checking if we need to obtain an extra chunk.
+    if (INVALID_CHUNK_INDEX == extra_chunk_index_)
+    {
+        // Getting new chunk from pool.
+        err_code = worker_db->GetOneChunkFromPrivatePool(&extra_chunk_index_, &wsa_bufs_smc);
+        GW_ERR_CHECK(err_code);
+    }
+    else
+    {
+        // Obtaining data address for existing extra chunk.
+        wsa_bufs_smc = (shared_memory_chunk *)(&(shared_int->chunk(extra_chunk_index_)));
+    }
+
+    // Resetting number of chunks if needed.
+    if (num_chunks_ > 1)
+        num_chunks_ = 1;
+
+    // Checking if head chunk is involved.
+    if (head_chunk_offset_bytes)
+    {
+        // Pointing to current WSABUF in blob.
+        WSABUF* wsa_buf = (WSABUF*) ((uint8_t*)wsa_bufs_smc + cur_wsa_buf_offset);
+        wsa_buf->len = head_chunk_num_bytes;
+        wsa_buf->buf = (char *)head_smc + head_chunk_offset_bytes;
+        cur_wsa_buf_offset += sizeof(WSABUF);
+    }
 
     // Until we get the last chunk in chain.
+    shared_memory_chunk* smc = head_smc;
     core::chunk_index cur_chunk_index = smc->get_link();
     while (cur_chunk_index != shared_memory_chunk::LINK_TERMINATOR)
     {

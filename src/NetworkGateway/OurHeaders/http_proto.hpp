@@ -27,6 +27,7 @@ enum HttpWsResponseType
 {
     HTTP_NO_CONTENT_RESPONSE,
     HTTP_STANDARD_RESPONSE,
+    HTTP_GATEWAY_PONG_RESPONSE,
     WS_HANDSHAKE_RESPONSE,
     WS_BAD_REQUEST_RESPONSE
 };
@@ -545,6 +546,14 @@ struct HttpRequest
     bool gzip_accepted_;
 };
 
+enum HTTP_WS_FLAGS
+{
+    HTTP_WS_FLAGS_UPGRADE = 1,
+    HTTP_WS_FLAGS_COMPLETE_HEADER = 2,
+    HTTP_WS_FLAGS_URI_PARSED = 4,
+    HTTP_WS_FLAGS_CONTINUE_RECEIVE = 8
+};
+
 class HttpWsProto
 {
     // HttpProto is also an http_parser.
@@ -553,8 +562,8 @@ class HttpWsProto
     // Structure that holds HTTP request.
     HttpRequest http_request_;
 
-    // WebSockets upgrade flag.
-    bool web_sockets_upgrade_;
+    // HTTP/WebSockets flags.
+    uint32_t flags_;
 
     // To which socket this instance belongs.
     SocketDataChunk *sd_ref_;
@@ -566,23 +575,67 @@ class HttpWsProto
     HttpWsFields last_field_;
     HttpWsResponseType resp_type_;
     WsProto ws_proto_;
-    bool complete_header_;
-
-    // Indicates if URI was parsed already.
-    bool uri_parsed_;
 
 public:
 
     // Getting WebSocket upgrade flag.
-    bool get_web_sockets_upgrade()
+    bool get_web_sockets_upgrade_flag()
     {
-        return web_sockets_upgrade_;
+        return flags_ & HTTP_WS_FLAGS_UPGRADE;
     }
 
     // Setting WebSocket upgrade flag.
-    void set_web_sockets_upgrade(bool value)
+    void set_web_sockets_upgrade_flag(bool value)
     {
-        web_sockets_upgrade_ = value;
+        if (value)
+            flags_ |= HTTP_WS_FLAGS_UPGRADE;
+        else
+            flags_ &= ~HTTP_WS_FLAGS_UPGRADE;
+    }
+
+    // Getting complete header flag.
+    bool get_complete_header_flag()
+    {
+        return flags_ & HTTP_WS_FLAGS_COMPLETE_HEADER;
+    }
+
+    // Setting complete header flag.
+    void set_complete_header_flag(bool value)
+    {
+        if (value)
+            flags_ |= HTTP_WS_FLAGS_COMPLETE_HEADER;
+        else
+            flags_ &= ~HTTP_WS_FLAGS_COMPLETE_HEADER;
+    }
+
+    // Getting URI parsed flag.
+    bool get_uri_parsed_flag()
+    {
+        return flags_ & HTTP_WS_FLAGS_URI_PARSED;
+    }
+
+    // Setting URI parsed flag.
+    void set_uri_parsed_flag(bool value)
+    {
+        if (value)
+            flags_ |= HTTP_WS_FLAGS_URI_PARSED;
+        else
+            flags_ &= ~HTTP_WS_FLAGS_URI_PARSED;
+    }
+
+    // Getting continue receive flag.
+    bool get_continue_receive_flag()
+    {
+        return flags_ & HTTP_WS_FLAGS_CONTINUE_RECEIVE;
+    }
+
+    // Setting continue receive flag.
+    void set_continue_receive_flag(bool value)
+    {
+        if (value)
+            flags_ |= HTTP_WS_FLAGS_CONTINUE_RECEIVE;
+        else
+            flags_ &= ~HTTP_WS_FLAGS_CONTINUE_RECEIVE;
     }
 
     // HTTP/WS parser callbacks.
@@ -601,7 +654,7 @@ public:
         ws_proto_.Init();
         sd_ref_ = NULL;
         gw_ref_temp_ = NULL;
-        web_sockets_upgrade_ = false;
+        flags_ = 0;
 
         // Remove this since parser is reset before actual parsing.
         //ResetParser();
@@ -610,7 +663,7 @@ public:
     // Resets the HTTP/WS structure.
     void Reset()
     {
-        web_sockets_upgrade_ = false;
+        flags_ = 0;
         ws_proto_.Reset();
     }
 
@@ -619,10 +672,14 @@ public:
     {
         last_field_ = UNKNOWN_FIELD;
         resp_type_ = HTTP_STANDARD_RESPONSE;
-        complete_header_ = false;
+
+#ifdef GW_PONG_MODE
+        resp_type_ = HTTP_GATEWAY_PONG_RESPONSE;
+#endif
+
+        flags_ = 0;
 
         memset(&http_request_, 0, sizeof(http_request_));
-        uri_parsed_ = false;
 
         http_parser_init((http_parser *)this, HTTP_REQUEST);
     }

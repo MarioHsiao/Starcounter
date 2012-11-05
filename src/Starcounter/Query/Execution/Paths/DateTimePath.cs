@@ -84,12 +84,25 @@ internal class DateTimePath : Path, IDateTimeExpression, IPath
             return DbTypeCode.DateTime;
         }
     }
+
     public QueryTypeCode QueryTypeCode
     {
         get
         {
             return QueryTypeCode.DateTime;
         }
+    }
+
+    public Boolean InvolvesCodeExecution()
+    {
+        Boolean codeExecution = member.InvolvesCodeExecution();
+        Int32 i = 0;
+        while (codeExecution == false && i < pathList.Count)
+        {
+            codeExecution = pathList[i].InvolvesCodeExecution();
+            i++;
+        }
+        return codeExecution;
     }
 
     /// <summary>
