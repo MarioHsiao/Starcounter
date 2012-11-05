@@ -101,4 +101,22 @@ namespace Starcounter.Query.Execution
         IncludesFetchLiteral = 16, IncludesFetchVariable = 32, IncludesOffsetKeyLiteral = 64, IncludesOffsetKeyVariable = 128, 
         SingleObjectProjection = 256
     }
+
+    /// <summary>
+    /// Identifies the node type in condition tree.
+    /// </summary>
+    internal enum ConditionNodeType
+    {
+        Property,
+        Variable,
+        Literal,
+        ObjectThis,
+        CompOpEqual,
+        CompOpNotEqual,
+        CompOpGreater,
+        CompOpGreaterOrEqual,
+        CompOpLess,
+        CompOpLessOrEqual,
+        Unsupported
+    };
 }
