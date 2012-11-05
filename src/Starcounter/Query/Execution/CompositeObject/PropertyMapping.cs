@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -106,5 +107,41 @@ internal class PropertyMapping : IPropertyBinding
         stringBuilder.AppendLine(" = ");
         expression.BuildString(stringBuilder, tabs + 1);
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    public bool AssertEquals(IPropertyBinding other) {
+        PropertyMapping otherNode = other as PropertyMapping;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(PropertyMapping other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check basic types
+        Debug.Assert(this.refName == other.refName);
+        if (this.refName != other.refName)
+            return false;
+        Debug.Assert(this.propIndex == other.propIndex);
+        if (this.propIndex != other.propIndex)
+            return false;
+        Debug.Assert(this.typeBinding == other.typeBinding);
+        if (this.typeBinding != other.typeBinding)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = this.expression.AssertEquals(other.expression);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }
