@@ -26,7 +26,7 @@ namespace IndexQueryTest
             TestOrderBy();
             TestHint();
             TestJoinWIndex();
-
+            TestAggregate();
             //CreateDropIndexParallelTest();
 #endif
 #if ACCOUNTTEST_MODEL_NO
