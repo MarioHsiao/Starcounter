@@ -83,12 +83,18 @@ internal class DecimalOperation : IDecimalExpression, INumericalOperation
             return DbTypeCode.Decimal;
         }
     }
+
     public QueryTypeCode QueryTypeCode
     {
         get
         {
             return QueryTypeCode.Decimal;
         }
+    }
+
+    public Boolean InvolvesCodeExecution()
+    {
+        return (expr1.InvolvesCodeExecution() || (expr2 != null && expr2.InvolvesCodeExecution()));
     }
 
     /// <summary>

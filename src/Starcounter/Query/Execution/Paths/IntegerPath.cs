@@ -84,12 +84,25 @@ internal class IntegerPath : Path, IIntegerExpression, IPath
             return member.DbTypeCode;
         }
     }
+
     public QueryTypeCode QueryTypeCode
     {
         get
         {
             return QueryTypeCode.Integer;
         }
+    }
+
+    public Boolean InvolvesCodeExecution()
+    {
+        Boolean codeExecution = member.InvolvesCodeExecution();
+        Int32 i = 0;
+        while (codeExecution == false && i < pathList.Count)
+        {
+            codeExecution = pathList[i].InvolvesCodeExecution();
+            i++;
+        }
+        return codeExecution;
     }
 
     /// <summary>
