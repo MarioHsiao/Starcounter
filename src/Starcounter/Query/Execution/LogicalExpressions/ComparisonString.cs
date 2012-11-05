@@ -84,6 +84,11 @@ internal class ComparisonString : CodeGenFilterNode, IComparison
         }
     }
 
+    public Boolean InvolvesCodeExecution()
+    {
+        return (expr1.InvolvesCodeExecution() || expr2.InvolvesCodeExecution());
+    }
+
     /// <summary>
     /// Handle the special string comparison "string1 &lt; AppendMaxChar(string2)".
     /// Operator AppendMaxChar is used to handle upper end-point in "STARTS WITH" intervals.
