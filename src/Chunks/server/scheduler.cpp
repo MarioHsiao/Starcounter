@@ -71,6 +71,7 @@ EXTERN_C unsigned long sc_acquire_shared_memory_chunk(void *port, unsigned long 
 EXTERN_C unsigned long sc_acquire_linked_shared_memory_chunks(void *port, unsigned long channel_index, unsigned long start_chunk_index, unsigned long needed_size);
 EXTERN_C unsigned long sc_acquire_linked_shared_memory_chunks_counted(void *port, unsigned long channel_index, unsigned long start_chunk_index, unsigned long num_chunks);
 EXTERN_C void *sc_get_shared_memory_chunk(void *port, unsigned long chunk_index);
+EXTERN_C unsigned long sc_release_linked_shared_memory_chunks(void *port, unsigned long start_chunk_index);
 EXTERN_C void sc_add_ref_to_channel(void *port, unsigned long channel_index);
 EXTERN_C void sc_release_channel(void *port, unsigned long channel_index);
 
@@ -273,6 +274,14 @@ public:
 	//--------------------------------------------------------------------------
 	unsigned long acquire_linked_chunk_indexes(unsigned long channel_number, unsigned long start_chunk, unsigned long needed_size);
     unsigned long acquire_linked_chunk_indexes_counted(unsigned long channel_number, unsigned long start_chunk, unsigned long num_chunks);
+
+    /// Releases linked chunks to a private chunk_pool and if there is a bunch there
+    /// then to the shared_chunk_pool.
+	/**
+	 * @param start_chunk_index Index of the first chunk.
+	 * @return 0 on success otherwise error.
+	 */
+    unsigned long release_linked_chunks(chunk_index start_chunk_index);
 	
 	//--------------------------------------------------------------------------
 	/// client_release_linked_chunks() is used by the scheduler to do the clean
@@ -1368,6 +1377,24 @@ try_to_acquire_from_private_chunk_pool:
 	}
 }
 
+unsigned long server_port::release_linked_chunks(chunk_index start_chunk_index)
+{
+    // First releasing to private chunk pool.
+    if (!this_scheduler_interface_->chunk_pool().release_linked_chunks(&chunk(0), start_chunk_index))
+        return SCERRUNSPECIFIED;
+
+    // Checking if we have more chunks in private pool then needed.
+    int32_t num_to_return = this_scheduler_interface_->chunk_pool().size() - a_bunch_of_chunks;
+    if (num_to_return > 0)
+    {
+        // Checking that number of returned chunks is correct.
+        if (num_to_return != release_from_private_to_shared(this_scheduler_interface_->chunk_pool(), num_to_return))
+            return SCERRUNSPECIFIED;
+    }
+
+    return 0;
+}
+
 bool server_port::release_clients_chunks(client_interface_type*
 client_interface_ptr, uint32_t timeout_milliseconds) {
 	return shared_chunk_pool_->release_clients_chunks(client_interface_ptr,
@@ -1582,5 +1609,15 @@ void *sc_get_shared_memory_chunk(void *port, unsigned long chunk_index)
 	using namespace starcounter::core;
 
 	server_port *the_port = (server_port *)port;
+
 	return the_port->get_chunk(chunk_index);
+}
+
+unsigned long sc_release_linked_shared_memory_chunks(void *port, unsigned long start_chunk_index)
+{
+    using namespace starcounter::core;
+
+    server_port* the_port = (server_port*)port;
+
+    return the_port->release_linked_chunks(start_chunk_index);
 }

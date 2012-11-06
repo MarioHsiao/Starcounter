@@ -105,8 +105,8 @@ namespace bmx
     const uint32_t BMX_HANDLER_SIZE = 2;
     const uint32_t BMX_PROTOCOL_BEGIN = 16;
     const uint32_t REQUEST_SIZE_BEGIN = BMX_PROTOCOL_BEGIN + BMX_HANDLER_SIZE;
-    const uint32_t GATEWAY_CHUNK_BEGIN = 24;
-    const uint32_t GATEWAY_DATA_BEGIN = GATEWAY_CHUNK_BEGIN + 32;
+    const uint32_t BMX_HEADER_MAX_SIZE_BYTES = 24;
+    const uint32_t GATEWAY_DATA_BEGIN = BMX_HEADER_MAX_SIZE_BYTES + 32;
 
     const uint32_t SESSION_SALT_OFFSET = GATEWAY_DATA_BEGIN;
     const uint32_t SESSION_INDEX_OFFSET = GATEWAY_DATA_BEGIN + 8;
@@ -116,11 +116,14 @@ namespace bmx
     const uint32_t MAX_USER_DATA_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 28;
     const uint32_t USER_DATA_WRITTEN_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 32;
 
-    const uint32_t SOCKET_DATA_NUM_CLONE_BYTES = GATEWAY_CHUNK_BEGIN + 168;
-    const uint32_t HTTP_REQUEST_OFFSET = GATEWAY_CHUNK_BEGIN + 200;
+    const uint32_t SOCKET_DATA_NUM_CLONE_BYTES = 128;
+    const uint32_t BMX_NUM_CLONE_BYTES = BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_NUM_CLONE_BYTES;
+
+    const uint32_t SOCKET_DATA_HTTP_REQUEST_OFFSET = 200;
+    const uint32_t BMX_HTTP_REQUEST_OFFSET = BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_HTTP_REQUEST_OFFSET;
 
     // Size of the usable chunk data.
-    const uint32_t GATEWAY_ORIG_CHUNK_DATA_SIZE = starcounter::core::chunk_size - GATEWAY_CHUNK_BEGIN - shared_memory_chunk::LINK_SIZE;
+    const uint32_t GATEWAY_ORIG_CHUNK_DATA_SIZE = starcounter::core::chunk_size - BMX_HEADER_MAX_SIZE_BYTES - shared_memory_chunk::LINK_SIZE;
 
     // Predefined BMX management handler.
     const BMX_HANDLER_TYPE BMX_MANAGEMENT_HANDLER = 0;
@@ -133,6 +136,9 @@ namespace bmx
 
     // Maximum URI string length.
     const uint32_t MAX_URI_STRING_LEN = 512;
+
+    // Bad handler index.
+    const uint32_t INVALID_HANDLER_ID = 0;
 
     // BMX message types.
     const uint8_t BMX_REGISTER_PORT = 0;

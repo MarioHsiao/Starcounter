@@ -51,7 +51,6 @@ typedef uint32_t session_index_type;
 //#define GW_CHUNKS_DIAG
 #define GW_DATABASES_DIAG
 #define GW_SESSIONS_DIAG
-
 //#define GW_PONG_MODE
 
 // Maximum number of ports the gateway operates with.
@@ -69,42 +68,35 @@ const int32_t MAX_URI_HANDLERS_PER_PORT = 16;
 // Length of accepting data structure.
 const int32_t ACCEPT_DATA_SIZE_BYTES = 64;
 
-// Maximum number of receive/send WSABUFs.
-const int32_t MAX_WSA_BUFS = 32;
-
 // Maximum number of chunks to pop at once.
 const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 128;
 
 // Maximum number of fetched OVLs at once.
 const int32_t MAX_FETCHED_OVLS = 256;
 
+// Maximum size of HTTP body.
+const int32_t MAX_HTTP_BODY_SIZE = 1024 * 1024 * 32;
+
 // Number of sockets to increase the accept roof.
 const int32_t ACCEPT_ROOF_STEP_SIZE = 1;
 
-// Maximum size of BMX header in the beginning of the chunk
-// after which the gateway data can be placed.
-const int32_t BMX_HEADER_MAX_SIZE_BYTES = 24;
-
-// Maximum size of gateway header in bytes.
-const int32_t GATEWAY_HEADER_MAX_SIZE_BYTES = 1024;
+// Offset of data blob in socket data.
+const int32_t SOCKET_DATA_BLOB_OFFSET_BYTES = 680;
 
 // Length of blob data in bytes.
-const int32_t DATA_BLOB_SIZE_BYTES = core::chunk_size - BMX_HEADER_MAX_SIZE_BYTES - GATEWAY_HEADER_MAX_SIZE_BYTES - shared_memory_chunk::LINK_SIZE;
-
-// Minimum size of response data for HTTP/WebSockets.
-const int32_t HTTP_WS_MIN_RESPONSE_SIZE = 512;
+const int32_t SOCKET_DATA_BLOB_SIZE_BYTES = bmx::MAX_DATA_BYTES_IN_CHUNK - bmx::BMX_HEADER_MAX_SIZE_BYTES - SOCKET_DATA_BLOB_OFFSET_BYTES;
 
 // Size of OVERLAPPED structure.
 const int32_t OVERLAPPED_SIZE = sizeof(OVERLAPPED);
-
-// Size of chunk index in bytes.
-const int32_t CHUNK_INDEX_SIZE = sizeof(core::chunk_index);
 
 // Bad chunk index.
 const uint32_t INVALID_CHUNK_INDEX = ~0;
 
 // Bad linear session index.
 const session_index_type INVALID_SESSION_INDEX = ~0;
+
+// Bad linear URI index.
+const uint32_t INVALID_URI_INDEX = ~0;
 
 // Bad scheduler index.
 const uint32_t INVALID_SCHEDULER_ID = ~0;
@@ -359,6 +351,9 @@ class AccumBuffer
     // Number of bytes received last time.
     ULONG last_recv_bytes_;
 
+    // Desired number of bytes to accumulate.
+    ULONG desired_accum_bytes_;
+
 public:
 
     // Default initializer.
@@ -370,17 +365,45 @@ public:
         orig_buf_len_bytes_ = 0;
         accum_len_bytes_ = 0;
         last_recv_bytes_ = 0;
+        desired_accum_bytes_ = 0;
     }
 
     // Initializes accumulative buffer.
-    void Init(ULONG bufTotalLenBytes, uint8_t* origBufPtr)
+    void Init(ULONG buf_total_len_bytes, uint8_t* orig_buf_ptr, bool reset_accum_len)
     {
-        orig_buf_len_bytes_ = bufTotalLenBytes;
-        buf_len_bytes_ = bufTotalLenBytes;
-        orig_buf_ptr_ = origBufPtr;
-        cur_buf_ptr_ = origBufPtr;
-        accum_len_bytes_ = 0;
+        orig_buf_len_bytes_ = buf_total_len_bytes;
+        buf_len_bytes_ = buf_total_len_bytes;
+        orig_buf_ptr_ = orig_buf_ptr;
+        cur_buf_ptr_ = orig_buf_ptr;
         last_recv_bytes_ = 0;
+
+        // Checking if we need to reset accumulated length.
+        if (reset_accum_len)
+            accum_len_bytes_ = 0;
+    }
+
+    // Get buffer length.
+    ULONG get_buf_len_bytes()
+    {
+        return buf_len_bytes_;
+    }
+
+    // Getting desired accumulating bytes.
+    ULONG get_desired_accum_bytes()
+    {
+        return desired_accum_bytes_;
+    }
+
+    // Setting desired accumulating bytes.
+    void set_desired_accum_bytes(ULONG value)
+    {
+        desired_accum_bytes_ = value;
+    }
+
+    // Setting number of accumulating bytes.
+    void set_accum_len_bytes(ULONG value)
+    {
+        accum_len_bytes_ = value;
     }
 
     // Retrieves length of the buffer.
@@ -422,6 +445,7 @@ public:
     {
         cur_buf_ptr_ += last_recv_bytes_;
         buf_len_bytes_ -= last_recv_bytes_;
+        last_recv_bytes_ = 0;
     }
 
     // Getting original buffer length bytes.
@@ -430,16 +454,16 @@ public:
         return orig_buf_len_bytes_;
     }
 
-    // Getting current buffer length in bytes.
-    ULONG get_buf_len_bytes()
-    {
-        return buf_len_bytes_;
-    }
-
     // Setting the number of bytes retrieved at last receive.
     void SetLastReceivedBytes(ULONG lenBytes)
     {
         last_recv_bytes_ = lenBytes;
+    }
+
+    // Adds the number of bytes retrieved at last receive.
+    void AddLastReceivedBytes(ULONG lenBytes)
+    {
+        last_recv_bytes_ += lenBytes;
     }
 
     // Returns pointer to original data buffer.
@@ -458,6 +482,18 @@ public:
     ULONG get_accum_len_bytes()
     {
         return accum_len_bytes_;
+    }
+
+    // Checks if accumulating buffer is filled.
+    bool IsBufferFilled()
+    {
+        return (buf_len_bytes_ - last_recv_bytes_ == 0);
+    }
+
+    // Checking if all needed bytes are accumulated.
+    bool IsAccumulationComplete()
+    {
+        return accum_len_bytes_ == desired_accum_bytes_;
     }
 };
 
@@ -1331,6 +1367,9 @@ public:
 
     // Load settings from XML.
     uint32_t LoadSettings(std::wstring configFilePath);
+
+    // Assert some correct state parameters.
+    uint32_t AssertCorrectState();
 
     // Initialize the network gateway.
     uint32_t Init();
