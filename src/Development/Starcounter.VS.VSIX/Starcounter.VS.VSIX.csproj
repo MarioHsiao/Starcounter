@@ -45,6 +45,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <OutputPath>..\..\..\bin\Release\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Sample\SampleProgrammaticInstall.cs" />
@@ -55,7 +56,7 @@
       <IncludeInVSIX>true</IncludeInVSIX>
       <VSIXSubPath>ProjectTemplates\CSharp\Starcounter\1033</VSIXSubPath>
     </Content>
-	<Content Include="$(OutputPath)\ProjectTemplates\CSharp\Starcounter\1033\CSExe.zip">
+    <Content Include="$(OutputPath)\ProjectTemplates\CSharp\Starcounter\1033\CSExe.zip">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
       <VSIXSubPath>ProjectTemplates\CSharp\Starcounter\1033</VSIXSubPath>
