@@ -19,10 +19,9 @@ namespace Starcounter.Templates {
     /// </summary>
     public class AppTemplate : ParentTemplate
 #if IAPP
-        , IAppTemplate
+, IAppTemplate
 #endif
-    {
-
+ {
         /// <summary>
         /// Registers the specified name.
         /// </summary>
@@ -47,15 +46,63 @@ namespace Starcounter.Templates {
         /// <param name="name">The name.</param>
         /// <param name="editable">if set to <c>true</c> [editable].</param>
         /// <returns>``0.</returns>
-        public TTemplate Register<TTemplate,TValue>(
+        public TTemplate Register<TTemplate, TValue>(
             string name,
             bool editable = false)
-            where TTemplate : Property<TValue>, new()
-        {
+            where TTemplate : Property<TValue>, new() {
             return new TTemplate() {
                 Parent = this,
                 Name = name,
                 Editable = editable,
+            };
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TTemplate"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="dataGetter"></param>
+        /// <param name="editable"></param>
+        /// <returns></returns>
+        public TTemplate Register<TTemplate, TValue>(
+            string name,
+            Func<App, TValue> dataGetter,
+            bool editable = false)
+            where TTemplate : Property<TValue>, new() {
+            return new TTemplate() {
+                Parent = this,
+                Name = name,
+                Editable = editable,
+                GetBoundDataFunc = dataGetter,
+                Bound = true
+            };
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TTemplate"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="dataGetter"></param>
+        /// <param name="dataSetter"></param>
+        /// <param name="editable"></param>
+        /// <returns></returns>
+        public TTemplate Register<TTemplate, TValue>(
+            string name,
+            Func<App, TValue> dataGetter,
+            Action<App, TValue> dataSetter,
+            bool editable = false)
+            where TTemplate : Property<TValue>, new() {
+            return new TTemplate() {
+                Parent = this,
+                Name = name,
+                Editable = editable,
+                GetBoundDataFunc = dataGetter,
+                SetBoundDataFunc = dataSetter,
+                Bound = true
             };
         }
 
@@ -140,7 +187,7 @@ namespace Starcounter.Templates {
         /// <param name="name">The name.</param>
         /// <param name="type">The type.</param>
         /// <returns>``0.</returns>
-        public T Add<T>(string name, IAppTemplate type ) where T : IAppListTemplate, new() {
+        public T Add<T>(string name, IAppTemplate type) where T : IAppListTemplate, new() {
             T t = new T() { Name = name, Type = type };
             Properties.Add(t);
             return t;
@@ -165,7 +212,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>System.Object.</returns>
-        public override object CreateInstance( AppNode parent ) {
+        public override object CreateInstance(AppNode parent) {
             return new App() { Template = this, Parent = parent };
         }
 
@@ -206,8 +253,7 @@ namespace Starcounter.Templates {
         /// <param name="app">The app.</param>
         /// <param name="value">The value.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        public override void ProcessInput(App app, byte[] value)
-        {
+        public override void ProcessInput(App app, byte[] value) {
             throw new NotImplementedException();
         }
     }

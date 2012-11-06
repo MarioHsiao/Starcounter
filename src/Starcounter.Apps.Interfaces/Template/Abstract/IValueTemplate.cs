@@ -23,5 +23,23 @@ namespace Starcounter.Templates.Interfaces {
         /// <value>The type of the instance.</value>
         new Type InstanceType { get; }
 
+        /// <summary>
+        /// True if the property is bound to the underlying Entity.
+        /// </summary>
+        bool Bound { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="app"></param>
+        /// <param name="value"></param>
+        void SetBoundValueAsObject(IApp app, object value);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="app"></param>
+        /// <returns></returns>
+        object GetBoundValueAsObject(IApp app);
     }
 }
