@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using Starcounter.Internal;
@@ -767,5 +768,28 @@ public sealed class ByteArrayBuilder
         // 4 bytes for string length.
         position += (outLenBytes + 4);
     }
+
+#if DEBUG
+    internal bool AssertEquals(ByteArrayBuilder other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check basic types
+        Debug.Assert(this.position == other.position);
+        if (this.position != other.position)
+            return false;
+        // Check basic collections
+        Debug.Assert(this.dataBuffer.Length == other.dataBuffer.Length);
+        if (this.dataBuffer.Length != other.dataBuffer.Length)
+            return false;
+        for (int i = 0; i < this.dataBuffer.Length; i++) {
+            Debug.Assert(this.dataBuffer[i] == other.dataBuffer[i]);
+            if (this.dataBuffer[i] != other.dataBuffer[i])
+                return false;
+        }
+        return true;
+
+    }
+#endif
 }
 }
