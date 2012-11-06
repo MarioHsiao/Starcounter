@@ -12,6 +12,7 @@ using System.Linq.Expressions;
 using System.Text;
 using Starcounter.Binding;
 using Starcounter.Logging;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -898,5 +899,47 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
     {
         return new CompositeMetaObject(parameter, this);
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    /// <summary>
+    /// Comparing this and given objects and asserting that they are equal.
+    /// </summary>
+    /// <param name="other">The given object to compare with this object.</param>
+    /// <returns>True if the objects are equals and false otherwise.</returns>
+    public bool AssertEquals(IObjectView other) {
+        CompositeObject otherNode = other as CompositeObject;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(CompositeObject other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check cardinalities of collections
+        Debug.Assert(this.objectArr.Length == other.objectArr.Length);
+        if (this.objectArr.Length != other.objectArr.Length)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = this.typeBinding.AssertEquals(other.typeBinding);
+        // Check collections of objects
+        for (int i = 0; i < this.objectArr.Length && areEquals; i++)
+            if (this.objectArr[i] == null) {
+                Debug.Assert(other.objectArr[i] == null);
+                areEquals = other.objectArr[i] == null;
+            } else
+                areEquals = this.objectArr[i].AssertEquals(other.objectArr[i]);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }
