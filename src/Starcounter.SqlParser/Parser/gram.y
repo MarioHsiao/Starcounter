@@ -251,7 +251,7 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 				reloption_list group_clause TriggerFuncArgs 
 				opt_select_limit
 				transaction_mode_list_or_empty
-				TableFuncElementList opt_type_modifiers
+				TableFuncElementList
 				prep_type_clause
 				execute_param_clause using_clause returning_clause
 				alter_generic_options
@@ -314,7 +314,7 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 %type <list>	ExclusionConstraintList ExclusionConstraintElem
 %type <list>	func_arg_list
 %type <node>	func_arg_expr
-%type <list>	row type_list array_expr_list
+%type <list>	row type_list array_expr_list OptGenerics
 %type <node>	case_expr case_arg when_clause case_default
 %type <list>	when_clause_list
 %type <ival>	sub_type
@@ -347,8 +347,6 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 				CharacterWithLength CharacterWithoutLength
 				ConstDatetime ConstInterval
 				Bit ConstBit BitWithLength BitWithoutLength
-				TypeNameGenerics TypeNameOptGenerics
-%type <list>	Namespaces
 %type <str>		character
 %type <str>		extract_arg
 %type <str>		opt_charset
@@ -563,6 +561,7 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 %left		ANGLE
 %left		'[' ']'
 %left		'(' ')'
+%left		'{' '}'
 %left		TYPECAST
 %left		'.'
 /*
@@ -5251,25 +5250,25 @@ ConstTypename:
  * have to be shown as expr_list here, but parse analysis will only accept
  * constants for them.
  */
+ // SC: type modifiers are removed
 GenericType:
-			type_function_name opt_type_modifiers
+			type_function_name OptGenerics
 				{
 					$$ = makeTypeName($1);
-					$$->typmods = $2;
+					//$$->generics = $3;
 					$$->location = @1;
 				}
-			| type_function_name attrs opt_type_modifiers
+			| type_function_name attrs OptGenerics
 				{
 					$$ = makeTypeNameFromNameList(lcons(makeString($1), $2));
-					$$->typmods = $3;
+					//$$->generics = $4
 					$$->location = @1;
 				}
 		;
 
-opt_type_modifiers: '(' expr_list ')'				{ $$ = $2; }
-					| /* EMPTY */					{ $$ = NIL; }
-		;
-
+OptGenerics:
+			'{' type_list '}'						{ $$ = $2; }
+			| /*EMPTY*/								{ $$ = NIL; }
 /*
  * SQL92 numeric data types
  */
@@ -5308,22 +5307,19 @@ Numeric:	INT_P
 					$$ = SystemTypeName("float8");
 					$$->location = @1;
 				}
-			| DECIMAL_P opt_type_modifiers
+			| DECIMAL_P
 				{
 					$$ = SystemTypeName("numeric");
-					$$->typmods = $2;
 					$$->location = @1;
 				}
-			| DEC opt_type_modifiers
+			| DEC
 				{
 					$$ = SystemTypeName("numeric");
-					$$->typmods = $2;
 					$$->location = @1;
 				}
-			| NUMERIC opt_type_modifiers
+			| NUMERIC
 				{
 					$$ = SystemTypeName("numeric");
-					$$->typmods = $2;
 					$$->location = @1;
 				}
 			| BOOLEAN_P
@@ -5639,44 +5635,6 @@ interval_second:
 				}
 		;
 
-/*
- * Extenstion to support generics in type names.
- */
-TypeNameGenerics:
-			Typename '(' type_list ')'
-				{	
-					$$ = $1;
-					$$->generics = $3;
-				}
-		;
-Namespaces:
-			attr_name '.'							{ $$ = list_make1($1); }
-			| Namespaces attr_name '.'				{ $$ = lappend($1,$2); }
-		;
-
-TypeNameOptGenerics:
-			attr_name								
-				{
-					$$ = makeTypeName($1);
-					$$->location = @1;
-				}
-			| Namespaces attr_name
-				{
-					$$ = makeTypeNameFromNameList(lappend($1,$2));
-					$$->location = @1;
-				}
-			| attr_name '(' type_list ')'
-				{	
-					$$ = $1;
-					$$->generics = $3;
-				}
-			| Namespaces attr_name '(' type_list ')'
-				{
-					$$ = makeTypeNameFromNameList(lappend($1,$2));
-					$$->location = @1;
-					$$->generics = $4;
-				}
-		;
 
 /*****************************************************************************
  *
@@ -6348,7 +6306,7 @@ member_access_el:
 					n->location = @1;
 					$$ = (Node *)n;
 				}
-			| GETEXTENSION '<' TypeNameOptGenerics '>' '(' ')'
+			| GETEXTENSION '<' Typename '>' '(' ')'
 				{
 					FuncCall *n = makeNode(FuncCall);
 					n->funcname = makeString("GetExtension");
@@ -6362,7 +6320,7 @@ member_access_el:
 					n->location = @1;
 					$$ = (Node *)n;
 				}
-			| GETEXTENSION '<' TypeNameOptGenerics '>' '(' func_arg_list ')'
+			| GETEXTENSION '<' Typename '>' '(' func_arg_list ')'
 				{
 					FuncCall *n = makeNode(FuncCall);
 					n->funcname = makeString("GetExtension");
@@ -6574,7 +6532,7 @@ member_access_el:
 					n->location = @1;
 					$$ = (Node *)n;
 				}
-			| CAST '(' a_expr AS TypeNameOptGenerics ')'
+			| CAST '(' a_expr AS Typename ')'
 				{ $$ = makeTypeCast($3, $5, @1); }
 			| EXTRACT '(' extract_list ')'
 				{
@@ -6637,7 +6595,7 @@ member_access_el:
 					n->location = @1;
 					$$ = (Node *)n;
 				}
-			| TREAT '(' a_expr AS TypeNameOptGenerics ')'
+			| TREAT '(' a_expr AS Typename ')'
 				{
 					/* TREAT(expr AS target) converts expr of a particular type to target,
 					 * which is defined to be a subtype of the original expression.
@@ -7036,7 +6994,7 @@ member_access_seq_el:
 					n->location = @2;
 					$$ = (Node *)n;
 				}
-			| '.' GETEXTENSION '<' TypeNameOptGenerics '>' '(' ')'
+			| '.' GETEXTENSION '<' Typename '>' '(' ')'
 				{
 					FuncCall *n = makeNode(FuncCall);
 					n->funcname = makeString("GetExtension");
@@ -7050,7 +7008,7 @@ member_access_seq_el:
 					n->location = @2;
 					$$ = (Node *)n;
 				}
-			| '.' GETEXTENSION '<' TypeNameOptGenerics '>' '(' func_arg_list ')'
+			| '.' GETEXTENSION '<' Typename '>' '(' func_arg_list ')'
 				{
 					FuncCall *n = makeNode(FuncCall);
 					n->funcname = makeString("GetExtension");
@@ -7545,7 +7503,7 @@ func_expr:	func_name '(' ')' over_clause
 					n->location = @1;
 					$$ = (Node *)n;
 				}
-			| CAST '(' a_expr AS TypeNameOptGenerics ')'
+			| CAST '(' a_expr AS Typename ')'
 				{ $$ = makeTypeCast($3, $5, @1); }
 			| EXTRACT '(' extract_list ')'
 				{
@@ -7608,7 +7566,7 @@ func_expr:	func_name '(' ')' over_clause
 					n->location = @1;
 					$$ = (Node *)n;
 				}
-			| TREAT '(' a_expr AS TypeNameOptGenerics ')'
+			| TREAT '(' a_expr AS Typename ')'
 				{
 					/* TREAT(expr AS target) converts expr of a particular type to target,
 					 * which is defined to be a subtype of the original expression.

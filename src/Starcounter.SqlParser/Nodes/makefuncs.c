@@ -98,7 +98,6 @@ makeTypeNameFromNameList(List *names)
 	TypeName   *n = makeNode(TypeName);
 
 	n->names = names;
-	n->typmods = NIL;
 	n->typemod = -1;
 	n->generics = NIL;
 	n->location = -1;

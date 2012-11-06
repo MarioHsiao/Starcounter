@@ -260,7 +260,6 @@ namespace Starcounter.Query.RawParserAnalyzer
         internal int typeOid;		/* type identified by OID */
         internal bool setof;			/* is a set? */
         internal bool pct_type;		/* %TYPE specified? */
-        internal List* typmods;		/* type modifier expression(s) */
         internal int typemod;		/* prespecified type modifier */
         internal List* arrayBounds;	/* array bounds */
         internal List* generics;		/* Type list of generic type */
