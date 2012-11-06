@@ -40,7 +40,7 @@ namespace Starcounter.Query.Sql
             schemaFolderExternal = QueryModule.SchemaFolder.Replace("\\", "/");
             
             // Establish an SQL process without any schema information.
-            EstablishSqlProcess();
+            EstablishSqlProcess(0);
         }
 
         ///// <summary>
@@ -245,8 +245,13 @@ namespace Starcounter.Query.Sql
 
         private static void EstablishSqlProcess()
         {
+            EstablishSqlProcess(-1);
+        }
+
+        private static void EstablishSqlProcess(int schedulerToImpersonate)
+        {
             DisconnectPrologSessions();
-            String existingProcessVersion = GetExistingSqlProcessVersionAndDeleteAllSchemaInfo();
+            String existingProcessVersion = GetExistingSqlProcessVersionAndDeleteAllSchemaInfo(schedulerToImpersonate);
 
             // Correct version of process is running.
             if (existingProcessVersion == QueryModule.ProcessVersion)
@@ -345,13 +350,23 @@ namespace Starcounter.Query.Sql
         /// If there is a running SQL process then gets the version of this process and deletes all schema info in that process.
         /// </summary>
         /// <returns>The version number, or null (if there is no such process).</returns>
-        private static String GetExistingSqlProcessVersionAndDeleteAllSchemaInfo()
+        private static String GetExistingSqlProcessVersionAndDeleteAllSchemaInfo(int schedulerToImpersonate)
         {
+            Scheduler scheduler;
+            if (schedulerToImpersonate >= 0)
+            {
+                scheduler = Scheduler.GetInstance((byte)schedulerToImpersonate);
+            }
+            else
+            {
+                scheduler = Scheduler.GetInstance(true);
+            }
+
             PrologSession session = null;
 
             try
             {
-                EstablishConnectedSession(ref session, null);
+                EstablishConnectedSession(ref session, scheduler);
                 QueryAnswer answer = session.executeQuery("process_version_and_delete_schemainfo_prolog(Version)");
 
                 CheckQueryAnswerForError(answer);
@@ -364,7 +379,7 @@ namespace Starcounter.Query.Sql
             }
             finally
             {
-                LeaveConnectedSession(session, null);
+                LeaveConnectedSession(session, scheduler);
             }
         }
 
