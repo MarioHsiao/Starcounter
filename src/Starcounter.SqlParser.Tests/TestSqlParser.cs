@@ -45,8 +45,9 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select (I(A).J(A,B).F()", true);
             analyzer.ParseQuery("select (I(A,B,C).J(A,B).F(A)()", true);
             analyzer.ParseQuery("select I.J(A,B).F()");
-            analyzer.ParseQuery("select I.J(A,B).F(A)()");
+            analyzer.ParseQuery("select I.J(A,B).F{A}()");
             analyzer.ParseQuery("select I.J.F()");
+            analyzer.ParseQuery("select I.J(A,B).F{A{C},T}()");
             analyzer.ParseQuery("select I.J(A)");
             analyzer.ParseQuery("select a < b > c", true);
             analyzer.ParseQuery("select a < b , c >", true);
