@@ -85,6 +85,7 @@ internal class ObjectThis : CodeGenFilterNode, IObjectExpression, IProperty
             return DbTypeCode.Object;
         }
     }
+
     public QueryTypeCode QueryTypeCode
     {
         get
@@ -102,6 +103,11 @@ internal class ObjectThis : CodeGenFilterNode, IObjectExpression, IProperty
         {
             return typeBinding;
         }
+    }
+
+    public Boolean InvolvesCodeExecution()
+    {
+        return false;
     }
 
     /// <summary>

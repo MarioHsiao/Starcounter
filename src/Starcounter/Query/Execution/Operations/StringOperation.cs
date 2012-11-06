@@ -93,12 +93,18 @@ internal class StringOperation : IStringExpression, IOperation
             return DbTypeCode.String;
         }
     }
+
     public QueryTypeCode QueryTypeCode
     {
         get
         {
             return QueryTypeCode.String;
         }
+    }
+
+    public Boolean InvolvesCodeExecution()
+    {
+        return (expr1.InvolvesCodeExecution() || (expr2 != null && expr2.InvolvesCodeExecution()));
     }
 
     /// <summary>

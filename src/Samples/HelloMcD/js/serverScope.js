@@ -47,7 +47,7 @@ angular.module('StarcounterLib', ['panelApp'])
             rootLoaded = true;
           });
         }
-
+        
         function updateServer(scope, update) {
           $http({
             method: 'PATCH',
@@ -55,6 +55,9 @@ angular.module('StarcounterLib', ['panelApp'])
             data: update
           }).success(function (data, status, headers, config) {
             patchRoot(scope, data);
+            if(!scope.$$phase) { //digest not in progress
+              scope.$digest();                
+            }
           });
         }
 
@@ -148,7 +151,7 @@ angular.module('StarcounterLib', ['panelApp'])
                       patch[i].value = null; //revert the change to null in JSON Patch
                       jsonpatch.apply(scope, [{ //revert the change to null in current scope
                         replace: patch[i].replace,
-                        value: null 
+                        value: false 
                       }]);
                     }
                   }

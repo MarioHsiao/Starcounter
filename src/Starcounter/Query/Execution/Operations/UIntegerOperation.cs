@@ -84,12 +84,18 @@ internal class UIntegerOperation : IUIntegerExpression, INumericalOperation
             return DbTypeCode.UInt64;
         }
     }
+
     public QueryTypeCode QueryTypeCode
     {
         get
         {
             return QueryTypeCode.UInteger;
         }
+    }
+
+    public Boolean InvolvesCodeExecution()
+    {
+        return (expr1.InvolvesCodeExecution() || (expr2 != null && expr2.InvolvesCodeExecution()));
     }
 
     /// <summary>

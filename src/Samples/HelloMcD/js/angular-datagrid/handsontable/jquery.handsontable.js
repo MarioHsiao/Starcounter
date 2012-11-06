@@ -3798,6 +3798,8 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
     typeahead = keyboardProxy.data('typeahead');
   }
   else {
+    typeahead.$menu.off(); //remove previous typeahead bindings
+    keyboardProxy.off(); //remove previous typeahead bindings. Removing this will cause prepare to register 2 keydown listeners in typeahead
     typeahead.listen(); //add typeahead bindings
   }
   
@@ -3860,7 +3862,7 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
       case 40: /* arrow down */
       case 9: /* tab */
       case 13: /* return/enter */
-        if (isAutoComplete(keyboardProxy)) {
+        if (isAutoComplete(keyboardProxy) || (cellProperties.strict && (event.keyCode === 9 || event.keyCode === 13))) {
           event.stopImmediatePropagation();
         }
         event.preventDefault();
@@ -3906,6 +3908,7 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
   instance.container.find('.htBorder.current').on('dblclick.editor', onDblClick);
 
   var destroyer = function (isCancelled) {
+    console.trace();
     keyboardProxy.off(); //remove typeahead bindings
     textDestroyer(isCancelled);   
     dontHide = false;

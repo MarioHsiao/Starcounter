@@ -90,12 +90,18 @@ internal class ObjectCast : IObjectPathItem, IPath
             return DbTypeCode.Object;
         }
     }
+
     public QueryTypeCode QueryTypeCode
     {
         get
         {
             return QueryTypeCode.Object;
         }
+    }
+
+    public Boolean InvolvesCodeExecution()
+    {
+        return expression.InvolvesCodeExecution();
     }
 
     /// <summary>

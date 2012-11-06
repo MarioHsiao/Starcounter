@@ -59,6 +59,11 @@ internal class ComparisonInteger : CodeGenFilterNode, IComparison
         }
     }
 
+    public Boolean InvolvesCodeExecution()
+    {
+        return (expr1.InvolvesCodeExecution() || expr2.InvolvesCodeExecution());
+    }
+
     /// <summary>
     /// Calculates the truth value of this operation when evaluated on an input object.
     /// All properties in this operation are evaluated on the input object.

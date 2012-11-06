@@ -82,6 +82,18 @@ internal class InPredicateString : ILogicalExpression
         exprList = list;
     }
 
+    public Boolean InvolvesCodeExecution()
+    {
+        Boolean codeExecution = expression.InvolvesCodeExecution();
+        Int32 i = 0;
+        while (codeExecution == false && i < exprList.Count)
+        {
+            codeExecution = exprList[i].InvolvesCodeExecution();
+            i++;
+        }
+        return codeExecution;
+    }
+
     /// <summary>
     /// Calculates the truth value of this in-predicate when evaluated on an input object.
     /// All properties in this in-predicate are evaluated on the input object.
