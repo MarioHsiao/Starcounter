@@ -393,8 +393,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 acn = racn = new NAppClass()
                 {
                     Parent = appClassParent,
-                    _Inherits = "App",
-                    AutoBindPropertiesToEntity = false // TODO:
+                    _Inherits = "App"
                 };
                 tcn = new NAppTemplateClass()
                 {

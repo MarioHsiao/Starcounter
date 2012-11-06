@@ -20,6 +20,7 @@ namespace Starcounter {
             set { 
                 _Data = value;
                 OnData();
+                RefreshAllBoundValues();
             }  
         }
     }

@@ -259,8 +259,10 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
 
             // TODO: 
             // Add support for binding directly to en Enumerable of entities.
-            bindTo = (String.IsNullOrEmpty(m.Template.Bind)) ? m.MemberName : m.Template.Bind;
             sb = new StringBuilder();
+           
+            bindTo = (String.IsNullOrEmpty(m.Template.Bind)) ? m.MemberName : m.Template.Bind;
+           
             sb.Append("private ");
             sb.Append(m.Type.FullClassName);
             sb.Append(" __data_");
@@ -344,6 +346,35 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             sb.Append(m.MemberName);
             sb.Append(";");
             m.Prefix.Add(sb.ToString());
+
+            if (m.Bound) {
+                sb.Clear();
+                sb.Append("private ");
+                sb.Append(m.Template.InstanceType.Name);
+                sb.Append(" __data_get_");
+                sb.Append(m.MemberName);
+                sb.Append("(App app) { return ((");
+                sb.Append(((NAppTemplateClass)m.Parent).NValueClass.FullClassName);
+                sb.Append(")app).__data_");
+                sb.Append(m.MemberName);
+                sb.Append("; }");
+                m.Prefix.Add(sb.ToString());
+
+                if (m.Template.Editable) {
+                    sb.Clear();
+                    sb.Append("private void ");
+                    sb.Append("__data_set_");
+                    sb.Append(m.MemberName);
+                    sb.Append("(App app, ");
+                    sb.Append(m.Template.InstanceType.Name);
+                    sb.Append(" value) { ((");
+                    sb.Append(((NAppTemplateClass)m.Parent).NValueClass.FullClassName);
+                    sb.Append(")app).__data_");
+                    sb.Append(m.MemberName);
+                    sb.Append(" = value; }");
+                    m.Prefix.Add(sb.ToString());
+                }
+            }
         }
 
         /// <summary>
@@ -419,9 +450,26 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     sb.Append(mn.MemberName);
                     sb.Append(" = Register<");
                     sb.Append(mn.Type.FullClassName);
+
+                    if (mn.Bound) {
+                        sb.Append(", ");
+                        sb.Append(mn.Template.InstanceType.Name);
+                    }
+
                     sb.Append(">(\"");
                     sb.Append(mn.MemberName);
                     sb.Append('"');
+
+                    if (mn.Bound) {
+                        sb.Append(", __data_get_");
+                        sb.Append(mn.MemberName);
+
+                        if (mn.Template.Editable) {
+                            sb.Append(", __data_set_");
+                            sb.Append(mn.MemberName);
+                        }
+                    }
+
                     if (mn.Template.Editable)
                     {
                         sb.Append(", Editable = true);");
