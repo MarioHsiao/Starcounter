@@ -148,7 +148,6 @@ namespace Starcounter.Query.Sql
                 Console.WriteLine("Using Prolog-based parser");
                 return prologParsedQueryPlan;
             }
-#if false
             Debug.Assert(newAnalyzer.JoinTree.AssertEquals(nodeTree), "Join trees are not the same!");
             Debug.Assert(newAnalyzer.WhereCondition.AssertEquals(conditionDict), "Logical conditions are not the same!");
             if (newAnalyzer.FetchNumExpr == null)
@@ -160,7 +159,6 @@ namespace Starcounter.Query.Sql
             else
                 Debug.Assert(newAnalyzer.FetchOffsetKeyExpr.AssertEquals(fetchOffsetKeyExpr), "Fetch offset expression is not the same");
             Debug.Assert(newAnalyzer.HintSpec.AssertEquals(hintSpec), "Hint expressions are not the same");
-#endif
             prologParsedQueryPlan = Optimizer.Optimize(nodeTree, conditionDict, fetchNumExpr, fetchOffsetKeyExpr, hintSpec);
             newAnalyzer.Optimize();
             String prologParsedQueryPlanStr = prologParsedQueryPlan.ToString();
