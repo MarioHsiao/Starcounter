@@ -93,12 +93,18 @@ internal class BooleanMethod : IBooleanPathItem, IMethod
             return DbTypeCode.Boolean;
         }
     }
+
     public QueryTypeCode QueryTypeCode
     {
         get
         {
             return QueryTypeCode.Boolean;
         }
+    }
+
+    public Boolean InvolvesCodeExecution()
+    {
+        return true;
     }
 
     /// <summary>

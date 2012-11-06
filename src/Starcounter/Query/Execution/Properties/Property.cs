@@ -39,6 +39,11 @@ internal abstract class Property : CodeGenFilterNode, IProperty
         }
     }
 
+    public Boolean InvolvesCodeExecution()
+    {
+        return (propBinding.Index == -1);
+    }
+
     /// <summary>
     /// Generic clone for ITypeExpression types.
     /// </summary>

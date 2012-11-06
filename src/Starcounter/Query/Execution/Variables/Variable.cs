@@ -29,6 +29,11 @@ internal abstract class Variable : CodeGenFilterNode
         }
     }
 
+    public Boolean InvolvesCodeExecution()
+    {
+        return false;
+    }
+
     public abstract void SetValue(Object newValue);
 
     public abstract void SetNullValue();

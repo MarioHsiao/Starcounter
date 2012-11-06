@@ -14,7 +14,6 @@ using System.Text;
 using Starcounter.Binding;
 using System.Diagnostics;
 
-
 namespace Starcounter.Query.Execution
 {
 /// <summary>
@@ -84,12 +83,18 @@ internal class IntegerOperation : IIntegerExpression, INumericalOperation
             return DbTypeCode.Int64;
         }
     }
+
     public QueryTypeCode QueryTypeCode
     {
         get
         {
             return QueryTypeCode.Integer;
         }
+    }
+
+    public Boolean InvolvesCodeExecution()
+    {
+        return (expr1.InvolvesCodeExecution() || (expr2 != null && expr2.InvolvesCodeExecution()));
     }
 
     /// <summary>
