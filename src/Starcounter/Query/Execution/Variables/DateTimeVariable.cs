@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Starcounter.Internal;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -228,5 +229,26 @@ internal class DateTimeVariable : Variable, IVariable, IDateTimeExpression
         value = new DateTime((*(Int64*)(buffer + 1)));
         buffer += 9;
     }
+
+#if DEBUG
+    public bool AssertEquals(ITypeExpression other) {
+        DateTimeVariable otherNode = other as DateTimeVariable;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(DateTimeVariable other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check parent
+        if (!base.AssertEquals(other))
+            return false;
+        // Check basic types
+        Debug.Assert(this.value == other.value);
+        if (this.value != other.value)
+            return false;
+        return true;
+    }
+#endif
 }
 }

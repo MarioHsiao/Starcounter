@@ -9,6 +9,7 @@ using Starcounter.Internal;
 using Starcounter.Query.Execution;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Optimization
 {
@@ -303,6 +304,39 @@ internal class SortSpecification
         }
         return new MultiComparer(sortSpecItemList);
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    internal bool AssertEquals(SortSpecification other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check cardinalities of collections
+        Debug.Assert(this.sortSpecItemList.Count == other.sortSpecItemList.Count);
+        if (this.sortSpecItemList.Count != other.sortSpecItemList.Count)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = true;
+        if (this.resultTypeBind == null) {
+            Debug.Assert(other.resultTypeBind == null);
+            areEquals = other.resultTypeBind == null;
+        } else
+            areEquals = this.resultTypeBind.AssertEquals(other.resultTypeBind);
+        // Check collections of objects
+        for (int i = 0; i < this.sortSpecItemList.Count && areEquals; i++)
+            areEquals = this.sortSpecItemList[i].AssertEquals(other.sortSpecItemList[i]);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }
 

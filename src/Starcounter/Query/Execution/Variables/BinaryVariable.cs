@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Starcounter.Internal;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -51,7 +52,7 @@ internal class BinaryVariable : Variable, IVariable, IBinaryExpression
     }
 
     /// <summary>
-    /// The order number (starting at 0) of this variable in an SQL statement.
+    /// The DbTypeCode of this variable.
     /// </summary>
     public override DbTypeCode DbTypeCode
     {
@@ -238,5 +239,26 @@ internal class BinaryVariable : Variable, IVariable, IBinaryExpression
         value = Binary.FromNative(buffer);
         buffer += value.Value.InternalLength;
     }
+
+#if DEBUG
+    public bool AssertEquals(ITypeExpression other) {
+        BinaryVariable otherNode = other as BinaryVariable;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(BinaryVariable other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check parent
+        if (!base.AssertEquals(other))
+            return false;
+        // Check basic types
+        Debug.Assert(this.value == other.value);
+        if (this.value != other.value)
+            return false;
+        return true;
+    }
+#endif
 }
 }
