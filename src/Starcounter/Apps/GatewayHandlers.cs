@@ -85,12 +85,27 @@ namespace Starcounter
         /// </summary>
         const Int32 HTTP_REQUEST_OFFSET_BYTES = 200;
 
+        /// <summary>
+        /// Linked chunk flag.
+        /// </summary>
+        const Int32 LINKED_CHUNK = 1;
+
         // Maximum size of BMX header in the beginning of the chunk
         // after which the gateway data can be placed.
         /// <summary>
         /// The BM x_ HEADE r_ MA x_ SIZ e_ BYTES
         /// </summary>
         const Int32 BMX_HEADER_MAX_SIZE_BYTES = 24;
+
+        /// <summary>
+        /// Number of chunks offset in gateway.
+        /// </summary>
+        const Int32 GATEWAY_NUM_CHUNKS_OFFSET = 76;
+
+        /// <summary>
+        /// Shared memory chunk size.
+        /// </summary>
+        const Int32 SM_CHUNK_SIZE = 1 << 12; // 4K chunks.
 
         // Maximum number of handlers to register.
         /// <summary>
@@ -246,22 +261,56 @@ namespace Starcounter
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED); // SCERRHANDLERNOTFOUND
 
             // Determining if chunk is single.
-            Boolean is_single_chunk = ((task_info->flags & 0x01) == 0);
+            Boolean is_single_chunk = ((task_info->flags & LINKED_CHUNK) == 0);
 
             // Creating network data stream object.
             NetworkDataStream data_stream = new NetworkDataStream();
 
-            // Obtaining HttpRequest structure.
-            HttpRequest http_request = new HttpRequest(
-                raw_chunk,
-                is_single_chunk,
-                task_info->chunk_index,
-                raw_chunk + BMX_HEADER_MAX_SIZE_BYTES + HTTP_REQUEST_OFFSET_BYTES,
-                raw_chunk + BMX_HEADER_MAX_SIZE_BYTES,
-                data_stream);
-            
-            // Calling user callback.
-            *is_handled = user_callback(http_request);
+            // Checking if we need to process linked chunks.
+            if (!is_single_chunk)
+            {
+                UInt32 num_chunks = *(UInt32*)(raw_chunk + BMX_HEADER_MAX_SIZE_BYTES + GATEWAY_NUM_CHUNKS_OFFSET);
+
+                Byte[] plain_chunks_data = new Byte[num_chunks * SM_CHUNK_SIZE];
+
+                fixed (Byte* p_plain_chunks_data = plain_chunks_data)
+                {
+                    // Copying all chunks data.
+                    UInt32 errorCode = bmx.sc_bmx_plain_copy_and_release_chunks(
+                        chunk_index,
+                        raw_chunk,
+                        p_plain_chunks_data);
+
+                    if (errorCode != 0)
+                        throw ErrorCode.ToException(errorCode);
+
+                    // Obtaining HttpRequest structure.
+                    HttpRequest http_request = new HttpRequest(
+                        raw_chunk,
+                        is_single_chunk,
+                        task_info->chunk_index,
+                        p_plain_chunks_data + BMX_HEADER_MAX_SIZE_BYTES + HTTP_REQUEST_OFFSET_BYTES,
+                        p_plain_chunks_data + BMX_HEADER_MAX_SIZE_BYTES,
+                        data_stream);
+
+                    // Calling user callback.
+                    *is_handled = user_callback(http_request);
+                }
+            }
+            else
+            {
+                // Obtaining HttpRequest structure.
+                HttpRequest http_request = new HttpRequest(
+                    raw_chunk,
+                    is_single_chunk,
+                    task_info->chunk_index,
+                    raw_chunk + BMX_HEADER_MAX_SIZE_BYTES + HTTP_REQUEST_OFFSET_BYTES,
+                    raw_chunk + BMX_HEADER_MAX_SIZE_BYTES,
+                    data_stream);
+
+                // Calling user callback.
+                *is_handled = user_callback(http_request);
+            }
 
             return 0;
         }
