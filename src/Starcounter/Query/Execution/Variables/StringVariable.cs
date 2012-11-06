@@ -12,6 +12,7 @@ using System.Text;
 using System.Runtime.InteropServices;
 using Starcounter.Internal;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -266,5 +267,29 @@ internal class StringVariable : Variable, IVariable, IStringExpression
         buffer += lenBytes + 4;
         */
     }
+
+#if DEBUG
+    public bool AssertEquals(ITypeExpression other) {
+        StringVariable otherNode = other as StringVariable;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(StringVariable other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check parent
+        if (!base.AssertEquals(other))
+            return false;
+        // Check basic types
+        Debug.Assert(this.value == other.value);
+        if (this.value != other.value)
+            return false;
+        Debug.Assert(this.stringBuffer == other.stringBuffer);
+        if (this.stringBuffer != other.stringBuffer)
+            return false;
+        return true;
+    }
+#endif
 }
 }

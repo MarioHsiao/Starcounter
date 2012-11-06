@@ -8,6 +8,7 @@ using Starcounter;
 using Starcounter.Binding;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -129,5 +130,23 @@ internal sealed class NullObject : IObjectView
     {
         return Equals(obj);
     }
+
+#if DEBUG
+    public bool AssertEquals(IObjectView other) {
+        NullObject otherNode = other as NullObject;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(NullObject other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check basic types
+        Debug.Assert(this.typeBinding == other.typeBinding);
+        if (this.typeBinding != other.typeBinding)
+            return false;
+        return true;
+    }
+#endif
 }
 }

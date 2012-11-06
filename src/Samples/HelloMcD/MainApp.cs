@@ -8,7 +8,9 @@ using Starcounter.Internal.Web;
 
 namespace HelloMcd {
     partial class MainApp : App {
-        private static String RESOURCE_DIRECTORY = @"c:\Code\Level1\src\Samples\HelloMcd";
+        //private static String RESOURCE_DIRECTORY = @"c:\Code\Level1\src\Samples\HelloMcd";    // chr
+        private static String RESOURCE_DIRECTORY = @"c:\GitHub\Level1\src\Samples\HelloMcD";    // andwah
+        //private static String RESOURCE_DIRECTORY = @"HelloMcd"; // Marcin
 
         static void Main(String[] args) {
             Bootstrap();

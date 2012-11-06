@@ -11,6 +11,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System.Diagnostics;
 
 
 namespace Starcounter.Query.Execution
@@ -357,5 +358,46 @@ internal class ComparisonDecimal : CodeGenFilterNode, IComparison
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, " " + compOperator.ToString() + " ");
         expr2.GenerateCompilableCode(stringGen);
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    public bool AssertEquals(ILogicalExpression other) {
+        ComparisonDecimal otherNode = other as ComparisonDecimal;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(ComparisonDecimal other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check basic types
+        Debug.Assert(this.compOperator == other.compOperator);
+        if (this.compOperator != other.compOperator)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = true;
+        if (this.expr1 == null) {
+            Debug.Assert(other.expr1 == null);
+            areEquals = other.expr1 == null;
+        } else
+            areEquals = this.expr1.AssertEquals(other.expr1);
+        if (areEquals)
+            if (this.expr2 == null) {
+                Debug.Assert(other.expr2 == null);
+                areEquals = other.expr2 == null;
+            } else
+                areEquals = this.expr2.AssertEquals(other.expr2);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }

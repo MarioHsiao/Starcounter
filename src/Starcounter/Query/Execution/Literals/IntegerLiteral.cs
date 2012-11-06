@@ -8,6 +8,7 @@ using Starcounter.Query.Optimization;
 using System;
 using System.Globalization;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 
 namespace Starcounter.Query.Execution
@@ -237,5 +238,23 @@ internal class IntegerLiteral : Literal, ILiteral, IIntegerPathItem
     {
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, value.ToString());
     }
+
+#if DEBUG
+    public bool AssertEquals(ITypeExpression other) {
+        IntegerLiteral otherNode = other as IntegerLiteral;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(IntegerLiteral other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check basic types
+        Debug.Assert(this.value == other.value);
+        if (this.value != other.value)
+            return false;
+        return true;
+    }
+#endif
 }
 }

@@ -7,6 +7,7 @@
 using Starcounter.Query.Execution;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Optimization
 {
@@ -112,5 +113,61 @@ internal class JoinNode : IOptimizationNode
         IExecutionEnumerator rightEnumerator = rightNode.CreateExecutionEnumerator(null, fetchOffsetKeyExpr);
         return new Join(compTypeBind, joinType, leftEnumerator, rightEnumerator, fetchNumExpr, varArray, query);
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    public bool AssertEquals(IOptimizationNode other) {
+        JoinNode otherNode = other as JoinNode;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(JoinNode other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check basic types
+        Debug.Assert(this.query == other.query);
+        if (this.query != other.query)
+            return false;
+        Debug.Assert(this.joinType == other.joinType);
+        if (this.joinType != other.joinType)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = true;
+        if (this.leftNode == null) {
+            Debug.Assert(other.leftNode == null);
+            areEquals = other.leftNode == null;
+        } else
+            areEquals = this.leftNode.AssertEquals(other.leftNode);
+        if (areEquals)
+            if (this.rightNode == null) {
+                Debug.Assert(other.rightNode == null);
+                areEquals = other.rightNode == null;
+            } else
+                areEquals = this.rightNode.AssertEquals(other.rightNode);
+        if (areEquals)
+            if (this.compTypeBind == null) {
+                Debug.Assert(other.compTypeBind == null);
+                areEquals = other.compTypeBind == null;
+            } else
+                areEquals = this.compTypeBind.AssertEquals(other.compTypeBind);
+        if (areEquals)
+            if (this.varArray == null) {
+                Debug.Assert(other.varArray == null);
+                areEquals = other.varArray == null;
+            } else
+                areEquals = this.varArray.AssertEquals(other.varArray);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }
