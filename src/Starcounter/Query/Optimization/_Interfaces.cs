@@ -23,6 +23,10 @@ internal interface IOptimizationNode
     List<IOptimizationNode> CreateAllPermutations();
 
     IOptimizationNode Clone();
+
+#if DEBUG
+    bool AssertEquals(IOptimizationNode other);
+#endif
 }
 
 /// <summary>

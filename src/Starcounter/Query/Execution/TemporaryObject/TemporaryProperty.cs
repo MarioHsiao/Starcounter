@@ -8,6 +8,7 @@ using Starcounter;
 using System;
 using System.Collections.Generic;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -100,5 +101,40 @@ internal class TemporaryProperty : IPropertyBinding
     {
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "TemporaryProperty");
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    public bool AssertEquals(IPropertyBinding other) {
+        TemporaryProperty otherNode = other as TemporaryProperty;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(TemporaryProperty other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check basic types
+        Debug.Assert(this.propName == other.propName);
+        if (this.propName != other.propName)
+            return false;
+        Debug.Assert(this.propIndex == other.propIndex);
+        if (this.propIndex != other.propIndex)
+            return false;
+        Debug.Assert(this.typeCode == other.typeCode);
+        if (this.typeCode != other.typeCode)
+            return false;
+        Debug.Assert(this.typeBinding == other.typeBinding);
+        if (this.typeBinding != other.typeBinding)
+            return false;
+        return true;
+    }
+#endif
 }
 }
