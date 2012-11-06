@@ -41,8 +41,16 @@ namespace NetworkIoTestApp
             GatewayHandlers.RegisterUriHandler(80, handler_uri, OnHttpUsers, out handler_id);
             Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
+            handler_uri = "OPTIONS /" + db_postfix;
+            GatewayHandlers.RegisterUriHandler(80, handler_uri, OnHttpOptions, out handler_id);
+            Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
+
             handler_uri = "/session" + db_postfix;
             GatewayHandlers.RegisterUriHandler(80, handler_uri, OnHttpSession, out handler_id);
+            Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
+
+            handler_uri = "POST /upload" + db_postfix;
+            GatewayHandlers.RegisterUriHandler(80, handler_uri, OnHttpUpload, out handler_id);
             Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
             handler_uri = "/killsession" + db_postfix;
@@ -177,6 +185,35 @@ namespace NetworkIoTestApp
             return true;
         }
 
+        private static Boolean OnHttpUpload(HttpRequest p)
+        {
+            String responseBody =
+                "<html>\r\n" +
+                "<body>\r\n" +
+                "<h1>URI handler: OnHttpUpload </h1>\r\n" +
+                p.ToString() +
+                "<h1>Uploaded file of length: " + p.BodyLength + "</h1>" +
+                "</body>\r\n" +
+                "</html>\r\n";
+
+            // Saving uploaded file.
+            File.WriteAllBytes("uploaded" + DateTime.Now.Ticks, p.GetBodyByteArray_Slow());
+            Console.WriteLine("Uploaded file saved!");
+
+            String responseHeader =
+                "HTTP/1.1 200 OK\r\n" +
+                "Content-Type: text/html; charset=UTF-8\r\n" +
+                "Content-Length: " + responseBody.Length + "\r\n";
+
+            // Converting string to byte array.
+            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
+
+            // Writing back to channel.
+            p.WriteResponse(respBytes, 0, respBytes.Length);
+
+            return true;
+        }
+
         private static Boolean OnHttpGetRoot(HttpRequest p)
         {
             String responseBody =
@@ -294,6 +331,25 @@ namespace NetworkIoTestApp
 
             // Converting string to byte array.
             Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
+
+            // Writing back to channel.
+            p.WriteResponse(respBytes, 0, respBytes.Length);
+
+            return true;
+        }
+
+        private static Boolean OnHttpOptions(HttpRequest p)
+        {
+            String responseHeader =
+                "HTTP/1.1 200 OK\r\n" +
+                "Content-Type: text/html; charset=UTF-8\r\n" +
+                "Access-Control-Allow-Origin: *\r\n" +
+                "Access-Control-Allow-Methods: POST, GET, OPTIONS\r\n" +
+                "Access-Control-Allow-Headers: Origin, Content-Type, Accept\r\n" +
+                "Content-Length: 0\r\n\r\n";
+
+            // Converting string to byte array.
+            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader);
 
             // Writing back to channel.
             p.WriteResponse(respBytes, 0, respBytes.Length);

@@ -102,10 +102,13 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
             }
 
             // Process the chunk.
-            SocketDataChunk *sd = (SocketDataChunk *)((uint8_t *)smc + BMX_HEADER_MAX_SIZE_BYTES);
+            SocketDataChunk *sd = (SocketDataChunk *)((uint8_t *)smc + bmx::BMX_HEADER_MAX_SIZE_BYTES);
 
             // Setting chunk index because of possible cloned chunks.
             sd->set_chunk_index(chunk_index);
+
+            // Resetting number of chunks.
+            sd->set_num_chunks(1);
 
             // We need to check if its a multi-chunk response.
             if (!smc->is_terminated())
@@ -187,7 +190,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
             }
 
             // Resetting the data buffer.
-            sd->get_accum_buf()->Init(DATA_BLOB_SIZE_BYTES, sd->data_blob());
+            sd->get_accum_buf()->Init(SOCKET_DATA_BLOB_SIZE_BYTES, sd->data_blob(), true);
 
             // Setting the database index and sequence number.
             sd->AttachToDatabase(db_index_);
@@ -269,10 +272,15 @@ uint32_t WorkerDbInterface::ReturnChunkToPool(GatewayWorker *gw, SocketDataChunk
     }
     else
     {
-        // First returning extra chunk.
-        uint32_t err_code = ReturnLinkedChunksToPool(1, sd->extra_chunk_index());
-        if (err_code)
-            return err_code;
+        // Checking if we have extra chunk.
+        core::chunk_index extra_chunk = sd->extra_chunk_index();
+        if (INVALID_CHUNK_INDEX != extra_chunk)
+        {
+            // First returning extra chunk.
+            uint32_t err_code = ReturnLinkedChunksToPool(1, extra_chunk);
+            if (err_code)
+                return err_code;
+        }
 
         // Returning linked multiple chunks.
         return ReturnLinkedChunksToPool(num_chunks, sd->chunk_index());
@@ -338,7 +346,6 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(GatewayWorker* gw, SocketDataChun
     // Modifying chunk data to use correct handler.
     shared_memory_chunk *smc = (shared_memory_chunk*) &(shared_int_.chunk(sd->chunk_index()));
     smc->set_bmx_protocol(user_handler_id); // User code handler id.
-    smc->terminate_link();
     smc->set_request_size(4);
 
     // Obtaining the current scheduler id.
@@ -373,9 +380,6 @@ uint32_t WorkerDbInterface::RegisterPushChannel(int32_t sched_num)
     // Writing BMX message type.
     request->write(bmx::BMX_REGISTER_PUSH_CHANNEL);
 
-    // No linked chunks.
-    smc->terminate_link();
-
     // Pushing the chunk.
     return PushLinkedChunksToDb(new_chunk, 1, sched_num);
 }
@@ -403,9 +407,6 @@ uint32_t WorkerDbInterface::PushSessionDestroyed(ScSessionStruct* session, int32
     // Writing Apps unique session number.
     request->write(session->apps_unique_session_num_);
 
-    // No linked chunks.
-    smc->terminate_link();
-
     // Pushing the chunk.
     return PushLinkedChunksToDb(new_chunk, 1, sched_num);
 }
@@ -429,9 +430,6 @@ uint32_t WorkerDbInterface::RequestRegisteredHandlers(int32_t sched_num)
 
     // Writing BMX message type.
     request->write(bmx::BMX_SEND_ALL_HANDLERS);
-
-    // No linked chunks.
-    smc->terminate_link();
 
     // Pushing the chunk.
     return PushLinkedChunksToDb(new_chunk, 1, sched_num);

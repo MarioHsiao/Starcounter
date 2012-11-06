@@ -340,6 +340,7 @@ namespace HttpStructs
         public HttpRequest(Byte[] buf)
         {
             // TODO: Parse the uri and so on.
+
             /*unsafe
             {
                 Byte* pnew = (Byte*)BitsAndBytes.Alloc(buf.Length + sizeof(HttpRequestInternal));
@@ -453,17 +454,6 @@ namespace HttpStructs
         }
 
         /// <summary>
-        /// Reads the body.
-        /// </summary>
-        /// <param name="buffer">The buffer.</param>
-        /// <param name="offset">The offset.</param>
-        /// <param name="length">The length.</param>
-        public void ReadBody(Byte[] buffer, Int32 offset, Int32 length)
-        {
-            unsafe { data_stream_.Read(buffer, offset, length); }
-        }
-
-        /// <summary>
         /// Gets the body raw pointer.
         /// </summary>
         /// <param name="ptr">The PTR.</param>
@@ -477,18 +467,20 @@ namespace HttpStructs
         /// Gets the body as byte array.
         /// </summary>
         /// <returns>Body bytes.</returns>
-        public Byte[] GetBodyByteArray()
+        public Byte[] GetBodyByteArray_Slow()
         {
-            unsafe { return http_request_->GetBodyByteArray(); }
+            // TODO: Provide a more efficient interface with existing Byte[] and offset.
+
+            unsafe { return http_request_->GetBodyByteArray_Slow(); }
         }
 
         /// <summary>
         /// Gets the body as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        public String GetBodyStringUtf8()
+        public String GetBodyStringUtf8_Slow()
         {
-            unsafe { return http_request_->GetBodyStringUtf8(); }
+            unsafe { return http_request_->GetBodyStringUtf8_Slow(); }
         }
 
         /// <summary>
@@ -867,7 +859,6 @@ namespace HttpStructs
             sizeBytes = request_len_bytes_;
         }
 
-        // TODO: Plain big buffer!
         /// <summary>
         /// Gets the body raw pointer.
         /// </summary>
@@ -880,25 +871,25 @@ namespace HttpStructs
             sizeBytes = body_len_bytes_;
         }
 
-        // TODO: Plain big buffer!
         /// <summary>
         /// Gets the body as byte array.
         /// </summary>
         /// <returns>Body bytes.</returns>
-        public Byte[] GetBodyByteArray()
+        public Byte[] GetBodyByteArray_Slow()
         {
+            // TODO: Provide a more efficient interface with existing Byte[] and offset.
+
             Byte[] body_bytes = new Byte[(Int32)body_len_bytes_];
             Marshal.Copy((IntPtr)(sd_ + body_offset_), body_bytes, 0, (Int32)body_len_bytes_);
 
             return body_bytes;
         }
 
-        // TODO: Plain big buffer!
         /// <summary>
         /// Gets the body as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        public String GetBodyStringUtf8()
+        public String GetBodyStringUtf8_Slow()
         {
             return new String((SByte*)(sd_ + body_offset_), 0, (Int32)body_len_bytes_, Encoding.UTF8);
         }

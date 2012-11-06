@@ -568,8 +568,8 @@ class HttpWsProto
     // To which socket this instance belongs.
     SocketDataChunk *sd_ref_;
 
-    // Gateway worker reference.
-    GatewayWorker *gw_ref_temp_;
+    // Index to already determined URI.
+    uint32_t matched_uri_index_;
 
     // WebSocket related data.
     HttpWsFields last_field_;
@@ -577,6 +577,24 @@ class HttpWsProto
     WsProto ws_proto_;
 
 public:
+
+    // Getting matched URI index.
+    uint32_t get_matched_uri_index()
+    {
+        return matched_uri_index_;
+    }
+
+    // Setting matching URI index.
+    void set_matched_uri_index(uint32_t value)
+    {
+        matched_uri_index_ = value;
+    }
+
+    // Getting HTTP request.
+    HttpRequest* get_http_request()
+    {
+        return &http_request_;
+    }
 
     // Getting WebSocket upgrade flag.
     bool get_web_sockets_upgrade_flag()
@@ -652,18 +670,16 @@ public:
     {
         // Initializing WebSocket data.
         ws_proto_.Init();
+        Reset();
         sd_ref_ = NULL;
-        gw_ref_temp_ = NULL;
-        flags_ = 0;
-
-        // Remove this since parser is reset before actual parsing.
-        //ResetParser();
     }
 
     // Resets the HTTP/WS structure.
     void Reset()
     {
+        matched_uri_index_ = INVALID_URI_INDEX;
         flags_ = 0;
+
         ws_proto_.Reset();
     }
 
@@ -691,9 +707,8 @@ public:
     uint32_t HttpWsProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);
 
     // Attaching socket data and gateway worker to parser.
-    void AttachToParser(GatewayWorker *gw, SocketDataChunk *sd)
+    void AttachToParser(SocketDataChunk *sd)
     {
-        gw_ref_temp_ = gw;
         sd_ref_ = sd;
     }
 };
