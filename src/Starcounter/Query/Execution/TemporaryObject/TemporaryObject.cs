@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using Starcounter.Binding;
 using Starcounter.Logging;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -621,5 +622,47 @@ internal sealed class TemporaryObject : IObjectView
     {
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "TemporaryObject");
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    public bool AssertEquals(IObjectView other) {
+        TemporaryObject otherNode = other as TemporaryObject;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(TemporaryObject other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check cardinalities of collections
+        Debug.Assert(this.valueArr.Length == other.valueArr.Length);
+        if (this.valueArr.Length != other.valueArr.Length)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = true;
+        if (this.typeBinding == null) {
+            Debug.Assert(other.typeBinding == null);
+            areEquals = other.typeBinding == null;
+        } else
+            areEquals = this.typeBinding.AssertEquals(other.typeBinding);
+        // Check collections of objects
+        for (int i = 0; i < this.valueArr.Length && areEquals; i++)
+            if (this.valueArr[i] == null) {
+                Debug.Assert(other.valueArr[i] == null);
+                areEquals = other.valueArr[i] == null;
+            } else
+                areEquals = this.valueArr[i].AssertEquals(other.valueArr[i]);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }

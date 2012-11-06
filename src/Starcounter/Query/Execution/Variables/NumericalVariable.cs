@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Starcounter.Internal;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -947,5 +948,54 @@ internal class NumericalVariable : Variable, IVariable, INumericalExpression
             }
         }
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    public bool AssertEquals(ITypeExpression other) {
+        NumericalVariable otherNode = other as NumericalVariable;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(NumericalVariable other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check parent
+        if (!base.AssertEquals(other))
+            return false;
+        // Check basic types
+        Debug.Assert(this.intValue == other.intValue);
+        if (this.intValue != other.intValue)
+            return false;
+        Debug.Assert(this.uintValue == other.uintValue);
+        if (this.uintValue != other.uintValue)
+            return false;
+        Debug.Assert(this.decValue == other.decValue);
+        if (this.decValue != other.decValue)
+            return false;
+        Debug.Assert(this.dblValue == other.dblValue);
+        if (this.dblValue != other.dblValue)
+            return false;
+        Debug.Assert(this.dbTypeCode == other.dbTypeCode);
+        if (this.dbTypeCode != other.dbTypeCode)
+            return false;
+        Debug.Assert(this.numVarIndex == other.numVarIndex);
+        if (this.numVarIndex != other.numVarIndex)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        //bool areEquals = this.privFilterRef.AssertEquals(other.privFilterRef);
+        AssertEqualsVisited = false;
+        //return areEquals;
+        return true;
+    }
+#endif
 }
 }

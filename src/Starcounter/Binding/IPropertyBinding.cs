@@ -46,5 +46,14 @@ namespace Starcounter.Binding
         /// </summary>
         /// <value>The type code.</value>
         DbTypeCode TypeCode { get; }
+
+#if DEBUG
+        /// <summary>
+        /// Comparing this and given objects and asserting that they are equal.
+        /// </summary>
+        /// <param name="other">The given object to compare with this object.</param>
+        /// <returns>True if the objects are equals and false otherwise.</returns>
+        bool AssertEquals(IPropertyBinding other);
+#endif
     }
 }

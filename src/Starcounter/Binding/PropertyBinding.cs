@@ -7,6 +7,7 @@
 using Starcounter;
 using System;
 using System.Collections;
+using System.Diagnostics;
 
 namespace Starcounter.Binding
 {
@@ -382,5 +383,37 @@ namespace Starcounter.Binding
             _name = name;
             _lowername = name.ToLower();
         }
+
+#if DEBUG
+        /// <summary>
+        /// Comparing this and given objects and asserting that they are equal.
+        /// </summary>
+        /// <param name="other">The given object to compare with this object.</param>
+        /// <returns>True if the objects are equals and false otherwise.</returns>
+        public bool AssertEquals(IPropertyBinding other) {
+            PropertyBinding otherNode = other as PropertyBinding;
+            Debug.Assert(otherNode != null);
+            return this.AssertEquals(otherNode);
+        }
+        internal bool AssertEquals(PropertyBinding other) {
+            Debug.Assert(other != null);
+            if (other == null)
+                return false;
+            // Check basic types
+            Debug.Assert(this._index == other._index);
+            if (this._index != other._index)
+                return false;
+            Debug.Assert(this._dataIndex == other._dataIndex);
+            if (this._dataIndex != other._dataIndex)
+                return false;
+            Debug.Assert(this._name == other._name);
+            if (this._name != other._name)
+                return false;
+            Debug.Assert(this._lowername == other._lowername);
+            if (this._lowername != other._lowername)
+                return false;
+            return true;
+        }
+#endif
     }
 }

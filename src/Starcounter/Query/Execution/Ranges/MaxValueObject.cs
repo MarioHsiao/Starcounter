@@ -8,6 +8,7 @@ using Starcounter;
 using Starcounter.Binding;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -116,5 +117,13 @@ internal sealed class MaxValueObject : IObjectView
     {
         throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Not supported.");
     }
+
+#if DEBUG
+    public bool AssertEquals(IObjectView other) {
+        MaxValueObject otherNode = other as MaxValueObject;
+        Debug.Assert(otherNode != null);
+        return true;
+    }
+#endif
 }
 }

@@ -736,6 +736,10 @@ internal interface ILogicalExpression : IConditionTreeNode
     /// <param name="varArray">Variable array.</param>
     /// <returns>Cloned logical expression.</returns>
     ILogicalExpression Clone(VariableArray varArray);
+
+#if DEBUG
+    bool AssertEquals(ILogicalExpression other);
+#endif
 }
 
 /// <summary>
@@ -776,6 +780,10 @@ internal interface ISetFunction : IQueryObject
     ILiteral GetResult();
 
     ISetFunction Clone(VariableArray varArray);
+
+#if DEBUG
+    bool AssertEquals(ISetFunction other);
+#endif
 }
 
 /// <summary>
@@ -841,6 +849,10 @@ internal interface ISingleComparer : IQueryComparer
     Int32 Compare(ILiteral value, CompositeObject obj);
 
     ISingleComparer CloneToSingleComparer(VariableArray varArray);
+
+#if DEBUG
+    bool AssertEquals(ISingleComparer other);
+#endif
 }
 
 /// <summary>

@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Text;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -239,5 +240,43 @@ internal class BooleanMethod : IBooleanPathItem, IMethod
     {
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "ObjectGenericMethod");
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    public bool AssertEquals(ITypeExpression other) {
+        BooleanMethod otherNode = other as BooleanMethod;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(BooleanMethod other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check basic types
+        Debug.Assert(this.extentNumber == other.extentNumber);
+        if (this.extentNumber != other.extentNumber)
+            return false;
+        Debug.Assert(this.typeBinding == other.typeBinding);
+        if (this.typeBinding != other.typeBinding)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = true;
+        if (this.argumentExpr == null) {
+            Debug.Assert(other.argumentExpr == null);
+            areEquals = other.argumentExpr == null;
+        } else
+            areEquals = this.argumentExpr.AssertEquals(other.argumentExpr);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }

@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -176,5 +177,35 @@ internal abstract class Property : CodeGenFilterNode, IProperty
     {
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "GetProperty();");
     }
+
+#if DEBUG
+    public bool AssertEquals(ITypeExpression other) {
+        Property otherNode = other as Property;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(Property other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check basic types
+        Debug.Assert(this.propIndex == other.propIndex);
+        if (this.propIndex != other.propIndex)
+            return false;
+        Debug.Assert(this.extentNumber == other.extentNumber);
+        if (this.extentNumber != other.extentNumber)
+            return false;
+        Debug.Assert(this.typeBinding == other.typeBinding);
+        if (this.typeBinding != other.typeBinding)
+            return false;
+        Debug.Assert(this.propBinding == other.propBinding);
+        if (this.propBinding != other.propBinding)
+            return false;
+        Debug.Assert(this.propFromPreviousExtent == other.propFromPreviousExtent);
+        if (this.propFromPreviousExtent != other.propFromPreviousExtent)
+            return false;
+        return true;
+    }
+#endif
 }
 }
