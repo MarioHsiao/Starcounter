@@ -6789,7 +6789,7 @@ member_access_seq_el:
 					n->location = @2;
 					$$ = (Node *)n;
 				}
-			| '.' type_function_name '(' func_arg_list ')' '(' ')' over_clause
+			| '.' type_function_name '{' type_list '}' '(' ')' over_clause
 				{
 					FuncCall *n = makeNode(FuncCall);
 					n->funcname = $2;
@@ -6816,7 +6816,7 @@ member_access_seq_el:
 					n->location = @2;
 					$$ = (Node *)n;
 				}
-			| '.' type_function_name '(' func_arg_list ')' '(' func_arg_list ')' over_clause
+			| '.' type_function_name '{' type_list '}' '(' func_arg_list ')' over_clause
 				{
 					FuncCall *n = makeNode(FuncCall);
 					n->funcname = $2;
@@ -6871,7 +6871,7 @@ member_access_seq_el:
 					n->location = @2;
 					$$ = (Node *)n;
 				}
-			| '.' type_function_name '(' func_arg_list ')' '(' func_arg_list sort_clause ')' over_clause
+			| '.' type_function_name '{' type_list '}' '(' func_arg_list sort_clause ')' over_clause
 				{
 					FuncCall *n = makeNode(FuncCall);
 					n->funcname = $2;
@@ -6902,7 +6902,7 @@ member_access_seq_el:
 					n->location = @2;
 					$$ = (Node *)n;
 				}
-			| '.' type_function_name '(' func_arg_list ')' '(' ALL func_arg_list opt_sort_clause ')' over_clause
+			| '.' type_function_name '{' type_list '}' '(' ALL func_arg_list opt_sort_clause ')' over_clause
 				{
 					FuncCall *n = makeNode(FuncCall);
 					n->funcname = $2;
@@ -6933,7 +6933,7 @@ member_access_seq_el:
 					n->location = @2;
 					$$ = (Node *)n;
 				}
-			| '.' type_function_name '(' func_arg_list ')' '(' DISTINCT func_arg_list opt_sort_clause ')' over_clause
+			| '.' type_function_name '{' type_list '}' '(' DISTINCT func_arg_list opt_sort_clause ')' over_clause
 				{
 					FuncCall *n = makeNode(FuncCall);
 					n->funcname = $2;
@@ -6970,7 +6970,7 @@ member_access_seq_el:
 					n->location = @2;
 					$$ = (Node *)n;
 				}
-			| '.' type_function_name '(' func_arg_list ')' '(' '*' ')' over_clause
+			| '.' type_function_name '{' type_list '}' '(' '*' ')' over_clause
 				{
 					/*
 					 * We consider AGGREGATE(*) to invoke a parameterless
@@ -7043,8 +7043,8 @@ member_access_seq_el:
 		;
 
 member_access_seq:
-			member_access_seq_el					{ $$ = list_make1($1); }
-			| member_access_seq member_access_seq_el
+			member_access_el					{ $$ = list_make1($1); }
+			| member_access_seq member_access_el
 				{
 					$$ = lappend($1, $2);
 				}
