@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections;
 using System.Text;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -96,6 +97,11 @@ internal class LogicalOperation : CodeGenFilterNode, ILogicalExpression
         {
             return condition2;
         }
+    }
+
+    public Boolean InvolvesCodeExecution()
+    {
+        return (condition1.InvolvesCodeExecution() || (condition2 != null && condition2.InvolvesCodeExecution()));
     }
 
     /// <summary>
@@ -295,5 +301,46 @@ internal class LogicalOperation : CodeGenFilterNode, ILogicalExpression
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, logOperator.ToString());
         condition2.GenerateCompilableCode(stringGen);
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    public bool AssertEquals(ILogicalExpression other) {
+        LogicalOperation otherNode = other as LogicalOperation;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(LogicalOperation other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check basic types
+        Debug.Assert(this.logOperator == other.logOperator);
+        if (this.logOperator != other.logOperator)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = true;
+        if (this.condition1 == null) {
+            Debug.Assert(other.condition1 == null);
+            areEquals = other.condition1 == null;
+        } else
+            areEquals = this.condition1.AssertEquals(other.condition1);
+        if (areEquals)
+            if (this.condition2 == null) {
+                Debug.Assert(other.condition2 == null);
+                areEquals = other.condition2 == null;
+            } else
+                areEquals = this.condition2.AssertEquals(other.condition2);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }

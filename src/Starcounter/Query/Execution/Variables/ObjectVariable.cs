@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Starcounter.Internal;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -253,5 +254,43 @@ internal class ObjectVariable : Variable, IVariable, IObjectExpression
 
         buffer += 9;
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    public bool AssertEquals(ITypeExpression other) {
+        ObjectVariable otherNode = other as ObjectVariable;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(ObjectVariable other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check parent
+        if (!base.AssertEquals(other))
+            return false;
+        // Check basic types
+        Debug.Assert(this.typeBinding == other.typeBinding);
+        if (this.typeBinding != other.typeBinding)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = true;
+        if (this.value == null) {
+            Debug.Assert(other.value == null);
+            areEquals = other.value == null;
+        } else
+            areEquals = this.value.AssertEquals(other.value);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }

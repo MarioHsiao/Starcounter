@@ -103,7 +103,12 @@ internal class ObjectGenericMethod : IObjectPathItem, IMethod
         }
     }
 
-    /// <summary>
+    public Boolean InvolvesCodeExecution()
+    {
+        return true;
+    }
+
+/// <summary>
     /// The type resultTypeBind of the return value of this method (of type object).
     /// </summary>
     public ITypeBinding TypeBinding

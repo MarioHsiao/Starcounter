@@ -74,20 +74,6 @@ namespace Starcounter.Server.Commands {
                 }
             }
 
-            // The application doesn't run inside the database, or the database
-            // doesn't exist. Process furhter: weaving first.
-            // (Make sure we respect the (temporary) NoDb switch if applied).
-
-            appRuntimeDirectory = GetAppRuntimeDirectory(this.Engine.Configuration.TempDirectory, command.AssemblyPath);
-            if (command.NoDb) {
-                weavedExecutable = CopyAllFilesToRunNoDbApplication(command.AssemblyPath, appRuntimeDirectory);
-            } else {
-                weaver = Engine.WeaverService;
-                weavedExecutable = weaver.Weave(command.AssemblyPath, appRuntimeDirectory);
-
-                OnWeavingCompleted();
-            }
-
             // Create the database if it does not exist and if not told otherwise.
             // Add it to our internal model as well as to the public one.
             if (!databaseExist) {
@@ -112,6 +98,26 @@ namespace Starcounter.Server.Commands {
             Engine.DatabaseEngine.StartWorkerProcess(database, command.NoDb, out workerProcess);
 
             OnWorkerProcessStarted();
+
+            // The application doesn't run inside the database, or the database
+            // doesn't exist. Process furhter: weaving first.
+            // (Make sure we respect the (temporary) NoDb switch if applied).
+
+            appRuntimeDirectory = GetAppRuntimeDirectory(this.Engine.Configuration.TempDirectory, command.AssemblyPath);
+
+            if (command.NoDb)
+            {
+                weavedExecutable = CopyAllFilesToRunNoDbApplication(command.AssemblyPath, appRuntimeDirectory);
+
+                OnAssembliesCopiedToRuntimeDirectory();
+            }
+            else
+            {
+                weaver = Engine.WeaverService;
+                weavedExecutable = weaver.Weave(command.AssemblyPath, appRuntimeDirectory);
+
+                OnWeavingCompleted();
+            }
 
             // Get a client handle to the hosting process.
 
@@ -232,6 +238,7 @@ namespace Starcounter.Server.Commands {
         }
 
         void OnExistingWorkerProcessStopped() { Trace("Existing worker process stopped."); }
+        void OnAssembliesCopiedToRuntimeDirectory() { Trace("Assemblies copied to runtime directory."); }
         void OnWeavingCompleted() { Trace("Weaving completed."); }
         void OnDatabaseCreated() { Trace("Database created."); }
         void OnDatabaseRegistered() { Trace("Database registered."); }

@@ -115,5 +115,14 @@ namespace Starcounter
         /// Gets the value of an integer attribute as a unsigned 64-bits integer.
         /// </summary>
         Nullable<UInt64> GetUInt64(Int32 index);
+
+#if DEBUG
+        /// <summary>
+        /// Comparing this and given objects and asserting that they are equal.
+        /// </summary>
+        /// <param name="other">The given object to compare with this object.</param>
+        /// <returns>True if the objects are equals and false otherwise.</returns>
+        bool AssertEquals(IObjectView other);
+#endif
     };
 }
