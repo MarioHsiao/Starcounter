@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Optimization
 {
@@ -90,6 +91,49 @@ internal class HintSpecification
         }
         return true;
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    internal bool AssertEquals(HintSpecification other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check cardinalities of collections
+        Debug.Assert(this.indexHintList.Count == other.indexHintList.Count);
+        if (this.indexHintList.Count != other.indexHintList.Count)
+            return false;
+        // Check collections of basic types
+        if (this.hintedJoinOrder == null) {
+            Debug.Assert(other.hintedJoinOrder == null);
+            if (other.hintedJoinOrder != null)
+                return false;
+        } else {
+            Debug.Assert(this.hintedJoinOrder.Count == other.hintedJoinOrder.Count);
+            if (this.hintedJoinOrder.Count != other.hintedJoinOrder.Count)
+                return false;
+            for (int i = 0; i < this.hintedJoinOrder.Count; i++) {
+                Debug.Assert(this.hintedJoinOrder[i] == other.hintedJoinOrder[i]);
+                if (this.hintedJoinOrder[i] != other.hintedJoinOrder[i])
+                    return false;
+            }
+        }
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = true;
+        // Check collections of objects
+        for (int i = 0; i < this.indexHintList.Count && areEquals; i++)
+            areEquals = this.indexHintList[i].AssertEquals(other.indexHintList[i]);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }
 

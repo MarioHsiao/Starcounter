@@ -126,5 +126,52 @@ internal class SortNode : IOptimizationNode
         IExecutionEnumerator subEnumerator = subNode.CreateExecutionEnumerator(null, null);
         return new Sort(subEnumerator, sortSpec.CreateComparer(), variableArr, query);
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    public bool AssertEquals(IOptimizationNode other) {
+        SortNode otherNode = other as SortNode;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(SortNode other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check basic types
+        Debug.Assert(this.query == other.query);
+        if (this.query != other.query)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = true;
+        if (this.subNode == null) {
+            Debug.Assert(other.subNode == null);
+            areEquals = other.subNode == null;
+        } else
+            areEquals = this.subNode.AssertEquals(other.subNode);
+        if (areEquals)
+            if (this.sortSpec == null) {
+                Debug.Assert(other.sortSpec == null);
+                areEquals = other.sortSpec == null;
+            } else
+                areEquals = this.sortSpec.AssertEquals(other.sortSpec);
+        if (areEquals)
+            if (this.variableArr == null) {
+                Debug.Assert(other.variableArr == null);
+                areEquals = other.variableArr == null;
+            } else
+                areEquals = this.variableArr.AssertEquals(other.variableArr);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }
