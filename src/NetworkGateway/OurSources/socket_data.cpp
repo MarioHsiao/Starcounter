@@ -31,7 +31,7 @@ void SocketDataChunk::Init(
     ResetUserDataOffset();
 
     // Calculating maximum size of user data.
-    max_user_data_bytes_ = DATA_BLOB_SIZE_BYTES - blob_user_data_offset_;
+    max_user_data_bytes_ = SOCKET_DATA_BLOB_SIZE_BYTES - blob_user_data_offset_;
     user_data_written_bytes_ = 0;
     fixed_handler_id_ = 0;
 
@@ -59,6 +59,7 @@ void SocketDataChunk::Reset()
     set_to_database_direction_flag(true);
 
     type_of_network_oper_ = DISCONNECT_OPER;
+    fixed_handler_id_ = 0;
 
     // Clearing attached session.
     //g_gateway.ClearSession(sessionIndex);
@@ -70,7 +71,60 @@ void SocketDataChunk::Reset()
     http_ws_proto_.Reset();
 
     // Resetting buffer data pointers.
-    data_buf_.ResetBufferForNewOperation();
+    accum_buf_.ResetBufferForNewOperation();
+}
+
+// Continues accumulation if needed.
+uint32_t SocketDataChunk::ContinueAccumulation(GatewayWorker* gw, bool* is_accumulated)
+{
+    uint32_t err_code;
+    *is_accumulated = false;
+
+    // Checking if we have not completely accumulated all data.
+    if (!accum_buf_.IsAccumulationComplete())
+    {
+        // Checking if current chunk buffer is full.
+        if (accum_buf_.IsBufferFilled())
+        {
+            // Getting current chunk index.
+            core::chunk_index cur_chunk_index = extra_chunk_index_;
+            if (INVALID_CHUNK_INDEX == cur_chunk_index)
+                cur_chunk_index = chunk_index_;
+
+            WorkerDbInterface* worker_db = gw->GetDatabase(db_index_);
+
+            // Getting new chunk and attaching to current one.
+            shared_memory_chunk *new_smc;
+            err_code = worker_db->GetOneChunkFromPrivatePool(&extra_chunk_index_, &new_smc);
+            if (err_code)
+                return SCERRACQUIRELINKEDCHUNKS;
+
+            // Incrementing number of chunks.
+            num_chunks_++;
+
+            // Linking new chunk to current chunk.
+            shared_memory_chunk* cur_smc = (shared_memory_chunk *)(&worker_db->get_shared_int()->chunk(cur_chunk_index));
+            cur_smc->set_link(extra_chunk_index_);
+
+            // Setting new chunk as a new buffer.
+            accum_buf_.Init(bmx::MAX_DATA_BYTES_IN_CHUNK, (uint8_t*)new_smc, false);
+        }
+        else
+        {
+            // Continue receiving in existing buffer.
+            accum_buf_.ContinueReceive();
+        }
+    }
+    else
+    {
+        // All data has been received.
+        *is_accumulated = true;
+
+        // Resetting extra chunk index.
+        extra_chunk_index_ = INVALID_CHUNK_INDEX;
+    }
+
+    return 0;
 }
 
 // Clones existing socket data chunk.
@@ -88,27 +142,6 @@ SocketDataChunk *SocketDataChunk::CloneReceive(GatewayWorker *gw)
     sd->set_receiving_flag(true);
 
     return sd;
-}
-
-// Getting and linking more receiving chunks.
-uint32_t SocketDataChunk::GetChunks(GatewayWorker *gw, uint32_t num_bytes)
-{
-    WorkerDbInterface* worker_db = gw->GetDatabase(db_index_);
-    if (!worker_db)
-        return SCERRUNSPECIFIED;
-
-    // Getting shared interface instance.
-    core::shared_interface* shared_int = worker_db->get_shared_int();
-
-    // Obtaining needed amount of chunks.
-    core::chunk_index chunk_index;
-    uint32_t err_code = worker_db->GetLinkedChunksFromPrivatePool(&chunk_index, num_bytes);
-    GW_ERR_CHECK(err_code);
-
-    if (INVALID_CHUNK_INDEX == chunk_index)
-        return SCERRUNSPECIFIED;
-
-    return 0;
 }
 
 // Create WSA buffers.
