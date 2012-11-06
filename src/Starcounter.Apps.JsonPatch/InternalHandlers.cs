@@ -44,13 +44,18 @@ namespace Starcounter.Internal.JsonPatch
 
                 s.Execute(HardcodedStuff.Here.HttpRequest, () =>
                 {
-                    App rootApp = Session.Current.RootApp;
-                    HttpRequest request = Session.Current.HttpRequest;
-
-                    JsonPatch.EvaluatePatches(request.GetBodyByteArray());
-
                     response = new HttpResponse();
-                    response.Uncompressed = HttpPatchBuilder.CreateHttpPatchResponse(Session.Current._changeLog);
+                    try {
+                        App rootApp = Session.Current.RootApp;
+                        HttpRequest request = Session.Current.HttpRequest;
+
+                        JsonPatch.EvaluatePatches(request.GetBodyByteArray());
+                        response.Uncompressed = HttpPatchBuilder.CreateHttpPatchResponse(Session.Current._changeLog);
+                    } catch (NotSupportedException nex) {
+                        response.Uncompressed = HttpPatchBuilder.Create415Response(nex.Message);
+                    } catch (Exception ex) {
+                        response.Uncompressed = HttpPatchBuilder.Create400Response(ex.Message);
+                    }
                 });
                 return response;
             });

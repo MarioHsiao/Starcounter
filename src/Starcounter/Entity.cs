@@ -233,7 +233,15 @@ namespace Starcounter
             // putting any code here in other words.
         }
 
+        /// <summary>
+        /// </summary>
+        /// <param name="objectRef"></param>
+        /// <param name="typeBinding"></param>
+#if ERIK_TEST
+        public void Attach(ObjectRef objectRef, TypeBinding typeBinding)
+#else
         internal void Attach(ObjectRef objectRef, TypeBinding typeBinding)
+#endif
         {
             ThisRef.ETI = objectRef.ETI;
             ThisRef.ObjectID = objectRef.ObjectID;
@@ -344,5 +352,17 @@ namespace Starcounter
         {
             return typeBinding_.GetPropertyBinding(index).GetUInt64(this);
         }
+
+#if DEBUG
+        /// <summary>
+        /// Comparing this and given objects and asserting that they are equal.
+        /// </summary>
+        /// <param name="other">The given object to compare with this object.</param>
+        /// <returns>True if the objects are equals and false otherwise.</returns>
+        public bool AssertEquals(IObjectView other)
+        {
+            throw new NotImplementedException("Assert equals is not implemented for Entity.");
+        }
+#endif
     }
 }

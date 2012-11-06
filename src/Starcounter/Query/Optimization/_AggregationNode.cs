@@ -7,6 +7,7 @@
 using Starcounter.Query.Execution;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Optimization
 {
@@ -84,5 +85,77 @@ internal class AggregationNode : IOptimizationNode
         return new Aggregation(compTypeBind, extentNumber, subEnumerator, comparer, setFunctionList, havingCondition, 
             variableArr, query);
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    public bool AssertEquals(IOptimizationNode other) {
+        AggregationNode otherNode = other as AggregationNode;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(AggregationNode other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check basic types
+        Debug.Assert(this.query == other.query);
+        if (this.query != other.query)
+            return false;
+        Debug.Assert(this.extentNumber == other.extentNumber);
+        if (this.extentNumber != other.extentNumber)
+            return false;
+        Debug.Assert(this.extentNumber == other.extentNumber);
+        if (this.extentNumber != other.extentNumber)
+            return false;
+        // Check cardinalities of collections
+        Debug.Assert(this.setFunctionList.Count == other.setFunctionList.Count);
+        if (this.setFunctionList.Count != other.setFunctionList.Count)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = true;
+        if (this.compTypeBind == null) {
+            Debug.Assert(other.compTypeBind == null);
+            areEquals = other.compTypeBind == null;
+        } else
+            areEquals = this.compTypeBind.AssertEquals(other.compTypeBind);
+        if (areEquals)
+            if (this.subNode == null) {
+                Debug.Assert(other.subNode == null);
+                areEquals = other.subNode == null;
+            } else
+                areEquals = this.subNode.AssertEquals(other.subNode);
+        if (areEquals)
+            if (this.sortSpec == null) {
+                Debug.Assert(other.sortSpec == null);
+                areEquals = other.sortSpec == null;
+            } else
+                areEquals = this.sortSpec.AssertEquals(other.sortSpec);
+        if (areEquals)
+            if (this.havingCondition == null) {
+                Debug.Assert(other.havingCondition == null);
+                areEquals = other.havingCondition == null;
+            } else
+                areEquals = this.havingCondition.AssertEquals(other.havingCondition);
+        if (areEquals)
+            if (this.variableArr == null) {
+                Debug.Assert(other.variableArr == null);
+                areEquals = other.variableArr == null;
+            } else
+                areEquals = this.variableArr.AssertEquals(other.variableArr);
+        // Check collections of objects
+        for (int i = 0; i < this.setFunctionList.Count && areEquals; i++)
+            areEquals = this.setFunctionList[i].AssertEquals(other.setFunctionList[i]);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }

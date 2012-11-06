@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Starcounter.Query.Execution;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -356,5 +357,58 @@ internal class VariableArray
 
         return output;
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    // Note not all properties are compared.
+    internal bool AssertEquals(VariableArray other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check basic types
+        Debug.Assert(this.varsNum == other.varsNum);
+        if (this.varsNum != other.varsNum)
+            return false;
+        Debug.Assert(this.QueryFlags == other.QueryFlags);
+        if (this.QueryFlags != other.QueryFlags)
+            return false;
+        // Check cardinalities of collections
+        if (this.variableArray == null) {
+            Debug.Assert(other.variableArray == null);
+            if (other.variableArray != null)
+                return false;
+        } else {
+            Debug.Assert(this.variableArray.Length == other.variableArray.Length);
+            if (this.variableArray.Length != other.variableArray.Length)
+                return false;
+        }
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = true;
+        if (this.varByteArray == null) {
+            Debug.Assert(other.varByteArray == null);
+            areEquals = other.varByteArray == null;
+        } else
+            areEquals = this.varByteArray.AssertEquals(other.varByteArray);
+        // Check collections of objects
+        if (this.variableArray != null)
+            for (int i = 0; i < this.variableArray.Length && areEquals; i++)
+                if (this.variableArray[i] == null) {
+                    Debug.Assert(other.variableArray[i] == null);
+                    areEquals = other.variableArray[i] == null;
+                } else
+                    areEquals = this.variableArray[i].AssertEquals(other.variableArray[i]);
+        AssertEqualsVisited = false;
+        return areEquals;
+
+    }
+#endif
 }
 }

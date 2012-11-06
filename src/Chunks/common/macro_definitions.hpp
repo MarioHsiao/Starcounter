@@ -51,6 +51,10 @@
 // Suffix for monitor_interfaces.
 #define MONITOR_INTERFACE_SUFFIX "starcounter_monitor_interface"
 
+// Default monitor directory name
+#define DEFAULT_MONITOR_DIR_NAME "ipc_monitor"
+#define W_DEFAULT_MONITOR_DIR_NAME L"ipc_monitor"
+
 // Default monitor log file name
 #define DEFAULT_MONITOR_LOG_FILE_NAME "monitor.log"
 #define W_DEFAULT_MONITOR_LOG_FILE_NAME L"monitor.log"

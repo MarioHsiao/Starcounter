@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 
 namespace Starcounter.Query.Execution
@@ -84,12 +85,25 @@ internal class DateTimePath : Path, IDateTimeExpression, IPath
             return DbTypeCode.DateTime;
         }
     }
+
     public QueryTypeCode QueryTypeCode
     {
         get
         {
             return QueryTypeCode.DateTime;
         }
+    }
+
+    public Boolean InvolvesCodeExecution()
+    {
+        Boolean codeExecution = member.InvolvesCodeExecution();
+        Int32 i = 0;
+        while (codeExecution == false && i < pathList.Count)
+        {
+            codeExecution = pathList[i].InvolvesCodeExecution();
+            i++;
+        }
+        return codeExecution;
     }
 
     /// <summary>
@@ -218,5 +232,39 @@ internal class DateTimePath : Path, IDateTimeExpression, IPath
     {
         member.GenerateCompilableCode(stringGen);
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    public bool AssertEquals(ITypeExpression other) {
+        DateTimePath otherNode = other as DateTimePath;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(DateTimePath other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check parent
+        if (!base.AssertEquals(other))
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = true;
+        if (this.member == null) {
+            Debug.Assert(other.member == null);
+            areEquals = other.member == null;
+        } else
+            this.member.AssertEquals(other.member);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }

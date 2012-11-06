@@ -12,6 +12,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -77,6 +78,11 @@ internal class ComparisonNumerical : CodeGenFilterNode, IComparison
         {
             return compOperator;
         }
+    }
+
+    public Boolean InvolvesCodeExecution()
+    {
+        return (expr1.InvolvesCodeExecution() || expr2.InvolvesCodeExecution());
     }
 
     /// <summary>
@@ -834,5 +840,49 @@ internal class ComparisonNumerical : CodeGenFilterNode, IComparison
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, " " + compOperator.ToString() + " ");
         expr2.GenerateCompilableCode(stringGen);
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    public bool AssertEquals(ILogicalExpression other) {
+        ComparisonNumerical otherNode = other as ComparisonNumerical;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(ComparisonNumerical other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check basic types
+        Debug.Assert(this.compOperator == other.compOperator);
+        if (this.compOperator != other.compOperator)
+            return false;
+        Debug.Assert(this.typeCode == other.typeCode);
+        if (this.typeCode != other.typeCode)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = true;
+        if (this.expr1 == null) {
+            Debug.Assert(other.expr1 == null);
+            areEquals = other.expr1 == null;
+        } else
+            areEquals = this.expr1.AssertEquals(other.expr1);
+        if (areEquals)
+            if (this.expr2 == null) {
+                Debug.Assert(other.expr2 == null);
+                areEquals = other.expr2 == null;
+            } else
+                areEquals = this.expr2.AssertEquals(other.expr2);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }
