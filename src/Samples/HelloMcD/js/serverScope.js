@@ -4,11 +4,13 @@ angular.module('StarcounterLib', ['panelApp'])
       restrict: 'A',
       compile: function compile(tElement, tAttrs, transclude) {
 
+        var remoteScope = {};
         var rootLoaded = false;
 
         function overwriteRoot(scope, data) {
+          remoteScope = angular.copy(data); //remote is current state of data on server
           for (var i in data) {
-            if (data.hasOwnProperty(i)) {
+            if (data.hasOwnProperty(i)) {              
               scope[i] = data[i];
             }
           }
@@ -17,7 +19,7 @@ angular.module('StarcounterLib', ['panelApp'])
 
         function patchRoot(scope, patch) {
           if (patch.length) {
-            console.log("patch", patch);
+            jsonpatch.apply(remoteScope, angular.copy(patch)); //remote is current state of data on server
             jsonpatch.apply(scope, patch);
           }
         }
@@ -38,53 +40,92 @@ angular.module('StarcounterLib', ['panelApp'])
 
         function getRoot(scope) {
           $http({
-            method: 'GET', 
+            method: 'GET',
             url: getRequestUrl(scope)
           }).success(function (data, status, headers, config) {
-            overwriteRoot(scope, data);
+            overwriteRoot(scope, data);            
             rootLoaded = true;
           });
         }
-
-        function updateServer(scope, path, value) {
-          var data = {
-            "replace": path,
-            "value": value
-          };
+        
+        function updateServer(scope, update) {
           $http({
-            method: 'PATCH', 
-            url: getRequestUrl(scope), 
-            data: data
+            method: 'PATCH',
+            url: getRequestUrl(scope),
+            data: update
           }).success(function (data, status, headers, config) {
             patchRoot(scope, data);
+            if(!scope.$$phase) { //digest not in progress
+              scope.$digest();                
+            }
           });
         }
-        
+
+        window.updateServer = updateServer;
+
         function findAndSetWatchers(scope) {
           var tree = appContext.getScopeTree(scope);
           var watched = [];
+          for (var i in tree.locals) {
+            if (i == "View-Model") {
+              continue;
+            }
+            if (tree.locals.hasOwnProperty(i)) {
+              watched.push(i);
+            }
+          }
+          setWatchers(scope, watched);
+        }
 
-          function findWatchedRecursive(watched, obj, parent) {
-            parent = parent || '';
-            for (var i in obj) {
-              if (i == "View-Model") continue;
+        function diffToPatch(obj, path, patch) {
+          var path = path || '';
+          var patch = patch || [];
 
-              if (obj.hasOwnProperty(i)) {
-                if (Object.prototype.toString.apply(obj[i]) === '[object Object]') {
-                  findWatchedRecursive(watched, obj[i], parent + i + '.');
+          if (typeof path !== '' && typeof obj == 'object') {
+            if (angular.isArray(obj)) {
+              // changed value
+              if (obj.length < 3) {
+                patch.push({
+                  replace: path,
+                  value: obj[obj.length - 1]
+                });
+              }
+              else {
+                if (obj[2] == 0) {
+                  patch.push({
+                    remove: path
+                  });
                 }
-                else if (Object.prototype.toString.apply(obj[i]) === '[object Array]') {
-                  findWatchedRecursive(watched, obj[i], parent + i + '.');
+                else if (obj[2] == 2) {
+                  // text diff
+                  throw new Error("text diff not implemented")
                 }
-                else if (typeof obj[i] !== "function") {
-                  watched.push(parent + i);
+                else {
+                  throw new Error("invalid diff type");
+                }
+              }
+            }
+            else {
+              var p;
+              if (obj._t == 'a') {
+                // array diff
+                for (p in obj) {
+                  if (p !== '_t' && obj.hasOwnProperty(p)) {
+                    diffToPatch(obj[p], path + '/' + p, patch);
+                  }
+                }
+              }
+              else {
+                // object diff
+                for (p in obj) {
+                  if (obj.hasOwnProperty(p)) {
+                    diffToPatch(obj[p], path + '/' + p, patch);
+                  }
                 }
               }
             }
           }
-
-          findWatchedRecursive(watched, tree.locals);
-          setWatchers(scope, watched);
+          return patch;
         }
 
         function setWatchers(scope, props) {
@@ -96,7 +137,28 @@ angular.module('StarcounterLib', ['panelApp'])
                   if (current === previous) {
                     return;
                   }
-                  updateServer(scope, '/' + prop.replace(/\./g, '/'), current);
+                  var jsonPointer = '/' + prop.replace(/\./g, '/');
+                  var patch = diffToPatch(jsondiffpatch.diff(remoteScope[prop], current), jsonPointer);
+                  
+                  for(var i= 0, ilen=patch.length; i<ilen; i++) {
+                    if(typeof patch[i].replace !== 'undefined' && patch[i].value === '$$null') {
+                      /*
+                      If value of a property was changed to string '$$null', it means that we want to send real null 
+                      to server and keep null as the value in client side.
+                      This is a workaround to null -> null changes being not detected by watch mechanism.
+                      Null is used as button trigger in Starcounter.
+                      */
+                      patch[i].value = null; //revert the change to null in JSON Patch
+                      jsonpatch.apply(scope, [{ //revert the change to null in current scope
+                        replace: patch[i].replace,
+                        value: false 
+                      }]);
+                    }
+                  }
+                  
+                  if(patch.length) {
+                    updateServer(scope, patch);
+                  }
                 }
               })
             })(props[i]), true);
@@ -112,8 +174,9 @@ angular.module('StarcounterLib', ['panelApp'])
               console.log("NOTICE: Local scope was loaded (" + attrs.serverScope + ")");
               // apply loaded data to scope
               overwriteRoot(scope, data);
+              rootLoaded = true;
             }).error(function (data, status, headers, config) {
-              console.log("ERROR: Loading "+attrs.serverScope+" ("+status+")");
+              console.log("ERROR: Loading " + attrs.serverScope + " (" + status + ")");
             });
             return;
           }

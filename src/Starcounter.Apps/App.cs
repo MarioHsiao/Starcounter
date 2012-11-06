@@ -9,6 +9,7 @@ using Starcounter.Templates.Interfaces;
 using System.ComponentModel;
 using Starcounter.Templates;
 using Starcounter.Internal.REST;
+using Starcounter.Internal;
 
 #if CLIENT
 using Starcounter.Client.Template;
@@ -44,19 +45,22 @@ namespace Starcounter {
 #endif
     {
         /// <summary>
+        /// 
+        /// </summary>
+        private LongRunningTransaction _transaction;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected Entity _Data;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="App" /> class.
         /// </summary>
        public App() : base() 
        {
            _cacheIndexInList = -1;
-       }
-
-       /// <summary>
-       /// Initializes a new instance of the <see cref="App" /> class.
-       /// </summary>
-       /// <param name="data">The data.</param>
-       public App(Entity data) : this() {
-          Data = data;
+           _transaction = LongRunningTransaction.Current;
        }
 
        /// <summary>
@@ -111,10 +115,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// The _ data
-        /// </summary>
-        private Entity _Data;
-        /// <summary>
         /// Gets or sets the data.
         /// </summary>
         /// <value>The data.</value>
@@ -151,9 +151,35 @@ namespace Starcounter {
 //        }
 
         /// <summary>
+        /// 
+        /// </summary>
+        internal LongRunningTransaction GetAttachedTransaction() {
+            return _transaction;
+        }
+
+        /// <summary>
         /// Commits this instance.
         /// </summary>
         public virtual void Commit() {
+            if (_transaction != null) {
+                _transaction.Commit();
+
+                // TODO:
+                // Should we create a new transaction here?
+                // After a commit the transaction is no longer valid and 
+                // cannot be used anymore.
+                _transaction = null;
+            }
+        }
+
+        /// <summary>
+        /// Aborts this instance.
+        /// </summary>
+        public virtual void Abort() {
+            if (_transaction != null) {
+                _transaction.Abort();
+                _transaction = null;
+            }
         }
 
         /// <summary>
@@ -161,12 +187,6 @@ namespace Starcounter {
         /// </summary>
         /// <param name="model">The model.</param>
         public void Refresh(Template model) {
-        }
-
-        /// <summary>
-        /// Aborts this instance.
-        /// </summary>
-        public virtual void Abort() {
         }
 
         /// <summary>
@@ -256,13 +276,13 @@ namespace Starcounter {
             return null;
         }
 
-        /// <summary>
-        /// Transactions the specified action.
-        /// </summary>
-        /// <param name="action">The action.</param>
-        public static void Transaction(Action action) {
-            Db.Transaction(action);
-        }
+        ///// <summary>
+        ///// Transactions the specified action.
+        ///// </summary>
+        ///// <param name="action">The action.</param>
+        //public static void Transaction(Action action) {
+        //    Db.Transaction(action);
+        //}
 
         /// <summary>
         /// Slows the SQL.

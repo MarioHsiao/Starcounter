@@ -52,6 +52,8 @@ typedef uint32_t session_index_type;
 #define GW_DATABASES_DIAG
 #define GW_SESSIONS_DIAG
 
+//#define GW_PONG_MODE
+
 // Maximum number of ports the gateway operates with.
 const int32_t MAX_PORTS_NUM = 16;
 
@@ -426,6 +428,12 @@ public:
     ULONG get_orig_buf_len_bytes()
     {
         return orig_buf_len_bytes_;
+    }
+
+    // Getting current buffer length in bytes.
+    ULONG get_buf_len_bytes()
+    {
+        return buf_len_bytes_;
     }
 
     // Setting the number of bytes retrieved at last receive.
@@ -981,8 +989,8 @@ class Gateway
     // Worker thread handles.
     HANDLE* worker_thread_handles_;
 
-    // Database scanning thread handle.
-    HANDLE db_scan_thread_handle_;
+    // Active databases monitor thread handle.
+    HANDLE db_monitor_thread_handle_;
 
     // Channels events monitor thread handle.
     HANDLE channels_events_thread_handle_;
@@ -1051,6 +1059,12 @@ class Gateway
     HANDLE iocp_;
 
 public:
+
+    // Getting settings log file directory.
+    std::wstring& get_setting_log_file_dir()
+    {
+        return setting_log_file_dir_;
+    }
 
     // Getting maximum number of connections.
     int32_t setting_max_connections()
@@ -1325,8 +1339,8 @@ public:
     uint32_t InitSharedMemory(std::string setting_databaseName,
         core::shared_interface* sharedInt_readOnly);
 
-    // Detects start/stop of active databases.
-    uint32_t ScanDatabases();
+    // Checking for database changes.
+    uint32_t CheckDatabaseChanges(std::wstring active_dbs_file_path);
 
     // Print statistics.
     uint32_t GatewayStatisticsAndMonitoringRoutine();

@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -26,6 +27,11 @@ internal abstract class Variable : CodeGenFilterNode
         {
             return number;
         }
+    }
+
+    public Boolean InvolvesCodeExecution()
+    {
+        return false;
     }
 
     public abstract void SetValue(Object newValue);
@@ -198,5 +204,18 @@ internal abstract class Variable : CodeGenFilterNode
     /// Initializes variable from byte buffer.
     /// </summary>
     public abstract unsafe void InitFromBuffer(ref Byte* buffer);
+
+#if DEBUG
+    internal bool AssertEquals(Variable other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check basic types
+        Debug.Assert(this.number == other.number);
+        if (this.number != other.number)
+            return false;
+        return true;
+    }
+#endif
 }
 }

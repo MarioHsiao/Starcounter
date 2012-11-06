@@ -8,6 +8,7 @@ using Starcounter;
 using System;
 using System.Collections.Generic;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -149,5 +150,35 @@ internal class BooleanComparer : ISingleComparer
     {
         expression.GenerateCompilableCode(stringGen);
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    public bool AssertEquals(ISingleComparer other) {
+        BooleanComparer otherNode = other as BooleanComparer;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(BooleanComparer other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check basic types
+        Debug.Assert(this.ordering == other.ordering);
+        if (this.ordering != other.ordering)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = this.expression.AssertEquals(other.expression);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }

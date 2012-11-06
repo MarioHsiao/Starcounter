@@ -131,6 +131,13 @@ internal interface IConditionTreeNode : IQueryObject
     /// <param name="extentSet">The set of extents to be updated.</param>
     void InstantiateExtentSet(ExtentSet extentSet);
 
+    /// <summary>
+    /// Evaluates if the evaluation of the condition involves execution of code or not. 
+    /// In other words if the condition includes a code property or method.
+    /// </summary>
+    /// <returns>True, if the condition involves code execution, otherwise false.</returns>
+    Boolean InvolvesCodeExecution();
+
     // Append this node to filter instructions and leaves.
     // Called statically so no need to worry about performance.
     UInt32 AppendToInstrAndLeavesList(List<CodeGenFilterNode> dataLeaves,
@@ -138,24 +145,6 @@ internal interface IConditionTreeNode : IQueryObject
                                       Int32 currentExtent,
                                       StringBuilder filterText);
 }
-
-/// <summary>
-/// Identifies the node type in condition tree.
-/// </summary>
-enum ConditionNodeType
-{
-    Property,
-    Variable,
-    Literal,
-    ObjectThis,
-    CompOpEqual,
-    CompOpNotEqual,
-    CompOpGreater,
-    CompOpGreaterOrEqual,
-    CompOpLess,
-    CompOpLessOrEqual,
-    Unsupported
-};
 
 /// <summary>
 /// Interface for all types of expressions that have a return value of a value type or
@@ -185,6 +174,10 @@ internal interface ITypeExpression : IConditionTreeNode
     /// <param name="varArray">Variables array.</param>
     /// <returns>Clone of the expression.</returns>
     ITypeExpression Clone(VariableArray varArray);
+
+#if DEBUG
+    bool AssertEquals(ITypeExpression other);
+#endif
 }
 
 /// <summary>
@@ -732,6 +725,10 @@ internal interface ILogicalExpression : IConditionTreeNode
     /// <param name="varArray">Variable array.</param>
     /// <returns>Cloned logical expression.</returns>
     ILogicalExpression Clone(VariableArray varArray);
+
+#if DEBUG
+    bool AssertEquals(ILogicalExpression other);
+#endif
 }
 
 /// <summary>
@@ -772,6 +769,10 @@ internal interface ISetFunction : IQueryObject
     ILiteral GetResult();
 
     ISetFunction Clone(VariableArray varArray);
+
+#if DEBUG
+    bool AssertEquals(ISetFunction other);
+#endif
 }
 
 /// <summary>
@@ -837,6 +838,10 @@ internal interface ISingleComparer : IQueryComparer
     Int32 Compare(ILiteral value, CompositeObject obj);
 
     ISingleComparer CloneToSingleComparer(VariableArray varArray);
+
+#if DEBUG
+    bool AssertEquals(ISingleComparer other);
+#endif
 }
 
 /// <summary>

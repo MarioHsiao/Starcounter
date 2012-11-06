@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -804,5 +805,38 @@ internal class NumericalLiteral : Literal, ILiteral, INumericalExpression
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect dbTypeCode: " + dbTypeCode);
         }
     }
+
+#if DEBUG
+    public bool AssertEquals(ITypeExpression other) {
+        NumericalLiteral otherNode = other as NumericalLiteral;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(NumericalLiteral other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check basic types
+        Debug.Assert(this.intValue == other.intValue);
+        if (this.intValue != other.intValue)
+            return false;
+        Debug.Assert(this.uintValue == other.uintValue);
+        if (this.uintValue != other.uintValue)
+            return false;
+        Debug.Assert(this.decValue == other.decValue);
+        if (this.decValue != other.decValue)
+            return false;
+        Debug.Assert(this.dblValue == other.dblValue);
+        if (this.dblValue != other.dblValue)
+            return false;
+        Debug.Assert(this.snglValue == other.snglValue);
+        if (this.snglValue != other.snglValue)
+            return false;
+        Debug.Assert(this.dbTypeCode == other.dbTypeCode);
+        if (this.dbTypeCode != other.dbTypeCode)
+            return false;
+        return true;
+    }
+#endif
 }
 }

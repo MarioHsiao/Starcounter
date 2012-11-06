@@ -1,6 +1,7 @@
 ﻿using System;
 using Starcounter;
 using Starcounter.Binding;
+using Starcounter.Query.Execution;
 
 namespace IndexQueryTest
 {
@@ -121,6 +122,36 @@ namespace IndexQueryTest
             Console.WriteLine("Test create/drop index without doing query");
             CreateIndexUserLN();
             DropIndexUserLN();
+        }
+
+        static void TestSumTransaction() {
+            CompositeObject res = Db.SlowSQL("select sum(amount*(amount - amount +2)) from account").First;
+            Decimal? sum = res.GetDecimal(0);
+            if (sum == null)
+                Console.WriteLine("The sum is null");
+            else Console.WriteLine("The sum is " + sum);
+        }
+
+        static void TestSumTransaction(String name) {
+            CompositeObject res = Db.SlowSQL("select sum(amount) from account where Client.FirstName = ?", 
+                name).First;
+            Decimal? sum = res.GetDecimal(0);
+            if (sum == null)
+                Console.WriteLine("The sum is null");
+            else Console.WriteLine("The sum is " + sum);
+        }
+
+        static void TestAggregate() {
+            Console.WriteLine("Test Aggregate");
+            Db.Transaction(delegate {
+                TestSumTransaction();
+            });
+            TestSumTransaction();
+            Db.Transaction(delegate {
+                TestSumTransaction("Oleg");
+            });
+            TestSumTransaction("Oleg");
+            Console.WriteLine("Test finished");
         }
 #endif
     }

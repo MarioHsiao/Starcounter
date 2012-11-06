@@ -17,6 +17,11 @@ namespace Starcounter.Query.Execution
 /// </summary>
 internal abstract class Literal : CodeGenFilterNode
 {
+    public Boolean InvolvesCodeExecution()
+    {
+        return false;
+    }
+
     // String representation of this instruction.
     protected override String CodeAsString()
     {

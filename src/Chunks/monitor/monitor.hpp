@@ -404,8 +404,8 @@ private:
 	// Set with names of active databases.
 	std::set<std::string> active_databases_;
 	
-	// The monitor's active databases file name.
-	std::string active_databases_file_name_;
+	// The monitor's active databases file path.
+    std::string active_databases_file_path_;
 	
 	bounded_buffer<std::string> active_segments_update_;
 	
