@@ -57,7 +57,6 @@ typedef struct TypeName
 	Oid			typeOid;		/* type identified by OID */
 	bool		setof;			/* is a set? */
 	bool		pct_type;		/* %TYPE specified? */
-	List	   *typmods;		/* type modifier expression(s) */
 	int32		typemod;		/* prespecified type modifier */
 	List	   *arrayBounds;	/* array bounds */
 	List	   *generics;		/* Type list of generic type */
