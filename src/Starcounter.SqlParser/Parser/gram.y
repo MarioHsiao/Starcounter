@@ -7043,8 +7043,8 @@ member_access_seq_el:
 		;
 
 member_access_seq:
-			member_access_el					{ $$ = list_make1($1); }
-			| member_access_seq member_access_el
+			member_access_seq_el					{ $$ = list_make1($1); }
+			| member_access_seq member_access_seq_el
 				{
 					$$ = lappend($1, $2);
 				}
