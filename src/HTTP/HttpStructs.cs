@@ -467,20 +467,20 @@ namespace HttpStructs
         /// Gets the body as byte array.
         /// </summary>
         /// <returns>Body bytes.</returns>
-        public Byte[] GetBodyByteArray()
+        public Byte[] GetBodyByteArray_Slow()
         {
             // TODO: Provide a more efficient interface with existing Byte[] and offset.
 
-            unsafe { return http_request_->GetBodyByteArray(); }
+            unsafe { return http_request_->GetBodyByteArray_Slow(); }
         }
 
         /// <summary>
         /// Gets the body as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        public String GetBodyStringUtf8()
+        public String GetBodyStringUtf8_Slow()
         {
-            unsafe { return http_request_->GetBodyStringUtf8(); }
+            unsafe { return http_request_->GetBodyStringUtf8_Slow(); }
         }
 
         /// <summary>
@@ -875,7 +875,7 @@ namespace HttpStructs
         /// Gets the body as byte array.
         /// </summary>
         /// <returns>Body bytes.</returns>
-        public Byte[] GetBodyByteArray()
+        public Byte[] GetBodyByteArray_Slow()
         {
             // TODO: Provide a more efficient interface with existing Byte[] and offset.
 
@@ -889,7 +889,7 @@ namespace HttpStructs
         /// Gets the body as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        public String GetBodyStringUtf8()
+        public String GetBodyStringUtf8_Slow()
         {
             return new String((SByte*)(sd_ + body_offset_), 0, (Int32)body_len_bytes_, Encoding.UTF8);
         }

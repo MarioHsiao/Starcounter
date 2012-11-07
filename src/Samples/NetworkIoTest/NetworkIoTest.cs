@@ -197,7 +197,7 @@ namespace NetworkIoTestApp
                 "</html>\r\n";
 
             // Saving uploaded file.
-            File.WriteAllBytes("uploaded" + DateTime.Now.Ticks, p.GetBodyByteArray());
+            File.WriteAllBytes("uploaded" + DateTime.Now.Ticks, p.GetBodyByteArray_Slow());
             Console.WriteLine("Uploaded file saved!");
 
             String responseHeader =
