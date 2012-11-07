@@ -550,8 +550,7 @@ enum HTTP_WS_FLAGS
 {
     HTTP_WS_FLAGS_UPGRADE = 1,
     HTTP_WS_FLAGS_COMPLETE_HEADER = 2,
-    HTTP_WS_FLAGS_URI_PARSED = 4,
-    HTTP_WS_FLAGS_CONTINUE_RECEIVE = 8
+    HTTP_WS_FLAGS_CONTINUE_RECEIVE = 4
 };
 
 class HttpWsProto
@@ -624,21 +623,6 @@ public:
             flags_ |= HTTP_WS_FLAGS_COMPLETE_HEADER;
         else
             flags_ &= ~HTTP_WS_FLAGS_COMPLETE_HEADER;
-    }
-
-    // Getting URI parsed flag.
-    bool get_uri_parsed_flag()
-    {
-        return flags_ & HTTP_WS_FLAGS_URI_PARSED;
-    }
-
-    // Setting URI parsed flag.
-    void set_uri_parsed_flag(bool value)
-    {
-        if (value)
-            flags_ |= HTTP_WS_FLAGS_URI_PARSED;
-        else
-            flags_ &= ~HTTP_WS_FLAGS_URI_PARSED;
     }
 
     // Getting continue receive flag.

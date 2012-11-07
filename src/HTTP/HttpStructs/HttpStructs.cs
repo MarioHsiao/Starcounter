@@ -527,11 +527,11 @@ namespace HttpStructs
         }
 
         /// <summary>
-        /// Gets the raw verb and URI plus space.
+        /// Gets the raw method and URI plus space.
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawVerbAndUriPlusSpace(out IntPtr ptr, out UInt32 sizeBytes)
+        public void GetRawMethodAndUriPlusSpace(out IntPtr ptr, out UInt32 sizeBytes)
         {
             unsafe { http_request_->GetRawMethodAndUri(out ptr, out sizeBytes); }
             sizeBytes += 1;

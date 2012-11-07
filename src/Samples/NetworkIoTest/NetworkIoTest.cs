@@ -49,8 +49,12 @@ namespace NetworkIoTestApp
             GatewayHandlers.RegisterUriHandler(80, handler_uri, OnHttpSession, out handler_id);
             Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
-            handler_uri = "POST /upload" + db_postfix;
+            handler_uri = "POST /upload";
             GatewayHandlers.RegisterUriHandler(80, handler_uri, OnHttpUpload, out handler_id);
+            Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
+
+            handler_uri = "GET /download";
+            GatewayHandlers.RegisterUriHandler(80, handler_uri, OnHttpDownload, out handler_id);
             Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
             handler_uri = "/killsession" + db_postfix;
@@ -87,7 +91,7 @@ namespace NetworkIoTestApp
             // Converting string to byte array.
             Byte[] stringBytes = Encoding.ASCII.GetBytes(response);
 
-            // Writing back to channel.
+            // Writing back the response.
             p.DataStream.Write(stringBytes, 0, stringBytes.Length);
             return true;
         }
@@ -106,7 +110,7 @@ namespace NetworkIoTestApp
             // Converting string to byte array.
             Byte[] stringBytes = Encoding.ASCII.GetBytes(response);
 
-            // Writing back to channel.
+            // Writing back the response.
             p.DataStream.Write(stringBytes, 0, stringBytes.Length);
             return true;
         }
@@ -125,7 +129,7 @@ namespace NetworkIoTestApp
             // Converting string to byte array.
             Byte[] respBytes = Encoding.ASCII.GetBytes(response);
 
-            // Writing back to channel.
+            // Writing back the response.
             p.DataStream.Write(respBytes, 0, respBytes.Length);
 
             return true;
@@ -152,7 +156,7 @@ namespace NetworkIoTestApp
             // Converting string to byte array.
             Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
 
-            // Writing back to channel.
+            // Writing back the response.
             p.WriteResponse(respBytes, 0, respBytes.Length);
 
             return true;
@@ -179,12 +183,13 @@ namespace NetworkIoTestApp
             // Converting string to byte array.
             Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
 
-            // Writing back to channel.
+            // Writing back the response.
             p.WriteResponse(respBytes, 0, respBytes.Length);
 
             return true;
         }
 
+        // Upload any file to /upload/{file_name}
         private static Boolean OnHttpUpload(HttpRequest p)
         {
             String responseBody =
@@ -196,9 +201,14 @@ namespace NetworkIoTestApp
                 "</body>\r\n" +
                 "</html>\r\n";
 
-            // Saving uploaded file.
-            File.WriteAllBytes("uploaded" + DateTime.Now.Ticks, p.GetBodyByteArray_Slow());
-            Console.WriteLine("Uploaded file saved!");
+            // Obtaining uploaded file name.
+            String file_postfix = "null";
+            if (p.Uri.Length > 8)
+                file_postfix = p.Uri.Substring(8/*/upload/*/);
+
+            String file_name = "uploaded_" + file_postfix;
+            File.WriteAllBytes(file_name, p.GetBodyByteArray_Slow());
+            Console.WriteLine("Uploaded file saved: " + file_name);
 
             String responseHeader =
                 "HTTP/1.1 200 OK\r\n" +
@@ -208,8 +218,45 @@ namespace NetworkIoTestApp
             // Converting string to byte array.
             Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
 
-            // Writing back to channel.
+            // Writing back the response.
             p.WriteResponse(respBytes, 0, respBytes.Length);
+
+            return true;
+        }
+
+        // Download any file from /download/{file_name}
+        private static Boolean OnHttpDownload(HttpRequest p)
+        {
+            // Obtaining uploaded file name.
+            String file_postfix = "null";
+            if (p.Uri.Length > 10)
+                file_postfix = p.Uri.Substring(10/*/download/*/);
+
+            // Obtaining uploaded file name.
+            String file_name = "uploaded_" + file_postfix;
+
+            // Trying to load file from disk.
+            Byte[] bodyBytes = new Byte[0];
+            if (File.Exists(file_name))
+            {
+                bodyBytes = File.ReadAllBytes(file_name);
+                Console.WriteLine("Read uploaded file: " + file_name);
+            }
+
+            String headerString =
+                "HTTP/1.1 200 OK\r\n" +
+                "Content-Length: " + bodyBytes.Length + "\r\n" +
+                "\r\n";
+
+            Byte[] headerBytes = Encoding.ASCII.GetBytes(headerString);
+
+            // Combining two arrays together.
+            Byte[] responseBuf = new Byte[headerBytes.Length + bodyBytes.Length];
+            headerBytes.CopyTo(responseBuf, 0);
+            bodyBytes.CopyTo(responseBuf, headerBytes.Length);
+
+            // Writing back the response.
+            p.WriteResponse(responseBuf, 0, responseBuf.Length);
 
             return true;
         }
@@ -234,7 +281,7 @@ namespace NetworkIoTestApp
             // Converting string to byte array.
             Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
 
-            // Writing back to channel.
+            // Writing back the response.
             p.WriteResponse(respBytes, 0, respBytes.Length);
 
             return true;
@@ -267,7 +314,7 @@ namespace NetworkIoTestApp
             // Converting string to byte array.
             Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
 
-            // Writing back to channel.
+            // Writing back the response.
             p.WriteResponse(respBytes, 0, respBytes.Length);
 
             return true;
@@ -306,7 +353,7 @@ namespace NetworkIoTestApp
             // Converting string to byte array.
             Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
 
-            // Writing back to channel.
+            // Writing back the response.
             p.WriteResponse(respBytes, 0, respBytes.Length);
 
             return true;
@@ -332,7 +379,7 @@ namespace NetworkIoTestApp
             // Converting string to byte array.
             Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
 
-            // Writing back to channel.
+            // Writing back the response.
             p.WriteResponse(respBytes, 0, respBytes.Length);
 
             return true;
@@ -351,7 +398,7 @@ namespace NetworkIoTestApp
             // Converting string to byte array.
             Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader);
 
-            // Writing back to channel.
+            // Writing back the response.
             p.WriteResponse(respBytes, 0, respBytes.Length);
 
             return true;
@@ -375,7 +422,7 @@ namespace NetworkIoTestApp
             headerBytes.CopyTo(responseBuf, 0);
             bodyBytes.CopyTo(responseBuf, headerBytes.Length);
 
-            // Writing back to channel.
+            // Writing back the response.
             p.WriteResponse(responseBuf, 0, responseBuf.Length);
 
             return true;
