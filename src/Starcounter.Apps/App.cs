@@ -125,6 +125,20 @@ namespace Starcounter {
             set {
                 _Data = value;
                 OnData();
+                RefreshAllBoundValues();
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected void RefreshAllBoundValues() {
+            Template child;
+            for (Int32 i = 0; i < this.Template.Properties.Count; i++) {
+                child = Template.Properties[i];
+                if (child.Bound) {
+                    Refresh(child);
+                }
             }
         }
 
@@ -187,6 +201,9 @@ namespace Starcounter {
         /// </summary>
         /// <param name="model">The model.</param>
         public void Refresh(Template model) {
+            Property p = model as Property;
+            if (p != null)
+                ChangeLog.UpdateValue(this, p);
         }
 
         /// <summary>
