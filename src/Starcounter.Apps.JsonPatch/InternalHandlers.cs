@@ -49,7 +49,7 @@ namespace Starcounter.Internal.JsonPatch
                         App rootApp = Session.Current.RootApp;
                         HttpRequest request = Session.Current.HttpRequest;
 
-                        JsonPatch.EvaluatePatches(request.GetBodyByteArray());
+                        JsonPatch.EvaluatePatches(request.GetBodyByteArray_Slow());
                         response.Uncompressed = HttpPatchBuilder.CreateHttpPatchResponse(Session.Current._changeLog);
                     } catch (NotSupportedException nex) {
                         response.Uncompressed = HttpPatchBuilder.Create415Response(nex.Message);
