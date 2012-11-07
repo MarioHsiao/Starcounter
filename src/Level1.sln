@@ -43,7 +43,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bmx", "Chunks\BMX\bmx.vcxpr
 		{8B599BFF-B414-41A3-A270-96CDA0C522AF} = {8B599BFF-B414-41A3-A270-96CDA0C522AF}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpStructs", "HTTP\HttpStructs.csproj", "{90D57166-B42E-4BBE-B9EC-CFB33E551B77}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpStructs", "HTTP\HttpStructs\HttpStructs.csproj", "{90D57166-B42E-4BBE-B9EC-CFB33E551B77}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "scerrcc", "Starcounter.ErrorCodes\ErrorCodeCompiler\scerrcc\scerrcc.csproj", "{9E8D97FC-87A3-4A7C-B318-9414B5EEA60E}"
 EndProject
