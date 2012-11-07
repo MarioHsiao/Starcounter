@@ -73,7 +73,7 @@
     <Compile Include="WebResourcesTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\HTTP\HttpStructs.csproj">
+    <ProjectReference Include="..\HTTP\HttpStructs\HttpStructs.csproj">
       <Project>{90d57166-b42e-4bbe-b9ec-cfb33e551b77}</Project>
       <Name>HttpStructs</Name>
     </ProjectReference>
