@@ -118,7 +118,11 @@ namespace Starcounter {
                        sb.Append(((App)val).ToJson(includeSchema));
                     }
                     else {
-                       sb.Append(JsonConvert.SerializeObject(val));
+                        object papa = val;
+                        if (prop.Bound)
+                            papa = prop.GetBoundValueAsObject(this);
+                       
+                       sb.Append(JsonConvert.SerializeObject(papa));
                     }
                     needsComma = true;
                 }
