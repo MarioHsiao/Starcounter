@@ -499,59 +499,11 @@ public:
     }
 };
 
-// Maximum number of pre-parsed HTTP headers.
-const int32_t MAX_HTTP_HEADERS = 16;
-
-struct HttpRequest
-{
-    // Request.
-    uint32_t request_offset_;
-    uint32_t request_len_bytes_;
-
-    // Body.
-    uint32_t body_offset_;
-    uint32_t body_len_bytes_;
-
-    // Resource URI.
-    uint32_t uri_offset_;
-    uint32_t uri_len_bytes_;
-
-    // Key-value header.
-    uint32_t headers_offset_;
-    uint32_t headers_len_bytes_;
-
-    // Cookie value.
-    uint32_t cookies_offset_;
-    uint32_t cookies_len_bytes_;
-
-    // Accept value.
-    uint32_t accept_value_offset_;
-    uint32_t accept_value_len_bytes_;
-
-    // Session ID.
-    uint32_t session_string_offset_;
-    uint32_t session_string_len_bytes_;
-
-    // Header offsets.
-    uint32_t header_offsets_[MAX_HTTP_HEADERS];
-    uint32_t header_len_bytes_[MAX_HTTP_HEADERS];
-    uint32_t header_value_offsets_[MAX_HTTP_HEADERS];
-    uint32_t header_value_len_bytes_[MAX_HTTP_HEADERS];
-    uint32_t num_headers_;
-
-    // HTTP method.
-    bmx::HTTP_METHODS http_method_;
-
-    // Is Gzip accepted.
-    bool gzip_accepted_;
-};
-
 enum HTTP_WS_FLAGS
 {
     HTTP_WS_FLAGS_UPGRADE = 1,
     HTTP_WS_FLAGS_COMPLETE_HEADER = 2,
-    HTTP_WS_FLAGS_URI_PARSED = 4,
-    HTTP_WS_FLAGS_CONTINUE_RECEIVE = 8
+    HTTP_WS_FLAGS_CONTINUE_RECEIVE = 4
 };
 
 class HttpWsProto
@@ -568,8 +520,8 @@ class HttpWsProto
     // To which socket this instance belongs.
     SocketDataChunk *sd_ref_;
 
-    // Gateway worker reference.
-    GatewayWorker *gw_ref_temp_;
+    // Index to already determined URI.
+    uint32_t matched_uri_index_;
 
     // WebSocket related data.
     HttpWsFields last_field_;
@@ -577,6 +529,24 @@ class HttpWsProto
     WsProto ws_proto_;
 
 public:
+
+    // Getting matched URI index.
+    uint32_t get_matched_uri_index()
+    {
+        return matched_uri_index_;
+    }
+
+    // Setting matching URI index.
+    void set_matched_uri_index(uint32_t value)
+    {
+        matched_uri_index_ = value;
+    }
+
+    // Getting HTTP request.
+    HttpRequest* get_http_request()
+    {
+        return &http_request_;
+    }
 
     // Getting WebSocket upgrade flag.
     bool get_web_sockets_upgrade_flag()
@@ -608,21 +578,6 @@ public:
             flags_ &= ~HTTP_WS_FLAGS_COMPLETE_HEADER;
     }
 
-    // Getting URI parsed flag.
-    bool get_uri_parsed_flag()
-    {
-        return flags_ & HTTP_WS_FLAGS_URI_PARSED;
-    }
-
-    // Setting URI parsed flag.
-    void set_uri_parsed_flag(bool value)
-    {
-        if (value)
-            flags_ |= HTTP_WS_FLAGS_URI_PARSED;
-        else
-            flags_ &= ~HTTP_WS_FLAGS_URI_PARSED;
-    }
-
     // Getting continue receive flag.
     bool get_continue_receive_flag()
     {
@@ -652,18 +607,16 @@ public:
     {
         // Initializing WebSocket data.
         ws_proto_.Init();
+        Reset();
         sd_ref_ = NULL;
-        gw_ref_temp_ = NULL;
-        flags_ = 0;
-
-        // Remove this since parser is reset before actual parsing.
-        //ResetParser();
     }
 
     // Resets the HTTP/WS structure.
     void Reset()
     {
+        matched_uri_index_ = INVALID_URI_INDEX;
         flags_ = 0;
+
         ws_proto_.Reset();
     }
 
@@ -691,9 +644,8 @@ public:
     uint32_t HttpWsProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);
 
     // Attaching socket data and gateway worker to parser.
-    void AttachToParser(GatewayWorker *gw, SocketDataChunk *sd)
+    void AttachToParser(SocketDataChunk *sd)
     {
-        gw_ref_temp_ = gw;
         sd_ref_ = sd;
     }
 };

@@ -15,7 +15,7 @@ namespace Starcounter.Templates {
     /// <summary>
     /// Class OidProperty
     /// </summary>
-    public class OidProperty : Property
+    public class OidProperty : Property<UInt64>
 #if IAPP
         , IOidTemplate
 #endif
@@ -36,6 +36,7 @@ namespace Starcounter.Templates {
         public override void ProcessInput(App app, byte[] rawValue)
         {
             throw new NotImplementedException();
+            // ProcessInput(app, value);
         }
 
         /// <summary>
