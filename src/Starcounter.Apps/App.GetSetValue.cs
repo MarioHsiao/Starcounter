@@ -30,6 +30,9 @@ namespace Starcounter {
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public object GetValue(IValueTemplate property) {
+            if (property.Bound)
+                return property.GetBoundValueAsObject(this);
+
 #if QUICKTUPLE
             return _Values[property.Index];
 #else
@@ -47,6 +50,11 @@ namespace Starcounter {
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(IValueTemplate property, object value) {
+            if (property.Bound) {
+                property.SetBoundValueAsObject(this, value);
+                return;
+            }
+
 #if QUICKTUPLE
             _Values[property.Index] = value;
 #else
@@ -65,6 +73,9 @@ namespace Starcounter {
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool GetValue(BoolProperty property) {
 #if QUICKTUPLE
+
+            if (property.Bound)
+                return property.GetBoundValue(this);
             return _Values[property.Index];
 #else
             throw new JockeNotImplementedException();
@@ -111,6 +122,11 @@ namespace Starcounter {
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(BoolProperty property, bool value) {
+            if (property.Bound) {
+                property.SetBoundValue(this, value);
+                return;
+            }
+
 #if QUICKTUPLE
             _Values[property.Index] = value;
 #else
@@ -190,6 +206,9 @@ namespace Starcounter {
         [EditorBrowsable(EditorBrowsableState.Never)]
         public decimal GetValue(DecimalProperty property) {
 #if QUICKTUPLE
+            if (property.Bound)
+                return property.GetBoundValue(this);
+
             return _Values[property.Index];
 #else
             throw new JockeNotImplementedException();
@@ -235,6 +254,11 @@ namespace Starcounter {
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(DecimalProperty property, decimal value) {
+            if (property.Bound) {
+                property.SetBoundValue(this, value);
+                return;
+            }
+
 #if QUICKTUPLE
             _Values[property.Index] = value;
 #else
@@ -252,6 +276,9 @@ namespace Starcounter {
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public double GetValue(DoubleProperty property) {
+            if (property.Bound)
+                return property.GetBoundValue(this);
+
 #if QUICKTUPLE
             return _Values[property.Index];
 #else
@@ -302,6 +329,9 @@ namespace Starcounter {
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public int GetValue(IntProperty property) {
+            if (property.Bound)
+                return property.GetBoundValue(this);
+
 #if QUICKTUPLE
             return _Values[property.Index];
 #else
@@ -352,6 +382,9 @@ namespace Starcounter {
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public ulong GetValue(OidProperty property) {
+            if (property.Bound)
+                return property.GetBoundValue(this);
+
 #if QUICKTUPLE
             return _Values[property.Index];
 #else
@@ -402,6 +435,9 @@ namespace Starcounter {
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public string GetValue(StringProperty property) {
+            if (property.Bound)
+                return property.GetBoundValue(this);
+
 #if QUICKTUPLE
             return _Values[property.Index];
 #else
@@ -432,6 +468,11 @@ namespace Starcounter {
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(StringProperty property, string value) {
+            if (property.Bound) {
+                property.SetBoundValue(this, value);
+                return;
+            }
+
 #if QUICKTUPLE
             _Values[property.Index] = value;
 #else

@@ -16,30 +16,66 @@ namespace Starcounter {
 #endif
 
     /// <summary>
-    /// Class Property
+    /// 
     /// </summary>
-    /// <typeparam name="TValue">The type of the T value.</typeparam>
+    /// <typeparam name="TValue">The primitive system type of this property.</typeparam>
     public abstract class Property<TValue> : Property {
-        /// <summary>
-        /// The custom input event creator
-        /// </summary>
-        public Func<App, Property<TValue>, TValue, Input<TValue>> CustomInputEventCreator = null;
-        /// <summary>
-        /// The custom input handlers
-        /// </summary>
-        public List<Action<App,Input<TValue>>> CustomInputHandlers = new List<Action<App,Input<TValue>>>();
-
+        internal Func<App, Property<TValue>, TValue, Input<TValue>> CustomInputEventCreator = null;
+        internal List<Action<App,Input<TValue>>> CustomInputHandlers = new List<Action<App,Input<TValue>>>();
+        internal Func<App, TValue> GetBoundDataFunc = null;
+        internal Action<App, TValue> SetBoundDataFunc = null;
 
         /// <summary>
-        /// Adds the handler.
+        /// Adds an inputhandler to this property.
         /// </summary>
-        /// <param name="createInputEvent">The create input event.</param>
-        /// <param name="handler">The handler.</param>
+        /// <param name="createInputEvent"></param>
+        /// <param name="handler"></param>
         public void AddHandler(
             Func<App, Property<TValue>, TValue, Input<TValue>> createInputEvent = null,
             Action<App, Input<TValue>> handler = null) {
             this.CustomInputEventCreator = createInputEvent;
             this.CustomInputHandlers.Add(handler);
+        }
+
+        /// <summary>
+        /// Returns the value from the underlying Entity in the App
+        /// </summary>
+        /// <param name="app"></param>
+        /// <returns></returns>
+        internal TValue GetBoundValue(App app) {
+            if (GetBoundDataFunc != null) {
+                return GetBoundDataFunc(app);
+            }
+            return default(TValue);
+        }
+
+        /// <summary>
+        /// Sets the value on the underlying entity in the App.
+        /// </summary>
+        /// <param name="app"></param>
+        /// <param name="value"></param>
+        internal void SetBoundValue(App app, TValue value) {
+            if (SetBoundDataFunc != null) {
+                SetBoundDataFunc(app, value);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="app"></param>
+        /// <returns></returns>
+        public override object GetBoundValueAsObject(IApp app) {
+            return GetBoundValue((App)app);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="app"></param>
+        /// <param name="value"></param>
+        public override void SetBoundValueAsObject(IApp app, object value) {
+            SetBoundValue((App)app, (TValue)value);
         }
 
         /// <summary>
@@ -63,7 +99,7 @@ namespace Starcounter {
                 if (!input.Cancelled)
                 {
                     Console.WriteLine("Setting value after custom handler: " + input.Value);
-                    app.SetValue(this, input.Value);
+                    app.SetValue((Property<TValue>)this, input.Value);
                 }
                 else
                 {
@@ -73,7 +109,7 @@ namespace Starcounter {
             else
             {
                 Console.WriteLine("Setting value after no handler: " + value);
-                app.SetValue(this, value);
+                app.SetValue((Property<TValue>)this, value);
             }
         }
     }
