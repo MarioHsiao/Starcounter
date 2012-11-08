@@ -559,9 +559,9 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 %left		COLLATE
 %right		UMINUS
 %left		ANGLE
+%left		'{' '}'
 %left		'[' ']'
 %left		'(' ')'
-%left		'{' '}'
 %left		TYPECAST
 %left		'.'
 /*
@@ -6067,18 +6067,6 @@ a_expr:		c_expr									{ $$ = $1; }
 					errprint("\nERROR FEATURE_NOT_SUPPORTED: UNIQUE predicate is not yet implemented");
 					ThrowExceptionReport(SCERRSQLNOTSUPPORTED, @2, $2, ScErrMessage("UNIQUE predicate is not supported"));
 				}
-			| a_expr IS DOCUMENT_P					%prec IS
-				{
-					$$ = makeXmlExpr(IS_DOCUMENT, NULL, NIL,
-									 list_make1($1), @2);
-				}
-			| a_expr IS NOT DOCUMENT_P				%prec IS
-				{
-					$$ = (Node *) makeA_Expr(AEXPR_NOT, NIL, NULL,
-											 makeXmlExpr(IS_DOCUMENT, NULL, NIL,
-														 list_make1($1), @2),
-											 @2);
-				}
 		;
 
 /*
@@ -6138,18 +6126,6 @@ b_expr:		c_expr
 			| b_expr IS NOT OF '(' type_list ')'	%prec IS
 				{
 					$$ = (Node *) makeSimpleA_Expr(AEXPR_OF, "<>", $1, (Node *) $6, @2);
-				}
-			| b_expr IS DOCUMENT_P					%prec IS
-				{
-					$$ = makeXmlExpr(IS_DOCUMENT, NULL, NIL,
-									 list_make1($1), @2);
-				}
-			| b_expr IS NOT DOCUMENT_P				%prec IS
-				{
-					$$ = (Node *) makeA_Expr(AEXPR_NOT, NIL, NULL,
-											 makeXmlExpr(IS_DOCUMENT, NULL, NIL,
-														 list_make1($1), @2),
-											 @2);
 				}
 		;
 /*
