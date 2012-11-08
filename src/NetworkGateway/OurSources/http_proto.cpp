@@ -461,7 +461,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
         case CONTENT_LENGTH:
         {
             // Calculating body length.
-            //http->http_request_.body_len_bytes_ = ParseDecimalStringToUint(at, length);
+            http->http_request_.body_len_bytes_ = ParseDecimalStringToUint(at, length);
 
             break;
         }
@@ -555,8 +555,8 @@ inline int HttpWsProto::OnBody(http_parser* p, const char *at, size_t length)
     HttpWsProto *http = (HttpWsProto *)p;
 
     // Setting body parameters.
-    //if (http->http_request_.body_len_bytes_ <= 0)
-    //    http->http_request_.body_len_bytes_ = length;
+    if (http->http_request_.body_len_bytes_ <= 0)
+        http->http_request_.body_len_bytes_ = length;
 
     // Setting body data offset.
     http->http_request_.body_offset_ = at - (char*)http->sd_ref_;
@@ -813,11 +813,12 @@ uint32_t HttpWsProto::HttpWsProcessData(
                 break;
             }
 
+			// TODO: Check when resolved with nginx http parser.
             // Setting content length.
-            http_request_.body_len_bytes_ = http_parser_.content_length;
+            //http_request_.body_len_bytes_ = http_parser_.content_length;
             // Checking if content length was determined at all.
-            if (ULLONG_MAX == http_parser_.content_length)
-                http_request_.body_len_bytes_ = 0;
+            //if (ULLONG_MAX == http_parser_.content_length)
+            //    http_request_.body_len_bytes_ = 0;
 
             // Checking if we have any body at all.
             if (http_request_.body_len_bytes_ > 0)

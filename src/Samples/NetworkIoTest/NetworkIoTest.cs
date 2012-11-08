@@ -41,7 +41,7 @@ namespace NetworkIoTestApp
             GatewayHandlers.RegisterUriHandler(80, handler_uri, OnHttpUsers, out handler_id);
             Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
-            handler_uri = "OPTIONS /" + db_postfix;
+            handler_uri = "OPTIONS /";
             GatewayHandlers.RegisterUriHandler(80, handler_uri, OnHttpOptions, out handler_id);
             Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
@@ -213,6 +213,8 @@ namespace NetworkIoTestApp
             String responseHeader =
                 "HTTP/1.1 200 OK\r\n" +
                 "Content-Type: text/html; charset=UTF-8\r\n" +
+                "Server: Starcounter\r\n" + 
+                "Access-Control-Allow-Origin: *\r\n" +
                 "Content-Length: " + responseBody.Length + "\r\n";
 
             // Converting string to byte array.
