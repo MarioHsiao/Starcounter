@@ -24,6 +24,9 @@
 #include "common/interprocess.hpp"
 #include "common/name_definitions.hpp"
 
+// HTTP related stuff.
+#include "../../HTTP/HttpParser/OurHeaders/http_request.hpp"
+
 // BMX/Blast2 include.
 #include "../Chunks/bmx/bmx.hpp"
 #include "../Chunks/bmx/chunk_helper.h"

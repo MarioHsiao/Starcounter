@@ -1,0 +1,6 @@
+
+LIBRARY	"http_parser"
+
+EXPORTS
+	sc_parse_http_request
+
