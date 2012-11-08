@@ -64,7 +64,7 @@ namespace Starcounter.Internal.Uri
             SingleRequestProcessorBase rp;
             IntPtr pvu;
             uint vuSize;
-            request.GetRawVerbAndUriPlusSpace(out pvu, out vuSize);
+            request.GetRawMethodAndUriPlusSpace(out pvu, out vuSize);
             if (!Process( pvu, (int) vuSize - 1, true, request, out rp, out resource))
                 return null;
             return resource;

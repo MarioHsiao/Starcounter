@@ -177,14 +177,14 @@ uint32_t GatewayWorker::Receive(SocketDataChunk *sd)
     uint32_t numBytes, errCode;
 
     // Checking if we have one or multiple chunks to receive.
-    if (1 == sd->get_num_chunks())
+    //if (1 == sd->get_num_chunks())
     {
         errCode = sd->ReceiveSingleChunk(&numBytes);
     }
-    else
+    /*else
     {
         errCode = sd->ReceiveMultipleChunks(active_dbs_[sd->get_db_index()]->get_shared_int(), &numBytes);
-    }
+    }*/
     //profiler_.Stop(5);
 
     // Checking if operation completed immediately.
@@ -246,17 +246,37 @@ uint32_t GatewayWorker::FinishReceive(SocketDataChunk *sd, int32_t numBytesRecei
         return 0;
     }
 
-    // Assigning last received bytes.
-    sd->get_accum_buf()->SetLastReceivedBytes(numBytesReceived);
+    AccumBuffer* accum_buf = sd->get_accum_buf();
 
     // Adding to accumulated bytes.
-    sd->get_accum_buf()->AddAccumulatedBytes(numBytesReceived);
+    accum_buf->AddAccumulatedBytes(numBytesReceived);
 
     // Incrementing statistics.
     worker_stats_bytes_received_ += numBytesReceived;
 
     // Increasing number of receives.
     worker_stats_recv_num_++;
+
+    // Assigning last received bytes.
+    if (!sd->get_accumulating_flag())
+    {
+        accum_buf->SetLastReceivedBytes(numBytesReceived);
+    }
+    else
+    {
+        // Adding last received bytes.
+        accum_buf->AddLastReceivedBytes(numBytesReceived);
+
+        bool is_accumulated;
+
+        // Trying to continue accumulation.
+        uint32_t err_code = sd->ContinueAccumulation(this, &is_accumulated);
+        GW_ERR_CHECK(err_code);
+
+        // Checking if we have not accumulated everything yet.
+        if (!is_accumulated)
+            return Receive(sd);
+    }
 
     // Getting attached session if any.
     ScSessionStruct* session = sd->GetAttachedSession();
@@ -330,12 +350,12 @@ uint32_t GatewayWorker::FinishReceive(SocketDataChunk *sd, int32_t numBytesRecei
     if (!g_gateway.setting_is_master())
     {
         // Performing send.
-        Send(sd);
+        return Send(sd);
     }
     else
     {
         // Running the handler.
-        RunToDbHandlers(sd);
+        return RunToDbHandlers(sd);
     }
 
     return 0;
@@ -439,7 +459,7 @@ uint32_t GatewayWorker::Disconnect(SocketDataChunk *sd)
     GW_PRINT_WORKER << "Disconnect: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
 #endif
 
-    // Checking if we need to return chunk to private pool.
+    // Checking if its not receiving socket data.
     if (!sd->get_receiving_flag())
     {
         // Returning chunk to private chunk pool.
@@ -637,7 +657,7 @@ uint32_t GatewayWorker::Accept(SocketDataChunk *sd)
     GW_PRINT_WORKER << "Accept: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
 #endif
 
-    // Socket is attached to this socket data.
+    // This socket data is for receiving.
     sd->set_receiving_flag(true);
 
     // Start accepting on socket.
@@ -922,23 +942,21 @@ SocketDataChunk *GatewayWorker::CreateSocketData(
     if (NULL == db)
         return NULL;
 
-    // Get a reference to the chunk.
-    shared_memory_chunk *smc = NULL;
-
     // Pop chunk index from private chunk pool.
     core::chunk_index chunk_index;
+    shared_memory_chunk *smc;
     uint32_t err_code = db->GetOneChunkFromPrivatePool(&chunk_index, &smc);
     if (err_code)
         return NULL;
 
     // Allocating socket data inside chunk.
-    SocketDataChunk *socket_data = (SocketDataChunk *)((uint8_t*)smc + BMX_HEADER_MAX_SIZE_BYTES);
+    SocketDataChunk *socket_data = (SocketDataChunk *)((uint8_t*)smc + bmx::BMX_HEADER_MAX_SIZE_BYTES);
 
     // Initializing socket data.
     socket_data->Init(sock, port_index, db_index, chunk_index);
 
     // Configuring data buffer.
-    socket_data->get_accum_buf()->Init(DATA_BLOB_SIZE_BYTES, socket_data->data_blob());
+    socket_data->get_accum_buf()->Init(SOCKET_DATA_BLOB_SIZE_BYTES, socket_data->data_blob(), true);
 
     // Returning created accumulative buffer.
     return socket_data;

@@ -46,7 +46,7 @@
 #include <boost/iostreams/tee.hpp>
 
 // Internal foreign headers.
-#include <http_parser.h>
+#include "../../HTTP/HttpParser/ThirdPartyHeaders/http_parser.h"
 #include <rapidxml.hpp>
 #include <cdecode.h>
 #include <cencode.h>

@@ -11,8 +11,9 @@ class HttpWsProto;
 enum SOCKET_DATA_FLAGS
 {
     SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION = 1,
-    SOCKET_DATA_FLAGS_RECEIVING = 2,
-    SOCKET_DATA_FLAGS_NEW_SESSION = 4
+    SOCKET_DATA_FLAGS_RECEIVING_STATE = 2,
+    SOCKET_DATA_FLAGS_NEW_SESSION = 4,
+    SOCKET_DATA_FLAGS_ACCUMULATING_STATE = 8
 };
 
 // Socket data chunk.
@@ -72,8 +73,8 @@ class SocketDataChunk
     // Blob user data offset.
     int32_t blob_user_data_offset_;
 
-    // Data buffer chunk.
-    AccumBuffer data_buf_;
+    // Accumulative buffer chunk.
+    AccumBuffer accum_buf_;
 
     // HTTP protocol instance.
     HttpWsProto http_ws_proto_;
@@ -82,9 +83,44 @@ class SocketDataChunk
     uint8_t accept_data_[ACCEPT_DATA_SIZE_BYTES];
 
     // Blob buffer itself.
-    uint8_t data_blob_[DATA_BLOB_SIZE_BYTES];
+    uint8_t data_blob_[SOCKET_DATA_BLOB_SIZE_BYTES];
 
 public:
+
+    // Checks if socket data is in correct state.
+    uint32_t AssertCorrectState()
+    {
+        uint8_t* sd = (uint8_t*) this;
+
+        assert((data_blob_ - sd) == SOCKET_DATA_BLOB_OFFSET_BYTES);
+
+        assert(((uint8_t*)http_ws_proto_.get_http_request() - sd) == bmx::SOCKET_DATA_HTTP_REQUEST_OFFSET);
+
+        assert(((uint8_t*)(&accum_buf_) - sd) == bmx::SOCKET_DATA_NUM_CLONE_BYTES);
+
+        return 0;
+    }
+
+    // Setting number of chunks.
+    void set_num_chunks(uint32_t value)
+    {
+        num_chunks_ = value;
+    }
+
+    // Setting fixed handler id.
+    void set_fixed_handler_id(BMX_HANDLER_TYPE fixed_handler_id)
+    {
+        fixed_handler_id_ = fixed_handler_id;
+    }
+
+    // Getting fixed handler id.
+    BMX_HANDLER_TYPE get_fixed_handler_id()
+    {
+        return fixed_handler_id_;
+    }
+
+    // Continues fill up if needed.
+    uint32_t ContinueAccumulation(GatewayWorker* gw, bool* is_accumulated);
 
     // Getting to database direction flag.
     bool get_to_database_direction_flag()
@@ -104,16 +140,31 @@ public:
     // Getting receiving flag.
     bool get_receiving_flag()
     {
-        return flags_ & SOCKET_DATA_FLAGS_RECEIVING;
+        return flags_ & SOCKET_DATA_FLAGS_RECEIVING_STATE;
     }
 
     // Setting receiving flag.
     void set_receiving_flag(bool value)
     {
         if (value)
-            flags_ |= SOCKET_DATA_FLAGS_RECEIVING;
+            flags_ |= SOCKET_DATA_FLAGS_RECEIVING_STATE;
         else
-            flags_ &= ~SOCKET_DATA_FLAGS_RECEIVING;
+            flags_ &= ~SOCKET_DATA_FLAGS_RECEIVING_STATE;
+    }
+
+    // Getting accumulating flag.
+    bool get_accumulating_flag()
+    {
+        return flags_ & SOCKET_DATA_FLAGS_ACCUMULATING_STATE;
+    }
+
+    // Setting accumulating flag.
+    void set_accumulating_flag(bool value)
+    {
+        if (value)
+            flags_ |= SOCKET_DATA_FLAGS_ACCUMULATING_STATE;
+        else
+            flags_ &= ~SOCKET_DATA_FLAGS_ACCUMULATING_STATE;
     }
 
     // Getting new session flag.
@@ -167,16 +218,46 @@ public:
         chunk_index_ = chunk_index;
     }
 
+    // Gets chunk index.
+    core::chunk_index get_chunk_index()
+    {
+        return chunk_index_;
+    }
+
+    // Set new chunk index.
+    void set_extra_chunk_index(core::chunk_index new_chunk_index)
+    {
+        extra_chunk_index_ = new_chunk_index;
+    }
+
+    // Gets extra chunk index.
+    core::chunk_index get_extra_chunk_index()
+    {
+        return extra_chunk_index_;
+    }
+
     // Getting data blob pointer.
     uint8_t* get_data_blob()
     {
         return data_blob_;
     }
 
+    // Gets chunk data beginning.
+    uint8_t* get_chunk_start()
+    {
+        return (uint8_t*)(this) - bmx::BMX_HEADER_MAX_SIZE_BYTES;
+    }
+
     // Returns number of chunks flag.
     uint32_t get_num_chunks()
     {
         return num_chunks_;
+    }
+
+    // Increasing number of used chunks.
+    void increment_num_chunks()
+    {
+        num_chunks_++;
     }
 
     // Getting and linking more receiving chunks.
@@ -260,7 +341,7 @@ public:
     // Data buffer chunk.
     AccumBuffer* get_accum_buf()
     {
-        return &data_buf_;
+        return &accum_buf_;
     }
 
     // Index into databases array.
@@ -281,9 +362,6 @@ public:
         db_unique_seq_num_ = g_gateway.GetDatabase(db_index)->unique_num();
         db_index_ = db_index;
     }
-
-    // Getting and linking more receiving chunks.
-    uint32_t GetChunks(GatewayWorker *gw, uint32_t num_bytes);
 
     // Pointer to the attached session.
     ScSessionStruct* GetAttachedSession()
@@ -317,7 +395,7 @@ public:
     uint32_t RunHandlers(GatewayWorker *gw)
     {
         // Checking if handler id is not determined yet.
-        if (0 == fixed_handler_id_)
+        if (bmx::INVALID_HANDLER_ID == fixed_handler_id_)
         {
             return g_gateway.get_server_port(port_index_)->get_port_handlers()->RunHandlers(gw, this);
         }
@@ -354,7 +432,7 @@ public:
     // Resets max user data buffer.
     void ResetMaxUserDataBytes()
     {
-        max_user_data_bytes_ = DATA_BLOB_SIZE_BYTES - blob_user_data_offset_;
+        max_user_data_bytes_ = SOCKET_DATA_BLOB_SIZE_BYTES - blob_user_data_offset_;
     }
 
     // Start receiving on socket.
@@ -362,7 +440,7 @@ public:
     {
         type_of_network_oper_ = RECEIVE_OPER;
         memset(&ovl_, 0, OVERLAPPED_SIZE);
-        return WSARecv(sock_, (WSABUF *)&data_buf_, 1, (LPDWORD)numBytes, (LPDWORD)&recv_flags_, &ovl_, NULL);
+        return WSARecv(sock_, (WSABUF *)&accum_buf_, 1, (LPDWORD)numBytes, (LPDWORD)&recv_flags_, &ovl_, NULL);
     }
 
     // Start receiving on socket using multiple chunks.
@@ -378,7 +456,7 @@ public:
     {
         type_of_network_oper_ = SEND_OPER;
         memset(&ovl_, 0, OVERLAPPED_SIZE);
-        return WSASend(sock_, (WSABUF *)&data_buf_, 1, (LPDWORD)numBytes, 0, &ovl_, NULL);
+        return WSASend(sock_, (WSABUF *)&accum_buf_, 1, (LPDWORD)numBytes, 0, &ovl_, NULL);
     }
 
     // Start sending on socket.
