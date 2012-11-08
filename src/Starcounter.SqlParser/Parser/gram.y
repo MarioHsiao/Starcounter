@@ -6160,6 +6160,13 @@ member_access_el:
 				{
 					$$ = makeColumnRef($1, NIL, @1, yyscanner);
 				}
+			| type_function_name '{' type_list '}' 
+				{
+					TypeName *n = makeTypeName($1);
+					n->generics = $3;
+					n->location = @1;
+					$$ = (Node *)n;
+				}
 			| type_function_name '(' ')'  over_clause
 				{
 					FuncCall *n = makeNode(FuncCall);
@@ -6173,7 +6180,7 @@ member_access_el:
 					n->location = @1;
 					$$ = (Node *)n;
 				}
-			| type_function_name '(' func_arg_list ')' '(' ')'  over_clause
+			| type_function_name '{' type_list '}' '(' ')'  over_clause
 				{
 					FuncCall *n = makeNode(FuncCall);
 					n->funcname = $1;
@@ -6200,7 +6207,7 @@ member_access_el:
 					n->location = @1;
 					$$ = (Node *)n;
 				}
-			| type_function_name '(' func_arg_list ')' '(' func_arg_list ')' over_clause
+			| type_function_name '{' type_list '}' '(' func_arg_list ')' over_clause
 				{
 					FuncCall *n = makeNode(FuncCall);
 					n->funcname = $1;
@@ -6253,6 +6260,20 @@ member_access_el:
 					n->location = @1;
 					$$ = (Node *)n;
 				}
+			| type_function_name '{' type_list '}' '(' func_arg_list sort_clause ')' over_clause
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $1;
+					n->args = $6;
+					n->agg_order = $7;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					n->func_variadic = FALSE;
+					n->over = $9;
+					n->generics = $3;
+					n->location = @1;
+					$$ = (Node *)n;
+				}
 			| type_function_name '(' ALL func_arg_list opt_sort_clause ')' over_clause
 				{
 					FuncCall *n = makeNode(FuncCall);
@@ -6270,6 +6291,24 @@ member_access_el:
 					n->location = @1;
 					$$ = (Node *)n;
 				}
+			| type_function_name '{' type_list '}' '(' ALL func_arg_list opt_sort_clause ')' over_clause
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $1;
+					n->args = $7;
+					n->agg_order = $8;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					/* Ideally we'd mark the FuncCall node to indicate
+					 * "must be an aggregate", but there's no provision
+					 * for that in FuncCall at the moment.
+					 */
+					n->func_variadic = FALSE;
+					n->over = $10;
+					n->generics = $3;
+					n->location = @1;
+					$$ = (Node *)n;
+				}
 			| type_function_name '(' DISTINCT func_arg_list opt_sort_clause ')' over_clause
 				{
 					FuncCall *n = makeNode(FuncCall);
@@ -6280,6 +6319,20 @@ member_access_el:
 					n->agg_distinct = TRUE;
 					n->func_variadic = FALSE;
 					n->over = $7;
+					n->location = @1;
+					$$ = (Node *)n;
+				}
+			| type_function_name '{' type_list '}' '(' DISTINCT func_arg_list opt_sort_clause ')' over_clause
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $1;
+					n->args = $7;
+					n->agg_order = $8;
+					n->agg_star = FALSE;
+					n->agg_distinct = TRUE;
+					n->func_variadic = FALSE;
+					n->over = $10;
+					n->generics = $3;
 					n->location = @1;
 					$$ = (Node *)n;
 				}
@@ -6303,6 +6356,30 @@ member_access_el:
 					n->agg_distinct = FALSE;
 					n->func_variadic = FALSE;
 					n->over = $5;
+					n->location = @1;
+					$$ = (Node *)n;
+				}
+			| type_function_name '{' type_list '}' '(' '*' ')' over_clause
+				{
+					/*
+					 * We consider AGGREGATE(*) to invoke a parameterless
+					 * aggregate.  This does the right thing for COUNT(*),
+					 * and there are no other aggregates in SQL92 that accept
+					 * '*' as parameter.
+					 *
+					 * The FuncCall node is also marked agg_star = true,
+					 * so that later processing can detect what the argument
+					 * really was.
+					 */
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $1;
+					n->args = NIL;
+					n->agg_order = NIL;
+					n->agg_star = TRUE;
+					n->agg_distinct = FALSE;
+					n->func_variadic = FALSE;
+					n->over = $8;
+					n->generics = $3;
 					n->location = @1;
 					$$ = (Node *)n;
 				}
@@ -6775,6 +6852,13 @@ member_access_seq_el:
 			'.' type_function_name
 				{
 					$$ = (Node *) makeString($2);
+				}
+			| '.' type_function_name '{' type_list '}' 
+				{
+					TypeName *n = makeTypeName($2);
+					n->generics = $4;
+					n->location = @2;
+					$$ = (Node *)n;
 				}
 			| '.' type_function_name '(' ')' over_clause
 				{

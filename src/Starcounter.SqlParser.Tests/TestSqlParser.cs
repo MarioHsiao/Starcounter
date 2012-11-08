@@ -49,10 +49,13 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select I.J.F()");
             analyzer.ParseQuery("select I.J(A,B).F{A{C},T}()");
             analyzer.ParseQuery("select I.J(A)");
+            analyzer.ParseQuery("select I{A}()");
+            analyzer.ParseQuery("select I.J{A}.f{A}(g)");
+            analyzer.ParseQuery("select (I.J(a)).T{K}(v)");
             analyzer.ParseQuery("select a < b > c", true);
             analyzer.ParseQuery("select a < b , c >", true);
             analyzer.ParseQuery("select f()()", true);
-            analyzer.ParseQuery("select f(typ1)()");
+            analyzer.ParseQuery("select f{typ1}()");
             analyzer.ParseQuery("select cast(a+b as c)");
             analyzer.ParseQuery("select cast(a+b as int)");
             analyzer.ParseQuery("select cast(a+b as c.d(i)", true);
