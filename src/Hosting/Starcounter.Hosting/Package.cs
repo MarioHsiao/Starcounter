@@ -201,8 +201,13 @@ namespace Starcounter.Hosting {
         /// </summary>
         private void ExecuteEntryPoint() {
             if (assembly_ != null) {
-                var arguments = this.EntrypointArguments ?? new string[] { };
-                assembly_.EntryPoint.Invoke(null, new object[] { arguments });
+                var entrypoint = assembly_.EntryPoint;
+                if (entrypoint.GetParameters().Length == 0) {
+                    entrypoint.Invoke(null, null);
+                } else {
+                    var arguments = this.EntrypointArguments ?? new string[] { };
+                    entrypoint.Invoke(null, new object[] { arguments });
+                }
                 OnEntryPointExecuted();
             }
         }
