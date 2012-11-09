@@ -168,18 +168,21 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_inde
 // Running receive on socket data.
 uint32_t GatewayWorker::Receive(SocketDataChunk *sd)
 {
+// This label is used to avoid recursiveness between Receive and FinishReceive.
+START_RECEIVING_AGAIN:
+
 #ifdef GW_SOCKET_DIAG
     GW_PRINT_WORKER << "Receive: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
 #endif
 
     // Start receiving on socket.
     //profiler_.Start("Receive()", 5);
-    uint32_t numBytes, errCode;
+    uint32_t numBytes, err_code;
 
     // Checking if we have one or multiple chunks to receive.
     //if (1 == sd->get_num_chunks())
     {
-        errCode = sd->ReceiveSingleChunk(&numBytes);
+        err_code = sd->ReceiveSingleChunk(&numBytes);
     }
     /*else
     {
@@ -188,7 +191,7 @@ uint32_t GatewayWorker::Receive(SocketDataChunk *sd)
     //profiler_.Stop(5);
 
     // Checking if operation completed immediately.
-    if (0 != errCode)
+    if (0 != err_code)
     {
         int32_t wsaErrCode = WSAGetLastError();
         if (WSA_IO_PENDING != wsaErrCode)
@@ -218,8 +221,13 @@ uint32_t GatewayWorker::Receive(SocketDataChunk *sd)
         else
         {
             // Finish receive operation.
-            errCode = FinishReceive(sd, numBytes);
-            GW_ERR_CHECK(errCode);
+            bool called_from_receive = true;
+            err_code = FinishReceive(sd, numBytes, called_from_receive);
+            GW_ERR_CHECK(err_code);
+
+            // Checking if Receive was called internally again.
+            if (!called_from_receive)
+                goto START_RECEIVING_AGAIN;
         }
     }
 
@@ -227,14 +235,17 @@ uint32_t GatewayWorker::Receive(SocketDataChunk *sd)
 }
 
 // Socket receive finished.
-uint32_t GatewayWorker::FinishReceive(SocketDataChunk *sd, int32_t numBytesReceived)
+__forceinline uint32_t GatewayWorker::FinishReceive(
+    SocketDataChunk *sd,
+    int32_t num_bytes_received,
+    bool& called_from_receive)
 {
 #ifdef GW_SOCKET_DIAG
     GW_PRINT_WORKER << "FinishReceive: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
 #endif
 
     // If we received 0 bytes, the remote side has close the connection.
-    if (0 == numBytesReceived)
+    if (0 == num_bytes_received)
     {
 #ifdef GW_ERRORS_DIAG
         GW_PRINT_WORKER << "Zero-bytes receive on socket: " << sd->sock() << ". Remote side closed the connection." << std::endl;
@@ -249,10 +260,10 @@ uint32_t GatewayWorker::FinishReceive(SocketDataChunk *sd, int32_t numBytesRecei
     AccumBuffer* accum_buf = sd->get_accum_buf();
 
     // Adding to accumulated bytes.
-    accum_buf->AddAccumulatedBytes(numBytesReceived);
+    accum_buf->AddAccumulatedBytes(num_bytes_received);
 
     // Incrementing statistics.
-    worker_stats_bytes_received_ += numBytesReceived;
+    worker_stats_bytes_received_ += num_bytes_received;
 
     // Increasing number of receives.
     worker_stats_recv_num_++;
@@ -260,12 +271,12 @@ uint32_t GatewayWorker::FinishReceive(SocketDataChunk *sd, int32_t numBytesRecei
     // Assigning last received bytes.
     if (!sd->get_accumulating_flag())
     {
-        accum_buf->SetLastReceivedBytes(numBytesReceived);
+        accum_buf->SetLastReceivedBytes(num_bytes_received);
     }
     else
     {
         // Adding last received bytes.
-        accum_buf->AddLastReceivedBytes(numBytesReceived);
+        accum_buf->AddLastReceivedBytes(num_bytes_received);
 
         // Indicates if all data was accumulated.
         bool is_accumulated;
@@ -276,7 +287,20 @@ uint32_t GatewayWorker::FinishReceive(SocketDataChunk *sd, int32_t numBytesRecei
 
         // Checking if we have not accumulated everything yet.
         if (!is_accumulated)
-            return Receive(sd);
+        {
+            // Checking if we are called already from Receive to avoid recursiveness.
+            if (!called_from_receive)
+            {
+                return Receive(sd);
+            }
+            else
+            {
+                // Just indicating this way that Receive should be called again.
+                called_from_receive = false;
+
+                return 0;
+            }
+        }
     }
 
     // Getting attached session if any.
@@ -303,50 +327,6 @@ uint32_t GatewayWorker::FinishReceive(SocketDataChunk *sd, int32_t numBytesRecei
         if (session)
             sd->AttachToSession(session);
     }
-
-    // Checking if we have received everything.
-    /*
-    if (accumLenBytesRef < g_msgLenBytes)
-    {
-        // Shifting receive buffer pointer for the next receive.
-        (recvBuf->curBufPtr) += numBytesReceived;
-
-        // Adding back to receive since not all data was received.
-        PutSocketToRecv(sd);
-
-        return true;
-    }
-    else
-    {
-        // Checking that we processed correct number of bytes.
-        if (accumLenBytesRef != g_msgLenBytes)
-        {
-            GW_PRINT_WORKER << "Incorrect number of bytes received: " << accumLenBytesRef << " of " << g_msgLenBytes << "(correct)" << std::endl;
-            return false;
-        }
-    }
-
-    // Comparing data contents.
-    if (g_isClientMode)
-    {
-        // Fetching and comparing last four bytes of the message.
-        uint32_t contentSend = (*(uint32_t *)(sd->sendBuf->origBufPtr + g_msgLenBytes - 4));
-        uint32_t contentRecv = (*(uint32_t *)(recvBuf->origBufPtr + g_msgLenBytes - 4));
-        if (contentRecv != contentSend)
-        {
-            GW_PRINT_WORKER << "Incorrect contents of message received: " << contentRecv << " vs " << contentSend << "(correct)" << std::endl;
-            return false;
-        }
-    }
-    else
-    {
-        // Simply echoing receive buffer.
-        memcpy(sd->sendBuf->origBufPtr, recvBuf->origBufPtr, g_msgLenBytes);
-    }
-
-    // Resetting socket data.
-    sd->Reset();
-    */
 
     if (!g_gateway.setting_is_master())
     {
@@ -409,7 +389,7 @@ uint32_t GatewayWorker::Send(SocketDataChunk *sd)
 }
 
 // Socket send finished.
-uint32_t GatewayWorker::FinishSend(SocketDataChunk *sd, int32_t num_bytes_sent)
+__forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunk *sd, int32_t num_bytes_sent)
 {
 #ifdef GW_SOCKET_DIAG
     GW_PRINT_WORKER << "FinishSend: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
@@ -554,7 +534,7 @@ uint32_t GatewayWorker::VanishSocketData(SocketDataChunk *sd)
 }
 
 // Socket disconnect finished.
-inline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunk *sd)
+__forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunk *sd)
 {
 #ifdef GW_SOCKET_DIAG
     GW_PRINT_WORKER << "FinishDisconnect: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
@@ -647,7 +627,7 @@ uint32_t GatewayWorker::Connect(SocketDataChunk *sd, sockaddr_in *serverAddr)
 }
 
 // Socket connect finished.
-uint32_t GatewayWorker::FinishConnect(SocketDataChunk *sd)
+__forceinline uint32_t GatewayWorker::FinishConnect(SocketDataChunk *sd)
 {
 #ifdef GW_SOCKET_DIAG
     GW_PRINT_WORKER << "FinishConnect: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
@@ -738,12 +718,13 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunk *sd, int32_t numBytesReceiv
     return 0;
 }
 
+// Main gateway worker routine.
 uint32_t GatewayWorker::WorkerRoutine()
 {
     BOOL complStatus = false;
     OVERLAPPED_ENTRY *removedOvls = new OVERLAPPED_ENTRY[MAX_FETCHED_OVLS];
     ULONG removedOvlsNum = 0;
-    uint32_t errCode = 0;
+    uint32_t err_code = 0;
     uint32_t numBytes = 0, flags = 0, oldTimeMs = timeGetTime(), newTimeMs;
     uint32_t waitForIocpMs = INFINITE;
     bool found_something = false;
@@ -777,8 +758,8 @@ uint32_t GatewayWorker::WorkerRoutine()
                 // Checking for IOCP operation result.
                 if (TRUE != WSAGetOverlappedResult(sd->sock(), sd->get_ovl(), (LPDWORD)&numBytes, FALSE, (LPDWORD)&flags))
                 {
-                    errCode = WSAGetLastError();
-                    if ((WSA_IO_PENDING != errCode) && (WSA_IO_INCOMPLETE != errCode))
+                    err_code = WSAGetLastError();
+                    if ((WSA_IO_PENDING != err_code) && (WSA_IO_INCOMPLETE != err_code))
                     {
 #ifdef GW_ERRORS_DIAG
                         GW_PRINT_WORKER << "IOCP operation failed: " << GetOperTypeString(sd->type_of_network_oper()) <<
@@ -802,8 +783,8 @@ uint32_t GatewayWorker::WorkerRoutine()
                     // ACCEPT finished.
                     case ACCEPT_OPER:
                     {
-                        errCode = FinishAccept(sd, numBytes);
-                        GW_ERR_CHECK(errCode);
+                        err_code = FinishAccept(sd, numBytes);
+                        GW_ERR_CHECK(err_code);
 
                         break;
                     }
@@ -811,8 +792,8 @@ uint32_t GatewayWorker::WorkerRoutine()
                     // CONNECT finished.
                     case CONNECT_OPER:
                     {
-                        errCode = FinishConnect(sd);
-                        GW_ERR_CHECK(errCode);
+                        err_code = FinishConnect(sd);
+                        GW_ERR_CHECK(err_code);
 
                         break;
                     }
@@ -820,8 +801,8 @@ uint32_t GatewayWorker::WorkerRoutine()
                     // DISCONNECT finished.
                     case DISCONNECT_OPER:
                     {
-                        errCode = FinishDisconnect(sd);
-                        GW_ERR_CHECK(errCode);
+                        err_code = FinishDisconnect(sd);
+                        GW_ERR_CHECK(err_code);
 
                         break;
                     }
@@ -829,8 +810,8 @@ uint32_t GatewayWorker::WorkerRoutine()
                     // SEND finished.
                     case SEND_OPER:
                     {
-                        errCode = FinishSend(sd, numBytes);
-                        GW_ERR_CHECK(errCode);
+                        err_code = FinishSend(sd, numBytes);
+                        GW_ERR_CHECK(err_code);
 
                         break;
                     }
@@ -838,8 +819,9 @@ uint32_t GatewayWorker::WorkerRoutine()
                     // RECEIVE finished.
                     case RECEIVE_OPER:
                     {
-                        errCode = FinishReceive(sd, numBytes);
-                        GW_ERR_CHECK(errCode);
+                        bool called_from_receive = false;
+                        err_code = FinishReceive(sd, numBytes, called_from_receive);
+                        GW_ERR_CHECK(err_code);
 
                         break;
                     }
@@ -857,21 +839,21 @@ uint32_t GatewayWorker::WorkerRoutine()
         }
         else
         {
-            errCode = WSAGetLastError();
+            err_code = WSAGetLastError();
 
             // Checking if it was an APC event.
-            if (STATUS_USER_APC != errCode &&
-                STATUS_TIMEOUT != errCode)
+            if (STATUS_USER_APC != err_code &&
+                STATUS_TIMEOUT != err_code)
             {
                 PrintLastError();
-                return errCode;
+                return err_code;
             }
         }
 
         // Scanning all channels.
         found_something = false;
-        errCode = ScanChannels(&found_something);
-        GW_ERR_CHECK(errCode);
+        err_code = ScanChannels(&found_something);
+        GW_ERR_CHECK(err_code);
 
         // Checking if something was found.
         if (found_something)
