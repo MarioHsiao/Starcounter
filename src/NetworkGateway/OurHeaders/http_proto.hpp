@@ -499,13 +499,6 @@ public:
     }
 };
 
-enum HTTP_WS_FLAGS
-{
-    HTTP_WS_FLAGS_UPGRADE = 1,
-    HTTP_WS_FLAGS_COMPLETE_HEADER = 2,
-    HTTP_WS_FLAGS_CONTINUE_RECEIVE = 4
-};
-
 class HttpWsProto
 {
     // HttpProto is also an http_parser.
@@ -513,9 +506,6 @@ class HttpWsProto
 
     // Structure that holds HTTP request.
     HttpRequest http_request_;
-
-    // HTTP/WebSockets flags.
-    uint32_t flags_;
 
     // To which socket this instance belongs.
     SocketDataChunk *sd_ref_;
@@ -548,51 +538,6 @@ public:
         return &http_request_;
     }
 
-    // Getting WebSocket upgrade flag.
-    bool get_web_sockets_upgrade_flag()
-    {
-        return flags_ & HTTP_WS_FLAGS_UPGRADE;
-    }
-
-    // Setting WebSocket upgrade flag.
-    void set_web_sockets_upgrade_flag(bool value)
-    {
-        if (value)
-            flags_ |= HTTP_WS_FLAGS_UPGRADE;
-        else
-            flags_ &= ~HTTP_WS_FLAGS_UPGRADE;
-    }
-
-    // Getting complete header flag.
-    bool get_complete_header_flag()
-    {
-        return flags_ & HTTP_WS_FLAGS_COMPLETE_HEADER;
-    }
-
-    // Setting complete header flag.
-    void set_complete_header_flag(bool value)
-    {
-        if (value)
-            flags_ |= HTTP_WS_FLAGS_COMPLETE_HEADER;
-        else
-            flags_ &= ~HTTP_WS_FLAGS_COMPLETE_HEADER;
-    }
-
-    // Getting continue receive flag.
-    bool get_continue_receive_flag()
-    {
-        return flags_ & HTTP_WS_FLAGS_CONTINUE_RECEIVE;
-    }
-
-    // Setting continue receive flag.
-    void set_continue_receive_flag(bool value)
-    {
-        if (value)
-            flags_ |= HTTP_WS_FLAGS_CONTINUE_RECEIVE;
-        else
-            flags_ &= ~HTTP_WS_FLAGS_CONTINUE_RECEIVE;
-    }
-
     // HTTP/WS parser callbacks.
     static int OnMessageComplete(http_parser* p);
     static int OnMessageBegin(http_parser* p);
@@ -615,8 +560,6 @@ public:
     void Reset()
     {
         matched_uri_index_ = INVALID_URI_INDEX;
-        flags_ = 0;
-
         ws_proto_.Reset();
     }
 
@@ -630,10 +573,7 @@ public:
         resp_type_ = HTTP_GATEWAY_PONG_RESPONSE;
 #endif
 
-        flags_ = 0;
-
         memset(&http_request_, 0, sizeof(http_request_));
-
         http_parser_init((http_parser *)this, HTTP_REQUEST);
     }
 
@@ -642,6 +582,13 @@ public:
 
     // Standard HTTP/WS handler once URI is determined.
     uint32_t HttpWsProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);
+
+    // Sends given predefined response.
+    uint32_t HttpWsProto::SendPredefinedResponse(
+        GatewayWorker *gw,
+        SocketDataChunk *sd,
+        const char* response,
+        const int32_t response_length);
 
     // Attaching socket data and gateway worker to parser.
     void AttachToParser(SocketDataChunk *sd)

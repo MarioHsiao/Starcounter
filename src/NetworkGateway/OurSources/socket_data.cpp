@@ -136,7 +136,7 @@ SocketDataChunk *SocketDataChunk::CloneReceive(GatewayWorker *gw)
     SocketDataChunk *sd = gw->CreateSocketData(sock_, port_index_, db_index_);
     sd->session_ = session_;
     sd->set_to_database_direction_flag(true);
-    sd->http_ws_proto_.set_web_sockets_upgrade_flag(http_ws_proto_.get_web_sockets_upgrade_flag());
+    sd->set_web_sockets_upgrade_flag(sd->get_web_sockets_upgrade_flag());
 
     // This socket becomes attached.
     sd->set_receiving_flag(true);

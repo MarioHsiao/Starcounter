@@ -9,8 +9,8 @@ namespace starcounter {
 namespace network {
 
 // Defining two streams output object.
-#define GW_COUT std::cout
-//#define GW_COUT (*g_cout)
+//#define GW_COUT std::cout
+#define GW_COUT (*g_cout)
 typedef boost::iostreams::tee_device<std::ostream, std::ofstream> TeeDevice;
 typedef boost::iostreams::stream<TeeDevice> TeeLogStream;
 
