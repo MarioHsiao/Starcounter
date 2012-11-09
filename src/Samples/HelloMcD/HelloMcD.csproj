@@ -83,8 +83,8 @@
     </App>
   </ItemGroup>
   <ItemGroup>
-    <None Include="css\angular-ui.min.css" />
-    <None Include="css\bootstrap.min-2.1.1.css" />
+    <None Include="css\angular-ui-0.3.1.min.css" />
+    <None Include="css\bootstrap-2.1.1.min.css" />
     <None Include="index.html" />
     <None Include="js\angular-ui\angular-ui-ieshiv.min.js" />
     <None Include="js\angular-ui\angular-ui.min.js" />
@@ -95,6 +95,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="js\angular-datagrid\angular-datagrid.js" />
+    <Content Include="sys\angular-ui-0.3.1.min.js" />
+    <Content Include="sys\angular-ui-ieshiv-0.3.1.min.js" />
     <None Include="js\jsondiffpatch.js" />
     <None Include="Products.txt" />
     <None Include="js\angular-datagrid\handsontable\jquery.handsontable.css" />
@@ -105,9 +107,7 @@
     <None Include="js\angular-datagrid\handsontable\lib\jQuery-contextMenu\jquery.ui.position.js" />
     <None Include="js\angular-datagrid\handsontable\lib\jquery.min.js" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="sys\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(StarcounterBin)\Starcounter.MsBuild.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
