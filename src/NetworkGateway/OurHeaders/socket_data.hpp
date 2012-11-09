@@ -13,7 +13,10 @@ enum SOCKET_DATA_FLAGS
     SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION = 1,
     SOCKET_DATA_FLAGS_RECEIVING_STATE = 2,
     SOCKET_DATA_FLAGS_NEW_SESSION = 4,
-    SOCKET_DATA_FLAGS_ACCUMULATING_STATE = 8
+    SOCKET_DATA_FLAGS_ACCUMULATING_STATE = 8,
+    SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND = 16,
+    HTTP_WS_FLAGS_UPGRADE = 32,
+    HTTP_WS_FLAGS_COMPLETE_HEADER = 64
 };
 
 // Socket data chunk.
@@ -167,6 +170,21 @@ public:
             flags_ &= ~SOCKET_DATA_FLAGS_ACCUMULATING_STATE;
     }
 
+    // Getting disconnect after send flag.
+    bool get_disconnect_after_send_flag()
+    {
+        return flags_ & SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
+    }
+
+    // Setting disconnect after send flag.
+    void set_disconnect_after_send_flag(bool value)
+    {
+        if (value)
+            flags_ |= SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
+        else
+            flags_ &= ~SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
+    }
+
     // Getting new session flag.
     bool get_new_session_flag()
     {
@@ -180,6 +198,36 @@ public:
             flags_ |= SOCKET_DATA_FLAGS_NEW_SESSION;
         else
             flags_ &= ~SOCKET_DATA_FLAGS_NEW_SESSION;
+    }
+
+    // Getting WebSocket upgrade flag.
+    bool get_web_sockets_upgrade_flag()
+    {
+        return flags_ & HTTP_WS_FLAGS_UPGRADE;
+    }
+
+    // Setting WebSocket upgrade flag.
+    void set_web_sockets_upgrade_flag(bool value)
+    {
+        if (value)
+            flags_ |= HTTP_WS_FLAGS_UPGRADE;
+        else
+            flags_ &= ~HTTP_WS_FLAGS_UPGRADE;
+    }
+
+    // Getting complete header flag.
+    bool get_complete_header_flag()
+    {
+        return flags_ & HTTP_WS_FLAGS_COMPLETE_HEADER;
+    }
+
+    // Setting complete header flag.
+    void set_complete_header_flag(bool value)
+    {
+        if (value)
+            flags_ |= HTTP_WS_FLAGS_COMPLETE_HEADER;
+        else
+            flags_ &= ~HTTP_WS_FLAGS_COMPLETE_HEADER;
     }
 
     // Getting session index.

@@ -436,10 +436,10 @@ public:
     }
 
     // Prepare buffer to send outside.
-    void PrepareForSend(uint8_t *userData, ULONG numBytes)
+    void PrepareForSend(uint8_t *data, ULONG num_bytes)
     {
-        buf_len_bytes_ = numBytes;
-        cur_buf_ptr_ = userData;
+        buf_len_bytes_ = num_bytes;
+        cur_buf_ptr_ = data;
         accum_len_bytes_ = 0;
     }
 

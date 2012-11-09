@@ -267,6 +267,7 @@ uint32_t GatewayWorker::FinishReceive(SocketDataChunk *sd, int32_t numBytesRecei
         // Adding last received bytes.
         accum_buf->AddLastReceivedBytes(numBytesReceived);
 
+        // Indicates if all data was accumulated.
         bool is_accumulated;
 
         // Trying to continue accumulation.
@@ -408,32 +409,43 @@ uint32_t GatewayWorker::Send(SocketDataChunk *sd)
 }
 
 // Socket send finished.
-uint32_t GatewayWorker::FinishSend(SocketDataChunk *sd, int32_t numBytesSent)
+uint32_t GatewayWorker::FinishSend(SocketDataChunk *sd, int32_t num_bytes_sent)
 {
 #ifdef GW_SOCKET_DIAG
     GW_PRINT_WORKER << "FinishSend: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
 #endif
 
+    AccumBuffer* accum_buf = sd->get_accum_buf();
+
     // Checking that we processed correct number of bytes.
-    if (numBytesSent != sd->get_user_data_written_bytes())
+    if (num_bytes_sent != accum_buf->get_buf_len_bytes())
     {
 #ifdef GW_ERRORS_DIAG
-        GW_PRINT_WORKER << "Incorrect number of bytes sent: " << numBytesSent << " of " << sd->get_user_data_written_bytes() << "(correct)" << std::endl;
+        GW_PRINT_WORKER << "Incorrect number of bytes sent: " << num_bytes_sent << " of " << accum_buf->get_buf_len_bytes() << "(correct)" << std::endl;
 #endif
         return SCERRUNSPECIFIED;
     }
 
     // Incrementing statistics.
-    worker_stats_bytes_sent_ += numBytesSent;
+    worker_stats_bytes_sent_ += num_bytes_sent;
 
     // Increasing number of sends.
     worker_stats_sent_num_++;
+
+    // Checking disconnect state.
+    if (sd->get_disconnect_after_send_flag())
+    {
+        // Performing disconnect.
+        Disconnect(sd);
+
+        return 0;
+    }
 
     // Resets data buffer offset.
     sd->ResetUserDataOffset();
 
     // Resetting buffer information.
-    sd->get_accum_buf()->ResetBufferForNewOperation();
+    accum_buf->ResetBufferForNewOperation();
 
     // Checking if socket data is for receiving.
     if (sd->get_receiving_flag())

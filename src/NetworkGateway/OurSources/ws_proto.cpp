@@ -218,7 +218,7 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunk *sd)
     sd->get_accum_buf()->PrepareForSend(respDataBegin, respBufferSize);
 
     // Setting WebSocket handshake flag.
-    sd->get_http_ws_proto()->set_web_sockets_upgrade_flag(true);
+    sd->set_web_sockets_upgrade_flag(true);
 
     // Sending data.
     gw->Send(sd);
