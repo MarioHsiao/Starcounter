@@ -26,8 +26,9 @@ namespace HelloMcd {
                 // This doesn't seem to work either. NotSupportedException is thrown. 
                 //                return (decimal)Db.SlowSQL("SELECT Sum(Price*Quantity) FROM OrderItem WHERE [Order]=?", this).First.GetDecimal(0);
 
-                CompositeObject co = Db.SlowSQL("SELECT Sum(Price*Quantity) FROM OrderItem item WHERE item.[Order]=?", this).First;
-                return (decimal)co.GetDecimal(0).Value;                
+                //CompositeObject co = Db.SlowSQL("SELECT Sum(Price*Quantity) FROM OrderItem item WHERE item.[Order]=?", this).First;
+                //return (decimal)co.GetDecimal(0).Value;                
+                return 0;
             }
         }
 
