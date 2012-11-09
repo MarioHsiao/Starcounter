@@ -257,7 +257,7 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 				alter_generic_options
 				relation_expr_list
 
-%type <node>	member_access_el member_access_seq_el member_expr
+%type <node>	member_access_el member_access_seq_el member_expr member_access_indices
 %type <list>	member_access_seq
 
 %type <range>	OptTempTableName
@@ -5255,13 +5255,13 @@ GenericType:
 			type_function_name OptGenerics
 				{
 					$$ = makeTypeName($1);
-					//$$->generics = $3;
+					$$->generics = $2;
 					$$->location = @1;
 				}
 			| type_function_name attrs OptGenerics
 				{
 					$$ = makeTypeNameFromNameList(lcons(makeString($1), $2));
-					//$$->generics = $4
+					$$->generics = $3;
 					$$->location = @1;
 				}
 		;
@@ -6139,9 +6139,12 @@ member_access_el:
 			| type_function_name '{' type_list '}' member_access_seq_el
 				{
 					TypeName *n = makeTypeName($1);
+					A_Indirection *i = makeNode(A_Indirection);
 					n->generics = $3;
 					n->location = @1;
-					$$ = (Node *)n;
+					i->arg = n;
+					i->indirection = list_make1($5);
+					$$ = (Node *)i;
 				}
 			| type_function_name '(' ')'  over_clause
 				{
@@ -6819,9 +6822,10 @@ member_access_seq_el:
 			| '.' type_function_name '{' type_list '}' member_access_seq_el
 				{
 					TypeName *n = makeTypeName($2);
+					List *l = list_make2(n, $6);
 					n->generics = $4;
 					n->location = @2;
-					$$ = (Node *)n;
+					$$ = (Node *)l;
 				}
 			| '.' type_function_name '(' ')' over_clause
 				{
@@ -7073,7 +7077,10 @@ member_access_seq_el:
 				{
 					$$ = (Node *) makeNode(A_Star);
 				}
-			| '[' a_expr ']'
+		;
+
+member_access_indices:
+			'[' a_expr ']'
 				{
 					A_Indices *ai = makeNode(A_Indices);
 					ai->lidx = NULL;
@@ -7092,6 +7099,10 @@ member_access_seq_el:
 member_access_seq:
 			member_access_seq_el					{ $$ = list_make1($1); }
 			| member_access_seq member_access_seq_el
+				{
+					$$ = lappend($1, $2);
+				}
+			| member_access_seq member_access_indices
 				{
 					$$ = lappend($1, $2);
 				}

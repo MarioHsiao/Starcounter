@@ -87,6 +87,7 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("SELECT p FROM Photo p WHERE p.Description = 'Smith\\'s family'", true);
             analyzer.ParseQuery("select E'\\''");
             analyzer.ParseQuery("ALTER DEFAULT PRIVILEGES IN SCHEMA myschema REVOKE GRANT OPTION FOR SELECT ON TABLES FROM internal", true);
+            analyzer.ParseQuery("select A.D.B{C}.F.G{A}(d,A{d}.D{s}())");
         }
 
         [Test]
