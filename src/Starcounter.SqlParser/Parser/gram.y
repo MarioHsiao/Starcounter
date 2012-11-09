@@ -6136,7 +6136,7 @@ member_access_el:
 				{
 					$$ = makeColumnRef($1, NIL, @1, yyscanner);
 				}
-			| type_function_name '{' type_list '}' 
+			| type_function_name '{' type_list '}' member_access_seq_el
 				{
 					TypeName *n = makeTypeName($1);
 					n->generics = $3;
@@ -6572,19 +6572,6 @@ member_access_el:
 					n->location = @1;
 					$$ = (Node *)n;
 				}
-			| CURRENT_SCHEMA
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("current_schema");
-					n->args = NIL;
-					n->agg_order = NIL;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = FALSE;
-					n->over = NULL;
-					n->location = @1;
-					$$ = (Node *)n;
-				}
 			| CAST '(' a_expr AS Typename ')'
 				{ $$ = makeTypeCast($3, $5, @1); }
 			| EXTRACT '(' extract_list ')'
@@ -6829,7 +6816,7 @@ member_access_seq_el:
 				{
 					$$ = (Node *) makeString($2);
 				}
-			| '.' type_function_name '{' type_list '}' 
+			| '.' type_function_name '{' type_list '}' member_access_seq_el
 				{
 					TypeName *n = makeTypeName($2);
 					n->generics = $4;
