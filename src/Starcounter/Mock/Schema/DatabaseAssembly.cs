@@ -62,7 +62,10 @@ public sealed class DatabaseAssembly : DatabaseSchemaElement
         }
     }
 
-    internal void SetSchema(DatabaseSchema schema)
+    /// <summary>
+    /// </summary>
+    /// <param name="schema"></param>
+    public void SetSchema(DatabaseSchema schema)
     {
         this.schema = schema;
     }
