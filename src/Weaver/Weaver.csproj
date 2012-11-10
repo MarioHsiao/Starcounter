@@ -118,11 +118,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <CodeAnalysisDictionary Include="Temp\ScAnalyze.psplugin" />
-    <CodeAnalysisDictionary Include="Temp\ScAnalyzeOnly.psproj" />
-    <CodeAnalysisDictionary Include="Temp\ScIgnore.psproj" />
-    <CodeAnalysisDictionary Include="Temp\ScRuntime.psplugin" />
-    <CodeAnalysisDictionary Include="Temp\ScTransform.psproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <RuntimeFile Include="Temp\ScAnalyze.psplugin" />
+    <RuntimeFile Include="Temp\ScAnalyzeOnly.psproj" />
+    <RuntimeFile Include="Temp\ScIgnore.psproj" />
+    <RuntimeFile Include="Temp\ScRuntime.psplugin" />
+    <RuntimeFile Include="Temp\ScTransform.psproj" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
@@ -150,4 +152,7 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Target Name="AfterBuild">
+    <Copy DestinationFolder="$(OutputPath)" SourceFiles="@(RuntimeFile)" SkipUnchangedFiles="true" />
+  </Target>
 </Project>

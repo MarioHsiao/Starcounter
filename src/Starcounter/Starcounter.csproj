@@ -374,11 +374,6 @@
     <None Include="..\Starcounter.snk" />
   </ItemGroup>
   <ItemGroup>
-    <AvailableItemName Include="RuntimeFile">
-      <Visible>false</Visible>
-    </AvailableItemName>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\HTTP\HttpStructs\HttpStructs.csproj">
       <Project>{90d57166-b42e-4bbe-b9ec-cfb33e551b77}</Project>
       <Name>HttpStructs</Name>
@@ -401,14 +396,7 @@
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
-  -->
-  <!--
-  <Target Name="AfterClean">
-    <Exec Command="&quot;C:\Program Files (x86)\Microsoft SDKs\Windows\v8.0A\Bin\NETFX 4.0 Tools\gacutil.exe&quot; /u Starcounter" />
-  </Target>
-  -->
   <Target Name="AfterBuild">
-    <Copy DestinationFolder="$(OutputPath)" SourceFiles="@(RuntimeFile)" SkipUnchangedFiles="true" />
-    <!-- <Exec Command="&quot;C:\Program Files (x86)\Microsoft SDKs\Windows\v8.0A\Bin\NETFX 4.0 Tools\gacutil.exe&quot; /f /i &quot;$(MSBuildProjectDirectory)\$(OutputPath)\$(AssemblyName).dll&quot;" /> -->
   </Target>
+  -->
 </Project>
