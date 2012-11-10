@@ -4,15 +4,13 @@
 // </copyright>
 // ***********************************************************************
 
+using Sc.Server.Weaver.Schema;
 using Starcounter.Binding;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-
-using Sc.Server.Weaver.Schema;
-using Starcounter.Internal.Weaver;
 
 namespace Starcounter.Internal
 {

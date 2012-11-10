@@ -84,9 +84,46 @@
     <Compile Include="ProgramCommands.cs" />
     <Compile Include="ProgramVerbosity.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Temp\AnonymousTypeAdapter.cs" />
+    <Compile Include="Temp\AnonymousTypePropertyAttribute.cs" />
+    <Compile Include="Temp\AssemblyWeavedForIPCAttribute.cs" />
+    <Compile Include="Temp\CastHelper.cs" />
+    <Compile Include="Temp\DbStateMethodProvider.cs" />
+    <Compile Include="Temp\EntityConstructorCallAdvice.cs" />
+    <Compile Include="Temp\HashHelper.cs" />
+    <Compile Include="Temp\IMessageHandler.cs" />
+    <Compile Include="Temp\IMethodLevelAdvice.cs" />
+    <Compile Include="Temp\InsteadOfFieldAccessAdvice.cs" />
+    <Compile Include="Temp\InterceptThread.cs" />
+    <Compile Include="Temp\KnownAssemblyAttribute.cs" />
+    <Compile Include="Temp\KnownTypeAttribute.cs" />
+    <Compile Include="Temp\LucentClassInitializerMethodAdvice.cs" />
+    <Compile Include="Temp\PostSharpExtensions.cs" />
+    <Compile Include="Temp\ReimplementWeavedLucentAccessorAdvice.cs" />
+    <Compile Include="Temp\ScAnalysisTask.cs" />
+    <Compile Include="Temp\ScAnalysisTrace.cs" />
+    <Compile Include="Temp\ScCopyTask.cs" />
+    <Compile Include="Temp\ScEnhanceThreadingTask.cs" />
+    <Compile Include="Temp\ScMessageSource.cs" />
+    <Compile Include="Temp\ScTouchTask.cs" />
+    <Compile Include="Temp\ScTransactionScopeTask.cs" />
+    <Compile Include="Temp\ScTransformTask.cs" />
+    <Compile Include="Temp\ScTransformTrace.cs" />
+    <Compile Include="Temp\StaticConstructorAdvice.cs" />
+    <Compile Include="Temp\WeaverCache.cs" />
+    <Compile Include="Temp\WeaverNamingConventions.cs" />
+    <Compile Include="Temp\WeaverSchemaExtensions.cs" />
+    <Compile Include="Temp\WeaverTransformationKind.cs" />
+    <Compile Include="Temp\WeaverUtilities.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <EmbeddedResource Include="Temp\Postsharp.license" />
+    <CodeAnalysisDictionary Include="Temp\ScAnalyze.psplugin" />
+    <CodeAnalysisDictionary Include="Temp\ScAnalyzeOnly.psproj" />
+    <CodeAnalysisDictionary Include="Temp\ScIgnore.psproj" />
+    <CodeAnalysisDictionary Include="Temp\ScRuntime.psplugin" />
+    <CodeAnalysisDictionary Include="Temp\ScTransform.psproj" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
@@ -97,6 +134,11 @@
       <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
       <Name>Starcounter</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Temp\Messages.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
