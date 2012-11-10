@@ -118,7 +118,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <EmbeddedResource Include="Temp\Postsharp.license" />
     <CodeAnalysisDictionary Include="Temp\ScAnalyze.psplugin" />
     <CodeAnalysisDictionary Include="Temp\ScAnalyzeOnly.psproj" />
     <CodeAnalysisDictionary Include="Temp\ScIgnore.psproj" />
@@ -138,6 +137,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Temp\Messages.resx">
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Temp\Postsharp.license">
+      <LogicalName>Sc.Postsharp.license</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
