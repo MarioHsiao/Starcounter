@@ -221,10 +221,11 @@ public:
     uint32_t ScanChannels(bool* found_something);
 
     // Creates the socket data structure.
-    SocketDataChunk* CreateSocketData(
+    uint32_t CreateSocketData(
         SOCKET sock,
         int32_t port_index,
-        int32_t db_index);
+        int32_t db_index,
+        SocketDataChunk** out_sd);
 };
 
 } // namespace network

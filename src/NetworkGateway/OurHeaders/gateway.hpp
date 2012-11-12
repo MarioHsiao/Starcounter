@@ -93,7 +93,7 @@ const int32_t SOCKET_DATA_BLOB_SIZE_BYTES = bmx::MAX_DATA_BYTES_IN_CHUNK - bmx::
 const int32_t OVERLAPPED_SIZE = sizeof(OVERLAPPED);
 
 // Bad chunk index.
-const uint32_t INVALID_CHUNK_INDEX = ~0;
+const uint32_t INVALID_CHUNK_INDEX = shared_memory_chunk::LINK_TERMINATOR;
 
 // Bad linear session index.
 const session_index_type INVALID_SESSION_INDEX = ~0;

@@ -398,6 +398,8 @@ uint32_t OuterPortProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLE
 // General sockets handler.
 uint32_t PortProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled)
 {
+    uint32_t err_code;
+
     // Setting handled flag.
     *is_handled = false;
 
@@ -426,7 +428,8 @@ uint32_t PortProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYP
         sd->get_accum_buf()->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_written_bytes());
 
         // Sending data.
-        gw->Send(sd);
+        err_code = gw->Send(sd);
+        GW_ERR_CHECK(err_code);
 
         // Setting handled flag.
         *is_handled = true;

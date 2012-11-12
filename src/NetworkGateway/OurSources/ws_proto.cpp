@@ -66,13 +66,21 @@ uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunk *sd, BMX_
     GW_COUT << "[" << gw->get_worker_id() << "]: " << "WS_OPCODE: " << frame_info_.opcode_ << std::endl;
 #endif
 
+    uint32_t err_code;
+
     // Determining operation type.
     switch(frame_info_.opcode_)
     {
         case WS_OPCODE_TEXT:
         {
             // Data is complete, posting parallel receive.
-            gw->Receive(sd->CloneReceive(gw));
+            SocketDataChunk* sd_clone;
+            err_code = sd->CloneToReceive(gw, &sd_clone);
+            GW_ERR_CHECK(err_code);
+
+            // Start receiving on clone.
+            err_code = gw->Receive(sd_clone);
+            GW_ERR_CHECK(err_code);
 
             // Unmasking data.
             MaskUnMask(frame_info_.payload_len_, frame_info_.mask_, (uint64_t *)payload);
@@ -90,7 +98,13 @@ uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunk *sd, BMX_
         case WS_OPCODE_BINARY:
         {
             // Data is complete, posting parallel receive.
-            gw->Receive(sd->CloneReceive(gw));
+            SocketDataChunk* sd_clone;
+            err_code = sd->CloneToReceive(gw, &sd_clone);
+            GW_ERR_CHECK(err_code);
+
+            // Start receiving on clone.
+            err_code = gw->Receive(sd_clone);
+            GW_ERR_CHECK(err_code);
 
             // Unmasking data.
             MaskUnMask(frame_info_.payload_len_, frame_info_.mask_, (uint64_t *)payload);
@@ -130,7 +144,8 @@ uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunk *sd, BMX_
             sd->get_accum_buf()->PrepareForSend(payload, payloadLen);
 
             // Sending data.
-            gw->Send(sd);
+            err_code = gw->Send(sd);
+            GW_ERR_CHECK(err_code);
 
             break;
         }
@@ -161,13 +176,16 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunk *sd, BM
     sd->get_accum_buf()->PrepareForSend(payload, payloadLen);
 
     // Sending data.
-    gw->Send(sd);
+    uint32_t err_code = gw->Send(sd);
+    GW_ERR_CHECK(err_code);
 
     return 0;
 }
 
 uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunk *sd)
 {
+    uint32_t err_code;
+
     // Pointing to the beginning of the data.
     uint8_t *respDataBegin = sd->get_accum_buf()->ResponseDataStart();
     uint32_t respBufferSize = 0;
@@ -221,7 +239,8 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunk *sd)
     sd->set_web_sockets_upgrade_flag(true);
 
     // Sending data.
-    gw->Send(sd);
+    err_code = gw->Send(sd);
+    GW_ERR_CHECK(err_code);
 
     // Printing the outgoing packet.
 #ifdef GW_WEBSOCKET_DIAG
