@@ -111,37 +111,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Internal\ExceptionManager.cs" />
-    <Compile Include="Internal\Weaver\AnonymousTypeAdapter.cs" />
-    <Compile Include="Internal\Weaver\AnonymousTypePropertyAttribute.cs" />
-    <Compile Include="Internal\Weaver\AssemblyWeavedForIPCAttribute.cs" />
-    <Compile Include="Internal\Weaver\CastHelper.cs" />
-    <Compile Include="Internal\Weaver\DbStateMethodProvider.cs" />
-    <Compile Include="Internal\Weaver\EntityConstructorCallAdvice.cs" />
-    <Compile Include="Internal\Weaver\HashHelper.cs" />
-    <Compile Include="Internal\Weaver\IMessageHandler.cs" />
-    <Compile Include="Internal\Weaver\IMethodLevelAdvice.cs" />
-    <Compile Include="Internal\Weaver\InsteadOfFieldAccessAdvice.cs" />
-    <Compile Include="Internal\Weaver\InterceptThread.cs" />
-    <Compile Include="Internal\Weaver\KnownAssemblyAttribute.cs" />
-    <Compile Include="Internal\Weaver\KnownTypeAttribute.cs" />
-    <Compile Include="Internal\Weaver\LucentClassInitializerMethodAdvice.cs" />
-    <Compile Include="Internal\Weaver\PostSharpExtensions.cs" />
-    <Compile Include="Internal\Weaver\ReimplementWeavedLucentAccessorAdvice.cs" />
-    <Compile Include="Internal\Weaver\ScAnalysisTask.cs" />
-    <Compile Include="Internal\Weaver\ScAnalysisTrace.cs" />
-    <Compile Include="Internal\Weaver\ScCopyTask.cs" />
-    <Compile Include="Internal\Weaver\ScEnhanceThreadingTask.cs" />
-    <Compile Include="Internal\Weaver\ScMessageSource.cs" />
-    <Compile Include="Internal\Weaver\ScTouchTask.cs" />
-    <Compile Include="Internal\Weaver\ScTransactionScopeTask.cs" />
-    <Compile Include="Internal\Weaver\ScTransformTask.cs" />
-    <Compile Include="Internal\Weaver\ScTransformTrace.cs" />
-    <Compile Include="Internal\Weaver\StaticConstructorAdvice.cs" />
-    <Compile Include="Internal\Weaver\WeaverCache.cs" />
-    <Compile Include="Internal\Weaver\WeaverNamingConventions.cs" />
-    <Compile Include="Internal\Weaver\WeaverSchemaExtensions.cs" />
-    <Compile Include="Internal\Weaver\WeaverTransformationKind.cs" />
-    <Compile Include="Internal\Weaver\WeaverUtilities.cs" />
     <Compile Include="ITransactionConflictException.cs" />
     <Compile Include="LargeBinary.cs" />
     <Compile Include="Error.cs" />
@@ -400,44 +369,12 @@
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
-    <Reference Include="PostSharp">
-      <HintPath>$(PostSharpRedistributables)\PostSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="PostSharp.Hosting">
-      <HintPath>$(PostSharpRedistributables)\PostSharp.Hosting.dll</HintPath>
-    </Reference>
-    <Reference Include="PostSharp.Sdk">
-      <HintPath>$(PostSharpRedistributables)\PostSharp.Sdk.dll</HintPath>
-    </Reference>
-    <Reference Include="PostSharp.Settings">
-      <HintPath>$(PostSharpRedistributables)\PostSharp.Settings.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Starcounter.snk" />
   </ItemGroup>
   <ItemGroup>
-    <AvailableItemName Include="RuntimeFile">
-      <Visible>false</Visible>
-    </AvailableItemName>
-  </ItemGroup>
-  <ItemGroup>
-    <RuntimeFile Include="Internal\Weaver\ScAnalyze.psplugin" />
-    <RuntimeFile Include="Internal\Weaver\ScAnalyzeOnly.psproj" />
-    <RuntimeFile Include="Internal\Weaver\ScIgnore.psproj" />
-    <RuntimeFile Include="Internal\Weaver\ScRuntime.psplugin" />
-    <RuntimeFile Include="Internal\Weaver\ScTransform.psproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Internal\Weaver\Postsharp.license">
-      <LogicalName>Sc.Postsharp.license</LogicalName>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Internal\Weaver\Messages.resx">
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\HTTP\HttpStructs.csproj">
+    <ProjectReference Include="..\HTTP\HttpStructs\HttpStructs.csproj">
       <Project>{90d57166-b42e-4bbe-b9ec-cfb33e551b77}</Project>
       <Name>HttpStructs</Name>
     </ProjectReference>
@@ -450,6 +387,7 @@
       <Name>Starcounter.Logging</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>$(SolutionDir)Starcounter.ErrorCodes\ErrorCodeCompiler\scerrcc.exe $(SolutionDir)Starcounter.ErrorCodes\errorcodes.xml -orangestdcs $(ProjectDir)Error.cs</PreBuildEvent>
@@ -458,14 +396,7 @@
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
-  -->
-  <!--
-  <Target Name="AfterClean">
-    <Exec Command="&quot;C:\Program Files (x86)\Microsoft SDKs\Windows\v8.0A\Bin\NETFX 4.0 Tools\gacutil.exe&quot; /u Starcounter" />
-  </Target>
-  -->
   <Target Name="AfterBuild">
-    <Copy DestinationFolder="$(OutputPath)" SourceFiles="@(RuntimeFile)" SkipUnchangedFiles="true" />
-    <!-- <Exec Command="&quot;C:\Program Files (x86)\Microsoft SDKs\Windows\v8.0A\Bin\NETFX 4.0 Tools\gacutil.exe&quot; /f /i &quot;$(MSBuildProjectDirectory)\$(OutputPath)\$(AssemblyName).dll&quot;" /> -->
   </Target>
+  -->
 </Project>

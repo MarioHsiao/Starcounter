@@ -162,6 +162,9 @@
       <Project>{5a65d606-6613-4139-8853-b5f26313e4df}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="bmx.def" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

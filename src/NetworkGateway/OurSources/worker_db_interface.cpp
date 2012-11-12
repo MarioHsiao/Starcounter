@@ -102,16 +102,19 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
             }
 
             // Process the chunk.
-            SocketDataChunk *sd = (SocketDataChunk *)((uint8_t *)smc + BMX_HEADER_MAX_SIZE_BYTES);
+            SocketDataChunk *sd = (SocketDataChunk *)((uint8_t *)smc + bmx::BMX_HEADER_MAX_SIZE_BYTES);
 
             // Setting chunk index because of possible cloned chunks.
             sd->set_chunk_index(chunk_index);
+
+            // Resetting number of chunks.
+            sd->set_num_chunks(1);
 
             // We need to check if its a multi-chunk response.
             if (!smc->is_terminated())
                 sd->CreateWSABuffers(this, smc, 0, 0, sd->get_user_data_written_bytes());
 
-            // Changing number of owned chunks.
+            // Changing number of used chunks.
             ActiveDatabase* current_db = g_gateway.GetDatabase(db_index_);
             current_db->ChangeNumUsedChunks(sd->get_num_chunks());
 
@@ -120,7 +123,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
                 continue;
 
 #ifdef GW_CHUNKS_DIAG
-            GW_PRINT_WORKER << "Popping chunk: socket " << sd->sock() << " chunk " << sd->chunk_index() << std::endl;
+            GW_PRINT_WORKER << "Popping chunk: socket " << sd->sock() << " chunk " << sd->get_chunk_index() << std::endl;
 #endif
 
             // Checking if new session was generated.
@@ -187,7 +190,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
             }
 
             // Resetting the data buffer.
-            sd->get_accum_buf()->Init(DATA_BLOB_SIZE_BYTES, sd->data_blob());
+            sd->get_accum_buf()->Init(SOCKET_DATA_BLOB_SIZE_BYTES, sd->data_blob(), true);
 
             // Setting the database index and sequence number.
             sd->AttachToDatabase(db_index_);
@@ -255,44 +258,30 @@ uint32_t WorkerDbInterface::PushLinkedChunksToDb(
 }
 
 // Returns given socket data chunk to private chunk pool.
-uint32_t WorkerDbInterface::ReturnChunkToPool(GatewayWorker *gw, SocketDataChunk *sd)
+uint32_t WorkerDbInterface::ReturnSocketDataChunksToPool(GatewayWorker *gw, SocketDataChunk *sd)
 {
 #ifdef GW_CHUNKS_DIAG
-    GW_PRINT_WORKER << "Returning chunk: " << sd->sock() << " " << sd->chunk_index() << std::endl;
+    GW_PRINT_WORKER << "Returning chunk: " << sd->sock() << " " << sd->get_chunk_index() << std::endl;
 #endif
 
-    uint32_t num_chunks = sd->get_num_chunks();
-
-    if (1 == num_chunks)
-    {
-        return ReturnLinkedChunksToPool(1, sd->chunk_index());
-    }
-    else
-    {
-        // First returning extra chunk.
-        uint32_t err_code = ReturnLinkedChunksToPool(1, sd->extra_chunk_index());
-        if (err_code)
-            return err_code;
-
-        // Returning linked multiple chunks.
-        return ReturnLinkedChunksToPool(num_chunks, sd->chunk_index());
-    }
+    // Returning linked multiple chunks.
+    return ReturnLinkedChunksToPool(sd->get_num_chunks(), sd->get_chunk_index());
 }
 
 // Returns given chunk to private chunk pool.
-uint32_t WorkerDbInterface::ReturnLinkedChunksToPool(int32_t num_linked_chunks, core::chunk_index& chunk_index)
+uint32_t WorkerDbInterface::ReturnLinkedChunksToPool(int32_t num_linked_chunks, core::chunk_index& first_linked_chunk)
 {
     // Releasing chunk to private pool.
-    private_chunk_pool_.release_linked_chunks(&shared_int_.chunk(0), chunk_index);
+    private_chunk_pool_.release_linked_chunks(&shared_int_.chunk(0), first_linked_chunk);
 
     // Chunk has been released.
     g_gateway.GetDatabase(db_index_)->ChangeNumUsedChunks(-num_linked_chunks);
 
     // Check if there are too many private chunks so
     // we need to release them to the shared chunk pool.
-    if (private_chunk_pool_.size() >= MAX_CHUNKS_IN_PRIVATE_POOL)
+    if (private_chunk_pool_.size() > MAX_CHUNKS_IN_PRIVATE_POOL)
     {
-        uint32_t err_code = ReleaseToSharedChunkPool(MAX_CHUNKS_IN_PRIVATE_POOL - NUM_CHUNKS_TO_LEAVE_IN_PRIVATE_POOL);
+        uint32_t err_code = ReleaseToSharedChunkPool(private_chunk_pool_.size() - MAX_CHUNKS_IN_PRIVATE_POOL);
         GW_ERR_CHECK(err_code);
     }
 
@@ -300,25 +289,25 @@ uint32_t WorkerDbInterface::ReturnLinkedChunksToPool(int32_t num_linked_chunks, 
 }
 
 // Returns given chunk to private chunk pool.
-uint32_t WorkerDbInterface::ReturnLinkedChunksToPool(shared_memory_chunk* smc, core::chunk_index& chunk_index)
+uint32_t WorkerDbInterface::ReturnLinkedChunksToPool(shared_memory_chunk* chunk_smc, core::chunk_index& first_linked_chunk)
 {
     // Determine how many chunks are linked.
     int32_t num_linked_chunks = 1;
-    while (shared_memory_chunk::LINK_TERMINATOR != smc->get_link())
+    while (shared_memory_chunk::LINK_TERMINATOR != chunk_smc->get_link())
     {
-        smc = (shared_memory_chunk*) &(shared_int_.chunk(smc->get_link()));
+        chunk_smc = (shared_memory_chunk*) &(shared_int_.chunk(chunk_smc->get_link()));
         num_linked_chunks++;
     }
 
     // Returning certain number of chunks.
-    return ReturnLinkedChunksToPool(num_linked_chunks, chunk_index);
+    return ReturnLinkedChunksToPool(num_linked_chunks, first_linked_chunk);
 }
 
 // Push given chunk to database queue.
 uint32_t WorkerDbInterface::PushSocketDataToDb(GatewayWorker* gw, SocketDataChunk *sd, BMX_HANDLER_TYPE user_handler_id)
 {
 #ifdef GW_CHUNKS_DIAG
-    GW_PRINT_WORKER << "Pushing chunk: socket " << sd->sock() << " chunk " << sd->chunk_index() << " handler_id " << user_handler_id << std::endl;
+    GW_PRINT_WORKER << "Pushing chunk: socket " << sd->sock() << " chunk " << sd->get_chunk_index() << " handler_id " << user_handler_id << std::endl;
 #endif
 
     // Checking if chunk belongs to this database.
@@ -336,9 +325,8 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(GatewayWorker* gw, SocketDataChun
         sd->set_apps_unique_session_num(current_db->GetAppsSessionValue(sd->get_session_index()));
 
     // Modifying chunk data to use correct handler.
-    shared_memory_chunk *smc = (shared_memory_chunk*) &(shared_int_.chunk(sd->chunk_index()));
+    shared_memory_chunk *smc = (shared_memory_chunk*) &(shared_int_.chunk(sd->get_chunk_index()));
     smc->set_bmx_protocol(user_handler_id); // User code handler id.
-    smc->terminate_link();
     smc->set_request_size(4);
 
     // Obtaining the current scheduler id.
@@ -350,7 +338,7 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(GatewayWorker* gw, SocketDataChun
         sched_id = g_gateway.obtain_scheduler_id();
 
     // Pushing socket data as a chunk.
-    return PushLinkedChunksToDb(sd->chunk_index(), sd->get_num_chunks(), sched_id);
+    return PushLinkedChunksToDb(sd->get_chunk_index(), sd->get_num_chunks(), sched_id);
 }
 
 // Registers push channel.
@@ -372,9 +360,6 @@ uint32_t WorkerDbInterface::RegisterPushChannel(int32_t sched_num)
 
     // Writing BMX message type.
     request->write(bmx::BMX_REGISTER_PUSH_CHANNEL);
-
-    // No linked chunks.
-    smc->terminate_link();
 
     // Pushing the chunk.
     return PushLinkedChunksToDb(new_chunk, 1, sched_num);
@@ -403,9 +388,6 @@ uint32_t WorkerDbInterface::PushSessionDestroyed(ScSessionStruct* session, int32
     // Writing Apps unique session number.
     request->write(session->apps_unique_session_num_);
 
-    // No linked chunks.
-    smc->terminate_link();
-
     // Pushing the chunk.
     return PushLinkedChunksToDb(new_chunk, 1, sched_num);
 }
@@ -429,9 +411,6 @@ uint32_t WorkerDbInterface::RequestRegisteredHandlers(int32_t sched_num)
 
     // Writing BMX message type.
     request->write(bmx::BMX_SEND_ALL_HANDLERS);
-
-    // No linked chunks.
-    smc->terminate_link();
 
     // Pushing the chunk.
     return PushLinkedChunksToDb(new_chunk, 1, sched_num);

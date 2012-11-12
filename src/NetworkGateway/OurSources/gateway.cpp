@@ -353,6 +353,25 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     return 0;
 }
 
+// Assert some correct state parameters.
+uint32_t Gateway::AssertCorrectState()
+{
+    SocketDataChunk* test_sdc = new SocketDataChunk();
+    uint32_t err_code;
+
+    // Checking correct socket data.
+    err_code = test_sdc->AssertCorrectState();
+    if (err_code)
+        goto FAILED;
+
+    return 0;
+
+FAILED:
+    delete test_sdc;
+
+    return SCERRUNSPECIFIED;
+}
+
 // Creates socket and binds it to server port.
 uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t port_num, SOCKET& sock)
 {
@@ -1149,6 +1168,7 @@ uint32_t Gateway::GatewayStatisticsAndMonitoringRoutine()
             if (!WaitForSingleObject(worker_thread_handles_[i], 0))
             {
                 GW_COUT << "Worker " << i << " is dead. Quiting..." << std::endl;
+                //getch();
                 return 1;
             }
         }
@@ -1305,9 +1325,19 @@ uint32_t Gateway::StartWorkerAndManagementThreads(
 
 int32_t Gateway::StartGateway()
 {
+    uint32_t errCode;
+
+    // Assert some correct state.
+    errCode = AssertCorrectState();
+    if (errCode)
+    {
+        GW_COUT << "Asserting correct state failed." << std::endl;
+        return errCode;
+    }
+
     // Loading configuration settings.
-    uint32_t errCode = LoadSettings(setting_config_file_path_);
-    if (errCode != 0)
+    errCode = LoadSettings(setting_config_file_path_);
+    if (errCode)
     {
         GW_COUT << "Loading configuration settings failed." << std::endl;
         return errCode;
@@ -1315,7 +1345,7 @@ int32_t Gateway::StartGateway()
 
     // Creating data structures and binding sockets.
     errCode = Init();
-    if (errCode != 0)
+    if (errCode)
         return errCode;
 
     // Starting workers and statistics printer.
@@ -1324,7 +1354,7 @@ int32_t Gateway::StartGateway()
         (LPTHREAD_START_ROUTINE)MonitorDatabasesRoutine,
         (LPTHREAD_START_ROUTINE)AllDatabasesChannelsEventsMonitorRoutine);
 
-    if (errCode != 0)
+    if (errCode)
         return errCode;
 
     return 0;

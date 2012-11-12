@@ -37,10 +37,10 @@ namespace HelloMcd {
 
         void Handle(Input.Items.Product._Options.Pick pick) {
             ItemsApp itemApp = (ItemsApp)pick.App.Parent.Parent.Parent;
-            if (itemApp.Quantity != 10) {
+//            if (itemApp.Quantity != 10) {
                 ((App)pick.App.Parent.Parent).Data = pick.App.Data;
                 this.Items.Add(new OrderItem() { Order = this.Data, Quantity = 1 }); // Add a new empty row;
-            }
+//            }
         }
 
         void Handle(Input.Save save) {

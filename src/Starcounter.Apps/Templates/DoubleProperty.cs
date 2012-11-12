@@ -15,7 +15,7 @@ namespace Starcounter.Templates {
     /// <summary>
     /// Class DoubleProperty
     /// </summary>
-    public class DoubleProperty : Property
+    public class DoubleProperty : Property<double>
 #if IAPP
         , IDoubleTemplate
 #endif

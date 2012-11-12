@@ -13,6 +13,7 @@ using System.Text.RegularExpressions;
 using System.Collections;
 using System.Text;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 
 namespace Starcounter.Query.Execution
@@ -205,5 +206,43 @@ internal class InPredicateString : ILogicalExpression
     {
         expression.GenerateCompilableCode(stringGen);
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    public bool AssertEquals(ILogicalExpression other) {
+        InPredicateString otherNode = other as InPredicateString;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(InPredicateString other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check cardinalities of collections
+        Debug.Assert(this.exprList.Count == other.exprList.Count);
+        if (this.exprList.Count != other.exprList.Count)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = true;
+        if (this.expression == null) {
+            Debug.Assert(other.expression == null);
+            areEquals = other.expression == null;
+        } else
+            areEquals = this.expression.AssertEquals(other.expression);
+        // Check collections of objects
+        for (int i = 0; i < this.exprList.Count && areEquals; i++)
+            areEquals = this.exprList[i].AssertEquals(other.exprList[i]);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }

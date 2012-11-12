@@ -21,9 +21,6 @@
     <ClInclude Include="ThirdPartyHeaders\cencode.h">
       <Filter>ThirdPartyHeaders</Filter>
     </ClInclude>
-    <ClInclude Include="ThirdPartyHeaders\http_parser.h">
-      <Filter>ThirdPartyHeaders</Filter>
-    </ClInclude>
     <ClInclude Include="ThirdPartyHeaders\rapidxml.hpp">
       <Filter>ThirdPartyHeaders</Filter>
     </ClInclude>
@@ -66,11 +63,11 @@
     <ClInclude Include="OurHeaders\static_headers.hpp">
       <Filter>OurHeaders</Filter>
     </ClInclude>
+    <ClInclude Include="..\HTTP\HttpParser\ThirdPartyHeaders\http_parser.h">
+      <Filter>ThirdPartyHeaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ThirdPartySources\http_parser.c">
-      <Filter>ThirdPartySources</Filter>
-    </ClCompile>
     <ClCompile Include="OurSources\gateway.cpp">
       <Filter>OurSources</Filter>
     </ClCompile>
@@ -112,6 +109,9 @@
     </ClCompile>
     <ClCompile Include="..\Chunks\common\shared_memory_object.cpp">
       <Filter>OurSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\HTTP\HttpParser\ThirdPartySources\http_parser.c">
+      <Filter>ThirdPartySources</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

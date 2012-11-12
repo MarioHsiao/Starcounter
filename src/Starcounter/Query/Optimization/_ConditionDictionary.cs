@@ -7,6 +7,7 @@
 using Starcounter.Query.Execution;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Optimization
 {
@@ -72,5 +73,42 @@ class ConditionDictionary
         }
         return null;
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    internal bool AssertEquals(ConditionDictionary other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check cardinalities of collections
+        Debug.Assert(this.dictionary.Count == other.dictionary.Count);
+        if (this.dictionary.Count != other.dictionary.Count)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = true;
+        // Check collections of objects
+        foreach (KeyValuePair<UInt64, List<ILogicalExpression>> kvp in this.dictionary) {
+            List<ILogicalExpression> otherVal;
+            Debug.Assert(other.dictionary.TryGetValue(kvp.Key, out otherVal));
+            areEquals = otherVal != null;
+            if (areEquals) {
+                Debug.Assert(kvp.Value.Count == otherVal.Count);
+                areEquals = kvp.Value.Count == otherVal.Count;
+            }
+            for (int i = 0; i < kvp.Value.Count && areEquals; i++)
+                areEquals = kvp.Value[i].AssertEquals(otherVal[i]);
+        }
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }
