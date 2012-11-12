@@ -38,6 +38,13 @@ const char* kHttpBadRequest =
 
 const int32_t kHttpBadRequestLength = strlen(kHttpBadRequest) + 1;
 
+const char* kHttpServiceUnavailable =
+    "HTTP/1.1 503 Service Unavailable\r\n"
+    "Content-Length: 0\r\n"
+    "\r\n";
+
+const int32_t kHttpServiceUnavailableLength = strlen(kHttpServiceUnavailable) + 1;
+
 const char* kHttpTooBigUpload =
     "HTTP/1.1 413 Request Entity Too Large\r\n"
     "Content-Type: text/html; charset=UTF-8\r\n"
@@ -604,7 +611,8 @@ uint32_t HttpWsProto::HttpUriDispatcher(
             sd->get_accum_buf()->ContinueReceive();
 
             // Returning socket to receiving state.
-            gw->Receive(sd);
+            err_code = gw->Receive(sd);
+            GW_ERR_CHECK(err_code);
 
             // Handled successfully.
             *is_handled = true;
@@ -735,7 +743,8 @@ uint32_t HttpWsProto::HttpWsProcessData(
             accum_buf->ContinueReceive();
 
             // Returning socket to receiving state.
-            gw->Receive(sd);
+            err_code = gw->Receive(sd);
+            GW_ERR_CHECK(err_code);
 
             // Handled successfully.
             *is_handled = true;
@@ -758,7 +767,7 @@ uint32_t HttpWsProto::HttpWsProcessData(
         else if (bytes_parsed != (accum_buf->get_accum_len_bytes()))
         {
             GW_COUT << "HTTP packet has incorrect data!" << std::endl;
-            return 1;
+            return SCERRUNSPECIFIED;
         }
         // Standard HTTP.
         else
@@ -815,7 +824,7 @@ uint32_t HttpWsProto::HttpWsProcessData(
             if (http_request_.body_len_bytes_ > 0)
             {
                 // Number of body bytes already received.
-                int32_t num_body_bytes_received = accum_buf->get_accum_len_bytes() - (http_request_.body_offset_ - SOCKET_DATA_BLOB_OFFSET_BYTES);
+                int32_t num_body_bytes_received = accum_buf->get_accum_len_bytes() + SOCKET_DATA_BLOB_OFFSET_BYTES - http_request_.body_offset_;
                 
                 // Checking if body was partially received at all.
                 if (http_request_.body_offset_ <= 0)
@@ -870,8 +879,14 @@ uint32_t HttpWsProto::HttpWsProcessData(
 
 ALL_DATA_ACCUMULATED:
 
-            // Data is complete, posting parallel receive.
-            gw->Receive(sd->CloneReceive(gw));
+            // Posting cloning receive since all data is accumulated.
+            SocketDataChunk* sd_clone;
+            err_code = sd->CloneToReceive(gw, &sd_clone);
+            GW_ERR_CHECK(err_code);
+
+            // Start receiving on clone.
+            err_code = gw->Receive(sd_clone);
+            GW_ERR_CHECK(err_code);
 
             // Checking special case when session is attached to socket,
             // but no session cookie is presented.
@@ -966,7 +981,8 @@ ALL_DATA_ACCUMULATED:
         sd->get_accum_buf()->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_written_bytes());
 
         // Sending data.
-        gw->Send(sd);
+        err_code = gw->Send(sd);
+        GW_ERR_CHECK(err_code);
 
         // Handled successfully.
         *is_handled = true;

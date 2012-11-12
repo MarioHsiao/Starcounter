@@ -56,7 +56,7 @@ class WorkerDbInterface
 #ifdef GW_ERRORS_DIAG
             GW_COUT << "Problem acquiring chunks from shared chunk pool." << std::endl;
 #endif
-            return SCERRUNSPECIFIED;
+            return SCERRACQUIRELINKEDCHUNKS;
         }
 
         return 0;
@@ -242,11 +242,11 @@ public:
     }
 
     // Returns given socket data chunk to private chunk pool.
-    uint32_t ReturnChunkToPool(GatewayWorker *gw, SocketDataChunk *sd);
+    uint32_t ReturnSocketDataChunksToPool(GatewayWorker *gw, SocketDataChunk *sd);
 
     // Returns given linked chunks to private chunk pool (and if needed then to shared).
-    uint32_t ReturnLinkedChunksToPool(int32_t num_linked_chunks, core::chunk_index& chunk_index);
-    uint32_t ReturnLinkedChunksToPool(shared_memory_chunk* smc, core::chunk_index& chunk_index);
+    uint32_t ReturnLinkedChunksToPool(int32_t num_linked_chunks, core::chunk_index& first_linked_chunk);
+    uint32_t ReturnLinkedChunksToPool(shared_memory_chunk* chunk_smc, core::chunk_index& first_linked_chunk);
 
     // Handles management chunks.
     uint32_t HandleManagementChunks(GatewayWorker *gw, shared_memory_chunk* smc);
