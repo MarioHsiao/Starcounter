@@ -60,6 +60,15 @@ namespace Starcounter.Server.PublicModel.Commands {
         }
 
         /// <summary>
+        /// Gets or sets a value indicating if the server should enable
+        /// wait handle based waiting for the current command.
+        /// </summary>
+        public bool EnableWaiting {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Infrastructure method invoked by the server engine just before a
         /// command is enqued with the dispatcher (i.e. in the hosts calling
         /// thread). The command gets a chance to either fill in defaults
