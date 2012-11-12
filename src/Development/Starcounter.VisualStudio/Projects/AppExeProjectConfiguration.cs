@@ -67,15 +67,24 @@ namespace Starcounter.VisualStudio.Projects {
             this.WriteDebugLaunchStatus(null);
             
             // Utilize the prepare-only solution to be able to debug the
-            // entrypoint. This will be slightly rewritten to be more of a
-            // final solution.
+            // entrypoint, unless the user hasn't specified we should run
+            // without the debugger. In the later case, we issue a single
+            // synchronous call to the server, completing the entire launch
+            // in one step.
 
-            properties.Add("PrepareOnly", bool.TrueString);
+            properties.Add("@@Synchronous", bool.TrueString);
+            if ((flags & __VSDBGLAUNCHFLAGS.DBGLAUNCH_NoDebug) == 0) {
+                properties.Add("PrepareOnly", bool.TrueString);
+            }
 
             client.Send("ExecApp", properties, (Reply reply) => {
                 if (!reply.IsSuccess) throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, reply.ToString());
                 command = ServerUtility.DeserializeCarry<CommandInfo>(reply);
             });
+
+#if false
+            // Wait for the completion of the command by polling the server
+            // for the completion data.
 
             int threadSuspensionTimeout = 650;
             int triesBeforeSwitchingThread = int.MaxValue;
@@ -111,7 +120,7 @@ namespace Starcounter.VisualStudio.Projects {
                     }
                 });
             }
-
+#endif
             // Invoke the method actually attaching the debugger.
 
             LaunchDebugEngineIfExecCommandSucceeded(client, command, flags, debugConfiguration);
@@ -132,7 +141,9 @@ namespace Starcounter.VisualStudio.Projects {
         void ExecuteAppEntrypointWithDebuggerAttached(Client client, Dictionary<string, string> properties) {
             // Currently, we don't bother waiting here since waiting will mean
             // we are waiting for the entire entrypoint to be exeuced. We just
-            // want to return back before that.
+            // want to return back before that. Hence, we make sure the modifier
+            // for synchronous invocation is removed (if ever specified).
+            properties.Remove("@@Synchronous");
             client.Send("ExecApp", properties, (Reply reply) => {
                 if (!reply.IsSuccess) throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, reply.ToString());
             });
@@ -153,6 +164,13 @@ namespace Starcounter.VisualStudio.Projects {
             // database from the command.
             if (execResult.HasError)
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, execResult.Errors[0].ToString());
+
+            // Respect the "Start without debugging" option. If specified,
+            // we consider this method a success right here and now.
+
+            if ((flags & __VSDBGLAUNCHFLAGS.DBGLAUNCH_NoDebug) != 0) {
+                return;
+            }
 
             // The exec command succeeded. It should mean we could now get
             // the database information, including all we need to attach the

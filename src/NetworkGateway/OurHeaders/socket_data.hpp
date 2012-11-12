@@ -13,7 +13,10 @@ enum SOCKET_DATA_FLAGS
     SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION = 1,
     SOCKET_DATA_FLAGS_RECEIVING_STATE = 2,
     SOCKET_DATA_FLAGS_NEW_SESSION = 4,
-    SOCKET_DATA_FLAGS_ACCUMULATING_STATE = 8
+    SOCKET_DATA_FLAGS_ACCUMULATING_STATE = 8,
+    SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND = 16,
+    HTTP_WS_FLAGS_UPGRADE = 32,
+    HTTP_WS_FLAGS_COMPLETE_HEADER = 64
 };
 
 // Socket data chunk.
@@ -43,7 +46,7 @@ class SocketDataChunk
     // Extra chunk index.
     core::chunk_index extra_chunk_index_;
 
-    // Indicates if its a multi-chunk data.
+    // Indicates how many chunks are associated with this socket data (normally 1).
     uint32_t num_chunks_;
 
     // Socket to which this data belongs.
@@ -101,11 +104,8 @@ public:
         return 0;
     }
 
-    // Setting number of chunks.
-    void set_num_chunks(uint32_t value)
-    {
-        num_chunks_ = value;
-    }
+    // Returns all linked chunks except the main one.
+    uint32_t ReturnExtraLinkedChunks(GatewayWorker* gw);
 
     // Setting fixed handler id.
     void set_fixed_handler_id(BMX_HANDLER_TYPE fixed_handler_id)
@@ -167,6 +167,21 @@ public:
             flags_ &= ~SOCKET_DATA_FLAGS_ACCUMULATING_STATE;
     }
 
+    // Getting disconnect after send flag.
+    bool get_disconnect_after_send_flag()
+    {
+        return flags_ & SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
+    }
+
+    // Setting disconnect after send flag.
+    void set_disconnect_after_send_flag(bool value)
+    {
+        if (value)
+            flags_ |= SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
+        else
+            flags_ &= ~SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
+    }
+
     // Getting new session flag.
     bool get_new_session_flag()
     {
@@ -180,6 +195,36 @@ public:
             flags_ |= SOCKET_DATA_FLAGS_NEW_SESSION;
         else
             flags_ &= ~SOCKET_DATA_FLAGS_NEW_SESSION;
+    }
+
+    // Getting WebSocket upgrade flag.
+    bool get_web_sockets_upgrade_flag()
+    {
+        return flags_ & HTTP_WS_FLAGS_UPGRADE;
+    }
+
+    // Setting WebSocket upgrade flag.
+    void set_web_sockets_upgrade_flag(bool value)
+    {
+        if (value)
+            flags_ |= HTTP_WS_FLAGS_UPGRADE;
+        else
+            flags_ &= ~HTTP_WS_FLAGS_UPGRADE;
+    }
+
+    // Getting complete header flag.
+    bool get_complete_header_flag()
+    {
+        return flags_ & HTTP_WS_FLAGS_COMPLETE_HEADER;
+    }
+
+    // Setting complete header flag.
+    void set_complete_header_flag(bool value)
+    {
+        if (value)
+            flags_ |= HTTP_WS_FLAGS_COMPLETE_HEADER;
+        else
+            flags_ &= ~HTTP_WS_FLAGS_COMPLETE_HEADER;
     }
 
     // Getting session index.
@@ -212,6 +257,12 @@ public:
         return sock_;
     }
 
+    // Returns SMC representing this chunk.
+    shared_memory_chunk* get_smc()
+    {
+        return (shared_memory_chunk*)((uint8_t*)this - bmx::BMX_HEADER_MAX_SIZE_BYTES);
+    }
+
     // Set new chunk index.
     void set_chunk_index(core::chunk_index chunk_index)
     {
@@ -219,21 +270,9 @@ public:
     }
 
     // Gets chunk index.
-    core::chunk_index get_chunk_index()
+    core::chunk_index& get_chunk_index()
     {
         return chunk_index_;
-    }
-
-    // Set new chunk index.
-    void set_extra_chunk_index(core::chunk_index new_chunk_index)
-    {
-        extra_chunk_index_ = new_chunk_index;
-    }
-
-    // Gets extra chunk index.
-    core::chunk_index get_extra_chunk_index()
-    {
-        return extra_chunk_index_;
     }
 
     // Getting data blob pointer.
@@ -248,16 +287,16 @@ public:
         return (uint8_t*)(this) - bmx::BMX_HEADER_MAX_SIZE_BYTES;
     }
 
-    // Returns number of chunks flag.
+    // Returns number of used chunks.
     uint32_t get_num_chunks()
     {
         return num_chunks_;
     }
 
-    // Increasing number of used chunks.
-    void increment_num_chunks()
+    // Setting number of used chunks.
+    void set_num_chunks(uint32_t value)
     {
-        num_chunks_++;
+        num_chunks_ = value;
     }
 
     // Getting and linking more receiving chunks.
@@ -369,18 +408,6 @@ public:
         return g_gateway.GetSessionData(session_.session_index_);
     }
 
-    // Extra chunk index.
-    core::chunk_index& extra_chunk_index()
-    {
-        return extra_chunk_index_;
-    }
-
-    // Corresponding chunk index.
-    core::chunk_index& chunk_index()
-    {
-        return chunk_index_;
-    }
-
     // Initialization.
     void Init(
         SOCKET sock,
@@ -448,7 +475,9 @@ public:
     {
         type_of_network_oper_ = RECEIVE_OPER;
         memset(&ovl_, 0, OVERLAPPED_SIZE);
-        return WSARecv(sock_, (WSABUF*)&(shared_int->chunk(extra_chunk_index_)), num_chunks_ - 1, (LPDWORD)numBytes, (LPDWORD)&recv_flags_, &ovl_, NULL);
+
+        // NOTE: Need to subtract two chunks from being included in receive.
+        return WSARecv(sock_, (WSABUF*)&(shared_int->chunk(extra_chunk_index_)), num_chunks_ - 2, (LPDWORD)numBytes, (LPDWORD)&recv_flags_, &ovl_, NULL);
     }
 
     // Start sending on socket.
@@ -464,7 +493,9 @@ public:
     {
         type_of_network_oper_ = SEND_OPER;
         memset(&ovl_, 0, OVERLAPPED_SIZE);
-        return WSASend(sock_, (WSABUF*)&(shared_int->chunk(extra_chunk_index_)), num_chunks_ - 1, (LPDWORD)numBytes, 0, &ovl_, NULL);
+
+        // NOTE: Need to subtract two chunks from being included in send.
+        return WSASend(sock_, (WSABUF*)&(shared_int->chunk(extra_chunk_index_)), num_chunks_ - 2, (LPDWORD)numBytes, 0, &ovl_, NULL);
     }
 
     // Start accepting on socket.
@@ -525,7 +556,7 @@ public:
     }
 
     // Clones existing socket data chunk.
-    SocketDataChunk *CloneReceive(GatewayWorker *gw);
+    uint32_t CloneToReceive(GatewayWorker *gw, SocketDataChunk** out_sd);
 };
 
 } // namespace network

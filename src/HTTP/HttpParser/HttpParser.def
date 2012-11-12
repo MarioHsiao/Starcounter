@@ -1,5 +1,5 @@
 
-LIBRARY	"http_parser"
+LIBRARY	"HttpParser"
 
 EXPORTS
 	sc_parse_http_request

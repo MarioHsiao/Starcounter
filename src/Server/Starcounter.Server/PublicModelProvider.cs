@@ -93,6 +93,43 @@ namespace Starcounter.Server {
         }
 
         /// <inheritdoc />
+        public CommandInfo Wait(CommandInfo info) {
+            if (info.IsCompleted)
+                return info;
+
+            var waitableReference = info.Waitable;
+            if (waitableReference == null) {
+                // The command either doesn't support waiting using
+                // a waitable construct, or it has completed and the
+                // public model has been updated accordingly. In any
+                // case, we pass it on to the polling-based waiting
+                // to either wait using that, or have that return the
+                // completed command.
+                return Wait(info.Id);
+            }
+            else if (waitableReference.IsAlive) {
+                var waitable = waitableReference.Target;
+                if (waitable != null) {
+                    WaitHandle waitableHandle = waitable as WaitHandle;
+                    try {
+                        if (waitableHandle == null) {
+                            ManualResetEventSlim slimEvent = waitable as ManualResetEventSlim;
+                            slimEvent.Wait();
+                        } else {
+                            waitableHandle.WaitOne();
+                        }
+                    } catch (ObjectDisposedException) {
+                        // Ignore this. If the server has decided the underlying
+                        // construct was ready to be disposed, thats a sure sign
+                        // the command has completed.
+                    }
+                }
+            }
+
+            return this.engine.Dispatcher.GetRecentCommand(info.Id);
+        }
+
+        /// <inheritdoc />
         /// <remarks>The implementation of this method is based on
         /// <see cref="System.Threading.Thread.Sleep(int)"/>, which possibly will be changed
         /// to use events in a future versions.</remarks>

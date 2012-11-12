@@ -174,11 +174,12 @@ namespace Starcounter.Server {
                 synchronous = properties.ContainsKey("@@Synchronous");
                 
                 command = new CreateDatabaseCommand(this.engine, name);
+                command.EnableWaiting = synchronous;
                 runtime = engine.CurrentPublicModel;
 
                 var info = runtime.Execute(command);
                 if (synchronous) {
-                    info = runtime.Wait(info.Id);
+                    info = runtime.Wait(info);
                 }
 
                 // We respond always with a carry, that is the serialized version
@@ -204,11 +205,12 @@ namespace Starcounter.Server {
                 synchronous = properties.ContainsKey("@@Synchronous");
 
                 command = new StartDatabaseCommand(this.engine, name);
+                command.EnableWaiting = synchronous;
                 runtime = engine.CurrentPublicModel;
                 
                 var info = runtime.Execute(command);
                 if (synchronous) {
-                    info = runtime.Wait(info.Id);
+                    info = runtime.Wait(info);
                 }
 
                 // We respond always with a carry, that is the serialized version
@@ -238,11 +240,12 @@ namespace Starcounter.Server {
 
                 command = new StopDatabaseCommand(this.engine, name);
                 command.StopDatabaseProcess = properties.ContainsKey("StopDb");
+                command.EnableWaiting = synchronous;
                 runtime = engine.CurrentPublicModel;
 
                 var info = runtime.Execute(command);
                 if (synchronous) {
-                    info = runtime.Wait(info.Id);
+                    info = runtime.Wait(info);
                 }
 
                 // We respond always with a carry, that is the serialized version
@@ -311,13 +314,14 @@ namespace Starcounter.Server {
                 runtime = engine.CurrentPublicModel;
 
                 command = new ExecAppCommand(this.engine, exePath, workingDirectory, argsArray);
+                command.EnableWaiting = synchronous;
                 if (properties.ContainsKey("PrepareOnly")) {
                     command.PrepareOnly = true;
                 }
 
                 var info = runtime.Execute(command);
                 if (synchronous) {
-                    info = runtime.Wait(info.Id);
+                    info = runtime.Wait(info);
                 }
 
                 // We respond always with a carry, that is the serialized version

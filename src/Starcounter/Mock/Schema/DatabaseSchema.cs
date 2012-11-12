@@ -44,6 +44,19 @@ public class DatabaseSchema
     }
 
     /// <summary>
+    /// </summary>
+    public void AddStarcounterAssembly()
+    {
+        DatabaseAssembly databaseAssembly;
+
+        databaseAssembly = new DatabaseAssembly("Starcounter", System.Reflection.Assembly.GetExecutingAssembly().FullName);
+        databaseAssembly.IsCached = true;
+        databaseAssembly.SetSchema(this);
+        Assemblies.Add(databaseAssembly);
+        databaseAssembly.DatabaseClasses.Add(new DatabaseEntityClass(databaseAssembly, typeof(Starcounter.Entity).FullName));
+    }
+
+    /// <summary>
     /// Finds a class in the current schema given its name.
     /// </summary>
     /// <param name="name">Name of the requested class.</param>
@@ -105,7 +118,12 @@ public class DatabaseSchema
         return this.databaseClassesByShortname.TryGetValue(name, out databaseClass);
 	}
 
-    internal DatabaseAttribute FindDatabaseAttribute(string fieldName, string fieldDeclaringTypeReflectionName)
+    /// <summary>
+    /// </summary>
+    /// <param name="fieldName"></param>
+    /// <param name="fieldDeclaringTypeReflectionName"></param>
+    /// <returns></returns>
+    public DatabaseAttribute FindDatabaseAttribute(string fieldName, string fieldDeclaringTypeReflectionName)
     {
         DatabaseClass databaseClass = this.FindDatabaseClass(fieldDeclaringTypeReflectionName);
         if (databaseClass == null)
