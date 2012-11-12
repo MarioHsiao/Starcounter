@@ -88,6 +88,13 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select E'\\''");
             analyzer.ParseQuery("ALTER DEFAULT PRIVILEGES IN SCHEMA myschema REVOKE GRANT OPTION FOR SELECT ON TABLES FROM internal", true);
             analyzer.ParseQuery("select A.D.B<C>.F.G<A>(d,A<d>.D<s>())");
+            analyzer.ParseQuery("select 2<3 and 3>4");
+            analyzer.ParseQuery("select 2<A.B and A.B>(A<B>(F))");
+            analyzer.ParseQuery("select fr<A.B>(A<B>(F))");
+            analyzer.ParseQuery("select F(G<A,B>(7))");
+            analyzer.ParseQuery("select F(G<A,B>>(7))");
+            analyzer.ParseQuery("select F(G<A,B>7)");
+            analyzer.ParseQuery("select F(G<A,B>>7)");
         }
 
         [Test]

@@ -159,6 +159,7 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 %expect-rr 2
 %name-prefix="base_yy"
 %locations
+%debug
 
 %parse-param {core_yyscan_t yyscanner}
 %lex-param   {core_yyscan_t yyscanner}
@@ -8128,11 +8129,11 @@ expr_list:	a_expr
 func_arg_list:  func_arg_expr
 				{
 					$$ = list_make1($1);
-				}
+				}														%dprec 10
 			| func_arg_list ',' func_arg_expr
 				{
 					$$ = lappend($1, $3);
-				}
+				}														%dprec 1
 		;
 
 func_arg_expr:  a_expr
