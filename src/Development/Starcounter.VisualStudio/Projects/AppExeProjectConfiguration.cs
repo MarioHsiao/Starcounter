@@ -71,11 +71,16 @@ namespace Starcounter.VisualStudio.Projects {
             // final solution.
 
             properties.Add("PrepareOnly", bool.TrueString);
+            properties.Add("@@Synchronous", bool.TrueString);
 
             client.Send("ExecApp", properties, (Reply reply) => {
                 if (!reply.IsSuccess) throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, reply.ToString());
                 command = ServerUtility.DeserializeCarry<CommandInfo>(reply);
             });
+
+#if false
+            // Wait for the completion of the command by polling the server
+            // for the completion data.
 
             int threadSuspensionTimeout = 650;
             int triesBeforeSwitchingThread = int.MaxValue;
@@ -111,7 +116,7 @@ namespace Starcounter.VisualStudio.Projects {
                     }
                 });
             }
-
+#endif
             // Invoke the method actually attaching the debugger.
 
             LaunchDebugEngineIfExecCommandSucceeded(client, command, flags, debugConfiguration);
@@ -132,7 +137,9 @@ namespace Starcounter.VisualStudio.Projects {
         void ExecuteAppEntrypointWithDebuggerAttached(Client client, Dictionary<string, string> properties) {
             // Currently, we don't bother waiting here since waiting will mean
             // we are waiting for the entire entrypoint to be exeuced. We just
-            // want to return back before that.
+            // want to return back before that. Hence, we make sure the modifier
+            // for synchronous invocation is removed (if ever specified).
+            properties.Remove("@@Synchronous");
             client.Send("ExecApp", properties, (Reply reply) => {
                 if (!reply.IsSuccess) throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, reply.ToString());
             });
