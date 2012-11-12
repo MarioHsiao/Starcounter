@@ -482,6 +482,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
 
                     if (mn.Template is ListingProperty) {
                         sb.Clear();
+                        sb.Append("        ");
                         sb.Append(mn.MemberName);
                         sb.Append(".App = ");
                         sb.Append(mn.FunctionGeneric.FullClassName);
