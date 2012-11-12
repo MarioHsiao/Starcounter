@@ -95,6 +95,10 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select F(G<A,B>>(7))");
             analyzer.ParseQuery("select F(G<A,B>7)");
             analyzer.ParseQuery("select F(G<A,B>>7)");
+            analyzer.ParseQuery("select A+ <B>F()");
+            analyzer.ParseQuery("select A+ <B>F(A,B)");
+            analyzer.ParseQuery("select A+ D<A,F>.<B>F()");
+            analyzer.ParseQuery("select A+ M.D.<B>F(A,B)");
         }
 
         [Test]
