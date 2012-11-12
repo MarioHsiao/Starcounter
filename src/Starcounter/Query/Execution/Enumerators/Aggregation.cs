@@ -325,7 +325,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         return new Aggregation(resultTypeBindClone, extentNumber,
                                subEnumerator.Clone(resultTypeBindClone, varArray),
                                comparer.Clone(varArray), setFuncListClone,
-                               condition.Clone(varArray), variableArray, query);
+                               condition.Clone(varArray), varArray, query);
     }
 
     public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs)
