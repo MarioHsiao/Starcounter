@@ -67,11 +67,15 @@ namespace Starcounter.VisualStudio.Projects {
             this.WriteDebugLaunchStatus(null);
             
             // Utilize the prepare-only solution to be able to debug the
-            // entrypoint. This will be slightly rewritten to be more of a
-            // final solution.
+            // entrypoint, unless the user hasn't specified we should run
+            // without the debugger. In the later case, we issue a single
+            // synchronous call to the server, completing the entire launch
+            // in one step.
 
-            properties.Add("PrepareOnly", bool.TrueString);
             properties.Add("@@Synchronous", bool.TrueString);
+            if ((flags & __VSDBGLAUNCHFLAGS.DBGLAUNCH_NoDebug) == 0) {
+                properties.Add("PrepareOnly", bool.TrueString);
+            }
 
             client.Send("ExecApp", properties, (Reply reply) => {
                 if (!reply.IsSuccess) throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, reply.ToString());
@@ -160,6 +164,13 @@ namespace Starcounter.VisualStudio.Projects {
             // database from the command.
             if (execResult.HasError)
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, execResult.Errors[0].ToString());
+
+            // Respect the "Start without debugging" option. If specified,
+            // we consider this method a success right here and now.
+
+            if ((flags & __VSDBGLAUNCHFLAGS.DBGLAUNCH_NoDebug) != 0) {
+                return;
+            }
 
             // The exec command succeeded. It should mean we could now get
             // the database information, including all we need to attach the
