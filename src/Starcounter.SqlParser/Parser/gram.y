@@ -159,7 +159,7 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 %expect-rr 2
 %name-prefix="base_yy"
 %locations
-%debug
+//%debug
 
 %parse-param {core_yyscan_t yyscanner}
 %lex-param   {core_yyscan_t yyscanner}
