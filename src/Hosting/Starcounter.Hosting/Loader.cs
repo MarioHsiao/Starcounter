@@ -16,7 +16,6 @@ using Sc.Server.Weaver.Schema;
 using Starcounter;
 using Starcounter.Hosting;
 using Starcounter.Internal;
-using Starcounter.Internal.Weaver;
 
 namespace StarcounterInternal.Hosting
 {

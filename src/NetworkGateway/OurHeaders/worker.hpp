@@ -154,7 +154,7 @@ public:
     uint32_t CreateNewConnections(int32_t how_many, int32_t port_index, int32_t db_index);
 
     // Functions to process finished IOCP events.
-    uint32_t FinishReceive(SocketDataChunk *sd, int32_t numBytesReceived);
+    uint32_t FinishReceive(SocketDataChunk *sd, int32_t numBytesReceived, bool& called_from_receive);
     uint32_t FinishSend(SocketDataChunk *sd, int32_t numBytesSent);
     uint32_t FinishDisconnect(SocketDataChunk *sd);
     uint32_t VanishSocketData(SocketDataChunk *sd);
@@ -221,10 +221,11 @@ public:
     uint32_t ScanChannels(bool* found_something);
 
     // Creates the socket data structure.
-    SocketDataChunk* CreateSocketData(
+    uint32_t CreateSocketData(
         SOCKET sock,
         int32_t port_index,
-        int32_t db_index);
+        int32_t db_index,
+        SocketDataChunk** out_sd);
 };
 
 } // namespace network

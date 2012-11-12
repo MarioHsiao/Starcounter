@@ -393,7 +393,7 @@ namespace NetworkIoTestApp
                 "HTTP/1.1 200 OK\r\n" +
                 "Content-Type: text/html; charset=UTF-8\r\n" +
                 "Access-Control-Allow-Origin: *\r\n" +
-                "Access-Control-Allow-Methods: POST, GET, OPTIONS\r\n" +
+                "Access-Control-Allow-Methods: PUT, POST, GET, OPTIONS\r\n" +
                 "Access-Control-Allow-Headers: Origin, Content-Type, Accept\r\n" +
                 "Content-Length: 0\r\n\r\n";
 

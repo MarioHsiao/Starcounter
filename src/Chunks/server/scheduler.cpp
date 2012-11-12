@@ -1302,6 +1302,10 @@ try_to_acquire_from_private_chunk_pool:
 		
 		while (!shared_chunk_pool_->acquire_linked_chunks(&chunk(0), head,
 		needed_size, the_channel.client())) {
+
+            // NOTE: Returning error immediately if chunks can't be obtained.
+            return SCERRACQUIRELINKEDCHUNKS;
+
 			// Failed to acquire the linked chunks from the shared_chunk_pool.
 			// Retry, potentially blocking this thread forever. TODO: Consider
 			// returning with an error code, or bool to indicate success/
@@ -1364,6 +1368,10 @@ try_to_acquire_from_private_chunk_pool:
 		
 		while (!shared_chunk_pool_->acquire_linked_chunks_counted(&chunk(0), head,
 		num_chunks, the_channel.client())) {
+
+            // NOTE: Returning error immediately if chunks can't be obtained.
+            return SCERRACQUIRELINKEDCHUNKS;
+
 			// Failed to acquire the linked chunks from the shared_chunk_pool.
 			// Retry, potentially blocking this thread forever. TODO: Consider
 			// returning with an error code, or bool to indicate success/
