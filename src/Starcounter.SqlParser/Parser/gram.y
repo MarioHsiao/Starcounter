@@ -153,9 +153,10 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 
 %}
 
-//%glr-parser
+%glr-parser
 %define api.pure
 %expect 0
+%expect-rr 2
 %name-prefix="base_yy"
 %locations
 
@@ -440,7 +441,7 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 	FALSE_P FAMILY FETCH FIRST_P FLOAT_P FOLLOWING FOR FORCE FOREIGN FORWARD
 	FREEZE FROM FULL FUNCTION FUNCTIONS
 
-	GETEXTENSION GLOBAL GRANT GRANTED GREATEST GROUP_P
+	GLOBAL GRANT GRANTED GREATEST GROUP_P
 
 	HANDLER HAVING HEADER_P HOLD HOUR_P
 
@@ -559,7 +560,6 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 %left		COLLATE
 %right		UMINUS
 %left		ANGLE
-%left		'{' '}'
 %left		'[' ']'
 %left		'(' ')'
 %left		TYPECAST
@@ -6136,7 +6136,7 @@ member_access_el:
 				{
 					$$ = makeColumnRef($1, NIL, @1, yyscanner);
 				}
-			| type_function_name '{' type_list '}' member_access_seq_el
+			| type_function_name '<' type_list '>' member_access_seq_el		%prec '<'
 				{
 					TypeName *n = makeTypeName($1);
 					A_Indirection *i = makeNode(A_Indirection);
@@ -6159,7 +6159,7 @@ member_access_el:
 					n->location = @1;
 					$$ = (Node *)n;
 				}
-			| type_function_name '{' type_list '}' '(' ')'  over_clause
+			| type_function_name '<' type_list '>' '(' ')'  over_clause		%prec '<'
 				{
 					FuncCall *n = makeNode(FuncCall);
 					n->funcname = $1;
@@ -6186,7 +6186,7 @@ member_access_el:
 					n->location = @1;
 					$$ = (Node *)n;
 				}
-			| type_function_name '{' type_list '}' '(' func_arg_list ')' over_clause
+			| type_function_name '<' type_list '>' '(' func_arg_list ')' over_clause		%prec '<'
 				{
 					FuncCall *n = makeNode(FuncCall);
 					n->funcname = $1;
@@ -6239,7 +6239,7 @@ member_access_el:
 					n->location = @1;
 					$$ = (Node *)n;
 				}
-			| type_function_name '{' type_list '}' '(' func_arg_list sort_clause ')' over_clause
+			| type_function_name '<' type_list '>' '(' func_arg_list sort_clause ')' over_clause		%prec '<'
 				{
 					FuncCall *n = makeNode(FuncCall);
 					n->funcname = $1;
@@ -6270,7 +6270,7 @@ member_access_el:
 					n->location = @1;
 					$$ = (Node *)n;
 				}
-			| type_function_name '{' type_list '}' '(' ALL func_arg_list opt_sort_clause ')' over_clause
+			| type_function_name '<' type_list '>' '(' ALL func_arg_list opt_sort_clause ')' over_clause		%prec '<'
 				{
 					FuncCall *n = makeNode(FuncCall);
 					n->funcname = $1;
@@ -6301,7 +6301,7 @@ member_access_el:
 					n->location = @1;
 					$$ = (Node *)n;
 				}
-			| type_function_name '{' type_list '}' '(' DISTINCT func_arg_list opt_sort_clause ')' over_clause
+			| type_function_name '<' type_list '>' '(' DISTINCT func_arg_list opt_sort_clause ')' over_clause		%prec '<'
 				{
 					FuncCall *n = makeNode(FuncCall);
 					n->funcname = $1;
@@ -6338,7 +6338,7 @@ member_access_el:
 					n->location = @1;
 					$$ = (Node *)n;
 				}
-			| type_function_name '{' type_list '}' '(' '*' ')' over_clause
+			| type_function_name '<' type_list '>' '(' '*' ')' over_clause		%prec '<'
 				{
 					/*
 					 * We consider AGGREGATE(*) to invoke a parameterless
@@ -6358,34 +6358,6 @@ member_access_el:
 					n->agg_distinct = FALSE;
 					n->func_variadic = FALSE;
 					n->over = $8;
-					n->generics = $3;
-					n->location = @1;
-					$$ = (Node *)n;
-				}
-			| GETEXTENSION '<' Typename '>' '(' ')'
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = makeString("GetExtension");
-					n->args = NIL;
-					n->agg_order = NIL;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = FALSE;
-					n->over = NULL;
-					n->generics = $3;
-					n->location = @1;
-					$$ = (Node *)n;
-				}
-			| GETEXTENSION '<' Typename '>' '(' func_arg_list ')'
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = makeString("GetExtension");
-					n->args = $6;
-					n->agg_order = NIL;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = FALSE;
-					n->over = NULL;
 					n->generics = $3;
 					n->location = @1;
 					$$ = (Node *)n;
@@ -6815,11 +6787,11 @@ member_access_el:
 		;
 
 member_access_seq_el:
-			'.' type_function_name
+			'.' ColId
 				{
 					$$ = (Node *) makeString($2);
 				}
-			| '.' type_function_name '{' type_list '}' member_access_seq_el
+			| '.' type_function_name '<' type_list '>' member_access_seq_el		%prec '<'
 				{
 					TypeName *n = makeTypeName($2);
 					List *l = list_make2(n, $6);
@@ -6840,7 +6812,7 @@ member_access_seq_el:
 					n->location = @2;
 					$$ = (Node *)n;
 				}
-			| '.' type_function_name '{' type_list '}' '(' ')' over_clause
+			| '.' type_function_name '<' type_list '>' '(' ')' over_clause		%prec '<'
 				{
 					FuncCall *n = makeNode(FuncCall);
 					n->funcname = $2;
@@ -6867,7 +6839,7 @@ member_access_seq_el:
 					n->location = @2;
 					$$ = (Node *)n;
 				}
-			| '.' type_function_name '{' type_list '}' '(' func_arg_list ')' over_clause
+			| '.' type_function_name '<' type_list '>' '(' func_arg_list ')' over_clause		%prec '<'
 				{
 					FuncCall *n = makeNode(FuncCall);
 					n->funcname = $2;
@@ -6922,7 +6894,7 @@ member_access_seq_el:
 					n->location = @2;
 					$$ = (Node *)n;
 				}
-			| '.' type_function_name '{' type_list '}' '(' func_arg_list sort_clause ')' over_clause
+			| '.' type_function_name '<' type_list '>' '(' func_arg_list sort_clause ')' over_clause		%prec '<'
 				{
 					FuncCall *n = makeNode(FuncCall);
 					n->funcname = $2;
@@ -6953,7 +6925,7 @@ member_access_seq_el:
 					n->location = @2;
 					$$ = (Node *)n;
 				}
-			| '.' type_function_name '{' type_list '}' '(' ALL func_arg_list opt_sort_clause ')' over_clause
+			| '.' type_function_name '<' type_list '>' '(' ALL func_arg_list opt_sort_clause ')' over_clause		%prec '<'
 				{
 					FuncCall *n = makeNode(FuncCall);
 					n->funcname = $2;
@@ -6984,7 +6956,7 @@ member_access_seq_el:
 					n->location = @2;
 					$$ = (Node *)n;
 				}
-			| '.' type_function_name '{' type_list '}' '(' DISTINCT func_arg_list opt_sort_clause ')' over_clause
+			| '.' type_function_name '<' type_list '>' '(' DISTINCT func_arg_list opt_sort_clause ')' over_clause		%prec '<'
 				{
 					FuncCall *n = makeNode(FuncCall);
 					n->funcname = $2;
@@ -7021,7 +6993,7 @@ member_access_seq_el:
 					n->location = @2;
 					$$ = (Node *)n;
 				}
-			| '.' type_function_name '{' type_list '}' '(' '*' ')' over_clause
+			| '.' type_function_name '<' type_list '>' '(' '*' ')' over_clause		%prec '<'
 				{
 					/*
 					 * We consider AGGREGATE(*) to invoke a parameterless
@@ -7041,34 +7013,6 @@ member_access_seq_el:
 					n->agg_distinct = FALSE;
 					n->func_variadic = FALSE;
 					n->over = $9;
-					n->generics = $4;
-					n->location = @2;
-					$$ = (Node *)n;
-				}
-			| '.' GETEXTENSION '<' Typename '>' '(' ')'
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = makeString("GetExtension");
-					n->args = NIL;
-					n->agg_order = NIL;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = FALSE;
-					n->over = NULL;
-					n->generics = $4;
-					n->location = @2;
-					$$ = (Node *)n;
-				}
-			| '.' GETEXTENSION '<' Typename '>' '(' func_arg_list ')'
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = makeString("GetExtension");
-					n->args = $7;
-					n->agg_order = NIL;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = FALSE;
-					n->over = NULL;
 					n->generics = $4;
 					n->location = @2;
 					$$ = (Node *)n;
@@ -7098,6 +7042,7 @@ member_access_indices:
 
 member_access_seq:
 			member_access_seq_el					{ $$ = list_make1($1); }
+			| member_access_indices					{ $$ = list_make1($1); }
 			| member_access_seq member_access_seq_el
 				{
 					$$ = lappend($1, $2);
@@ -9156,7 +9101,6 @@ reserved_keyword:
 			| FOR
 			| FOREIGN
 			| FROM
-			| GETEXTENSION
 			| GRANT
 			| GROUP_P
 			| HAVING
