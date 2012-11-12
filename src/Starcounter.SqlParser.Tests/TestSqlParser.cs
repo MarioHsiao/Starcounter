@@ -47,7 +47,7 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select I.J(A,B).F()");
             analyzer.ParseQuery("select I.J(A,B).F{A}()");
             analyzer.ParseQuery("select I.J.F()");
-            analyzer.ParseQuery("select I.J(A,B).F{A{C},T}()");
+            analyzer.ParseQuery("select I.J(A,B).F{A<C>,T}()");
             analyzer.ParseQuery("select I.J(A)");
             analyzer.ParseQuery("select I{A}()");
             analyzer.ParseQuery("select I.J{A}.f{A}(g)");
@@ -61,8 +61,8 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select cast(a+b as c.d(i)", true);
             analyzer.ParseQuery("select cast(a+b as c.d(i))", true);
             analyzer.ParseQuery("select cast(a+b as c.d[])");
-            analyzer.ParseQuery("select cast(a+b as c.d{i,d})");
-            analyzer.ParseQuery("select cast(a+b as c.d{i{g}[3],d})");
+            analyzer.ParseQuery("select cast(a+b as c.d<i,d>)");
+            analyzer.ParseQuery("select cast(a+b as c.d<i<g>,d>)");
             analyzer.ParseQuery("select DATE '2012-02-02'");
             analyzer.ParseQuery("select col1.fn().col2 = DATE '2012-02-02' from ns1.tbl1");
             analyzer.ParseQuery("select ?.f()");

@@ -5267,7 +5267,7 @@ GenericType:
 		;
 
 OptGenerics:
-			'{' type_list '}'						{ $$ = $2; }
+			'<' type_list '>'						{ $$ = $2; }
 			| /*EMPTY*/								{ $$ = NIL; }
 /*
  * SQL92 numeric data types
@@ -5659,8 +5659,8 @@ interval_second:
  * it's factored out just to eliminate redundant coding.
  */
 a_expr:		c_expr									{ $$ = $1; }
-			| a_expr TYPECAST Typename
-					{ $$ = makeTypeCast($1, $3, @2); }
+//			| a_expr TYPECAST Typename
+//					{ $$ = makeTypeCast($1, $3, @2); }
 			| a_expr COLLATE any_name
 				{
 					CollateClause *n = makeNode(CollateClause);
@@ -6080,8 +6080,8 @@ a_expr:		c_expr									{ $$ = $1; }
  */
 b_expr:		c_expr
 				{ $$ = $1; }
-			| b_expr TYPECAST Typename
-				{ $$ = makeTypeCast($1, $3, @2); }
+//			| b_expr TYPECAST Typename
+//				{ $$ = makeTypeCast($1, $3, @2); }
 			| '+' b_expr					%prec UMINUS
 				{ $$ = (Node *) makeSimpleA_Expr(AEXPR_OP, "+", NULL, $2, @1); }
 			| '-' b_expr					%prec UMINUS
