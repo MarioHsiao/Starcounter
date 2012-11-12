@@ -21,7 +21,7 @@ namespace Starcounter.Query.Execution
 
         internal LikeExecEnumerator(String sqlQuery,
             IExecutionEnumerator[] subExecEnumsClone,
-            Int32[] likeVarIndexRef) : base(null)
+            Int32[] likeVarIndexRef) : base(null, null)
         {
             query = sqlQuery;
             subExecEnums = subExecEnumsClone;

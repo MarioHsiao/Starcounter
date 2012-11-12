@@ -349,8 +349,10 @@ namespace Starcounter.Query.Sql
             CompositeTypeBinding resultTypeBind = CreateInitialResultTypeBinding(typeListTerm);
             AddPropertyMappings(resultTypeBind, mapListTerm, varArray);
 
-            if ((resultTypeBind.PropertyCount == 1) && (resultTypeBind.GetPropertyBinding(0).TypeCode == DbTypeCode.Object))
-                varArray.QueryFlags = varArray.QueryFlags | QueryFlags.SingleObjectProjection;
+            //if ((resultTypeBind.PropertyCount == 1) && (resultTypeBind.GetPropertyBinding(0).TypeCode == DbTypeCode.Object))
+            //    varArray.QueryFlags = varArray.QueryFlags | QueryFlags.SingletonProjection;
+            if (resultTypeBind.PropertyCount == 1)
+                varArray.QueryFlags = varArray.QueryFlags | QueryFlags.SingletonProjection;
 
             return resultTypeBind;
         }
@@ -986,7 +988,7 @@ namespace Starcounter.Query.Sql
         {
             IExecutionEnumerator inEnum = CreateEnumerator(resultTypeBind, enumTerm, varArray, query);
             IQueryComparer comparer = CreateComparer(resultTypeBind, compListTerm, varArray);
-            return new Sort(inEnum, comparer, varArray, query);
+            return new Sort(resultTypeBind, inEnum, comparer, varArray, query);
         }
 
         private static Aggregation CreateAggregation(CompositeTypeBinding resultTypeBind, Term extNumTerm, Term enumTerm, Term compListTerm,

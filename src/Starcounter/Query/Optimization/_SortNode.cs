@@ -124,7 +124,7 @@ internal class SortNode : IOptimizationNode
     {
         // For sort we ignore the fetch specification. Instead we return the complete result set.
         IExecutionEnumerator subEnumerator = subNode.CreateExecutionEnumerator(null, null);
-        return new Sort(subEnumerator, sortSpec.CreateComparer(), variableArr, query);
+        return new Sort(subEnumerator.CompositeTypeBinding, subEnumerator, sortSpec.CreateComparer(), variableArr, query);
     }
 
 #if DEBUG
