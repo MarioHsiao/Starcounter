@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="OurSources\parser.cpp">
+      <Filter>OurSources</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdPartySources\http_parser.c">
+      <Filter>ThirdPartySources</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="OurHeaders\http_request.hpp">
+      <Filter>OurHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdPartyHeaders\http_parser.h">
+      <Filter>ThirdPartyHeaders</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="HttpParser.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="OurHeaders">
+      <UniqueIdentifier>{be32e59a-ddf6-4cd9-874e-3801125e3fa3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OurSources">
+      <UniqueIdentifier>{21cade7d-fe62-4be6-a5c1-6884e5c335e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdPartyHeaders">
+      <UniqueIdentifier>{6907c17b-faef-4a38-a3af-ebf57ed27c1f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdPartySources">
+      <UniqueIdentifier>{26cfcf76-ae7c-47c2-9711-a913ff623cef}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

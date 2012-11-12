@@ -11,6 +11,7 @@ using Starcounter.Server.PublicModel.Commands;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Starcounter.Server.Commands {
 
@@ -37,6 +38,17 @@ namespace Starcounter.Server.Commands {
         private Stopwatch stopwatch;
 
         /// <summary>
+        /// Event reference we use for processors that are instructed to support
+        /// waiting by means of signaling (instead of polling).
+        /// </summary>
+        /// <remarks>
+        /// The implementation of the waiting, in <see cref="PublicModelProvider.Wait(CommandInfo)"/>,
+        /// supports <see cref="ManualResetEventSlim"/> too, so we can change to
+        /// that if it should better suit certain commands.
+        /// </remarks>
+        private ManualResetEvent manualResetEvent;
+
+        /// <summary>
         /// Initializes a new <see cref="CommandProcessor"/>.
         /// </summary>
         protected CommandProcessor(ServerEngine server, ServerCommand command) : this(server, command, false) { }
@@ -51,7 +63,7 @@ namespace Starcounter.Server.Commands {
             this.Id = CommandId.MakeNew();
             this.typeIdentity = CreateToken(GetType());
             this.IsPublic = !isInternal;
-
+            this.manualResetEvent = command.EnableWaiting ? new ManualResetEvent(false) : null; 
             stopwatch = Stopwatch.StartNew();
         }
 
@@ -137,6 +149,7 @@ namespace Starcounter.Server.Commands {
             this.Errors = errors;
             this.Status = CommandStatus.Failed;
 
+            SignalCompletion();
             NotifyStatusChanged();
         }
 
@@ -147,6 +160,7 @@ namespace Starcounter.Server.Commands {
             this.EndTime = DateTime.Now;
             this.Status = CommandStatus.Completed;
 
+            SignalCompletion();
             NotifyStatusChanged();
         }
 
@@ -175,6 +189,18 @@ namespace Starcounter.Server.Commands {
             if (this.progress != null) {
                 info.Progress = new ProgressInfo[progress.Values.Count];
                 progress.Values.CopyTo(info.Progress, 0);
+            }
+
+            if (!this.EndTime.HasValue) {
+                // This processor is not yet complete. If it's not, we
+                // possibly should allow waiting. If we do, we only give
+                // out a weak reference to our event, hinting that the
+                // reference at any time can be dropped.
+                //   See PublicModelProvider.Wait(CommandInfo) for the
+                // details.
+                if (this.manualResetEvent != null) {
+                    info.Waitable = new WeakReference(this.manualResetEvent);
+                }
             }
 
             return info;
@@ -510,6 +536,49 @@ namespace Starcounter.Server.Commands {
             }
 
             NotifyStatusChanged();
+        }
+
+
+        private void SignalCompletion() {
+            // Check if we've been instructed to support waiting using
+            // event.
+            if (this.manualResetEvent != null) {
+                // Set the event
+                this.manualResetEvent.Set();
+
+                // The question now is, what do we do here. Either we could
+                // just let the event be, and have the GC collect it. We are
+                // sure we haven't given out any references to it, other
+                // than a weak reference to the public model.
+                //   Or we could Dispose it and/or set it to null.
+                // From this link:
+                // http://stackoverflow.com/questions/2234128/do-i-need-to-call-close-on-a-manualresetevent
+                // we can read the following:
+                //
+                // <quote>
+                // Disposing Wait Handles
+                //
+                // Once you’ve finished with a wait handle, you can call its Close method to release the
+                // operating system resource. Alternatively, you can simply drop all references to the wait
+                // handle and allow the garbage collector to do the job for you sometime later (wait handles
+                // implement the disposal pattern whereby the finalizer calls Close). This is one of the few
+                // scenarios where relying on this backup is (arguably) acceptable, because wait handles have
+                // a light OS burden (asynchronous delegates rely on exactly this mechanism to release their
+                // IAsyncResult’s wait handle).
+                //
+                // Wait handles are released automatically when an application domain unloads.
+                // </quote>
+                //
+                // I guess setting it to null, but not disposing it, would seem like the most
+                // appealing choice, if the above comment really hold true, since if we Dispose
+                // it, we'll have quite a few ObjectDisposedExceptions in the Wait and even
+                // though we can handle it correctly, it hurts performance.
+                //
+                // We begin using this approach and see where it ends up, if we find any problems.
+                // By setting it to NULL, the event can be GC'd and the underlying unmanaged OS
+                // event info released.
+                this.manualResetEvent = null;
+            }
         }
 
         private void NotifyStatusChanged() {

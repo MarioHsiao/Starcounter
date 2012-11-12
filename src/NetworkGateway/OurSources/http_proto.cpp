@@ -11,66 +11,48 @@
 namespace starcounter {
 namespace network {
 
-char *kHttpResponse[3] =
-{
-    "HTTP/1.1 200 OK\r\n"
-    //"Cache-Control: private, no-cache\r\n"
-    "Content-Type: text/html; charset=UTF-8\r\n"
-    "Content-Length: @          \r\n",
-
-    "Set-Cookie: ScSessionId=@                           ; HttpOnly\r\n",
-
-    "\r\n"
-    "<html>\r\n"
-    "<body>\r\n"
-    "<h1>Your unique session: @                           </h1>\r\n"
-    "<h1>Number of visits during one session: #              </h1>\r\n"
-    "</body>\r\n"
-    "</html>\r\n"
-};
-
 char *kHttpGatewayPongResponse =
-{
     "HTTP/1.1 200 OK\r\n"
     "Content-Type: text/html; charset=UTF-8\r\n"
     "Content-Length: 5\r\n"
     "\r\n"
-    "Pong!"
-};
+    "Pong!";
+
 const int32_t kHttpGatewayPongResponseLength = strlen(kHttpGatewayPongResponse);
 
-const int32_t kHttpContentLengthOffset = abs(kHttpResponse[0] - strstr(kHttpResponse[0], "@"));
-const int32_t kHttpCookieOffset = abs(kHttpResponse[1] - strstr(kHttpResponse[1], "@"));
-const int32_t kHttpSessionOffset = abs(kHttpResponse[2] - strstr(kHttpResponse[2], "@"));
-const int32_t kHttpNumVisitsOffset = abs(kHttpResponse[2] - strstr(kHttpResponse[2], "#"));
-char kHttpContentLength[16];
-
 const char* ScSessionIdString = "ScSessionId";
-const int32_t ScSessionIdStringLen = strlen(ScSessionIdString);
 
-const int32_t kHttpResponseLen[3] =
-{
-    strlen(kHttpResponse[0]),
-    strlen(kHttpResponse[1]),
-    strlen(kHttpResponse[2])
-};
+const int32_t ScSessionIdStringLength = strlen(ScSessionIdString);
 
 const char* kHttpNoContent =
     "HTTP/1.1 204 No Content\r\n"
     "Content-Length: 0\r\n"
-    "Pragma: no-cache\r\n"
-    //"Cache-Control: private, no-cache\r\n"
-    //"Content-Type: image/ico\r\n"
     "\r\n";
+
+const int32_t kHttpNoContentLength = strlen(kHttpNoContent) + 1;
 
 const char* kHttpBadRequest =
     "HTTP/1.1 400 Bad Request\r\n"
     "Content-Length: 0\r\n"
-    "Pragma: no-cache\r\n"
-    //"Cache-Control: private, no-cache\r\n"
     "\r\n";
 
-const int32_t kHttpNoContentLen = strlen(kHttpNoContent) + 1;
+const int32_t kHttpBadRequestLength = strlen(kHttpBadRequest) + 1;
+
+const char* kHttpServiceUnavailable =
+    "HTTP/1.1 503 Service Unavailable\r\n"
+    "Content-Length: 0\r\n"
+    "\r\n";
+
+const int32_t kHttpServiceUnavailableLength = strlen(kHttpServiceUnavailable) + 1;
+
+const char* kHttpTooBigUpload =
+    "HTTP/1.1 413 Request Entity Too Large\r\n"
+    "Content-Type: text/html; charset=UTF-8\r\n"
+    "Content-Length: 50\r\n"
+    "\r\n"
+    "Maximum supported HTTP request body size is 32 Mb!";
+
+const int32_t kHttpTooBigUploadLength = strlen(kHttpTooBigUpload) + 1;
 
 // Fetches method and URI from HTTP request data.
 inline uint32_t GetMethodAndUri(
@@ -160,7 +142,7 @@ inline int HttpWsProto::OnHeadersComplete(http_parser* p)
     HttpWsProto *http = (HttpWsProto *)p;
 
     // Setting complete header flag.
-    http->set_complete_header_flag(true);
+    http->sd_ref_->set_complete_header_flag(true);
     
     // Setting headers length (skipping 4 bytes for \r\n\r\n).
     http->http_request_.headers_len_bytes_ = p->nread - 4 - http->http_request_.headers_len_bytes_;
@@ -193,12 +175,7 @@ inline int HttpWsProto::OnUri(http_parser* p, const char *at, size_t length)
     http->http_request_.uri_offset_ = at - (char *)(http->sd_ref_);
     http->http_request_.uri_len_bytes_ = length;
 
-    // Checking if we already took the URI.
-    if (http->get_uri_parsed_flag())
-        return 0;
-
-    // Immediately stopping parsing when URI is determined.
-    return 1;
+    return 0;
 }
 
 // Fast way to determine field type.
@@ -323,17 +300,17 @@ inline int HttpWsProto::OnHeaderField(http_parser* p, const char *at, size_t len
 inline const char* GetSessionIdValue(const char *at, size_t length)
 {
     int32_t i = 0;
-    if (length >= ScSessionIdStringLen)
+    if (length >= ScSessionIdStringLength)
     {
         while(i < length)
         {
             // Checking if this cookie is Starcounter session cookie.
             if ((ScSessionIdString[0] == at[i]) &&
                 (ScSessionIdString[1] == at[i + 1]) &&
-                ('=' == at[i + ScSessionIdStringLen]))
+                ('=' == at[i + ScSessionIdStringLength]))
             {
                 // Skipping session header name and equality symbol.
-                return at + i + ScSessionIdStringLen + 1;
+                return at + i + ScSessionIdStringLength + 1;
             }
             i++;
         }
@@ -401,7 +378,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
                 http->http_request_.session_string_len_bytes_ = SC_SESSION_STRING_LEN_CHARS;
 
                 // Reading received session index (skipping session header name and equality).
-                session_index_type session_index = hex_string_to_uint64(at + ScSessionIdStringLen + 1, 8);
+                session_index_type session_index = hex_string_to_uint64(at + ScSessionIdStringLength + 1, 8);
                 if (INVALID_CONVERTED_NUMBER == session_index)
                 {
                     GW_COUT << "Session index stored in the HTTP header has wrong format." << std::endl;
@@ -409,7 +386,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
                 }
 
                 // Reading received session random salt.
-                uint64_t randomSalt = hex_string_to_uint64(at + ScSessionIdStringLen + 1 + 8, 16);
+                uint64_t randomSalt = hex_string_to_uint64(at + ScSessionIdStringLength + 1 + 8, 16);
                 if (INVALID_CONVERTED_NUMBER == randomSalt)
                 {
                     GW_COUT << "Session random salt stored in the HTTP header has wrong format." << std::endl;
@@ -574,9 +551,6 @@ http_parser_settings g_httpParserSettings;
 
 void HttpGlobalInit()
 {
-    // Calculating the content length.
-    itoa(strlen(kHttpResponse[2]) - 2, kHttpContentLength, 10);
-
     // Setting HTTP callbacks.
     g_httpParserSettings.on_body = HttpWsProto::OnBody;
     g_httpParserSettings.on_header_field = HttpWsProto::OnHeaderField;
@@ -587,6 +561,7 @@ void HttpGlobalInit()
     g_httpParserSettings.on_url = HttpWsProto::OnUri;
 }
 
+// Determines the correct HTTP handler.
 uint32_t HttpWsProto::HttpUriDispatcher(
     GatewayWorker *gw,
     SocketDataChunk *sd,
@@ -599,22 +574,22 @@ uint32_t HttpWsProto::HttpUriDispatcher(
     // Checking if data goes to user code.
     if (sd->get_to_database_direction_flag())
     {
-        // Getting reference to accumulative buffer.
-        AccumBuffer* socketDataBuf = sd->get_accum_buf();
+        // Checking if already determined further handler.
+        if (INVALID_URI_INDEX != matched_uri_index_)
+        {
+            // Running determined handler now.
 
-        // Attaching a socket.
-        AttachToParser(gw, sd);
+            ServerPort* server_port = g_gateway.get_server_port(sd->get_port_index());
+            RegisteredUris* reg_uris = server_port->get_registered_uris();
+
+            *is_handled = true;
+
+            return reg_uris->GetEntryByIndex(matched_uri_index_).RunHandlers(gw, sd);
+        }
 
         // Checking if we are already passed the WebSockets handshake.
-        if(sd->get_http_ws_proto()->get_web_sockets_upgrade_flag() == true)
+        if(sd->get_web_sockets_upgrade_flag())
             return ws_proto_.ProcessWsDataToDb(gw, sd, handler_index);
-
-        // Checking that buffer has space for response data.
-        if (socketDataBuf->get_accum_len_bytes() >= (DATA_BLOB_SIZE_BYTES - HTTP_WS_MIN_RESPONSE_SIZE))
-        {
-            GW_COUT << "HTTP/WebSockets header is too big!" << std::endl;
-            return 1;
-        }
 
         // Obtaining method and URI.
         char* method_and_uri_lower_case = gw->get_uri_lower_case();
@@ -632,16 +607,12 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         // Checking for any errors.
         if (err_code)
         {
-            // Returning error.
-            return SCERRPARSINGMETHODANDURI;
-
-            // TODO: Continue receiving to parse the header!
-
             // Continue receiving.
-            socketDataBuf->ContinueReceive();
+            sd->get_accum_buf()->ContinueReceive();
 
             // Returning socket to receiving state.
-            gw->Receive(sd);
+            err_code = gw->Receive(sd);
+            GW_ERR_CHECK(err_code);
 
             // Handled successfully.
             *is_handled = true;
@@ -688,8 +659,13 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         if (matched_index < 0)
             return SCERRREQUESTONUNREGISTEREDURI;
 
-        // Running determined handler now.
+        // Message is handled.
         *is_handled = true;
+
+        // Indicating that matching URI index was found.
+        set_matched_uri_index(matched_index);
+
+        // Running determined handler now.
         return reg_uris->GetEntryByIndex(matched_index).RunHandlers(gw, sd);
     }
     else
@@ -702,6 +678,26 @@ uint32_t HttpWsProto::HttpUriDispatcher(
     return 0;
 }
 
+// Sends given predefined response.
+uint32_t HttpWsProto::SendPredefinedResponse(
+    GatewayWorker *gw,
+    SocketDataChunk *sd,
+    const char* response,
+    const int32_t response_length)
+{
+    AccumBuffer* accum_buf = sd->get_accum_buf();
+
+    // Copying given response.
+    memcpy(accum_buf->get_orig_buf_ptr(), response, response_length);
+
+    // Prepare buffer to send outside.
+    accum_buf->PrepareForSend(accum_buf->get_orig_buf_ptr(), response_length);
+
+    // Sending data.
+    return gw->Send(sd);
+}
+
+// Parses the HTTP request and pushes processed data to database.
 uint32_t HttpWsProto::HttpWsProcessData(
     GatewayWorker *gw,
     SocketDataChunk *sd,
@@ -717,46 +713,38 @@ uint32_t HttpWsProto::HttpWsProcessData(
     if (sd->get_to_database_direction_flag())
     {
         // Getting reference to accumulative buffer.
-        AccumBuffer* socketDataBuf = sd->get_accum_buf();
+        AccumBuffer* accum_buf = sd->get_accum_buf();
+
+        // Checking if we are in fill-up mode.
+        if (sd->get_accumulating_flag())
+            goto ALL_DATA_ACCUMULATED;
 
         // Attaching a socket.
-        AttachToParser(gw, sd);
+        AttachToParser(sd);
 
         // Checking if we are already passed the WebSockets handshake.
-        if(sd->get_http_ws_proto()->get_web_sockets_upgrade_flag() == true)
+        if(sd->get_web_sockets_upgrade_flag())
             return ws_proto_.ProcessWsDataToDb(gw, sd, handler_id);
-
-        // Checking that buffer has space for response data.
-        if ((socketDataBuf->get_accum_len_bytes()) >= (DATA_BLOB_SIZE_BYTES - HTTP_WS_MIN_RESPONSE_SIZE))
-        {
-            GW_COUT << "HTTP/WebSockets header is too big!" << std::endl;
-            return 1;
-        }
 
         // Resetting the parsing structure.
         ResetParser();
-
-        // Indicating that we have already parsed the URI.
-        set_uri_parsed_flag(true);
 
         // Executing HTTP parser.
         size_t bytes_parsed = http_parser_execute(
             (http_parser *)this,
             &g_httpParserSettings,
-            (const char *)socketDataBuf->get_orig_buf_ptr(),
-            socketDataBuf->get_accum_len_bytes());
-
-        // Flag indicating if its a WebSockets upgrade.
-        bool isWebSocket = http_parser_.upgrade;
+            (const char *)accum_buf->get_orig_buf_ptr(),
+            accum_buf->get_accum_len_bytes());
 
         // Checking if we have complete data.
-        if ((!get_complete_header_flag()) && (bytes_parsed == socketDataBuf->get_accum_len_bytes()))
+        if ((!sd->get_complete_header_flag()) && (bytes_parsed == accum_buf->get_accum_len_bytes()))
         {
             // Continue receiving.
-            socketDataBuf->ContinueReceive();
+            accum_buf->ContinueReceive();
 
             // Returning socket to receiving state.
-            gw->Receive(sd);
+            err_code = gw->Receive(sd);
+            GW_ERR_CHECK(err_code);
 
             // Handled successfully.
             *is_handled = true;
@@ -764,10 +752,30 @@ uint32_t HttpWsProto::HttpWsProcessData(
             return 0;
         }
 
-        // Getting the HTTP method.
-        http_method method = (http_method)http_parser_.method;
-        switch (method)
+        // Checking if we have WebSockets upgrade.
+        if (http_parser_.upgrade)
         {
+            GW_COUT << "Upgrade to another protocol detected, data: " << std::endl;
+
+            // Handled successfully.
+            *is_handled = true;
+
+            // Perform WebSockets handshake.
+            return ws_proto_.DoHandshake(gw, sd);
+        }
+        // Handle error. Usually just close the connection.
+        else if (bytes_parsed != (accum_buf->get_accum_len_bytes()))
+        {
+            GW_COUT << "HTTP packet has incorrect data!" << std::endl;
+            return SCERRUNSPECIFIED;
+        }
+        // Standard HTTP.
+        else
+        {
+            // Getting the HTTP method.
+            http_method method = (http_method)http_parser_.method;
+            switch (method)
+            {
             case http_method::HTTP_GET: 
                 http_request_.http_method_ = bmx::HTTP_METHODS::GET_METHOD;
                 break;
@@ -803,71 +811,82 @@ uint32_t HttpWsProto::HttpWsProcessData(
             default: 
                 http_request_.http_method_ = bmx::HTTP_METHODS::OTHER_METHOD;
                 break;
-        }
-
-        // Pointing to the beginning of the response data.
-        uint8_t *respDataBegin = socketDataBuf->ResponseDataStart();
-        uint32_t respDataSize = 0;
-
-        // Checking if we have upgrade.
-        if (isWebSocket)
-        {
-            GW_COUT << "Upgrade to another protocol detected, data: " << std::endl;
-
-            // Handled successfully.
-            *is_handled = true;
-
-            // Perform WebSockets handshake.
-            return ws_proto_.DoHandshake(gw, sd);
-        }
-        // Handle error. Usually just close the connection.
-        else if (bytes_parsed != (socketDataBuf->get_accum_len_bytes()))
-        {
-            GW_COUT << "HTTP packet has incorrect data!" << std::endl;
-            return 1;
-        }
-        // Standard HTTP.
-        else
-        {
-            AccumBuffer* accum_buf = sd->get_accum_buf();
-
-            // Checking if we have big body.
-            if (http_request_.body_len_bytes_ > (DATA_BLOB_SIZE_BYTES - bytes_parsed))
-            {
-                GW_COUT << "HTTP request has too big body!" << std::endl;
-                return SCERRUNSPECIFIED;
-
-                accum_buf->ResetBufferForNewOperation();
-
-                // Checking if we have filled all given buffers.
-                if (accum_buf->get_accum_len_bytes() < http_request_.body_len_bytes_)
-                {
-                    // Checking if we need to allocate any additional buffers.
-                    int32_t bytes_left_to_accumulate = http_request_.body_len_bytes_ - accum_buf->get_buf_len_bytes();
-                    if (bytes_left_to_accumulate > 0)
-                    {
-                        // Determining the maximum bytes we can accumulate.
-                        uint32_t max_bytes = bytes_left_to_accumulate;
-                        if (max_bytes < bmx::MAX_DATA_BYTES_IN_CHUNK)
-                            max_bytes = http_request_.body_len_bytes_;
-
-                        // Getting linked chunks to proceed with any size request.
-                        core::chunk_index new_chunk_index;
-                        err_code = gw->GetDatabase(sd->get_db_index())->GetLinkedChunksFromPrivatePool(&new_chunk_index, max_bytes);
-                        if (err_code)
-                            return SCERRACQUIRELINKEDCHUNKS;
-                    }
-
-                    // Running through all chunks and constructing WSA pointers table.
-
-                }
-
-                // We need to continue receiving up to certain accumulation point.
-
             }
 
-            // Data is complete, posting parallel receive.
-            gw->Receive(sd->CloneReceive(gw));
+			// TODO: Check when resolved with NGINX http parser.
+            // Setting content length.
+            //http_request_.body_len_bytes_ = http_parser_.content_length;
+            // Checking if content length was determined at all.
+            //if (ULLONG_MAX == http_parser_.content_length)
+            //    http_request_.body_len_bytes_ = 0;
+
+            // Checking if we have any body at all.
+            if (http_request_.body_len_bytes_ > 0)
+            {
+                // Number of body bytes already received.
+                int32_t num_body_bytes_received = accum_buf->get_accum_len_bytes() + SOCKET_DATA_BLOB_OFFSET_BYTES - http_request_.body_offset_;
+                
+                // Checking if body was partially received at all.
+                if (http_request_.body_offset_ <= 0)
+                {
+                    // Setting the value for body offset.
+                    http_request_.body_offset_ = SOCKET_DATA_BLOB_OFFSET_BYTES + bytes_parsed;
+
+                    num_body_bytes_received = 0;
+                }
+
+                // Checking if we need to continue receiving the body.
+                if (http_request_.body_len_bytes_ > num_body_bytes_received)
+                {
+                    // Checking for maximum supported HTTP request body size.
+                    if (http_request_.body_len_bytes_ > MAX_HTTP_BODY_SIZE)
+                    {
+                        // Handled successfully.
+                        *is_handled = true;
+
+                        // Setting disconnect after send flag.
+                        sd->set_disconnect_after_send_flag(true);
+
+#ifdef GW_WARNINGS_DIAG
+                        GW_COUT << "Maximum supported HTTP request body size is 32 Mb!" << std::endl;
+#endif
+
+                        // Sending corresponding HTTP response.
+                        return SendPredefinedResponse(gw, sd, kHttpTooBigUpload, kHttpTooBigUploadLength);
+                    }
+
+                    // Enabling accumulative state.
+                    sd->set_accumulating_flag(true);
+
+                    // Setting the desired number of bytes to accumulate.
+                    accum_buf->set_desired_accum_bytes(accum_buf->get_accum_len_bytes() + http_request_.body_len_bytes_ - num_body_bytes_received);
+
+                    // Continue receiving.
+                    accum_buf->ContinueReceive();
+
+                    // Trying to continue accumulation.
+                    bool is_accumulated;
+                    uint32_t err_code = sd->ContinueAccumulation(gw, &is_accumulated);
+                    GW_ERR_CHECK(err_code);
+
+                    // Handled successfully.
+                    *is_handled = true;
+
+                    // Checking if we have not accumulated everything yet.
+                    return gw->Receive(sd);
+                }
+            }
+
+ALL_DATA_ACCUMULATED:
+
+            // Posting cloning receive since all data is accumulated.
+            SocketDataChunk* sd_clone;
+            err_code = sd->CloneToReceive(gw, &sd_clone);
+            GW_ERR_CHECK(err_code);
+
+            // Start receiving on clone.
+            err_code = gw->Receive(sd_clone);
+            GW_ERR_CHECK(err_code);
 
             // Checking special case when session is attached to socket,
             // but no session cookie is presented.
@@ -883,36 +902,9 @@ uint32_t HttpWsProto::HttpWsProcessData(
             {
                 case HTTP_STANDARD_RESPONSE:
                 {
-                    // Checking if already visited before.
-                    /*if (sd->GetAttachedSession() == NULL)
-                    {
-                        // Generating and attaching new session.
-                        sd->AttachToSession(g_gateway.GenerateNewSession(gw));
-                    }*/
-
                     // Setting session structure fields.
-                    http_request_.request_offset_ = socketDataBuf->get_orig_buf_ptr() - (uint8_t*)sd;
-
-                    // TODO:
-                    // Copying session information to the HTTP request struct.
-                    //http_request_.session_struct_.Init(sd->get_session_salt(), sd->get_session_index(), ~0);
-
-                    http_request_.request_len_bytes_ = socketDataBuf->get_accum_len_bytes();
-
-                    // Getting the payload pointer.
-                    uint8_t *payload = sd->get_accum_buf()->ResponseDataStart();
-                    uint32_t uri_len = http_request_.uri_len_bytes_;
-
-                    // Copying needed resource URI.
-                    memcpy(payload, &uri_len, 2);
-                    memcpy(payload + 2, (uint8_t*)sd + http_request_.uri_offset_, uri_len);
-
-                    // Setting user data length and pointer.
-                    sd->set_user_data_written_bytes(uri_len + 2);
-
-                    // TODO: Decide if lower 2 lines are needed.
-                    //sd->set_user_data_offset(payload - ((uint8_t *)sd));
-                    //sd->set_max_user_data_bytes(DATA_BLOB_SIZE_BYTES - (payload - sd->get_data_blob()));
+                    http_request_.request_offset_ = SOCKET_DATA_BLOB_OFFSET_BYTES;
+                    http_request_.request_len_bytes_ = accum_buf->get_accum_len_bytes();
 
                     // Resetting user data parameters.
                     sd->ResetUserDataOffset();
@@ -926,34 +918,20 @@ uint32_t HttpWsProto::HttpWsProcessData(
                     
                 case HTTP_GATEWAY_PONG_RESPONSE:
                 {
-                    // Copying no-content response.
-                    memcpy(respDataBegin + respDataSize, kHttpGatewayPongResponse, kHttpGatewayPongResponseLength);
-
-                    // Setting user data length and pointer.
-                    sd->set_user_data_written_bytes(kHttpGatewayPongResponseLength);
-
-                    // Prepare buffer to send outside.
-                    socketDataBuf->PrepareForSend(respDataBegin, kHttpGatewayPongResponseLength);
-
-                    // Sending data.
-                    gw->Send(sd);
+                    // Sending Pong response.
+                    err_code = SendPredefinedResponse(gw, sd, kHttpGatewayPongResponse, kHttpGatewayPongResponseLength);
+                    if (err_code)
+                        return err_code;
 
                     break;
                 }
 
                 default:
                 {
-                    // Copying no-content response.
-                    memcpy(respDataBegin + respDataSize, kHttpNoContent, kHttpNoContentLen);
-
-                    // Setting user data length and pointer.
-                    sd->set_user_data_written_bytes(kHttpNoContentLen);
-
-                    // Prepare buffer to send outside.
-                    socketDataBuf->PrepareForSend(respDataBegin, kHttpNoContentLen);
-
-                    // Sending data.
-                    gw->Send(sd);
+                    // Sending no-content response.
+                    err_code = SendPredefinedResponse(gw, sd, kHttpNoContent, kHttpNoContentLength);
+                    if (err_code)
+                        return err_code;
 
                     break;
                 }
@@ -961,7 +939,7 @@ uint32_t HttpWsProto::HttpWsProcessData(
 
             // Printing the outgoing packet.
 #ifdef GW_HTTP_DIAG
-            GW_COUT << respDataBegin << std::endl;
+            GW_COUT << accum_buf->get_orig_buf_ptr() << std::endl;
 #endif
         }
 
@@ -974,59 +952,13 @@ uint32_t HttpWsProto::HttpWsProcessData(
     else
     {
         // Checking if we are already passed the WebSockets handshake.
-        if(sd->get_http_ws_proto()->get_web_sockets_upgrade_flag() == true)
+        if(sd->get_web_sockets_upgrade_flag())
         {
             // Handled successfully.
             *is_handled = true;
 
             return ws_proto_.ProcessWsDataFromDb(gw, sd, handler_id);
         }
-
-        // Getting user data.
-        uint8_t *payload = sd->UserDataBuffer();
-
-        // Length of user data in bytes.
-        uint64_t payloadLen = sd->get_user_data_written_bytes();
-
-        /*
-        TODO: Remove if not needed in future.
-
-        // Prefixing user data payload with HTTP header.
-        int32_t httpHeaderLen = kHttpResponseLen[0] + 2;
-
-        // Checking if we also need to embed the session cookie.
-        if (0 == http_request_.session_string_offset_)
-            httpHeaderLen += kHttpResponseLen[1];
-
-        // Copying the base HTTP header.
-        memcpy(payload - httpHeaderLen, kHttpResponse[0], kHttpResponseLen[0]);
-
-        // Embedding data length.
-        itoa(payloadLen, (char *)payload - httpHeaderLen + kHttpContentLengthOffset, 10);
-
-        // Checking if we also need to embed the session cookie.
-        if (0 == http_request_.session_string_offset_)
-        {
-            // Copying the session cookie header.
-            memcpy(payload - httpHeaderLen + kHttpResponseLen[0], kHttpResponse[1], kHttpResponseLen[1]);
-
-            // Embedding the session cookie.
-            char temp[32];
-
-            // Converting session to string.
-            int32_t sessionStringLen = sd->GetAttachedSession()->ConvertToString(temp);
-
-            // Copying the cookie string.
-            memcpy(payload - httpHeaderLen + kHttpResponseLen[0] + kHttpCookieOffset, temp, sessionStringLen);
-        }
-
-        // Adding /r/n right before the user payload.
-        payload[-2] = '\r';
-        payload[-1] = '\n';
-
-        // Prepare buffer to send outside.
-        sd->get_data_buf()->PrepareForSend(payload - httpHeaderLen, payloadLen + httpHeaderLen);
-        */
 
         // Correcting the session cookie.
         if (sd->get_new_session_flag())
@@ -1036,7 +968,7 @@ uint32_t HttpWsProto::HttpWsProcessData(
             assert(NULL != session_cookie);
 
             // Skipping cookie header and equality symbol.
-            session_cookie += ScSessionIdStringLen + 1;
+            session_cookie += ScSessionIdStringLength + 1;
 
             // Writing gateway session index.
             g_gateway.GetSessionData(sd->get_session_index())->ConvertToString(session_cookie);
@@ -1046,10 +978,11 @@ uint32_t HttpWsProto::HttpWsProcessData(
         }
 
         // Prepare buffer to send outside.
-        sd->get_accum_buf()->PrepareForSend(payload, payloadLen);
+        sd->get_accum_buf()->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_written_bytes());
 
         // Sending data.
-        gw->Send(sd);
+        err_code = gw->Send(sd);
+        GW_ERR_CHECK(err_code);
 
         // Handled successfully.
         *is_handled = true;

@@ -25,71 +25,26 @@
     <ClInclude Include="OurHeaders\static_headers.hpp" />
     <ClInclude Include="ThirdPartyHeaders\cdecode.h" />
     <ClInclude Include="ThirdPartyHeaders\cencode.h" />
-    <ClInclude Include="ThirdPartyHeaders\http_parser.h" />
     <ClInclude Include="ThirdPartyHeaders\rapidxml.hpp" />
     <ClInclude Include="ThirdPartyHeaders\sha-1.h" />
+    <ClInclude Include="..\HTTP\HttpParser\ThirdPartyHeaders\http_parser.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="OurSources\gateway.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="OurSources\http_proto.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="OurSources\handlers.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="OurSources\socket_data.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="OurSources\tls_proto.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="OurSources\utilities.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="OurSources\worker.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="OurSources\worker_db_interface.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="OurSources\ws_proto.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="ThirdPartySources\cdecode.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="ThirdPartySources\cencode.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="ThirdPartySources\http_parser.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="ThirdPartySources\sha-1.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\Chunks\common\mapped_region.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\Chunks\common\shared_memory_object.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
+    <ClCompile Include="..\HTTP\HttpParser\ThirdPartySources\http_parser.c" />
+    <ClCompile Include="OurSources\gateway.cpp" />
+    <ClCompile Include="OurSources\http_proto.cpp" />
+    <ClCompile Include="OurSources\handlers.cpp" />
+    <ClCompile Include="OurSources\socket_data.cpp" />
+    <ClCompile Include="OurSources\tls_proto.cpp" />
+    <ClCompile Include="OurSources\utilities.cpp" />
+    <ClCompile Include="OurSources\worker.cpp" />
+    <ClCompile Include="OurSources\worker_db_interface.cpp" />
+    <ClCompile Include="OurSources\ws_proto.cpp" />
+    <ClCompile Include="ThirdPartySources\cdecode.cpp" />
+    <ClCompile Include="ThirdPartySources\cencode.cpp" />
+    <ClCompile Include="ThirdPartySources\sha-1.cpp" />
+    <ClCompile Include="..\Chunks\common\mapped_region.cpp" />
+    <ClCompile Include="..\Chunks\common\shared_memory_object.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Chunks\BMX\bmx.vcxproj">
@@ -128,8 +83,6 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>ThirdPartyHeaders;OurHeaders;c:\boost\x86_64\include\boost-1_46_1;..\Chunks;..\..\..\Level0\src\include;..\Starcounter.ErrorCodes\scerrres</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <PrecompiledHeader>Create</PrecompiledHeader>
-      <PrecompiledHeaderFile>static_headers.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level2</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -146,8 +99,6 @@
       <AdditionalIncludeDirectories>ThirdPartyHeaders;OurHeaders;c:\boost\x86_64\include\boost-1_46_1;..\Chunks;..\..\..\Level0\src\include;..\Starcounter.ErrorCodes\scerrres</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <WarningLevel>Level2</WarningLevel>
-      <PrecompiledHeader>Create</PrecompiledHeader>
-      <PrecompiledHeaderFile>static_headers.hpp</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>

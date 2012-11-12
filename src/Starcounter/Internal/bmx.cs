@@ -123,6 +123,31 @@ namespace Starcounter.Internal
         );
 
         /// <summary>
+        /// sc_bmx_copy_all_chunks the specified chunk_index.
+        /// </summary>
+        /// <returns>UInt32.</returns>
+        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public unsafe extern static UInt32 sc_bmx_copy_all_chunks(
+            UInt32 chunk_index,
+            Byte* first_smc,
+            UInt32 first_chunk_offset,
+            UInt32 total_copy_bytes,
+            Byte* dest_buffer,
+            UInt32 dest_buffer_size
+        );
+
+        /// <summary>
+        /// sc_bmx_plain_copy_and_release_chunks the specified chunk_index.
+        /// </summary>
+        /// <returns>UInt32.</returns>
+        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public unsafe extern static UInt32 sc_bmx_plain_copy_and_release_chunks(
+            UInt32 first_chunk_index,
+            Byte* first_chunk_data,
+            Byte* buffer
+        );
+
+        /// <summary>
         /// Sc_bmx_send_buffers the specified buf.
         /// </summary>
         /// <param name="buf">The buf.</param>

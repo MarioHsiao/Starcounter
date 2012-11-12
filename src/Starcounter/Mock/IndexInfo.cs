@@ -7,6 +7,7 @@
 using Starcounter;
 using Starcounter.Query.Execution;
 using System;
+using System.Diagnostics;
 
 namespace Starcounter.Binding
 {
@@ -94,5 +95,58 @@ namespace Starcounter.Binding
         {
             return _columnDefs[index].Type;
         }
+
+#if DEBUG
+        private bool AssertEqualsVisited = false;
+        internal bool AssertEquals(IndexInfo other) {
+            Debug.Assert(other != null);
+            if (other == null)
+                return false;
+            // Check if there are not cyclic references
+            Debug.Assert(!this.AssertEqualsVisited);
+            if (this.AssertEqualsVisited)
+                return false;
+            Debug.Assert(!other.AssertEqualsVisited);
+            if (other.AssertEqualsVisited)
+                return false;
+            // Check basic types
+            Debug.Assert(this._handle == other._handle);
+            if (this._handle != other._handle)
+                return false;
+            Debug.Assert(this._name == other._name);
+            if (this._name != other._name)
+                return false;
+            Debug.Assert(this._handle == other._handle);
+            if (this._handle != other._handle)
+                return false;
+            // Check cardinalities of collections
+            Debug.Assert(this._columnDefs.Length == other._columnDefs.Length);
+            if (this._columnDefs.Length != other._columnDefs.Length)
+                return false;
+            // Check basic collections
+            Debug.Assert(this._sortOrderings.Length == other._sortOrderings.Length);
+            if (this._sortOrderings.Length != other._sortOrderings.Length)
+                return false;
+            for (int i = 0; i < this._sortOrderings.Length; i++) {
+                Debug.Assert(this._sortOrderings[i] == other._sortOrderings[i]);
+                if (this._sortOrderings[i] != other._sortOrderings[i])
+                    return false;
+            }
+            // Check references. This should be checked if there is cyclic reference.
+            AssertEqualsVisited = true;
+            bool areEquals = true;
+            // Check collections of objects
+            for (int i = 0; i < this._columnDefs.Length && areEquals; i++)
+                if (this._columnDefs[i] == null) {
+                    Debug.Assert(other._columnDefs[i] == null);
+                    areEquals = other._columnDefs[i] == null;
+                } else {
+                    Debug.Assert(this._columnDefs[i] == other._columnDefs[i]);
+                    areEquals = this._columnDefs[i] == other._columnDefs[i];
+                }
+            AssertEqualsVisited = false;
+            return areEquals;
+        }
+#endif
     }
 }
