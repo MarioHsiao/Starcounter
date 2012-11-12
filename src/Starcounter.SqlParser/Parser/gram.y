@@ -6174,6 +6174,20 @@ member_access_el:
 					n->location = @1;
 					$$ = (Node *)n;
 				}
+			| '<' type_list '>' type_function_name '(' ')'  over_clause
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $4;
+					n->args = NIL;
+					n->agg_order = NIL;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					n->func_variadic = FALSE;
+					n->over = $7;
+					n->generics = $2;
+					n->location = @1;
+					$$ = (Node *)n;
+				}
 			| type_function_name '(' func_arg_list ')'  over_clause
 				{
 					FuncCall *n = makeNode(FuncCall);
@@ -6198,6 +6212,20 @@ member_access_el:
 					n->func_variadic = FALSE;
 					n->over = $8;
 					n->generics = $3;
+					n->location = @1;
+					$$ = (Node *)n;
+				}
+			| '<' type_list '>' type_function_name '(' func_arg_list ')' over_clause		%prec '<'
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $4;
+					n->args = $6;
+					n->agg_order = NIL;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					n->func_variadic = FALSE;
+					n->over = $8;
+					n->generics = $2;
 					n->location = @1;
 					$$ = (Node *)n;
 				}
@@ -6254,6 +6282,20 @@ member_access_el:
 					n->location = @1;
 					$$ = (Node *)n;
 				}
+			| '<' type_list '>' type_function_name '(' func_arg_list sort_clause ')' over_clause		%prec '<'
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $4;
+					n->args = $6;
+					n->agg_order = $7;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					n->func_variadic = FALSE;
+					n->over = $9;
+					n->generics = $2;
+					n->location = @1;
+					$$ = (Node *)n;
+				}
 			| type_function_name '(' ALL func_arg_list opt_sort_clause ')' over_clause
 				{
 					FuncCall *n = makeNode(FuncCall);
@@ -6289,6 +6331,24 @@ member_access_el:
 					n->location = @1;
 					$$ = (Node *)n;
 				}
+			| '<' type_list '>' type_function_name '(' ALL func_arg_list opt_sort_clause ')' over_clause		%prec '<'
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $4;
+					n->args = $7;
+					n->agg_order = $8;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					/* Ideally we'd mark the FuncCall node to indicate
+					 * "must be an aggregate", but there's no provision
+					 * for that in FuncCall at the moment.
+					 */
+					n->func_variadic = FALSE;
+					n->over = $10;
+					n->generics = $2;
+					n->location = @1;
+					$$ = (Node *)n;
+				}
 			| type_function_name '(' DISTINCT func_arg_list opt_sort_clause ')' over_clause
 				{
 					FuncCall *n = makeNode(FuncCall);
@@ -6313,6 +6373,20 @@ member_access_el:
 					n->func_variadic = FALSE;
 					n->over = $10;
 					n->generics = $3;
+					n->location = @1;
+					$$ = (Node *)n;
+				}
+			| '<' type_list '>' type_function_name '(' DISTINCT func_arg_list opt_sort_clause ')' over_clause		%prec '<'
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $4;
+					n->args = $7;
+					n->agg_order = $8;
+					n->agg_star = FALSE;
+					n->agg_distinct = TRUE;
+					n->func_variadic = FALSE;
+					n->over = $10;
+					n->generics = $2;
 					n->location = @1;
 					$$ = (Node *)n;
 				}
@@ -6360,6 +6434,30 @@ member_access_el:
 					n->func_variadic = FALSE;
 					n->over = $8;
 					n->generics = $3;
+					n->location = @1;
+					$$ = (Node *)n;
+				}
+			| '<' type_list '>' type_function_name '(' '*' ')' over_clause		%prec '<'
+				{
+					/*
+					 * We consider AGGREGATE(*) to invoke a parameterless
+					 * aggregate.  This does the right thing for COUNT(*),
+					 * and there are no other aggregates in SQL92 that accept
+					 * '*' as parameter.
+					 *
+					 * The FuncCall node is also marked agg_star = true,
+					 * so that later processing can detect what the argument
+					 * really was.
+					 */
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $4;
+					n->args = NIL;
+					n->agg_order = NIL;
+					n->agg_star = TRUE;
+					n->agg_distinct = FALSE;
+					n->func_variadic = FALSE;
+					n->over = $8;
+					n->generics = $2;
 					n->location = @1;
 					$$ = (Node *)n;
 				}
@@ -6827,6 +6925,20 @@ member_access_seq_el:
 					n->location = @2;
 					$$ = (Node *)n;
 				}
+			| '.' '<' type_list '>' type_function_name '(' ')' over_clause
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $5;
+					n->args = NIL;
+					n->agg_order = NIL;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					n->func_variadic = FALSE;
+					n->over = $8;
+					n->generics = $3;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
 			| '.' type_function_name '(' func_arg_list ')'  over_clause
 				{
 					FuncCall *n = makeNode(FuncCall);
@@ -6851,6 +6963,20 @@ member_access_seq_el:
 					n->func_variadic = FALSE;
 					n->over = $9;
 					n->generics = $4;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
+			| '.' '<' type_list '>' type_function_name '(' func_arg_list ')' over_clause
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $5;
+					n->args = $7;
+					n->agg_order = NIL;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					n->func_variadic = FALSE;
+					n->over = $9;
+					n->generics = $3;
 					n->location = @2;
 					$$ = (Node *)n;
 				}
@@ -6909,6 +7035,20 @@ member_access_seq_el:
 					n->location = @2;
 					$$ = (Node *)n;
 				}
+			| '.' '<' type_list '>' type_function_name '(' func_arg_list sort_clause ')' over_clause
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $5;
+					n->args = $7;
+					n->agg_order = $8;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					n->func_variadic = FALSE;
+					n->over = $10;
+					n->generics = $3;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
 			| '.' type_function_name '(' ALL func_arg_list opt_sort_clause ')' over_clause
 				{
 					FuncCall *n = makeNode(FuncCall);
@@ -6944,6 +7084,24 @@ member_access_seq_el:
 					n->location = @2;
 					$$ = (Node *)n;
 				}
+			| '.' '<' type_list '>' type_function_name '(' ALL func_arg_list opt_sort_clause ')' over_clause
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $5;
+					n->args = $8;
+					n->agg_order = $9;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					/* Ideally we'd mark the FuncCall node to indicate
+					 * "must be an aggregate", but there's no provision
+					 * for that in FuncCall at the moment.
+					 */
+					n->func_variadic = FALSE;
+					n->over = $11;
+					n->generics = $3;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
 			| '.' type_function_name '(' DISTINCT func_arg_list opt_sort_clause ')' over_clause
 				{
 					FuncCall *n = makeNode(FuncCall);
@@ -6968,6 +7126,20 @@ member_access_seq_el:
 					n->func_variadic = FALSE;
 					n->over = $11;
 					n->generics = $4;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
+			| '.' '<' type_list '>' type_function_name '(' DISTINCT func_arg_list opt_sort_clause ')' over_clause
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $5;
+					n->args = $8;
+					n->agg_order = $9;
+					n->agg_star = FALSE;
+					n->agg_distinct = TRUE;
+					n->func_variadic = FALSE;
+					n->over = $11;
+					n->generics = $3;
 					n->location = @2;
 					$$ = (Node *)n;
 				}
@@ -7015,6 +7187,30 @@ member_access_seq_el:
 					n->func_variadic = FALSE;
 					n->over = $9;
 					n->generics = $4;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
+			| '.' '<' type_list '>' type_function_name '(' '*' ')' over_clause
+				{
+					/*
+					 * We consider AGGREGATE(*) to invoke a parameterless
+					 * aggregate.  This does the right thing for COUNT(*),
+					 * and there are no other aggregates in SQL92 that accept
+					 * '*' as parameter.
+					 *
+					 * The FuncCall node is also marked agg_star = true,
+					 * so that later processing can detect what the argument
+					 * really was.
+					 */
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $5;
+					n->args = NIL;
+					n->agg_order = NIL;
+					n->agg_star = TRUE;
+					n->agg_distinct = FALSE;
+					n->func_variadic = FALSE;
+					n->over = $9;
+					n->generics = $3;
 					n->location = @2;
 					$$ = (Node *)n;
 				}
