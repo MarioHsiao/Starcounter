@@ -14,63 +14,68 @@ using Starcounter.Client.Template;
 namespace Starcounter.Client {
 #else
 using Starcounter.Templates;
-namespace Starcounter
-{
+namespace Starcounter {
 #endif
     /// <summary>
     /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class Listing<T> : Listing where T : App, new()
-    {
+    public class Listing<T> : Listing where T : App, new() {
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="res"></param>
         /// <returns></returns>
-        public static implicit operator Listing<T>(SqlResult res)
-        {
-            throw new NotImplementedException();
+        public static implicit operator Listing<T>(SqlResult res) {
+            return new Listing<T>(res);
         }
-        
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="result"></param>
+        protected Listing(SqlResult result) : base(result) {
+        }
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="templ"></param>
         public Listing(App parent, ListingProperty templ)
-            : base(parent, templ)
-        {
+            : base(parent, templ) {
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public new T Current
-        {
-            get
-            {
+        public new T Current {
+            get {
                 return (T)base.Current;
             }
         }
+
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        public new T Add()
-        {
+        public new T Add() {
             var app = new T();
             Add(app);
             return app;
         }
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public T Add(Entity data)
-        {
-            var app = new T() { Data = data };
+        public T Add(Entity data) {
+            ListingProperty template = (ListingProperty)Template;
+            var app = (T)template.App.CreateInstance(this);
+            
+            app.Data = data;
             Add(app);
             return app;
         }
@@ -80,18 +85,15 @@ namespace Starcounter
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public new T this[int index]
-        {
-            get
-            {
+        public new T this[int index] {
+            get {
 #if QUICKTUPLE
                 return (T)QuickAndDirtyArray[index];
 #else
             throw new JockeNotImplementedException();
 #endif
             }
-            set
-            {
+            set {
                 throw new JockeNotImplementedException();
             }
         }
@@ -105,15 +107,19 @@ namespace Starcounter
 #if IAPP
 , IAppArray
 #endif
-    {
+ {
+        /// <summary>
+        /// 
+        /// </summary>
+        protected SqlResult tempResult = null;
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="res"></param>
         /// <returns></returns>
-        public static implicit operator Listing(SqlResult res)
-        {
-            throw new NotImplementedException();
+        public static implicit operator Listing(SqlResult res) {
+            return new Listing(res);
         }
 
 #if QUICKTUPLE
@@ -127,11 +133,40 @@ namespace Starcounter
         /// <summary>
         /// 
         /// </summary>
-        public App Current
-        {
-            get
-            {
+        public App Current {
+            get {
                 throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="result"></param>
+        protected Listing(SqlResult result) {
+            tempResult = result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="template"></param>
+        internal void InitializeAfterImplicitConversion(App parent, ListingProperty template) {
+            App newApp;
+
+            if (Template == null) {
+                Template = template;
+                Parent = parent;
+            }
+
+            if (tempResult != null) {
+                foreach (var entity in tempResult) {
+                    newApp = (App)template.App.CreateInstance(this);
+                    newApp.Data = entity;
+                    Add(newApp);
+                }
+                tempResult = null;
             }
         }
 
@@ -140,9 +175,7 @@ namespace Starcounter
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="templ"></param>
-        public Listing(App parent, ListingProperty templ)
-        {
-            //  _property = templ;
+        public Listing(App parent, ListingProperty templ) {
             this.Template = templ;
             Parent = parent;
         }
@@ -152,8 +185,7 @@ namespace Starcounter
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public int IndexOf(App item)
-        {
+        public int IndexOf(App item) {
 #if QUICKTUPLE
             return QuickAndDirtyArray.IndexOf(item);
 #else
@@ -166,8 +198,7 @@ namespace Starcounter
         /// </summary>
         /// <param name="index"></param>
         /// <param name="item"></param>
-        public void Insert(int index, App item)
-        {
+        public void Insert(int index, App item) {
             App otherItem;
             ListingProperty template;
 
@@ -179,20 +210,18 @@ namespace Starcounter
             template = (ListingProperty)this.Template;
             ChangeLog.AddItemInList((App)this.Parent, template, index);
 
-            for (Int32 i = index + 1; i < QuickAndDirtyArray.Count; i++)
-            {
+            for (Int32 i = index + 1; i < QuickAndDirtyArray.Count; i++) {
                 otherItem = QuickAndDirtyArray[i];
                 otherItem._cacheIndexInList = i;
             }
-            
+
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="index"></param>
-        public void RemoveAt(int index)
-        {
+        public void RemoveAt(int index) {
             App otherItem;
             ListingProperty template;
 
@@ -202,8 +231,7 @@ namespace Starcounter
             QuickAndDirtyArray.RemoveAt(index);
             ChangeLog.RemoveItemInList((App)this.Parent, template, index);
 
-            for (Int32 i = index; i < QuickAndDirtyArray.Count; i++)
-            {
+            for (Int32 i = index; i < QuickAndDirtyArray.Count; i++) {
                 otherItem = QuickAndDirtyArray[i];
                 otherItem._cacheIndexInList = i;
             }
@@ -217,21 +245,19 @@ namespace Starcounter
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public bool Remove(App item)
-        {
+        public bool Remove(App item) {
             Boolean b;
             Int32 index;
 
 #if QUICKTUPLE
             index = QuickAndDirtyArray.IndexOf(item);
             b = (index != -1);
-            if (b) RemoveAt(index);
+            if (b)
+                RemoveAt(index);
             return b;
 #else
          throw new JockeNotImplementedException();
 #endif
-
-
         }
 
         /// <summary>
@@ -239,18 +265,15 @@ namespace Starcounter
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public App this[int index]
-        {
-            get
-            {
+        public App this[int index] {
+            get {
 #if QUICKTUPLE
                 return QuickAndDirtyArray[index];
 #else
             throw new JockeNotImplementedException();
 #endif
             }
-            set
-            {
+            set {
                 throw new JockeNotImplementedException();
             }
         }
@@ -259,10 +282,11 @@ namespace Starcounter
         /// 
         /// </summary>
         /// <returns></returns>
-        public App Add()
-        {
+        public App Add() {
 #if QUICKTUPLE
-            var x = new App() { Template = ((ListingProperty)this.Template).App };
+            App x = (App)((ListingProperty)this.Template).App.CreateInstance(this);
+
+            //            var x = new App() { Template = ((ListingProperty)this.Template).App };
             Add(x);
             return x;
 #else
@@ -274,18 +298,16 @@ namespace Starcounter
         /// 
         /// </summary>
         /// <param name="item"></param>
-        internal override void OnSetParent(AppNode item)
-        {
+        internal override void OnSetParent(AppNode item) {
             base.OnSetParent(item);
-//            QuickAndDirtyArray.Add((App)item);
+            //            QuickAndDirtyArray.Add((App)item);
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="item"></param>
-        public void Add(App item)
-        {
+        public void Add(App item) {
             Int32 index;
 
 #if QUICKTUPLE
@@ -303,9 +325,17 @@ namespace Starcounter
         /// <summary>
         /// 
         /// </summary>
-        public void Clear()
-        {
+        public void Clear() {
+            int indexesToRemove;
+            App app = (App)this.Parent;
+            ListingProperty property = (ListingProperty)this.Template;
+
 #if QUICKTUPLE
+
+            indexesToRemove = QuickAndDirtyArray.Count - 1;
+            for (int i = (indexesToRemove - 1); i >= 0; i--) {
+                ChangeLog.RemoveItemInList(app, property, i);
+            }
             QuickAndDirtyArray.Clear();
 #else
          throw new JockeNotImplementedException();
@@ -317,8 +347,7 @@ namespace Starcounter
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public bool Contains(App item)
-        {
+        public bool Contains(App item) {
 #if QUICKTUPLE
             return QuickAndDirtyArray.Contains(item);
 #else
@@ -331,18 +360,15 @@ namespace Starcounter
         /// </summary>
         /// <param name="array"></param>
         /// <param name="arrayIndex"></param>
-        public void CopyTo(App[] array, int arrayIndex)
-        {
+        public void CopyTo(App[] array, int arrayIndex) {
             throw new JockeNotImplementedException();
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public int Count
-        {
-            get
-            {
+        public int Count {
+            get {
 #if QUICKTUPLE
                 return QuickAndDirtyArray.Count;
 #else
@@ -354,10 +380,8 @@ namespace Starcounter
         /// <summary>
         /// 
         /// </summary>
-        public bool IsReadOnly
-        {
-            get
-            {
+        public bool IsReadOnly {
+            get {
 #if QUICKTUPLE
                 return false;
 #else
@@ -366,16 +390,14 @@ namespace Starcounter
             }
         }
 
-        IEnumerator<App> IEnumerable<App>.GetEnumerator()
-        {
+        IEnumerator<App> IEnumerable<App>.GetEnumerator() {
 #if QUICKTUPLE
             return QuickAndDirtyArray.GetEnumerator();
 #endif
             throw new JockeNotImplementedException();
         }
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
 #if QUICKTUPLE
             return QuickAndDirtyArray.GetEnumerator();
 #endif
@@ -386,8 +408,7 @@ namespace Starcounter
     /// <summary>
     /// 
     /// </summary>
-    public class JockeNotImplementedException : NotImplementedException
-    {
+    public class JockeNotImplementedException : NotImplementedException {
 
     }
 }

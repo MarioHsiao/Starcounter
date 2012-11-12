@@ -479,6 +479,16 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                         sb.Append(");");
                     }
                     a.Prefix.Add(sb.ToString());
+
+                    if (mn.Template is ListingProperty) {
+                        sb.Clear();
+                        sb.Append("        ");
+                        sb.Append(mn.MemberName);
+                        sb.Append(".App = ");
+                        sb.Append(mn.FunctionGeneric.FullClassName);
+                        sb.Append(".DefaultTemplate;");
+                        a.Prefix.Add(sb.ToString());
+                    }
                 }
                 else if (kid is NInputBinding)
                 {

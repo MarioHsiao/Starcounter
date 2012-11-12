@@ -2,14 +2,14 @@
 <html >
 <head>
     <title>Hello World</title>
-    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/bootstrap-2.2.1.min.css">
 
     <script src="sys/jquery-1.8.2.min.js"></script>
     <script src="sys/angular.1.0.2.min.js"></script>
 
-    <link rel="stylesheet" href="css/angular-ui.min.css">
-    <script src="js/angular-ui/angular-ui.min.js"></script>
-    <script src="js/angular-ui/angular-ui-ieshiv.min.js"></script>
+    <link rel="stylesheet" href="css/angular-ui-0.3.1.min.css">
+    <script src="sys/angular-ui-0.3.1.min.js"></script>
+    <script src="sys/angular-ui-ieshiv-0.3.1.min.js"></script>
 
     <script src="js/angular-datagrid/angular-datagrid.js"></script>
     <script src="js/angular-datagrid/handsontable/lib/jquery.min.js"></script>
@@ -35,7 +35,7 @@
 
             <h4>Order {{OrderNo}}</h4>
 
-            <div ui-datagrid datarows="item in Items">
+              <div ui-datagrid datarows="item in Items">
                 <datacolumn type="'autocomplete'" 
                     options="getOptions(item.Product._Options)" 
                     lookup="autocompleteLookup" 
@@ -45,6 +45,18 @@
                 <datacolumn value="item.Quantity" title="Quantity"/>
             </div>
 
+
+<!--
+           <datagrid datarows="item in Items">
+                <datacolumn value="item.Product._Search" title="Product" type="'autocomplete'">
+                    <optionsgrid datarows="option in Options" clickRow="option.Pick=true">
+                        <datacolumn value="option.Description">
+                        <datacolumn value="option.Image">
+                    </optionsgrid>
+                </datacolumn>
+                <datacolumn value="item.Quantity" title="Quantity"/>
+            </datagrid>
+-->
             <h4>Total: {{Total}}</h4>
 
             <div class="btn-group">
