@@ -19,26 +19,24 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
     IQueryComparer comparer;
     IEnumerator<CompositeObject> enumerator;
 
-    internal Sort(IExecutionEnumerator subEnum,
+    internal Sort(CompositeTypeBinding compTypeBind, 
+        IExecutionEnumerator subEnum,
         IQueryComparer comp,
         VariableArray varArr,
         String query)
-        : base(varArr)
+        : base(compTypeBind, varArr)
     {
         if (subEnum == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect subEnum.");
         if (comp == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect comp.");
-        if (varArr == null)
-            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect variables clone.");
 
         subEnumerator = subEnum;
         comparer = comp;
-        compTypeBinding = subEnumerator.CompositeTypeBinding;
+        //compTypeBinding = subEnumerator.CompositeTypeBinding;
         enumerator = null;
 
         this.query = query;
-        variableArray = varArr;
     }
 
     /// <summary>
@@ -48,10 +46,15 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
     {
         get
         {
-            if (singleObject)
+            if (projectionTypeCode == null)
+                return compTypeBinding;
+
+            // Singleton object.
+            if (projectionTypeCode == DbTypeCode.Object)
                 return compTypeBinding.GetPropertyBinding(0).TypeBinding;
 
-            return compTypeBinding;
+            // Singleton non-object.
+            return null;
         }
     }
 
@@ -67,12 +70,64 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
     {
         get
         {
-            if (enumerator != null)
+            if (currentObject != null)
             {
-                if (singleObject)
-                    return enumerator.Current.GetObject(0);
+                switch (projectionTypeCode)
+                {
+                    case null:
+                        return currentObject;
 
-                return enumerator.Current;
+                    case DbTypeCode.Binary:
+                        return currentObject.GetBinary(0);
+
+                    case DbTypeCode.Boolean:
+                        return currentObject.GetBoolean(0);
+
+                    case DbTypeCode.Byte:
+                        return currentObject.GetByte(0);
+
+                    case DbTypeCode.DateTime:
+                        return currentObject.GetDateTime(0);
+
+                    case DbTypeCode.Decimal:
+                        return currentObject.GetDecimal(0);
+
+                    case DbTypeCode.Double:
+                        return currentObject.GetDouble(0);
+
+                    case DbTypeCode.Int16:
+                        return currentObject.GetInt16(0);
+
+                    case DbTypeCode.Int32:
+                        return currentObject.GetInt32(0);
+
+                    case DbTypeCode.Int64:
+                        return currentObject.GetInt64(0);
+
+                    case DbTypeCode.Object:
+                        return currentObject.GetObject(0);
+
+                    case DbTypeCode.SByte:
+                        return currentObject.GetSByte(0);
+
+                    case DbTypeCode.Single:
+                        return currentObject.GetSingle(0);
+
+                    case DbTypeCode.String:
+                        return currentObject.GetString(0);
+
+                    case DbTypeCode.UInt16:
+                        return currentObject.GetUInt16(0);
+
+                    case DbTypeCode.UInt32:
+                        return currentObject.GetUInt32(0);
+
+                    case DbTypeCode.UInt64:
+                        return currentObject.GetUInt64(0);
+
+                    default:
+                        throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect projectionTypeCode.");
+                }
             }
 
             throw new InvalidOperationException("Enumerator has not started or has already finished.");
@@ -163,7 +218,7 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
 
     public override IExecutionEnumerator Clone(CompositeTypeBinding resultTypeBindClone, VariableArray varArrClone)
     {
-        return new Sort(subEnumerator.Clone(resultTypeBindClone, varArrClone), comparer.Clone(varArrClone), varArrClone, query);
+        return new Sort(resultTypeBindClone, subEnumerator.Clone(resultTypeBindClone, varArrClone), comparer.Clone(varArrClone), varArrClone, query);
     }
 
     public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs)

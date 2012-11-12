@@ -43,7 +43,7 @@ namespace Starcounter
             get
             {
                 IExecutionEnumerator execEnum = null;
-                IObjectView current = null;
+                dynamic current = null;
 
                 try
                 {

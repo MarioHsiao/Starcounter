@@ -103,7 +103,7 @@ namespace Starcounter.Query.Execution
             ClientQueryCache queryCache,
             UInt32 queryFlags,
             UserSqlEnumProperties props)
-            : base(varArr)
+            : base(null, varArr)
         {
             if (sqlQuery == null)
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect query.");

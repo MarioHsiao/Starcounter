@@ -26,7 +26,7 @@ namespace Starcounter
         new Boolean MoveNext();
 
         /// <summary>
-        /// Gets the current object (IObjectView) in the result of the query.
+        /// Gets the current item (row) in the result of the query.
         /// </summary>
         new dynamic Current { get; }
 
