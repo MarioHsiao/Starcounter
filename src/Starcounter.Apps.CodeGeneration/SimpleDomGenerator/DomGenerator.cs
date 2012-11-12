@@ -128,6 +128,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             AppTemplate[] classesInOrder;
             JsonMapInfo mapInfo;
             NAppClass nAppClass;
+            NTemplateClass nTemplateclass;
 
             classesInOrder = new AppTemplate[metadata.JsonPropertyMapList.Count];
             rootTemplate = root.AppClassClassNode.Template;
@@ -151,18 +152,49 @@ namespace Starcounter.Internal.Application.CodeGeneration
                     appTemplate.Namespace = mapInfo.Namespace;
 
                 nAppClass = NValueClass.Classes[appTemplate] as NAppClass;
-
-                //if (nAppClass != ac)
-                //    throw new Exception("Uh Ooops!");
-
                 nAppClass.IsPartial = true;
                 nAppClass._Inherits = null;
                 nAppClass.AutoBindPropertiesToEntity = mapInfo.AutoBindToEntity;
+
+                if (mapInfo.AutoBindToEntity) {
+                    BindAutoBoundProperties(nAppClass.Children);
+                    nTemplateclass = NAppTemplateClass.Classes[appTemplate];
+                    BindAutoBoundProperties(nTemplateclass.Children);
+                }
 
                 classesInOrder[i] = appTemplate;
             }
 
             ReorderCodebehindClasses(classesInOrder, metadata.JsonPropertyMapList, root);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="children"></param>
+        private void BindAutoBoundProperties(List<NBase> children) {
+            NProperty property;
+
+            foreach (NBase child in children) {
+                if (child is NConstructor) {
+                    BindAutoBoundProperties(child.Children);
+                    continue;
+                }
+
+                property = child as NProperty;
+                if (property != null) {
+                    // TODO:
+                    // AppTemplate should be bindable I guess.
+                    if (property.Template is AppTemplate || property.Template is ActionProperty)
+                        continue;
+
+                    if ((property.MemberName == null) || (property.MemberName[0] == '_')) {
+                        continue;
+                    }
+
+                    property.Bound = true;
+                }
+            }
         }
 
         /// <summary>

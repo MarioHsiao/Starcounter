@@ -247,7 +247,7 @@ namespace Weaver {
 
             // Initialize the PostSharp license manager
 
-            stream = typeof(Entity).Assembly.GetManifestResourceStream("Sc.Postsharp.license");
+            stream = GetType().Assembly.GetManifestResourceStream("Sc.Postsharp.license");
             buff = new BufferedStream(stream);
             strArr = new Byte[buff.Length];
             buff.Read(strArr, 0, strArr.Length);

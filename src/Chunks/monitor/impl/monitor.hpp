@@ -1700,6 +1700,10 @@ void monitor::watch_resources() {
 		for (std::size_t i = 0; i < shared.size(); ++i) {
 			shared_interface& the_shared = *shared[i];
 
+            // TODO: Checking if process(with this shared_interface) is still active.
+            if (the_shared.channel(0).is_to_be_released())
+                continue;
+
 			std::cout << "Segment: " << the_shared.get_segment_name() << '\n'
 			<< "  free chunks:                  ";
 			std::cout.width(4);

@@ -552,7 +552,14 @@ namespace Starcounter {
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(ListingProperty property, SqlResult data) {
-            throw new NotImplementedException();
+            Listing newList;
+            Listing current = _Values[property.Index];
+            if (current != null)
+                current.Clear();
+
+            newList = data;
+            newList.InitializeAfterImplicitConversion(this, property);
+            _Values[property.Index] = newList;
         }
 
         /// <summary>
@@ -563,9 +570,13 @@ namespace Starcounter {
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(ListingProperty templ, Listing data) {
-            throw new NotImplementedException();
-        }
+            Listing current = _Values[templ.Index];
+            if (current != null)
+                current.Clear();
 
+            data.InitializeAfterImplicitConversion(this, templ);
+            _Values[templ.Index] = data;
+        }
 
         /// <summary>
         /// Gets the value.
@@ -591,8 +602,16 @@ namespace Starcounter {
         /// <param name="data">The data.</param>
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue<T>(ListingProperty templ, SqlResult data) {
-            throw new NotImplementedException();
+        public void SetValue<T>(ListingProperty templ, SqlResult data) where T : App, new() {
+            Listing<T> newList;
+            Listing<T> current = _Values[templ.Index];
+            if (current != null)
+                current.Clear();
+
+            newList = data;
+            newList.InitializeAfterImplicitConversion(this, templ);
+
+            _Values[templ.Index] = newList;
         }
 
         /// <summary>
@@ -604,10 +623,13 @@ namespace Starcounter {
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue<T>(ListingProperty templ, Listing<T> data) where T : App, new() {
-            throw new NotImplementedException();
+            Listing<T> current = _Values[templ.Index];
+            if (current != null)
+                current.Clear();
+
+            data.InitializeAfterImplicitConversion(this, templ);
+            _Values[templ.Index] = data;
         }
-
-
 
         /// <summary>
         /// Gets the value.
@@ -623,8 +645,6 @@ namespace Starcounter {
             throw new JockeNotImplementedException();
 #endif
         }
-
-
 
         /// <summary>
         /// Gets the value.
@@ -688,9 +708,5 @@ namespace Starcounter {
             throw new JockeNotImplementedException();
 #endif
         }
-
-
-
-
     }
 }
