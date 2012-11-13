@@ -260,7 +260,7 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 				relation_expr_list
 
 %type <node>	member_access_el member_func_expr member_access_indices standard_func_call
-%type <list>	member_access_seq
+%type <list>	member_access_seq generic_class_member_access_el
 
 %type <range>	OptTempTableName
 %type <into>	into_clause create_as_target
@@ -6247,12 +6247,14 @@ c_expr:		member_func_expr						{ $$ = $1; }
  */
 member_func_expr:
 			member_access_el						{ $$ = $1; }
+			| generic_class_member_access_el		{ $$ = (Node *) $1; }
 			| member_access_el member_access_seq	
 				{
-					A_Indirection *n = makeNode(A_Indirection);
-					n->arg = $1;
-					n->indirection = $2;
-					$$ = (Node *) n;
+					$$ = (Node *) lcons($1, $2);
+				}
+			| generic_class_member_access_el member_access_seq	
+				{
+					$$ = (Node *) list_concat($1, $2);
 				}
 			| standard_func_call					{ $$ = $1; }
 			| standard_func_call member_access_seq	
@@ -6274,9 +6276,14 @@ member_access_seq:
 				{
 					$$ = (Node *) makeNode(A_Star);
 				}
+			| '.' generic_class_member_access_el	{ $$ = $2; }
 			| member_access_seq '.' member_access_el
 				{
 					$$ = lappend($1, $3);
+				}
+			| member_access_seq '.' generic_class_member_access_el
+				{
+					$$ = list_concat($1, $3);
 				}
 			| member_access_seq '.' '*'
 				{
@@ -6288,6 +6295,16 @@ member_access_seq:
 				}
 		;
 
+generic_class_member_access_el:
+			type_function_name '<' type_list '>' '.' member_access_el
+				{
+					TypeName *n = makeTypeName($1);
+					n->generics = $3;
+					n->location = @1;
+					$$ = (Node *)list_make2(n, $6);
+				}
+			;
+
 /*
  * Member accesses similar to C#
  */
@@ -6295,16 +6312,6 @@ member_access_el:
 			ColId
 				{
 					$$ = makeColumnRef($1, NIL, @1, yyscanner);
-				}
-			| type_function_name '<' type_list '>' '. 'member_access_el
-				{
-					TypeName *n = makeTypeName($1);
-					A_Indirection *i = makeNode(A_Indirection);
-					n->generics = $3;
-					n->location = @1;
-					i->arg = n;
-					i->indirection = list_make1($6);
-					$$ = (Node *)i;
 				}
 			| type_function_name '(' ')'  over_clause
 				{
