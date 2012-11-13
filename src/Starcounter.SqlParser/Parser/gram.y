@@ -2637,8 +2637,8 @@ TriggerWhen:
 		;
 
 TriggerFuncArgs:
-			TriggerFuncArg							{ $$ = list_make1($1); }
-			| TriggerFuncArgs ',' TriggerFuncArg	{ $$ = lappend($1, $3); }
+			TriggerFuncArg							{ $$ = list_make1($1); }	%dprec 5
+			| TriggerFuncArgs ',' TriggerFuncArg	{ $$ = lappend($1, $3); }	%dprec 1
 			| /*EMPTY*/								{ $$ = NIL; }
 		;
 
@@ -3177,8 +3177,8 @@ access_method_clause:
 			| /*EMPTY*/								{ $$ = "btree"; }
 		;
 
-index_params:	index_elem							{ $$ = list_make1($1); }
-			| index_params ',' index_elem			{ $$ = lappend($1, $3); }
+index_params:	index_elem							{ $$ = list_make1($1); }	%dprec 10
+			| index_params ',' index_elem			{ $$ = lappend($1, $3); }	%dprec 1
 		;
 
 /*
@@ -4486,8 +4486,8 @@ sort_clause:
 		;
 
 sortby_list:
-			sortby									{ $$ = list_make1($1); }
-			| sortby_list ',' sortby				{ $$ = lappend($1, $3); }
+			sortby									{ $$ = list_make1($1); }	%dprec 10
+			| sortby_list ',' sortby				{ $$ = lappend($1, $3); }	%dprec 1
 		;
 
 sortby:		a_expr USING qual_all_Op opt_nulls_order
@@ -4785,8 +4785,8 @@ from_clause:
 		;
 
 from_list:
-			table_ref								{ $$ = list_make1($1); }
-			| from_list ',' table_ref				{ $$ = lappend($1, $3); }
+			table_ref								{ $$ = list_make1($1); }	%dprec 10
+			| from_list ',' table_ref				{ $$ = lappend($1, $3); }	%dprec 1
 		;
 
 /*
@@ -7964,8 +7964,8 @@ opt_xml_root_standalone: ',' STANDALONE_P YES_P
 xml_attributes: XMLATTRIBUTES '(' xml_attribute_list ')'	{ $$ = $3; }
 		;
 
-xml_attribute_list:	xml_attribute_el					{ $$ = list_make1($1); }
-			| xml_attribute_list ',' xml_attribute_el	{ $$ = lappend($1, $3); }
+xml_attribute_list:	xml_attribute_el					{ $$ = list_make1($1); }	%dprec 10
+			| xml_attribute_list ',' xml_attribute_el	{ $$ = lappend($1, $3); }	%dprec 1
 		;
 
 xml_attribute_el: a_expr AS ColLabel
@@ -8311,11 +8311,11 @@ subquery_Op:
  */
 			;
 
-expr_list:	a_expr
+expr_list:	a_expr												%dprec 10
 				{
 					$$ = list_make1($1);
 				}
-			| expr_list ',' a_expr
+			| expr_list ',' a_expr								%dprec 1
 				{
 					$$ = lappend($1, $3);
 				}
@@ -8604,8 +8604,8 @@ ctext_expr:
 		;
 
 ctext_expr_list:
-			ctext_expr								{ $$ = list_make1($1); }
-			| ctext_expr_list ',' ctext_expr		{ $$ = lappend($1, $3); }
+			ctext_expr								{ $$ = list_make1($1); }	%dprec 10
+			| ctext_expr_list ',' ctext_expr		{ $$ = lappend($1, $3); }	%dprec 1
 		;
 
 /*
@@ -8624,8 +8624,8 @@ ctext_row: '(' ctext_expr_list ')'					{ $$ = $2; }
  *****************************************************************************/
 
 target_list:
-			target_el								{ $$ = list_make1($1); }
-			| target_list ',' target_el				{ $$ = lappend($1, $3); }
+			target_el								{ $$ = list_make1($1); }	%dprec 10
+			| target_list ',' target_el				{ $$ = lappend($1, $3); }	%dprec 1
 		;
 
 target_el:	a_expr AS ColLabel
