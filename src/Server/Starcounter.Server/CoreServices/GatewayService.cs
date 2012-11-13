@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿#if false // TODO: Remove!
+using System.Diagnostics;
 using System.IO;
 
 namespace Starcounter.Server {
@@ -71,3 +72,4 @@ namespace Starcounter.Server {
         }
     }
 }
+#endif
