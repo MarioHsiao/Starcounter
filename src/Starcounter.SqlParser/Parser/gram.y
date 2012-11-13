@@ -405,7 +405,7 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
  */
 %token <str>	IDENT FCONST SCONST BCONST XCONST Op
 %token <ival>	ICONST PARAM
-%token			TYPECAST DOT_DOT COLON_EQUALS
+%token			DOT_DOT COLON_EQUALS
 
 /*
  * If you want to make any keyword changes, update the keyword table in
@@ -563,7 +563,6 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 %left		ANGLE
 %left		'[' ']'
 %left		'(' ')'
-%left		TYPECAST
 %left		'.'
 /*
  * These might seem to be low-precedence, but actually they are not part
@@ -5660,8 +5659,6 @@ interval_second:
  * it's factored out just to eliminate redundant coding.
  */
 a_expr:		c_expr									{ $$ = $1; }
-//			| a_expr TYPECAST Typename
-//					{ $$ = makeTypeCast($1, $3, @2); }
 			| a_expr COLLATE any_name
 				{
 					CollateClause *n = makeNode(CollateClause);
@@ -6081,8 +6078,6 @@ a_expr:		c_expr									{ $$ = $1; }
  */
 b_expr:		c_expr
 				{ $$ = $1; }
-//			| b_expr TYPECAST Typename
-//				{ $$ = makeTypeCast($1, $3, @2); }
 			| '+' b_expr					%prec UMINUS
 				{ $$ = (Node *) makeSimpleA_Expr(AEXPR_OP, "+", NULL, $2, @1); }
 			| '-' b_expr					%prec UMINUS
