@@ -259,7 +259,8 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 				alter_generic_options
 				relation_expr_list
 
-%type <node>	member_access_el member_access_seq_el member_expr member_access_indices
+%type <node>	member_access_el member_access_seq_el member_func_expr member_access_indices
+				standard_func_call
 %type <list>	member_access_seq
 
 %type <range>	OptTempTableName
@@ -6456,7 +6457,502 @@ member_access_el:
 					n->location = @1;
 					$$ = (Node *)n;
 				}
-			| CURRENT_DATE
+		;
+
+member_access_seq_el:
+			'.' ColId
+				{
+					$$ = (Node *) makeString($2);
+				}
+			| '.' type_function_name '<' type_list '>' member_access_seq_el		%prec '<'
+				{
+					TypeName *n = makeTypeName($2);
+					List *l = list_make2(n, $6);
+					n->generics = $4;
+					n->location = @2;
+					$$ = (Node *)l;
+				}
+			| '.' type_function_name '(' ')' over_clause
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $2;
+					n->args = NIL;
+					n->agg_order = NIL;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					n->func_variadic = FALSE;
+					n->over = $5;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
+			| '.' type_function_name '<' type_list '>' '(' ')' over_clause		%prec '<'
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $2;
+					n->args = NIL;
+					n->agg_order = NIL;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					n->func_variadic = FALSE;
+					n->over = $8;
+					n->generics = $4;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
+			| '.' '<' type_list '>' type_function_name '(' ')' over_clause
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $5;
+					n->args = NIL;
+					n->agg_order = NIL;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					n->func_variadic = FALSE;
+					n->over = $8;
+					n->generics = $3;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
+			| '.' type_function_name '(' func_arg_list ')'  over_clause
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $2;
+					n->args = $4;
+					n->agg_order = NIL;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					n->func_variadic = FALSE;
+					n->over = $6;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
+			| '.' type_function_name '<' type_list '>' '(' func_arg_list ')' over_clause		%prec '<'
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $2;
+					n->args = $7;
+					n->agg_order = NIL;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					n->func_variadic = FALSE;
+					n->over = $9;
+					n->generics = $4;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
+			| '.' '<' type_list '>' type_function_name '(' func_arg_list ')' over_clause
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $5;
+					n->args = $7;
+					n->agg_order = NIL;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					n->func_variadic = FALSE;
+					n->over = $9;
+					n->generics = $3;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
+			| '.' type_function_name '(' VARIADIC func_arg_expr ')' over_clause 
+				// Candidate to be unsupported
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $2;
+					n->args = list_make1($5);
+					n->agg_order = NIL;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					n->func_variadic = TRUE;
+					n->over = $7;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
+			| '.' type_function_name '(' func_arg_list ',' VARIADIC func_arg_expr ')' over_clause
+				// Candidate to be unsupported
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $2;
+					n->args = lappend($4, $7);
+					n->agg_order = NIL;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					n->func_variadic = TRUE;
+					n->over = $9;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
+			| '.' type_function_name '(' func_arg_list sort_clause ')' over_clause
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $2;
+					n->args = $4;
+					n->agg_order = $5;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					n->func_variadic = FALSE;
+					n->over = $7;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
+			| '.' type_function_name '<' type_list '>' '(' func_arg_list sort_clause ')' over_clause		%prec '<'
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $2;
+					n->args = $7;
+					n->agg_order = $8;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					n->func_variadic = FALSE;
+					n->over = $10;
+					n->generics = $4;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
+			| '.' '<' type_list '>' type_function_name '(' func_arg_list sort_clause ')' over_clause
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $5;
+					n->args = $7;
+					n->agg_order = $8;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					n->func_variadic = FALSE;
+					n->over = $10;
+					n->generics = $3;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
+			| '.' type_function_name '(' ALL func_arg_list opt_sort_clause ')' over_clause
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $2;
+					n->args = $5;
+					n->agg_order = $6;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					/* Ideally we'd mark the FuncCall node to indicate
+					 * "must be an aggregate", but there's no provision
+					 * for that in FuncCall at the moment.
+					 */
+					n->func_variadic = FALSE;
+					n->over = $8;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
+			| '.' type_function_name '<' type_list '>' '(' ALL func_arg_list opt_sort_clause ')' over_clause		%prec '<'
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $2;
+					n->args = $8;
+					n->agg_order = $9;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					/* Ideally we'd mark the FuncCall node to indicate
+					 * "must be an aggregate", but there's no provision
+					 * for that in FuncCall at the moment.
+					 */
+					n->func_variadic = FALSE;
+					n->over = $11;
+					n->generics = $4;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
+			| '.' '<' type_list '>' type_function_name '(' ALL func_arg_list opt_sort_clause ')' over_clause
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $5;
+					n->args = $8;
+					n->agg_order = $9;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					/* Ideally we'd mark the FuncCall node to indicate
+					 * "must be an aggregate", but there's no provision
+					 * for that in FuncCall at the moment.
+					 */
+					n->func_variadic = FALSE;
+					n->over = $11;
+					n->generics = $3;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
+			| '.' type_function_name '(' DISTINCT func_arg_list opt_sort_clause ')' over_clause
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $2;
+					n->args = $5;
+					n->agg_order = $6;
+					n->agg_star = FALSE;
+					n->agg_distinct = TRUE;
+					n->func_variadic = FALSE;
+					n->over = $8;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
+			| '.' type_function_name '<' type_list '>' '(' DISTINCT func_arg_list opt_sort_clause ')' over_clause		%prec '<'
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $2;
+					n->args = $8;
+					n->agg_order = $9;
+					n->agg_star = FALSE;
+					n->agg_distinct = TRUE;
+					n->func_variadic = FALSE;
+					n->over = $11;
+					n->generics = $4;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
+			| '.' '<' type_list '>' type_function_name '(' DISTINCT func_arg_list opt_sort_clause ')' over_clause
+				{
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $5;
+					n->args = $8;
+					n->agg_order = $9;
+					n->agg_star = FALSE;
+					n->agg_distinct = TRUE;
+					n->func_variadic = FALSE;
+					n->over = $11;
+					n->generics = $3;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
+			| '.' type_function_name '(' '*' ')' over_clause
+				{
+					/*
+					 * We consider AGGREGATE(*) to invoke a parameterless
+					 * aggregate.  This does the right thing for COUNT(*),
+					 * and there are no other aggregates in SQL92 that accept
+					 * '*' as parameter.
+					 *
+					 * The FuncCall node is also marked agg_star = true,
+					 * so that later processing can detect what the argument
+					 * really was.
+					 */
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $2;
+					n->args = NIL;
+					n->agg_order = NIL;
+					n->agg_star = TRUE;
+					n->agg_distinct = FALSE;
+					n->func_variadic = FALSE;
+					n->over = $6;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
+			| '.' type_function_name '<' type_list '>' '(' '*' ')' over_clause		%prec '<'
+				{
+					/*
+					 * We consider AGGREGATE(*) to invoke a parameterless
+					 * aggregate.  This does the right thing for COUNT(*),
+					 * and there are no other aggregates in SQL92 that accept
+					 * '*' as parameter.
+					 *
+					 * The FuncCall node is also marked agg_star = true,
+					 * so that later processing can detect what the argument
+					 * really was.
+					 */
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $2;
+					n->args = NIL;
+					n->agg_order = NIL;
+					n->agg_star = TRUE;
+					n->agg_distinct = FALSE;
+					n->func_variadic = FALSE;
+					n->over = $9;
+					n->generics = $4;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
+			| '.' '<' type_list '>' type_function_name '(' '*' ')' over_clause
+				{
+					/*
+					 * We consider AGGREGATE(*) to invoke a parameterless
+					 * aggregate.  This does the right thing for COUNT(*),
+					 * and there are no other aggregates in SQL92 that accept
+					 * '*' as parameter.
+					 *
+					 * The FuncCall node is also marked agg_star = true,
+					 * so that later processing can detect what the argument
+					 * really was.
+					 */
+					FuncCall *n = makeNode(FuncCall);
+					n->funcname = $5;
+					n->args = NIL;
+					n->agg_order = NIL;
+					n->agg_star = TRUE;
+					n->agg_distinct = FALSE;
+					n->func_variadic = FALSE;
+					n->over = $9;
+					n->generics = $3;
+					n->location = @2;
+					$$ = (Node *)n;
+				}
+			| '.' '*'
+				{
+					$$ = (Node *) makeNode(A_Star);
+				}
+		;
+
+member_access_indices:
+			'[' a_expr ']'
+				{
+					A_Indices *ai = makeNode(A_Indices);
+					ai->lidx = NULL;
+					ai->uidx = $2;
+					$$ = (Node *) ai;
+				}
+			| '[' a_expr ':' a_expr ']'
+				{
+					A_Indices *ai = makeNode(A_Indices);
+					ai->lidx = $2;
+					ai->uidx = $4;
+					$$ = (Node *) ai;
+				}
+		;
+
+member_access_seq:
+			member_access_seq_el					{ $$ = list_make1($1); }
+			| member_access_indices					{ $$ = list_make1($1); }
+			| member_access_seq member_access_seq_el
+				{
+					$$ = lappend($1, $2);
+				}
+			| member_access_seq member_access_indices
+				{
+					$$ = lappend($1, $2);
+				}
+		;
+
+/*
+ * Productions that can be used in both a_expr and b_expr.
+ *
+ * Note: productions that refer recursively to a_expr or b_expr mostly
+ * cannot appear here.	However, it's OK to refer to a_exprs that occur
+ * inside parentheses, such as function arguments; that cannot introduce
+ * ambiguity to the b_expr syntax.
+ */
+c_expr:		member_func_expr						{ $$ = $1; }
+			| AexprConst							{ $$ = $1; }
+			| PARAM
+				{
+					ParamRef *p = makeNode(ParamRef);
+					p->number = $1;
+					p->location = @1;
+						$$ = (Node *) p;
+				}
+			| '?'
+				{
+					ParamRef *p = makeNode(ParamRef);
+					p->number = -1;
+					p->location = @1;
+						$$ = (Node *) p;
+				}
+			| PARAM member_access_seq
+				{
+					ParamRef *p = makeNode(ParamRef);
+					p->number = $1;
+					p->location = @1;
+					if ($2)
+					{
+						A_Indirection *n = makeNode(A_Indirection);
+						n->arg = (Node *) p;
+						n->indirection = check_indirection($2, yyscanner);
+						$$ = (Node *) n;
+					}
+					else
+						$$ = (Node *) p;
+				}
+			| '?' member_access_seq
+				{
+					ParamRef *p = makeNode(ParamRef);
+					p->number = -1;
+					p->location = @1;
+					if ($2)
+					{
+						A_Indirection *n = makeNode(A_Indirection);
+						n->arg = (Node *) p;
+						n->indirection = check_indirection($2, yyscanner);
+						$$ = (Node *) n;
+					}
+					else
+						$$ = (Node *) p;
+				}
+			| '(' a_expr ')'
+				{
+						$$ = $2;
+				}
+			| '(' a_expr ')' member_access_seq
+				{
+						A_Indirection *n = makeNode(A_Indirection);
+						n->arg = $2;
+						n->indirection = check_indirection($4, yyscanner);
+						$$ = (Node *)n;
+				}
+			| case_expr
+				{ $$ = $1; }
+			| select_with_parens			%prec UMINUS
+				{
+					SubLink *n = makeNode(SubLink);
+					n->subLinkType = EXPR_SUBLINK;
+					n->testexpr = NULL;
+					n->operName = NIL;
+					n->subselect = $1;
+					n->location = @1;
+					$$ = (Node *)n;
+				}
+			| EXISTS select_with_parens
+				{
+					SubLink *n = makeNode(SubLink);
+					n->subLinkType = EXISTS_SUBLINK;
+					n->testexpr = NULL;
+					n->operName = NIL;
+					n->subselect = $2;
+					n->location = @1;
+					$$ = (Node *)n;
+				}
+			| ARRAY select_with_parens
+				{
+					SubLink *n = makeNode(SubLink);
+					n->subLinkType = ARRAY_SUBLINK;
+					n->testexpr = NULL;
+					n->operName = NIL;
+					n->subselect = $2;
+					n->location = @1;
+					$$ = (Node *)n;
+				}
+			| ARRAY array_expr
+				{
+					A_ArrayExpr *n = (A_ArrayExpr *) $2;
+					Assert(IsA(n, A_ArrayExpr));
+					/* point outermost A_ArrayExpr to the ARRAY keyword */
+					n->location = @1;
+					$$ = (Node *)n;
+				}
+			| row
+				{
+					RowExpr *r = makeNode(RowExpr);
+					r->args = $1;
+					r->row_typeid = InvalidOid;	/* not analyzed yet */
+					r->location = @1;
+					$$ = (Node *)r;
+				}
+		;
+
+member_func_expr:
+			member_access_el						{ $$ = $1; }
+			| member_access_el member_access_seq	
+				{
+					A_Indirection *n = makeNode(A_Indirection);
+					n->arg = $1;
+					n->indirection = $2;
+					$$ = (Node *) n;
+				}
+			| standard_func_call					{ $$ = $1; }
+		;
+
+standard_func_call:
+			CURRENT_DATE
 				{
 					/*
 					 * Translate as "'now'::text::date".
@@ -6878,501 +7374,7 @@ member_access_el:
 					n->location = @1;
 					$$ = (Node *)n;
 				}
-		;
-
-member_access_seq_el:
-			'.' ColId
-				{
-					$$ = (Node *) makeString($2);
-				}
-			| '.' type_function_name '<' type_list '>' member_access_seq_el		%prec '<'
-				{
-					TypeName *n = makeTypeName($2);
-					List *l = list_make2(n, $6);
-					n->generics = $4;
-					n->location = @2;
-					$$ = (Node *)l;
-				}
-			| '.' type_function_name '(' ')' over_clause
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = $2;
-					n->args = NIL;
-					n->agg_order = NIL;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = FALSE;
-					n->over = $5;
-					n->location = @2;
-					$$ = (Node *)n;
-				}
-			| '.' type_function_name '<' type_list '>' '(' ')' over_clause		%prec '<'
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = $2;
-					n->args = NIL;
-					n->agg_order = NIL;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = FALSE;
-					n->over = $8;
-					n->generics = $4;
-					n->location = @2;
-					$$ = (Node *)n;
-				}
-			| '.' '<' type_list '>' type_function_name '(' ')' over_clause
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = $5;
-					n->args = NIL;
-					n->agg_order = NIL;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = FALSE;
-					n->over = $8;
-					n->generics = $3;
-					n->location = @2;
-					$$ = (Node *)n;
-				}
-			| '.' type_function_name '(' func_arg_list ')'  over_clause
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = $2;
-					n->args = $4;
-					n->agg_order = NIL;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = FALSE;
-					n->over = $6;
-					n->location = @2;
-					$$ = (Node *)n;
-				}
-			| '.' type_function_name '<' type_list '>' '(' func_arg_list ')' over_clause		%prec '<'
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = $2;
-					n->args = $7;
-					n->agg_order = NIL;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = FALSE;
-					n->over = $9;
-					n->generics = $4;
-					n->location = @2;
-					$$ = (Node *)n;
-				}
-			| '.' '<' type_list '>' type_function_name '(' func_arg_list ')' over_clause
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = $5;
-					n->args = $7;
-					n->agg_order = NIL;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = FALSE;
-					n->over = $9;
-					n->generics = $3;
-					n->location = @2;
-					$$ = (Node *)n;
-				}
-			| '.' type_function_name '(' VARIADIC func_arg_expr ')' over_clause 
-				// Candidate to be unsupported
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = $2;
-					n->args = list_make1($5);
-					n->agg_order = NIL;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = TRUE;
-					n->over = $7;
-					n->location = @2;
-					$$ = (Node *)n;
-				}
-			| '.' type_function_name '(' func_arg_list ',' VARIADIC func_arg_expr ')' over_clause
-				// Candidate to be unsupported
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = $2;
-					n->args = lappend($4, $7);
-					n->agg_order = NIL;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = TRUE;
-					n->over = $9;
-					n->location = @2;
-					$$ = (Node *)n;
-				}
-			| '.' type_function_name '(' func_arg_list sort_clause ')' over_clause
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = $2;
-					n->args = $4;
-					n->agg_order = $5;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = FALSE;
-					n->over = $7;
-					n->location = @2;
-					$$ = (Node *)n;
-				}
-			| '.' type_function_name '<' type_list '>' '(' func_arg_list sort_clause ')' over_clause		%prec '<'
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = $2;
-					n->args = $7;
-					n->agg_order = $8;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = FALSE;
-					n->over = $10;
-					n->generics = $4;
-					n->location = @2;
-					$$ = (Node *)n;
-				}
-			| '.' '<' type_list '>' type_function_name '(' func_arg_list sort_clause ')' over_clause
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = $5;
-					n->args = $7;
-					n->agg_order = $8;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = FALSE;
-					n->over = $10;
-					n->generics = $3;
-					n->location = @2;
-					$$ = (Node *)n;
-				}
-			| '.' type_function_name '(' ALL func_arg_list opt_sort_clause ')' over_clause
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = $2;
-					n->args = $5;
-					n->agg_order = $6;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					/* Ideally we'd mark the FuncCall node to indicate
-					 * "must be an aggregate", but there's no provision
-					 * for that in FuncCall at the moment.
-					 */
-					n->func_variadic = FALSE;
-					n->over = $8;
-					n->location = @2;
-					$$ = (Node *)n;
-				}
-			| '.' type_function_name '<' type_list '>' '(' ALL func_arg_list opt_sort_clause ')' over_clause		%prec '<'
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = $2;
-					n->args = $8;
-					n->agg_order = $9;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					/* Ideally we'd mark the FuncCall node to indicate
-					 * "must be an aggregate", but there's no provision
-					 * for that in FuncCall at the moment.
-					 */
-					n->func_variadic = FALSE;
-					n->over = $11;
-					n->generics = $4;
-					n->location = @2;
-					$$ = (Node *)n;
-				}
-			| '.' '<' type_list '>' type_function_name '(' ALL func_arg_list opt_sort_clause ')' over_clause
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = $5;
-					n->args = $8;
-					n->agg_order = $9;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					/* Ideally we'd mark the FuncCall node to indicate
-					 * "must be an aggregate", but there's no provision
-					 * for that in FuncCall at the moment.
-					 */
-					n->func_variadic = FALSE;
-					n->over = $11;
-					n->generics = $3;
-					n->location = @2;
-					$$ = (Node *)n;
-				}
-			| '.' type_function_name '(' DISTINCT func_arg_list opt_sort_clause ')' over_clause
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = $2;
-					n->args = $5;
-					n->agg_order = $6;
-					n->agg_star = FALSE;
-					n->agg_distinct = TRUE;
-					n->func_variadic = FALSE;
-					n->over = $8;
-					n->location = @2;
-					$$ = (Node *)n;
-				}
-			| '.' type_function_name '<' type_list '>' '(' DISTINCT func_arg_list opt_sort_clause ')' over_clause		%prec '<'
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = $2;
-					n->args = $8;
-					n->agg_order = $9;
-					n->agg_star = FALSE;
-					n->agg_distinct = TRUE;
-					n->func_variadic = FALSE;
-					n->over = $11;
-					n->generics = $4;
-					n->location = @2;
-					$$ = (Node *)n;
-				}
-			| '.' '<' type_list '>' type_function_name '(' DISTINCT func_arg_list opt_sort_clause ')' over_clause
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = $5;
-					n->args = $8;
-					n->agg_order = $9;
-					n->agg_star = FALSE;
-					n->agg_distinct = TRUE;
-					n->func_variadic = FALSE;
-					n->over = $11;
-					n->generics = $3;
-					n->location = @2;
-					$$ = (Node *)n;
-				}
-			| '.' type_function_name '(' '*' ')' over_clause
-				{
-					/*
-					 * We consider AGGREGATE(*) to invoke a parameterless
-					 * aggregate.  This does the right thing for COUNT(*),
-					 * and there are no other aggregates in SQL92 that accept
-					 * '*' as parameter.
-					 *
-					 * The FuncCall node is also marked agg_star = true,
-					 * so that later processing can detect what the argument
-					 * really was.
-					 */
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = $2;
-					n->args = NIL;
-					n->agg_order = NIL;
-					n->agg_star = TRUE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = FALSE;
-					n->over = $6;
-					n->location = @2;
-					$$ = (Node *)n;
-				}
-			| '.' type_function_name '<' type_list '>' '(' '*' ')' over_clause		%prec '<'
-				{
-					/*
-					 * We consider AGGREGATE(*) to invoke a parameterless
-					 * aggregate.  This does the right thing for COUNT(*),
-					 * and there are no other aggregates in SQL92 that accept
-					 * '*' as parameter.
-					 *
-					 * The FuncCall node is also marked agg_star = true,
-					 * so that later processing can detect what the argument
-					 * really was.
-					 */
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = $2;
-					n->args = NIL;
-					n->agg_order = NIL;
-					n->agg_star = TRUE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = FALSE;
-					n->over = $9;
-					n->generics = $4;
-					n->location = @2;
-					$$ = (Node *)n;
-				}
-			| '.' '<' type_list '>' type_function_name '(' '*' ')' over_clause
-				{
-					/*
-					 * We consider AGGREGATE(*) to invoke a parameterless
-					 * aggregate.  This does the right thing for COUNT(*),
-					 * and there are no other aggregates in SQL92 that accept
-					 * '*' as parameter.
-					 *
-					 * The FuncCall node is also marked agg_star = true,
-					 * so that later processing can detect what the argument
-					 * really was.
-					 */
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = $5;
-					n->args = NIL;
-					n->agg_order = NIL;
-					n->agg_star = TRUE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = FALSE;
-					n->over = $9;
-					n->generics = $3;
-					n->location = @2;
-					$$ = (Node *)n;
-				}
-			| '.' '*'
-				{
-					$$ = (Node *) makeNode(A_Star);
-				}
-		;
-
-member_access_indices:
-			'[' a_expr ']'
-				{
-					A_Indices *ai = makeNode(A_Indices);
-					ai->lidx = NULL;
-					ai->uidx = $2;
-					$$ = (Node *) ai;
-				}
-			| '[' a_expr ':' a_expr ']'
-				{
-					A_Indices *ai = makeNode(A_Indices);
-					ai->lidx = $2;
-					ai->uidx = $4;
-					$$ = (Node *) ai;
-				}
-		;
-
-member_access_seq:
-			member_access_seq_el					{ $$ = list_make1($1); }
-			| member_access_indices					{ $$ = list_make1($1); }
-			| member_access_seq member_access_seq_el
-				{
-					$$ = lappend($1, $2);
-				}
-			| member_access_seq member_access_indices
-				{
-					$$ = lappend($1, $2);
-				}
-		;
-
-member_expr:
-			member_access_el						{ $$ = $1; }
-			| member_access_el member_access_seq	
-				{
-					A_Indirection *n = makeNode(A_Indirection);
-					n->arg = $1;
-					n->indirection = $2;
-					$$ = (Node *) n;
-				}
-		;
-	
-/*
- * Productions that can be used in both a_expr and b_expr.
- *
- * Note: productions that refer recursively to a_expr or b_expr mostly
- * cannot appear here.	However, it's OK to refer to a_exprs that occur
- * inside parentheses, such as function arguments; that cannot introduce
- * ambiguity to the b_expr syntax.
- */
-c_expr:		member_expr								{ $$ = $1; }
-			| AexprConst							{ $$ = $1; }
-			| PARAM
-				{
-					ParamRef *p = makeNode(ParamRef);
-					p->number = $1;
-					p->location = @1;
-						$$ = (Node *) p;
-				}
-			| '?'
-				{
-					ParamRef *p = makeNode(ParamRef);
-					p->number = -1;
-					p->location = @1;
-						$$ = (Node *) p;
-				}
-			| PARAM member_access_seq
-				{
-					ParamRef *p = makeNode(ParamRef);
-					p->number = $1;
-					p->location = @1;
-					if ($2)
-					{
-						A_Indirection *n = makeNode(A_Indirection);
-						n->arg = (Node *) p;
-						n->indirection = check_indirection($2, yyscanner);
-						$$ = (Node *) n;
-					}
-					else
-						$$ = (Node *) p;
-				}
-			| '?' member_access_seq
-				{
-					ParamRef *p = makeNode(ParamRef);
-					p->number = -1;
-					p->location = @1;
-					if ($2)
-					{
-						A_Indirection *n = makeNode(A_Indirection);
-						n->arg = (Node *) p;
-						n->indirection = check_indirection($2, yyscanner);
-						$$ = (Node *) n;
-					}
-					else
-						$$ = (Node *) p;
-				}
-			| '(' a_expr ')'
-				{
-						$$ = $2;
-				}
-			| '(' a_expr ')' member_access_seq
-				{
-						A_Indirection *n = makeNode(A_Indirection);
-						n->arg = $2;
-						n->indirection = check_indirection($4, yyscanner);
-						$$ = (Node *)n;
-				}
-			| case_expr
-				{ $$ = $1; }
-//			| func_expr
-//				{ $$ = $1; }
-			| select_with_parens			%prec UMINUS
-				{
-					SubLink *n = makeNode(SubLink);
-					n->subLinkType = EXPR_SUBLINK;
-					n->testexpr = NULL;
-					n->operName = NIL;
-					n->subselect = $1;
-					n->location = @1;
-					$$ = (Node *)n;
-				}
-			| EXISTS select_with_parens
-				{
-					SubLink *n = makeNode(SubLink);
-					n->subLinkType = EXISTS_SUBLINK;
-					n->testexpr = NULL;
-					n->operName = NIL;
-					n->subselect = $2;
-					n->location = @1;
-					$$ = (Node *)n;
-				}
-			| ARRAY select_with_parens
-				{
-					SubLink *n = makeNode(SubLink);
-					n->subLinkType = ARRAY_SUBLINK;
-					n->testexpr = NULL;
-					n->operName = NIL;
-					n->subselect = $2;
-					n->location = @1;
-					$$ = (Node *)n;
-				}
-			| ARRAY array_expr
-				{
-					A_ArrayExpr *n = (A_ArrayExpr *) $2;
-					Assert(IsA(n, A_ArrayExpr));
-					/* point outermost A_ArrayExpr to the ARRAY keyword */
-					n->location = @1;
-					$$ = (Node *)n;
-				}
-			| row
-				{
-					RowExpr *r = makeNode(RowExpr);
-					r->args = $1;
-					r->row_typeid = InvalidOid;	/* not analyzed yet */
-					r->location = @1;
-					$$ = (Node *)r;
-				}
-		;
-
+		;	
 /*
  * func_expr is split out from c_expr just so that we have a classification
  * for "everything that is a function call or looks like one".  This isn't
