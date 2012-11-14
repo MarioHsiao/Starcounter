@@ -76,17 +76,21 @@ void _set_event(void *handle)
 }
 
 
-uint32_t _exec(char *command_line, void **phandle)
+uint32_t _exec(char *command_line, int32_t inherit_console, void **phandle)
 {
+	DWORD pcf;
 	STARTUPINFOA si;
 	PROCESS_INFORMATION pi;
 	DWORD dr;
+
+	pcf = 0;
+	if (!inherit_console) pcf |= CREATE_NO_WINDOW;
 
 	memset(&si, 0, sizeof(si));
 	si.cb = sizeof(si);
 	memset(&si, 0, sizeof(pi));
 
-	if(CreateProcessA(0, command_line, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi))
+	if(CreateProcessA(0, command_line, NULL, NULL, FALSE, pcf, NULL, NULL, &si, &pi))
 	{
 		CloseHandle(pi.hThread);
 		*phandle = (void *)pi.hProcess;
