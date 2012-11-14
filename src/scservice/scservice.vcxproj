@@ -84,6 +84,7 @@
     <ClCompile Include="config.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="win32.cpp" />
+    <ClCompile Include="win32_acl.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="internal.h" />
