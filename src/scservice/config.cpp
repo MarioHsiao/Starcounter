@@ -15,16 +15,14 @@ uint32_t _read_config(const char *name, char **pserver_dir)
 	char *file_name;
 	FILE *file;
 	char *config_data;
+	xml_document<> *doc; // Character type defaults to char.
 
 	r = SCERRBADSERVICECONFIG;
 
 	file_name = 0;
 	file = 0;
 	config_data = 0;
-
-	// TODO: Handle rapidxml error (exception thrown).
-
-	xml_document<> doc; // Character type defaults to char.
+	doc = 0;
 
 	file_name = (char *)malloc(strlen(name) + 4 + 1);
 	if (!file_name) goto end;
@@ -48,9 +46,21 @@ uint32_t _read_config(const char *name, char **pserver_dir)
 	fclose(file);
 	file = 0;
 
-	doc.parse<0>(config_data); // 0 means default parse flags.
+	// TODO: Handle rapidxml error (exception thrown).
 
-	xml_node<> *root_elem = doc.first_node("service");
+	doc = new xml_document<>; // Character type defaults to char.
+	if (!doc) goto end;
+
+	try
+	{
+		doc->parse<0>(config_data); // 0 means default parse flags.
+	}
+	catch (parse_error)
+	{
+		goto end;
+	}
+
+	xml_node<> *root_elem = doc->first_node("service");
 	if (!root_elem) goto end;
 
 	xml_node<> *server_dir_elem = root_elem->first_node("server-dir");
@@ -64,6 +74,7 @@ uint32_t _read_config(const char *name, char **pserver_dir)
 	r = 0;
 
 end:
+	if (doc) delete doc;
 	if (config_data) free(config_data);
 	if (file) fclose(file);
 	if (file_name) free(file_name);
