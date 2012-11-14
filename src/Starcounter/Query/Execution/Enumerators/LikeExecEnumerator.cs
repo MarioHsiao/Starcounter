@@ -136,11 +136,11 @@ namespace Starcounter.Query.Execution
         /// <summary>
         /// Gets the type binding of the composite object.
         /// </summary>
-        override public CompositeTypeBinding CompositeTypeBinding
+        override public RowTypeBinding RowTypeBinding
         {
             get
             {
-                return currentExecEnum.CompositeTypeBinding;
+                return currentExecEnum.RowTypeBinding;
             }
         }
 
@@ -180,7 +180,7 @@ namespace Starcounter.Query.Execution
             }
         }
 
-        public CompositeObject CurrentCompositeObject
+        public Row CurrentCompositeObject
         {
             get
             {
@@ -260,7 +260,7 @@ namespace Starcounter.Query.Execution
         /// Resets the enumerator with a context object.
         /// </summary>
         /// <param name="obj">Context object from another enumerator.</param>
-        public override void Reset(CompositeObject obj)
+        public override void Reset(Row obj)
         {
             // Resetting but not disposing (so its not returned back to cache).
             currentExecEnum.Reset(null);
@@ -272,7 +272,7 @@ namespace Starcounter.Query.Execution
             enumeratorCreated = false;
         }
 
-        public override IExecutionEnumerator Clone(CompositeTypeBinding typeBindingClone, VariableArray varArrClone)
+        public override IExecutionEnumerator Clone(RowTypeBinding typeBindingClone, VariableArray varArrClone)
         {
             IExecutionEnumerator[] subExecEnumsClone = null;
             if (subExecEnums != null)

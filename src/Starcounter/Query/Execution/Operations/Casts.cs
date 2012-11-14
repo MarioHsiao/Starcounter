@@ -105,7 +105,7 @@ internal class ObjectCast : IObjectPathItem, IPath
     }
 
     /// <summary>
-    /// The type resultTypeBind of the casted path-item.
+    /// The type binding of the casted path-item.
     /// </summary>
     public ITypeBinding TypeBinding
     {
@@ -170,7 +170,7 @@ internal class ObjectCast : IObjectPathItem, IPath
     /// </summary>
     /// <param name="obj">The result-object on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public IObjectExpression Instantiate_OLD(CompositeObject obj)
+    public IObjectExpression Instantiate_OLD(Row obj)
     {
         IObjectExpression instExpression = expression.Instantiate(obj);
 
@@ -190,7 +190,7 @@ internal class ObjectCast : IObjectPathItem, IPath
         return new ObjectCast(typeBinding, instExpression);
     }
 
-    public IObjectExpression Instantiate(CompositeObject obj)
+    public IObjectExpression Instantiate(Row obj)
     {
         return new ObjectCast(typeBinding, expression.Instantiate(obj));
     }

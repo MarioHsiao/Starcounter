@@ -107,7 +107,7 @@ internal class ObjectPath : Path, IObjectExpression, IPath
     }
 
     /// <summary>
-    /// The type resultTypeBind of the end (object) member of this path.
+    /// The type binding of the end (object) member of this path.
     /// </summary>
     public ITypeBinding TypeBinding
     {
@@ -174,7 +174,7 @@ internal class ObjectPath : Path, IObjectExpression, IPath
     /// </summary>
     /// <param name="obj">The result-object on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public IObjectExpression Instantiate_OLD(CompositeObject obj)
+    public IObjectExpression Instantiate_OLD(Row obj)
     {
         List<IObjectPathItem> instPathList = new List<IObjectPathItem>();
         Int32 i = 0;
@@ -192,7 +192,7 @@ internal class ObjectPath : Path, IObjectExpression, IPath
         return new ObjectPath(extentNumber, instPathList, instMember);
     }
 
-    public IObjectExpression Instantiate(CompositeObject obj)
+    public IObjectExpression Instantiate(Row obj)
     {
         List<IObjectPathItem> instPathList = new List<IObjectPathItem>();
         Int32 i = 0;

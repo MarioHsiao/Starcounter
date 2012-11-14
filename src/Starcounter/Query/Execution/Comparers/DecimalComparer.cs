@@ -90,14 +90,14 @@ internal class DecimalComparer : ISingleComparer
         }
     }
 
-    public Int32 Compare(CompositeObject obj1, CompositeObject obj2)
+    public Int32 Compare(Row obj1, Row obj2)
     {
         Nullable<Decimal> value1 = expression.EvaluateToDecimal(obj1);
         Nullable<Decimal> value2 = expression.EvaluateToDecimal(obj2);
         return InternalCompare(value1, value2);
     }
 
-    public Int32 Compare(ILiteral value, CompositeObject obj)
+    public Int32 Compare(ILiteral value, Row obj)
     {
         if (!(value is DecimalLiteral))
         {
@@ -108,7 +108,7 @@ internal class DecimalComparer : ISingleComparer
         return InternalCompare(value1, value2);
     }
 
-    public ILiteral Evaluate(CompositeObject obj)
+    public ILiteral Evaluate(Row obj)
     {
         return new DecimalLiteral(expression.EvaluateToDecimal(obj));
     }

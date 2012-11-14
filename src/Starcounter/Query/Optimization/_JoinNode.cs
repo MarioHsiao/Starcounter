@@ -13,18 +13,18 @@ namespace Starcounter.Query.Optimization
 {
 internal class JoinNode : IOptimizationNode
 {
-    CompositeTypeBinding compTypeBind;
+    RowTypeBinding rowTypeBind;
     JoinType joinType;
     IOptimizationNode leftNode;
     IOptimizationNode rightNode;
     VariableArray varArray;
     String query;
 
-    internal JoinNode(CompositeTypeBinding compTypeBind, JoinType joinType, IOptimizationNode leftNode, IOptimizationNode rightNode, 
+    internal JoinNode(RowTypeBinding rowTypeBind, JoinType joinType, IOptimizationNode leftNode, IOptimizationNode rightNode, 
         VariableArray varArray, String query)
     {
-        if (compTypeBind == null)
-            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect compTypeBind.");
+        if (rowTypeBind == null)
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
         if (leftNode == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect leftNode.");
         if (rightNode == null)
@@ -32,7 +32,7 @@ internal class JoinNode : IOptimizationNode
         if (query == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect query.");
 
-        this.compTypeBind = compTypeBind;
+        this.rowTypeBind = rowTypeBind;
         if (joinType != JoinType.RightOuter)
         {
             this.joinType = joinType;
@@ -75,7 +75,7 @@ internal class JoinNode : IOptimizationNode
             {
                 currentLeftNode = leftPermutationList[i].Clone();
                 currentRightNode = rightPermutationList[j].Clone();
-                permutationList.Add(new JoinNode(compTypeBind, joinType, currentLeftNode, currentRightNode, varArray, query));
+                permutationList.Add(new JoinNode(rowTypeBind, joinType, currentLeftNode, currentRightNode, varArray, query));
             }
         }
         
@@ -91,7 +91,7 @@ internal class JoinNode : IOptimizationNode
             {
                 currentRightNode = rightPermutationList[i].Clone();
                 currentLeftNode = leftPermutationList[j].Clone();
-                permutationList.Add(new JoinNode(compTypeBind, joinType, currentRightNode, currentLeftNode, varArray, query));
+                permutationList.Add(new JoinNode(rowTypeBind, joinType, currentRightNode, currentLeftNode, varArray, query));
             }
         }
         return permutationList;
@@ -99,7 +99,7 @@ internal class JoinNode : IOptimizationNode
 
     public IOptimizationNode Clone()
     {
-        return new JoinNode(compTypeBind, joinType, leftNode.Clone(), rightNode.Clone(), varArray, query);
+        return new JoinNode(rowTypeBind, joinType, leftNode.Clone(), rightNode.Clone(), varArray, query);
     }
 
     public Int32 EstimateCost()
@@ -111,7 +111,7 @@ internal class JoinNode : IOptimizationNode
     {
         IExecutionEnumerator leftEnumerator = leftNode.CreateExecutionEnumerator(null, fetchOffsetKeyExpr);
         IExecutionEnumerator rightEnumerator = rightNode.CreateExecutionEnumerator(null, fetchOffsetKeyExpr);
-        return new Join(compTypeBind, joinType, leftEnumerator, rightEnumerator, fetchNumExpr, varArray, query);
+        return new Join(rowTypeBind, joinType, leftEnumerator, rightEnumerator, fetchNumExpr, varArray, query);
     }
 
 #if DEBUG
@@ -154,11 +154,11 @@ internal class JoinNode : IOptimizationNode
             } else
                 areEquals = this.rightNode.AssertEquals(other.rightNode);
         if (areEquals)
-            if (this.compTypeBind == null) {
-                Debug.Assert(other.compTypeBind == null);
-                areEquals = other.compTypeBind == null;
+            if (this.rowTypeBind == null) {
+                Debug.Assert(other.rowTypeBind == null);
+                areEquals = other.rowTypeBind == null;
             } else
-                areEquals = this.compTypeBind.AssertEquals(other.compTypeBind);
+                areEquals = this.rowTypeBind.AssertEquals(other.rowTypeBind);
         if (areEquals)
             if (this.varArray == null) {
                 Debug.Assert(other.varArray == null);

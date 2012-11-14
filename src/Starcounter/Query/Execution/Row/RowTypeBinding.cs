@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="CompositeTypeBinding.cs" company="Starcounter AB">
+// <copyright file="RowTypeBinding.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -14,43 +14,41 @@ using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
-internal class CompositeTypeBinding : ITypeBinding
+internal class RowTypeBinding : ITypeBinding
 {
     List<ITypeBinding> typeBindingList;
 
     List<PropertyMapping> propertyList;
     Dictionary<String, Int32> propertyIndexDictByName;
-    //PI110503 Dictionary<String, Int32> propertyIndexDictByUpperCaseName;
 
     // Used to create hierarchical result structure.
     List<Int32> extentOrder;
     List<IPropertyBinding>[] propertyListArr;
 
-    public CompositeTypeBinding()
+    public RowTypeBinding()
     {
         typeBindingList = new List<ITypeBinding>();
         propertyList = new List<PropertyMapping>();
         propertyIndexDictByName = new Dictionary<String, Int32>();
-        //PI110503 propertyIndexDictByUpperCaseName = new Dictionary<String, Int32>();
         extentOrder = null;
         propertyListArr = null;
     }
 
-    internal CompositeTypeBinding Clone(VariableArray varArray)
+    internal RowTypeBinding Clone(VariableArray varArray)
     {
-        CompositeTypeBinding resultTypeBind = new CompositeTypeBinding();
-        resultTypeBind.typeBindingList = this.typeBindingList;
-        resultTypeBind.extentOrder = this.extentOrder;
-        resultTypeBind.propertyListArr = this.propertyListArr;
+        RowTypeBinding rowTypeBind = new RowTypeBinding();
+        rowTypeBind.typeBindingList = this.typeBindingList;
+        rowTypeBind.extentOrder = this.extentOrder;
+        rowTypeBind.propertyListArr = this.propertyListArr;
 
         ITypeExpression expressionClone = null;
         for (Int32 i = 0; i < this.propertyList.Count; i++)
         {
             expressionClone = this.propertyList[i].Expression.Clone(varArray);
-            resultTypeBind.AddPropertyMapping(this.propertyList[i].Name, expressionClone);
+            rowTypeBind.AddPropertyMapping(this.propertyList[i].Name, expressionClone);
         }
 
-        return resultTypeBind;
+        return rowTypeBind;
     }
 
 	internal List<PropertyMapping> GetAllProperties()
@@ -58,16 +56,18 @@ internal class CompositeTypeBinding : ITypeBinding
 		return propertyList;
 	}
 
+    /// <summary>
+    /// Row type binding can be simply shared.
+    /// </summary>
     public void ResetCached()
     {
-        // Result type binding can be simply shared.
     }
 
     public String Name
     {
         get
         {
-            return "Starcounter.CompositeObject";
+            return "Starcounter.Row";
         }
     }
 
@@ -119,7 +119,6 @@ internal class CompositeTypeBinding : ITypeBinding
 
     internal void AddTypeBinding(String typeName)
     {
-        //PI110503 TypeBinding typeBind = TypeRepository.GetTypeBindingByUpperCaseName(typeName.ToUpper());
         TypeBinding typeBind = TypeRepository.GetTypeBinding(typeName);
         if (typeBind != null)
             typeBindingList.Add(typeBind);
@@ -179,30 +178,11 @@ internal class CompositeTypeBinding : ITypeBinding
         }
     }
 
-    //PI110503
-    //public IPropertyBinding GetPropertyBindingByUpperCaseName(String name)
-    //{
-    //    Int32 index = -1;
-    //    if (name == null)
-    //    {
-    //        throw new ArgumentNullException("name");
-    //    }
-    //    if (propertyIndexDictByUpperCaseName.TryGetValue(name, out index))
-    //    {
-    //        return propertyList[index];
-    //    }
-    //    else
-    //    {
-    //        throw new KeyNotFoundException("There is no property with name: " + name);
-    //    }
-    //}
-
     internal void AddPropertyMapping(String name, ITypeExpression expr)
     {
         Int32 index = propertyList.Count;
         PropertyMapping propMap = new PropertyMapping(name, index, expr);
         propertyIndexDictByName.Add(name, index);
-        //PI110503 propertyIndexDictByUpperCaseName.Add(name.ToUpper(), index);
         propertyList.Add(propMap);
     }
 
@@ -269,7 +249,7 @@ internal class CompositeTypeBinding : ITypeBinding
             }
         }
         stringBuilder.AppendLine(tabs, ")");
-        // Present the projection (CompositeObject).
+        // Present the projection (Row).
         stringBuilder.AppendLine(tabs, "Projection(");
         for (Int32 i = 0; i < propertyList.Count; i++)
         {
@@ -280,7 +260,7 @@ internal class CompositeTypeBinding : ITypeBinding
 
 #if DEBUG
     private bool AssertEqualsVisited = false;
-    internal bool AssertEquals(CompositeTypeBinding other) {
+    internal bool AssertEquals(RowTypeBinding other) {
         Debug.Assert(other != null);
         if (other == null)
             return false;

@@ -133,7 +133,7 @@ internal class StringVariable : Variable, IVariable, IStringExpression
     /// </summary>
     /// <param name="obj">Not used.</param>
     /// <returns>A copy of this variable.</returns>
-    public IStringExpression Instantiate(CompositeObject obj)
+    public IStringExpression Instantiate(Row obj)
     {
         return this;
     }

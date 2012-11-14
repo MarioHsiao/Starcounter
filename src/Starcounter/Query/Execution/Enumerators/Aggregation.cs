@@ -24,12 +24,12 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
     MultiComparer comparer; // Group-by columns.
     List<ISetFunction> setFunctionList;
     IExecutionEnumerator enumerator;
-    CompositeObject cursorObject;
-    CompositeObject contextObject;
+    Row cursorObject;
+    Row contextObject;
     ILogicalExpression condition;
     Boolean firstCallOfMoveNext;
 
-    internal Aggregation(CompositeTypeBinding compTypeBind,
+    internal Aggregation(RowTypeBinding rowTypeBind,
         Int32 extNum,
         IExecutionEnumerator subEnum,
         IQueryComparer comparer,
@@ -37,7 +37,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         ILogicalExpression condition,
         VariableArray varArr,
         String query)
-        : base(compTypeBind, varArr)
+        : base(rowTypeBind, varArr)
     {
         if (subEnum == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect subEnum.");
@@ -69,13 +69,13 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         {
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect comparer.");
         }
-        if (compTypeBinding.GetTypeBinding(extentNumber) is TemporaryTypeBinding)
+        if (rowTypeBinding.GetTypeBinding(extentNumber) is TemporaryTypeBinding)
         {
-            tempTypeBinding = compTypeBinding.GetTypeBinding(extentNumber) as TemporaryTypeBinding;
+            tempTypeBinding = rowTypeBinding.GetTypeBinding(extentNumber) as TemporaryTypeBinding;
         }
         else
         {
-            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect resultTypeBind.");
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
         }
 
         enumerator = null;
@@ -95,11 +95,11 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         get
         {
             if (projectionTypeCode == null)
-                return compTypeBinding;
+                return rowTypeBinding;
 
             // Singleton object.
             if (projectionTypeCode == DbTypeCode.Object)
-                return compTypeBinding.GetPropertyBinding(0).TypeBinding;
+                return rowTypeBinding.GetPropertyBinding(0).TypeBinding;
 
             // Singleton non-object.
             return null;
@@ -190,7 +190,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
-    public CompositeObject CurrentCompositeObject
+    public Row CurrentCompositeObject
     {
         get
         {
@@ -213,7 +213,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         }
         else
         {
-            enumerator = new Sort(subEnumerator.CompositeTypeBinding, subEnumerator, comparer, variableArray, query);
+            enumerator = new Sort(subEnumerator.RowTypeBinding, subEnumerator, comparer, variableArray, query);
         }
     }
 
@@ -221,7 +221,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
     /// Resets the enumerator with a context object.
     /// </summary>
     /// <param name="obj">Context object from another enumerator.</param>
-    public override void Reset(CompositeObject obj)
+    public override void Reset(Row obj)
     {
         if (enumerator != null)
         {
@@ -269,7 +269,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         }
         // Create new object.
         TemporaryObject tempObject = new TemporaryObject(tempTypeBinding);
-        CompositeObject compObject = new CompositeObject(compTypeBinding);
+        Row compObject = new Row(rowTypeBinding);
         compObject.AttachObject(extentNumber, tempObject);
         Boolean conditionValue = false;
         //while (cursorObject != null && !conditionValue)
@@ -333,8 +333,8 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         else if (counter == 0 || force)
         {
             // Create a NullObject.
-            NullObject nullObj = new NullObject(compTypeBinding.GetTypeBinding(extentNumber));
-            currentObject = new CompositeObject(compTypeBinding);
+            NullObject nullObj = new NullObject(rowTypeBinding.GetTypeBinding(extentNumber));
+            currentObject = new Row(rowTypeBinding);
             currentObject.AttachObject(extentNumber, nullObj);
             counter++;
             return true;
@@ -366,15 +366,15 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
     /// Creating the clone of enumerator.
     /// </summary>
     /// <returns>Returns clone of the enumerator.</returns>
-    public override IExecutionEnumerator Clone(CompositeTypeBinding resultTypeBindClone, VariableArray varArray)
+    public override IExecutionEnumerator Clone(RowTypeBinding rowTypeBindClone, VariableArray varArray)
     {
         List<ISetFunction> setFuncListClone = new List<ISetFunction>();
         for (Int32 i = 0; i < setFunctionList.Count; i++)
         {
             setFuncListClone.Add(setFunctionList[i].Clone(varArray));
         }
-        return new Aggregation(resultTypeBindClone, extentNumber,
-                               subEnumerator.Clone(resultTypeBindClone, varArray),
+        return new Aggregation(rowTypeBindClone, extentNumber,
+                               subEnumerator.Clone(rowTypeBindClone, varArray),
                                comparer.Clone(varArray), setFuncListClone,
                                condition.Clone(varArray), varArray, query);
     }

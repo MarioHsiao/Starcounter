@@ -102,14 +102,14 @@ internal class BooleanComparer : ISingleComparer
         }
     }
 
-    public Int32 Compare(CompositeObject obj1, CompositeObject obj2)
+    public Int32 Compare(Row obj1, Row obj2)
     {
         Nullable<Boolean> value1 = expression.EvaluateToBoolean(obj1);
         Nullable<Boolean> value2 = expression.EvaluateToBoolean(obj2);
         return InternalCompare(value1, value2);
     }
 
-    public Int32 Compare(ILiteral value, CompositeObject obj)
+    public Int32 Compare(ILiteral value, Row obj)
     {
         if (!(value is BooleanLiteral))
         {
@@ -120,7 +120,7 @@ internal class BooleanComparer : ISingleComparer
         return InternalCompare(value1, value2);
     }
 
-    public ILiteral Evaluate(CompositeObject obj)
+    public ILiteral Evaluate(Row obj)
     {
         return new BooleanLiteral(expression.EvaluateToBoolean(obj));
     }

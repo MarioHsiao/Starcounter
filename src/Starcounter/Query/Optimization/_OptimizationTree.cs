@@ -153,7 +153,7 @@ internal class OptimizationTree
     internal IExecutionEnumerator CreateExecutionEnumerator(INumericalExpression fetchNumExpr, IBinaryExpression fetchOffsetKeyExpr)
     {
         IExecutionEnumerator enumerator = topNode.CreateExecutionEnumerator(fetchNumExpr, fetchOffsetKeyExpr);
-        enumerator.CompositeTypeBinding.ExtentOrder = extentOrder;
+        enumerator.RowTypeBinding.ExtentOrder = extentOrder;
         if (topNode is SortNode)
             enumerator.VarArray.QueryFlags = enumerator.VarArray.QueryFlags | QueryFlags.IncludesSorting;
         return enumerator;

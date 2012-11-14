@@ -122,9 +122,9 @@ internal class ObjectThis : CodeGenFilterNode, IObjectExpression, IProperty
         {
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect obj.");
         }
-        if (obj is CompositeObject)
+        if (obj is Row)
         {
-            IObjectView partObj = (obj as CompositeObject).AccessObject(extentNumber);
+            IObjectView partObj = (obj as Row).AccessObject(extentNumber);
             if (partObj == null)
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "No elementary object at extent number: " + extentNumber);
@@ -152,7 +152,7 @@ internal class ObjectThis : CodeGenFilterNode, IObjectExpression, IProperty
     /// </summary>
     /// <param name="obj">The result-object on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public IObjectExpression Instantiate(CompositeObject obj)
+    public IObjectExpression Instantiate(Row obj)
     {
         if (obj != null && extentNumber >= 0 && obj.AccessObject(extentNumber) != null)
         {

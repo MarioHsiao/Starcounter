@@ -126,7 +126,7 @@ internal class BinaryVariable : Variable, IVariable, IBinaryExpression
     /// </summary>
     /// <param name="obj">Not used.</param>
     /// <returns>A copy of this variable.</returns>
-    public IBinaryExpression Instantiate(CompositeObject obj)
+    public IBinaryExpression Instantiate(Row obj)
     {
         return this;
     }

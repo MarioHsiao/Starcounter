@@ -16,18 +16,18 @@ namespace Starcounter.Query.Execution
 internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
 {
     Int32 extentNumber;
-    CompositeObject contextObject;
+    Row contextObject;
 
     IObjectExpression expression;
     ILogicalExpression condition;
 
-    internal ReferenceLookup(CompositeTypeBinding compTypeBind,
+    internal ReferenceLookup(RowTypeBinding rowTypeBind,
         Int32 extNum,
         IObjectExpression expr,
         ILogicalExpression cond,
         INumericalExpression fetchNumExpr,
         VariableArray varArr, String query)
-        : base(compTypeBind, varArr)
+        : base(rowTypeBind, varArr)
     {
         if (expr == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect expr.");
@@ -54,11 +54,11 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         get
         {
             if (projectionTypeCode == null)
-                return compTypeBinding;
+                return rowTypeBinding;
 
             // Singleton object.
             if (projectionTypeCode == DbTypeCode.Object)
-                return compTypeBinding.GetPropertyBinding(0).TypeBinding;
+                return rowTypeBinding.GetPropertyBinding(0).TypeBinding;
 
             // Singleton non-object.
             return null;
@@ -141,7 +141,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
-    public CompositeObject CurrentCompositeObject
+    public Row CurrentCompositeObject
     {
         get
         {
@@ -195,7 +195,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
             else
             {
                 // Create new currentObject.
-                currentObject = new CompositeObject(compTypeBinding);
+                currentObject = new Row(rowTypeBinding);
                 currentObject.AttachObject(extentNumber, obj);
                 counter++;
                 return true;
@@ -217,8 +217,8 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         else if (counter == 0 || force)
         {
             // Create a NullObject.
-            NullObject nullObj = new NullObject(compTypeBinding.GetTypeBinding(extentNumber));
-            currentObject = new CompositeObject(compTypeBinding);
+            NullObject nullObj = new NullObject(rowTypeBinding.GetTypeBinding(extentNumber));
+            currentObject = new Row(rowTypeBinding);
             currentObject.AttachObject(extentNumber, nullObj);
             counter++;
             return true;
@@ -242,7 +242,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
     /// Resets the enumerator with a context object.
     /// </summary>
     /// <param name="obj">Context object from another enumerator.</param>
-    public override void Reset(CompositeObject obj)
+    public override void Reset(Row obj)
     {
         contextObject = obj;
         currentObject = null;
@@ -257,9 +257,9 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
     /// <returns>True, if the object is in the current extent, otherwise false.</returns>
     internal Boolean InCurrentExtent(IObjectView obj)
     {
-        if (compTypeBinding.GetTypeBinding(extentNumber) is TypeBinding && obj.TypeBinding is TypeBinding)
+        if (rowTypeBinding.GetTypeBinding(extentNumber) is TypeBinding && obj.TypeBinding is TypeBinding)
         {
-            TypeBinding extentTypeBind = compTypeBinding.GetTypeBinding(extentNumber) as TypeBinding;
+            TypeBinding extentTypeBind = rowTypeBinding.GetTypeBinding(extentNumber) as TypeBinding;
             TypeBinding tmpTypeBind = obj.TypeBinding as TypeBinding;
             return tmpTypeBind.SubTypeOf(extentTypeBind);
         }
@@ -269,13 +269,13 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
-    public override IExecutionEnumerator Clone(CompositeTypeBinding resultTypeBindClone, VariableArray varArrClone)
+    public override IExecutionEnumerator Clone(RowTypeBinding rowTypeBindClone, VariableArray varArrClone)
     {
         INumericalExpression fetchNumberExprClone = null;
         if (fetchNumberExpr != null)
             fetchNumberExprClone = fetchNumberExpr.CloneToNumerical(varArrClone);
 
-        return new ReferenceLookup(resultTypeBindClone, extentNumber, expression.CloneToObject(varArrClone),
+        return new ReferenceLookup(rowTypeBindClone, extentNumber, expression.CloneToObject(varArrClone),
             condition.Clone(varArrClone), fetchNumberExprClone, varArrClone, query);
     }
 

@@ -17,11 +17,11 @@ namespace Starcounter.Query.Execution
 // Implementation for base execution enumerator class.
 internal abstract class ExecutionEnumerator
 {
-    protected CompositeObject currentObject = null; // Represents latest successfully retrieved object.
+    protected Row currentObject = null; // Represents latest successfully retrieved object.
     protected VariableArray variableArray = null; // Array with variables from query.
     protected Int64 counter = 0; // Number of successful hits (retrieved objects).
     protected String query = null; // Original SQL query which this enumerator belongs to.
-    protected CompositeTypeBinding compTypeBinding = null; // Type binding for the enumerator.
+    protected RowTypeBinding rowTypeBinding = null; // Type binding for the enumerator.
     protected Nullable<DbTypeCode> projectionTypeCode = null; // If singleton projection, then the DbTypeCode of that singleton, otherwise null.
     protected UInt64 uniqueQueryID = 0; // Uniquely identifies query it belongs to.
     protected String uniqueGenName = null; // Uniquely identifies the scan during code generation.
@@ -39,19 +39,19 @@ internal abstract class ExecutionEnumerator
     /// <summary>
     /// Default constructor.
     /// </summary>
-    internal ExecutionEnumerator(CompositeTypeBinding compTypeBind, VariableArray varArray)
+    internal ExecutionEnumerator(RowTypeBinding rowTypeBind, VariableArray varArray)
     {
-        if (compTypeBind == null)
-            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect compTypeBind.");
+        if (rowTypeBind == null)
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
         if (varArray == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect variables clone.");
 
-        compTypeBinding = compTypeBind;
+        rowTypeBinding = rowTypeBind;
         variableArray = varArray;
 
         if (varArray != null && (varArray.QueryFlags & QueryFlags.SingletonProjection) != 0)
         {
-            projectionTypeCode = compTypeBinding.GetPropertyBinding(0).TypeCode;
+            projectionTypeCode = rowTypeBinding.GetPropertyBinding(0).TypeCode;
         }
     }
 
@@ -142,11 +142,11 @@ internal abstract class ExecutionEnumerator
     /// <summary>
     /// Gets the type binding of the composite object.
     /// </summary>
-    public virtual CompositeTypeBinding CompositeTypeBinding
+    public virtual RowTypeBinding RowTypeBinding
     {
         get
         {
-            return compTypeBinding;
+            return rowTypeBinding;
         }
     }
 
@@ -264,7 +264,7 @@ internal abstract class ExecutionEnumerator
         IExecutionEnumerator execEnum = this as IExecutionEnumerator;
 
         // Getting the amount of leaves in execution tree.
-        Int32 leavesNum = execEnum.CompositeTypeBinding.ExtentOrder.Count;
+        Int32 leavesNum = execEnum.RowTypeBinding.ExtentOrder.Count;
         globalOffset = ((leavesNum << 3) + IteratorHelper.RK_HEADER_LEN);
 
         // Using cache temp buffer.
@@ -308,7 +308,7 @@ internal abstract class ExecutionEnumerator
     /// <summary>
     /// Enumerator reset functionality.
     /// </summary>
-    public abstract void Reset(CompositeObject obj);
+    public abstract void Reset(Row obj);
 
     /// <summary>
     /// Resets the enumerator.
@@ -354,7 +354,7 @@ internal abstract class ExecutionEnumerator
     }
 
     // We need to refer to the main clone method.
-    public abstract IExecutionEnumerator Clone(CompositeTypeBinding typeBindingClone, VariableArray varArrClone);
+    public abstract IExecutionEnumerator Clone(RowTypeBinding typeBindingClone, VariableArray varArrClone);
 
     /// <summary>
     /// Creating the clone of enumerator.
@@ -369,13 +369,13 @@ internal abstract class ExecutionEnumerator
         varArrayClone.QueryFlags = variableArray.QueryFlags;
 
         // Calling main clone method of related execution enumerator.
-        CompositeTypeBinding compTypeBindingClone = null;
-        if (compTypeBinding != null)
+        RowTypeBinding rowTypeBindingClone = null;
+        if (rowTypeBinding != null)
         {
-            compTypeBindingClone = compTypeBinding.Clone(varArrayClone);
+            rowTypeBindingClone = rowTypeBinding.Clone(varArrayClone);
         }
 
-        IExecutionEnumerator newExecEnum = Clone(compTypeBindingClone, varArrayClone);
+        IExecutionEnumerator newExecEnum = Clone(rowTypeBindingClone, varArrayClone);
 
         // Transferring unique query ID.
         newExecEnum.UniqueQueryID = uniqueQueryID;
@@ -480,9 +480,9 @@ internal abstract class ExecutionEnumerator
     {
         MyStringBuilder stringBuilder = new MyStringBuilder();
 
-        if (compTypeBinding != null)
+        if (rowTypeBinding != null)
         {
-            compTypeBinding.BuildString(stringBuilder, 0);
+            rowTypeBinding.BuildString(stringBuilder, 0);
         }
 
         BuildString(stringBuilder, 0);

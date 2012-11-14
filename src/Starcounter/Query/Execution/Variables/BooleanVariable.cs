@@ -132,7 +132,7 @@ internal class BooleanVariable : Variable, IVariable, IBooleanExpression
     /// </summary>
     /// <param name="obj">Not used.</param>
     /// <returns>A copy of this variable.</returns>
-    public IBooleanExpression Instantiate(CompositeObject obj)
+    public IBooleanExpression Instantiate(Row obj)
     {
         return this;
     }

@@ -318,10 +318,10 @@ namespace Starcounter.Query.Execution
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Context object value is not set.");
             }
 
-            if (contextObj is CompositeObject)
+            if (contextObj is Row)
             {
                 // Accessing object of the needed extent.
-                IObjectView subObj = (contextObj as CompositeObject).AccessObject(extentNumber);
+                IObjectView subObj = (contextObj as Row).AccessObject(extentNumber);
 
                 // Checking if object from a certain extent exists.
                 if (subObj == null)
@@ -911,7 +911,7 @@ namespace Starcounter.Query.Execution
         /// </summary>
         /// <param name="obj">The result-object on which to evaluate the expression.</param>
         /// <returns>A more instantiated expression.</returns>
-        public INumericalExpression Instantiate(CompositeObject obj)
+        public INumericalExpression Instantiate(Row obj)
         {
             if ((obj != null) && (extentNumber >= 0) && (obj.AccessObject(extentNumber) != null))
             {

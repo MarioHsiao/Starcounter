@@ -545,7 +545,7 @@ internal class NumericalOperation : INumericalExpression, INumericalOperation
     /// </summary>
     /// <param name="obj">The result-object on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public INumericalExpression Instantiate(CompositeObject obj)
+    public INumericalExpression Instantiate(Row obj)
     {
         INumericalExpression instExpr1 = expr1.Instantiate(obj);
         INumericalExpression instExpr2 = null;

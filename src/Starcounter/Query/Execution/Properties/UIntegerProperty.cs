@@ -108,12 +108,12 @@ internal class UIntegerProperty : Property, IUIntegerPathItem
         {
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect obj.");
         }
-        if (obj is CompositeObject)
+        if (obj is Row)
         {
-            // Control that the type ((obj.TypeBinding as CompositeTypeBinding).GetTypeBinding(extentNumber)) of the input object
+            // Control that the type ((obj.TypeBinding as RowTypeBinding).GetTypeBinding(extentNumber)) of the input object
             // is equal to or a subtype (TypeBinding.SubTypeOf(TypeBinding)) of the type (typeBinding) to which this property belongs
             // is not implemented due to that interfaces cannot be handled and computational cost.
-            IObjectView partObj = (obj as CompositeObject).AccessObject(extentNumber);
+            IObjectView partObj = (obj as Row).AccessObject(extentNumber);
             if (partObj == null)
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "No elementary object at extent number: " + extentNumber);
@@ -252,7 +252,7 @@ internal class UIntegerProperty : Property, IUIntegerPathItem
     /// </summary>
     /// <param name="obj">The result-object on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public INumericalExpression Instantiate(CompositeObject obj)
+    public INumericalExpression Instantiate(Row obj)
     {
         if (obj != null && extentNumber >= 0 && obj.AccessObject(extentNumber) != null)
         {

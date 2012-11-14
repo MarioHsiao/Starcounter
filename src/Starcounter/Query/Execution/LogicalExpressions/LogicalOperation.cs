@@ -204,7 +204,7 @@ internal class LogicalOperation : CodeGenFilterNode, ILogicalExpression
     /// </summary>
     /// <param name="obj">The result-object on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public ILogicalExpression Instantiate(CompositeObject obj)
+    public ILogicalExpression Instantiate(Row obj)
     {
         if (condition2 != null)
         {

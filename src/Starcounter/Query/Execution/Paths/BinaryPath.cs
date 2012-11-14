@@ -162,7 +162,7 @@ internal class BinaryPath : Path, IBinaryExpression, IPath
     /// </summary>
     /// <param name="obj">The result-object on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public IBinaryExpression Instantiate_OLD(CompositeObject obj)
+    public IBinaryExpression Instantiate_OLD(Row obj)
     {
         List<IObjectPathItem> instPathList = new List<IObjectPathItem>();
         Int32 i = 0;
@@ -180,7 +180,7 @@ internal class BinaryPath : Path, IBinaryExpression, IPath
         return new BinaryPath(extentNumber, instPathList, instMember);
     }
 
-    public IBinaryExpression Instantiate(CompositeObject obj)
+    public IBinaryExpression Instantiate(Row obj)
     {
         List<IObjectPathItem> instPathList = new List<IObjectPathItem>();
         Int32 i = 0;

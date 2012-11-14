@@ -32,8 +32,8 @@ internal class BooleanMethod : IBooleanPathItem, IMethod
     /// <param name="extNum">The extent number to which this method belongs.
     /// If it does not belong to any extent number, which is the case for path expressions,
     /// then the number should be -1.</param>
-    /// <param name="typeBind">The type resultTypeBind of the object to which this method belongs.</param>
-    /// <param name="argument">The type resultTypeBind of the return object.</param>
+    /// <param name="typeBind">The type rowTypeBind of the object to which this method belongs.</param>
+    /// <param name="argument">The type rowTypeBind of the return object.</param>
     internal BooleanMethod(Int32 extNum, ITypeBinding typeBind, IObjectExpression argument)
     : base()
     {
@@ -148,12 +148,12 @@ internal class BooleanMethod : IBooleanPathItem, IMethod
         {
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect startObj.");
         }
-        if (obj is CompositeObject)
+        if (obj is Row)
         {
             // Type control removed since type hierarchy and interfaces were not handled.
-            // if ((obj.TypeBinding as CompositeTypeBinding).GetTypeBinding(extentNumber) == typeBinding)
+            // if ((obj.TypeBinding as RowTypeBinding).GetTypeBinding(extentNumber) == typeBinding)
             // {
-            IObjectView partObj = (obj as CompositeObject).AccessObject(extentNumber);
+            IObjectView partObj = (obj as Row).AccessObject(extentNumber);
             if (partObj == null)
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "No elementary object at extent number: " + extentNumber);
@@ -195,7 +195,7 @@ internal class BooleanMethod : IBooleanPathItem, IMethod
     /// </summary>
     /// <param name="obj">The result-object on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public IBooleanExpression Instantiate(CompositeObject obj)
+    public IBooleanExpression Instantiate(Row obj)
     {
         IObjectExpression instArgumentExpr = argumentExpr.Instantiate(obj);
         if (obj != null && extentNumber >= 0 && obj.AccessObject(extentNumber) != null)
