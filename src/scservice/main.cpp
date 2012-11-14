@@ -26,14 +26,14 @@ int main (int argc, char *argv[])
 
 	const char *name = "PERSONAL";
 
+	void *handles[4];
+	memset(handles, 0, sizeof(handles));
+
 	// Read server configuration.
 
 	char *server_dir;
 	r = _read_config(name, &server_dir);
 	if (r) goto end;
-
-	void *handles[4];
-	memset(handles, 0, sizeof(handles));
 
 	char *name_upr;
 	const char *str_template;
