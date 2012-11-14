@@ -42,26 +42,33 @@ BOOL WINAPI __console_handler(DWORD console_event)
 }
 
 
+extern DWORD _init_secattr_user(VOID *mem512); // win32_acl.cpp
+
 uint32_t _create_event(const char *name, void **phandle)
 {
+	DWORD dr;
+	uint8_t buf512[512];
 	SECURITY_ATTRIBUTES *psa;
 	HANDLE hevent;
-	DWORD dr;
-	
-	psa = NULL; // TODO:
-	hevent = CreateEventA(psa, TRUE, FALSE, name);
-	if (hevent)
-	{
-		if (GetLastError() != ERROR_ALREADY_EXISTS)
-		{
-			*phandle = (void *)hevent;
-			return 0;
-		}
-		CloseHandle(hevent);
-		return ERROR_ALREADY_EXISTS;
-	}
 
-	dr = GetLastError();
+	dr = _init_secattr_user(buf512);
+	if (dr == 0)
+	{
+		psa = (SECURITY_ATTRIBUTES *)buf512;
+		hevent = CreateEventA(psa, TRUE, FALSE, name);
+		if (hevent)
+		{
+			if (GetLastError() != ERROR_ALREADY_EXISTS)
+			{
+				*phandle = (void *)hevent;
+				return 0;
+			}
+			CloseHandle(hevent);
+			return ERROR_ALREADY_EXISTS;
+		}
+
+		dr = GetLastError();
+	}
 	return (uint32_t)dr;
 }
 
