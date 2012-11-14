@@ -9,16 +9,17 @@
 
 int main (int argc, char *argv[])
 {
+	uint32_t r;
+
 	// Read server name from command-line.
 
-	const char *name = "PERSONAL"; // TODO:
+	const char *name = "PERSONAL";
 
-	// Read server configuration from file in installation directory.
+	// Read server configuration.
 
-	// TODO:
-
-	const char *inout_dir = "C:\\Test";
-	const char *config_path = ".srv\\personal\\personal.server.config";
+	char *server_dir;
+	r = _read_config(name, &server_dir);
+	if (r) goto end;
 
 	void *handles[4];
 	memset(handles, 0, sizeof(handles));
@@ -48,23 +49,22 @@ int main (int argc, char *argv[])
 	
 	ipc_monitor_cmd = (char *)malloc(1024); // TODO:
 #pragma warning (disable: 4996)
-	sprintf(ipc_monitor_cmd, "ScConnMonitor.exe \"%s\" \"%s\"", name_upr, inout_dir);
+	sprintf(ipc_monitor_cmd, "ScConnMonitor.exe \"%s\" \"%s\\%s\"", name_upr, server_dir, name_upr);
 #pragma warning (default: 4996)
 
 	gateway_cmd = (char *)malloc(1024); // TODO:
 #pragma warning (disable: 4996)
-	sprintf(gateway_cmd, "ScGateway.exe \"%s\" \"%s\" \"%s\"", name_upr, "ScGateway.xml", inout_dir);
+	sprintf(gateway_cmd, "ScGateway.exe \"%s\" \"%s\" \"%s\\%s\"", name_upr, "ScGateway.xml", server_dir, name_upr);
 #pragma warning (default: 4996)
 
 	admin_cmd = (char *)malloc(1024); // TODO:
 #pragma warning (disable: 4996)
-	sprintf(admin_cmd, "ReferenceServer.exe \"%s\"", config_path);
+	sprintf(admin_cmd, "ReferenceServer.exe \"%s\\%s\\%s.server.config\"", server_dir, name_upr, name_upr);
 #pragma warning (default: 4996)
 
 	// Create shutdown event. Will fail if event already exists and so also
 	// confirm that no server with the specific name already is running.
 
-	uint32_t r;
 	r = _create_event(event_name,  (handles + 0));
 	if (r) goto end;
 
