@@ -120,10 +120,10 @@ int main (int argc, char *argv[])
 end:
 	// Terminating.
 
-	if (handles[0]) _destroy_event(handles[0]);
-	if (handles[1]) _kill_and_cleanup(handles[1]);
-	if (handles[2]) _kill_and_cleanup(handles[2]);
 	if (handles[3]) _kill_and_cleanup(handles[3]);
+	if (handles[2]) _kill_and_cleanup(handles[2]);
+	if (handles[1]) _kill_and_cleanup(handles[1]);
+	if (handles[0]) _destroy_event(handles[0]);
 
 	return (int32_t)r;
 }
