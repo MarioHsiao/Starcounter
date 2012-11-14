@@ -136,7 +136,7 @@ void _kill_and_cleanup(void *handle)
 
 	hprocess = (HANDLE)handle;
 
-	br = TerminateProcess(hprocess, 1); // TODO: Exit code
+	br = TerminateProcess(hprocess, SCERRKILLEDBYPROCESSMANAGER);
 	if (!br)
 	{
 		dr = GetLastError();

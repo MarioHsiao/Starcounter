@@ -152,7 +152,7 @@ int main (int argc, char *argv[])
 	}
 
 err_nomem:
-	r = 1; // TODO:
+	r = SCERROUTOFMEMORY;
 	goto end;
 
 end:

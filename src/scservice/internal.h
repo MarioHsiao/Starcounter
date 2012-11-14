@@ -2,6 +2,9 @@
 #pragma once
 
 
+#include "../Starcounter.ErrorCodes/scerrres/scerrres.h"
+
+
 #include <stdint.h>
 
 
