@@ -7,6 +7,11 @@
 #include <string.h>
 
 
+#define MONITOR_INHERIT_CONSOLE 0
+#define GATEWAY_INHERIT_CONSOLE 0
+#define ADMIN_INHERIT_CONSOLE 0
+
+
 static void *hcontrol_event;
 
 static void __shutdown_event_handler()
@@ -34,7 +39,7 @@ int main (int argc, char *argv[])
 	const char *str_template;
 	size_t str_size;
 	char *event_name;
-	char *ipc_monitor_cmd;
+	char *monitor_cmd;
 	char *gateway_cmd;
 	char *admin_cmd;
 
@@ -60,9 +65,9 @@ int main (int argc, char *argv[])
 		strlen(server_dir) +
 		strlen(name_upr) +
 		1;
-	ipc_monitor_cmd = (char *)malloc(str_size);
-	if (!ipc_monitor_cmd) goto err_nomem;
-	sprintf_s(ipc_monitor_cmd, str_size, str_template, name_upr, server_dir, name_upr);
+	monitor_cmd = (char *)malloc(str_size);
+	if (!monitor_cmd) goto err_nomem;
+	sprintf_s(monitor_cmd, str_size, str_template, name_upr, server_dir, name_upr);
 
 	// TODO:
 	// Gateway configuration directory where? Currently set to installation
@@ -104,19 +109,19 @@ int main (int argc, char *argv[])
 
 	// Start and register IPC monitor.
 
-	r = _exec(ipc_monitor_cmd, (handles + 1));
+	r = _exec(monitor_cmd, MONITOR_INHERIT_CONSOLE, (handles + 1));
 	if (r) goto end;
 
 	// Start and register network gateway.
 
-	r = _exec(gateway_cmd, (handles + 2));
+	r = _exec(gateway_cmd, GATEWAY_INHERIT_CONSOLE, (handles + 2));
 	if (r) goto end;
 
 	// Start and register admin application.
 	//
 	// NOTE: For now we start the "reference server".
 
-	r = _exec(admin_cmd, (handles + 3));
+	r = _exec(admin_cmd, ADMIN_INHERIT_CONSOLE, (handles + 3));
 	if (r) goto end;
 
 	// Wait for signal.
