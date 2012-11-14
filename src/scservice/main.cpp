@@ -24,12 +24,6 @@ int main (int argc, char *argv[])
 	void *handles[4];
 	memset(handles, 0, sizeof(handles));
 
-	// TODO:
-	//
-	// 1. Is gateway configuration always in installation directory?
-	// 2. Is it ok that the gateway and IPC monitor always has the same output
-	//    directory?
-
 	char *name_upr;
 	char *event_name;
 	char *ipc_monitor_cmd;
@@ -51,6 +45,10 @@ int main (int argc, char *argv[])
 #pragma warning (disable: 4996)
 	sprintf(ipc_monitor_cmd, "ScConnMonitor.exe \"%s\" \"%s\\%s\"", name_upr, server_dir, name_upr);
 #pragma warning (default: 4996)
+
+	// TODO:
+	// Gateway configuration directory where? Currently set to installation
+	// directory.
 
 	gateway_cmd = (char *)malloc(1024); // TODO:
 #pragma warning (disable: 4996)
@@ -102,15 +100,10 @@ int main (int argc, char *argv[])
 			// IPC monitor died. Kill the server.
 			goto end;
 		case 2:
-			// Gateway died. Kill the server. TODO: Restart gateway?
+			// Gateway died. Kill the server. Kill the system.
 			goto end;
 		case 3:
-			// Administrator application died. Kill the process.
-				
-			// TODO:
-			// Should be restarted but we then need to find the running hosts
-			// and reattach them.
-				
+			// Administrator application died. Kill the system.
 			goto end;
 		default:
 			__assume(0);
