@@ -310,28 +310,17 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 " DefaultTemplate = new " +
                 a.NTemplateClass.ClassName +
                 "();");
-/*            var sb = new StringBuilder();
 
+            StringBuilder sb = new StringBuilder();
             sb.Append("    public ");
             sb.Append(a.ClassName);
-            sb.Append("( Entity data ) {");
+            sb.Append("() : base(DefaultTemplate) { }");
+            sb.AppendLine();
+            sb.Append("    public ");
+            sb.Append(a.ClassName);
+            sb.Append("(Func<Entity> initializeTransaction) : base(DefaultTemplate, initializeTransaction) { }");
             a.Prefix.Add(sb.ToString());
-            sb = new StringBuilder();
-            sb.Append("        Data = data;");
-            a.Prefix.Add(sb.ToString());
-            sb = new StringBuilder();
-            sb.Append("    }");
-            a.Prefix.Add(sb.ToString());
-            */
 
-            a.Prefix.Add(
-                "    public " +
-                a.ClassName +
-                "() {");
-            a.Prefix.Add(
-                "        Template = DefaultTemplate;");
-            a.Prefix.Add(
-                "    }");
             a.Prefix.Add(
                 "    public new " +
                 a.NTemplateClass.ClassName +
