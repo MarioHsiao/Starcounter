@@ -4784,16 +4784,17 @@ from_list:
  * and joined_table := '(' joined_table ')'.  So, we must have the
  * redundant-looking productions here instead.
  */
-table_ref:	relation_expr
+table_ref:	member_func_expr
 				{
-					$$ = (Node *) $1;
+					$$ = (Node *) makeRangeVar($1, NULL, @1);
 				}
-			| relation_expr alias_clause
+			| member_func_expr alias_clause
 				{
-					$1->alias = $2;
-					$$ = (Node *) $1;
+					RangeVar *r = makeRangeVar($1, NULL, @1);
+					r->alias = $2;
+					$$ = (Node *) r;
 				}
-			| func_table
+/*			| func_table
 				{
 					RangeFunction *n = makeNode(RangeFunction);
 					n->funccallnode = $1;
@@ -4807,7 +4808,7 @@ table_ref:	relation_expr
 					n->alias = $2;
 					n->coldeflist = NIL;
 					$$ = (Node *) n;
-				}
+				}*/
 			| select_with_parens
 				{
 					/*
@@ -6197,12 +6198,12 @@ c_expr:		member_func_expr						{ $$ = $1; }
  * and possible path expressions.
  */
 member_func_expr:
-			member_access_el						{ $$ = $1; }
+			member_access_el						{ $$ = list_make1($1); }
 			| member_access_el member_access_seq	
 				{
 					$$ = (Node *) lcons($1, $2);
 				}
-			| standard_func_call					{ $$ = $1; }
+			| standard_func_call					{ $$ = list_make1($1); }
 			| standard_func_call member_access_seq	
 				{
 					A_Indirection *n = makeNode(A_Indirection);

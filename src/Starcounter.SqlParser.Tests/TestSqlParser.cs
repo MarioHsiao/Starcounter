@@ -103,6 +103,10 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select nullif(G<A,B>(7))");
             analyzer.ParseQuery("DROP INDEX UserLN ON AccountTest.user", true);
             analyzer.ParseQuery("create index SalaryEmployee_NSalaryInt64 on SqlTest.EmployeeDb.SalaryEmployee (NSalaryInt64)");
+            analyzer.ParseQuery("SELECT prop1, prop2 FROM table1");
+            analyzer.ParseQuery("SELECT ROW(prop1, prop2) FROM table1");
+            analyzer.ParseQuery("SELECT ROW(valueProp) FROM table1");
+            analyzer.ParseQuery("SELECT valueProp FROM table1");
         }
 
         [Test]
