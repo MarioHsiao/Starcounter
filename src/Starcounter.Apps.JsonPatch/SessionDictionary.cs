@@ -149,25 +149,24 @@ namespace Starcounter.Internal.Application {
         /// <param name="request">The request.</param>
         /// <param name="action">The action.</param>
         internal void Execute(HttpRequest request, Action action) {
-            LongRunningTransaction transaction = null;
-
             try {
                 _request = request;
                 _current = this;
                 ChangeLog.BeginRequest(_changeLog);
 
-                transaction = (RootApp != null) ? RootApp.GetAttachedTransaction() : null;
-                if (transaction != null && transaction != LongRunningTransaction.Current)
-                    transaction.SetTransactionAsCurrent();
-
+                // TODO:
+                // Proper implementation of App transactions.
+                if (RootApp != null) {
+                    LongRunningTransaction trans = RootApp.Transaction;
+                    if (trans != null)
+                        trans.Activate();
+                }
                 action();
-
             } finally {
                 ChangeLog.EndRequest();
                 _current = null;
                 _request = null;
-                if (transaction != null)
-                    transaction.ReleaseCurrentTransaction();
+//                LongRunningTransaction.ReleaseCached();
             }
         }
     }

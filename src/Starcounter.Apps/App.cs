@@ -59,7 +59,29 @@ namespace Starcounter {
         /// </summary>
         public App() : base() {
             _cacheIndexInList = -1;
-            _transaction = LongRunningTransaction.Current;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="template"></param>
+        public App(AppTemplate template) : this() {
+            Template = template;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="template"></param>
+        /// <param name="initializeTransaction"></param>
+        public App(AppTemplate template, Func<Entity> initializeTransaction) : this(template) {
+            LongRunningTransaction transaction = Transaction;
+            if (transaction == null) {
+                transaction = new LongRunningTransaction();
+                Transaction = transaction;
+            }
+
+            Data = transaction.Add(initializeTransaction);
         }
 
         /// <summary>
@@ -158,10 +180,38 @@ namespace Starcounter {
 //        }
 
         /// <summary>
-        /// Returns the closest transaction for this app.
+        /// Gets the closest transaction for this app looking up in the tree.
+        /// Sets this transaction.
         /// </summary>
-        internal LongRunningTransaction GetAttachedTransaction() {
-            return _transaction;
+        public LongRunningTransaction Transaction {
+            get {
+                if (_transaction != null)
+                    return _transaction;
+
+                App parent = GetNearestAppParent();
+                if (parent != null)
+                    return parent.Transaction;
+
+                return null;
+            }
+            set {
+                if (_transaction != null) {
+                    throw new Exception("An transaction is already set for this App. Changing transaction is not allowed.");
+                }
+                _transaction = value;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private App GetNearestAppParent() {
+            AppNode parent = Parent;
+            while ((parent != null) && (!(parent is App))) {
+                parent = parent.Parent;
+            }
+            return (App)parent;
         }
 
         /// <summary>
