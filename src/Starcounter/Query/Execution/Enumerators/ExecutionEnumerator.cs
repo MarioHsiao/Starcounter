@@ -22,7 +22,7 @@ internal abstract class ExecutionEnumerator
     protected Int64 counter = 0; // Number of successful hits (retrieved objects).
     protected String query = null; // Original SQL query which this enumerator belongs to.
     protected CompositeTypeBinding compTypeBinding = null; // Type binding for the enumerator.
-    protected Nullable<DbTypeCode> projectionTypeCode = null; // If singleton projection, then the typecode of that singleton, otherwise null.
+    protected Nullable<DbTypeCode> projectionTypeCode = null; // If singleton projection, then the DbTypeCode of that singleton, otherwise null.
     protected UInt64 uniqueQueryID = 0; // Uniquely identifies query it belongs to.
     protected String uniqueGenName = null; // Uniquely identifies the scan during code generation.
     protected Boolean hasCodeGeneration = false; // Indicates if code generation is done for this enumerator.
@@ -147,6 +147,17 @@ internal abstract class ExecutionEnumerator
         get
         {
             return compTypeBinding;
+        }
+    }
+
+    /// <summary>
+    /// If the projection is a singleton, then the DbTypeCode of that singleton, otherwise null.
+    /// </summary>
+    public Nullable<DbTypeCode> ProjectionTypeCode
+    {
+        get
+        {
+            return projectionTypeCode;
         }
     }
 
