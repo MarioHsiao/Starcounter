@@ -55,10 +55,6 @@
 #define DEFAULT_MONITOR_DIR_NAME "ipc_monitor"
 #define W_DEFAULT_MONITOR_DIR_NAME L"ipc_monitor"
 
-// Default monitor log file name
-#define DEFAULT_MONITOR_LOG_FILE_NAME "monitor.log"
-#define W_DEFAULT_MONITOR_LOG_FILE_NAME L"monitor.log"
-
 // Default monitor active databases file name
 #define DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME "active_databases"
 #define W_DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME L"active_databases"

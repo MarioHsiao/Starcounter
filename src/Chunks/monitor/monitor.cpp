@@ -127,15 +127,10 @@
 // Arguments to the monitor (wchar_t):
 // First argument: server_name (L"PERSONAL" or L"SYSTEM", etc.)
 //
-// Second argument: monitor_log_dir_path (path to the dir where the monitor's
-// log file can be stored.)
+// Second argument: Path to the dir where the monitor's
+// "active_databases" file can be stored.
 //
-// Third argument (is optional): The monitor_log_file_name. If not provided,
-// then the default monitor log file name is used: <server_name>_"monitor.log",
-// so the default name will either be L"PERSONAL_monitor.log", or
-// L"SYSTEM_monitor.log"
 
-/// TODO: Use Boost.Program_options.
 int wmain(int argc, wchar_t* argv[], wchar_t* envp[]) try {
 	using namespace starcounter::core;
 	
