@@ -12,9 +12,9 @@ namespace Starcounter.Client.Template {
 #else
 using Starcounter.Templates;
 using System.Collections.Generic;
+using Starcounter.Templates.DataBinding;
 namespace Starcounter {
 #endif
-
     /// <summary>
     /// 
     /// </summary>
@@ -22,9 +22,9 @@ namespace Starcounter {
     public abstract class Property<TValue> : Property {
         internal Func<App, Property<TValue>, TValue, Input<TValue>> CustomInputEventCreator = null;
         internal List<Action<App,Input<TValue>>> CustomInputHandlers = new List<Action<App,Input<TValue>>>();
-        internal Func<App, TValue> GetBoundDataFunc = null;
-        internal Action<App, TValue> SetBoundDataFunc = null;
 
+        private DataBinding<TValue> dataBinding;
+        
         /// <summary>
         /// Adds an inputhandler to this property.
         /// </summary>
@@ -38,26 +38,40 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Returns the value from the underlying Entity in the App
+        /// 
         /// </summary>
-        /// <param name="app"></param>
-        /// <returns></returns>
-        internal TValue GetBoundValue(App app) {
-            if (GetBoundDataFunc != null) {
-                return GetBoundDataFunc(app);
-            }
-            return default(TValue);
+        /// <param name="dataGetter"></param>
+        public void AddDataBinding(Func<App, TValue> dataGetter) {
+            dataBinding = new DataBinding<TValue>(dataGetter);
+            Bound = true;
         }
 
         /// <summary>
-        /// Sets the value on the underlying entity in the App.
+        /// 
+        /// </summary>
+        /// <param name="dataGetter"></param>
+        /// <param name="dataSetter"></param>
+        public void AddDataBinding(Func<App, TValue> dataGetter, Action<App, TValue> dataSetter) {
+            dataBinding = new DataBinding<TValue>(dataGetter, dataSetter);
+            Bound = true;
+        }
+
+        /// <summary>
+        /// 
         /// </summary>
         /// <param name="app"></param>
         /// <param name="value"></param>
-        internal void SetBoundValue(App app, TValue value) {
-            if (SetBoundDataFunc != null) {
-                SetBoundDataFunc(app, value);
-            }
+        public void SetBoundValue(App app, TValue value) {
+            dataBinding.SetValue(app, value);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="app"></param>
+        /// <returns></returns>
+        public TValue GetBoundValue(App app) {
+            return dataBinding.GetValue(app);
         }
 
         /// <summary>
@@ -66,7 +80,7 @@ namespace Starcounter {
         /// <param name="app"></param>
         /// <returns></returns>
         public override object GetBoundValueAsObject(IApp app) {
-            return GetBoundValue((App)app);
+            return dataBinding.GetValue((App)app);
         }
 
         /// <summary>
@@ -75,7 +89,7 @@ namespace Starcounter {
         /// <param name="app"></param>
         /// <param name="value"></param>
         public override void SetBoundValueAsObject(IApp app, object value) {
-            SetBoundValue((App)app, (TValue)value);
+            dataBinding.SetValue((App)app, (TValue)value);
         }
 
         /// <summary>
@@ -123,7 +137,6 @@ namespace Starcounter {
         , IValueTemplate
 #endif
     {
-
         /// <summary>
         /// Gets a value indicating whether this instance has instance value on client.
         /// </summary>

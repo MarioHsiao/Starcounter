@@ -124,8 +124,8 @@ namespace Starcounter {
             }
             set {
                 _Data = value;
-                OnData();
                 RefreshAllBoundValues();
+                OnData();
             }
         }
 
@@ -201,9 +201,21 @@ namespace Starcounter {
         /// </summary>
         /// <param name="model">The model.</param>
         public void Refresh(Template model) {
-            Property p = model as Property;
-            if (p != null)
-                ChangeLog.UpdateValue(this, p);
+            if (model is ListingProperty) {
+                ListingProperty apa = (ListingProperty)model;
+                this.SetValue(apa, apa.GetBoundValue(this));
+            } else if (model is AppTemplate) {
+                AppTemplate at = (AppTemplate)model;
+
+                // TODO:
+                Entity v = at.GetBoundValue(this);
+                if (v != null)
+                    this.SetValue(at, v);
+            } else {
+                Property p = model as Property;
+                if (p != null)
+                    ChangeLog.UpdateValue(this, p);
+            }
         }
 
         /// <summary>
