@@ -4808,33 +4808,6 @@ table_ref:	relation_expr
 					n->coldeflist = NIL;
 					$$ = (Node *) n;
 				}
-			| func_table AS '(' TableFuncElementList ')'
-				{
-					RangeFunction *n = makeNode(RangeFunction);
-					n->funccallnode = $1;
-					n->coldeflist = $4;
-					$$ = (Node *) n;
-				}
-			| func_table AS ColId '(' TableFuncElementList ')'
-				{
-					RangeFunction *n = makeNode(RangeFunction);
-					Alias *a = makeNode(Alias);
-					n->funccallnode = $1;
-					a->aliasname = $3;
-					n->alias = a;
-					n->coldeflist = $5;
-					$$ = (Node *) n;
-				}
-			| func_table ColId '(' TableFuncElementList ')'
-				{
-					RangeFunction *n = makeNode(RangeFunction);
-					Alias *a = makeNode(Alias);
-					n->funccallnode = $1;
-					a->aliasname = $2;
-					n->alias = a;
-					n->coldeflist = $4;
-					$$ = (Node *) n;
-				}
 			| select_with_parens
 				{
 					/*
@@ -4967,22 +4940,10 @@ joined_table:
 		;
 
 alias_clause:
-			AS ColId '(' name_list ')'
+			AS ColId
 				{
 					$$ = makeNode(Alias);
 					$$->aliasname = $2;
-					$$->colnames = $4;
-				}
-			| AS ColId
-				{
-					$$ = makeNode(Alias);
-					$$->aliasname = $2;
-				}
-			| ColId '(' name_list ')'
-				{
-					$$ = makeNode(Alias);
-					$$->aliasname = $1;
-					$$->colnames = $3;
 				}
 			| ColId
 				{
@@ -5111,7 +5072,8 @@ TableFuncElementList:
 				}
 		;
 
-TableFuncElement:	ColId Typename opt_collate_clause
+TableFuncElement:	
+			ColId Typename opt_collate_clause
 				{
 					ColumnDef *n = makeNode(ColumnDef);
 					n->colname = $1;
