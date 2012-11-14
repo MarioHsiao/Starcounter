@@ -23,39 +23,67 @@ int main (int argc, char *argv[])
 	memset(handles, 0, sizeof(handles));
 
 	char *name_upr;
+	const char *str_template;
+	size_t str_size;
 	char *event_name;
 	char *ipc_monitor_cmd;
 	char *gateway_cmd;
 	char *admin_cmd;
 
-	name_upr = (char *)malloc(1024); // TODO:
+	name_upr = (char *)malloc(strlen(name) + 1);
+	if (!name_upr) goto err_nomem;
 #pragma warning (disable: 4996)
 	strcpy(name_upr, name);
 	_strupr(name_upr);
 #pragma warning (default: 4996)
 
-	event_name = (char *)malloc(1024); // TODO:
+	str_template = "SCSERVICE_%s";
+	str_size = strlen(str_template) + strlen(name_upr) + 1;
+	event_name = (char *)malloc(str_size);
+	if (!event_name) goto err_nomem;
 #pragma warning (disable: 4996)
-	sprintf(event_name, "SCSERVICE_%s", name_upr);
+	sprintf(event_name, str_template, name_upr);
 #pragma warning (default: 4996)
 	
-	ipc_monitor_cmd = (char *)malloc(1024); // TODO:
-#pragma warning (disable: 4996)
-	sprintf(ipc_monitor_cmd, "ScConnMonitor.exe \"%s\" \"%s\\%s\"", name_upr, server_dir, name_upr);
-#pragma warning (default: 4996)
+	str_template = "ScConnMonitor.exe \"%s\" \"%s\\%s\"";
+	str_size =
+		strlen(str_template) +
+		strlen(name_upr) +
+		strlen(server_dir) +
+		strlen(name_upr) +
+		1;
+	ipc_monitor_cmd = (char *)malloc(str_size);
+	if (!ipc_monitor_cmd) goto err_nomem;
+	sprintf_s(ipc_monitor_cmd, str_size, str_template, name_upr, server_dir, name_upr);
 
 	// TODO:
 	// Gateway configuration directory where? Currently set to installation
 	// directory.
 
-	gateway_cmd = (char *)malloc(1024); // TODO:
+	str_template = "ScGateway.exe \"%s\" \"ScGateway.xml\" \"%s\\%s\"";
+	str_size =
+		strlen(str_template) +
+		strlen(name_upr) +
+		strlen(server_dir) +
+		strlen(name_upr) +
+		1;
+	gateway_cmd = (char *)malloc(str_size);
+	if (!gateway_cmd) goto err_nomem;
 #pragma warning (disable: 4996)
-	sprintf(gateway_cmd, "ScGateway.exe \"%s\" \"%s\" \"%s\\%s\"", name_upr, "ScGateway.xml", server_dir, name_upr);
+	sprintf(gateway_cmd, str_template, name_upr, server_dir, name_upr);
 #pragma warning (default: 4996)
 
-	admin_cmd = (char *)malloc(1024); // TODO:
+	str_template = "ReferenceServer.exe \"%s\\%s\\%s.server.config\"";
+	str_size =
+		strlen(str_template) +
+		strlen(server_dir) +
+		strlen(name_upr) +
+		strlen(name_upr) +
+		1;
+	admin_cmd = (char *)malloc(str_size);
+	if (!admin_cmd) goto err_nomem;
 #pragma warning (disable: 4996)
-	sprintf(admin_cmd, "ReferenceServer.exe \"%s\\%s\\%s.server.config\"", server_dir, name_upr, name_upr);
+	sprintf(admin_cmd, str_template, server_dir, name_upr, name_upr);
 #pragma warning (default: 4996)
 
 	// Create shutdown event. Will fail if event already exists and so also
@@ -107,6 +135,10 @@ int main (int argc, char *argv[])
 			__assume(0);
 		}
 	}
+
+err_nomem:
+	r = 1; // TODO:
+	goto end;
 
 end:
 	// Terminating.
