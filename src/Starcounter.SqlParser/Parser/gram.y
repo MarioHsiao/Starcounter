@@ -3185,18 +3185,7 @@ index_params:	index_elem							{ $$ = list_make1($1); }	%dprec 10
  * expressions in parens.  For backwards-compatibility reasons, we allow
  * an expression that's just a function call to be written without parens.
  */
-index_elem:	ColId opt_collate opt_class opt_asc_desc opt_nulls_order
-				{
-					$$ = makeNode(IndexElem);
-					$$->name = $1;
-					$$->expr = NULL;
-					$$->indexcolname = NULL;
-					$$->collation = $2;
-					$$->opclass = $3;
-					$$->ordering = $4;
-					$$->nulls_ordering = $5;
-				}
-			| func_expr opt_collate opt_class opt_asc_desc opt_nulls_order
+index_elem:	member_func_expr opt_collate opt_class opt_asc_desc opt_nulls_order
 				{
 					$$ = makeNode(IndexElem);
 					$$->name = NULL;
