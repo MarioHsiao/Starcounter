@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using Starcounter.Templates.DataBinding;
 using Starcounter.Templates.Interfaces;
 
 #if CLIENT
@@ -22,6 +23,8 @@ namespace Starcounter.Templates {
 , IAppTemplate
 #endif
  {
+        private DataBinding<Entity> dataBinding;
+
         /// <summary>
         /// Registers a template with the specified name.
         /// </summary>
@@ -54,55 +57,6 @@ namespace Starcounter.Templates {
                 Parent = this,
                 Name = name,
                 Editable = editable,
-            };
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TTemplate"></typeparam>
-        /// <typeparam name="TValue"></typeparam>
-        /// <param name="name"></param>
-        /// <param name="dataGetter"></param>
-        /// <param name="editable"></param>
-        /// <returns></returns>
-        public TTemplate Register<TTemplate, TValue>(
-            string name,
-            Func<App, TValue> dataGetter,
-            bool editable = false)
-            where TTemplate : Property<TValue>, new() {
-            return new TTemplate() {
-                Parent = this,
-                Name = name,
-                Editable = editable,
-                GetBoundDataFunc = dataGetter,
-                Bound = true
-            };
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TTemplate"></typeparam>
-        /// <typeparam name="TValue"></typeparam>
-        /// <param name="name"></param>
-        /// <param name="dataGetter"></param>
-        /// <param name="dataSetter"></param>
-        /// <param name="editable"></param>
-        /// <returns></returns>
-        public TTemplate Register<TTemplate, TValue>(
-            string name,
-            Func<App, TValue> dataGetter,
-            Action<App, TValue> dataSetter,
-            bool editable = false)
-            where TTemplate : Property<TValue>, new() {
-            return new TTemplate() {
-                Parent = this,
-                Name = name,
-                Editable = editable,
-                GetBoundDataFunc = dataGetter,
-                SetBoundDataFunc = dataSetter,
-                Bound = true
             };
         }
 
@@ -257,6 +211,43 @@ namespace Starcounter.Templates {
         /// <exception cref="System.NotImplementedException"></exception>
         public override void ProcessInput(App app, byte[] value) {
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dataGetter"></param>
+        public void AddDataBinding(Func<App, Entity> dataGetter) {
+            dataBinding = new DataBinding<Entity>(dataGetter);
+            Bound = true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dataGetter"></param>
+        /// <param name="dataSetter"></param>
+        public void AddDataBinding(Func<App, Entity> dataGetter, Action<App, Entity> dataSetter) {
+            dataBinding = new DataBinding<Entity>(dataGetter, dataSetter);
+            Bound = true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="app"></param>
+        /// <returns></returns>
+        public Entity GetBoundValue(App app) {
+            return dataBinding.GetValue(app);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="app"></param>
+        /// <param name="entity"></param>
+        public void SetBoundValue(App app, Entity entity) {
+            dataBinding.SetValue(app, entity);
         }
     }
 

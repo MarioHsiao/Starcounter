@@ -19,8 +19,8 @@ namespace Starcounter {
             get { return (T)_Data; } 
             set { 
                 _Data = value;
-                OnData();
                 RefreshAllBoundValues();
+                OnData();
             }  
         }
     }

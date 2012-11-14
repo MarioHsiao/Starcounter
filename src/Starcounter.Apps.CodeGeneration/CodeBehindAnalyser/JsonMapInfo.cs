@@ -24,6 +24,11 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         public readonly string ClassName;
 
         /// <summary>
+        /// Contains the generic argument (if any) for the class.
+        /// </summary>
+        public readonly string GenericArgument;
+
+        /// <summary>
         /// Boolean telling if this app inherits from a generic App and the properties
         /// in the app should be automatically bound to the Entity.
         /// </summary>
@@ -45,6 +50,9 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// </summary>
         /// <param name="ns">The namespace of the root app.</param>
         /// <param name="className">The name of the class to map</param>
+        /// <param name="genericArgument">
+        /// the generic argument if any of the class
+        /// </param>
         /// <param name="autoBindToEntity">
         /// If true the generated code will create a binding to the property in 
         /// the underlying Entity for the app.
@@ -57,11 +65,13 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// </param>
         internal JsonMapInfo(string ns,
                              string className,
+                             string genericArgument,
                              bool autoBindToEntity,
                              List<string> parentClasses,
                              string jsonMapName) {
             Namespace = ns;
             ClassName = className;
+            GenericArgument = genericArgument;
             AutoBindToEntity = autoBindToEntity;
             ParentClasses = parentClasses;
             JsonMapName = jsonMapName;

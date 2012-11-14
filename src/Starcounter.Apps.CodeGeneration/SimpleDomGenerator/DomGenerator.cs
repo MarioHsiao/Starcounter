@@ -54,7 +54,8 @@ namespace Starcounter.Internal.Application.CodeGeneration
             {
                 Parent = root,
                 IsPartial = true,
-                AutoBindPropertiesToEntity = metadata.AutoBindToEntity
+                AutoBindPropertiesToEntity = metadata.AutoBindToEntity,
+                GenericTypeArgument = metadata.GenericArgument
             };
 
             var tcn = new NAppTemplateClass()
@@ -157,6 +158,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 nAppClass.AutoBindPropertiesToEntity = mapInfo.AutoBindToEntity;
 
                 if (mapInfo.AutoBindToEntity) {
+                    nAppClass.GenericTypeArgument = mapInfo.GenericArgument;
                     BindAutoBoundProperties(nAppClass.Children);
                     nTemplateclass = NAppTemplateClass.Classes[appTemplate];
                     BindAutoBoundProperties(nTemplateclass.Children);
@@ -183,12 +185,9 @@ namespace Starcounter.Internal.Application.CodeGeneration
 
                 property = child as NProperty;
                 if (property != null) {
-                    // TODO:
-                    // AppTemplate should be bindable I guess.
-                    if (property.Template is AppTemplate || property.Template is ActionProperty)
-                        continue;
-
-                    if ((property.MemberName == null) || (property.MemberName[0] == '_')) {
+                    if ((property.MemberName == null) 
+                        || (property.MemberName[0] == '_')
+                        || (property.Template is ActionProperty)) {
                         continue;
                     }
 
@@ -530,25 +529,33 @@ namespace Starcounter.Internal.Application.CodeGeneration
                                         NClass metaParent, 
                                         Template template)
         {
+            // TODO: 
+            // How do we set notbound on an autobound property?
+            bool bound = (alt.Bound || (appClassParent.AutoBindPropertiesToEntity));
+            
             var amn = new NProperty()
             {
                 Parent = appClassParent,
-                Template = alt
+                Template = alt,
+                Bound = bound
             };
             var tmn = new NProperty()
             {
                 Parent = appClassParent.NTemplateClass,
-                Template = alt
+                Template = alt,
+                Bound = bound
             };
             var cstmn = new NProperty()
             {
                 Parent = ((NAppTemplateClass)appClassParent.NTemplateClass).Constructor,
-                Template = alt
+                Template = alt,
+                Bound = bound
             };
             var mmn = new NProperty()
             {
                 Parent = appClassParent.NTemplateClass.NMetadataClass,
-                Template = alt
+                Template = alt,
+                Bound = bound
             };
             GenerateKids(appClassParent, templParent, metaParent, alt);
             amn.Type = new NListingXXXClass("Listing", NValueClass.Classes[alt.App], null);
