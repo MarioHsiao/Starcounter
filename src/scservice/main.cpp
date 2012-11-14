@@ -11,8 +11,6 @@ int main (int argc, char *argv[])
 {
 	uint32_t r;
 
-	// Read server name from command-line.
-
 	const char *name = "PERSONAL";
 
 	// Read server configuration.
