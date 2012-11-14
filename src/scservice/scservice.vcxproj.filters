@@ -3,8 +3,10 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="win32.cpp" />
+    <ClCompile Include="config.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="internal.h" />
+    <ClInclude Include="rapidxml.hpp" />
   </ItemGroup>
 </Project>
