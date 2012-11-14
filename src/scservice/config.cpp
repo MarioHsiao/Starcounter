@@ -16,7 +16,8 @@ uint32_t _read_config(const char *name, char **pserver_dir)
 	FILE *file;
 	char *config_data;
 
-	r = 1; // TODO: Bad config.
+	r = SCERRBADSERVICECONFIG;
+
 	file_name = 0;
 	file = 0;
 	config_data = 0;
