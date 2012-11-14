@@ -17,14 +17,14 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
 {
     IExecutionEnumerator subEnumerator;
     IQueryComparer comparer;
-    IEnumerator<CompositeObject> enumerator;
+    IEnumerator<Row> enumerator;
 
-    internal Sort(CompositeTypeBinding compTypeBind, 
+    internal Sort(RowTypeBinding rowTypeBind, 
         IExecutionEnumerator subEnum,
         IQueryComparer comp,
         VariableArray varArr,
         String query)
-        : base(compTypeBind, varArr)
+        : base(rowTypeBind, varArr)
     {
         if (subEnum == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect subEnum.");
@@ -33,7 +33,7 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
 
         subEnumerator = subEnum;
         comparer = comp;
-        //compTypeBinding = subEnumerator.CompositeTypeBinding;
+        //rowTypeBinding = subEnumerator.RowTypeBinding;
         enumerator = null;
 
         this.query = query;
@@ -47,11 +47,11 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
         get
         {
             if (projectionTypeCode == null)
-                return compTypeBinding;
+                return rowTypeBinding;
 
             // Singleton object.
             if (projectionTypeCode == DbTypeCode.Object)
-                return compTypeBinding.GetPropertyBinding(0).TypeBinding;
+                return rowTypeBinding.GetPropertyBinding(0).TypeBinding;
 
             // Singleton non-object.
             return null;
@@ -134,7 +134,7 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
-    public CompositeObject CurrentCompositeObject
+    public Row CurrentCompositeObject
     {
         get
         {
@@ -158,7 +158,7 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
         if (enumerator != null)
             enumerator.Reset();
 
-        List<CompositeObject> list = new List<CompositeObject>();
+        List<Row> list = new List<Row>();
         while (subEnumerator.MoveNext())
         {
             list.Add(subEnumerator.CurrentCompositeObject);
@@ -171,7 +171,7 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
     /// Resets the enumerator with a context object.
     /// </summary>
     /// <param name="obj">Context object from another enumerator.</param>
-    public override void Reset(CompositeObject obj)
+    public override void Reset(Row obj)
     {
         subEnumerator.Reset(obj);
         counter = 0;
@@ -216,9 +216,9 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
         subEnumerator.PopulateQueryFlags(flags);
     }
 
-    public override IExecutionEnumerator Clone(CompositeTypeBinding resultTypeBindClone, VariableArray varArrClone)
+    public override IExecutionEnumerator Clone(RowTypeBinding rowTypeBindClone, VariableArray varArrClone)
     {
-        return new Sort(resultTypeBindClone, subEnumerator.Clone(resultTypeBindClone, varArrClone), comparer.Clone(varArrClone), varArrClone, query);
+        return new Sort(rowTypeBindClone, subEnumerator.Clone(rowTypeBindClone, varArrClone), comparer.Clone(varArrClone), varArrClone, query);
     }
 
     public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs)

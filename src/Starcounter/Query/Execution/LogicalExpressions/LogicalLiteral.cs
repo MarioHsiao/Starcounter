@@ -56,7 +56,7 @@ namespace Starcounter.Query.Execution
         /// </summary>
         /// <param name="obj">Not used.</param>
         /// <returns>A copy of this literal.</returns>
-        public ILogicalExpression Instantiate(CompositeObject obj)
+        public ILogicalExpression Instantiate(Row obj)
         {
             return new LogicalLiteral(value);
         }

@@ -259,7 +259,7 @@ internal class UIntegerOperation : IUIntegerExpression, INumericalOperation
     /// </summary>
     /// <param name="obj">The result-object on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public INumericalExpression Instantiate(CompositeObject obj)
+    public INumericalExpression Instantiate(Row obj)
     {
         if (expr2 != null)
         {

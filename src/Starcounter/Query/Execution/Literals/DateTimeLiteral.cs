@@ -86,7 +86,7 @@ internal class DateTimeLiteral : Literal, ILiteral, IDateTimePathItem
     /// </summary>
     /// <param name="obj">Not used.</param>
     /// <returns>A copy of this literal.</returns>
-    public IDateTimeExpression Instantiate(CompositeObject obj)
+    public IDateTimeExpression Instantiate(Row obj)
     {
         return new DateTimeLiteral(value);
     }

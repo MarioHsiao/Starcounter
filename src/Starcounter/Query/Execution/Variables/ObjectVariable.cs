@@ -79,7 +79,7 @@ internal class ObjectVariable : Variable, IVariable, IObjectExpression
     }
 
     /// <summary>
-    /// The type resultTypeBind of the object.
+    /// The type binding of the object.
     /// </summary>
     public ITypeBinding TypeBinding
     {
@@ -150,7 +150,7 @@ internal class ObjectVariable : Variable, IVariable, IObjectExpression
     /// </summary>
     /// <param name="obj">Not used.</param>
     /// <returns>A copy of this variable.</returns>
-    public IObjectExpression Instantiate(CompositeObject obj)
+    public IObjectExpression Instantiate(Row obj)
     {
         return this;
     }

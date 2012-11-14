@@ -132,7 +132,7 @@ internal class DateTimeVariable : Variable, IVariable, IDateTimeExpression
     /// </summary>
     /// <param name="obj">Not used.</param>
     /// <returns>A copy of this variable.</returns>
-    public IDateTimeExpression Instantiate(CompositeObject obj)
+    public IDateTimeExpression Instantiate(Row obj)
     {
         return this;
     }

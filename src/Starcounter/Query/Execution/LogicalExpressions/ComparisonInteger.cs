@@ -187,7 +187,7 @@ internal class ComparisonInteger : CodeGenFilterNode, IComparison
     /// </summary>
     /// <param name="obj">The result-object on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public ILogicalExpression Instantiate(CompositeObject obj)
+    public ILogicalExpression Instantiate(Row obj)
     {
         return new ComparisonInteger(compOperator, (IIntegerExpression) expr1.Instantiate(obj), (IIntegerExpression) expr2.Instantiate(obj));
     }

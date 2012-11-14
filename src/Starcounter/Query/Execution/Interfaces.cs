@@ -362,7 +362,7 @@ internal interface INumericalExpression : ITypeExpression
     /// </summary>
     /// <param name="obj">The result-object on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    INumericalExpression Instantiate(CompositeObject obj);
+    INumericalExpression Instantiate(Row obj);
 
     INumericalExpression CloneToNumerical(VariableArray varArray);
 }
@@ -419,7 +419,7 @@ internal interface IBinaryExpression : ITypeExpression
     /// </summary>
     /// <param name="obj">The result-object on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    IBinaryExpression Instantiate(CompositeObject obj);
+    IBinaryExpression Instantiate(Row obj);
 
     IBinaryExpression CloneToBinary(VariableArray varArray);
 }
@@ -444,7 +444,7 @@ internal interface IBooleanExpression : ITypeExpression
     /// </summary>
     /// <param name="obj">The result-object on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    IBooleanExpression Instantiate(CompositeObject obj);
+    IBooleanExpression Instantiate(Row obj);
 
     IBooleanExpression CloneToBoolean(VariableArray varArray);
 }
@@ -469,7 +469,7 @@ internal interface IDateTimeExpression : ITypeExpression
     /// </summary>
     /// <param name="obj">The result-object on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    IDateTimeExpression Instantiate(CompositeObject obj);
+    IDateTimeExpression Instantiate(Row obj);
 
     IDateTimeExpression CloneToDateTime(VariableArray varArray);
 }
@@ -499,7 +499,7 @@ internal interface IObjectExpression : ITypeExpression
     /// </summary>
     /// <param name="obj">The result-object on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    IObjectExpression Instantiate(CompositeObject obj);
+    IObjectExpression Instantiate(Row obj);
 
     IObjectExpression CloneToObject(VariableArray varArray);
 }
@@ -524,7 +524,7 @@ internal interface IStringExpression : ITypeExpression
     /// </summary>
     /// <param name="obj">The result-object on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    IStringExpression Instantiate(CompositeObject obj);
+    IStringExpression Instantiate(Row obj);
 
     IStringExpression CloneToString(VariableArray varArray);
 }
@@ -717,7 +717,7 @@ internal interface ILogicalExpression : IConditionTreeNode
     /// </summary>
     /// <param name="obj">The result-object on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    ILogicalExpression Instantiate(CompositeObject obj);
+    ILogicalExpression Instantiate(Row obj);
 
     /// <summary>
     /// Interface for cloning logical expressions.
@@ -778,7 +778,7 @@ internal interface ISetFunction : IQueryObject
 /// <summary>
 /// Interface for expressions which are comparers of result objects.
 /// </summary>
-internal interface IQueryComparer : IComparer<CompositeObject>, IQueryObject
+internal interface IQueryComparer : IComparer<Row>, IQueryObject
 {
     IQueryComparer Clone(VariableArray varArray);
 }
@@ -821,7 +821,7 @@ internal interface ISingleComparer : IQueryComparer
     /// <param name="obj">The object on which to evaluate the comparison expression.</param>
     /// <returns>The value of the comparison expression when evaluated on the input
     /// object.</returns>
-    ILiteral Evaluate(CompositeObject obj);
+    ILiteral Evaluate(Row obj);
 
     /// <summary>
     /// Compares the value specified by the input literal with the value of the
@@ -835,7 +835,7 @@ internal interface ISingleComparer : IQueryComparer
     /// The value 1 if the input value is greater than the comparison evaluation
     /// of the input object w.r.t. the current sort ordering.
     /// </returns>
-    Int32 Compare(ILiteral value, CompositeObject obj);
+    Int32 Compare(ILiteral value, Row obj);
 
     ISingleComparer CloneToSingleComparer(VariableArray varArray);
 
@@ -941,7 +941,7 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
     String GetUniqueName(UInt64 seqNumber);
 
     // Returns current composite object.
-    CompositeObject CurrentCompositeObject
+    Row CurrentCompositeObject
     {
         get;
     }
@@ -963,9 +963,9 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
     Boolean MoveNextSpecial(Boolean force);
 
     // Used for joins when result object is supplied from the outer scan loop for filtering on inner level.
-    void Reset(CompositeObject contextObj);
+    void Reset(Row contextObj);
 
-    CompositeTypeBinding CompositeTypeBinding
+    RowTypeBinding RowTypeBinding
     {
         get;
     }
@@ -978,10 +978,10 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
     /// <summary>
     /// Creates a clone of the execution enumerator.
     /// </summary>
-    /// <param name="compTypeBindClone">A cloned composite-type-binding as input.</param>
+    /// <param name="rowTypeBindClone">A cloned composite-type-binding as input.</param>
     /// <param name="varArray">An array of variables to be instantiated.</param>
     /// <returns></returns>
-    IExecutionEnumerator Clone(CompositeTypeBinding compTypeBindClone, VariableArray varArray);
+    IExecutionEnumerator Clone(RowTypeBinding rowTypeBindClone, VariableArray varArray);
     IExecutionEnumerator CloneCached();
 
     // For attaching enumerator to cache.
@@ -1032,7 +1032,7 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
 internal interface IDynamicRange : IQueryObject
 {
     // Returns true if the range is an equality range.
-    Boolean Evaluate(CompositeObject contextObj, SortOrder sortOrder, ByteArrayBuilder firstKey, ByteArrayBuilder secondKey,
+    Boolean Evaluate(Row contextObj, SortOrder sortOrder, ByteArrayBuilder firstKey, ByteArrayBuilder secondKey,
                      ref ComparisonOperator firstOp, ref ComparisonOperator secondOp);
 
     // Filling the range with minimum/maximum values according to the last operators.

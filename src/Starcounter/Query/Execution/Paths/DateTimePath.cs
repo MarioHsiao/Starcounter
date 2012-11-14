@@ -163,7 +163,7 @@ internal class DateTimePath : Path, IDateTimeExpression, IPath
     /// </summary>
     /// <param name="obj">The result-object on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public IDateTimeExpression Instantiate_OLD(CompositeObject obj)
+    public IDateTimeExpression Instantiate_OLD(Row obj)
     {
         List<IObjectPathItem> instPathList = new List<IObjectPathItem>();
         Int32 i = 0;
@@ -181,7 +181,7 @@ internal class DateTimePath : Path, IDateTimeExpression, IPath
         return new DateTimePath(extentNumber, instPathList, instMember);
     }
 
-    public IDateTimeExpression Instantiate(CompositeObject obj)
+    public IDateTimeExpression Instantiate(Row obj)
     {
         List<IObjectPathItem> instPathList = new List<IObjectPathItem>();
         Int32 i = 0;

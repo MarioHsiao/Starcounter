@@ -25,7 +25,7 @@ internal class RandomComparer : IQueryComparer
         random = new Random();
     }
 
-    public Int32 Compare(CompositeObject obj1, CompositeObject obj2)
+    public Int32 Compare(Row obj1, Row obj2)
     {
         if (obj1.Random == -1)
         {

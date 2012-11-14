@@ -32,7 +32,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
        dataStreamChanged = false; // True if data stream has changed.
 
     Enumerator<Entity> enumerator = null; // Handle to execution enumerator.
-    CompositeObject contextObject = null; // This object comes from the outer loop in joins.
+    Row contextObject = null; // This object comes from the outer loop in joins.
 
     CodeGenFilterPrivate privateFilter = null; // Filter code generator instance.
     Byte[] filterDataStream = null; // Points to the created data stream.
@@ -51,7 +51,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     Boolean usedNativeFillUp = false; // Indicating that native fill up functionality was used.
 
     internal FullTableScan(
-        CompositeTypeBinding compTypeBind,
+        RowTypeBinding rowTypeBind,
         Int32 extentNum, IndexInfo indexInfo,
         ILogicalExpression queryCond,
         SortOrder sortingType,
@@ -60,7 +60,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         Boolean innermostExtent, 
         CodeGenFilterPrivate privFilter,
         VariableArray varArr, String query)
-        : base(compTypeBind, varArr)
+        : base(rowTypeBind, varArr)
     {
         if (queryCond == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect queryCond.");
@@ -90,7 +90,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             // Query has not been cached before, so we need
             // to create a private filter and shared filter cache.
             privateFilter = new CodeGenFilterPrivate(condition,
-                compTypeBinding,
+                rowTypeBinding,
                 extentNumber,
                 null, // Current numerical variable types should be determined at execution time.
                 new CodeGenFilterCacheShared(4), // Maximum 4 filters can be cached per query.
@@ -262,11 +262,11 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         get
         {
             if (projectionTypeCode == null)
-                return compTypeBinding;
+                return rowTypeBinding;
 
             // Singleton object.
             if (projectionTypeCode == DbTypeCode.Object)
-                return compTypeBinding.GetPropertyBinding(0).TypeBinding;
+                return rowTypeBinding.GetPropertyBinding(0).TypeBinding;
 
             // Singleton non-object.
             return null;
@@ -357,7 +357,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
-    public CompositeObject CurrentCompositeObject
+    public Row CurrentCompositeObject
     {
         get
         {
@@ -520,7 +520,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                 enableRecreateObjectCheck = false;
             }
 
-            currentObject = new CompositeObject(compTypeBinding);
+            currentObject = new Row(rowTypeBinding);
             currentObject.AttachObject(extentNumber, enumerator.Current);
             counter++;
             return true;
@@ -713,8 +713,8 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         if (counter <= 0 || force)
         {
             // Create a "null" object.
-            NullObject nullObj = new NullObject(compTypeBinding.GetTypeBinding(extentNumber));
-            currentObject = new CompositeObject(compTypeBinding);
+            NullObject nullObj = new NullObject(rowTypeBinding.GetTypeBinding(extentNumber));
+            currentObject = new Row(rowTypeBinding);
             currentObject.AttachObject(extentNumber, nullObj);
             counter++;
             return true;
@@ -729,7 +729,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     /// (reset already includes iterator disposal).
     /// </summary>
     /// <param name="obj">Context object from another enumerator.</param>
-    public override void Reset(CompositeObject obj)
+    public override void Reset(Row obj)
     {
         // We are disposing the lowest level internal iterator here.
         enumerator.Dispose();
@@ -747,7 +747,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         privateFilter.ResetCached(); // Reseting private filters.
     }
 
-    public override IExecutionEnumerator Clone(CompositeTypeBinding typeBindingClone, VariableArray varArrClone)
+    public override IExecutionEnumerator Clone(RowTypeBinding typeBindingClone, VariableArray varArrClone)
     {
         ILogicalExpression conditionClone = condition.Clone(varArrClone);
 

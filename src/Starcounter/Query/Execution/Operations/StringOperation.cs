@@ -155,7 +155,7 @@ internal class StringOperation : IStringExpression, IOperation
     /// </summary>
     /// <param name="obj">The result-object on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public IStringExpression Instantiate(CompositeObject obj)
+    public IStringExpression Instantiate(Row obj)
     {
         if (expr2 != null)
         {

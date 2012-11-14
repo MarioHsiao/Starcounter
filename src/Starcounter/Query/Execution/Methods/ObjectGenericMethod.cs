@@ -33,8 +33,8 @@ internal class ObjectGenericMethod : IObjectPathItem, IMethod
     /// <param name="extNum">The extent number to which this method belongs.
     /// If it does not belong to any extent number, which is the case for path expressions,
     /// then the number should be -1.</param>
-    /// <param name="typeBind">The type resultTypeBind of the object to which this method belongs.</param>
-    /// <param name="extBind">The extension resultTypeBind of the requested extension (GetExtension&ltExtension&gt()-method).</param>
+    /// <param name="typeBind">The type rowTypeBind of the object to which this method belongs.</param>
+    /// <param name="extBind">The extension rowTypeBind of the requested extension (GetExtension&ltExtension&gt()-method).</param>
     internal ObjectGenericMethod(Int32 extNum, ITypeBinding typeBind, ExtensionBinding extBind)
     : base()
     {
@@ -109,7 +109,7 @@ internal class ObjectGenericMethod : IObjectPathItem, IMethod
     }
 
 /// <summary>
-    /// The type resultTypeBind of the return value of this method (of type object).
+    /// The type rowTypeBind of the return value of this method (of type object).
     /// </summary>
     public ITypeBinding TypeBinding
     {
@@ -143,7 +143,7 @@ internal class ObjectGenericMethod : IObjectPathItem, IMethod
         if (obj is CompositeObject)
         {
             // Type control removed since type hierarchy and interfaces were not handled.
-            // if ((obj.TypeBinding as CompositeTypeBinding).GetTypeBinding(extentNumber) == typeBinding)
+            // if ((obj.TypeBinding as RowTypeBinding).GetTypeBinding(extentNumber) == typeBinding)
             // {
             IObjectView partObj = (obj as CompositeObject).AccessObject(extentNumber);
             if (partObj == null)

@@ -449,7 +449,7 @@ internal class NumericalVariable : Variable, IVariable, INumericalExpression
     /// </summary>
     /// <param name="obj">Not used.</param>
     /// <returns>A copy of this variable.</returns>
-    public INumericalExpression Instantiate(CompositeObject obj)
+    public INumericalExpression Instantiate(Row obj)
     {
         return this;
     }

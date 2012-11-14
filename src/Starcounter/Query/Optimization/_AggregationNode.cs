@@ -13,7 +13,7 @@ namespace Starcounter.Query.Optimization
 {
 internal class AggregationNode : IOptimizationNode
 {
-    CompositeTypeBinding compTypeBind;
+    RowTypeBinding rowTypeBind;
     Int32 extentNumber;
     IOptimizationNode subNode;
     SortSpecification sortSpec;
@@ -22,11 +22,11 @@ internal class AggregationNode : IOptimizationNode
     VariableArray variableArr;
     String query;
 
-    internal AggregationNode(CompositeTypeBinding compTypeBind, Int32 extentNumber, IOptimizationNode subNode, SortSpecification sortSpec, 
+    internal AggregationNode(RowTypeBinding rowTypeBind, Int32 extentNumber, IOptimizationNode subNode, SortSpecification sortSpec, 
         List<ISetFunction> setFunctionList, ILogicalExpression havingCondition, VariableArray varArr, String query)
     {
-        if (compTypeBind == null)
-            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect resultTypeBind.");
+        if (rowTypeBind == null)
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
         if (subNode == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect subNode.");
         if (sortSpec == null)
@@ -36,7 +36,7 @@ internal class AggregationNode : IOptimizationNode
         if (havingCondition == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect havingCondition.");
 
-        this.compTypeBind = compTypeBind;
+        this.rowTypeBind = rowTypeBind;
         this.extentNumber = extentNumber;
         this.subNode = subNode;
         this.sortSpec = sortSpec;
@@ -61,7 +61,7 @@ internal class AggregationNode : IOptimizationNode
         List<IOptimizationNode> subPermutationList = subNode.CreateAllPermutations();
         List<IOptimizationNode> permutationList = new List<IOptimizationNode>();
         for (Int32 i = 0; i < subPermutationList.Count; i++)
-            permutationList.Add(new AggregationNode(compTypeBind, extentNumber, subPermutationList[i], sortSpec,
+            permutationList.Add(new AggregationNode(rowTypeBind, extentNumber, subPermutationList[i], sortSpec,
                 setFunctionList, havingCondition, variableArr, query));
         return permutationList;
     }
@@ -82,7 +82,7 @@ internal class AggregationNode : IOptimizationNode
         // For aggregations we ignore the fetch specification. Instead we return the complete result set.
         IExecutionEnumerator subEnumerator = subNode.CreateExecutionEnumerator(null, null);
         IQueryComparer comparer = sortSpec.CreateComparer();
-        return new Aggregation(compTypeBind, extentNumber, subEnumerator, comparer, setFunctionList, havingCondition, 
+        return new Aggregation(rowTypeBind, extentNumber, subEnumerator, comparer, setFunctionList, havingCondition, 
             variableArr, query);
     }
 
@@ -121,11 +121,11 @@ internal class AggregationNode : IOptimizationNode
         // Check references. This should be checked if there is cyclic reference.
         AssertEqualsVisited = true;
         bool areEquals = true;
-        if (this.compTypeBind == null) {
-            Debug.Assert(other.compTypeBind == null);
-            areEquals = other.compTypeBind == null;
+        if (this.rowTypeBind == null) {
+            Debug.Assert(other.rowTypeBind == null);
+            areEquals = other.rowTypeBind == null;
         } else
-            areEquals = this.compTypeBind.AssertEquals(other.compTypeBind);
+            areEquals = this.rowTypeBind.AssertEquals(other.rowTypeBind);
         if (areEquals)
             if (this.subNode == null) {
                 Debug.Assert(other.subNode == null);

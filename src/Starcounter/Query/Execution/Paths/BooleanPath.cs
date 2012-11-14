@@ -163,7 +163,7 @@ internal class BooleanPath : Path, IBooleanExpression, IPath
     /// </summary>
     /// <param name="obj">The result-object on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public IBooleanExpression Instantiate_OLD(CompositeObject obj)
+    public IBooleanExpression Instantiate_OLD(Row obj)
     {
         List<IObjectPathItem> instPathList = new List<IObjectPathItem>();
         Int32 i = 0;
@@ -181,7 +181,7 @@ internal class BooleanPath : Path, IBooleanExpression, IPath
         return new BooleanPath(extentNumber, instPathList, instMember);
     }
 
-    public IBooleanExpression Instantiate(CompositeObject obj)
+    public IBooleanExpression Instantiate(Row obj)
     {
         List<IObjectPathItem> instPathList = new List<IObjectPathItem>();
         Int32 i = 0;

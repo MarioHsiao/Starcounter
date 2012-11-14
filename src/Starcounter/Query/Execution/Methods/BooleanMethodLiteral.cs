@@ -49,7 +49,7 @@ internal class BooleanMethodLiteral : Literal, ILiteral, IBooleanPathItem, IMeth
     /// <summary>
     /// Constructor.
     /// </summary>
-    /// <param name="typeBind">The type resultTypeBind of this null-method-literal.</param>
+    /// <param name="typeBind">The type binding of this null-method-literal.</param>
     /// <param name="argument">The argument to this method.</param>
     internal BooleanMethodLiteral(ITypeBinding typeBind, IObjectExpression argument)
     : base()
@@ -184,7 +184,7 @@ internal class BooleanMethodLiteral : Literal, ILiteral, IBooleanPathItem, IMeth
     /// </summary>
     /// <param name="obj">The result-object on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public IBooleanExpression Instantiate(CompositeObject obj)
+    public IBooleanExpression Instantiate(Row obj)
     {
         IObjectExpression instArgumentExpr = argumentExpr.Instantiate(obj);
         if (value != null)

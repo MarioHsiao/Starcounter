@@ -260,7 +260,7 @@ internal class IntegerPath : Path, IIntegerExpression, IPath
     /// </summary>
     /// <param name="obj">The result-object on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public INumericalExpression Instantiate_OLD(CompositeObject obj)
+    public INumericalExpression Instantiate_OLD(Row obj)
     {
         List<IObjectPathItem> instPathList = new List<IObjectPathItem>();
         Int32 i = 0;
@@ -278,7 +278,7 @@ internal class IntegerPath : Path, IIntegerExpression, IPath
         return new IntegerPath(extentNumber, instPathList, instMember);
     }
 
-    public INumericalExpression Instantiate(CompositeObject obj)
+    public INumericalExpression Instantiate(Row obj)
     {
         List<IObjectPathItem> instPathList = new List<IObjectPathItem>();
         Int32 i = 0;
