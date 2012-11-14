@@ -13,6 +13,35 @@
 _STATIC_ASSERT(sizeof(HANDLE) == sizeof(void *));
 
 
+static void (*__shutdown_event_handler)();
+
+static BOOL WINAPI __console_handler(DWORD console_event);
+
+
+void _set_shutdown_event_handler(void (*shutdown_event_handler)())
+{
+	__shutdown_event_handler = shutdown_event_handler;
+	SetConsoleCtrlHandler(__console_handler, TRUE);
+}
+
+
+BOOL WINAPI __console_handler(DWORD console_event)
+{
+    switch(console_event)
+    {
+    case CTRL_C_EVENT:
+    case CTRL_BREAK_EVENT:
+    case CTRL_CLOSE_EVENT:
+    case CTRL_LOGOFF_EVENT:
+    case CTRL_SHUTDOWN_EVENT:
+		__shutdown_event_handler();
+		return TRUE;
+	default:
+		return FALSE;
+    }
+}
+
+
 uint32_t _create_event(const char *name, void **phandle)
 {
 	SECURITY_ATTRIBUTES *psa;
@@ -40,6 +69,12 @@ void _destroy_event(void *handle)
 {
 	CloseHandle((HANDLE)handle);
 }
+
+void _set_event(void *handle)
+{
+	SetEvent((HANDLE)handle);
+}
+
 
 uint32_t _exec(char *command_line, void **phandle)
 {

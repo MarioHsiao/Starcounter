@@ -7,6 +7,14 @@
 #include <string.h>
 
 
+static void *hcontrol_event;
+
+static void __shutdown_event_handler()
+{
+	_set_event(hcontrol_event);
+}
+
+
 int main (int argc, char *argv[])
 {
 	uint32_t r;
@@ -44,7 +52,7 @@ int main (int argc, char *argv[])
 #pragma warning (disable: 4996)
 	sprintf(event_name, str_template, name_upr);
 #pragma warning (default: 4996)
-	
+
 	str_template = "ScConnMonitor.exe \"%s\" \"%s\\%s\"";
 	str_size =
 		strlen(str_template) +
@@ -89,8 +97,10 @@ int main (int argc, char *argv[])
 	// Create shutdown event. Will fail if event already exists and so also
 	// confirm that no server with the specific name already is running.
 
-	r = _create_event(event_name,  (handles + 0));
+	r = _create_event(event_name, &hcontrol_event);
 	if (r) goto end;
+	_set_shutdown_event_handler(__shutdown_event_handler);
+	handles[0] = hcontrol_event;
 
 	// Start and register IPC monitor.
 
