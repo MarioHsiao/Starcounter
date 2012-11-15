@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using Starcounter.Templates.DataBinding;
 using Starcounter.Templates.Interfaces;
 
 #if CLIENT
@@ -22,13 +23,15 @@ namespace Starcounter.Templates {
 , IAppTemplate
 #endif
  {
+        private DataBinding<Entity> dataBinding;
+
         /// <summary>
-        /// Registers the specified name.
+        /// Registers a template with the specified name.
         /// </summary>
-        /// <typeparam name="TTemplate">The type of the T template.</typeparam>
-        /// <param name="name">The name.</param>
-        /// <param name="editable">if set to <c>true</c> [editable].</param>
-        /// <returns>``0.</returns>
+        /// <typeparam name="TTemplate">The type of the template to register</typeparam>
+        /// <param name="name">Name of the template</param>
+        /// <param name="editable">if set to <c>true</c> the value should be editable</param>
+        /// <returns>A new instance of the specified template</returns>
         public TTemplate Register<TTemplate>(string name, bool editable = false)
             where TTemplate : Template, new() {
             return new TTemplate() {
@@ -58,55 +61,6 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TTemplate"></typeparam>
-        /// <typeparam name="TValue"></typeparam>
-        /// <param name="name"></param>
-        /// <param name="dataGetter"></param>
-        /// <param name="editable"></param>
-        /// <returns></returns>
-        public TTemplate Register<TTemplate, TValue>(
-            string name,
-            Func<App, TValue> dataGetter,
-            bool editable = false)
-            where TTemplate : Property<TValue>, new() {
-            return new TTemplate() {
-                Parent = this,
-                Name = name,
-                Editable = editable,
-                GetBoundDataFunc = dataGetter,
-                Bound = true
-            };
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TTemplate"></typeparam>
-        /// <typeparam name="TValue"></typeparam>
-        /// <param name="name"></param>
-        /// <param name="dataGetter"></param>
-        /// <param name="dataSetter"></param>
-        /// <param name="editable"></param>
-        /// <returns></returns>
-        public TTemplate Register<TTemplate, TValue>(
-            string name,
-            Func<App, TValue> dataGetter,
-            Action<App, TValue> dataSetter,
-            bool editable = false)
-            where TTemplate : Property<TValue>, new() {
-            return new TTemplate() {
-                Parent = this,
-                Name = name,
-                Editable = editable,
-                GetBoundDataFunc = dataGetter,
-                SetBoundDataFunc = dataSetter,
-                Bound = true
-            };
-        }
-
-        /// <summary>
         /// The _ class name
         /// </summary>
         internal string _ClassName;
@@ -127,17 +81,17 @@ namespace Starcounter.Templates {
         /// <summary>
         /// Gets or sets the namespace.
         /// </summary>
-        /// <value>The namespace.</value>
+        /// <value></value>
         public string Namespace { get; set; }
+
         /// <summary>
-        /// Gets or sets the include.
+        /// 
         /// </summary>
-        /// <value>The include.</value>
+        /// <value></value>
         public string Include { get; set; }
 
-
         /// <summary>
-        /// The _ property templates
+        /// 
         /// </summary>
         private PropertyList _PropertyTemplates;
 
@@ -149,7 +103,7 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// The _ app type
+        /// 
         /// </summary>
         private Type _AppType;
 
@@ -169,11 +123,12 @@ namespace Starcounter.Templates {
 
 
         /// <summary>
-        /// Adds the specified name.
+        /// Creates a new template with the specified name and type and
+        /// adds it to this apps propertylist.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="name">The name.</param>
-        /// <returns>``0.</returns>
+        /// <param name="name">The name of the new template</param>
+        /// <returns>A new instance of the specified template</returns>
         public T Add<T>(string name) where T : ITemplate, new() {
             T t = new T() { Name = name };
             Properties.Add(t);
@@ -181,12 +136,13 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// Adds the specified name.
+        /// Creates a new template with the specified name and type and
+        /// adds it to this apps propertylist.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="name">The name.</param>
-        /// <param name="type">The type.</param>
-        /// <returns>``0.</returns>
+        /// <param name="name">The name of the new template</param>
+        /// <param name="type"></param>
+        /// <returns>A new instance of the specified template</returns>
         public T Add<T>(string name, IAppTemplate type) where T : IAppListTemplate, new() {
             T t = new T() { Name = name, Type = type };
             Properties.Add(t);
@@ -194,53 +150,53 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// Gets the properties.
+        /// Gets a list of all properties for this app.
         /// </summary>
-        /// <value>The properties.</value>
+        /// <value></value>
         public PropertyList Properties { get { return _PropertyTemplates; } }
 
         /// <summary>
-        /// Gets the children.
+        /// Gets an enumeration of all templates for this app.
         /// </summary>
-        /// <value>The children.</value>
+        /// <value></value>
         public override IEnumerable<Template> Children {
             get { return (IEnumerable<Template>)Properties; }
         }
 
         /// <summary>
-        /// Creates the instance.
+        /// Creates a new App-instance based on this template.
         /// </summary>
-        /// <param name="parent">The parent.</param>
-        /// <returns>System.Object.</returns>
+        /// <param name="parent">The parent for the new app</param>
+        /// <returns></returns>
         public override object CreateInstance(AppNode parent) {
             return new App() { Template = this, Parent = parent };
         }
 
         /// <summary>
-        /// Adds the specified name.
+        /// Creates a new Template with the specified name.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="name">The name.</param>
-        /// <returns>``0.</returns>
+        /// <typeparam name="T">The type of template to create</typeparam>
+        /// <param name="name">The name of the template.</param>
+        /// <returns></returns>
         /// <exception cref="System.NotImplementedException"></exception>
         T IAppTemplate.Add<T>(string name) {
             throw new NotImplementedException();
         }
 
         /// <summary>
-        /// Adds the specified name.
+        /// Creates a new Template with the specified name.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="name">The name.</param>
-        /// <param name="type">The type.</param>
-        /// <returns>``0.</returns>
+        /// <typeparam name="T">The type of template to create.</typeparam>
+        /// <param name="name">The name of the template.</param>
+        /// <param name="type"></param>
+        /// <returns></returns>
         /// <exception cref="System.NotImplementedException"></exception>
         T IAppTemplate.Add<T>(string name, IAppTemplate type) {
             throw new NotImplementedException();
         }
 
         /// <summary>
-        /// Gets the properties.
+        /// Gets all templates for this app.
         /// </summary>
         /// <value>The properties.</value>
         IPropertyTemplates IAppTemplate.Properties {
@@ -248,13 +204,50 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// Processes the input.
+        /// Callback from internal functions responsible for handle external inputs.
         /// </summary>
-        /// <param name="app">The app.</param>
-        /// <param name="value">The value.</param>
+        /// <param name="app">The parent app.</param>
+        /// <param name="value">The input value.</param>
         /// <exception cref="System.NotImplementedException"></exception>
         public override void ProcessInput(App app, byte[] value) {
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dataGetter"></param>
+        public void AddDataBinding(Func<App, Entity> dataGetter) {
+            dataBinding = new DataBinding<Entity>(dataGetter);
+            Bound = true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dataGetter"></param>
+        /// <param name="dataSetter"></param>
+        public void AddDataBinding(Func<App, Entity> dataGetter, Action<App, Entity> dataSetter) {
+            dataBinding = new DataBinding<Entity>(dataGetter, dataSetter);
+            Bound = true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="app"></param>
+        /// <returns></returns>
+        public Entity GetBoundValue(App app) {
+            return dataBinding.GetValue(app);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="app"></param>
+        /// <param name="entity"></param>
+        public void SetBoundValue(App app, Entity entity) {
+            dataBinding.SetValue(app, entity);
         }
     }
 

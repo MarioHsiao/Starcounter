@@ -54,7 +54,8 @@ namespace Starcounter.Internal.Application.CodeGeneration
             {
                 Parent = root,
                 IsPartial = true,
-                AutoBindPropertiesToEntity = metadata.AutoBindToEntity
+                AutoBindPropertiesToEntity = metadata.AutoBindToEntity,
+                GenericTypeArgument = metadata.GenericArgument
             };
 
             var tcn = new NAppTemplateClass()
@@ -128,6 +129,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             AppTemplate[] classesInOrder;
             JsonMapInfo mapInfo;
             NAppClass nAppClass;
+            NTemplateClass nTemplateclass;
 
             classesInOrder = new AppTemplate[metadata.JsonPropertyMapList.Count];
             rootTemplate = root.AppClassClassNode.Template;
@@ -151,18 +153,47 @@ namespace Starcounter.Internal.Application.CodeGeneration
                     appTemplate.Namespace = mapInfo.Namespace;
 
                 nAppClass = NValueClass.Classes[appTemplate] as NAppClass;
-
-                //if (nAppClass != ac)
-                //    throw new Exception("Uh Ooops!");
-
                 nAppClass.IsPartial = true;
                 nAppClass._Inherits = null;
                 nAppClass.AutoBindPropertiesToEntity = mapInfo.AutoBindToEntity;
+
+                if (mapInfo.AutoBindToEntity) {
+                    nAppClass.GenericTypeArgument = mapInfo.GenericArgument;
+                    BindAutoBoundProperties(nAppClass.Children);
+                    nTemplateclass = NAppTemplateClass.Classes[appTemplate];
+                    BindAutoBoundProperties(nTemplateclass.Children);
+                }
 
                 classesInOrder[i] = appTemplate;
             }
 
             ReorderCodebehindClasses(classesInOrder, metadata.JsonPropertyMapList, root);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="children"></param>
+        private void BindAutoBoundProperties(List<NBase> children) {
+            NProperty property;
+
+            foreach (NBase child in children) {
+                if (child is NConstructor) {
+                    BindAutoBoundProperties(child.Children);
+                    continue;
+                }
+
+                property = child as NProperty;
+                if (property != null) {
+                    if ((property.MemberName == null) 
+                        || (property.MemberName[0] == '_')
+                        || (property.Template is ActionProperty)) {
+                        continue;
+                    }
+
+                    property.Bound = true;
+                }
+            }
         }
 
         /// <summary>
@@ -498,25 +529,33 @@ namespace Starcounter.Internal.Application.CodeGeneration
                                         NClass metaParent, 
                                         Template template)
         {
+            // TODO: 
+            // How do we set notbound on an autobound property?
+            bool bound = (alt.Bound || (appClassParent.AutoBindPropertiesToEntity));
+            
             var amn = new NProperty()
             {
                 Parent = appClassParent,
-                Template = alt
+                Template = alt,
+                Bound = bound
             };
             var tmn = new NProperty()
             {
                 Parent = appClassParent.NTemplateClass,
-                Template = alt
+                Template = alt,
+                Bound = bound
             };
             var cstmn = new NProperty()
             {
                 Parent = ((NAppTemplateClass)appClassParent.NTemplateClass).Constructor,
-                Template = alt
+                Template = alt,
+                Bound = bound
             };
             var mmn = new NProperty()
             {
                 Parent = appClassParent.NTemplateClass.NMetadataClass,
-                Template = alt
+                Template = alt,
+                Bound = bound
             };
             GenerateKids(appClassParent, templParent, metaParent, alt);
             amn.Type = new NListingXXXClass("Listing", NValueClass.Classes[alt.App], null);

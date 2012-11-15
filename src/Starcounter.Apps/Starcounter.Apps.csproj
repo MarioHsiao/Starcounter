@@ -84,6 +84,7 @@
     <Compile Include="App.QuickTuple.cs" />
     <Compile Include="App.GetSetValue.cs" />
     <Compile Include="ChangeLog.cs" />
+    <Compile Include="DataBinding.cs" />
     <Compile Include="Input\Input.cs" />
     <Compile Include="ManagedTupleWriter.cs" />
     <Compile Include="Temp.cs" />

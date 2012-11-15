@@ -52,7 +52,6 @@
 #include "../common/owner_id.hpp"
 #include "../common/macro_definitions.hpp"
 #include "../common/interprocess.hpp"
-#include "../common/log_message.hpp"
 #include "../common/config_param.hpp"
 #include "../common/monitor_interface.hpp"
 #include "../common/shared_interface.hpp"
@@ -62,26 +61,6 @@
 #include "process_info.hpp"
 #include "../common/macro_definitions.hpp"
 
-/// TODO Figure which of these to include. Maybe required if monitor opens a
-/// database process managed shared memory.
-//#include "../common/circular_buffer.hpp"
-//#include "../common/bounded_buffer.hpp"
-//#include "../common/chunk.hpp"
-//#include "../common/shared_chunk_pool.hpp"
-//#include "../common/channel.hpp"
-//#include "../common/scheduler_channel.hpp"
-//#include "../common/common_scheduler_interface.hpp"
-//#include "../common/scheduler_interface.hpp"
-//#include "../common/common_client_interface.hpp"
-//#include "../common/client_interface.hpp"
-//#include "../common/client_number.hpp"
-//#include "../common/config_param.hpp"
-//#include "../common/interprocess.hpp"
-//#include "../common/name_definitions.hpp"
-//#include "../common/monitor_interface.hpp"
-
-
-//#define _E_UNSPECIFIED 999L
 namespace {
 
 enum {
@@ -141,7 +120,6 @@ public:
 	};
 	
 	/// Construction of the monitor application.
-	// Log messages are appended to the log file, it is never deleted.
 	/**
 	 * @param argc Argument count.
 	 * @param argv Argument vector.
@@ -150,7 +128,7 @@ public:
 	explicit monitor(int argc, wchar_t* argv[]);
 	
 	/// Destruction of the monitor.
-	// It waits for all threads to finnish and closes the monitor log file.
+	// It waits for all threads to finnish.
 	~monitor();
 	
 	//--------------------------------------------------------------------------
@@ -313,24 +291,6 @@ private:
 	 */
 	std::size_t find_chunks_and_mark_them_for_cleanup(owner_id oid);
 	
-	/// Write log message.
-	/**
-	 * @param message The message to be written.
-	 *		NOTE: The string that is passed must either be private to the thread
-	 *		that writes the message or be synchronized if shared between threads
-	 *		which is not recommended. Best is to reserve capacity for a private
-	 *		message string for each thread that writes to the log, and reuse it.
-	 */
-	void write_log_message(std::string message);
-	
-	/// Read log message.
-	// The monitor log thread writes messages to the monitor log file.
-	void read_log_message();
-	
-	bool monitor_log_file_is_open() const {
-		return monitor_log_file_.is_open();
-	}
-	
 	/// Write active databases.
 	void update_active_databases_file();
 	
@@ -362,12 +322,6 @@ private:
 	//exited_processes_list_type exited_processes_list_;
 	//boost::mutex exited_processes_list_mutex_;
 	
-	// The monitors log mechanism.
-	bounded_message_buffer<log_message> bounded_message_buffer_;
-	std::ofstream monitor_log_file_;
-	boost::mutex log_file_mutex_;
-	boost::condition log_file_is_open_;
-	
 	// The list of registered databases is updated when databases register and
 	// unregister, or terminates.
 	std::ofstream monitor_active_databases_file_;
@@ -387,25 +341,17 @@ private:
 		std::vector<boost::detail::win32::handle> event_;
 	} client_process_group_[client_process_event_groups];
 	
-	// The internal_chron_ is used to timestamp log messages. The constructor
-	// starts the timer at 0 and then it is running all the time during program
-	// execution.
-	boost::timer internal_chron_;
-	
 	// The name of the server that started this monitor.
 	std::string server_name_;
 	
-	// Path to the dir where the monitor's log file can be stored.
-	std::string monitor_log_dir_path_;
-	
-	// The monitor's log file name.
-	std::string log_file_name_;
+	// Path to the dir where the files related to the IPC monitor can be stored.
+	std::wstring monitor_dir_path_;
 	
 	// Set with names of active databases.
 	std::set<std::string> active_databases_;
 	
 	// The monitor's active databases file path.
-    std::string active_databases_file_path_;
+	std::wstring active_databases_file_path_;
 	
 	bounded_buffer<std::string> active_segments_update_;
 	
@@ -420,10 +366,6 @@ private:
 	// client_process_event_thread_group_. Then it waits for that thread to
 	// complete the wait_for_registration
 	boost::thread registrar_;
-	
-	// The log thread waits for log_messages to arrive in the
-	// bounded_message_buffer_, and will write the messages to the log file.
-	boost::thread log_thread_;
 	
 	// The active databases file updater thread waits for a notification from
 	// any thread that updates the register, and will write a list of active
