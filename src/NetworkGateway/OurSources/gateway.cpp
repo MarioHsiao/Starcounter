@@ -108,7 +108,7 @@ uint32_t Gateway::ReadArguments(int argc, wchar_t* argv[])
         std::cout << "ScGateway.exe [ServerTypeName] [PathToGatewayXmlConfig] [PathToMonitorOutputDirectory]" << std::endl;
         std::cout << "Example: ScGateway.exe personal \"c:\\github\\NetworkGateway\\src\\scripts\\server.xml\" \"c:\\github\\Orange\\bin\\Debug\\.db.output\"" << std::endl;
 
-        return 1;
+        return SCERRGWWRONGARGS;
     }
 
     // Converting Starcounter server type to narrow char.
@@ -127,7 +127,7 @@ uint32_t Gateway::ReadArguments(int argc, wchar_t* argv[])
     {
         std::wcout << L"Can't create network gateway log directory: " << setting_log_file_dir_ << std::endl;
 
-        return 1;
+        return SCERRGWCANTCREATELOGDIR;
     }
 
     setting_log_file_path_ = setting_log_file_dir_ + L"\\network_gateway.log";
@@ -254,7 +254,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     // Opening file stream.
     std::ifstream config_file_stream(configFilePath);
     if (!config_file_stream.is_open())
-        return 1;
+        return SCERRGWCANTLOADXMLSETTINGS;
 
     // Copying config contents into a string.
     std::stringstream str_stream;
@@ -346,7 +346,11 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
 
     // Cleaning all sockets data.
     for (int32_t i = 0; i < MAX_SOCKET_HANDLE; i++)
+    {
         sockets_data_unsafe_[i].Reset();
+        sockets_port_indexes_unsafe_[i] = 255;
+        deleted_sockets_unsafe_[i] = false;
+    }
 
     delete [] config_contents;
 
@@ -369,7 +373,7 @@ uint32_t Gateway::AssertCorrectState()
 FAILED:
     delete test_sdc;
 
-    return SCERRUNSPECIFIED;
+    return SCERRGWFAILEDASSERTCORRECTSTATE;
 }
 
 // Creates socket and binds it to server port.
@@ -628,7 +632,7 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
 // Active database constructor.
 ActiveDatabase::ActiveDatabase()
 {
-    apps_sessions_ = NULL;
+    apps_sessions_unsafe_ = NULL;
     user_handlers_ = NULL;
 
     StartDeletion();
@@ -638,12 +642,12 @@ ActiveDatabase::ActiveDatabase()
 void ActiveDatabase::Init(std::string db_name, uint64_t unique_num, int32_t db_index)
 {
     // Creating new Apps sessions up to maximum number of connections.
-    if (!apps_sessions_)
-        apps_sessions_ = new apps_unique_session_num_type[g_gateway.setting_max_connections()];
+    if (!apps_sessions_unsafe_)
+        apps_sessions_unsafe_ = new apps_unique_session_num_type[g_gateway.setting_max_connections()];
 
     // Cleaning all Apps session numbers.
     for (int32_t i = 0; i < g_gateway.setting_max_connections(); i++)
-        apps_sessions_[i] = INVALID_APPS_UNIQUE_SESSION_NUMBER;
+        apps_sessions_unsafe_[i] = INVALID_APPS_UNIQUE_SESSION_NUMBER;
 
     // Creating fresh handlers table.
     user_handlers_ = new HandlersTable();
@@ -676,6 +680,9 @@ ActiveDatabase::~ActiveDatabase()
 // Makes this database slot empty.
 void ActiveDatabase::StartDeletion()
 {
+    // Closing all database sockets/sessions data.
+    CloseSocketData();
+
     // Removing handlers table.
     if (user_handlers_)
     {
@@ -688,9 +695,6 @@ void ActiveDatabase::StartDeletion()
 
     unique_num_ = 0;
     db_name_ = "";
-
-    // Closing all database sockets/sessions data.
-    CloseSocketData();
 }
 
 // Closes all tracked sockets.
@@ -710,12 +714,10 @@ void ActiveDatabase::CloseSocketData()
         if (active_sockets_[s])
         {
             // Marking deleted socket.
-            g_gateway.MarkDeleteSocket(s);
+            g_gateway.MarkSocketDelete(s);
 
             // Resetting socket data.
-            SocketData* socket_data = g_gateway.GetSocketData(s);
-            session_index_type session_index = socket_data->get_session_index();
-            socket_data->Reset();
+            g_gateway.GetSocketData(s)->Reset();
 
             // NOTE: Can't kill the session here, because it can be used by other databases.
 
@@ -727,6 +729,20 @@ void ActiveDatabase::CloseSocketData()
 #endif
                 PrintLastError();
             }
+
+            // Stop tracking this socket.
+            UntrackSocket(s);
+
+            // Decreasing number of connections.
+            uint8_t port_index = g_gateway.GetSocketPortIndex(s);
+            assert(port_index < MAX_PORTS_NUM);
+
+            // Getting server port corresponding to this socket.
+            ServerPort* server_port = g_gateway.get_server_port(port_index);
+            g_gateway.UntrackSocket(s);
+
+            // Changing number of allocated sockets.
+            server_port->ChangeNumAllocatedSockets(db_index_, -1);
         }
     }
 }
@@ -738,11 +754,7 @@ uint32_t Gateway::Init()
     unique_socket_stamp_ = 0;
 
     // Checking if already initialized.
-    if ((gw_workers_ != NULL) || (worker_thread_handles_ != NULL))
-    {
-        GW_COUT << "Workers data was already initialized." << std::endl;
-        return 1;
-    }
+    assert ((gw_workers_ == NULL) && (worker_thread_handles_ == NULL));
 
     // Initialize WinSock.
     WSADATA wsaData = {0};
@@ -827,10 +839,6 @@ uint32_t Gateway::Init()
         server_addr_->sin_addr.s_addr = inet_addr(g_gateway.setting_master_ip().c_str());
         server_addr_->sin_port = htons(80); // TODO
     }
-
-    // Cleaning sockets deletion flag.
-    for (int32_t i = 0; i < MAX_SOCKET_HANDLE; i++)
-        deleted_sockets_[i] = false;
 
     // Indicating that network gateway is ready
     // (should be first line of the output).
@@ -1011,7 +1019,7 @@ uint32_t __stdcall MonitorDatabasesRoutine(LPVOID params)
     if (!GetFullPathName(active_databases_dir.c_str(), 1024, active_databases_dir_full, NULL))
     {
         GW_PRINT_GLOBAL << "Can't obtain full path for IPC monitor output directory: " << PrintLastError() << std::endl;
-        return SCERRUNSPECIFIED;
+        return SCERRGWPATHTOIPCMONITORDIR;
     }
 
     // Waiting until active databases directory is up.
@@ -1032,7 +1040,7 @@ uint32_t __stdcall MonitorDatabasesRoutine(LPVOID params)
         GW_PRINT_GLOBAL << "Can't listen for active databases directory changes: " << PrintLastError() << std::endl;
         FindCloseChangeNotification(dir_changes_hook_handle);
 
-        return SCERRUNSPECIFIED;
+        return SCERRGWACTIVEDBLISTENPROBLEM;
     }
 
     while (1)
@@ -1061,7 +1069,7 @@ uint32_t __stdcall MonitorDatabasesRoutine(LPVOID params)
                     GW_PRINT_GLOBAL << "Failed to find next change notification on monitor active databases directory: " << PrintLastError() << std::endl;
                     FindCloseChangeNotification(dir_changes_hook_handle);
 
-                    return SCERRUNSPECIFIED;
+                    return SCERRGWFAILEDFINDNEXTCHANGENOTIFICATION;
                 }
 
                 break;
@@ -1072,7 +1080,7 @@ uint32_t __stdcall MonitorDatabasesRoutine(LPVOID params)
                 GW_PRINT_GLOBAL << "Error listening for active databases directory changes: " << PrintLastError() << std::endl;
                 FindCloseChangeNotification(dir_changes_hook_handle);
 
-                return SCERRUNSPECIFIED;
+                return SCERRGWACTIVEDBLISTENPROBLEM;
             }
         }
     }
@@ -1169,7 +1177,7 @@ uint32_t Gateway::GatewayStatisticsAndMonitoringRoutine()
             {
                 GW_COUT << "Worker " << i << " is dead. Quiting..." << std::endl;
                 //getch();
-                return 1;
+                return SCERRGWWORKERISDEAD;
             }
         }
 
@@ -1177,7 +1185,7 @@ uint32_t Gateway::GatewayStatisticsAndMonitoringRoutine()
         if (!WaitForSingleObject(db_monitor_thread_handle_, 0))
         {
             GW_COUT << "Active databases monitor thread is dead. Quiting..." << std::endl;
-            return 1;
+            return SCERRGWDATABASEMONITORISDEAD;
         }
 
         // Resetting new values.
@@ -1214,13 +1222,13 @@ uint32_t Gateway::GatewayStatisticsAndMonitoringRoutine()
 #ifdef GW_GLOBAL_STATISTICS
 
         // Global statistics.
-        GW_PRINT_GLOBAL << "Active chunks " << g_gateway.GetTotalNumUsedChunks() <<
+        std::cout << "Global: " << "Active chunks " << g_gateway.GetTotalNumUsedChunks() <<
             ", allocated sockets " << g_gateway.GetTotalNumUsedSockets() << std::endl;
 
         // Individual workers statistics.
         for (int32_t worker_id_ = 0; worker_id_ < setting_num_workers_; worker_id_++)
         {
-            GW_PRINT_WORKER <<
+            std::cout << "[" << worker_id_ << "]: " <<
                 "recv_bytes " << gw_workers_[worker_id_].get_worker_stats_bytes_received() <<
                 ", recv_times " << gw_workers_[worker_id_].get_worker_stats_recv_num() <<
                 ", sent_bytes " << gw_workers_[worker_id_].get_worker_stats_bytes_sent() <<
@@ -1234,16 +1242,19 @@ uint32_t Gateway::GatewayStatisticsAndMonitoringRoutine()
             {
                 if (!server_ports_->EmptyForDb(d))
                 {
-                    GW_COUT << "Port " << server_ports_[p].get_port_number() <<
+                    std::cout << "Port " << server_ports_[p].get_port_number() <<
                         ", db \"" << active_databases_[d].db_name() << "\"" <<
                         ": active conns " << server_ports_[p].get_num_active_conns(d) <<
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+                        ": pending sockets " << server_ports_[p].get_num_pending_network_operations(d) <<
+#endif
                         ", allocated sockets " << server_ports_[p].get_num_allocated_sockets(d) << std::endl;
                 }
             }
         }
 
         // Printing all workers stats.
-        GW_COUT << "All workers last sec" <<
+        std::cout << "All workers last sec " <<
             "recv_times " << diffRecvNumAllWorkers <<            
             ", recv_bandwidth " << recv_bandwidth_mbit_total << " mbit/sec " <<
             ", sent_times " << diffSentNumAllWorkers <<
@@ -1277,11 +1288,7 @@ uint32_t Gateway::StartWorkerAndManagementThreads(
             (LPDWORD)&workerThreadIds[i]); // Returns the thread identifier.
 
         // Checking if threads are created.
-        if (worker_thread_handles_[i] == NULL)
-        {
-            GW_COUT << "CreateThread() failed." << std::endl;
-            return 1;
-        }
+        assert(worker_thread_handles_[i] != NULL);
     }
 
     uint32_t dbScanThreadId;

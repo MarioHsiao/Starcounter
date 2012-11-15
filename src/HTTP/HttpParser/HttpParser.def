@@ -3,4 +3,5 @@ LIBRARY	"HttpParser"
 
 EXPORTS
 	sc_parse_http_request
+    sc_init_http_parser
 

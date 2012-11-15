@@ -73,13 +73,8 @@ uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunk *sd, BMX_
     {
         case WS_OPCODE_TEXT:
         {
-            // Data is complete, posting parallel receive.
-            SocketDataChunk* sd_clone;
-            err_code = sd->CloneToReceive(gw, &sd_clone);
-            GW_ERR_CHECK(err_code);
-
-            // Start receiving on clone.
-            err_code = gw->Receive(sd_clone);
+            // Data is complete, creating parallel receive clone.
+            err_code = sd->CloneToReceive(gw);
             GW_ERR_CHECK(err_code);
 
             // Unmasking data.
@@ -97,13 +92,8 @@ uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunk *sd, BMX_
 
         case WS_OPCODE_BINARY:
         {
-            // Data is complete, posting parallel receive.
-            SocketDataChunk* sd_clone;
-            err_code = sd->CloneToReceive(gw, &sd_clone);
-            GW_ERR_CHECK(err_code);
-
-            // Start receiving on clone.
-            err_code = gw->Receive(sd_clone);
+            // Data is complete, creating parallel receive clone.
+            err_code = sd->CloneToReceive(gw);
             GW_ERR_CHECK(err_code);
 
             // Unmasking data.
@@ -122,8 +112,7 @@ uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunk *sd, BMX_
         case WS_OPCODE_CLOSE:
         {
             // Peer wants to close the WebSocket.
-            gw->Disconnect(sd);
-            return 0;
+            return SCERRGWWEBSOCKETOPCODECLOSE;
         }
 
         case WS_OPCODE_PING:
@@ -153,8 +142,7 @@ uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunk *sd, BMX_
         default:
         {
             // Peer wants to close the WebSocket.
-            gw->Disconnect(sd);
-            return 0;
+            return SCERRGWWEBSOCKETUNKNOWNOPCODE;
         }
     }
 

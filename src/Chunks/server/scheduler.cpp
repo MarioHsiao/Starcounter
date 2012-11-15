@@ -274,6 +274,7 @@ public:
 	//--------------------------------------------------------------------------
 	unsigned long acquire_linked_chunk_indexes(unsigned long channel_number, unsigned long start_chunk, unsigned long needed_size);
     unsigned long acquire_linked_chunk_indexes_counted(unsigned long channel_number, unsigned long start_chunk, unsigned long num_chunks);
+    unsigned long acquire_one_chunk(unsigned long channel_number, chunk_index* out_chunk_index);
 
     /// Releases linked chunks to a private chunk_pool and if there is a bunch there
     /// then to the shared_chunk_pool.
@@ -1319,12 +1320,36 @@ try_to_acquire_from_private_chunk_pool:
 	}
 }
 
+unsigned long server_port::acquire_one_chunk(unsigned long channel_number, chunk_index* out_chunk_index)
+{
+    channel_type& the_channel = channel_[channel_number];
+
+try_to_acquire_from_private_chunk_pool:
+    // Try to acquire the linked chunks from the private chunk_pool.
+
+    if (this_scheduler_interface_->chunk_pool().acquire_linked_chunks_counted
+        (&chunk(0), *out_chunk_index, 1, the_channel.client()) == true)
+    {
+        // Successfully acquired the linked chunks from the private chunk_pool.
+        return 0;
+    }
+    else
+    {
+        // Failed to acquire the linked chunks from the private chunk_pool.
+        // Try to move some chunks from the shared_chunk_pool to the private
+        // chunk_pool.
+        shared_chunk_pool_->acquire_to_chunk_pool(
+            this_scheduler_interface_->chunk_pool(), a_bunch_of_chunks);
+
+        // Successfully moved enough chunks to the private chunk_pool.
+        // Retry acquire the linked chunks from there.
+        goto try_to_acquire_from_private_chunk_pool;
+    }
+}
+
 unsigned long server_port::acquire_linked_chunk_indexes_counted(unsigned long channel_number, unsigned long start_chunk_index, unsigned long num_chunks)
 {
 	channel_type& the_channel = channel_[channel_number];
-	//uint64_t the_owner_id = the_channel.get_owner_id().get_owner_id();
-
-	uint8_t* current_chunk = (uint8_t*)&chunk_[start_chunk_index];
 	chunk_index head;
 	
 	if (num_chunks < a_bunch_of_chunks) {
@@ -1539,6 +1564,7 @@ void sc_release_channel(void *port, unsigned long the_channel_index)
 	the_port->release_channel(the_channel_index);
 }
 
+#if 0
 unsigned long sc_acquire_shared_memory_chunk(void *port, unsigned long channel_id, unsigned long *pchunk_index)
 {
 	using namespace starcounter::core;
@@ -1592,6 +1618,16 @@ unsigned long sc_acquire_shared_memory_chunk(void *port, unsigned long channel_i
 	
 	*pchunk_index = head;
 	return 0;
+}
+#endif
+
+unsigned long sc_acquire_shared_memory_chunk(void *port, unsigned long channel_index, unsigned long *pchunk_index)
+{
+    using namespace starcounter::core;
+
+    server_port* the_port = (server_port*)port;
+
+    return the_port->acquire_one_chunk(channel_index, (chunk_index*)pchunk_index);
 }
 
 unsigned long sc_acquire_linked_shared_memory_chunks(void *port, unsigned long channel_index, unsigned long start_chunk_index, unsigned long needed_size)

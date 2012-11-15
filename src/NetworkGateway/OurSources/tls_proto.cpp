@@ -30,7 +30,7 @@ uint32_t HttpsProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TY
     if (sd->get_to_database_direction_flag())
         return 0;
 
-    return 1;
+    return SCERRGWHTTPSPROCESSFAILED;
 }
 
 } // namespace network

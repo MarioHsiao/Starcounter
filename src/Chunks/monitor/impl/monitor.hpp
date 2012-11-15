@@ -1921,6 +1921,9 @@ void monitor::watch_resources() {
 
 			std::cout << "\n";
 		}
+
+        Sleep(10);
+
 	} while (true);
 }
 
