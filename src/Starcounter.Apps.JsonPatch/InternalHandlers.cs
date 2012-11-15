@@ -9,6 +9,7 @@ using System.Text;
 using HttpStructs;
 using Starcounter.Internal.Application;
 using Starcounter.Internal.Web;
+using Starcounter.Templates;
 
 namespace Starcounter.Internal.JsonPatch
 {
@@ -50,6 +51,12 @@ namespace Starcounter.Internal.JsonPatch
                         HttpRequest request = Session.Current.HttpRequest;
 
                         JsonPatch.EvaluatePatches(request.GetBodyByteArray_Slow());
+
+                        // TODO:
+                        // Quick and dirty hack to autorefresh dependent properties that might have been 
+                        // updated. This implementation should be removed after the demo.
+                        RefreshAllPrimitiveValues(rootApp);
+
                         response.Uncompressed = HttpPatchBuilder.CreateHttpPatchResponse(Session.Current._changeLog);
                     } catch (NotSupportedException nex) {
                         response.Uncompressed = HttpPatchBuilder.Create415Response(nex.Message);
@@ -59,6 +66,17 @@ namespace Starcounter.Internal.JsonPatch
                 });
                 return response;
             });
+        }
+
+        private static void RefreshAllPrimitiveValues(App app) {
+            foreach (Template template in app.Template.Children) {
+                if (template is ListingProperty 
+                    || template is AppTemplate
+                    || template is ActionProperty)
+                    continue;
+
+                ChangeLog.UpdateValue(app, (Property)template);
+            }
         }
     }
 }
