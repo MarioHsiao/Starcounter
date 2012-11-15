@@ -134,7 +134,7 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
-    public Row CurrentCompositeObject
+    public Row CurrentRow
     {
         get
         {
@@ -161,7 +161,7 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
         List<Row> list = new List<Row>();
         while (subEnumerator.MoveNext())
         {
-            list.Add(subEnumerator.CurrentCompositeObject);
+            list.Add(subEnumerator.CurrentRow);
         }
         list.Sort(comparer);
         enumerator = list.GetEnumerator();

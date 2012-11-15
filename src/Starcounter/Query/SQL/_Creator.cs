@@ -338,7 +338,7 @@ namespace Starcounter.Query.Sql
             return pathList;
         }
 
-        internal static RowTypeBinding CreateResultTypeBinding(Term typeDefTerm, VariableArray varArray)
+        internal static RowTypeBinding CreateRowTypeBinding(Term typeDefTerm, VariableArray varArray)
         {
             if (typeDefTerm.Name != "typeDef" || typeDefTerm.Arity != 2)
             {
@@ -346,7 +346,7 @@ namespace Starcounter.Query.Sql
             }
             Term typeListTerm = typeDefTerm.getArgument(1);
             Term mapListTerm = typeDefTerm.getArgument(2);
-            RowTypeBinding rowTypeBind = CreateInitialResultTypeBinding(typeListTerm);
+            RowTypeBinding rowTypeBind = CreateInitialRowTypeBinding(typeListTerm);
             AddPropertyMappings(rowTypeBind, mapListTerm, varArray);
 
             //if ((rowTypeBind.PropertyCount == 1) && (rowTypeBind.GetPropertyBinding(0).TypeCode == DbTypeCode.Object))
@@ -357,7 +357,7 @@ namespace Starcounter.Query.Sql
             return rowTypeBind;
         }
 
-        private static RowTypeBinding CreateInitialResultTypeBinding(Term typeListTerm)
+        private static RowTypeBinding CreateInitialRowTypeBinding(Term typeListTerm)
         {
             RowTypeBinding rowTypeBind = new RowTypeBinding();
             Term cursorTerm = typeListTerm;
@@ -497,7 +497,7 @@ namespace Starcounter.Query.Sql
 
 # if false // Creation of different index scan.
 
-    private static IExecutionEnumerator CreateIndexScan(ResultTypeBinding rowTypeBind, Term typeTerm, Term extNumTerm, Term pathTerm,
+    private static IExecutionEnumerator CreateIndexScan(RowTypeBinding rowTypeBind, Term typeTerm, Term extNumTerm, Term pathTerm,
                                                         Term sortOrderTerm, Term handleTerm, Term pointListTerm, Term condTerm, VariableArray varArray)
     {
         if (typeTerm.Name == "string")
@@ -531,7 +531,7 @@ namespace Starcounter.Query.Sql
         throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect typeTerm: " + typeTerm);
     }
 
-    private static StringIndexScan CreateStringIndexScan(ResultTypeBinding rowTypeBind, Term extNumTerm, Term pathTerm,
+    private static StringIndexScan CreateStringIndexScan(RowTypeBinding rowTypeBind, Term extNumTerm, Term pathTerm,
                                                          Term sortOrderTerm, Term handleTerm, Term pointListTerm, Term condTerm, VariableArray varArray)
     {
         // Extent number
@@ -557,7 +557,7 @@ namespace Starcounter.Query.Sql
         return new StringIndexScan(rowTypeBind, extNum, handle, path, dynamicRange, cond, sortOrder);
     }
 
-    private static ObjectIndexScan CreateObjectIndexScan(ResultTypeBinding rowTypeBind, Term extNumTerm, Term pathTerm,
+    private static ObjectIndexScan CreateObjectIndexScan(RowTypeBinding rowTypeBind, Term extNumTerm, Term pathTerm,
                                                          Term sortOrderTerm, Term handleTerm, Term pointListTerm, Term condTerm, VariableArray varArray)
     {
         // Extent number
@@ -583,7 +583,7 @@ namespace Starcounter.Query.Sql
         return new ObjectIndexScan(rowTypeBind, extNum, handle, path, dynamicRange, cond, sortOrder);
     }
 
-    private static IntegerIndexScan CreateIntegerIndexScan(ResultTypeBinding rowTypeBind, Term extNumTerm, Term pathTerm,
+    private static IntegerIndexScan CreateIntegerIndexScan(RowTypeBinding rowTypeBind, Term extNumTerm, Term pathTerm,
                                                            Term sortOrderTerm, Term handleTerm, Term pointListTerm, Term condTerm, VariableArray varArray)
     {
         // Extent number
@@ -609,7 +609,7 @@ namespace Starcounter.Query.Sql
         return new IntegerIndexScan(rowTypeBind, extNum, handle, path, dynamicRange, cond, sortOrder);
     }
 
-    private static UIntegerIndexScan CreateUIntegerIndexScan(ResultTypeBinding rowTypeBind, Term extNumTerm, Term pathTerm,
+    private static UIntegerIndexScan CreateUIntegerIndexScan(RowTypeBinding rowTypeBind, Term extNumTerm, Term pathTerm,
                                                              Term sortOrderTerm, Term handleTerm, Term pointListTerm, Term condTerm, VariableArray varArray)
     {
         // Extent number
@@ -635,7 +635,7 @@ namespace Starcounter.Query.Sql
         return new UIntegerIndexScan(rowTypeBind, extNum, handle, path, dynamicRange, cond, sortOrder);
     }
 
-    private static DateTimeIndexScan CreateDateTimeIndexScan(ResultTypeBinding rowTypeBind, Term extNumTerm, Term pathTerm,
+    private static DateTimeIndexScan CreateDateTimeIndexScan(RowTypeBinding rowTypeBind, Term extNumTerm, Term pathTerm,
                                                              Term sortOrderTerm, Term handleTerm, Term pointListTerm, Term condTerm, VariableArray varArray)
     {
         // Extent number
@@ -661,7 +661,7 @@ namespace Starcounter.Query.Sql
         return new DateTimeIndexScan(rowTypeBind, extNum, handle, path, dynamicRange, cond, sortOrder);
     }
 
-    private static BinaryIndexScan CreateBinaryIndexScan(ResultTypeBinding rowTypeBind, Term extNumTerm, Term pathTerm,
+    private static BinaryIndexScan CreateBinaryIndexScan(RowTypeBinding rowTypeBind, Term extNumTerm, Term pathTerm,
                                                          Term sortOrderTerm, Term handleTerm, Term pointListTerm, Term condTerm, VariableArray varArray)
     {
         // Extent number
@@ -687,7 +687,7 @@ namespace Starcounter.Query.Sql
         return new BinaryIndexScan(rowTypeBind, extNum, handle, path, dynamicRange, cond, sortOrder);
     }
 
-    private static BooleanIndexScan CreateBooleanIndexScan(ResultTypeBinding rowTypeBind, Term extNumTerm, Term pathTerm,
+    private static BooleanIndexScan CreateBooleanIndexScan(RowTypeBinding rowTypeBind, Term extNumTerm, Term pathTerm,
                                                            Term sortOrderTerm, Term handleTerm, Term pointListTerm, Term condTerm, VariableArray varArray)
     {
         // Extent number

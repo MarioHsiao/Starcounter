@@ -134,7 +134,7 @@ namespace Starcounter.Query.Execution
         }
 
         /// <summary>
-        /// Gets the type binding of the composite object.
+        /// Gets the type binding of the Row.
         /// </summary>
         override public RowTypeBinding RowTypeBinding
         {
@@ -180,11 +180,11 @@ namespace Starcounter.Query.Execution
             }
         }
 
-        public Row CurrentCompositeObject
+        public Row CurrentRow
         {
             get
             {
-                return currentExecEnum.CurrentCompositeObject;
+                return currentExecEnum.CurrentRow;
             }
         }
 
