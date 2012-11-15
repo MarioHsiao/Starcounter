@@ -95,7 +95,13 @@
       <Project>{5a65d606-6613-4139-8853-b5f26313e4df}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Xml Include="config\personal.xml" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <Target Name="AfterBuild">
+    <Copy DestinationFolder="$(OutputPath)" SourceFiles="@(Xml)" SkipUnchangedFiles="true" />
+  </Target>
 </Project>

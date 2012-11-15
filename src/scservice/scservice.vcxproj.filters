@@ -10,4 +10,14 @@
     <ClInclude Include="internal.h" />
     <ClInclude Include="rapidxml.hpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Filter Include="config">
+      <UniqueIdentifier>{91c8e221-48cb-4e57-9cae-68d86256284f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="config\personal.xml">
+      <Filter>config</Filter>
+    </Xml>
+  </ItemGroup>
 </Project>
