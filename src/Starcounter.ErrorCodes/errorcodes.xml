@@ -1112,6 +1112,18 @@
         configured for a different sector size than the transaction log is built for?).
       </message>
     </code>
+    <code hex="0071" severity="Error" name="ScErrBadServiceConfig">
+      <message>Service configuration is invalid.</message>
+      <remarks>
+        <para>
+          The service configuration file doesn't exist, isn't accessible or
+          isn't formatted correctly.
+        </para>
+      </remarks>
+    </code>
+    <code hex="0072" severity="Error" name="ScErrKilledByProcessManager">
+      <message>Process was killed by process manager.</message>
+    </code>
   </facility>
 
   <!-- I/O error codes. -->
