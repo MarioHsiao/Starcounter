@@ -357,7 +357,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
-    public Row CurrentCompositeObject
+    public Row CurrentRow
     {
         get
         {

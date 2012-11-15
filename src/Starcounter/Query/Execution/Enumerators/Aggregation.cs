@@ -190,7 +190,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
-    public Row CurrentCompositeObject
+    public Row CurrentRow
     {
         get
         {
@@ -253,7 +253,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         {
             if (enumerator.MoveNext())
             {
-                cursorObject = enumerator.CurrentCompositeObject;
+                cursorObject = enumerator.CurrentRow;
             }
             else
             {
@@ -295,7 +295,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
                 }
                 if (enumerator.MoveNext())
                 {
-                    cursorObject = enumerator.CurrentCompositeObject;
+                    cursorObject = enumerator.CurrentRow;
                 }
                 else
                 {

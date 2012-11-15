@@ -158,7 +158,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
-    public Row CurrentCompositeObject
+    public Row CurrentRow
     {
         get
         {
@@ -183,7 +183,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         rightEnumerator.Reset();
     }
 
-    // TODO: Not create a new result object when not necessary.
+    // TODO: Not create a new Row when not necessary.
     private Row MergeObjects(Row obj1, Row obj2)
     {
         Row obj = new Row(rowTypeBinding);
@@ -239,7 +239,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
 
             if (leftEnumerator.MoveNext())
             {
-                Row rightContext = MergeObjects(contextObject, leftEnumerator.CurrentCompositeObject);
+                Row rightContext = MergeObjects(contextObject, leftEnumerator.CurrentRow);
                 rightEnumerator.Reset(rightContext);
             }
             else
@@ -261,7 +261,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
             {
                 if (leftEnumerator.MoveNext())
                 {
-                    Row rightContext = MergeObjects(contextObject, leftEnumerator.CurrentCompositeObject);
+                    Row rightContext = MergeObjects(contextObject, leftEnumerator.CurrentRow);
                     rightEnumerator.Reset(rightContext);
                 }
                 else
@@ -277,7 +277,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
             {
                 if (leftEnumerator.MoveNext())
                 {
-                    Row rightContext = MergeObjects(contextObject, leftEnumerator.CurrentCompositeObject);
+                    Row rightContext = MergeObjects(contextObject, leftEnumerator.CurrentRow);
                     rightEnumerator.Reset(rightContext);
                 }
                 else
@@ -287,7 +287,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
                 }
             }
         }
-        currentObject = MergeObjects(leftEnumerator.CurrentCompositeObject, rightEnumerator.CurrentCompositeObject);
+        currentObject = MergeObjects(leftEnumerator.CurrentRow, rightEnumerator.CurrentRow);
         counter++;
         return true;
     }
@@ -302,12 +302,12 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         {
             // Force the creation of NullObjects on the input enumerators.
             leftEnumerator.MoveNextSpecial(true);
-            Row rightContext = MergeObjects(contextObject, leftEnumerator.CurrentCompositeObject);
+            Row rightContext = MergeObjects(contextObject, leftEnumerator.CurrentRow);
             rightEnumerator.Reset(rightContext);
             rightEnumerator.MoveNextSpecial(true);
 
             // Create new currentObject.
-            currentObject = MergeObjects(leftEnumerator.CurrentCompositeObject, rightEnumerator.CurrentCompositeObject);
+            currentObject = MergeObjects(leftEnumerator.CurrentRow, rightEnumerator.CurrentRow);
             counter++;
             return true;
         }

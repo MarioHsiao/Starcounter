@@ -14,7 +14,7 @@ namespace Starcounter.Query.Execution
 {
 /// <summary>
 /// Class that holds information about a Boolean comparer which is a comparer that
-/// uses a Boolean expression and a sort ordering to compare composite objects.
+/// uses a Boolean expression and a sort ordering to compare Rows.
 /// </summary>
 internal class BooleanComparer : ISingleComparer
 {

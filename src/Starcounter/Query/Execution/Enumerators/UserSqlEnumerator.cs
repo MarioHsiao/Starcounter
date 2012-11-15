@@ -254,7 +254,7 @@ namespace Starcounter.Query.Execution
             }
         }
 
-        public Row CurrentCompositeObject
+        public Row CurrentRow
         {
             get
             {

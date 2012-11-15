@@ -283,7 +283,7 @@ public sealed class Row : IObjectView, IDynamicMetaObjectProvider
 
     /// <summary>
     /// Attach an instance of an IObjectView at the specified index.
-    /// The type of the instance must be the same as the specified type used when creating the CompositeObject.
+    /// The type of the instance must be the same as the specified type used when creating the Row.
     /// </summary>
     internal void AttachObject(Int32 index, IObjectView value)
     {

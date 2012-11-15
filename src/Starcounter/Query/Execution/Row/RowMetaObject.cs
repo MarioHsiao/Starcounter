@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="CompositeMetaObject.cs" company="Starcounter AB">
+// <copyright file="RowMetaObject.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************

@@ -140,7 +140,7 @@ internal abstract class ExecutionEnumerator
     }
 
     /// <summary>
-    /// Gets the type binding of the composite object.
+    /// Gets the type binding of the Row.
     /// </summary>
     public virtual RowTypeBinding RowTypeBinding
     {

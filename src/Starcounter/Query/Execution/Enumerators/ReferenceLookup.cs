@@ -141,7 +141,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
-    public Row CurrentCompositeObject
+    public Row CurrentRow
     {
         get
         {

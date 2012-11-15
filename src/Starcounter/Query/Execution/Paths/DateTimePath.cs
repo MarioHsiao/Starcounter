@@ -110,7 +110,7 @@ internal class DateTimePath : Path, IDateTimeExpression, IPath
     /// Appends data of this leaf to the provided filter key.
     /// </summary>
     /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    /// <param name="obj">Results object for which evaluation should be performed.</param>
+    /// <param name="obj">Row for which evaluation should be performed.</param>
     public override void AppendToByteArray(ByteArrayBuilder key, IObjectView obj)
     {
         key.Append(EvaluateToDateTime(obj));
@@ -157,11 +157,11 @@ internal class DateTimePath : Path, IDateTimeExpression, IPath
     }
 
     /// <summary>
-    /// Creates an more instantiated copy of this expression by evaluating it on a result-object.
-    /// Members, with extent numbers for which there exist objects attached to the result-object,
+    /// Creates an more instantiated copy of this expression by evaluating it on a Row.
+    /// Members, with extent numbers for which there exist objects attached to the Row,
     /// are evaluated and instantiated to literals, other members are not changed.
     /// </summary>
-    /// <param name="obj">The result-object on which to evaluate the expression.</param>
+    /// <param name="obj">The Row on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
     public IDateTimeExpression Instantiate_OLD(Row obj)
     {
