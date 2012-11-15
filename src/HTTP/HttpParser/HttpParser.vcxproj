@@ -86,7 +86,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ThirdPartySources\http_parser.c" />
-    <ClCompile Include="OurSources\parser.cpp" />
+    <ClCompile Include="OurSources\apps_http_parser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ThirdPartyHeaders\http_parser.h" />

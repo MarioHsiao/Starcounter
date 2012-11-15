@@ -501,8 +501,7 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
 
     // Retrieve the chunk.
     err_code = cm_get_shared_memory_chunk(task_info.chunk_index, &raw_chunk);
-    if (err_code != 0)
-        goto finish;
+    assert(err_code == 0);
 
     // Read the metadata in the chunk (session id and handler id).
     smc = (shared_memory_chunk*)raw_chunk;

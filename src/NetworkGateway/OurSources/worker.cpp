@@ -17,15 +17,15 @@ int32_t GatewayWorker::Init(int32_t newWorkerId)
     worker_id_ = newWorkerId;
 
     // Creating IO completion port.
-    /*worker_iocp_ = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 1);
+    worker_iocp_ = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 1);
     if (worker_iocp_ == NULL)
     {
         GW_PRINT_WORKER << "Failed to create worker IOCP." << std::endl;
         return PrintLastError();
-    }*/
+    }
 
-    // Getting global iocp.
-    worker_iocp_ = g_gateway.get_iocp();
+    // Getting global IOCP.
+    //worker_iocp_ = g_gateway.get_iocp();
 
     worker_stats_bytes_received_ = 0;
     worker_stats_bytes_sent_ = 0;
@@ -70,6 +70,8 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_inde
 #ifdef GW_ERRORS_DIAG
             GW_PRINT_WORKER << "Wrong IOCP returned when attaching socket to IOCP." << std::endl;
 #endif
+            closesocket(new_socket);
+
             return PrintLastError();
         }
 
@@ -129,13 +131,20 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_inde
 #ifdef GW_ERRORS_DIAG
             GW_PRINT_WORKER << "Can't put socket into non-blocking mode." << std::endl;
 #endif
+            closesocket(new_socket);
+
             return PrintLastError();
         }
 
         // Creating new socket data structure inside chunk.
         SocketDataChunk *new_sd;
         err_code = CreateSocketData(new_socket, port_index, db_index, &new_sd);
-        GW_ERR_CHECK(err_code);
+        if (err_code)
+        {
+            closesocket(new_socket);
+
+            return err_code;
+        }
 
         // Marking socket as alive.
         g_gateway.MarkSocketAlive(new_socket);
@@ -155,8 +164,9 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_inde
         }
     }
 
-    // Increasing number of allocated sockets.
+    // Changing number of created sockets.
     int64_t created_sockets = g_gateway.get_server_port(port_index)->ChangeNumAllocatedSockets(db_index, how_many);
+
 #ifdef GW_SOCKET_DIAG
     GW_PRINT_WORKER << "New sockets amount: " << created_sockets << std::endl;
 #endif
@@ -189,6 +199,10 @@ START_RECEIVING_AGAIN:
     }*/
     //profiler_.Stop(5);
 
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+    ChangeNumPendingNetworkOperations(sd, 1);
+#endif
+
     // Checking if operation completed immediately.
     if (0 != err_code)
     {
@@ -201,10 +215,11 @@ START_RECEIVING_AGAIN:
 #endif
             PrintLastError();
 
-            // Disconnecting this socket.
-            Disconnect(sd);
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+            ChangeNumPendingNetworkOperations(sd, -1);
+#endif
 
-            return 1;
+            return SCERRGWFAILEDWSARECV;
         }
     }
     else
@@ -212,10 +227,15 @@ START_RECEIVING_AGAIN:
         // Checking if socket is closed by the other peer.
         if (0 == numBytes)
         {
-            // Disconnecting this socket.
-            Disconnect(sd);
+#ifdef GW_ERRORS_DIAG
+            GW_PRINT_WORKER << "Zero-bytes receive on socket: " << sd->sock() << ". Remote side closed the connection." << std::endl;
+#endif
 
-            return 1;
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+            ChangeNumPendingNetworkOperations(sd, -1);
+#endif
+
+            return SCERRGWSOCKETCLOSEDBYPEER;
         }
         else
         {
@@ -243,6 +263,10 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     GW_PRINT_WORKER << "FinishReceive: socket " << sd->sock() << " chunk " << sd->get_chunk_index() << std::endl;
 #endif
 
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+    ChangeNumPendingNetworkOperations(sd, -1);
+#endif
+
     // If we received 0 bytes, the remote side has close the connection.
     if (0 == num_bytes_received)
     {
@@ -250,10 +274,7 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
         GW_PRINT_WORKER << "Zero-bytes receive on socket: " << sd->sock() << ". Remote side closed the connection." << std::endl;
 #endif
 
-        // Disconnecting this socket.
-        Disconnect(sd);
-
-        return 0;
+        return SCERRGWSOCKETCLOSEDBYPEER;
     }
 
     AccumBuffer* accum_buf = sd->get_accum_buf();
@@ -303,28 +324,28 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     }
 
     // Getting attached session if any.
-    ScSessionStruct* session = sd->GetAttachedSession();
-    if (session)
+    ScSessionStruct session = g_gateway.GetGlobalSessionDataCopy(sd->get_session_index());
+
+    // Checking if session exists.
+    if (session.IsValid())
     {
         // Check that data received belongs to the correct session (not coming from abandoned connection).
-        if (!session->CompareSalts(sd->get_session_salt()))
+        if (!session.CompareSalts(sd->get_session_salt()))
         {
 #ifdef GW_ERRORS_DIAG
             GW_PRINT_WORKER << "Data from abandoned/different socket received." << std::endl;
 #endif
-            // Disconnecting this socket.
-            Disconnect(sd);
 
-            return 0;
+            return SCERRGWDATAFROMABANDONEDSOCKET;
         }
     }
     else
     {
         // If session was already created, just attaching to it.
         session_index_type session_index = g_gateway.GetSocketData(sd->get_socket())->get_session_index();
-        ScSessionStruct* session = g_gateway.GetSessionData(session_index);
-        if (session)
-            sd->AttachToSession(session);
+        ScSessionStruct global_session = g_gateway.GetGlobalSessionDataCopy(session_index);
+        if (global_session.IsValid())
+            sd->AttachToSession(&global_session);
     }
 
     if (!g_gateway.setting_is_master())
@@ -363,6 +384,10 @@ uint32_t GatewayWorker::Send(SocketDataChunk *sd)
     }
     //profiler_.Stop(6);
 
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+    ChangeNumPendingNetworkOperations(sd, 1);
+#endif
+
     // Checking if operation completed immediately.
     if (0 != err_code)
     {
@@ -373,8 +398,12 @@ uint32_t GatewayWorker::Send(SocketDataChunk *sd)
             GW_PRINT_WORKER << "Failed WSASend. Disconnecting socket..." << std::endl;
 #endif
             PrintLastError();
-            Disconnect(sd);
-            return 1;
+
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+            ChangeNumPendingNetworkOperations(sd, -1);
+#endif
+
+            return SCERRGWFAILEDWSASEND;
         }
     }
     else
@@ -394,6 +423,10 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunk *sd, int32_t nu
     GW_PRINT_WORKER << "FinishSend: socket " << sd->sock() << " chunk " << sd->get_chunk_index() << std::endl;
 #endif
 
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+    ChangeNumPendingNetworkOperations(sd, -1);
+#endif
+
     AccumBuffer* accum_buf = sd->get_accum_buf();
 
     // Checking that we processed correct number of bytes.
@@ -402,7 +435,7 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunk *sd, int32_t nu
 #ifdef GW_ERRORS_DIAG
         GW_PRINT_WORKER << "Incorrect number of bytes sent: " << num_bytes_sent << " of " << accum_buf->get_buf_len_bytes() << "(correct)" << std::endl;
 #endif
-        return SCERRUNSPECIFIED;
+        return SCERRGWINCORRECTBYTESSEND;
     }
 
     // Incrementing statistics.
@@ -413,12 +446,7 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunk *sd, int32_t nu
 
     // Checking disconnect state.
     if (sd->get_disconnect_after_send_flag())
-    {
-        // Performing disconnect.
-        Disconnect(sd);
-
-        return 0;
-    }
+        return SCERRGWDISCONNECTAFTERSENDFLAG;
 
     // We have to return attached chunks.
     if (1 != sd->get_num_chunks())
@@ -440,16 +468,16 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunk *sd, int32_t nu
         return Receive(sd);
     }
 
-    // Returning chunk to private chunk pool.
     WorkerDbInterface *db = active_dbs_[sd->get_db_index()];
-    if (NULL != db)
-        return db->ReturnSocketDataChunksToPool(this, sd);
+    assert(db != NULL);
 
-    return SCERRUNSPECIFIED;
+    // Returning chunks to pool.
+    return db->ReturnSocketDataChunksToPool(this, sd);
 }
 
 // Running disconnect on socket data.
-uint32_t GatewayWorker::Disconnect(SocketDataChunk *sd)
+// NOTE: Socket data chunk can not be used after this function is called!
+uint32_t GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunk *sd)
 {
 #ifdef GW_SOCKET_DIAG
     GW_PRINT_WORKER << "Disconnect: socket " << sd->sock() << " chunk " << sd->get_chunk_index() << std::endl;
@@ -460,10 +488,10 @@ uint32_t GatewayWorker::Disconnect(SocketDataChunk *sd)
     // Checking if its not receiving socket data.
     if (!sd->get_receiving_flag())
     {
-        // Returning chunks to private chunk pool.
         WorkerDbInterface *db = active_dbs_[sd->get_db_index()];
         assert(db != NULL);
 
+        // Returning chunks to pool.
         return db->ReturnSocketDataChunksToPool(this, sd);
     }
 
@@ -480,6 +508,10 @@ uint32_t GatewayWorker::Disconnect(SocketDataChunk *sd)
     err_code = sd->Disconnect();
     //profiler_.Stop(4);
 
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+    ChangeNumPendingNetworkOperations(sd, 1);
+#endif
+
     // Checking if operation completed immediately. 
     if (TRUE != err_code)
     {
@@ -490,7 +522,7 @@ uint32_t GatewayWorker::Disconnect(SocketDataChunk *sd)
         {
             // Finish disconnect operation.
             FinishDisconnect(sd);
-            return SCERRUNSPECIFIED;
+            return SCERRGWSOCKETNOTCONNECTED;
         }
 
         // Checking for other errors.
@@ -500,48 +532,17 @@ uint32_t GatewayWorker::Disconnect(SocketDataChunk *sd)
             GW_PRINT_WORKER << "Failed DisconnectEx." << std::endl;
 #endif
             PrintLastError();
-            return 1;
+            FinishDisconnect(sd);
+            return SCERRGWFAILEDDISCONNECTEX;
         }
     }
     else
     {
         // Finish disconnect operation.
         err_code = FinishDisconnect(sd);
-        GW_ERR_CHECK(err_code);
+        if (err_code)
+            return err_code;
     }
-
-    return 0;
-}
-
-// Vanishes existing socket.
-uint32_t GatewayWorker::VanishSocketData(SocketDataChunk *sd)
-{
-#ifdef GW_SOCKET_DIAG
-    GW_PRINT_WORKER << "Vanish Socket Data: socket " << sd->sock() << " chunk " << sd->get_chunk_index() << std::endl;
-#endif
-
-    // Checking if we were accepting socket.
-    bool was_accepting = sd->type_of_network_oper() == ACCEPT_OPER;
-
-    // Resetting the socket data.
-    sd->Reset();
-
-    // Returning chunk to private chunk pool.
-    WorkerDbInterface *db = active_dbs_[sd->get_db_index()];
-    uint32_t err_code = db->ReturnSocketDataChunksToPool(this, sd);
-    GW_ERR_CHECK(err_code);
-
-    // Stop tracking this socket.
-    err_code = g_gateway.GetDatabase(sd->get_db_index())->UntrackSocket(sd->sock());
-    GW_ERR_CHECK(err_code);
-
-    // Decreasing number of connections.
-    ServerPort* server_port = g_gateway.get_server_port(sd->get_port_index());
-    server_port->ChangeNumAllocatedSockets(sd->get_db_index(), -1);
-
-    // Checking if were performing some operation that is not Accept.
-    if (!was_accepting)
-        server_port->ChangeNumActiveConns(sd->get_db_index(), -1);
 
     return 0;
 }
@@ -553,21 +554,19 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunk *sd)
     GW_PRINT_WORKER << "FinishDisconnect: socket " << sd->sock() << " chunk " << sd->get_chunk_index() << std::endl;
 #endif
 
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+    ChangeNumPendingNetworkOperations(sd, -1);
+#endif
+
     // Removing tracked session.
     g_gateway.GetSocketData(sd->get_socket())->Reset();
 
     // Stop tracking this socket.
     g_gateway.GetDatabase(sd->get_db_index())->UntrackSocket(sd->sock());
+    g_gateway.UntrackSocket(sd->sock());
 
-    // Checking if database is still up.
-    if (!GetDatabase(sd->get_db_index()))
-        return 0;
-
-    // Getting corresponding server port.
-    ServerPort* server_port = g_gateway.get_server_port(sd->get_port_index());
-
-    // Decreasing number of connections.
-    server_port->ChangeNumActiveConns(sd->get_db_index(), -1);
+    // Changing active connections number.
+    g_gateway.get_server_port(sd->get_port_index())->ChangeNumActiveConns(sd->get_db_index(), -1);
 
     // Resetting the socket data.
     sd->Reset();
@@ -597,37 +596,36 @@ uint32_t GatewayWorker::Connect(SocketDataChunk *sd, sockaddr_in *serverAddr)
     {
         // Start connecting socket.
         //profiler_.Start("Connect()", 3);
-        uint32_t errCode = sd->Connect(serverAddr);
+        uint32_t err_code = sd->Connect(serverAddr);
         //profiler_.Stop(3);
 
         // Checking if operation completed immediately.
-        if (TRUE != errCode)
-        {
-            int32_t wsaErrCode = WSAGetLastError();
-            if (WSA_IO_PENDING != wsaErrCode)
-            {
-                if (WAIT_TIMEOUT == wsaErrCode)
-                {
-#ifdef GW_ERRORS_DIAG
-                    GW_PRINT_WORKER << "Timeout in ConnectEx. Retrying..." << std::endl;
+        assert(TRUE != err_code);
+
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+        ChangeNumPendingNetworkOperations(sd, 1);
 #endif
-                    continue;
-                }
+
+        int32_t wsa_err_code = WSAGetLastError();
+        if (WSA_IO_PENDING != wsa_err_code)
+        {
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+            ChangeNumPendingNetworkOperations(sd, -1);
+#endif
+
+            if (WAIT_TIMEOUT == wsa_err_code)
+            {
+#ifdef GW_ERRORS_DIAG
+                GW_PRINT_WORKER << "Timeout in ConnectEx. Retrying..." << std::endl;
+#endif
+                continue;
+            }
 
 #ifdef GW_ERRORS_DIAG
-                GW_PRINT_WORKER << "Failed ConnectEx." << std::endl;
+            GW_PRINT_WORKER << "Failed ConnectEx." << std::endl;
 #endif
-                PrintLastError();
-                return 1;
-            }
-        }
-        else
-        {
-            // Should never happen for connect.
-#ifdef GW_ERRORS_DIAG
-            GW_PRINT_WORKER << "ConnectEx finished immediately, WTF!" << std::endl;
-#endif
-            return 1;
+            PrintLastError();
+            return SCERRGWCONNECTEXFAILED;
         }
 
         break;
@@ -646,7 +644,11 @@ __forceinline uint32_t GatewayWorker::FinishConnect(SocketDataChunk *sd)
     GW_PRINT_WORKER << "FinishConnect: socket " << sd->sock() << " chunk " << sd->get_chunk_index() << std::endl;
 #endif
 
-    // Increasing number of connections.
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+    ChangeNumPendingNetworkOperations(sd, -1);
+#endif
+
+    // Changing active connections number.
     g_gateway.get_server_port(sd->get_port_index())->ChangeNumActiveConns(sd->get_db_index(), 1);
 
     // Performing send.
@@ -667,27 +669,27 @@ uint32_t GatewayWorker::Accept(SocketDataChunk *sd)
     //profiler_.Start("Accept()", 7);
     uint32_t errCode = sd->Accept(this);
     //profiler_.Stop(7);
+
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+    ChangeNumPendingNetworkOperations(sd, 1);
+#endif
  
     // Checking if operation completed immediately.
-    if (TRUE != errCode)
+    assert(TRUE != errCode);
+
+    int32_t wsaErrCode = WSAGetLastError();
+    if (WSA_IO_PENDING != wsaErrCode)
     {
-        int32_t wsaErrCode = WSAGetLastError();
-        if (WSA_IO_PENDING != wsaErrCode)
-        {
 #ifdef GW_ERRORS_DIAG
-            GW_PRINT_WORKER << "Error accepting socket." << std::endl;
+        GW_PRINT_WORKER << "Error accepting socket." << std::endl;
 #endif
-            PrintLastError();
-            return 1;
-        }
-    }
-    else
-    {
-        // Should never happen for connect.
-#ifdef GW_ERRORS_DIAG
-        GW_PRINT_WORKER << "AcceptEx finished immediately, WTF!" << std::endl;
+        PrintLastError();
+
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+        ChangeNumPendingNetworkOperations(sd, -1);
 #endif
-        return 1;
+
+        return SCERRGWACCEPTEXFAILED;
     }
 
     // Setting SO_UPDATE_ACCEPT_CONTEXT.
@@ -703,6 +705,10 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunk *sd, int32_t numBytesReceiv
     GW_PRINT_WORKER << "FinishAccept: socket " << sd->sock() << " chunk " << sd->get_chunk_index() << std::endl;
 #endif
 
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+    ChangeNumPendingNetworkOperations(sd, -1);
+#endif
+
     // Checking the endpoint information (e.g. for black listing).
     sockaddr_in remoteAddr = *(sockaddr_in *)(sd->accept_data() + sizeof(sockaddr_in) + 16);
 
@@ -712,7 +718,7 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunk *sd, int32_t numBytesReceiv
     // Getting server port reference.
     ServerPort *server_port = g_gateway.get_server_port(port_index);
 
-    // Increasing number of active connections.
+    // Changing active connections number.
     server_port->ChangeNumActiveConns(db_index, 1);
 
     // Checking if we need to extend data.
@@ -727,6 +733,53 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunk *sd, int32_t numBytesReceiv
     return Receive(sd);
 }
 
+// Checks if cloning was performed and does operations.
+__forceinline uint32_t GatewayWorker::ProcessReceiveClones(SocketDataChunk* sd, bool just_delete_clone)
+{
+    // Checking if there was no clone.
+    if (sd_receive_clone_ == NULL)
+        return 0;
+
+    // Checking if we need just to delete the cloned socket data.
+    if (just_delete_clone)
+    {
+        // Releasing cloned socket data chunks back to pool.
+        GetDatabase(sd->get_db_index())->ReturnSocketDataChunksToPool(this, sd_receive_clone_);
+        sd_receive_clone_ = NULL;
+
+        return 0;
+    }
+
+    uint32_t err_code = 0;
+    while (sd_receive_clone_ != NULL)
+    {
+        sd = sd_receive_clone_;
+        sd_receive_clone_ = NULL;
+
+        // Performing receive operation.
+        err_code = Receive(sd);
+
+        // Checking if any error occurred during socket operation.
+        if (err_code)
+        {
+            // Disconnecting socket if needed and releasing chunk.
+            DisconnectAndReleaseChunk(sd);
+
+            // Checking if we still have a clone.
+            if (sd_receive_clone_ != NULL)
+            {
+                // Releasing socket data chunks back to pool.
+                GetDatabase(sd->get_db_index())->ReturnSocketDataChunksToPool(this, sd_receive_clone_);
+                sd_receive_clone_ = NULL;
+            }
+
+            break;
+        }
+    }
+
+    return err_code;
+}
+
 // Main gateway worker routine.
 uint32_t GatewayWorker::WorkerRoutine()
 {
@@ -737,6 +790,7 @@ uint32_t GatewayWorker::WorkerRoutine()
     uint32_t numBytes = 0, flags = 0, oldTimeMs = timeGetTime(), newTimeMs;
     uint32_t waitForIocpMs = INFINITE;
     bool found_something = false;
+    sd_receive_clone_ = NULL;
 
     // Starting worker infinite loop.
     while (TRUE)
@@ -760,8 +814,12 @@ uint32_t GatewayWorker::WorkerRoutine()
                 // Obtaining socket data structure.
                 SocketDataChunk *sd = (SocketDataChunk *)(removedOvls[i].lpOverlapped);
 
+                // Checking for socket data correctness.
+                assert((sd->get_db_index() >= 0) && (sd->get_db_index() <= 63));
+                assert(sd->get_socket() <= MAX_SOCKET_HANDLE);
+
                 // Checking that socket is valid.
-                if (!sd->CheckSocketIsValid(this))
+                if (!sd->ForceSocketDataValidity(this))
                     continue;
 
                 // Checking for IOCP operation result.
@@ -776,14 +834,12 @@ uint32_t GatewayWorker::WorkerRoutine()
 #endif
                         PrintLastError();
 
-                        // Disconnecting socket.
-                        if (Disconnect(sd) != 0)
-                        {
-                            // NOTE: Ignoring error code here on purpose.
-                            FinishDisconnect(sd);
-                        }
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+                        ChangeNumPendingNetworkOperations(sd, -1);
+#endif
 
-                        continue;
+                        // Disconnecting this socket data.
+                        goto DISCONNECT_SOCKET_DATA_AND_RELEASE_CHUNK;
                     }
 
                     continue;
@@ -831,16 +887,26 @@ uint32_t GatewayWorker::WorkerRoutine()
                     // Unknown operation.
                     default:
                     {
-#ifdef GW_ERRORS_DIAG
-                        GW_PRINT_WORKER << "Unknown completed IOCP operation: " << sd->type_of_network_oper() << std::endl;
-#endif
-                        return SCERRUNSPECIFIED;
+                        assert(1 == 0);
                     }
                 }
 
+DISCONNECT_SOCKET_DATA_AND_RELEASE_CHUNK:
+
                 // Checking if any error occurred during socket operations.
                 if (err_code)
-                    Disconnect(sd);
+                {
+                    // Disconnecting this socket data.
+                    DisconnectAndReleaseChunk(sd);
+
+                    // Releasing the cloned chunk.
+                    ProcessReceiveClones(sd, true);
+                }
+                else
+                {
+                    // Processing clones during last iteration.
+                    ProcessReceiveClones(sd, false);
+                }
             }
         }
         else
@@ -887,7 +953,7 @@ uint32_t GatewayWorker::WorkerRoutine()
         */
     }
 
-    return 1;
+    return SCERRGWWORKERROUTINEFAILED;
 }
 
 // Scans all channels for any incoming chunks.
@@ -915,12 +981,12 @@ uint32_t GatewayWorker::ScanChannels(bool* found_something)
                 // Deleting all associated info with this database from ports.
                 g_gateway.DeletePortsForDb(i);
 
-#ifdef GW_DATABASES_DIAG
-                GW_PRINT_WORKER << "Deleting shared memory for db slot: " << GetDatabase(i)->db_slot_index() << std::endl;
-#endif
-
                 // Finally completely deleting database object and closing shared memory.
                 DeleteInactiveDatabase(i);
+
+#ifdef GW_DATABASES_DIAG
+                GW_PRINT_WORKER << "Deleted shared memory for db slot: " << db->db_slot_index() << std::endl;
+#endif
 
                 // Leaving global lock.
                 LeaveGlobalLock();
@@ -985,10 +1051,9 @@ uint32_t GatewayWorker::AddNewDatabase(
 uint32_t GatewayWorker::PushSocketDataToDb(SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id)
 {
     WorkerDbInterface *db = GetDatabase(sd->get_db_index());
-    if (NULL != db)
-        return db->PushSocketDataToDb(this, sd, handler_id);
-
-    return 1;
+    assert(NULL != db);
+    
+    return db->PushSocketDataToDb(this, sd, handler_id);
 }
 
 // Deleting inactive database.
