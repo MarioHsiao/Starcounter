@@ -254,7 +254,8 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         /// </summary>
         /// <param name="m"></param>
         private void WriteBoundGetterAndSetter(NProperty m) {
-            String bindTo;
+            string bindTo;
+            string dataType;
             StringBuilder sb;
 
             // TODO: 
@@ -262,13 +263,25 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             sb = new StringBuilder();
            
             bindTo = (String.IsNullOrEmpty(m.Template.Bind)) ? m.MemberName : m.Template.Bind;
-           
+
+            dataType = null;
+            if (m.Template is ListingProperty) {
+                dataType = "SqlResult";
+            } else if (m.Template is AppTemplate) {
+                dataType = "Entity";
+//                ((NAppClass)m.Type).GenericTypeArgument;
+            } 
+
+            if (dataType == null) {
+                dataType = m.Type.FullClassName;
+            }
+
             sb.Append("private ");
-            sb.Append(m.Type.FullClassName);
+            sb.Append(dataType);
             sb.Append(" __data_");
             sb.Append(m.MemberName);
             sb.Append(" { get { return (");
-            sb.Append(m.Type.FullClassName);
+            sb.Append(dataType);
             sb.Append(")Data.");
             sb.Append(bindTo);
             sb.Append("; } ");
@@ -297,28 +310,17 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 " DefaultTemplate = new " +
                 a.NTemplateClass.ClassName +
                 "();");
-/*            var sb = new StringBuilder();
 
+            StringBuilder sb = new StringBuilder();
             sb.Append("    public ");
             sb.Append(a.ClassName);
-            sb.Append("( Entity data ) {");
+            sb.Append("() : base(DefaultTemplate) { }");
+            sb.AppendLine();
+            sb.Append("    public ");
+            sb.Append(a.ClassName);
+            sb.Append("(Func<Entity> initializeTransaction) : base(DefaultTemplate, initializeTransaction) { }");
             a.Prefix.Add(sb.ToString());
-            sb = new StringBuilder();
-            sb.Append("        Data = data;");
-            a.Prefix.Add(sb.ToString());
-            sb = new StringBuilder();
-            sb.Append("    }");
-            a.Prefix.Add(sb.ToString());
-            */
 
-            a.Prefix.Add(
-                "    public " +
-                a.ClassName +
-                "() {");
-            a.Prefix.Add(
-                "        Template = DefaultTemplate;");
-            a.Prefix.Add(
-                "    }");
             a.Prefix.Add(
                 "    public new " +
                 a.NTemplateClass.ClassName +
@@ -350,7 +352,19 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             if (m.Bound) {
                 sb.Clear();
                 sb.Append("private ");
-                sb.Append(m.Template.InstanceType.Name);
+
+                string dataType = null;
+                if (m.Template is ListingProperty) {
+                    dataType = "SqlResult";
+                } else if (m.Template is AppTemplate) {
+                    dataType = "Entity";//((NAppClass)((NAppTemplateClass)m.Type).NValueClass).GenericTypeArgument;
+                }
+
+                if (dataType == null) {
+                    dataType = m.Template.InstanceType.Name;
+                }
+                sb.Append(dataType);
+
                 sb.Append(" __data_get_");
                 sb.Append(m.MemberName);
                 sb.Append("(App app) { return ((");
@@ -366,7 +380,8 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     sb.Append("__data_set_");
                     sb.Append(m.MemberName);
                     sb.Append("(App app, ");
-                    sb.Append(m.Template.InstanceType.Name);
+
+                    sb.Append(dataType);
                     sb.Append(" value) { ((");
                     sb.Append(((NAppTemplateClass)m.Parent).NValueClass.FullClassName);
                     sb.Append(")app).__data_");
@@ -451,24 +466,9 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     sb.Append(" = Register<");
                     sb.Append(mn.Type.FullClassName);
 
-                    if (mn.Bound) {
-                        sb.Append(", ");
-                        sb.Append(mn.Template.InstanceType.Name);
-                    }
-
                     sb.Append(">(\"");
                     sb.Append(mn.MemberName);
                     sb.Append('"');
-
-                    if (mn.Bound) {
-                        sb.Append(", __data_get_");
-                        sb.Append(mn.MemberName);
-
-                        if (mn.Template.Editable) {
-                            sb.Append(", __data_set_");
-                            sb.Append(mn.MemberName);
-                        }
-                    }
 
                     if (mn.Template.Editable)
                     {
@@ -479,6 +479,31 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                         sb.Append(");");
                     }
                     a.Prefix.Add(sb.ToString());
+
+                    if (mn.Template is ListingProperty) {
+                        sb.Clear();
+                        sb.Append("        ");
+                        sb.Append(mn.MemberName);
+                        sb.Append(".App = ");
+                        sb.Append(mn.FunctionGeneric.FullClassName);
+                        sb.Append(".DefaultTemplate;");
+                        a.Prefix.Add(sb.ToString());
+                    }
+
+                    if (mn.Bound) {
+                        sb.Clear();
+                        sb.Append("        ");
+                        sb.Append(mn.MemberName);
+                        sb.Append(".AddDataBinding(__data_get_");
+                        sb.Append(mn.MemberName);
+                        
+                        if (mn.Template.Editable) {
+                            sb.Append(", __data_set_");
+                            sb.Append(mn.MemberName);
+                        }
+                        sb.Append(");");
+                        a.Prefix.Add(sb.ToString());
+                    }
                 }
                 else if (kid is NInputBinding)
                 {
@@ -624,6 +649,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             h.Append("// DO NOT MODIFY DIRECTLY - CHANGES WILL BE OVERWRITTEN\n");
             h.Append('\n');
             h.Append("using System;\n");
+            h.Append("using System.Collections;\n");
             h.Append("using System.Collections.Generic;\n");
             h.Append("using Starcounter;\n");
             h.Append("using Starcounter.Internal;\n");

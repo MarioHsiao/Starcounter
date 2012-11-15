@@ -19,7 +19,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// codebehind file.
         /// </summary>
         public static readonly CodeBehindMetadata Empty
-            = new CodeBehindMetadata("", false, new List<JsonMapInfo>(), new List<InputBindingInfo>());
+            = new CodeBehindMetadata("", null, false, new List<JsonMapInfo>(), new List<InputBindingInfo>());
 
         /// <summary>
         /// The root namespace of the main app.
@@ -31,6 +31,11 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// in the app should be automatically bound to the Entity.
         /// </summary>
         public readonly bool AutoBindToEntity;
+
+        /// <summary>
+        /// Contains the generic argument (if any) for the class.
+        /// </summary>
+        public readonly string GenericArgument;
 
         /// <summary>
         /// A list of classes from the code-behind file that should be connected
@@ -47,18 +52,23 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// Initializes a new instance of the <see cref="CodeBehindMetadata" /> class.
         /// </summary>
         /// <param name="ns">The root namespace</param>
+        /// <param name="genericArgument">
+        /// the generic argument if any of the class
+        /// </param>
         /// <param name="autoBindToEntity">
         /// If true all properties in the json file should be bound 
         /// to the underlying Entity
         /// </param>
         /// <param name="mapList">The list of mappings</param>
         /// <param name="inputList">The list of inputbindings.</param>
-        internal CodeBehindMetadata(string ns, 
+        internal CodeBehindMetadata(string ns,
+                                    string genericArgument,
                                     bool autoBindToEntity,
                                     List<JsonMapInfo> mapList, 
                                     List<InputBindingInfo> inputList)
         {
             RootNamespace = ns;
+            GenericArgument = genericArgument;
             AutoBindToEntity = autoBindToEntity;
             JsonPropertyMapList = mapList;
             InputBindingList = inputList;

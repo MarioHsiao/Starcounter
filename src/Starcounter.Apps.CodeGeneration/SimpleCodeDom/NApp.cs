@@ -108,5 +108,11 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// bound, if not specified otherwise on the property, to the underlying Entity.
         /// </summary>
         public bool AutoBindPropertiesToEntity { get; set; }
+
+        /// <summary>
+        /// Contains the generic type argument for this appclass or null
+        /// if non-generic.
+        /// </summary>
+        public string GenericTypeArgument { get; set; }
     }
 }
