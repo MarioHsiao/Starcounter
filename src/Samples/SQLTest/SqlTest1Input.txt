@@ -599,7 +599,7 @@ IndexScan(
 )
 
 ExpectedResult: 
- ! 0:String ! 
+ ! String ! 
  | Adamsson | 
 
 
@@ -660,7 +660,7 @@ IndexScan(
 )
 
 ExpectedResult: 
- ! 0:String ! 
+ ! String ! 
  | Alexey | 
  | Andreas | 
  | Åsa | 
@@ -890,7 +890,7 @@ IndexScan(
 )
 
 ExpectedResult: 
- ! 0:String ! 
+ ! String ! 
  | Alexey Moiseenko | 
 
 
@@ -1134,7 +1134,7 @@ IndexScan(
 )
 
 ExpectedResult: 
- ! 0:Decimal ! 
+ ! Decimal ! 
  | 10 | 
  | 20 | 
  | 30 | 
@@ -1172,7 +1172,7 @@ IndexScan(
 )
 
 ExpectedResult: 
- ! 0:Decimal ! 
+ ! Decimal ! 
  | -10 | 
  | -20 | 
  | -30 | 
