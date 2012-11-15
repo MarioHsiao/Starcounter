@@ -4,7 +4,10 @@
 // </copyright>
 // ***********************************************************************
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using Starcounter.Templates.DataBinding;
 using Starcounter.Templates.Interfaces;
 #if CLIENT
 namespace Starcounter.Client.Template {
@@ -65,10 +68,30 @@ namespace Starcounter.Templates {
 #endif
     {
         /// <summary>
-        /// The _ single
+        /// 
         /// </summary>
         internal AppTemplate[] _Single = new AppTemplate[0];
 
+        private DataBinding<SqlResult> dataBinding;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dataGetter"></param>
+        public void AddDataBinding(Func<App, SqlResult> dataGetter) {
+            dataBinding = new DataBinding<SqlResult>(dataGetter);
+            Bound = true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="app"></param>
+        /// <returns></returns>
+        public SqlResult GetBoundValue(App app) {
+            return dataBinding.GetValue(app);
+        }
+        
         /// <summary>
         /// Gets or sets the type.
         /// </summary>
