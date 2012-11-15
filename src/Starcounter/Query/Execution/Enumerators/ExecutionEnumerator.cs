@@ -4,12 +4,13 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.Binding;
+using Starcounter.Internal;
 using Starcounter.Query.Optimization;
 using System;
 using System.Collections.Generic;
 using System.Collections;
 using System.Text;
-using Starcounter.Internal;
 
 namespace Starcounter.Query.Execution
 {
@@ -21,7 +22,7 @@ internal abstract class ExecutionEnumerator
     protected Int64 counter = 0; // Number of successful hits (retrieved objects).
     protected String query = null; // Original SQL query which this enumerator belongs to.
     protected CompositeTypeBinding compTypeBinding = null; // Type binding for the enumerator.
-    protected Boolean singleObject = false; // True if the resulting objects only has one attribute and it is of type Object, otherwise false.
+    protected Nullable<DbTypeCode> projectionTypeCode = null; // If singleton projection, then the DbTypeCode of that singleton, otherwise null.
     protected UInt64 uniqueQueryID = 0; // Uniquely identifies query it belongs to.
     protected String uniqueGenName = null; // Uniquely identifies the scan during code generation.
     protected Boolean hasCodeGeneration = false; // Indicates if code generation is done for this enumerator.
@@ -38,11 +39,19 @@ internal abstract class ExecutionEnumerator
     /// <summary>
     /// Default constructor.
     /// </summary>
-    internal ExecutionEnumerator(VariableArray varArray)
+    internal ExecutionEnumerator(CompositeTypeBinding compTypeBind, VariableArray varArray)
     {
-        if (varArray != null)
+        if (compTypeBind == null)
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect compTypeBind.");
+        if (varArray == null)
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect variables clone.");
+
+        compTypeBinding = compTypeBind;
+        variableArray = varArray;
+
+        if (varArray != null && (varArray.QueryFlags & QueryFlags.SingletonProjection) != 0)
         {
-            singleObject = ((varArray.QueryFlags & QueryFlags.SingleObjectProjection) != 0);
+            projectionTypeCode = compTypeBinding.GetPropertyBinding(0).TypeCode;
         }
     }
 
@@ -142,6 +151,17 @@ internal abstract class ExecutionEnumerator
     }
 
     /// <summary>
+    /// If the projection is a singleton, then the DbTypeCode of that singleton, otherwise null.
+    /// </summary>
+    public Nullable<DbTypeCode> ProjectionTypeCode
+    {
+        get
+        {
+            return projectionTypeCode;
+        }
+    }
+
+    /// <summary>
     /// Gets the number of variables in the SQL query.
     /// </summary>
     public Int32 VariableCount
@@ -196,7 +216,7 @@ internal abstract class ExecutionEnumerator
             * flags |= SqlConnectivityInterface.FLAG_RECREATION_KEY_VARIABLE;
         }
 
-        if ((QueryFlags & QueryFlags.SingleObjectProjection) == 0)
+        if ((QueryFlags & QueryFlags.SingletonProjection) == 0)
         {
             * flags |= SqlConnectivityInterface.FLAG_HAS_PROJECTION;
         }
