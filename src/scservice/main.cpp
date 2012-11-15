@@ -9,7 +9,7 @@
 
 #define MONITOR_INHERIT_CONSOLE 0
 #define GATEWAY_INHERIT_CONSOLE 0
-#define ADMIN_INHERIT_CONSOLE 0
+#define ADMIN_INHERIT_CONSOLE 1
 
 
 static void *hcontrol_event;
