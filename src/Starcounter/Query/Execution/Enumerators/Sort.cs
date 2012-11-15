@@ -70,60 +70,60 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
     {
         get
         {
-            if (currentObject != null)
+            if (enumerator != null)
             {
                 switch (projectionTypeCode)
                 {
                     case null:
-                        return currentObject;
+                        return enumerator.Current;
 
                     case DbTypeCode.Binary:
-                        return currentObject.GetBinary(0);
+                        return enumerator.Current.GetBinary(0);
 
                     case DbTypeCode.Boolean:
-                        return currentObject.GetBoolean(0);
+                        return enumerator.Current.GetBoolean(0);
 
                     case DbTypeCode.Byte:
-                        return currentObject.GetByte(0);
+                        return enumerator.Current.GetByte(0);
 
                     case DbTypeCode.DateTime:
-                        return currentObject.GetDateTime(0);
+                        return enumerator.Current.GetDateTime(0);
 
                     case DbTypeCode.Decimal:
-                        return currentObject.GetDecimal(0);
+                        return enumerator.Current.GetDecimal(0);
 
                     case DbTypeCode.Double:
-                        return currentObject.GetDouble(0);
+                        return enumerator.Current.GetDouble(0);
 
                     case DbTypeCode.Int16:
-                        return currentObject.GetInt16(0);
+                        return enumerator.Current.GetInt16(0);
 
                     case DbTypeCode.Int32:
-                        return currentObject.GetInt32(0);
+                        return enumerator.Current.GetInt32(0);
 
                     case DbTypeCode.Int64:
-                        return currentObject.GetInt64(0);
+                        return enumerator.Current.GetInt64(0);
 
                     case DbTypeCode.Object:
-                        return currentObject.GetObject(0);
+                        return enumerator.Current.GetObject(0);
 
                     case DbTypeCode.SByte:
-                        return currentObject.GetSByte(0);
+                        return enumerator.Current.GetSByte(0);
 
                     case DbTypeCode.Single:
-                        return currentObject.GetSingle(0);
+                        return enumerator.Current.GetSingle(0);
 
                     case DbTypeCode.String:
-                        return currentObject.GetString(0);
+                        return enumerator.Current.GetString(0);
 
                     case DbTypeCode.UInt16:
-                        return currentObject.GetUInt16(0);
+                        return enumerator.Current.GetUInt16(0);
 
                     case DbTypeCode.UInt32:
-                        return currentObject.GetUInt32(0);
+                        return enumerator.Current.GetUInt32(0);
 
                     case DbTypeCode.UInt64:
-                        return currentObject.GetUInt64(0);
+                        return enumerator.Current.GetUInt64(0);
 
                     default:
                         throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect projectionTypeCode.");
@@ -178,7 +178,7 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
 
         if (enumerator != null)
         {
-            enumerator.Reset();
+            enumerator.Dispose();
             enumerator = null;
         }
     }
@@ -192,6 +192,8 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
         if (enumerator.MoveNext())
             return true;
 
+        enumerator.Dispose();
+        enumerator = null;
         return false;
     }
 
