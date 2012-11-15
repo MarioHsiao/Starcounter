@@ -41,9 +41,9 @@ namespace Starcounter {
     /// in case you which to validate the change).</remarks>
     public partial class App : AppNode
 #if IAPP
-        , IApp
+, IApp
 #endif
-    {
+ {
         /// <summary>
         /// 
         /// </summary>
@@ -57,20 +57,41 @@ namespace Starcounter {
         /// <summary>
         /// Initializes a new instance of the <see cref="App" /> class.
         /// </summary>
-       public App() : base() 
-       {
-           _cacheIndexInList = -1;
-           _transaction = LongRunningTransaction.Current;
-       }
+        public App() : base() {
+            _cacheIndexInList = -1;
+        }
 
-       /// <summary>
-       /// The static resources
-       /// </summary>
-       public static HttpRestServer StaticResources;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="template"></param>
+        public App(AppTemplate template) : this() {
+            Template = template;
+        }
 
-       /// <summary>
-       /// Triggers the type initialization.
-       /// </summary>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="template"></param>
+        /// <param name="initializeTransaction"></param>
+        public App(AppTemplate template, Func<Entity> initializeTransaction) : this(template) {
+            LongRunningTransaction transaction = Transaction;
+            if (transaction == null) {
+                transaction = new LongRunningTransaction();
+                Transaction = transaction;
+            }
+
+            Data = transaction.Add(initializeTransaction);
+        }
+
+        /// <summary>
+        /// Rest-server responsible for delivering static resources.
+        /// </summary>
+        public static HttpRestServer StaticResources;
+
+        /// <summary>
+        /// Triggers the type initialization.
+        /// </summary>
         static internal void TriggerTypeInitialization() {
             // Calling a static method will trigger type initialization.
             // This is important to detect if the EXE module is running out of process.
@@ -79,35 +100,29 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Gets the is serialized.
+        /// Returns true if this app have been serialed and sent to the client.
         /// </summary>
         /// <value>The is serialized.</value>
         public Boolean IsSerialized { get; internal set; }
 
         /// <summary>
-        /// The _cache index in list
+        /// Cache field of index if this apps parent is a list.
         /// </summary>
         internal Int32 _cacheIndexInList;
 
         /// <summary>
         /// Fills the index path.
         /// </summary>
-        /// <param name="path">The path.</param>
-        /// <param name="pos">The pos.</param>
-        internal override void FillIndexPath(int[] path, int pos)
-        {
-            if (Parent != null)
-            {
-                if (Parent is Listing)
-                {
-                    if (_cacheIndexInList == -1)
-                    {
+        /// <param name="path">The patharray to fill</param>
+        /// <param name="pos">The position to fill</param>
+        internal override void FillIndexPath(int[] path, int pos) {
+            if (Parent != null) {
+                if (Parent is Listing) {
+                    if (_cacheIndexInList == -1) {
                         _cacheIndexInList = ((Listing)Parent).IndexOf(this);
                     }
                     path[pos] = _cacheIndexInList;
-                }
-                else
-                {
+                } else {
                     path[pos] = Template.Index;
                 }
                 Parent.FillIndexPath(path, pos - 1);
@@ -115,7 +130,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Gets or sets the data.
+        /// Gets or sets the underlying entity object.
         /// </summary>
         /// <value>The data.</value>
         public Entity Data {
@@ -124,13 +139,13 @@ namespace Starcounter {
             }
             set {
                 _Data = value;
-                OnData();
                 RefreshAllBoundValues();
+                OnData();
             }
         }
 
         /// <summary>
-        /// 
+        /// Refreshes all databound values for this app.
         /// </summary>
         protected void RefreshAllBoundValues() {
             Template child;
@@ -149,7 +164,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Called when [data].
+        /// Called after the data object is set.
         /// </summary>
         protected virtual void OnData() {
         }
@@ -165,10 +180,38 @@ namespace Starcounter {
 //        }
 
         /// <summary>
+        /// Gets the closest transaction for this app looking up in the tree.
+        /// Sets this transaction.
+        /// </summary>
+        public LongRunningTransaction Transaction {
+            get {
+                if (_transaction != null)
+                    return _transaction;
+
+                App parent = GetNearestAppParent();
+                if (parent != null)
+                    return parent.Transaction;
+
+                return null;
+            }
+            set {
+                if (_transaction != null) {
+                    throw new Exception("An transaction is already set for this App. Changing transaction is not allowed.");
+                }
+                _transaction = value;
+            }
+        }
+
+        /// <summary>
         /// 
         /// </summary>
-        internal LongRunningTransaction GetAttachedTransaction() {
-            return _transaction;
+        /// <returns></returns>
+        private App GetNearestAppParent() {
+            AppNode parent = Parent;
+            while ((parent != null) && (!(parent is App))) {
+                parent = parent.Parent;
+            }
+            return (App)parent;
         }
 
         /// <summary>
@@ -177,12 +220,6 @@ namespace Starcounter {
         public virtual void Commit() {
             if (_transaction != null) {
                 _transaction.Commit();
-
-                // TODO:
-                // Should we create a new transaction here?
-                // After a commit the transaction is no longer valid and 
-                // cannot be used anymore.
-                _transaction = null;
             }
         }
 
@@ -192,18 +229,29 @@ namespace Starcounter {
         public virtual void Abort() {
             if (_transaction != null) {
                 _transaction.Abort();
-                _transaction = null;
             }
         }
 
         /// <summary>
-        /// Refreshes the specified model.
+        /// Refreshes the specified template.
         /// </summary>
         /// <param name="model">The model.</param>
         public void Refresh(Template model) {
-            Property p = model as Property;
-            if (p != null)
-                ChangeLog.UpdateValue(this, p);
+            if (model is ListingProperty) {
+                ListingProperty apa = (ListingProperty)model;
+                this.SetValue(apa, apa.GetBoundValue(this));
+            } else if (model is AppTemplate) {
+                AppTemplate at = (AppTemplate)model;
+
+                // TODO:
+                Entity v = at.GetBoundValue(this);
+                if (v != null)
+                    this.SetValue(at, v);
+            } else {
+                Property p = model as Property;
+                if (p != null)
+                    ChangeLog.UpdateValue(this, p);
+            }
         }
 
         /// <summary>
@@ -219,9 +267,8 @@ namespace Starcounter {
         /// The template defining the properties of this App.
         /// </summary>
         /// <value>The template.</value>
-        public new AppTemplate Template 
-        { 
-            get { return (AppTemplate)base.Template; } 
+        public new AppTemplate Template {
+            get { return (AppTemplate)base.Template; }
             set { base.Template = value; }
         }
 
@@ -279,7 +326,7 @@ namespace Starcounter {
         /// <param name="pars">The pars.</param>
         /// <returns>SqlResult.</returns>
         public static SqlResult SQL(string str, params object[] pars) {
-            return Db.SQL(str,pars);
+            return Db.SQL(str, pars);
         }
 
         /// <summary>
@@ -289,7 +336,7 @@ namespace Starcounter {
         /// <param name="str">The STR.</param>
         /// <param name="pars">The pars.</param>
         /// <returns>SqlResult2{``0}.</returns>
-        public static SqlResult2<T> SQL<T>(string str, params object[] pars) where T:Entity {
+        public static SqlResult2<T> SQL<T>(string str, params object[] pars) where T : Entity {
             return null;
         }
 

@@ -116,22 +116,10 @@ namespace Starcounter.Server {
         internal DatabaseStorageService StorageService { get; private set; }
 
         /// <summary>
-        /// Gets the <see cref="SharedMemoryMonitor"/> utilized by this server
-        /// engine to monitor shared memory connections.
-        /// </summary>
-        internal SharedMemoryMonitor SharedMemoryMonitor { get; private set; }
-
-        /// <summary>
         /// Gets the <see cref="DatabaseHostingService"/> used by this server
         /// to initiate local communication with database host processes.
         /// </summary>
         internal DatabaseHostingService DatabaseHostService { get; private set; }
-
-        /// <summary>
-        /// Gets the <see cref="GatewayService"/> running under the current
-        /// server engine.
-        /// </summary>
-        internal GatewayService GatewayService { get; private set; }
 
         /// <summary>
         /// Initializes a <see cref="ServerEngine"/>.
@@ -150,9 +138,10 @@ namespace Starcounter.Server {
             this.AppsService = new Server.AppsService(this);
             this.WeaverService = new Server.WeaverService(this);
             this.StorageService = new DatabaseStorageService(this);
-            this.SharedMemoryMonitor = new SharedMemoryMonitor(this);
             this.DatabaseHostService = new DatabaseHostingService(this);
-            this.GatewayService = new GatewayService(this);
+            // TODO: Remove!
+            //this.SharedMemoryMonitor = new SharedMemoryMonitor(this);
+            //this.GatewayService = new GatewayService(this);
         }
 
         /// <summary>
@@ -203,9 +192,10 @@ namespace Starcounter.Server {
             this.AppsService.Setup();
             this.WeaverService.Setup();
             this.StorageService.Setup();
-            this.SharedMemoryMonitor.Setup();
             this.DatabaseHostService.Setup();
-            this.GatewayService.Setup();
+            // TODO: Remove!
+            //this.SharedMemoryMonitor.Setup();
+            //this.GatewayService.Setup();
         }
 
         /// <summary>
@@ -221,8 +211,9 @@ namespace Starcounter.Server {
         /// allowing the host to interact with the now running server.
         /// </returns>
         public IServerRuntime Start() {
-            this.SharedMemoryMonitor.Start();
-            this.GatewayService.Start();
+            // TODO: Remove!
+            //this.SharedMemoryMonitor.Start();
+            //this.GatewayService.Start();
 
             return this.CurrentPublicModel;
         }
