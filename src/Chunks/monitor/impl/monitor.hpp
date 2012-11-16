@@ -23,6 +23,7 @@ registrar_(),
 active_databases_file_updater_thread_(),
 #if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 resources_watching_thread_(),
+test_thread_(),
 #endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 owner_id_counter_(owner_id::none) {
 	/// TODO: Use Boost.Program_options.
@@ -241,6 +242,7 @@ monitor::~monitor() {
 
 #if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 	resources_watching_thread_.join();
+	test_thread_.join();
 #endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 }
 
@@ -284,6 +286,10 @@ void monitor::run() {
 	// Start the resources watching thread.
 	resources_watching_thread_ = boost::thread(boost::bind
 	(&monitor::watch_resources, this));
+	
+	// Start the test thread.
+	test_thread_ = boost::thread(boost::bind
+	(&monitor::test, this));
 #endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 }
 
@@ -1217,6 +1223,24 @@ void monitor::print_rate_with_precision(double rate) {
 /// one database running.
 #if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 void monitor::watch_resources() {
+	/// TESTING SPINLOCK:
+
+	if (the_monitor_interface_->sp().try_lock() == true) {
+		std::cout << "monitor::watch_resources(): try_lock(1000) succeeded!\n";
+	}
+	else {
+		std::cout << "monitor::watch_resources(): try_lock(1000) failed!\n";
+	}
+
+	do {
+		std::cout << "monitor::watch_resources(): Try to unlock me! Current value is: "
+		<< the_monitor_interface_->sp().get_lock_value() << "\n";
+		Sleep(1000);
+	} while (the_monitor_interface_->sp().is_locked());
+	
+	Sleep(INFINITE);
+	///----------------------------------------------------------------------------------
+
 	// Vector of all shared interfaces.
 	std::vector<boost::shared_ptr<shared_interface> > shared;
 	shared.reserve(256);
@@ -1570,6 +1594,31 @@ void monitor::remove_database_process_event(process_info::handle_type e) {
 		}
 	}
 }
+
+void monitor::test() {
+	Sleep(3000);
+	// Now the lock shall defenitely be locked.
+	std::cout << "monitor::test(): trying timed_lock(10000)...\n";
+	if (the_monitor_interface_->sp().timed_lock_with_pause(10000) == true) {
+		int count = 10;
+
+		do {
+			std::cout << "monitor::test(): LOCKED! Current value is: "
+			<< the_monitor_interface_->sp().get_lock_value() << "\n";
+			Sleep(400);
+		} while (--count);
+	
+		the_monitor_interface_->sp().unlock();
+		std::cout << "monitor::test(): UNLOCKED! Current value is: "
+		<< the_monitor_interface_->sp().get_lock_value() << "\n";
+	}
+	else {
+		std::cout << "monitor::test(): A timeout occurred. Giving up trying to acquire the lock.\n";
+	}
+
+	Sleep(INFINITE);
+}
+
 #endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 
 void monitor::remove_database_process_event(std::size_t group, uint32_t
