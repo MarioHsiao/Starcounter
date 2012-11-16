@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using Starcounter.ABCIPC;
 using Starcounter.ABCIPC.Internal;
+using System.Reflection;
 
 namespace Starcounter.Internal.Tests {
     
@@ -15,7 +16,26 @@ namespace Starcounter.Internal.Tests {
     /// </summary>
     [TestFixture]
     public class ABCIPCTest {
-        
+
+        /// <summary>
+        /// Executes all methods of this class that are considered
+        /// being tests.
+        /// </summary>
+        /// <remarks>
+        /// Allows this assembly to be turned into an executable and
+        /// execute tests from the OS shell.
+        /// </remarks>
+        public static void Main() {
+            var test = new ABCIPCTest();
+            foreach (var item in test.GetType().GetMethods()) {
+                if (item.ReturnType == typeof(void) &&
+                    item.GetParameters().Length == 0 &&
+                    item.GetCustomAttribute(typeof(TestAttribute)) != null) {
+                        item.Invoke(test, null);
+                }
+            }
+        }
+
         /// <summary>
         /// Tests the predicability of the public constructor of the
         /// <see cref="Client"/> class.
