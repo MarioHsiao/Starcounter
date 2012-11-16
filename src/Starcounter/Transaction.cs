@@ -356,20 +356,36 @@ namespace Starcounter
             ScrapHeap instance;
             TransactionScrap next;
             uint r;
+            bool scheduleRecycle;
 
             cpuNumber = scrap.OwnerCpu;
             instance = _instances[cpuNumber];
 
             // Add the scrap to the scrap heap.
+            //
+            // If the scrap was the first bit of scrap on the heap we post a
+            // request to cleanup the scrap on the heap.
+            //
+            // NOTE:
+            // To be able to handle the the scheduler input queue is full we
+            // _scheduleOnNextAdd to determin if to schedule a task instead of
+            // if the scrap heap was empty. If the operation should fail we
+            // reset this value and it will try again later. Currently we only
+            // retry when more scrap is added so we could have a big leak on a
+            // burst activity. Motivation for not doing a better solution is
+            // that the problem with finit input queue should be solved in the
+            // future so no point making a big effort on the workaround.
+            
             lock (instance._syncRoot) {
                 next = instance._firstScrap;
                 scrap.Next = next;
                 instance._firstScrap = scrap;
+                //scheduleRecycle = (next == null);
+                scheduleRecycle = instance._scheduleOnNextAdd;
+                instance._scheduleOnNextAdd = false;
             }
-
-            // If the scrap was the first bit of scrap on the heap we post a
-            // request to cleanup the scrap on the heap.
-            if (next != null) return;
+            
+            if (!scheduleRecycle) return;
 
             unsafe {
                 r = sccorelib.cm2_schedule(
@@ -384,13 +400,19 @@ namespace Starcounter
             }
 
             if (r == 0) return;
-            throw ErrorCode.ToException(r); // TODO: Handle queue full.
+
+            if (r == Error.SCERRINPUTQUEUEFULL) {
+                lock (instance._syncRoot) {
+                    instance._scheduleOnNextAdd = true;
+                }
+            }
+            
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>
         /// </summary>
         public static void RecycleScrap() {
-
             ThreadHelper.SetYieldBlock();
             try {
                 var schedulerNumber = sccorelib.GetCpuNumber();
@@ -405,8 +427,16 @@ namespace Starcounter
         private readonly object _syncRoot;
         private volatile TransactionScrap _firstScrap;
 
+        /// <summary>
+        /// This is here to provide a workaround to avoid unhandled exception
+        /// should the scheduler input queue be full. See ThrowAway for
+        /// details.
+        /// </summary>
+        private volatile bool _scheduleOnNextAdd;
+
         private ScrapHeap() {
             _syncRoot = new object();
+            _scheduleOnNextAdd = true;
         }
 
         private void CleanupAll() {
@@ -415,6 +445,7 @@ namespace Starcounter
             lock (_syncRoot) {
                 scrap = _firstScrap;
                 _firstScrap = null;
+                _scheduleOnNextAdd = true;
             }
 
             while (scrap != null) {
