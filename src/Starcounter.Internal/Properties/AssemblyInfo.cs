@@ -22,7 +22,7 @@ using System.Runtime.InteropServices;
 [assembly: Guid("eba56304-3b70-4c9c-ac5c-1d7dad5995ec")]
 
 // Have internals visible to the friend test assembly
-[assembly: InternalsVisibleTo("Starconter.Internal.Tests")]
+[assembly: InternalsVisibleTo("Starcounter.Internal.Tests")]
 
 // Version information for an assembly consists of the following four values:
 //
