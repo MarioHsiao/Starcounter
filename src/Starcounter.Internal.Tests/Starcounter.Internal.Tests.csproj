@@ -56,6 +56,7 @@
   <ItemGroup>
     <Compile Include="ABCIPCTest.cs" />
     <Compile Include="ErrorCodeTest.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
