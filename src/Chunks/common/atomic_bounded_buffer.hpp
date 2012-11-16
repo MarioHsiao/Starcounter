@@ -80,7 +80,6 @@ public:
 	}
 
 	bool try_push_front(param_type item) {
-		std::cout << "HELLLO!\n";
 		boost::interprocess::scoped_lock
 		<boost::interprocess::interprocess_mutex> lock(mutex_);
 
@@ -104,7 +103,6 @@ public:
 			_InterlockedIncrement(&unread_);
 			return true;
 		}
-
 		return false;
 	}
 
@@ -153,7 +151,6 @@ private:
 	char pad2[CACHE_LINE_SIZE -sizeof(size_type)];
 
 	// Mutex to protect access to the queue
-	//boost::mutex mutex_;
 	boost::interprocess::interprocess_mutex mutex_;
 
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
@@ -271,7 +268,6 @@ private:
 	char pad2[CACHE_LINE_SIZE -sizeof(size_type)];
 	
 	// Mutex to protect access to the queue
-	//boost::mutex mutex_;
 	boost::interprocess::interprocess_mutex mutex_;
 
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
@@ -313,8 +309,8 @@ public:
 	}
 
 	bool try_push_front(param_type item) {
-		boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex>
-		lock(mutex_);
+		boost::interprocess::scoped_lock
+		<boost::interprocess::interprocess_mutex> lock(mutex_);
 
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 		// Not using any synchronization to indicate that the queue is not full.
@@ -336,7 +332,6 @@ public:
 			_InterlockedIncrement(&unread_);
 			return true;
 		}
-
 		return false;
 	}
 
@@ -385,7 +380,6 @@ private:
 	char pad2[CACHE_LINE_SIZE -sizeof(size_type)];
 	
 	// Mutex to protect access to the queue
-	//boost::mutex mutex_;
 	boost::interprocess::interprocess_mutex mutex_;
 
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.

@@ -1,5 +1,5 @@
 //
-// impl/bounded_buffer.hpp
+// impl/scheduler_number_pool.hpp
 //
 // Copyright © 2006-2012 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
@@ -8,16 +8,16 @@
 // The example shows how the circular_buffer can be utilized as an underlying
 // container of the bounded buffer.
 //
-// This is a modified version of bounded_buffer that uses spin locks and takes
+// This is a modified version of scheduler_number_pool that uses spin locks and takes
 // an allocator template parameter. Multiple consumer and producer threads are
 // allowed. It is not directly based on atomics and memory order, it uses a
 // boost::mutex to protect the queue.
 //
-// Implementation of class bounded_buffer.
+// Implementation of class scheduler_number_pool.
 //
 
-#ifndef STARCOUNTER_CORE_IMPL_BOUNDED_BUFFER_HPP
-#define STARCOUNTER_CORE_IMPL_BOUNDED_BUFFER_HPP
+#ifndef STARCOUNTER_CORE_IMPL_SCHEDULER_NUMBER_POOL_HPP
+#define STARCOUNTER_CORE_IMPL_SCHEDULER_NUMBER_POOL_HPP
 
 // Implementation
 
@@ -25,36 +25,36 @@ namespace starcounter {
 namespace core {
 
 template<class T, class Alloc>
-inline bounded_buffer<T, Alloc>::bounded_buffer(size_type buffer_capacity,
-const allocator_type& alloc)
+inline scheduler_number_pool<T, Alloc>::scheduler_number_pool
+(size_type buffer_capacity, const allocator_type& alloc)
 : container_(buffer_capacity, alloc), unread_(0), spin_count_(0) {}
 
 template<class T, class Alloc>
-inline typename bounded_buffer<T, Alloc>::size_type
-bounded_buffer<T, Alloc>::size() const {
+inline typename scheduler_number_pool<T, Alloc>::size_type
+scheduler_number_pool<T, Alloc>::size() const {
 	return unread_;
 }
 
 template<class T, class Alloc>
-inline typename bounded_buffer<T, Alloc>::size_type
-bounded_buffer<T, Alloc>::capacity() const {
+inline typename scheduler_number_pool<T, Alloc>::size_type
+scheduler_number_pool<T, Alloc>::capacity() const {
 	return container_.capacity();
 }
 
 #if 0
 template<class T, class Alloc>
-inline bool bounded_buffer<T, Alloc>::empty() const {
+inline bool scheduler_number_pool<T, Alloc>::empty() const {
 	return unread_ == 0;
 }
 
 template<class T, class Alloc>
-inline bool bounded_buffer<T, Alloc>::full() const {
+inline bool scheduler_number_pool<T, Alloc>::full() const {
 	return unread_ == capacity();
 }
 #endif
 
 template<class T, class Alloc>
-inline bool bounded_buffer<T, Alloc>::push_front(param_type item, uint32_t
+inline bool scheduler_number_pool<T, Alloc>::push_front(param_type item, uint32_t
 spin_count, uint32_t timeout_milliseconds) {
 	// Spin at most spin_count number of times, and try to push the item...
 	for (std::size_t s = 0; s < spin_count_; ++s) {
@@ -86,7 +86,7 @@ spin_count, uint32_t timeout_milliseconds) {
 
 		// Wait until the queue is not full, or timeout occurs.
 		if (not_full_.timed_wait(lock, timeout,
-		boost::bind(&bounded_buffer<value_type, allocator_type>::is_not_full,
+		boost::bind(&scheduler_number_pool<value_type, allocator_type>::is_not_full,
 		this)) == true) {
 			// The queue is not full so the item can be pushed.
 			container_.push_front(item);
@@ -106,7 +106,7 @@ spin_count, uint32_t timeout_milliseconds) {
 }
 
 template<class T, class Alloc>
-inline bool bounded_buffer<T, Alloc>::pop_back(value_type* item, uint32_t
+inline bool scheduler_number_pool<T, Alloc>::pop_back(value_type* item, uint32_t
 spin_count, uint32_t timeout_milliseconds) {
 	// Spin at most spin_count number of times, and try to pop the item...
 	for (std::size_t s = 0; s < spin_count_; ++s) {
@@ -138,7 +138,7 @@ spin_count, uint32_t timeout_milliseconds) {
 
 		// Wait until the queue is not empty, or timeout occurs.
 		if (not_empty_.timed_wait(lock, timeout,
-		boost::bind(&bounded_buffer<value_type, allocator_type>::is_not_empty,
+		boost::bind(&scheduler_number_pool<value_type, allocator_type>::is_not_empty,
 		this)) == true) {
 			// The queue is not empty so the item can be popped.
 			*item = container_[--unread_];
@@ -157,7 +157,7 @@ spin_count, uint32_t timeout_milliseconds) {
 }
 
 template<class T, class Alloc>
-inline bool bounded_buffer<T, Alloc>::try_push_front(param_type item) {
+inline bool scheduler_number_pool<T, Alloc>::try_push_front(param_type item) {
 	boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex>
 	lock(mutex_, boost::interprocess::try_to_lock);
 	
@@ -183,7 +183,7 @@ inline bool bounded_buffer<T, Alloc>::try_push_front(param_type item) {
 }
 
 template<class T, class Alloc>
-inline bool bounded_buffer<T, Alloc>::try_pop_back(value_type* item) {
+inline bool scheduler_number_pool<T, Alloc>::try_pop_back(value_type* item) {
 	boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex>
 	lock(mutex_, boost::interprocess::try_to_lock);
 
@@ -206,16 +206,16 @@ inline bool bounded_buffer<T, Alloc>::try_pop_back(value_type* item) {
 }
 
 template<class T, class Alloc>
-inline bool bounded_buffer<T, Alloc>::is_not_empty() const {
+inline bool scheduler_number_pool<T, Alloc>::is_not_empty() const {
 	return unread_ > 0;
 }
 
 template<class T, class Alloc>
-inline bool bounded_buffer<T, Alloc>::is_not_full() const {
+inline bool scheduler_number_pool<T, Alloc>::is_not_full() const {
 	return unread_ < container_.capacity();
 }
 
 } // namespace core
 } // namespace starcounter
 
-#endif // STARCOUNTER_CORE_IMPL_BOUNDED_BUFFER_HPP
+#endif // STARCOUNTER_CORE_IMPL_SCHEDULER_NUMBER_POOL_HPP

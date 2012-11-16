@@ -12,6 +12,7 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
+#include <ctime>
 #include <map> /// TODO: map or unordered_map
 #include <set>
 #include <iostream>
@@ -59,6 +60,7 @@
 //#include "event.hpp"
 #include "bounded_message_buffer.hpp"
 #include "process_info.hpp"
+#include "../common/spinlock.hpp"
 #include "../common/macro_definitions.hpp"
 
 namespace {
@@ -297,6 +299,7 @@ private:
 #if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 	/// Watch resources, dor debug purpose only.
 	void watch_resources();
+	void test();
 #endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 	
 	// The monitor initializes the monitor_interface_shared_memory_object.
@@ -378,6 +381,9 @@ private:
 	// memory segments resources. Number of free: chunks, channels, and
 	// client_interfaces.
 	boost::thread resources_watching_thread_;
+
+	// The test thread tries to lock a spinlock. Debugging and testing spinlock. Remove it later.
+	boost::thread test_thread_;
 };
 
 } // namespace core

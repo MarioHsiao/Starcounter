@@ -132,7 +132,7 @@ void test::initialize(const char* database_name) {
 	// Get process id and store it in the monitor_interface.
 	pid_.set_current();
 	uint32_t error_code;
-	
+
 	// Try to register this client process pid. Wait up to 10000 ms.
 	if ((error_code = the_monitor_interface->register_client_process(pid_,
 	owner_id_, 10000/*ms*/)) != 0) {
@@ -141,6 +141,7 @@ void test::initialize(const char* database_name) {
 	}
 	
 	// Threads in this process can now acquire resources.
+	the_monitor_interface->sp().unlock();
 	
 	///=========================================================================
 	/// Open the database shared memory segment.

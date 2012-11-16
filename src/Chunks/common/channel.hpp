@@ -68,7 +68,7 @@ public:
 	// A type representing the "best" way to return the value_type from a const
 	// method.
 	typedef typename boost::call_traits<value_type>::param_type return_type;
-	
+
 	// Construction/Destruction.
 	
 	explicit channel(size_type capacity, const allocator_type& alloc

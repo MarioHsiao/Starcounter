@@ -30,6 +30,11 @@
 # include <windows.h>
 # include <intrin.h>
 #undef WIN32_LEAN_AND_MEAN
+#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+#include "../common/scheduler_number_pool.hpp"
+#else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+#include "../common/bounded_buffer.hpp"
+#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 #include "../common/channel.hpp"
 #include "../common/channel_mask.hpp"
 #include "../common/client_interface.hpp"
@@ -61,8 +66,13 @@ class scheduler_interface {
 public:
 	// Basic types
 	
+#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+	// The type of queue for channel_number.
+	typedef scheduler_number_pool<T, Alloc> channel_number_queue_type;
+#else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	// The type of queue for channel_number.
 	typedef bounded_buffer<T, Alloc> channel_number_queue_type;
+#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	
 	// The type of queue for chunk_pool.
 	typedef chunk_pool<T2, Alloc2> chunk_pool_type;
