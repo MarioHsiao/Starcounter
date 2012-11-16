@@ -449,14 +449,18 @@ namespace StarcounterInternal.Bootstrap
             else orange_nodb.orange_configure_scheduler_callbacks(ref setup);
 
             void* hsched;
-            uint e = sccorelib.cm2_setup(&setup, &hsched);
+            uint r = sccorelib.cm2_setup(&setup, &hsched);
 
             Marshal.FreeHGlobal((IntPtr)setup.name);
             Marshal.FreeHGlobal((IntPtr)setup.server_name);
             Marshal.FreeHGlobal((IntPtr)setup.db_data_dir_path);
 
-            if (e == 0) return hsched;
-            throw ErrorCode.ToException(e);
+            if (r == 0) {
+                Processor.Setup(hsched);
+                return hsched;
+            }
+
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>

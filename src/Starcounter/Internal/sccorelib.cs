@@ -519,8 +519,11 @@ namespace Starcounter.Internal
     {
 
         /// <summary>
-        /// The TYP e_ PROCES s_ PACKAGE
         /// </summary>
         public const ushort TYPE_PROCESS_PACKAGE = 0x0100;
+
+        /// <summary>
+        /// </summary>
+        public const ushort TYPE_RECYCLE_SCRAP = 0x0101;
     }
 }
