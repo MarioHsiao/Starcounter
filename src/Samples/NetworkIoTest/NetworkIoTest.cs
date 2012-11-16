@@ -574,23 +574,23 @@ namespace NetworkIoTestApp
             return true;
         }
 
+        // Loading image file from disk statically.
+        static readonly Byte[] ImageBodyBytes = File.ReadAllBytes(@"c:\github\Level1\src\Samples\NetworkIoTest\image.png");
+
         private static Boolean OnHttpGetImage(HttpRequest p)
         {
-            // Loading image file from disk.
-            Byte[] bodyBytes = File.ReadAllBytes(@"c:\github\Level1\src\Samples\NetworkIoTest\image.png");
-
             String headerString =
                 "HTTP/1.1 200 OK\r\n" +
                 "Content-Type: image/png\r\n" +
-                "Content-Length: " + bodyBytes.Length + "\r\n" +
+                "Content-Length: " + ImageBodyBytes.Length + "\r\n" +
                 "\r\n";
 
             Byte[] headerBytes = Encoding.ASCII.GetBytes(headerString);
 
             // Combining two arrays together.
-            Byte[] responseBytes = new Byte[headerBytes.Length + bodyBytes.Length];
+            Byte[] responseBytes = new Byte[headerBytes.Length + ImageBodyBytes.Length];
             headerBytes.CopyTo(responseBytes, 0);
-            bodyBytes.CopyTo(responseBytes, headerBytes.Length);
+            ImageBodyBytes.CopyTo(responseBytes, headerBytes.Length);
 
             try
             {
