@@ -34,16 +34,16 @@ namespace core {
 
 /// class common_client_interface.
 /**
- * @param T The type of the elements stored in the bounded_buffer.
+ * @param T The type of the elements stored in the client_number_pool.
  * @par Type Requirements T
- *      The T has to be SGIAssignable (SGI STL defined combination of Assignable
- *      and CopyConstructible), and EqualityComparable and/or LessThanComparable
- *      if the bounded_buffer will be compared with another container.
+ *		The T has to be SGIAssignable (SGI STL defined combination of Assignable
+ *		and CopyConstructible), and EqualityComparable and/or LessThanComparable
+ *		if the client_number_pool will be compared with another container.
  * @param Alloc The allocator type used for all internal memory management.
  * @par Type Requirements Alloc
- *      The Alloc has to meet the allocator requirements imposed by STL.
+ *		The Alloc has to meet the allocator requirements imposed by STL.
  * @par Default Alloc
- *      std::allocator<T>
+ *		std::allocator<T>
  */
 template<class T, class Alloc = std::allocator<T> >
 class common_client_interface {
@@ -51,10 +51,9 @@ public:
 	// Basic types
 	
 	// The type of queue for client_number.
-	//typedef bounded_buffer<T, Alloc> queue_type;
 	typedef client_number_pool<T, Alloc> queue_type;
 	
-	// The type of elements stored in the bounded_buffer.
+	// The type of elements stored in the client_number_pool.
 	typedef typename queue_type::value_type value_type;
 	
 	// A pointer to an element.
@@ -77,7 +76,7 @@ public:
 	// negative value of the container's distance type.)
 	typedef typename queue_type::size_type size_type;
 	
-	// The type of an allocator used in the bounded_buffer.
+	// The type of an allocator used in the client_number_pool.
 	//typedef Alloc allocator_type;
 	typedef typename queue_type::allocator_type allocator_type;
 	
@@ -97,15 +96,15 @@ public:
 	
 	// Construction/Destruction.
 	
-	/// Create an empty bounded_buffer with the specified capacity.
+	/// Create an empty client_number_pool with the specified capacity.
 	/**
 	 * @param buffer_capacity The maximum number of elements which can be stored
-	 *      in the bounded_buffer.
+	 *		in the client_number_pool.
 	 * @param alloc The allocator.
 	 * @throws "An allocation error" if memory is exhausted (std::bad_alloc if
-	 *      the standard allocator is used.)
+	 *		the standard allocator is used.)
 	 * @par Complexity
-	 *      Constant.
+	 *		Constant.
 	 */
 	explicit common_client_interface(size_type buffer_capacity,
 	const allocator_type& alloc = allocator_type())
@@ -114,7 +113,6 @@ public:
 	queue_type& client_number_pool() {
 		return client_number_pool_;
 	}
-	
 	
 	/// The monitor sets the state to database_terminated_unexpectedly if it
 	/// detects that the database process exit without having unregistered. This

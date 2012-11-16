@@ -1,5 +1,5 @@
 //
-// bounded_buffer.hpp
+// scheduler_number_pool.hpp
 //
 // Copyright © 2006-2012 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
@@ -8,14 +8,14 @@
 // The example shows how the circular_buffer can be utilized as an underlying
 // container of the bounded buffer.
 //
-// This is a modified version of bounded_buffer that uses spin locks and takes
+// This is a modified version of scheduler_number_pool that uses spin locks and takes
 // an allocator template parameter. Multiple consumer and producer threads are
 // allowed. It is not directly based on atomics and memory order, it uses a
 // boost::mutex to protect the queue.
 //
 
-#ifndef STARCOUNTER_CORE_BOUNDED_BUFFER_HPP
-#define STARCOUNTER_CORE_BOUNDED_BUFFER_HPP
+#ifndef STARCOUNTER_CORE_SCHEDULER_NUMBER_POOL_HPP
+#define STARCOUNTER_CORE_SCHEDULER_NUMBER_POOL_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
@@ -44,14 +44,14 @@
 namespace starcounter {
 namespace core {
 
-// The bounded_buffer is normally used in a producer-consumer mode when producer
+// The scheduler_number_pool is normally used in a producer-consumer mode when producer
 // threads produce items and store them in the container and consumer threads
 // remove these items and process them. The bounded buffer has to guarantee that
 // producers do not insert items into the container when the container is full,
 // that consumers do not try to remove items when the container is empty, and
 // that each produced item is consumed by exactly one consumer.
 
-// The bounded_buffer relies on Boost Threads and Boost Bind libraries and Boost
+// The scheduler_number_pool relies on Boost Threads and Boost Bind libraries and Boost
 // call_traits utility.
 
 // The push_front() method is called by the producer thread in order to insert a
@@ -80,13 +80,13 @@ namespace core {
 // new item into an old one is more effective than a destruction (removal) of an
 // old item and a consequent inplace construction (insertion) of a new item.
 
-/// class bounded_buffer
+/// class scheduler_number_pool
 /**
- * @param T The type of the elements stored in the bounded_buffer.
+ * @param T The type of the elements stored in the scheduler_number_pool.
  * @par Type Requirements T
  *		The T has to be SGIAssignable (SGI STL defined combination of Assignable
  *		and CopyConstructible), and EqualityComparable and/or LessThanComparable
- *		if the bounded_buffer will be compared with another container.
+ *		if the scheduler_number_pool will be compared with another container.
  * @param Alloc The allocator type used for all internal memory management.
  * @par Type Requirements Alloc
  *		The Alloc has to meet the allocator requirements imposed by STL.
@@ -94,14 +94,14 @@ namespace core {
  *		std::allocator<T>
  */
 template<class T, class Alloc = std::allocator<T> >
-class bounded_buffer {
+class scheduler_number_pool {
 public:
 	// Basic types
 	
-	// The type of the underlying container used in the bounded_buffer.
+	// The type of the underlying container used in the scheduler_number_pool.
 	typedef boost::circular_buffer<T, Alloc> container_type;
 	
-	// The type of elements stored in the bounded_buffer.
+	// The type of elements stored in the scheduler_number_pool.
 	typedef typename container_type::value_type value_type;
 	
 	// A pointer to an element.
@@ -124,7 +124,7 @@ public:
 	// negative value of the container's distance type.)
 	typedef typename container_type::size_type size_type;
 	
-	// The type of an allocator used in the bounded_buffer.
+	// The type of an allocator used in the scheduler_number_pool.
 	//typedef Alloc allocator_type;
 	typedef typename container_type::allocator_type allocator_type;
 	
@@ -138,66 +138,66 @@ public:
 	
 	// Construction/Destruction.
 	
-	/// Create an empty bounded_buffer with the specified capacity.
+	/// Create an empty scheduler_number_pool with the specified capacity.
 	/**
 	 * @param buffer_capacity The maximum number of elements which can be stored
-	 *		in the bounded_buffer.
+	 *		in the scheduler_number_pool.
 	 * @param alloc The allocator.
 	 * @throws "An allocation error" if memory is exhausted (std::bad_alloc if
 	 *		the standard allocator is used).
 	 * @par Complexity
 	 *		Constant.
 	 */
-	explicit bounded_buffer(size_type buffer_capacity, const allocator_type&
+	explicit scheduler_number_pool(size_type buffer_capacity, const allocator_type&
 	alloc = allocator_type());
 	
 	// Size and capacity
 	
-	/// Get the number of elements currently stored in the bounded_buffer.
+	/// Get the number of elements currently stored in the scheduler_number_pool.
 	/**
-	 * @return The number of elements stored in the bounded_buffer.
+	 * @return The number of elements stored in the scheduler_number_pool.
 	 *		This is the number of unread elements.
 	 * @throws Nothing.
 	 * @par Exception Safety
 	 *		No-throw.
 	 * @par Complexity
-	 *		Constant (in the size of the bounded_buffer).
+	 *		Constant (in the size of the scheduler_number_pool).
 	 */
 	size_type size() const;
 	
-	/// Get the capacity of the bounded_buffer.
+	/// Get the capacity of the scheduler_number_pool.
 	/**
 	 * @return The maximum number of elements which can be stored in the
-	 *		bounded_buffer.
+	 *		scheduler_number_pool.
 	 * @throws Nothing.
 	 * @par Exception Safety
 	 *		No-throw.
 	 * @par Complexity
-	 *		Constant (in the size of the bounded_buffer).
+	 *		Constant (in the size of the scheduler_number_pool).
 	 */
 	size_type capacity() const;
 	
-	/// Is the bounded_buffer empty?
+	/// Is the scheduler_number_pool empty?
 	/**
-	 * @return true if there are no elements stored in the bounded_buffer;
+	 * @return true if there are no elements stored in the scheduler_number_pool;
 	 *		false otherwise.
 	 * @throws Nothing.
 	 * @par Exception Safety
 	 *		No-throw.
 	 * @par Complexity
-	 *		Constant (in the size of the bounded_buffer).
+	 *		Constant (in the size of the scheduler_number_pool).
 	 */
 	//bool empty() const;
 	
-	/// Is the bounded_buffer full?
+	/// Is the scheduler_number_pool full?
 	/**
-	 * @return true if the number of elements stored in the bounded_buffer
-	 *		equals the capacity of the bounded_buffer; false otherwise.
+	 * @return true if the number of elements stored in the scheduler_number_pool
+	 *		equals the capacity of the scheduler_number_pool; false otherwise.
 	 * @throws Nothing.
 	 * @par Exception Safety
 	 *		No-throw.
 	 * @par Complexity
-	 *		Constant (in the size of the bounded_buffer).
+	 *		Constant (in the size of the scheduler_number_pool).
 	 */
 	//bool full() const;
 	
@@ -235,8 +235,8 @@ public:
 	bool try_pop_back(value_type* item);
 	
 private:
-	bounded_buffer(const bounded_buffer&);
-	bounded_buffer& operator=(const bounded_buffer&);
+	scheduler_number_pool(const scheduler_number_pool&);
+	scheduler_number_pool& operator=(const scheduler_number_pool&);
 
 	bool is_not_empty() const;
 	bool is_not_full() const;
@@ -245,24 +245,27 @@ private:
 	std::size_t spin_count_;
 	container_type container_;
 	
-	// Process-shared anonymous synchronization:
+	// Process-shared synchronization:
 	
-	// Mutex to protect access to the queue
-	//boost::mutex mutex_;
-	boost::interprocess::interprocess_mutex mutex_;
+	// SMP spinlock to protect access to the queue.
+	//smp::spinlock mutex_;
 	
-	// Condition to wait when the queue is not empty
-	//boost::condition not_empty_;
-	boost::interprocess::interprocess_condition not_empty_;
+	// Event to wait when the queue is not empty.
+	HANDLE not_empty_;
 	
-	// Condition to wait when the queue is not full
-	//boost::condition not_full_;
-	boost::interprocess::interprocess_condition not_full_;
+	// Event to wait when the queue is not full.
+	HANDLE not_full_;
+//------------------------------------------------------------------------------
+	// In order to reduce the time taken to open the not_empty_ and not_full_
+	// events the names are cached. Otherwise the names have to be formated
+	// before opening them.
+	wchar_t not_empty_notify_name_[segment_and_notify_name_size];
+	wchar_t not_full_notify_name_[segment_and_notify_name_size];
 };
 
 } // namespace core
 } // namespace starcounter
 
-#include "impl/bounded_buffer.hpp"
+#include "impl/scheduler_number_pool.hpp"
 
-#endif // STARCOUNTER_CORE_BOUNDED_BUFFER_HPP
+#endif // STARCOUNTER_CORE_SCHEDULER_NUMBER_POOL_HPP

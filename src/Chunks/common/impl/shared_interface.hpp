@@ -120,7 +120,7 @@ uint32_t timeout_milliseconds) {
 		open_client_work_event(get_client_number());
 	}
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-
+	
 	return have_client_number;
 }
 

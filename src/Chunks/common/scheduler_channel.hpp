@@ -26,7 +26,7 @@ template<class T, class Alloc = std::allocator<T> >
 class scheduler_channel : private boost::noncopyable {
 public:
 	// The type of queues used in the scheduler_channel.
-	typedef starcounter::core::bounded_buffer<T, Alloc> queue_type;
+	typedef bounded_buffer<T, Alloc> queue_type;
 	
 	// The type of elements stored in the scheduler_channel.
 	typedef typename queue_type::value_type value_type;
