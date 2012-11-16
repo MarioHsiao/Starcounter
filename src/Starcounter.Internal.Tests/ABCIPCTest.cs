@@ -63,5 +63,56 @@ namespace Starcounter.Internal.Tests {
                 new Server(() => { return string.Empty; }, null);
             }));
         }
+
+        /// <summary>
+        /// Tests <see cref="Client.Send(string)"/> with focus on the
+        /// possible return values that doesn't trigger exceptions.
+        /// </summary>
+        /// <remarks>
+        /// These are the known, and tested, return possibilities:
+        /// OK
+        /// OKWithCarry
+        /// Fail
+        /// FailWithCarry
+        /// </remarks>
+        [Test]
+        public void TestClientSendReturnValues() {
+            Client c;
+            
+            // Create a client who will only receive "OK"
+            // replies, and send a message through it, asserting
+            // it was properly interpreted.
+            c = new Client((s) => { }, () => {
+                return Reply.Protocol.MakeString(Reply.ReplyType.OK);
+            });
+            Assert.True(c.Send("Foo"));
+
+            // Do the same, but this time assume failure.
+            c = new Client((s) => { }, () => {
+                return Reply.Protocol.MakeString(Reply.ReplyType.Fail);
+            });
+            Assert.False(c.Send("Foo"));
+
+            // Now create a client that returns OK, with a carry,
+            // one we can properly retreive
+            c = new Client((s) => { }, () => {
+                return Reply.Protocol.MakeString(Reply.ReplyType.OKWithCarry, "Foo");
+            });
+            Assert.True(c.Send("Foo", (Reply r) => {
+                string response;
+                Assert.True(r.TryGetCarry(out response));
+                Assert.True(response.Equals("Foo"));
+            }));
+
+            // And then the same, but with a failure.
+            c = new Client((s) => { }, () => {
+                return Reply.Protocol.MakeString(Reply.ReplyType.FailWithCarry, "Foo");
+            });
+            Assert.False(c.Send("Foo", (Reply r) => {
+                string response;
+                Assert.True(r.TryGetCarry(out response));
+                Assert.True(response.Equals("Foo"));
+            }));
+        }
     }
 }
