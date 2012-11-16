@@ -42,16 +42,26 @@ namespace Starcounter.Internal.Tests {
         /// </summary>
         [Test]
         public void TestClientConstructor() {
-            try {
+            Assert.Throws<ArgumentNullException>(new TestDelegate(() => {
                 new Client(null, () => { return string.Empty; });
-            } catch (ArgumentNullException) {
-                try {
-                    new Client((s) => { }, null);
-                } catch (ArgumentNullException) {
-                    return;
-                }
-            }
-            Assert.Fail();
+            }));
+            Assert.Throws<ArgumentNullException>(new TestDelegate(() => {
+                new Client((s) => { }, null);
+            }));
+        }
+
+        /// <summary>
+        /// Tests the predicability of the public constructor of the
+        /// <see cref="Server"/> class.
+        /// </summary>
+        [Test]
+        public void TestServerConstructor() {
+            Assert.Throws<ArgumentNullException>(new TestDelegate(() => {
+                new Server(null, (message, isEndOfRequest) => { });
+            }));
+            Assert.Throws<ArgumentNullException>(new TestDelegate(() => {
+                new Server(() => { return string.Empty; }, null);
+            }));
         }
     }
 }
