@@ -128,7 +128,7 @@ uint32_t SocketDataChunk::ContinueAccumulation(GatewayWorker* gw, bool* is_accum
 }
 
 // Clones existing socket data chunk for receiving.
-uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw, SocketDataChunk** out_sd)
+uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
 {
     // Since another socket is going to be attached.
     set_receiving_flag(false);
@@ -144,8 +144,8 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw, SocketDataChunk** ou
     // This socket becomes attached.
     sd_clone->set_receiving_flag(true);
 
-    // Assigning obtained socket data.
-    *out_sd = sd_clone;
+    // Setting the clone for the next iteration.
+    gw->SetReceiveClone(sd_clone);
 
     return 0;
 }
@@ -280,30 +280,58 @@ uint32_t SocketDataChunk::ReturnExtraLinkedChunks(GatewayWorker* gw)
 }
 
 // Checking that database and corresponding port handler exists.
-bool SocketDataChunk::CheckSocketIsValid(GatewayWorker* gw)
+bool SocketDataChunk::ForceSocketDataValidity(GatewayWorker* gw)
 {
     // Checking if socket should be deleted.
     if (g_gateway.ShouldSocketBeDeleted(sock_))
-    {
-        // Vanishing socket.
-        gw->VanishSocketData(this);
-
-        return false;
-    }
+        goto CORRECT_STATISTICS_AND_RELEASE_CHUNK;
 
     // Checking the database.
     ActiveDatabase* active_db = g_gateway.GetDatabase(db_index_);
 
     // Checking that attached database is correct.
     if ((active_db != NULL) && (db_unique_seq_num_ == active_db->unique_num()))
+        return true;
+
+CORRECT_STATISTICS_AND_RELEASE_CHUNK:
+
+    // Getting corresponding server port.
+    ServerPort* server_port = g_gateway.get_server_port(port_index_);
+
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+    server_port->ChangeNumPendingNetworkOperations(db_index_, -1);
+#endif
+
+    // Checking type of operation.
+    switch (type_of_network_oper_)
     {
-        ServerPort* serverPort = g_gateway.get_server_port(port_index_);
-        if (serverPort != NULL)
-            return true;
+        // ACCEPT, CONNECT finished.
+        case ACCEPT_OPER:
+        case CONNECT_OPER:
+        case SEND_OPER:
+        {
+            // Do nothing.
+            break;
+        }
+
+        // DISCONNECT, SEND, RECEIVE finished.
+        case DISCONNECT_OPER:
+        case RECEIVE_OPER:
+        {
+            server_port->ChangeNumActiveConns(db_index_, -1);
+            break;
+        }
+
+        // Unknown operation.
+    default:
+        {
+            // NOTE: This situation should never happen.
+            assert(1 == 0);
+        }
     }
 
-    // Vanishing socket data.
-    gw->VanishSocketData(this);
+    // Releasing socket data chunks back to pool.
+    gw->GetDatabase(db_index_)->ReturnSocketDataChunksToPool(gw, this);
 
     return false;
 }

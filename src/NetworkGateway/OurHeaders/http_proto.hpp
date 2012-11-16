@@ -5,23 +5,6 @@
 namespace starcounter {
 namespace network {
 
-// HTTP/WebSockets fields.
-enum HttpWsFields
-{
-    GET_FIELD,
-    POST_FIELD,
-    COOKIE_FIELD,
-    CONTENT_LENGTH,
-    ACCEPT_FIELD,
-    ACCEPT_ENCODING_FIELD,
-    COMPRESSION_FIELD,
-    UPGRADE_FIELD,
-    WS_KEY_FIELD,
-    WS_VERSION_FIELD,
-    WS_PROTOCOL_FIELD,
-    UNKNOWN_FIELD
-};
-
 // Type of HTTP/WebSockets response.
 enum HttpWsResponseType
 {

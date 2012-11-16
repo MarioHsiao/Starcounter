@@ -45,6 +45,7 @@ typedef uint64_t session_salt_type;
 typedef uint32_t session_index_type;
 
 // Some defines, e.g. debugging, statistics, etc.
+//#define GW_COLLECT_SOCKET_STATISTICS
 //#define GW_GLOBAL_STATISTICS
 //#define GW_SOCKET_DIAG
 //#define GW_HTTP_DIAG
@@ -55,6 +56,59 @@ typedef uint32_t session_index_type;
 #define GW_DATABASES_DIAG
 #define GW_SESSIONS_DIAG
 //#define GW_PONG_MODE
+
+// TODO: Move error codes to errors XML!
+#define SCERRGWINCORRECTHANDLER 12345
+#define SCERRGWFAILEDWSARECV 12346
+#define SCERRGWSOCKETCLOSEDBYPEER 12347
+#define SCERRGWDATAFROMABANDONEDSOCKET 12348
+#define SCERRGWFAILEDWSASEND 12349
+#define SCERRGWDISCONNECTAFTERSENDFLAG 12350
+#define SCERRGWWEBSOCKETOPCODECLOSE 12351
+#define SCERRGWWEBSOCKETUNKNOWNOPCODE 12352
+#define SCERRGWSOCKETISTRACKEDALREADY 12353
+#define SCERRGWSOCKETISNOTACTIVE 12354
+#define SCERRGWMAXPORTHANDLERS 12355
+#define SCERRGWHANDLEREXISTS 12356
+#define SCERRGWWRONGHANDLERTYPE 12357
+#define SCERRGWHANDLERNOTFOUND 12358
+#define SCERRGWPORTNOTHANDLED 12359
+#define SCERRGWPUSHEDTOOVERFLOWPOOL 12360
+#define SCERRGWSOCKETDATAWRONGDATABASE 12361
+#define SCERRGWNONHTTPPROTOCOL 12362
+#define SCERRGWCANTACQUIRECLIENTINTERFACE 12363
+#define SCERRGWHTTPTOOMANYHEADERS 12364
+#define SCERRGWCANTACQUIRECHANNEL 12365
+#define SCERRGWHTTPWRONGSESSIONINDEXFORMAT 12366
+#define SCERRGWHTTPWRONGSESSIONSALTFORMAT 12367
+#define SCERRGWHTTPWRONGSESSION 12368
+#define SCERRGWBMXCHUNKWRONGFORMAT 12369
+#define SCERRGWHTTPNONWEBSOCKETSUPGRADE 12370
+#define SCERRGWHTTPWRONGWEBSOCKETSVERSION 12371
+#define SCERRGWHTTPINCORRECTDATA 12372
+#define SCERRGWHTTPPROCESSFAILED 12373
+#define SCERRGWWRONGBMXCHUNKTYPE 12374
+#define SCERRGWWRONGARGS 12375
+#define SCERRGWCANTCREATELOGDIR 12376
+#define SCERRGWCANTLOADXMLSETTINGS 12377
+#define SCERRGWFAILEDASSERTCORRECTSTATE 12378
+#define SCERRGWPATHTOIPCMONITORDIR 12379
+#define SCERRGWACTIVEDBLISTENPROBLEM 12380
+#define SCERRGWHTTPSPROCESSFAILED 12381
+#define SCERRGWWORKERISDEAD 12382
+#define SCERRGWDATABASEMONITORISDEAD 12383
+#define SCERRGWINCORRECTBYTESSEND 12384
+#define SCERRGWSOCKETNOTCONNECTED 12385
+#define SCERRGWFAILEDDISCONNECTEX 12386
+#define SCERRGWCONNECTEXFAILED 12387
+#define SCERRGWACCEPTEXFAILED 12388
+#define SCERRGWUNKNOWNIOCPOPERATION 12389
+#define SCERRGWWORKERROUTINEFAILED 12390
+#define SCERRGWMAXHANDLERSREACHED 12391
+#define SCERRGWWRONGHANDLERINSLOT 12392
+#define SCERRGWPORTPROCESSFAILED 12393
+#define SCERRGWCANTRELEASETOSHAREDPOOL 12394
+#define SCERRGWFAILEDFINDNEXTCHANGENOTIFICATION 12395
 
 // Maximum number of ports the gateway operates with.
 const int32_t MAX_PORTS_NUM = 16;
@@ -112,11 +166,7 @@ const uint64_t INVALID_APPS_UNIQUE_SESSION_NUMBER = 0;
 
 // Maximum number of chunks to keep in private chunk pool
 // until we release them to shared chunk pool.
-const int32_t MAX_CHUNKS_IN_PRIVATE_POOL = 512;
-
-// Number of chunks to leave in private chunk pool after releasing
-// rest of the chunks to shared chunk pool.
-const int32_t NUM_CHUNKS_TO_LEAVE_IN_PRIVATE_POOL = 256;
+const int32_t MAX_CHUNKS_IN_PRIVATE_POOL = 256;
 
 // Offset of overlapped data structure inside socket data chunk:
 const int32_t OVL_OFFSET_IN_CHUNK = 24;
@@ -138,9 +188,6 @@ const int32_t MAX_ACTIVE_SERVER_PORTS = 32;
 
 // Maximum port handle integer.
 const int32_t MAX_SOCKET_HANDLE = 100000;
-
-// Session string length in characters.
-const int32_t SC_SESSION_STRING_LEN_CHARS = 24;
 
 // User data offset in blobs for different protocols.
 const int32_t HTTP_BLOB_USER_DATA_OFFSET = 0;
@@ -500,6 +547,7 @@ public:
     }
 };
 
+// Represents a session in terms of gateway/apps.
 struct ScSessionStruct
 {
     // Session random salt.
@@ -519,6 +567,12 @@ struct ScSessionStruct
     ScSessionStruct()
     {
         Reset();
+    }
+
+    // Checks if session is valid.
+    bool IsValid()
+    {
+        return (scheduler_id_ != INVALID_SCHEDULER_ID) && (session_index_ != INVALID_SESSION_INDEX);
     }
 
     // Reset.
@@ -696,7 +750,7 @@ class ActiveDatabase
     HANDLE channels_events_thread_handle_;
 
     // Apps session numbers.
-    apps_unique_session_num_type* apps_sessions_;
+    apps_unique_session_num_type* apps_sessions_unsafe_;
 
 public:
 
@@ -705,13 +759,13 @@ public:
         session_index_type session_index,
         apps_unique_session_num_type apps_session_value)
     {
-        apps_sessions_[session_index] = apps_session_value;
+        apps_sessions_unsafe_[session_index] = apps_session_value;
     }
 
     // Gets value for Apps specific session.
     apps_unique_session_num_type GetAppsSessionValue(session_index_type session_index)
     {
-        return apps_sessions_[session_index];
+        return apps_sessions_unsafe_[session_index];
     }
 
     // Spawns channels events monitor thread.
@@ -759,12 +813,6 @@ public:
         return user_handlers_;
     }
 
-    // Getting the number of used chunks.
-    int64_t num_used_chunks()
-    {
-        return num_used_chunks_;
-    }
-
     // Getting the number of used sockets.
     int64_t num_used_sockets()
     {
@@ -775,31 +823,34 @@ public:
     void ChangeNumUsedChunks(int64_t change_value)
     {
         InterlockedAdd64(&num_used_chunks_, change_value);
+        //GW_COUT << "ChangeNumUsedChunks: " << change_value << " and " << num_used_chunks_ << std::endl;
+    }
+
+    // Getting the number of used chunks.
+    int64_t num_used_chunks()
+    {
+        return num_used_chunks_;
     }
 
     // Closes all tracked sockets.
     void CloseSocketData();
 
     // Tracks certain socket.
-    uint32_t TrackSocket(SOCKET s)
+    void TrackSocket(SOCKET s, uint32_t port_index)
     {
-        if (active_sockets_[s])
-            return 1;
+        assert(active_sockets_[s] == false);
 
         InterlockedAdd64(&num_used_sockets_, 1);
         active_sockets_[s] = true;
-        return 0;
     }
 
     // Untracks certain socket.
-    uint32_t UntrackSocket(SOCKET s)
+    void UntrackSocket(SOCKET s)
     {
-        if (!active_sockets_[s])
-            return 1;
+        assert(active_sockets_[s] == true);
 
         InterlockedAdd64(&num_used_sockets_, -1);
         active_sockets_[s] = false;
-        return 0;
     }
 
     // Makes this database slot empty.
@@ -857,6 +908,7 @@ class ServerPort
     // Statistics.
     volatile int64_t num_allocated_sockets_[MAX_ACTIVE_DATABASES];
     volatile int64_t num_active_conns_[MAX_ACTIVE_DATABASES];
+    volatile int64_t num_pending_network_operations_[MAX_ACTIVE_DATABASES];
 
     // Offset for the user data to be written.
     int32_t blob_user_data_offset_;
@@ -942,6 +994,13 @@ public:
         return num_active_conns_[db_index];
     }
 
+    // Increments or decrements the number of active connections.
+    int64_t ChangeNumActiveConns(int32_t db_index, int64_t changeValue)
+    {
+        InterlockedAdd64(&(num_active_conns_[db_index]), changeValue);
+        return num_active_conns_[db_index];
+    }
+
     // Retrieves the number of allocated sockets.
     int64_t get_num_allocated_sockets(int32_t db_index)
     {
@@ -955,18 +1014,28 @@ public:
         return num_allocated_sockets_[db_index];
     }
 
-    // Increments or decrements the number of active connections.
-    int64_t ChangeNumActiveConns(int32_t db_index, int64_t changeValue)
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+
+    // Retrieves the number of pending sockets.
+    int64_t get_num_pending_network_operations(int32_t db_index)
     {
-        InterlockedAdd64(&(num_active_conns_[db_index]), changeValue);
-        return num_active_conns_[db_index];
+        return num_pending_network_operations_[db_index];
     }
+
+    // Increments or decrements the number of pending network operations.
+    int64_t ChangeNumPendingNetworkOperations(int32_t db_index, int64_t changeValue)
+    {
+        InterlockedAdd64(&(num_pending_network_operations_[db_index]), changeValue);
+        return num_pending_network_operations_[db_index];
+    }
+#endif
 
     // Resets the number of created sockets and active connections.
     void Reset(int32_t db_index)
     {
         InterlockedAnd64(&(num_allocated_sockets_[db_index]), 0);
         InterlockedAnd64(&(num_active_conns_[db_index]), 0);
+        InterlockedAnd64(&(num_pending_network_operations_[db_index]), 0);
     }
 };
 
@@ -1048,7 +1117,10 @@ class Gateway
     SocketData sockets_data_unsafe_[MAX_SOCKET_HANDLE];
 
     // Represents delete state for all sockets.
-    bool deleted_sockets_[MAX_SOCKET_HANDLE];
+    bool deleted_sockets_unsafe_[MAX_SOCKET_HANDLE];
+
+    // Indexes to server ports.
+    uint8_t sockets_port_indexes_unsafe_[MAX_SOCKET_HANDLE];
 
     // Free session indexes.
     uint32_t *free_session_indexes_unsafe_;
@@ -1099,6 +1171,28 @@ class Gateway
 
 public:
 
+    // Tracks certain socket.
+    void TrackSocket(SOCKET s, uint32_t port_index)
+    {
+        assert(sockets_port_indexes_unsafe_[s] == 255);
+
+        sockets_port_indexes_unsafe_[s] = port_index;
+    }
+
+    // Untracks certain socket.
+    void UntrackSocket(SOCKET s)
+    {
+        assert(sockets_port_indexes_unsafe_[s] < MAX_PORTS_NUM);
+
+        sockets_port_indexes_unsafe_[s] = 255;
+    }
+
+    // Get socket port index.
+    uint8_t GetSocketPortIndex(SOCKET s)
+    {
+        return sockets_port_indexes_unsafe_[s];
+    }
+
     // Getting settings log file directory.
     std::wstring& get_setting_log_file_dir()
     {
@@ -1146,19 +1240,19 @@ public:
     // Getting state of the socket.
     bool ShouldSocketBeDeleted(SOCKET sock)
     {
-        return deleted_sockets_[sock];
+        return deleted_sockets_unsafe_[sock];
     }
 
     // Deletes specific socket.
-    void MarkDeleteSocket(SOCKET sock)
+    void MarkSocketDelete(SOCKET sock)
     {
-        deleted_sockets_[sock] = true;
+        deleted_sockets_unsafe_[sock] = true;
     }
 
     // Makes specific socket available.
     void MarkSocketAlive(SOCKET sock)
     {
-        deleted_sockets_[sock] = false;
+        deleted_sockets_unsafe_[sock] = false;
     }
 
     // Getting gateway handlers.
@@ -1429,15 +1523,15 @@ public:
         return 0;
     }
 
-    // Generates new global session.
-    ScSessionStruct* GenerateNewSession(
+    // Generates new global session and returns its copy (or bad session if reached the limit).
+    ScSessionStruct GenerateNewSessionAndReturnCopy(
         session_salt_type session_salt,
         apps_unique_session_num_type apps_unique_session_num,
         uint32_t scheduler_id)
     {
         // Checking that we have not reached maximum number of sessions.
         if (num_active_sessions_unsafe_ >= setting_max_connections_)
-            return NULL;
+            return ScSessionStruct();
 
         // Entering the critical section.
         EnterCriticalSection(&cs_session_);
@@ -1459,18 +1553,18 @@ public:
         LeaveCriticalSection(&cs_session_);
 
         // Returning new critical section.
-        return all_sessions_unsafe_ + free_session_index;
+        return *(all_sessions_unsafe_ + free_session_index);
     }
 
     // Gets session data by index.
-    ScSessionStruct* GetSessionData(session_index_type session_index)
+    ScSessionStruct GetGlobalSessionDataCopy(session_index_type session_index)
     {
-        // Checking validity of linear session index.
+        // Checking validity of linear session index other wise return a wrong copy.
         if (INVALID_SESSION_INDEX == session_index)
-            return NULL;
+            return ScSessionStruct();
 
         // Fetching the session by index.
-        return all_sessions_unsafe_ + session_index;
+        return *(all_sessions_unsafe_ + session_index);
     }
 };
 

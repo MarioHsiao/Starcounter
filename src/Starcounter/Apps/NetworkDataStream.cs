@@ -8,6 +8,7 @@ using System;
 using System.Runtime.InteropServices;
 using HttpStructs;
 using Starcounter.Internal;
+using System.Diagnostics;
 
 namespace Starcounter
 {
@@ -73,13 +74,20 @@ namespace Starcounter
         public const Int32 USER_DATA_WRITTEN_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 32;
 
         /// <summary>
+        /// Invalid chunk index.
+        /// </summary>
+        const UInt32 INVALID_CHUNK_INDEX = UInt32.MaxValue;
+
+        /// <summary>
         /// The unmanaged_chunk_
         /// </summary>
         Byte* unmanaged_chunk_;
+
         /// <summary>
         /// The single_chunk_
         /// </summary>
         Boolean single_chunk_;
+
         /// <summary>
         /// The chunk_index_
         /// </summary>
@@ -194,6 +202,10 @@ namespace Starcounter
         /// <param name="length">The length.</param>
         public void Write(Byte[] buffer, Int32 offset, Int32 length)
         {
+            // Checking if already destroyed.
+            if (chunk_index_ == INVALID_CHUNK_INDEX)
+                return;
+
             // TODO:
             // It should be possible to call Write several times and each time 
             // the data is sent to the gateway. 
@@ -202,12 +214,35 @@ namespace Starcounter
             fixed (Byte* p = buffer)
             {
                 // Processing user data and sending it to gateway.
-                UInt32 ec = bmx.sc_bmx_send_buffer(p + offset, (UInt32)length, chunk_index_, unmanaged_chunk_);
+                UInt32 cur_chunk_index = chunk_index_;
+                UInt32 ec = bmx.sc_bmx_send_buffer(p + offset, (UInt32)length, &cur_chunk_index, unmanaged_chunk_);
+                chunk_index_ = cur_chunk_index;
 
                 // Checking if any error occurred.
                 if (ec != 0)
+                {
+                    Console.WriteLine("Failed to obtain chunk!");
                     throw ErrorCode.ToException(ec);
+                }
             }
+        }
+
+        /// <summary>
+        /// Frees all data stream resources like chunks.
+        /// </summary>
+        public void Destroy()
+        {
+            // Checking if already destroyed.
+            if (chunk_index_ == INVALID_CHUNK_INDEX)
+                return;
+
+            // Returning linked chunks to pool.
+            UInt32 ec = bmx.sc_bmx_release_linked_chunks(chunk_index_);
+            Debug.Assert(ec == 0);
+
+            // This data stream becomes unusable.
+            unmanaged_chunk_ = null;
+            chunk_index_ = INVALID_CHUNK_INDEX;
         }
     }
 }
