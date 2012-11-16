@@ -121,11 +121,22 @@ namespace Starcounter
     }
 
     /// <summary>
+    /// Represents a long running transaction.
     /// </summary>
     public partial class Transaction : IDisposable {
 
         private const ulong _INVALID_VERIFY = 0xFF;
 
+        /// <summary>
+        /// Current long running transaction.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Note that in the case of a short running transaction (a transaction
+        /// scope) this value will be null (motivation for not supporting
+        /// fetching current transaction).
+        /// </para>
+        /// </remarks>
         [ThreadStatic]
         private static Transaction _current; // TODO: Only long running transactions.
 
@@ -318,6 +329,9 @@ namespace Starcounter
     }
     
     /// <summary>
+    /// Used to clean up garbage collected objects that could not be freed by
+    /// garbage collector directly because the associated memory is associated
+    /// with a specific scheduler.
     /// </summary>
     public sealed class ScrapHeap {
 
