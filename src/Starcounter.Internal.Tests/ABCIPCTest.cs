@@ -18,26 +18,7 @@ namespace Starcounter.Internal.Tests {
     public class ABCIPCTest {
 
         /// <summary>
-        /// Executes all methods of this class that are considered
-        /// being tests.
-        /// </summary>
-        /// <remarks>
-        /// Allows this assembly to be turned into an executable and
-        /// execute tests from the OS shell.
-        /// </remarks>
-        public static void Main() {
-            var test = new ABCIPCTest();
-            foreach (var item in test.GetType().GetMethods()) {
-                if (item.ReturnType == typeof(void) &&
-                    item.GetParameters().Length == 0 &&
-                    item.GetCustomAttribute(typeof(TestAttribute)) != null) {
-                        item.Invoke(test, null);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Tests the predicability of the public constructor of the
+        /// Tests the predictability of the public constructor of the
         /// <see cref="Client"/> class.
         /// </summary>
         [Test]
@@ -51,7 +32,7 @@ namespace Starcounter.Internal.Tests {
         }
 
         /// <summary>
-        /// Tests the predicability of the public constructor of the
+        /// Tests the predictability of the public constructor of the
         /// <see cref="Server"/> class.
         /// </summary>
         [Test]
