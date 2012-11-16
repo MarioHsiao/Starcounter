@@ -432,6 +432,18 @@ namespace HttpStructs
         }
 
         /// <summary>
+        /// Checks if HttpStructs is destroyed already.
+        /// </summary>
+        /// <returns>True if destroyed.</returns>
+        public bool IsDestroyed()
+        {
+            unsafe
+            {
+                return (http_request_struct_ == null) && (session_ == null);
+            }
+        }
+
+        /// <summary>
         /// Called when GC destroys this object.
         /// </summary>
         ~HttpRequest()

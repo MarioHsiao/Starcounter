@@ -187,7 +187,7 @@ inline int OnBody(http_parser* p, const char *at, size_t length)
 }
 
 // Global HTTP parser settings.
-http_parser_settings g_httpParserSettings;
+http_parser_settings* g_httpParserSettings = NULL;
 
 // Declaring thread-safe parser structure.
 __declspec(thread) HttpParserStruct thread_parser;
@@ -195,14 +195,16 @@ __declspec(thread) HttpParserStruct thread_parser;
 // Initializes the internal Apps HTTP request parser.
 EXTERN_C uint32_t sc_init_http_parser()
 {
+    g_httpParserSettings = new http_parser_settings();
+
     // Setting HTTP callbacks.
-    g_httpParserSettings.on_body = OnBody;
-    g_httpParserSettings.on_header_field = OnHeaderField;
-    g_httpParserSettings.on_header_value = OnHeaderValue;
-    g_httpParserSettings.on_headers_complete = OnHeadersComplete;
-    g_httpParserSettings.on_message_begin = OnMessageBegin;
-    g_httpParserSettings.on_message_complete = OnMessageComplete;
-    g_httpParserSettings.on_url = OnUri;
+    g_httpParserSettings->on_body = OnBody;
+    g_httpParserSettings->on_header_field = OnHeaderField;
+    g_httpParserSettings->on_header_value = OnHeaderValue;
+    g_httpParserSettings->on_headers_complete = OnHeadersComplete;
+    g_httpParserSettings->on_message_begin = OnMessageBegin;
+    g_httpParserSettings->on_message_complete = OnMessageComplete;
+    g_httpParserSettings->on_url = OnUri;
 
     return 0;
 }
@@ -210,13 +212,15 @@ EXTERN_C uint32_t sc_init_http_parser()
 // Parses HTTP request from the given buffer and returns corresponding instance of HttpRequest.
 EXTERN_C uint32_t sc_parse_http_request(uint8_t* request_buf, uint32_t request_size_bytes, uint8_t* out_http_request)
 {
+    assert(g_httpParserSettings != NULL);
+
     // Resetting the parser structure.
     thread_parser.Reset(request_buf, (HttpRequest*)out_http_request);
 
     // Executing HTTP parser.
     size_t bytes_parsed = http_parser_execute(
         (http_parser *)&thread_parser,
-        &g_httpParserSettings,
+        g_httpParserSettings,
         (const char *)request_buf,
         request_size_bytes);
 
@@ -225,7 +229,7 @@ EXTERN_C uint32_t sc_parse_http_request(uint8_t* request_buf, uint32_t request_s
     {
         std::cout << "Incomplete HTTP request headers supplied!" << std::endl;
 
-        return SCERRUNSPECIFIED;
+        return SCERRAPPSHTTPPARSERINCOMPLETEHEADERS;
     }
 
     // Checking that all bytes are parsed.
@@ -233,7 +237,7 @@ EXTERN_C uint32_t sc_parse_http_request(uint8_t* request_buf, uint32_t request_s
     {
         std::cout << "Provided HTTP request has incorrect data!" << std::endl;
 
-        return SCERRUNSPECIFIED;
+        return SCERRAPPSHTTPPARSERINCORRECT;
     }
 
     HttpRequest* http_request = thread_parser.http_request_;
