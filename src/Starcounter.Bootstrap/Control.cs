@@ -17,6 +17,7 @@ using Starcounter.Internal; // TODO:
 using Starcounter.Logging;
 using StarcounterInternal.Hosting;
 using Error = Starcounter.Internal.Error;
+using HttpStructs;
 
 namespace StarcounterInternal.Bootstrap
 {
@@ -119,6 +120,9 @@ namespace StarcounterInternal.Bootstrap
             ulong hmenv = ConfigureMemory(configuration, mem);
             mem += 512;
             OnKernelMemoryConfigured();
+
+            // Initializing Apps internal HTTP request parser.
+            HttpRequest.sc_init_http_parser();
 
             // Initializing the BMX manager if network gateway is used.
             if (!configuration.NoNetworkGateway)

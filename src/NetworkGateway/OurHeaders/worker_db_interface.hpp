@@ -196,7 +196,7 @@ public:
             GW_ERR_CHECK(err_code);
         }
 
-        // Chunk has been acquired.
+        // Changing number of database chunks.
         g_gateway.GetDatabase(db_index_)->ChangeNumUsedChunks(1);
 
         // Getting data pointer.
@@ -212,41 +212,11 @@ public:
         return 0;
     }
 
-    // Obtains needed linked chunks from a private pool if its not empty
-    // (otherwise fetches them from shared chunk pool).
-    uint32_t GetLinkedChunksFromPrivatePool(core::chunk_index* out_chunk_index, uint32_t num_bytes)
-    {
-        // Determining number of chunks needed.
-        uint32_t num_chunks_needed = num_bytes / bmx::MAX_DATA_BYTES_IN_CHUNK;
-
-        // Trying to fetch chunk from private pool.
-        uint32_t err_code;
-        while (!private_chunk_pool_.acquire_linked_chunks(&shared_int_.chunk(0), *out_chunk_index, num_bytes))
-        {
-            // Getting chunks from shared chunk pool.
-            err_code = AcquireChunksFromSharedPool(num_chunks_needed);
-            GW_ERR_CHECK(err_code);
-        }
-
-        // Chunks have been acquired.
-        g_gateway.GetDatabase(db_index_)->ChangeNumUsedChunks(num_chunks_needed);
-
-        // Getting data pointer.
-        //(*chunk_data) = (shared_memory_chunk *)(&shared_int_.chunk(chunk_index));
-
-#ifdef GW_CHUNKS_DIAG
-        GW_COUT << "Getting new linked chunks: " << *out_chunk_index << std::endl;
-#endif
-
-        return 0;
-    }
-
     // Returns given socket data chunk to private chunk pool.
     uint32_t ReturnSocketDataChunksToPool(GatewayWorker *gw, SocketDataChunk *sd);
 
     // Returns given linked chunks to private chunk pool (and if needed then to shared).
     uint32_t ReturnLinkedChunksToPool(int32_t num_linked_chunks, core::chunk_index& first_linked_chunk);
-    uint32_t ReturnLinkedChunksToPool(shared_memory_chunk* chunk_smc, core::chunk_index& first_linked_chunk);
 
     // Handles management chunks.
     uint32_t HandleManagementChunks(GatewayWorker *gw, shared_memory_chunk* smc);

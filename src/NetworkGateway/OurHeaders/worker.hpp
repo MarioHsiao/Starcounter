@@ -37,7 +37,31 @@ class GatewayWorker
     // Random generator.
     random_generator* rand_gen_;
 
+    // Clone made during last iteration.
+    SocketDataChunk *sd_receive_clone_;
+
 public:
+
+    // Checks if cloning was performed and does operations.
+    uint32_t ProcessReceiveClones(SocketDataChunk *sd, bool just_delete_clone);
+
+    // Sets the clone for the next iteration.
+    void SetReceiveClone(SocketDataChunk *sd_clone)
+    {
+        // Only one clone at a time is possible.
+        assert(sd_receive_clone_ == NULL);
+
+        sd_receive_clone_ = sd_clone;
+    }
+
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+    // Changes number of pending network operations.
+    void ChangeNumPendingNetworkOperations(SocketDataChunk* sd, int64_t changeValue)
+    {
+        //GW_COUT << "ChangeNumPendingSockets: " << changeValue << std::endl;
+        g_gateway.get_server_port(sd->get_port_index())->ChangeNumPendingNetworkOperations(sd->get_db_index(), changeValue);
+    }
+#endif
 
     // Getting random generator.
     random_generator* get_random()
@@ -157,7 +181,6 @@ public:
     uint32_t FinishReceive(SocketDataChunk *sd, int32_t numBytesReceived, bool& called_from_receive);
     uint32_t FinishSend(SocketDataChunk *sd, int32_t numBytesSent);
     uint32_t FinishDisconnect(SocketDataChunk *sd);
-    uint32_t VanishSocketData(SocketDataChunk *sd);
     uint32_t FinishConnect(SocketDataChunk *sd);
     uint32_t FinishAccept(SocketDataChunk *sd, int32_t numBytesReceived);
 
@@ -165,7 +188,7 @@ public:
     uint32_t Connect(SocketDataChunk *sd, sockaddr_in *serverAddr);
 
     // Running disconnect on socket data.
-    uint32_t Disconnect(SocketDataChunk *sd);
+    uint32_t DisconnectAndReleaseChunk(SocketDataChunk *sd);
 
     // Running send on socket data.
     uint32_t Send(SocketDataChunk *sd);
@@ -184,12 +207,11 @@ public:
 
         // Here we have to process socket data using handlers.
         uint32_t err_code = sd->RunHandlers(this);
-        if (0 != err_code)
+        if (err_code)
         {
-            // Disconnecting socket.
-            Disconnect(sd);
-
             // Ban the fucking IP.
+
+            return err_code;
         }
 
         return 0;
@@ -203,12 +225,11 @@ public:
 
         // Here we have to process socket data using handlers.
         uint32_t err_code = sd->RunHandlers(this);
-        if (0 != err_code)
+        if (err_code)
         {
-            // Disconnecting socket.
-            Disconnect(sd);
-
             // Ban the fucking IP.
+
+            return err_code;
         }
 
         return 0;

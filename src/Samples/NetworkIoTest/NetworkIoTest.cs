@@ -9,6 +9,13 @@ namespace NetworkIoTestApp
 {
     public class NetworkIoTestApp
     {
+        const String kHttpServiceUnavailableString =
+            "HTTP/1.1 503 Service Unavailable\r\n" +
+            "Content-Length: 0\r\n" +
+            "\r\n";
+
+        static readonly Byte[] kHttpServiceUnavailable = Encoding.ASCII.GetBytes(kHttpServiceUnavailableString);
+
         internal static void Main(String[] args)
         {
             String db_number_string = Environment.GetEnvironmentVariable("DB_NUMBER");
@@ -53,6 +60,10 @@ namespace NetworkIoTestApp
             GatewayHandlers.RegisterUriHandler(80, handler_uri, OnHttpUpload, out handler_id);
             Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
+            handler_uri = "/internal-http-request";
+            GatewayHandlers.RegisterUriHandler(80, handler_uri, OnInternalHttpRequest, out handler_id);
+            Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
+
             handler_uri = "GET /download";
             GatewayHandlers.RegisterUriHandler(80, handler_uri, OnHttpDownload, out handler_id);
             Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
@@ -89,10 +100,10 @@ namespace NetworkIoTestApp
             String response = resUri + "_user_" + p.UserSessionId + "_raw_response" + DateTime.Now + ":" + DateTime.Now.Millisecond;
 
             // Converting string to byte array.
-            Byte[] stringBytes = Encoding.ASCII.GetBytes(response);
+            Byte[] responseBytes = Encoding.ASCII.GetBytes(response);
 
             // Writing back the response.
-            p.DataStream.Write(stringBytes, 0, stringBytes.Length);
+            p.DataStream.Write(responseBytes, 0, responseBytes.Length);
             return true;
         }
 
@@ -108,10 +119,10 @@ namespace NetworkIoTestApp
             String response = resUri + "_user_" + p.UserSessionId + "_ws_response_" + DateTime.Now + ":" + DateTime.Now.Millisecond;
 
             // Converting string to byte array.
-            Byte[] stringBytes = Encoding.ASCII.GetBytes(response);
+            Byte[] responseBytes = Encoding.ASCII.GetBytes(response);
 
             // Writing back the response.
-            p.DataStream.Write(stringBytes, 0, stringBytes.Length);
+            p.DataStream.Write(responseBytes, 0, responseBytes.Length);
             return true;
         }
 
@@ -127,10 +138,10 @@ namespace NetworkIoTestApp
                 "</html>\r\n";
 
             // Converting string to byte array.
-            Byte[] respBytes = Encoding.ASCII.GetBytes(response);
+            Byte[] responseBytes = Encoding.ASCII.GetBytes(response);
 
             // Writing back the response.
-            p.DataStream.Write(respBytes, 0, respBytes.Length);
+            p.DataStream.Write(responseBytes, 0, responseBytes.Length);
 
             return true;
         }
@@ -154,10 +165,18 @@ namespace NetworkIoTestApp
                 "Content-Length: " + responseBody.Length + "\r\n";
 
             // Converting string to byte array.
-            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
+            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
 
-            // Writing back the response.
-            p.WriteResponse(respBytes, 0, respBytes.Length);
+            try
+            {
+                // Writing back the response.
+                p.WriteResponse(responseBytes, 0, responseBytes.Length);
+            }
+            catch
+            {
+                // Writing back the error status.
+                p.WriteResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+            }
 
             return true;
         }
@@ -181,10 +200,103 @@ namespace NetworkIoTestApp
                 "Content-Length: " + responseBody.Length + "\r\n";
 
             // Converting string to byte array.
-            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
+            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
 
-            // Writing back the response.
-            p.WriteResponse(respBytes, 0, respBytes.Length);
+            try
+            {
+                // Writing back the response.
+                p.WriteResponse(responseBytes, 0, responseBytes.Length);
+            }
+            catch
+            {
+                // Writing back the error status.
+                p.WriteResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+            }
+
+            return true;
+        }
+
+        // Creates internal HttpRequest structure.
+        private static Boolean OnInternalHttpRequest(HttpRequest p)
+        {
+            String[] request_strings =
+            {
+                "GET /pub/WWW/TheProject.html HTTP/1.1\r\n" +
+                "Host: www.w3.org\r\n" +
+                "\r\n",
+                                         
+                "GET /get_funky_content_length_body_hello HTTP/1.0\r\n" +
+                "conTENT-Length: 5\r\n" +
+                "\r\n" +
+                "HELLO",
+
+                "GET /vi/Q1Nnm4AZv4c/hqdefault.jpg HTTP/1.1\r\n" +
+                "Host: i2.ytimg.com\r\n" +
+                "Connection: keep-alive\r\n" +
+                "User-Agent: Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.4 (KHTML, like Gecko) Chrome/22.0.1229.94 Safari/537.4\r\n" +
+                "Accept: */*\r\n" +
+                "Referer: http://www.youtube.com/\r\n" +
+                "Accept-Encoding: gzip,deflate,sdch\r\n" +
+                "Accept-Language: en-US,en;q=0.8\r\n" +
+                "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.3\r\n" +
+                "\r\n",
+
+                "POST /post_identity_body_world?q=search#hey HTTP/1.1\r\n" +
+                "Accept: */*\r\n" +
+                "Transfer-Encoding: identity\r\n" +
+                "Content-Length: 5\r\n" +
+                "\r\n" +
+                "World",
+
+                "PATCH /file.txt HTTP/1.1\r\n" +
+                "Host: www.example.com\r\n" +
+                "Content-Type: application/example\r\n" +
+                "If-Match: \"e0023aa4e\"\r\n" +
+                "Content-Length: 10\r\n" +
+                "\r\n" +
+                "cccccccccc",
+
+                "POST / HTTP/1.1\r\n" +
+                "Host: www.example.com\r\n" +
+                "Content-Type: application/x-www-form-urlencoded\r\n" +
+                "Content-Length: 4\r\n" +
+                "Connection: close\r\n" +
+                "\r\n" +
+                "q=42\r\n"
+            };
+
+            String responseBody = "";
+
+            // Collecting all parsed HTTP requests.
+            for (Int32 i = 0; i < request_strings.Length; i++)
+            {
+                Byte[] request_bytes = Encoding.ASCII.GetBytes(request_strings[i]);
+                HttpRequest internal_request = new HttpRequest(request_bytes);
+
+                responseBody += "-------------------------------";
+                responseBody += internal_request.ToString();
+
+                internal_request.Destroy();
+            }
+
+            String responseHeader =
+                "HTTP/1.1 200 OK\r\n" +
+                "Content-Type: text/html; charset=UTF-8\r\n" +
+                "Content-Length: " + responseBody.Length + "\r\n";
+
+            // Converting string to byte array.
+            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
+
+            try
+            {
+                // Writing back the response.
+                p.WriteResponse(responseBytes, 0, responseBytes.Length);
+            }
+            catch
+            {
+                // Writing back the error status.
+                p.WriteResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+            }
 
             return true;
         }
@@ -218,10 +330,18 @@ namespace NetworkIoTestApp
                 "Content-Length: " + responseBody.Length + "\r\n";
 
             // Converting string to byte array.
-            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
+            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
 
-            // Writing back the response.
-            p.WriteResponse(respBytes, 0, respBytes.Length);
+            try
+            {
+                // Writing back the response.
+                p.WriteResponse(responseBytes, 0, responseBytes.Length);
+            }
+            catch
+            {
+                // Writing back the error status.
+                p.WriteResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+            }
 
             return true;
         }
@@ -253,12 +373,20 @@ namespace NetworkIoTestApp
             Byte[] headerBytes = Encoding.ASCII.GetBytes(headerString);
 
             // Combining two arrays together.
-            Byte[] responseBuf = new Byte[headerBytes.Length + bodyBytes.Length];
-            headerBytes.CopyTo(responseBuf, 0);
-            bodyBytes.CopyTo(responseBuf, headerBytes.Length);
+            Byte[] responseBytes = new Byte[headerBytes.Length + bodyBytes.Length];
+            headerBytes.CopyTo(responseBytes, 0);
+            bodyBytes.CopyTo(responseBytes, headerBytes.Length);
 
-            // Writing back the response.
-            p.WriteResponse(responseBuf, 0, responseBuf.Length);
+            try
+            {
+                // Writing back the response.
+                p.WriteResponse(responseBytes, 0, responseBytes.Length);
+            }
+            catch
+            {
+                // Writing back the error status.
+                p.WriteResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+            }
 
             return true;
         }
@@ -281,10 +409,18 @@ namespace NetworkIoTestApp
                 "Content-Length: " + responseBody.Length + "\r\n";
 
             // Converting string to byte array.
-            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
+            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
 
-            // Writing back the response.
-            p.WriteResponse(respBytes, 0, respBytes.Length);
+            try
+            {
+                // Writing back the response.
+                p.WriteResponse(responseBytes, 0, responseBytes.Length);
+            }
+            catch
+            {
+                // Writing back the error status.
+                p.WriteResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+            }
 
             return true;
         }
@@ -314,10 +450,18 @@ namespace NetworkIoTestApp
             }
 
             // Converting string to byte array.
-            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
+            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
 
-            // Writing back the response.
-            p.WriteResponse(respBytes, 0, respBytes.Length);
+            try
+            {
+                // Writing back the response.
+                p.WriteResponse(responseBytes, 0, responseBytes.Length);
+            }
+            catch
+            {
+                // Writing back the error status.
+                p.WriteResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+            }
 
             return true;
         }
@@ -353,10 +497,18 @@ namespace NetworkIoTestApp
             }
 
             // Converting string to byte array.
-            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
+            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
 
-            // Writing back the response.
-            p.WriteResponse(respBytes, 0, respBytes.Length);
+            try
+            {
+                // Writing back the response.
+                p.WriteResponse(responseBytes, 0, responseBytes.Length);
+            }
+            catch
+            {
+                // Writing back the error status.
+                p.WriteResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+            }
 
             return true;
         }
@@ -379,10 +531,18 @@ namespace NetworkIoTestApp
                 "Content-Length: " + responseBody.Length + "\r\n";
 
             // Converting string to byte array.
-            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
+            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
 
-            // Writing back the response.
-            p.WriteResponse(respBytes, 0, respBytes.Length);
+            try
+            {
+                // Writing back the response.
+                p.WriteResponse(responseBytes, 0, responseBytes.Length);
+            }
+            catch
+            {
+                // Writing back the error status.
+                p.WriteResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+            }
 
             return true;
         }
@@ -398,10 +558,18 @@ namespace NetworkIoTestApp
                 "Content-Length: 0\r\n\r\n";
 
             // Converting string to byte array.
-            Byte[] respBytes = Encoding.ASCII.GetBytes(responseHeader);
+            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader);
 
-            // Writing back the response.
-            p.WriteResponse(respBytes, 0, respBytes.Length);
+            try
+            {
+                // Writing back the response.
+                p.WriteResponse(responseBytes, 0, responseBytes.Length);
+            }
+            catch
+            {
+                // Writing back the error status.
+                p.WriteResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+            }
 
             return true;
         }
@@ -420,12 +588,20 @@ namespace NetworkIoTestApp
             Byte[] headerBytes = Encoding.ASCII.GetBytes(headerString);
 
             // Combining two arrays together.
-            Byte[] responseBuf = new Byte[headerBytes.Length + bodyBytes.Length];
-            headerBytes.CopyTo(responseBuf, 0);
-            bodyBytes.CopyTo(responseBuf, headerBytes.Length);
+            Byte[] responseBytes = new Byte[headerBytes.Length + bodyBytes.Length];
+            headerBytes.CopyTo(responseBytes, 0);
+            bodyBytes.CopyTo(responseBytes, headerBytes.Length);
 
-            // Writing back the response.
-            p.WriteResponse(responseBuf, 0, responseBuf.Length);
+            try
+            {
+                // Writing back the response.
+                p.WriteResponse(responseBytes, 0, responseBytes.Length);
+            }
+            catch
+            {
+                // Writing back the error status.
+                p.WriteResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+            }
 
             return true;
         }
