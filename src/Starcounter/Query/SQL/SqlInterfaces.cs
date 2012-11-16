@@ -26,7 +26,7 @@ namespace Starcounter
         new Boolean MoveNext();
 
         /// <summary>
-        /// Gets the current object (IObjectView) in the result of the query.
+        /// Gets the current item (row) in the result of the query.
         /// </summary>
         new dynamic Current { get; }
 
@@ -46,9 +46,14 @@ namespace Starcounter
         String Query { get; }
 
         /// <summary>
-        /// The type binding of the resulting objects of the query.
+        /// If the projection is an (Entity or Row) object, then the type binding of that object, otherwise null.
         /// </summary>
         ITypeBinding TypeBinding { get; }
+
+        /// <summary>
+        /// If the projection is a singleton, then the DbTypeCode of that singleton, otherwise null.
+        /// </summary>
+        Nullable<DbTypeCode> ProjectionTypeCode { get; }
 
         /// <summary>
         /// Counts the number of returned objects.

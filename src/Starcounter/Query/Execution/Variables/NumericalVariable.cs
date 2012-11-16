@@ -449,7 +449,7 @@ internal class NumericalVariable : Variable, IVariable, INumericalExpression
     /// </summary>
     /// <param name="obj">Not used.</param>
     /// <returns>A copy of this variable.</returns>
-    public INumericalExpression Instantiate(CompositeObject obj)
+    public INumericalExpression Instantiate(Row obj)
     {
         return this;
     }
@@ -591,7 +591,7 @@ internal class NumericalVariable : Variable, IVariable, INumericalExpression
     /// Appends data of this leaf to the provided filter key.
     /// </summary>
     /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    /// <param name="obj">Results object for which evaluation should be performed.</param>
+    /// <param name="obj">Row for which evaluation should be performed.</param>
     public override void AppendToByteArray(ByteArrayBuilder key, IObjectView obj)
     {
         switch (dbTypeCode)

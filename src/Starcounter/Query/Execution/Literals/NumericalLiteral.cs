@@ -633,7 +633,7 @@ internal class NumericalLiteral : Literal, ILiteral, INumericalExpression
     /// </summary>
     /// <param name="obj">Not used.</param>
     /// <returns>A copy of this literal.</returns>
-    public INumericalExpression Instantiate(CompositeObject obj)
+    public INumericalExpression Instantiate(Row obj)
     {
         return this;
     }

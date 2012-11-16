@@ -198,13 +198,13 @@ internal class LogicalOperation : CodeGenFilterNode, ILogicalExpression
     }
 
     /// <summary>
-    /// Creates an more instantiated copy of this expression by evaluating it on a result-object.
-    /// Properties, with extent numbers for which there exist objects attached to the result-object,
+    /// Creates an more instantiated copy of this expression by evaluating it on a Row.
+    /// Properties, with extent numbers for which there exist objects attached to the Row,
     /// are evaluated and instantiated to literals, other properties are not changed.
     /// </summary>
-    /// <param name="obj">The result-object on which to evaluate the expression.</param>
+    /// <param name="obj">The Row on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public ILogicalExpression Instantiate(CompositeObject obj)
+    public ILogicalExpression Instantiate(Row obj)
     {
         if (condition2 != null)
         {

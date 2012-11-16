@@ -113,7 +113,7 @@ internal class StringLiteral : Literal, ILiteral, IStringPathItem
     /// </summary>
     /// <param name="obj">Not used.</param>
     /// <returns>A copy of this literal.</returns>
-    public IStringExpression Instantiate(CompositeObject obj)
+    public IStringExpression Instantiate(Row obj)
     {
         return new StringLiteral(value);
     }

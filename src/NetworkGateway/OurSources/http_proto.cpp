@@ -11,7 +11,7 @@
 namespace starcounter {
 namespace network {
 
-char *kHttpGatewayPongResponse =
+const char* const kHttpGatewayPongResponse =
     "HTTP/1.1 200 OK\r\n"
     "Content-Type: text/html; charset=UTF-8\r\n"
     "Content-Length: 5\r\n"
@@ -20,32 +20,28 @@ char *kHttpGatewayPongResponse =
 
 const int32_t kHttpGatewayPongResponseLength = strlen(kHttpGatewayPongResponse);
 
-const char* ScSessionIdString = "ScSessionId";
-
-const int32_t ScSessionIdStringLength = strlen(ScSessionIdString);
-
-const char* kHttpNoContent =
+const char* const kHttpNoContent =
     "HTTP/1.1 204 No Content\r\n"
     "Content-Length: 0\r\n"
     "\r\n";
 
 const int32_t kHttpNoContentLength = strlen(kHttpNoContent) + 1;
 
-const char* kHttpBadRequest =
+const char* const kHttpBadRequest =
     "HTTP/1.1 400 Bad Request\r\n"
     "Content-Length: 0\r\n"
     "\r\n";
 
 const int32_t kHttpBadRequestLength = strlen(kHttpBadRequest) + 1;
 
-const char* kHttpServiceUnavailable =
+const char* const kHttpServiceUnavailable =
     "HTTP/1.1 503 Service Unavailable\r\n"
     "Content-Length: 0\r\n"
     "\r\n";
 
 const int32_t kHttpServiceUnavailableLength = strlen(kHttpServiceUnavailable) + 1;
 
-const char* kHttpTooBigUpload =
+const char* const kHttpTooBigUpload =
     "HTTP/1.1 413 Request Entity Too Large\r\n"
     "Content-Type: text/html; charset=UTF-8\r\n"
     "Content-Length: 50\r\n"
@@ -95,13 +91,13 @@ inline uint32_t GetMethodAndUri(
         if (http_data[pos + 1] != 'H')
         {
             // Wrong protocol.
-            return 1;
+            return SCERRGWNONHTTPPROTOCOL;
         }
     }
     else
     {
         // Either wrong protocol or not enough accumulated data.
-        return 2;
+        return SCERRGWNONHTTPPROTOCOL;
     }
 
     // Checking if method and URI has correct length.
@@ -120,7 +116,7 @@ inline uint32_t GetMethodAndUri(
     }
 
     // Wrong protocol.
-    return 1;
+    return SCERRGWNONHTTPPROTOCOL;
 }
 
 inline int HttpWsProto::OnMessageBegin(http_parser* p)
@@ -178,95 +174,6 @@ inline int HttpWsProto::OnUri(http_parser* p, const char *at, size_t length)
     return 0;
 }
 
-// Fast way to determine field type.
-inline HttpWsFields DetermineField(const char *at, size_t length)
-{
-    switch(at[0])
-    {
-        case 'A':
-        {
-            switch(at[2])
-            {
-                case 'c':
-                {
-                    switch(length)
-                    {
-                        case 6: return ACCEPT_FIELD; // Accept
-                        case 15: return ACCEPT_ENCODING_FIELD; // Accept-Encoding
-                    }
-                    break;
-                }
-            }
-
-            break;
-        }
-
-        case 'C':
-        {
-            switch(at[2])
-            {
-                case 'o':
-                {
-                    switch(length)
-                    {
-                        case 6: return COOKIE_FIELD; // Cookie
-                    }
-                    break;
-                }
-
-                case 'n':
-                {
-                    switch(length)
-                    {
-                        case 14: return CONTENT_LENGTH; // Content-Length
-                    }
-                    break;
-                }
-            }
-
-            break;
-        }
-
-        case 'U':
-        {
-            switch(at[2])
-            {
-                case 'g':
-                {
-                    switch(length)
-                    {
-                        case 7: return UPGRADE_FIELD; // Upgrade
-                    }
-                    break;
-                }
-            }
-
-            break;
-        }
-        
-        case 'S':
-        {
-            switch(at[2])
-            {
-                case 'c':
-                {
-                    switch(length)
-                    {
-                        case 17: return WS_KEY_FIELD; // Sec-WebSocket-Key
-                        case 22: return WS_PROTOCOL_FIELD; // Sec-WebSocket-Protocol
-                        case 21: return WS_VERSION_FIELD; // Sec-WebSocket-Version
-                    }
-                    break;
-                }
-            }
-
-            break;
-        }
-    }
-
-    return UNKNOWN_FIELD;
-}
-
 inline int HttpWsProto::OnHeaderField(http_parser* p, const char *at, size_t length)
 {
 #ifdef GW_HTTP_DIAG
@@ -295,49 +202,6 @@ inline int HttpWsProto::OnHeaderField(http_parser* p, const char *at, size_t len
     return 0;
 }
 
-// Searching for the Starcounter session cookie among other cookies.
-// Returns pointer to Starcounter session cookie value.
-inline const char* GetSessionIdValue(const char *at, size_t length)
-{
-    int32_t i = 0;
-    if (length >= ScSessionIdStringLength)
-    {
-        while(i < length)
-        {
-            // Checking if this cookie is Starcounter session cookie.
-            if ((ScSessionIdString[0] == at[i]) &&
-                (ScSessionIdString[1] == at[i + 1]) &&
-                ('=' == at[i + ScSessionIdStringLength]))
-            {
-                // Skipping session header name and equality symbol.
-                return at + i + ScSessionIdStringLength + 1;
-            }
-            i++;
-        }
-    }
-
-    return NULL;
-}
-
-// Parses decimal string into unsigned number.
-inline uint32_t ParseDecimalStringToUint(const char *at, size_t length)
-{
-    uint32_t result = 0;
-    int32_t mult = 1, i = length - 1;
-    while (true)
-    {
-        result += (at[i] - '0') * mult;
-
-        --i;
-        if (i < 0)
-            break;
-
-        mult *= 10;
-    }
-
-    return result;
-}
-
 inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t length)
 {
 #ifdef GW_HTTP_DIAG
@@ -359,7 +223,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
     {
         // Too many HTTP headers.
         GW_COUT << "Too many HTTP headers detected, maximum allowed: " << MAX_HTTP_HEADERS << std::endl;
-        return 1;
+        return SCERRGWHTTPTOOMANYHEADERS;
     }
 
     // Processing last field type.
@@ -378,55 +242,55 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
                 http->http_request_.session_string_len_bytes_ = SC_SESSION_STRING_LEN_CHARS;
 
                 // Reading received session index (skipping session header name and equality).
-                session_index_type session_index = hex_string_to_uint64(at + ScSessionIdStringLength + 1, 8);
+                session_index_type session_index = hex_string_to_uint64(at + kScSessionIdStringLength + 1, 8);
                 if (INVALID_CONVERTED_NUMBER == session_index)
                 {
                     GW_COUT << "Session index stored in the HTTP header has wrong format." << std::endl;
-                    return 1;
+                    return SCERRGWHTTPWRONGSESSIONINDEXFORMAT;
                 }
 
                 // Reading received session random salt.
-                uint64_t randomSalt = hex_string_to_uint64(at + ScSessionIdStringLength + 1 + 8, 16);
+                uint64_t randomSalt = hex_string_to_uint64(at + kScSessionIdStringLength + 1 + 8, 16);
                 if (INVALID_CONVERTED_NUMBER == randomSalt)
                 {
                     GW_COUT << "Session random salt stored in the HTTP header has wrong format." << std::endl;
-                    return 1;
+                    return SCERRGWHTTPWRONGSESSIONSALTFORMAT;
                 }
 
                 // Checking if we have existing session.
-                if (http->sd_ref_->GetAttachedSession() != NULL)
+                ScSessionStruct session = g_gateway.GetGlobalSessionDataCopy(http->sd_ref_->get_session_index());
+
+                // Checking if session is valid.
+                if (session.IsValid())
                 {
                     // Compare this session with existing one.
-                    if (!http->sd_ref_->GetAttachedSession()->Compare(randomSalt, session_index))
+                    if (!session.Compare(randomSalt, session_index))
                     {
                         GW_COUT << "Session stored in the HTTP header is wrong." << std::endl;
-                        return 1;
+                        return SCERRGWHTTPWRONGSESSION;
                     }
                 }
                 else
                 {
                     // Attaching to existing or creating a new session.
-                    ScSessionStruct *existingSession = g_gateway.GetSessionData(session_index);
-                    if ((existingSession != NULL) && (existingSession->Compare(randomSalt, session_index)))
+                    ScSessionStruct existing_session = g_gateway.GetGlobalSessionDataCopy(session_index);
+                    if ((existing_session.IsValid()) && (existing_session.Compare(randomSalt, session_index)))
                     {
                         // Attaching existing session.
-                        http->sd_ref_->AttachToSession(existingSession);
+                        http->sd_ref_->AttachToSession(&existing_session);
                     }
                     else
                     {
 #ifdef GW_SESSIONS_DIAG
                         GW_COUT << "Given session does not exist: " << session_index << ":" << randomSalt << std::endl;
 #endif
-
-                        // Given session does not exist, dropping the connection.
-                        //return 1;
                     }
                 }
             }
             else
             {
-                // Checking that session exists.
-                if (http->sd_ref_->GetAttachedSession() != NULL)
+                // Checking that session is valid.
+                if (g_gateway.GetGlobalSessionDataCopy(http->sd_ref_->get_session_index()).IsValid())
                 {
                     GW_COUT << "Expected session cookie was not present!" << std::endl;
                     return 0;
@@ -440,7 +304,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
             break;
         }
 
-        case CONTENT_LENGTH:
+        case CONTENT_LENGTH_FIELD:
         {
             // Calculating body length.
             http->http_request_.body_len_bytes_ = ParseDecimalStringToUint(at, length);
@@ -485,7 +349,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
             }
             else
             {
-                return 1;
+                return SCERRGWHTTPNONWEBSOCKETSUPGRADE;
             }
 
             break;
@@ -512,7 +376,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
             }
             else
             {
-                return 1;
+                return SCERRGWHTTPWRONGWEBSOCKETSVERSION;
             }
 
             break;
@@ -719,15 +583,15 @@ uint32_t HttpWsProto::HttpWsProcessData(
         if (sd->get_accumulating_flag())
             goto ALL_DATA_ACCUMULATED;
 
-        // Attaching a socket.
-        AttachToParser(sd);
-
         // Checking if we are already passed the WebSockets handshake.
         if(sd->get_web_sockets_upgrade_flag())
             return ws_proto_.ProcessWsDataToDb(gw, sd, handler_id);
 
         // Resetting the parsing structure.
         ResetParser();
+
+        // Attaching a socket.
+        AttachToParser(sd);
 
         // Executing HTTP parser.
         size_t bytes_parsed = http_parser_execute(
@@ -767,7 +631,7 @@ uint32_t HttpWsProto::HttpWsProcessData(
         else if (bytes_parsed != (accum_buf->get_accum_len_bytes()))
         {
             GW_COUT << "HTTP packet has incorrect data!" << std::endl;
-            return SCERRUNSPECIFIED;
+            return SCERRGWHTTPINCORRECTDATA;
         }
         // Standard HTTP.
         else
@@ -880,29 +744,20 @@ uint32_t HttpWsProto::HttpWsProcessData(
 ALL_DATA_ACCUMULATED:
 
             // Posting cloning receive since all data is accumulated.
-            SocketDataChunk* sd_clone;
-            err_code = sd->CloneToReceive(gw, &sd_clone);
-            GW_ERR_CHECK(err_code);
-
-            // Start receiving on clone.
-            err_code = gw->Receive(sd_clone);
+            err_code = sd->CloneToReceive(gw);
             GW_ERR_CHECK(err_code);
 
             // Checking special case when session is attached to socket,
             // but no session cookie is presented.
-            if ((0 == http_request_.session_string_offset_) && (sd->GetAttachedSession() != NULL))
-            {
+            if ((0 == http_request_.session_string_offset_) && (g_gateway.GetGlobalSessionDataCopy(sd_ref_->get_session_index()).IsValid()))
                 sd->ResetSession();
-                //GW_COUT << "HTTP packet does not contain session cookie!" << std::endl;
-                //return 1;
-            }
 
             // Checking type of response.
             switch (resp_type_)
             {
                 case HTTP_STANDARD_RESPONSE:
                 {
-                    // Setting session structure fields.
+                    // Setting request properties.
                     http_request_.request_offset_ = SOCKET_DATA_BLOB_OFFSET_BYTES;
                     http_request_.request_len_bytes_ = accum_buf->get_accum_len_bytes();
 
@@ -964,14 +819,16 @@ ALL_DATA_ACCUMULATED:
         if (sd->get_new_session_flag())
         {
             // New session cookie was created searching for it.
-            char* session_cookie = strstr((char*)sd->get_data_blob(), ScSessionIdString);
+            char* session_cookie = strstr((char*)sd->get_data_blob(), kScSessionIdString);
             assert(NULL != session_cookie);
 
             // Skipping cookie header and equality symbol.
-            session_cookie += ScSessionIdStringLength + 1;
+            session_cookie += kScSessionIdStringLength + 1;
 
             // Writing gateway session index.
-            g_gateway.GetSessionData(sd->get_session_index())->ConvertToString(session_cookie);
+            ScSessionStruct session = g_gateway.GetGlobalSessionDataCopy(sd->get_session_index());
+            if (session.IsValid())
+                session.ConvertToString(session_cookie);
 
             // Session has been created.
             sd->set_new_session_flag(false);
@@ -990,7 +847,7 @@ ALL_DATA_ACCUMULATED:
         return 0;
     }
 
-    return 1;
+    return SCERRGWHTTPPROCESSFAILED;
 }
 
 // Outer HTTP/WebSockets handler.

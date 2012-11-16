@@ -19,31 +19,26 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
     JoinType joinType;
     IExecutionEnumerator leftEnumerator;
     IExecutionEnumerator rightEnumerator;
-    CompositeObject contextObject;
+    Row contextObject;
 
-    internal Join(CompositeTypeBinding compTypeBind,
+    internal Join(RowTypeBinding rowTypeBind,
         JoinType type,
         IExecutionEnumerator leftEnum,
         IExecutionEnumerator rightEnum,
         INumericalExpression fetchNumExpr,
         VariableArray varArr, String query)
-        : base(varArr)
+        : base(rowTypeBind, varArr)
     {
-        if (compTypeBind == null)
-            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect compTypeBind.");
         if (leftEnum == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect leftEnum.");
         if (rightEnum == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rightEnum.");
-        if (varArr == null)
-            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect variables clone.");
 
-        // if (leftEnum.CompositeTypeBinding != compTypeBind)
+        // if (leftEnum.RowTypeBinding != rowTypeBind)
         //    throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incompatible input enumerator leftEnum.");
-        // if (rightEnum.CompositeTypeBinding != compTypeBind)
+        // if (rightEnum.RowTypeBinding != rowTypeBind)
         //    throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incompatible input enumerator rightEnum.");
 
-        compTypeBinding = compTypeBind;
         joinType = type;
         leftEnumerator = leftEnum;
         rightEnumerator = rightEnum;
@@ -54,7 +49,6 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         fetchNumber = Int64.MaxValue;
 
         this.query = query;
-        variableArray = varArr;
     }
 
     /// <summary>
@@ -64,10 +58,15 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
     {
         get
         {
-            if (singleObject)
-                return compTypeBinding.GetPropertyBinding(0).TypeBinding;
+            if (projectionTypeCode == null)
+                return rowTypeBinding;
 
-            return compTypeBinding;
+            // Singleton object.
+            if (projectionTypeCode == DbTypeCode.Object)
+                return rowTypeBinding.GetPropertyBinding(0).TypeBinding;
+
+            // Singleton non-object.
+            return null;
         }
     }
 
@@ -97,17 +96,69 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         {
             if (currentObject != null)
             {
-                if (singleObject)
-                    return currentObject.GetObject(0);
+                switch (projectionTypeCode)
+                {
+                    case null:
+                        return currentObject;
 
-                return currentObject;
+                    case DbTypeCode.Binary:
+                        return currentObject.GetBinary(0);
+
+                    case DbTypeCode.Boolean:
+                        return currentObject.GetBoolean(0);
+
+                    case DbTypeCode.Byte:
+                        return currentObject.GetByte(0);
+
+                    case DbTypeCode.DateTime:
+                        return currentObject.GetDateTime(0);
+
+                    case DbTypeCode.Decimal:
+                        return currentObject.GetDecimal(0);
+
+                    case DbTypeCode.Double:
+                        return currentObject.GetDouble(0);
+
+                    case DbTypeCode.Int16:
+                        return currentObject.GetInt16(0);
+
+                    case DbTypeCode.Int32:
+                        return currentObject.GetInt32(0);
+
+                    case DbTypeCode.Int64:
+                        return currentObject.GetInt64(0);
+
+                    case DbTypeCode.Object:
+                        return currentObject.GetObject(0);
+
+                    case DbTypeCode.SByte:
+                        return currentObject.GetSByte(0);
+
+                    case DbTypeCode.Single:
+                        return currentObject.GetSingle(0);
+
+                    case DbTypeCode.String:
+                        return currentObject.GetString(0);
+
+                    case DbTypeCode.UInt16:
+                        return currentObject.GetUInt16(0);
+
+                    case DbTypeCode.UInt32:
+                        return currentObject.GetUInt32(0);
+
+                    case DbTypeCode.UInt64:
+                        return currentObject.GetUInt64(0);
+
+                    default:
+                        throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect projectionTypeCode.");
+                }
             }
 
             throw new InvalidOperationException("Enumerator has not started or has already finished.");
         }
     }
 
-    public CompositeObject CurrentCompositeObject
+    public Row CurrentRow
     {
         get
         {
@@ -122,7 +173,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
     /// Resets the enumerator with a context object.
     /// </summary>
     /// <param name="obj">Context object from another enumerator.</param>
-    public override void Reset(CompositeObject obj)
+    public override void Reset(Row obj)
     {
         currentObject = null;
         contextObject = obj;
@@ -132,11 +183,11 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         rightEnumerator.Reset();
     }
 
-    // TODO: Not create a new result object when not necessary.
-    private CompositeObject MergeObjects(CompositeObject obj1, CompositeObject obj2)
+    // TODO: Not create a new Row when not necessary.
+    private Row MergeObjects(Row obj1, Row obj2)
     {
-        CompositeObject obj = new CompositeObject(compTypeBinding);
-        for (Int32 i = 0; i < compTypeBinding.TypeBindingCount; i++)
+        Row obj = new Row(rowTypeBinding);
+        for (Int32 i = 0; i < rowTypeBinding.TypeBindingCount; i++)
         {
             IObjectView element1 = null;
             IObjectView element2 = null;
@@ -188,7 +239,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
 
             if (leftEnumerator.MoveNext())
             {
-                CompositeObject rightContext = MergeObjects(contextObject, leftEnumerator.CurrentCompositeObject);
+                Row rightContext = MergeObjects(contextObject, leftEnumerator.CurrentRow);
                 rightEnumerator.Reset(rightContext);
             }
             else
@@ -210,7 +261,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
             {
                 if (leftEnumerator.MoveNext())
                 {
-                    CompositeObject rightContext = MergeObjects(contextObject, leftEnumerator.CurrentCompositeObject);
+                    Row rightContext = MergeObjects(contextObject, leftEnumerator.CurrentRow);
                     rightEnumerator.Reset(rightContext);
                 }
                 else
@@ -226,7 +277,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
             {
                 if (leftEnumerator.MoveNext())
                 {
-                    CompositeObject rightContext = MergeObjects(contextObject, leftEnumerator.CurrentCompositeObject);
+                    Row rightContext = MergeObjects(contextObject, leftEnumerator.CurrentRow);
                     rightEnumerator.Reset(rightContext);
                 }
                 else
@@ -236,7 +287,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
                 }
             }
         }
-        currentObject = MergeObjects(leftEnumerator.CurrentCompositeObject, rightEnumerator.CurrentCompositeObject);
+        currentObject = MergeObjects(leftEnumerator.CurrentRow, rightEnumerator.CurrentRow);
         counter++;
         return true;
     }
@@ -251,12 +302,12 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         {
             // Force the creation of NullObjects on the input enumerators.
             leftEnumerator.MoveNextSpecial(true);
-            CompositeObject rightContext = MergeObjects(contextObject, leftEnumerator.CurrentCompositeObject);
+            Row rightContext = MergeObjects(contextObject, leftEnumerator.CurrentRow);
             rightEnumerator.Reset(rightContext);
             rightEnumerator.MoveNextSpecial(true);
 
             // Create new currentObject.
-            currentObject = MergeObjects(leftEnumerator.CurrentCompositeObject, rightEnumerator.CurrentCompositeObject);
+            currentObject = MergeObjects(leftEnumerator.CurrentRow, rightEnumerator.CurrentRow);
             counter++;
             return true;
         }
@@ -286,10 +337,10 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         rightEnumerator.PopulateQueryFlags(flags);
     }
 
-    private void DebugPresent(String str, CompositeObject compObj)
+    private void DebugPresent(String str, Row compObj)
     {
         String objIds = str + "Join ";
-        for (Int32 i = 0; i < compTypeBinding.TypeBindingCount; i++)
+        for (Int32 i = 0; i < rowTypeBinding.TypeBindingCount; i++)
         {
             IObjectView obj = compObj.AccessObject(i);
             if (obj != null)
@@ -304,14 +355,14 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         LogSources.Sql.Debug(objIds);
     }
 
-    public override IExecutionEnumerator Clone(CompositeTypeBinding resultTypeBindClone, VariableArray varArrClone)
+    public override IExecutionEnumerator Clone(RowTypeBinding rowTypeBindClone, VariableArray varArrClone)
     {
         INumericalExpression fetchNumberExprClone = null;
         if (fetchNumberExpr != null)
             fetchNumberExprClone = fetchNumberExpr.CloneToNumerical(varArrClone);
 
-        return new Join(resultTypeBindClone, joinType, leftEnumerator.Clone(resultTypeBindClone, varArrClone),
-            rightEnumerator.Clone(resultTypeBindClone, varArrClone), fetchNumberExprClone, varArrClone, query);
+        return new Join(rowTypeBindClone, joinType, leftEnumerator.Clone(rowTypeBindClone, varArrClone),
+            rightEnumerator.Clone(rowTypeBindClone, varArrClone), fetchNumberExprClone, varArrClone, query);
     }
 
     public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs)

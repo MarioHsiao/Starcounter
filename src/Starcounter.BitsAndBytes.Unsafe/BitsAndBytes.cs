@@ -121,9 +121,13 @@ namespace Starcounter.Internal {
             return true;
         }
 
-            public static IntPtr Alloc(int size) {
-                return System.Runtime.InteropServices.Marshal.AllocHGlobal(size);
-            }
+      public static IntPtr Alloc(int size) {
+          return System.Runtime.InteropServices.Marshal.AllocHGlobal(size);
+      }
+
+      public static void Free(IntPtr prevAllocMemory) {
+          System.Runtime.InteropServices.Marshal.FreeHGlobal(prevAllocMemory);
+      }
 
       public delegate void MemCpyFunction(byte* des, byte* src, uint bytes);
 

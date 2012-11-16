@@ -579,7 +579,7 @@ ExpectedResult:
 <NEXT>
 Description: Field names starting with underscore
 QueryString: select p._LastName from SqlTest.Test1b.Person p
-SingleObjectProjection: False
+SingleObjectProjection: True
 ExpectedExecutionPlan: 
 Tables(
 	0 = SQLTest.Test1b.Person
@@ -599,7 +599,7 @@ IndexScan(
 )
 
 ExpectedResult: 
- ! 0:String ! 
+ ! String ! 
  | Adamsson | 
 
 
@@ -640,7 +640,7 @@ ExpectedResult:
 <NEXT>
 Description: Unqualified field name
 QueryString: select FirstName from Employee
-SingleObjectProjection: False
+SingleObjectProjection: True
 ExpectedExecutionPlan: 
 Tables(
 	0 = SQLTest.EmployeeDb.Employee
@@ -660,7 +660,7 @@ IndexScan(
 )
 
 ExpectedResult: 
- ! 0:String ! 
+ ! String ! 
  | Alexey | 
  | Andreas | 
  | Åsa | 
@@ -849,7 +849,7 @@ ExpectedExceptionMessage: Failed to process query: select e.Name from Employee e
 <NEXT>
 Description: String concatenation
 QueryString: select e.FirstName || ' ' || e.LastName from SalaryEmployee e where e.FirstName || ' ' || e.LastName = 'alexey moiseenko'
-SingleObjectProjection: False
+SingleObjectProjection: True
 IncludesLiteral: True
 ExpectedExecutionPlan: 
 Tables(
@@ -890,7 +890,7 @@ IndexScan(
 )
 
 ExpectedResult: 
- ! 0:String ! 
+ ! String ! 
  | Alexey Moiseenko | 
 
 
@@ -1105,7 +1105,7 @@ ExpectedResult:
 <NEXT>
 Description: Numerical plus sign
 QueryString: select +(+(+e.SalaryInt64)) from SalaryEmployee e
-SingleObjectProjection: False
+SingleObjectProjection: True
 ExpectedExecutionPlan: 
 Tables(
 	0 = SQLTest.EmployeeDb.SalaryEmployee
@@ -1134,7 +1134,7 @@ IndexScan(
 )
 
 ExpectedResult: 
- ! 0:Decimal ! 
+ ! Decimal ! 
  | 10 | 
  | 20 | 
  | 30 | 
@@ -1143,7 +1143,7 @@ ExpectedResult:
 <NEXT>
 Description: Numerical minus sign
 QueryString: select -(-(-e.SalaryInt64)) from SalaryEmployee e
-SingleObjectProjection: False
+SingleObjectProjection: True
 ExpectedExecutionPlan: 
 Tables(
 	0 = SQLTest.EmployeeDb.SalaryEmployee
@@ -1172,7 +1172,7 @@ IndexScan(
 )
 
 ExpectedResult: 
- ! 0:Decimal ! 
+ ! Decimal ! 
  | -10 | 
  | -20 | 
  | -30 | 

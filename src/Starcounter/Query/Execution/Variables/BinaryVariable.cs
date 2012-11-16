@@ -66,7 +66,7 @@ internal class BinaryVariable : Variable, IVariable, IBinaryExpression
     /// Appends data of this leaf to the provided filter key.
     /// </summary>
     /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    /// <param name="obj">Results object for which evaluation should be performed.</param>
+    /// <param name="obj">Row for which evaluation should be performed.</param>
     public override void AppendToByteArray(ByteArrayBuilder key, IObjectView obj)
     {
         key.Append(value);
@@ -126,7 +126,7 @@ internal class BinaryVariable : Variable, IVariable, IBinaryExpression
     /// </summary>
     /// <param name="obj">Not used.</param>
     /// <returns>A copy of this variable.</returns>
-    public IBinaryExpression Instantiate(CompositeObject obj)
+    public IBinaryExpression Instantiate(Row obj)
     {
         return this;
     }

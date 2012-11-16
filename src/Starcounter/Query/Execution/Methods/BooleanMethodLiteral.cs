@@ -49,7 +49,7 @@ internal class BooleanMethodLiteral : Literal, ILiteral, IBooleanPathItem, IMeth
     /// <summary>
     /// Constructor.
     /// </summary>
-    /// <param name="typeBind">The type resultTypeBind of this null-method-literal.</param>
+    /// <param name="typeBind">The type binding of this null-method-literal.</param>
     /// <param name="argument">The argument to this method.</param>
     internal BooleanMethodLiteral(ITypeBinding typeBind, IObjectExpression argument)
     : base()
@@ -122,7 +122,7 @@ internal class BooleanMethodLiteral : Literal, ILiteral, IBooleanPathItem, IMeth
     /// Appends data of this leaf to the provided filter key.
     /// </summary>
     /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    /// <param name="obj">Results object for which evaluation should be performed.</param>
+    /// <param name="obj">Row for which evaluation should be performed.</param>
     public override void AppendToByteArray(ByteArrayBuilder key, IObjectView obj)
     {
         key.Append(EvaluateToBoolean(obj));
@@ -130,7 +130,7 @@ internal class BooleanMethodLiteral : Literal, ILiteral, IBooleanPathItem, IMeth
 
     /// <summary>
     /// Calculates the return value of this method when the arguments are evaluated on an input object.
-    /// If the input object is not a CompositeObject then all member references in this expression (argExpression) should refer
+    /// If the input object is not a Row then all member references in this expression (argExpression) should refer
     /// to the extent number (extentNumber) of this method and the input object should belong to the corresponding extent.
     /// </summary>
     /// <param name="obj">The object on which to evaluate the argument of this method.</param>
@@ -143,7 +143,7 @@ internal class BooleanMethodLiteral : Literal, ILiteral, IBooleanPathItem, IMeth
     /// <summary>
     /// Calculates the return value of this method when evaluated on an input object and a start-object of the path to which
     /// the input object belongs.
-    /// If the input object is not a CompositeObject then all member references in this expression (argExpression) should refer
+    /// If the input object is not a Row then all member references in this expression (argExpression) should refer
     /// to the extent number (extentNumber) of this method and the input object should belong to the corresponding extent.
     /// </summary>
     /// <param name="obj">Not used.</param>
@@ -178,13 +178,13 @@ internal class BooleanMethodLiteral : Literal, ILiteral, IBooleanPathItem, IMeth
     }
 
     /// <summary>
-    /// Creates an more instantiated copy of this expression by evaluating it on a result-object.
-    /// Members, with extent numbers for which there exist objects attached to the result-object,
+    /// Creates an more instantiated copy of this expression by evaluating it on a Row.
+    /// Members, with extent numbers for which there exist objects attached to the Row,
     /// are evaluated and instantiated to literals, other members are not changed.
     /// </summary>
-    /// <param name="obj">The result-object on which to evaluate the expression.</param>
+    /// <param name="obj">The Row on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public IBooleanExpression Instantiate(CompositeObject obj)
+    public IBooleanExpression Instantiate(Row obj)
     {
         IObjectExpression instArgumentExpr = argumentExpr.Instantiate(obj);
         if (value != null)

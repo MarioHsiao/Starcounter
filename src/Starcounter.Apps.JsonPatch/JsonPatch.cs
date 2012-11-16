@@ -415,6 +415,8 @@ namespace Starcounter.Internal.JsonPatch {
                     sb.Append('"');
                 } else if (value is App) {
                     sb.Append(((App)value).ToJson());
+                } else if (value is bool) {
+                    sb.Append(value.ToString().ToLower());
                 } else {
                     sb.Append(value);
                 }

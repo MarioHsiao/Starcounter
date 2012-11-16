@@ -356,13 +356,13 @@ internal interface INumericalExpression : ITypeExpression
     Nullable<UInt64> EvaluateToUIntegerFloor(IObjectView obj);
 
     /// <summary>
-    /// Creates an more instantiated copy of the expression by evaluating it on a result-object.
-    /// Properties, with extent numbers for which there exist objects attached to the result-object,
+    /// Creates an more instantiated copy of the expression by evaluating it on a Row.
+    /// Properties, with extent numbers for which there exist objects attached to the Row,
     /// are evaluated and instantiated to literals, other properties are not changed.
     /// </summary>
-    /// <param name="obj">The result-object on which to evaluate the expression.</param>
+    /// <param name="obj">The Row on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    INumericalExpression Instantiate(CompositeObject obj);
+    INumericalExpression Instantiate(Row obj);
 
     INumericalExpression CloneToNumerical(VariableArray varArray);
 }
@@ -413,13 +413,13 @@ internal interface IBinaryExpression : ITypeExpression
     Nullable<Binary> EvaluateToBinary(IObjectView obj);
 
     /// <summary>
-    /// Creates an more instantiated copy of the expression by evaluating it on a result-object.
-    /// Properties, with extent numbers for which there exist objects attached to the result-object,
+    /// Creates an more instantiated copy of the expression by evaluating it on a Row.
+    /// Properties, with extent numbers for which there exist objects attached to the Row,
     /// are evaluated and instantiated to literals, other properties are not changed.
     /// </summary>
-    /// <param name="obj">The result-object on which to evaluate the expression.</param>
+    /// <param name="obj">The Row on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    IBinaryExpression Instantiate(CompositeObject obj);
+    IBinaryExpression Instantiate(Row obj);
 
     IBinaryExpression CloneToBinary(VariableArray varArray);
 }
@@ -438,13 +438,13 @@ internal interface IBooleanExpression : ITypeExpression
     Nullable<Boolean> EvaluateToBoolean(IObjectView obj);
 
     /// <summary>
-    /// Creates an more instantiated copy of the expression by evaluating it on a result-object.
-    /// Properties, with extent numbers for which there exist objects attached to the result-object,
+    /// Creates an more instantiated copy of the expression by evaluating it on a Row.
+    /// Properties, with extent numbers for which there exist objects attached to the Row,
     /// are evaluated and instantiated to literals, other properties are not changed.
     /// </summary>
-    /// <param name="obj">The result-object on which to evaluate the expression.</param>
+    /// <param name="obj">The Row on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    IBooleanExpression Instantiate(CompositeObject obj);
+    IBooleanExpression Instantiate(Row obj);
 
     IBooleanExpression CloneToBoolean(VariableArray varArray);
 }
@@ -463,13 +463,13 @@ internal interface IDateTimeExpression : ITypeExpression
     Nullable<DateTime> EvaluateToDateTime(IObjectView obj);
 
     /// <summary>
-    /// Creates an more instantiated copy of the expression by evaluating it on a result-object.
-    /// Properties, with extent numbers for which there exist objects attached to the result-object,
+    /// Creates an more instantiated copy of the expression by evaluating it on a Row.
+    /// Properties, with extent numbers for which there exist objects attached to the Row,
     /// are evaluated and instantiated to literals, other properties are not changed.
     /// </summary>
-    /// <param name="obj">The result-object on which to evaluate the expression.</param>
+    /// <param name="obj">The Row on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    IDateTimeExpression Instantiate(CompositeObject obj);
+    IDateTimeExpression Instantiate(Row obj);
 
     IDateTimeExpression CloneToDateTime(VariableArray varArray);
 }
@@ -493,13 +493,13 @@ internal interface IObjectExpression : ITypeExpression
     IObjectView EvaluateToObject(IObjectView obj);
 
     /// <summary>
-    /// Creates an more instantiated copy of the expression by evaluating it on a result-object.
-    /// Properties, with extent numbers for which there exist objects attached to the result-object,
+    /// Creates an more instantiated copy of the expression by evaluating it on a Row.
+    /// Properties, with extent numbers for which there exist objects attached to the Row,
     /// are evaluated and instantiated to literals, other properties are not changed.
     /// </summary>
-    /// <param name="obj">The result-object on which to evaluate the expression.</param>
+    /// <param name="obj">The Row on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    IObjectExpression Instantiate(CompositeObject obj);
+    IObjectExpression Instantiate(Row obj);
 
     IObjectExpression CloneToObject(VariableArray varArray);
 }
@@ -518,13 +518,13 @@ internal interface IStringExpression : ITypeExpression
     String EvaluateToString(IObjectView obj);
 
     /// <summary>
-    /// Creates an more instantiated copy of the expression by evaluating it on a result-object.
-    /// Properties, with extent numbers for which there exist objects attached to the result-object,
+    /// Creates an more instantiated copy of the expression by evaluating it on a Row.
+    /// Properties, with extent numbers for which there exist objects attached to the Row,
     /// are evaluated and instantiated to literals, other properties are not changed.
     /// </summary>
-    /// <param name="obj">The result-object on which to evaluate the expression.</param>
+    /// <param name="obj">The Row on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    IStringExpression Instantiate(CompositeObject obj);
+    IStringExpression Instantiate(Row obj);
 
     IStringExpression CloneToString(VariableArray varArray);
 }
@@ -711,13 +711,13 @@ internal interface ILogicalExpression : IConditionTreeNode
     Boolean Filtrate(IObjectView obj);
 
     /// <summary>
-    /// Creates an more instantiated copy of the expression by evaluating it on a result-object.
-    /// Properties, with extent numbers for which there exist objects attached to the result-object,
+    /// Creates an more instantiated copy of the expression by evaluating it on a Row.
+    /// Properties, with extent numbers for which there exist objects attached to the Row,
     /// are evaluated and instantiated to literals, other properties are not changed.
     /// </summary>
-    /// <param name="obj">The result-object on which to evaluate the expression.</param>
+    /// <param name="obj">The Row on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    ILogicalExpression Instantiate(CompositeObject obj);
+    ILogicalExpression Instantiate(Row obj);
 
     /// <summary>
     /// Interface for cloning logical expressions.
@@ -776,15 +776,15 @@ internal interface ISetFunction : IQueryObject
 }
 
 /// <summary>
-/// Interface for expressions which are comparers of result objects.
+/// Interface for expressions which are comparers of Rows.
 /// </summary>
-internal interface IQueryComparer : IComparer<CompositeObject>, IQueryObject
+internal interface IQueryComparer : IComparer<Row>, IQueryObject
 {
     IQueryComparer Clone(VariableArray varArray);
 }
 
 /// <summary>
-/// Interface for expressions which are single comparers of result objects.
+/// Interface for expressions which are single comparers of Rows.
 /// Single comparer means that one single expression is used for the comparison.
 /// </summary>
 internal interface ISingleComparer : IQueryComparer
@@ -821,7 +821,7 @@ internal interface ISingleComparer : IQueryComparer
     /// <param name="obj">The object on which to evaluate the comparison expression.</param>
     /// <returns>The value of the comparison expression when evaluated on the input
     /// object.</returns>
-    ILiteral Evaluate(CompositeObject obj);
+    ILiteral Evaluate(Row obj);
 
     /// <summary>
     /// Compares the value specified by the input literal with the value of the
@@ -835,7 +835,7 @@ internal interface ISingleComparer : IQueryComparer
     /// The value 1 if the input value is greater than the comparison evaluation
     /// of the input object w.r.t. the current sort ordering.
     /// </returns>
-    Int32 Compare(ILiteral value, CompositeObject obj);
+    Int32 Compare(ILiteral value, Row obj);
 
     ISingleComparer CloneToSingleComparer(VariableArray varArray);
 
@@ -906,7 +906,7 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
     }
 
     ///// <summary>
-    ///// Used to obtain the next resulting object.
+    ///// Used to obtain the next Row.
     ///// </summary>
     ///// <returns></returns>
     //Boolean MoveNext();
@@ -940,8 +940,8 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
     // Gets the unique name of this execution enumerator.
     String GetUniqueName(UInt64 seqNumber);
 
-    // Returns current composite object.
-    CompositeObject CurrentCompositeObject
+    // Returns current row.
+    Row CurrentRow
     {
         get;
     }
@@ -962,10 +962,10 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
     /// <returns></returns>
     Boolean MoveNextSpecial(Boolean force);
 
-    // Used for joins when result object is supplied from the outer scan loop for filtering on inner level.
-    void Reset(CompositeObject contextObj);
+    // Used for joins when Row is supplied from the outer scan loop for filtering on inner level.
+    void Reset(Row contextObj);
 
-    CompositeTypeBinding CompositeTypeBinding
+    RowTypeBinding RowTypeBinding
     {
         get;
     }
@@ -978,10 +978,10 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
     /// <summary>
     /// Creates a clone of the execution enumerator.
     /// </summary>
-    /// <param name="compTypeBindClone">A cloned composite-type-binding as input.</param>
+    /// <param name="rowTypeBindClone">A cloned row-type-binding as input.</param>
     /// <param name="varArray">An array of variables to be instantiated.</param>
     /// <returns></returns>
-    IExecutionEnumerator Clone(CompositeTypeBinding compTypeBindClone, VariableArray varArray);
+    IExecutionEnumerator Clone(RowTypeBinding rowTypeBindClone, VariableArray varArray);
     IExecutionEnumerator CloneCached();
 
     // For attaching enumerator to cache.
@@ -1032,7 +1032,7 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
 internal interface IDynamicRange : IQueryObject
 {
     // Returns true if the range is an equality range.
-    Boolean Evaluate(CompositeObject contextObj, SortOrder sortOrder, ByteArrayBuilder firstKey, ByteArrayBuilder secondKey,
+    Boolean Evaluate(Row contextObj, SortOrder sortOrder, ByteArrayBuilder firstKey, ByteArrayBuilder secondKey,
                      ref ComparisonOperator firstOp, ref ComparisonOperator secondOp);
 
     // Filling the range with minimum/maximum values according to the last operators.

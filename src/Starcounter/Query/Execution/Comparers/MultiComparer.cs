@@ -58,7 +58,7 @@ internal class MultiComparer : IQueryComparer
         return comparerList[index];
     }
 
-    public Int32 Compare(CompositeObject obj1, CompositeObject obj2)
+    public Int32 Compare(Row obj1, Row obj2)
     {
         if (obj1 == null)
         {
@@ -78,7 +78,7 @@ internal class MultiComparer : IQueryComparer
         return result;
     }
 
-    internal Int32 Compare(TemporaryObject obj1, CompositeObject obj2)
+    internal Int32 Compare(TemporaryObject obj1, Row obj2)
     {
         if (obj1 == null)
         {
@@ -98,7 +98,7 @@ internal class MultiComparer : IQueryComparer
         return result;
     }
 
-    internal ILiteral GetValue(CompositeObject obj, Int32 index)
+    internal ILiteral GetValue(Row obj, Int32 index)
     {
         if (obj == null)
         {

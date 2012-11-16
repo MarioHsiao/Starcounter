@@ -19,7 +19,7 @@ uint32_t HandlersTable::RegisterPortHandler(
 {
     // Checking number of handlers.
     if (max_num_entries_ >= bmx::MAX_TOTAL_NUMBER_OF_HANDLERS)
-        return SCERRUNSPECIFIED; // SCERRMAXHANDLERSREACHED
+        return SCERRGWMAXHANDLERSREACHED;
 
     uint32_t err_code = 0;
 
@@ -58,7 +58,7 @@ uint32_t HandlersTable::RegisterPortHandler(
                 }
                 else
                 {
-                    return SCERRUNSPECIFIED; // SCERRWRONGHANDLERINSLOT
+                    return SCERRGWWRONGHANDLERINSLOT;
                 }
             }
         }
@@ -119,7 +119,7 @@ uint32_t HandlersTable::RegisterSubPortHandler(
 {
     // Checking number of handlers.
     if (max_num_entries_ >= bmx::MAX_TOTAL_NUMBER_OF_HANDLERS)
-        return SCERRUNSPECIFIED; // SCERRMAXHANDLERSREACHED
+        return SCERRGWMAXHANDLERSREACHED;
 
     uint32_t err_code = 0;
 
@@ -160,7 +160,7 @@ uint32_t HandlersTable::RegisterSubPortHandler(
                     }
                     else
                     {
-                        return SCERRUNSPECIFIED; // SCERRWRONGHANDLERINSLOT
+                        return SCERRGWWRONGHANDLERINSLOT;
                     }
                 }
             }
@@ -224,7 +224,7 @@ uint32_t HandlersTable::RegisterUriHandler(
 {
     // Checking number of handlers.
     if (max_num_entries_ >= bmx::MAX_TOTAL_NUMBER_OF_HANDLERS)
-        return SCERRUNSPECIFIED; // SCERRMAXHANDLERSREACHED
+        return SCERRGWMAXHANDLERSREACHED;
 
     uint32_t err_code = 0;
 
@@ -266,7 +266,7 @@ uint32_t HandlersTable::RegisterUriHandler(
                     }
                     else
                     {
-                        return SCERRUNSPECIFIED; // SCERRWRONGHANDLERINSLOT
+                        return SCERRGWWRONGHANDLERINSLOT;
                     }
                 }
             }
@@ -354,7 +354,7 @@ uint32_t HandlersTable::UnregisterHandler(BMX_HANDLER_TYPE handler_id, GENERIC_H
     }
 
     // If not removed.
-    return SCERRUNSPECIFIED; // SCERRHANDLERNOTFOUND 
+    return SCERRGWHANDLERNOTFOUND;
 }
 
 // Unregisters certain handler.
@@ -383,11 +383,8 @@ uint32_t OuterPortProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLE
         // Checking if user handler was not found.
         if (!handler_index)
         {
-            // Disconnecting this socket.
-            gw->Disconnect(sd);
-
             // Returning error code.
-            return 1;
+            return SCERRGWINCORRECTHANDLER;
         }
     }
 
@@ -437,7 +434,7 @@ uint32_t PortProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYP
         return 0;
     }
 
-    return 1;
+    return SCERRGWPORTPROCESSFAILED;
 }
 
 // Outer port handler.

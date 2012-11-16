@@ -52,6 +52,7 @@ namespace Starcounter {
         public void SetValue(IValueTemplate property, object value) {
             if (property.Bound) {
                 property.SetBoundValueAsObject(this, value);
+                ChangeLog.UpdateValue(this, property);
                 return;
             }
 
@@ -60,7 +61,6 @@ namespace Starcounter {
 #else
             throw new JockeNotImplementedException();
 #endif
-
             ChangeLog.UpdateValue(this, property);
         }
 
@@ -124,6 +124,7 @@ namespace Starcounter {
         public void SetValue(BoolProperty property, bool value) {
             if (property.Bound) {
                 property.SetBoundValue(this, value);
+                ChangeLog.UpdateValue(this, property);
                 return;
             }
 
@@ -256,6 +257,7 @@ namespace Starcounter {
         public void SetValue(DecimalProperty property, decimal value) {
             if (property.Bound) {
                 property.SetBoundValue(this, value);
+                ChangeLog.UpdateValue(this, property);
                 return;
             }
 
@@ -470,6 +472,7 @@ namespace Starcounter {
         public void SetValue(StringProperty property, string value) {
             if (property.Bound) {
                 property.SetBoundValue(this, value);
+                ChangeLog.UpdateValue(this, property);
                 return;
             }
 
@@ -552,14 +555,12 @@ namespace Starcounter {
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(ListingProperty property, SqlResult data) {
-            Listing newList;
             Listing current = _Values[property.Index];
-            if (current != null)
+            if (current != null) {
                 current.Clear();
-
-            newList = data;
-            newList.InitializeAfterImplicitConversion(this, property);
-            _Values[property.Index] = newList;
+                current.notEnumeratedResult = data;
+                current.InitializeAfterImplicitConversion(this, property);
+            }
         }
 
         /// <summary>
@@ -687,6 +688,25 @@ namespace Starcounter {
         public void SetValue(AppTemplate property, App value) {
 #if QUICKTUPLE
             _Values[property.Index] = value;
+#else
+            throw new JockeNotImplementedException();
+#endif
+
+            ChangeLog.UpdateValue(this, property);
+        }
+
+        /// <summary>
+        /// Sets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="value">The value.</param>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void SetValue(AppTemplate property, Entity value) {
+#if QUICKTUPLE
+            App app = (App)property.CreateInstance(this);
+            app.Data = value;
+            _Values[property.Index] = app;
 #else
             throw new JockeNotImplementedException();
 #endif
