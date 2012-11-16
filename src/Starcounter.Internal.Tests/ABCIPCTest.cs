@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using Starcounter.ABCIPC;
+using Starcounter.ABCIPC.Internal;
 
 namespace Starcounter.Internal.Tests {
     
@@ -15,10 +17,21 @@ namespace Starcounter.Internal.Tests {
     public class ABCIPCTest {
         
         /// <summary>
-        /// Placeholder: Runs test 1.
+        /// Tests the predicability of the public constructor of the
+        /// <see cref="Client"/> class.
         /// </summary>
         [Test]
-        public void Test1() {
+        public void TestClientConstructor() {
+            try {
+                new Client(null, () => { return string.Empty; });
+            } catch (ArgumentNullException) {
+                try {
+                    new Client((s) => { }, null);
+                } catch (ArgumentNullException) {
+                    return;
+                }
+            }
+            Assert.Fail();
         }
     }
 }
