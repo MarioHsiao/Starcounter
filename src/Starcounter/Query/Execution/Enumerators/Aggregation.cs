@@ -24,12 +24,12 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
     MultiComparer comparer; // Group-by columns.
     List<ISetFunction> setFunctionList;
     IExecutionEnumerator enumerator;
-    CompositeObject cursorObject;
-    CompositeObject contextObject;
+    Row cursorObject;
+    Row contextObject;
     ILogicalExpression condition;
     Boolean firstCallOfMoveNext;
 
-    internal Aggregation(CompositeTypeBinding compTypeBind,
+    internal Aggregation(RowTypeBinding rowTypeBind,
         Int32 extNum,
         IExecutionEnumerator subEnum,
         IQueryComparer comparer,
@@ -37,10 +37,8 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         ILogicalExpression condition,
         VariableArray varArr,
         String query)
-        : base(varArr)
+        : base(rowTypeBind, varArr)
     {
-        if (compTypeBind == null)
-            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect compTypeBind.");
         if (subEnum == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect subEnum.");
         if (comparer == null)
@@ -51,10 +49,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect condition.");
         if (query == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect query.");
-        if (varArr == null)
-            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect variables clone.");
 
-        compTypeBinding = compTypeBind;
         extentNumber = extNum;
 
         subEnumerator = subEnum;
@@ -74,13 +69,13 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         {
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect comparer.");
         }
-        if (compTypeBinding.GetTypeBinding(extentNumber) is TemporaryTypeBinding)
+        if (rowTypeBinding.GetTypeBinding(extentNumber) is TemporaryTypeBinding)
         {
-            tempTypeBinding = compTypeBinding.GetTypeBinding(extentNumber) as TemporaryTypeBinding;
+            tempTypeBinding = rowTypeBinding.GetTypeBinding(extentNumber) as TemporaryTypeBinding;
         }
         else
         {
-            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect resultTypeBind.");
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
         }
 
         enumerator = null;
@@ -90,7 +85,6 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         firstCallOfMoveNext = true;
 
         this.query = query;
-        variableArray = varArr;
     }
 
     /// <summary>
@@ -100,10 +94,15 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
     {
         get
         {
-            if (singleObject)
-                return compTypeBinding.GetPropertyBinding(0).TypeBinding;
+            if (projectionTypeCode == null)
+                return rowTypeBinding;
 
-            return compTypeBinding;
+            // Singleton object.
+            if (projectionTypeCode == DbTypeCode.Object)
+                return rowTypeBinding.GetPropertyBinding(0).TypeBinding;
+
+            // Singleton non-object.
+            return null;
         }
     }
 
@@ -129,17 +128,69 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         {
             if (currentObject != null)
             {
-                if (singleObject)
-                    return currentObject.GetObject(0);
+                switch (projectionTypeCode)
+                {
+                    case null:
+                        return currentObject;
 
-                return currentObject;
+                    case DbTypeCode.Binary:
+                        return currentObject.GetBinary(0);
+
+                    case DbTypeCode.Boolean:
+                        return currentObject.GetBoolean(0);
+
+                    case DbTypeCode.Byte:
+                        return currentObject.GetByte(0);
+
+                    case DbTypeCode.DateTime:
+                        return currentObject.GetDateTime(0);
+
+                    case DbTypeCode.Decimal:
+                        return currentObject.GetDecimal(0);
+
+                    case DbTypeCode.Double:
+                        return currentObject.GetDouble(0);
+
+                    case DbTypeCode.Int16:
+                        return currentObject.GetInt16(0);
+
+                    case DbTypeCode.Int32:
+                        return currentObject.GetInt32(0);
+
+                    case DbTypeCode.Int64:
+                        return currentObject.GetInt64(0);
+
+                    case DbTypeCode.Object:
+                        return currentObject.GetObject(0);
+
+                    case DbTypeCode.SByte:
+                        return currentObject.GetSByte(0);
+
+                    case DbTypeCode.Single:
+                        return currentObject.GetSingle(0);
+
+                    case DbTypeCode.String:
+                        return currentObject.GetString(0);
+
+                    case DbTypeCode.UInt16:
+                        return currentObject.GetUInt16(0);
+
+                    case DbTypeCode.UInt32:
+                        return currentObject.GetUInt32(0);
+
+                    case DbTypeCode.UInt64:
+                        return currentObject.GetUInt64(0);
+
+                    default:
+                        throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect projectionTypeCode.");
+                }
             }
 
             throw new InvalidOperationException("Enumerator has not started or has already finished.");
         }
     }
 
-    public CompositeObject CurrentCompositeObject
+    public Row CurrentRow
     {
         get
         {
@@ -162,7 +213,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         }
         else
         {
-            enumerator = new Sort(subEnumerator, comparer, variableArray, query);
+            enumerator = new Sort(subEnumerator.RowTypeBinding, subEnumerator, comparer, variableArray, query);
         }
     }
 
@@ -170,7 +221,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
     /// Resets the enumerator with a context object.
     /// </summary>
     /// <param name="obj">Context object from another enumerator.</param>
-    public override void Reset(CompositeObject obj)
+    public override void Reset(Row obj)
     {
         if (enumerator != null)
         {
@@ -202,7 +253,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         {
             if (enumerator.MoveNext())
             {
-                cursorObject = enumerator.CurrentCompositeObject;
+                cursorObject = enumerator.CurrentRow;
             }
             else
             {
@@ -218,7 +269,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         }
         // Create new object.
         TemporaryObject tempObject = new TemporaryObject(tempTypeBinding);
-        CompositeObject compObject = new CompositeObject(compTypeBinding);
+        Row compObject = new Row(rowTypeBinding);
         compObject.AttachObject(extentNumber, tempObject);
         Boolean conditionValue = false;
         //while (cursorObject != null && !conditionValue)
@@ -244,7 +295,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
                 }
                 if (enumerator.MoveNext())
                 {
-                    cursorObject = enumerator.CurrentCompositeObject;
+                    cursorObject = enumerator.CurrentRow;
                 }
                 else
                 {
@@ -282,8 +333,8 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         else if (counter == 0 || force)
         {
             // Create a NullObject.
-            NullObject nullObj = new NullObject(compTypeBinding.GetTypeBinding(extentNumber));
-            currentObject = new CompositeObject(compTypeBinding);
+            NullObject nullObj = new NullObject(rowTypeBinding.GetTypeBinding(extentNumber));
+            currentObject = new Row(rowTypeBinding);
             currentObject.AttachObject(extentNumber, nullObj);
             counter++;
             return true;
@@ -315,15 +366,15 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
     /// Creating the clone of enumerator.
     /// </summary>
     /// <returns>Returns clone of the enumerator.</returns>
-    public override IExecutionEnumerator Clone(CompositeTypeBinding resultTypeBindClone, VariableArray varArray)
+    public override IExecutionEnumerator Clone(RowTypeBinding rowTypeBindClone, VariableArray varArray)
     {
         List<ISetFunction> setFuncListClone = new List<ISetFunction>();
         for (Int32 i = 0; i < setFunctionList.Count; i++)
         {
             setFuncListClone.Add(setFunctionList[i].Clone(varArray));
         }
-        return new Aggregation(resultTypeBindClone, extentNumber,
-                               subEnumerator.Clone(resultTypeBindClone, varArray),
+        return new Aggregation(rowTypeBindClone, extentNumber,
+                               subEnumerator.Clone(rowTypeBindClone, varArray),
                                comparer.Clone(varArray), setFuncListClone,
                                condition.Clone(varArray), varArray, query);
     }

@@ -90,14 +90,14 @@ internal class DoubleComparer : ISingleComparer
         }
     }
 
-    public Int32 Compare(CompositeObject obj1, CompositeObject obj2)
+    public Int32 Compare(Row obj1, Row obj2)
     {
         Nullable<Double> value1 = expression.EvaluateToDouble(obj1);
         Nullable<Double> value2 = expression.EvaluateToDouble(obj2);
         return InternalCompare(value1, value2);
     }
 
-    public Int32 Compare(ILiteral value, CompositeObject obj)
+    public Int32 Compare(ILiteral value, Row obj)
     {
         if (!(value is DoubleLiteral))
         {
@@ -108,7 +108,7 @@ internal class DoubleComparer : ISingleComparer
         return InternalCompare(value1, value2);
     }
 
-    public ILiteral Evaluate(CompositeObject obj)
+    public ILiteral Evaluate(Row obj)
     {
         return new DoubleLiteral(expression.EvaluateToDouble(obj));
     }

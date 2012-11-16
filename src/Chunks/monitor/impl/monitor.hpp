@@ -16,24 +16,21 @@ namespace starcounter {
 namespace core {
 
 monitor::monitor(int argc, wchar_t* argv[])
-: bounded_message_buffer_(bounded_message_buffer_capacity),
-monitor_interface_(),
+: monitor_interface_(),
 active_segments_update_(active_segments_buffer_capacity),
 active_databases_updated_flag_(false),
 registrar_(),
-log_thread_(),
 active_databases_file_updater_thread_(),
 #if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 resources_watching_thread_(),
 #endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
-owner_id_counter_(owner_id::none),
-internal_chron_() {
+owner_id_counter_(owner_id::none) {
 	/// TODO: Use Boost.Program_options.
 	/// ScErrCreateMonitorInterface is reserved in errorcodes.xml for later use.
 	
 	// Disable synchronization with stdio before any other I/O operation.
 	//std::ios::sync_with_stdio(false);
-	
+
 	// wcstombs() output to temp_buf and then it is copied to a string.
 	/// TODO: Try to improve this code, by copying directly to string.
 	char temp_buf[maximum_path_and_file_name_length];
@@ -50,72 +47,56 @@ internal_chron_() {
 		// character string to multibyte string.
 		length = std::wcstombs(temp_buf, argv[1],
 		maximum_path_and_file_name_length -1);
-
 		server_name_ = std::string(temp_buf);
 		
 		if (server_name_ == "SYSTEM") {
 			is_system = true;
 		}
 		
-		// Get the second argument, monitor_log_dir_path, and convert it from
+		// Get the second argument, monitor_dir_path, and convert it from
 		// wide character string to multibyte string.
-		length = std::wcstombs(temp_buf, argv[2],
-		maximum_path_and_file_name_length -1);
-
+		length = std::wcstombs(temp_buf, argv[2], maximum_path_and_file_name_length -1);
 		temp_buf[length++] = SLASH;
 		temp_buf[length++] = '\0';
 
-		monitor_log_dir_path_ = std::string(temp_buf) + DEFAULT_MONITOR_DIR_NAME + SLASH;
+		monitor_dir_path_ = std::wstring(argv[2]) +W_DEFAULT_MONITOR_DIR_NAME +W_SLASH;
+		active_databases_file_path_ = std::wstring(argv[2]) +W_SLASH +W_DEFAULT_MONITOR_DIR_NAME +W_SLASH;
+		
+		// Trying to create monitor directory.
+		if ((!CreateDirectory(active_databases_file_path_.c_str(), NULL))
+		&& (ERROR_ALREADY_EXISTS != GetLastError())) {
+			throw bad_monitor("can't create monitor directory!");
+		}
 
-        // Trying to create monitor directory.
-        if ((!CreateDirectoryA(monitor_log_dir_path_.c_str(), NULL)) &&
-            (ERROR_ALREADY_EXISTS != GetLastError()))
-        {
-            throw bad_monitor("can't create monitor log directory!");
-        }
+		// Constructing path to active databases directory.
+		std::wstring w_active_databases_dir_path = active_databases_file_path_
+		+W_DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME;
 
-        // Constructing path to active databases directory.
-        std::string active_databases_dir_path = monitor_log_dir_path_ + DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME;
-
-        // Trying to create active databases directory.
-        if ((!CreateDirectoryA(active_databases_dir_path.c_str(), NULL)) &&
-            (ERROR_ALREADY_EXISTS != GetLastError()))
-        {
-            throw bad_monitor("can't create monitor active databases directory!");
-        }
+		// Trying to create active databases directory.
+		if ((!CreateDirectory(w_active_databases_dir_path.c_str(), NULL))
+		&& (ERROR_ALREADY_EXISTS != GetLastError())) {
+			throw bad_monitor("can't create monitor active databases directory!");
+		}
 	}
 	else {
 		// The first argument (name of the server that started this monitor),
-		// and the second argument (path to the dir where the monitor's log file
-		// is to be stored), must be provided. At least one is missing.
+		// must be provided.
 		throw bad_monitor("required arguments are missing");
 	}
 	
-	if (argc > 3) {
-		// Get the first second, monitor_log_dir_path, and convert it from wide-
-		// character string to multibyte string.
-		length = std::wcstombs(temp_buf, argv[3],
-		maximum_path_and_file_name_length -1);
+	// Constructing the full path to active databases file.
+	active_databases_file_path_ = active_databases_file_path_
+	+W_DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME +W_SLASH
+	+W_DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME;
 
-		log_file_name_ = std::string(temp_buf);
+	// Checking if old active databases file already exists and deleting it.
+	if (GetFileAttributes(active_databases_file_path_.c_str())
+	!= INVALID_FILE_ATTRIBUTES) {
+		if (!DeleteFile(active_databases_file_path_.c_str())) {
+			throw bad_monitor("can't delete monitor active databases file!");
+		}
 	}
-	else {
-		log_file_name_ = std::string(DEFAULT_MONITOR_LOG_FILE_NAME);
-	}
-	
-    // Constructing the full path to active databases file.
-    active_databases_file_path_ = monitor_log_dir_path_ +DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME +SLASH
-        /*+server_name_ +'_' */ +DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME;
 
-    // Checking if old active databases file already exists and deleting it.
-    if (GetFileAttributesA(active_databases_file_path_.c_str()) != INVALID_FILE_ATTRIBUTES)
-    {
-        if (!DeleteFileA(active_databases_file_path_.c_str()))
-        {
-            throw bad_monitor("can't delete monitor active databases file!");
-        }
-    }
-	
 	//--------------------------------------------------------------------------
 	// Initialize the monitor_interface shared memory object.
 	std::string monitor_interface_shared_memory_object_name;
@@ -124,10 +105,9 @@ internal_chron_() {
 	// Arguments to the monitor (wchar_t):
 	// First argument: server_name (L"PERSONAL" or L"SYSTEM", etc.)
 	//
-	// Second argument: monitor_log_dir_path (path to the dir where the
-	// monitor's log file is to be stored.)
+	// Second argument: ipc_monitor_dir_path.
 	//
-	// Third argument (is optional): The monitor_log_file_name. If not provided,
+	// Third argument (is optional): The ipc_monitor_file_name. If not provided,
 	// then the default monitor log file name is used:
 	// <server_name>_"monitor.log", so the default name will either be
 	// L"PERSONAL_monitor.log", or L"SYSTEM_monitor.log".
@@ -160,29 +140,6 @@ internal_chron_() {
 		// Exit because another monitor is already doing the job.
 		exit(EXIT_SUCCESS);
 	}
-	
-	//--------------------------------------------------------------------------
-	// Open the monitors log file in text mode.
-	
-	/// TODO: Use Boost.Program_options.
-	{
-		std::string monitor_log_file_name = monitor_log_dir_path_
-		+server_name_ +'_' +log_file_name_;
-		
-		boost::mutex::scoped_lock log_lock(log_file_mutex_);
-		monitor_log_file_.open(monitor_log_file_name, std::ios::out);
-		
-		if (!monitor_log_file_.is_open()) {
-			throw bad_monitor("failed to open monitor log file");
-		}
-	}
-	
-	// Notify the log thread that the monitor log file is open.
-	// This is not needed because it doesn't exist yet but anyway.
-	log_file_is_open_.notify_one();
-	
-	std::string message = "The monitor log file is open.";
-	write_log_message(message); /// debug
 	
 	//--------------------------------------------------------------------------
 	// Create a shared memory object to hold the monitor_interface.
@@ -222,7 +179,7 @@ internal_chron_() {
 	for (std::size_t i = 0; i < client_process_event_groups; ++i) {
 		client_process_group_[i].event_.reserve(events_per_group);
 	}
-	
+
 	//--------------------------------------------------------------------------
 	if (is_system) {
 		// Try to set the privilege SeDebugPrivilege, so that the monitor can
@@ -234,10 +191,6 @@ internal_chron_() {
 		if (OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES,
 		&access_token) == 0) {
 			err = GetLastError();
-			message = "monitor::monitor():\n"
-			"OpenProcessToken() failed with the error code: "
-			+boost::lexical_cast<std::string>(err);
-			write_log_message(message); /// debug
 			CloseHandle(access_token);
 			throw bad_monitor("OpenProcessToken() failed");
 		}
@@ -246,10 +199,6 @@ internal_chron_() {
 		
 		if (LookupPrivilegeValue(NULL, L"SeDebugPrivilege", &luid) == 0) {
 			err = GetLastError();
-			message = "monitor::monitor():\n"
-			"LookupPrivilegeValue() failed with the error code: "
-			+boost::lexical_cast<std::string>(err);
-			write_log_message(message); /// debug
 			CloseHandle(access_token);
 			throw bad_monitor("LookupPrivilegeValue() failed");
 		}
@@ -263,10 +212,6 @@ internal_chron_() {
 		if (!AdjustTokenPrivileges(access_token, FALSE, &tp,
 		sizeof(TOKEN_PRIVILEGES), (PTOKEN_PRIVILEGES) NULL, (PDWORD) NULL)) {
 			err = GetLastError();
-			message = "monitor::monitor():\n"
-			"AdjustTokenPrivileges() failed with the error code: "
-			+boost::lexical_cast<std::string>(err);
-			write_log_message(message);
 			CloseHandle(access_token);
 			throw bad_monitor("AdjustTokenPrivileges() failed");
 		}
@@ -275,23 +220,14 @@ internal_chron_() {
 			CloseHandle(access_token);
 			throw bad_monitor("failed to set SeDebugPrivilege");
 		}
-		
 		CloseHandle(access_token);
-		
-		message = "monitor::monitor():\n"
-		"Successfully set SeDebugPrivilege.";
-		write_log_message(message);
 	}
 }
 
 monitor::~monitor() {
-	write_log_message("monitor::~monitor():\n"
-	"SYSTEM INTERRUPT");
-	
 	/// TODO: Send some interrupt and set flag to terminate and hope it works.
-	//--------------------------------------------------------------------------
+
 	// Join threads.
-	
 	for (std::size_t i = 0; i < database_process_event_groups; ++i) {
 		database_process_group_[i].thread_.join();
 	}
@@ -301,21 +237,11 @@ monitor::~monitor() {
 	}
 	
 	registrar_.join();
-	
-	/// TODO: Check that the log thread flushes all messages before exit.
-	log_thread_.join();
 	active_databases_file_updater_thread_.join();
 
 #if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 	resources_watching_thread_.join();
 #endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
-	
-	//--------------------------------------------------------------------------
-	// Close the monitor log file.
-	write_log_message("monitor::~monitor():\n"
-	"Closing the monitor log file.");
-	
-	monitor_log_file_.close();
 }
 
 void monitor::run() {
@@ -349,9 +275,6 @@ void monitor::run() {
 	// for those threads have been stored, since it is used in the call to
 	// QueueUserAPC() by the registrar_ thread.
 	registrar_ = boost::thread(boost::bind(&monitor::registrar, this));
-	
-	// Start the log thread.
-	log_thread_ = boost::thread(boost::bind(&monitor::read_log_message, this));
 	
 	// Start the active databases thread.
 	active_databases_file_updater_thread_ = boost::thread(boost::bind
@@ -414,13 +337,6 @@ void monitor::wait_for_database_process_event(std::size_t group) {
 						// database_terminated_unexpectedly, and wake up clients
 						// who are blocked on any channel.
 						
-						// Log: Database process exit.
-						message = "Database process with pid "
-						+boost::lexical_cast<std::string>
-						(process_register_it->second.get_pid())
-						+" terminated.";
-						write_log_message(message);
-
 						try {
 							process_register_type::iterator
 							process_register_it_2;
@@ -436,14 +352,6 @@ void monitor::wait_for_database_process_event(std::size_t group) {
 								// Found the owner_id. Open the database
 								// shared memory segment that this database
 								// process had created.
-								
-								// Log: The name of the segment to be opened.
-								message = "Trying to open segment name: "
-								+process_register_it_2
-								->second.get_segment_name();
-								
-								write_log_message(message);
-								
 								try {
 									// Try open the segment.
 									shared_interface shared
@@ -459,41 +367,19 @@ void monitor::wait_for_database_process_event(std::size_t group) {
 									// what happened, where we catch the
 									// exception.
 									
-									// Log: The segment was opened.
-									message = "Opened database segment name: "
-									+process_register_it_2
-									->second.get_segment_name();
-									write_log_message(message);
-									
 									// Set the state to
 									// database_terminated_unexpectedly.
 									shared.database_state
 									(common_client_interface_type
 									::database_terminated_unexpectedly);
 									
-									// Log: state is set to
-									// database_terminated_unexpectedly.
-									message = "Database state is set to: "
-									"database_terminated_unexpectedly.";
-									write_log_message(message);
-									
 									// Notify waiting clients on all channels.
 									for (std::size_t n = 0; n < channels; ++n) {
 										shared.client_interface(n).notify();
 									}
 									
-									message = "Clients were notified that the "
-									"database terminated.";
-									write_log_message(message);
-									
 									/// TODO: Figure when to remove the event.
-									message =
-									"Removing database process info with "
-									"segment name:\n"
-									+process_register_it_2
-									->second.get_segment_name();
-									write_log_message(message);
-									
+
 									// Try to erase database name from
 									// active_databases_, and notify the
 									// active_databases_file_updater_thread_.
@@ -510,22 +396,6 @@ void monitor::wait_for_database_process_event(std::size_t group) {
 									(process_register_it_2);
 								}
 								catch (shared_interface_exception&) {
-									// Log: The monitor failed to open the
-									// database shared memory segment and is
-									// unable to notify the clients.
-									message = header_message
-									+"shared_interface_exception: "
-									"Failed to open the database shared memory "
-									"segment:\n"
-									+process_register_it_2
-									->second.get_segment_name() +"\n"
-									+"to notify clients that the database "
-									"terminated. Removing "
-									+boost::lexical_cast<std::string>
-									(process_register_it_2
-									->second.get_handle());
-									write_log_message(message);
-									
 									/// Remove event and database process info
 									/// from the process_register.
 									
@@ -545,30 +415,15 @@ void monitor::wait_for_database_process_event(std::size_t group) {
 								}
 							}
 							else {
-								message
-								= "Database segment name not found.\n"
-								"No clients could be informed "
-								"that the database is down.";
-								write_log_message(message);
+								// Database segment name not found.
+								// No clients could be informed
+								// that the database is down.
 							}
 						}
-						catch (boost::interprocess::interprocess_exception& e) {
-							message = header_message
-							+"interprocess_exception caught: " +e.what() +"\n"
-							+__FUNCTION__ +" : "
-							+boost::lexical_cast<std::string>(__LINE__)
-							+"\n";
-							write_log_message(message);
+						catch (boost::interprocess::interprocess_exception&) {
 						}
 						catch (...) {
-							message = header_message
-							+"unknown exception caught.\n"
-							+__FUNCTION__ +" : "
-							+boost::lexical_cast<std::string>(__LINE__)
-							+"\n";
-							write_log_message(message);
 						}
-						
 						break;
 					case monitor_interface::client_process: /// It can't be!
 						pt = "client"; /// debug
@@ -578,12 +433,10 @@ void monitor::wait_for_database_process_event(std::size_t group) {
 						// Unknown proess type exit. Cosmic X-ray corrupted RAM?
 						break;
 					}
-					
 					// Found the exit_event, stop searching.
 					break;
 				}
 			}
-			
 			remove_database_process_event(group, event_code);
 		}
 		else {
@@ -594,11 +447,6 @@ void monitor::wait_for_database_process_event(std::size_t group) {
 					// apc_function() was called and returned instantly.
 					switch (the_monitor_interface_->get_operation()) {
 					case monitor_interface::registration_request: {
-							message = "Registering database process with pid "
-							+boost::lexical_cast<std::string>
-							(the_monitor_interface_->get_pid()) +".";
-							write_log_message(message); /// debug
-							
 							// Store info about the registering database
 							// process, if not already registered.
 							/// TODO: Handle the case if the pid exists already.
@@ -625,11 +473,7 @@ void monitor::wait_for_database_process_event(std::size_t group) {
 								// Register the process.
 								if ((the_event = OpenProcess(SYNCHRONIZE, FALSE,
 								the_monitor_interface_->get_pid())) == NULL) {
-									message = header_message
-									+"OpenProcess() failed with the error: "
-									+boost::lexical_cast<std::string>
-									(GetLastError());
-									write_log_message(message);
+									// OpenProcess() failed.
 									break;
 								}
 								
@@ -676,15 +520,8 @@ void monitor::wait_for_database_process_event(std::size_t group) {
 						break;
 					case monitor_interface::unregistration_request: {
 							// A database process unregisters.
-							message = header_message
-							+"Unregistering database process with pid "
-							+boost::lexical_cast<std::string>
-							(the_monitor_interface_->get_pid());
-							write_log_message(message); /// debug
-							
 							// Remove unregistering database process from the
 							// process_register.
-							
 							{
 								/// TODO: Try to optimize and hold this mutex
 								/// for the shortest time possible, as usual.
@@ -731,36 +568,15 @@ void monitor::wait_for_database_process_event(std::size_t group) {
 					}
 				}
 				break;
-			case WAIT_FAILED: {
-					//message = header_message +boost::lexical_cast<std::string>
-					//(database_process_group_[group].event_.size())
-					//+" events to wait for. WAIT_FAILED: err = "
-					//+boost::lexical_cast<std::string>(GetLastError());
-					//write_log_message(message); /// debug
-				}
+			case WAIT_FAILED:
 				break;
-			case ERROR_INVALID_PARAMETER: {
-					message = header_message +boost::lexical_cast<std::string>
-					(database_process_group_[group].event_.size())
-					+" events to wait for. ERROR_INVALID_PARAMETER.";
-					write_log_message(message); /// debug
-				}
+			case ERROR_INVALID_PARAMETER:
 				break;
-			default: {
-					message = header_message +boost::lexical_cast<std::string>
-					(database_process_group_[group].event_.size())
-					+" events to wait for. ERROR: Unknown event code.";
-					write_log_message(message); /// debug
-				}
+			default:
 				break;
 			}
 		}
 	}
-	
-	message = "monitor::wait_for_database_process_event (group "
-	+boost::lexical_cast<std::string>(group) +"):\n"
-	+"Exit event loop.";
-	write_log_message(message); /// debug
 }
 
 void monitor::wait_for_client_process_event(std::size_t group) {
@@ -833,16 +649,9 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 						// state before waiting.
 						// ...
 						
-						// Log: Client process terminated.
-						//message = "Client process with owner-id "
-						//+boost::lexical_cast<std::string>
-						//(owner_id_of_terminated_process) +" terminated.";
-						// Log: Database process exit.
-						message = "Client process with pid "
-						+boost::lexical_cast<std::string>
-						(process_register_it->second.get_pid())
-						+" terminated.";
-						write_log_message(message);
+						// Client process with pid
+						// process_register_it->second.get_pid()
+						// terminated.
 						
 						try {
 							// For each registered segment_name, open the shared
@@ -868,16 +677,6 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 								}
 								
 								// Found a database shared memory segment.
-								
-								// Log: The name of the segment to be opened.
-								message = "Clean up job started for process "
-								"with owner-id " +boost::lexical_cast
-								<std::string>(owner_id_of_terminated_process)
-								+".\nOpening database shared memory segment:\n"
-								+process_register_it_2
-								->second.get_segment_name();
-								
-								write_log_message(message);
 								
 								shared_interface shared(process_register_it_2
 								->second.get_segment_name(), std::string(),
@@ -935,13 +734,6 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 
 										//std::cout << "channels_to_recover: " << channels_to_recover << "\n"; /// DEBUG
 
-										// Log: Marked client_interface for
-										// clean up.
-										message = "Marked client_interface "
-										+boost::lexical_cast<std::string>(n)
-										+" for clean up.";
-										write_log_message(message);
-										
 										// For each of the channels the client
 										// owned, try to notify the scheduler.
 										// Log this event.
@@ -984,88 +776,39 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 													if ((scheduler_interface_ptr->try_to_notify_scheduler_to_do_clean_up
 													(64 /* ms to wait */)) == true) {
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-														// Log: Succeessfully
-														// notified the scheduler
-														// on this channel.
-														message = header_message
-														+"Notified the scheduler on"
-														" channel "
-														+boost::lexical_cast
-														<std::string>(n) +".";
-														write_log_message(message);
+														// Succeessfully notified the scheduler on this channel.
 													}
 													else {
-														// Log: Failed to notify the
-														// scheduler on this channel.
-														message =
-														"Failed to notify the "
-														"scheduler on channel "
-														+boost::lexical_cast
-														<std::string>(n) +".";
-														write_log_message(message);
+														// Failed to notify the scheduler on this channel.
 													}
 												}
 												else {
-													// Log: Scheduler did clean
-													// up on this channel.
-													message =
-													"Scheduler on channel "
-													+boost::lexical_cast
-													<std::string>(n)
-													+" finnished clean up.";
-													write_log_message(message);
+													// Scheduler did clean up on this channel.
 												}
 											}
 										}
 									}
 								}
 								
-								// Log: The schedulers in this segment were
+								// The schedulers in this segment were
 								// notified and number of resources to recover.
-								message = boost::lexical_cast<std::string>
-								(channels_to_recover)
-								+" schedulers in database\n"
-								+process_register_it_2
-								->second.get_segment_name()
-								+"\nwere notified to perform clean up.";
-								write_log_message(message);
+								//process_register_it_2->second.get_segment_name()
+								// were notified to perform clean up.
 							}
 						}
 						catch (shared_interface_exception&) {
-							// Log: The monitor failed to open the database
-							// shared memory segment and is unable to notify the
-							// clients.
-							message = header_message
-							+"unable to notify schedulers, failed to open"
-							" database segment name.";
-							write_log_message(message);
+							// Failed to open the database shared memory segment and
+							// is unable to notify the clients.
 						}
-						catch (boost::interprocess::interprocess_exception& e) {
-							message = header_message
-							+"interprocess_exception caught: " +e.what() +"\n"
-							+__FUNCTION__ +" : "
-							+boost::lexical_cast<std::string>(__LINE__)
-							+"\n";
-							write_log_message(message);
+						catch (boost::interprocess::interprocess_exception&) {
 						}
 						catch (...) {
-							message = header_message
-							+"unknown exception caught.\n"
-							+__FUNCTION__ +" : "
-							+boost::lexical_cast<std::string>(__LINE__)
-							+"\n";
-							write_log_message(message);
 						}
 						
-						//------------------------------------------------------
 						// Remove from the process_register here?
-						//std::cout << "Removing from the process_register: "
-						//<< process_register_it->second.get_handle() << '\n';
-						
 						process_register_.erase(process_register_it);
-						///=====================================================
 						break;
-					
+
 					case monitor_interface::database_process: /// It can't be!
 						pt = "database"; /// debug
 						// A registrered database process exit (crashed):
@@ -1081,11 +824,9 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 						// Unknown proess type exit. Cosmic X-ray corrupted RAM?
 						break;
 					}
-					
 					break;
 				}
 			}
-			
 			remove_client_process_event(group, event_code);
 		}
 		else {
@@ -1096,11 +837,6 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 					// apc_function() was called and returned instantly.
 					switch (the_monitor_interface_->get_operation()) {
 					case monitor_interface::registration_request: {
-							message = "Registering client process with pid "
-							+boost::lexical_cast<std::string>
-							(the_monitor_interface_->get_pid()) +".";
-							write_log_message(message); /// debug
-							
 							// Store info about the registering client process,
 							// if not already registered.
 							/// TODO: Handle the case if the pid exists already.
@@ -1127,11 +863,7 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 								// Register the client process.
 								if ((the_event = OpenProcess(SYNCHRONIZE, FALSE,
 								the_monitor_interface_->get_pid())) == NULL) {
-									message = header_message
-									+"OpenProcess() failed with the error: "
-									+boost::lexical_cast<std::string>
-									(GetLastError());
-									write_log_message(message);
+									// OpenProcess() failed.
 									break;
 								}
 								
@@ -1165,15 +897,8 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 						break;
 					case monitor_interface::unregistration_request: {
 							// A client process unregisters.
-							message = header_message
-							+"Unregistering cleint process with pid "
-							+boost::lexical_cast<std::string>
-							(the_monitor_interface_->get_pid());
-							write_log_message(message); /// debug
-							
 							// Remove unregistering client process from the
 							// process_register.
-							
 							{
 								/// TODO: Try to optimize and hold this mutex
 								/// for the shortest time possible, as usual.
@@ -1212,36 +937,15 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 					}
 				}
 				break;
-			case WAIT_FAILED: {
-					//message = header_message +boost::lexical_cast<std::string>
-					//(client_process_group_[group].event_.size())
-					//+" events to wait for. WAIT_FAILED: err = "
-					//+boost::lexical_cast<std::string>(GetLastError());
-					//write_log_message(message); /// debug
-				}
+			case WAIT_FAILED:
 				break;
-			case ERROR_INVALID_PARAMETER: {
-					message = header_message +boost::lexical_cast<std::string>
-					(client_process_group_[group].event_.size())
-					+" events to wait for. ERROR_INVALID_PARAMETER.";
-					write_log_message(message); /// debug
-				}
+			case ERROR_INVALID_PARAMETER:
 				break;
-			default: {
-					message = header_message +boost::lexical_cast<std::string>
-					(client_process_group_[group].event_.size())
-					+" events to wait for. ERROR: Unknown event code.";
-					write_log_message(message); /// debug
-				}
+			default:
 				break;
 			}
 		}
 	}
-	
-	message = "monitor::wait_for_client_process_event (group "
-	+boost::lexical_cast<std::string>(group) +"):\n"
-	+"Exit event loop.";
-	write_log_message(message); /// debug
 }
 
 /// private:
@@ -1260,20 +964,16 @@ void monitor::registrar() {
 		case monitor_interface::database_process:
 			switch (the_monitor_interface_->get_operation()) {
 			case monitor_interface::registration_request:
-				message = "Database process registration request.";
-				write_log_message(message); /// debug
-				
+				// Database process registration request.
 				// Search all groups for a vector<event> that is not full.
-				for (std::size_t i = 0; i < database_process_event_groups; ++i)
-				{
+				for (std::size_t i = 0; i < database_process_event_groups; ++i) {
 					if (database_process_group_[i].event_.size()
 					< events_per_group) {
 						/// TODO: use thread_primitives.hpp
 						// Queue an user apc to that thread.
 						QueueUserAPC(apc_function,
 						database_process_group_[i].thread_handle_,
-						reinterpret_cast<boost::detail::win32::ulong_ptr>
-						(this));
+						reinterpret_cast<boost::detail::win32::ulong_ptr>(this));
 						break;
 					}
 				}
@@ -1285,17 +985,13 @@ void monitor::registrar() {
 				break;
 			case monitor_interface::unregistration_request:
 				// The database unregisters.
-				message = "database process, unregistration request.";
-				write_log_message(message); /// debug
 				break;
 			}
 			break;
 		case monitor_interface::client_process:
 			switch (the_monitor_interface_->get_operation()) {
 			case monitor_interface::registration_request:
-				message = "Client process registration request.";
-				write_log_message(message); /// debug
-				
+				// Client process registration request.
 				// Search all groups for a vector<event> that is not full.
 				for (std::size_t i = 0; i < client_process_event_groups; ++i) {
 					if (client_process_group_[i].event_.size()
@@ -1318,15 +1014,8 @@ void monitor::registrar() {
 				break;
 			case monitor_interface::unregistration_request:
 				// A client process unregisters.
-				message = header_message
-				+"Unregistering client process with pid "
-				+boost::lexical_cast<std::string>
-				(the_monitor_interface_->get_pid());
-				write_log_message(message); /// debug
-				
 				// Remove unregistering client process from the
 				// process_register.
-				
 				{
 					/// TODO: Try to optimize and hold this mutex
 					/// for the shortest time possible, as usual.
@@ -1353,17 +1042,11 @@ void monitor::registrar() {
 						else {
 							// The owner_id matches but not the pid. Something
 							// is wrong, so the process_info is not removed.
-							message = "client process, unregistration request failed:\n"
-							"The owner_id matches but not the pid.";
-							write_log_message(message); /// debug
 						}
 					}
 					else {
 						// The pid matches but not the owner_id. Something is wrong,
 						// so the process_info is not removed.
-						message = "client process, unregistration request failed:\n"
-						"The pid matches but not the owner_id.";
-						write_log_message(message); /// debug
 					}
 					
 					the_monitor_interface_->set_out_data_available_state(true);
@@ -1376,9 +1059,6 @@ void monitor::registrar() {
 			break;
 		}
 	}
-	
-	message = header_message +"Exit.";
-	write_log_message(message); /// debug
 }
 
 void __stdcall monitor::apc_function(boost::detail::win32::ulong_ptr arg) {
@@ -1389,54 +1069,6 @@ void __stdcall monitor::apc_function(boost::detail::win32::ulong_ptr arg) {
 
 inline owner_id monitor::get_new_owner_id() {
 	return ++owner_id_counter_;
-}
-
-void monitor::write_log_message(std::string message) {
-	double timestamp = internal_chron_.elapsed();
-	
-	std::stringstream ss(std::stringstream::in | std::stringstream::out);
-	ss.precision(3);
-	ss << std::fixed << timestamp;
-	
-	std::string m = "THREAD: "
-	+boost::lexical_cast<std::string>(boost::this_thread::get_id())
-	+"\t\tINTERNAL CHRON: " +ss.str() +" s\n" +message +"\n";
-	
-	bounded_message_buffer_.push_front(log_message(m));
-}
-
-void monitor::read_log_message() {
-	{
-		boost::mutex::scoped_lock log_file_lock(log_file_mutex_);
-		
-		// Waiting for the log file to be opened...
-		log_file_is_open_.wait(log_file_lock, boost::bind(&monitor
-		::monitor_log_file_is_open, this));
-	}
-	
-	std::string message;
-	message.reserve(0x100);
-	log_message logged_message;
-	
-	// When the log file is opened this separator is used.
-	message = "========================================"
-	"========================================\n";
-	
-	// The log file is open. Waiting to read log messages...
-	do { /// TODO: graceful shutdown
-		bounded_message_buffer_.pop_back(&logged_message);
-		message += logged_message.get_message();
-		monitor_log_file_ << message;
-		monitor_log_file_.flush();
-		
-		// Show the message on the console.
-		//std::cout << message;
-		std::cout.flush();
-		
-		// Separator used for the next message.
-		message = "----------------------------------------"
-		"----------------------------------------\n";
-	} while (true);
 }
 
 #if 0
@@ -1921,6 +1553,9 @@ void monitor::watch_resources() {
 
 			std::cout << "\n";
 		}
+
+        Sleep(10);
+
 	} while (true);
 }
 

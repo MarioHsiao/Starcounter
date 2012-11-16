@@ -90,14 +90,14 @@ internal class DateTimeComparer : ISingleComparer
         }
     }
 
-    public Int32 Compare(CompositeObject obj1, CompositeObject obj2)
+    public Int32 Compare(Row obj1, Row obj2)
     {
         Nullable<DateTime> value1 = expression.EvaluateToDateTime(obj1);
         Nullable<DateTime> value2 = expression.EvaluateToDateTime(obj2);
         return InternalCompare(value1, value2);
     }
 
-    public Int32 Compare(ILiteral value, CompositeObject obj)
+    public Int32 Compare(ILiteral value, Row obj)
     {
         if (!(value is DateTimeLiteral))
         {
@@ -108,7 +108,7 @@ internal class DateTimeComparer : ISingleComparer
         return InternalCompare(value1, value2);
     }
 
-    public ILiteral Evaluate(CompositeObject obj)
+    public ILiteral Evaluate(Row obj)
     {
         return new DateTimeLiteral(expression.EvaluateToDateTime(obj));
     }

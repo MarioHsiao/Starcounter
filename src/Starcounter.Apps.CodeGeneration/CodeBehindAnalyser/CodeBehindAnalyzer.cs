@@ -25,12 +25,12 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         public static CodeBehindMetadata Analyze(string className, string codeBehindFilename) {
             bool autoBindToEntity;
             ClassDeclarationSyntax classDecl;
-            SyntaxNode root;
-            SyntaxTree tree;
-            string baseList;
-            string ns;
             List<JsonMapInfo> mapList;
             List<InputBindingInfo> inputList;
+            string ns;
+            string genericArg;
+            SyntaxNode root;
+            SyntaxTree tree;
 
             if (!File.Exists(codeBehindFilename))
                 return CodeBehindMetadata.Empty;
@@ -38,13 +38,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             tree = SyntaxTree.ParseFile(codeBehindFilename);
             root = tree.GetRoot();
 
-
             classDecl = FindClassDeclarationFor(className, root);
-            baseList = classDecl.BaseList.ToString();
-            autoBindToEntity = false;
-            if (baseList.Contains("App<"))
-                autoBindToEntity = true;
-
+            autoBindToEntity = IsBoundToEntity(classDecl, out genericArg);
             ns = GetNamespaceForClass(className, root);
 
             mapList = new List<JsonMapInfo>();
@@ -53,7 +48,35 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             inputList = new List<InputBindingInfo>();
             FillListWithHandleInputInfo(root, inputList);
 
-            return new CodeBehindMetadata(ns, autoBindToEntity, mapList, inputList);
+            return new CodeBehindMetadata(ns, genericArg, autoBindToEntity, mapList, inputList);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="classDecl"></param>
+        /// <param name="genericArgument"></param>
+        /// <returns></returns>
+        private static bool IsBoundToEntity(ClassDeclarationSyntax classDecl, out string genericArgument) {
+            GenericNameSyntax gns;
+            IdentifierNameSyntax ins;
+            SeparatedSyntaxList<TypeSyntax> baseTypes = classDecl.BaseList.Types;
+
+            foreach (var ts in baseTypes){
+                if (ts.Kind == SyntaxKind.GenericName){
+                    gns = (GenericNameSyntax)ts;
+                    if ("App".Equals(gns.Identifier.ValueText)) {
+                        if (gns.TypeArgumentList.Arguments.Count == 1) {
+                            ins = (IdentifierNameSyntax)gns.TypeArgumentList.Arguments[0];
+                            genericArgument = ins.Identifier.ValueText;
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            genericArgument = null;
+            return false;
         }
 
         /// <summary>
@@ -208,16 +231,12 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             ClassDeclarationSyntax classDecl;
             ClassDeclarationSyntax parentClassDecl;
             List<string> parentClassNames = new List<string>();
-            string baseList;
+            string genericArg;
 
             // Find the class the attribute was declared on.
             classDecl = FindClass(attributeNode.Parent);
-
-            baseList = classDecl.BaseList.ToString();
-            autoBindToEntity = false;
-            if (baseList.Contains("App<"))
-                autoBindToEntity = true;
-
+            autoBindToEntity = IsBoundToEntity(classDecl, out genericArg);
+            
             // If the class is an inner class we need to get the full name of all classes
             // to be able to connect the generated code in the same structure as the 
             // codebehind.
@@ -230,6 +249,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             return new JsonMapInfo(
                         FindNamespaceForClassDeclaration(classDecl),
                         classDecl.Identifier.ValueText,
+                        genericArg,
                         autoBindToEntity,
                         parentClassNames,
                         attributeNode.Name.ToString()

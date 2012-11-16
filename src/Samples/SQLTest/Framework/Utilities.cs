@@ -28,6 +28,114 @@ namespace SQLTest
             return new Binary(byteArr);
         }
 
+        internal static String GetSingletonResult(DbTypeCode projectionTypeCode, dynamic singleton) {
+            switch (projectionTypeCode) {
+                case DbTypeCode.Binary:
+                    Nullable<Binary> binValue = (Nullable<Binary>)singleton;
+                    if (binValue == null)
+                        return Db.NullString;
+                    else
+                        return BinaryToHex(binValue.Value);
+                case DbTypeCode.Boolean:
+                    Nullable<Boolean> blnValue = (Nullable<Boolean>) singleton;
+                    if (blnValue == null)
+                        return Db.NullString;
+                    else
+                        return blnValue.Value.ToString();
+                case DbTypeCode.Byte:
+                    Nullable<Byte> byteValue = (Nullable<Byte>) singleton;
+                    if (byteValue == null)
+                        return Db.NullString;
+                    else
+                        return byteValue.Value.ToString(NumberFormatInfo.InvariantInfo);
+                case DbTypeCode.DateTime:
+                    Nullable<DateTime> dtmValue = (Nullable<DateTime>)singleton;
+                    if (dtmValue == null)
+                        return Db.NullString;
+                    else
+                        return dtmValue.Value.ToString("u", DateTimeFormatInfo.InvariantInfo);
+                case DbTypeCode.Decimal:
+                    Nullable<Decimal> decValue = (Nullable<Decimal>)singleton;
+                    if (decValue == null)
+                        return Db.NullString;
+                    else
+                        return decValue.Value.ToString(NumberFormatInfo.InvariantInfo);
+                case DbTypeCode.Double:
+                    Nullable<Double> dblValue = (Nullable<Double>)singleton;
+                    if (dblValue == null)
+                        return Db.NullString;
+                    else
+                        return dblValue.Value.ToString(NumberFormatInfo.InvariantInfo);
+                case DbTypeCode.Int16:
+                    Nullable<Int16> int16Value = (Nullable<Int16>)singleton;
+                    if (int16Value == null)
+                        return Db.NullString;
+                    else
+                        return int16Value.Value.ToString(NumberFormatInfo.InvariantInfo);
+                case DbTypeCode.Int32:
+                    Nullable<Int32> int32Value = (Nullable<Int32>)singleton;
+                    if (int32Value == null)
+                        return Db.NullString;
+                    else
+                        return int32Value.Value.ToString(NumberFormatInfo.InvariantInfo);
+                case DbTypeCode.Int64:
+                    Nullable<Int64> int64Value = (Nullable<Int64>)singleton;
+                    if (int64Value == null)
+                        return Db.NullString;
+                    else
+                        return int64Value.Value.ToString(NumberFormatInfo.InvariantInfo);
+                case DbTypeCode.Object:
+                    IObjectView objValue = (IObjectView)singleton;
+                    if (objValue == null)
+                        return Db.NullString;
+                    else {
+                        if (objValue is Entity)
+                            //result += DbHelper.GetObjectID(objValue as Entity).ToString();
+                            return Utilities.GetObjectIdString(objValue);
+                        else
+                            return objValue.ToString();
+                    }
+                case DbTypeCode.SByte:
+                    Nullable<SByte> sbyteValue = (Nullable<SByte>)singleton;
+                    if (sbyteValue == null)
+                        return Db.NullString;
+                    else
+                        return sbyteValue.Value.ToString(NumberFormatInfo.InvariantInfo);
+                case DbTypeCode.Single:
+                    Nullable<Single> sngValue = (Nullable<Single>)singleton;
+                    if (sngValue == null)
+                        return Db.NullString;
+                    else
+                        return sngValue.Value.ToString(NumberFormatInfo.InvariantInfo);
+                case DbTypeCode.String:
+                    String strValue = (String)singleton;
+                    if (strValue == null)
+                        return Db.NullString;
+                    else
+                        return strValue;
+                case DbTypeCode.UInt16:
+                    Nullable<UInt16> uint16Value = (Nullable<UInt16>)singleton;
+                    if (uint16Value == null)
+                        return Db.NullString;
+                    else
+                        return uint16Value.Value.ToString(NumberFormatInfo.InvariantInfo);
+                case DbTypeCode.UInt32:
+                    Nullable<UInt32> uint32Value = (Nullable<UInt32>)singleton;
+                    if (uint32Value == null)
+                        return Db.NullString;
+                    else
+                        return uint32Value.Value.ToString(NumberFormatInfo.InvariantInfo);
+                case DbTypeCode.UInt64:
+                    Nullable<UInt64> uint64Value = (Nullable<UInt64>)singleton;
+                    if (uint64Value == null)
+                        return Db.NullString.ToString(NumberFormatInfo.InvariantInfo);
+                    else
+                        return uint64Value.Value.ToString(NumberFormatInfo.InvariantInfo);
+                default:
+                    throw new Exception("Incorrect TypeCode: " + projectionTypeCode);
+            }
+        }
+
         // From class Starcounter.Db. Added CultureInfo.InvariantCulture and NumberFormatInfo.InvariantInfo.
         internal static String CreateObjectString(ITypeBinding typeBind, IObjectView currentObj)
         {

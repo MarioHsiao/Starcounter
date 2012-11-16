@@ -164,10 +164,10 @@
     <Compile Include="Query\Execution\Comparers\StringPathComparer.cs" />
     <Compile Include="Query\Execution\Comparers\UIntegerComparer.cs" />
     <Compile Include="Query\Execution\Comparers\UIntegerPathComparer.cs" />
-    <Compile Include="Query\Execution\CompositeObject\CompositeMetaObject.cs" />
-    <Compile Include="Query\Execution\CompositeObject\CompositeObject.cs" />
-    <Compile Include="Query\Execution\CompositeObject\CompositeTypeBinding.cs" />
-    <Compile Include="Query\Execution\CompositeObject\PropertyMapping.cs" />
+    <Compile Include="Query\Execution\Row\RowMetaObject.cs" />
+    <Compile Include="Query\Execution\Row\Row.cs" />
+    <Compile Include="Query\Execution\Row\RowTypeBinding.cs" />
+    <Compile Include="Query\Execution\Row\PropertyMapping.cs" />
     <Compile Include="Query\Execution\Connectivity\ClientQueryCache.cs" />
     <Compile Include="Query\Execution\Connectivity\SqlConnectivity.cs" />
     <Compile Include="Query\Execution\Enumerations.cs" />

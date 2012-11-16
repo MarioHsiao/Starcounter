@@ -111,11 +111,11 @@ public:
     {
         // Reached maximum amount of handlers.
         if (num_entries_ >= bmx::MAX_NUMBER_OF_HANDLERS_IN_LIST)
-            return SCERRUNSPECIFIED; // SCERRMAXPORTHANDLERS
+            return SCERRGWMAXPORTHANDLERS;
 
         // Checking if handler already exists.
         if (HandlerAlreadyExists(handler_callback))
-            return SCERRUNSPECIFIED; // SCERRHANDLEREXISTS
+            return SCERRGWHANDLEREXISTS;
 
         // Adding handler to array.
         handlers_[num_entries_] = handler_callback;
@@ -174,7 +174,7 @@ public:
 
             default:
             {
-                return SCERRUNSPECIFIED; // SCERRWRONGHANDLERTYPE
+                return SCERRGWWRONGHANDLERTYPE;
             }
         }
 
@@ -225,7 +225,7 @@ public:
         if (num_entries_ <= 0)
             return Unregister();
 
-        return SCERRUNSPECIFIED; // SCERRHANDLERNOTFOUND
+        return SCERRGWHANDLERNOTFOUND;
     }
 
     // Runs port handlers.
@@ -245,7 +245,7 @@ public:
                 return err_code;
         }
 
-        return SCERRUNSPECIFIED; // SCPORTNOTHANDLED
+        return SCERRGWPORTNOTHANDLED;
     }
 
     /*
@@ -277,7 +277,7 @@ public:
 
             default:
             {
-                return SCERRUNSPECIFIED; // SCERRWRONGHANDLERTYPE
+                return SCERRGWWRONGHANDLERTYPE;
             }
         }
 
@@ -695,7 +695,7 @@ public:
                 return err_code;
         }
 
-        return SCERRUNSPECIFIED; // SCPORTNOTHANDLED
+        return SCERRGWPORTNOTHANDLED;
     }
 };
 
@@ -828,7 +828,7 @@ public:
                 return err_code;
         }
 
-        return SCERRUNSPECIFIED; // SCPORTNOTHANDLED
+        return SCERRGWPORTNOTHANDLED;
     }
 };
 */

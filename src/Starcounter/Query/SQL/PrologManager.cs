@@ -1008,7 +1008,7 @@ namespace Starcounter.Query.Sql
             VariableArray variableArray = new VariableArray(varNumber);
 
             // Calling core enumerator creation function.
-            IExecutionEnumerator createdEnumerator = Creator.CreateEnumerator(Creator.CreateResultTypeBinding(answer.getValue("TypeDef"), variableArray),
+            IExecutionEnumerator createdEnumerator = Creator.CreateEnumerator(Creator.CreateRowTypeBinding(answer.getValue("TypeDef"), variableArray),
                                                                                 answer.getValue("ExecInfo"), variableArray, query);
 
             // The special case where query includes "LIKE ?" is handled by special class LikeExecEnumerator.

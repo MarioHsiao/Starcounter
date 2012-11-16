@@ -111,7 +111,7 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        protected SqlResult tempResult = null;
+        internal SqlResult notEnumeratedResult = null;
 
         /// <summary>
         /// 
@@ -144,14 +144,18 @@ namespace Starcounter {
         /// </summary>
         /// <param name="result"></param>
         protected Listing(SqlResult result) {
-            tempResult = result;
+            notEnumeratedResult = result;
         }
 
         /// <summary>
-        /// 
+        /// Initializes this Listing and sets the template and parent if not already done.
+        /// If the notEnumeratedResult is not null the list is filled from the sqlresult.
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="template"></param>
+        /// <remarks>
+        /// This method can be called several times, the initialization only occurs once.
+        /// </remarks>
         internal void InitializeAfterImplicitConversion(App parent, ListingProperty template) {
             App newApp;
 
@@ -160,13 +164,13 @@ namespace Starcounter {
                 Parent = parent;
             }
 
-            if (tempResult != null) {
-                foreach (var entity in tempResult) {
+            if (notEnumeratedResult != null) {
+                foreach (var entity in notEnumeratedResult) {
                     newApp = (App)template.App.CreateInstance(this);
                     newApp.Data = entity;
                     Add(newApp);
                 }
-                tempResult = null;
+                notEnumeratedResult = null;
             }
         }
 

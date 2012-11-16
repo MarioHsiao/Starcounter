@@ -402,12 +402,6 @@ public:
         db_index_ = db_index;
     }
 
-    // Pointer to the attached session.
-    ScSessionStruct* GetAttachedSession()
-    {
-        return g_gateway.GetSessionData(session_.session_index_);
-    }
-
     // Initialization.
     void Init(
         SOCKET sock,
@@ -433,7 +427,7 @@ public:
     }
 
     // Checking that database and corresponding port handler exists.
-    bool CheckSocketIsValid(GatewayWorker* gw);
+    bool ForceSocketDataValidity(GatewayWorker* gw);
 
     // Resets socket session.
     void ResetSession();
@@ -505,7 +499,8 @@ public:
         memset(&ovl_, 0, OVERLAPPED_SIZE);
 
         // Start tracking this socket.
-        g_gateway.GetDatabase(db_index_)->TrackSocket(sock_);
+        g_gateway.GetDatabase(db_index_)->TrackSocket(sock_, port_index_);
+        g_gateway.TrackSocket(sock_, port_index_);
 
         // Running Windows API AcceptEx function.
         return AcceptExFunc(
@@ -556,7 +551,7 @@ public:
     }
 
     // Clones existing socket data chunk.
-    uint32_t CloneToReceive(GatewayWorker *gw, SocketDataChunk** out_sd);
+    uint32_t CloneToReceive(GatewayWorker *gw);
 };
 
 } // namespace network

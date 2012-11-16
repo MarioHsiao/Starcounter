@@ -4,6 +4,7 @@
 // </copyright>
 // ***********************************************************************
 
+#if false // TODO: Remove!
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -73,3 +74,4 @@ namespace Starcounter.Server {
         }
     }
 }
+#endif
