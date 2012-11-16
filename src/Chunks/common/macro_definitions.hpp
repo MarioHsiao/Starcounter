@@ -102,7 +102,7 @@
 # define VM_PAGE_ALIGN __attribute__ ((aligned (VM_PAGE_SIZE)))
 # define XMM_ALIGN __attribute__ ((aligned (XMM_SIZE)))
 # define YMM_ALIGN __attribute__ ((aligned (YMM_SIZE)))
-#endif // defined(__INTEL_COMPILER)
+#endif // defined(__INTEL_COMPILER) || defined(_MSC_VER)
 
 #if defined(__GNUC__)
 # define ALWAYS_INLINE inline __attribute__((always_inline))
@@ -131,5 +131,9 @@
 #define INT64_C(c) (c##LL)
 #define UINT64_C(c) (c##ULL)
 #endif // INT64_C
+
+#if defined(_MSC_VER)
+# define DLL_IMPORT __declspec(dllimport)
+#endif // defined(_MSC_VER)
 
 #endif // STARCOUNTER_CORE_MACRO_DEFINITIONS_HPP

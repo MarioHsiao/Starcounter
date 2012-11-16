@@ -1218,6 +1218,37 @@ void monitor::print_rate_with_precision(double rate) {
 }
 #endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 
+void monitor::test() {
+	Sleep(3000);
+
+	{
+		smp::spinlock::scoped_lock lock(the_monitor_interface_->sp(),
+        smp::spinlock::scoped_lock::try_to_lock_type());
+
+	}
+
+	// Now the lock shall defenitely be locked.
+	std::cout << "monitor::test(): timed_lock(30000)...\n";
+	if (the_monitor_interface_->sp().timed_lock(30000) == true) {
+		int count = 10;
+
+		do {
+			std::cout << "monitor::test(): LOCKED! Current value is: "
+			<< the_monitor_interface_->sp().get_lock_value() << "\n";
+			Sleep(400);
+		} while (--count);
+	
+		the_monitor_interface_->sp().unlock();
+		std::cout << "monitor::test(): UNLOCKED! Current value is: "
+		<< the_monitor_interface_->sp().get_lock_value() << "\n";
+	}
+	else {
+		std::cout << "monitor::test(): A timeout occurred. Giving up trying to acquire the lock.\n";
+	}
+
+	Sleep(INFINITE);
+}
+
 /// NOTE: Originally was ment to be able to show multiple databases at once,
 /// which it can but then statistics are messed up completely. Only test with
 /// one database running.
@@ -1225,7 +1256,7 @@ void monitor::print_rate_with_precision(double rate) {
 void monitor::watch_resources() {
 	/// TESTING SPINLOCK:
 
-	if (the_monitor_interface_->sp().try_lock() == true) {
+	if (the_monitor_interface_->sp().try_lock(1000) == true) {
 		std::cout << "monitor::watch_resources(): try_lock(1000) succeeded!\n";
 	}
 	else {
@@ -1593,30 +1624,6 @@ void monitor::remove_database_process_event(process_info::handle_type e) {
 			}
 		}
 	}
-}
-
-void monitor::test() {
-	Sleep(3000);
-	// Now the lock shall defenitely be locked.
-	std::cout << "monitor::test(): trying timed_lock(10000)...\n";
-	if (the_monitor_interface_->sp().timed_lock_with_pause(10000) == true) {
-		int count = 10;
-
-		do {
-			std::cout << "monitor::test(): LOCKED! Current value is: "
-			<< the_monitor_interface_->sp().get_lock_value() << "\n";
-			Sleep(400);
-		} while (--count);
-	
-		the_monitor_interface_->sp().unlock();
-		std::cout << "monitor::test(): UNLOCKED! Current value is: "
-		<< the_monitor_interface_->sp().get_lock_value() << "\n";
-	}
-	else {
-		std::cout << "monitor::test(): A timeout occurred. Giving up trying to acquire the lock.\n";
-	}
-
-	Sleep(INFINITE);
 }
 
 #endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)

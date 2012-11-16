@@ -15,11 +15,11 @@
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1020)
 
 #include <cstdint>
+
 #if defined(_WIN32) || defined(_WIN64)
 # if ((defined (_M_IA64) || defined (_M_AMD64)) && !defined(NT_INTEREX))
 #  define WIN32_LEAN_AND_MEAN
 #  include <windows.h>
-//extern "C" unsigned long long __stdcall GetTickCount64();
 #  include <intrin.h>
 #  pragma intrinsic (_InterlockedExchange)
 #  pragma intrinsic (_InterlockedCompareExchange)
@@ -28,6 +28,10 @@
 #endif //  defined(_WIN32) || defined(_WIN64)
 
 #include "../common/macro_definitions.hpp"
+
+#if defined(_MSC_VER)
+DLL_IMPORT extern uint64_t __stdcall GetTickCount64();
+#endif // defined(_MSC_VER)
 
 namespace starcounter {
 namespace core {
@@ -43,8 +47,8 @@ public:
 	// Consider typedef long int lock_t;
 	typedef volatile long int lock_t;
 	typedef std::uint32_t locker_id_type;
-	typedef uint64_t milliseconds_type;
-	
+	typedef uint64_t milliseconds;
+
 	enum {
 		not_locked = 0,
 		locked = 1
@@ -66,64 +70,84 @@ public:
 		lock_ = not_locked;
 	}
 
-	/// This version of lock will lock with the locked value (1) and should only
-	/// be used when the spinlock is not placed in shared memory and only shared
-	/// between threads in the same process. If the spinlock is placed in a
-	/// shared memory segment synchronizing threads in different processes, then
-	/// use lock(locker_id_type) instead.
-	/// lock() don't use a pause instruction in the spin loop while trying to
-	/// acquire the lock. This can give better or worse performance compared to
-	/// lock_with_pause() depending on the contention.
-	/// NOTE: Spins forever until it acquires the lock, so this potentially
-	/// deadlock the thread. Use timed_lock() to reduce this risk.
+#if 0 // Make it a class if milliseconds can be passed in instead of locker_id_type
+	class milliseconds {
+	public:
+		typedef uint64_t value_type;
+
+		milliseconds(value_type abs_time)
+		: abs_time_(abs_time) {}
+
+		operator value_type() const {
+			return abs_time_;
+		}
+
+	private:
+		value_type abs_time_;
+	};
+#endif // Make it a class if milliseconds can be passed in instead of locker_id_type
+	
+	/// lock() tries to lock with the locked value (1). Calling lock() means the
+	/// caller is anonymous, so the spinlock is not used in robust mode.
+	/// Use lock(locker_id_type) if need to use the spinlock in robust mode.
+	///
+	/// Do not mix calls to lock() or timed_lock(milliseconds) with
+	/// lock(locker_id_type) or timed_lock(locker_id_type, milliseconds), on the
+	/// same spinlock. That would lead to undefined behavior.
+	///
+	/// lock() spins forever until it acquires the lock, so this potentially
+	/// deadlock the thread. lock() is faster than lock(locker_id_type).
+	/**
+	 * @return true if the lock is acquired. Otherwise the thread will not
+	 *		return.
+	 */
 	ALWAYS_INLINE bool lock() {
+		// Check if someone else is using the spinlock in robust mode.
+		_ASSERT(lock_ == locked || lock_ == not_locked);
+
 		do {
 			if (_InterlockedExchange((LPLONG) &lock_, locked) == not_locked) {
-				return true; // The original version returned void.
+				return true;
 			}
 			while (lock_ != not_locked) {
-				// No pause.
+				_mm_pause();
 			}
 		} while (true);
 	}
 
-	/// This version of lock will lock with the locker_id value, which must not
-	/// be 0 (not verified.) This version can be used when the spinlock is
-	/// placed in a shared memory segment, shared between threads in different
-	/// processes. By supplying the locker_id (owner_id of the process) the
-	/// spinlock becomes robust since it can be unlocked by another process
-	/// (the IPC monitor) in case the thread holding the lock terminates.
-	/// lock() don't use a pause instruction in the spin loop while trying to
-	/// acquire the lock. This can give better or worse performance compared to
-	/// lock_with_pause() depending on the contention.
-	/// NOTE: Spins forever until it acquires the lock, so this potentially
-	/// deadlock the thread. Use timed_lock() to reduce this risk.
+	/// lock(locker_id_type) tries to lock with the locker_id value, which
+	/// should be a unique id number among all processes that accesses the
+	/// spinlock. Thereby the spinlock is in robust mode.
+	///
+	/// A robust spinlock means that it can be unlocked in a safe way, if a
+	/// process terminates and leaves the spinlock in the locked state. 
+	/// Use lock() if not need to use the spinlock in robust mode.
+	///
+	/// Do not mix calls to lock() or timed_lock(milliseconds) with
+	/// lock(locker_id_type) or timed_lock(locker_id_type, milliseconds), on the
+	/// same spinlock. That would lead to undefined behavior.
+	///
+	/// lock(locker_id_type) spins forever until it acquires the lock, so this
+	/// potentially deadlock the thread. lock(locker_id_type) is slower than
+	/// lock().
 	/**
-	 * @param locker_id The uint32_t value to is used as id for locking the
-	 *		spinlock. It must not be not_locked (0). This is not verified.
-	 * @return true if the thread acquires the lock. The thread will not return
-	 *		otherwise.
+	 * @param locker_id The value to is used as an id for locking the spinlock.
+	 *		It must not be not_locked (0).
+	 * @return true if the lock is acquired. Otherwise the thread will not
+	 *		return.
 	 */
 	ALWAYS_INLINE bool lock(locker_id_type locker_id) {
+		_ASSERT(locker_id != not_locked);
+
 		do {
 			if (_InterlockedCompareExchange((LPLONG) &lock_, locker_id,
 			not_locked) == not_locked) {
 				return true;
 			}
 			while (lock_ != not_locked) {
-				std::cout << "lock(" << locker_id << "): did not get the lock\n"; Sleep(500);
-				// No pause.
+				_mm_pause();
 			}
-			std::cout << "lock(" << locker_id << "): trying again to get the lock\n";
 		} while (true);
-	}
-
-	ALWAYS_INLINE locker_id_type get_lock_value() const {
-		return lock_;
-	}
-
-	ALWAYS_INLINE bool is_locked() const {
-		return lock_ != not_locked;
 	}
 
 	/// try_lock() tries to acquire the lock but will not spin.
@@ -141,7 +165,6 @@ public:
 	 * @return true if acquired the lock, otherwise false.
 	 */
 	ALWAYS_INLINE bool try_lock(locker_id_type locker_id) {
-		// Not long int lock = _InterlockedExchange((LPLONG) &lock_, locked);
 		long int lock = _InterlockedCompareExchange((LPLONG) &lock_, locker_id,
 		not_locked);
 		
@@ -149,71 +172,23 @@ public:
 		return lock == not_locked;
 	}
 
-	/// timed_lock() don't use a pause instruction in the spin loop while trying to
-	/// acquire the lock. This can give better or worse performance compared to
-	/// timed_lock_with_pause() depending on the contention.
-	/// Spins until it acquires the lock or a timeout occurs.
+	/// timed_lock() spins until it acquires the lock or a timeout occurs.
 	/**
-	 * @param timeout is absolute milliseconds timeout.
-	 *		NOTE: abs_timeout is an absolute time code.
+	 * @param abs_timeout Is an absolute time code.
+	 * @return true if acquired the lock, or false if a timeout occurs.
 	 */
-	ALWAYS_INLINE bool timed_lock(milliseconds_type abs_timeout) {
-		// As an optimization, first try to acquire the lock without calling
-		// GetTickCount64().
+	ALWAYS_INLINE bool timed_lock(milliseconds abs_timeout) {
 		if (_InterlockedExchange((LPLONG) &lock_, locked) == not_locked) {
+			// The lock is acquired.
 			return true;
 		}
 		
-		//abs_timeout += GetTickCount64(); // Correct - but does not compile.
-		abs_timeout += GetTickCount(); // Wrong - wraps after 2^32 ms.
+		abs_timeout += GetTickCount64();
 		unsigned int count = 0;
 
 		do {
 			if (_InterlockedExchange((LPLONG) &lock_, locked) == not_locked) {
-				return true;
-			}
-
-			while (lock_ != not_locked) {
-				if (++count != elapsed_time_check) {
-					// No pause.
-					continue;
-				}
-
-				//if (abs_timeout > GetTickCount64()) { // Correct - but does not compile.
-				if (abs_timeout > GetTickCount()) { // Wrong - wraps after 2^32 ms.
-					SwitchToThread();
-					count = 0;
-					continue;
-				}
-				else {
-					// A timeout occurred.
-					return false;
-				}
-			}
-		} while (true);
-	}
-
-	/// timed_lock_with_pause() use a pause instruction in the spin loop while trying to
-	/// acquire the lock. This can give better or worse performance compared to
-	/// timed_lock() depending on the contention.
-	/// Spins until it acquires the lock or a timeout occurs.
-	/**
-	 * @param timeout is absolute milliseconds timeout.
-	 *		NOTE: abs_timeout is an absolute time code.
-	 */
-	ALWAYS_INLINE bool timed_lock_with_pause(milliseconds_type abs_timeout) {
-		// As an optimization, first try to acquire the lock without calling
-		// GetTickCount64().
-		if (_InterlockedExchange((LPLONG) &lock_, locked) == not_locked) {
-			return true;
-		}
-		
-		//abs_timeout += GetTickCount64(); // Correct - but does not compile.
-		abs_timeout += GetTickCount(); // Wrong - wraps after 2^32 ms.
-		unsigned int count = 0;
-
-		do {
-			if (_InterlockedExchange((LPLONG) &lock_, locked) == not_locked) {
+				// The lock is acquired.
 				return true;
 			}
 
@@ -223,109 +198,113 @@ public:
 					continue;
 				}
 
-				//if (abs_timeout > GetTickCount64()) { // Correct - but does not compile.
-				if (abs_timeout > GetTickCount()) { // Wrong - wraps after 2^32 ms.
+				if (abs_timeout > GetTickCount64()) {
 					SwitchToThread();
 					count = 0;
 					continue;
 				}
 				else {
-					// A timeout occurred.
+					// The lock is not acquired. A timeout occurred.
 					return false;
 				}
 			}
 		} while (true);
 	}
 
-#if 0
-	/// lock_with_pause() use a pause instruction in the spin loop while trying
-	/// to acquire the lock. This can give better or worse performance compared
-	/// to lock() depending on the contention.
-	/// NOTE: Spins forever until it obtains the lock, so this potentially
-	/// deadlock the thread.
-	ALWAYS_INLINE void lock_with_pause() {
-		do {
-			if (_InterlockedExchange((LPLONG) &lock_, locked) == not_locked) {
-				return;
-			}
-			while (lock_ != not_locked) {
-				_mm_pause();
-			}
-		} while (true);
-	}
-#endif
-	
 	/// unlock() releases the lock.
 	void unlock() {
-		_mm_mfence(); // _mm_mfence() or _mm_sfence()?
+		_mm_mfence();
 		lock_ = not_locked;
 		// if typedef long int lock_t:
 		//*const_cast<long int volatile*>(lock_) = not_locked;
 	}
 
-#if 0 /// Ideas from Boost Interprocess API
-	class scoped_lock {
-	public:
-		scoped_lock();
-		scoped_lock(mutex_type&, const boost::posix_time::ptime&);
-		~scoped_lock();
+	/// unlock_if() releases the lock if and only if locked with the locker_id.
+	/// This is used by the IPC monitor to force unlocking of a spinlock if
+	/// a terminated process left it in a locked state with the locker_id.
+	bool unlock_if(locker_id_type locker_id) {
+		if (locker_id == lock_) {
+			_mm_mfence();
+			lock_ = not_locked;
+			// if typedef long int lock_t:
+			//*const_cast<long int volatile*>(lock_) = not_locked;
+			
+			// The lock was locked with locker_id. The lock was ulocked.
+			return true;
+		}
 
-		void lock();
-		bool try_lock();
-		bool timed_lock(const boost::posix_time::ptime&);
-		void unlock();
-		bool owns() const;
-	};
-#endif /// Ideas from Boost Interprocess API
+		// The lock was not locked with locker_id. The lock was not ulocked.
+		return false;
+	}
+
+	ALWAYS_INLINE locker_id_type get_lock_value() const {
+		_mm_mfence();
+		return lock_;
+	}
+
+	ALWAYS_INLINE bool is_locked() const {
+		_mm_mfence();
+		return lock_ != not_locked;
+	}
 	
 	/// class scoped_lock locks the spinlock using lock(), and will unlock the
 	/// spinlock when the object goes out of scope.
 	class scoped_lock {
 	public:
-		/// Constructor acquires the lock using spinlock::lock().
+        // Exception class.
+		class lock_exception {};
+
+        // Tag type to express using try_lock().
+	    class try_to_lock_type {};
+
+		/// Constructor tries to acquire the lock using spinlock::lock().
+		/// The thread will not return otherwise so this potentially deadlock
+		/// the thread.
 		/**
 		 * @param spinlock A reference to a spinlock.
 		 */
 		explicit scoped_lock(spinlock& spinlock)
 		: spinlock_(spinlock), locked_(spinlock.lock()) {}
 
-#if 0
-		/// Effects: m.try_lock(). 
-		//!Postconditions: mutex() == &m. owns() == the return value of the
-		//!   m.try_lock() executed within the constructor.
-		//!Notes: The constructor will take ownership of the mutex if it can do
-		//!   so without waiting. If the mutex_type does not support try_lock,
-		//!   this constructor will fail at compile time if instantiated, but otherwise
-		//!   have no effect.
+		/// Constructor tries to acquire the lock using spinlock::try_lock().
+		/// If the lock was acquired, calling owns() returns true, false otherwise.
+		/**
+		 * @param spinlock A reference to a spinlock.
+		 * @param try_to_lock_type A tag to express using try_lock().
+		 */
 		explicit scoped_lock(spinlock& spinlock, try_to_lock_type)
 		: spinlock_(spinlock), locked_(spinlock_.try_lock()) {}
-#endif
-#if 0
-		bool try_lock() {
-			if(!locked_) {
+
+		/// Constructor tries to acquire the lock using spinlock::timed_lock().
+		/// If the lock was acquired, calling owns() returns true, false otherwise.
+		/**
+		 * @param spinlock A reference to a spinlock.
+		 * @param abs_timeout An absolute time code expressing the timeout in
+         *      milliseconds.
+		 */
+        explicit scoped_lock(spinlock& spinlock, milliseconds abs_timeout)
+        : spinlock_(spinlock), locked_(spinlock_.timed_lock(abs_timeout)) {}
+		
+		/// try_lock() tries to acquire the lock without spinning.
+		/// If the lock was acquired, calling owns() returns true, false otherwise.
+		/**
+		 * @return true if the lock was acquired, false otherwise.
+		 * @throws lock_exception if already locked.
+		 */
+        bool try_lock() {
+			if (!locked_) {
 				return locked_ = spinlock_.try_lock();
 			}
 			else {
 				throw lock_exception();
 			}
 		}
-#endif
-//------------------------------------------------------------------------------
-		/// Constructor acquires the lock using spinlock.timed_lock(abs_time). 
-		//!Postconditions: mutex() == &m. owns() == the return value of the
-		//!   m.timed_lock(abs_time) executed within the constructor.
-		//!Notes: The constructor will take ownership of the mutex if it can do
-		//!   it until abs_time is reached. Whether or not this constructor
-		//!   handles recursive locking depends upon the mutex. If the mutex_type
-		//!   does not support try_lock, this constructor will fail at compile
-		//!   time if instantiated, but otherwise have no effect.
-		//explicit scoped_lock(spinlock& spinlock, const boost::posix_time::ptime& abs_time)
-		//: spinlock_(spinlock), locked_(spinlock_->timed_lock(abs_time)) {}
 
 		/// unlock() releases the lock using spinlock::unlock() before the
 		/// object goes out of scope.
 		void unlock() {
 			spinlock_.unlock();
+			locked_ = false;
 		}
 
 		/// Destructor releases the lock using spinlock::unlock() when the
@@ -334,7 +313,6 @@ public:
 			unlock();
 		}
 
-//------------------------------------------------------------------------------
 		/// owns() return true if this scoped_lock has acquired the referenced
 		/// mutex.
 		/**
@@ -347,48 +325,6 @@ public:
 	private:
 		scoped_lock(const scoped_lock&);
 		scoped_lock& operator=(const scoped_lock&);
-		spinlock& spinlock_;
-		bool locked_;
-	};
-
-	/// class scoped_lock_with_pause locks the spinlock using
-	/// spinlock::lock_with_pause(), and will unlock the spinlock when the
-	/// object goes out of scope.
-	class scoped_lock_with_pause {
-	public:
-		/// Constructor acquires the lock using spinlock::lock_with_pause().
-		/**
-		 * @param spinlock A reference to a spinlock.
-		 */
-		explicit scoped_lock_with_pause(spinlock& spinlock)
-		: spinlock_(spinlock) {
-			spinlock.lock();
-		}
-
-		/// unlock() releases the lock using spinlock::unlock() before the
-		/// object goes out of scope.
-		void unlock() {
-			spinlock_.unlock();
-		}
-
-		/// Destructor releases the lock using spinlock::unlock() when the
-		/// object goes out of scope.
-		~scoped_lock_with_pause() {
-			unlock();
-		}
-
-		/// owns() return true if this scoped_lock has acquired the referenced
-		/// mutex.
-		/**
-		 * @return true if this scoped_lock has acquired the referenced mutex.
-		 */
-		bool owns() const {
-			return locked_;
-		}
-
-	private:
-		scoped_lock_with_pause(const scoped_lock_with_pause&);
-		scoped_lock_with_pause& operator=(const scoped_lock_with_pause&);
 		spinlock& spinlock_;
 		bool locked_;
 	};
