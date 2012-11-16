@@ -376,9 +376,16 @@ namespace Starcounter
         /// <summary>
         /// </summary>
         public static void RecycleScrap() {
-            var schedulerNumber = sccorelib.GetCpuNumber();
-            var instance = _instances[schedulerNumber];
-            instance.CleanupAll();
+
+            ThreadHelper.SetYieldBlock();
+            try {
+                var schedulerNumber = sccorelib.GetCpuNumber();
+                var instance = _instances[schedulerNumber];
+                instance.CleanupAll();
+            }
+            finally {
+                ThreadHelper.ReleaseYieldBlock();
+            }
         }
 
         private readonly object _syncRoot;
