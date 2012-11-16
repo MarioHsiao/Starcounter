@@ -21,6 +21,9 @@ using System.Runtime.InteropServices;
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("eba56304-3b70-4c9c-ac5c-1d7dad5995ec")]
 
+// Have internals visible to the friend test assembly
+[assembly: InternalsVisibleTo("Starconter.Internal.Tests")]
+
 // Version information for an assembly consists of the following four values:
 //
 //      Major Version
