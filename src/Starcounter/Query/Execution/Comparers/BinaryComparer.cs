@@ -90,14 +90,14 @@ internal class BinaryComparer : ISingleComparer
         }
     }
 
-    public Int32 Compare(CompositeObject obj1, CompositeObject obj2)
+    public Int32 Compare(Row obj1, Row obj2)
     {
         Nullable<Binary> value1 = expression.EvaluateToBinary(obj1);
         Nullable<Binary> value2 = expression.EvaluateToBinary(obj2);
         return InternalCompare(value1, value2);
     }
 
-    public Int32 Compare(ILiteral value, CompositeObject obj)
+    public Int32 Compare(ILiteral value, Row obj)
     {
         if (!(value is BinaryLiteral))
         {
@@ -108,7 +108,7 @@ internal class BinaryComparer : ISingleComparer
         return InternalCompare(value1, value2);
     }
 
-    public ILiteral Evaluate(CompositeObject obj)
+    public ILiteral Evaluate(Row obj)
     {
         return new BinaryLiteral(expression.EvaluateToBinary(obj));
     }

@@ -114,14 +114,14 @@ internal class ObjectComparer : ISingleComparer
         }
     }
 
-    public Int32 Compare(CompositeObject obj1, CompositeObject obj2)
+    public Int32 Compare(Row obj1, Row obj2)
     {
         IObjectView value1 = expression.EvaluateToObject(obj1);
         IObjectView value2 = expression.EvaluateToObject(obj2);
         return InternalCompare(value1, value2);
     }
 
-    public Int32 Compare(ILiteral value, CompositeObject obj)
+    public Int32 Compare(ILiteral value, Row obj)
     {
         if (!(value is ObjectLiteral))
         {
@@ -132,7 +132,7 @@ internal class ObjectComparer : ISingleComparer
         return InternalCompare(value1, value2);
     }
 
-    public ILiteral Evaluate(CompositeObject obj)
+    public ILiteral Evaluate(Row obj)
     {
         IObjectView value = expression.EvaluateToObject(obj);
         if (value != null)

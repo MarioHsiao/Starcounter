@@ -130,7 +130,7 @@ internal class UIntegerDynamicRange : DynamicRange, IDynamicRange
 
     // Appends to a key builder + returns boolean indicating the equality range.
     public Boolean Evaluate(
-        CompositeObject contextObj,
+        Row contextObj,
         SortOrder sortOrder,
         ByteArrayBuilder firstKey,
         ByteArrayBuilder secondKey,

@@ -180,7 +180,7 @@ internal class UIntegerLiteral : Literal, ILiteral, IUIntegerPathItem
     /// </summary>
     /// <param name="obj">Not used.</param>
     /// <returns>A copy of this literal.</returns>
-    public INumericalExpression Instantiate(CompositeObject obj)
+    public INumericalExpression Instantiate(Row obj)
     {
         return new UIntegerLiteral(value);
     }

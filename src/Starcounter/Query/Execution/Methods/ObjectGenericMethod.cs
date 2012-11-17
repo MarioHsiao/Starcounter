@@ -33,8 +33,8 @@ internal class ObjectGenericMethod : IObjectPathItem, IMethod
     /// <param name="extNum">The extent number to which this method belongs.
     /// If it does not belong to any extent number, which is the case for path expressions,
     /// then the number should be -1.</param>
-    /// <param name="typeBind">The type resultTypeBind of the object to which this method belongs.</param>
-    /// <param name="extBind">The extension resultTypeBind of the requested extension (GetExtension&ltExtension&gt()-method).</param>
+    /// <param name="typeBind">The type rowTypeBind of the object to which this method belongs.</param>
+    /// <param name="extBind">The extension rowTypeBind of the requested extension (GetExtension&ltExtension&gt()-method).</param>
     internal ObjectGenericMethod(Int32 extNum, ITypeBinding typeBind, ExtensionBinding extBind)
     : base()
     {
@@ -109,7 +109,7 @@ internal class ObjectGenericMethod : IObjectPathItem, IMethod
     }
 
 /// <summary>
-    /// The type resultTypeBind of the return value of this method (of type object).
+    /// The type rowTypeBind of the return value of this method (of type object).
     /// </summary>
     public ITypeBinding TypeBinding
     {
@@ -123,7 +123,7 @@ internal class ObjectGenericMethod : IObjectPathItem, IMethod
     /// Appends data of this leaf to the provided filter key.
     /// </summary>
     /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    /// <param name="obj">Results object for which evaluation should be performed.</param>
+    /// <param name="obj">Row for which evaluation should be performed.</param>
     public void AppendToKey(ByteArrayBuilder key, IObjectView obj)
     {
         key.Append(EvaluateToObject(obj));
@@ -140,12 +140,12 @@ internal class ObjectGenericMethod : IObjectPathItem, IMethod
         {
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect obj.");
         }
-        if (obj is CompositeObject)
+        if (obj is Row)
         {
             // Type control removed since type hierarchy and interfaces were not handled.
-            // if ((obj.TypeBinding as CompositeTypeBinding).GetTypeBinding(extentNumber) == typeBinding)
+            // if ((obj.TypeBinding as RowTypeBinding).GetTypeBinding(extentNumber) == typeBinding)
             // {
-            IObjectView partObj = (obj as CompositeObject).AccessObject(extentNumber);
+            IObjectView partObj = (obj as Row).AccessObject(extentNumber);
             if (partObj == null)
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "No elementary object at extent number: " + extentNumber);
@@ -188,13 +188,13 @@ internal class ObjectGenericMethod : IObjectPathItem, IMethod
     }
 
     /// <summary>
-    /// Creates an more instantiated copy of this expression by evaluating it on a result-object.
-    /// Properties, with extent numbers for which there exist objects attached to the result-object,
+    /// Creates an more instantiated copy of this expression by evaluating it on a Row.
+    /// Properties, with extent numbers for which there exist objects attached to the Row,
     /// are evaluated and instantiated to literals, other properties are not changed.
     /// </summary>
-    /// <param name="obj">The result-object on which to evaluate the expression.</param>
+    /// <param name="obj">The Row on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public IObjectExpression Instantiate(CompositeObject obj)
+    public IObjectExpression Instantiate(Row obj)
     {
         if (obj != null && obj.AccessObject(extentNumber) != null)
         {

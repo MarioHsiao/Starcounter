@@ -64,7 +64,7 @@ internal class ObjectLiteral : Literal, ILiteral, IObjectPathItem
     /// <summary>
     /// Constructor.
     /// </summary>
-    /// <param name="typeBind">The type resultTypeBind of this null-literal.</param>
+    /// <param name="typeBind">The type binding of this null-literal.</param>
     internal ObjectLiteral(ITypeBinding typeBind)
     {
         if (typeBind == null)
@@ -98,7 +98,7 @@ internal class ObjectLiteral : Literal, ILiteral, IObjectPathItem
     }
 
     /// <summary>
-    /// The type resultTypeBind of the object.
+    /// The type rowTypeBind of the object.
     /// </summary>
     public QueryTypeCode QueryTypeCode
     {
@@ -155,7 +155,7 @@ internal class ObjectLiteral : Literal, ILiteral, IObjectPathItem
     /// </summary>
     /// <param name="obj">Not used.</param>
     /// <returns>A copy of this literal.</returns>
-    public IObjectExpression Instantiate(CompositeObject obj)
+    public IObjectExpression Instantiate(Row obj)
     {
         if (value != null)
         {

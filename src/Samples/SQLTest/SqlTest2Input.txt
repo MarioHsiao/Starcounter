@@ -1077,7 +1077,7 @@ Description: Field names starting with underscore
 QueryString: select p._LastName from SQLTest.Test1b.Person p
 VariableValues: 
 DataManipulation: False
-SingleObjectProjection: False
+SingleObjectProjection: True
 IncludesLiteral: False
 IncludesObjectValue: False
 
@@ -1102,7 +1102,7 @@ IndexScan(
 )
 
 ExpectedResult: 
- ! 0:String ! 
+ ! String ! 
  | Adamsson | 
 
 
@@ -1153,7 +1153,7 @@ Description: Unqualified field name
 QueryString: select FirstName from Employee
 VariableValues: 
 DataManipulation: False
-SingleObjectProjection: False
+SingleObjectProjection: True
 IncludesLiteral: False
 IncludesObjectValue: False
 
@@ -1178,7 +1178,7 @@ IndexScan(
 )
 
 ExpectedResult: 
- ! 0:String ! 
+ ! String ! 
  | Alexey | 
  | Andreas | 
  | Åsa | 
@@ -1419,7 +1419,7 @@ Description: String concatenation
 QueryString: select e.FirstName || ' ' || e.LastName from SalaryEmployee e where e.FirstName || ' ' || e.LastName = 'alexey moiseenko'
 VariableValues: 
 DataManipulation: False
-SingleObjectProjection: False
+SingleObjectProjection: True
 IncludesLiteral: True
 IncludesObjectValue: False
 
@@ -1464,7 +1464,7 @@ IndexScan(
 )
 
 ExpectedResult: 
- ! 0:String ! 
+ ! String ! 
  | Alexey Moiseenko | 
 
 
@@ -1537,7 +1537,7 @@ Description: Numerical plus sign
 QueryString: select +(+(+e.SalaryInt64)) from SalaryEmployee e
 VariableValues: 
 DataManipulation: False
-SingleObjectProjection: False
+SingleObjectProjection: True
 IncludesLiteral: False
 IncludesObjectValue: False
 
@@ -1571,7 +1571,7 @@ IndexScan(
 )
 
 ExpectedResult: 
- ! 0:Decimal ! 
+ ! Decimal ! 
  | 10 | 
  | 20 | 
  | 30 | 
@@ -1582,7 +1582,7 @@ Description: Numerical minus sign
 QueryString: select -(-(-e.SalaryInt64)) from SalaryEmployee e
 VariableValues: 
 DataManipulation: False
-SingleObjectProjection: False
+SingleObjectProjection: True
 IncludesLiteral: False
 IncludesObjectValue: False
 
@@ -1616,7 +1616,7 @@ IndexScan(
 )
 
 ExpectedResult: 
- ! 0:Decimal ! 
+ ! Decimal ! 
  | -10 | 
  | -20 | 
  | -30 | 

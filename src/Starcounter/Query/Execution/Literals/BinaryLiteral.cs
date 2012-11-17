@@ -87,7 +87,7 @@ internal class BinaryLiteral : Literal, ILiteral, IBinaryPathItem
     /// </summary>
     /// <param name="obj">Not used.</param>
     /// <returns>A copy of this literal.</returns>
-    public IBinaryExpression Instantiate(CompositeObject obj)
+    public IBinaryExpression Instantiate(Row obj)
     {
         return new BinaryLiteral(value);
     }

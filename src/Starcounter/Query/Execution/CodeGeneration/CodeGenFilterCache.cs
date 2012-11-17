@@ -154,7 +154,7 @@ internal sealed class CodeGenFilterCacheShared
                                DbTypeCode[] varTypes,
                                UInt32 maxStackSize,
                                UInt32 dataCount,
-                               CompositeTypeBinding typeBinding,
+                               RowTypeBinding typeBinding,
                                Int32 extentNumber)
     {
         // Checking that all needed parameters are initialized properly.

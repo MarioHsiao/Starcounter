@@ -125,7 +125,7 @@ namespace IndexQueryTest
         }
 
         static void TestSumTransaction() {
-            CompositeObject res = Db.SlowSQL("select sum(amount*(amount - amount +2)) from account").First;
+            Row res = Db.SlowSQL("select sum(amount*(amount - amount +2)) from account").First;
             Decimal? sum = res.GetDecimal(0);
             if (sum == null)
                 Console.WriteLine("The sum is null");
@@ -133,7 +133,7 @@ namespace IndexQueryTest
         }
 
         static void TestSumTransaction(String name) {
-            CompositeObject res = Db.SlowSQL("select sum(amount) from account where Client.FirstName = ?", 
+            Row res = Db.SlowSQL("select sum(amount) from account where Client.FirstName = ?", 
                 name).First;
             Decimal? sum = res.GetDecimal(0);
             if (sum == null)

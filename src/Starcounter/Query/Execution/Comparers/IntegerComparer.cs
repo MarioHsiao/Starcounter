@@ -91,14 +91,14 @@ internal class IntegerComparer : ISingleComparer
         }
     }
 
-    public Int32 Compare(CompositeObject obj1, CompositeObject obj2)
+    public Int32 Compare(Row obj1, Row obj2)
     {
         Nullable<Int64> value1 = expression.EvaluateToInteger(obj1);
         Nullable<Int64> value2 = expression.EvaluateToInteger(obj2);
         return InternalCompare(value1, value2);
     }
 
-    public Int32 Compare(ILiteral value, CompositeObject obj)
+    public Int32 Compare(ILiteral value, Row obj)
     {
         if (!(value is IntegerLiteral))
         {
@@ -109,7 +109,7 @@ internal class IntegerComparer : ISingleComparer
         return InternalCompare(value1, value2);
     }
 
-    public ILiteral Evaluate(CompositeObject obj)
+    public ILiteral Evaluate(Row obj)
     {
         return new IntegerLiteral(expression.EvaluateToInteger(obj));
     }
