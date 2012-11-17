@@ -272,6 +272,14 @@ public:
 	 */
 	void print_rate_with_precision(double rate);
 #endif // (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+	
+	smp::spinlock& test_lock() {
+		return test_lock_;
+	}
+	
+	smp::spinlock::locker_id_type test_id() const {
+		return test_id_;
+	}
 
 private:
 	// Controlling the console a bit makes it easier to read.
@@ -384,6 +392,8 @@ private:
 
 	// The test thread tries to lock a spinlock. Debugging and testing spinlock. Remove it later.
 	boost::thread test_thread_;
+	smp::spinlock test_lock_;
+	smp::spinlock::locker_id_type test_id_;
 };
 
 } // namespace core

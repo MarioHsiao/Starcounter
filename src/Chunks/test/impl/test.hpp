@@ -143,7 +143,7 @@ void test::initialize(const char* database_name) {
 	// Threads in this process can now acquire resources.
 
 	/// TEST UNLOCKING OF A SPINLOCK:
-	if (the_monitor_interface->sp().unlock_if(1000)) {
+	if (the_monitor_interface->sp().unlock_if_locked_with_id(1000)) {
 		std::cout << "test::initialize(): Unlocked the spinlock with ID 1000.\n";
 	}
 	else {
