@@ -3689,5 +3689,15 @@
         </code>
         
     </facility>
+
+    <!-- Error codes related to Apps -->
+    <facility name="Apps" hex="000E">
+        <code hex="0001" severity="Error" name="ScErrAppsHttpParserIncompleteHeaders">
+            <message>HTTP request has incomplete headers.</message>
+        </code>
+        <code hex="0002" severity="Error" name="ScErrAppsHttpParserIncorrect">
+            <message>HTTP contains incorrect data.</message>
+        </code>
+    </facility>
     
 </error-codes>
