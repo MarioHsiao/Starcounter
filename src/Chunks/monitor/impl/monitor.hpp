@@ -24,6 +24,7 @@ active_databases_file_updater_thread_(),
 #if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 resources_watching_thread_(),
 test_thread_(),
+test_id_(5),
 #endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 owner_id_counter_(owner_id::none) {
 	/// TODO: Use Boost.Program_options.
@@ -1219,12 +1220,169 @@ void monitor::print_rate_with_precision(double rate) {
 #endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 
 void monitor::test() {
-	Sleep(3000);
+	std::cout << "monitor::test(): start\n";
+#if 0
+	{
+		if (test_lock().is_locked()) {
+			std::cout << "monitor::test(): Owns test_lock() " << &test_lock() << " locked with " << test_lock() << "\n";
+		}
+		else {
+			std::cout << "monitor::test(): Do not own test_lock() " << &test_lock() << " locked with " << test_lock() << "\n";
+		}
 
+		if (test_lock().try_lock(test_id()) == true) {
+			std::cout << "monitor::test(): Owns test_lock() " << &test_lock() << " locked with " << test_lock() << "\n";
+		}
+		else {
+			std::cout << "monitor::test(): Do not own test_lock() " << &test_lock() << " locked with " << test_lock() << "\n";
+		}
+
+		test_lock().unlock_if_locked_with_id(3);
+
+		if (test_lock().is_locked()) {
+			std::cout << "monitor::test(): Owns test_lock() " << &test_lock() << " locked with " << test_lock() << "\n";
+		}
+		else {
+			std::cout << "monitor::test(): Do not own test_lock() " << &test_lock() << " locked with " << test_lock() << "\n";
+		}
+
+		test_lock().unlock_if_locked_with_id(test_id());
+
+		if (test_lock().is_locked()) {
+			std::cout << "monitor::test(): Owns test_lock() " << &test_lock() << " locked with " << test_lock() << "\n";
+		}
+		else {
+			std::cout << "monitor::test(): Do not own test_lock() " << &test_lock() << " locked with " << test_lock() << "\n";
+		}
+	}
+
+	Sleep(INFINITE);
+#endif
+	try {
+		/// TESTING SPINLOCK IN THE MONITOR OBJECT:
+		smp::spinlock::milliseconds abs_timeout = 2500;
+
+#if 0 // "A"
+		{
+			smp::spinlock::scoped_lock lock(test_lock());
+		}
+		{
+			smp::spinlock::scoped_lock lock(test_lock());
+			lock.unlock();
+		}
+#endif // "A"
+#if 0 // "B"
+		{
+			smp::spinlock::scoped_lock lock(test_lock(),
+			smp::spinlock::scoped_lock::try_to_lock_type());
+		}
+		{
+			smp::spinlock::scoped_lock lock(test_lock(),
+			smp::spinlock::scoped_lock::try_to_lock_type());
+			lock.unlock();
+		}
+#endif // "B"
+#if 0 // "C"
+		{
+			smp::spinlock::scoped_lock lock(test_lock(), test_id(),
+			smp::spinlock::scoped_lock::try_to_lock_type());
+		}
+		{
+			smp::spinlock::scoped_lock lock(test_lock(), test_id(),
+			smp::spinlock::scoped_lock::try_to_lock_type());
+			lock.unlock();
+		}
+#endif // "C"
+#if 1 // "D"
+		Sleep(100);
+		{
+			//smp::spinlock::scoped_lock lock(test_lock(), test_id(), abs_timeout);
+			smp::spinlock::scoped_lock lock(test_lock(), test_id(),
+			smp::spinlock::scoped_lock::try_to_lock_type());
+			
+			if (lock.owns()) {
+				std::cout << "<1> OWNS. UNLOCKING.\n";
+				lock.unlock();
+			}
+			else {
+				std::cout << "<1> OWNS...NOT\n";
+			}
+			//lock.timed_lock(test_id(), abs_timeout);
+			if (lock.owns()) {
+				std::cout << "<2> OWNS\n";
+			}
+			else {
+				std::cout << "<2> OWNS...NOT\n";
+			}
+			lock.try_lock(test_id());
+			if (lock.owns()) {
+				std::cout << "<3> OWNS\n";
+			}
+			else {
+				std::cout << "<3> OWNS...NOT\n";
+			}
+		}
+		{
+			//smp::spinlock::scoped_lock lock(test_lock(), abs_timeout);
+			//lock.unlock();
+		}
+#endif // "D"
+		std::cout << "monitor::test(): Sleeps forever.\n";
+		Sleep(INFINITE);
+		// "B"
+		//std::cout << "<6> monitor::test(): scoped_lock::scoped_lock(spinlock&)\n";
+		//smp::spinlock::scoped_lock lock(test_lock(),
+		//smp::spinlock::scoped_lock::try_to_lock_type());
+
+		//lock.unlock();
+		#if 0
+		if (lock.timed_lock(abs_timeout)) {
+			std::cout << "<6> monitor::test(): lock.timed_lock(abs_timeout): NOT ACQUIRED\n";
+		}
+		else {
+			std::cout << "<6> monitor::test(): lock.timed_lock(abs_timeout): ACQUIRED\n";
+		}
+
+		// "C"
+		//std::cout << "<6> monitor::test(): scoped_lock::scoped_lock(spinlock&)\n";
+		//smp::spinlock::scoped_lock lock(test_lock(), test_id(),
+		//smp::spinlock::scoped_lock::try_to_lock_type());
+
+		// "D"
+		//std::cout << "<6> monitor::test(): scoped_lock::scoped_lock(spinlock&, milliseconds)\n";
+		//smp::spinlock::scoped_lock lock(test_lock(), test_id(), 5000);
+		
+		if (lock.owns()) {
+			std::cout << "<6> monitor::test(): Owns lock " << &lock << " locked with " << lock << "\n";
+		}
+		else {
+			std::cout << "<6> monitor::test(): Do not own lock " << &lock << " locked with " << lock << "\n";
+		}
+		#endif
+	}
+	catch (smp::spinlock::scoped_lock::lock_exception&) {
+		std::cout << "error: lock exception caught.\n";
+	}
+	catch (...) {
+		std::cout << "error: unknown exception caught.\n";
+	}
+
+	std::cout << "<6> monitor::test(): Sleeping forever. . .\n";
+	Sleep(INFINITE);
+
+	///----------------------------------------------------------------------------------
+	/// TESTING SPINLOCK IN THE MONITOR_INTERFACE SHARED MEMORY SEGMENT:
+#if 0
 	{
 		smp::spinlock::scoped_lock lock(the_monitor_interface_->sp(),
         smp::spinlock::scoped_lock::try_to_lock_type());
 
+		if (lock.owns()) {
+			std::cout << "2 monitor::test(): Owns lock " << &lock << " locked with " << lock << "\n";
+		}
+		else {
+			std::cout << "2 monitor::test(): Do not own lock " << &lock << " locked with " << lock << "\n";
+		}
 	}
 
 	// Now the lock shall defenitely be locked.
@@ -1234,18 +1392,19 @@ void monitor::test() {
 
 		do {
 			std::cout << "monitor::test(): LOCKED! Current value is: "
-			<< the_monitor_interface_->sp().get_lock_value() << "\n";
+			<< the_monitor_interface_->sp() << "\n";
 			Sleep(400);
 		} while (--count);
 	
 		the_monitor_interface_->sp().unlock();
 		std::cout << "monitor::test(): UNLOCKED! Current value is: "
-		<< the_monitor_interface_->sp().get_lock_value() << "\n";
+		<< the_monitor_interface_->sp() << "\n";
 	}
 	else {
 		std::cout << "monitor::test(): A timeout occurred. Giving up trying to acquire the lock.\n";
 	}
 
+#endif
 	Sleep(INFINITE);
 }
 
@@ -1254,8 +1413,54 @@ void monitor::test() {
 /// one database running.
 #if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 void monitor::watch_resources() {
-	/// TESTING SPINLOCK:
+	test_lock().lock(test_id()); // Spins until acquires the lock.
+	//test_lock().lock(); // Spins until acquires the lock.
+	//Sleep(5500);
+	//test_lock().unlock(); // Spins until acquires the lock.
+	Sleep(INFINITE);
 
+	if (test_lock().is_locked() == true) {
+		std::cout << "<3> monitor::watch_resources(): test_lock().lock(test_id() succeeded!\n";
+	}
+	else {
+		std::cout << "<3> monitor::watch_resources(): test_lock().lock(test_id() failed!\n";
+	}
+
+	std::cout << "<3> monitor::watch_resources(): Sleeping 2 seconds. . .\n";
+	Sleep(2000);
+
+	test_lock().unlock();
+	std::cout << "<3> monitor::watch_resources(): test_lock().unlock()\n";
+	std::cout << "<3> monitor::watch_resources(): Sleeping forever. . .\n";
+	Sleep(INFINITE);
+
+	/// TESTING SPINLOCK IN THE MONITOR OBJECT:
+	if (test_lock().try_lock() == true) {
+		std::cout << "<4> monitor::watch_resources(): try_lock() succeeded!\n";
+	}
+	else {
+		std::cout << "<4> monitor::watch_resources(): try_lock() failed!\n";
+	}
+
+	if (test_lock().try_lock(test_id()) == true) {
+		std::cout << "<5> monitor::watch_resources(): try_lock(" << test_id() << ") succeeded!\n";
+	}
+	else {
+		std::cout << "<5> monitor::watch_resources(): try_lock(" << test_id() << ") failed!\n";
+	}
+
+	do {
+		std::cout << "monitor::watch_resources(): Try to unlock me! Current value is: "
+		<< test_lock() << "\n";
+		Sleep(1000);
+	} while (test_lock());
+	
+	std::cout << "monitor::watch_resources(): Sleeping. . .\n";
+	Sleep(INFINITE);
+
+	///----------------------------------------------------------------------------------
+	/// TESTING SPINLOCK IN THE MONITOR_INTERFACE SHARED MEMORY SEGMENT:
+	Sleep(INFINITE);
 	if (the_monitor_interface_->sp().try_lock(1000) == true) {
 		std::cout << "monitor::watch_resources(): try_lock(1000) succeeded!\n";
 	}
@@ -1265,9 +1470,9 @@ void monitor::watch_resources() {
 
 	do {
 		std::cout << "monitor::watch_resources(): Try to unlock me! Current value is: "
-		<< the_monitor_interface_->sp().get_lock_value() << "\n";
+		<< the_monitor_interface_->sp() << "\n";
 		Sleep(1000);
-	} while (the_monitor_interface_->sp().is_locked());
+	} while (the_monitor_interface_->sp());
 	
 	Sleep(INFINITE);
 	///----------------------------------------------------------------------------------
