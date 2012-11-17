@@ -99,7 +99,7 @@ namespace Starcounter.Query.Execution
     {
         None = 0, IncludesLiteral = 1, IncludesAggregation = 2, IncludesLIKEvariable = 4, IncludesSorting = 8, 
         IncludesFetchLiteral = 16, IncludesFetchVariable = 32, IncludesOffsetKeyLiteral = 64, IncludesOffsetKeyVariable = 128, 
-        SingleObjectProjection = 256
+        SingletonProjection = 256
     }
 
     /// <summary>

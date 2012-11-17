@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="CompositeMetaObject.cs" company="Starcounter AB">
+// <copyright file="RowMetaObject.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -10,9 +10,9 @@ using System.Linq.Expressions;
 
 namespace Starcounter.Query.Execution
 {
-    internal class CompositeMetaObject : DynamicMetaObject
+    internal class RowMetaObject : DynamicMetaObject
     {
-        internal CompositeMetaObject(Expression parameter, CompositeObject value)
+        internal RowMetaObject(Expression parameter, Row value)
             : base(parameter, BindingRestrictions.Empty, value)
         { }
 
@@ -28,7 +28,7 @@ namespace Starcounter.Query.Execution
             };
 
             DynamicMetaObject getValue = new DynamicMetaObject(
-                Expression.Call(Expression.Convert(Expression, LimitType), typeof(CompositeObject).GetMethod(methodName), parameters),
+                Expression.Call(Expression.Convert(Expression, LimitType), typeof(Row).GetMethod(methodName), parameters),
                 BindingRestrictions.GetTypeRestriction(Expression, LimitType));
 
             return getValue;

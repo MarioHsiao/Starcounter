@@ -16,29 +16,24 @@ namespace Starcounter.Query.Execution
 internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
 {
     Int32 extentNumber;
-    CompositeObject contextObject;
+    Row contextObject;
 
     IObjectExpression expression;
     ILogicalExpression condition;
 
-    internal ReferenceLookup(CompositeTypeBinding compTypeBind,
+    internal ReferenceLookup(RowTypeBinding rowTypeBind,
         Int32 extNum,
         IObjectExpression expr,
         ILogicalExpression cond,
         INumericalExpression fetchNumExpr,
         VariableArray varArr, String query)
-        : base(varArr)
+        : base(rowTypeBind, varArr)
     {
-        if (compTypeBind == null)
-            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect compTypeBind.");
         if (expr == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect expr.");
         if (cond == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect cond.");
-        if (varArr == null)
-            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect variables clone.");
 
-        compTypeBinding = compTypeBind;
         extentNumber = extNum;
 
         currentObject = null;
@@ -49,7 +44,6 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         fetchNumberExpr = fetchNumExpr;
 
         this.query = query;
-        variableArray = varArr;
     }
 
     /// <summary>
@@ -59,10 +53,15 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
     {
         get
         {
-            if (singleObject)
-                return compTypeBinding.GetPropertyBinding(0).TypeBinding;
+            if (projectionTypeCode == null)
+                return rowTypeBinding;
 
-            return compTypeBinding;
+            // Singleton object.
+            if (projectionTypeCode == DbTypeCode.Object)
+                return rowTypeBinding.GetPropertyBinding(0).TypeBinding;
+
+            // Singleton non-object.
+            return null;
         }
     }
 
@@ -80,17 +79,69 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         {
             if (currentObject != null)
             {
-                if (singleObject)
-                    return currentObject.GetObject(0);
+                switch (projectionTypeCode)
+                {
+                    case null:
+                        return currentObject;
 
-                return currentObject;
+                    case DbTypeCode.Binary:
+                        return currentObject.GetBinary(0);
+
+                    case DbTypeCode.Boolean:
+                        return currentObject.GetBoolean(0);
+
+                    case DbTypeCode.Byte:
+                        return currentObject.GetByte(0);
+
+                    case DbTypeCode.DateTime:
+                        return currentObject.GetDateTime(0);
+
+                    case DbTypeCode.Decimal:
+                        return currentObject.GetDecimal(0);
+
+                    case DbTypeCode.Double:
+                        return currentObject.GetDouble(0);
+
+                    case DbTypeCode.Int16:
+                        return currentObject.GetInt16(0);
+
+                    case DbTypeCode.Int32:
+                        return currentObject.GetInt32(0);
+
+                    case DbTypeCode.Int64:
+                        return currentObject.GetInt64(0);
+
+                    case DbTypeCode.Object:
+                        return currentObject.GetObject(0);
+
+                    case DbTypeCode.SByte:
+                        return currentObject.GetSByte(0);
+
+                    case DbTypeCode.Single:
+                        return currentObject.GetSingle(0);
+
+                    case DbTypeCode.String:
+                        return currentObject.GetString(0);
+
+                    case DbTypeCode.UInt16:
+                        return currentObject.GetUInt16(0);
+
+                    case DbTypeCode.UInt32:
+                        return currentObject.GetUInt32(0);
+
+                    case DbTypeCode.UInt64:
+                        return currentObject.GetUInt64(0);
+
+                    default:
+                        throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect projectionTypeCode.");
+                }
             }
 
             throw new InvalidOperationException("Enumerator has not started or has already finished.");
         }
     }
 
-    public CompositeObject CurrentCompositeObject
+    public Row CurrentRow
     {
         get
         {
@@ -144,7 +195,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
             else
             {
                 // Create new currentObject.
-                currentObject = new CompositeObject(compTypeBinding);
+                currentObject = new Row(rowTypeBinding);
                 currentObject.AttachObject(extentNumber, obj);
                 counter++;
                 return true;
@@ -166,8 +217,8 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         else if (counter == 0 || force)
         {
             // Create a NullObject.
-            NullObject nullObj = new NullObject(compTypeBinding.GetTypeBinding(extentNumber));
-            currentObject = new CompositeObject(compTypeBinding);
+            NullObject nullObj = new NullObject(rowTypeBinding.GetTypeBinding(extentNumber));
+            currentObject = new Row(rowTypeBinding);
             currentObject.AttachObject(extentNumber, nullObj);
             counter++;
             return true;
@@ -191,7 +242,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
     /// Resets the enumerator with a context object.
     /// </summary>
     /// <param name="obj">Context object from another enumerator.</param>
-    public override void Reset(CompositeObject obj)
+    public override void Reset(Row obj)
     {
         contextObject = obj;
         currentObject = null;
@@ -206,9 +257,9 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
     /// <returns>True, if the object is in the current extent, otherwise false.</returns>
     internal Boolean InCurrentExtent(IObjectView obj)
     {
-        if (compTypeBinding.GetTypeBinding(extentNumber) is TypeBinding && obj.TypeBinding is TypeBinding)
+        if (rowTypeBinding.GetTypeBinding(extentNumber) is TypeBinding && obj.TypeBinding is TypeBinding)
         {
-            TypeBinding extentTypeBind = compTypeBinding.GetTypeBinding(extentNumber) as TypeBinding;
+            TypeBinding extentTypeBind = rowTypeBinding.GetTypeBinding(extentNumber) as TypeBinding;
             TypeBinding tmpTypeBind = obj.TypeBinding as TypeBinding;
             return tmpTypeBind.SubTypeOf(extentTypeBind);
         }
@@ -218,13 +269,13 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
-    public override IExecutionEnumerator Clone(CompositeTypeBinding resultTypeBindClone, VariableArray varArrClone)
+    public override IExecutionEnumerator Clone(RowTypeBinding rowTypeBindClone, VariableArray varArrClone)
     {
         INumericalExpression fetchNumberExprClone = null;
         if (fetchNumberExpr != null)
             fetchNumberExprClone = fetchNumberExpr.CloneToNumerical(varArrClone);
 
-        return new ReferenceLookup(resultTypeBindClone, extentNumber, expression.CloneToObject(varArrClone),
+        return new ReferenceLookup(rowTypeBindClone, extentNumber, expression.CloneToObject(varArrClone),
             condition.Clone(varArrClone), fetchNumberExprClone, varArrClone, query);
     }
 

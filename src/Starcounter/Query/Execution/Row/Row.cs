@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="CompositeObject.cs" company="Starcounter AB">
+// <copyright file="Row.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -17,17 +17,17 @@ using System.Diagnostics;
 namespace Starcounter.Query.Execution
 {
     /// <summary>
-    /// Class CompositeObject
+    /// Holds information about one row/tuple/item in the result set of a query.
     /// </summary>
-public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
+public sealed class Row : IObjectView, IDynamicMetaObjectProvider
 {
-    CompositeTypeBinding typeBinding;
+    RowTypeBinding typeBinding;
     IObjectView[] objectArr;
 
     Int32 random;
     private static readonly LogSource logSource = LogSources.Sql;
 
-    internal CompositeObject(CompositeTypeBinding typeBind)
+    internal Row(RowTypeBinding typeBind)
     {
         if (typeBind == null)
         {
@@ -70,12 +70,6 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
         }
     }
 
-    // TODO: Remove.
-    //public Object Clone()
-    //{
-    //    return new CompositeObject(typeBinding);
-    //}
-
     /// <summary>
     /// Returns a string that represents the current object.
     /// </summary>
@@ -93,18 +87,18 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
                     Nullable<Binary> binValue = GetBinary(i);
                     if (binValue == null)
                     {
-                        presentation += Starcounter.Db.NullString + "\n";
+                        presentation += Db.NullString + "\n";
                     }
                     else
                     {
-                        presentation += BinaryToHex(binValue.Value) + "\n";
+                        presentation += Db.BinaryToHex(binValue.Value) + "\n";
                     }
                     break;
                 case DbTypeCode.Boolean:
                     Nullable<Boolean> boolValue = GetBoolean(i);
                     if (boolValue == null)
                     {
-                        presentation += Starcounter.Db.NullString + "\n";
+                        presentation += Db.NullString + "\n";
                     }
                     else
                     {
@@ -115,7 +109,7 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
                     Nullable<UInt64> uintValue = GetByte(i);
                     if (uintValue == null)
                     {
-                        presentation += Starcounter.Db.NullString + "\n";
+                        presentation += Db.NullString + "\n";
                     }
                     else
                     {
@@ -126,7 +120,7 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
                     Nullable<DateTime> dtmValue = GetDateTime(i);
                     if (dtmValue == null)
                     {
-                        presentation += Starcounter.Db.NullString + "\n";
+                        presentation += Db.NullString + "\n";
                     }
                     else
                     {
@@ -137,7 +131,7 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
                     Nullable<Decimal> decValue = GetDecimal(i);
                     if (decValue == null)
                     {
-                        presentation += Starcounter.Db.NullString + "\n";
+                        presentation += Db.NullString + "\n";
                     }
                     else
                     {
@@ -148,7 +142,7 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
                     Nullable<Double> dblValue = GetDouble(i);
                     if (dblValue == null)
                     {
-                        presentation += Starcounter.Db.NullString + "\n";
+                        presentation += Db.NullString + "\n";
                     }
                     else
                     {
@@ -159,7 +153,7 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
                     Nullable<Int64> intValue = GetInt16(i);
                     if (intValue == null)
                     {
-                        presentation += Starcounter.Db.NullString + "\n";
+                        presentation += Db.NullString + "\n";
                     }
                     else
                     {
@@ -170,7 +164,7 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
                     intValue = GetInt32(i);
                     if (intValue == null)
                     {
-                        presentation += Starcounter.Db.NullString + "\n";
+                        presentation += Db.NullString + "\n";
                     }
                     else
                     {
@@ -181,7 +175,7 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
                     intValue = GetInt64(i);
                     if (intValue == null)
                     {
-                        presentation += Starcounter.Db.NullString + "\n";
+                        presentation += Db.NullString + "\n";
                     }
                     else
                     {
@@ -192,7 +186,7 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
                     intValue = GetSByte(i);
                     if (intValue == null)
                     {
-                        presentation += Starcounter.Db.NullString + "\n";
+                        presentation += Db.NullString + "\n";
                     }
                     else
                     {
@@ -203,7 +197,7 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
                     dblValue = GetSingle(i);
                     if (dblValue == null)
                     {
-                        presentation += Starcounter.Db.NullString + "\n";
+                        presentation += Db.NullString + "\n";
                     }
                     else
                     {
@@ -214,7 +208,7 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
                     String strValue = GetString(i);
                     if (strValue == null)
                     {
-                        presentation += Starcounter.Db.NullString + "\n";
+                        presentation += Db.NullString + "\n";
                     }
                     else
                     {
@@ -225,7 +219,7 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
                     IObjectView objValue = GetObject(i);
                     if (objValue == null)
                     {
-                        presentation += Starcounter.Db.NullString + "\n";
+                        presentation += Db.NullString + "\n";
                     }
                     else
                         // presentation += (DbHelper.GetObjectID(value as Entity));
@@ -237,7 +231,7 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
                     uintValue = GetUInt16(i);
                     if (uintValue == null)
                     {
-                        presentation += Starcounter.Db.NullString + "\n";
+                        presentation += Db.NullString + "\n";
                     }
                     else
                     {
@@ -248,7 +242,7 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
                     uintValue = GetUInt32(i);
                     if (uintValue == null)
                     {
-                        presentation += Starcounter.Db.NullString + "\n";
+                        presentation += Db.NullString + "\n";
                     }
                     else
                     {
@@ -259,7 +253,7 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
                     uintValue = GetUInt64(i);
                     if (uintValue == null)
                     {
-                        presentation += Starcounter.Db.NullString + "\n";
+                        presentation += Db.NullString + "\n";
                     }
                     else
                     {
@@ -269,17 +263,6 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
             }
         }
         return presentation;
-    }
-
-    private String BinaryToHex(Binary value)
-    {
-        // TODO: Is there an easier way to convert a Binary into a hexadecimal string?
-        StringBuilder stringBuilder = new StringBuilder(value.Length * 2);
-        for (Int32 i = 0; i < value.Length; i++)
-        {
-            stringBuilder.AppendFormat("{0:x2}", value.GetByte(i));
-        }
-        return stringBuilder.ToString();
     }
 
     /// <summary>
@@ -300,7 +283,7 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
 
     /// <summary>
     /// Attach an instance of an IObjectView at the specified index.
-    /// The type of the instance must be the same as the specified type used when creating the CompositeObject.
+    /// The type of the instance must be the same as the specified type used when creating the Row.
     /// </summary>
     internal void AttachObject(Int32 index, IObjectView value)
     {
@@ -897,7 +880,7 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
     /// <returns></returns>
     public DynamicMetaObject GetMetaObject(Expression parameter)
     {
-        return new CompositeMetaObject(parameter, this);
+        return new RowMetaObject(parameter, this);
     }
 
 #if DEBUG
@@ -908,11 +891,11 @@ public sealed class CompositeObject : IObjectView, IDynamicMetaObjectProvider
     /// <param name="other">The given object to compare with this object.</param>
     /// <returns>True if the objects are equals and false otherwise.</returns>
     public bool AssertEquals(IObjectView other) {
-        CompositeObject otherNode = other as CompositeObject;
+        Row otherNode = other as Row;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);
     }
-    internal bool AssertEquals(CompositeObject other) {
+    internal bool AssertEquals(Row other) {
         Debug.Assert(other != null);
         if (other == null)
             return false;

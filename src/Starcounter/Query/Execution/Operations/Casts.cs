@@ -105,7 +105,7 @@ internal class ObjectCast : IObjectPathItem, IPath
     }
 
     /// <summary>
-    /// The type resultTypeBind of the casted path-item.
+    /// The type binding of the casted path-item.
     /// </summary>
     public ITypeBinding TypeBinding
     {
@@ -119,7 +119,7 @@ internal class ObjectCast : IObjectPathItem, IPath
     /// Appends data of this leaf to the provided filter key.
     /// </summary>
     /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    /// <param name="obj">Results object for which evaluation should be performed.</param>
+    /// <param name="obj">Row for which evaluation should be performed.</param>
     public void AppendToKey(ByteArrayBuilder key, IObjectView obj)
     {
         key.Append(EvaluateToObject(obj));
@@ -166,11 +166,11 @@ internal class ObjectCast : IObjectPathItem, IPath
     }
 
     /// <summary>
-    /// Creates an more instantiated copy of this expression by evaluating it on a result-object.
+    /// Creates an more instantiated copy of this expression by evaluating it on a Row.
     /// </summary>
-    /// <param name="obj">The result-object on which to evaluate the expression.</param>
+    /// <param name="obj">The Row on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public IObjectExpression Instantiate_OLD(CompositeObject obj)
+    public IObjectExpression Instantiate_OLD(Row obj)
     {
         IObjectExpression instExpression = expression.Instantiate(obj);
 
@@ -190,7 +190,7 @@ internal class ObjectCast : IObjectPathItem, IPath
         return new ObjectCast(typeBinding, instExpression);
     }
 
-    public IObjectExpression Instantiate(CompositeObject obj)
+    public IObjectExpression Instantiate(Row obj)
     {
         return new ObjectCast(typeBinding, expression.Instantiate(obj));
     }

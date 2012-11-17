@@ -86,7 +86,7 @@ internal class BooleanLiteral : Literal, ILiteral, IBooleanPathItem
     /// </summary>
     /// <param name="obj">Not used.</param>
     /// <returns>A copy of this literal.</returns>
-    public IBooleanExpression Instantiate(CompositeObject obj)
+    public IBooleanExpression Instantiate(Row obj)
     {
         return new BooleanLiteral(value);
     }

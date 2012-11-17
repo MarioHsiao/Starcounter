@@ -200,7 +200,7 @@ internal static class SqlConnectivity
                         if (!hasRecreationKey)
                         {
                             // Getting the amount of leaves in execution tree (number of enumerators).
-                            Int32 leavesNum = sqlEnum.CompositeTypeBinding.ExtentOrder.Count;
+                            Int32 leavesNum = sqlEnum.RowTypeBinding.ExtentOrder.Count;
                             globalOffset = ((leavesNum << 3) + IteratorHelper.RK_HEADER_LEN);
 
                             // Saving number of enumerators.

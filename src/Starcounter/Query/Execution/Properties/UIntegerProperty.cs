@@ -86,7 +86,7 @@ internal class UIntegerProperty : Property, IUIntegerPathItem
     /// Appends data of this leaf to the provided filter key.
     /// </summary>
     /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    /// <param name="obj">Results object for which evaluation should be performed.</param>
+    /// <param name="obj">Row for which evaluation should be performed.</param>
     public override void AppendToByteArray(ByteArrayBuilder key, IObjectView obj)
     {
         // Checking if its a property from some previous extent
@@ -108,12 +108,12 @@ internal class UIntegerProperty : Property, IUIntegerPathItem
         {
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect obj.");
         }
-        if (obj is CompositeObject)
+        if (obj is Row)
         {
-            // Control that the type ((obj.TypeBinding as CompositeTypeBinding).GetTypeBinding(extentNumber)) of the input object
+            // Control that the type ((obj.TypeBinding as RowTypeBinding).GetTypeBinding(extentNumber)) of the input object
             // is equal to or a subtype (TypeBinding.SubTypeOf(TypeBinding)) of the type (typeBinding) to which this property belongs
             // is not implemented due to that interfaces cannot be handled and computational cost.
-            IObjectView partObj = (obj as CompositeObject).AccessObject(extentNumber);
+            IObjectView partObj = (obj as Row).AccessObject(extentNumber);
             if (partObj == null)
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "No elementary object at extent number: " + extentNumber);
@@ -246,13 +246,13 @@ internal class UIntegerProperty : Property, IUIntegerPathItem
     }
 
     /// <summary>
-    /// Creates an more instantiated copy of this expression by evaluating it on a result-object.
-    /// Properties, with extent numbers for which there exist objects attached to the result-object,
+    /// Creates an more instantiated copy of this expression by evaluating it on a Row.
+    /// Properties, with extent numbers for which there exist objects attached to the Row,
     /// are evaluated and instantiated to literals, other properties are not changed.
     /// </summary>
-    /// <param name="obj">The result-object on which to evaluate the expression.</param>
+    /// <param name="obj">The Row on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public INumericalExpression Instantiate(CompositeObject obj)
+    public INumericalExpression Instantiate(Row obj)
     {
         if (obj != null && extentNumber >= 0 && obj.AccessObject(extentNumber) != null)
         {
