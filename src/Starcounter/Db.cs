@@ -168,7 +168,7 @@ namespace Starcounter
 
             for (; ; )
             {
-                r = sccoredb.sccoredb_create_transaction_and_set_current(1, out handle, out verify);
+                r = sccoredb.sccoredb_create_transaction_and_set_current(0, 1, out handle, out verify);
                 if (r == 0)
                 {
                     var currentTransaction = Starcounter.Transaction._current;
