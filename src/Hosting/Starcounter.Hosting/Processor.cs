@@ -19,6 +19,12 @@ namespace StarcounterInternal.Hosting
     {
 
         /// <summary>
+        /// </summary>
+        public unsafe static void Setup(void* hsched) {
+            ScrapHeap.Setup(hsched);
+        }
+
+        /// <summary>
         /// Runs the message loop.
         /// </summary>
         /// <param name="hsched">The hsched.</param>
@@ -49,7 +55,13 @@ namespace StarcounterInternal.Hosting
                             case sccorelib_ext.TYPE_PROCESS_PACKAGE:
                                 Package.Process((IntPtr)task_data.Output3);
                                 break;
+
+                            case sccorelib_ext.TYPE_RECYCLE_SCRAP:
+                                ScrapHeap.RecycleScrap();
+                                break;
                         };
+
+                        TaskHelper.Reset();
                     }
                     else
                     {
