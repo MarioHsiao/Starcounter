@@ -113,6 +113,8 @@ namespace StarcounterInternal.Hosting
         /// </summary>
         private static sccoredb.ON_NEW_SCHEMA on_new_schema = new sccoredb.ON_NEW_SCHEMA(orange_on_new_schema);
 
+        private static sccoredb.ON_NO_TRANSACTION on_new_transaction = new sccoredb.ON_NO_TRANSACTION(orange_on_no_transaction);
+
         /// <summary>
         /// Orange_configure_database_callbackses the specified config.
         /// </summary>
@@ -120,6 +122,7 @@ namespace StarcounterInternal.Hosting
         public static unsafe void orange_configure_database_callbacks(ref sccoredb.sccoredb_config config)
         {
             config.on_new_schema = (void*)Marshal.GetFunctionPointerForDelegate(on_new_schema);
+            config.on_no_transaction = (void*)Marshal.GetFunctionPointerForDelegate(on_new_transaction);
         }
 
 #if false
@@ -297,6 +300,9 @@ namespace StarcounterInternal.Hosting
             {
                 if (!ExceptionManager.HandleUnhandledException(ex)) throw;
             }
+        }
+
+        private static void orange_on_no_transaction() {
         }
 
         /// <summary>

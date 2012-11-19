@@ -168,6 +168,10 @@ namespace Starcounter.Internal
         public delegate void ON_NEW_SCHEMA(ulong generation);
 
         /// <summary>
+        /// </summary>
+        public delegate void ON_NO_TRANSACTION();
+
+        /// <summary>
         /// Struct sccoredb_config
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
@@ -177,6 +181,10 @@ namespace Starcounter.Internal
             /// The on_new_schema
             /// </summary>
             public void* on_new_schema;
+
+            /// <summary>
+            /// </summary>
+            public void* on_no_transaction;
         }
 
         /// <summary>
