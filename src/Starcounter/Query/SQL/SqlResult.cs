@@ -14,14 +14,29 @@ using Sc.Query.Execution;
 namespace Starcounter
 {
     /// <summary>
-    /// Class SqlResult
+    /// 
     /// </summary>
     public class SqlResult : IEnumerable
     {
-        UInt64 transactionId; // The handle of the transaction to which this SQL result belongs.
-        String query; // SQL query string.
-        Object[] sqlParams; // SQL query parameters, all given at once.
-        Boolean slowSQL; // Describes if queries with slow executions are allowed or not.
+        /// <summary>
+        /// 
+        /// </summary>
+        protected UInt64 transactionId; // The handle of the transaction to which this SQL result belongs.
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        protected String query; // SQL query string.
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        protected Object[] sqlParams; // SQL query parameters, all given at once.
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        protected Boolean slowSQL; // Describes if queries with slow executions are allowed or not.
 
         // Creating SQL result with query parameters all given at once.
         internal SqlResult(UInt64 transactionId, String query, Boolean slowSQL, params Object[] sqlParamsValues)
@@ -32,12 +47,10 @@ namespace Starcounter
             sqlParams = sqlParamsValues;
         }
 
-        // Obtaining only the first hit/result and disposing the enumerator.
         /// <summary>
-        /// Gets the first.
+        /// Obtaining only the first hit/result and disposing the enumerator.
         /// </summary>
-        /// <value>The first.</value>
-        /// <exception cref="Starcounter.SqlException">Literal in query is not supported. Use variable and parameter instead.</exception>
+        /// <value></value>
         public dynamic First
         {
             get
@@ -83,7 +96,7 @@ namespace Starcounter
         /// </summary>
         /// <returns>ISqlEnumerator.</returns>
         /// <exception cref="Starcounter.SqlException">Literal in query is not supported. Use variable and parameter instead.</exception>
-        public ISqlEnumerator GetEnumerator()
+        virtual public ISqlEnumerator GetEnumerator()
         {
 #if true // TODO EOH2: Lucent objects.
             IExecutionEnumerator execEnum = null;
@@ -119,6 +132,11 @@ namespace Starcounter
             execEnum.TransactionId = transactionId;
 
             return execEnum;
+
+            // NOTE: If we want to have a wrapper even for non-generic calls of SQL, 
+            // for example to deal with enumerator disposal, 
+            // then we can create a GenericEnumerator<Object> as shown below.
+            // return new GenericEnumerator<Object>(execEnum);
         }
 
         // Implementing the IEnumerable.GetEnumerator() method.
