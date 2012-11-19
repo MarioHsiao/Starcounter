@@ -122,6 +122,11 @@ namespace HttpStructs
         /// </summary>
         public UInt64 apps_unique_session_num_;
 
+        /// <summary>
+        /// Apps session salt.
+        /// </summary>
+        public UInt64 apps_session_salt_;
+
         // Session string length in characters.
         /// <summary>
         /// The S c_ SESSIO n_ STRIN g_ LE n_ CHARS
@@ -705,9 +710,14 @@ namespace HttpStructs
         const UInt32 INVALID_SESSION_INDEX = UInt32.MaxValue;
 
         /// <summary>
-        /// Invalid Apps unique number.
+        /// Invalid Apps session unique number.
         /// </summary>
         const UInt64 INVALID_APPS_UNIQUE_SESSION_NUMBER = 0;
+
+        /// <summary>
+        /// Invalid Apps session salt.
+        /// </summary>
+        const UInt64 INVALID_APPS_SESSION_SALT = 0;
 
         /// <summary>
         /// Checks if HTTP request already has session.
@@ -736,6 +746,9 @@ namespace HttpStructs
                 // Generating new session and assigning it to current.
                 session_->apps_unique_session_num_ = GlobalSessions.AllSessions.GenerateUniqueNumber();
 
+                // Creating new session salt.
+                session_->apps_session_salt_ = GlobalSessions.AllSessions.GenerateSalt();
+
                 // Returning Apps unique number.
                 return session_->apps_unique_session_num_;
             }
@@ -748,8 +761,9 @@ namespace HttpStructs
         {
             unsafe
             {
-                // Killing this session by setting invalid unique number.
+                // Killing this session by setting invalid unique number and salt.
                 session_->apps_unique_session_num_ = INVALID_APPS_UNIQUE_SESSION_NUMBER;
+                session_->apps_session_salt_ = INVALID_APPS_SESSION_SALT;
             }
         }
 
@@ -763,6 +777,20 @@ namespace HttpStructs
                 unsafe
                 {
                     return session_->apps_unique_session_num_;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns session salt.
+        /// </summary>
+        public UInt64 SessionSalt
+        {
+            get
+            {
+                unsafe
+                {
+                    return session_->apps_session_salt_;
                 }
             }
         }

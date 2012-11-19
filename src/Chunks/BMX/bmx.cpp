@@ -391,7 +391,10 @@ uint32_t BmxData::HandleDestroyedSession(request_chunk_part* request, TASK_INFO_
     // Reading Apps unique session number.
     uint64_t apps_unique_session_num = request->read_uint64();
 
-    std::cout << "Session " << apps_unique_session_num << " was destroyed." << std::endl;
+    // Reading Apps session salt.
+    uint64_t apps_session_salt = request->read_uint64();
+
+    std::cout << "Session " << apps_unique_session_num << ":" << apps_session_salt << " was destroyed." << std::endl;
 
     // TODO: Handle destroyed session.
 
@@ -514,7 +517,7 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
 
     task_info.handler_id = handler_id;
     if (smc->get_link() != smc->LINK_TERMINATOR)
-        task_info.flags |= LINKED_CHUNK;
+        task_info.flags |= LINKED_CHUNKS_FLAG;
 
     // TODO: Init session values.
 

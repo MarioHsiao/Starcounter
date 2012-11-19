@@ -138,7 +138,7 @@ const int32_t MAX_HTTP_BODY_SIZE = 1024 * 1024 * 32;
 const int32_t ACCEPT_ROOF_STEP_SIZE = 1;
 
 // Offset of data blob in socket data.
-const int32_t SOCKET_DATA_BLOB_OFFSET_BYTES = 680;
+const int32_t SOCKET_DATA_BLOB_OFFSET_BYTES = 688;
 
 // Length of blob data in bytes.
 const int32_t SOCKET_DATA_BLOB_SIZE_BYTES = bmx::MAX_DATA_BYTES_IN_CHUNK - bmx::BMX_HEADER_MAX_SIZE_BYTES - SOCKET_DATA_BLOB_OFFSET_BYTES;
@@ -161,15 +161,15 @@ const uint32_t INVALID_SCHEDULER_ID = ~0;
 // Bad session salt.
 const session_salt_type INVALID_SESSION_SALT = 0;
 
+// Bad Apps session salt.
+const session_salt_type INVALID_APPS_SESSION_SALT = 0;
+
 // Invalid Apps unique number.
 const uint64_t INVALID_APPS_UNIQUE_SESSION_NUMBER = 0;
 
 // Maximum number of chunks to keep in private chunk pool
 // until we release them to shared chunk pool.
 const int32_t MAX_CHUNKS_IN_PRIVATE_POOL = 256;
-
-// Offset of overlapped data structure inside socket data chunk:
-const int32_t OVL_OFFSET_IN_CHUNK = 24;
 
 // Number of predefined gateway port types
 const int32_t NUM_PREDEFINED_PORT_TYPES = 5;
@@ -563,6 +563,9 @@ struct ScSessionStruct
     // Unique number coming from Apps.
     apps_unique_session_num_type apps_unique_session_num_;
 
+    // Apps unique session salt.
+    session_salt_type apps_session_salt_;
+
     // Default constructor.
     ScSessionStruct()
     {
@@ -582,6 +585,7 @@ struct ScSessionStruct
         session_index_ = INVALID_SESSION_INDEX;
         scheduler_id_ = INVALID_SCHEDULER_ID;
         apps_unique_session_num_ = INVALID_APPS_UNIQUE_SESSION_NUMBER;
+        apps_session_salt_ = INVALID_APPS_SESSION_SALT;
     }
 
     // Initializes.
@@ -589,12 +593,14 @@ struct ScSessionStruct
         session_salt_type session_salt,
         session_index_type session_index,
         apps_unique_session_num_type apps_unique_session_num,
+        session_salt_type apps_session_salt,
         uint32_t scheduler_id)
     {
         session_salt_ = session_salt;
         session_index_ = session_index;
         scheduler_id_ = scheduler_id;
         apps_unique_session_num_ = apps_unique_session_num;
+        apps_session_salt_ = apps_session_salt;
     }
 
     // Comparing two sessions.
@@ -630,6 +636,7 @@ struct ScSessionStruct
         session_index_ = session_struct->session_index_;
         scheduler_id_ = session_struct->scheduler_id_;
         apps_unique_session_num_ = session_struct->apps_unique_session_num_;
+        apps_session_salt_ = session_struct->apps_session_salt_;
     }
 
     // Scheduler ID.
@@ -656,6 +663,7 @@ struct ScSessionStruct
         session_salt_type session_salt,
         session_index_type session_index,
         apps_unique_session_num_type apps_unique_session_num,
+        session_salt_type apps_session_salt,
         uint32_t scheduler_id);
 
     // Compare socket stamps of two sessions.
@@ -749,23 +757,34 @@ class ActiveDatabase
     // Channels events monitor thread handle.
     HANDLE channels_events_thread_handle_;
 
-    // Apps session numbers.
-    apps_unique_session_num_type* apps_sessions_unsafe_;
+    // Apps unique session numbers.
+    apps_unique_session_num_type* apps_unique_session_numbers_unsafe_;
+
+    // Apps session salts.
+    session_salt_type* apps_session_salts_unsafe_;
 
 public:
 
     // Sets value for Apps specific session.
     void SetAppsSessionValue(
         session_index_type session_index,
-        apps_unique_session_num_type apps_session_value)
+        apps_unique_session_num_type apps_unique_session_num,
+        session_salt_type apps_session_salt)
     {
-        apps_sessions_unsafe_[session_index] = apps_session_value;
+        apps_unique_session_numbers_unsafe_[session_index] = apps_unique_session_num;
+        apps_session_salts_unsafe_[session_index] = apps_session_salt;
     }
 
-    // Gets value for Apps specific session.
-    apps_unique_session_num_type GetAppsSessionValue(session_index_type session_index)
+    // Gets unique number for Apps specific session.
+    apps_unique_session_num_type GetAppsUniqueSessionNumber(session_index_type session_index)
     {
-        return apps_sessions_unsafe_[session_index];
+        return apps_unique_session_numbers_unsafe_[session_index];
+    }
+
+    // Gets session salt for Apps specific session.
+    session_salt_type GetAppsSessionSalt(session_index_type session_index)
+    {
+        return apps_session_salts_unsafe_[session_index];
     }
 
     // Spawns channels events monitor thread.
@@ -1129,7 +1148,7 @@ class Gateway
     volatile uint32_t num_active_sessions_unsafe_;
 
     // Round-robin global scheduler number.
-    uint32_t global_scheduler_id_unsafe_;
+    volatile uint32_t global_scheduler_id_unsafe_;
 
     ////////////////////////
     // GLOBAL LOCKING
@@ -1229,12 +1248,17 @@ public:
     }
 
     // Round-robin global scheduler number.
-    uint32_t obtain_scheduler_id()
+    uint32_t obtain_scheduler_id_unsafe()
     {
-        if (++global_scheduler_id_unsafe_ >= num_schedulers_)
+        // NOTE: Using simple increment here not interlocked!
+        uint32_t global_scheduler_id_unsafe = ++global_scheduler_id_unsafe_;
+        if (global_scheduler_id_unsafe >= num_schedulers_)
+        {
             global_scheduler_id_unsafe_ = 0;
+            return 0;
+        }
 
-        return global_scheduler_id_unsafe_;
+        return global_scheduler_id_unsafe;
     }
 
     // Getting state of the socket.
@@ -1527,6 +1551,7 @@ public:
     ScSessionStruct GenerateNewSessionAndReturnCopy(
         session_salt_type session_salt,
         apps_unique_session_num_type apps_unique_session_num,
+        session_salt_type apps_session_salt,
         uint32_t scheduler_id)
     {
         // Checking that we have not reached maximum number of sessions.
@@ -1550,6 +1575,7 @@ public:
             session_salt,
             free_session_index,
             apps_unique_session_num,
+            apps_session_salt,
             scheduler_id);
 
         // Incrementing number of active sessions.
