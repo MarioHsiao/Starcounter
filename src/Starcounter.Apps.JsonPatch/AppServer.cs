@@ -188,7 +188,6 @@ namespace Starcounter.Internal.Web {
             finally
             {
                 HardcodedStuff.EndRequest();
-                LongRunningTransaction.ReleaseCached();
             }
         }
 

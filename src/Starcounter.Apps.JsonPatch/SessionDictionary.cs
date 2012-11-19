@@ -157,9 +157,9 @@ namespace Starcounter.Internal.Application {
                 // TODO:
                 // Proper implementation of App transactions.
                 if (RootApp != null) {
-                    LongRunningTransaction trans = RootApp.Transaction;
+                    var trans = RootApp.Transaction;
                     if (trans != null)
-                        trans.Activate();
+                        Transaction.SetCurrent(trans);
                 }
                 action();
             } finally {
