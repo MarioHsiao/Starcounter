@@ -21,7 +21,7 @@ namespace Starcounter.Query
         // Configuration of query module.
         //static String processFolder = StarcounterEnvironment.SystemDirectory + "\\32BitComponents\\";
         internal static String ProcessFolder = AppDomain.CurrentDomain.BaseDirectory + "32BitComponents\\";
-        internal const String ProcessFileName = "StarcounterSQL.exe";
+        internal const String ProcessFileName = "scsqlparser.exe";
         internal const String ProcessVersion = "121017";
         internal static Int32 ProcessPort = 0;
         //static readonly String schemaFilePath = AppDomain.CurrentDomain.BaseDirectory + "\\schema.pl";
