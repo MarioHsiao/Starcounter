@@ -302,7 +302,8 @@ namespace StarcounterInternal.Hosting
             }
         }
 
-        private static void orange_on_no_transaction() {
+        private static uint orange_on_no_transaction() {
+            return 0;
         }
 
         /// <summary>
