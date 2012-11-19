@@ -47,7 +47,7 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        private LongRunningTransaction _transaction;
+        private Transaction _transaction;
 
         /// <summary>
         /// 
@@ -75,13 +75,13 @@ namespace Starcounter {
         /// <param name="template"></param>
         /// <param name="initializeTransaction"></param>
         public App(AppTemplate template, Func<Entity> initializeTransaction) : this(template) {
-            LongRunningTransaction transaction = Transaction;
+            var transaction = Transaction;
             if (transaction == null) {
-                transaction = new LongRunningTransaction();
+                transaction = Transaction.NewCurrent();
                 Transaction = transaction;
             }
 
-            Data = transaction.Add(initializeTransaction);
+            Data = initializeTransaction();
         }
 
         /// <summary>
@@ -183,7 +183,7 @@ namespace Starcounter {
         /// Gets the closest transaction for this app looking up in the tree.
         /// Sets this transaction.
         /// </summary>
-        public LongRunningTransaction Transaction {
+        public Transaction Transaction {
             get {
                 if (_transaction != null)
                     return _transaction;
@@ -228,7 +228,7 @@ namespace Starcounter {
         /// </summary>
         public virtual void Abort() {
             if (_transaction != null) {
-                _transaction.Abort();
+                _transaction.Rollback();
             }
         }
 
