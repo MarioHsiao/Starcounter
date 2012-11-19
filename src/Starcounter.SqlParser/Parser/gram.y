@@ -4785,12 +4785,14 @@ from_list:
  */
 table_ref:	member_func_expr
 				{
+					/* default inheritance */
 					RangeVar *r = (Node *) makeRangeVar($1, NULL, @1);
 					r->inhOpt = INH_DEFAULT;
 					$$ = (Node *) r;
 				}
 			| member_func_expr alias_clause
 				{
+					/* default inheritance */
 					RangeVar *r = makeRangeVar($1, NULL, @1);
 					r->inhOpt = INH_DEFAULT;
 					r->alias = $2;
@@ -4798,12 +4800,14 @@ table_ref:	member_func_expr
 				}
 			| member_func_expr '*'
 				{
+					/* inheritance query */
 					RangeVar *r = (Node *) makeRangeVar($1, NULL, @1);
 					r->inhOpt = INH_YES;
 					$$ = (Node *) r;
 				}
 			| member_func_expr '*' alias_clause 
 				{
+					/* inheritance query */
 					RangeVar *r = makeRangeVar($1, NULL, @1);
 					r->inhOpt = INH_YES;
 					r->alias = $3;
@@ -4811,12 +4815,14 @@ table_ref:	member_func_expr
 				}
 			| ONLY member_func_expr
 				{
+					/* no inheritance */
 					RangeVar *r = (Node *) makeRangeVar($1, NULL, @1);
 					r->inhOpt = INH_NO;
 					$$ = (Node *) r;
 				}
 			| ONLY member_func_expr alias_clause
 				{
+					/* no inheritance */
 					RangeVar *r = makeRangeVar($2, NULL, @1);
 					r->inhOpt = INH_NO;
 					r->alias = $3;
