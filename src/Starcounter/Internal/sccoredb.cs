@@ -646,6 +646,19 @@ namespace Starcounter.Internal
             );
 
         /// <summary>
+        /// </summary>
+        public const uint MDB_TRANSCREATE_MERGING_WRITES = 0x0004;
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint sccoredb_create_transaction(
+            uint flags,
+            out ulong handle,
+            out ulong verify
+            );
+
+        /// <summary>
         /// Sccoredb_create_transaction_and_set_currents the specified lock_tran_on_thread.
         /// </summary>
         /// <param name="lock_tran_on_thread">The lock_tran_on_thread.</param>
@@ -706,6 +719,11 @@ namespace Starcounter.Internal
         public extern static uint sccoredb_abort_commit(
             int tran_locked_on_thread
             );
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint sccoredb_rollback();
 
         /// <summary>
         /// Sccoredb_reset_aborts this instance.
