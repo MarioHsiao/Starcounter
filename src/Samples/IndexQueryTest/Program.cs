@@ -19,7 +19,7 @@ namespace IndexQueryTest
             // See a query plan
             Db.Transaction(delegate
             {
-                ISqlEnumerator sqlEnum = (ISqlEnumerator)Db.SQL("select u from user u").GetEnumerator();
+                ISqlEnumerator sqlEnum = (ISqlEnumerator)Db.SQL("select u from accounttest.auser u").GetEnumerator();
                 Console.WriteLine(sqlEnum.ToString());
             });
             TestCreateDropIndex();

@@ -13,9 +13,9 @@ namespace IndexQueryTest
             bool populated = false;
             Db.Transaction(delegate
             {
-                if (Db.SQL("select u from Accounttest.User u").First == null)
+                if (Db.SQL("select u from Accounttest.AUser u").First == null)
                 {
-                    AccountTest.User user = new AccountTest.User
+                    AccountTest.AUser user = new AccountTest.AUser
                     {
                         FirstName = "Kalle",
                         LastName = "Larsson",
@@ -23,7 +23,7 @@ namespace IndexQueryTest
                     };
                     new AccountTest.Account { AccountId = 0, Amount = 10, Client = user };
                     new AccountTest.Account { AccountId = 1, Amount = 20, Client = user };
-                    user = new AccountTest.User
+                    user = new AccountTest.AUser
                     {
                         FirstName = "Oleg",
                         LastName = "Popov",
@@ -45,7 +45,7 @@ namespace IndexQueryTest
             int nrPrintedObjs = 0;
             Db.Transaction(delegate
             {
-                foreach (AccountTest.User u in Db.SQL("select u from Accounttest.User u"))
+                foreach (AccountTest.AUser u in Db.SQL("select u from Accounttest.AUser u"))
                 {
                     Console.WriteLine("User " + u.FirstName + " " + u.LastName + " with ID " + u.UserId);
                     nrPrintedObjs++;
@@ -67,7 +67,7 @@ namespace IndexQueryTest
             int nrPrintedObjs = 0;
             Db.Transaction(delegate
             {
-                foreach (AccountTest.User u in Db.SQL("select u from User u where LastName = ?", LastName))
+                foreach (AccountTest.AUser u in Db.SQL("select u from AUser u where LastName = ?", LastName))
                 {
                     Console.WriteLine("User " + u.FirstName + " " + u.LastName + " with ID " + u.UserId);
                     nrPrintedObjs++;
@@ -81,7 +81,7 @@ namespace IndexQueryTest
             int nrPrintedObjs = 0;
             Db.Transaction(delegate
             {
-                foreach (AccountTest.User u in Db.SQL("select u from User u order by LastName"))
+                foreach (AccountTest.AUser u in Db.SQL("select u from AUser u order by LastName"))
                 {
                     Console.WriteLine("User " + u.FirstName + " " + u.LastName + " with ID " + u.UserId);
                     nrPrintedObjs++;

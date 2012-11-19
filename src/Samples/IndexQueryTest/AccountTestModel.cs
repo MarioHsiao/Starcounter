@@ -5,7 +5,7 @@ using System;
 namespace AccountTest
 {
 #if ACCOUNTTEST_MODEL
-    public class User : Entity
+    public class AUser : Entity
     {
         public String FirstName;
         public String LastName;
@@ -20,7 +20,7 @@ namespace AccountTest
     public class Account : Entity
     {
         public Int64 AccountId;
-        public User Client;
+        public AUser Client;
         public Decimal Amount;
     }
 #endif
