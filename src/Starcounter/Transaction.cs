@@ -164,6 +164,34 @@ namespace Starcounter
             throw ToException(value, r);
         }
 
+        /// <summary>
+        /// </summary>
+        public static Transaction NewCurrent() {
+            ulong handle;
+            ulong verify;
+            uint r = sccoredb.sccoredb_create_transaction_and_set_current(
+                sccoredb.MDB_TRANSCREATE_MERGING_WRITES,
+                0,
+                out handle,
+                out verify
+                );
+            if (r == 0) {
+                try {
+                    return new Transaction(handle, verify);
+                }
+                catch (Exception) {
+                    if (
+                        sccoredb.sccoredb_set_current_transaction(0, 0, 0) != 0 ||
+                        sccoredb.sccoredb_free_transaction(handle, verify) != 0
+                        ) {
+                        ExceptionManager.HandleInternalFatalError(sccoredb.Mdb_GetLastError());
+                    }
+                    throw;
+                }
+            }
+            throw ErrorCode.ToException(r);
+        }
+
         private static Exception ToException(Transaction transaction, uint r) {
             // If the error indicates that the object isn't owned we check if
             // verification is set to 0. If so the object has been disposed.
@@ -210,6 +238,12 @@ namespace Starcounter
             }
             _verify = _INVALID_VERIFY;
             throw ErrorCode.ToException(r);
+        }
+
+        private Transaction(ulong handle, ulong verify) {
+            _handle = handle;
+            _verify = verify;
+            _scrap = new TransactionScrap(handle, verify);
         }
 
         /// <summary>
