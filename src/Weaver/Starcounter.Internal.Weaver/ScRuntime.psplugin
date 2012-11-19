@@ -3,7 +3,7 @@
   <!-- Define tasks -->
   <TaskType	Name="ScTransform"
 				    Phase="Transform"
-				    Implementation="Starcounter.Internal.Weaver.ScTransformTask, Weaver"
+				    Implementation="Starcounter.Internal.Weaver.ScTransformTask, scweaver"
 				    >
     <Dependency TaskType="CodeWeaver" Position="After"/>
     <Dependency TaskType="Remove" Position="After"/>
@@ -11,13 +11,13 @@
 
   <TaskType Name="ScCopy"
             Phase="Generate"
-            Implementation="Starcounter.Internal.Weaver.ScCopyTask, Weaver">
+            Implementation="Starcounter.Internal.Weaver.ScCopyTask, scweaver">
     <Dependency TaskType="Compile" Position="Before"/>
   </TaskType>
 
   <TaskType Name="ScTouch"
           Phase="Generate"
-          Implementation="Starcounter.Internal.Weaver.ScTouchTask, Weaver">
+          Implementation="Starcounter.Internal.Weaver.ScTouchTask, scweaver">
     <Dependency TaskType="Compile" Position="Before"/>
   </TaskType>
 
@@ -27,7 +27,7 @@
   anything to try to support them in the weaver.
   <TaskType Name="ScTransactionScope"
             Phase="Transform"
-            Implementation="Starcounter.Internal.Weaver.ScTransactionScopeTask, Weaver">
+            Implementation="Starcounter.Internal.Weaver.ScTransactionScopeTask, scweaver">
     <Dependency TaskType="CodeWeaver" Position="After"/>
     <Dependency TaskType="AnnotationRepository" />
   </TaskType>
@@ -35,7 +35,7 @@
   
   <TaskType Name="ScEnhanceThreadingTask"
             Phase="Transform"
-            Implementation="Starcounter.Internal.Weaver.ScEnhanceThreadingTask, Weaver">
+            Implementation="Starcounter.Internal.Weaver.ScEnhanceThreadingTask, scweaver">
     <Dependency TaskType="ScTransform" Required="false" />
   </TaskType>
 </PlugIn>

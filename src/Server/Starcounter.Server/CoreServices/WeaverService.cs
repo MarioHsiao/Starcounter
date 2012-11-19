@@ -58,7 +58,7 @@ namespace Starcounter.Server {
             string weaverExe;
             string arguments;
 
-            weaverExe = Path.Combine(engine.InstallationDirectory, "weaver.exe");
+            weaverExe = Path.Combine(engine.InstallationDirectory, "scweaver.exe");
             arguments = string.Format("Weave \"{0}\" --FLAG:tocache --cachedir=\"{1}\"",
                 givenAssembly, runtimeDirectory);
 

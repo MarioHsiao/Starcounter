@@ -146,7 +146,7 @@ namespace Starcounter.Apps.Bootstrap {
         /// <param name="p">The p.</param>
         /// <returns><c>true</c> if [is database worker process] [the specified p]; otherwise, <c>false</c>.</returns>
         static bool IsDatabaseWorkerProcess(Process p) {
-            return p.ProcessName.Equals("boot");
+            return p.ProcessName.Equals("sccode");
         }
     }
 }

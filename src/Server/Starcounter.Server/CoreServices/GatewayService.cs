@@ -16,7 +16,7 @@ namespace Starcounter.Server {
         /// <summary>
         /// A constant value holding the name of the gateway executable.
         /// </summary>
-        internal const string ExeName = "ScGateway.exe";
+        internal const string ExeName = "scnetworkgateway.exe";
 
         /// <summary>
         /// Launches the Starcounter gateway process with the given arguments.
@@ -55,7 +55,7 @@ namespace Starcounter.Server {
             if (!File.Exists(gatewayExePath)) {
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("Unable to find the gateway executable: {0}", gatewayExePath));
             }
-            gatewayXmlConfigPath = Path.Combine(engine.InstallationDirectory, "ScGateway.xml");
+            gatewayXmlConfigPath = Path.Combine(engine.InstallationDirectory, "scnetworkgateway.xml");
             if (!File.Exists(gatewayExePath)) {
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("Unable to find the gateway configuration file: {0}", gatewayXmlConfigPath));
             }

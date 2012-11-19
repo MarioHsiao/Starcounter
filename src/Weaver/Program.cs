@@ -357,7 +357,7 @@ namespace Weaver {
 
             Console.WriteLine("Usage:");
             Console.WriteLine();
-            Console.Write("weaver.exe");
+            Console.Write("scweaver.exe");
             foreach (var globalFlag in syntax.Flags) {
                 Console.Write(" --FLAG:{0}", globalFlag.Name);
             }

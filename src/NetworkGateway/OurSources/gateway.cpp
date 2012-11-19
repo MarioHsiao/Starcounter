@@ -105,8 +105,8 @@ uint32_t Gateway::ReadArguments(int argc, wchar_t* argv[])
     // Checking correct number of arguments.
     if (argc < 4)
     {
-        std::cout << "ScGateway.exe [ServerTypeName] [PathToGatewayXmlConfig] [PathToMonitorOutputDirectory]" << std::endl;
-        std::cout << "Example: ScGateway.exe personal \"c:\\github\\NetworkGateway\\src\\scripts\\server.xml\" \"c:\\github\\Orange\\bin\\Debug\\.db.output\"" << std::endl;
+        std::cout << "scnetworkgateway.exe [ServerTypeName] [PathToGatewayXmlConfig] [PathToMonitorOutputDirectory]" << std::endl;
+        std::cout << "Example: scnetworkgateway.exe personal \"c:\\github\\NetworkGateway\\src\\scripts\\server.xml\" \"c:\\github\\Orange\\bin\\Debug\\.db.output\"" << std::endl;
 
         return SCERRGWWRONGARGS;
     }
