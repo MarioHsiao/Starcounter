@@ -320,7 +320,7 @@ namespace Starcounter.VisualStudio.Projects {
             var info = new VsDebugTargetInfo2();
 
             info.cbSize = (uint)Marshal.SizeOf(info);
-            info.bstrExe = Path.Combine(BaseVsPackage.InstallationDirectory, "boot.exe");
+            info.bstrExe = Path.Combine(BaseVsPackage.InstallationDirectory, "sccode.exe");
             info.dlo = (uint)DEBUG_LAUNCH_OPERATION.DLO_AlreadyRunning;
             info.LaunchFlags = (uint) flags;
             info.dwProcessId = (uint)database.HostProcessId;

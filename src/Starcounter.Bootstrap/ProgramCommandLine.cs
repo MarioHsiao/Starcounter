@@ -75,7 +75,7 @@ namespace StarcounterInternal.Bootstrap {
             public const string AutoStartExePath = "AutoStartExePath";
 
             /// <summary>
-            /// Specifies TCP/IP port to be used by StarcounterSQL.exe.
+            /// Specifies TCP/IP port to be used by scsqlparser.exe.
             /// </summary>
             public const string SQLProcessPort = "SQLProcessPort";
 
@@ -149,7 +149,7 @@ namespace StarcounterInternal.Bootstrap {
             commandDefinition.DefineProperty(OptionNames.ServerName, "Specifies the name of Starcounter server which started the database.");
             commandDefinition.DefineProperty(OptionNames.ChunksNumber, "Specifies the total number of chunks used for shared memory communication.");
             commandDefinition.DefineProperty(OptionNames.AutoStartExePath, "Specifies the path to executable that should be run on startup.");
-            commandDefinition.DefineProperty(OptionNames.SQLProcessPort, "Specifies TCP/IP port to be used by StarcounterSQL.exe.");
+            commandDefinition.DefineProperty(OptionNames.SQLProcessPort, "Specifies TCP/IP port to be used by scsqlparser.exe.");
             commandDefinition.DefineProperty(OptionNames.SchedulerCount, "Specifies the number of schedulers.");
             commandDefinition.DefineFlag(OptionNames.NoDb, "Instructs the program not to connect to the database nor use the SQL engine.");
             commandDefinition.DefineFlag(OptionNames.NoNetworkGateway, "Indicates that the host does not need to utilize with network gateway.");
@@ -201,7 +201,7 @@ namespace StarcounterInternal.Bootstrap {
 
             Console.WriteLine("Usage:");
             Console.WriteLine();
-            Console.Write("boot.exe");
+            Console.Write("sccode.exe");
             foreach (var globalFlag in syntax.Flags) {
                 Console.Write(" --FLAG:{0}", globalFlag.Name);
             }
