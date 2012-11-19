@@ -58,7 +58,7 @@ int main (int argc, char *argv[])
 	sprintf(event_name, str_template, name_upr);
 #pragma warning (default: 4996)
 
-	str_template = "ScConnMonitor.exe \"%s\" \"%s\\%s\"";
+	str_template = "scipcmonitor.exe \"%s\" \"%s\\%s\"";
 	str_size =
 		strlen(str_template) +
 		strlen(name_upr) +
@@ -73,7 +73,7 @@ int main (int argc, char *argv[])
 	// Gateway configuration directory where? Currently set to installation
 	// directory.
 
-	str_template = "ScGateway.exe \"%s\" \"ScGateway.xml\" \"%s\\%s\"";
+	str_template = "scnetworkgateway.exe \"%s\" \"scnetworkgateway.xml\" \"%s\\%s\"";
 	str_size =
 		strlen(str_template) +
 		strlen(name_upr) +
@@ -86,7 +86,7 @@ int main (int argc, char *argv[])
 	sprintf(gateway_cmd, str_template, name_upr, server_dir, name_upr);
 #pragma warning (default: 4996)
 
-	str_template = "ReferenceServer.exe \"%s\\%s\\%s.server.config\"";
+	str_template = "screferenceserver.exe \"%s\\%s\\%s.server.config\"";
 	str_size =
 		strlen(str_template) +
 		strlen(server_dir) +
@@ -135,7 +135,7 @@ int main (int argc, char *argv[])
 		switch (signaled_index)
 		{
 		case 0:
-			// Shutdown signalled.
+			// Shutdown signaled.
 			goto end;
 		case 1:
 			// IPC monitor died. Kill the server.

@@ -125,7 +125,7 @@ namespace IndexQueryTest
         }
 
         static void TestSumTransaction() {
-            Decimal? sum = (Decimal?)Db.SlowSQL("select sum(amount*(amount - amount +2)) from account").First;
+            Decimal? sum = Db.SlowSQL("select sum(amount*(amount - amount +2)) from account").First;
             if (sum == null)
                 Console.WriteLine("The sum is null");
             else Console.WriteLine("The sum is " + sum);

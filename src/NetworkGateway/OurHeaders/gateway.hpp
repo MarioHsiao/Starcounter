@@ -1531,7 +1531,13 @@ public:
     {
         // Checking that we have not reached maximum number of sessions.
         if (num_active_sessions_unsafe_ >= setting_max_connections_)
+        {
+#ifdef GW_SESSIONS_DIAG
+            GW_COUT << "Exhausted sessions pool!" << std::endl;
+#endif
+
             return ScSessionStruct();
+        }
 
         // Entering the critical section.
         EnterCriticalSection(&cs_session_);

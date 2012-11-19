@@ -7,8 +7,8 @@
     <ProjectGuid>{4F5A9009-7528-43E9-9142-26CF6A9F3ED7}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>boot</RootNamespace>
-    <AssemblyName>boot</AssemblyName>
+    <RootNamespace>sccode</RootNamespace>
+    <AssemblyName>sccode</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

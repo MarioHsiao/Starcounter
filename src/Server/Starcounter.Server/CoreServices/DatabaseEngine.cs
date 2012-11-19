@@ -35,8 +35,8 @@ namespace Starcounter.Server {
             internal static extern Int32 CloseHandle(IntPtr hObject);
         }
 
-        internal const string DatabaseExeFileName = "scpmm.exe";
-        internal const string WorkerProcessExeFileName = "boot.exe";
+        internal const string DatabaseExeFileName = "scdata.exe";
+        internal const string WorkerProcessExeFileName = "sccode.exe";
         internal const string MinGWCompilerFileName = "x86_64-w64-mingw32-gcc.exe";
 
         /// <summary>
@@ -322,7 +322,7 @@ namespace Starcounter.Server {
         string GetDatabaseControlEventName(Database database) {
             ScUri uri = ScUri.FromString(database.Uri);
             string processControlEventName = string.Format(
-                "SCPMM_EXE_{0}_{1}",
+                "SCDATA_EXE_{0}_{1}",
                 uri.ServerName.ToUpperInvariant(),
                 uri.DatabaseName.ToUpperInvariant()
                 );
