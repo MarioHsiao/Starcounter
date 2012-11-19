@@ -453,7 +453,7 @@ namespace Starcounter.Query.Sql
         }
 
         /// <summary>
-        /// Starts and verifies external SQL process (StarcounterSQL.exe).
+        /// Starts and verifies external SQL process (scsqlparser.exe).
         /// </summary>
         private static void StartSqlProcess()
         {

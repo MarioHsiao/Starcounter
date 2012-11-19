@@ -29,7 +29,7 @@
   
   <PropertyGroup>
     <RemoteBlueBinariesDir>$(BinariesFTP)\SCBuilds\Level0\$(GIT_LEVEL0_BRANCH)\LatestStable\x64\$(Configuration)</RemoteBlueBinariesDir>
-    <RemotePrologSQLParser>$(BinariesFTP)\SCDev\ThirdParty\PrologSQLParser\StarcounterSQL.exe</RemotePrologSQLParser>
+    <RemotePrologSQLParser>$(BinariesFTP)\SCDev\ThirdParty\PrologSQLParser\scsqlparser.exe</RemotePrologSQLParser>
   </PropertyGroup>
 
   <Target Name="CopyRemoteFiles">
