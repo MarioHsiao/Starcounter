@@ -14,7 +14,7 @@
   <WorkersNumber>1</WorkersNumber>
   
   <!-- Maximum number of connections -->
-  <MaxConnections>1000</MaxConnections>
+  <MaxConnections>10000</MaxConnections>
   
   <!-- Local interfaces to bind -->
   <LocalIP>10.0.0.1</LocalIP>

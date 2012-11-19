@@ -36,7 +36,7 @@ namespace Starcounter.Server {
         /// Executes setup of the <see cref="DatabaseStorageService"/>.
         /// </summary>
         internal void Setup() {
-            creationToolPath = Path.Combine(engine.InstallationDirectory, "scdbc.exe");
+            creationToolPath = Path.Combine(engine.InstallationDirectory, "sccreatedb.exe");
             if (!File.Exists(creationToolPath)) {
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("Couldn't find creation tool: {0}", creationToolPath));
             }
