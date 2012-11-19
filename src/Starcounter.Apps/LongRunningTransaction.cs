@@ -36,7 +36,7 @@ namespace Starcounter {
             ulong handle;
             ulong verify;
             
-            ec = sccoredb.sccoredb_create_transaction_and_set_current(0, out handle, out verify);
+            ec = sccoredb.sccoredb_create_transaction_and_set_current(0, 0, out handle, out verify);
             if (ec != 0)
                 throw ErrorCode.ToException(ec);
 

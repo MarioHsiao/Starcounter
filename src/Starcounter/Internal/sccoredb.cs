@@ -669,12 +669,14 @@ namespace Starcounter.Internal
         /// <summary>
         /// Sccoredb_create_transaction_and_set_currents the specified lock_tran_on_thread.
         /// </summary>
+        /// <param name="flags"></param>
         /// <param name="lock_tran_on_thread">The lock_tran_on_thread.</param>
         /// <param name="handle">The handle.</param>
         /// <param name="verify">The verify.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint sccoredb_create_transaction_and_set_current(
+            uint flags,
             int lock_tran_on_thread,
             out ulong handle,
             out ulong verify
