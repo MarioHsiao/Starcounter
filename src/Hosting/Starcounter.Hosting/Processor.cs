@@ -60,6 +60,8 @@ namespace StarcounterInternal.Hosting
                                 ScrapHeap.RecycleScrap();
                                 break;
                         };
+
+                        TaskHelper.Reset();
                     }
                     else
                     {

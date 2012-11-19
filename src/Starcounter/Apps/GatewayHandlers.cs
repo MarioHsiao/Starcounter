@@ -192,6 +192,8 @@ namespace Starcounter
             // Calling user callback.
             *is_handled = user_callback(handler_params);
 
+            TaskHelper.Reset();
+
 			return 0;
 		}
 
@@ -232,6 +234,8 @@ namespace Starcounter
 
             // Calling user callback.
             *is_handled = user_callback(handler_params);
+
+            TaskHelper.Reset();
 
             return 0;
         }
@@ -311,6 +315,8 @@ namespace Starcounter
                 // Calling user callback.
                 *is_handled = user_callback(http_request);
             }
+
+            TaskHelper.Reset();
 
             return 0;
         }
