@@ -7761,7 +7761,7 @@ qualified_name:
 					check_qualified_name($2, yyscanner);
 					$$ = makeRangeVar(NULL, NULL, @1);
 					$$->relname = strVal(llast($2));
-					$$->namespaces = lcons(makeString($1), list_truncate($2,list_length($2)-1));
+					$$->path = lcons(makeString($1), list_truncate($2,list_length($2)-1));
 				}
 		;
 
@@ -8926,7 +8926,7 @@ makeRangeVarFromAnyName(List *names, YYLTYPE position, core_yyscan_t yyscanner)
 {
 	RangeVar *r = makeNode(RangeVar);
 	r->relname = strVal(llast(names));
-	r->namespaces = list_truncate(names,list_length(names)-1);
+	r->path = list_truncate(names,list_length(names)-1);
 
 	r->relpersistence = RELPERSISTENCE_PERMANENT;
 	r->location = position;

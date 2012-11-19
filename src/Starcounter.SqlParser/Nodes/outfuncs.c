@@ -211,7 +211,7 @@ _outRangeVar(StringInfo str, RangeVar *node)
 	 * we deliberately ignore catalogname here, since it is presently not
 	 * semantically meaningful
 	 */
-	WRITE_NODE_FIELD(namespaces);
+	WRITE_NODE_FIELD(path);
 	WRITE_STRING_FIELD(relname);
 	WRITE_ENUM_FIELD(inhOpt, InhOption);
 	WRITE_CHAR_FIELD(relpersistence);

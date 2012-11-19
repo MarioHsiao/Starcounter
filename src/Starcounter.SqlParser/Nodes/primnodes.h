@@ -64,7 +64,7 @@ typedef enum OnCommitAction
 typedef struct RangeVar
 {
 	NodeTag		type;
-	List       *namespaces;     /* Names of namespaces in order from most outer to most inner */
+	List       *path;     /* Names of namespaces in order from most outer to most inner */
 	char	   *relname;		/* the relation/sequence name */
 	InhOption	inhOpt;			/* expand rel by inheritance? recursively act
 								 * on children? */

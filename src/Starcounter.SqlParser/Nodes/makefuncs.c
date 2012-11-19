@@ -63,7 +63,7 @@ makeRangeVar(List *namespaces, char *relname, int location)
 {
 	RangeVar   *r = makeNode(RangeVar);
 
-	r->namespaces = namespaces;
+	r->path = namespaces;
 	r->relname = relname;
 	r->inhOpt = INH_DEFAULT;
 	r->relpersistence = RELPERSISTENCE_PERMANENT;
