@@ -203,6 +203,7 @@ namespace Starcounter.Query.RawParserAnalyzer
     {
         internal NodeTag type;
         internal List* fields;			/* field names (Value strings) or A_Star */
+        internal sbyte* name;			/* name of a filed */
         internal int location;		/* token location, or -1 if unknown */
     }
 

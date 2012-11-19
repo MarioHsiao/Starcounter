@@ -159,7 +159,7 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 %expect-rr 2
 %name-prefix="base_yy"
 %locations
-//%debug
+%debug
 
 %parse-param {core_yyscan_t yyscanner}
 %lex-param   {core_yyscan_t yyscanner}
@@ -6150,15 +6150,12 @@ member_func_expr:
 			member_access_el						{ $$ = list_make1($1); }
 			| member_access_el member_access_seq	
 				{
-					$$ = (Node *) lcons($1, $2);
+					$$ = lcons($1, $2);
 				}
 			| standard_func_call					{ $$ = list_make1($1); }
 			| standard_func_call member_access_seq	
 				{
-					A_Indirection *n = makeNode(A_Indirection);
-					n->arg = $1;
-					n->indirection = $2;
-					$$ = (Node *) n;
+					$$ = lcons($1, $2);
 				}
 		;
 
@@ -6170,7 +6167,7 @@ member_access_seq:
 			| member_access_indices					{ $$ = list_make1($1); }
 			| '.' '*'
 				{
-					$$ = (Node *) makeNode(A_Star);
+					$$ = list_make1((Node *) makeNode(A_Star));
 				}
 			| member_access_seq '.' member_access_el
 				{
@@ -6192,7 +6189,11 @@ member_access_seq:
 member_access_el:
 			ColId
 				{
-					$$ = makeColumnRef($1, NIL, @1, yyscanner);
+					ColumnRef *n = makeNode(ColumnRef);
+					n->name = $1;
+					n->location = @1;
+					$$ = (Node *)n;
+					//$$ = makeColumnRef($1, NIL, @1, yyscanner);
 				}
 			| type_function_name '<' type_list '>'
 				{

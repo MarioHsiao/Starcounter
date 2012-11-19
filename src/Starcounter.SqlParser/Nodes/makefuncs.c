@@ -69,7 +69,6 @@ makeRangeVar(List *namespaces, char *relname, int location)
 	r->relpersistence = RELPERSISTENCE_PERMANENT;
 	r->alias = NULL;
 	r->location = location;
-	r->namespaces = NULL;
 
 	return r;
 }

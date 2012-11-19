@@ -11,21 +11,25 @@ namespace Starcounter.Query.RawParserAnalyzer
     {
         // I should investigate the exception first, since it might be not related
         internal unsafe String GetFullName(RangeVar* extent) {
-            String name = null;
-            if (extent->namespaces == null)
-                return new String(extent->relname);
+            Debug.Assert(extent->namespaces != null);
+            Debug.Assert(extent->relname == null);
             ListCell* curCell = extent->namespaces->head;
+            Debug.Assert(curCell != null);
+            Debug.Assert(((Node *)curCell->data.ptr_value)->type == NodeTag.T_ColumnRef, "Expected T_ColumnRef, but got " +
+                ((Node*)curCell->data.ptr_value)->type.ToString());
+            String name = new String(((ColumnRef*)curCell->data.ptr_value)->name);
+            curCell = curCell->next;
             while (curCell != null) {
-                name += new String(((Value*)curCell->data.ptr_value)->val.str);
                 name += '.';
+                name += new String(((ColumnRef*)curCell->data.ptr_value)->name);
                 curCell = curCell->next;
             }
-            return name + new String(extent->relname);
+            return name;
         }
 
         internal unsafe TypeBinding GetTypeBindingFor(RangeVar* extent)
         {
-            Debug.Assert(extent->relname != null);
+            //Debug.Assert(extent->relname != null);
             String relName = GetFullName(extent);
             TypeBinding theType = null;
             try {
