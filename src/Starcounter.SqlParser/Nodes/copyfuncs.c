@@ -88,7 +88,7 @@ _copyRangeVar(RangeVar *from)
 {
 	RangeVar   *newnode = makeNode(RangeVar);
 
-	COPY_NODE_FIELD(namespaces);
+	COPY_NODE_FIELD(path);
 	COPY_STRING_FIELD(relname);
 	COPY_SCALAR_FIELD(inhOpt);
 	COPY_SCALAR_FIELD(relpersistence);
