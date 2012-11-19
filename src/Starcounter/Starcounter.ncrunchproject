@@ -14,7 +14,8 @@
   <IncludeStaticReferencesInWorkspace>true</IncludeStaticReferencesInWorkspace>
   <DefaultTestTimeout>60000</DefaultTestTimeout>
   <UseBuildConfiguration></UseBuildConfiguration>
+  <UseBuildPlatform />
   <ProxyProcessPath></ProxyProcessPath>
   <UseCPUArchitecture>AutoDetect</UseCPUArchitecture>
-  <AdditionalFilesToInclude>Internal\Weaver\ScAnalyze.psplugin;Internal\Weaver\ScAnalyzeOnly.psproj;Internal\Weaver\ScIgnore.psproj;Internal\Weaver\ScRuntime.psplugin;Internal\Weaver\ScTransform.psproj</AdditionalFilesToInclude>
+  <AdditionalFilesToInclude>..\Weaver\Starcounter.Internal.Weaver\ScAnalyze.psplugin;..\Weaver\Starcounter.Internal.Weaver\ScAnalyzeOnly.psproj;..\Weaver\Starcounter.Internal.Weaver\ScIgnore.psproj;..\Weaver\Starcounter.Internal.Weaver\ScRuntime.psplugin;..\Weaver\Starcounter.Internal.Weaver\ScTransformTask.cs</AdditionalFilesToInclude>
 </ProjectConfiguration>
