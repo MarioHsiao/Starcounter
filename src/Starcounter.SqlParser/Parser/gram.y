@@ -4785,12 +4785,56 @@ from_list:
  */
 table_ref:	member_func_expr
 				{
-					$$ = (Node *) makeRangeVar($1, NULL, @1);
+					RangeVar *r = (Node *) makeRangeVar($1, NULL, @1);
+					r->inhOpt = INH_DEFAULT;
+					$$ = (Node *) r;
 				}
 			| member_func_expr alias_clause
 				{
 					RangeVar *r = makeRangeVar($1, NULL, @1);
+					r->inhOpt = INH_DEFAULT;
 					r->alias = $2;
+					$$ = (Node *) r;
+				}
+			| member_func_expr '*'
+				{
+					RangeVar *r = (Node *) makeRangeVar($1, NULL, @1);
+					r->inhOpt = INH_YES;
+					$$ = (Node *) r;
+				}
+			| member_func_expr '*' alias_clause 
+				{
+					RangeVar *r = makeRangeVar($1, NULL, @1);
+					r->inhOpt = INH_YES;
+					r->alias = $3;
+					$$ = (Node *) r;
+				}
+			| ONLY member_func_expr
+				{
+					RangeVar *r = (Node *) makeRangeVar($1, NULL, @1);
+					r->inhOpt = INH_NO;
+					$$ = (Node *) r;
+				}
+			| ONLY member_func_expr alias_clause
+				{
+					RangeVar *r = makeRangeVar($2, NULL, @1);
+					r->inhOpt = INH_NO;
+					r->alias = $3;
+					$$ = (Node *) r;
+				}
+			| ONLY '(' member_func_expr ')'
+				{
+					/* no inheritance, SQL99-style syntax */
+					RangeVar *r = (Node *) makeRangeVar($3, NULL, @1);
+					r->inhOpt = INH_NO;
+					$$ = (Node *) r;
+				}
+			| ONLY '(' member_func_expr ')' alias_clause 
+				{
+					/* no inheritance, SQL99-style syntax */
+					RangeVar *r = makeRangeVar($3, NULL, @1);
+					r->inhOpt = INH_NO;
+					r->alias = $5;
 					$$ = (Node *) r;
 				}
 			| select_with_parens
