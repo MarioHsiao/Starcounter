@@ -169,7 +169,7 @@ namespace Starcounter.Internal
 
         /// <summary>
         /// </summary>
-        public delegate void ON_NO_TRANSACTION();
+        public delegate uint ON_NO_TRANSACTION();
 
         /// <summary>
         /// Struct sccoredb_config
