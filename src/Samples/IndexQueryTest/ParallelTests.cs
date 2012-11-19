@@ -17,7 +17,7 @@ namespace IndexQueryTest
             {
                 queryStarted = true;
                 while (!indexCreated) ;
-                AccountTest.User user = (AccountTest.User)Db.SQL("SELECT u FROM User u WHERE UserId = ?", "KalLar01").First;
+                AccountTest.AUser user = (AccountTest.AUser)Db.SQL("SELECT u FROM AUser u WHERE UserId = ?", "KalLar01").First;
                 Console.WriteLine(Db.SQL("SELECT u FROM User u WHERE UserId = ?", "KalLar01").GetEnumerator().ToString());
             });
         }
@@ -25,19 +25,19 @@ namespace IndexQueryTest
         {
             Db.Transaction(delegate
             {
-                AccountTest.User user = (AccountTest.User)Db.SQL("SELECT u FROM User u WHERE UserId = ?", "KalLar01").First;
+                AccountTest.AUser user = (AccountTest.AUser)Db.SQL("SELECT u FROM AUser u WHERE UserId = ?", "KalLar01").First;
                 Console.WriteLine(Db.SQL("SELECT u FROM User u WHERE UserId = ?", "KalLar01").GetEnumerator().ToString());
             });
         }
         static void CreateTheIndexSync()
         {
-            Db.SlowSQL("CREATE INDEX userPK ON AccountTest.User(UserId)");
+            Db.SlowSQL("CREATE INDEX userPK ON AccountTest.AUser(UserId)");
             indexCreated = true;
             Console.WriteLine("Index created");
         }
         static void DropTheIndex()
         {
-            Db.SlowSQL("DROP INDEX userPk ON  AccountTest.User");
+            Db.SlowSQL("DROP INDEX userPk ON  AccountTest.AUser");
             Console.WriteLine("Index dropped");
         }
         #endregion
