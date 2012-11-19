@@ -312,7 +312,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
     uint32_t user_data_offset = *(uint32_t*)(src_chunk_buf + starcounter::bmx::USER_DATA_OFFSET);
 
     // Setting non-bmx-management chunk type.
-    (*(int16_t*)(src_chunk_buf + starcounter::bmx::BMX_PROTOCOL_BEGIN)) = 32767;
+    (*(int16_t*)(src_chunk_buf + starcounter::bmx::BMX_PROTOCOL_BEGIN_OFFSET)) = 0x7FFF;
 
     // Setting request size to zero.
     (*(uint32_t*)(src_chunk_buf + starcounter::bmx::REQUEST_SIZE_BEGIN)) = 0;

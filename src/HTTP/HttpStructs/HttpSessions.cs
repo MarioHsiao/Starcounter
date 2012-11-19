@@ -19,7 +19,7 @@ namespace HttpStructs
         // All global sessions.
         public static GlobalSessions AllSessions = new GlobalSessions();
 
-        // Unique Apps number.
+        // Unique Apps session number.
         Int64 apps_unique_session_num_ = 0;
 
         /// <summary>
@@ -29,6 +29,18 @@ namespace HttpStructs
         public UInt64 GenerateUniqueNumber()
         {
             return (UInt64)Interlocked.Increment(ref apps_unique_session_num_);
+        }
+
+        // Apps session salt.
+        Int64 apps_session_salt_ = Int64.MaxValue / 2;
+
+        /// <summary>
+        /// Generates session salt.
+        /// </summary>
+        /// <returns>Generated session.</returns>
+        public UInt64 GenerateSalt()
+        {
+            return (UInt64)Interlocked.Increment(ref apps_session_salt_);
         }
     }
 }

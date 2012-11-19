@@ -165,6 +165,7 @@
     <Compile Include="Query\Execution\Comparers\StringPathComparer.cs" />
     <Compile Include="Query\Execution\Comparers\UIntegerComparer.cs" />
     <Compile Include="Query\Execution\Comparers\UIntegerPathComparer.cs" />
+    <Compile Include="Query\Execution\Enumerators\GenericEnumerator.cs" />
     <Compile Include="Query\Execution\Row\RowMetaObject.cs" />
     <Compile Include="Query\Execution\Row\Row.cs" />
     <Compile Include="Query\Execution\Row\RowTypeBinding.cs" />
@@ -320,6 +321,7 @@
     <Compile Include="Query\prologbeans\QueryAnswer.cs" />
     <Compile Include="Query\prologbeans\SupportClass.cs" />
     <Compile Include="Query\prologbeans\Term.cs" />
+    <Compile Include="Query\SQL\SqlResultGeneric.cs" />
     <Compile Include="Query\SQL\PrologManager.cs" />
     <Compile Include="Query\SQL\PrologProcess.cs" />
     <Compile Include="Query\SQL\SqlException.cs" />
@@ -388,7 +390,9 @@
       <Name>Starcounter.Logging</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="..\Starcounter.ErrorCodes\errorcodes.xml" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>$(SolutionDir)Starcounter.ErrorCodes\ErrorCodeCompiler\scerrcc.exe $(SolutionDir)Starcounter.ErrorCodes\errorcodes.xml -orangestdcs $(ProjectDir)Error.cs</PreBuildEvent>
