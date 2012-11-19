@@ -11,6 +11,7 @@ namespace Starcounter.SqlParser.Tests
         [Test]
         public static void ParseQueriesForErrors() {
             ParserAnalyzer analyzer = new ParserAnalyzer();
+            analyzer.ParseQuery("select u from Accounttest.auser u");
             analyzer.ParseQuery("select ", true);
             analyzer.ParseQuery("selec", true);
             analyzer.ParseQuery("select * from t1");
@@ -107,6 +108,8 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("SELECT ROW(prop1, prop2) FROM table1");
             analyzer.ParseQuery("SELECT ROW(valueProp) FROM table1");
             analyzer.ParseQuery("SELECT valueProp FROM table1");
+            analyzer.ParseQuery("select * from t [ 2]");
+            analyzer.ParseQuery("select * from t \"table\"");
         }
 
         [Test]
