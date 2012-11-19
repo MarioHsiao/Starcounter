@@ -138,7 +138,7 @@ namespace Starcounter
         /// </para>
         /// </remarks>
         [ThreadStatic]
-        private static Transaction _current;
+        internal static Transaction _current;
 
         /// <summary>
         /// </summary>
