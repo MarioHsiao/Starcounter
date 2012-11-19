@@ -75,12 +75,6 @@ namespace Starcounter {
         /// <param name="template"></param>
         /// <param name="initializeTransaction"></param>
         public App(AppTemplate template, Func<Entity> initializeTransaction) : this(template) {
-            var transaction = Transaction;
-            if (transaction == null) {
-                transaction = Transaction.NewCurrent();
-                Transaction = transaction;
-            }
-
             Data = initializeTransaction();
         }
 
@@ -138,6 +132,11 @@ namespace Starcounter {
                 return _Data;
             }
             set {
+                if (Transaction == null) {
+                    var t = Transaction._current;
+                    //if (t == null) t = Transaction.NewCurrent();
+                    Transaction = t;
+                }
                 _Data = value;
                 RefreshAllBoundValues();
                 OnData();
