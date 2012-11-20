@@ -71,9 +71,9 @@ public:
 
 	class milliseconds {
 	public:
-		typedef uint64_t value_type;
+		typedef int64_t value_type;
 
-		milliseconds(value_type abs_time)
+		milliseconds(value_type abs_time = 0)
 		: abs_time_(abs_time) {}
 
 		milliseconds& operator+=(value_type abs_time) {
@@ -98,6 +98,24 @@ public:
 
 		operator value_type() const {
 			return abs_time_;
+		}
+
+		/// Return the current system tick count.
+		/**
+		 * @return The current system tick count.
+		 */
+		value_type tick_count() const {
+			return GetTickCount64();
+		}
+
+		milliseconds& add_tick_count() {
+			abs_time_ += tick_count();
+			return *this;
+		}
+
+		milliseconds& sub_tick_count() {
+			abs_time_ -= tick_count();
+			return *this;
 		}
 
 	private:
@@ -198,32 +216,38 @@ public:
 			return true;
 		}
 		
-		abs_timeout += GetTickCount64();
-		unsigned int count = 0;
+		if (abs_timeout >= 0) {
+			abs_timeout.add_tick_count();
+			unsigned int count = 0;
 
-		do {
-			if (_InterlockedExchange((LPLONG) &lock_, locked) == not_locked) {
-				// The lock is acquired.
-				return true;
-			}
-
-			while (lock_ != not_locked) {
-				if (++count != elapsed_time_check) {
-					_mm_pause();
-					continue;
+			do {
+				if (_InterlockedExchange((LPLONG) &lock_, locked) == not_locked) {
+					// The lock is acquired.
+					return true;
 				}
 
-				if (abs_timeout > GetTickCount64()) {
-					SwitchToThread();
-					count = 0;
-					continue;
+				while (lock_ != not_locked) {
+					if (++count != elapsed_time_check) {
+						_mm_pause();
+						continue;
+					}
+
+					if (abs_timeout > int64_t(GetTickCount64())) {
+						SwitchToThread();
+						count = 0;
+						continue;
+					}
+					else {
+						// The lock is not acquired. A timeout occurred.
+						return false;
+					}
 				}
-				else {
-					// The lock is not acquired. A timeout occurred.
-					return false;
-				}
-			}
-		} while (true);
+			} while (true);
+		}
+		else {
+			// A negative abs_timeout value is considered a timeout.
+			return false;
+		}
 	}
 
 	/// timed_lock(locker_id_type, milliseconds) spins until it acquires the
@@ -241,34 +265,39 @@ public:
 			// The lock is acquired.
 			return true;
 		}
-		
-		abs_timeout += GetTickCount64();
-		unsigned int count = 0;
+		if (abs_timeout >= 0) {
+			abs_timeout.add_tick_count();
+			unsigned int count = 0;
 
-		do {
-			if (_InterlockedCompareExchange((LPLONG) &lock_, locker_id,
-			not_locked) == not_locked) {
-				// The lock is acquired.
-				return true;
-			}
-
-			while (lock_ != not_locked) {
-				if (++count != elapsed_time_check) {
-					_mm_pause();
-					continue;
+			do {
+				if (_InterlockedCompareExchange((LPLONG) &lock_, locker_id,
+				not_locked) == not_locked) {
+					// The lock is acquired.
+					return true;
 				}
 
-				if (abs_timeout > GetTickCount64()) {
-					SwitchToThread();
-					count = 0;
-					continue;
+				while (lock_ != not_locked) {
+					if (++count != elapsed_time_check) {
+						_mm_pause();
+						continue;
+					}
+
+					if (abs_timeout > abs_timeout.tick_count()) {
+						SwitchToThread();
+						count = 0;
+						continue;
+					}
+					else {
+						// The lock is not acquired. A timeout occurred.
+						return false;
+					}
 				}
-				else {
-					// The lock is not acquired. A timeout occurred.
-					return false;
-				}
-			}
-		} while (true);
+			} while (true);
+		}
+		else {
+			// A negative abs_timeout value is considered a timeout.
+			return false;
+		}
 	}
 
 	/// unlock() releases the lock.

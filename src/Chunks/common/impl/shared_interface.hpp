@@ -62,7 +62,7 @@ monitor_interface_name, pid_type pid, owner_id oid) {
 	monitor_interface_name_ = monitor_interface_name;
 	owner_id_ = oid;
 	pid_ = pid;
-	
+
 	// Open the managed segment with the segment_name, which has the format:
 	// <DATABASE_NAME_PREFIX>_<DATABASE_NAME>_<SEQUENCE_NUMBER>.
 	segment_.init_open(segment_name.c_str());
@@ -214,8 +214,6 @@ inline void shared_interface::release_channel(channel_number the_channel_number)
 	/// scheduler have been obtained, it can always be used since a scheduler
 	/// can not quit.
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-	//HANDLE work = 0; /// TEST COMPILE
-	//the_scheduler->notify(work);
 	the_channel.scheduler()->notify(scheduler_work_event(the_channel
 	.get_scheduler_number()));
 #else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
@@ -465,6 +463,59 @@ inline const HANDLE& shared_interface::scheduler_work_event(std::size_t i) const
 {
 	return scheduler_work_[i];
 }
+
+#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+inline HANDLE& shared_interface::open_scheduler_number_pool_not_empty_event(std::size_t i) {
+	// Not checking if the event is already open.
+	if ((scheduler_number_pool_not_empty_event(i) = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
+	FALSE, scheduler_interface(i).channel_number_queue().not_empty_notify_name())) == NULL) {
+		// Failed to open the event.
+		std::cout << "shared_interface::open_scheduler_number_pool_not_empty_event(" << i
+		<< "): Failed to open event. OS error: " << GetLastError() << "\n"; /// DEBUG
+		return scheduler_number_pool_not_empty_event(i) = 0; // throw exception
+	}
+	return scheduler_number_pool_not_empty_event(i);
+}
+
+inline void shared_interface::close_scheduler_number_pool_not_empty_event(std::size_t i) {
+	scheduler_number_pool_not_empty_event(i) = 0;
+}
+
+inline HANDLE& shared_interface::scheduler_number_pool_not_empty_event(std::size_t i) {
+	return scheduler_number_pool_not_empty_[i];
+}
+
+inline const HANDLE& shared_interface::scheduler_number_pool_not_empty_event
+(std::size_t i) const {
+	return scheduler_number_pool_not_empty_[i];
+}
+
+inline HANDLE& shared_interface::open_scheduler_number_pool_not_full_event(std::size_t i) {
+	// Not checking if the event is already open.
+	if ((scheduler_number_pool_not_full_event(i) = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
+	FALSE, scheduler_interface(i).channel_number_queue().not_full_notify_name())) == NULL) {
+		// Failed to open the event.
+		std::cout << "shared_interface::open_scheduler_number_pool_not_full_event(" << i
+		<< "): Failed to open event. OS error: " << GetLastError() << "\n"; /// DEBUG
+		return scheduler_number_pool_not_full_event(i) = 0; // throw exception
+	}
+	return scheduler_number_pool_not_full_event(i);
+}
+
+inline void shared_interface::close_scheduler_number_pool_not_full_event(std::size_t i) {
+	scheduler_number_pool_not_full_event(i) = 0;
+}
+
+inline HANDLE& shared_interface::scheduler_number_pool_not_full_event(std::size_t i) {
+	return scheduler_number_pool_not_full_[i];
+}
+
+inline const HANDLE& shared_interface::scheduler_number_pool_not_full_event
+(std::size_t i) const {
+	return scheduler_number_pool_not_full_[i];
+}
+#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 
 inline uint32_t shared_interface::send_to_server_and_wait_response(uint32_t ch,
