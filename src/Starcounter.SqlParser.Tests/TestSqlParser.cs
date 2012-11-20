@@ -110,6 +110,7 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("SELECT valueProp FROM table1");
             analyzer.ParseQuery("select * from t [ 2]");
             analyzer.ParseQuery("select * from t \"table\"");
+            analyzer.ParseQuery("select t.u as USER from t as ORDER");
         }
 
         [Test]
