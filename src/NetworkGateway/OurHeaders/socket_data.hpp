@@ -101,6 +101,14 @@ public:
 
         assert(((uint8_t*)(&accum_buf_) - sd) == bmx::SOCKET_DATA_NUM_CLONE_BYTES);
 
+        assert(sizeof(ScSessionStruct) == bmx::SESSION_STRUCT_SIZE);
+
+        assert(((uint8_t*)&num_chunks_ - sd) == bmx::SOCKET_DATA_NUM_CHUNKS_OFFSET);
+
+        assert(((uint8_t*)&max_user_data_bytes_ - sd) == (bmx::MAX_USER_DATA_BYTES_OFFSET - bmx::BMX_HEADER_MAX_SIZE_BYTES));
+
+        assert(((uint8_t*)&user_data_written_bytes_ - sd) == (bmx::USER_DATA_WRITTEN_BYTES_OFFSET - bmx::BMX_HEADER_MAX_SIZE_BYTES));
+
         return 0;
     }
 
@@ -233,16 +241,28 @@ public:
         return session_.session_index_;
     }
 
-    // Getting Apps unique number.
+    // Getting Apps unique session number.
     apps_unique_session_num_type get_apps_unique_session_num()
     {
         return session_.apps_unique_session_num_;
     }
 
-    // Setting Apps unique number.
+    // Getting Apps session salt.
+    session_salt_type get_apps_session_salt()
+    {
+        return session_.apps_session_salt_;
+    }
+
+    // Setting Apps unique session number.
     void set_apps_unique_session_num(apps_unique_session_num_type apps_unique_session_num)
     {
         session_.apps_unique_session_num_ = apps_unique_session_num;
+    }
+
+    // Setting Apps sessions salt.
+    void set_apps_session_salt(session_salt_type apps_session_salt)
+    {
+        session_.apps_session_salt_ = apps_session_salt;
     }
 
     // Getting session salt.
