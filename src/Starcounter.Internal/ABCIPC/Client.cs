@@ -74,6 +74,11 @@ namespace Starcounter.ABCIPC {
         /// <param name="sendingMethod">The sending method.</param>
         /// <param name="receivingMethod">The receiving method.</param>
         public Client(Action<string> sendingMethod, Func<string> receivingMethod) {
+            if (sendingMethod == null)
+                throw new ArgumentNullException("sendingMethod");
+            if (receivingMethod == null)
+                throw new ArgumentNullException("receivingMethod");
+
             Bind(sendingMethod, receivingMethod);
         }
 
