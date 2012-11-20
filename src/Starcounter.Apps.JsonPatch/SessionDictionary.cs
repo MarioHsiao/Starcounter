@@ -166,7 +166,6 @@ namespace Starcounter.Internal.Application {
                 ChangeLog.EndRequest();
                 _current = null;
                 _request = null;
-//                LongRunningTransaction.ReleaseCached();
             }
         }
     }
