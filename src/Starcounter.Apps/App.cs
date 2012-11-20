@@ -52,30 +52,13 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        protected Entity _Data;
+        private Entity _Data;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="App" /> class.
         /// </summary>
         public App() : base() {
             _cacheIndexInList = -1;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="template"></param>
-        public App(AppTemplate template) : this() {
-            Template = template;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="template"></param>
-        /// <param name="initializeTransaction"></param>
-        public App(AppTemplate template, Func<Entity> initializeTransaction) : this(template) {
-            Data = initializeTransaction();
         }
 
         /// <summary>
@@ -133,9 +116,7 @@ namespace Starcounter {
             }
             set {
                 if (Transaction == null) {
-                    var t = Transaction._current;
-                    //if (t == null) t = Transaction.NewCurrent();
-                    Transaction = t;
+                    Transaction = Transaction._current;
                 }
                 _Data = value;
                 RefreshAllBoundValues();
