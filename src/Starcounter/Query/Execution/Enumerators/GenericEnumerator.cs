@@ -414,26 +414,35 @@ namespace Starcounter.Query.Execution
 
         public IExecutionEnumerator Clone(RowTypeBinding rowTypeBindClone, VariableArray varArray)
         {
+            throw new NotSupportedException();
+#if false
             if (subEnumerator != null)
                 return new GenericEnumerator<T>(subEnumerator.Clone(rowTypeBindClone, varArray));
             else
                 throw new ObjectDisposedException("Enumerator");
+#endif
         }
 
         public IExecutionEnumerator CloneCached()
         {
+            throw new NotSupportedException();
+#if false
             if (subEnumerator != null)
                 return new GenericEnumerator<T>(subEnumerator.CloneCached());
             else
                 throw new ObjectDisposedException("Enumerator");
+#endif
         }
 
         public void AttachToCache(LinkedList<IExecutionEnumerator> fromCache)
         {
+            throw new NotSupportedException();
+#if false
             if (subEnumerator != null)
                 subEnumerator.AttachToCache(fromCache);
             else
                 throw new ObjectDisposedException("Enumerator");
+#endif
         }
 
         public unsafe void InitVariablesFromBuffer(Byte* queryParamsBuf)
