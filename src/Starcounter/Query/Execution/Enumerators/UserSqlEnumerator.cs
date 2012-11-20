@@ -105,6 +105,8 @@ namespace Starcounter.Query.Execution
             UserSqlEnumProperties props)
             : base(null, varArr)
         {
+            if (varArr == null)
+                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect varArr.");
             if (sqlQuery == null)
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect query.");
 
