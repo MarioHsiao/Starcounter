@@ -6237,7 +6237,7 @@ member_access_seq:
  * Member accesses similar to C#
  */
 member_access_el:
-			ColLabel
+			ColId
 				{
 					ColumnRef *n = makeNode(ColumnRef);
 					n->name = $1;
