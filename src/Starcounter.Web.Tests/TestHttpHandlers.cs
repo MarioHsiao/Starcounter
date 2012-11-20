@@ -125,12 +125,12 @@ namespace Starcounter.Internal.Test {
         [Test]
         public void GenerateRequestProcessor() {
 
-            byte[] h1 = Encoding.UTF8.GetBytes("GET /players/123");
-            byte[] h2 = Encoding.UTF8.GetBytes("GET /dashboard/123");
-            byte[] h3 = Encoding.UTF8.GetBytes("GET /players?f=KalleKula");
-            byte[] h4 = Encoding.UTF8.GetBytes("PUT /players/123");
-            byte[] h5 = Encoding.UTF8.GetBytes("POST /transfer?f=99&t=365&x=46");
-            byte[] h6 = Encoding.UTF8.GetBytes("POST /deposit?a=56754&x=34653");
+            byte[] h1 = Encoding.UTF8.GetBytes("GET /players/123\r\n\r\n");
+            byte[] h2 = Encoding.UTF8.GetBytes("GET /dashboard/123\r\n\r\n");
+            byte[] h3 = Encoding.UTF8.GetBytes("GET /players?f=KalleKula\r\n\r\n");
+            byte[] h4 = Encoding.UTF8.GetBytes("PUT /players/123\r\n\r\n");
+            byte[] h5 = Encoding.UTF8.GetBytes("POST /transfer?f=99&t=365&x=46\r\n\r\n");
+            byte[] h6 = Encoding.UTF8.GetBytes("POST /deposit?a=56754&x=34653\r\n\r\n");
             byte[] h7 = Encoding.UTF8.GetBytes("DELETE /all");
 
             Main(); // Register some handlers
@@ -151,12 +151,12 @@ namespace Starcounter.Internal.Test {
         public void DebugPregeneratedRequestProcessor() {
             var um = new __urimatcher__.GeneratedRequestProcessor();
 
-            byte[] h1 = Encoding.UTF8.GetBytes("GET /players/123");
-            byte[] h2 = Encoding.UTF8.GetBytes("GET /dashboard/123");
-            byte[] h3 = Encoding.UTF8.GetBytes("GET /players?KalleKula");
-            byte[] h4 = Encoding.UTF8.GetBytes("PUT /players/123");
-            byte[] h5 = Encoding.UTF8.GetBytes("POST /transfer?99");
-            byte[] h6 = Encoding.UTF8.GetBytes("POST /deposit?56754");
+            byte[] h1 = Encoding.UTF8.GetBytes("GET /players/123\r\n\r\n");
+            byte[] h2 = Encoding.UTF8.GetBytes("GET /dashboard/123\r\n\r\n");
+            byte[] h3 = Encoding.UTF8.GetBytes("GET /players?KalleKula\r\n\r\n");
+            byte[] h4 = Encoding.UTF8.GetBytes("PUT /players/123\r\n\r\n");
+            byte[] h5 = Encoding.UTF8.GetBytes("POST /transfer?99\r\n\r\n");
+            byte[] h6 = Encoding.UTF8.GetBytes("POST /deposit?56754\r\n\r\n");
             byte[] h7 = Encoding.UTF8.GetBytes("DELETE /all");
 
             Main();
@@ -221,13 +221,13 @@ namespace Starcounter.Internal.Test {
         [Test]
         public void TestRestHandler() {
 
-            byte[] h1 = Encoding.UTF8.GetBytes("GET /players/123");
-            byte[] h2 = Encoding.UTF8.GetBytes("GET /dashboard/123");
-            byte[] h3 = Encoding.UTF8.GetBytes("GET /players?KalleKula");
-            byte[] h4 = Encoding.UTF8.GetBytes("PUT /players/123");
-            byte[] h5 = Encoding.UTF8.GetBytes("POST /transfer?99");
-            byte[] h6 = Encoding.UTF8.GetBytes("POST /deposit?56754");
-            byte[] h7 = Encoding.UTF8.GetBytes("DELETE /all");
+            byte[] h1 = Encoding.UTF8.GetBytes("GET /players/123\r\n\r\n");
+            byte[] h2 = Encoding.UTF8.GetBytes("GET /dashboard/123\r\n\r\n");
+            byte[] h3 = Encoding.UTF8.GetBytes("GET /players?KalleKula\r\n\r\n");
+            byte[] h4 = Encoding.UTF8.GetBytes("PUT /players/123\r\n\r\n");
+            byte[] h5 = Encoding.UTF8.GetBytes("POST /transfer?99\r\n\r\n");
+            byte[] h6 = Encoding.UTF8.GetBytes("POST /deposit?56754\r\n\r\n");
+            byte[] h7 = Encoding.UTF8.GetBytes("DELETE /all\r\n\r\n");
 
             Main(); // Register some handlers
             var um = RequestHandler.RequestProcessor;
