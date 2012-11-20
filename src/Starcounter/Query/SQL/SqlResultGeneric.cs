@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Starcounter.LucentObjects;
 using Starcounter.Query.Execution;
@@ -127,7 +128,7 @@ namespace Starcounter
     /// <summary>
     /// 
     /// </summary>
-    public class SqlResult<T> : SqlResult, IEnumerable
+    public class SqlResult<T> : SqlResult, IEnumerable<T>
     {
         // Creating SQL result with query parameters all given at once.
         internal SqlResult(UInt64 transactionId, String query, Boolean slowSQL, params Object[] sqlParamsValues)
@@ -140,6 +141,15 @@ namespace Starcounter
         /// </summary>
         /// <returns></returns>
         override public ISqlEnumerator GetEnumerator()
+        {
+            return new GenericEnumerator<T>(base.GetEnumerator() as IExecutionEnumerator);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             return new GenericEnumerator<T>(base.GetEnumerator() as IExecutionEnumerator);
         }
