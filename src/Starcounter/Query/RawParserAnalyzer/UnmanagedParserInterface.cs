@@ -169,8 +169,6 @@ namespace Starcounter.Query.RawParserAnalyzer
     internal unsafe struct RangeVar
     {
         internal NodeTag type;
-        //internal sbyte* catalogname;	/* the catalog (database) name, or NULL */
-        //internal sbyte* schemaname;		/* the schema name, or NULL */
         internal List* path;     /* Names of namespaces in order from most outer to most inner */
         internal sbyte* relname;		/* the relation/sequence name */
         internal InhOption inhOpt;			/* expand rel by inheritance? recursively act
