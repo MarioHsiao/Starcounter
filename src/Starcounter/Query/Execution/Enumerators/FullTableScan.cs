@@ -62,6 +62,10 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         VariableArray varArr, String query)
         : base(rowTypeBind, varArr)
     {
+        if (rowTypeBind == null)
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
+        if (varArr == null)
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect varArr.");
         if (queryCond == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect queryCond.");
 
