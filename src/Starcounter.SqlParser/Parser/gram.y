@@ -4975,7 +4975,7 @@ joined_table:
 		;
 
 alias_clause:
-			AS ColId
+			AS ColLabel
 				{
 					$$ = makeNode(Alias);
 					$$->aliasname = $2;
@@ -6237,7 +6237,7 @@ member_access_seq:
  * Member accesses similar to C#
  */
 member_access_el:
-			ColId
+			ColLabel
 				{
 					ColumnRef *n = makeNode(ColumnRef);
 					n->name = $1;
