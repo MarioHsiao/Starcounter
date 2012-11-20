@@ -17,61 +17,65 @@ namespace Starcounter
     /// </summary>
     public unsafe struct NetworkDataStream : INetworkDataStream
     {
-        // Data offset/size constants.
         /// <summary>
-        /// The BM x_ HANDLE r_ SIZE
+        /// Data offset/size constants. 
         /// </summary>
         public const Int32 BMX_HANDLER_SIZE = 2;
+
+        /// <summary>
+        /// BMX protocol begin offset.
+        /// </summary>
+        public const Int32 BMX_PROTOCOL_BEGIN_OFFSET = 16;
         
         /// <summary>
-        /// The BM x_ PROTOCO l_ BEGIN
+        /// Request size begin offset.
         /// </summary>
-        public const Int32 BMX_PROTOCOL_BEGIN = 16;
+        public const Int32 REQUEST_SIZE_BEGIN_OFFSET = BMX_PROTOCOL_BEGIN_OFFSET + BMX_HANDLER_SIZE;
         
         /// <summary>
-        /// The REQUES t_ SIZ e_ BEGIN
+        /// BMX header max size.
         /// </summary>
-        public const Int32 REQUEST_SIZE_BEGIN = BMX_PROTOCOL_BEGIN + BMX_HANDLER_SIZE;
+        public const Int32 BMX_HEADER_MAX_SIZE_BYTES = 24;
         
         /// <summary>
-        /// The GATEWA y_ CHUN k_ BEGIN
+        /// Offset of gateway data in chunk.
         /// </summary>
-        public const Int32 GATEWAY_CHUNK_BEGIN = 24;
+        public const Int32 GATEWAY_DATA_BEGIN_OFFSET = BMX_HEADER_MAX_SIZE_BYTES + 32;
         
         /// <summary>
-        /// The GATEWA y_ DAT a_ BEGIN
+        /// Gateway session salt offset.
         /// </summary>
-        public const Int32 GATEWAY_DATA_BEGIN = GATEWAY_CHUNK_BEGIN + 32;
-        
-        /// <summary>
-        /// The SESSIO n_ SAL T_ OFFSET
-        /// </summary>
-        public const Int32 SESSION_SALT_OFFSET = GATEWAY_DATA_BEGIN;
+        public const Int32 SESSION_SALT_OFFSET = GATEWAY_DATA_BEGIN_OFFSET;
        
         /// <summary>
-        /// The SESSIO n_ INDE x_ OFFSET
+        /// Gateway session index offset.
         /// </summary>
-        public const Int32 SESSION_INDEX_OFFSET = GATEWAY_DATA_BEGIN + 8;
+        public const Int32 SESSION_INDEX_OFFSET = GATEWAY_DATA_BEGIN_OFFSET + 8;
         
         /// <summary>
-        /// The SESSIO n_ INDE x_ OFFSET
+        /// Apps session index offset.
         /// </summary>
-        public const Int32 SESSION_APPS_UNIQUE_SESSION_NUMBER_OFFSET = GATEWAY_DATA_BEGIN + 16;
+        public const Int32 SESSION_APPS_UNIQUE_SESSION_NUMBER_OFFSET = GATEWAY_DATA_BEGIN_OFFSET + 16;
+
+        /// <summary>
+        /// Size of the session structure in bytes.
+        /// </summary>
+        public const Int32 SESSION_STRUCT_SIZE = 32;
+
+        /// <summary>
+        /// User data offset in chunk.
+        /// </summary>
+        public const Int32 USER_DATA_OFFSET = GATEWAY_DATA_BEGIN_OFFSET + SESSION_STRUCT_SIZE;
         
         /// <summary>
-        /// The USE r_ DAT a_ OFFSET
+        /// Max user data offset in chunk.
         /// </summary>
-        public const Int32 USER_DATA_OFFSET = GATEWAY_DATA_BEGIN + 24;
+        public const Int32 MAX_USER_DATA_BYTES_OFFSET = USER_DATA_OFFSET + 4;
         
         /// <summary>
-        /// The MA x_ USE r_ DAT a_ BYTE s_ OFFSET
+        /// User data written bytes offset.
         /// </summary>
-        public const Int32 MAX_USER_DATA_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 28;
-        
-        /// <summary>
-        /// The USE r_ DAT a_ WRITTE n_ BYTE s_ OFFSET
-        /// </summary>
-        public const Int32 USER_DATA_WRITTEN_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 32;
+        public const Int32 USER_DATA_WRITTEN_BYTES_OFFSET = MAX_USER_DATA_BYTES_OFFSET + 4;
 
         /// <summary>
         /// Invalid chunk index.
@@ -167,7 +171,7 @@ namespace Starcounter
 
                     // Copying the data to user buffer.
                     Marshal.Copy(
-                        (IntPtr)(unmanaged_chunk_ + GATEWAY_CHUNK_BEGIN + *userDataOffsetPtr),
+                        (IntPtr)(unmanaged_chunk_ + BMX_HEADER_MAX_SIZE_BYTES + *userDataOffsetPtr),
                         buffer,
                         offset,
                         PayloadSize);
