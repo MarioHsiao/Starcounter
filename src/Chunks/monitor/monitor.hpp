@@ -63,6 +63,18 @@
 #include "../common/spinlock.hpp"
 #include "../common/macro_definitions.hpp"
 
+//extern "C" LONG __cdecl _InterlockedIncrement(LONG volatile*);
+//extern "C" LONG __cdecl _InterlockedDecrement(LONG volatile*);
+//extern "C" LONG __cdecl _InterlockedCompareExchange(LPLONG volatile, LONG, LONG);
+//extern "C" LONG __cdecl _InterlockedExchange(LPLONG volatile, LONG);
+//extern "C" LONG __cdecl _InterlockedExchangeAdd(LPLONG volatile, LONG);
+
+#pragma intrinsic(_InterlockedIncrement)
+#pragma intrinsic(_InterlockedDecrement)
+#pragma intrinsic(_InterlockedCompareExchange)
+#pragma intrinsic(_InterlockedExchange)
+#pragma intrinsic(_InterlockedExchangeAdd)
+
 namespace {
 
 enum {
@@ -281,6 +293,12 @@ public:
 		return test_id_;
 	}
 
+	typedef volatile long int waiting_consumers_type;
+
+	waiting_consumers_type& waiting_consumers() volatile {
+		return waiting_consumers_;
+	}
+
 private:
 	// Controlling the console a bit makes it easier to read.
 	void gotoxy(int16_t x, int16_t y);
@@ -307,9 +325,20 @@ private:
 #if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 	/// Watch resources, dor debug purpose only.
 	void watch_resources();
+	void test_a();
+	void test_b();
+	void test_c();
 	void test();
 #endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 	
+	///-----------------
+	/// Interlocked speed test
+	waiting_consumers_type waiting_consumers_;
+	char cache_line_pad_[64 -sizeof(waiting_consumers_type)];
+
+
+	///-----------------
+
 	// The monitor initializes the monitor_interface_shared_memory_object.
 	shared_memory_object monitor_interface_;
 	mapped_region monitor_interface_region_;
@@ -394,6 +423,12 @@ private:
 	boost::thread test_thread_;
 	smp::spinlock test_lock_;
 	smp::spinlock::locker_id_type test_id_;
+
+	// Testing manual reset event behavior.
+	boost::thread thread_a_;
+	boost::thread thread_b_;
+	boost::thread thread_c_;
+	HANDLE abc_event;
 };
 
 } // namespace core

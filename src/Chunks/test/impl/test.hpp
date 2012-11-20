@@ -143,13 +143,15 @@ void test::initialize(const char* database_name) {
 	// Threads in this process can now acquire resources.
 
 	/// TEST UNLOCKING OF A SPINLOCK:
+#if 0
 	if (the_monitor_interface->sp().unlock_if_locked_with_id(1000)) {
 		std::cout << "test::initialize(): Unlocked the spinlock with ID 1000.\n";
 	}
 	else {
 		std::cout << "test::initialize(): Did not unlocked the spinlock. ID is not 1000.\n";
 	}
-
+#endif
+	
 	///=========================================================================
 	/// Open the database shared memory segment.
 	///=========================================================================

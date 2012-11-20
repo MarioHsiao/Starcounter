@@ -27,9 +27,6 @@
 #include <cstddef>
 #include <memory>
 #include <boost/circular_buffer.hpp>
-#include <boost/interprocess/sync/interprocess_mutex.hpp>
-#include <boost/interprocess/sync/scoped_lock.hpp>
-#include <boost/interprocess/sync/interprocess_condition.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp> // No I/O just types.
 #include <boost/date_time/microsec_time_clock.hpp>
 #include <boost/thread/thread.hpp>
@@ -40,6 +37,14 @@
 #else 
 # error Compiler not supported.
 #endif // (_MSC_VER)
+#include "macro_definitions.hpp"
+#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+# include "spinlock.hpp"
+#else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+# include <boost/interprocess/sync/interprocess_mutex.hpp>
+# include <boost/interprocess/sync/scoped_lock.hpp>
+# include <boost/interprocess/sync/interprocess_condition.hpp>
+#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 
 namespace starcounter {
 namespace core {
@@ -136,6 +141,13 @@ public:
 	// A type representing the "best" way to return the value_type from a const method.
 	typedef typename boost::call_traits<value_type>::param_type return_type;
 	
+	typedef volatile long int waiting_consumers_type;
+	typedef volatile long int waiting_producers_type;
+
+	enum {
+		elapsed_time_check = 1024
+	};
+
 	// Construction/Destruction.
 	
 	/// Create an empty scheduler_number_pool with the specified capacity.
@@ -149,7 +161,7 @@ public:
 	 *		Constant.
 	 */
 	explicit scheduler_number_pool(size_type buffer_capacity, const allocator_type&
-	alloc = allocator_type());
+	alloc = allocator_type(), const char* segment_name = 0, int32_t id = -1);
 	
 	// Size and capacity
 	
@@ -187,7 +199,7 @@ public:
 	 * @par Complexity
 	 *		Constant (in the size of the scheduler_number_pool).
 	 */
-	//bool empty() const;
+	bool empty() const;
 	
 	/// Is the scheduler_number_pool full?
 	/**
@@ -214,8 +226,7 @@ public:
 	 * @return false if failing to push the item before the time period
 	 *		specified by timeout_milliseconds has elapsed, true otherwise.
 	 */
-	bool push_front(param_type item, uint32_t spin_count = 1000000, uint32_t
-	timeout_milliseconds = 10000);
+	bool push_front(param_type item, uint32_t spin_count = 1000000, smp::spinlock::milliseconds timeout = 10000);
 	
 	/// Pop item from the back of the queue.
 	/**
@@ -234,28 +245,77 @@ public:
 	bool try_push_front(param_type item);
 	bool try_pop_back(value_type* item);
 	
+#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+///-----------------------------------------------------------------------------
+	/// Get the not_empty_notify_name, used to open the event. In order to
+	/// reduce the time taken to open the not_empty_notify_name event the name
+	/// is cached. Otherwise the not_empty_notify_name have to be formated
+	/// before opening it.
+	/**
+	 * @return A const wchar_t pointer to the not_empty_notify_name string in the
+	 *		format: L"Local\<segment_name>_scheduler_number_pool_<id>_not_empty".
+	 *		For example:
+	 *		L"Local\starcounter_PERSONAL_MYDB_64_scheduler_number_pool_9__not_empty".
+	 */
+	const wchar_t* not_empty_notify_name() const {
+		return not_empty_notify_name_;
+	}
+	
+	/// Get the not_full_notify_name, used to open the event. In order to
+	/// reduce the time taken to open the not_full_notify_name event the name
+	/// is cached. Otherwise the not_full_notify_name have to be formated
+	/// before opening it.
+	/**
+	 * @return A const wchar_t pointer to the not_full_notify_name string in the
+	 *		format: L"Local\<segment_name>_scheduler_number_pool_<id>_not_full".
+	 *		For example:
+	 *		L"Local\starcounter_PERSONAL_MYDB_64_scheduler_number_pool_9__not_full".
+	 */
+	const wchar_t* not_full_notify_name() const {
+		return not_full_notify_name_;
+	}
+#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+	
+	waiting_producers_type& waiting_producers() volatile {
+		return waiting_producers_;
+	}
+
+	waiting_consumers_type& waiting_consumers() volatile {
+		return waiting_consumers_;
+	}
+
 private:
 	scheduler_number_pool(const scheduler_number_pool&);
 	scheduler_number_pool& operator=(const scheduler_number_pool&);
+	
+	/// Get reference to the spinlock.
+	smp::spinlock& spinlock() {
+		return spinlock_;
+	}
 
 	bool is_not_empty() const;
 	bool is_not_full() const;
 	
 	size_type unread_;
-	std::size_t spin_count_;
 	container_type container_;
 	
-	// Process-shared synchronization:
+	// IPC synchronization:
 	
 	// SMP spinlock to protect access to the queue.
-	//smp::spinlock mutex_;
+	smp::spinlock spinlock_;
 	
-	// Event to wait when the queue is not empty.
+	// Event used by the scheduler to wait when the queue is not empty.
+	// Client's have to open the event and pass it in as an argument.
 	HANDLE not_empty_;
 	
-	// Event to wait when the queue is not full.
+	// Event used by the scheduler to wait when the queue is not full.
+	// Client's have to open the event and pass it in as an argument.
 	HANDLE not_full_;
-//------------------------------------------------------------------------------
+
+	// Pad these?
+	waiting_producers_type waiting_producers_;
+	waiting_consumers_type waiting_consumers_;
+
 	// In order to reduce the time taken to open the not_empty_ and not_full_
 	// events the names are cached. Otherwise the names have to be formated
 	// before opening them.

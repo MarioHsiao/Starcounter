@@ -119,7 +119,7 @@ public:
 	const char* segment_name = 0,
 	int32_t id = -1)
 	: channel_number_(channel_number_queue_capacity,
-	channel_number_queue_alloc),
+	channel_number_queue_alloc, segment_name, id),
 	chunk_pool_(chunk_pool_capacity, chunk_pool_alloc),
 	overflow_pool_(overflow_pool_capacity, overflow_pool_alloc),
 	channel_scan_mask_(),
@@ -492,7 +492,7 @@ public:
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 private:
-	// Condition to wait when the all of this scheduler's channels in queues,
+	// Condition to wait when all of this scheduler's channels in queues,
 	// and the scheduler channels in queue are empty.
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	HANDLE work_;

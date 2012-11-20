@@ -17,6 +17,7 @@ namespace core {
 
 monitor::monitor(int argc, wchar_t* argv[])
 : monitor_interface_(),
+waiting_consumers_(0L),
 active_segments_update_(active_segments_buffer_capacity),
 active_databases_updated_flag_(false),
 registrar_(),
@@ -24,6 +25,9 @@ active_databases_file_updater_thread_(),
 #if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 resources_watching_thread_(),
 test_thread_(),
+thread_a_(),
+thread_b_(),
+thread_c_(),
 test_id_(5),
 #endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 owner_id_counter_(owner_id::none) {
@@ -243,6 +247,9 @@ monitor::~monitor() {
 
 #if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 	resources_watching_thread_.join();
+	thread_a_.join();
+	thread_b_.join();
+	thread_c_.join();
 	test_thread_.join();
 #endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 }
@@ -288,9 +295,18 @@ void monitor::run() {
 	resources_watching_thread_ = boost::thread(boost::bind
 	(&monitor::watch_resources, this));
 	
+	if ((abc_event = ::CreateEvent(NULL, TRUE, FALSE, NULL)) == NULL) {
+		std::cout << "Error: Failed to create the abc_event\n";
+		return;
+	}
+
+	// Start the a, b and c threads.
+	thread_a_ = boost::thread(boost::bind(&monitor::test_a, this));
+	thread_b_ = boost::thread(boost::bind(&monitor::test_b, this));
+	thread_c_ = boost::thread(boost::bind(&monitor::test_c, this));
+
 	// Start the test thread.
-	test_thread_ = boost::thread(boost::bind
-	(&monitor::test, this));
+	test_thread_ = boost::thread(boost::bind(&monitor::test, this));
 #endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 }
 
@@ -1219,7 +1235,90 @@ void monitor::print_rate_with_precision(double rate) {
 }
 #endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 
+void monitor::test_a() {
+	smp::spinlock::milliseconds timeout = 3000;
+	timeout.add_tick_count();
+	smp::spinlock::milliseconds time_left = timeout;
+
+	// Compute time left:
+
+	while (true) {
+		std::cout << "time_left = " << time_left << "\n";
+		if ((time_left = timeout -timeout.tick_count()) > 0) {
+			continue;
+		}
+		else {
+			break;
+		}
+	}
+
+	std::cout << "Time is up! time_left = " << time_left << "\n";
+
+
+	Sleep(INFINITE);
+
+	for (std::size_t i = 0; i < 1E9; ++i) {
+		//_InterlockedIncrement(&waiting_consumers_);
+		_InterlockedExchangeAdd(&waiting_consumers_, +1L);
+		//++waiting_consumers_;
+	}
+	std::cout << "Increment done. waiting_consumers_ = " << waiting_consumers_ << "\n";
+	Sleep(INFINITE);
+
+	do {
+		// "A" see that the queue is empty and waits...
+		// After 1000 ms several items are pushed by another thread and
+		// "A" receives a notification.
+		::WaitForSingleObject(abc_event, INFINITE);
+		::ResetEvent(abc_event);
+
+		// "A" takes one item, there is still several items left.
+
+		std::cout << "A";
+	} while (true);
+}
+
+void monitor::test_b() {
+	for (std::size_t i = 0; i < 1E9; ++i) {
+		_InterlockedDecrement(&waiting_consumers_);
+		//_InterlockedExchangeAdd(&waiting_consumers_, -1L);
+		//--waiting_consumers_;
+	}
+	std::cout << "Decrement done. waiting_consumers_ = " << waiting_consumers_ << "\n";
+	Sleep(INFINITE);
+
+	do {
+		// "B" checks the queue, it is empty.
+		// "B" is switched out by chance...
+		// "B" comes back. While "B" was switched out
+		Sleep(3000);
+		// several items was pushed to the queue, and
+		// a notification was sent. "A" woke up and reset
+		// the event and took one object. There are several left.
+		// "B" thinks there aren't any, and waits...forever.
+		::WaitForSingleObject(abc_event, INFINITE);
+		::ResetEvent(abc_event);
+		std::cout << "B";
+	} while (true);
+}
+
+void monitor::test_c() {
+	Sleep(INFINITE);
+	do {
+		Sleep(500);
+		::WaitForSingleObject(abc_event, INFINITE);
+		::ResetEvent(abc_event);
+		std::cout << "C";
+	} while (true);
+}
+
 void monitor::test() {
+	do {
+		Sleep(1000);
+		SetEvent(abc_event);
+		Sleep(INFINITE);
+	} while (true);
+	Sleep(INFINITE);
 	std::cout << "monitor::test(): start\n";
 #if 0
 	{
@@ -1413,6 +1512,7 @@ void monitor::test() {
 /// one database running.
 #if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 void monitor::watch_resources() {
+	Sleep(INFINITE);
 	test_lock().lock(test_id()); // Spins until acquires the lock.
 	//test_lock().lock(); // Spins until acquires the lock.
 	//Sleep(5500);
