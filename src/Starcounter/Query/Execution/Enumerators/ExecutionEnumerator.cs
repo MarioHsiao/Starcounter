@@ -41,11 +41,6 @@ internal abstract class ExecutionEnumerator
     /// </summary>
     internal ExecutionEnumerator(RowTypeBinding rowTypeBind, VariableArray varArray)
     {
-        if (rowTypeBind == null)
-            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
-        if (varArray == null)
-            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect variables clone.");
-
         rowTypeBinding = rowTypeBind;
         variableArray = varArray;
 

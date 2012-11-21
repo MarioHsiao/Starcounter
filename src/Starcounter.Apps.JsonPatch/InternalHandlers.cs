@@ -55,7 +55,7 @@ namespace Starcounter.Internal.JsonPatch
                         // TODO:
                         // Quick and dirty hack to autorefresh dependent properties that might have been 
                         // updated. This implementation should be removed after the demo.
-                        RefreshAllPrimitiveValues(rootApp);
+                        RefreshAllValues(rootApp);
 
                         response.Uncompressed = HttpPatchBuilder.CreateHttpPatchResponse(Session.Current._changeLog);
                     } catch (NotSupportedException nex) {
@@ -68,11 +68,25 @@ namespace Starcounter.Internal.JsonPatch
             });
         }
 
-        private static void RefreshAllPrimitiveValues(App app) {
+        private static void RefreshAllValues(App app) {
             foreach (Template template in app.Template.Children) {
-                if (template is ListingProperty 
-                    || template is AppTemplate
-                    || template is ActionProperty)
+                if (!template.Bound)
+                    continue;
+
+                if (template is ListingProperty) {
+                    Listing l = app.GetValue((ListingProperty)template);
+                    foreach (App childApp in l) {
+                        RefreshAllValues(childApp);
+                    }
+                    continue;
+                }
+                
+                if (template is AppTemplate) {
+                    RefreshAllValues(app.GetValue((AppTemplate)template));
+                    continue;
+                }
+                
+                if (template is ActionProperty)
                     continue;
 
                 ChangeLog.UpdateValue(app, (Property)template);

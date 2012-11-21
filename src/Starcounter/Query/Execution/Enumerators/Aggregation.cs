@@ -39,6 +39,10 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         String query)
         : base(rowTypeBind, varArr)
     {
+        if (rowTypeBind == null)
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
+        if (varArr == null)
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect varArr.");
         if (subEnum == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect subEnum.");
         if (comparer == null)

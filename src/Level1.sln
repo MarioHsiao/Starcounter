@@ -44,6 +44,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bmx", "Chunks\BMX\bmx.vcxpr
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpStructs", "HTTP\HttpStructs\HttpStructs.csproj", "{90D57166-B42E-4BBE-B9EC-CFB33E551B77}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5A65D606-6613-4139-8853-B5F26313E4DF} = {5A65D606-6613-4139-8853-B5F26313E4DF}
+		{594FE78A-A893-4757-A946-5ED350D383D2} = {594FE78A-A893-4757-A946-5ED350D383D2}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "scerrcc", "Starcounter.ErrorCodes\ErrorCodeCompiler\scerrcc\scerrcc.csproj", "{9E8D97FC-87A3-4A7C-B318-9414B5EEA60E}"
 EndProject
@@ -243,7 +247,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "scservice", "scservice\scse
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpStructs.Tests", "HTTP\HttpStructs.Tests\HttpStructs.Tests.csproj", "{DD81F07E-8E1E-490B-A940-F651D7DAF6B6}"
 	ProjectSection(ProjectDependencies) = postProject
-		{5A65D606-6613-4139-8853-B5F26313E4DF} = {5A65D606-6613-4139-8853-B5F26313E4DF}
 		{594FE78A-A893-4757-A946-5ED350D383D2} = {594FE78A-A893-4757-A946-5ED350D383D2}
 	EndProjectSection
 EndProject
@@ -419,8 +422,8 @@ Global
 		{1028002A-BBE2-4FF2-94B7-A8368A8F6887}.Release|x64.Build.0 = Release|Any CPU
 		{28E1D438-7DC4-4BF7-A486-0598C78DBBE9}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{28E1D438-7DC4-4BF7-A486-0598C78DBBE9}.Debug|x64.Build.0 = Debug|Any CPU
-		{28E1D438-7DC4-4BF7-A486-0598C78DBBE9}.Release|x64.ActiveCfg = Release|x64
-		{28E1D438-7DC4-4BF7-A486-0598C78DBBE9}.Release|x64.Build.0 = Release|x64
+		{28E1D438-7DC4-4BF7-A486-0598C78DBBE9}.Release|x64.ActiveCfg = Release|Any CPU
+		{28E1D438-7DC4-4BF7-A486-0598C78DBBE9}.Release|x64.Build.0 = Release|Any CPU
 		{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}.Debug|x64.ActiveCfg = Debug|x64
 		{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}.Debug|x64.Build.0 = Debug|x64
 		{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}.Release|x64.ActiveCfg = Release|x64

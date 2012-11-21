@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using Starcounter.Internal;
 using Starcounter.Internal.Application;
@@ -417,6 +418,10 @@ namespace Starcounter.Internal.JsonPatch {
                     sb.Append(((App)value).ToJson());
                 } else if (value is bool) {
                     sb.Append(value.ToString().ToLower());
+                } else if (value is decimal) {
+                    sb.Append(((decimal)value).ToString(CultureInfo.InvariantCulture));
+                } else if (value is double) {
+                    sb.Append(((double)value).ToString(CultureInfo.InvariantCulture));
                 } else {
                     sb.Append(value);
                 }

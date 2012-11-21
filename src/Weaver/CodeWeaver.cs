@@ -633,6 +633,8 @@ namespace Weaver {
 
         void AddStandardWeaverExcludes() {
             foreach (var exclude in new string[] {
+                "scerrres.dll",
+                "HttpParser.dll",
                 "HttpStructs.dll",
                 "PostSharp*.dll",
                 "Starcounter.dll"}
