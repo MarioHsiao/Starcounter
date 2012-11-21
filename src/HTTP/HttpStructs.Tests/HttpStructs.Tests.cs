@@ -50,6 +50,8 @@ namespace HttpStructs.Tests
 
                 "GET /123\r\n\r\n",
 
+                "DELETE /all\r\n\r\n",
+
                 "GET /pub/WWW/TheProject.html HTTP/1.1\r\n" +
                 "Host: www.w3.org\r\n" +
                 "\r\n",
@@ -99,6 +101,7 @@ namespace HttpStructs.Tests
             {
                 "/players/123",
                 "/123",
+                "/all",
                 "/pub/WWW/TheProject.html",
                 "/get_funky_content_length_body_hello",
                 "/vi/Q1Nnm4AZv4c/hqdefault.jpg",
@@ -112,6 +115,7 @@ namespace HttpStructs.Tests
             {
                 null,
                 null,
+                null,
                 "www.w3.org",
                 null,
                 "i2.ytimg.com",
@@ -123,6 +127,7 @@ namespace HttpStructs.Tests
             // Correct HTTP request bodies.
             String[] http_request_bodies =
             {
+                null,
                 null,
                 null,
                 null,

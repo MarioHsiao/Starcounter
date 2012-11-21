@@ -12,13 +12,26 @@ using HttpStructs;
 namespace Starcounter.Internal.Test {
 
     /// <summary>
+    /// Used for HttpStructs tests initialization/shutdown.
+    /// </summary>
+    [SetUpFixture]
+    public class HttpStructsTestsSetup
+    {
+        /// <summary>
+        /// HttpStructs tests initialization.
+        /// </summary>
+        [SetUp]
+        public void InitHttpStructsTests()
+        {
+            HttpStructs.HttpRequest.sc_init_http_parser();
+        }
+    }
+
+    /// <summary>
     /// Class TestRoutes
     /// </summary>
     [TestFixture]
     class TestRoutes : RequestHandler {
-
-
-
         /// <summary>
         /// Defines the entry point of the application.
         /// </summary>
@@ -157,7 +170,7 @@ namespace Starcounter.Internal.Test {
             byte[] h4 = Encoding.UTF8.GetBytes("PUT /players/123\r\n\r\n");
             byte[] h5 = Encoding.UTF8.GetBytes("POST /transfer?99\r\n\r\n");
             byte[] h6 = Encoding.UTF8.GetBytes("POST /deposit?56754\r\n\r\n");
-            byte[] h7 = Encoding.UTF8.GetBytes("DELETE /all");
+            byte[] h7 = Encoding.UTF8.GetBytes("DELETE /all\r\n\r\n");
 
             Main();
 //            var rp = MainApp.RequestProcessor;
@@ -205,8 +218,8 @@ namespace Starcounter.Internal.Test {
             Console.WriteLine(ast.ToString());
             Console.WriteLine(str);
 
-            byte[] h1 = Encoding.UTF8.GetBytes("GET / ");
-            byte[] h2 = Encoding.UTF8.GetBytes("GET /products/Test ");
+            byte[] h1 = Encoding.UTF8.GetBytes("GET /\r\n\r\n");
+            byte[] h2 = Encoding.UTF8.GetBytes("GET /products/Test\r\n\r\n");
 
             var um = RequestHandler.RequestProcessor;
 
