@@ -155,11 +155,11 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 
 %glr-parser
 %define api.pure
-%expect 0
-%expect-rr 2
+%expect 3
+%expect-rr 0
 %name-prefix="base_yy"
 %locations
-%debug
+//%debug
 
 %parse-param {core_yyscan_t yyscanner}
 %lex-param   {core_yyscan_t yyscanner}
@@ -5667,8 +5667,8 @@ a_expr:		c_expr									{ $$ = $1; }
 				{ $$ = (Node *) makeA_Expr(AEXPR_OP, $2, $1, $3, @2); }
 			| qual_Op a_expr					%prec Op
 				{ $$ = (Node *) makeA_Expr(AEXPR_OP, $1, NULL, $2, @1); }
-			| a_expr qual_Op					%prec POSTFIXOP
-				{ $$ = (Node *) makeA_Expr(AEXPR_OP, $2, $1, NULL, @2); }
+//			| a_expr qual_Op					%prec POSTFIXOP
+//				{ $$ = (Node *) makeA_Expr(AEXPR_OP, $2, $1, NULL, @2); }
 
 			| a_expr AND a_expr
 				{ $$ = (Node *) makeA_Expr(AEXPR_AND, NIL, $1, $3, @2); }
@@ -6055,8 +6055,8 @@ b_expr:		c_expr
 				{ $$ = (Node *) makeA_Expr(AEXPR_OP, $2, $1, $3, @2); }
 			| qual_Op b_expr					%prec Op
 				{ $$ = (Node *) makeA_Expr(AEXPR_OP, $1, NULL, $2, @1); }
-			| b_expr qual_Op					%prec POSTFIXOP
-				{ $$ = (Node *) makeA_Expr(AEXPR_OP, $2, $1, NULL, @2); }
+//			| b_expr qual_Op					%prec POSTFIXOP
+//				{ $$ = (Node *) makeA_Expr(AEXPR_OP, $2, $1, NULL, @2); }
 			| b_expr IS DISTINCT FROM b_expr		%prec IS
 				{
 					$$ = (Node *) makeSimpleA_Expr(AEXPR_DISTINCT, "=", $1, $5, @2);
@@ -6237,7 +6237,7 @@ member_access_seq:
  * Member accesses similar to C#
  */
 member_access_el:
-			ColId
+			type_function_name
 				{
 					ColumnRef *n = makeNode(ColumnRef);
 					n->name = $1;
@@ -8303,6 +8303,7 @@ type_func_name_keyword:
 			| LIKE
 			| NATURAL
 			| NOTNULL
+			| ORDER
 			| OUTER_P
 			| OVER
 			| OVERLAPS
@@ -8378,7 +8379,6 @@ reserved_keyword:
 			| ONLY
 			| OPTION
 			| OR
-			| ORDER
 			| PLACING
 			| PRIMARY
 			| REFERENCES
