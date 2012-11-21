@@ -118,16 +118,31 @@ namespace Starcounter {
                 if (Transaction == null) {
                     Transaction = Transaction._current;
                 }
-                _Data = value;
-                RefreshAllBoundValues();
-                OnData();
+                InternalSetData(value);
             }
+        }
+
+        /// <summary>
+        /// Sets the underlying dataobject and refreshes all bound values.
+        /// This function does not check for a valid transaction as the 
+        /// public Data-property does.
+        /// </summary>
+        /// <param name="data"></param>
+        internal void InternalSetData(Entity data) {
+            _Data = data;
+
+            if (Template.Bound) {
+                Template.SetBoundValue((App)this.Parent, data);
+            }
+
+            RefreshAllBoundValues();
+            OnData();
         }
 
         /// <summary>
         /// Refreshes all databound values for this app.
         /// </summary>
-        protected void RefreshAllBoundValues() {
+        private void RefreshAllBoundValues() {
             Template child;
             for (Int32 i = 0; i < this.Template.Properties.Count; i++) {
                 child = Template.Properties[i];

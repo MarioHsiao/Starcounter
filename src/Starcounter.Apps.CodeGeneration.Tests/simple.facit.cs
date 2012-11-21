@@ -11,6 +11,7 @@ using Starcounter.Templates;
 public partial class PlayerApp {
     public static PlayerAppTemplate DefaultTemplate = new PlayerAppTemplate();
     public PlayerApp() { Template = DefaultTemplate; }
+    public PlayerApp(PlayerAppTemplate template) { Template = template; }
     public new PlayerAppTemplate Template { get { return (PlayerAppTemplate)base.Template; } set { base.Template = value; } }
     public new PlayerAppMetadata Metadata { get { return (PlayerAppMetadata)base.Metadata; } }
     public PlayerApp.KidApp Kid { get { return GetValue<PlayerApp.KidApp>(Template.Kid); } set { SetValue(Template.Kid, value); } }
@@ -21,6 +22,7 @@ public partial class PlayerApp {
     public class KidApp : App {
         public static KidAppTemplate DefaultTemplate = new KidAppTemplate();
         public KidApp() { Template = DefaultTemplate; }
+        public KidApp(KidAppTemplate template) { Template = template; }
         public new KidAppTemplate Template { get { return (KidAppTemplate)base.Template; } set { base.Template = value; } }
         public new KidAppMetadata Metadata { get { return (KidAppMetadata)base.Metadata; } }
         public String Grandkid { get { return GetValue(Template.Grandkid); } set { SetValue(Template.Grandkid, value); } }
@@ -31,7 +33,7 @@ public partial class PlayerApp {
                 ClassName = "KidApp";
                 Grandkid = Register<StringProperty>("Grandkid");
             }
-            public override object CreateInstance(AppNode parent) { return new KidApp() { Parent = parent }; }
+            public override object CreateInstance(AppNode parent) { return new KidApp(this) { Parent = parent }; }
             public StringProperty Grandkid;
         }
         public class KidAppMetadata : AppMetadata {
@@ -45,6 +47,7 @@ public partial class PlayerApp {
     public class AccountsApp : App {
         public static AccountsAppTemplate DefaultTemplate = new AccountsAppTemplate();
         public AccountsApp() { Template = DefaultTemplate; }
+        public AccountsApp(AccountsAppTemplate template) { Template = template; }
         public new AccountsAppTemplate Template { get { return (AccountsAppTemplate)base.Template; } set { base.Template = value; } }
         public new AccountsAppMetadata Metadata { get { return (AccountsAppMetadata)base.Metadata; } }
         public int AccountId { get { return GetValue(Template.AccountId); } set { SetValue(Template.AccountId, value); } }
@@ -59,7 +62,7 @@ public partial class PlayerApp {
                 AccountType = Register<IntProperty>("AccountType", Editable = true);
                 Balance = Register<DecimalProperty>("Balance");
             }
-            public override object CreateInstance(AppNode parent) { return new AccountsApp() { Parent = parent }; }
+            public override object CreateInstance(AppNode parent) { return new AccountsApp(this) { Parent = parent }; }
             public IntProperty AccountId;
             public IntProperty AccountType;
             public DecimalProperty Balance;
@@ -88,7 +91,7 @@ public partial class PlayerApp {
             Accounts = Register<ListingProperty<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate>>("Accounts");
             Accounts.App = PlayerApp.AccountsApp.DefaultTemplate;
         }
-        public override object CreateInstance(AppNode parent) { return new PlayerApp() { Parent = parent }; }
+        public override object CreateInstance(AppNode parent) { return new PlayerApp(this) { Parent = parent }; }
         public PlayerApp.KidApp.KidAppTemplate Kid;
         public AppTemplate Page;
         public IntProperty PlayerId;

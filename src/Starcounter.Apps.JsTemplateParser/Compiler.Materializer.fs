@@ -157,7 +157,7 @@ module public Materializer =
                         | Ast.Tree.Array (_,debugInfo) ->
                             ( factory.AddArrayProperty(parent,legalName,debugInfo), debugInfo, false )
                         | Ast.Tree.Object (_,debugInfo) ->
-                            (factory.AddAppProperty(parent,legalName,debugInfo), debugInfo, false )
+                            (factory.AddAppProperty(parent,legalName,debugInfo), debugInfo, true )
                         | Ast.Tree.Null (debugInfo) ->
                             ( factory.AddEventProperty(parent,legalName,null,debugInfo), debugInfo, false )
    //                         (factory.AddObjectProperty(parent,legalName,debugInfo), debugInfo, false )

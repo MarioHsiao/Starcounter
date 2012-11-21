@@ -256,6 +256,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         private void WriteBoundGetterAndSetter(NProperty m) {
             string bindTo;
             string dataType;
+            string castTo = null;
             StringBuilder sb;
 
             // TODO: 
@@ -269,7 +270,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 dataType = "SqlResult";
             } else if (m.Template is AppTemplate) {
                 dataType = "Entity";
-//                ((NAppClass)m.Type).GenericTypeArgument;
+                castTo = ((NAppClass)m.Type).GenericTypeArgument;
             } 
 
             if (dataType == null) {
@@ -291,7 +292,15 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             if (m.Template.Editable) {
                 sb.Append(" set { Data.");
                 sb.Append(bindTo);
-                sb.Append(" = value; } }");
+                sb.Append(" = ");
+
+                if (castTo != null) {
+                    sb.Append('(');
+                    sb.Append(castTo);
+                    sb.Append(')');
+                }
+                
+                sb.Append("value; } }");
             } else {
                 sb.Append('}');
             }
@@ -327,6 +336,11 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             a.Prefix.Add("    public " 
                          + a.ClassName 
                          + "() { Template = DefaultTemplate; }");
+            a.Prefix.Add("    public " 
+                         + a.ClassName 
+                         + "("
+                         + a.NTemplateClass.ClassName
+                         + " template) { Template = template; }"); 
             a.Prefix.Add(
                 "    public new " +
                 a.NTemplateClass.ClassName +
@@ -435,7 +449,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             StringBuilder sb = new StringBuilder();
             sb.Append("    public override object CreateInstance(AppNode parent) { return new ");
             sb.Append(node.NValueClass.ClassName);
-            sb.Append("() { Parent = parent }; }");
+            sb.Append("(this) { Parent = parent }; }");
             node.Prefix.Add(sb.ToString());
         }
 
