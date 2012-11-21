@@ -132,26 +132,23 @@ namespace Starcounter
     {
         // Creating SQL result with query parameters all given at once.
         internal SqlResult(UInt64 transactionId, String query, Boolean slowSQL, params Object[] sqlParamsValues)
-            : base(transactionId, query, slowSQL, sqlParamsValues)
-        {
+            : base(transactionId, query, slowSQL, sqlParamsValues) {
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        override public ISqlEnumerator GetEnumerator()
-        {
-            return new GenericEnumerator<T>(base.GetEnumerator() as IExecutionEnumerator);
+        new public SqlEnumerator<T> GetEnumerator() {
+            return new SqlEnumerator<T>(GetExecutionEnumerator());
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
-        {
-            return new GenericEnumerator<T>(base.GetEnumerator() as IExecutionEnumerator);
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() {
+            return GetEnumerator();
         }
     }
 }
