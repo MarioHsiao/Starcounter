@@ -45,6 +45,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bmx", "Chunks\BMX\bmx.vcxpr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpStructs", "HTTP\HttpStructs\HttpStructs.csproj", "{90D57166-B42E-4BBE-B9EC-CFB33E551B77}"
 	ProjectSection(ProjectDependencies) = postProject
+		{5A65D606-6613-4139-8853-B5F26313E4DF} = {5A65D606-6613-4139-8853-B5F26313E4DF}
 		{594FE78A-A893-4757-A946-5ED350D383D2} = {594FE78A-A893-4757-A946-5ED350D383D2}
 	EndProjectSection
 EndProject
@@ -246,7 +247,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "scservice", "scservice\scse
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpStructs.Tests", "HTTP\HttpStructs.Tests\HttpStructs.Tests.csproj", "{DD81F07E-8E1E-490B-A940-F651D7DAF6B6}"
 	ProjectSection(ProjectDependencies) = postProject
-		{5A65D606-6613-4139-8853-B5F26313E4DF} = {5A65D606-6613-4139-8853-B5F26313E4DF}
 		{594FE78A-A893-4757-A946-5ED350D383D2} = {594FE78A-A893-4757-A946-5ED350D383D2}
 	EndProjectSection
 EndProject
