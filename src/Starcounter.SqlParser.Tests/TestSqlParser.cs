@@ -111,6 +111,9 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select * from t [ 2]");
             analyzer.ParseQuery("select * from t \"table\"");
             analyzer.ParseQuery("select t.u as USER from t as ORDER");
+            analyzer.ParseQuery("select order() from order() as order order by order()");
+            analyzer.ParseQuery("select order from order as order order by order");
+            analyzer.ParseQuery("select a<b, a<c from t");
         }
 
         [Test]
