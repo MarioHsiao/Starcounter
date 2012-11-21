@@ -262,7 +262,7 @@ namespace Starcounter
     /// Used in order to keep track of when job bound references should be
     /// verified.
     /// </summary>
-    internal sealed class CaptureGC {
+    public sealed class CaptureGC { // Internal
         // Note that since Finalize is used to discover when a garbage
         // collection has been executed it will be some delay between the time
         // the garbage ran and the counter is updated.
@@ -273,8 +273,12 @@ namespace Starcounter
             Counter = 0;
         }
 
-        internal CaptureGC() : base() { }
+        /// <summary>
+        /// </summary>
+        public CaptureGC() : base() { }
 
+        /// <summary>
+        /// </summary>
         ~CaptureGC() {
             var counter = Counter;
             if (counter != UInt32.MaxValue) {
