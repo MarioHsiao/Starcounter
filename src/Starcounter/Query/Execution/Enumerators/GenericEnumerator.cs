@@ -29,13 +29,11 @@ namespace Starcounter {
         /// </summary>
         public dynamic Current {
             get {
-                try {
+                if (subEnumerator != null) {
                     return subEnumerator.Current;
                 }
-                catch (NullReferenceException) {
-                    if (subEnumerator == null)
-                        throw new ObjectDisposedException("Enumerator");
-                    throw;
+                else {
+                    throw new ObjectDisposedException("Enumerator");
                 }
             }
         }
@@ -177,6 +175,23 @@ namespace Starcounter {
             }
         }
 #endif
+
+        // We hide the base Current property to return an instance of T instead
+        // of a dynamic in case the property is accessed from generic
+        // SqlEnumerator instance in order to not polute the calling code with
+        // dynamic code when you explicitly specify the type.
+
+        /// <summary>
+        /// Gets the current item (row) in the result of the query.
+        /// </summary>
+        new public T Current {
+            get {
+                if (subEnumerator != null)
+                    return subEnumerator.Current;
+                else
+                    throw new ObjectDisposedException("Enumerator");
+            }
+        }
 
         T System.Collections.Generic.IEnumerator<T>.Current {
             get {

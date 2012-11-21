@@ -16,8 +16,7 @@ namespace Starcounter
     /// <summary>
     /// 
     /// </summary>
-    public class SqlResult : IEnumerable
-    {
+    public class SqlResult : IEnumerable {
         /// <summary>
         /// 
         /// </summary>
@@ -39,8 +38,7 @@ namespace Starcounter
         protected Boolean slowSQL; // Describes if queries with slow executions are allowed or not.
 
         // Creating SQL result with query parameters all given at once.
-        internal SqlResult(UInt64 transactionId, String query, Boolean slowSQL, params Object[] sqlParamsValues)
-        {
+        internal SqlResult(UInt64 transactionId, String query, Boolean slowSQL, params Object[] sqlParamsValues) {
             this.transactionId = transactionId;
             this.query = query;
             this.slowSQL = slowSQL;
@@ -51,15 +49,12 @@ namespace Starcounter
         /// Obtaining only the first hit/result and disposing the enumerator.
         /// </summary>
         /// <value></value>
-        public dynamic First
-        {
-            get
-            {
+        public dynamic First {
+            get {
                 IExecutionEnumerator execEnum = null;
                 dynamic current = null;
 
-                try
-                {
+                try {
                     execEnum = GetExecutionEnumerator();
 
                     current = null;
@@ -70,10 +65,8 @@ namespace Starcounter
                     if (execEnum.MoveNext())
                         current = execEnum.Current;
                 }
-                finally
-                {
-                    if (execEnum != null)
-                        execEnum.Dispose();
+                finally {
+                    if (execEnum != null) execEnum.Dispose();
                 }
 
                 return current;
@@ -86,8 +79,7 @@ namespace Starcounter
         /// </summary>
         /// <returns>SqlEnumerator.</returns>
         /// <exception cref="Starcounter.SqlException">Literal in query is not supported. Use variable and parameter instead.</exception>
-        public SqlEnumerator GetEnumerator()
-        {
+        public SqlEnumerator GetEnumerator() {
             return new SqlEnumerator(GetExecutionEnumerator());
         }
 
