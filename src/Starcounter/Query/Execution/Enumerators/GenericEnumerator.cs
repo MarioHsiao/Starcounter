@@ -130,6 +130,22 @@ namespace Starcounter {
                 throw new ObjectDisposedException("Enumerator");
         }
 
+        /// <summary>
+        /// Returns a string presentation of the execution enumerator including
+        /// a specification of the type of the returned objects and the execution plan.
+        /// </summary>
+        /// <returns>A string presentation of the execution enumerator.</returns>
+        public override string ToString() {
+            try {
+                return subEnumerator.ToString();
+            }
+            catch (NullReferenceException) {
+                if (subEnumerator == null)
+                    throw new ObjectDisposedException("Enumerator");
+                throw;
+            }
+        }
+
         object System.Collections.IEnumerator.Current {
             get {
                 return Current;
