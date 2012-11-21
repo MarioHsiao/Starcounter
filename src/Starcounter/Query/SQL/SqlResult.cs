@@ -60,17 +60,7 @@ namespace Starcounter
 
                 try
                 {
-                    execEnum = GetEnumerator() as IExecutionEnumerator;
-
-                    // Check if the query includes anything non-supported.
-                    if (execEnum.QueryFlags != QueryFlags.None && !slowSQL)
-                    {
-                        if ((execEnum.QueryFlags & QueryFlags.IncludesLiteral) != QueryFlags.None)
-                            throw new SqlException("Literal in query is not supported. Use variable and parameter instead.");
-
-                        if ((execEnum.QueryFlags & QueryFlags.IncludesAggregation) != QueryFlags.None)
-                            throw new SqlException("Aggregation in query is not supported.");
-                    }
+                    execEnum = GetExecutionEnumerator();
 
                     current = null;
 
