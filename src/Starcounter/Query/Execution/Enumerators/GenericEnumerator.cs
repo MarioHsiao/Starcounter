@@ -9,12 +9,17 @@ namespace Starcounter.Query.Execution
     {
         IExecutionEnumerator subEnumerator;
 
+        XNode node;
+
         internal GenericEnumerator(IExecutionEnumerator subEnumerator)
         {
             if (subEnumerator == null)
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect subEnumerator.");
             
             this.subEnumerator = subEnumerator;
+
+            node = new XNode(this, subEnumerator);
+            ThreadData.Current.RegisterObject(node);
         }
 
         public Boolean MoveNext()
