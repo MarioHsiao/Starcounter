@@ -91,6 +91,7 @@
     <Compile Include="RequestHandler\AstTree\AstVerifier.cs" />
     <Compile Include="RequestHandler\ParseTree\ParseTreeGenerator.cs" />
     <Compile Include="RequestHandler\ParseTree\ParseNode.PrettyPrint.cs" />
+    <Compile Include="RequestHandler\PreprocessUriTemplate.cs" />
     <Compile Include="RequestHandler\RequestHandler.cs" />
     <Compile Include="Http\HttpRequestWriter.cs" />
     <Compile Include="Http\HttpResponseBuilder.cs" />
