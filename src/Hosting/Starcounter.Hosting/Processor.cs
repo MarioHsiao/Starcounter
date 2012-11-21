@@ -22,6 +22,7 @@ namespace StarcounterInternal.Hosting
         /// </summary>
         public unsafe static void Setup(void* hsched) {
             ScrapHeap.Setup(hsched);
+            new CaptureGC();
         }
 
         /// <summary>
