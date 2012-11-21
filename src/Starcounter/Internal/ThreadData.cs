@@ -133,14 +133,10 @@ namespace Starcounter
 
         /// <summary>
         /// </summary>
-        public bool CollectAndTryToCleanupDeadObjects(Boolean fullGC) {
-            int ir;
-            GC.Collect(0, GCCollectionMode.Forced);
-            ir = CleanupDeadObjects();
-            if (ir != 0) return true;
-            if (!fullGC) return false;
-            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
-            ir = CleanupDeadObjects();
+        public bool CollectAndTryToCleanupDeadObjects(bool fullGC) {
+            if (!fullGC) GC.Collect(0, GCCollectionMode.Forced);
+            else GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
+            int ir = CleanupDeadObjects();
             return (ir != 0);
         }
 
