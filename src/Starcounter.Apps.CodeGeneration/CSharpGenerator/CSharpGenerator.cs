@@ -310,17 +310,23 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 " DefaultTemplate = new " +
                 a.NTemplateClass.ClassName +
                 "();");
+            /*            var sb = new StringBuilder();
 
-            StringBuilder sb = new StringBuilder();
-            sb.Append("    public ");
-            sb.Append(a.ClassName);
-            sb.Append("() : base(DefaultTemplate) { }");
-            sb.AppendLine();
-            sb.Append("    public ");
-            sb.Append(a.ClassName);
-            sb.Append("(Func<Entity> initializeTransaction) : base(DefaultTemplate, initializeTransaction) { }");
-            a.Prefix.Add(sb.ToString());
+                        sb.Append("    public ");
+                        sb.Append(a.ClassName);
+                        sb.Append("( Entity data ) {");
+                        a.Prefix.Add(sb.ToString());
+                        sb = new StringBuilder();
+                        sb.Append("        Data = data;");
+                        a.Prefix.Add(sb.ToString());
+                        sb = new StringBuilder();
+                        sb.Append("    }");
+                        a.Prefix.Add(sb.ToString());
+                        */
 
+            a.Prefix.Add("    public " 
+                         + a.ClassName 
+                         + "() { Template = DefaultTemplate; }");
             a.Prefix.Add(
                 "    public new " +
                 a.NTemplateClass.ClassName +
@@ -334,7 +340,6 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 a.NTemplateClass.NMetadataClass.ClassName +
                 ")base.Metadata; } }");
         }
-
 
         /// <summary>
         /// Writes the app template member prefix.
@@ -410,7 +415,11 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             sb.Append(m.Type.FullClassName);
             sb.Append("(App, App.Template.");
             sb.Append(m.MemberName);
-            sb.Append(")); } } private ");
+            sb.Append(")); } }");
+            m.Prefix.Add(sb.ToString());
+
+            sb.Clear();
+            sb.Append("private ");
             sb.Append(m.Type.FullClassName);
             sb.Append(" __p_");
             sb.Append(m.MemberName);
