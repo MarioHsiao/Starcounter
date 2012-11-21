@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using Newtonsoft.Json;
 using Starcounter.Internal;
 using Starcounter.Internal.Application;
 using Starcounter.Templates;
@@ -409,21 +410,10 @@ namespace Starcounter.Internal.JsonPatch {
             sb.Append('"');
             if (patchType != REMOVE) {
                 sb.Append(", \"value\":");
-
-                if (value is String) {
-                    sb.Append('"');
-                    sb.Append(value);
-                    sb.Append('"');
-                } else if (value is App) {
+                if (value is App) {
                     sb.Append(((App)value).ToJson());
-                } else if (value is bool) {
-                    sb.Append(value.ToString().ToLower());
-                } else if (value is decimal) {
-                    sb.Append(((decimal)value).ToString(CultureInfo.InvariantCulture));
-                } else if (value is double) {
-                    sb.Append(((double)value).ToString(CultureInfo.InvariantCulture));
                 } else {
-                    sb.Append(value);
+                    sb.Append(JsonConvert.SerializeObject(value));
                 }
             }
             return sb.ToString();
