@@ -87,6 +87,7 @@ namespace Starcounter.Query.Execution
             {
                 subEnumerator.Dispose();
                 subEnumerator = null;
+                node.MarkAsDead();
             }
         }
 
