@@ -30,7 +30,7 @@ namespace Starcounter.Query.Execution
             return MoveNext();
         }
 
-        public dynamic Current
+        public T Current
         {
             get 
             {
@@ -55,7 +55,7 @@ namespace Starcounter.Query.Execution
             }
         }
 
-        T System.Collections.Generic.IEnumerator<T>.Current
+        dynamic Starcounter.ISqlEnumerator.Current
         {
             get
             {
