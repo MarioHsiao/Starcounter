@@ -1,10 +1,11 @@
 ﻿
 using Starcounter.Binding;
+using Starcounter.Query.Execution;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Starcounter.Query.Execution {
+namespace Starcounter {
 
     /// <summary>
     /// </summary>
