@@ -25,6 +25,7 @@ public partial class PlayerApp {
         public KidApp(KidAppTemplate template) { Template = template; }
         public new KidAppTemplate Template { get { return (KidAppTemplate)base.Template; } set { base.Template = value; } }
         public new KidAppMetadata Metadata { get { return (KidAppMetadata)base.Metadata; } }
+        public new PlayerApp Parent { get { return (PlayerApp)base.Parent; } set { base.Parent = (PlayerApp)value; } }
         public String Grandkid { get { return GetValue(Template.Grandkid); } set { SetValue(Template.Grandkid, value); } }
         public class KidAppTemplate : AppTemplate {
             public KidAppTemplate()
@@ -33,7 +34,7 @@ public partial class PlayerApp {
                 ClassName = "KidApp";
                 Grandkid = Register<StringProperty>("Grandkid");
             }
-            public override object CreateInstance(AppNode parent) { return new KidApp(this) { Parent = parent }; }
+            public override object CreateInstance(AppNode parent) { return new KidApp(this) { Parent = (PlayerApp)parent }; }
             public StringProperty Grandkid;
         }
         public class KidAppMetadata : AppMetadata {
