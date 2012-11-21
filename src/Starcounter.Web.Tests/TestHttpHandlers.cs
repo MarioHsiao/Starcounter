@@ -46,38 +46,38 @@ namespace Starcounter.Internal.Test {
                 return "404 Not Found";
             });
             */
-            GET("/players/@i", (int playerId) => {
+            GET("/players/{?}", (int playerId) => {
                 Assert.AreEqual(123, playerId);
                 Console.WriteLine("playerId=" + playerId);
                 return null;
             });
 
-            GET("/dashboard/@i", (int playerId) => {
+            GET("/dashboard/{?}", (int playerId) => {
                 Assert.AreEqual(123, playerId);
                 Console.WriteLine("playerId=" + playerId);
                 return null;
             });
 
-            GET("/players?@s", (string fullName) => {
+            GET("/players?{?}", (string fullName) => {
                 Assert.AreEqual("KalleKula", fullName);
                 Console.WriteLine("f=" + fullName);
                 return null;
             });
 
-            PUT("/players/@i", (int playerId) => {
+            PUT("/players/{?}", (int playerId) => {
                 Assert.AreEqual(123, playerId);
                 //                Assert.IsNotNull(request);
                 Console.WriteLine("playerId: " + playerId); //+ ", request: " + request);
                 return null;
             });
 
-            POST("/transfer?@i", (int from) => {
+            POST("/transfer?{?}", (int from) => {
                 Assert.AreEqual(99, from);
                 Console.WriteLine("From: " + from );
                 return null;
             });
 
-            POST("/deposit?@i", (int to) => {
+            POST("/deposit?{?}", (int to) => {
                 Assert.AreEqual(56754, to);
                 Console.WriteLine("To: " + to );
                 return null;
@@ -201,7 +201,7 @@ namespace Starcounter.Internal.Test {
                 return null;
             });
 
-            GET("/products/@s", (string prodid) => {
+            GET("/products/{?}", (string prodid) => {
                 Console.WriteLine("Handler 2 was called with " + prodid );
                 return null;
             });
