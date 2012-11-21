@@ -57,6 +57,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AppsBootstrapper.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="Control.cs" />
     <Compile Include="ProgramCommandLine.cs" />
@@ -70,6 +71,26 @@
     <ProjectReference Include="..\HTTP\HttpStructs\HttpStructs.csproj">
       <Project>{90d57166-b42e-4bbe-b9ec-cfb33e551b77}</Project>
       <Name>HttpStructs</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\REST\Starcounter.Rest.csproj">
+      <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
+      <Name>Starcounter.Rest</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Apps.Interfaces\Starcounter.Apps.Interfaces.csproj">
+      <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
+      <Name>Starcounter.Apps.Interfaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Apps.JsonPatch\Starcounter.Apps.JsonPatch.csproj">
+      <Project>{828ecac2-9748-4e7f-bdc0-6d154c90b9c3}</Project>
+      <Name>Starcounter.Apps.JsonPatch</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Apps\Starcounter.Apps.csproj">
+      <Project>{bbaad98c-2661-42dc-85e4-3f2d11bbe010}</Project>
+      <Name>Starcounter.Apps</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Hypermedia\Starcounter.Hypermedia.csproj">
+      <Project>{42137e4c-afe5-4c60-b970-3343c3b3ec30}</Project>
+      <Name>Starcounter.Hypermedia</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>

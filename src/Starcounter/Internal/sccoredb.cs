@@ -168,6 +168,10 @@ namespace Starcounter.Internal
         public delegate void ON_NEW_SCHEMA(ulong generation);
 
         /// <summary>
+        /// </summary>
+        public delegate uint ON_NO_TRANSACTION();
+
+        /// <summary>
         /// Struct sccoredb_config
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
@@ -177,6 +181,10 @@ namespace Starcounter.Internal
             /// The on_new_schema
             /// </summary>
             public void* on_new_schema;
+
+            /// <summary>
+            /// </summary>
+            public void* on_no_transaction;
         }
 
         /// <summary>
@@ -646,14 +654,29 @@ namespace Starcounter.Internal
             );
 
         /// <summary>
+        /// </summary>
+        public const uint MDB_TRANSCREATE_MERGING_WRITES = 0x0004;
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint sccoredb_create_transaction(
+            uint flags,
+            out ulong handle,
+            out ulong verify
+            );
+
+        /// <summary>
         /// Sccoredb_create_transaction_and_set_currents the specified lock_tran_on_thread.
         /// </summary>
+        /// <param name="flags"></param>
         /// <param name="lock_tran_on_thread">The lock_tran_on_thread.</param>
         /// <param name="handle">The handle.</param>
         /// <param name="verify">The verify.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint sccoredb_create_transaction_and_set_current(
+            uint flags,
             int lock_tran_on_thread,
             out ulong handle,
             out ulong verify
@@ -706,6 +729,11 @@ namespace Starcounter.Internal
         public extern static uint sccoredb_abort_commit(
             int tran_locked_on_thread
             );
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint sccoredb_rollback();
 
         /// <summary>
         /// Sccoredb_reset_aborts this instance.

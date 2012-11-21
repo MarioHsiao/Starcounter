@@ -17,9 +17,9 @@ namespace Starcounter.Internal.Uri
     /// <remarks>Example:
     /// The top most RequestProcessor might encapulate three SingleRequestProcessors:
     /// 
-    /// "GET /test/{param}"
+    /// "GET /test/{?}"
     /// "POST /hello/world"
-    /// "DELETE /test/{x}"
+    /// "DELETE /test/{?}"
     /// 
     /// The byte array containing the verb and URI would be passed to the Process function of the
     /// top level RequestProcessor and the matching would be done by calling child RequestProcessors.
@@ -28,19 +28,19 @@ namespace Starcounter.Internal.Uri
     /// However, in the example below, there would be three levels and there is no immediate way for
     /// the top level to distinguish between to almost ambigous URIs without parsing the values.
     /// 
-    /// "GET /test/{param}"
+    /// "GET /test/{?}"
     /// "POST /hello/cruel/world"
-    /// "POST /hello/{param}/world"
-    /// "DELETE /test/{x}"
+    /// "POST /hello/{?}/world"
+    /// "DELETE /test/{?}"
     /// 
     /// In this case, the top level RequestProcessor would have three children:
     /// "GET /test/{param}"
     /// "POST /hello/...
-    /// "DELETE /test/{x}"
+    /// "DELETE /test/{?}"
     /// 
     /// And the child "POST /hello..." RequestProcessor would have two children:
     /// "POST /hello/cruel/world"
-    /// "POST /hello/{param}/world"</remarks>
+    /// "POST /hello/{?}/world"</remarks>
     public abstract class RequestProcessor {
         /// <summary>
         /// Tries to match and parse a verb and a URI. Can also envoke its handler.

@@ -36,8 +36,8 @@ namespace Starcounter.Internal.Uri {
         /// <value>The unprepared verb and URI.</value>
         public string UnpreparedVerbAndUri {
             set {
-                _PreparedVerbAndUri = value + " ";
                 _UnpreparedVerbAndUri = value;
+                _PreparedVerbAndUri = UriTemplatePreprocessor.PreprocessUriTemplate(this);
             }
             get {
                 return _UnpreparedVerbAndUri;

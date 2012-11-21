@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
-
+using Starcounter.CommandLine;
 
 namespace Starcounter.VisualStudio.Projects {
     using ProjectConfiguration = StarcounterProjectConfiguration;
@@ -46,13 +46,9 @@ namespace Starcounter.VisualStudio.Projects {
 
         internal string[] Arguments {
             get {
-                // TODO PSA:
-                // The below is not sufficient for a production release,
-                // since it doesn't handle espaped strings and strings with
-                // spaces. It's in the backlog to fix it.
                 return string.IsNullOrEmpty(startArgumentsString)
-                    ? new string[] {}
-                    : startArgumentsString.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    ? new string[] { }
+                    : CommandLineStringParser.SplitCommandLine(startArgumentsString).ToArray();
             }
         }
 

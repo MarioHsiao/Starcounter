@@ -94,8 +94,11 @@ namespace starcounter
 {
 namespace bmx
 {
-    #define LINKED_CHUNK 0x01
-    #define SCHEDULER_SPIN_COUNT 1000000
+    // Flag indicating that multiple chunks are passed.
+    const uint8_t LINKED_CHUNKS_FLAG = 1;
+
+    // Scheduler spin count.
+    const uint32_t SCHEDULER_SPIN_COUNT = 1000000;
 
     // Constants needed for chunks processing.
     const uint32_t MAX_DATA_BYTES_IN_CHUNK = starcounter::core::chunk_size - shared_memory_chunk::LINK_SIZE;
@@ -103,26 +106,24 @@ namespace bmx
     const uint32_t MAX_BYTES_LINKED_CHUNKS = MAX_NUM_LINKED_WSABUFS * MAX_DATA_BYTES_IN_CHUNK;
 
     const uint32_t BMX_HANDLER_SIZE = 2;
-    const uint32_t BMX_PROTOCOL_BEGIN = 16;
-    const uint32_t REQUEST_SIZE_BEGIN = BMX_PROTOCOL_BEGIN + BMX_HANDLER_SIZE;
+    const uint32_t BMX_PROTOCOL_BEGIN_OFFSET = 16;
+    const uint32_t REQUEST_SIZE_BEGIN = BMX_PROTOCOL_BEGIN_OFFSET + BMX_HANDLER_SIZE;
     const uint32_t BMX_HEADER_MAX_SIZE_BYTES = 24;
-    const uint32_t GATEWAY_DATA_BEGIN = BMX_HEADER_MAX_SIZE_BYTES + 32;
 
-    const uint32_t SESSION_SALT_OFFSET = GATEWAY_DATA_BEGIN;
-    const uint32_t SESSION_INDEX_OFFSET = GATEWAY_DATA_BEGIN + 8;
-    const uint32_t SESSION_APPS_UNIQUE_SESSION_NUMBER_OFFSET = GATEWAY_DATA_BEGIN + 16;
+    const uint32_t GATEWAY_DATA_BEGIN_OFFSET = BMX_HEADER_MAX_SIZE_BYTES + 32;
+    const uint32_t SESSION_STRUCT_SIZE = 32;
 
-    const uint32_t USER_DATA_OFFSET = GATEWAY_DATA_BEGIN + 24;
-    const uint32_t MAX_USER_DATA_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 28;
-    const uint32_t USER_DATA_WRITTEN_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 32;
+    const uint32_t USER_DATA_OFFSET = GATEWAY_DATA_BEGIN_OFFSET + SESSION_STRUCT_SIZE;
+    const uint32_t MAX_USER_DATA_BYTES_OFFSET = USER_DATA_OFFSET + 4;
+    const uint32_t USER_DATA_WRITTEN_BYTES_OFFSET = MAX_USER_DATA_BYTES_OFFSET + 4;
 
-    const uint32_t SOCKET_DATA_NUM_CLONE_BYTES = 128;
+    const uint32_t SOCKET_DATA_NUM_CLONE_BYTES = 136;
     const uint32_t BMX_NUM_CLONE_BYTES = BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_NUM_CLONE_BYTES;
 
-    const uint32_t SOCKET_DATA_HTTP_REQUEST_OFFSET = 200;
+    const uint32_t SOCKET_DATA_HTTP_REQUEST_OFFSET = 208;
     const uint32_t BMX_HTTP_REQUEST_OFFSET = BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_HTTP_REQUEST_OFFSET;
 
-    // Size of the usable chunk data.
+    const uint32_t SOCKET_DATA_NUM_CHUNKS_OFFSET = 84;
     const uint32_t GATEWAY_ORIG_CHUNK_DATA_SIZE = starcounter::core::chunk_size - BMX_HEADER_MAX_SIZE_BYTES - shared_memory_chunk::LINK_SIZE;
 
     // Predefined BMX management handler.

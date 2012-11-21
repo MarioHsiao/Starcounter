@@ -14,39 +14,13 @@ namespace Starcounter {
     /// <typeparam name="T"></typeparam>
     public class App<T> : App where T : Entity {
         /// <summary>
-        /// 
-        /// </summary>
-        public App() : base() {
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="template"></param>
-        public App(AppTemplate template) : base(template) {
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="template"></param>
-        /// <param name="initializeTransaction"></param>
-        public App(AppTemplate template, Func<Entity> initializeTransaction)
-            : base(template, initializeTransaction) {
-        }
-
-        /// <summary>
         /// Gets or sets the data.
         /// </summary>
         /// <value>The data.</value>
         public new T Data 
         {
-            get { return (T)_Data; } 
-            set { 
-                _Data = value;
-                RefreshAllBoundValues();
-                OnData();
-            }  
+            get { return (T)base.Data; }
+            set { base.Data = value; }
         }
     }
 }

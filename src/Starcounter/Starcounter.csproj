@@ -111,6 +111,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Internal\ExceptionManager.cs" />
+    <Compile Include="Internal\TaskHelper.cs" />
     <Compile Include="ITransactionConflictException.cs" />
     <Compile Include="LargeBinary.cs" />
     <Compile Include="Error.cs" />
@@ -164,6 +165,7 @@
     <Compile Include="Query\Execution\Comparers\StringPathComparer.cs" />
     <Compile Include="Query\Execution\Comparers\UIntegerComparer.cs" />
     <Compile Include="Query\Execution\Comparers\UIntegerPathComparer.cs" />
+    <Compile Include="Query\Execution\Enumerators\GenericEnumerator.cs" />
     <Compile Include="Query\Execution\Row\RowMetaObject.cs" />
     <Compile Include="Query\Execution\Row\Row.cs" />
     <Compile Include="Query\Execution\Row\RowTypeBinding.cs" />
@@ -320,6 +322,7 @@
     <Compile Include="Query\prologbeans\SupportClass.cs" />
     <Compile Include="Query\prologbeans\Term.cs" />
     <Compile Include="Query\RawParserAnalyzer\ParserAnalyzerErrors.cs" />
+    <Compile Include="Query\SQL\SqlResultGeneric.cs" />
     <Compile Include="Query\RawParserAnalyzer\ParserAnalyzerUtils.cs" />
     <Compile Include="Query\RawParserAnalyzer\RawParserAnalyzer.cs" />
     <Compile Include="Query\RawParserAnalyzer\rawparser_enums.cs" />
@@ -398,7 +401,9 @@
       <Link>Query\RawParserAnalyzer\Starcounter.SqlParser.dll</Link>
     </Content>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="..\Starcounter.ErrorCodes\errorcodes.xml" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>$(SolutionDir)Starcounter.ErrorCodes\ErrorCodeCompiler\scerrcc.exe $(SolutionDir)Starcounter.ErrorCodes\errorcodes.xml -orangestdcs $(ProjectDir)Error.cs</PreBuildEvent>
