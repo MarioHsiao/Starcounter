@@ -475,34 +475,34 @@ namespace StarcounterInternal.Bootstrap
         {
             uint e;
 
-            e = sccoredb.SCConfigSetValue("NAME", c.Name);
+            e = sccoredb.sccoredb_set_system_variable("NAME", c.Name);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccoredb.SCConfigSetValue("IMAGEDIR", c.DatabaseDirectory);
+            e = sccoredb.sccoredb_set_system_variable("IMAGEDIR", c.DatabaseDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccoredb.SCConfigSetValue("OLOGDIR", c.DatabaseDirectory);
+            e = sccoredb.sccoredb_set_system_variable("OLOGDIR", c.DatabaseDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccoredb.SCConfigSetValue("TLOGDIR", c.DatabaseDirectory);
+            e = sccoredb.sccoredb_set_system_variable("TLOGDIR", c.DatabaseDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccoredb.SCConfigSetValue("TEMPDIR", c.TempDirectory);
+            e = sccoredb.sccoredb_set_system_variable("TEMPDIR", c.TempDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccoredb.SCConfigSetValue("COMPPATH", c.CompilerPath);
+            e = sccoredb.sccoredb_set_system_variable("COMPPATH", c.CompilerPath);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccoredb.SCConfigSetValue("OUTDIR", c.OutputDirectory);
+            e = sccoredb.sccoredb_set_system_variable("OUTDIR", c.OutputDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
             // TODO: What is this configuration for?
-            e = sccoredb.SCConfigSetValue("ELOGDIR", c.OutputDirectory);
+            e = sccoredb.sccoredb_set_system_variable("ELOGDIR", c.OutputDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            sccoredb.sccoredb_config config = new sccoredb.sccoredb_config();
-            orange.orange_configure_database_callbacks(ref config);
-            e = sccoredb.sccoredb_configure(&config);
+            var callbacks = new sccoredb.sccoredb_callbacks();
+            orange.orange_configure_database_callbacks(ref callbacks);
+            e = sccoredb.sccoredb_set_system_callbacks(&callbacks);
             if (e != 0) throw ErrorCode.ToException(e);
         }
 

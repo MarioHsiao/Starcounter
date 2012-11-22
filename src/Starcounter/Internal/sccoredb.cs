@@ -151,16 +151,6 @@ namespace Starcounter.Internal
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint Mdb_GetLastError();
 
-
-        /// <summary>
-        /// SCs the config set value.
-        /// </summary>
-        /// <param name="key">The key.</param>
-        /// <param name="value">The value.</param>
-        /// <returns>System.UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint SCConfigSetValue(string key, string value);
-
         /// <summary>
         /// Delegate ON_NEW_SCHEMA
         /// </summary>
@@ -175,7 +165,7 @@ namespace Starcounter.Internal
         /// Struct sccoredb_config
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
-        public unsafe struct sccoredb_config
+        public unsafe struct sccoredb_callbacks
         {
             /// <summary>
             /// The on_new_schema
@@ -188,12 +178,14 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
-        /// Sccoredb_configures the specified pconfig.
         /// </summary>
-        /// <param name="pconfig">The pconfig.</param>
-        /// <returns>System.UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe uint sccoredb_configure(sccoredb_config* pconfig);
+        public static extern unsafe uint sccoredb_set_system_callbacks(sccoredb_callbacks* pcallbacks);
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        public static extern uint sccoredb_set_system_variable(string key, string value);
 
         /// <summary>
         /// The SCCORED b_ LOA d_ DATABASE
