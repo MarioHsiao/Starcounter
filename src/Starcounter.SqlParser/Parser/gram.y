@@ -8311,6 +8311,7 @@ type_func_name_keyword:
 			| RIGHT
 			| SIMILAR
 			| STARTS
+			| UNION
 			| USER
 			| VERBOSE
 			| WINDOW
@@ -8394,7 +8395,6 @@ reserved_keyword:
 			| TO
 			| TRAILING
 			| TRUE_P
-			| UNION
 			| UNIQUE
 			| USE
 			| USING
