@@ -201,11 +201,6 @@ namespace Starcounter.Internal
         public const uint SCCOREDB_LOAD_DATABASE = 0x00100000;
 
         /// <summary>
-        /// The SCCORED b_ COMPLET e_ INIT
-        /// </summary>
-        public const uint SCCOREDB_COMPLETE_INIT = 0x00200000;
-
-        /// <summary>
         /// The SCCORED b_ ENABL e_ CHEC k_ FIL e_ O n_ LOAD
         /// </summary>
         public const uint SCCOREDB_ENABLE_CHECK_FILE_ON_LOAD = 0x00010000;
@@ -1127,20 +1122,13 @@ namespace Starcounter.Internal
         );
 
         /// <summary>
-        /// MDB_s the state of the object write attribute.
         /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="value">The value.</param>
-        /// <returns>Boolean.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static Boolean Mdb_ObjectWriteAttributeState(
-            UInt64 objectOID,
-            UInt64 objectETI,
-            Int32 index,
-            UInt16 value
-        );
+        public extern static uint sccoredb_set_null(
+            ulong record_id,
+            ulong record_addr,
+            int index
+            );
 
         /// <summary>
         /// MDB_s the object write string16.
@@ -1263,6 +1251,7 @@ namespace Starcounter.Internal
             UInt64* pData
         );
 
+#if false
         /// <summary>
         /// SCs the iterator fill up.
         /// </summary>
@@ -1281,6 +1270,7 @@ namespace Starcounter.Internal
             UInt32 resultsMaxBytes,
             UInt32* resultsNum,
             UInt32* flags);
+#endif
 
         //
         // The iterator is freed if no errors (and only if no errors).
@@ -1632,6 +1622,7 @@ namespace Starcounter.Internal
         UInt32 maxBytes,
         UInt32* outLenBytes);
 
+#if false
     /// <summary>
     /// Struct SC_SQL_CALLBACKS
     /// </summary>
@@ -1651,7 +1642,9 @@ namespace Starcounter.Internal
         /// </summary>
         internal SqlConn_GetInfo_Type pSqlConn_GetInfo;
     }
+#endif
 
+#if true
     /// <summary>
     /// Class SqlConnectivityInterface
     /// </summary>
@@ -1732,6 +1725,7 @@ namespace Starcounter.Internal
         /// </summary>
         internal const Byte PRINT_PROFILER_RESULTS = 5;
 
+#if false
         /// <summary>
         /// SQLs the conn_ init managed functions.
         /// </summary>
@@ -1795,6 +1789,7 @@ namespace Starcounter.Internal
             UInt32 maxBytes, // [IN] Maximum size in bytes of the result buffer (needed for allocation in Blast).
             UInt32* outLenBytes // [OUT] Length in bytes of the result data.
             );
+#endif
 
         // Types of variable in query.
         /// <summary>
@@ -1838,4 +1833,5 @@ namespace Starcounter.Internal
         /// </summary>
         internal const Byte QUERY_VARTYPE_BOOLEAN = 10;
     }
+#endif
 }

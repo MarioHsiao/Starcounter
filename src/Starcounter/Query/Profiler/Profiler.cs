@@ -1,4 +1,5 @@
-﻿// ***********************************************************************
+﻿#if false
+// ***********************************************************************
 // <copyright file="Profiler.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
@@ -287,3 +288,4 @@ public class Profiler
     }
 }
 }
+#endif
