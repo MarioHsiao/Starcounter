@@ -524,9 +524,6 @@ namespace StarcounterInternal.Bootstrap
             flags |= sccoredb.SCCOREDB_ENABLE_CHECK_FILE_ON_BACKUP;
             flags |= sccoredb.SCCOREDB_ENABLE_CHECK_MEMORY_ON_CHECKP;
 
-            // Temporary solution. See flag docs for details.
-            flags |= sccoredb.SCCOREDB_COMPLETE_INIT;
-
             int empty;
             e = sccoredb.sccoredb_connect(flags, hsched, hmenv, hlogs, &empty);
             if (e != 0) throw ErrorCode.ToException(e);
