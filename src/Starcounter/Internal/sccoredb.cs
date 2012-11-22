@@ -1627,6 +1627,7 @@ namespace Starcounter.Internal
         UInt32 maxBytes,
         UInt32* outLenBytes);
 
+#if false
     /// <summary>
     /// Struct SC_SQL_CALLBACKS
     /// </summary>
@@ -1646,7 +1647,9 @@ namespace Starcounter.Internal
         /// </summary>
         internal SqlConn_GetInfo_Type pSqlConn_GetInfo;
     }
+#endif
 
+#if true
     /// <summary>
     /// Class SqlConnectivityInterface
     /// </summary>
@@ -1727,6 +1730,7 @@ namespace Starcounter.Internal
         /// </summary>
         internal const Byte PRINT_PROFILER_RESULTS = 5;
 
+#if false
         /// <summary>
         /// SQLs the conn_ init managed functions.
         /// </summary>
@@ -1790,6 +1794,7 @@ namespace Starcounter.Internal
             UInt32 maxBytes, // [IN] Maximum size in bytes of the result buffer (needed for allocation in Blast).
             UInt32* outLenBytes // [OUT] Length in bytes of the result data.
             );
+#endif
 
         // Types of variable in query.
         /// <summary>
@@ -1833,4 +1838,5 @@ namespace Starcounter.Internal
         /// </summary>
         internal const Byte QUERY_VARTYPE_BOOLEAN = 10;
     }
+#endif
 }
