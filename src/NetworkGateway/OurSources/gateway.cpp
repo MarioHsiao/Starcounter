@@ -61,6 +61,9 @@ Gateway::Gateway()
     // Maximum total number of sockets.
     setting_max_connections_ = 0;
 
+    // Default inactive session timeout in seconds.
+    setting_inactive_session_timeout_seconds_ = 60 * 20;
+
     // Starcounter server type.
     setting_sc_server_type_ = "Personal";
 
@@ -83,11 +86,15 @@ Gateway::Gateway()
     global_scheduler_id_unsafe_ = 0;
     num_schedulers_ = 0;
 
+    // Initializing global timer.
+    global_timer_unsafe_ = 0;
+
     server_addr_ = NULL;
 
     // Initializing critical sections.
     InitializeCriticalSection(&cs_session_);
     InitializeCriticalSection(&cs_global_lock_);
+    InitializeCriticalSection(&cs_sessions_cleanup_);
 
     // Creating gateway handlers table.
     gw_handlers_ = new HandlersTable();
@@ -292,6 +299,11 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     // Getting maximum connection number.
     setting_max_connections_ = atoi(rootElem->first_node("MaxConnections")->value());
 
+    // Getting inactive session timeout.
+    setting_inactive_session_timeout_seconds_ = atoi(rootElem->first_node("InactiveSessionTimeout")->value());
+    if ((setting_inactive_session_timeout_seconds_ % MIN_INACTIVE_SESSION_LIFE_SECONDS) != 0)
+        return SCERRGWWRONGMAXIDLESESSIONLIFETIME;
+
     // Creating double output object.
     g_log_stream = new std::ofstream(setting_log_file_path_, std::ios::out | std::ios::app);
     g_log_tee = new TeeDevice(std::cout, *g_log_stream);
@@ -330,9 +342,11 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     }
 
     // Allocating data for worker sessions.
-    all_sessions_unsafe_ = new ScSessionStruct[setting_max_connections_];
-    free_session_indexes_unsafe_ = new uint32_t[setting_max_connections_];
+    all_sessions_unsafe_ = (ScSessionStructPlus*)_aligned_malloc(sizeof(ScSessionStructPlus) * setting_max_connections_, 64);
+    free_session_indexes_unsafe_ = new session_index_type[setting_max_connections_];
+    sessions_to_cleanup_unsafe_ = new session_index_type[setting_max_connections_];
     num_active_sessions_unsafe_ = 0;
+    num_sessions_to_cleanup_unsafe_ = 0;
 
     // Cleaning all sessions and free session indexes.
     for (int32_t i = 0; i < setting_max_connections_; i++)
@@ -341,13 +355,15 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         free_session_indexes_unsafe_[i] = i;
 
         // Resetting all sessions.
-        all_sessions_unsafe_[i].Reset();
+        all_sessions_unsafe_[i].session_.Reset();
+
+        // Resetting sessions time stamps.
+        all_sessions_unsafe_[i].session_timestamp_ = 0;
     }
 
     // Cleaning all sockets data.
     for (int32_t i = 0; i < MAX_SOCKET_HANDLE; i++)
     {
-        sockets_data_unsafe_[i].Reset();
         sockets_port_indexes_unsafe_[i] = 255;
         deleted_sockets_unsafe_[i] = false;
     }
@@ -367,6 +383,11 @@ uint32_t Gateway::AssertCorrectState()
     err_code = test_sdc->AssertCorrectState();
     if (err_code)
         goto FAILED;
+
+    // Checking overall gateway stuff.
+    assert(sizeof(ScSessionStruct) == bmx::SESSION_STRUCT_SIZE);
+
+    assert(sizeof(ScSessionStructPlus) == 64);
 
     return 0;
 
@@ -723,9 +744,6 @@ void ActiveDatabase::CloseSocketData()
             // Marking deleted socket.
             g_gateway.MarkSocketDelete(s);
 
-            // Resetting socket data.
-            g_gateway.GetSocketData(s)->Reset();
-
             // NOTE: Can't kill the session here, because it can be used by other databases.
 
             // Closing socket which will results in Disconnect.
@@ -757,9 +775,6 @@ void ActiveDatabase::CloseSocketData()
 // Initializes WinSock, all core data structures, binds server sockets.
 uint32_t Gateway::Init()
 {
-    // Resetting session unique number.
-    unique_socket_stamp_ = 0;
-
     // Checking if already initialized.
     assert ((gw_workers_ == NULL) && (worker_thread_handles_ == NULL));
 
@@ -1115,6 +1130,114 @@ uint32_t __stdcall AllDatabasesChannelsEventsMonitorRoutine(LPVOID params)
     return 0;
 }
 
+// Cleans up all collected inactive sessions.
+uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
+{
+    uint32_t err_code;
+
+    EnterCriticalSection(&cs_sessions_cleanup_);
+
+    // Going through all collected inactive sessions.
+    int32_t num_sessions_to_cleanup = num_sessions_to_cleanup_unsafe_;
+    for (int32_t i = 0; i < num_sessions_to_cleanup; i++)
+    {
+        // Getting existing session copy.
+        ScSessionStruct global_session_copy = GetGlobalSessionDataCopy(sessions_to_cleanup_unsafe_[i]);
+
+        // Checking if session is valid.
+        if (global_session_copy.IsValid())
+        {
+            // Pushing dead session message to all databases.
+            for (int32_t d = 0; d < num_dbs_slots_; d++)
+            {
+                WorkerDbInterface *db = gw->GetDatabase(d);
+                if (NULL != db)
+                {
+                    // Sending session destroyed message.
+                    err_code = db->PushDeadSession(global_session_copy);
+                    if (err_code)
+                    {
+                        LeaveCriticalSection(&cs_sessions_cleanup_);
+                        return err_code;
+                    }
+                }
+            }
+
+            // Killing the session.
+            KillSession(sessions_to_cleanup_unsafe_[i]);
+
+#ifdef GW_SESSIONS_DIAG
+            std::cout << "Inactive session " << global_session_copy.session_index_ << ":" << global_session_copy.session_salt_ << " was destroyed." << std::endl;
+#endif
+        }
+
+        // Inactive session was successfully cleaned up.
+        --num_sessions_to_cleanup_unsafe_;
+    }
+
+    assert(0 == num_sessions_to_cleanup_unsafe_);
+
+    LeaveCriticalSection(&cs_sessions_cleanup_);
+
+    return 0;
+}
+
+// Collects outdated sessions if any.
+uint32_t Gateway::CollectInactiveSessions()
+{
+    // Checking if collected sessions cleanup is not finished yet.
+    if (num_sessions_to_cleanup_unsafe_)
+        return 0;
+
+    EnterCriticalSection(&cs_sessions_cleanup_);
+
+    assert(0 == num_sessions_to_cleanup_unsafe_);
+
+    int32_t num_inactive = 0;
+
+    // TODO: Optimize scanning range.
+    for (int32_t i = 0; i < setting_max_connections_; i++)
+    {
+        // Checking if session touch time is older than inactive session timeout.
+        if ((all_sessions_unsafe_[i].session_timestamp_) &&
+            (global_timer_unsafe_ - all_sessions_unsafe_[i].session_timestamp_) >= setting_inactive_session_timeout_seconds_)
+        {
+            sessions_to_cleanup_unsafe_[num_inactive] = i;
+            ++num_inactive;
+        }
+    }
+
+    num_sessions_to_cleanup_unsafe_ = num_inactive;
+
+    LeaveCriticalSection(&cs_sessions_cleanup_);
+
+    if (num_active_sessions_unsafe_)
+    {
+        // Waking up the worker 0 thread with APC.
+        QueueUserAPC(EmptyApcFunction, worker_thread_handles_[0], 0);
+    }
+
+    return 0;
+}
+
+// Entry point for inactive sessions cleanup.
+uint32_t __stdcall InactiveSessionsCleanupRoutine(LPVOID params)
+{
+    while (1)
+    {
+        // Sleeping minimum interval.
+        Sleep(MIN_INACTIVE_SESSION_LIFE_SECONDS * 1000);
+
+        // Increasing global time by minimum number of seconds.
+        g_gateway.step_global_timer_unsafe(MIN_INACTIVE_SESSION_LIFE_SECONDS);
+
+        // Collecting inactive sessions if any.
+        g_gateway.CollectInactiveSessions();
+    }
+
+    return 0;
+}
+
 // Cleaning up all global resources.
 uint32_t Gateway::GlobalCleanup()
 {
@@ -1132,28 +1255,13 @@ uint32_t Gateway::GlobalCleanup()
     // Deleting critical sections.
     DeleteCriticalSection(&cs_session_);
     DeleteCriticalSection(&cs_global_lock_);
+    DeleteCriticalSection(&cs_sessions_cleanup_);
 
     return 0;
 }
 
-// Create new session based on random salt, linear index, scheduler.
-void ScSessionStruct::GenerateNewSession(
-    session_salt_type session_salt,
-    session_index_type session_index,
-    apps_unique_session_num_type apps_unique_session_num,
-    session_salt_type apps_session_salt,
-    uint32_t scheduler_id)
-{
-    // Initializing the new session.
-    Init(session_salt, session_index, apps_unique_session_num, apps_session_salt, scheduler_id);
-
-#ifdef GW_SESSIONS_DIAG
-    GW_COUT << "New session generated: " << session_index_ << ":" << session_salt_ << std::endl;
-#endif
-}
-
 // Prints statistics, monitors all gateway threads, etc.
-uint32_t Gateway::GatewayStatisticsAndMonitoringRoutine()
+uint32_t Gateway::StatisticsAndMonitoringRoutine()
 {
     // Previous statistics values.
     int64_t prevBytesReceivedAllWorkers = 0,
@@ -1278,7 +1386,8 @@ uint32_t Gateway::GatewayStatisticsAndMonitoringRoutine()
 uint32_t Gateway::StartWorkerAndManagementThreads(
     LPTHREAD_START_ROUTINE workerRoutine,
     LPTHREAD_START_ROUTINE monitorDatabasesRoutine,
-    LPTHREAD_START_ROUTINE channelsEventsMonitorRoutine)
+    LPTHREAD_START_ROUTINE channelsEventsMonitorRoutine,
+    LPTHREAD_START_ROUTINE deadSessionsCleanupRoutine)
 {
     // Allocating threads-related data structures.
     uint32_t *workerThreadIds = new uint32_t[setting_num_workers_];
@@ -1321,8 +1430,19 @@ uint32_t Gateway::StartWorkerAndManagementThreads(
         0, // Use default creation flags.
         (LPDWORD)&channelsEventsThreadId); // Returns the thread identifier.
 
+    uint32_t deadSessionsCleanupThreadId;
+
+    // Starting dead sessions cleanup thread.
+    channels_events_thread_handle_ = CreateThread(
+        NULL, // Default security attributes.
+        0, // Use default stack size.
+        deadSessionsCleanupRoutine, // Thread function name.
+        NULL, // Argument to thread function.
+        0, // Use default creation flags.
+        (LPDWORD)&deadSessionsCleanupThreadId); // Returns the thread identifier.
+
     // Printing statistics.
-    uint32_t err_code = g_gateway.GatewayStatisticsAndMonitoringRoutine();
+    uint32_t err_code = g_gateway.StatisticsAndMonitoringRoutine();
 
     // Close all thread handles and free memory allocations.
     for(int i = 0; i < setting_num_workers_; i++)
@@ -1367,7 +1487,8 @@ int32_t Gateway::StartGateway()
     errCode = StartWorkerAndManagementThreads(
         (LPTHREAD_START_ROUTINE)GatewayWorkerRoutine,
         (LPTHREAD_START_ROUTINE)MonitorDatabasesRoutine,
-        (LPTHREAD_START_ROUTINE)AllDatabasesChannelsEventsMonitorRoutine);
+        (LPTHREAD_START_ROUTINE)AllDatabasesChannelsEventsMonitorRoutine,
+        (LPTHREAD_START_ROUTINE)InactiveSessionsCleanupRoutine);
 
     if (errCode)
         return errCode;

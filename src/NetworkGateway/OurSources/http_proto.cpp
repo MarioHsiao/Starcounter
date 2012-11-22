@@ -242,58 +242,40 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
                 http->http_request_.session_string_len_bytes_ = SC_SESSION_STRING_LEN_CHARS;
 
                 // Reading received session index (skipping session header name and equality).
-                session_index_type session_index = hex_string_to_uint64(at + kScSessionIdStringLength + 1, 8);
-                if (INVALID_CONVERTED_NUMBER == session_index)
+                session_index_type cookie_session_index = hex_string_to_uint64(at + kScSessionIdStringLength + 1, 8);
+                if (INVALID_CONVERTED_NUMBER == cookie_session_index)
                 {
                     GW_COUT << "Session index stored in the HTTP header has wrong format." << std::endl;
                     return SCERRGWHTTPWRONGSESSIONINDEXFORMAT;
                 }
 
                 // Reading received session random salt.
-                uint64_t randomSalt = hex_string_to_uint64(at + kScSessionIdStringLength + 1 + 8, 16);
-                if (INVALID_CONVERTED_NUMBER == randomSalt)
+                uint64_t cookie_random_salt = hex_string_to_uint64(at + kScSessionIdStringLength + 1 + 8, 16);
+                if (INVALID_CONVERTED_NUMBER == cookie_random_salt)
                 {
                     GW_COUT << "Session random salt stored in the HTTP header has wrong format." << std::endl;
                     return SCERRGWHTTPWRONGSESSIONSALTFORMAT;
                 }
 
                 // Checking if we have existing session.
-                ScSessionStruct session = g_gateway.GetGlobalSessionDataCopy(http->sd_ref_->get_session_index());
+                ScSessionStruct global_session_copy = g_gateway.GetGlobalSessionDataCopy(cookie_session_index);
 
-                // Checking if session is valid.
-                if (session.IsValid())
+                // Compare this session with existing one.
+                if (!global_session_copy.CompareSalts(cookie_random_salt))
                 {
-                    // Compare this session with existing one.
-                    if (!session.Compare(randomSalt, session_index))
-                    {
-                        GW_COUT << "Session stored in the HTTP header is wrong." << std::endl;
-                        return SCERRGWHTTPWRONGSESSION;
-                    }
+#ifdef GW_SESSIONS_DIAG
+                    GW_COUT << "Session stored in the HTTP header is wrong/outdated." << std::endl;
+#endif
+
+                    // Resetting the session information.
+                    http->http_request_.session_string_offset_ = 0;
+                    http->http_request_.session_string_len_bytes_ = 0;
+                    http->sd_ref_->ResetSdSession();
                 }
                 else
                 {
-                    // Attaching to existing or creating a new session.
-                    ScSessionStruct existing_session = g_gateway.GetGlobalSessionDataCopy(session_index);
-                    if ((existing_session.IsValid()) && (existing_session.Compare(randomSalt, session_index)))
-                    {
-                        // Attaching existing session.
-                        http->sd_ref_->AttachToSession(&existing_session);
-                    }
-                    else
-                    {
-#ifdef GW_SESSIONS_DIAG
-                        GW_COUT << "Given session does not exist: " << session_index << ":" << randomSalt << std::endl;
-#endif
-                    }
-                }
-            }
-            else
-            {
-                // Checking that session is valid.
-                if (g_gateway.GetGlobalSessionDataCopy(http->sd_ref_->get_session_index()).IsValid())
-                {
-                    GW_COUT << "Expected session cookie was not present!" << std::endl;
-                    return 0;
+                    // Attaching existing global session.
+                    http->sd_ref_->AssignSession(global_session_copy);
                 }
             }
 
@@ -747,11 +729,6 @@ ALL_DATA_ACCUMULATED:
             err_code = sd->CloneToReceive(gw);
             GW_ERR_CHECK(err_code);
 
-            // Checking special case when session is attached to socket,
-            // but no session cookie is presented.
-            if ((0 == http_request_.session_string_offset_) && (g_gateway.GetGlobalSessionDataCopy(sd_ref_->get_session_index()).IsValid()))
-                sd->ResetSession();
-
             // Checking type of response.
             switch (resp_type_)
             {
@@ -825,10 +802,10 @@ ALL_DATA_ACCUMULATED:
             // Skipping cookie header and equality symbol.
             session_cookie += kScSessionIdStringLength + 1;
 
-            // Writing gateway session index.
-            ScSessionStruct session = g_gateway.GetGlobalSessionDataCopy(sd->get_session_index());
-            if (session.IsValid())
-                session.ConvertToString(session_cookie);
+            // Writing gateway session to response cookie.
+            ScSessionStruct global_session_copy = g_gateway.GetGlobalSessionDataCopy(sd->get_session_index());
+            if (global_session_copy.CompareSalts(sd->get_session_salt()))
+                global_session_copy.ConvertToString(session_cookie);
 
             // Session has been created.
             sd->set_new_session_flag(false);
