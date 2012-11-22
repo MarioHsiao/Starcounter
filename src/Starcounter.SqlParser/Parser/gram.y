@@ -6745,7 +6745,7 @@ standard_func_call:
 					n->location = @1;
 					$$ = (Node *)n;
 				}
-			| USER
+/*			| USER
 				{
 					FuncCall *n = makeNode(FuncCall);
 					n->funcname = SystemFuncName("current_user");
@@ -6757,7 +6757,7 @@ standard_func_call:
 					n->over = NULL;
 					n->location = @1;
 					$$ = (Node *)n;
-				}
+				}*/
 			| CURRENT_CATALOG
 				{
 					FuncCall *n = makeNode(FuncCall);
@@ -8295,6 +8295,7 @@ type_func_name_keyword:
 			| CURRENT_SCHEMA
 			| FREEZE
 			| FULL
+			| GROUP_P
 			| ILIKE
 			| INNER_P
 			| IS
@@ -8311,6 +8312,7 @@ type_func_name_keyword:
 			| SIMILAR
 			| STARTS
 			| VERBOSE
+			| USER
 		;
 
 /* Reserved keyword --- these keywords are usable only as a ColLabel.
@@ -8358,7 +8360,6 @@ reserved_keyword:
 			| FOREIGN
 			| FROM
 			| GRANT
-			| GROUP_P
 			| HAVING
 			| IN_P
 			| INDEX
@@ -8395,7 +8396,6 @@ reserved_keyword:
 			| UNION
 			| UNIQUE
 			| USE
-			| USER
 			| USING
 			| VARIADIC
 			| WHEN
