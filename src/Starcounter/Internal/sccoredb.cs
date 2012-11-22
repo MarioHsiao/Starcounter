@@ -1258,6 +1258,7 @@ namespace Starcounter.Internal
             UInt64* pData
         );
 
+#if false
         /// <summary>
         /// SCs the iterator fill up.
         /// </summary>
@@ -1276,6 +1277,7 @@ namespace Starcounter.Internal
             UInt32 resultsMaxBytes,
             UInt32* resultsNum,
             UInt32* flags);
+#endif
 
         //
         // The iterator is freed if no errors (and only if no errors).
