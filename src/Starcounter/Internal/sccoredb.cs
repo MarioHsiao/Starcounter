@@ -1122,20 +1122,13 @@ namespace Starcounter.Internal
         );
 
         /// <summary>
-        /// MDB_s the state of the object write attribute.
         /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="value">The value.</param>
-        /// <returns>Boolean.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static Boolean Mdb_ObjectWriteAttributeState(
-            UInt64 objectOID,
-            UInt64 objectETI,
-            Int32 index,
-            UInt16 value
-        );
+        public extern static uint sccoredb_set_null(
+            ulong record_id,
+            ulong record_addr,
+            int index
+            );
 
         /// <summary>
         /// MDB_s the object write string16.

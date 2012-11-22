@@ -1480,20 +1480,12 @@ namespace Starcounter.Internal
         /// </summary>
         /// <param name="obj">The obj.</param>
         /// <param name="index">The index.</param>
-        internal static void WriteNull(Entity obj, Int32 index)
+        internal static void WriteNull(Entity obj, int index)
         {
-            ObjectRef thisRef;
-            Boolean br;
-            thisRef = obj.ThisRef;
-            unsafe
-            {
-                br = sccoredb.Mdb_ObjectWriteAttributeState(thisRef.ObjectID, thisRef.ETI, index, sccoredb.Mdb_DataValueFlag_Null);
-            }
-            if (br)
-            {
-                return;
-            }
-            throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
+            var thisRef = obj.ThisRef;
+            var r = sccoredb.sccoredb_set_null(thisRef.ObjectID, thisRef.ETI, index);
+            if (r == 0) return;
+            throw ErrorCode.ToException(r);
         }
     }
 }
