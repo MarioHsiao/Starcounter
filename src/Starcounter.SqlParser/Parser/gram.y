@@ -8311,8 +8311,9 @@ type_func_name_keyword:
 			| RIGHT
 			| SIMILAR
 			| STARTS
-			| VERBOSE
 			| USER
+			| VERBOSE
+			| WINDOW
 		;
 
 /* Reserved keyword --- these keywords are usable only as a ColLabel.
@@ -8400,7 +8401,6 @@ reserved_keyword:
 			| VARIADIC
 			| WHEN
 			| WHERE
-			| WINDOW
 			| WITH
 		;
 
