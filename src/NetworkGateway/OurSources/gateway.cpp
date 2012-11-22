@@ -87,7 +87,7 @@ Gateway::Gateway()
     num_schedulers_ = 0;
 
     // Initializing global timer.
-    global_timer_unsafe_ = 0;
+    global_timer_unsafe_ = MIN_INACTIVE_SESSION_LIFE_SECONDS;
 
     server_addr_ = NULL;
 
@@ -1338,8 +1338,11 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
 #ifdef GW_GLOBAL_STATISTICS
 
         // Global statistics.
-        std::cout << "Global: " << "Active chunks " << g_gateway.GetTotalNumUsedChunks() <<
-            ", allocated sockets " << g_gateway.GetTotalNumUsedSockets() << std::endl;
+        std::cout << "Global: " <<
+            "Active chunks " << g_gateway.GetTotalNumUsedChunks() <<
+            ", allocated sockets " << g_gateway.GetTotalNumUsedSockets() <<
+            ", active sessions " << g_gateway.get_num_active_sessions_unsafe() <<
+            std::endl;
 
         // Individual workers statistics.
         for (int32_t worker_id_ = 0; worker_id_ < setting_num_workers_; worker_id_++)

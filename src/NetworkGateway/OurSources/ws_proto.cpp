@@ -85,6 +85,7 @@ uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunk *sd, BMX_
             sd->set_user_data_offset(payload - ((uint8_t *)sd));
 
             // Push chunk to corresponding channel/scheduler.
+            // TODO: Deal with situation when not able to push.
             gw->PushSocketDataToDb(sd, user_handler_id);
 
             break;
@@ -104,6 +105,7 @@ uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunk *sd, BMX_
             sd->set_user_data_offset(payload - ((uint8_t *)sd));
 
             // Push chunk to corresponding channel/scheduler.
+            // TODO: Deal with situation when not able to push.
             gw->PushSocketDataToDb(sd, user_handler_id);
 
             break;

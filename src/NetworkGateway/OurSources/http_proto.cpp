@@ -743,6 +743,7 @@ ALL_DATA_ACCUMULATED:
                     sd->ResetMaxUserDataBytes();
 
                     // Push chunk to corresponding channel/scheduler.
+                    // TODO: Deal with situation when not able to push.
                     gw->PushSocketDataToDb(sd, handler_id);
 
                     break;
