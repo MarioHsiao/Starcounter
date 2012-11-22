@@ -8304,6 +8304,7 @@ type_func_name_keyword:
 			| LIKE
 			| NATURAL
 			| NOTNULL
+			| OPTION
 			| ORDER
 			| OUTER_P
 			| OVER
@@ -8380,7 +8381,6 @@ reserved_keyword:
 			| OFFSETKEY
 			| ON
 			| ONLY
-			| OPTION
 			| OR
 			| PLACING
 			| PRIMARY
