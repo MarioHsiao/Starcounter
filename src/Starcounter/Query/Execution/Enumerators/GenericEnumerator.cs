@@ -157,25 +157,6 @@ namespace Starcounter {
 
         internal SqlEnumerator(IExecutionEnumerator subEnumerator) : base(subEnumerator) { }
 
-#if false // TODO:
-        /// <summary>
-        /// Gets the current item (row) in the result of the query.
-        /// </summary>
-        public dynamic Current {
-            get {
-                if (subEnumerator != null) {
-                    //if (subEnumerator.Current != null || !typeof(T).IsValueType || Nullable.GetUnderlyingType(typeof(T)) != null)
-                    if (subEnumerator.Current != null || Nullable.GetUnderlyingType(typeof(T)) != null)
-                        return (T)subEnumerator.Current;
-                    else
-                        return default(T);
-                }
-                else
-                    throw new ObjectDisposedException("Enumerator");
-            }
-        }
-#endif
-
         // We hide the base Current property to return an instance of T instead
         // of a dynamic in case the property is accessed from generic
         // SqlEnumerator instance in order to not polute the calling code with
