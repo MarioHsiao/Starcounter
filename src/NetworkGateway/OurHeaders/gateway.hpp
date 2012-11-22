@@ -1104,6 +1104,7 @@ class Gateway
     bool deleted_sockets_unsafe_[MAX_SOCKET_HANDLE];
 
     // Indexes to server ports.
+    // TODO: Find a better solution!
     uint8_t sockets_port_indexes_unsafe_[MAX_SOCKET_HANDLE];
 
     // Free session indexes.
@@ -1165,6 +1166,12 @@ class Gateway
 
 public:
 
+    // Number of active sessions.
+    uint32_t get_num_active_sessions_unsafe()
+    {
+        return num_active_sessions_unsafe_;
+    }
+
     // Collects outdated sessions if any.
     uint32_t CollectInactiveSessions();
 
@@ -1190,6 +1197,7 @@ public:
     }
 
     // Tracks certain socket.
+    // TODO: Find a better solution.
     void TrackSocket(SOCKET s, uint32_t port_index)
     {
         assert(sockets_port_indexes_unsafe_[s] == 255);
@@ -1198,6 +1206,7 @@ public:
     }
 
     // Untracks certain socket.
+    // TODO: Find a better solution.
     void UntrackSocket(SOCKET s)
     {
         assert(sockets_port_indexes_unsafe_[s] < MAX_PORTS_NUM);
