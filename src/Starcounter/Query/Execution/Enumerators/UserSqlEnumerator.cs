@@ -1,4 +1,5 @@
-﻿// ***********************************************************************
+﻿#if false
+// ***********************************************************************
 // <copyright file="UserSqlEnumerator.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
@@ -905,3 +906,4 @@ namespace Starcounter.Query.Execution
         }
     }
 }
+#endif
