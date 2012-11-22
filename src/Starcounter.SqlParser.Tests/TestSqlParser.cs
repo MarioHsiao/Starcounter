@@ -120,6 +120,7 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select u from user u group by u");
             analyzer.ParseQuery("select group as group from group.group() group by group order by group ");
             analyzer.ParseQuery("select window from window.window().window group by window window abc as (cdv) order by window");
+            analyzer.ParseQuery("select union from union.union().union group by union union select union from union order by union");
         }
 
         [Test]
