@@ -37,7 +37,7 @@ namespace Starcounter.Internal
 
             unsafe
             {
-                dr = sccoredb.sc_insert(typeAddr, &oid, &addr);
+                dr = sccoredb.sccoredb_insert(typeAddr, &oid, &addr);
             }
             if (dr != 0) throw ErrorCode.ToException(dr);
 
