@@ -233,7 +233,7 @@ namespace Starcounter.Templates {
                 return _PropertyName;
             }
             set {
-                if (_PropertyName != null)
+                if (_PropertyName != null && _PropertyName != value )
                     throw new Exception("Once the PropertyName is set, it cannot be changed");
                 _PropertyName = value;
                 if (Parent != null ) {

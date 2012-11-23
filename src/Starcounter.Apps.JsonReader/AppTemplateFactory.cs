@@ -376,11 +376,13 @@ namespace Starcounter.Internal
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <param name="name">The name.</param>
+        /// <param name="dotNetName">A legal C# property name (with non C# characters, such as $, stripped out)</param>
         /// <param name="value">The value.</param>
         /// <param name="debugInfo">The debug info.</param>
         /// <returns>System.Object.</returns>
         object ITemplateFactory.AddStringProperty(object parent,
                                                   string name,
+                                                  string dotNetName,
                                                   string value,
                                                   DebugInfo debugInfo)
         {
@@ -408,11 +410,13 @@ namespace Starcounter.Internal
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <param name="name">The name.</param>
+        /// <param name="dotNetName">A legal C# property name (with non C# characters, such as $, stripped out)</param>
         /// <param name="value">The value.</param>
         /// <param name="debugInfo">The debug info.</param>
         /// <returns>System.Object.</returns>
         object ITemplateFactory.AddIntegerProperty(object parent,
                                                    string name,
+                                                   string dotNetName,
                                                    int value,
                                                    DebugInfo debugInfo)
         {
@@ -435,11 +439,13 @@ namespace Starcounter.Internal
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <param name="name">The name.</param>
+        /// <param name="dotNetName">A legal C# property name (with non C# characters, such as $, stripped out)</param>
         /// <param name="value">The value.</param>
         /// <param name="debugInfo">The debug info.</param>
         /// <returns>System.Object.</returns>
         object ITemplateFactory.AddDecimalProperty(object parent,
                                                    string name,
+                                                   string dotNetName,
                                                    decimal value,
                                                    DebugInfo debugInfo)
         {
@@ -462,11 +468,13 @@ namespace Starcounter.Internal
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <param name="name">The name.</param>
+        /// <param name="dotNetName">A legal C# property name (with non C# characters, such as $, stripped out)</param>
         /// <param name="value">The value.</param>
         /// <param name="debugInfo">The debug info.</param>
         /// <returns>System.Object.</returns>
         object ITemplateFactory.AddDoubleProperty(object parent,
                                                   string name,
+                                                  string dotNetName,
                                                   double value,
                                                   DebugInfo debugInfo)
         {
@@ -489,11 +497,13 @@ namespace Starcounter.Internal
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <param name="name">The name.</param>
+        /// <param name="dotNetName">A legal C# property name (with non C# characters, such as $, stripped out)</param>
         /// <param name="value">if set to <c>true</c> [value].</param>
         /// <param name="debugInfo">The debug info.</param>
         /// <returns>System.Object.</returns>
         object ITemplateFactory.AddBooleanProperty(object parent,
                                                    string name,
+                                                   string dotNetName,
                                                    bool value,
                                                    DebugInfo debugInfo)
         {
@@ -532,11 +542,13 @@ namespace Starcounter.Internal
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <param name="name">The name.</param>
+        /// <param name="dotNetName">A legal C# property name (with non C# characters, such as $, stripped out)</param>
         /// <param name="value">The value.</param>
         /// <param name="debugInfo">The debug info.</param>
         /// <returns>System.Object.</returns>
         object ITemplateFactory.AddEventProperty(object parent,
                                                  string name,
+                                                 string dotNetName,
                                                  string value,
                                                  DebugInfo debugInfo)
         {
@@ -570,10 +582,11 @@ namespace Starcounter.Internal
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <param name="name">The name.</param>
+        /// <param name="dotNetName">A legal C# property name (with non C# characters, such as $, stripped out)</param>
         /// <param name="debugInfo">The debug info.</param>
         /// <returns>System.Object.</returns>
         object ITemplateFactory.AddArrayProperty(object parent,
-                                                 string name,
+                                                 string name, string dotNetName,
                                                  DebugInfo debugInfo)
         {
             AppTemplate appTemplate;
@@ -609,9 +622,10 @@ namespace Starcounter.Internal
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <param name="name">The name.</param>
+        /// <param name="dotNetName">A legal C# property name (with non C# characters, such as $, stripped out)</param>
         /// <param name="debugInfo">The debug info.</param>
         /// <returns>System.Object.</returns>
-        object ITemplateFactory.AddAppProperty(object parent, string name, DebugInfo debugInfo)
+        object ITemplateFactory.AddAppProperty(object parent, string name, string dotNetName, DebugInfo debugInfo)
         {
             Template newTemplate;
 
