@@ -135,6 +135,9 @@ namespace Starcounter
             Byte[] lastKey,
             Enumerator<T> cachedEnum) where T : Entity
         {
+            int retry = 0;
+
+        go:
             UInt32 err;
             UInt64 hCursor, verify;
 
@@ -185,7 +188,25 @@ namespace Starcounter
                 return;
             }
 
-            throw ErrorCode.ToException(err);
+            try {
+                throw ErrorCode.ToException(err);
+            }
+            catch (DbException ex) {
+                retry = HandleCreateException(ex, retry);
+                if (retry != 0) goto go;
+                throw;
+            }
+        }
+
+        private int HandleCreateException(DbException ex, int retry) {
+            if (ex.ErrorCode == Error.SCERRTOMANYOPENITERATORS) {
+                var thread = ThreadData.Current;
+                while (retry < 2) {
+                    retry++;
+                    if (thread.CollectAndTryToCleanupDeadObjects(retry == 2)) return retry;
+                }
+            }
+            return 0;
         }
 
         // No code generation filter is used here.
@@ -202,6 +223,9 @@ namespace Starcounter
             Int32 extentNumber,
             Enumerator<T> cachedEnum) where T : Entity
         {
+            int retry = 0;
+
+        go:
             // Position of enumerator static data.
             Byte* staticDataOffset = keyData + (extentNumber << 3) + RK_HEADER_LEN;
 
@@ -239,7 +263,15 @@ namespace Starcounter
                 cachedEnum.UpdateCached(hCursor, verify);
                 return true;
             }
-            throw ErrorCode.ToException(err);
+
+            try {
+                throw ErrorCode.ToException(err);
+            }
+            catch (DbException ex) {
+                retry = HandleCreateException(ex, retry);
+                if (retry != 0) goto go;
+                throw;
+            }
         }
 
         // Scan which uses code generation.
@@ -257,6 +289,9 @@ namespace Starcounter
             Byte[] secondKey,
             Enumerator<T> cachedEnum) where T : Entity
         {
+            int retry = 0;
+
+        go:
             UInt32 err;
             UInt64 hCursor, verify;
 
@@ -285,7 +320,14 @@ namespace Starcounter
                 return;
             }
 
-            throw ErrorCode.ToException(err);
+            try {
+                throw ErrorCode.ToException(err);
+            }
+            catch (DbException ex) {
+                retry = HandleCreateException(ex, retry);
+                if (retry != 0) goto go;
+                throw;
+            }
         }
 
         // Code generation filter is used here.
@@ -302,6 +344,9 @@ namespace Starcounter
             Int32 extentNumber,
             Enumerator<T> cachedEnum) where T : Entity
         {
+            int retry = 0;
+
+        go:
             // Position of enumerator static data.
             Byte* staticDataOffset = keyData + (extentNumber << 3) + RK_HEADER_LEN;
 
@@ -342,7 +387,14 @@ namespace Starcounter
                 return true;
             }
 
-            throw ErrorCode.ToException(err);
+            try {
+                throw ErrorCode.ToException(err);
+            }
+            catch (DbException ex) {
+                retry = HandleCreateException(ex, retry);
+                if (retry != 0) goto go;
+                throw;
+            }
         }
     }
 }

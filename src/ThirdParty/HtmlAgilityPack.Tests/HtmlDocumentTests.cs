@@ -25,7 +25,7 @@ namespace HtmlAgilityPack.Tests
 			return doc;
 		}
 
-		[Test]
+		//[Test]
 		public void StackOverflow()
 		{
 			var url = "http://rewarding.me/active-tel-domains/index.php/index.php?rescan=amour.tel&w=A&url=&by=us&limits=0";

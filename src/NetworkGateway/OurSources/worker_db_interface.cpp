@@ -153,7 +153,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
                             GW_PRINT_WORKER << "Wrong session attached to socket: " << sd->get_session_salt() << std::endl;
 #endif
                             // Killing session number for this Apps.
-                            current_db->SetAppsSessionValue(session_index, INVALID_APPS_UNIQUE_SESSION_NUMBER);
+                            current_db->SetAppsSessionValue(session_index, INVALID_APPS_UNIQUE_SESSION_NUMBER, INVALID_SESSION_SALT);
 
                             // The session was killed.
                             sd->ResetSession();
@@ -168,7 +168,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
                 else
                 {
                     // Killing session number for this Apps session.
-                    current_db->SetAppsSessionValue(session_index, INVALID_APPS_UNIQUE_SESSION_NUMBER);
+                    current_db->SetAppsSessionValue(session_index, INVALID_APPS_UNIQUE_SESSION_NUMBER, INVALID_SESSION_SALT);
 
                     // Killing session only if its the same.
                     ScSessionStruct session = g_gateway.GetGlobalSessionDataCopy(session_index);
@@ -208,7 +208,11 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
                     sd->set_new_session_flag(true);
 
                     // Creating new session with this salt and scheduler id.
-                    ScSessionStruct new_session = g_gateway.GenerateNewSessionAndReturnCopy(gw->get_random()->uint64(), sd->get_apps_unique_session_num(), i);
+                    ScSessionStruct new_session = g_gateway.GenerateNewSessionAndReturnCopy(
+                        gw->get_random()->uint64(),
+                        sd->get_apps_unique_session_num(),
+                        sd->get_apps_session_salt(),
+                        i);
 
                     // Checking if session was generated successfully.
                     if (new_session.IsValid())
@@ -217,7 +221,10 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
                         sd->AttachToSession(&new_session);
 
                         // Updating session number for this Apps.
-                        current_db->SetAppsSessionValue(new_session.get_session_index(), sd->get_apps_unique_session_num());
+                        current_db->SetAppsSessionValue(
+                            new_session.get_session_index(),
+                            sd->get_apps_unique_session_num(),
+                            sd->get_apps_session_salt());
                     }
                 }
             }
@@ -361,7 +368,10 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(GatewayWorker* gw, SocketDataChun
 
     // Setting the Apps session number right before sending to that Apps (if session exists at all).
     if (INVALID_SESSION_INDEX != sd->get_session_index())
-        sd->set_apps_unique_session_num(current_db->GetAppsSessionValue(sd->get_session_index()));
+    {
+        sd->set_apps_unique_session_num(current_db->GetAppsUniqueSessionNumber(sd->get_session_index()));
+        sd->set_apps_session_salt(current_db->GetAppsSessionSalt(sd->get_session_index()));
+    }
 
     // Modifying chunk data to use correct handler.
     shared_memory_chunk *smc = (shared_memory_chunk*) &(shared_int_.chunk(sd->get_chunk_index()));
@@ -376,7 +386,7 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(GatewayWorker* gw, SocketDataChun
     if (session.IsValid())
         sched_id = session.get_scheduler_id();
     else
-        sched_id = g_gateway.obtain_scheduler_id();
+        sched_id = g_gateway.obtain_scheduler_id_unsafe();
 
     // Pushing socket data as a chunk.
     return PushLinkedChunksToDb(sd->get_chunk_index(), sd->get_num_chunks(), sched_id);
@@ -428,6 +438,9 @@ uint32_t WorkerDbInterface::PushSessionDestroyed(ScSessionStruct* session, int32
 
     // Writing Apps unique session number.
     request->write(session->apps_unique_session_num_);
+
+    // Writing Apps unique salt.
+    request->write(session->apps_session_salt_);
 
     // Pushing the chunk.
     return PushLinkedChunksToDb(new_chunk, 1, sched_num);

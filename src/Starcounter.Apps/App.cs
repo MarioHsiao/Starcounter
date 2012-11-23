@@ -47,41 +47,18 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        private LongRunningTransaction _transaction;
+        private Transaction _transaction;
 
         /// <summary>
         /// 
         /// </summary>
-        protected Entity _Data;
+        private Entity _Data;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="App" /> class.
         /// </summary>
         public App() : base() {
             _cacheIndexInList = -1;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="template"></param>
-        public App(AppTemplate template) : this() {
-            Template = template;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="template"></param>
-        /// <param name="initializeTransaction"></param>
-        public App(AppTemplate template, Func<Entity> initializeTransaction) : this(template) {
-            LongRunningTransaction transaction = Transaction;
-            if (transaction == null) {
-                transaction = new LongRunningTransaction();
-                Transaction = transaction;
-            }
-
-            Data = transaction.Add(initializeTransaction);
         }
 
         /// <summary>
@@ -138,16 +115,34 @@ namespace Starcounter {
                 return _Data;
             }
             set {
-                _Data = value;
-                RefreshAllBoundValues();
-                OnData();
+                if (Transaction == null) {
+                    Transaction = Transaction._current;
+                }
+                InternalSetData(value);
             }
+        }
+
+        /// <summary>
+        /// Sets the underlying dataobject and refreshes all bound values.
+        /// This function does not check for a valid transaction as the 
+        /// public Data-property does.
+        /// </summary>
+        /// <param name="data"></param>
+        internal void InternalSetData(Entity data) {
+            _Data = data;
+
+            if (Template.Bound) {
+                Template.SetBoundValue((App)this.Parent, data);
+            }
+
+            RefreshAllBoundValues();
+            OnData();
         }
 
         /// <summary>
         /// Refreshes all databound values for this app.
         /// </summary>
-        protected void RefreshAllBoundValues() {
+        private void RefreshAllBoundValues() {
             Template child;
             for (Int32 i = 0; i < this.Template.Properties.Count; i++) {
                 child = Template.Properties[i];
@@ -183,7 +178,7 @@ namespace Starcounter {
         /// Gets the closest transaction for this app looking up in the tree.
         /// Sets this transaction.
         /// </summary>
-        public LongRunningTransaction Transaction {
+        public Transaction Transaction {
             get {
                 if (_transaction != null)
                     return _transaction;
@@ -228,7 +223,7 @@ namespace Starcounter {
         /// </summary>
         public virtual void Abort() {
             if (_transaction != null) {
-                _transaction.Abort();
+                _transaction.Rollback();
             }
         }
 

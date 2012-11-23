@@ -194,7 +194,7 @@ namespace Starcounter {
             {
                 Process pr = Process.GetCurrentProcess();
                 string pn = pr.ProcessName;
-                if (pn != "boot" && pn != "AppsStarterMsSql" && pn != "AppsStarterMsSql.vshost" && pn != "scdbs" && pn != "scdbsw" && pn != "Fakeway" && pn != "Fakeway.vshost")
+                if (pn != "scdata" && pn != "AppsStarterMsSql" && pn != "AppsStarterMsSql.vshost" && pn != "sccode" && pn != "Fakeway" && pn != "Fakeway.vshost")
                 {
                     // TODO! Is this code still operational? TellServer does not do anything anymore.
                     Console.WriteLine();

@@ -57,7 +57,7 @@
     <Optimize>true</Optimize>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
@@ -88,7 +88,6 @@
     <Compile Include="Input\Input.cs" />
     <Compile Include="ManagedTupleWriter.cs" />
     <Compile Include="Temp.cs" />
-    <Compile Include="LongRunningTransaction.cs" />
     <Compile Include="TemplateAttribute.cs" />
     <Compile Include="ValueMetadata\DecimalMetadata.cs" />
     <Compile Include="ValueMetadata\DoubleMetadata.cs" />

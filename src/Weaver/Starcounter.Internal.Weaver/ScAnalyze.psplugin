@@ -2,7 +2,7 @@
 <PlugIn xmlns="http://schemas.postsharp.org/1.0/configuration">
   <TaskType	Name="ScAnalyze"
 				    Phase="Analyze"
-				    Implementation="Starcounter.Internal.Weaver.ScAnalysisTask, Weaver"
+				    Implementation="Starcounter.Internal.Weaver.ScAnalysisTask, scweaver"
 				   >
     <Dependency TaskType="AnnotationRepository"/>
   </TaskType>

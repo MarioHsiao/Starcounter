@@ -7,8 +7,8 @@
     <ProjectGuid>{76C95AD5-A9B4-4672-856A-18A1CE45D2B1}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Weaver</RootNamespace>
-    <AssemblyName>Weaver</AssemblyName>
+    <RootNamespace>scweaver</RootNamespace>
+    <AssemblyName>scweaver</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

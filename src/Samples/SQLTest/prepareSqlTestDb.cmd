@@ -4,7 +4,7 @@ mkdir .db
 mkdir .db.output
 )
 if exist .db\SqlTest* call ..\..\src\Samples\SQLTest\cleanSqlTestDb.cmd
-call scdbc.exe -ip .db -lp .db SqlTest
-START ScConnMonitor PERSONAL .db.output
-START scpmm SQLTEST SqlTest .db.output
+call sccreatedb.exe -ip .db -lp .db SqlTest
+START scipcmonitor PERSONAL .db.output
+START scdata SQLTEST SqlTest .db.output
 popd

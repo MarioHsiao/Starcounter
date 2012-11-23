@@ -1,4 +1,5 @@
-﻿// ***********************************************************************
+﻿#if false
+// ***********************************************************************
 // <copyright file="UserSqlEnumerator.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
@@ -105,6 +106,8 @@ namespace Starcounter.Query.Execution
             UserSqlEnumProperties props)
             : base(null, varArr)
         {
+            if (varArr == null)
+                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect varArr.");
             if (sqlQuery == null)
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect query.");
 
@@ -903,3 +906,4 @@ namespace Starcounter.Query.Execution
         }
     }
 }
+#endif
