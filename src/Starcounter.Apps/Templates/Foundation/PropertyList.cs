@@ -92,6 +92,17 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
+        /// Get the template with the specified propertyname.
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <returns></returns>
+        public Template GetTemplateByPropertyName(string propertyName) {
+            Template ret;
+            _PropertyNameLookup.TryGetValue(propertyName, out ret);
+            return ret;
+        }
+
+        /// <summary>
         /// Childs the name is set.
         /// </summary>
         /// <param name="item">The item.</param>
