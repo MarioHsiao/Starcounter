@@ -24,6 +24,14 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             get { return (AppTemplate)(NTemplateClass.Template); }
         }
 
+       // public new NAppClass Parent {
+       //     get {
+       //         return (NAppClass)base.Parent;
+       //     }
+       //     set {
+       //         base.Parent = value;
+       //     }
+       // }
 
         /// <summary>
         /// The _ inherits
