@@ -422,7 +422,7 @@ inline HANDLE& shared_interface::open_client_work_event(std::size_t i) {
 			std::cout << "shared_interface::open_client_work_event(): "
 			"Failed to open event. OS error: " << err << "\n"; /// DEBUG
 		}
-		return client_work_event() = 0; // throw exception
+		return client_work_event() = 0; // TODO: Should throw an exception.
 	}
 	return client_work_event();
 }

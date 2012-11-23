@@ -59,7 +59,7 @@ Chunks are currently 32 KiByte.
 
 byte 0..7 is no longer used:
 +----------------------------------------------------------------------+
-| 64-bit owner_id (0 = no_one, free chunk) - OBSOLETE (2012-03-26)!    |
+| 32-bit owner_id (0 = no_one, free chunk) - OBSOLETE (2012-03-26)!    |
 | On 2012-03-26 the owner_id is no longer stored in the chunk.         |
 | This means that byte 0..7 is not used. We shall later on move all    |
 | data 8 bytes closer to byte 0, except the link - it shall be located |

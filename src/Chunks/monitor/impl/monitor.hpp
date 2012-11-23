@@ -1236,6 +1236,58 @@ void monitor::print_rate_with_precision(double rate) {
 #endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 
 void monitor::test_a() {
+	Sleep(100);
+	owner_id x;
+	owner_id y(1);
+	owner_id z = 2;
+
+	if (x.is_no_owner_id()) {
+		std::cout << "x is not an owner_id.\n";
+	}
+	else {
+		std::cout << "x is an owner_id.\n";
+	}
+
+	if (y.is_no_owner_id()) {
+		std::cout << "y is not an owner_id.\n";
+	}
+	else {
+		std::cout << "y is an owner_id.\n";
+	}
+
+	std::cout << "x = " << x << "\n";
+	std::cout << "y = " << y << "\n";
+	std::cout << "z = " << z << "\n";
+	++x;
+	std::cout << "++x; x = " << x << "\n";
+	y = z;
+	std::cout << "y = z; y = " << y << "\n";
+	z.set(10);
+	std::cout << "z.set(10); z = " << z << "\n";
+	y.mark_for_clean_up();
+	std::cout << "y.mark_for_clean_up(); y = " << y << "\n";
+
+	if (y.get_clean_up()) {
+		std::cout << "y.get_clean_up(); true\n";
+	}
+	else {
+		std::cout << "y.get_clean_up(); false\n";
+	}
+
+	std::cout << "y.get_owner_id(): " << y.get_owner_id() << "\n";
+
+	y.set(5);
+	std::cout << "y.set(5); y = " << y << "\n";
+
+	if (y.get_clean_up()) {
+		std::cout << "y.get_clean_up(); true\n";
+	}
+	else {
+		std::cout << "y.get_clean_up(); false\n";
+	}
+
+	
+	Sleep(INFINITE);
 	smp::spinlock::milliseconds timeout = 3000;
 	timeout.add_tick_count();
 	smp::spinlock::milliseconds time_left = timeout;
