@@ -6,9 +6,9 @@
 //
 //------------------------------------------------------------------------------
 // NOTES:
-// The monitor_interface shared memory object name shall match the server's
+// The IPC monitor_interface shared memory object name shall match the server's
 // (not the database process) name, because we need to be able to start multiple
-// monitors.
+// IPC monitors.
 //------------------------------------------------------------------------------
 
 #ifndef STARCOUNTER_CORE_MONITOR_INTERFACE_HPP
@@ -218,11 +218,6 @@ public:
 		ptr_ = static_cast<monitor_interface*>(mapped_region_.get_address());
 	}
 	
-    void init() {
-
-
-    }
-
 	monitor_interface_ptr(monitor_interface* ptr) {
 		ptr_ = ptr;
 	}

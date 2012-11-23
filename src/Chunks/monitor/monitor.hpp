@@ -103,12 +103,7 @@ public:
 // Objects of type boost::thread are not copyable.
 class monitor : private boost::noncopyable {
 public:
-	// We can backup this and other information on disk so that if the monitor
-	// process crashes, it can be restared by Windows and try to recover by
-	// reading the data from disk. TODO: Discuss this.
 	typedef std::map<owner_id, process_info> process_register_type;
-	/// TODO: What is required to be able to use unordered_map<>.
-	//typedef std::vector<std::string> exited_processes_list_type;
 	
 	enum state {
 		stopped,
@@ -236,10 +231,6 @@ public:
 	/// relatively long time so this is only used for debug.
 	void print_event_register();
 	
-	/// Print pid exited processes requires the pid register to be locked for a
-	/// relatively long time so this is only used for debug.
-	//void print_exited_processes();
-	
 	/// The apc_function() calls this so that we can access member variables
 	/// without having to make getters and setters for all.
 	//void do_registration();
@@ -250,7 +241,7 @@ public:
 	/// and the sub string <DATABASE_NAME> is returned.
 	/**
 	 * @param segment_name The segment name, which is the name of the shared
-	 *		memory segment of the database, used for connectivity.
+	 *		memory segment of the database, used for IPC.
 	 * @return A std::string containing the database name.
 	 */
 	std::string segment_name_to_database_name(const std::string& segment_name);

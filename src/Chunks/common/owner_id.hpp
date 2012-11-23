@@ -20,29 +20,23 @@
 namespace starcounter {
 namespace core {
 
-/// Class owner_id has a 64-bit word (value_), where 62:0 is the owner_id field,
-/// and bit 63 is a flag "c" indicating if the resource that has this owner_id
+/// Class owner_id has a 32-bit word (value_), where 30:0 is the owner_id field,
+/// and bit 31 is a flag "c" indicating if the resource that has this owner_id
 /// needs clean-up or not.
 
 // NOTE: The range of the owner_id field need to be large enough to minimize the
 // chance to exceed the range during a session (while the monitor is running).
 //
 // owner_id:
-//  6 6 6 6 5 5 5 5 5 5 5 5 5 5 4 4 4 4 4 4 4 4 4 4 3 3 3 3 3 3 3 3
-//  3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2
-// +-+-------------------------------------------------------------+
-// |c|                                                             :
-// +-+-------------------------------------------------------------+
-//
 //  3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
 //  1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
-// +---------------------------------------------------------------+
-// :                                                             id|
-// +---------------------------------------------------------------+
+// +-+-------------------------------------------------------------+
+// |c|                                                           id|
+// +-+-------------------------------------------------------------+
 //
-// Bit 0:62 for id. The id field is so large that it never have to be re-cycled.
+// Bit 0:30 for id. The id field is so large that it never have to be re-cycled.
 //
-// Bit 63 is the clean-up flag.
+// Bit 31 is the clean-up flag.
 //
 //******************************************************************************
 // New idea, not implemented yet, is:
@@ -92,11 +86,11 @@ namespace core {
 class owner_id {
 public:
 	// Type definitions.
-	typedef uint64_t value_type;
-	typedef uint64_t* iterator;
-	typedef const uint64_t* const_iterator;
-	typedef uint64_t& reference;
-	typedef const uint64_t& const_reference;
+	typedef uint32_t value_type;
+	typedef value_type* iterator;
+	typedef const value_type* const_iterator;
+	typedef value_type& reference;
+	typedef const value_type& const_reference;
 	
 	// Helper types.
 	
@@ -110,9 +104,18 @@ public:
 	enum {
 		// none indicates that the resource has no owner-id. Both the owner_id
 		// field and the clean-up flag is zero.
-		none = 0
+		none = 0,
+
+		// The anonymous id value 1 is reserved for threads that lock
+		// a spinlock in non-robust (anonymous) mode.
+		anonymous = 1
 	};
 	
+	enum {
+		id_field = 0x7FFFFFFF,
+		clean_up_field = 0x8000000
+	};
+
 	// Construction/destruction.
 	
 	/// Constructor.
@@ -124,9 +127,6 @@ public:
 	 */
 	owner_id(param_type n = owner_id::none);
 	
-	//owner_id(const owner_id& oid)
-	//: value_(oid.value_) {}
-
 	// Let the compiler write copy constructor, copy assignment, and destructor.
 
 	/// Copy assignment for owner_id with volatile qualifier.

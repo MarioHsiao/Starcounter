@@ -62,19 +62,22 @@ inline void owner_id::set(param_type n) {
 }
 
 inline owner_id::return_type owner_id::get_owner_id() const {
-	// Mask bit 63 containing the clean-up flag. A zero will be shifted in from
+	// Mask bit 31 containing the clean-up flag. A zero will be shifted in from
 	// the left side since value_ is unsigned.
+
+	// TODO: Optimize. Which is faster?
+	//return value_ & id_field;
 	return (value_ << 1) >> 1;
 }
 
 inline owner_id::return_type owner_id::get_clean_up() const {
-	// Mask bit 62:0 containing the owner_id field.
-	return value_ >> 63;
+	// Mask bit 30:0 containing the owner_id field.
+	return value_ >> 31;
 }
 
 inline void owner_id::mark_for_clean_up() {
 	_mm_mfence();
-	value_ |= 1ULL << 63;
+	value_ |= 1ULL << 31;
 	_mm_mfence();
 }
 
