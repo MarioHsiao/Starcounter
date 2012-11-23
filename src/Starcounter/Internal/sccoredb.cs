@@ -757,7 +757,7 @@ namespace Starcounter.Internal
         /// <param name="pnew_addr">The pnew_addr.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static uint sc_insert(
+        public unsafe extern static uint sccoredb_insert(
             ulong definition_addr,
             ulong* pnew_oid,
             ulong* pnew_addr
