@@ -165,6 +165,7 @@ namespace Starcounter
             return local_time;
         }
 
+#if false
         /// <summary>
         /// Continuously fills the provided buffer with object ETIs and IDs
         /// of objects found during search by engine (no managed filtering).
@@ -177,6 +178,7 @@ namespace Starcounter
             // Calling kernel to fill up the buffer in one execution.
             return sccoredb.SCIteratorFillUp(_handle, _verify, results, resultsMaxBytes, resultsNum, flags);
         }
+#endif
 
         /// <summary>
         /// Advances the enumerator to the next element of the collection.
