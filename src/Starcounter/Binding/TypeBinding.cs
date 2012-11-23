@@ -22,7 +22,7 @@ namespace Starcounter.Binding
         /// <summary>
         /// The callback_ on delete
         /// </summary>
-        Callback_OnDelete
+        Callback_OnDelete = 1
     }
 
     /// <summary>
