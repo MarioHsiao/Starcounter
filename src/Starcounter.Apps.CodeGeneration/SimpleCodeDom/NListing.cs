@@ -16,7 +16,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// T1 is the link to the App class and T2 is the link to the AppTemplate class being used in the list.
     /// This means that there is one instance of this class for each T1,T2 combination used.
     /// </summary>
-    public class NListingXXXClass : NClass {
+    public class NListingXXXClass : NValueClass {
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NListingXXXClass" /> class.
@@ -24,7 +24,9 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="typename">The typename.</param>
         /// <param name="appType">Type of the app.</param>
         /// <param name="templateType">Type of the template.</param>
-        public NListingXXXClass(string typename, NClass appType, NClass templateType) {
+        /// <param name="template"></param>
+        public NListingXXXClass(string typename, NClass appType, NClass templateType, Template template ) {
+            //this.NTemplateClass.Template = template;            
             TypeName = typename;
             NApp = appType;
             NAppTemplate = templateType;
@@ -65,7 +67,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 var sb = new StringBuilder();
                 sb.Append(TypeName);
                 sb.Append('<');
-                sb.Append( NApp.FullClassName );
+                sb.Append(NApp.FullClassName);
                 if (NAppTemplate != null) {
                     sb.Append(", ");
                     sb.Append(NAppTemplate.FullClassName);
@@ -74,6 +76,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 return sb.ToString();
             }
         }
+
 
     }
 }

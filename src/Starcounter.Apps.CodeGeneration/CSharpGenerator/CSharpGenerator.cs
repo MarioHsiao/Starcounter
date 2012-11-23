@@ -256,6 +256,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         private void WriteBoundGetterAndSetter(NProperty m) {
             string bindTo;
             string dataType;
+            string castTo = null;
             StringBuilder sb;
 
             // TODO: 
@@ -269,7 +270,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 dataType = "SqlResult";
             } else if (m.Template is AppTemplate) {
                 dataType = "Entity";
-//                ((NAppClass)m.Type).GenericTypeArgument;
+                castTo = ((NAppClass)m.Type).GenericTypeArgument;
             } 
 
             if (dataType == null) {
@@ -291,7 +292,15 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             if (m.Template.Editable) {
                 sb.Append(" set { Data.");
                 sb.Append(bindTo);
-                sb.Append(" = value; } }");
+                sb.Append(" = ");
+
+                if (castTo != null) {
+                    sb.Append('(');
+                    sb.Append(castTo);
+                    sb.Append(')');
+                }
+                
+                sb.Append("value; } }");
             } else {
                 sb.Append('}');
             }
@@ -310,17 +319,28 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 " DefaultTemplate = new " +
                 a.NTemplateClass.ClassName +
                 "();");
+            /*            var sb = new StringBuilder();
 
-            StringBuilder sb = new StringBuilder();
-            sb.Append("    public ");
-            sb.Append(a.ClassName);
-            sb.Append("() : base(DefaultTemplate) { }");
-            sb.AppendLine();
-            sb.Append("    public ");
-            sb.Append(a.ClassName);
-            sb.Append("(Func<Entity> initializeTransaction) : base(DefaultTemplate, initializeTransaction) { }");
-            a.Prefix.Add(sb.ToString());
+                        sb.Append("    public ");
+                        sb.Append(a.ClassName);
+                        sb.Append("( Entity data ) {");
+                        a.Prefix.Add(sb.ToString());
+                        sb = new StringBuilder();
+                        sb.Append("        Data = data;");
+                        a.Prefix.Add(sb.ToString());
+                        sb = new StringBuilder();
+                        sb.Append("    }");
+                        a.Prefix.Add(sb.ToString());
+                        */
 
+            a.Prefix.Add("    public " 
+                         + a.ClassName 
+                         + "() { Template = DefaultTemplate; }");
+            a.Prefix.Add("    public " 
+                         + a.ClassName 
+                         + "("
+                         + a.NTemplateClass.ClassName
+                         + " template) { Template = template; }"); 
             a.Prefix.Add(
                 "    public new " +
                 a.NTemplateClass.ClassName +
@@ -333,8 +353,21 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 " Metadata { get { return (" +
                 a.NTemplateClass.NMetadataClass.ClassName +
                 ")base.Metadata; } }");
+            if (a.Template.Parent != null) {
+                string parentClass = GetParentPropertyType(a.NTemplateClass.Template).ClassName;
+                a.Prefix.Add(
+                    "    public new " +
+                    parentClass +
+                    " Parent { get { return (" +
+                    parentClass +
+                    ")base.Parent; } set { base.Parent = value; } }");
+            }
         }
 
+        private NClass GetParentPropertyType(Template a) {
+            var x = NValueClass.Find((Template)a.Parent);
+            return x;
+        }
 
         /// <summary>
         /// Writes the app template member prefix.
@@ -410,7 +443,11 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             sb.Append(m.Type.FullClassName);
             sb.Append("(App, App.Template.");
             sb.Append(m.MemberName);
-            sb.Append(")); } } private ");
+            sb.Append(")); } }");
+            m.Prefix.Add(sb.ToString());
+
+            sb.Clear();
+            sb.Append("private ");
             sb.Append(m.Type.FullClassName);
             sb.Append(" __p_");
             sb.Append(m.MemberName);
@@ -426,7 +463,15 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             StringBuilder sb = new StringBuilder();
             sb.Append("    public override object CreateInstance(AppNode parent) { return new ");
             sb.Append(node.NValueClass.ClassName);
-            sb.Append("() { Parent = parent }; }");
+            if (node.Template.Parent != null) {
+                string parentClass = GetParentPropertyType(node.Template).FullClassName;
+                sb.Append("(this) { Parent = (" + 
+                    parentClass + 
+                    ")parent }; }");
+            }
+            else {
+                sb.Append("(this) { Parent = parent }; }");
+            }
             node.Prefix.Add(sb.ToString());
         }
 
@@ -467,7 +512,9 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     sb.Append(mn.Type.FullClassName);
 
                     sb.Append(">(\"");
-                    sb.Append(mn.MemberName);
+                    sb.Append(mn.Template.Name);
+                    sb.Append("\", \"");
+                    sb.Append(mn.Template.PropertyName);
                     sb.Append('"');
 
                     if (mn.Template.Editable)
@@ -524,7 +571,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             bool hasValue = ib.HasValue;
             StringBuilder sb = new StringBuilder();
             sb.Append("        ");
-            sb.Append(ib.BindsToProperty.Template.Name);       // {0}
+            sb.Append(ib.BindsToProperty.Template.PropertyName);       // {0}
             sb.Append(".AddHandler((App app, Property");
 
             if (hasValue) {

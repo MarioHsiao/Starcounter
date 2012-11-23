@@ -105,8 +105,8 @@ uint32_t Gateway::ReadArguments(int argc, wchar_t* argv[])
     // Checking correct number of arguments.
     if (argc < 4)
     {
-        std::cout << "ScGateway.exe [ServerTypeName] [PathToGatewayXmlConfig] [PathToMonitorOutputDirectory]" << std::endl;
-        std::cout << "Example: ScGateway.exe personal \"c:\\github\\NetworkGateway\\src\\scripts\\server.xml\" \"c:\\github\\Orange\\bin\\Debug\\.db.output\"" << std::endl;
+        std::cout << "scnetworkgateway.exe [ServerTypeName] [PathToGatewayXmlConfig] [PathToMonitorOutputDirectory]" << std::endl;
+        std::cout << "Example: scnetworkgateway.exe personal \"c:\\github\\NetworkGateway\\src\\scripts\\server.xml\" \"c:\\github\\Orange\\bin\\Debug\\.db.output\"" << std::endl;
 
         return SCERRGWWRONGARGS;
     }
@@ -632,7 +632,8 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
 // Active database constructor.
 ActiveDatabase::ActiveDatabase()
 {
-    apps_sessions_unsafe_ = NULL;
+    apps_unique_session_numbers_unsafe_ = NULL;
+    apps_session_salts_unsafe_ = NULL;
     user_handlers_ = NULL;
 
     StartDeletion();
@@ -642,12 +643,18 @@ ActiveDatabase::ActiveDatabase()
 void ActiveDatabase::Init(std::string db_name, uint64_t unique_num, int32_t db_index)
 {
     // Creating new Apps sessions up to maximum number of connections.
-    if (!apps_sessions_unsafe_)
-        apps_sessions_unsafe_ = new apps_unique_session_num_type[g_gateway.setting_max_connections()];
+    if (!apps_unique_session_numbers_unsafe_)
+    {
+        apps_unique_session_numbers_unsafe_ = new apps_unique_session_num_type[g_gateway.setting_max_connections()];
+        apps_session_salts_unsafe_ = new session_salt_type[g_gateway.setting_max_connections()];
+    }
 
     // Cleaning all Apps session numbers.
     for (int32_t i = 0; i < g_gateway.setting_max_connections(); i++)
-        apps_sessions_unsafe_[i] = INVALID_APPS_UNIQUE_SESSION_NUMBER;
+    {
+        apps_unique_session_numbers_unsafe_[i] = INVALID_APPS_UNIQUE_SESSION_NUMBER;
+        apps_session_salts_unsafe_[i] = INVALID_SESSION_SALT;
+    }
 
     // Creating fresh handlers table.
     user_handlers_ = new HandlersTable();
@@ -1134,10 +1141,11 @@ void ScSessionStruct::GenerateNewSession(
     session_salt_type session_salt,
     session_index_type session_index,
     apps_unique_session_num_type apps_unique_session_num,
+    session_salt_type apps_session_salt,
     uint32_t scheduler_id)
 {
     // Initializing the new session.
-    Init(session_salt, session_index, apps_unique_session_num, scheduler_id);
+    Init(session_salt, session_index, apps_unique_session_num, apps_session_salt, scheduler_id);
 
 #ifdef GW_SESSIONS_DIAG
     GW_COUT << "New session generated: " << session_index_ << ":" << session_salt_ << std::endl;

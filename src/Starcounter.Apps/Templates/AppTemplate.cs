@@ -31,12 +31,14 @@ namespace Starcounter.Templates {
         /// <typeparam name="TTemplate">The type of the template to register</typeparam>
         /// <param name="name">Name of the template</param>
         /// <param name="editable">if set to <c>true</c> the value should be editable</param>
+        /// <param name="dotNetName">A legal C# property name (with non C# characters, such as $, stripped out)</param>
         /// <returns>A new instance of the specified template</returns>
-        public TTemplate Register<TTemplate>(string name, bool editable = false)
+        public TTemplate Register<TTemplate>(string name, string dotNetName, bool editable = false)
             where TTemplate : Template, new() {
             return new TTemplate() {
                 Parent = this,
                 Name = name,
+                PropertyName = dotNetName,
                 Editable = editable
             };
         }
@@ -47,10 +49,12 @@ namespace Starcounter.Templates {
         /// <typeparam name="TTemplate">The type of the T template.</typeparam>
         /// <typeparam name="TValue">The type of the T value.</typeparam>
         /// <param name="name">The name.</param>
+        /// <param name="dotNetName">A legal C# property name (with non C# characters, such as $, stripped out)</param>
         /// <param name="editable">if set to <c>true</c> [editable].</param>
         /// <returns>``0.</returns>
         public TTemplate Register<TTemplate, TValue>(
             string name,
+            string dotNetName,
             bool editable = false)
             where TTemplate : Property<TValue>, new() {
             return new TTemplate() {

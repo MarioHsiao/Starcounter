@@ -151,16 +151,6 @@ namespace Starcounter.Internal
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint Mdb_GetLastError();
 
-
-        /// <summary>
-        /// SCs the config set value.
-        /// </summary>
-        /// <param name="key">The key.</param>
-        /// <param name="value">The value.</param>
-        /// <returns>System.UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint SCConfigSetValue(string key, string value);
-
         /// <summary>
         /// Delegate ON_NEW_SCHEMA
         /// </summary>
@@ -168,34 +158,39 @@ namespace Starcounter.Internal
         public delegate void ON_NEW_SCHEMA(ulong generation);
 
         /// <summary>
+        /// </summary>
+        public delegate uint ON_NO_TRANSACTION();
+
+        /// <summary>
         /// Struct sccoredb_config
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
-        public unsafe struct sccoredb_config
+        public unsafe struct sccoredb_callbacks
         {
             /// <summary>
             /// The on_new_schema
             /// </summary>
             public void* on_new_schema;
+
+            /// <summary>
+            /// </summary>
+            public void* on_no_transaction;
         }
 
         /// <summary>
-        /// Sccoredb_configures the specified pconfig.
         /// </summary>
-        /// <param name="pconfig">The pconfig.</param>
-        /// <returns>System.UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe uint sccoredb_configure(sccoredb_config* pconfig);
+        public static extern unsafe uint sccoredb_set_system_callbacks(sccoredb_callbacks* pcallbacks);
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        public static extern uint sccoredb_set_system_variable(string key, string value);
 
         /// <summary>
         /// The SCCORED b_ LOA d_ DATABASE
         /// </summary>
         public const uint SCCOREDB_LOAD_DATABASE = 0x00100000;
-
-        /// <summary>
-        /// The SCCORED b_ COMPLET e_ INIT
-        /// </summary>
-        public const uint SCCOREDB_COMPLETE_INIT = 0x00200000;
 
         /// <summary>
         /// The SCCORED b_ ENABL e_ CHEC k_ FIL e_ O n_ LOAD
@@ -646,14 +641,29 @@ namespace Starcounter.Internal
             );
 
         /// <summary>
+        /// </summary>
+        public const uint MDB_TRANSCREATE_MERGING_WRITES = 0x0004;
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint sccoredb_create_transaction(
+            uint flags,
+            out ulong handle,
+            out ulong verify
+            );
+
+        /// <summary>
         /// Sccoredb_create_transaction_and_set_currents the specified lock_tran_on_thread.
         /// </summary>
+        /// <param name="flags"></param>
         /// <param name="lock_tran_on_thread">The lock_tran_on_thread.</param>
         /// <param name="handle">The handle.</param>
         /// <param name="verify">The verify.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint sccoredb_create_transaction_and_set_current(
+            uint flags,
             int lock_tran_on_thread,
             out ulong handle,
             out ulong verify
@@ -706,6 +716,11 @@ namespace Starcounter.Internal
         public extern static uint sccoredb_abort_commit(
             int tran_locked_on_thread
             );
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint sccoredb_rollback();
 
         /// <summary>
         /// Sccoredb_reset_aborts this instance.
@@ -1099,20 +1114,13 @@ namespace Starcounter.Internal
         );
 
         /// <summary>
-        /// MDB_s the state of the object write attribute.
         /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="value">The value.</param>
-        /// <returns>Boolean.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static Boolean Mdb_ObjectWriteAttributeState(
-            UInt64 objectOID,
-            UInt64 objectETI,
-            Int32 index,
-            UInt16 value
-        );
+        public extern static uint sccoredb_set_null(
+            ulong record_id,
+            ulong record_addr,
+            int index
+            );
 
         /// <summary>
         /// MDB_s the object write string16.
@@ -1235,6 +1243,7 @@ namespace Starcounter.Internal
             UInt64* pData
         );
 
+#if false
         /// <summary>
         /// SCs the iterator fill up.
         /// </summary>
@@ -1253,6 +1262,7 @@ namespace Starcounter.Internal
             UInt32 resultsMaxBytes,
             UInt32* resultsNum,
             UInt32* flags);
+#endif
 
         //
         // The iterator is freed if no errors (and only if no errors).
@@ -1604,6 +1614,7 @@ namespace Starcounter.Internal
         UInt32 maxBytes,
         UInt32* outLenBytes);
 
+#if false
     /// <summary>
     /// Struct SC_SQL_CALLBACKS
     /// </summary>
@@ -1623,7 +1634,9 @@ namespace Starcounter.Internal
         /// </summary>
         internal SqlConn_GetInfo_Type pSqlConn_GetInfo;
     }
+#endif
 
+#if true
     /// <summary>
     /// Class SqlConnectivityInterface
     /// </summary>
@@ -1704,6 +1717,7 @@ namespace Starcounter.Internal
         /// </summary>
         internal const Byte PRINT_PROFILER_RESULTS = 5;
 
+#if false
         /// <summary>
         /// SQLs the conn_ init managed functions.
         /// </summary>
@@ -1767,6 +1781,7 @@ namespace Starcounter.Internal
             UInt32 maxBytes, // [IN] Maximum size in bytes of the result buffer (needed for allocation in Blast).
             UInt32* outLenBytes // [OUT] Length in bytes of the result data.
             );
+#endif
 
         // Types of variable in query.
         /// <summary>
@@ -1810,4 +1825,5 @@ namespace Starcounter.Internal
         /// </summary>
         internal const Byte QUERY_VARTYPE_BOOLEAN = 10;
     }
+#endif
 }

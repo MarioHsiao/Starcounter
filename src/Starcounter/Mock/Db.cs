@@ -92,8 +92,30 @@ namespace Starcounter
         }
 
         /// <summary>
+        /// Returns the result of an SQL query as an SqlResult&lt;T&gt; which implements IEnumerable&lt;T&gt;.
+        /// </summary>
+        /// <typeparam name="T">The type the items in the result set should have.</typeparam>
+        /// <param name="query">An SQL query.</param>
+        /// <param name="values">The values to be used for variables in the query.</param>
+        /// <returns>The result of the SQL query.</returns>
+        public static SqlResult<T> SQL<T>(String query, params Object[] values)
+        {
+            if (query == null)
+                throw new ArgumentNullException("query");
+
+#if true
+            return new SqlResult<T>(0, query, false, values);
+#else
+            if (Starcounter.Transaction.Current != null)
+                return new SqlResult<T>(Starcounter.Transaction.Current.TransactionId, query, false, values); 
+            else
+                return new SqlResult<T>(0, query, false, values);
+#endif
+        }
+
+        /// <summary>
         /// Returns the result of an SQL query as an SqlResult which implements IEnumerable.
-        /// Especially queries with expected slow execution are supported, as for example queries including literals.
+        /// Especially queries with expected slow execution are supported, as for example aggregations.
         /// </summary>
         /// <param name="query">An SQL query.</param>
         /// <param name="values">The values to be used for variables in the query.</param>
@@ -110,7 +132,7 @@ namespace Starcounter
 #endif
 
             if (query == "")
-				return new SqlResult(transactionId, query, true, values);
+                return new SqlResult(transactionId, query, true, values);
 
             switch (query[0])
             {
@@ -157,6 +179,75 @@ namespace Starcounter
 
                 default:
                     return new SqlResult(transactionId, query, true, values);
+            }
+        }
+
+        /// <summary>
+        /// Returns the result of an SQL query as an SqlResult which implements IEnumerable.
+        /// Especially queries with expected slow execution are supported, as for example aggregations.
+        /// </summary>
+        /// <param name="query">An SQL query.</param>
+        /// <param name="values">The values to be used for variables in the query.</param>
+        /// <returns>The result of the SQL query.</returns>
+        public static SqlResult<T> SlowSQL<T>(String query, params Object[] values)
+        {
+            if (query == null)
+                throw new ArgumentNullException("query");
+
+            UInt64 transactionId = 0;
+#if false
+            if (Starcounter.Transaction.Current != null)
+				transactionId = Starcounter.Transaction.Current.TransactionId;
+#endif
+
+            if (query == "")
+				return new SqlResult<T>(transactionId, query, true, values);
+
+            switch (query[0])
+            {
+                case 'S':
+                case 's':
+                    return new SqlResult<T>(transactionId, query, true, values);
+
+                case 'C':
+                case 'c':
+                    SqlProcessor.ProcessCreateIndex(query);
+                    return null;
+
+                case 'D':
+                case 'd':
+                    if (SqlProcessor.ProcessDQuery(query, values))
+                        return null;
+                    else
+                        return new SqlResult<T>(transactionId, query, true, values);
+
+                case ' ':
+                case '\t':
+                    query = query.TrimStart(' ', '\t');
+                    switch (query[0])
+                    {
+                        case 'S':
+                        case 's':
+                            return new SqlResult<T>(transactionId, query, true, values);
+
+                        case 'C':
+                        case 'c':
+                            SqlProcessor.ProcessCreateIndex(query);
+                            return null;
+
+                        case 'D':
+                        case 'd':
+                            if (SqlProcessor.ProcessDQuery(query, values))
+                                return null;
+                            else
+                                return new SqlResult<T>(transactionId, query, true, values);
+
+                        default:
+                            return new SqlResult<T>(transactionId, query, true, values);
+                    }
+
+                default:
+                    return new SqlResult<T>(transactionId, query, true, values);
             }
         }
     }

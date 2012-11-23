@@ -38,7 +38,7 @@ namespace Starcounter.Internal.ExeModule
             //int timeout = 2000;
             //do
             //{
-            //    servers = Process.GetProcessesByName("boot");
+            //    servers = Process.GetProcessesByName("sccode");
 
             //    if (servers.Length == 0)
             //    {
