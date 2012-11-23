@@ -22,6 +22,25 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     public class NBase {
 
         /// <summary>
+        /// </summary>
+        private NBase _SourceParent;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public NBase SourceParent {
+            get {
+                return _SourceParent;
+            }
+            set {
+                if (_SourceParent != null && _SourceParent != value) {
+                        throw new Exception();
+                }
+                _SourceParent = value;
+            }
+        }
+
+        /// <summary>
         /// See Parent
         /// </summary>
         private NBase _Parent;
@@ -42,6 +61,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                     if (!_Parent.Children.Remove(this))
                         throw new Exception();
                 }
+                //if (SourceParent == null)
+                //    SourceParent = value;
                 _Parent = value;
                 _Parent.Children.Add(this);
             }

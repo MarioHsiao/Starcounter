@@ -353,6 +353,20 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 " Metadata { get { return (" +
                 a.NTemplateClass.NMetadataClass.ClassName +
                 ")base.Metadata; } }");
+            if (a.Template.Parent != null) {
+                string parentClass = GetParentPropertyType(a.NTemplateClass.Template).ClassName;
+                a.Prefix.Add(
+                    "    public new " +
+                    parentClass +
+                    " Parent { get { return (" +
+                    parentClass +
+                    ")base.Parent; } set { base.Parent = value; } }");
+            }
+        }
+
+        private NClass GetParentPropertyType(Template a) {
+            var x = NValueClass.Find((Template)a.Parent);
+            return x;
         }
 
         /// <summary>
@@ -449,7 +463,15 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             StringBuilder sb = new StringBuilder();
             sb.Append("    public override object CreateInstance(AppNode parent) { return new ");
             sb.Append(node.NValueClass.ClassName);
-            sb.Append("(this) { Parent = parent }; }");
+            if (node.Template.Parent != null) {
+                string parentClass = GetParentPropertyType(node.Template).FullClassName;
+                sb.Append("(this) { Parent = (" + 
+                    parentClass + 
+                    ")parent }; }");
+            }
+            else {
+                sb.Append("(this) { Parent = parent }; }");
+            }
             node.Prefix.Add(sb.ToString());
         }
 
@@ -490,7 +512,9 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     sb.Append(mn.Type.FullClassName);
 
                     sb.Append(">(\"");
-                    sb.Append(mn.MemberName);
+                    sb.Append(mn.Template.Name);
+                    sb.Append("\", \"");
+                    sb.Append(mn.Template.PropertyName);
                     sb.Append('"');
 
                     if (mn.Template.Editable)
@@ -547,7 +571,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             bool hasValue = ib.HasValue;
             StringBuilder sb = new StringBuilder();
             sb.Append("        ");
-            sb.Append(ib.BindsToProperty.Template.Name);       // {0}
+            sb.Append(ib.BindsToProperty.Template.PropertyName);       // {0}
             sb.Append(".AddHandler((App app, Property");
 
             if (hasValue) {
