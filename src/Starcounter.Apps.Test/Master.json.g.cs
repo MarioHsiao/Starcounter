@@ -62,8 +62,8 @@ public partial class Master {
             : base() {
             InstanceType = typeof(Master);
             ClassName = "Master";
-            Page = Register<AppTemplate>("Page");
-            Test = Register<StringProperty, string>("Test", true);
+            Page = Register<AppTemplate>("Page", "Page");
+            Test = Register<StringProperty, string>("Test", "Test", true);
             Test.AddHandler( (App app, Property<string> prop, string value) => { return (new Input.Test() { App = (Master)app, Template = (StringProperty)prop, Value = value } ) ; }, (App app, Input<string> Input) => ((Master)app).Handle((Input.Test)Input) );
         }
         /// <summary>
