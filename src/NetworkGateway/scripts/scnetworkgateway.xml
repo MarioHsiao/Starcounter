@@ -11,13 +11,13 @@
   <AggregationPort>0</AggregationPort>
   
   <!-- Number of worker threads -->
-  <WorkersNumber>3</WorkersNumber>
+  <WorkersNumber>1</WorkersNumber>
   
   <!-- Maximum number of connections -->
   <MaxConnections>100000</MaxConnections>
   
   <!-- Inactive session life time in seconds -->
-  <InactiveSessionTimeout>36</InactiveSessionTimeout>
+  <InactiveSessionTimeout>1200</InactiveSessionTimeout>
   
   <!-- Local interfaces to bind -->
   <LocalIP>10.0.0.1</LocalIP>

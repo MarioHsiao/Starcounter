@@ -177,7 +177,7 @@ const int32_t MAX_CHUNKS_IN_PRIVATE_POOL = 256;
 const int32_t NUM_PREDEFINED_PORT_TYPES = 5;
 
 // Minimum inactive sessions life in seconds.
-const int32_t MIN_INACTIVE_SESSION_LIFE_SECONDS = 12;
+const int32_t MIN_INACTIVE_SESSION_LIFE_SECONDS = 400;
 
 // Size of local/remove address structure.
 const int32_t SOCKADDR_SIZE_EXT = sizeof(sockaddr_in) + 16;
