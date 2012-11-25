@@ -788,6 +788,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         stringBuilder.AppendLine(tabs, ")");
     }
 
+#if false
     // Does the continuous object ETIs and IDs fill up into the dedicated buffer.
     public override unsafe UInt32 FillupFoundObjectIDs(Byte* results, UInt32 resultsMaxBytes, UInt32* resultsNum, UInt32* flags)
     {
@@ -813,6 +814,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         // Just calling the underlying enumerator for function implementation.
         return enumerator.NativeFillupFoundObjectIDs(results, resultsMaxBytes, resultsNum, flags);
     }
+#endif
 
     /// <summary>
     /// Generates compilable code representation of this data structure.
