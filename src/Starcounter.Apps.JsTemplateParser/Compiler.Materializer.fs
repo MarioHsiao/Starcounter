@@ -18,16 +18,16 @@ type IObjectTemplate =
 // Interface declaration:
 type ITemplateFactory =
     interface
-        abstract AddAppProperty : obj * string * DebugInfo -> obj               // Name
+        abstract AddAppProperty : obj * string * string * DebugInfo -> obj               // Name
 //        abstract AddObjectProperty : obj * string * DebugInfo -> obj               // Name
         abstract AddAppElement : obj * DebugInfo-> obj                           // Name
-        abstract AddStringProperty : obj * string * string * DebugInfo -> obj        // Name, value
-        abstract AddIntegerProperty : obj * string * int * DebugInfo -> obj        // Name, value
-        abstract AddDecimalProperty : obj * string * decimal * DebugInfo -> obj        // Name, value
-        abstract AddDoubleProperty : obj * string * double * DebugInfo -> obj        // Name, value
-        abstract AddBooleanProperty : obj * string * bool * DebugInfo -> obj        // Name, value
-        abstract AddEventProperty : obj * string * string * DebugInfo -> obj        // Name, value
-        abstract AddArrayProperty : obj * string * DebugInfo -> obj                // Name
+        abstract AddStringProperty : obj * string * string * string * DebugInfo -> obj        // Name, value
+        abstract AddIntegerProperty : obj * string * string * int * DebugInfo -> obj        // Name, value
+        abstract AddDecimalProperty : obj * string * string * decimal * DebugInfo -> obj        // Name, value
+        abstract AddDoubleProperty : obj * string * string * double * DebugInfo -> obj        // Name, value
+        abstract AddBooleanProperty : obj * string * string * bool * DebugInfo -> obj        // Name, value
+        abstract AddEventProperty : obj * string * string * string * DebugInfo -> obj        // Name, value
+        abstract AddArrayProperty : obj * string * string * DebugInfo -> obj                // Name
         abstract AddCargoProperty : obj * DebugInfo -> obj         
         abstract AddMetaProperty : obj * DebugInfo -> obj         
         abstract GetMetaTemplate : obj * DebugInfo -> obj
@@ -147,26 +147,26 @@ module public Materializer =
                 let ( newObj, debugInfo, considerEditable ) =
                         match ast with
                         | Ast.String (str,debugInfo) ->
-                            ( factory.AddStringProperty(parent,legalName,str,debugInfo), debugInfo, true )
+                            ( factory.AddStringProperty(parent,name,legalName,str,debugInfo), debugInfo, true )
                         | Ast.Boolean(b,debugInfo) ->
-                            ( factory.AddBooleanProperty(parent,legalName,b,debugInfo), debugInfo, true )
+                            ( factory.AddBooleanProperty(parent,name,legalName,b,debugInfo), debugInfo, true )
                         | Ast.Identifier(identifier,debugInfo) ->
-                            ( factory.AddEventProperty(parent,legalName,identifier,debugInfo), debugInfo, false )
+                            ( factory.AddEventProperty(parent,name,legalName,identifier,debugInfo), debugInfo, false )
                         | Ast.Function(_,_,_,debugInfo) ->
-                            ( factory.AddEventProperty(parent,legalName,null,debugInfo), debugInfo, false )
+                            ( factory.AddEventProperty(parent,name,legalName,null,debugInfo), debugInfo, false )
                         | Ast.Tree.Array (_,debugInfo) ->
-                            ( factory.AddArrayProperty(parent,legalName,debugInfo), debugInfo, false )
+                            ( factory.AddArrayProperty(parent,name,legalName,debugInfo), debugInfo, false )
                         | Ast.Tree.Object (_,debugInfo) ->
-                            (factory.AddAppProperty(parent,legalName,debugInfo), debugInfo, true )
+                            (factory.AddAppProperty(parent,name,legalName,debugInfo), debugInfo, true )
                         | Ast.Tree.Null (debugInfo) ->
-                            ( factory.AddEventProperty(parent,legalName,null,debugInfo), debugInfo, false )
+                            ( factory.AddEventProperty(parent,name,legalName,null,debugInfo), debugInfo, false )
    //                         (factory.AddObjectProperty(parent,legalName,debugInfo), debugInfo, false )
                         | Ast.Tree.Integer (i,debugInfo) ->
-                            (factory.AddIntegerProperty(parent,legalName,i,debugInfo), debugInfo, true )
+                            (factory.AddIntegerProperty(parent,name,legalName,i,debugInfo), debugInfo, true )
                         | Ast.Tree.Decimal (d, debugInfo) ->
-                            (factory.AddDecimalProperty(parent,legalName,d,debugInfo), debugInfo, true )
+                            (factory.AddDecimalProperty(parent,name,legalName,d,debugInfo), debugInfo, true )
                         | Ast.Tree.Double (d, debugInfo) ->
-                            (factory.AddDoubleProperty(parent,legalName,d,debugInfo), debugInfo, true )
+                            (factory.AddDoubleProperty(parent,name,legalName,d,debugInfo), debugInfo, true )
                         | _ ->
                             failedExpectation1 "array, object, string, boolean, number, function or event" ast
                 if ( considerEditable && dollarSuffix ) then factory.SetEditableProperty( newObj, true, debugInfo );

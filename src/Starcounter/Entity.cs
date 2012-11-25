@@ -110,34 +110,28 @@ namespace Starcounter
         /// <summary>
         /// 
         /// </summary>
-        public void Delete()
-        {
-            int br;
-            uint e;
-            ObjectRef thisRef = ThisRef;
-            // Issue the delete
-            br = sccoredb.Mdb_ObjectIssueDelete(thisRef.ObjectID, thisRef.ETI);
-            if (br == 0)
-            {
+        public void Delete() {
+            var thisRef = ThisRef;
+            uint r;
+            
+            r = sccoredb.sccoredb_begin_delete(thisRef.ObjectID, thisRef.ETI);
+            if (r != 0) {
                 // If the error is because the delete already was issued then
                 // we ignore it and just return. We are processing the delete
                 // of this object so it will be deleted eventually.
-                e = sccoredb.Mdb_GetLastError();
-                if (e == Error.SCERRDELETEPENDING)
-                {
-                    return;
-                }
-                throw ErrorCode.ToException(e);
+
+                if (r == Error.SCERRDELETEPENDING) return;
+                throw ErrorCode.ToException(r);
             }
+
             // Invoke all callbacks. If any of theese throws an exception then
             // we rollback the issued delete and pass on the thrown exception
             // to the caller.
-            try
-            {
+
+            try {
                 InvokeOnDelete();
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 // We can't generate an exception from an error in this
                 // function since this will hide the original error.
                 //
@@ -147,14 +141,15 @@ namespace Starcounter
                 // thing is that the transaction lock set when the delete was
                 // issued is released and this will be the case as long as none
                 // of the above errors occur.
-                sccoredb.Mdb_ObjectDelete(thisRef.ObjectID, thisRef.ETI, 0);
+                
+                sccoredb.sccoredb_abort_delete(thisRef.ObjectID, thisRef.ETI);
                 if (ex is System.Threading.ThreadAbortException) throw;
                 throw ErrorCode.ToException(Error.SCERRERRORINHOOKCALLBACK, ex);
             }
-            // Commit the delete.
-            br = sccoredb.Mdb_ObjectDelete(thisRef.ObjectID, thisRef.ETI, 1);
-            if (br != 0) return;
-            throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
+
+            r = sccoredb.sccoredb_complete_delete(thisRef.ObjectID, thisRef.ETI);
+            if (r == 0) return;
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>

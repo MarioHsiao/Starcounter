@@ -47,7 +47,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="at">The App template (i.e. json tree prototype) to generate code for</param>
         /// <param name="metadata">The metadata.</param>
         /// <returns>An abstract code tree. Use CSharpGenerator to generate .CS code.</returns>
-        public NRoot GenerateDomTree(AppTemplate at, CodeBehindMetadata metadata)
+        public NRoot GenerateDomTree(AppTemplate at, CodeBehindMetadata metadata )
         {
             var root = new NRoot();
             var acn = new NAppClass()
@@ -84,7 +84,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             acn.NTemplateClass = tcn;
 //            if (acn is NAppClass) {
 //                var racn = acn as NAppClass;
-            GenerateKids(acn, 
+            GenerateKids(acn,                         
                         (NAppTemplateClass)acn.NTemplateClass, 
                         acn.NTemplateClass.NMetadataClass, 
                         acn.NTemplateClass.Template);
@@ -284,7 +284,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             // and the second the rootTemplate.
             for (Int32 i = 1; i < mapParts.Length; i++)
             {
-                template = appTemplate.Properties.GetTemplateByName(mapParts[i]);
+                template = appTemplate.Properties.GetTemplateByPropertyName(mapParts[i]);
                 if (template is AppTemplate)
                 {
                     appTemplate = (AppTemplate)template;
@@ -369,6 +369,9 @@ namespace Starcounter.Internal.Application.CodeGeneration
                         }
                         else if (kid is ListingProperty)
                         {
+//                            var type = new NListingXXXClass(NValueClass.Classes[kid.InstanceType] ) { Template = kid }; // Orphaned by design as primitive types dont get custom template classes
+//                            NTemplateClass.Classes[kid] = type;
+
                             GenerateForListing(kid as ListingProperty,
                                                appClassParent,
                                                templParent,
@@ -382,6 +385,9 @@ namespace Starcounter.Internal.Application.CodeGeneration
                     }
                     else
                     {
+                        var type = new NPropertyClass() { Template = kid /*, Parent = appClassParent */ }; // Orphaned by design as primitive types dont get custom template classes
+                        NTemplateClass.Classes[kid] = type;
+
                         GenerateProperty(kid, appClassParent, templParent, metaParent);
                     }
                 }
@@ -431,7 +437,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                     Parent = racn,
                     Template = at,
                     NValueClass = racn,
-                    _Inherits = "AppTemplate"
+                    _Inherits = "AppTemplate",
                 };
                 mcn = new NAppMetadata()
                 {
@@ -483,19 +489,22 @@ namespace Starcounter.Internal.Application.CodeGeneration
             {
                 bound = (at.Bound || (appClassParent.AutoBindPropertiesToEntity));
             }
-            
-            new NProperty()
+
+            var valueClass = NValueClass.Find(at);
+            var type = NTemplateClass.Find(at);
+
+            type.NValueProperty = new NProperty()
             {
                 Parent = appClassParent,
                 Template = at,
-                Type = NValueClass.Find(at),
+                Type = valueClass,
                 Bound = bound
             };
             new NProperty()
             {
                 Parent = templParent,
                 Template = at,
-                Type = NTemplateClass.Find(at),
+                Type = type,
                 Bound = bound
             };
             new NProperty()
@@ -558,18 +567,23 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 Bound = bound
             };
             GenerateKids(appClassParent, templParent, metaParent, alt);
-            amn.Type = new NListingXXXClass("Listing", NValueClass.Classes[alt.App], null);
+            var vlist = new NListingXXXClass("Listing", NValueClass.Classes[alt.App], null,alt);
+            amn.Type = vlist;
 
             tmn.Type = new NListingXXXClass("ListingProperty", 
                                             NValueClass.Classes[alt.App], 
-                                            NTemplateClass.Classes[alt.App]);
+                                            NTemplateClass.Classes[alt.App], alt);
             cstmn.Type = new NListingXXXClass("ListingProperty",
                                             NValueClass.Classes[alt.App],
-                                            NTemplateClass.Classes[alt.App]);
+                                            NTemplateClass.Classes[alt.App], alt);
 
             mmn.Type = new NListingXXXClass("ListingMetadata", 
                                             NValueClass.Classes[alt.App], 
-                                            NTemplateClass.Classes[alt.App]);
+                                            NTemplateClass.Classes[alt.App], alt);
+
+            //ntempl.Template = alt;
+//            NTemplateClass.Classes[alt] = tlist;
+            NValueClass.Classes[alt] = vlist;
         }
 
         /// <summary>
@@ -683,7 +697,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                                     {
                                         NProperty property = child as NProperty;   
                                         if (property != null)
-                                            return property.Template.Name.Equals(parts[i]);
+                                            return property.Template.PropertyName.Equals(parts[i]);
                                         return false;
                                     });
 

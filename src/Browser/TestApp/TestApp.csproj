@@ -50,6 +50,9 @@
     <Reference Include="Starcounter.Apps.JsonPatch">
       <HintPath>..\..\..\bin\Debug\Starcounter.Apps.JsonPatch.dll</HintPath>
     </Reference>
+    <Reference Include="Starcounter.Bootstrap">
+      <HintPath>..\..\..\bin\Debug\Starcounter.Bootstrap.dll</HintPath>
+    </Reference>
     <Reference Include="Starcounter.Hypermedia">
       <HintPath>..\..\..\bin\Debug\Starcounter.Hypermedia.dll</HintPath>
     </Reference>

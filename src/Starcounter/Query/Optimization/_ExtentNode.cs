@@ -339,7 +339,7 @@ internal class ExtentNode : IOptimizationNode
                 }
                 catch
                 {
-                    Console.WriteLine("Filter code generation for the query \"" + query + "\" has failed. Launching managed-level full table scan...");
+                    //Console.WriteLine("Filter code generation for the query \"" + query + "\" has failed. Launching managed-level full table scan...");
                 }
             }
 
