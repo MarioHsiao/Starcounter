@@ -26,6 +26,7 @@ namespace Weaver {
     internal class CodeWeaver : MarshalByRefObject, IPostSharpHost {
         const string AnalyzerProjectFileName = "ScAnalyzeOnly.psproj";
         const string WeaverProjectFileName = "ScTransform.psproj";
+        const string BootstrapWeaverProjectFileName = "ScWeaveBootstrap.psproj";
 
         private readonly List<Regex> weaverExcludes = new List<Regex>();
 
@@ -140,6 +141,16 @@ namespace Weaver {
         /// The value is the full path to the file.
         /// </remarks>
         private string WeaverProjectFile;
+
+        /// <summary>
+        /// Gets the path to the bootstrap weaver project file, once resolved.
+        /// This file is used to weave executables and make them "bootable" from
+        /// the OS shell.
+        /// </summary>
+        /// <remarks>
+        /// The value is the full path to the file.
+        /// </remarks>
+        private string BootstrapWeaverProjectFile;
 
         /// <summary>
         /// Holds a reference to the weaver cache we'll use when the weaver
@@ -283,6 +294,17 @@ namespace Weaver {
                 return false;
             }
             this.WeaverProjectFile = weaverProjectFile;
+
+            var bootstrapWeaverProjectFile = Path.GetFullPath(Path.Combine(this.WeaverRuntimeDirectory, CodeWeaver.BootstrapWeaverProjectFileName));
+            if (!File.Exists(bootstrapWeaverProjectFile)) {
+                errorCode = Error.SCERRWEAVERPROJECTFILENOTFOUND;
+                Program.ReportProgramError(
+                    errorCode,
+                    ErrorCode.ToMessage(errorCode, string.Format("Path: {0}", bootstrapWeaverProjectFile))
+                    );
+                return false;
+            }
+            this.BootstrapWeaverProjectFile = bootstrapWeaverProjectFile;
 
             // Decide all finalized directory paths to use and make sure all
             // directories we might need is actually in place.
