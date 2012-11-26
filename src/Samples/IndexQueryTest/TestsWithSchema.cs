@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using Starcounter;
 using Starcounter.Binding;
 using Starcounter.Query.Execution;
@@ -27,7 +28,7 @@ namespace IndexQueryTest
             PrintUserByLastName("Popov");
             Db.Transaction(delegate
             {
-                Console.WriteLine(((ISqlEnumerator)Db.SQL("select u from AUser u where LastName = ?", "Popov").GetEnumerator()).ToString());
+                Console.WriteLine(((IEnumerator)Db.SQL("select u from AUser u where LastName = ?", "Popov").GetEnumerator()).ToString());
             });
         }
 
@@ -71,7 +72,7 @@ namespace IndexQueryTest
             PrintUsersOrderByLastName();
             Db.Transaction(delegate
             {
-                Console.WriteLine(((ISqlEnumerator)Db.SQL("select u from AUser u order by LastName").GetEnumerator()).ToString());
+                Console.WriteLine(((IEnumerator)Db.SQL("select u from AUser u order by LastName").GetEnumerator()).ToString());
             });
         }
 
