@@ -30,7 +30,7 @@ thread_b_(),
 thread_c_(),
 test_id_(5),
 #endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
-owner_id_counter_(owner_id::none) {
+owner_id_counter_(2147483600) {
 	/// TODO: Use Boost.Program_options.
 	/// ScErrCreateMonitorInterface is reserved in errorcodes.xml for later use.
 	
@@ -1091,7 +1091,34 @@ void __stdcall monitor::apc_function(boost::detail::win32::ulong_ptr arg) {
 }
 
 inline owner_id monitor::get_new_owner_id() {
-	return ++owner_id_counter_;
+	// The register_mutex_ is already locked by the caller.
+	
+	// The owner_id value type was changed from 64-bit to 32-bit. Therefore it
+	// may wrap so this need to be handled. The range will be owner_id::id_field
+	// except that owner_id::none (0) and owner_id::anonymous (1) is out of the
+	// id range, since smp::spinlocks are unlocked with 0, and anonymously
+	// locked with 1. Using the smp::spinlocks in robust mode requires locking
+	// with an id in the range 2 to 2^30 -1. Bit 31 (MSB) in the owner_id is
+	// used to flag clean-up so the range is about 31-bits.
+
+	//--------------------------------------------------------------------------
+	// At most max_number_of_monitored_processes +2 (0 and 1) IDs can be taken.
+	for (std::size_t i = 0; i < max_number_of_monitored_processes +2; ++i) {
+		++owner_id_counter_;
+		owner_id_counter_ &= owner_id::id_field;
+
+		if (owner_id_counter_ != owner_id::none
+		&& owner_id_counter_ != owner_id::anonymous) {
+			if (process_register_.find(owner_id_counter_) == process_register_.end()) {
+				// This owner_id is not used by any monitored process.
+				return owner_id_counter_;
+			}
+		}
+	}
+
+	// Getting here should be impossible. Returning owner_id::none to a
+	// registering process indicates it could not register and be monitored.
+	return owner_id::none;
 }
 
 #if 0
@@ -1236,7 +1263,45 @@ void monitor::print_rate_with_precision(double rate) {
 #endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 
 void monitor::test_a() {
+	Sleep(INFINITE);
 	Sleep(100);
+	owner_id new_owner_id;
+
+	std::size_t i;
+	std::size_t inserted_counter = 0;
+
+	for (i = 2; i < 16386; ++i) {
+		if (process_register_.find(i) == process_register_.end()) {
+			// Insert client process info.
+			process_register_[i] = process_info();
+			++inserted_counter;
+		}
+	}
+	
+	std::cout << "Successfully inserted " << inserted_counter << " process_info objects.\n";
+	
+	process_register_.erase(1000);
+
+	for (i = 0; i < 100; ++i) {
+		new_owner_id = get_new_owner_id();
+
+		if (new_owner_id == owner_id::none) {
+			std::cout << "owner_id::none on i = " << i << "\n";
+		}
+		else {
+			if (process_register_.find(new_owner_id) == process_register_.end()) {
+				// Insert client process info.
+				process_register_[new_owner_id] = process_info();
+				std::cout << new_owner_id << " successfully inserted.\n";
+			}
+			else {
+				std::cout << new_owner_id << " was not insterted because it already exist in the process register.\n";
+			}
+		}
+	}
+	Sleep(INFINITE);
+
+	
 	owner_id x;
 	owner_id y(1);
 	owner_id z = 2;
@@ -1305,8 +1370,6 @@ void monitor::test_a() {
 	}
 
 	std::cout << "Time is up! time_left = " << time_left << "\n";
-
-
 	Sleep(INFINITE);
 
 	for (std::size_t i = 0; i < 1E9; ++i) {
@@ -1331,6 +1394,7 @@ void monitor::test_a() {
 }
 
 void monitor::test_b() {
+	Sleep(INFINITE);
 	for (std::size_t i = 0; i < 1E9; ++i) {
 		_InterlockedDecrement(&waiting_consumers_);
 		//_InterlockedExchangeAdd(&waiting_consumers_, -1L);

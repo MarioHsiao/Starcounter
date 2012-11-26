@@ -132,6 +132,9 @@ public:
 	/// Copy assignment for owner_id with volatile qualifier.
 	volatile owner_id& operator=(const owner_id& a) volatile;
 
+	/// operator&=()
+	volatile owner_id& operator&=(const owner_id& a) volatile;
+	
 	/// Assignment from param_type.
 	/**
 	 * @param n The value to assign.
