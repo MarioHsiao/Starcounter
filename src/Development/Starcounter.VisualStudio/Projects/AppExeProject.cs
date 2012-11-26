@@ -14,6 +14,8 @@ namespace Starcounter.VisualStudio.Projects {
     internal class AppExeProject : StarcounterProject {
         private static readonly Icon projectIcon;
 
+        private AppsEvents appsEvents;
+
         static AppExeProject() {
             try {
                 projectIcon =
@@ -24,6 +26,14 @@ namespace Starcounter.VisualStudio.Projects {
 
         public AppExeProject(VsPackage package)
             : base(package) {
+//                System.Diagnostics.Debugger.Launch();
+
+                // TODO:
+                // These events are not really needed for ordinary starcounter exe projects,
+                // since they only concern renaming json and codebehind and trigger the Apps
+                // build task. 
+                appsEvents = new AppsEvents();
+                appsEvents.AddEventListeners(package);
         }
 
         protected override StarcounterProjectConfiguration CreateProjectConfiguration(IVsCfg pBaseProjectCfg, IVsProjectFlavorCfg inner) {
@@ -32,6 +42,13 @@ namespace Starcounter.VisualStudio.Projects {
 
         protected override Icon GetIcon() {
             return projectIcon;
+        }
+
+        protected override void Close() {
+            if (appsEvents != null) {
+                appsEvents.RemoveEventListeners();
+            }
+            base.Close();
         }
     }
 }
