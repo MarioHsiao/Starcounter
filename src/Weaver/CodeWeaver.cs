@@ -74,6 +74,13 @@ namespace Weaver {
         public bool WeaveToCacheOnly { get; set; }
 
         /// <summary>
+        /// Gets or sets a value that instructs the weaver to invoke the
+        /// functionality involved when doing weaving to support bootstrapping
+        /// of executables.
+        /// </summary>
+        public bool WeaveBootstrapperCode { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating if the weaver cache should be
         /// disabled. If the cache is disabled, cached assemblies will not
         /// be considered and all input will always be analyzed and/or
@@ -163,6 +170,7 @@ namespace Weaver {
             this.CacheDirectory = cacheDirectory;
             this.RunWeaver = true;
             this.WeaveForIPC = true;
+            this.WeaveBootstrapperCode = false;
             this.DisableWeaverCache = false;
             this.AssemblyFile = file;
 
@@ -376,7 +384,16 @@ namespace Weaver {
             //   We give the user the option to override this by specifying
             // in configuration files he/she want's to explicitly exclude.
 
-            var dlls = Directory.GetFiles(this.InputDirectory, "*.dll");
+            // 20121126
+            // When we extend the weaver to support an alternative weaving,
+            // weaving only the executables entrypoint to support bootstraping,
+            // we consider nothing more than the executable itself.
+            string[] dlls;
+            if (this.WeaveBootstrapperCode) {
+                dlls = new string[0];
+            } else {
+                dlls = Directory.GetFiles(this.InputDirectory, "*.dll");
+            }
             filesToConsider = dlls;
 
             if (Path.GetExtension(this.AssemblyFile).Equals(".exe")) {
@@ -607,6 +624,7 @@ namespace Weaver {
             ProjectInvocationParameters parameters = null;
             string file = module.FileName;
             ModuleLoadStrategy loadStrategy;
+            string weaverProjectFile;
 
             // Check if the module is part of the set of assemblies we have
             // established we must process.
@@ -623,7 +641,8 @@ namespace Weaver {
             // Yes, we'll have it processed.
 
             if (RunWeaver) {
-                parameters = new ProjectInvocationParameters(this.WeaverProjectFile);
+                weaverProjectFile = this.WeaveBootstrapperCode ? this.BootstrapWeaverProjectFile : this.WeaverProjectFile;
+                parameters = new ProjectInvocationParameters(weaverProjectFile);
                 parameters.Properties["ScInputDirectory"] = this.WeaverInputPath;
                 parameters.PreventOverwriteAssemblyNames = false;
                 parameters.Properties["WeaveForIPC"] = this.WeaveForIPC ? bool.TrueString : bool.FalseString;
@@ -643,7 +662,7 @@ namespace Weaver {
             parameters.Properties["CacheTimestamp"] =
                 XmlConvert.ToString(File.GetLastWriteTime(file),
                 XmlDateTimeSerializationMode.RoundtripKind);
-            parameters.ProcessDependenciesFirst = true;
+            parameters.ProcessDependenciesFirst = !this.WeaveBootstrapperCode;
             parameters.Properties["ScWeaverDirectives"] = "0";
             parameters.Properties["AssemblyName"] = Path.GetFileNameWithoutExtension(file);
             parameters.Properties["AssemblyExtension"] = Path.GetExtension(file);
