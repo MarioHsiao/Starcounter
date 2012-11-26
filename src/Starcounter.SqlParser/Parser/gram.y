@@ -6627,20 +6627,7 @@ member_access_indices:
 		;
 
 standard_func_call:
-			CURRENT_ROLE
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("current_user");
-					n->args = NIL;
-					n->agg_order = NIL;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = FALSE;
-					n->over = NULL;
-					n->location = @1;
-					$$ = (Node *)n;
-				}
-			| CURRENT_USER
+			CURRENT_USER
 				{
 					FuncCall *n = makeNode(FuncCall);
 					n->funcname = SystemFuncName("current_user");
@@ -7950,6 +7937,7 @@ unreserved_keyword:
 			| COPY
 			| COST
 			| CURRENT_DATE
+			| CURRENT_ROLE
 			| CURRENT_TIME
 			| CURRENT_TIMESTAMP
 			| CSV
@@ -8283,7 +8271,6 @@ reserved_keyword:
 			| CONSTRAINT
 			| CREATE
 			| CURRENT_CATALOG
-			| CURRENT_ROLE
 			| CURRENT_USER
 			| DEFAULT
 			| DEFERRABLE
