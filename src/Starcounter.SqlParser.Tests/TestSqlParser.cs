@@ -134,6 +134,8 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select LOCALTIME, LOCALTIME(2)");
             analyzer.ParseQuery("select LOCALTIMESTAMP, LOCALTIMESTAMP(2)");
             analyzer.ParseQuery("select CURRENT_ROLE");
+            analyzer.ParseQuery("select CURRENT_USER");
+            analyzer.ParseQuery("select SESSION_USER");
         }
 
         [Test]

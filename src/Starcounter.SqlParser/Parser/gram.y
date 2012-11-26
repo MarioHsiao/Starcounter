@@ -6627,46 +6627,7 @@ member_access_indices:
 		;
 
 standard_func_call:
-			CURRENT_USER
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("current_user");
-					n->args = NIL;
-					n->agg_order = NIL;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = FALSE;
-					n->over = NULL;
-					n->location = @1;
-					$$ = (Node *)n;
-				}
-			| SESSION_USER
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("session_user");
-					n->args = NIL;
-					n->agg_order = NIL;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = FALSE;
-					n->over = NULL;
-					n->location = @1;
-					$$ = (Node *)n;
-				}
-/*			| USER
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("current_user");
-					n->args = NIL;
-					n->agg_order = NIL;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = FALSE;
-					n->over = NULL;
-					n->location = @1;
-					$$ = (Node *)n;
-				}*/
-			| CURRENT_CATALOG
+			CURRENT_CATALOG
 				{
 					FuncCall *n = makeNode(FuncCall);
 					n->funcname = SystemFuncName("current_database");
@@ -7940,6 +7901,7 @@ unreserved_keyword:
 			| CURRENT_ROLE
 			| CURRENT_TIME
 			| CURRENT_TIMESTAMP
+			| CURRENT_USER
 			| CSV
 			| CURRENT_P
 			| CURSOR
@@ -8090,6 +8052,7 @@ unreserved_keyword:
 			| SERIALIZABLE
 			| SERVER
 			| SESSION
+			| SESSION_USER
 			| SET
 			| SHARE
 			| SHOW
@@ -8271,7 +8234,6 @@ reserved_keyword:
 			| CONSTRAINT
 			| CREATE
 			| CURRENT_CATALOG
-			| CURRENT_USER
 			| DEFAULT
 			| DEFERRABLE
 			| DESC
@@ -8308,7 +8270,6 @@ reserved_keyword:
 			| REFERENCES
 			| RETURNING
 			| SELECT
-			| SESSION_USER
 			| SOME
 			| SYMMETRIC
 			| TABLE
