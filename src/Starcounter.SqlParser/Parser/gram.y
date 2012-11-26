@@ -173,7 +173,7 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 		CreateTrigStmt
 		CreateUserStmt CreateRoleStmt
 		CreatedbStmt DefineStmt DeleteStmt DiscardStmt
-		DropStmt
+		DropIndexStmt DropStmt
 		DropTrigStmt DropRoleStmt
 		DropUserStmt DropdbStmt
 		ExplainStmt
@@ -260,6 +260,8 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 
 %type <node>	member_access_el member_access_indices standard_func_call
 %type <list>	member_access_seq member_func_expr
+%type <node>	index_spec
+%type <list>	index_spec_list
 
 %type <range>	OptTempTableName
 %type <into>	into_clause create_as_target
@@ -620,6 +622,7 @@ stmt :
 			| DefineStmt
 			| DeleteStmt
 			| DiscardStmt
+			| DropIndexStmt
 			| DropOwnedStmt
 			| DropStmt
 			| DropTrigStmt
@@ -2833,7 +2836,6 @@ DropStmt:	DROP drop_type IF_P EXISTS any_name_list opt_drop_behavior
 
 drop_type:	TABLE									{ $$ = OBJECT_TABLE; }
 			| VIEW									{ $$ = OBJECT_VIEW; }
-			| INDEX									{ $$ = OBJECT_INDEX; }
 			| DOMAIN_P								{ $$ = OBJECT_DOMAIN; }
 			| COLLATION								{ $$ = OBJECT_COLLATION; }
 		;
@@ -2854,6 +2856,45 @@ attrs:		'.' attr_name
 		;
 
 
+/*****************************************************************************
+ *
+ *		QUERY:
+ *
+ *		DROP INDEX [ IF EXISTS ] itemname ON classname [, itemname ON classname ...]
+ *           [ RESTRICT | CASCADE ]
+ *
+ *****************************************************************************/
+
+	DropIndexStmt:	
+			DROP INDEX index_spec_list		{ $$ = (Node*)$3; }
+		;
+
+		index_spec_list:
+			index_spec								{ $$ = list_make1($1); }
+			| index_spec_list ',' index_spec		{ $$ = lappend($1, $3); }
+		;
+
+		index_spec:
+			any_name ON GenericType opt_drop_behavior
+				{
+					DropIndexStmt *n = makeNode(DropIndexStmt);
+					n->name = $1;
+					n->typeName = $3;
+					n->missing_ok = FALSE;
+					n->behavior = $4;
+					$$ = (Node *)n;
+				}
+			| IF_P EXISTS any_name ON GenericType opt_drop_behavior
+				{
+					DropIndexStmt *n = makeNode(DropIndexStmt);
+					n->name = $3;
+					n->typeName = $5;
+					n->missing_ok = TRUE;
+					n->behavior = $6;
+					$$ = (Node *)n;
+				}
+			;
+		
 /*****************************************************************************
  *
  *		QUERY:

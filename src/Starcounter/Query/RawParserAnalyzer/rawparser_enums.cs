@@ -71,6 +71,7 @@ enum NodeTag
 	T_CreateStmt,
 	T_DefineStmt,
 	T_DropStmt,
+    T_DropIndexStmt,
 	T_TruncateStmt,
 	T_IndexStmt,
 	T_TransactionStmt,

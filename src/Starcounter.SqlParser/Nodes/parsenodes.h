@@ -1121,7 +1121,7 @@ typedef struct CreateDomainStmt
 } CreateDomainStmt;
 
 /* ----------------------
- *		Drop Table|Sequence|View|Index|Type|Domain|Conversion|Schema Statement
+ *		Drop Table|Sequence|View|Type|Domain|Conversion|Schema Statement
  * ----------------------
  */
 
@@ -1133,6 +1133,21 @@ typedef struct DropStmt
 	DropBehavior behavior;		/* RESTRICT or CASCADE behavior */
 	bool		missing_ok;		/* skip error if object is missing? */
 } DropStmt;
+
+/* ----------------------
+ *		Drop Index Statement
+ * ----------------------
+ */
+
+typedef struct DropIndexStmt
+{
+	NodeTag		type;
+	List	   *name;			/* list of index name proceeded with namespaces */
+	TypeName   *typeName;		/* Type name, which can have namespaces and generics */
+	ObjectType	removeType;		/* object type */
+	DropBehavior behavior;		/* RESTRICT or CASCADE behavior */
+	bool		missing_ok;		/* skip error if object is missing? */
+} DropIndexStmt;
 
 /* ----------------------
  *		Drop Rule|Trigger Statement
