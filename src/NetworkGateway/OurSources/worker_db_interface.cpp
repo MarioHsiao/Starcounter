@@ -139,30 +139,29 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
             session_index_type session_index = sd->get_session_index();
             if (INVALID_SESSION_INDEX != session_index)
             {
+                // Getting copy of a global session.
+                ScSessionStruct global_session_copy = g_gateway.GetGlobalSessionDataCopy(session_index);
+
                 // Checking if Apps unique number is valid.
                 if (INVALID_APPS_UNIQUE_SESSION_NUMBER != sd->get_apps_unique_session_num())
                 {
-                    ScSessionStruct session = g_gateway.GetGlobalSessionDataCopy(session_index);
-
                     // Checking if session exists.
-                    if (session.IsValid())
+                    // Checking if session salt is correct.
+                    if (!global_session_copy.CompareSalts(sd->get_session_salt()))
                     {
-                        if (!session.CompareSalts(sd->get_session_salt()))
-                        {
 #ifdef GW_SESSIONS_DIAG
-                            GW_PRINT_WORKER << "Wrong session attached to socket: " << sd->get_session_salt() << std::endl;
+                        GW_PRINT_WORKER << "Wrong session attached to socket: " << sd->get_session_salt() << std::endl;
 #endif
-                            // Killing session number for this Apps.
-                            current_db->SetAppsSessionValue(session_index, INVALID_APPS_UNIQUE_SESSION_NUMBER, INVALID_SESSION_SALT);
+                        // Killing session number for this Apps.
+                        current_db->SetAppsSessionValue(session_index, INVALID_APPS_UNIQUE_SESSION_NUMBER, INVALID_SESSION_SALT);
 
-                            // The session was killed.
-                            sd->ResetSession();
-                        }
+                        // The session was killed.
+                        sd->ResetSdSession();
                     }
                     else
                     {
-                        // The session was killed.
-                        sd->ResetSession();
+                        // Updating session time stamp.
+                        g_gateway.SetSessionTimeStamp(sd->get_session_index());
                     }
                 }
                 else
@@ -170,32 +169,23 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
                     // Killing session number for this Apps session.
                     current_db->SetAppsSessionValue(session_index, INVALID_APPS_UNIQUE_SESSION_NUMBER, INVALID_SESSION_SALT);
 
-                    // Killing session only if its the same.
-                    ScSessionStruct session = g_gateway.GetGlobalSessionDataCopy(session_index);
-
-                    // Checking if session exists.
-                    if (session.IsValid())
+                    // Checking if session salt is correct.
+                    if (!global_session_copy.CompareSalts(sd->get_session_salt()))
                     {
-                        if (!session.CompareSalts(sd->get_session_salt()))
-                        {
 #ifdef GW_SESSIONS_DIAG
-                            GW_PRINT_WORKER << "Trying to kill a wrong session: " << session_index << ":" << sd->get_session_salt() << std::endl;
+                        GW_PRINT_WORKER << "Trying to kill a wrong session: " << session_index << ":" << sd->get_session_salt() << std::endl;
 #endif
-                        }
-                        else
-                        {
-                            // Killing global session.
-                            sd->KillSession();
-
-#ifdef GW_SESSIONS_DIAG
-                            GW_PRINT_WORKER << "Session was killed: " << session_index << ":" << sd->get_session_salt() << std::endl;
-#endif
-                        }
+                        // Resetting the socket data session.
+                        sd->ResetSdSession();
                     }
                     else
                     {
-                        // The session was killed.
-                        sd->ResetSession();
+                        // Killing global session.
+                        sd->KillGlobalAndSdSession();
+
+#ifdef GW_SESSIONS_DIAG
+                        GW_PRINT_WORKER << "Session was killed: " << session_index << ":" << sd->get_session_salt() << std::endl;
+#endif
                     }
                 }
             }
@@ -218,7 +208,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
                     if (new_session.IsValid())
                     {
                         // Attaching the session.
-                        sd->AttachToSession(&new_session);
+                        sd->AssignSession(new_session);
 
                         // Updating session number for this Apps.
                         current_db->SetAppsSessionValue(
@@ -369,6 +359,9 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(GatewayWorker* gw, SocketDataChun
     // Setting the Apps session number right before sending to that Apps (if session exists at all).
     if (INVALID_SESSION_INDEX != sd->get_session_index())
     {
+        // Updating session time stamp.
+        g_gateway.SetSessionTimeStamp(sd->get_session_index());
+
         sd->set_apps_unique_session_num(current_db->GetAppsUniqueSessionNumber(sd->get_session_index()));
         sd->set_apps_session_salt(current_db->GetAppsSessionSalt(sd->get_session_index()));
     }
@@ -379,13 +372,10 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(GatewayWorker* gw, SocketDataChun
     smc->set_request_size(4);
 
     // Obtaining the current scheduler id.
-    ScSessionStruct session = g_gateway.GetGlobalSessionDataCopy(sd->get_session_index());
-    uint32_t sched_id;
+    uint32_t sched_id = g_gateway.GetGlobalSessionSchedulerId(sd->get_session_index());
 
-    // Checking session validity.
-    if (session.IsValid())
-        sched_id = session.get_scheduler_id();
-    else
+    // Checking scheduler id validity.
+    if (INVALID_SCHEDULER_ID == sched_id)
         sched_id = g_gateway.obtain_scheduler_id_unsafe();
 
     // Pushing socket data as a chunk.
@@ -417,7 +407,7 @@ uint32_t WorkerDbInterface::RegisterPushChannel(int32_t sched_num)
 }
 
 // Pushes session destroyed message.
-uint32_t WorkerDbInterface::PushSessionDestroyed(ScSessionStruct* session, int32_t sched_num)
+uint32_t WorkerDbInterface::PushDeadSession(const ScSessionStruct& session)
 {
     // Get a reference to the chunk.
     shared_memory_chunk *smc = NULL;
@@ -436,14 +426,17 @@ uint32_t WorkerDbInterface::PushSessionDestroyed(ScSessionStruct* session, int32
     // Writing BMX message type.
     request->write(bmx::BMX_SESSION_DESTROYED);
 
+    // Updating with specific database information.
+    ActiveDatabase* current_db = g_gateway.GetDatabase(db_index_);
+
     // Writing Apps unique session number.
-    request->write(session->apps_unique_session_num_);
+    request->write(current_db->GetAppsUniqueSessionNumber(session.session_index_));
 
     // Writing Apps unique salt.
-    request->write(session->apps_session_salt_);
+    request->write(current_db->GetAppsSessionSalt(session.session_index_));
 
     // Pushing the chunk.
-    return PushLinkedChunksToDb(new_chunk, 1, sched_num);
+    return PushLinkedChunksToDb(new_chunk, 1, session.scheduler_id_);
 }
 
 // Requesting previously registered handlers.
