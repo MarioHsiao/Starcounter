@@ -36,6 +36,14 @@ inline volatile owner_id& owner_id::operator=(const owner_id& a) volatile {
 	return *this;
 }
 
+// operator&=() with volatile qualifier.
+inline volatile owner_id& owner_id::operator&=(const owner_id& a) volatile {
+	_mm_mfence();
+	value_ &= a.value_;
+	_mm_mfence();
+	return *this;
+}
+
 // Assignment from param_type.
 inline owner_id& owner_id::operator=(param_type n) {
 	return assign(n);

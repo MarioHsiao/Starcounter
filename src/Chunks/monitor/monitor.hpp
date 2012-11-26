@@ -125,6 +125,21 @@ public:
 	};
 	
 	enum {
+		max_number_of_monitored_database_processes = 64,
+
+		max_number_of_clients_per_database = 256,
+
+		max_number_of_monitored_client_processes
+		= max_number_of_monitored_database_processes
+		+max_number_of_monitored_database_processes
+		* max_number_of_clients_per_database,
+
+		max_number_of_monitored_processes
+		= max_number_of_monitored_database_processes
+		+max_number_of_monitored_client_processes
+	};
+
+	enum {
 		active_segments_buffer_capacity = 256
 	};
 	
