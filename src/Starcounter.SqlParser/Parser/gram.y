@@ -6627,37 +6627,7 @@ member_access_indices:
 		;
 
 standard_func_call:
-			CURRENT_TIMESTAMP
-				{
-					/*
-					 * Translate as "now()", since we have a function that
-					 * does exactly what is needed.
-					 */
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("now");
-					n->args = NIL;
-					n->agg_order = NIL;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = FALSE;
-					n->over = NULL;
-					n->location = @1;
-					$$ = (Node *)n;
-				}
-			| CURRENT_TIMESTAMP '(' Iconst ')'
-				{
-					/*
-					 * Translate as "'now'::text::timestamptz(n)".
-					 * See comments for CURRENT_DATE.
-					 */
-					Node *n;
-					TypeName *d;
-					n = makeStringConstCast("now", @1, SystemTypeName("text"));
-					d = SystemTypeName("timestamptz");
-					d->typmods = list_make1(makeIntConst($3, @3));
-					$$ = makeTypeCast(n, d, -1);
-				}
-			| LOCALTIME
+			LOCALTIME
 				{
 					/*
 					 * Translate as "'now'::text::time".
@@ -8027,6 +7997,7 @@ unreserved_keyword:
 			| COST
 			| CURRENT_DATE
 			| CURRENT_TIME
+			| CURRENT_TIMESTAMP
 			| CSV
 			| CURRENT_P
 			| CURSOR
@@ -8357,7 +8328,6 @@ reserved_keyword:
 			| CREATE
 			| CURRENT_CATALOG
 			| CURRENT_ROLE
-			| CURRENT_TIMESTAMP
 			| CURRENT_USER
 			| DEFAULT
 			| DEFERRABLE
