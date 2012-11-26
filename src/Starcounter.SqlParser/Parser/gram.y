@@ -6627,28 +6627,7 @@ member_access_indices:
 		;
 
 standard_func_call:
-			CURRENT_DATE
-				{
-					/*
-					 * Translate as "'now'::text::date".
-					 *
-					 * We cannot use "'now'::date" because coerce_type() will
-					 * immediately reduce that to a constant representing
-					 * today's date.  We need to delay the conversion until
-					 * runtime, else the wrong things will happen when
-					 * CURRENT_DATE is used in a column default value or rule.
-					 *
-					 * This could be simplified if we had a way to generate
-					 * an expression tree representing runtime application
-					 * of type-input conversion functions.  (As of PG 7.3
-					 * that is actually possible, but not clear that we want
-					 * to rely on it.)
-					 */
-					Node *n;
-					n = makeStringConstCast("now", @1, SystemTypeName("text"));
-					$$ = makeTypeCast(n, SystemTypeName("date"), -1);
-				}
-			| CURRENT_TIME
+			CURRENT_TIME
 				{
 					/*
 					 * Translate as "'now'::text::timetz".
@@ -8069,6 +8048,7 @@ unreserved_keyword:
 			| CONVERSION_P
 			| COPY
 			| COST
+			| CURRENT_DATE
 			| CSV
 			| CURRENT_P
 			| CURSOR
@@ -8398,7 +8378,6 @@ reserved_keyword:
 			| CONSTRAINT
 			| CREATE
 			| CURRENT_CATALOG
-			| CURRENT_DATE
 			| CURRENT_ROLE
 			| CURRENT_TIME
 			| CURRENT_TIMESTAMP
