@@ -122,6 +122,11 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select window from window.window().window group by window window abc as (cdv) order by window");
             analyzer.ParseQuery("select union from union.union().union group by union union select union from union order by union");
             analyzer.ParseQuery("select option as option from option.option().option as option group by option OPTION JOIN ORDER (e, m), INDEX (e MyIndexOnLastName), INDEX (m MyIndexOnFirstName)");
+            analyzer.ParseQuery("select cast(al.col as cl)");
+            analyzer.ParseQuery("select cast(al.col as cl<tp>)");
+            analyzer.ParseQuery("select cast(al.col as ns.cl<tp>)");
+            analyzer.ParseQuery("drop index indx on ns.tbl1");
+            analyzer.ParseQuery("drop index indx on ns.tbl1, ind2 on tbl2, inx3 on ns1.ns2.tbl3<t>");
         }
 
         [Test]
