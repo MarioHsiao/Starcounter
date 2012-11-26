@@ -30,7 +30,7 @@ thread_b_(),
 thread_c_(),
 test_id_(5),
 #endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
-owner_id_counter_(2147483600) {
+owner_id_counter_(owner_id::none) {
 	/// TODO: Use Boost.Program_options.
 	/// ScErrCreateMonitorInterface is reserved in errorcodes.xml for later use.
 	
