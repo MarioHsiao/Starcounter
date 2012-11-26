@@ -128,6 +128,7 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("drop index indx on ns.tbl1");
             analyzer.ParseQuery("drop index indx on ns.tbl1, ind2 on tbl2, inx3 on ns1.ns2.tbl3<t>");
             analyzer.ParseQuery("select typeof(nm.nm2.type<A,B>).FullName fullname");
+            analyzer.ParseQuery("select CURRENT_DATE");
         }
 
         [Test]
