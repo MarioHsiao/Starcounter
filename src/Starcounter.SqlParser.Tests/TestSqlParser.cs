@@ -136,6 +136,7 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select CURRENT_ROLE");
             analyzer.ParseQuery("select CURRENT_USER");
             analyzer.ParseQuery("select SESSION_USER");
+            analyzer.ParseQuery("select CURRENT_CATALOG");
         }
 
         [Test]
