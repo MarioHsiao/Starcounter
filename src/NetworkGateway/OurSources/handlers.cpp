@@ -411,6 +411,7 @@ uint32_t PortProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYP
         }*/
 
         // Push chunk to corresponding channel/scheduler.
+        // TODO: Deal with situation when not able to push.
         gw->PushSocketDataToDb(sd, user_handler_id);
 
         // Setting handled flag.

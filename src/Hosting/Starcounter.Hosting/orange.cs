@@ -116,13 +116,11 @@ namespace StarcounterInternal.Hosting
         private static sccoredb.ON_NO_TRANSACTION on_new_transaction = new sccoredb.ON_NO_TRANSACTION(orange_on_no_transaction);
 
         /// <summary>
-        /// Orange_configure_database_callbackses the specified config.
         /// </summary>
-        /// <param name="config">The config.</param>
-        public static unsafe void orange_configure_database_callbacks(ref sccoredb.sccoredb_config config)
+        public static unsafe void orange_configure_database_callbacks(ref sccoredb.sccoredb_callbacks callbacks)
         {
-            config.on_new_schema = (void*)Marshal.GetFunctionPointerForDelegate(on_new_schema);
-            config.on_no_transaction = (void*)Marshal.GetFunctionPointerForDelegate(on_new_transaction);
+            callbacks.on_new_schema = (void*)Marshal.GetFunctionPointerForDelegate(on_new_schema);
+            callbacks.on_no_transaction = (void*)Marshal.GetFunctionPointerForDelegate(on_new_transaction);
         }
 
 #if false
