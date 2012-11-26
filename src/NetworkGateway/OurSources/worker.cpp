@@ -324,28 +324,21 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     }
 
     // Getting attached session if any.
-    ScSessionStruct session = g_gateway.GetGlobalSessionDataCopy(sd->get_session_index());
-
-    // Checking if session exists.
-    if (session.IsValid())
+    if (INVALID_SESSION_INDEX != sd->get_session_index())
     {
+        // Checking for session correctness.
+        ScSessionStruct global_session_copy = g_gateway.GetGlobalSessionDataCopy(sd->get_session_index());
+
         // Check that data received belongs to the correct session (not coming from abandoned connection).
-        if (!session.CompareSalts(sd->get_session_salt()))
+        if (!global_session_copy.CompareSalts(sd->get_session_salt()))
         {
 #ifdef GW_ERRORS_DIAG
             GW_PRINT_WORKER << "Data from abandoned/different socket received." << std::endl;
 #endif
 
-            return SCERRGWDATAFROMABANDONEDSOCKET;
+            // Just resetting the session.
+            sd->ResetSdSession();
         }
-    }
-    else
-    {
-        // If session was already created, just attaching to it.
-        session_index_type session_index = g_gateway.GetSocketData(sd->get_socket())->get_session_index();
-        ScSessionStruct global_session = g_gateway.GetGlobalSessionDataCopy(session_index);
-        if (global_session.IsValid())
-            sd->AttachToSession(&global_session);
     }
 
     if (!g_gateway.setting_is_master())
@@ -557,9 +550,6 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunk *sd)
 #ifdef GW_COLLECT_SOCKET_STATISTICS
     ChangeNumPendingNetworkOperations(sd, -1);
 #endif
-
-    // Removing tracked session.
-    g_gateway.GetSocketData(sd->get_socket())->Reset();
 
     // Stop tracking this socket.
     g_gateway.GetDatabase(sd->get_db_index())->UntrackSocket(sd->sock());
@@ -938,6 +928,10 @@ DISCONNECT_SOCKET_DATA_AND_RELEASE_CHUNK:
             // Going to wait infinitely for network events.
             waitForIocpMs = INFINITE;
         }
+
+        // Checking inactive sessions cleanup (only first worker).
+        if ((g_gateway.get_num_sessions_to_cleanup_unsafe()) && (worker_id_ == 0))
+            g_gateway.CleanupInactiveSessions(this);
 
         //profiler_.Stop(1);
         //profiler_.DrawResults();

@@ -72,6 +72,10 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             set { _NValueClass = value; }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public NProperty NValueProperty;
 
         /// <summary>
         /// Gets or sets the N metadata class.
@@ -99,7 +103,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="template">The template.</param>
         /// <returns>NTemplateClass.</returns>
         public static NTemplateClass Find(Template template) {
-            template = GetPrototype(template);
+           // template = GetPrototype(template);
             return NTemplateClass.Classes[template];
         }
 

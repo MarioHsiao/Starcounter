@@ -29,30 +29,19 @@ namespace Starcounter.Internal
         /// type to the engine.</param>
         /// <remarks>This method is used by the Starcounter database engine and is
         /// not intended for developers.</remarks>
-        public static void Insert(Entity proxy, ulong typeAddr, TypeBinding typeBinding)
-        {
+        public static void Insert(Entity proxy, ulong typeAddr, TypeBinding typeBinding) {
             uint dr;
             ulong oid;
             ulong addr;
 
-            unsafe
-            {
-                dr = sccoredb.sc_insert(typeAddr, &oid, &addr);
+            unsafe {
+                dr = sccoredb.sccoredb_insert(typeAddr, &oid, &addr);
             }
-            if (dr != 0) throw ErrorCode.ToException(dr);
-
-            proxy.Attach(addr, oid, typeBinding);
-#if false
-            try
-            {
-                proxy.InvokeOnNew();
+            if (dr == 0) {
+                proxy.Attach(addr, oid, typeBinding);
+                return;
             }
-            catch (Exception exception)
-            {
-                if (exception is ThreadAbortException) throw;
-                throw ErrorCode.ToException(Error.SCERRERRORINHOOKCALLBACK, exception);
-            }
-#endif
+            throw ErrorCode.ToException(dr);
         }
 
         /// <summary>

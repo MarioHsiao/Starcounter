@@ -101,8 +101,6 @@ public:
 
         assert(((uint8_t*)(&accum_buf_) - sd) == bmx::SOCKET_DATA_NUM_CLONE_BYTES);
 
-        assert(sizeof(ScSessionStruct) == bmx::SESSION_STRUCT_SIZE);
-
         assert(((uint8_t*)&num_chunks_ - sd) == bmx::SOCKET_DATA_NUM_CHUNKS_OFFSET);
 
         assert(((uint8_t*)&max_user_data_bytes_ - sd) == (bmx::MAX_USER_DATA_BYTES_OFFSET - bmx::BMX_HEADER_MAX_SIZE_BYTES));
@@ -449,15 +447,6 @@ public:
     // Checking that database and corresponding port handler exists.
     bool ForceSocketDataValidity(GatewayWorker* gw);
 
-    // Resets socket session.
-    void ResetSession();
-
-    // Kills the session.
-    void KillSession();
-
-    // Attaches socket data to session.
-    void AttachToSession(ScSessionStruct* session);
-
     // Returns pointer to the beginning of user data.
     uint8_t* UserDataBuffer()
     {
@@ -572,6 +561,30 @@ public:
 
     // Clones existing socket data chunk.
     uint32_t CloneToReceive(GatewayWorker *gw);
+
+    // Attaches session to socket data.
+    void AssignSession(ScSessionStruct& session)
+    {
+        // Setting session for this socket data.
+        session_ = session;
+    }
+
+    // Kills the global and  session.
+    void KillGlobalAndSdSession()
+    {
+        // Killing global session.
+        g_gateway.KillSession(session_.session_index_);
+
+        // Resetting session data.
+        ResetSdSession();
+    }
+
+    // Resets socket data session.
+    void ResetSdSession()
+    {
+        // Resetting session data.
+        session_.Reset();
+    }
 };
 
 } // namespace network

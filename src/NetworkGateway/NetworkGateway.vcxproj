@@ -51,6 +51,9 @@
       <Project>{6665517f-743d-4809-94d3-13325fc2af74}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Xml Include="scripts\scnetworkgateway.xml" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{AD395461-89C1-4EFA-AEEF-8AE43C6B656D}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -95,7 +98,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <BrowseInformation>true</BrowseInformation>
+      <BrowseInformation>false</BrowseInformation>
       <AdditionalIncludeDirectories>ThirdPartyHeaders;OurHeaders;c:\boost\x86_64\include\boost-1_46_1;..\Chunks;..\..\..\Level0\src\include;..\Starcounter.ErrorCodes\scerrres</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <WarningLevel>Level2</WarningLevel>
