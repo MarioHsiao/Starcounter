@@ -19,26 +19,11 @@ namespace Starcounter
     /// </summary>
     public interface ISqlEnumerator : IEnumerator, IDisposable
     {
-        /// <summary>
-        /// Moves to the next of the resulting objects of the query.
-        /// </summary>
-        /// <returns>True if there is a next object, otherwise false.</returns>
-        new Boolean MoveNext();
 
         /// <summary>
         /// Gets the current item (row) in the result of the query.
         /// </summary>
         new dynamic Current { get; }
-
-        /// <summary>
-        /// Resets the result by setting the cursor at the position before the first object.
-        /// </summary>
-        new void Reset();
-
-        /// <summary>
-        /// Releases unmanaged resources.
-        /// </summary>
-        new void Dispose();
 
         /// <summary>
         /// The SQL query this SQL enumerator executes.

@@ -13,6 +13,9 @@
     <Filter Include="ThirdPartyHeaders">
       <UniqueIdentifier>{bdbe4cf3-5250-47c4-93be-b8a938d319b1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="scripts">
+      <UniqueIdentifier>{45e2389c-3b08-499b-aa25-3baf4acd07ac}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ThirdPartyHeaders\cdecode.h">
@@ -113,5 +116,10 @@
     <ClCompile Include="..\HTTP\HttpParser\ThirdPartySources\http_parser.c">
       <Filter>ThirdPartySources</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="scripts\scnetworkgateway.xml">
+      <Filter>scripts</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

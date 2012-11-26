@@ -336,38 +336,5 @@ CORRECT_STATISTICS_AND_RELEASE_CHUNK:
     return false;
 }
 
-// Attaches socket data to session.
-void SocketDataChunk::AttachToSession(ScSessionStruct* session)
-{
-    // Setting session for this socket data.
-    session_ = *session;
-
-    // Attaching new session to this socket.
-    g_gateway.GetSocketData(sock_)->set_session_index(session_.session_index_);
-}
-
-// Kills the session.
-void SocketDataChunk::KillSession()
-{
-    // Killing global session.
-    g_gateway.KillSession(session_.session_index_);
-
-    // Resetting session data.
-    session_.Reset();
-
-    // Detaching session from corresponding socket.
-    g_gateway.GetSocketData(sock_)->set_session_index(session_.session_index_);
-}
-
-// Resets socket session.
-void SocketDataChunk::ResetSession()
-{
-    // Resetting session data.
-    session_.Reset();
-
-    // Detaching session from corresponding socket.
-    g_gateway.GetSocketData(sock_)->set_session_index(session_.session_index_);
-}
-
 } // namespace network
 } // namespace starcounter

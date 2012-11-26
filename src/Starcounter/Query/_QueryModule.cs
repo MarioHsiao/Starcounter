@@ -37,12 +37,14 @@ namespace Starcounter.Query
         /// <param name="processPort">External SQL process port. If 0 then default should be used.</param>
         public static void Initiate(Int32 processPort)
         {
+#if false
             // Connect managed and native Sql functions.
             UInt32 errCode = SqlConnectivity.InitSqlFunctions();
 
             // Checking for error code and translating it.
             if (errCode != 0)
                 SqlConnectivity.ThrowConvertedServerError(errCode);
+#endif
 
             // Start external SQL process (Prolog-process).
             ProcessPort = processPort;
