@@ -29,30 +29,19 @@ namespace Starcounter.Internal
         /// type to the engine.</param>
         /// <remarks>This method is used by the Starcounter database engine and is
         /// not intended for developers.</remarks>
-        public static void Insert(Entity proxy, ulong typeAddr, TypeBinding typeBinding)
-        {
+        public static void Insert(Entity proxy, ulong typeAddr, TypeBinding typeBinding) {
             uint dr;
             ulong oid;
             ulong addr;
 
-            unsafe
-            {
-                dr = sccoredb.sc_insert(typeAddr, &oid, &addr);
+            unsafe {
+                dr = sccoredb.sccoredb_insert(typeAddr, &oid, &addr);
             }
-            if (dr != 0) throw ErrorCode.ToException(dr);
-
-            proxy.Attach(addr, oid, typeBinding);
-#if false
-            try
-            {
-                proxy.InvokeOnNew();
+            if (dr == 0) {
+                proxy.Attach(addr, oid, typeBinding);
+                return;
             }
-            catch (Exception exception)
-            {
-                if (exception is ThreadAbortException) throw;
-                throw ErrorCode.ToException(Error.SCERRERRORINHOOKCALLBACK, exception);
-            }
-#endif
+            throw ErrorCode.ToException(dr);
         }
 
         /// <summary>
@@ -1480,20 +1469,12 @@ namespace Starcounter.Internal
         /// </summary>
         /// <param name="obj">The obj.</param>
         /// <param name="index">The index.</param>
-        internal static void WriteNull(Entity obj, Int32 index)
+        internal static void WriteNull(Entity obj, int index)
         {
-            ObjectRef thisRef;
-            Boolean br;
-            thisRef = obj.ThisRef;
-            unsafe
-            {
-                br = sccoredb.Mdb_ObjectWriteAttributeState(thisRef.ObjectID, thisRef.ETI, index, sccoredb.Mdb_DataValueFlag_Null);
-            }
-            if (br)
-            {
-                return;
-            }
-            throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
+            var thisRef = obj.ThisRef;
+            var r = sccoredb.sccoredb_set_null(thisRef.ObjectID, thisRef.ETI, index);
+            if (r == 0) return;
+            throw ErrorCode.ToException(r);
         }
     }
 }
