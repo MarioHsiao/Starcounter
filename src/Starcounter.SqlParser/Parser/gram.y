@@ -6627,20 +6627,7 @@ member_access_indices:
 		;
 
 standard_func_call:
-			CURRENT_CATALOG
-				{
-					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("current_database");
-					n->args = NIL;
-					n->agg_order = NIL;
-					n->agg_star = FALSE;
-					n->agg_distinct = FALSE;
-					n->func_variadic = FALSE;
-					n->over = NULL;
-					n->location = @1;
-					$$ = (Node *)n;
-				}
-			| CAST '(' a_expr AS Typename ')'
+			CAST '(' a_expr AS Typename ')'
 				{ $$ = makeTypeCast($3, $5, @1); }
 			| TYPEOF '(' Typename ')'
 				{
@@ -7897,6 +7884,7 @@ unreserved_keyword:
 			| CONVERSION_P
 			| COPY
 			| COST
+			| CURRENT_CATALOG
 			| CURRENT_DATE
 			| CURRENT_ROLE
 			| CURRENT_TIME
@@ -8233,7 +8221,6 @@ reserved_keyword:
 			| COLUMN
 			| CONSTRAINT
 			| CREATE
-			| CURRENT_CATALOG
 			| DEFAULT
 			| DEFERRABLE
 			| DESC
