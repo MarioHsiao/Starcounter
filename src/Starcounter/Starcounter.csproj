@@ -397,11 +397,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\bin\Debug\Starcounter.SqlParser.dll">
-      <Link>Query\RawParserAnalyzer\Starcounter.SqlParser.dll</Link>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="..\Starcounter.ErrorCodes\errorcodes.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
