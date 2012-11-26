@@ -137,6 +137,10 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select CURRENT_USER");
             analyzer.ParseQuery("select SESSION_USER");
             analyzer.ParseQuery("select CURRENT_CATALOG");
+            analyzer.ParseQuery("select NULLIF(a+b,B+A)");
+            analyzer.ParseQuery("select COALESCE(a,b,c)");
+            analyzer.ParseQuery("select GREATEST(a+b,b+c,c+a)");
+            analyzer.ParseQuery("select LEAST(a+b,b+c,c+a)");
         }
 
         [Test]
