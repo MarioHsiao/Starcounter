@@ -757,7 +757,7 @@ namespace Starcounter.Internal
         /// <param name="pnew_addr">The pnew_addr.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static uint sc_insert(
+        public unsafe extern static uint sccoredb_insert(
             ulong definition_addr,
             ulong* pnew_oid,
             ulong* pnew_addr
@@ -1458,30 +1458,19 @@ namespace Starcounter.Internal
         );
 
         /// <summary>
-        /// MDB_s the object issue delete.
         /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <returns>System.Int32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static int Mdb_ObjectIssueDelete(
-            UInt64 objectOID,
-            UInt64 objectETI
-        );
+        public static extern uint sccoredb_begin_delete(ulong record_id, ulong record_addr);
+        
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public static extern uint sccoredb_complete_delete(ulong record_id, ulong record_addr);
 
         /// <summary>
-        /// MDB_s the object delete.
         /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <param name="execute">The execute.</param>
-        /// <returns>System.Int32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static int Mdb_ObjectDelete(
-            UInt64 objectOID,
-            UInt64 objectETI,
-            int execute
-        );
+        public static extern uint sccoredb_abort_delete(ulong record_id, ulong record_addr);
     }
 
     /// <summary>
