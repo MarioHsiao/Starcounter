@@ -1,6 +1,7 @@
 ﻿using Starcounter;
 using Starcounter.Binding;
 using System;
+using System.Collections;
 
 namespace IndexQueryTest
 {
@@ -19,7 +20,7 @@ namespace IndexQueryTest
             // See a query plan
             Db.Transaction(delegate
             {
-                ISqlEnumerator sqlEnum = (ISqlEnumerator)Db.SQL("select u from accounttest.auser u").GetEnumerator();
+                IEnumerator sqlEnum = (IEnumerator)Db.SQL("select u from accounttest.auser u").GetEnumerator();
                 Console.WriteLine(sqlEnum.ToString());
             });
             TestCreateDropIndex();
