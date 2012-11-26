@@ -199,7 +199,19 @@ namespace Weaver {
             string cacheDirectory,
             string fileName,
             ApplicationArguments arguments) {
-                throw new NotImplementedException("The bootstrap weaver is not yet implemented.");
+            CodeWeaver weaver;
+
+            weaver = new CodeWeaver(inputDirectory, fileName, cacheDirectory);
+            weaver.RunWeaver = true;
+            weaver.WeaveBootstrapperCode = true;
+            weaver.WeaveForIPC = true;//!arguments.ContainsFlag("noipc");
+            weaver.DisableWeaverCache = arguments.ContainsFlag("nocache");
+            weaver.WeaveToCacheOnly = false;
+
+            // Invoke the weaver subsystem. If it fails, it will report the
+            // error itself.
+
+            weaver.Execute();
         }
 
         static void ApplyGlobalProgramOptions(ApplicationArguments arguments) {
