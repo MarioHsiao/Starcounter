@@ -6627,30 +6627,7 @@ member_access_indices:
 		;
 
 standard_func_call:
-			CURRENT_TIME
-				{
-					/*
-					 * Translate as "'now'::text::timetz".
-					 * See comments for CURRENT_DATE.
-					 */
-					Node *n;
-					n = makeStringConstCast("now", @1, SystemTypeName("text"));
-					$$ = makeTypeCast(n, SystemTypeName("timetz"), -1);
-				}
-			| CURRENT_TIME '(' Iconst ')'
-				{
-					/*
-					 * Translate as "'now'::text::timetz(n)".
-					 * See comments for CURRENT_DATE.
-					 */
-					Node *n;
-					TypeName *d;
-					n = makeStringConstCast("now", @1, SystemTypeName("text"));
-					d = SystemTypeName("timetz");
-					d->typmods = list_make1(makeIntConst($3, @3));
-					$$ = makeTypeCast(n, d, -1);
-				}
-			| CURRENT_TIMESTAMP
+			CURRENT_TIMESTAMP
 				{
 					/*
 					 * Translate as "now()", since we have a function that
@@ -8049,6 +8026,7 @@ unreserved_keyword:
 			| COPY
 			| COST
 			| CURRENT_DATE
+			| CURRENT_TIME
 			| CSV
 			| CURRENT_P
 			| CURSOR
@@ -8379,7 +8357,6 @@ reserved_keyword:
 			| CREATE
 			| CURRENT_CATALOG
 			| CURRENT_ROLE
-			| CURRENT_TIME
 			| CURRENT_TIMESTAMP
 			| CURRENT_USER
 			| DEFAULT
