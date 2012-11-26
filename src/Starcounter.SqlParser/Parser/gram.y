@@ -6627,30 +6627,7 @@ member_access_indices:
 		;
 
 standard_func_call:
-			LOCALTIME
-				{
-					/*
-					 * Translate as "'now'::text::time".
-					 * See comments for CURRENT_DATE.
-					 */
-					Node *n;
-					n = makeStringConstCast("now", @1, SystemTypeName("text"));
-					$$ = makeTypeCast((Node *)n, SystemTypeName("time"), -1);
-				}
-			| LOCALTIME '(' Iconst ')'
-				{
-					/*
-					 * Translate as "'now'::text::time(n)".
-					 * See comments for CURRENT_DATE.
-					 */
-					Node *n;
-					TypeName *d;
-					n = makeStringConstCast("now", @1, SystemTypeName("text"));
-					d = SystemTypeName("time");
-					d->typmods = list_make1(makeIntConst($3, @3));
-					$$ = makeTypeCast((Node *)n, d, -1);
-				}
-			| LOCALTIMESTAMP
+			LOCALTIMESTAMP
 				{
 					/*
 					 * Translate as "'now'::text::timestamp".
@@ -8074,6 +8051,7 @@ unreserved_keyword:
 			| LISTEN
 			| LOAD
 			| LOCAL
+			| LOCALTIME
 			| LOCATION
 			| LOCK_P
 			| MAPPING
@@ -8352,7 +8330,6 @@ reserved_keyword:
 			| JOIN
 			| LEADING
 			| LIMIT
-			| LOCALTIME
 			| LOCALTIMESTAMP
 			| NOT
 			| NULL_P

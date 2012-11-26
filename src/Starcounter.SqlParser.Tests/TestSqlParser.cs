@@ -131,6 +131,7 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select CURRENT_DATE");
             analyzer.ParseQuery("select CURRENT_TIME, CURRENT_TIME(2)");
             analyzer.ParseQuery("select CURRENT_TIMESTAMP, CURRENT_TIMESTAMP(2)");
+            analyzer.ParseQuery("select LOCALTIME, LOCALTIME(2)");
         }
 
         [Test]
