@@ -126,6 +126,7 @@
     <RuntimeFile Include="Starcounter.Internal.Weaver\ScIgnore.psproj" />
     <RuntimeFile Include="Starcounter.Internal.Weaver\ScRuntime.psplugin" />
     <RuntimeFile Include="Starcounter.Internal.Weaver\ScTransform.psproj" />
+	<RuntimeFile Include="Starcounter.Internal.Weaver\ScWeaveBootstrap.psproj" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
