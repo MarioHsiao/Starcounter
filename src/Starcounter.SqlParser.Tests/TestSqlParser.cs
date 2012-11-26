@@ -130,6 +130,7 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select typeof(nm.nm2.type<A,B>).FullName fullname");
             analyzer.ParseQuery("select CURRENT_DATE");
             analyzer.ParseQuery("select CURRENT_TIME, CURRENT_TIME(2)");
+            analyzer.ParseQuery("select CURRENT_TIMESTAMP, CURRENT_TIMESTAMP(2)");
         }
 
         [Test]
