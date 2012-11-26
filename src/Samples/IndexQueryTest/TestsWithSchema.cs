@@ -13,13 +13,13 @@ namespace IndexQueryTest
         {
             Db.Transaction(delegate
             {
-                if (Db.SQL("select u from Accounttest.auser u").First == null)
+                if (Db.SQL("select u from Accounttest.user u").First == null)
                 {
                     Console.WriteLine("It seems that User table was deleted");
                     PrintAllObjects();
                 }
                 Db.SlowSQL("DELETE FROM Accounttest.Account");
-                Db.SlowSQL("DELETE FROM Accounttest.AUser");
+                Db.SlowSQL("DELETE FROM Accounttest.User");
             });
         }
 
@@ -28,7 +28,7 @@ namespace IndexQueryTest
             PrintUserByLastName("Popov");
             Db.Transaction(delegate
             {
-                Console.WriteLine(((IEnumerator)Db.SQL("select u from AUser u where LastName = ?", "Popov").GetEnumerator()).ToString());
+                Console.WriteLine(((IEnumerator)Db.SQL("select u from User u where LastName = ?", "Popov").GetEnumerator()).ToString());
             });
         }
 
@@ -36,8 +36,8 @@ namespace IndexQueryTest
         {
             try
             {
-                Db.SlowSQL("CREATE INDEX userLN ON Accounttest.aUsEr (Lastname ASC)");
-                Console.WriteLine("Created index userLN ON AccountTest.AUser (LastName ASC)");
+                Db.SlowSQL("CREATE INDEX userLN ON Accounttest.UsEr (Lastname ASC)");
+                Console.WriteLine("Created index userLN ON AccountTest.User (LastName ASC)");
             }
             catch (Starcounter.DbException ex)
             {
@@ -50,8 +50,8 @@ namespace IndexQueryTest
 
         static void DropIndexUserLN()
         {
-            Db.SlowSQL("DROP INDEX UserLN ON AccountTest.auser");
-            Console.WriteLine("Dropped index userLN ON AccountTest.AUser");
+            Db.SlowSQL("DROP INDEX UserLN ON AccountTest.user");
+            Console.WriteLine("Dropped index userLN ON AccountTest.User");
         }
 
         static void TestCreateDropIndex()
@@ -72,7 +72,7 @@ namespace IndexQueryTest
             PrintUsersOrderByLastName();
             Db.Transaction(delegate
             {
-                Console.WriteLine(((IEnumerator)Db.SQL("select u from AUser u order by LastName").GetEnumerator()).ToString());
+                Console.WriteLine(((IEnumerator)Db.SQL("select u from User u order by LastName").GetEnumerator()).ToString());
             });
         }
 
@@ -90,9 +90,9 @@ namespace IndexQueryTest
         {
             Db.Transaction(delegate
             {
-                foreach (AccountTest.AUser u in Db.SQL("select u from auser u where userid = ? option index (u userLN)", "KalLar01"))
+                foreach (AccountTest.User u in Db.SQL("select u from user u where userid = ? option index (u userLN)", "KalLar01"))
                     Console.WriteLine(u.ToString());
-                Console.WriteLine(Db.SQL("select u from auser u where userid = ? option index (u userLN)", "KalLar01").GetEnumerator().ToString());
+                Console.WriteLine(Db.SQL("select u from user u where userid = ? option index (u userLN)", "KalLar01").GetEnumerator().ToString());
             });
         }
 

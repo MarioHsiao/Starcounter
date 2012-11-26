@@ -17,7 +17,7 @@ namespace IndexQueryTest
             {
                 queryStarted = true;
                 while (!indexCreated) ;
-                AccountTest.AUser user = (AccountTest.AUser)Db.SQL("SELECT u FROM AUser u WHERE UserId = ?", "KalLar01").First;
+                AccountTest.User user = (AccountTest.User)Db.SQL("SELECT u FROM AUser u WHERE UserId = ?", "KalLar01").First;
                 Console.WriteLine(Db.SQL("SELECT u FROM User u WHERE UserId = ?", "KalLar01").GetEnumerator().ToString());
             });
         }
@@ -25,7 +25,7 @@ namespace IndexQueryTest
         {
             Db.Transaction(delegate
             {
-                AccountTest.AUser user = (AccountTest.AUser)Db.SQL("SELECT u FROM AUser u WHERE UserId = ?", "KalLar01").First;
+                AccountTest.User user = (AccountTest.User)Db.SQL("SELECT u FROM AUser u WHERE UserId = ?", "KalLar01").First;
                 Console.WriteLine(Db.SQL("SELECT u FROM User u WHERE UserId = ?", "KalLar01").GetEnumerator().ToString());
             });
         }
