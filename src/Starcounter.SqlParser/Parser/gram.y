@@ -6780,7 +6780,7 @@ standard_func_call:
 					n->location = @1;
 					$$ = (Node *)n;
 				}
-			| NULLIF '(' a_expr ',' a_expr ')'
+/*			| NULLIF '(' a_expr ',' a_expr ')'
 				{
 					$$ = (Node *) makeSimpleA_Expr(AEXPR_NULLIF, "=", $3, $5, @1);
 				}
@@ -6806,7 +6806,7 @@ standard_func_call:
 					v->op = IS_LEAST;
 					v->location = @1;
 					$$ = (Node *)v;
-				}
+				}*/
 			| XMLCONCAT '(' expr_list ')'
 				{
 					$$ = makeXmlExpr(IS_XMLCONCAT, NULL, NIL, $3, @1);
@@ -7871,6 +7871,7 @@ unreserved_keyword:
 			| CLASS
 			| CLOSE
 			| CLUSTER
+			| COALESCE
 			| COLLATION
 			| COMMENT
 			| COMMENTS
@@ -7934,6 +7935,7 @@ unreserved_keyword:
 			| FUNCTIONS
 			| GLOBAL
 			| GRANTED
+			| GREATEST
 			| HANDLER
 			| HEADER_P
 			| HOLD
@@ -7962,6 +7964,7 @@ unreserved_keyword:
 			| LAST_P
 			| LC_COLLATE_P
 			| LC_CTYPE_P
+			| LEAST
 			| LEVEL
 			| LISTEN
 			| LOAD
@@ -7985,6 +7988,7 @@ unreserved_keyword:
 			| NOTHING
 			| NOTIFY
 			| NOWAIT
+			| NULLIF
 			| NULLS_P
 			| OF
 			| OFF
@@ -8113,22 +8117,18 @@ col_name_keyword:
 			| BOOLEAN_P
 			| CHAR_P
 			| CHARACTER
-			| COALESCE
 			| DEC
 			| DECIMAL_P
 			| EXISTS
 			| EXTRACT
 			| FLOAT_P
-			| GREATEST
 			| INOUT
 			| INT_P
 			| INTEGER
 			| INTERVAL
-			| LEAST
 			| NATIONAL
 			| NCHAR
 			| NONE
-			| NULLIF
 			| NUMERIC
 			| OUT_P
 			| OVERLAY
