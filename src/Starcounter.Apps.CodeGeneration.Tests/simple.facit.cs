@@ -25,7 +25,7 @@ public partial class PlayerApp {
         public KidApp(KidAppTemplate template) { Template = template; }
         public new KidAppTemplate Template { get { return (KidAppTemplate)base.Template; } set { base.Template = value; } }
         public new KidAppMetadata Metadata { get { return (KidAppMetadata)base.Metadata; } }
-        public new PlayerApp Parent { get { return (PlayerApp)base.Parent; } set { base.Parent = (PlayerApp)value; } }
+        public new PlayerApp Parent { get { return (PlayerApp)base.Parent; } set { base.Parent = value; } }
         public String Grandkid { get { return GetValue(Template.Grandkid); } set { SetValue(Template.Grandkid, value); } }
         public class KidAppTemplate : AppTemplate {
             public KidAppTemplate()
@@ -51,6 +51,7 @@ public partial class PlayerApp {
         public AccountsApp(AccountsAppTemplate template) { Template = template; }
         public new AccountsAppTemplate Template { get { return (AccountsAppTemplate)base.Template; } set { base.Template = value; } }
         public new AccountsAppMetadata Metadata { get { return (AccountsAppMetadata)base.Metadata; } }
+        public new Listing<PlayerApp.AccountsApp> Parent { get { return (Listing<PlayerApp.AccountsApp>)base.Parent; } set { base.Parent = value; } }
         public int AccountId { get { return GetValue(Template.AccountId); } set { SetValue(Template.AccountId, value); } }
         public int AccountType { get { return GetValue(Template.AccountType); } set { SetValue(Template.AccountType, value); } }
         public Decimal Balance { get { return GetValue(Template.Balance); } set { SetValue(Template.Balance, value); } }
@@ -63,7 +64,7 @@ public partial class PlayerApp {
                 AccountType = Register<IntProperty>("AccountType", Editable = true);
                 Balance = Register<DecimalProperty>("Balance");
             }
-            public override object CreateInstance(AppNode parent) { return new AccountsApp(this) { Parent = parent }; }
+            public override object CreateInstance(AppNode parent) { return new AccountsApp(this) { Parent = (Listing<PlayerApp.AccountsApp>)parent }; }
             public IntProperty AccountId;
             public IntProperty AccountType;
             public DecimalProperty Balance;
