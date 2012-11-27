@@ -26,12 +26,6 @@ namespace Starcounter.VisualStudio.Projects {
 
         public AppExeProject(VsPackage package)
             : base(package) {
-//                System.Diagnostics.Debugger.Launch();
-
-                // TODO:
-                // These events are not really needed for ordinary starcounter exe projects,
-                // since they only concern renaming json and codebehind and trigger the Apps
-                // build task. 
                 appsEvents = new AppsEvents();
                 appsEvents.AddEventListeners(package);
         }
