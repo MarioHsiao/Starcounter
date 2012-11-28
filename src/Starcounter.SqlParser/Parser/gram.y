@@ -8172,6 +8172,7 @@ type_func_name_keyword:
 			| CONCURRENTLY
 			| CROSS
 			| CURRENT_SCHEMA
+			| FOREIGN
 			| FREEZE
 			| FULL
 			| GROUP_P
@@ -8233,7 +8234,6 @@ reserved_keyword:
 			| FALSE_P
 			| FETCH
 			| FOR
-			| FOREIGN
 			| FROM
 			| GRANT
 			| HAVING
