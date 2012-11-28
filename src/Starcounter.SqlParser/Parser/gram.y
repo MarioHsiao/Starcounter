@@ -8189,6 +8189,7 @@ type_func_name_keyword:
 			| OUTER_P
 			| OVER
 			| OVERLAPS
+			| PRIMARY
 			| RIGHT
 			| SIMILAR
 			| STARTS
@@ -8254,7 +8255,6 @@ reserved_keyword:
 			| ONLY
 			| OR
 			| PLACING
-			| PRIMARY
 			| REFERENCES
 			| RETURNING
 			| SELECT
