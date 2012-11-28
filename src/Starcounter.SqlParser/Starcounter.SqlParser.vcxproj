@@ -41,11 +41,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)..\bin\$(Configuration)\</OutDir>
     <IncludePath>$(ProjectDir)\Include;$(IncludePath)</IncludePath>
-    <ExecutablePath>$(ExecutablePath);$(OutDir)ParserTools</ExecutablePath>
+    <ExecutablePath>$(ExecutablePath);$(SolutionDir)packages\ParserTools</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(ProjectDir)\Include;$(IncludePath)</IncludePath>
-    <ExecutablePath>$(ExecutablePath);$(OutDir)ParserTools</ExecutablePath>
+    <ExecutablePath>$(ExecutablePath);$(SolutionDir)packages\ParserTools</ExecutablePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -133,10 +133,10 @@
   <ItemGroup>
     <CustomBuild Include="Parser\gram.y">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">run_win_bison.cmd $(OutDir)ParserTools $(ProjectDir)Parser\%(filename).y $(ProjectDir)Parser\%(filename).c</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">run_win_bison.cmd -d $(ProjectDir)Parser\%(filename).y -o $(ProjectDir)Parser\%(filename).c</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\Parser\%(filename).c</Outputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Running bison</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">run_win_bison.cmd $(OutputPath)ParserTools $(ProjectDir)Parser\%(filename).y $(ProjectDir)Parser\%(filename).c</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">run_win_bison.cmd -d $(ProjectDir)Parser\%(filename).y -o $(ProjectDir)Parser\%(filename).c</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Running bison</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\Parser\%(filename).c</Outputs>
     </CustomBuild>

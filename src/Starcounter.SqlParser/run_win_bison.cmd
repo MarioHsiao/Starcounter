@@ -1,2 +1,2 @@
-cd %1
-win_bison.exe -d %2 -o %3
+cd ..\packages\ParserTools
+win_bison.exe %*
