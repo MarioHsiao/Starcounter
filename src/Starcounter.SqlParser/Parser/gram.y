@@ -8169,7 +8169,9 @@ col_name_keyword:
  * - thomas 2000-11-28
  */
 type_func_name_keyword:
-			  AUTHORIZATION
+			ANALYSE
+			| ANALYZE
+			| AUTHORIZATION
 			| COLUMN
 			| CONCURRENTLY
 			| CROSS
@@ -8211,8 +8213,6 @@ type_func_name_keyword:
  */
 reserved_keyword:
 			  ALL
-			| ANALYSE
-			| ANALYZE
 			| AND
 			| ANY
 			| ARRAY

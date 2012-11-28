@@ -142,6 +142,7 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select GREATEST(a+b,b+c,c+a)");
             analyzer.ParseQuery("select LEAST(a+b,b+c,c+a)");
             analyzer.ParseQuery("select foreign, primary, where, column from index, limit where use");
+            analyzer.ParseQuery("select analyze, analyse");
         }
 
         [Test]
