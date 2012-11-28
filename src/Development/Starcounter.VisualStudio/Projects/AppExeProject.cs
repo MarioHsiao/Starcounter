@@ -14,6 +14,8 @@ namespace Starcounter.VisualStudio.Projects {
     internal class AppExeProject : StarcounterProject {
         private static readonly Icon projectIcon;
 
+        private AppsEvents appsEvents;
+
         static AppExeProject() {
             try {
                 projectIcon =
@@ -24,6 +26,8 @@ namespace Starcounter.VisualStudio.Projects {
 
         public AppExeProject(VsPackage package)
             : base(package) {
+                appsEvents = new AppsEvents();
+                appsEvents.AddEventListeners(package);
         }
 
         protected override StarcounterProjectConfiguration CreateProjectConfiguration(IVsCfg pBaseProjectCfg, IVsProjectFlavorCfg inner) {
@@ -32,6 +36,13 @@ namespace Starcounter.VisualStudio.Projects {
 
         protected override Icon GetIcon() {
             return projectIcon;
+        }
+
+        protected override void Close() {
+            if (appsEvents != null) {
+                appsEvents.RemoveEventListeners();
+            }
+            base.Close();
         }
     }
 }
