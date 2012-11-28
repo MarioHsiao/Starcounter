@@ -82,6 +82,9 @@ namespace StarcounterApps3 {
                 return databaseApp;
 
             });
+
+            GET("/query", () => new SqlApp() { View = "sql.html" });
+
             //GET("/databases/{?}", (string databasename) => new Master() { 
             //    View = "database.html" });
 
