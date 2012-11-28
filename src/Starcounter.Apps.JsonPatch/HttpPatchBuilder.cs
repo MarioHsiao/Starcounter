@@ -206,6 +206,8 @@ namespace Starcounter.Internal.JsonPatch
                 ret = change.App.GetValue((DoubleProperty)template);
             } else if (template is DecimalProperty) {
                 ret = change.App.GetValue((DecimalProperty)template);
+            } else if (template is AppTemplate) {
+                ret = change.App.GetValue((AppTemplate)template);
             }
             return ret;
         }
