@@ -61,6 +61,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BaseVsPackage.cs" />
+    <Compile Include="AppsEvents.cs" />
     <Compile Include="ErrorListProvider.cs" />
     <Compile Include="ErrorTask.cs" />
     <Compile Include="Projects\AppExeProject.cs" />
