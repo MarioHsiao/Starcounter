@@ -8196,6 +8196,7 @@ type_func_name_keyword:
 			| UNION
 			| USER
 			| VERBOSE
+			| WHERE
 			| WINDOW
 		;
 
@@ -8271,7 +8272,6 @@ reserved_keyword:
 			| USING
 			| VARIADIC
 			| WHEN
-			| WHERE
 			| WITH
 		;
 
