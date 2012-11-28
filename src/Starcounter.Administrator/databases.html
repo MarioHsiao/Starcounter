@@ -1,6 +1,7 @@
 ﻿<!doctype html>
 
 <head>
+    <title>Starcounter</title>
 
     <link rel="stylesheet" href="/css/bootstrap-2.2.1.css">
 
@@ -12,9 +13,17 @@
 </head>
 
 
-<body ng-remoteapp class="container">
+<body ng-remoteapp mockup-data="databasesapp.json" class="container">
 
-    <h1>Databases</h1>
+    <div class="navbar">
+      <div class="navbar-inner">
+        <a class="brand" href="/">Starcounter</a>
+        <ul class="nav">
+          <li><a href="/_server">Server</a></li>
+          <li class="active"><a href="/databases">Databases</a></li>
+        </ul>
+      </div>
+    </div>
 
     <table class="table">
 
@@ -39,5 +48,6 @@
 
 
     </table>
+
 
 </body>
