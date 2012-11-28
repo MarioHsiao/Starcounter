@@ -1,6 +1,7 @@
 ﻿<!doctype html>
 
 <head>
+    <title>Starcounter</title>
 
     <link rel="stylesheet" href="/css/bootstrap-2.2.1.css">
 
@@ -14,7 +15,16 @@
 
 <body ng-remoteapp class="container">
 
-    <h1>Server: {{ServerName}}</h1>
+    <div class="navbar">
+      <div class="navbar-inner">
+        <a class="brand" href="/">Starcounter</a>
+        <ul class="nav">
+          <li class="active"><a href="/_server">Server</a></li>
+          <li ><a href="/databases">Databases</a></li>
+        </ul>
+      </div>
+    </div>
+    <h1>{{ServerName}}</h1>
 
     <dl class="dl-horizontal">
       <dt>DatabaseDirectory</dt>
@@ -24,8 +34,5 @@
       <dt>TempDirectory</dt>
       <dd>{{TempDirectory}}</dd>
     </dl>
-
-
-
 
 </body>
