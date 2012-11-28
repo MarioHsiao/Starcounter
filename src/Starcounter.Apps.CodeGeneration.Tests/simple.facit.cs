@@ -25,14 +25,14 @@ public partial class PlayerApp {
         public KidApp(KidAppTemplate template) { Template = template; }
         public new KidAppTemplate Template { get { return (KidAppTemplate)base.Template; } set { base.Template = value; } }
         public new KidAppMetadata Metadata { get { return (KidAppMetadata)base.Metadata; } }
-        public new PlayerApp Parent { get { return (PlayerApp)base.Parent; } set { base.Parent = (PlayerApp)value; } }
+        public new PlayerApp Parent { get { return (PlayerApp)base.Parent; } set { base.Parent = value; } }
         public String Grandkid { get { return GetValue(Template.Grandkid); } set { SetValue(Template.Grandkid, value); } }
         public class KidAppTemplate : AppTemplate {
             public KidAppTemplate()
                 : base() {
                 InstanceType = typeof(PlayerApp.KidApp);
                 ClassName = "KidApp";
-                Grandkid = Register<StringProperty>("Grandkid");
+                Grandkid = Register<StringProperty>("Grandkid", "Grandkid");
             }
             public override object CreateInstance(AppNode parent) { return new KidApp(this) { Parent = (PlayerApp)parent }; }
             public StringProperty Grandkid;
@@ -51,6 +51,7 @@ public partial class PlayerApp {
         public AccountsApp(AccountsAppTemplate template) { Template = template; }
         public new AccountsAppTemplate Template { get { return (AccountsAppTemplate)base.Template; } set { base.Template = value; } }
         public new AccountsAppMetadata Metadata { get { return (AccountsAppMetadata)base.Metadata; } }
+        public new Listing<PlayerApp.AccountsApp> Parent { get { return (Listing<PlayerApp.AccountsApp>)base.Parent; } set { base.Parent = value; } }
         public int AccountId { get { return GetValue(Template.AccountId); } set { SetValue(Template.AccountId, value); } }
         public int AccountType { get { return GetValue(Template.AccountType); } set { SetValue(Template.AccountType, value); } }
         public Decimal Balance { get { return GetValue(Template.Balance); } set { SetValue(Template.Balance, value); } }
@@ -59,11 +60,11 @@ public partial class PlayerApp {
                 : base() {
                 InstanceType = typeof(PlayerApp.AccountsApp);
                 ClassName = "AccountsApp";
-                AccountId = Register<IntProperty>("AccountId");
-                AccountType = Register<IntProperty>("AccountType", Editable = true);
-                Balance = Register<DecimalProperty>("Balance");
+                AccountId = Register<IntProperty>("AccountId", "AccountId");
+                AccountType = Register<IntProperty>("AccountType$", "AccountType", Editable = true);
+                Balance = Register<DecimalProperty>("Balance", "Balance");
             }
-            public override object CreateInstance(AppNode parent) { return new AccountsApp(this) { Parent = parent }; }
+            public override object CreateInstance(AppNode parent) { return new AccountsApp(this) { Parent = (Listing<PlayerApp.AccountsApp>)parent }; }
             public IntProperty AccountId;
             public IntProperty AccountType;
             public DecimalProperty Balance;
@@ -85,11 +86,11 @@ public partial class PlayerApp {
             : base() {
             InstanceType = typeof(PlayerApp);
             ClassName = "PlayerApp";
-            Kid = Register<PlayerApp.KidApp.KidAppTemplate>("Kid");
-            Page = Register<AppTemplate>("Page");
-            PlayerId = Register<IntProperty>("PlayerId");
-            FullName = Register<StringProperty>("FullName", Editable = true);
-            Accounts = Register<ListingProperty<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate>>("Accounts");
+            Kid = Register<PlayerApp.KidApp.KidAppTemplate>("Kid", "Kid");
+            Page = Register<AppTemplate>("Page", "Page");
+            PlayerId = Register<IntProperty>("PlayerId", "PlayerId");
+            FullName = Register<StringProperty>("FullName$", "FullName", Editable = true);
+            Accounts = Register<ListingProperty<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate>>("Accounts", "Accounts");
             Accounts.App = PlayerApp.AccountsApp.DefaultTemplate;
         }
         public override object CreateInstance(AppNode parent) { return new PlayerApp(this) { Parent = parent }; }
