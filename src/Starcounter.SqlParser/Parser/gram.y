@@ -7948,6 +7948,7 @@ unreserved_keyword:
 			| IMPLICIT_P
 			| INCLUDING
 			| INCREMENT
+			| INDEX
 			| INDEXES
 			| INHERIT
 			| INHERITS
@@ -8240,7 +8241,6 @@ reserved_keyword:
 			| GRANT
 			| HAVING
 			| IN_P
-			| INDEX
 			| INITIALLY
 			| INTERSECT
 			| INTO
