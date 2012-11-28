@@ -8184,6 +8184,7 @@ type_func_name_keyword:
 			| ISNULL
 			| LEFT
 			| LIKE
+			| LIMIT
 			| NATURAL
 			| NOTNULL
 			| OPTION
@@ -8246,7 +8247,6 @@ reserved_keyword:
 			| INTO
 			| JOIN
 			| LEADING
-			| LIMIT
 			| NOT
 			| NULL_P
 			| OBJECT_P
