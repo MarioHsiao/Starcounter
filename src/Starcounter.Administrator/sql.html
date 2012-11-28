@@ -1,0 +1,31 @@
+﻿<!doctype html>
+<head>
+    <title>SQL</title>
+    <script src="/sys/angular-1.0.2.js"></script>
+    <script src="/sys/angular-patch.js"></script>
+
+</head>
+<body ng-remoteapp mockup-data="SqlApp.json">
+    <div >
+        <h1>Starcounter SQL</h1>
+        <input type="text" ng-model="Query$" />
+        <button ui-click="Execute$" class="btn btn-primary">Execute</button>
+
+
+        <table class="table">
+            <thead>
+                <tr >
+                    <th ng-repeat="column in QueryResult.Columns">{{column.Title}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="result in QueryResult.Result">
+                    <td ng-repeat="col in result">{{col}}</td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+</body>
+
+

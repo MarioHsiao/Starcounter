@@ -86,6 +86,10 @@
     <Compile Include="ServerApp.json.cs">
       <DependentUpon>ServerApp.json</DependentUpon>
     </Compile>
+    <Compile Include="SqlApp.json.cs">
+      <DependentUpon>SqlApp.json</DependentUpon>
+    </Compile>
+    <Compile Include="TestSqlResult.cs" />
   </ItemGroup>
   <ItemGroup>
     <App Include="Master.json">
@@ -97,6 +101,7 @@
     <Content Include="databases.html" />
     <Content Include="index.html" />
     <Content Include="server.html" />
+    <Content Include="sql.html" />
     <Content Include="test.html" />
   </ItemGroup>
   <ItemGroup>
@@ -115,6 +120,11 @@
   <ItemGroup>
     <App Include="DatabasesApp.json">
       <Generator>MSBuild:Compile</Generator>
+    </App>
+  </ItemGroup>
+  <ItemGroup>
+    <App Include="SqlApp.json">
+      <Generator>MsBuild:Compile</Generator>
     </App>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
