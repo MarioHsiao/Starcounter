@@ -1,0 +1,43 @@
+﻿<!doctype html>
+
+<head>
+
+    <link rel="stylesheet" href="/css/bootstrap-2.2.1.css">
+
+    <script src="/sys/angular-1.0.2.js"></script>
+    <script src="/sys/angular-patch.js"></script>
+    <!--<script src="/sys/bootstrap-2.2.1.js"></script>-->
+
+
+</head>
+
+
+<body ng-remoteapp class="container">
+
+    <h1>Databases</h1>
+
+    <table class="table">
+
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Uri</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr ng-repeat="database in DatabaseList">
+                <td>
+                    <a href="/databases/{{database.Uri}}">{{database.DatabaseName}}</a>
+                </td>
+                <td>
+                    <a href="/databases/{{database.Uri}}">{{database.Uri}}</a>
+                    
+                </td>
+            </tr>
+        </tbody>
+
+
+    </table>
+
+</body>
