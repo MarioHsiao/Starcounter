@@ -7,25 +7,21 @@ using Starcounter.Server.PublicModel;
 namespace StarcounterApps3 {
     partial class Master : App {
 
-        //private static String RESOURCE_DIRECTORY = @"c:\users\andwah\documents\visual studio 2012\Projects\StarcounterApps3\StarcounterApps3";
-        private static String RESOURCE_DIRECTORY = @"c:\GitHub\Level1\src\Starcounter.Administrator";
+        private static String RESOURCE_DIRECTORY = @"..\..\src\Starcounter.Administrator";
 
         public static IServerRuntime ServerInterface;
         private static ServerEngine ServerEngine;
- 
 
         static void Main(string[] args) {
 
+            AppsBootstrapper.Bootstrap(8080, RESOURCE_DIRECTORY);
 
-            AppsBootstrapper.Bootstrap(8181, RESOURCE_DIRECTORY);
-
-            //Master.ServerEngine = new ServerEngine(@"c:\GitHub\Level1\bin\Debug\.srv\Personal\Personal.server.config");
             Master.ServerEngine = new ServerEngine(@"..\..\bin\Debug\.srv\Personal\Personal.server.config");
             Master.ServerEngine.Setup();
             Master.ServerInterface = Master.ServerEngine.Start();
 
             GET("/", () => {
-                return new Master() {  View = "index.html"  };
+                return new Master() { View = "index.html" };
             });
 
             GET("/test", () => {
@@ -61,12 +57,12 @@ namespace StarcounterApps3 {
                 databaseList.View = "databases.html";
                 foreach (var database in databases) {
 
-                    DatabaseApp databaseApp = new DatabaseApp(){ DatabaseName= database.Name, Uri = database.Uri };
+                    DatabaseApp databaseApp = new DatabaseApp() { DatabaseName = database.Name, Uri = database.Uri };
 
-                //    var app = new DatabasesApp() { Title = database.Name };
+                    //    var app = new DatabasesApp() { Title = database.Name };
 
-                    databaseList.DatabaseList.Add( databaseApp );
-                //    master.Databases.Add(app);
+                    databaseList.DatabaseList.Add(databaseApp);
+                    //    master.Databases.Add(app);
 
                 }
 
