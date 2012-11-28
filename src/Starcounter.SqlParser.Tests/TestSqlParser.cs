@@ -141,7 +141,7 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select COALESCE(a,b,c)");
             analyzer.ParseQuery("select GREATEST(a+b,b+c,c+a)");
             analyzer.ParseQuery("select LEAST(a+b,b+c,c+a)");
-            analyzer.ParseQuery("select foreign, primary, where");
+            analyzer.ParseQuery("select foreign, primary, where, column");
         }
 
         [Test]
