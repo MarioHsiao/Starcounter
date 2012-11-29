@@ -47,7 +47,7 @@ namespace Starcounter {
         /// <param name="includeSessionId">if set to <c>true</c> [include session id].</param>
         /// <returns>System.String.</returns>
         /// <exception cref="System.NotImplementedException"></exception>
-        public string ToJson(bool includeView = false, bool includeSchema = false, bool includeSessionId = false) { //, IncludeView includeViewContent = IncludeView.Default) {
+        public virtual string ToJson(bool includeView = false, bool includeSchema = false, bool includeSessionId = false) { //, IncludeView includeViewContent = IncludeView.Default) {
 #if QUICKTUPLE
             var sb = new StringBuilder();
             var templ = this.Template;

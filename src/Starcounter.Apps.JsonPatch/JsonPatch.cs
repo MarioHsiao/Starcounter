@@ -1,4 +1,4 @@
-﻿// ***********************************************************************
+// ***********************************************************************
 // <copyright file="JsonPatch.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
@@ -410,7 +410,6 @@ namespace Starcounter.Internal.JsonPatch {
             sb.Append('"');
             if (patchType != REMOVE) {
                 sb.Append(", \"value\":");
-
                 if (value is App) {
                     sb.Append(((App)value).ToJson());
                 } else {
