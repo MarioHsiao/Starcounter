@@ -54,9 +54,9 @@ namespace Starcounter.Internal {
 
                 if (port != -1) {
                     // TODO! Alexey. Please allow to register to Gateway with only port (i.e without Verb and URI)
-                    GatewayHandlers.RegisterUriHandler(8080, "GET /", OnHttpMessageRoot, out handlerId);
+                    GatewayHandlers.RegisterUriHandler((ushort)port, "GET /", OnHttpMessageRoot, out handlerId);
                     // TODO! Alexey. Please allow to register to Gateway with only port (i.e without Verb and URI)
-                    GatewayHandlers.RegisterUriHandler(8080, "PATCH /", OnHttpMessageRoot, out handlerId);
+                    GatewayHandlers.RegisterUriHandler((ushort)port, "PATCH /", OnHttpMessageRoot, out handlerId);
                 }
             });
         }

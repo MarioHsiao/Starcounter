@@ -68,6 +68,8 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         /// </summary>
         /// <returns>The .cs source code as a string</returns>
         public string GenerateCode() {
+//            System.Diagnostics.Debugger.Launch();
+
             //return Old.GenerateCodeOld();
             ProcessAllNodes();
 
@@ -527,7 +529,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     }
                     a.Prefix.Add(sb.ToString());
 
-                    if (mn.Template is ListingProperty) {
+                    if ((mn.Template is ListingProperty) && (!mn.FunctionGeneric.FullClassName.Equals("App"))) {
                         sb.Clear();
                         sb.Append("        ");
                         sb.Append(mn.MemberName);
