@@ -1,4 +1,2 @@
-echo run_win_bison is called
-cd ..\packages\ParserTools
-echo %cd%
-win_bison.exe %*
+cd %1
+win_bison.exe -d %2 -o %3
