@@ -7,61 +7,9 @@
 using System;
 using System.Text;
 using Starcounter.Internal.REST;
-using Starcounter.Internal.Application;
 using HttpStructs;
 
 namespace Starcounter.Internal.Web {
-
-    /// <summary>
-    /// Class HardcodedStuff
-    /// </summary>
-    public class HardcodedStuff
-    {
-        /// <summary>
-        /// The HTTP request
-        /// </summary>
-        public HttpRequest HttpRequest;
-        /// <summary>
-        /// The sessions
-        /// </summary>
-        public SessionDictionary Sessions;
-
-        /// <summary>
-        /// The here
-        /// </summary>
-        [ThreadStatic]
-        public static HardcodedStuff Here;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="HardcodedStuff" /> class.
-        /// </summary>
-        /// <param name="request">The request.</param>
-        /// <param name="sessions">The sessions.</param>
-        private HardcodedStuff(HttpRequest request, SessionDictionary sessions)
-        {
-            HttpRequest = request;
-            Sessions = sessions;
-        }
-
-        /// <summary>
-        /// Begins the request.
-        /// </summary>
-        /// <param name="request">The request.</param>
-        /// <param name="sessions">The sessions.</param>
-        public static void BeginRequest(HttpRequest request, SessionDictionary sessions)
-        {
-            Here = new HardcodedStuff(request, sessions);
-        }
-
-        /// <summary>
-        /// Ends the request.
-        /// </summary>
-        public static void EndRequest()
-        {
-            Here = null;
-        }
-    }
-
     /// <summary>
     /// Wrapps the file based http web resource resolver and the App view model resolver.
     /// </summary>
@@ -81,19 +29,11 @@ namespace Starcounter.Internal.Web {
         public StaticWebServer StaticFileServer;
 
         /// <summary>
-        /// The sessions
-        /// </summary>
-        protected SessionDictionary Sessions;
-
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="HttpAppServer" /> class.
         /// </summary>
         /// <param name="staticFileServer">The static file server.</param>
-        /// <param name="sessions">The sessions.</param>
-        public HttpAppServer(StaticWebServer staticFileServer, SessionDictionary sessions ) {
+        public HttpAppServer(StaticWebServer staticFileServer) {
             StaticFileServer = staticFileServer;
-            Sessions = sessions;
         }
 
         /// <summary>
@@ -104,28 +44,6 @@ namespace Starcounter.Internal.Web {
         /// <returns>The bytes according to the appropriate protocol</returns>
         /// <exception cref="System.NotImplementedException"></exception>
         public override HttpResponse Handle(  HttpRequest request ) {
-            Session session;
-            // TODO!
-            //SessionID sid = request.SessionID;
-
-            // TODO:
-            // Is the sessionid sent in the header or as part of the uri 
-            // for patch and __vm messages?
-            // Sending it in the header seems like a better idea since we
-            // are going to need some kind of temporary accessible object.
-          
-            //if (sid.IsNullSession)
-            //{
-            //    request.Debug(" (new session)");
-            //    session = Sessions.CreateSession();
-            //}
-            //else
-            //{
-            //    session = Sessions.GetSession(sid);
-            //}
-
-            HardcodedStuff.BeginRequest(request, Sessions);
-
             try {
                 Object x = RequestHandler.RequestProcessor.Invoke(request);
                 if (x != null) {
@@ -135,20 +53,17 @@ namespace Starcounter.Internal.Web {
 
                         request.Debug(" (new view model)");
 
-                        session = Sessions.GetSession(1);
-                        session.AttachRootApp(app);
-
                         // TODO:
                         // Just need it here to be able to get the sessionId when serializing app.
                         // Needs to be rewritten.
-                        session.Execute(request, () => {
+//                        session.Execute(request, () => {
                             request.IsAppView = true;
                             request.ViewModel = app.ToJsonUtf8(false, true);
                             request.NeedsScriptInjection = true;
                             //                    request.CanUseStaticResponse = false; // We need to provide the view model, so we can use 
                             //                                                          // cached (and gziped) content, but not a complete cached
                             //                                                          // response.
-                        });
+ //                       });
 
                         var view = (string)app.View;
                         if (view == null) {
@@ -184,10 +99,6 @@ namespace Starcounter.Internal.Web {
             } catch (Exception ex) {
                 byte[] error = Encoding.UTF8.GetBytes(this.GetExceptionString(ex));
                 return new HttpResponse() { Uncompressed = HttpResponseBuilder.Create500WithContent(error) };
-            }
-            finally
-            {
-                HardcodedStuff.EndRequest();
             }
         }
 
