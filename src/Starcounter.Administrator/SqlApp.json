@@ -1,6 +1,0 @@
-{
-	"Query$": "select * from Person",
-	"Execute$": null,
-	
-	"QueryResult": { }
-}
