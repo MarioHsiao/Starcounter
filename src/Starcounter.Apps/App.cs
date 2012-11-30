@@ -10,6 +10,7 @@ using System.ComponentModel;
 using Starcounter.Templates;
 using Starcounter.Internal.REST;
 using Starcounter.Internal;
+using Starcounter.Apps;
 
 #if CLIENT
 using Starcounter.Client.Template;
@@ -245,7 +246,7 @@ namespace Starcounter {
             } else {
                 Property p = model as Property;
                 if (p != null)
-                    ChangeLog.UpdateValue(this, p);
+                    Session.Current.changeLog.UpdateValue(this, p);
             }
         }
 
