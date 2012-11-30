@@ -28,6 +28,10 @@
   <PropertyGroup>
     <LocalBlueBinariesDir>..\..\..\Level0\src\x64\$(Configuration)</LocalBlueBinariesDir>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <LocalGatewayTestFiles Include="..\NetworkGateway\scripts\gw_test_*" />
+  </ItemGroup>
 
   <Target Name="CopyLocalFiles">
 
@@ -45,6 +49,7 @@
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalKillAllScript)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalGatewayXML)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalServiceXML)" DestinationFolder="$(OutputPath)" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalGatewayTestFiles)" DestinationFolder="$(OutputPath)" />
     
   </Target>
 

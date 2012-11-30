@@ -17,14 +17,14 @@ class HandlersList
     // Current number of handlers.
     uint8_t num_entries_;
 
-    // User handler callbacks.
+    // Handler callbacks.
     GENERIC_HANDLER_CALLBACK handlers_[bmx::MAX_NUMBER_OF_HANDLERS_IN_LIST];
 
     // Port number.
     uint16_t port_;
 
     // Sub-port number.
-    uint32_t subport_;
+    bmx::BMX_SUBPORT_TYPE subport_;
 
     // URI string.
     char uri_string_[bmx::MAX_URI_STRING_LEN];
@@ -58,7 +58,7 @@ public:
     }
 
     // Gets sub-port number.
-    uint32_t get_subport()
+    bmx::BMX_SUBPORT_TYPE get_subport()
     {
         return subport_;
     }
@@ -106,8 +106,8 @@ public:
         return false;
     }
 
-    // Adds user handler.
-    uint32_t AddUserHandler(GENERIC_HANDLER_CALLBACK handler_callback)
+    // Adds handler.
+    uint32_t AddHandler(GENERIC_HANDLER_CALLBACK handler_callback)
     {
         // Reached maximum amount of handlers.
         if (num_entries_ >= bmx::MAX_NUMBER_OF_HANDLERS_IN_LIST)
@@ -129,8 +129,8 @@ public:
         bmx::HANDLER_TYPE type,
         BMX_HANDLER_TYPE handler_id,
         uint16_t port,
-        uint32_t subport,
-        char* uri_string,
+        bmx::BMX_SUBPORT_TYPE subport,
+        const char* uri_string,
         uint32_t uri_len_chars,
         bmx::HTTP_METHODS http_method)
     {
@@ -197,7 +197,7 @@ public:
         return (type_ == bmx::HANDLER_TYPE::UNUSED_HANDLER);
     }
 
-    // Unregistering specific user handler.
+    // Unregistering specific handler.
     uint32_t Unregister(GENERIC_HANDLER_CALLBACK handler_callback)
     {
         // Comparing all handlers.
@@ -297,8 +297,8 @@ class HandlersTable
 
 public:
 
-    // Find port user handler id.
-    BMX_HANDLER_TYPE FindPortUserHandlerIndex(uint16_t port_num)
+    // Find port handler id.
+    BMX_HANDLER_TYPE FindPortHandlerIndex(uint16_t port_num)
     {
         for (BMX_HANDLER_TYPE i = 0; i < max_num_entries_; i++)
         {
@@ -314,8 +314,8 @@ public:
         return -1;
     }
 
-    // Find subport user handler id.
-    BMX_HANDLER_TYPE FindSubPortUserHandlerIndex(uint16_t port_num, uint32_t subport_num)
+    // Find subport handler id.
+    BMX_HANDLER_TYPE FindSubPortHandlerIndex(uint16_t port_num, bmx::BMX_SUBPORT_TYPE subport_num)
     {
         for (BMX_HANDLER_TYPE i = 0; i < max_num_entries_; i++)
         {
@@ -334,8 +334,8 @@ public:
         return -1;
     }
 
-    // Find URI user handler id.
-    BMX_HANDLER_TYPE FindUriUserHandlerIndex(uint16_t port_num, const char* uri_string, uint32_t uri_len_chars)
+    // Find URI handler id.
+    BMX_HANDLER_TYPE FindUriHandlerIndex(uint16_t port_num, const char* uri_string, uint32_t uri_len_chars)
     {
         int32_t longest_matched_uri = 0;
 
@@ -368,13 +368,13 @@ public:
 
     // Unregisters certain handler.
     uint32_t UnregisterHandler(BMX_HANDLER_TYPE handler_id);
-    uint32_t UnregisterHandler(BMX_HANDLER_TYPE handler_id, GENERIC_HANDLER_CALLBACK user_handler);
+    uint32_t UnregisterHandler(BMX_HANDLER_TYPE handler_id, GENERIC_HANDLER_CALLBACK handler_callback);
 
     // Registers port handler.
     uint32_t RegisterPortHandler(
         GatewayWorker *gw,
         uint16_t port_num,
-        BMX_HANDLER_TYPE user_handler_id,
+        BMX_HANDLER_TYPE handler_id,
         GENERIC_HANDLER_CALLBACK port_handler,
         int32_t db_index);
 
@@ -382,8 +382,8 @@ public:
     uint32_t RegisterSubPortHandler(
         GatewayWorker *gw,
         uint16_t port,
-        uint32_t subport,
-        BMX_HANDLER_TYPE user_handler_id,
+        bmx::BMX_SUBPORT_TYPE subport,
+        BMX_HANDLER_TYPE handler_id,
         GENERIC_HANDLER_CALLBACK port_handle,
         int32_t db_index);
 
@@ -391,10 +391,10 @@ public:
     uint32_t RegisterUriHandler(
         GatewayWorker *gw,
         uint16_t port,
-        char* uri_string,
+        const char* uri_string,
         uint32_t uri_str_chars,
         bmx::HTTP_METHODS http_method,
-        BMX_HANDLER_TYPE user_handler_id,
+        BMX_HANDLER_TYPE handler_id,
         GENERIC_HANDLER_CALLBACK port_handle,
         int32_t db_index);
 
@@ -836,14 +836,14 @@ public:
 class RegisteredSubport
 {
     // Subport number.
-    uint32_t subport_;
+    bmx::BMX_SUBPORT_TYPE subport_;
  
     // Unique handler lists.
     LinearList<UniqueHandlerList, bmx::MAX_NUMBER_OF_HANDLERS_IN_LIST> handler_lists_;
 
 public:
 
-    uint32_t get_subport()
+    bmx::BMX_SUBPORT_TYPE get_subport()
     {
         return subport_;
     }
