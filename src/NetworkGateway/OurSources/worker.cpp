@@ -75,6 +75,8 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_inde
             return PrintLastError();
         }
 
+#ifdef GW_TESTING_MODE
+
         // Binding sockets if we are on client.
         if (!g_gateway.setting_is_master())
         {
@@ -108,6 +110,8 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_inde
             if (curIntNum >= g_gateway.setting_local_interfaces().size())
                 curIntNum = 0;
         }
+
+#endif
 
         // Setting needed socket options.
         /*
@@ -149,6 +153,8 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_inde
         // Marking socket as alive.
         g_gateway.MarkSocketAlive(new_socket);
 
+#ifdef GW_TESTING_MODE
+
         // Checking if its a master node.
         if (!g_gateway.setting_is_master())
         {
@@ -162,6 +168,11 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_inde
             err_code = Accept(new_sd);
             GW_ERR_CHECK(err_code);
         }
+#else
+        // Performing accept.
+        err_code = Accept(new_sd);
+        GW_ERR_CHECK(err_code);
+#endif
     }
 
     // Changing number of created sockets.
@@ -341,18 +352,20 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
         }
     }
 
+
+#ifdef GW_TESTING_MODE
+
+    // Checking if we are on gateway client.
     if (!g_gateway.setting_is_master())
     {
-        // Performing send.
-        return Send(sd);
-    }
-    else
-    {
-        // Running the handler.
-        return RunToDbHandlers(sd);
+        // Sending response message to master node.
+        return ProcessMasterMessage(sd, false);
     }
 
-    return 0;
+#endif
+
+    // Running the handler.
+    return RunToDbHandlers(sd);
 }
 
 // Running send on socket data.
@@ -461,6 +474,19 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunk *sd, int32_t nu
         return Receive(sd);
     }
 
+#ifdef GW_TESTING_MODE
+
+    // Checking if its gateway client.
+    if (!g_gateway.setting_is_master())
+    {
+        // Posting cloning receive since all data is accumulated.
+        SetReceiveClone(sd);
+
+        return 0;
+    }
+
+#endif
+
     WorkerDbInterface *db = active_dbs_[sd->get_db_index()];
     assert(db != NULL);
 
@@ -561,6 +587,8 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunk *sd)
     // Resetting the socket data.
     sd->Reset();
 
+#ifdef GW_TESTING_MODE
+
     if (!g_gateway.setting_is_master())
     {
         // Performing connect.
@@ -571,6 +599,13 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunk *sd)
         // Performing accept.
         return Accept(sd);
     }
+
+#else
+
+    // Performing accept.
+    return Accept(sd);
+
+#endif
 
     return 0;
 }
@@ -641,8 +676,12 @@ __forceinline uint32_t GatewayWorker::FinishConnect(SocketDataChunk *sd)
     // Changing active connections number.
     g_gateway.get_server_port(sd->get_port_index())->ChangeNumActiveConns(sd->get_db_index(), 1);
 
-    // Performing send.
-    return Send(sd);
+#ifdef GW_TESTING_MODE
+    // Sending determined message to master node.
+    return ProcessMasterMessage(sd, true);
+#endif
+
+    return SCERRGWCONNECTEXFAILED;
 }
 
 // Running accept on socket data.
@@ -1001,7 +1040,7 @@ uint32_t GatewayWorker::CreateSocketData(
     // Getting active database.
     WorkerDbInterface *db = active_dbs_[db_index];
     if (NULL == db)
-        return NULL;
+        return SCERRGWWRONGDATABASEINDEX;
 
     // Pop chunk index from private chunk pool.
     core::chunk_index chunk_index;
@@ -1021,7 +1060,7 @@ uint32_t GatewayWorker::CreateSocketData(
     new_sd->Init(sock, port_index, db_index, chunk_index);
 
     // Configuring data buffer.
-    new_sd->get_accum_buf()->Init(SOCKET_DATA_BLOB_SIZE_BYTES, new_sd->data_blob(), true);
+    new_sd->get_accum_buf()->Init(SOCKET_DATA_BLOB_SIZE_BYTES, new_sd->get_data_blob(), true);
 
     // Returning created accumulative buffer.
     *out_sd = new_sd;
@@ -1056,6 +1095,131 @@ void GatewayWorker::DeleteInactiveDatabase(int32_t db_index)
     delete active_dbs_[db_index];
     active_dbs_[db_index] = NULL;
 }
+
+// Sends given predefined response.
+uint32_t GatewayWorker::SendPredefinedMessage(
+    SocketDataChunk *sd,
+    const char* message,
+    const int32_t message_len)
+{
+    AccumBuffer* accum_buf = sd->get_accum_buf();
+
+    // Copying given response.
+    if (message)
+        memcpy(accum_buf->get_orig_buf_ptr(), message, message_len);
+
+    // Prepare buffer to send outside.
+    accum_buf->PrepareForSend(accum_buf->get_orig_buf_ptr(), message_len);
+
+    // Sending data.
+    return Send(sd);
+}
+
+#ifdef GW_TESTING_MODE
+
+// Sends HTTP counted request.
+uint32_t GatewayWorker::SendCountedHttpPing(SocketDataChunk *sd, int64_t echo_id)
+{
+#ifdef GW_ECHO_STATISTICS
+    GW_PRINT_WORKER << "Sending echo: " << echo_id << std::endl;
+#endif
+
+    // Copying HTTP response.
+    AccumBuffer* accum_buf = sd->get_accum_buf();
+    memcpy(accum_buf->get_orig_buf_ptr(), kHttpEchoRequest, kHttpEchoRequestLength);
+
+    // Inserting number into HTTP ping request.
+    uint64_to_hex_string(echo_id, (char*)accum_buf->get_orig_buf_ptr() + kHttpEchoRequestInsertPoint, 8, false);
+
+    // Sending Ping request to server.
+    return SendPredefinedMessage(sd, NULL, kHttpEchoRequestLength);
+}
+
+// Sends certain message to master node.
+uint32_t GatewayWorker::ProcessMasterMessage(SocketDataChunk *sd, bool just_connected)
+{
+    // Checking operational mode.
+    uint32_t err_code;
+    switch (g_gateway.setting_mode())
+    {
+        case GatewayTestingMode::MODE_GATEWAY_PING:
+        {
+            // Performing send back.
+            return Send(sd);
+
+            break;
+        }
+
+        case GatewayTestingMode::MODE_GATEWAY_HTTP:
+        case GatewayTestingMode::MODE_APPS_HTTP:
+        {
+            if (just_connected)
+            {
+                // Connect operation just finished.
+                goto SEND_ECHO_TO_MASTER;
+            }
+            else
+            {
+                // Obtaining original echo number.
+                //int64_t echo_id = *(int32_t*)sd->get_data_blob();
+                int64_t echo_id = hex_string_to_uint64((char*)sd->get_data_blob() + kHttpEchoResponseInsertPoint, kHttpEchoBodyLength);
+
+#ifdef GW_ECHO_STATISTICS
+                GW_PRINT_WORKER << "Received echo: " << echo_id << std::endl;
+#endif
+
+                // Confirming received HTTP echo.
+                g_gateway.ConfirmHttpEcho(echo_id);
+
+                // Checking if all echo responses are returned.
+                if (g_gateway.CheckConfirmedEchoResponses())
+                {
+                    GW_PRINT_WORKER << "All ECHO messages are confirmed on the client." << std::endl;
+
+                    // Returning this chunk to database.
+                    WorkerDbInterface *db = active_dbs_[sd->get_db_index()];
+                    assert(db != NULL);
+
+                    // Returning chunks to pool.
+                    return db->ReturnSocketDataChunksToPool(this, sd);
+                        
+                    /*
+                    EnterGlobalLock();
+                    g_gateway.ResetEchoTests();
+                    LeaveGlobalLock();
+                    return 0;
+                    */
+                }
+                else
+                {
+                    goto SEND_ECHO_TO_MASTER;
+                }
+            }
+
+SEND_ECHO_TO_MASTER:
+
+            // Checking that not all echoes are sent.
+            if (!g_gateway.AllEchoesSent())
+            {
+                // Sending echo request to server.
+                err_code = SendCountedHttpPing(sd, g_gateway.GetNextEchoNumber());
+                if (err_code)
+                    return err_code;
+            }
+
+            break;
+        }
+
+        case GatewayTestingMode::MODE_APPS_PING:
+        {
+            break;
+        }
+    }
+
+    return 0;
+}
+
+#endif
 
 } // namespace network
 } // namespace starcounter
