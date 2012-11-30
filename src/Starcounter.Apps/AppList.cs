@@ -14,6 +14,7 @@ using Starcounter.Client.Template;
 namespace Starcounter.Client {
 #else
 using Starcounter.Templates;
+using Starcounter.Apps;
 namespace Starcounter {
 #endif
     /// <summary>
@@ -212,7 +213,7 @@ namespace Starcounter {
          throw new JockeNotImplementedException();
 #endif
             template = (ListingProperty)this.Template;
-            ChangeLog.AddItemInList((App)this.Parent, template, index);
+            Session.Current.changeLog.AddItemInList((App)this.Parent, template, index);
 
             for (Int32 i = index + 1; i < QuickAndDirtyArray.Count; i++) {
                 otherItem = QuickAndDirtyArray[i];
@@ -233,7 +234,7 @@ namespace Starcounter {
 
             template = (ListingProperty)this.Template;
             QuickAndDirtyArray.RemoveAt(index);
-            ChangeLog.RemoveItemInList((App)this.Parent, template, index);
+            Session.Current.changeLog.RemoveItemInList((App)this.Parent, template, index);
 
             for (Int32 i = index; i < QuickAndDirtyArray.Count; i++) {
                 otherItem = QuickAndDirtyArray[i];
@@ -323,7 +324,7 @@ namespace Starcounter {
          throw new JockeNotImplementedException();
 #endif
 
-            ChangeLog.AddItemInList((App)this.Parent, (ListingProperty)this.Template, QuickAndDirtyArray.Count - 1);
+            Session.Current.changeLog.AddItemInList((App)this.Parent, (ListingProperty)this.Template, QuickAndDirtyArray.Count - 1);
         }
 
         /// <summary>
@@ -338,7 +339,7 @@ namespace Starcounter {
 
             indexesToRemove = QuickAndDirtyArray.Count;
             for (int i = (indexesToRemove - 1); i >= 0; i--) {
-                ChangeLog.RemoveItemInList(app, property, i);
+                Session.Current.changeLog.RemoveItemInList(app, property, i);
             }
             QuickAndDirtyArray.Clear();
 #else
