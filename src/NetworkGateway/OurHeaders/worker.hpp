@@ -55,12 +55,14 @@ public:
     }
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
+
     // Changes number of pending network operations.
     void ChangeNumPendingNetworkOperations(SocketDataChunk* sd, int64_t changeValue)
     {
         //GW_COUT << "ChangeNumPendingSockets: " << changeValue << std::endl;
         g_gateway.get_server_port(sd->get_port_index())->ChangeNumPendingNetworkOperations(sd->get_db_index(), changeValue);
     }
+
 #endif
 
     // Getting random generator.
@@ -118,6 +120,12 @@ public:
 
     // Deleting inactive database.
     void DeleteInactiveDatabase(int32_t dbSlotIndex);
+
+    // Sends given predefined response.
+    uint32_t SendPredefinedMessage(
+        SocketDataChunk *sd,
+        const char* message,
+        const int32_t message_len);
 
     // Getting the bytes received statistics.
     int64_t get_worker_stats_bytes_received()
@@ -247,6 +255,14 @@ public:
         int32_t port_index,
         int32_t db_index,
         SocketDataChunk** out_sd);
+
+    // Sends HTTP counted request.
+    uint32_t SendCountedHttpPing(SocketDataChunk *sd, int64_t echo_id);
+
+#ifdef GW_TESTING_MODE
+    // Sends certain message to master node.
+    uint32_t ProcessMasterMessage(SocketDataChunk *sd, bool just_connected);
+#endif
 };
 
 } // namespace network
