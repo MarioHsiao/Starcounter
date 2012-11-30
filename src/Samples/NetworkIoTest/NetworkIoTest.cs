@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading;
 using HttpStructs;
 using Starcounter;
+using System.Diagnostics;
 
 namespace NetworkIoTestApp
 {
@@ -18,72 +19,82 @@ namespace NetworkIoTestApp
 
         internal static void Main(String[] args)
         {
-            String db_number_string = Environment.GetEnvironmentVariable("DB_NUMBER");
+            String db_number_string = Environment.GetEnvironmentVariable("DB_NUMBER"),
+                port_number_string = Environment.GetEnvironmentVariable("DB_PORT");
+
             Int32 db_number = 0;
+            UInt16 port_number = 80;
             
             if (!String.IsNullOrWhiteSpace(db_number_string))
                 db_number = Int32.Parse(db_number_string);
 
-            RegisterHandlers(db_number);
+            if (!String.IsNullOrWhiteSpace(port_number_string))
+                port_number = UInt16.Parse(port_number_string);
+
+            RegisterHandlers(db_number, port_number);
         }
 
         // Handlers registration.
-        private static void RegisterHandlers(Int32 db_number)
+        private static void RegisterHandlers(Int32 db_number, UInt16 port_number)
         {
             String db_postfix = "_db" + db_number;
             UInt16 handler_id;
 
             /*
-            GatewayHandlers.RegisterUriHandler(80, "GET /", OnHttpGetRoot, out handlerId);
+            GatewayHandlers.RegisterUriHandler(port_number, "GET /", OnHttpGetRoot, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
-            GatewayHandlers.RegisterUriHandler(80, "POST /", OnHttpPostRoot, out handlerId);
+            GatewayHandlers.RegisterUriHandler(port_number, "POST /", OnHttpPostRoot, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
-            GatewayHandlers.RegisterUriHandler(80, "/", OnHttpRoot, out handlerId);
+            GatewayHandlers.RegisterUriHandler(port_number, "/", OnHttpRoot, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
             */
 
             String handler_uri = "/users" + db_postfix;
-            GatewayHandlers.RegisterUriHandler(80, handler_uri, OnHttpUsers, out handler_id);
+            GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpUsers, out handler_id);
+            Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
+
+            handler_uri = "/echo";
+            GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpEcho, out handler_id);
             Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
             handler_uri = "OPTIONS /";
-            GatewayHandlers.RegisterUriHandler(80, handler_uri, OnHttpOptions, out handler_id);
+            GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpOptions, out handler_id);
             Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
             handler_uri = "/session" + db_postfix;
-            GatewayHandlers.RegisterUriHandler(80, handler_uri, OnHttpSession, out handler_id);
+            GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpSession, out handler_id);
             Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
             handler_uri = "POST /upload";
-            GatewayHandlers.RegisterUriHandler(80, handler_uri, OnHttpUpload, out handler_id);
+            GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpUpload, out handler_id);
             Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
             handler_uri = "/internal-http-request";
-            GatewayHandlers.RegisterUriHandler(80, handler_uri, OnInternalHttpRequest, out handler_id);
+            GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnInternalHttpRequest, out handler_id);
             Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
             handler_uri = "GET /download";
-            GatewayHandlers.RegisterUriHandler(80, handler_uri, OnHttpDownload, out handler_id);
+            GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpDownload, out handler_id);
             Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
             handler_uri = "/killsession" + db_postfix;
-            GatewayHandlers.RegisterUriHandler(80, handler_uri, OnHttpKillSession, out handler_id);
+            GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpKillSession, out handler_id);
             Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
             handler_uri = "GET /image" + db_postfix;
-            GatewayHandlers.RegisterUriHandler(80, handler_uri, OnHttpGetImage, out handler_id);
+            GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpGetImage, out handler_id);
             Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
             /*
-            RegisterPortHandler(81, OnRawPort, out handlerId);
+            RegisterPortHandler(port_number + 1, OnRawPort, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
-            RegisterPortHandler(82, OnHttpPort, out handlerId);
+            RegisterPortHandler(port_number + 2, OnHttpPort, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
-            RegisterPortHandler(83, OnWebSocket, out handlerId);
+            RegisterPortHandler(port_number + 3, OnWebSocket, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
             */
         }
@@ -513,6 +524,36 @@ namespace NetworkIoTestApp
             return true;
         }
 
+        private static Boolean OnHttpEcho(HttpRequest p)
+        {
+            String responseBody = p.GetBodyStringUtf8_Slow();
+            Debug.Assert(responseBody.Length == 8);
+
+            //Console.WriteLine(responseBody);
+
+            String responseHeader =
+                "HTTP/1.1 200 OK\r\n" +
+                "Content-Type: text/html\r\n" +
+                "Content-Length: 8\r\n" +
+                "\r\n";
+
+            // Converting string to byte array.
+            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader + responseBody);
+
+            try
+            {
+                // Writing back the response.
+                p.WriteResponse(responseBytes, 0, responseBytes.Length);
+            }
+            catch
+            {
+                // Writing back the error status.
+                p.WriteResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+            }
+
+            return true;
+        }
+
         private static Boolean OnHttpUsers(HttpRequest p)
         {
             String responseBody =
@@ -528,10 +569,11 @@ namespace NetworkIoTestApp
             String responseHeader = 
                 "HTTP/1.1 200 OK\r\n" +
                 "Content-Type: text/html; charset=UTF-8\r\n" +
-                "Content-Length: " + responseBody.Length + "\r\n";
+                "Content-Length: " + responseBody.Length + "\r\n" +
+                "\r\n";
 
             // Converting string to byte array.
-            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
+            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader + responseBody);
 
             try
             {

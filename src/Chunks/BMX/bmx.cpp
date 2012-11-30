@@ -161,7 +161,7 @@ uint32_t BmxData::RegisterPortHandler(
 // Registers sub-port handler.
 uint32_t BmxData::RegisterSubPortHandler(
     uint16_t port,
-    uint32_t subport,
+    BMX_SUBPORT_TYPE subport,
     GENERIC_HANDLER_CALLBACK subport_handler, 
     BMX_HANDLER_TYPE* handler_id)
 {

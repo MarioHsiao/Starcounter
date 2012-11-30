@@ -52,12 +52,6 @@ Gateway::Gateway()
     // Number of worker threads.
     setting_num_workers_ = 0;
 
-    // Master IP address.
-    setting_master_ip_ = "";
-
-    // Indicates if this node is a master node.
-    setting_is_master_ = true;
-
     // Maximum total number of sockets.
     setting_max_connections_ = 0;
 
@@ -101,6 +95,28 @@ Gateway::Gateway()
 
     // Initial number of server ports.
     num_server_ports_ = 0;
+
+    // Resetting number of processed HTTP requests.
+    num_processed_http_requests_ = 0;
+
+#ifdef GW_TESTING_MODE
+
+    // Master IP address.
+    setting_master_ip_ = "";
+
+    // Indicates if this node is a master node.
+    setting_is_master_ = true;
+
+    // Number of connections to establish to master.
+    setting_num_connections_to_master_ = 0;
+
+    // Number of echoes to send to master node from clients.
+    setting_num_echoes_to_master_ = 0;
+
+    // Setting operational mode.
+    setting_mode_ = GatewayTestingMode::MODE_APPS_HTTP;
+
+#endif    
 }
 
 // Reading command line arguments.
@@ -281,8 +297,10 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     while(localIpElem)
     {
         setting_local_interfaces_.push_back(localIpElem->value());
-        localIpElem = localIpElem->next_sibling();
+        localIpElem = localIpElem->next_sibling("LocalIP");
     }
+
+#ifdef GW_TESTING_MODE
 
     // Getting master node IP address.
     setting_master_ip_ = rootElem->first_node("MasterIP")->value();
@@ -292,6 +310,19 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         setting_is_master_ = true;
     else
         setting_is_master_ = false;
+
+    // Number of connections to establish to master.
+    setting_num_connections_to_master_ = atoi(rootElem->first_node("NumConnectionsToMaster")->value());
+
+    // Number of echoes to send to master node from clients.
+    setting_num_echoes_to_master_ = atoi(rootElem->first_node("NumEchoesToMaster")->value());
+    confirmed_http_echoes_ = new uint8_t[setting_num_echoes_to_master_];
+    ResetEchoTests();
+
+    // Obtaining testing mode.
+    setting_mode_ = (GatewayTestingMode) atoi(rootElem->first_node("TestingMode")->value());
+
+#endif
 
     // Getting workers number.
     setting_num_workers_ = atoi(rootElem->first_node("WorkersNumber")->value());
@@ -312,7 +343,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     // Predefined ports constants.
     PortType portTypes[NUM_PREDEFINED_PORT_TYPES] = { HTTP_PORT, HTTPS_PORT, WEBSOCKETS_PORT, GENSOCKETS_PORT, AGGREGATION_PORT };
     std::string portNames[NUM_PREDEFINED_PORT_TYPES] = { "HttpPort", "HttpsPort", "WebSocketsPort", "GenSocketsPort", "AggregationPort" };
-    GENERIC_HANDLER_CALLBACK portHandlerTypes[NUM_PREDEFINED_PORT_TYPES] = { UriProcessData, HttpsProcessData, UriProcessData, PortProcessData, PortProcessData };
+    GENERIC_HANDLER_CALLBACK portHandlerTypes[NUM_PREDEFINED_PORT_TYPES] = { AppsUriProcessData, HttpsProcessData, AppsUriProcessData, PortProcessData, PortProcessData };
     uint16_t portNumbers[NUM_PREDEFINED_PORT_TYPES] = { 80, 443, 80, 123, 12345 };
     uint32_t userDataOffsetsInBlob[NUM_PREDEFINED_PORT_TYPES] = { HTTP_BLOB_USER_DATA_OFFSET, HTTPS_BLOB_USER_DATA_OFFSET, WS_BLOB_USER_DATA_OFFSET, RAW_BLOB_USER_DATA_OFFSET, AGGR_BLOB_USER_DATA_OFFSET };
 
@@ -554,9 +585,25 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
             }
         }
 
+#ifdef GW_TESTING_MODE
+
+        // Checking certain database names.
+        if (g_gateway.setting_is_master())
+        {
+            if (current_db_name == "MYDB_CLIENT")
+                is_new_database = false;
+        }
+        else
+        {
+            if (current_db_name == "MYDB_SERVER")
+                is_new_database = false;
+        }
+#endif
+
         // We have a new database being up.
         if (is_new_database)
         {
+
 #ifdef GW_DATABASES_DIAG
             GW_PRINT_GLOBAL << "Attaching a new database: " << current_db_name << std::endl;
 #endif
@@ -614,6 +661,36 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
                 LeaveGlobalLock();
                 return err_code;
             }
+
+#ifdef GW_TESTING_MODE
+
+            // Checking if we are in Gateway HTTP mode.
+            if (g_gateway.setting_is_master())
+            {
+                if (g_gateway.setting_mode() == GatewayTestingMode::MODE_GATEWAY_HTTP)
+                {
+                    // Registering gateway handlers.
+                    err_code = AddUriHandler(
+                        &gw_workers_[0],
+                        gw_handlers_,
+                        GATEWAY_TEST_PORT_NUMBER_SERVER,
+                        kHttpEchoUrl,
+                        kHttpEchoUrlLength,
+                        bmx::HTTP_METHODS::OTHER_METHOD,
+                        bmx::INVALID_HANDLER_ID,
+                        empty_db_index,
+                        GatewayUriProcessEcho);
+
+                    if (err_code)
+                    {
+                        // Leaving global lock.
+                        LeaveGlobalLock();
+
+                        return err_code;
+                    }
+                }
+            }
+#endif
 
             // Leaving global lock.
             LeaveGlobalLock();
@@ -779,7 +856,7 @@ uint32_t Gateway::Init()
     assert ((gw_workers_ == NULL) && (worker_thread_handles_ == NULL));
 
     // Initialize WinSock.
-    WSADATA wsaData = {0};
+    WSADATA wsaData = { 0 };
     int32_t errCode = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (errCode != 0)
     {
@@ -807,9 +884,12 @@ uint32_t Gateway::Init()
             return errCode;
     }
 
+#ifdef GW_TESTING_MODE
     // Creating and activating server sockets.
     if (setting_is_master_)
     {
+#endif
+
         // Going throw all needed ports.
         for(int32_t p = 0; p < num_server_ports_; p++)
         {
@@ -819,7 +899,10 @@ uint32_t Gateway::Init()
             uint32_t errCode = CreateListeningSocketAndBindToPort(&gw_workers_[0], server_ports_[p].get_port_number(), server_socket);
             GW_ERR_CHECK(errCode);
         }
+
+#ifdef GW_TESTING_MODE
     }
+#endif
 
     // Obtaining function pointers (AcceptEx, ConnectEx, DisconnectEx).
     uint32_t temp;
@@ -852,15 +935,19 @@ uint32_t Gateway::Init()
     // Global HTTP init.
     HttpGlobalInit();
 
-    // Checking if we are not master node.
+#ifdef GW_TESTING_MODE
+
+    // Creating server address if we are on client.
     if (!g_gateway.setting_is_master())
     {
         server_addr_ = new sockaddr_in;
         memset(server_addr_, 0, sizeof(sockaddr_in));
         server_addr_->sin_family = AF_INET;
         server_addr_->sin_addr.s_addr = inet_addr(g_gateway.setting_master_ip().c_str());
-        server_addr_->sin_port = htons(80); // TODO
+        server_addr_->sin_port = htons(GATEWAY_TEST_PORT_NUMBER_SERVER);
     }
+
+#endif
 
     // Indicating that network gateway is ready
     // (should be first line of the output).
@@ -1267,19 +1354,22 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
     int64_t prevBytesReceivedAllWorkers = 0,
         prevBytesSentAllWorkers = 0,
         prevSentNumAllWorkers = 0,
-        prevRecvNumAllWorkers = 0;
+        prevRecvNumAllWorkers = 0,
+        prevProcessedHttpRequestsAllWorkers = 0;
 
     // New statistics values.
     int64_t newBytesReceivedAllWorkers = 0,
         newBytesSentAllWorkers = 0,
         newSentNumAllWorkers = 0,
-        newRecvNumAllWorkers = 0;
+        newRecvNumAllWorkers = 0,
+        newProcessedHttpRequestsAllWorkers = 0;
 
     // Difference between new and previous statistics values.
     int64_t diffBytesReceivedAllWorkers = 0,
         diffBytesSentAllWorkers = 0,
         diffSentNumAllWorkers = 0,
-        diffRecvNumAllWorkers = 0;
+        diffRecvNumAllWorkers = 0,
+        diffProcessedHttpRequestsAllWorkers = 0;
 
     while(1)
     {
@@ -1309,6 +1399,7 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         newBytesSentAllWorkers = 0;
         newSentNumAllWorkers = 0;
         newRecvNumAllWorkers = 0;
+        newProcessedHttpRequestsAllWorkers = g_gateway.get_num_processed_http_requests();
 
         // Fetching new statistics.
         for (int32_t i = 0; i < setting_num_workers_; i++)
@@ -1324,12 +1415,14 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         diffBytesSentAllWorkers = newBytesSentAllWorkers - prevBytesSentAllWorkers;
         diffSentNumAllWorkers = newSentNumAllWorkers - prevSentNumAllWorkers;
         diffRecvNumAllWorkers = newRecvNumAllWorkers - prevRecvNumAllWorkers;
+        diffProcessedHttpRequestsAllWorkers = newProcessedHttpRequestsAllWorkers - prevProcessedHttpRequestsAllWorkers;
 
         // Updating previous values.
         prevBytesReceivedAllWorkers = newBytesReceivedAllWorkers;
         prevBytesSentAllWorkers = newBytesSentAllWorkers;
         prevSentNumAllWorkers = newSentNumAllWorkers;
         prevRecvNumAllWorkers = newRecvNumAllWorkers;
+        prevProcessedHttpRequestsAllWorkers = newProcessedHttpRequestsAllWorkers;
 
         // Calculating bandwidth.
         double recv_bandwidth_mbit_total = ((diffBytesReceivedAllWorkers * 8) / 1000000.0);
@@ -1374,7 +1467,8 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
 
         // Printing all workers stats.
         std::cout << "All workers last sec " <<
-            "recv_times " << diffRecvNumAllWorkers <<            
+            "recv_times " << diffRecvNumAllWorkers <<
+            ", http_requests " << diffProcessedHttpRequestsAllWorkers <<
             ", recv_bandwidth " << recv_bandwidth_mbit_total << " mbit/sec " <<
             ", sent_times " << diffSentNumAllWorkers <<
             ", send_bandwidth " << send_bandwidth_mbit_total << " mbit/sec " << std::endl << std::endl;
@@ -1497,6 +1591,115 @@ int32_t Gateway::StartGateway()
         return errCode;
 
     return 0;
+}
+
+// Adds some URI handler: either Apps or Gateway.
+uint32_t Gateway::AddUriHandler(
+    GatewayWorker *gw,
+    HandlersTable* handlers_table,
+    uint16_t port,
+    const char* uri,
+    uint32_t uri_len_chars,
+    bmx::HTTP_METHODS http_method,
+    BMX_HANDLER_TYPE handler_id,
+    int32_t db_index,
+    GENERIC_HANDLER_CALLBACK handler_proc)
+{
+    uint32_t err_code;
+
+    // Registering URI handler.
+    err_code = handlers_table->RegisterUriHandler(
+        gw,
+        port,
+        uri,
+        uri_len_chars,
+        http_method,
+        handler_id,
+        handler_proc,
+        db_index);
+
+    GW_ERR_CHECK(err_code);
+
+    // Search for handler index by URI string.
+    BMX_HANDLER_TYPE handler_index = handlers_table->FindUriHandlerIndex(port, uri, uri_len_chars);
+
+    // Getting the port structure.
+    ServerPort* server_port = g_gateway.FindServerPort(port);
+
+    // Registering URI on port.
+    RegisteredUris* all_port_uris = server_port->get_registered_uris();
+    int32_t index = all_port_uris->FindRegisteredUri(uri, uri_len_chars);
+
+    // Checking if there is an entry.
+    if (index < 0)
+    {
+        // Creating totally new URI entry.
+        RegisteredUri new_entry(
+            uri,
+            uri_len_chars,
+            db_index,
+            handlers_table->get_handler_list(handler_index));
+
+        // Adding entry to global list.
+        all_port_uris->AddEntry(new_entry);
+    }
+    else
+    {
+        // Obtaining existing URI entry.
+        RegisteredUri reg_uri = all_port_uris->GetEntryByIndex(index);
+
+        // Checking if there is no database for this URI.
+        if (!reg_uri.ContainsDb(db_index))
+        {
+            // Creating new unique handlers list for this database.
+            UniqueHandlerList uhl(db_index, handlers_table->get_handler_list(handler_index));
+
+            // Adding new handler list for this database to the URI.
+            reg_uri.Add(uhl);
+        }
+    }
+    GW_ERR_CHECK(err_code);
+
+    // Printing port information.
+    server_port->Print();
+
+    return 0;
+}
+
+// Adds some port handler: either Apps or Gateway.
+uint32_t Gateway::AddPortHandler(
+    GatewayWorker *gw,
+    HandlersTable* handlers_table,
+    uint16_t port,
+    BMX_HANDLER_TYPE handler_id,
+    int32_t db_index,
+    GENERIC_HANDLER_CALLBACK handler_proc)
+{
+    return handlers_table->RegisterPortHandler(
+        gw,
+        port,
+        handler_id,
+        handler_proc,
+        db_index);
+}
+
+// Adds some sub-port handler: either Apps or Gateway.
+uint32_t Gateway::AddSubPortHandler(
+    GatewayWorker *gw,
+    HandlersTable* handlers_table,
+    uint16_t port,
+    bmx::BMX_SUBPORT_TYPE subport,
+    BMX_HANDLER_TYPE handler_id,
+    int32_t db_index,
+    GENERIC_HANDLER_CALLBACK handler_proc)
+{
+    return handlers_table->RegisterSubPortHandler(
+        gw,
+        port,
+        subport,
+        handler_id,
+        handler_proc,
+        db_index);
 }
 
 } // namespace network
