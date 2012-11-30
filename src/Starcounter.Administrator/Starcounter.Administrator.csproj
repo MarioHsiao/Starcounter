@@ -72,8 +72,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppApp.json.cs">
+      <DependentUpon>AppApp.json</DependentUpon>
+    </Compile>
     <Compile Include="DatabaseApp.json.cs">
       <DependentUpon>DatabaseApp.json</DependentUpon>
+    </Compile>
+    <Compile Include="DatabaseAppsApp.json.cs">
+      <DependentUpon>DatabaseAppsApp.json</DependentUpon>
     </Compile>
     <Compile Include="DatabasesApp.json.cs">
       <DependentUpon>DatabasesApp.json</DependentUpon>
@@ -97,16 +103,20 @@
     </App>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="app.html" />
+    <Content Include="apps.html" />
+    <Content Include="css\bootstrap-2.2.1.css" />
     <Content Include="database.html" />
     <Content Include="databases.html" />
     <Content Include="index.html" />
     <Content Include="server.html" />
     <Content Include="sql.html" />
+    <Content Include="sys\angular-1.0.2.js" />
+    <Content Include="sys\angular-patch.js" />
+    <Content Include="sys\bootstrap-2.2.1.js" />
     <Content Include="test.html" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="sys\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <App Include="ServerApp.json">
       <Generator>MSBuild:Compile</Generator>
@@ -125,6 +135,16 @@
   <ItemGroup>
     <App Include="SqlApp.json">
       <Generator>MsBuild:Compile</Generator>
+    </App>
+  </ItemGroup>
+  <ItemGroup>
+    <App Include="DatabaseAppsApp.json">
+      <Generator>MSBuild:Compile</Generator>
+    </App>
+  </ItemGroup>
+  <ItemGroup>
+    <App Include="AppApp.json">
+      <Generator>MSBuild:Compile</Generator>
     </App>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
