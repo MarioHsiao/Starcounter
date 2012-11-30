@@ -336,7 +336,7 @@ namespace Starcounter {
 
 #if QUICKTUPLE
 
-            indexesToRemove = QuickAndDirtyArray.Count - 1;
+            indexesToRemove = QuickAndDirtyArray.Count;
             for (int i = (indexesToRemove - 1); i >= 0; i--) {
                 ChangeLog.RemoveItemInList(app, property, i);
             }
