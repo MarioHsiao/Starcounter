@@ -334,12 +334,6 @@ public:
         return &http_ws_proto_;
     }
 
-    // Blob buffer itself.
-    uint8_t* data_blob()
-    {
-        return data_blob_;
-    }
-
     // Overlapped structure used for WinSock.
     OVERLAPPED* get_ovl()
     {

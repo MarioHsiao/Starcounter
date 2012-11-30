@@ -109,7 +109,7 @@ uint32_t sc_bmx_register_port_handler(
 // Registers sub-port handler.
 uint32_t sc_bmx_register_subport_handler(
     uint16_t port,
-    uint32_t sub_port,
+    BMX_SUBPORT_TYPE sub_port,
     GENERIC_HANDLER_CALLBACK callback,
     BMX_HANDLER_TYPE* handler_id
     )

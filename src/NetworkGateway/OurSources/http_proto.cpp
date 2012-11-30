@@ -11,45 +11,6 @@
 namespace starcounter {
 namespace network {
 
-const char* const kHttpGatewayPongResponse =
-    "HTTP/1.1 200 OK\r\n"
-    "Content-Type: text/html; charset=UTF-8\r\n"
-    "Content-Length: 5\r\n"
-    "\r\n"
-    "Pong!";
-
-const int32_t kHttpGatewayPongResponseLength = strlen(kHttpGatewayPongResponse);
-
-const char* const kHttpNoContent =
-    "HTTP/1.1 204 No Content\r\n"
-    "Content-Length: 0\r\n"
-    "\r\n";
-
-const int32_t kHttpNoContentLength = strlen(kHttpNoContent) + 1;
-
-const char* const kHttpBadRequest =
-    "HTTP/1.1 400 Bad Request\r\n"
-    "Content-Length: 0\r\n"
-    "\r\n";
-
-const int32_t kHttpBadRequestLength = strlen(kHttpBadRequest) + 1;
-
-const char* const kHttpServiceUnavailable =
-    "HTTP/1.1 503 Service Unavailable\r\n"
-    "Content-Length: 0\r\n"
-    "\r\n";
-
-const int32_t kHttpServiceUnavailableLength = strlen(kHttpServiceUnavailable) + 1;
-
-const char* const kHttpTooBigUpload =
-    "HTTP/1.1 413 Request Entity Too Large\r\n"
-    "Content-Type: text/html; charset=UTF-8\r\n"
-    "Content-Length: 50\r\n"
-    "\r\n"
-    "Maximum supported HTTP request body size is 32 Mb!";
-
-const int32_t kHttpTooBigUploadLength = strlen(kHttpTooBigUpload) + 1;
-
 // Fetches method and URI from HTTP request data.
 inline uint32_t GetMethodAndUri(
     char* http_data,
@@ -518,33 +479,14 @@ uint32_t HttpWsProto::HttpUriDispatcher(
     {
         // Just running standard response processing.
         *is_handled = true;
-        return HttpWsProcessData(gw, sd, handler_index, is_handled);
+        return AppsHttpWsProcessData(gw, sd, handler_index, is_handled);
     }
 
     return 0;
 }
 
-// Sends given predefined response.
-uint32_t HttpWsProto::SendPredefinedResponse(
-    GatewayWorker *gw,
-    SocketDataChunk *sd,
-    const char* response,
-    const int32_t response_length)
-{
-    AccumBuffer* accum_buf = sd->get_accum_buf();
-
-    // Copying given response.
-    memcpy(accum_buf->get_orig_buf_ptr(), response, response_length);
-
-    // Prepare buffer to send outside.
-    accum_buf->PrepareForSend(accum_buf->get_orig_buf_ptr(), response_length);
-
-    // Sending data.
-    return gw->Send(sd);
-}
-
 // Parses the HTTP request and pushes processed data to database.
-uint32_t HttpWsProto::HttpWsProcessData(
+uint32_t HttpWsProto::AppsHttpWsProcessData(
     GatewayWorker *gw,
     SocketDataChunk *sd,
     BMX_HANDLER_TYPE handler_id,
@@ -579,7 +521,7 @@ uint32_t HttpWsProto::HttpWsProcessData(
         size_t bytes_parsed = http_parser_execute(
             (http_parser *)this,
             &g_httpParserSettings,
-            (const char *)accum_buf->get_orig_buf_ptr(),
+            (const char *)sd->get_data_blob(),
             accum_buf->get_accum_len_bytes());
 
         // Checking if we have complete data.
@@ -601,7 +543,9 @@ uint32_t HttpWsProto::HttpWsProcessData(
         // Checking if we have WebSockets upgrade.
         if (http_parser_.upgrade)
         {
+#ifdef GW_WEBSOCKET_DIAG
             GW_COUT << "Upgrade to another protocol detected, data: " << std::endl;
+#endif
 
             // Handled successfully.
             *is_handled = true;
@@ -698,7 +642,7 @@ uint32_t HttpWsProto::HttpWsProcessData(
 #endif
 
                         // Sending corresponding HTTP response.
-                        return SendPredefinedResponse(gw, sd, kHttpTooBigUpload, kHttpTooBigUploadLength);
+                        return gw->SendPredefinedMessage(sd, kHttpTooBigUpload, kHttpTooBigUploadLength);
                     }
 
                     // Enabling accumulative state.
@@ -724,6 +668,10 @@ uint32_t HttpWsProto::HttpWsProcessData(
             }
 
 ALL_DATA_ACCUMULATED:
+
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+            g_gateway.IncrementNumProcessedHttpRequests();
+#endif
 
             // Posting cloning receive since all data is accumulated.
             err_code = sd->CloneToReceive(gw);
@@ -752,7 +700,7 @@ ALL_DATA_ACCUMULATED:
                 case HTTP_GATEWAY_PONG_RESPONSE:
                 {
                     // Sending Pong response.
-                    err_code = SendPredefinedResponse(gw, sd, kHttpGatewayPongResponse, kHttpGatewayPongResponseLength);
+                    err_code = gw->SendPredefinedMessage(sd, kHttpGatewayPongResponse, kHttpGatewayPongResponseLength);
                     if (err_code)
                         return err_code;
 
@@ -762,7 +710,7 @@ ALL_DATA_ACCUMULATED:
                 default:
                 {
                     // Sending no-content response.
-                    err_code = SendPredefinedResponse(gw, sd, kHttpNoContent, kHttpNoContentLength);
+                    err_code = gw->SendPredefinedMessage(sd, kHttpNoContent, kHttpNoContentLength);
                     if (err_code)
                         return err_code;
 
@@ -772,7 +720,7 @@ ALL_DATA_ACCUMULATED:
 
             // Printing the outgoing packet.
 #ifdef GW_HTTP_DIAG
-            GW_COUT << accum_buf->get_orig_buf_ptr() << std::endl;
+            GW_COUT << sd->get_data_blob() << std::endl;
 #endif
         }
 
@@ -828,16 +776,245 @@ ALL_DATA_ACCUMULATED:
     return SCERRGWHTTPPROCESSFAILED;
 }
 
+#ifdef GW_TESTING_MODE
+
+// Parses the HTTP request and pushes processed data to database.
+uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
+    GatewayWorker *gw,
+    SocketDataChunk *sd,
+    BMX_HANDLER_TYPE handler_id,
+    bool* is_handled)
+{
+    uint32_t err_code;
+
+    // Not handled yet.
+    *is_handled = false;
+
+    // Getting reference to accumulative buffer.
+    AccumBuffer* accum_buf = sd->get_accum_buf();
+
+    // Checking if we are in fill-up mode.
+    if (sd->get_accumulating_flag())
+        goto ALL_DATA_ACCUMULATED;
+
+    // Checking if we are already passed the WebSockets handshake.
+    if(sd->get_web_sockets_upgrade_flag())
+        return ws_proto_.ProcessWsDataToDb(gw, sd, handler_id);
+
+    // Resetting the parsing structure.
+    ResetParser();
+
+    // Attaching a socket.
+    AttachToParser(sd);
+
+    // Executing HTTP parser.
+    size_t bytes_parsed = http_parser_execute(
+        (http_parser *)this,
+        &g_httpParserSettings,
+        (const char *)sd->get_data_blob(),
+        accum_buf->get_accum_len_bytes());
+
+    // Checking if we have complete data.
+    if ((!sd->get_complete_header_flag()) && (bytes_parsed == accum_buf->get_accum_len_bytes()))
+    {
+        // Continue receiving.
+        accum_buf->ContinueReceive();
+
+        // Returning socket to receiving state.
+        err_code = gw->Receive(sd);
+        GW_ERR_CHECK(err_code);
+
+        // Handled successfully.
+        *is_handled = true;
+
+        return 0;
+    }
+
+    // Checking if we have WebSockets upgrade.
+    if (http_parser_.upgrade)
+    {
+#ifdef GW_WEBSOCKET_DIAG
+        GW_COUT << "Upgrade to another protocol detected, data: " << std::endl;
+#endif
+
+        // Handled successfully.
+        *is_handled = true;
+
+        // Perform WebSockets handshake.
+        return ws_proto_.DoHandshake(gw, sd);
+    }
+    // Handle error. Usually just close the connection.
+    else if (bytes_parsed != (accum_buf->get_accum_len_bytes()))
+    {
+        GW_COUT << "HTTP packet has incorrect data!" << std::endl;
+        return SCERRGWHTTPINCORRECTDATA;
+    }
+    // Standard HTTP.
+    else
+    {
+        // Getting the HTTP method.
+        http_method method = (http_method)http_parser_.method;
+        switch (method)
+        {
+        case http_method::HTTP_GET: 
+            http_request_.http_method_ = bmx::HTTP_METHODS::GET_METHOD;
+            break;
+
+        case http_method::HTTP_POST: 
+            http_request_.http_method_ = bmx::HTTP_METHODS::POST_METHOD;
+            break;
+
+        case http_method::HTTP_PUT: 
+            http_request_.http_method_ = bmx::HTTP_METHODS::PUT_METHOD;
+            break;
+
+        case http_method::HTTP_DELETE: 
+            http_request_.http_method_ = bmx::HTTP_METHODS::DELETE_METHOD;
+            break;
+
+        case http_method::HTTP_HEAD: 
+            http_request_.http_method_ = bmx::HTTP_METHODS::HEAD_METHOD;
+            break;
+
+        case http_method::HTTP_OPTIONS: 
+            http_request_.http_method_ = bmx::HTTP_METHODS::OPTIONS_METHOD;
+            break;
+
+        case http_method::HTTP_TRACE: 
+            http_request_.http_method_ = bmx::HTTP_METHODS::TRACE_METHOD;
+            break;
+
+        case http_method::HTTP_PATCH: 
+            http_request_.http_method_ = bmx::HTTP_METHODS::PATCH_METHOD;
+            break;
+
+        default: 
+            http_request_.http_method_ = bmx::HTTP_METHODS::OTHER_METHOD;
+            break;
+        }
+
+        // TODO: Check when resolved with NGINX http parser.
+        // Setting content length.
+        //http_request_.body_len_bytes_ = http_parser_.content_length;
+        // Checking if content length was determined at all.
+        //if (ULLONG_MAX == http_parser_.content_length)
+        //    http_request_.body_len_bytes_ = 0;
+
+        // Checking if we have any body at all.
+        if (http_request_.body_len_bytes_ > 0)
+        {
+            // Number of body bytes already received.
+            int32_t num_body_bytes_received = accum_buf->get_accum_len_bytes() + SOCKET_DATA_BLOB_OFFSET_BYTES - http_request_.body_offset_;
+
+            // Checking if body was partially received at all.
+            if (http_request_.body_offset_ <= 0)
+            {
+                // Setting the value for body offset.
+                http_request_.body_offset_ = SOCKET_DATA_BLOB_OFFSET_BYTES + bytes_parsed;
+
+                num_body_bytes_received = 0;
+            }
+
+            // Checking if we need to continue receiving the body.
+            if (http_request_.body_len_bytes_ > num_body_bytes_received)
+            {
+                // Checking for maximum supported HTTP request body size.
+                if (http_request_.body_len_bytes_ > MAX_HTTP_BODY_SIZE)
+                {
+                    // Handled successfully.
+                    *is_handled = true;
+
+                    // Setting disconnect after send flag.
+                    sd->set_disconnect_after_send_flag(true);
+
+#ifdef GW_WARNINGS_DIAG
+                    GW_COUT << "Maximum supported HTTP request body size is 32 Mb!" << std::endl;
+#endif
+
+                    // Sending corresponding HTTP response.
+                    return gw->SendPredefinedMessage(sd, kHttpTooBigUpload, kHttpTooBigUploadLength);
+                }
+
+                // Enabling accumulative state.
+                sd->set_accumulating_flag(true);
+
+                // Setting the desired number of bytes to accumulate.
+                accum_buf->set_desired_accum_bytes(accum_buf->get_accum_len_bytes() + http_request_.body_len_bytes_ - num_body_bytes_received);
+
+                // Continue receiving.
+                accum_buf->ContinueReceive();
+
+                // Trying to continue accumulation.
+                bool is_accumulated;
+                uint32_t err_code = sd->ContinueAccumulation(gw, &is_accumulated);
+                GW_ERR_CHECK(err_code);
+
+                // Handled successfully.
+                *is_handled = true;
+
+                // Checking if we have not accumulated everything yet.
+                return gw->Receive(sd);
+            }
+        }
+
+ALL_DATA_ACCUMULATED:
+
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+        g_gateway.IncrementNumProcessedHttpRequests();
+#endif
+
+        // Checking if we are in Gateway HTTP mode.
+        if (g_gateway.setting_mode() == MODE_GATEWAY_HTTP)
+        {
+            // Translating HTTP body.
+            assert (http_request_.body_len_bytes_ == kHttpEchoBodyLength);
+
+            // Converting the string to number.
+            //int64_t echo_id = hex_string_to_uint64((char*)sd + http_request_.body_offset_, kHttpGatewayEchoRequestBodyLength);
+
+            // Saving echo string into temporary buffer.
+            char copied_echo_string[kHttpEchoBodyLength];
+            memcpy(copied_echo_string, (char*)sd + http_request_.body_offset_, kHttpEchoBodyLength);
+
+            // Coping echo HTTP response.
+            memcpy(sd->get_data_blob(), kHttpEchoResponse, kHttpEchoResponseLength);
+
+            // Inserting echo id into HTTP response.
+            memcpy(sd->get_data_blob() + kHttpEchoResponseInsertPoint, copied_echo_string, kHttpEchoBodyLength);
+
+            // Sending echo response.
+            err_code = gw->SendPredefinedMessage(sd, NULL, kHttpEchoResponseLength);
+            if (err_code)
+                return err_code;
+
+            // Handled successfully.
+            *is_handled = true;
+
+            return 0;
+        }
+    }
+
+    return SCERRGWHTTPPROCESSFAILED;
+}
+
+// HTTP/WebSockets handler for Gateway.
+uint32_t GatewayUriProcessEcho(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+{
+    return sd->get_http_ws_proto()->GatewayHttpWsProcessEcho(gw, sd, handler_id, is_handled);
+}
+
+#endif
+
 // Outer HTTP/WebSockets handler.
 uint32_t OuterUriProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
     return sd->get_http_ws_proto()->HttpUriDispatcher(gw, sd, handler_id, is_handled);
 }
 
-// HTTP/WebSockets handler.
-uint32_t UriProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+// HTTP/WebSockets handler for Apps.
+uint32_t AppsUriProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
-    return sd->get_http_ws_proto()->HttpWsProcessData(gw, sd, handler_id, is_handled);
+    return sd->get_http_ws_proto()->AppsHttpWsProcessData(gw, sd, handler_id, is_handled);
 }
 
 } // namespace network
