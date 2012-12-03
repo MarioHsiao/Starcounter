@@ -1,5 +1,5 @@
 echo %1
 cd %1
 echo %cd%
-echo %teamcity.build.checkoutDir%
+echo %SC_CHECKOUT_DIR%
 win_bison.exe -d %2 -o %3
