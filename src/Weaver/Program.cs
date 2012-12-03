@@ -199,8 +199,12 @@ namespace Weaver {
             string cacheDirectory,
             string fileName,
             ApplicationArguments arguments) {
-            CodeWeaver weaver;
+            
+            BootstrapWeaver.WeaveExecutable(Path.Combine(inputDirectory, fileName));
 
+#if false
+            // Implementation using the PostSharp-based weaver
+            CodeWeaver weaver;
             weaver = new CodeWeaver(inputDirectory, fileName, cacheDirectory);
             weaver.RunWeaver = true;
             weaver.WeaveBootstrapperCode = true;
@@ -212,6 +216,8 @@ namespace Weaver {
             // error itself.
 
             weaver.Execute();
+
+#endif
         }
 
         static void ApplyGlobalProgramOptions(ApplicationArguments arguments) {
