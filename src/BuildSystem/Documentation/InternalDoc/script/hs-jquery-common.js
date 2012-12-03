@@ -17,7 +17,7 @@ function hsResourceBaseUrl() {
         var scriptSrc = script.src;
 
         var scriptUrl = null;
-        if (IsMshv2()) {
+        if (isMshv2()) {
             // HV 2
             var startIndex = scriptSrc.indexOf('&id=');
             var scriptUrl = scriptSrc.substring(0, startIndex);
@@ -41,15 +41,20 @@ function hsFixUrl(url) {
         if (url.indexOf('127.0.0.1') != -1) {
             // Chrome - rule returned as full url
             originalUrl = url.substring(url.indexOf('/', url.indexOf('127.0.0.1')) + 5, url.length);
-                    }
-        else {
+            originalUrl = originalUrl.replace("\"", "");
+        }
+        else if (url.indexOf('../') != -1) {
             // IE - rule returned as original, with a .. prefix
             originalUrl = url.substring(url.indexOf('../') + 2, url.lastIndexOf(')'));
-                }
-        if (originalUrl.indexOf("/help/") == -1) {
+            originalUrl = originalUrl.replace("\"", "");
+        }
+        else {
+            // Relative url in MSHV 2.0
+            originalUrl = url.replace("/", "\\");
+        }
+        if (originalUrl.indexOf("/help/") != -1) {
             originalUrl = originalUrl.substring(originalUrl.indexOf("/", originalUrl.indexOf("/help/") + 5), originalUrl.length);
-            }
-        originalUrl = originalUrl.replace("\"", "");
+        }
         var newUrl = hsResourceBaseUrl() + originalUrl;
         return newUrl;
     }

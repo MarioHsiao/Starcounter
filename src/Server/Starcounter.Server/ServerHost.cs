@@ -41,15 +41,15 @@ namespace Starcounter.Server {
         static unsafe ulong ConfigureLogging(ServerConfiguration c, ulong hmenv) {
             uint e;
 
-            e = sccorelog.SCInitModule_LOG(hmenv);
+            e = sccorelog.sccorelog_init(hmenv);
             if (e != 0) throw ErrorCode.ToException(e);
 
             ulong hlogs;
-            e = sccorelog.SCConnectToLogs(ScUri.MakeServerUri(Environment.MachineName, c.Name), null, null, &hlogs);
+            e = sccorelog.sccorelog_connect_to_logs(ScUri.MakeServerUri(Environment.MachineName, c.Name), null, &hlogs);
             if (e != 0) throw ErrorCode.ToException(e);
 
             string logDirectory = c.LogDirectory;
-            e = sccorelog.SCBindLogsToDir(hlogs, logDirectory);
+            e = sccorelog.sccorelog_bind_logs_to_dir(hlogs, logDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
             LogManager.Setup(hlogs);
