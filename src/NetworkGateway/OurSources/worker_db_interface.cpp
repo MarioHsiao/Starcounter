@@ -181,10 +181,12 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
                     else
                     {
                         // Killing global session.
-                        sd->KillGlobalAndSdSession();
+                        bool session_was_killed;
+                        sd->KillGlobalAndSdSession(&session_was_killed);
 
 #ifdef GW_SESSIONS_DIAG
-                        GW_PRINT_WORKER << "Session was killed: " << session_index << ":" << sd->get_session_salt() << std::endl;
+                        if (session_was_killed)
+                            GW_PRINT_WORKER << "Session was killed: " << session_index << ":" << sd->get_session_salt() << std::endl;
 #endif
                     }
                 }
@@ -348,7 +350,7 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(GatewayWorker* gw, SocketDataChun
 
     // Checking if chunk belongs to this database.
     ActiveDatabase* current_db = g_gateway.GetDatabase(db_index_);
-    if ((current_db->unique_num()) != sd->db_unique_seq_num())
+    if ((current_db->unique_num()) != sd->get_db_unique_seq_num())
     {
 #ifdef GW_ERRORS_DIAG
         GW_PRINT_WORKER << "Socket data does not belong to this database." << std::endl;
@@ -377,6 +379,9 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(GatewayWorker* gw, SocketDataChun
     // Checking scheduler id validity.
     if (INVALID_SCHEDULER_ID == sched_id)
         sched_id = g_gateway.obtain_scheduler_id_unsafe();
+
+    // Setting scheduler id to session.
+    sd->set_scheduler_id(sched_id);
 
     // Pushing socket data as a chunk.
     return PushLinkedChunksToDb(sd->get_chunk_index(), sd->get_num_chunks(), sched_id);
@@ -430,10 +435,10 @@ uint32_t WorkerDbInterface::PushDeadSession(const ScSessionStruct& session)
     ActiveDatabase* current_db = g_gateway.GetDatabase(db_index_);
 
     // Writing Apps unique session number.
-    request->write(current_db->GetAppsUniqueSessionNumber(session.session_index_));
+    request->write(current_db->GetAppsUniqueSessionNumber(session.gw_session_index_));
 
     // Writing Apps unique salt.
-    request->write(current_db->GetAppsSessionSalt(session.session_index_));
+    request->write(current_db->GetAppsSessionSalt(session.gw_session_index_));
 
     // Pushing the chunk.
     return PushLinkedChunksToDb(new_chunk, 1, session.scheduler_id_);
@@ -637,7 +642,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                     port,
                     handler_id,
                     db_index_,
-                    PortProcessData);
+                    AppsPortProcessData);
 
                 if (err_code)
                     return err_code;
@@ -677,7 +682,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                     subport,
                     handler_id,
                     db_index_,
-                    SubportProcessData);
+                    AppsSubportProcessData);
 
                 if (err_code)
                     return err_code;

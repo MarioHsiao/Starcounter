@@ -19,6 +19,7 @@ void SocketDataChunk::Init(
     core::chunk_index chunk_index)
 {
     sock_ = sock;
+    proxy_sock_ = INVALID_SOCKET;
 
     // Obtaining corresponding port handler.
     ServerPort* server_port = g_gateway.get_server_port(port_index);
@@ -58,7 +59,10 @@ void SocketDataChunk::Reset()
     flags_ = 0;
     set_to_database_direction_flag(true);
 
+    proxy_sock_ = INVALID_SOCKET;
+
     type_of_network_oper_ = DISCONNECT_OPER;
+
     fixed_handler_id_ = 0;
 
     // Clearing attached session.
@@ -140,6 +144,8 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
     sd_clone->session_ = session_;
     sd_clone->set_to_database_direction_flag(true);
     sd_clone->set_web_sockets_upgrade_flag(sd_clone->get_web_sockets_upgrade_flag());
+    sd_clone->set_db_unique_seq_num(db_unique_seq_num_);
+    sd_clone->set_proxy_socket(proxy_sock_);
 
     // This socket becomes attached.
     sd_clone->set_receiving_flag(true);
