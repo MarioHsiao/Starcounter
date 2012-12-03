@@ -279,7 +279,7 @@ namespace Starcounter.Internal
         /// <param name="psetup">The psetup.</param>
         /// <param name="phsched">The phsched.</param>
         /// <returns>System.UInt32.</returns>
-        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern unsafe uint cm2_setup(CM2_SETUP* psetup, void** phsched);
 
 
@@ -288,7 +288,7 @@ namespace Starcounter.Internal
         /// </summary>
         /// <param name="hsched">The hsched.</param>
         /// <returns>System.UInt32.</returns>
-        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern unsafe uint cm2_start(void* hsched);
 
         /// <summary>
@@ -297,13 +297,8 @@ namespace Starcounter.Internal
         /// <param name="hsched">The hsched.</param>
         /// <param name="wait">The wait.</param>
         /// <returns>System.UInt32.</returns>
-        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern unsafe uint cm2_stop(void* hsched, int wait);
-
-#if false
-        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe uint cm2_get_cpun(void *hshed, byte *pcpun);
-#endif
 
         /// <summary>
         /// Cm3_get_cpuns the specified ignore.
@@ -311,7 +306,7 @@ namespace Starcounter.Internal
         /// <param name="ignore">The ignore.</param>
         /// <param name="pcpun">The pcpun.</param>
         /// <returns>System.UInt32.</returns>
-        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern unsafe uint cm3_get_cpun(void* ignore, byte* pcpun);
 
         /// <summary>
@@ -325,7 +320,7 @@ namespace Starcounter.Internal
         /// <param name="output2">The output2.</param>
         /// <param name="output3">The output3.</param>
         /// <returns>System.UInt32.</returns>
-        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern unsafe uint cm2_schedule(
 	        void *hsched,
 	        byte cpun,
@@ -385,7 +380,7 @@ namespace Starcounter.Internal
         /// <param name="hsched">The hsched.</param>
         /// <param name="ptask_data">The ptask_data.</param>
         /// <returns>System.UInt32.</returns>
-        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern unsafe uint cm2_standby(void* hsched, CM2_TASK_DATA* ptask_data);
 
         /// <summary>
@@ -394,7 +389,7 @@ namespace Starcounter.Internal
         /// <param name="h">The h.</param>
         /// <param name="pcpuc">The pcpuc.</param>
         /// <returns>UInt32.</returns>
-        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
         private unsafe extern static UInt32 cm2_get_cpuc(IntPtr h, Byte* pcpuc);
 
         /// <summary>
@@ -403,23 +398,15 @@ namespace Starcounter.Internal
         /// <param name="h">The h.</param>
         /// <param name="pcpun">The pcpun.</param>
         /// <returns>UInt32.</returns>
-        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
         private unsafe extern static UInt32 cm2_get_cpun(IntPtr h, Byte* pcpun);
-
-#if false
-        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static UInt32 cm3_bdetach(IntPtr h_opt);
-
-        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static UInt32 cm3_edetach(IntPtr h_opt);
-#endif
 
         /// <summary>
         /// Cm3_eautodets the specified h_opt.
         /// </summary>
         /// <param name="h_opt">The h_opt.</param>
         /// <returns>UInt32.</returns>
-        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static UInt32 cm3_eautodet(IntPtr h_opt);
 
 #if true
@@ -428,7 +415,7 @@ namespace Starcounter.Internal
         /// </summary>
         /// <param name="h_opt">The h_opt.</param>
         /// <returns>UInt32.</returns>
-        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static UInt32 cm3_set_yblk(IntPtr h_opt);
 
         /// <summary>
@@ -436,7 +423,7 @@ namespace Starcounter.Internal
         /// </summary>
         /// <param name="h_opt">The h_opt.</param>
         /// <returns>UInt32.</returns>
-        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static UInt32 cm3_rel_yblk(IntPtr h_opt);
 #endif
 
@@ -446,7 +433,7 @@ namespace Starcounter.Internal
         /// <param name="ignore">The ignore.</param>
         /// <param name="ppstash">The ppstash.</param>
         /// <returns>UInt32.</returns>
-        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static unsafe UInt32 cm3_get_stash(void* ignore, UInt32** ppstash);
 
         /// <summary>
@@ -471,7 +458,7 @@ namespace Starcounter.Internal
         /// </summary>
         /// <param name="chunk_index">The chunk_index.</param>
         /// <returns>UInt32.</returns>
-        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
         internal extern static UInt32 cm_send_to_client(UInt32 chunk_index);
 
         /// <summary>
