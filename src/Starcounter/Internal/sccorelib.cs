@@ -442,7 +442,7 @@ namespace Starcounter.Internal
         /// <param name="mem128">The mem128.</param>
         /// <param name="slabs">The slabs.</param>
         /// <returns>System.UInt64.</returns>
-        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("sunflower.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern unsafe ulong mh4_menv_create(void* mem128, uint slabs);
 
         /// <summary>
@@ -450,7 +450,7 @@ namespace Starcounter.Internal
         /// </summary>
         /// <param name="hmenv">The hmenv.</param>
         /// <param name="periodic">The periodic.</param>
-        [DllImport("sccorelib.dll", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("sunflower.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern void mh4_menv_trim_cache(ulong hmenv, int periodic);
 
         /// <summary>
