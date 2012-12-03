@@ -1,6 +1,6 @@
 echo %1
 cd ..\packages
-ls
+dir
 echo %cd%
 cd %1
 echo %cd%
