@@ -17,8 +17,8 @@ namespace Starcounter.Logging
 
         public static void InternalFatal(String message)
         {
-            sccorelog.SCKernelWriteToLogs(_hlogs, sccorelog.SC_ENTRY_CRITICAL, message);
-            sccorelog.SCFlushToLogs(_hlogs);
+            sccorelog.sccorelog_kernel_write_to_logs(_hlogs, sccorelog.SC_ENTRY_CRITICAL, message);
+            sccorelog.sccorelog_flush_to_logs(_hlogs);
         }
 
         internal static void Debug(String source, String message, String category, Exception exception)
@@ -71,7 +71,7 @@ namespace Starcounter.Logging
                     message = string.Concat(message, " ", message2);
                 }
             }
-            sccorelog.SCWriteToLogs(_hlogs, type, source, category, null, message);
+            sccorelog.sccorelog_write_to_logs(_hlogs, type, source, category, null, message);
         }
     }
 }

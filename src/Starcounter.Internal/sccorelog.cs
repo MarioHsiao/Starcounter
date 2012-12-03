@@ -59,7 +59,7 @@ namespace Starcounter.Internal
         /// <param name="hmenv">The hmenv.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint SCInitModule_LOG(ulong hmenv);
+        public static extern uint sccorelog_init(ulong hmenv);
 
         /// <summary>
         /// SCs the connect to logs.
@@ -69,7 +69,7 @@ namespace Starcounter.Internal
         /// <param name="phlogs">The phlogs.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern unsafe uint SCConnectToLogs(string serverName, void* ignore, ulong* phlogs);
+        public static extern unsafe uint sccorelog_connect_to_logs(string serverName, void* ignore, ulong* phlogs);
 
         /// <summary>
         /// SCs the bind logs to dir.
@@ -78,14 +78,14 @@ namespace Starcounter.Internal
         /// <param name="directory">The directory.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint SCBindLogsToDir(ulong hlogs, string directory);
+        public static extern uint sccorelog_bind_logs_to_dir(ulong hlogs, string directory);
 
         /// <summary>
         /// SCs the new activity.
         /// </summary>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint SCNewActivity();
+        public static extern uint sccorelog_new_activity();
 
         /// <summary>
         /// SCs the write to logs.
@@ -98,7 +98,7 @@ namespace Starcounter.Internal
         /// <param name="message">The message.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint SCWriteToLogs(ulong h, uint type, string source, string category, string userName, string message);
+        public static extern uint sccorelog_write_to_logs(ulong h, uint type, string source, string category, string userName, string message);
 
         /// <summary>
         /// SCs the kernel write to logs.
@@ -108,7 +108,7 @@ namespace Starcounter.Internal
         /// <param name="message">The message.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint SCKernelWriteToLogs(ulong h, uint type, string message);
+        public static extern uint sccorelog_kernel_write_to_logs(ulong h, uint type, string message);
 
         /// <summary>
         /// SCs the flush to logs.
@@ -116,6 +116,6 @@ namespace Starcounter.Internal
         /// <param name="h">The h.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint SCFlushToLogs(ulong h);
+        public static extern uint sccorelog_flush_to_logs(ulong h);
     }
 }
