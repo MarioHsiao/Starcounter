@@ -220,7 +220,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
             }
 
             // Resetting the data buffer.
-            sd->get_accum_buf()->Init(SOCKET_DATA_BLOB_SIZE_BYTES, sd->data_blob(), true);
+            sd->get_accum_buf()->Init(SOCKET_DATA_BLOB_SIZE_BYTES, sd->get_data_blob(), true);
 
             // Setting the database index and sequence number.
             sd->AttachToDatabase(db_index_);
@@ -602,7 +602,8 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                     // Requesting all registered handlers.
                     err_code = RequestRegisteredHandlers();
 
-                    GW_ERR_CHECK(err_code);
+                    if (err_code)
+                        return err_code;
                 }
 
                 return 0;
@@ -616,17 +617,30 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 // Reading port number.
                 uint16_t port = resp_chunk->read_uint16();
 
+#ifdef GW_TESTING_MODE
+
+                // Switching the port if gateway client.
+                if (!g_gateway.setting_is_master())
+                    port++;
+
+#endif
+
                 GW_PRINT_WORKER << "New port " << port << " user handler registration with handler id: " << handler_id << std::endl;
 
                 // Registering handler on active database.
-                err_code = g_gateway.GetDatabase(db_index_)->get_user_handlers()->RegisterPortHandler(
+                HandlersTable* handlers_table = g_gateway.GetDatabase(db_index_)->get_user_handlers();
+
+                // Registering handler on active database.
+                err_code = g_gateway.AddPortHandler(
                     gw,
+                    handlers_table,
                     port,
                     handler_id,
-                    PortProcessData,
-                    db_index_);
+                    db_index_,
+                    PortProcessData);
 
-                GW_ERR_CHECK(err_code);
+                if (err_code)
+                    return err_code;
 
                 break;
             }
@@ -639,21 +653,34 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 // Reading port number.
                 uint16_t port = resp_chunk->read_uint16();
 
+#ifdef GW_TESTING_MODE
+
+                // Switching the port if gateway client.
+                if (!g_gateway.setting_is_master())
+                    port++;
+
+#endif
+
                 // Reading subport.
-                uint32_t subport = resp_chunk->read_uint32();
+                bmx::BMX_SUBPORT_TYPE subport = resp_chunk->read_uint32();
 
                 GW_PRINT_WORKER << "New subport " << subport << " port " << port << " user handler registration with handler id: " << handler_id << std::endl;
                 
                 // Registering handler on active database.
-                err_code = g_gateway.GetDatabase(db_index_)->get_user_handlers()->RegisterSubPortHandler(
+                HandlersTable* handlers_table = g_gateway.GetDatabase(db_index_)->get_user_handlers();
+
+                // Registering handler on active database.
+                err_code = g_gateway.AddSubPortHandler(
                     gw,
+                    handlers_table,
                     port,
                     subport,
                     handler_id,
-                    SubportProcessData,
-                    db_index_);
+                    db_index_,
+                    SubportProcessData);
 
-                GW_ERR_CHECK(err_code);
+                if (err_code)
+                    return err_code;
 
                 break;
             }
@@ -669,68 +696,48 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 // Reading URI.
                 char uri[bmx::MAX_URI_STRING_LEN];
                 uint32_t uri_len_chars = resp_chunk->read_uint32();
-
                 resp_chunk->read_string(uri, uri_len_chars, bmx::MAX_URI_STRING_LEN);
+
+                // Reading HTTP method.
                 bmx::HTTP_METHODS http_method = (bmx::HTTP_METHODS)resp_chunk->read_uint8();
+
+#ifdef GW_TESTING_MODE
+
+                // Switching the port if gateway client.
+                if (!g_gateway.setting_is_master())
+                    port++;
+
+                // Checking if Apps tries to register "echo" when it should not.
+                if (g_gateway.setting_mode() == GatewayTestingMode::MODE_GATEWAY_HTTP)
+                {
+                    if (!strcmp(uri, kHttpEchoUrl))
+                    {
+                        GW_PRINT_WORKER << "Ignoring Apps URI '" << uri << "' since Gateway is already in ECHO mode." << handler_id << std::endl;
+                        break;
+                    }
+                }
+
+#endif
 
                 GW_PRINT_WORKER << "New URI handler \"" << uri << "\" on port " << port << " registration with handler id: " << handler_id << std::endl;
 
                 // Registering handler on active database.
                 HandlersTable* handlers_table = g_gateway.GetDatabase(db_index_)->get_user_handlers();
-                err_code = handlers_table->RegisterUriHandler(
+
+                // Registering determined URI Apps handler.
+                err_code = g_gateway.AddUriHandler(
                     gw,
+                    handlers_table,
                     port,
                     uri,
                     uri_len_chars,
                     http_method,
                     handler_id,
-                    UriProcessData,
-                    db_index_);
+                    db_index_,
+                    AppsUriProcessData);
 
-                GW_ERR_CHECK(err_code);
-
-                // Search for handler index by URI string.
-                BMX_HANDLER_TYPE handler_index = handlers_table->FindUriUserHandlerIndex(port, uri, uri_len_chars);
-
-                // Getting the port structure.
-                ServerPort* server_port = g_gateway.FindServerPort(port);
-
-                // Registering URI on port.
-                RegisteredUris* all_port_uris = server_port->get_registered_uris();
-                int32_t index = all_port_uris->FindRegisteredUri(uri, uri_len_chars);
-
-                // Checking if there is an entry.
-                if (index < 0)
-                {
-                    // Creating totally new URI entry.
-                    RegisteredUri new_entry(
-                        uri,
-                        uri_len_chars,
-                        db_index_,
-                        handlers_table->get_handler_list(handler_index));
-
-                    // Adding entry to global list.
-                    all_port_uris->AddEntry(new_entry);
-                }
-                else
-                {
-                    // Obtaining existing URI entry.
-                    RegisteredUri reg_uri = all_port_uris->GetEntryByIndex(index);
-
-                    // Checking if there is no database for this URI.
-                    if (!reg_uri.ContainsDb(db_index_))
-                    {
-                        // Creating new unique handlers list for this database.
-                        UniqueHandlerList uhl(db_index_, handlers_table->get_handler_list(handler_index));
-
-                        // Adding new handler list for this database to the URI.
-                        reg_uri.Add(uhl);
-                    }
-                }
-                GW_ERR_CHECK(err_code);
-
-                // Printing port information.
-                server_port->Print();
+                if (err_code)
+                    return err_code;
 
                 break;
             }
@@ -796,7 +803,6 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
 
     return 0;
 }
-
 
 } // namespace network
 } // namespace starcounter

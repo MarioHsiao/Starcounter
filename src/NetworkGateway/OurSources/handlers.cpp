@@ -46,7 +46,7 @@ uint32_t HandlersTable::RegisterPortHandler(
                     if (!registered_handlers_[i].HandlerAlreadyExists(port_handler))
                     {
                         // Adding new handler to list.
-                        err_code = registered_handlers_[i].AddUserHandler(port_handler);
+                        err_code = registered_handlers_[i].AddHandler(port_handler);
 
                         return err_code;
                     }
@@ -69,7 +69,7 @@ uint32_t HandlersTable::RegisterPortHandler(
     GW_ERR_CHECK(err_code);
 
     // Adding handler to the list.
-    err_code = registered_handlers_[empty_slot].AddUserHandler(port_handler);
+    err_code = registered_handlers_[empty_slot].AddHandler(port_handler);
     GW_ERR_CHECK(err_code);
 
     // New handler added.
@@ -96,8 +96,18 @@ uint32_t HandlersTable::RegisterPortHandler(
     // Checking if port contains handlers from this database.
     if (server_port->get_port_handlers()->GetEntryIndex(db_index) < 0)
     {
+        // Determining how many connections to create.
+        int32_t how_many = ACCEPT_ROOF_STEP_SIZE;
+
+#ifdef GW_TESTING_MODE
+
+        if (!g_gateway.setting_is_master())
+            how_many = g_gateway.setting_num_connections_to_master();
+
+#endif
+
         // Creating new connections if needed for this database.
-        err_code = g_gateway.CreateNewConnectionsAllWorkers(ACCEPT_ROOF_STEP_SIZE, port_num, db_index);
+        err_code = g_gateway.CreateNewConnectionsAllWorkers(how_many, port_num, db_index);
         if (err_code)
             return err_code;
     }
@@ -112,7 +122,7 @@ uint32_t HandlersTable::RegisterPortHandler(
 uint32_t HandlersTable::RegisterSubPortHandler(
     GatewayWorker *gw,
     uint16_t port_num,
-    uint32_t subport,
+    bmx::BMX_SUBPORT_TYPE subport,
     BMX_HANDLER_TYPE handler_id,
     GENERIC_HANDLER_CALLBACK subport_handler,
     int32_t db_index)
@@ -148,7 +158,7 @@ uint32_t HandlersTable::RegisterSubPortHandler(
                         if (!registered_handlers_[i].HandlerAlreadyExists(subport_handler))
                         {
                             // Adding new handler to list.
-                            err_code = registered_handlers_[i].AddUserHandler(subport_handler);
+                            err_code = registered_handlers_[i].AddHandler(subport_handler);
 
                             return err_code;
                         }
@@ -172,7 +182,7 @@ uint32_t HandlersTable::RegisterSubPortHandler(
     GW_ERR_CHECK(err_code);
 
     // Adding handler to the list.
-    err_code = registered_handlers_[empty_slot].AddUserHandler(subport_handler);
+    err_code = registered_handlers_[empty_slot].AddHandler(subport_handler);
     GW_ERR_CHECK(err_code);
 
     // New handler added.
@@ -199,8 +209,18 @@ uint32_t HandlersTable::RegisterSubPortHandler(
     // Checking if port contains handlers from this database.
     if (server_port->get_port_handlers()->GetEntryIndex(db_index) < 0)
     {
+        // Determining how many connections to create.
+        int32_t how_many = ACCEPT_ROOF_STEP_SIZE;
+
+#ifdef GW_TESTING_MODE
+
+        if (!g_gateway.setting_is_master())
+            how_many = g_gateway.setting_num_connections_to_master();
+
+#endif
+
         // Creating new connections if needed for this database.
-        err_code = g_gateway.CreateNewConnectionsAllWorkers(ACCEPT_ROOF_STEP_SIZE, port_num, db_index);
+        err_code = g_gateway.CreateNewConnectionsAllWorkers(how_many, port_num, db_index);
         if (err_code)
             return err_code;
     }
@@ -215,7 +235,7 @@ uint32_t HandlersTable::RegisterSubPortHandler(
 uint32_t HandlersTable::RegisterUriHandler(
     GatewayWorker *gw,
     uint16_t port_num,
-    char* uri_string,
+    const char* uri_string,
     uint32_t uri_str_chars,
     bmx::HTTP_METHODS http_method,
     BMX_HANDLER_TYPE handler_id,
@@ -254,7 +274,7 @@ uint32_t HandlersTable::RegisterUriHandler(
                         if (!registered_handlers_[i].HandlerAlreadyExists(uri_handler))
                         {
                             // Adding new handler to list.
-                            err_code = registered_handlers_[i].AddUserHandler(uri_handler);
+                            err_code = registered_handlers_[i].AddHandler(uri_handler);
 
                             return err_code;
                         }
@@ -278,7 +298,7 @@ uint32_t HandlersTable::RegisterUriHandler(
     GW_ERR_CHECK(err_code);
 
     // Adding handler to the list.
-    err_code = registered_handlers_[empty_slot].AddUserHandler(uri_handler);
+    err_code = registered_handlers_[empty_slot].AddHandler(uri_handler);
     GW_ERR_CHECK(err_code);
 
     // New handler added.
@@ -305,8 +325,18 @@ uint32_t HandlersTable::RegisterUriHandler(
     // Checking if port contains handlers from this database.
     if (server_port->get_port_handlers()->GetEntryIndex(db_index) < 0)
     {
+        // Determining how many connections to create.
+        int32_t how_many = ACCEPT_ROOF_STEP_SIZE;
+
+#ifdef GW_TESTING_MODE
+
+        if (!g_gateway.setting_is_master())
+            how_many = g_gateway.setting_num_connections_to_master();
+
+#endif
+
         // Creating new connections if needed for this database.
-        err_code = g_gateway.CreateNewConnectionsAllWorkers(ACCEPT_ROOF_STEP_SIZE, port_num, db_index);
+        err_code = g_gateway.CreateNewConnectionsAllWorkers(how_many, port_num, db_index);
         if (err_code)
             return err_code;
     }
@@ -334,7 +364,7 @@ HandlersList* HandlersTable::FindHandler(BMX_HANDLER_TYPE handler_id)
 }
 
 // Unregisters certain handler.
-uint32_t HandlersTable::UnregisterHandler(BMX_HANDLER_TYPE handler_id, GENERIC_HANDLER_CALLBACK user_handler)
+uint32_t HandlersTable::UnregisterHandler(BMX_HANDLER_TYPE handler_id, GENERIC_HANDLER_CALLBACK handler_callback)
 {
     // Checking all registered handlers.
     uint32_t err_code = SCERRUNSPECIFIED;
@@ -344,10 +374,10 @@ uint32_t HandlersTable::UnregisterHandler(BMX_HANDLER_TYPE handler_id, GENERIC_H
         if (handler_id == registered_handlers_[i].get_handler_id())
         {
             // Unregistering certain handler.
-            if (!user_handler)
+            if (!handler_callback)
                 err_code = registered_handlers_[i].Unregister();
             else
-                err_code = registered_handlers_[i].Unregister(user_handler);
+                err_code = registered_handlers_[i].Unregister(handler_callback);
 
             return err_code;
         }
@@ -378,7 +408,7 @@ uint32_t OuterPortProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLE
         uint16_t port_num = g_gateway.get_server_port(sd->get_port_index())->get_port_number();
 
         // Searching for the user code handler id.
-        handler_index = handlers_table->FindPortUserHandlerIndex(port_num);
+        handler_index = handlers_table->FindPortHandlerIndex(port_num);
 
         // Checking if user handler was not found.
         if (!handler_index)

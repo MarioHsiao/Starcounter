@@ -48,6 +48,7 @@ typedef uint64_t session_timestamp_type;
 // Some defines, e.g. debugging, statistics, etc.
 //#define GW_COLLECT_SOCKET_STATISTICS
 //#define GW_GLOBAL_STATISTICS
+//#define GW_ECHO_STATISTICS
 //#define GW_SOCKET_DIAG
 //#define GW_HTTP_DIAG
 //#define GW_WEBSOCKET_DIAG
@@ -57,6 +58,7 @@ typedef uint64_t session_timestamp_type;
 #define GW_DATABASES_DIAG
 #define GW_SESSIONS_DIAG
 //#define GW_PONG_MODE
+//#define GW_TESTING_MODE
 
 // TODO: Move error codes to errors XML!
 #define SCERRGWINCORRECTHANDLER 12345
@@ -111,6 +113,7 @@ typedef uint64_t session_timestamp_type;
 #define SCERRGWCANTRELEASETOSHAREDPOOL 12394
 #define SCERRGWFAILEDFINDNEXTCHANGENOTIFICATION 12395
 #define SCERRGWWRONGMAXIDLESESSIONLIFETIME 12396
+#define SCERRGWWRONGDATABASEINDEX 12397
 
 // Maximum number of ports the gateway operates with.
 const int32_t MAX_PORTS_NUM = 16;
@@ -147,6 +150,9 @@ const int32_t SOCKET_DATA_BLOB_SIZE_BYTES = bmx::MAX_DATA_BYTES_IN_CHUNK - bmx::
 
 // Size of OVERLAPPED structure.
 const int32_t OVERLAPPED_SIZE = sizeof(OVERLAPPED);
+
+// Bad database index.
+const int32_t INVALID_DB_INDEX = -1;
 
 // Bad chunk index.
 const uint32_t INVALID_CHUNK_INDEX = shared_memory_chunk::LINK_TERMINATOR;
@@ -193,6 +199,18 @@ const int32_t MAX_ACTIVE_SERVER_PORTS = 32;
 
 // Maximum port handle integer.
 const int32_t MAX_SOCKET_HANDLE = 100000;
+
+// Hardcoded gateway test port number on server.
+const int32_t GATEWAY_TEST_PORT_NUMBER_SERVER = 80;
+
+// Gateway mode.
+enum GatewayTestingMode
+{
+    MODE_GATEWAY_PING = 1,
+    MODE_APPS_PING = 2,
+    MODE_GATEWAY_HTTP = 3,
+    MODE_APPS_HTTP = 4
+};
 
 // User data offset in blobs for different protocols.
 const int32_t HTTP_BLOB_USER_DATA_OFFSET = 0;
@@ -271,11 +289,21 @@ uint32_t OuterUriProcessData(
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled);
 
-uint32_t UriProcessData(
+uint32_t AppsUriProcessData(
     GatewayWorker *gw,
     SocketDataChunk *sd,
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled);
+
+#ifdef GW_TESTING_MODE
+
+uint32_t GatewayUriProcessEcho(
+    GatewayWorker *gw,
+    SocketDataChunk *sd,
+    BMX_HANDLER_TYPE handler_id,
+    bool* is_handled);
+
+#endif
 
 extern std::string GetOperTypeString(SocketOperType typeOfOper);
 
@@ -1015,6 +1043,7 @@ public:
         InterlockedAdd64(&(num_pending_network_operations_[db_index]), changeValue);
         return num_pending_network_operations_[db_index];
     }
+
 #endif
 
     // Resets the number of created sockets and active connections.
@@ -1036,14 +1065,8 @@ class Gateway
     // Maximum total number of sockets aka connections.
     int32_t setting_max_connections_;
 
-    // Master node IP address.
-    std::string setting_master_ip_;
-
     // Starcounter server type.
     std::string setting_sc_server_type_;
-
-    // Indicates if this node is a master node.
-    bool setting_is_master_;
 
     // Gateway log file name.
     std::wstring setting_log_file_dir_;
@@ -1052,14 +1075,33 @@ class Gateway
     // Gateway config file name.
     std::wstring setting_config_file_path_;
 
-    // Local network interfaces to bind on.
-    std::vector<std::string> setting_local_interfaces_;
-
     // Number of worker threads.
     int32_t setting_num_workers_;
 
     // Inactive session timeout in seconds.
     int32_t setting_inactive_session_timeout_seconds_;
+
+    // Local network interfaces to bind on.
+    std::vector<std::string> setting_local_interfaces_;
+
+#ifdef GW_TESTING_MODE
+
+    // Master node IP address.
+    std::string setting_master_ip_;
+
+    // Indicates if this node is a master node.
+    bool setting_is_master_;
+
+    // Number of connections to make to master node.
+    int32_t setting_num_connections_to_master_;
+
+    // Number of tracked echoes to master.
+    int32_t setting_num_echoes_to_master_;
+
+    // Gateway operational mode.
+    GatewayTestingMode setting_mode_;
+
+#endif
 
     ////////////////////////
     // ACTIVE DATABASES
@@ -1143,6 +1185,19 @@ class Gateway
     // OTHER STUFF
     ////////////////////////
 
+#ifdef GW_TESTING_MODE
+
+    // Confirmed HTTP requests map.
+    uint8_t* confirmed_http_echoes_;
+
+    // Number of confirmed echoes.
+    volatile int64_t num_confirmed_echoes_;
+
+    // Current echo number.
+    volatile int64_t current_echo_number_;
+
+#endif
+
     // Gateway handlers.
     HandlersTable* gw_handlers_;
 
@@ -1151,6 +1206,9 @@ class Gateway
 
     // Number of used server ports.
     volatile int32_t num_server_ports_;
+
+    // Number of processed HTTP requests.
+    volatile uint64_t num_processed_http_requests_;
 
     // The socket address of the server.
     sockaddr_in* server_addr_;
@@ -1165,6 +1223,140 @@ class Gateway
     HANDLE iocp_;
 
 public:
+
+    // Adds some URI handler: either Apps or Gateway.
+    uint32_t AddUriHandler(
+        GatewayWorker *gw,
+        HandlersTable* handlers_table,
+        uint16_t port,
+        const char* uri,
+        uint32_t uri_len_chars,
+        bmx::HTTP_METHODS http_method,
+        BMX_HANDLER_TYPE user_handler_id,
+        int32_t db_index,
+        GENERIC_HANDLER_CALLBACK handler_proc);
+
+    // Adds some port handler: either Apps or Gateway.
+    uint32_t AddPortHandler(
+        GatewayWorker *gw,
+        HandlersTable* handlers_table,
+        uint16_t port,
+        BMX_HANDLER_TYPE handler_id,
+        int32_t db_index,
+        GENERIC_HANDLER_CALLBACK handler_proc);
+
+    // Adds some sub-port handler: either Apps or Gateway.
+    uint32_t AddSubPortHandler(
+        GatewayWorker *gw,
+        HandlersTable* handlers_table,
+        uint16_t port,
+        bmx::BMX_SUBPORT_TYPE subport,
+        BMX_HANDLER_TYPE handler_id,
+        int32_t db_index,
+        GENERIC_HANDLER_CALLBACK handler_proc);
+
+#ifdef GW_TESTING_MODE
+
+    // Number of connections to make to master node.
+    int32_t setting_num_connections_to_master()
+    {
+        return setting_num_connections_to_master_;
+    }
+
+    // Number of tracked echoes to master.
+    int32_t get_setting_num_echoes_to_master()
+    {
+        return setting_num_echoes_to_master_;
+    }
+
+    // Registering confirmed HTTP echo.
+    void ConfirmHttpEcho(int64_t index)
+    {
+        assert(confirmed_http_echoes_[index] < 1);
+
+        confirmed_http_echoes_[index]++;
+        InterlockedIncrement64(&num_confirmed_echoes_);
+    }
+
+    // Getting number of confirmed echoes.
+    int64_t get_num_confirmed_echoes()
+    {
+        return num_confirmed_echoes_;
+    }
+
+    // Checks that echo responses are correct.
+    bool CheckConfirmedEchoResponses()
+    {
+        // First checking if we have confirmed all echoes.
+        if (num_confirmed_echoes_ == setting_num_echoes_to_master_)
+        {
+            // Running through all echoes.
+            for (int32_t i = 0; i < setting_num_echoes_to_master_; i++)
+            {
+                // Checking that number of confirmed echoes is correct in each slot.
+                if (confirmed_http_echoes_[i] != 1)
+                    return false;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    // Resetting echo tests.
+    void ResetEchoTests()
+    {
+        num_confirmed_echoes_ = 0;
+        current_echo_number_ = -1;
+
+        for (int32_t i = 0; i < setting_num_echoes_to_master_; i++)
+            confirmed_http_echoes_[i] = 0;
+    }
+
+    // Incrementing and getting next echo number.
+    int64_t GetNextEchoNumber()
+    {
+        return InterlockedIncrement64(&current_echo_number_);
+    }
+
+    // Checks if all echoes have been sent already.
+    bool AllEchoesSent()
+    {
+        return current_echo_number_ == (setting_num_echoes_to_master_ - 1);
+    }
+
+    // Gateway operational mode.
+    GatewayTestingMode setting_mode()
+    {
+        return setting_mode_;
+    }
+
+    // Master node IP address.
+    std::string setting_master_ip()
+    {
+        return setting_master_ip_;
+    }
+
+    // Is master node?
+    bool setting_is_master()
+    {
+        return setting_is_master_;
+    }
+
+#endif
+
+    // Increments number of processed HTTP requests.
+    void IncrementNumProcessedHttpRequests()
+    {
+        num_processed_http_requests_++;
+    }
+
+    // Get number of processed HTTP requests.
+    uint64_t get_num_processed_http_requests()
+    {
+        return num_processed_http_requests_;
+    }
 
     // Number of active sessions.
     uint32_t get_num_active_sessions_unsafe()
@@ -1394,12 +1586,6 @@ public:
         return global_lock_;
     }
 
-    // Sets global lock value.
-    void set_global_lock(bool lock_value)
-    {
-        global_lock_ = lock_value;
-    }
-
     // Returns active database on this slot index.
     ActiveDatabase* GetDatabase(int32_t db_index)
     {
@@ -1414,12 +1600,6 @@ public:
 
     // Reading command line arguments.
     uint32_t ReadArguments(int argc, wchar_t* argv[]);
-
-    // Master node IP address.
-    std::string setting_master_ip()
-    {
-        return setting_master_ip_;
-    }
 
     // Get number of active schedulers.
     uint32_t get_num_schedulers()
@@ -1469,12 +1649,6 @@ public:
     std::vector<std::string> setting_local_interfaces()
     {
         return setting_local_interfaces_;
-    }
-
-    // Is master node?
-    bool setting_is_master()
-    {
-        return setting_is_master_;
     }
 
     // Constructor.
@@ -1529,15 +1703,19 @@ public:
         // Number of active sessions should always be correct.
         assert(num_active_sessions_unsafe_ > 0);
 
-        // Resetting the session cell.
-        all_sessions_unsafe_[session_index].session_.Reset();
+        // Only killing the session is its valid.
+        if (all_sessions_unsafe_[session_index].session_.IsValid())
+        {
+            // Resetting the session cell.
+            all_sessions_unsafe_[session_index].session_.Reset();
 
-        // Setting the session time stamp to zero.
-        all_sessions_unsafe_[session_index].session_timestamp_ = 0;
+            // Setting the session time stamp to zero.
+            all_sessions_unsafe_[session_index].session_timestamp_ = 0;
 
-        // Decrementing number of active sessions.
-        num_active_sessions_unsafe_--;
-        free_session_indexes_unsafe_[num_active_sessions_unsafe_] = session_index;
+            // Decrementing number of active sessions.
+            num_active_sessions_unsafe_--;
+            free_session_indexes_unsafe_[num_active_sessions_unsafe_] = session_index;
+        }
 
         // Leaving the critical section.
         LeaveCriticalSection(&cs_session_);

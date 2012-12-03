@@ -43,7 +43,7 @@ public:
 
     // Checking if one string starts after another.
     uint32_t StartsWith(
-        char* cur_uri,
+        const char* cur_uri,
         uint32_t cur_uri_chars,
         uint32_t skip_chars)
     {
@@ -187,7 +187,7 @@ public:
     }
 
     // Initializing the entry.
-    RegisteredUri(char* uri, uint32_t uri_len_chars, int32_t db_index, HandlersList* handlers_list)
+    RegisteredUri(const char* uri, uint32_t uri_len_chars, int32_t db_index, HandlersList* handlers_list)
     {
         // Creating and pushing new handlers list.
         UniqueHandlerList new_entry(db_index, handlers_list);
@@ -417,7 +417,7 @@ public:
     }
 
     // Find certain URI entry.
-    int32_t FindRegisteredUri(char* uri, uint32_t uri_len_chars)
+    int32_t FindRegisteredUri(const char* uri, uint32_t uri_len_chars)
     {
         // Going through all entries.
         for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)
@@ -434,7 +434,7 @@ public:
     }
 
     // Find certain URI entry.
-    int32_t SearchMatchingUriHandler(char* uri, uint32_t uri_len_chars, int32_t& out_max_matched_chars)
+    int32_t SearchMatchingUriHandler(const char* uri, uint32_t uri_len_chars, int32_t& out_max_matched_chars)
     {
         // Going through all entries.
         int32_t same_chars = 0;
@@ -564,14 +564,14 @@ public:
     uint32_t HttpUriDispatcher(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);
 
     // Standard HTTP/WS handler once URI is determined.
-    uint32_t HttpWsProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);
+    uint32_t AppsHttpWsProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);
 
-    // Sends given predefined response.
-    uint32_t HttpWsProto::SendPredefinedResponse(
+    // Parses the HTTP request and pushes processed data to database.
+    uint32_t GatewayHttpWsProcessEcho(
         GatewayWorker *gw,
         SocketDataChunk *sd,
-        const char* response,
-        const int32_t response_length);
+        BMX_HANDLER_TYPE handler_id,
+        bool* is_handled);
 
     // Attaching socket data and gateway worker to parser.
     void AttachToParser(SocketDataChunk *sd)
@@ -579,6 +579,72 @@ public:
         sd_ref_ = sd;
     }
 };
+
+const char* const kHttpEchoUrl = "/echo";
+const int32_t kHttpEchoUrlLength = strlen(kHttpEchoUrl);
+
+const char* const kHttpEchoRequest =
+    "POST /echo HTTP/1.1\r\n"
+    "Content-Type: text/html\r\n"
+    "Content-Length: 8\r\n"
+    "\r\n"
+    "@@@@@@@@";
+
+const int32_t kHttpEchoRequestLength = strlen(kHttpEchoRequest);
+
+const int32_t kHttpEchoRequestInsertPoint = strstr(kHttpEchoRequest, "@") - kHttpEchoRequest;
+
+const int32_t kHttpEchoBodyLength = 8;
+
+const char* const kHttpEchoResponse =
+    "HTTP/1.1 200 OK\r\n"
+    "Content-Type: text/html\r\n"
+    "Content-Length: 8\r\n"
+    "\r\n"
+    "@@@@@@@@";
+
+const int32_t kHttpEchoResponseLength = strlen(kHttpEchoResponse);
+
+const int32_t kHttpEchoResponseInsertPoint = strstr(kHttpEchoResponse, "@") - kHttpEchoResponse;
+
+const char* const kHttpGatewayPongResponse =
+    "HTTP/1.1 200 OK\r\n"
+    "Content-Type: text/html; charset=UTF-8\r\n"
+    "Content-Length: 5\r\n"
+    "\r\n"
+    "Pong!";
+
+const int32_t kHttpGatewayPongResponseLength = strlen(kHttpGatewayPongResponse);
+
+const char* const kHttpNoContent =
+    "HTTP/1.1 204 No Content\r\n"
+    "Content-Length: 0\r\n"
+    "\r\n";
+
+const int32_t kHttpNoContentLength = strlen(kHttpNoContent) + 1;
+
+const char* const kHttpBadRequest =
+    "HTTP/1.1 400 Bad Request\r\n"
+    "Content-Length: 0\r\n"
+    "\r\n";
+
+const int32_t kHttpBadRequestLength = strlen(kHttpBadRequest) + 1;
+
+const char* const kHttpServiceUnavailable =
+    "HTTP/1.1 503 Service Unavailable\r\n"
+    "Content-Length: 0\r\n"
+    "\r\n";
+
+const int32_t kHttpServiceUnavailableLength = strlen(kHttpServiceUnavailable) + 1;
+
+const char* const kHttpTooBigUpload =
+    "HTTP/1.1 413 Request Entity Too Large\r\n"
+    "Content-Type: text/html; charset=UTF-8\r\n"
+    "Content-Length: 50\r\n"
+    "\r\n"
+    "Maximum supported HTTP request body size is 32 Mb!";
+
+const int32_t kHttpTooBigUploadLength = strlen(kHttpTooBigUpload) + 1;
 
 } // namespace network
 } // namespace starcounter
