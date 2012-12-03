@@ -430,7 +430,6 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 	COMMITTED CONCURRENTLY CONNECTION CONSTRAINT CONSTRAINTS
 	CONTENT_P CONTINUE_P CREATE
 	CROSS CSV CURRENT_P
-	CURRENT_SCHEMA
 	CURSOR CYCLE
 
 	DATA_P DATABASE DAY_P DEALLOCATE DEC DECIMAL_P DEFAULT DEFAULTS
@@ -442,7 +441,7 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 	EXTRACT
 
 	FALSE_P FETCH FIRST_P FLOAT_P FOLLOWING FOR FORCE FOREIGN
-	FREEZE FROM FULL
+	FROM FULL
 
 	GLOBAL GRANT GRANTED GREATEST GROUP_P
 
@@ -7854,6 +7853,7 @@ unreserved_keyword:
 			| CASCADED
 			| CATALOG_P
 			| CHARACTERISTICS
+			| CHECK
 			| CHECKPOINT
 			| COALESCE
 			| COLLATION
@@ -7871,18 +7871,22 @@ unreserved_keyword:
 			| DAY_P
 			| DEALLOCATE
 			| DEFAULTS
+			| DEFERRABLE
 			| DEFERRED
 			| DELETE_P
 			| DISABLE_P
 			| DISCARD
+			| DO
 			| DOCUMENT_P
 			| DOMAIN_P
 			| DOUBLE_P
 			| DROP
 			| EACH
+			| ELSE
 			| ENABLE_P
 			| ENCODING
 			| ENCRYPTED
+			| END_P
 			| ESCAPE
 			| EXCLUDE
 			| EXCLUDING
@@ -7893,20 +7897,24 @@ unreserved_keyword:
 			| FOLLOWING
 			| FORCE
 			| GLOBAL
+			| GRANT
 			| GRANTED
 			| GREATEST
 			| HOUR_P
 			| IDENTITY_P
 			| IF_P
 			| IMMEDIATE
+			| IN_P
 			| INCLUDING
 			| INCREMENT
 			| INDEX
 			| INDEXES
 			| INHERIT
 			| INHERITS
+			| INITIALLY
 			| INSERT
 			| INSTEAD
+			| INTO
 			| ISOLATION
 			| KEY
 			| LAST_P
@@ -7930,6 +7938,7 @@ unreserved_keyword:
 			| NOWAIT
 			| NULLIF
 			| NULLS_P
+			| OBJECT_P
 			| OF
 			| OIDS
 			| OPERATOR
@@ -7940,8 +7949,10 @@ unreserved_keyword:
 			| PARTITION
 			| PASSING
 			| PASSWORD
+			| PLACING
 			| PLANS
 			| PRECEDING
+			| PRECISION
 			| PREPARE
 			| PREPARED
 			| PRESERVE
@@ -7982,6 +7993,7 @@ unreserved_keyword:
 			| SYSID
 			| SYSTEM_P
 			| TABLESPACE
+			| THEN
 			| TEMP
 			| TEMPLATE
 			| TEMPORARY
@@ -8042,7 +8054,6 @@ col_name_keyword:
 			| NUMERIC
 			| OVERLAY
 			| POSITION
-			| PRECISION
 			| REAL
 			| ROW
 			| SETOF
@@ -8080,32 +8091,43 @@ type_func_name_keyword:
 			ANALYSE
 			| ANALYZE
 			| AUTHORIZATION
+			| COLLATE
 			| COLUMN
 			| CONCURRENTLY
+			| CONSTRAINT
+			| CREATE
 			| CROSS
-			| CURRENT_SCHEMA
+			| EXCEPT
+			| FETCH
+			| FOR
 			| FOREIGN
-			| FREEZE
 			| FULL
 			| GROUP_P
+			| HAVING
 			| ILIKE
 			| INNER_P
+			| INTERSECT
 			| IS
 			| ISNULL
+			| JOIN
 			| LEFT
 			| LIKE
 			| LIMIT
 			| NATURAL
 			| NOTNULL
+			| OFFSET
+			| OFFSETKEY
 			| OPTION
 			| ORDER
 			| OUTER_P
 			| OVER
 			| OVERLAPS
 			| PRIMARY
+			| RETURNING
 			| RIGHT
 			| SIMILAR
 			| STARTS
+			| TO
 			| UNION
 			| USER
 			| VERBOSE
@@ -8131,47 +8153,22 @@ reserved_keyword:
 			| BOTH
 			| CASE
 			| CAST
-			| CHECK
-			| COLLATE
-			| CONSTRAINT
-			| CREATE
 			| DEFAULT
-			| DEFERRABLE
 			| DESC
 			| DISTINCT
-			| DO
-			| ELSE
-			| END_P
-			| EXCEPT
 			| FALSE_P
-			| FETCH
-			| FOR
 			| FROM
-			| GRANT
-			| HAVING
-			| IN_P
-			| INITIALLY
-			| INTERSECT
-			| INTO
-			| JOIN
 			| LEADING
 			| NOT
 			| NULL_P
-			| OBJECT_P
-			| OFFSET
-			| OFFSETKEY
 			| ON
 			| ONLY
 			| OR
-			| PLACING
 			| REFERENCES
-			| RETURNING
 			| SELECT
 			| SOME
 			| SYMMETRIC
 			| TABLE
-			| THEN
-			| TO
 			| TRAILING
 			| TRUE_P
 			| UNIQUE
