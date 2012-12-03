@@ -375,7 +375,7 @@ namespace StarcounterInternal.Bootstrap
             if (e != 0) throw ErrorCode.ToException(e);
 
             ulong hlogs;
-            e = sccorelog.SCConnectToLogs(c.Name, null, null, &hlogs);
+            e = sccorelog.SCConnectToLogs(c.Name, null, &hlogs);
             if (e != 0) throw ErrorCode.ToException(e);
 
             e = sccorelog.SCBindLogsToDir(hlogs, c.OutputDirectory);
