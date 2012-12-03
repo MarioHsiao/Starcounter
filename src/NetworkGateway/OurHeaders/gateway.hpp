@@ -47,7 +47,7 @@ typedef uint64_t session_timestamp_type;
 
 // Some defines, e.g. debugging, statistics, etc.
 #define GW_COLLECT_SOCKET_STATISTICS
-//#define GW_GLOBAL_STATISTICS
+#define GW_GLOBAL_STATISTICS
 //#define GW_ECHO_STATISTICS
 //#define GW_SOCKET_DIAG
 //#define GW_HTTP_DIAG
@@ -1790,15 +1790,15 @@ public:
 
         *was_killed = false;
 
-        // Entering the critical section.
-        EnterCriticalSection(&cs_session_);
-
-        // Number of active sessions should always be correct.
-        assert(num_active_sessions_unsafe_ > 0);
-
         // Only killing the session is its valid.
         if (all_sessions_unsafe_[session_index].session_.IsValid())
         {
+            // Entering the critical section.
+            EnterCriticalSection(&cs_session_);
+
+            // Number of active sessions should always be correct.
+            assert(num_active_sessions_unsafe_ > 0);
+
             // Resetting the session cell.
             all_sessions_unsafe_[session_index].session_.Reset();
 
@@ -1811,10 +1811,10 @@ public:
 
             // Indicating that session is killed.
             *was_killed = true;
-        }
 
-        // Leaving the critical section.
-        LeaveCriticalSection(&cs_session_);
+            // Leaving the critical section.
+            LeaveCriticalSection(&cs_session_);
+        }
 
         return 0;
     }
