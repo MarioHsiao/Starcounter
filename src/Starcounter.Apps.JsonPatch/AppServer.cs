@@ -6,8 +6,9 @@
 
 using System;
 using System.Text;
-using Starcounter.Internal.REST;
 using HttpStructs;
+using Starcounter.Apps;
+using Starcounter.Internal.REST;
 
 namespace Starcounter.Internal.Web {
     /// <summary>
@@ -36,6 +37,10 @@ namespace Starcounter.Internal.Web {
             StaticFileServer = staticFileServer;
         }
 
+        // TODO:
+        // Temporary for testing.
+        private static Session Session = new Session();
+
         /// <summary>
         /// The GET Method. Returns a representation of a resource.
         /// Works for http and web sockets.
@@ -44,58 +49,51 @@ namespace Starcounter.Internal.Web {
         /// <returns>The bytes according to the appropriate protocol</returns>
         /// <exception cref="System.NotImplementedException"></exception>
         public override HttpResponse Handle(  HttpRequest request ) {
+            HttpResponse response = null;
+
             try {
-                Object x = RequestHandler.RequestProcessor.Invoke(request);
-                if (x != null) {
-                    if (x is App) {
-                        var app = (App)x;
-                        //                       return new HttpResponse() { Uncompressed = HttpResponseBuilder.CreateMinimalOk200WithContent(data, 0, len) };
+                // TODO:
+                // Temporary for testing.
+                Session.Execute(request, () => {
+                    Object x = RequestHandler.RequestProcessor.Invoke(request);
+                    if (x != null) {
+                        if (x is App) {
+                            var app = (App)x;
+//                       return new HttpResponse() { Uncompressed = HttpResponseBuilder.CreateMinimalOk200WithContent(data, 0, len) };
 
-                        request.Debug(" (new view model)");
-
-                        // TODO:
-                        // Just need it here to be able to get the sessionId when serializing app.
-                        // Needs to be rewritten.
-//                        session.Execute(request, () => {
+                            request.Debug(" (new view model)");
+                            int vmId = Session.Current.AttachRootApp(app);
                             request.IsAppView = true;
-                            request.ViewModel = app.ToJsonUtf8(false, true);
+                            request.ViewModel = app.ToJsonUtf8(false, vmId);
                             request.NeedsScriptInjection = true;
-                            //                    request.CanUseStaticResponse = false; // We need to provide the view model, so we can use 
-                            //                                                          // cached (and gziped) content, but not a complete cached
-                            //                                                          // response.
- //                       });
+//                    request.CanUseStaticResponse = false; // We need to provide the view model, so we can use 
+//                                                          // cached (and gziped) content, but not a complete cached
+//                                                          // response.
 
-                        var view = (string)app.View;
-                        if (view == null) {
-                            view = app.Template.ClassName + ".html";
+                            var view = (string)app.View;
+                            if (view == null) {
+                                view = app.Template.ClassName + ".html";
+                            }
+                            view = "/" + view;
+                            request.GzipAdvisable = false;
+//                        return new HttpResponse() { Uncompressed = ResolveAndPrepareFile(view, request) };
+                            response = new HttpResponse() { Uncompressed = ResolveAndPrepareFile(view, request) };
                         }
-                        view = "/" + view;
-                        request.GzipAdvisable = false;
-                        return new HttpResponse() { Uncompressed = ResolveAndPrepareFile(view, request) };
+                        else if (x is HttpResponse) {
+//                        return x as HttpResponse;
+                            response = x as HttpResponse;
+                        } else if (x is string) {
+//                        return new HttpResponse() { Uncompressed = HttpResponseBuilder.FromText((string)x/*, sid*/) };
+                            response = new HttpResponse() { Uncompressed = HttpResponseBuilder.FromText((string)x/*, sid*/) };
+                        } else {
+                            throw new NotImplementedException();
+                        }
                     }
-                    if (x is HttpResponse) {
-                        return x as HttpResponse;
-                    } else if (x is string) {
-                        return new HttpResponse() { Uncompressed = HttpResponseBuilder.FromText((string)x/*, sid*/) };
-                    } else {
-                        throw new NotImplementedException();
-                    }
-                    //                else
-                    //                {
-                    //                    if (request.Uri.StartsWith("/__vm/"))
-                    //                    {
-                    //                        //                    session = Sessions.GetSession(request.Uri.Substring(8));
-                    //                        if (sid.IsNullSession)
-                    //                            response = new HttpResponse() { Uncompressed = HttpResponseBuilder.NotFound404("Invalid session") };
-                    //                        else
-                    //                        {
-                    ////                            response = new HttpResponse() { Uncompressed = HttpResponseBuilder.JsonFromBytes(Encoding.UTF8.GetBytes(this.Sessions.GetRootApp(sid).ToJson()), sid) };
-                    //                        }
-                    //                        return;
-                    //                    }
-                    //                }
-                }
-                return new HttpResponse() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
+//                return new HttpResponse() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
+                    if (response == null)
+                        response = new HttpResponse() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
+                });
+                return response;
             } catch (Exception ex) {
                 byte[] error = Encoding.UTF8.GetBytes(this.GetExceptionString(ex));
                 return new HttpResponse() { Uncompressed = HttpResponseBuilder.Create500WithContent(error) };
@@ -146,9 +144,6 @@ namespace Starcounter.Internal.Web {
 			}
 			return sb.ToString();
 		}
-
-
-
 
         /// <summary>
         /// Sent from the Node when the user runs a module (an .EXE).
