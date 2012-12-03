@@ -45,7 +45,7 @@ namespace Starcounter.Server {
             if (e != 0) throw ErrorCode.ToException(e);
 
             ulong hlogs;
-            e = sccorelog.SCConnectToLogs(ScUri.MakeServerUri(Environment.MachineName, c.Name), null, null, &hlogs);
+            e = sccorelog.SCConnectToLogs(ScUri.MakeServerUri(Environment.MachineName, c.Name), null, &hlogs);
             if (e != 0) throw ErrorCode.ToException(e);
 
             string logDirectory = c.LogDirectory;
