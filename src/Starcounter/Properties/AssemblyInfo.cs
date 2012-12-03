@@ -23,6 +23,11 @@ using System.Runtime.InteropServices;
 [assembly: Guid("4548b98e-eed7-4115-b8ad-b280db692f95")]
 [assembly: InternalsVisibleTo("Starcounter.Apps")]
 
+// TODO:
+// This should be removed when DisplayName on sqlresults 
+// (TypeBinding, PropertyBinding, PropertyMapping) is publicly exposed.
+[assembly: InternalsVisibleTo("StarcounterSQLApp")]
+
 // Version information for an assembly consists of the following four values:
 //
 //      Major Version

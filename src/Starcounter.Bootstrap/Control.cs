@@ -371,14 +371,14 @@ namespace StarcounterInternal.Bootstrap
         {
             uint e;
 
-            e = sccorelog.SCInitModule_LOG(hmenv);
+            e = sccorelog.sccorelog_init(hmenv);
             if (e != 0) throw ErrorCode.ToException(e);
 
             ulong hlogs;
-            e = sccorelog.SCConnectToLogs(c.Name, null, null, &hlogs);
+            e = sccorelog.sccorelog_connect_to_logs(c.Name, null, &hlogs);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccorelog.SCBindLogsToDir(hlogs, c.OutputDirectory);
+            e = sccorelog.sccorelog_bind_logs_to_dir(hlogs, c.OutputDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
             return hlogs;
