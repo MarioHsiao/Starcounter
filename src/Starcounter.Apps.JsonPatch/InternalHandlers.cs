@@ -85,7 +85,7 @@ namespace Starcounter.Internal.JsonPatch
                 if (template is ActionProperty)
                     continue;
 
-                log.UpdateValue(app, (Property)template);
+                ChangeLog.UpdateValue(app, (Property)template);
             }
         }
     }

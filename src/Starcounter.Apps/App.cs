@@ -246,7 +246,7 @@ namespace Starcounter {
             } else {
                 Property p = model as Property;
                 if (p != null)
-                    Session.Current.changeLog.UpdateValue(this, p);
+                    ChangeLog.UpdateValue(this, p);
             }
         }
 
