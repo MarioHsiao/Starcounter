@@ -36,6 +36,7 @@
   <PropertyGroup>
     <!-- Base paths to redistributables / third party files -->
     <PostSharpRedistributables>$(OutputPath)</PostSharpRedistributables>
+    <CecilRedistributables>$(OutputPath)</CecilRedistributables>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -74,6 +75,14 @@
     </Reference>
     <Reference Include="PostSharp.Settings">
       <HintPath>$(PostSharpRedistributables)\PostSharp.Settings.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil, Version=0.9.5.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(CecilRedistributables)\Mono.Cecil.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil.Pdb, Version=0.9.5.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(CecilRedistributables)\Mono.Cecil.Pdb.dll</HintPath>
     </Reference>
     <Reference Include="System.XML" />
   </ItemGroup>
@@ -126,9 +135,13 @@
     <RuntimeFile Include="Starcounter.Internal.Weaver\ScIgnore.psproj" />
     <RuntimeFile Include="Starcounter.Internal.Weaver\ScRuntime.psplugin" />
     <RuntimeFile Include="Starcounter.Internal.Weaver\ScTransform.psproj" />
-	<RuntimeFile Include="Starcounter.Internal.Weaver\ScWeaveBootstrap.psproj" />
+    <RuntimeFile Include="Starcounter.Internal.Weaver\ScWeaveBootstrap.psproj" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Starcounter.Bootstrap\Starcounter.Bootstrap.csproj">
+      <Project>{8278b17c-e0e9-49b7-8bda-f15282445d45}</Project>
+      <Name>Starcounter.Bootstrap</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
