@@ -5,6 +5,7 @@ using System.Threading;
 using HttpStructs;
 using Starcounter;
 using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace NetworkIoTestApp
 {
@@ -457,7 +458,7 @@ namespace NetworkIoTestApp
             if (p.HasSession)
             {
                 // Generating and writing new session.
-                p.KillSession();
+                p.DestroySession();
             }
 
             // Converting string to byte array.
@@ -497,11 +498,20 @@ namespace NetworkIoTestApp
             // Generating new session cookie if needed.
             if (!p.HasSession)
             {
-                // Generating and writing new session.
-                UInt64 uniqueSessionNumber = p.GenerateNewSession();
+                try
+                {
+                    // Generating and writing new session.
+                    UInt32 err_code = p.GenerateNewSession(SchedulerAppsSessionsPool.Pool.Allocate());
+                    if (err_code != 0)
+                        return false;
+                }
+                catch(Exception exc)
+                {
+                    Console.WriteLine(exc.ToString());
+                }
 
                 // Displaying new session unique number.
-                Console.WriteLine("Generated new session with number: " + p.UniqueSessionNumber);
+                Console.WriteLine("Generated new session with index: " + p.UniqueSessionIndex);
 
                 // Adding the session cookie stub.
                 responseHeader += "Set-Cookie: " + p.SessionStruct.SessionCookieStubString + "; HttpOnly\r\n";

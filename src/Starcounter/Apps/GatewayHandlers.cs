@@ -93,7 +93,7 @@ namespace Starcounter
         /// <summary>
         /// Offset in bytes for HttpRequest structure.
         /// </summary>
-        const Int32 SOCKET_DATA_HTTP_REQUEST_OFFSET = 208;
+        const Int32 SOCKET_DATA_HTTP_REQUEST_OFFSET = 216;
 
         /// <summary>
         /// Number of chunks offset in gateway.

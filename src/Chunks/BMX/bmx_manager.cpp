@@ -41,8 +41,11 @@ void LeaveSafeBmxManagement(BmxData* new_bmx_data)
     //std::cout << "LeaveSafeBmxManagement." << std::endl;
 }
 
+// Callback to Apps inactive sessions cleanup.
+DestroyAppsSessionCallback starcounter::bmx::g_destroy_apps_session_callback = NULL;
+
 // Initializes BMX related data structures.
-uint32_t sc_init_bmx_manager()
+uint32_t sc_init_bmx_manager(DestroyAppsSessionCallback dasc)
 {
     // Initializing BMX critical section.
     InitializeCriticalSection(&g_bmx_cs_);
@@ -59,6 +62,9 @@ uint32_t sc_init_bmx_manager()
     // Checking that handler id is 0 for BMX management.
     if (bmx_handler_id != BMX_MANAGEMENT_HANDLER)
         return SCERRUNSPECIFIED; // SCERRWRONGBMXMANAGERHANDLER
+
+    // Saving Apps session destroy callback.
+    g_destroy_apps_session_callback = dasc;
 
     return 0;
 }

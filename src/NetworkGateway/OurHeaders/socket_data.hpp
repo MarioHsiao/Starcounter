@@ -16,7 +16,8 @@ enum SOCKET_DATA_FLAGS
     SOCKET_DATA_FLAGS_ACCUMULATING_STATE = 8,
     SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND = 16,
     HTTP_WS_FLAGS_UPGRADE = 32,
-    HTTP_WS_FLAGS_COMPLETE_HEADER = 64
+    HTTP_WS_FLAGS_COMPLETE_HEADER = 64,
+    HTTP_WS_FLAGS_BEING_PROXIED = 128
 };
 
 // Socket data chunk.
@@ -78,6 +79,9 @@ class SocketDataChunk
 
     // Accumulative buffer chunk.
     AccumBuffer accum_buf_;
+
+    // Proxy socket information.
+    SOCKET proxy_sock_;
 
     // HTTP protocol instance.
     HttpWsProto http_ws_proto_;
@@ -158,6 +162,25 @@ public:
             flags_ &= ~SOCKET_DATA_FLAGS_RECEIVING_STATE;
     }
 
+#ifdef GW_PROXY_MODE
+
+    // Getting proxying flag.
+    bool get_with_proxied_server_flag()
+    {
+        return flags_ & HTTP_WS_FLAGS_BEING_PROXIED;
+    }
+
+    // Setting proxying flag.
+    void set_with_proxied_server_flag(bool value)
+    {
+        if (value)
+            flags_ |= HTTP_WS_FLAGS_BEING_PROXIED;
+        else
+            flags_ &= ~HTTP_WS_FLAGS_BEING_PROXIED;
+    }
+
+#endif
+
     // Getting accumulating flag.
     bool get_accumulating_flag()
     {
@@ -236,7 +259,7 @@ public:
     // Getting session index.
     uint32_t get_session_index()
     {
-        return session_.session_index_;
+        return session_.gw_session_index_;
     }
 
     // Getting Apps unique session number.
@@ -266,13 +289,37 @@ public:
     // Getting session salt.
     uint64_t get_session_salt()
     {
-        return session_.session_salt_;
+        return session_.gw_session_salt_;
+    }
+
+    // Setting scheduler id.
+    void set_scheduler_id(uint32_t scheduler_id)
+    {
+        session_.scheduler_id_ = scheduler_id;
     }
 
     // Returns socket.
     SOCKET get_socket()
     {
         return sock_;
+    }
+
+    // Sets socket.
+    void set_socket(SOCKET sock)
+    {
+        sock_ = sock;
+    }
+
+    // Returns proxy socket.
+    SOCKET get_proxy_socket()
+    {
+        return proxy_sock_;
+    }
+
+    // Sets proxy socket.
+    void set_proxy_socket(SOCKET sock)
+    {
+        proxy_sock_ = sock;
     }
 
     // Returns SMC representing this chunk.
@@ -383,12 +430,6 @@ public:
         return port_index_;
     }
 
-    // Socket to which this data belongs.
-    SOCKET sock()
-    {
-        return sock_;
-    }
-
     // Data buffer chunk.
     AccumBuffer* get_accum_buf()
     {
@@ -402,9 +443,23 @@ public:
     }
 
     // Unique database sequence number.
-    uint64_t db_unique_seq_num()
+    uint64_t get_db_unique_seq_num()
     {
         return db_unique_seq_num_;
+    }
+
+    // Setting unique sequence number.
+    void set_db_unique_seq_num(uint64_t seq_num)
+    {
+        db_unique_seq_num_ = seq_num;
+    }
+
+    // Exchanges sockets during proxying.
+    void ExchangeToProxySocket()
+    {
+        SOCKET tmp_sock = sock_;
+        sock_ = proxy_sock_;
+        proxy_sock_ = tmp_sock;
     }
 
     // Attaching to certain database.
@@ -520,6 +575,10 @@ public:
     // Start connecting on socket.
     uint32_t Connect(sockaddr_in *serverAddr)
     {
+        // Start tracking this socket.
+        g_gateway.GetDatabase(db_index_)->TrackSocket(sock_, port_index_);
+        g_gateway.TrackSocket(sock_, port_index_);
+
         type_of_network_oper_ = CONNECT_OPER;
         memset(&ovl_, 0, OVERLAPPED_SIZE);
         return ConnectExFunc(sock_, (SOCKADDR *) serverAddr, sizeof(sockaddr_in), NULL, 0, NULL, &ovl_);
@@ -564,10 +623,10 @@ public:
     }
 
     // Kills the global and  session.
-    void KillGlobalAndSdSession()
+    void KillGlobalAndSdSession(bool* was_killed)
     {
         // Killing global session.
-        g_gateway.KillSession(session_.session_index_);
+        g_gateway.KillSession(session_.gw_session_index_, was_killed);
 
         // Resetting session data.
         ResetSdSession();

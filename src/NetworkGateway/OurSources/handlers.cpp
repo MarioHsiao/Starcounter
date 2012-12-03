@@ -423,7 +423,7 @@ uint32_t OuterPortProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLE
 }
 
 // General sockets handler.
-uint32_t PortProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled)
+uint32_t AppsPortProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled)
 {
     uint32_t err_code;
 
@@ -468,6 +468,31 @@ uint32_t PortProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYP
     return SCERRGWPORTPROCESSFAILED;
 }
 
+#ifdef GW_TESTING_MODE
+
+// General sockets handler.
+uint32_t GatewayPortProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled)
+{
+    uint32_t err_code;
+
+    // Setting handled flag.
+    *is_handled = false;
+
+    // Prepare buffer to send outside.
+    sd->get_accum_buf()->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_written_bytes());
+
+    // Sending data.
+    err_code = gw->Send(sd);
+    GW_ERR_CHECK(err_code);
+
+    // Setting handled flag.
+    *is_handled = true;
+
+    return 0;
+}
+
+#endif
+
 // Outer port handler.
 uint32_t OuterSubportProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_index, bool* is_handled)
 {
@@ -475,10 +500,20 @@ uint32_t OuterSubportProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HAN
 }
 
 // Subport handler.
-uint32_t SubportProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled)
+uint32_t AppsSubportProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled)
 {
-    return PortProcessData(gw, sd, user_handler_id, is_handled);
+    return AppsPortProcessData(gw, sd, user_handler_id, is_handled);
 }
+
+#ifdef GW_TESTING_MODE
+
+// Subport handler.
+uint32_t GatewaySubportProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled)
+{
+    return GatewayPortProcessData(gw, sd, user_handler_id, is_handled);
+}
+
+#endif
 
 } // namespace network
 } // namespace starcounter

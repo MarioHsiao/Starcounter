@@ -80,6 +80,9 @@ Gateway::Gateway()
     global_scheduler_id_unsafe_ = 0;
     num_schedulers_ = 0;
 
+    // No reverse proxies by default.
+    num_reversed_proxies_ = 0;
+
     // Initializing global timer.
     global_timer_unsafe_ = MIN_INACTIVE_SESSION_LIFE_SECONDS;
 
@@ -316,7 +319,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
 
     // Number of echoes to send to master node from clients.
     setting_num_echoes_to_master_ = atoi(rootElem->first_node("NumEchoesToMaster")->value());
-    confirmed_http_echoes_ = new uint8_t[setting_num_echoes_to_master_];
+    confirmed_echoes_ = new uint8_t[setting_num_echoes_to_master_];
     ResetEchoTests();
 
     // Obtaining testing mode.
@@ -335,6 +338,49 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     if ((setting_inactive_session_timeout_seconds_ % MIN_INACTIVE_SESSION_LIFE_SECONDS) != 0)
         return SCERRGWWRONGMAXIDLESESSIONLIFETIME;
 
+#ifdef GW_PROXY_MODE
+
+    // Checking if we have reverse proxies.
+    xml_node<char>* proxies_node = rootElem->first_node("ReverseProxies");
+    if (proxies_node)
+    {
+        xml_node<char>* proxy_node = proxies_node->first_node("ReverseProxy");
+        int32_t i = 0;
+        while (proxy_node)
+        {
+            // Filling reverse proxy information.
+            reverse_proxies_[i].ip_ = proxy_node->first_node("ServerIP")->value();
+            reverse_proxies_[i].port_ = atoi(proxy_node->first_node("ServerPort")->value());
+            reverse_proxies_[i].uri_ = proxy_node->first_node("URI")->value();
+            reverse_proxies_[i].uri_len_ = reverse_proxies_[i].uri_.length();
+
+            // Loading proxied servers.
+            sockaddr_in* server_addr = &reverse_proxies_[i].addr_;
+            memset(server_addr, 0, sizeof(sockaddr_in));
+            server_addr->sin_family = AF_INET;
+            server_addr->sin_addr.s_addr = inet_addr(reverse_proxies_[i].ip_.c_str());
+            server_addr->sin_port = htons(reverse_proxies_[i].port_);
+
+            // PreCreating HTTP redirect response.
+            reverse_proxies_[i].http_redirect_ =
+                "HTTP/1.1 302 Found\r\n"
+                "Server: Starcounter\r\n"
+                "Content-Length: 0\r\n"
+                "Location: ";
+
+            reverse_proxies_[i].http_redirect_ += reverse_proxies_[i].uri_ + "/\r\n\r\n";
+
+            // Getting next reverse proxy information.
+            proxy_node = proxy_node->next_sibling("ReverseProxy");
+
+            i++;
+        }
+
+        num_reversed_proxies_ = i;
+    }
+
+#endif
+
     // Creating double output object.
     g_log_stream = new std::ofstream(setting_log_file_path_, std::ios::out | std::ios::app);
     g_log_tee = new TeeDevice(std::cout, *g_log_stream);
@@ -343,7 +389,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     // Predefined ports constants.
     PortType portTypes[NUM_PREDEFINED_PORT_TYPES] = { HTTP_PORT, HTTPS_PORT, WEBSOCKETS_PORT, GENSOCKETS_PORT, AGGREGATION_PORT };
     std::string portNames[NUM_PREDEFINED_PORT_TYPES] = { "HttpPort", "HttpsPort", "WebSocketsPort", "GenSocketsPort", "AggregationPort" };
-    GENERIC_HANDLER_CALLBACK portHandlerTypes[NUM_PREDEFINED_PORT_TYPES] = { AppsUriProcessData, HttpsProcessData, AppsUriProcessData, PortProcessData, PortProcessData };
+    GENERIC_HANDLER_CALLBACK portHandlerTypes[NUM_PREDEFINED_PORT_TYPES] = { AppsUriProcessData, HttpsProcessData, AppsUriProcessData, AppsPortProcessData, AppsPortProcessData };
     uint16_t portNumbers[NUM_PREDEFINED_PORT_TYPES] = { 80, 443, 80, 123, 12345 };
     uint32_t userDataOffsetsInBlob[NUM_PREDEFINED_PORT_TYPES] = { HTTP_BLOB_USER_DATA_OFFSET, HTTPS_BLOB_USER_DATA_OFFSET, WS_BLOB_USER_DATA_OFFSET, RAW_BLOB_USER_DATA_OFFSET, AGGR_BLOB_USER_DATA_OFFSET };
 
@@ -669,7 +715,7 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
             {
                 if (g_gateway.setting_mode() == GatewayTestingMode::MODE_GATEWAY_HTTP)
                 {
-                    // Registering gateway handlers.
+                    // Registering URI handlers.
                     err_code = AddUriHandler(
                         &gw_workers_[0],
                         gw_handlers_,
@@ -689,7 +735,54 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
                         return err_code;
                     }
                 }
+                else if (g_gateway.setting_mode() == GatewayTestingMode::MODE_GATEWAY_PING)
+                {
+                    // Registering port handler.
+                    err_code = AddPortHandler(
+                        &gw_workers_[0],
+                        gw_handlers_,
+                        GATEWAY_TEST_PORT_NUMBER_SERVER,
+                        bmx::INVALID_HANDLER_ID,
+                        empty_db_index,
+                        GatewayPortProcessData);
+
+                    if (err_code)
+                    {
+                        // Leaving global lock.
+                        LeaveGlobalLock();
+
+                        return err_code;
+                    }
+                }
             }
+#endif
+
+#ifdef GW_PROXY_MODE
+
+            // Registering all proxies.
+            for (int32_t i = 0; i < num_reversed_proxies_; i++)
+            {
+                // Registering URI handlers.
+                err_code = AddUriHandler(
+                    &gw_workers_[0],
+                    gw_handlers_,
+                    GATEWAY_TEST_PORT_NUMBER_SERVER,
+                    reverse_proxies_[i].uri_.c_str(),
+                    reverse_proxies_[i].uri_len_,
+                    bmx::HTTP_METHODS::OTHER_METHOD,
+                    bmx::INVALID_HANDLER_ID,
+                    empty_db_index,
+                    GatewayUriProcessProxy);
+
+                if (err_code)
+                {
+                    // Leaving global lock.
+                    LeaveGlobalLock();
+
+                    return err_code;
+                }
+            }
+
 #endif
 
             // Leaving global lock.
@@ -1234,28 +1327,33 @@ uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
         // Checking if session is valid.
         if (global_session_copy.IsValid())
         {
-            // Pushing dead session message to all databases.
-            for (int32_t d = 0; d < num_dbs_slots_; d++)
+            // Killing the session.
+            bool session_was_killed;
+            KillSession(sessions_to_cleanup_unsafe_[i], &session_was_killed);
+
+            // Sending notification only if session was killed.
+            if (session_was_killed)
             {
-                WorkerDbInterface *db = gw->GetDatabase(d);
-                if (NULL != db)
+                // Pushing dead session message to all databases.
+                for (int32_t d = 0; d < num_dbs_slots_; d++)
                 {
-                    // Sending session destroyed message.
-                    err_code = db->PushDeadSession(global_session_copy);
-                    if (err_code)
+                    WorkerDbInterface *db = gw->GetDatabase(d);
+                    if (NULL != db)
                     {
-                        LeaveCriticalSection(&cs_sessions_cleanup_);
-                        return err_code;
+                        // Sending session destroyed message.
+                        err_code = db->PushDeadSession(global_session_copy);
+                        if (err_code)
+                        {
+                            LeaveCriticalSection(&cs_sessions_cleanup_);
+                            return err_code;
+                        }
                     }
                 }
-            }
-
-            // Killing the session.
-            KillSession(sessions_to_cleanup_unsafe_[i]);
 
 #ifdef GW_SESSIONS_DIAG
-            std::cout << "Inactive session " << global_session_copy.session_index_ << ":" << global_session_copy.session_salt_ << " was destroyed." << std::endl;
+                std::cout << "Inactive session " << global_session_copy.gw_session_index_ << ":" << global_session_copy.gw_session_salt_ << " was destroyed." << std::endl;
 #endif
+            }
         }
 
         // Inactive session was successfully cleaned up.
@@ -1595,7 +1693,7 @@ int32_t Gateway::StartGateway()
 
 // Adds some URI handler: either Apps or Gateway.
 uint32_t Gateway::AddUriHandler(
-    GatewayWorker *gw,
+    GatewayWorker* gw,
     HandlersTable* handlers_table,
     uint16_t port,
     const char* uri,
@@ -1668,7 +1766,7 @@ uint32_t Gateway::AddUriHandler(
 
 // Adds some port handler: either Apps or Gateway.
 uint32_t Gateway::AddPortHandler(
-    GatewayWorker *gw,
+    GatewayWorker* gw,
     HandlersTable* handlers_table,
     uint16_t port,
     BMX_HANDLER_TYPE handler_id,
@@ -1685,7 +1783,7 @@ uint32_t Gateway::AddPortHandler(
 
 // Adds some sub-port handler: either Apps or Gateway.
 uint32_t Gateway::AddSubPortHandler(
-    GatewayWorker *gw,
+    GatewayWorker* gw,
     HandlersTable* handlers_table,
     uint16_t port,
     bmx::BMX_SUBPORT_TYPE subport,
