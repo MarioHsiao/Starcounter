@@ -94,11 +94,10 @@ namespace Starcounter.Internal
         /// <param name="type">The type.</param>
         /// <param name="source">The source.</param>
         /// <param name="category">The category.</param>
-        /// <param name="userName">Name of the user.</param>
         /// <param name="message">The message.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint sccorelog_write_to_logs(ulong h, uint type, string source, string category, string userName, string message);
+        public static extern uint sccorelog_write_to_logs(ulong h, uint type, string source, string category, string message);
 
         /// <summary>
         /// SCs the kernel write to logs.
