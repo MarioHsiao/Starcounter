@@ -1,5 +1,6 @@
 echo %1
 cd ..\packages
+ls
 echo %cd%
 cd %1
 echo %cd%
