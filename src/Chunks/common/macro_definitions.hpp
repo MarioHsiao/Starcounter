@@ -16,7 +16,7 @@
 /// to show the activity in shared memory between database(s) and client(s).
 /// It shows resource usage and activity in channels. Only used for debug, it shall
 /// not be defined when pushing code.
-#define CONNECTIVITY_MONITOR_SHOW_ACTIVITY
+//#define CONNECTIVITY_MONITOR_SHOW_ACTIVITY
 
 /// Debug switch to see atomic_buffer performance counters used in
 /// starcounter::core::channel. NOTE: This macro must be commented out before pushing
