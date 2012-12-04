@@ -60,6 +60,7 @@ namespace Starcounter {
         /// </summary>
         public App() : base() {
             _cacheIndexInList = -1;
+            ViewModelId = -1;
         }
 
         /// <summary>
@@ -82,6 +83,11 @@ namespace Starcounter {
         /// </summary>
         /// <value>The is serialized.</value>
         public Boolean IsSerialized { get; internal set; }
+
+        /// <summary>
+        /// Returns the id of this app or -1 if not used.
+        /// </summary>
+        internal int ViewModelId { get; set; }
 
         /// <summary>
         /// Cache field of index if this apps parent is a list.

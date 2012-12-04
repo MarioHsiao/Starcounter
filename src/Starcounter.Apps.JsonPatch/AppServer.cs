@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using System;
+using System.Diagnostics;
 using System.Text;
 using HttpStructs;
 using Starcounter.Apps;
@@ -37,10 +38,6 @@ namespace Starcounter.Internal.Web {
             StaticFileServer = staticFileServer;
         }
 
-        // TODO:
-        // Temporary for testing.
-        private static Session Session = new Session();
-
         /// <summary>
         /// The GET Method. Returns a representation of a resource.
         /// Works for http and web sockets.
@@ -48,55 +45,78 @@ namespace Starcounter.Internal.Web {
         /// <param name="request">The request.</param>
         /// <returns>The bytes according to the appropriate protocol</returns>
         /// <exception cref="System.NotImplementedException"></exception>
-        public override HttpResponse Handle(  HttpRequest request ) {
+        public override HttpResponse Handle(HttpRequest request) {
             HttpResponse response = null;
+            Session session = null;
+            uint errorCode;
 
             try {
-                // TODO:
-                // Temporary for testing.
-                Session.Execute(request, () => {
-                    Object x = RequestHandler.RequestProcessor.Invoke(request);
-                    if (x != null) {
-                        if (x is App) {
-                            var app = (App)x;
-//                       return new HttpResponse() { Uncompressed = HttpResponseBuilder.CreateMinimalOk200WithContent(data, 0, len) };
+                if (request.HasSession) {
+                    session = (Session)request.AppsSessionInterface;
+                    session.Start(request);
+                }
 
-                            request.Debug(" (new view model)");
-                            int vmId = Session.Current.AttachRootApp(app);
-                            request.IsAppView = true;
-                            request.ViewModel = app.ToJsonUtf8(false, vmId);
-                            request.NeedsScriptInjection = true;
-//                    request.CanUseStaticResponse = false; // We need to provide the view model, so we can use 
+                Object x = RequestHandler.RequestProcessor.Invoke(request);
+                if (x != null) {
+                    if (x is App) {
+                        var app = (App)x;
+                       
+                        // TODO:
+                        // How do we create new sessions and what is allowed here...
+                        // Should the users themselves create the session?
+                        if (session == null) {
+                            session = new Session();
+                            errorCode = request.GenerateNewSession(session);
+                            if (errorCode != 0)
+                                throw new Exception("TODO: proper starcounter exception: " + errorCode);
+                            session.Start(request);
+                        }
+    
+                        request.Debug(" (new view model)");
+                        session.AttachRootApp(app);
+                        request.IsAppView = true;
+                        request.ViewModel = app.ToJsonUtf8(false);
+                        request.NeedsScriptInjection = true;
+//                          request.CanUseStaticResponse = false; // We need to provide the view model, so we can use 
 //                                                          // cached (and gziped) content, but not a complete cached
 //                                                          // response.
 
-                            var view = (string)app.View;
-                            if (view == null) {
-                                view = app.Template.ClassName + ".html";
-                            }
-                            view = "/" + view;
-                            request.GzipAdvisable = false;
-//                        return new HttpResponse() { Uncompressed = ResolveAndPrepareFile(view, request) };
-                            response = new HttpResponse() { Uncompressed = ResolveAndPrepareFile(view, request) };
+                        var view = (string)app.View;
+                        if (view == null) {
+                            view = app.Template.ClassName + ".html";
                         }
-                        else if (x is HttpResponse) {
-//                        return x as HttpResponse;
-                            response = x as HttpResponse;
-                        } else if (x is string) {
-//                        return new HttpResponse() { Uncompressed = HttpResponseBuilder.FromText((string)x/*, sid*/) };
-                            response = new HttpResponse() { Uncompressed = HttpResponseBuilder.FromText((string)x/*, sid*/) };
-                        } else {
-                            throw new NotImplementedException();
-                        }
+                        view = "/" + view;
+                        request.GzipAdvisable = false;
+                        response = new HttpResponse() { Uncompressed = ResolveAndPrepareFile(view, request) };
+                    } else if (x is HttpResponse) {
+                        response = x as HttpResponse;
+                    } else if (x is string) {
+                        response = new HttpResponse() { Uncompressed = HttpResponseBuilder.FromText((string)x/*, sid*/) };
+                    } else {
+                        throw new NotImplementedException();
                     }
-//                return new HttpResponse() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
-                    if (response == null)
-                        response = new HttpResponse() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
-                });
+                }
+                if (response == null)
+                    response = new HttpResponse() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
+
+                if (request.HasNewSession) {
+                    // A new session have been created. We need to inject a session-cookie stub to the response.
+
+                    // TODO:
+                    // We should try to inject all things in one go (scriptinjection, headerinjection) to avoid 
+                    // unnecessary creation and copying of buffers.
+                    byte[] toInject = System.Text.Encoding.UTF8.GetBytes("Set-Cookie: " + request.SessionStruct.SessionCookieStubString + "; HttpOnly\r\n");
+                    response.Uncompressed = ScriptInjector.InjectInHeader(response.GetBytes(request), toInject, response.HeaderInjectionPoint);
+                }
+
                 return response;
             } catch (Exception ex) {
                 byte[] error = Encoding.UTF8.GetBytes(this.GetExceptionString(ex));
                 return new HttpResponse() { Uncompressed = HttpResponseBuilder.Create500WithContent(error) };
+            } finally {
+                if (Session.Current != null) {
+                    Session.Current.End();
+                }
             }
         }
 
@@ -118,6 +138,7 @@ namespace Starcounter.Internal.Web {
 
                 return ScriptInjector.Inject(original, script, ri.HeaderLength, ri.ContentLength, ri.ContentLengthLength, ri.ContentLengthInjectionPoint, ri.ScriptInjectionPoint);
             }
+
             return original;
         }
 
