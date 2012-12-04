@@ -291,14 +291,6 @@ public:
 	void print_rate_with_precision(double rate);
 #endif // (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 	
-	smp::spinlock& test_lock() {
-		return test_lock_;
-	}
-	
-	smp::spinlock::locker_id_type test_id() const {
-		return test_id_;
-	}
-
 private:
 	// Controlling the console a bit makes it easier to read.
 	void gotoxy(int16_t x, int16_t y);
@@ -321,15 +313,6 @@ private:
 	
 	/// Write active databases.
 	void update_active_databases_file();
-	
-#if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
-	/// Watch resources, dor debug purpose only.
-	void watch_resources();
-	void test_a();
-	void test_b();
-	void test_c();
-	void test();
-#endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 	
 	// The monitor initializes the monitor_interface_shared_memory_object.
 	shared_memory_object monitor_interface_;
@@ -410,17 +393,6 @@ private:
 	// memory segments resources. Number of free: chunks, channels, and
 	// client_interfaces.
 	boost::thread resources_watching_thread_;
-
-	// The test thread tries to lock a spinlock. Debugging and testing spinlock. Remove it later.
-	boost::thread test_thread_;
-	smp::spinlock test_lock_;
-	smp::spinlock::locker_id_type test_id_;
-
-	// Testing manual reset event behavior.
-	boost::thread thread_a_;
-	boost::thread thread_b_;
-	boost::thread thread_c_;
-	HANDLE abc_event;
 };
 
 } // namespace core

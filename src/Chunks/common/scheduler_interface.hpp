@@ -193,10 +193,10 @@ public:
 #endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	}
 	
-	void push_front_channel_number(channel_number the_channel_number) {
+	void push_front_channel_number(channel_number the_channel_number, owner_id id) {
 		// Release the_channel_number to this channel_number_ queue.
 #if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-		channel_number_.release(the_channel_number, 1000, smp::spinlock::milliseconds(10000));
+		channel_number_.release(the_channel_number, id, smp::spinlock::milliseconds(10000));
 #else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 		channel_number_.push_front(the_channel_number);
 #endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
