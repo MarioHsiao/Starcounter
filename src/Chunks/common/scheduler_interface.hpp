@@ -131,7 +131,7 @@ public:
 	: channel_number_(segment_name, id),
 #else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	: channel_number_(channel_number_queue_capacity,
-	channel_number_queue_alloc, segment_name, id),
+	channel_number_queue_alloc),
 #endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	chunk_pool_(chunk_pool_capacity, chunk_pool_alloc),
 	overflow_pool_(overflow_pool_capacity, overflow_pool_alloc),
