@@ -205,6 +205,14 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Returns the transaction that is set on this app. Does NOT
+        /// look in parents.
+        /// </summary>
+        internal Transaction TransactionOnThisApp {
+            get { return _transaction; }
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>

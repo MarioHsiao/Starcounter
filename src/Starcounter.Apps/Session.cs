@@ -5,8 +5,10 @@
 // ***********************************************************************
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics; // TODO: Remove when HttpRequest can be sent in to the handler. And remove reference from Apps
 using HttpStructs;
+using Starcounter.Templates;
 
 namespace Starcounter.Apps {
     // TODO:
@@ -130,7 +132,41 @@ namespace Starcounter.Apps {
         /// 
         /// </summary>
         public void Destroy() {
-            throw new NotImplementedException();
+            if (rootApp != null) {
+                DisposeTransactionsRecursively(rootApp);
+            }
+            rootApp = null;
+            changeLog = null;
+            request = null;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="app"></param>
+        private void DisposeTransactionsRecursively(App app) {
+            if (app == null)
+                return;
+
+            if (app.TransactionOnThisApp != null) {
+                app.TransactionOnThisApp.Dispose();
+            }
+
+            if (app.Template == null)
+                return;
+
+            foreach (Template child in app.Template.Children) {
+                if (child is AppTemplate) {
+                    DisposeTransactionsRecursively(app.GetValue((AppTemplate)child));
+                } else if (child is ListingProperty) {
+                    Listing listing = app.GetValue((ListingProperty)child);
+                    foreach (App listApp in listing) {
+                        DisposeTransactionsRecursively(listApp);
+                    }
+                }
+            }
+
+        }
+
     }
 }
