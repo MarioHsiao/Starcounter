@@ -173,7 +173,7 @@ namespace StarcounterInternal.Hosting
             uint e = sccoredb.SCResetThread();
             if (e == 0)
             {
-                sccorelog.SCNewActivity();
+                sccorelog.sccorelog_new_activity();
                 return;
             }
             orange_fatal_error(e);
@@ -449,7 +449,7 @@ namespace StarcounterInternal.Hosting
         /// <param name="p">The p.</param>
         private static unsafe void orange_thread_reset(void* hsched, byte cpun, void* p)
         {
-            sccorelog.SCNewActivity();
+            sccorelog.sccorelog_new_activity();
         }
 
         /// <summary>

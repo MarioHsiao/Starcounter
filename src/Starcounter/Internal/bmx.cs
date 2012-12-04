@@ -88,7 +88,7 @@ namespace Starcounter.Internal
         /// </summary>
         /// <returns>UInt32.</returns>
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public extern static UInt32 sc_init_bmx_manager();
+        public extern static UInt32 sc_init_bmx_manager(HttpStructs.GlobalSessions.DestroyAppsSessionCallback dasc);
 
         /// <summary>
         /// Sc_wait_for_bmx_readies this instance.

@@ -40,7 +40,7 @@ extern "C" void __stdcall sccoredbh_thread_reset(void* hsched, uint8_t cpun, voi
     uint32_t r = SCResetThread();
     if (r == 0)
     {
-        SCNewActivity();
+        sccorelog_new_activity();
         return;
     }
     _fatal_error(r);
