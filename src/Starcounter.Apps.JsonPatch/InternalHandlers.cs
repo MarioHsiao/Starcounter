@@ -21,8 +21,6 @@ namespace Starcounter.Internal.JsonPatch
         /// </summary>
         public static void Register()
         {
-            Console.WriteLine("Registering internal handlers for patch and getting root apps");
-
             GET<int>("/__vm/{?}", (int viewModelId) =>
             {
                 App rootApp;
