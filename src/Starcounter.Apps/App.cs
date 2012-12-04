@@ -10,6 +10,7 @@ using System.ComponentModel;
 using Starcounter.Templates;
 using Starcounter.Internal.REST;
 using Starcounter.Internal;
+using Starcounter.Apps;
 
 #if CLIENT
 using Starcounter.Client.Template;

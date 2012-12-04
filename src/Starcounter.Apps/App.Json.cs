@@ -32,11 +32,11 @@ namespace Starcounter {
         /// To the json UTF8.
         /// </summary>
         /// <param name="includeView">if set to <c>true</c> [include view].</param>
-        /// <param name="includeSessionId">if set to <c>true</c> [include session id].</param>
+        /// <param name="vmId">if set to a positive number it will be included in the serialized json as ViewModel.</param>
         /// <returns>System.Byte[][].</returns>
-        public byte[] ToJsonUtf8(bool includeView, bool includeSessionId)
+        public byte[] ToJsonUtf8(bool includeView, int vmId = -1)
         {
-            return Encoding.UTF8.GetBytes(ToJson(includeView, false, includeSessionId ));
+            return Encoding.UTF8.GetBytes(ToJson(includeView, false, vmId));
         }
 
         /// <summary>
@@ -44,10 +44,10 @@ namespace Starcounter {
         /// </summary>
         /// <param name="includeView">if set to <c>true</c> [include view].</param>
         /// <param name="includeSchema">if set to <c>true</c> [include schema].</param>
-        /// <param name="includeSessionId">if set to <c>true</c> [include session id].</param>
+        /// <param name="vmId">if set to a positive number it will be included in the serialized json as ViewModel.</param>
         /// <returns>System.String.</returns>
         /// <exception cref="System.NotImplementedException"></exception>
-        public virtual string ToJson(bool includeView = false, bool includeSchema = false, bool includeSessionId = false) { //, IncludeView includeViewContent = IncludeView.Default) {
+        public virtual string ToJson(bool includeView = false, bool includeSchema = false, int vmId = -1) { //, IncludeView includeViewContent = IncludeView.Default) {
 #if QUICKTUPLE
             var sb = new StringBuilder();
             var templ = this.Template;
@@ -171,12 +171,12 @@ namespace Starcounter {
 
             }
 
-            if (includeSessionId)
+            if (vmId != -1)
             {
                 if (t > 0)
                     sb.Append(',');
                 sb.Append("\"View-Model\":");
-                sb.Append("\"1\"");
+                sb.Append(vmId);
             }
 
 //            if (t > 0)
