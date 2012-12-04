@@ -42,6 +42,12 @@ class GatewayWorker
 
 public:
 
+    // Clone made during last iteration.
+    SocketDataChunk *get_sd_receive_clone()
+    {
+        return sd_receive_clone_;
+    }
+
     // Checks if cloning was performed and does operations.
     uint32_t ProcessReceiveClones(SocketDataChunk *sd, bool just_delete_clone);
 
@@ -185,6 +191,9 @@ public:
     // Used to create new connections when reaching the limit.
     uint32_t CreateNewConnections(int32_t how_many, int32_t port_index, int32_t db_index);
 
+    // Allocates a bunch of new connections.
+    uint32_t CreateProxySocket(SocketDataChunk* proxy_sd, SocketDataChunk* client_sd);
+
     // Functions to process finished IOCP events.
     uint32_t FinishReceive(SocketDataChunk *sd, int32_t numBytesReceived, bool& called_from_receive);
     uint32_t FinishSend(SocketDataChunk *sd, int32_t numBytesSent);
@@ -208,7 +217,7 @@ public:
     uint32_t Accept(SocketDataChunk *sd);
 
     // Processes socket data to database.
-    uint32_t RunToDbHandlers(SocketDataChunk *sd)
+    uint32_t RunReceiveHandlers(SocketDataChunk *sd)
     {
         // Putting socket data to database.
         sd->PrepareToDb();
@@ -256,12 +265,17 @@ public:
         int32_t db_index,
         SocketDataChunk** out_sd);
 
-    // Sends HTTP counted request.
-    uint32_t SendCountedHttpPing(SocketDataChunk *sd, int64_t echo_id);
-
 #ifdef GW_TESTING_MODE
+
+    // Sends HTTP echo to master.
+    uint32_t SendHttpEcho(SocketDataChunk *sd, int64_t echo_id);
+
+    // Sends raw echo to master.
+    uint32_t SendRawEcho(SocketDataChunk *sd, int64_t echo_id);
+
     // Sends certain message to master node.
     uint32_t ProcessMasterMessage(SocketDataChunk *sd, bool just_connected);
+
 #endif
 };
 

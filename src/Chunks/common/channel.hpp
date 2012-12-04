@@ -68,7 +68,7 @@ public:
 	// A type representing the "best" way to return the value_type from a const
 	// method.
 	typedef typename boost::call_traits<value_type>::param_type return_type;
-	
+
 	// Construction/Destruction.
 	
 	explicit channel(size_type capacity, const allocator_type& alloc
@@ -145,8 +145,8 @@ public:
 	}
 
 public:
-	starcounter::core::atomic_buffer<T, 8> in; // 1 << 8 (256) elements.
-	starcounter::core::atomic_buffer<T, 8> out; // 1 << 8 (256) elements.
+	atomic_buffer<T, channel_capacity_bits> in; // 1 << 8 (256) elements.
+	atomic_buffer<T, channel_capacity_bits> out; // 1 << 8 (256) elements.
 	
 	//--------------------------------------------------------------------------
 	// PAGE_ALIGN is working better if only the in and out queues are in the
@@ -165,8 +165,6 @@ private:
 	// initializing. Otherwise they are read-only, so they shall share the same
 	// cache-line.
 	
-	//--------------------------------------------------------------------------
-	#if defined (_M_X64) // 64-bit version
 	// scheduler_interface_ is a pointer relative to the client process address
 	// space, so only the client process that owns this channel can use it.
 	scheduler_interface_type* scheduler_interface_;
@@ -196,42 +194,6 @@ private:
 	+sizeof(client_number) // client_number_
 	+sizeof(bool) // is_to_be_released_
 	) % CACHE_LINE_SIZE];
-	
-	//--------------------------------------------------------------------------
-	#elif defined (_M_IX86) // 32-bit version
-	// scheduler_interface_ is a pointer relative to the client process address
-	// space, so only the client process that owns this channel can use it.
-	scheduler_interface_type* scheduler_interface_;
-	uint32_t scheduler_interface_pad_; // The 32-bit version needs a 32-bit pad.
-	
-	// client_interface_ is an uint64_t that holds a pointer value, relative
-	// to the database process address space, so only the database process that
-	// owns this channel can use it.
-	uint64_t client_interface_; // client_interface_type*
-	
-	// Only read from and written to on the server side. Used to keep track of
-	// when a channel can be released if the client terminates unexpectedly.
-	int32_t server_refs_;
-	
-	// Indexes to interfaces.
-	scheduler_number scheduler_number_;
-	client_number client_number_;
-	
-	// Flag to indicate that the client no longer uses the channel and the
-	// scheduler shall empty the in and out queues and release the channel.
-	volatile bool is_to_be_released_;
-	
-	char cache_line_pad_0_[CACHE_LINE_SIZE -(
-	+sizeof(scheduler_interface_type*) // scheduler_interface_
-	+sizeof(uint32_t) // scheduler_interface_pad_
-	+sizeof(uint64_t) // client_interface_
-	+sizeof(int32_t) // server_refs_
-	+sizeof(scheduler_number) // scheduler_number_
-	+sizeof(client_number) // client_number_
-	+sizeof(bool) // is_to_be_released_
-	) % CACHE_LINE_SIZE];
-	
-	#endif // defined (_M_X64)
 };
 
 typedef simple_shared_memory_allocator<chunk_index> shm_alloc_for_the_channels2;

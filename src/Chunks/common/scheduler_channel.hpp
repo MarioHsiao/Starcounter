@@ -26,7 +26,7 @@ template<class T, class Alloc = std::allocator<T> >
 class scheduler_channel : private boost::noncopyable {
 public:
 	// The type of queues used in the scheduler_channel.
-	typedef starcounter::core::bounded_buffer<T, Alloc> queue_type;
+	typedef bounded_buffer<T, Alloc> queue_type;
 	
 	// The type of elements stored in the scheduler_channel.
 	typedef typename queue_type::value_type value_type;
@@ -58,7 +58,7 @@ public:
 
 	// A type representing the "best" way to pass the value_type to a method.
 	typedef typename boost::call_traits<value_type>::param_type param_type;
-
+	
 	// A type representing the "best" way to return the value_type from a const method.
 	typedef typename boost::call_traits<value_type>::param_type return_type;
 

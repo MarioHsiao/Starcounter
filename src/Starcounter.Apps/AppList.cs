@@ -14,6 +14,7 @@ using Starcounter.Client.Template;
 namespace Starcounter.Client {
 #else
 using Starcounter.Templates;
+using Starcounter.Apps;
 namespace Starcounter {
 #endif
     /// <summary>

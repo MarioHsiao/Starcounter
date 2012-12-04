@@ -16,7 +16,7 @@
 /// to show the activity in shared memory between database(s) and client(s).
 /// It shows resource usage and activity in channels. Only used for debug, it shall
 /// not be defined when pushing code.
-//#define CONNECTIVITY_MONITOR_SHOW_ACTIVITY
+#define CONNECTIVITY_MONITOR_SHOW_ACTIVITY
 
 /// Debug switch to see atomic_buffer performance counters used in
 /// starcounter::core::channel. NOTE: This macro must be commented out before pushing
@@ -27,6 +27,38 @@
 /// synchronize access to certain objects. Currently these objects involve:
 /// shared_chunk_pool
 //#define INTERPROCESS_COMMUNICATION_USE_SMP_SPINLOCK_TO_SYNC
+
+/// Define IPC_MONITOR_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC to use spinlocks to
+/// synchronize access to the IPC monitors monitor_interface shared memory segment.
+///NOT STARTED YET: #define IPC_MONITOR_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
+//#if defined (IPC_MONITOR_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+//#else // !defined (IPC_MONITOR_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+//#endif // defined (IPC_MONITOR_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+
+///********************************************************************************************
+/// Define IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
+/// to use a robust spinlock and windows events to synchronize access to
+/// scheduler_interface.
+#define IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
+
+#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+#else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+
+///********************************************************************************************
+///********************************************************************************************
+/// Define IPC_SHARED_MEMORY_MANAGER_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
+/// to use a robust spinlock and windows events to synchronize access to
+/// shared_memory_manager.
+#define IPC_SHARED_MEMORY_MANAGER_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
+
+#if defined (IPC_SHARED_MEMORY_MANAGER_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+#else // !defined (IPC_SHARED_MEMORY_MANAGER_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+#endif // defined (IPC_SHARED_MEMORY_MANAGER_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+
+///********************************************************************************************
+
+#define IPC_OWNER_ID_IS_32_BIT
 
 /// Define INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC to use Windows Event
 /// synchronization in interprocess communication. Comment this out in order to use
@@ -86,7 +118,7 @@
 # define VM_PAGE_ALIGN __attribute__ ((aligned (VM_PAGE_SIZE)))
 # define XMM_ALIGN __attribute__ ((aligned (XMM_SIZE)))
 # define YMM_ALIGN __attribute__ ((aligned (YMM_SIZE)))
-#endif // defined(__INTEL_COMPILER)
+#endif // defined(__INTEL_COMPILER) || defined(_MSC_VER)
 
 #if defined(__GNUC__)
 # define ALWAYS_INLINE inline __attribute__((always_inline))
@@ -115,5 +147,9 @@
 #define INT64_C(c) (c##LL)
 #define UINT64_C(c) (c##ULL)
 #endif // INT64_C
+
+#if defined(_MSC_VER)
+# define DLL_IMPORT __declspec(dllimport)
+#endif // defined(_MSC_VER)
 
 #endif // STARCOUNTER_CORE_MACRO_DEFINITIONS_HPP

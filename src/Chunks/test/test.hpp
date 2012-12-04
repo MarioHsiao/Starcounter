@@ -61,7 +61,6 @@
 /// TODO Figure which of these to include. Maybe required if test opens a
 /// database process managed shared memory.
 #include "../common/circular_buffer.hpp"
-#include "../common/bounded_buffer.hpp"
 #include "../common/chunk.hpp"
 #include "../common/shared_chunk_pool.hpp"
 #include "../common/channel.hpp"
