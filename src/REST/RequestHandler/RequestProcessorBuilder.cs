@@ -234,7 +234,7 @@ namespace Starcounter.Internal.Uri {
                 var a = Assembly.Load(ms.GetBuffer());
                 topRp = (TopLevelRequestProcessor)a.CreateInstance(Namespace + ".GeneratedRequestProcessor");
                 sw.Stop();
-                Console.WriteLine(String.Format("Found cached assembly {0} ({1} seconds spent).", fileName, (double)sw.ElapsedMilliseconds / 1000));
+                Debug.WriteLine(String.Format("Found cached assembly {0} ({1} seconds spent).", fileName, (double)sw.ElapsedMilliseconds / 1000));
             }
             else {
                 sw.Start();
@@ -244,7 +244,7 @@ namespace Starcounter.Internal.Uri {
                 ast.Namespace = Namespace;
                 topRp = compiler.CreateMatcher(ast,fileName);
                 sw.Stop();
-                Console.WriteLine(String.Format("Time to create request processor is {0} seconds.", (double)sw.ElapsedMilliseconds / 1000));
+                Debug.WriteLine(String.Format("Time to create request processor is {0} seconds.", (double)sw.ElapsedMilliseconds / 1000));
             }
 
             foreach (var h in Handlers) {
