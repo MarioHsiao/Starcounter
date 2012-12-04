@@ -119,6 +119,7 @@ smp::spinlock::milliseconds timeout) {
 				std::size_t i = item >> 6;
 				std::size_t bit = item & 63;
 				mask_[i] |= 1ULL << bit;
+				++size_;
 
 				// Successfully inserted.
 				return true;
@@ -143,6 +144,7 @@ smp::spinlock::milliseconds timeout) {
 				std::size_t i = item >> 6;
 				std::size_t bit = item & 63;
 				mask_[i] &= ~(1 << bit);
+				--size_;
 
 				// Successfully erased.
 				return true;
