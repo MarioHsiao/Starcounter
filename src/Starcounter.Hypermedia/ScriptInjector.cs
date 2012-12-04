@@ -54,7 +54,7 @@ namespace Starcounter.Internal.Web {
                 }
             }
 
-            if (headKid != null ) {
+            if (headKid != null) {
                 if (script != null)
                     return Math.Min(script.StreamPosition, headKid.StreamPosition);
                 return headKid.StreamPosition;
@@ -78,6 +78,25 @@ namespace Starcounter.Internal.Web {
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="response"></param>
+        /// <returns></returns>
+        private static int FindHeaderInjectionPoint(byte[] response) {
+            int injectionPoint = -1;
+            int offset = 0;
+
+            while (offset < (response.Length - 1)) {
+                if (response[offset] == '\r' && response[++offset] == '\n') {
+                    injectionPoint = offset + 1;
+                    break;
+                }
+                offset++;
+            }
+            return injectionPoint;
+        }
+
+        /// <summary>
         /// Perform the actual code injection. This method operates on a complete HTTP response.
         /// This means that the header is also updated to reflect the new Content-Length of the
         /// response. To do this, this function requires information about the whereabout if
@@ -92,36 +111,60 @@ namespace Starcounter.Internal.Web {
         /// <param name="contentLengthInjectionPoint">The offset of the Content-Length value</param>
         /// <param name="scriptInjectionPoint">The offset where the injected code should be inserted</param>
         /// <returns>The new, amended source code</returns>
-        public static byte[] Inject(byte[] original, byte[] toInject, int headerLength, int contentLength, int contentLengthLength, int contentLengthInjectionPoint, int scriptInjectionPoint ) {
- 
-                int newContentLength = contentLength + toInject.Length;
-                byte[] newLength = Encoding.UTF8.GetBytes(newContentLength.ToString());
+        public static byte[] Inject(byte[] original, byte[] toInject, int headerLength, int contentLength, int contentLengthLength, int contentLengthInjectionPoint, int scriptInjectionPoint) {
 
-                int extraLengthLength = newLength.Length - contentLengthLength;
+            int newContentLength = contentLength + toInject.Length;
+            byte[] newLength = Encoding.UTF8.GetBytes(newContentLength.ToString());
 
-                byte[] response = new Byte[original.Length + toInject.Length + extraLengthLength];
+            int extraLengthLength = newLength.Length - contentLengthLength;
 
-                // Copy first part of header
-                System.Buffer.BlockCopy(original, 0, response, 0, headerLength );
+            byte[] response = new Byte[original.Length + toInject.Length + extraLengthLength];
 
-                int t = contentLengthInjectionPoint;
-                // Copy new length
-                System.Buffer.BlockCopy(newLength, 0, response, t, newLength.Length); // Copy Content-Length
-                t += newLength.Length;
-                response[t++] = (byte)13;
-                response[t++] = (byte)10;
-                response[t++] = (byte)13;
-                response[t++] = (byte)10;
-                // Copy the start of the original content
-                System.Buffer.BlockCopy(original, headerLength, response, t, scriptInjectionPoint - headerLength);
-                t = scriptInjectionPoint + extraLengthLength;
-                // Copy the injected code
-                System.Buffer.BlockCopy(toInject, 0, response, t, toInject.Length);
-                // Copy the rest of the original content
-                System.Buffer.BlockCopy(original, scriptInjectionPoint, response, t + toInject.Length, original.Length - scriptInjectionPoint);
+            // Copy first part of header
+            System.Buffer.BlockCopy(original, 0, response, 0, headerLength);
+
+            int t = contentLengthInjectionPoint;
+            // Copy new length
+            System.Buffer.BlockCopy(newLength, 0, response, t, newLength.Length); // Copy Content-Length
+            t += newLength.Length;
+            response[t++] = (byte)13;
+            response[t++] = (byte)10;
+            response[t++] = (byte)13;
+            response[t++] = (byte)10;
+            // Copy the start of the original content
+            System.Buffer.BlockCopy(original, headerLength, response, t, scriptInjectionPoint - headerLength);
+            t = scriptInjectionPoint + extraLengthLength;
+            // Copy the injected code
+            System.Buffer.BlockCopy(toInject, 0, response, t, toInject.Length);
+            // Copy the rest of the original content
+            System.Buffer.BlockCopy(original, scriptInjectionPoint, response, t + toInject.Length, original.Length - scriptInjectionPoint);
 
             return response;
         }
 
+        /// <summary>
+        /// Injects the specified value into the header of the response.
+        /// </summary>
+        /// <param name="original">The original raw response</param>
+        /// <param name="toInject">The header to inject</param>
+        /// <param name="injectionPoint">The point in the header where to inject the new values.</param>
+        /// <returns>The complete response with header injected.</returns>
+        public static byte[] InjectInHeader(byte[] original, byte[] toInject, int injectionPoint) {
+            byte[] afterInjection = new byte[original.Length + toInject.Length];
+
+            if (injectionPoint == -1)
+                injectionPoint = FindHeaderInjectionPoint(original);
+
+            // Copy the first header row.
+            Buffer.BlockCopy(original, 0, afterInjection, 0, injectionPoint);
+
+            // Copy the header to be injected.
+            Buffer.BlockCopy(toInject, 0, afterInjection, injectionPoint, toInject.Length);
+
+            // Copy the rest of the header starting after the injection.
+            Buffer.BlockCopy(original, injectionPoint, afterInjection, injectionPoint + toInject.Length, original.Length - injectionPoint);
+
+            return afterInjection;
+        }
     }
 }
