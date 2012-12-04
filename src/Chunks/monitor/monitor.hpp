@@ -299,12 +299,6 @@ public:
 		return test_id_;
 	}
 
-	typedef volatile long int waiting_consumers_type;
-
-	waiting_consumers_type& waiting_consumers() volatile {
-		return waiting_consumers_;
-	}
-
 private:
 	// Controlling the console a bit makes it easier to read.
 	void gotoxy(int16_t x, int16_t y);
@@ -337,14 +331,6 @@ private:
 	void test();
 #endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 	
-	///-----------------
-	/// Interlocked speed test
-	waiting_consumers_type waiting_consumers_;
-	char cache_line_pad_[64 -sizeof(waiting_consumers_type)];
-
-
-	///-----------------
-
 	// The monitor initializes the monitor_interface_shared_memory_object.
 	shared_memory_object monitor_interface_;
 	mapped_region monitor_interface_region_;

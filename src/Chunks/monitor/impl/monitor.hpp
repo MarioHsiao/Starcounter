@@ -17,7 +17,6 @@ namespace core {
 
 monitor::monitor(int argc, wchar_t* argv[])
 : monitor_interface_(),
-waiting_consumers_(0L),
 active_segments_update_(active_segments_buffer_capacity),
 active_databases_updated_flag_(false),
 registrar_(),
@@ -724,19 +723,41 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 								//   owned, for clean up. This prepares for the
 								//   clean up job to be done by the schedulers.
 								//print_event_register();
-								//std::cout << "Searching for terminated " << owner_id_of_terminated_process
-								//<< "...\n"; /// DEBUG
 								
 								for (std::size_t n = 0; n < max_number_of_clients; ++n) {
 									if (shared.client_interface(n).get_owner_id()
 									== owner_id_of_terminated_process) {
-										//std::cout << "clean up: client_interface[" << n << "]\n"; /// DEBUG
 										client_interface_type* client_interface_ptr
 										= &shared.client_interface(n);
 										
 										//common_client_interface_type* common_client_interface_ptr
 										//= &shared.common_client_interface();
 										
+										_mm_mfence();
+
+										///=====================================
+										/// Unlock all robust spinlocks that may
+										/// have been left in a locked state by
+										/// the terminated client process.
+										///=====================================
+
+										// Unlock the scheduler_interface[s]
+										// channel number queue.
+
+										for (std::size_t si = 0; si < shared.common_scheduler_interface()
+										.number_of_active_schedulers(); ++si) {
+											if (shared.scheduler_interface(si).channel_number()
+											.if_locked_with_id_recover_and_unlock
+											(owner_id_of_terminated_process.get()) == true) {
+												//std::cout << "Unlocked scheduler_interface(" << si
+												//<< ") with owner_id_of_terminated_process = "
+												//< owner_id_of_terminated_process.get() << std::endl;
+											}
+											//else {
+											//	std::cout << "scheduler_interface(" << si << ") is not locked with id of terminated_process." << std::endl;
+											//}
+										}
+
 										if (client_interface_ptr) {
 											//common_client_interface_ptr->increment_client_interfaces_to_clean_up();
 											shared.common_client_interface().increment_client_interfaces_to_clean_up();
@@ -751,11 +772,6 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 
 											++channels_to_recover;
 										}
-
-										//std::cout << "client_interfaces_to_clean_up: "
-										//<< shared.common_client_interface().client_interfaces_to_clean_up() << "\n"; /// DEBUG
-
-										//std::cout << "channels_to_recover: " << channels_to_recover << "\n"; /// DEBUG
 
 										// For each of the channels the client
 										// owned, try to notify the scheduler.
@@ -892,7 +908,6 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 								
 								// Get a new unique owner_id.
 								owner_id new_owner_id = get_new_owner_id();
-								
 								// Insert client process info.
 								process_register_[new_owner_id] =
 								process_info(the_event,
@@ -1090,6 +1105,7 @@ void __stdcall monitor::apc_function(boost::detail::win32::ulong_ptr arg) {
 	// return and continue in the switch case WAIT_IO_COMPLETION of the caller.
 }
 
+#if defined (IPC_OWNER_ID_IS_32_BIT)
 inline owner_id monitor::get_new_owner_id() {
 	// The register_mutex_ is already locked by the caller.
 	
@@ -1120,6 +1136,12 @@ inline owner_id monitor::get_new_owner_id() {
 	// registering process indicates it could not register and be monitored.
 	return owner_id::none;
 }
+
+#else // !defined (IPC_OWNER_ID_IS_32_BIT)
+inline owner_id monitor::get_new_owner_id() {
+	return ++owner_id_counter_;
+}
+#endif // defined (IPC_OWNER_ID_IS_32_BIT)
 
 #if 0
 void monitor::update_active_databases() {
@@ -1265,6 +1287,13 @@ void monitor::print_rate_with_precision(double rate) {
 void monitor::test_a() {
 	Sleep(INFINITE);
 	Sleep(100);
+	std::cout << "Terminating with access violation in 2000 ms..." << std::endl;
+	Sleep(2000);
+	_mm_mfence();
+	*((int*) 0) = 0;
+	_mm_mfence();
+	Sleep(INFINITE);
+	Sleep(100);
 	owner_id new_owner_id;
 
 	std::size_t i;
@@ -1372,14 +1401,6 @@ void monitor::test_a() {
 	std::cout << "Time is up! time_left = " << time_left << "\n";
 	Sleep(INFINITE);
 
-	for (std::size_t i = 0; i < 1E9; ++i) {
-		//_InterlockedIncrement(&waiting_consumers_);
-		_InterlockedExchangeAdd(&waiting_consumers_, +1L);
-		//++waiting_consumers_;
-	}
-	std::cout << "Increment done. waiting_consumers_ = " << waiting_consumers_ << "\n";
-	Sleep(INFINITE);
-
 	do {
 		// "A" see that the queue is empty and waits...
 		// After 1000 ms several items are pushed by another thread and
@@ -1394,13 +1415,6 @@ void monitor::test_a() {
 }
 
 void monitor::test_b() {
-	Sleep(INFINITE);
-	for (std::size_t i = 0; i < 1E9; ++i) {
-		_InterlockedDecrement(&waiting_consumers_);
-		//_InterlockedExchangeAdd(&waiting_consumers_, -1L);
-		//--waiting_consumers_;
-	}
-	std::cout << "Decrement done. waiting_consumers_ = " << waiting_consumers_ << "\n";
 	Sleep(INFINITE);
 
 	do {

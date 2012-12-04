@@ -16,6 +16,7 @@
 #include <cstddef>
 #include <boost/call_traits.hpp>
 #include <boost/cstdint.hpp>
+#include "macro_definitions.hpp"
 
 namespace starcounter {
 namespace core {
@@ -83,6 +84,7 @@ namespace core {
 //
 //******************************************************************************
 
+#if defined (IPC_OWNER_ID_IS_32_BIT)
 class owner_id {
 public:
 	// Type definitions.
@@ -226,6 +228,148 @@ public:
 private:
 	volatile value_type value_;
 };
+
+#else // !defined (IPC_OWNER_ID_IS_32_BIT)
+class owner_id {
+public:
+	// Type definitions.
+	typedef uint64_t value_type;
+	typedef value_type* iterator;
+	typedef const value_type* const_iterator;
+	typedef value_type& reference;
+	typedef const value_type& const_reference;
+	
+	// Helper types.
+	
+	// A type representing the "best" way to pass the value_type to a method.
+	typedef boost::call_traits<value_type>::param_type param_type;
+	
+	// A type representing the "best" way to return the value_type from a const
+	// method.
+	typedef boost::call_traits<volatile value_type>::param_type return_type;
+	
+	enum {
+		// none indicates that the resource has no owner-id. Both the owner_id
+		// field and the clean-up flag is zero.
+		none = 0,
+
+		// The anonymous id value 1 is reserved for threads that lock
+		// a spinlock in non-robust (anonymous) mode.
+		anonymous = 1
+	};
+	
+	// Construction/destruction.
+	
+	/// Constructor.
+	/**
+	 * @param n The value to assign.
+	 * @throws Nothing.
+	 * @par Complexity
+	 *		Constant.
+	 */
+	owner_id(param_type n = owner_id::none);
+	
+	// Let the compiler write copy constructor, copy assignment, and destructor.
+
+	/// Copy assignment for owner_id with volatile qualifier.
+	volatile owner_id& operator=(const owner_id& a) volatile;
+
+	/// operator&=()
+	volatile owner_id& operator&=(const owner_id& a) volatile;
+	
+	/// Assignment from param_type.
+	/**
+	 * @param n The value to assign.
+	 * @return A reference to this owner_id.
+	 * @throws Nothing.
+	 * @par Exception Safety
+	 *		No-throw.
+	 */
+	owner_id& operator=(param_type n);
+	
+	/// Assign in place.
+	/**
+	 * @param n The value to assign.
+	 * @return A reference to this owner_id.
+	 * @throws Nothing.
+	 * @par Exception Safety
+	 *		No-throw.
+	 */
+	owner_id& assign(param_type n);
+	
+	// access to representation
+	
+	/// Get the value.
+	/**
+	 * @return The value.
+	 * @throws Nothing.
+	 * @par Exception Safety
+	 *		No-throw.
+	 */
+	return_type get() const;
+	
+	/// Set the value.
+	/**
+	 * @param n The value to assign.
+	 * @throws Nothing.
+	 * @par Exception Safety
+	 *		No-throw.
+	 */
+	void set(param_type n);
+	
+	/// Get the owner_id value.
+	/**
+	 * @return The owner_id value.
+	 * @throws Nothing.
+	 * @par Exception Safety
+	 *		No-throw.
+	 */
+	return_type get_owner_id() const;
+	
+	/// Get clean_up flag in bit 0.
+	/**
+	 * @return The clean_up flag, in MSB.
+	 * @throws Nothing.
+	 * @par Exception Safety
+	 *		No-throw.
+	 */
+	return_type get_clean_up() const;
+	
+	/// Mark for clean-up.
+	/**
+	 * @throws Nothing.
+	 * @par Exception Safety
+	 *		No-throw.
+	 */
+	void mark_for_clean_up();
+	
+	/// Test if this owner_id is not an owner id (owner_id::none.)
+	/**
+	 * @return true if this owner_id is not an owner id (owner_id::none.)
+	 * @throws Nothing.
+	 * @par Exception Safety
+	 *		No-throw.
+	 */
+	bool is_no_owner_id() const;
+	
+	// unary operators
+	
+	// increment
+	
+    /// operator++ prefix increment.
+ 	/**
+	 * @return A reference to this owner_id.
+	 * @throws Nothing.
+	 * @par Exception Safety
+	 *		No-throw.
+	 */
+	owner_id& operator++();
+	
+private:
+	volatile value_type value_;
+};
+
+#endif // defined (IPC_OWNER_ID_IS_32_BIT)
 
 } // namespace core
 } // namespace starcounter

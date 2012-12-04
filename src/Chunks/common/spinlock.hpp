@@ -350,6 +350,16 @@ public:
 		return lock_ != not_locked;
 	}
 	
+	/// Test if the spinlock is locked with id, or not.
+	/**
+	 * @return true if the spinlock is locked with id, false if
+	 *		locked with another id, or unlocked. 
+	 */
+	ALWAYS_INLINE bool is_locked_with_id(locker_id_type locker_id) const {
+		_mm_mfence();
+		return lock_ == locker_id;
+	}
+
 	/// class scoped_lock locks the spinlock using lock(), and will unlock the
 	/// spinlock when the object goes out of scope.
 	class scoped_lock {
@@ -367,7 +377,7 @@ public:
 		 * @param spinlock A reference to a spinlock.
 		 */
 		ALWAYS_INLINE explicit scoped_lock(spinlock& spinlock)
-		: spinlock_(spinlock), locked_(spinlock.lock()) {} // "A"
+		: spinlock_(spinlock), locked_(spinlock.lock()) {}
 
 		/// Constructor tries to acquire the lock using spinlock::try_lock().
 		/// If the lock was acquired, calling owns() returns true, false
@@ -377,7 +387,7 @@ public:
 		 * @param try_to_lock_type A tag to express using try_lock().
 		 */
 		ALWAYS_INLINE explicit scoped_lock(spinlock& spinlock, try_to_lock_type)
-		: spinlock_(spinlock), locked_(spinlock_.try_lock()) {} // "B"
+		: spinlock_(spinlock), locked_(spinlock_.try_lock()) {}
 
 		/// Constructor tries to acquire the lock using
 		/// spinlock::try_lock(locker_id_type). If the lock was acquired,
@@ -390,7 +400,7 @@ public:
 		 */
 		ALWAYS_INLINE explicit scoped_lock(spinlock& spinlock, locker_id_type
 		locker_id, try_to_lock_type)
-		: spinlock_(spinlock), locked_(spinlock_.try_lock(locker_id)) {} // "C"
+		: spinlock_(spinlock), locked_(spinlock_.try_lock(locker_id)) {}
 
 		/// Constructor tries to acquire the lock using spinlock::timed_lock().
 		/// If the lock was acquired, calling owns() returns true, false
@@ -402,7 +412,7 @@ public:
 		 */
         ALWAYS_INLINE explicit scoped_lock(spinlock& spinlock, milliseconds
 		abs_timeout)
-        : spinlock_(spinlock), locked_(spinlock_.timed_lock(abs_timeout)) {} // "D"
+        : spinlock_(spinlock), locked_(spinlock_.timed_lock(abs_timeout)) {}
 		
 		/// Constructor tries to acquire the lock using spinlock::timed_lock().
 		/// If the lock was acquired, calling owns() returns true, false
@@ -414,7 +424,7 @@ public:
 		 */
         ALWAYS_INLINE explicit scoped_lock(spinlock& spinlock, locker_id_type
 		locker_id)
-        : spinlock_(spinlock), locked_(spinlock_.lock(locker_id)) {} // "F"
+        : spinlock_(spinlock), locked_(spinlock_.lock(locker_id)) {}
 
 		/// Constructor tries to acquire the lock using spinlock::timed_lock().
 		/// If the lock was acquired, calling owns() returns true, false
@@ -429,7 +439,7 @@ public:
         ALWAYS_INLINE explicit scoped_lock(spinlock& spinlock, locker_id_type
 		locker_id, milliseconds abs_timeout)
         : spinlock_(spinlock), locked_(spinlock_.timed_lock(locker_id,
-		abs_timeout)) {} // "E"
+		abs_timeout)) {}
 
 		/// Destructor releases the lock using spinlock::unlock() when the
 		/// object goes out of scope.

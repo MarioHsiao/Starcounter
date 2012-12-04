@@ -58,7 +58,7 @@ public:
 
 	// A type representing the "best" way to pass the value_type to a method.
 	typedef typename boost::call_traits<value_type>::param_type param_type;
-
+	
 	// A type representing the "best" way to return the value_type from a const method.
 	typedef typename boost::call_traits<value_type>::param_type return_type;
 

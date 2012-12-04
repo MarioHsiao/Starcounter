@@ -35,7 +35,7 @@
 namespace starcounter {
 namespace core {
 
-// Template param N expresses the number of elements as 2^^N.
+// Template param N expresses the number of elements as 2^N.
 // For 64 elements, N = 6; for 4096 elements, N = 12, and so on.
 // There are template specializations for N = 8 and N = 16, so if
 // changing code in the template it may need to be changed in the
@@ -144,11 +144,11 @@ private:
 	
 	T elems_[1 << N]; // Fixed-size array of elements of type T.
 	volatile size_type head_;
-	char pad0[CACHE_LINE_SIZE -sizeof(size_type)];
+	char pad_0_[CACHE_LINE_SIZE -sizeof(size_type)];
 	volatile size_type tail_;
-	char pad1[CACHE_LINE_SIZE -sizeof(size_type)];
+	char pad_1_[CACHE_LINE_SIZE -sizeof(size_type)];
 	/*volatile*/ long int unread_;
-	char pad2[CACHE_LINE_SIZE -sizeof(size_type)];
+	char pad_2_[CACHE_LINE_SIZE -sizeof(size_type)];
 
 	// Mutex to protect access to the queue
 	boost::interprocess::interprocess_mutex mutex_;
@@ -261,11 +261,11 @@ private:
 	T elems_[1 << 8]; // Fixed-size array of elements of type T.
 
 	volatile size_type head_;
-	char pad0[CACHE_LINE_SIZE -sizeof(size_type)];
+	char pad_0_[CACHE_LINE_SIZE -sizeof(size_type)];
 	volatile size_type tail_;
-	char pad1[CACHE_LINE_SIZE -sizeof(size_type)];
+	char pad_1_[CACHE_LINE_SIZE -sizeof(size_type)];
 	/*volatile*/ long int unread_;
-	char pad2[CACHE_LINE_SIZE -sizeof(size_type)];
+	char pad_2_[CACHE_LINE_SIZE -sizeof(size_type)];
 	
 	// Mutex to protect access to the queue
 	boost::interprocess::interprocess_mutex mutex_;
@@ -373,11 +373,11 @@ private:
 	
 	T elems_[1 << 16]; // Fixed-size array of elements of type T.
 	volatile size_type head_;
-	char pad0[CACHE_LINE_SIZE -sizeof(size_type)];
+	char pad_0_[CACHE_LINE_SIZE -sizeof(size_type)];
 	volatile size_type tail_;
-	char pad1[CACHE_LINE_SIZE -sizeof(size_type)];
+	char pad_1_[CACHE_LINE_SIZE -sizeof(size_type)];
 	/*volatile*/ long int unread_;
-	char pad2[CACHE_LINE_SIZE -sizeof(size_type)];
+	char pad_2_[CACHE_LINE_SIZE -sizeof(size_type)];
 	
 	// Mutex to protect access to the queue
 	boost::interprocess::interprocess_mutex mutex_;
