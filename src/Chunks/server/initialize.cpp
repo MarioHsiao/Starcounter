@@ -34,7 +34,6 @@
 #include "../common/common_client_interface.hpp"
 #include "../common/client_interface.hpp"
 #include "../common/client_number.hpp"
-#include "../common/shared_memory_manager.hpp"
 #include "../common/config_param.hpp"
 #include "../common/spinlock.hpp"
 #include "../common/macro_definitions.hpp"
