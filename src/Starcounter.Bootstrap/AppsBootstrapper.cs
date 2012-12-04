@@ -1,6 +1,5 @@
 ﻿
 using HttpStructs;
-using Starcounter.Internal.Application;
 using Starcounter.Internal.JsonPatch;
 using Starcounter.Internal.Web;
 using System;
@@ -42,7 +41,7 @@ namespace Starcounter.Internal {
             if (resourceResolvePath != null)
                 AddFileServingDirectory(resourceResolvePath);
 
-            _appServer = new HttpAppServer(fileServer, new SessionDictionary());
+            _appServer = new HttpAppServer(fileServer);
 
             // Register the handlers required by the Apps system. These work as user code handlers, but
             // listens to the built in REST api serving view models to REST clients.

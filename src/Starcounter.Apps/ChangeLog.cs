@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using Starcounter.Apps;
 using Starcounter.Templates;
 using Starcounter.Templates.Interfaces;
 
@@ -15,45 +16,28 @@ namespace Starcounter {
     /// of each patch-request, all changes will be converted to jsonpatches.
     /// </summary>
     internal class ChangeLog : IEnumerable<Change> {
-        // TODO:
-        // The session structure should be moved to App and 
-        // the session should hold the changelog instance. We dont 
-        // want several thread specific states (The log here and the current
-        // session)
-        /// <summary>
-        /// Threadstatic instance of the log.
-        /// </summary>
-        [ThreadStatic]
-        internal static ChangeLog Log;
-
         /// <summary>
         /// 
         /// </summary>
         private List<Change> _changes;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ChangeLog" /> class.
+        /// Initializes a new instance of the <see cref="Log" /> class.
         /// </summary>
         internal ChangeLog() {
             _changes = new List<Change>();
         }
 
         /// <summary>
-        /// Called in the beginning of each request to set the specified 
-        /// instance on the thread.
+        /// 
         /// </summary>
-        /// <param name="log">The log.</param>
-        internal static void BeginRequest(ChangeLog log) {
-            Log = log;
-        }
-
-        /// <summary>
-        /// Called in the end of each request. Removes the instance from the
-        /// thread.
-        /// </summary>
-        internal static void EndRequest() {
-            Log.Clear();
-            Log = null;
+        private static ChangeLog Log {
+            get {
+                Session session = Session.Current;
+                if (session != null)
+                    return session.changeLog;
+                return null;
+            }
         }
 
         /// <summary>
@@ -62,10 +46,11 @@ namespace Starcounter {
         /// <param name="app">The app.</param>
         /// <param name="property">The property.</param>
         internal static void UpdateValue(App app, Property property) {
-            if (!app.IsSerialized)
-                return;
-            if (!Log._changes.Exists((match) => { return match.IsChangeOf(app, property); })) {
-                Log._changes.Add(Change.Update(app, property));
+            ChangeLog log = Log;
+            if (log != null && app.IsSerialized) {
+                if (!log._changes.Exists((match) => { return match.IsChangeOf(app, property); })) {
+                    log._changes.Add(Change.Update(app, property));
+                }
             }
         }
 
@@ -75,10 +60,11 @@ namespace Starcounter {
         /// <param name="app">The app.</param>
         /// <param name="valueTemplate">The value template.</param>
         internal static void UpdateValue(App app, IValueTemplate valueTemplate) {
-            if (!app.IsSerialized)
-                return;
-            if (!Log._changes.Exists((match) => { return match.IsChangeOf(app, (Template)valueTemplate); })) {
-                Log._changes.Add(Change.Update(app, valueTemplate));
+            ChangeLog log = Log;
+            if (log != null && app.IsSerialized) {
+                if (!log._changes.Exists((match) => { return match.IsChangeOf(app, (Template)valueTemplate); })) {
+                    log._changes.Add(Change.Update(app, valueTemplate));
+                }
             }
         }
 
@@ -89,9 +75,9 @@ namespace Starcounter {
         /// <param name="list">The property of the list that the item was added to.</param>
         /// <param name="index">The index in the list where the item was added.</param>
         internal static void AddItemInList(App app, ListingProperty list, Int32 index) {
-            if (!app.IsSerialized)
-                return;
-            Log._changes.Add(Change.Add(app, list, index));
+            ChangeLog log = Log;
+            if (log != null)
+                log._changes.Add(Change.Add(app, list, index));
         }
 
         /// <summary>
@@ -101,9 +87,9 @@ namespace Starcounter {
         /// <param name="list">The property of the list the item was removed from.</param>
         /// <param name="index">The index in the list of the removed item.</param>
         internal static void RemoveItemInList(App app, ListingProperty list, Int32 index) {
-            if (!app.IsSerialized)
-                return;
-            Log._changes.Add(Change.Remove(app, list, index));
+            ChangeLog log = Log;
+            if (log != null && app.IsSerialized)
+                log._changes.Add(Change.Remove(app, list, index));
         }
 
         /// <summary>
