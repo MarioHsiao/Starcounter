@@ -47,7 +47,7 @@
 
 ///********************************************************************************************
 
-//#define IPC_OWNER_ID_IS_32_BIT
+#define IPC_OWNER_ID_IS_32_BIT
 
 #if defined (IPC_OWNER_ID_IS_32_BIT)
 #else // !defined (IPC_OWNER_ID_IS_32_BIT)
