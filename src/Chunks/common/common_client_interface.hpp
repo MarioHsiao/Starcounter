@@ -18,8 +18,11 @@
 #include <memory>
 #include <utility>
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <intrin.h>
+# include <windows.h>
+# include <intrin.h>
+// Declaring interlocked functions for use as intrinsics.
+# pragma intrinsic (_InterlockedIncrement)
+# pragma intrinsic (_InterlockedDecrement)
 #undef WIN32_LEAN_AND_MEAN
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
@@ -108,7 +111,9 @@ public:
 	 */
 	explicit common_client_interface(size_type buffer_capacity,
 	const allocator_type& alloc = allocator_type())
-	: client_number_pool_(buffer_capacity, alloc), state_(normal) {}
+	: client_number_pool_(buffer_capacity, alloc),
+	state_(normal),
+	client_interfaces_to_clean_up_(0) {}
 	
 	queue_type& client_number_pool() {
 		return client_number_pool_;
@@ -155,7 +160,7 @@ public:
 	 * @return The number of client interfaces to clean up.
 	 */
 	uint32_t increment_client_interfaces_to_clean_up() {
-		return InterlockedIncrement(&client_interfaces_to_clean_up_);
+		return _InterlockedIncrement(&client_interfaces_to_clean_up_);
 	}
 	
 	/// Schedulers decrements this counter for each client_interface it releases
@@ -165,7 +170,7 @@ public:
 	 * @return The number of client interfaces to clean up.
 	 */
 	uint32_t decrement_client_interfaces_to_clean_up() {
-		return InterlockedDecrement(&client_interfaces_to_clean_up_);
+		return _InterlockedDecrement(&client_interfaces_to_clean_up_);
 	}
 	
 	/// Clients acquire a client_number, which allocates

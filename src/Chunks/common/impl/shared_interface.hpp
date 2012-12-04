@@ -155,12 +155,18 @@ uint32_t timeout_milliseconds) {
 inline bool shared_interface::acquire_channel(channel_number*
 the_channel_number, scheduler_number the_scheduler_number, uint32_t spin_count,
 uint32_t timeout_milliseconds) {
-	channel_number temp_channel_number;
-	
+	//std::cout << "shared_interface::acquire_channel(): the_scheduler_number = " << the_scheduler_number << std::endl;
+	channel_number temp_channel_number = invalid_channel_number;
+
 	// Pop a channel number.
 	scheduler_interface_[the_scheduler_number]
-	.pop_back_channel_number(&temp_channel_number);
+	.pop_back_channel_number(&temp_channel_number, get_owner_id());
 	
+	// TODO: Optimize.
+	if (temp_channel_number == invalid_channel_number) {
+		return false;
+	}
+
 	// Mark this channel as owned by this client.
 	client_interface().set_channel_flag(the_scheduler_number,
 	temp_channel_number);
@@ -189,7 +195,6 @@ uint32_t timeout_milliseconds) {
 	.set_channel_number_flag(temp_channel_number);
 	
 	*the_channel_number = temp_channel_number;
-	
 	return true; /// TODO: Timeout doesn't work yet.
 }
 
