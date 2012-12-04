@@ -227,6 +227,12 @@ public:
 	
 private:
 	volatile value_type value_;
+	
+	/// Adding pad here so that sizeof(owner_id) is 64-bit as a workaround
+	/// because some code somewhere don't use owner_id, but instead uses
+	/// something like uint64_t or unsigned long long int as a substitute
+	/// type for owner_id. TODO: Find all places where owner_id should be used.
+	value_type pad_;
 };
 
 #else // !defined (IPC_OWNER_ID_IS_32_BIT)
