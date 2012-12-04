@@ -45,6 +45,94 @@ int32_t GatewayWorker::Init(int32_t newWorkerId)
     return 0;
 }
 
+// Allocates a new socket based on existing.
+uint32_t GatewayWorker::CreateProxySocket(SocketDataChunk* proxy_sd, SocketDataChunk* client_sd)
+{
+    // Creating new socket.
+    SOCKET new_socket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
+    if (new_socket == INVALID_SOCKET)
+    {
+#ifdef GW_ERRORS_DIAG
+        GW_PRINT_WORKER << "WSASocket() failed." << std::endl;
+#endif
+        return PrintLastError();
+    }
+
+    // Adding to IOCP.
+    HANDLE tempHandle = CreateIoCompletionPort((HANDLE) new_socket, worker_iocp_, 0, 1);
+    if (tempHandle != worker_iocp_)
+    {
+#ifdef GW_ERRORS_DIAG
+        GW_PRINT_WORKER << "Wrong IOCP returned when attaching socket to IOCP." << std::endl;
+#endif
+        closesocket(new_socket);
+
+        return PrintLastError();
+    }
+
+    // Trying to bind socket until this succeeds.
+    while(true)
+    {
+        // The socket address to be passed to bind.
+        sockaddr_in binding_addr;
+        memset(&binding_addr, 0, sizeof(sockaddr_in));
+        binding_addr.sin_family = AF_INET;
+        binding_addr.sin_addr.s_addr = inet_addr(g_gateway.setting_local_interfaces().at(0).c_str());
+        binding_addr.sin_port = htons(worker_stats_last_bound_num_);
+
+        // Going to next port.
+        worker_stats_last_bound_num_++;
+
+        // Binding socket to certain interface and port.
+        if (bind(new_socket, (SOCKADDR *) &binding_addr, sizeof(binding_addr)))
+        {
+#ifdef GW_ERRORS_DIAG
+            GW_PRINT_WORKER << "Failed to bind " << g_gateway.setting_local_interfaces().at(0) << " : " << (worker_stats_last_bound_num_ - 1) << std::endl;
+#endif
+            continue;
+        }
+
+        break;
+    }
+
+    // Skipping completion port if operation is already successful.
+    SetFileCompletionNotificationModes((HANDLE)new_socket, FILE_SKIP_COMPLETION_PORT_ON_SUCCESS);
+
+    // Putting socket into non-blocking mode.
+    ULONG ul = 1;
+    uint32_t temp;
+    if (WSAIoctl(new_socket, FIONBIO, &ul, sizeof(ul), NULL, 0, (LPDWORD)&temp, NULL, NULL))
+    {
+#ifdef GW_ERRORS_DIAG
+        GW_PRINT_WORKER << "Can't put socket into non-blocking mode." << std::endl;
+#endif
+        closesocket(new_socket);
+
+        return PrintLastError();
+    }
+
+    // Marking socket as alive.
+    g_gateway.MarkSocketAlive(new_socket);
+
+    // Changing number of created sockets.
+    int64_t created_sockets = g_gateway.get_server_port(proxy_sd->get_port_index())->ChangeNumAllocatedSockets(proxy_sd->get_db_index(), 1);
+
+#ifdef GW_SOCKET_DIAG
+    GW_PRINT_WORKER << "New sockets amount: " << created_sockets << std::endl;
+#endif
+
+    // Setting receiving socket.
+    proxy_sd->set_proxy_socket(proxy_sd->get_socket());
+
+    // Setting new socket.
+    proxy_sd->set_socket(new_socket);
+
+    // Setting client proxy socket.
+    client_sd->set_proxy_socket(new_socket);
+
+    return 0;
+}
+
 // Allocates a bunch of new connections.
 uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_index, int32_t db_index)
 {
@@ -192,7 +280,7 @@ uint32_t GatewayWorker::Receive(SocketDataChunk *sd)
 START_RECEIVING_AGAIN:
 
 #ifdef GW_SOCKET_DIAG
-    GW_PRINT_WORKER << "Receive: socket " << sd->sock() << " chunk " << sd->get_chunk_index() << std::endl;
+    GW_PRINT_WORKER << "Receive: socket " << sd->get_socket() << " chunk " << sd->get_chunk_index() << std::endl;
 #endif
 
     // Start receiving on socket.
@@ -221,7 +309,7 @@ START_RECEIVING_AGAIN:
         if (WSA_IO_PENDING != wsaErrCode)
         {
 #ifdef GW_ERRORS_DIAG
-            GW_PRINT_WORKER << "Failed WSARecv: " << sd->sock() << " " <<
+            GW_PRINT_WORKER << "Failed WSARecv: " << sd->get_socket() << " " <<
                 sd->get_chunk_index() << " Disconnecting socket..." << std::endl;
 #endif
             PrintLastError();
@@ -239,7 +327,7 @@ START_RECEIVING_AGAIN:
         if (0 == numBytes)
         {
 #ifdef GW_ERRORS_DIAG
-            GW_PRINT_WORKER << "Zero-bytes receive on socket: " << sd->sock() << ". Remote side closed the connection." << std::endl;
+            GW_PRINT_WORKER << "Zero-bytes receive on socket: " << sd->get_socket() << ". Remote side closed the connection." << std::endl;
 #endif
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
@@ -271,7 +359,7 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     bool& called_from_receive)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_PRINT_WORKER << "FinishReceive: socket " << sd->sock() << " chunk " << sd->get_chunk_index() << std::endl;
+    GW_PRINT_WORKER << "FinishReceive: socket " << sd->get_socket() << " chunk " << sd->get_chunk_index() << std::endl;
 #endif
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
@@ -282,7 +370,7 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     if (0 == num_bytes_received)
     {
 #ifdef GW_ERRORS_DIAG
-        GW_PRINT_WORKER << "Zero-bytes receive on socket: " << sd->sock() << ". Remote side closed the connection." << std::endl;
+        GW_PRINT_WORKER << "Zero-bytes receive on socket: " << sd->get_socket() << ". Remote side closed the connection." << std::endl;
 #endif
 
         return SCERRGWSOCKETCLOSEDBYPEER;
@@ -298,6 +386,37 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
 
     // Increasing number of receives.
     worker_stats_recv_num_++;
+
+#ifdef GW_PROXY_MODE
+
+    // Checking if we are in proxy mode.
+    if (sd->get_with_proxied_server_flag())
+    {
+        // Posting cloning receive since all data is accumulated.
+        uint32_t err_code = sd->CloneToReceive(this);
+        GW_ERR_CHECK(err_code);
+
+        // Setting proxy mode.
+        sd_receive_clone_->set_with_proxied_server_flag(true);
+
+        // Finished receiving from proxied server,
+        // now sending to the original user.
+        sd->ExchangeToProxySocket();
+
+        // Since we are sending this socket data to client.
+        sd->set_with_proxied_server_flag(false);
+
+        // Setting number of bytes to send.
+        sd->get_accum_buf()->PrepareForSend();
+
+        // Just sending to client.
+        sd->set_receiving_flag(false);
+
+        // Sending data to user.
+        return Send(sd);
+    }
+
+#endif
 
     // Assigning last received bytes.
     if (!sd->get_accumulating_flag())
@@ -365,14 +484,14 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
 #endif
 
     // Running the handler.
-    return RunToDbHandlers(sd);
+    return RunReceiveHandlers(sd);
 }
 
 // Running send on socket data.
 uint32_t GatewayWorker::Send(SocketDataChunk *sd)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_PRINT_WORKER << "Send: socket " << sd->sock() << " chunk " << sd->get_chunk_index() << std::endl;
+    GW_PRINT_WORKER << "Send: socket " << sd->get_socket() << " chunk " << sd->get_chunk_index() << std::endl;
 #endif
 
     // Start sending on socket.
@@ -426,7 +545,7 @@ uint32_t GatewayWorker::Send(SocketDataChunk *sd)
 __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunk *sd, int32_t num_bytes_sent)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_PRINT_WORKER << "FinishSend: socket " << sd->sock() << " chunk " << sd->get_chunk_index() << std::endl;
+    GW_PRINT_WORKER << "FinishSend: socket " << sd->get_socket() << " chunk " << sd->get_chunk_index() << std::endl;
 #endif
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
@@ -499,7 +618,7 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunk *sd, int32_t nu
 uint32_t GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunk *sd)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_PRINT_WORKER << "Disconnect: socket " << sd->sock() << " chunk " << sd->get_chunk_index() << std::endl;
+    GW_PRINT_WORKER << "Disconnect: socket " << sd->get_socket() << " chunk " << sd->get_chunk_index() << std::endl;
 #endif
 
     uint32_t err_code;
@@ -570,7 +689,7 @@ uint32_t GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunk *sd)
 __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunk *sd)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_PRINT_WORKER << "FinishDisconnect: socket " << sd->sock() << " chunk " << sd->get_chunk_index() << std::endl;
+    GW_PRINT_WORKER << "FinishDisconnect: socket " << sd->get_socket() << " chunk " << sd->get_chunk_index() << std::endl;
 #endif
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
@@ -578,11 +697,25 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunk *sd)
 #endif
 
     // Stop tracking this socket.
-    g_gateway.GetDatabase(sd->get_db_index())->UntrackSocket(sd->sock());
-    g_gateway.UntrackSocket(sd->sock());
+    g_gateway.GetDatabase(sd->get_db_index())->UntrackSocket(sd->get_socket());
+    g_gateway.UntrackSocket(sd->get_socket());
 
     // Changing active connections number.
     g_gateway.get_server_port(sd->get_port_index())->ChangeNumActiveConns(sd->get_db_index(), -1);
+
+#ifdef GW_PROXY_MODE
+
+    // Checking if socket was used in proxying.
+    if (sd->get_with_proxied_server_flag())
+    {
+        WorkerDbInterface *db = active_dbs_[sd->get_db_index()];
+        assert(db != NULL);
+
+        // Returning chunks to pool.
+        return db->ReturnSocketDataChunksToPool(this, sd);
+    }
+
+#endif
 
     // Resetting the socket data.
     sd->Reset();
@@ -614,7 +747,7 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunk *sd)
 uint32_t GatewayWorker::Connect(SocketDataChunk *sd, sockaddr_in *serverAddr)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_PRINT_WORKER << "Connect: socket " << sd->sock() << " chunk " << sd->get_chunk_index() << std::endl;
+    GW_PRINT_WORKER << "Connect: socket " << sd->get_socket() << " chunk " << sd->get_chunk_index() << std::endl;
 #endif
 
     while(TRUE)
@@ -666,7 +799,7 @@ uint32_t GatewayWorker::Connect(SocketDataChunk *sd, sockaddr_in *serverAddr)
 __forceinline uint32_t GatewayWorker::FinishConnect(SocketDataChunk *sd)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_PRINT_WORKER << "FinishConnect: socket " << sd->sock() << " chunk " << sd->get_chunk_index() << std::endl;
+    GW_PRINT_WORKER << "FinishConnect: socket " << sd->get_socket() << " chunk " << sd->get_chunk_index() << std::endl;
 #endif
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
@@ -675,6 +808,16 @@ __forceinline uint32_t GatewayWorker::FinishConnect(SocketDataChunk *sd)
 
     // Changing active connections number.
     g_gateway.get_server_port(sd->get_port_index())->ChangeNumActiveConns(sd->get_db_index(), 1);
+
+#ifdef GW_PROXY_MODE
+
+    // Checking if we are in proxy mode.
+    if (sd->get_with_proxied_server_flag())
+    {
+        // Sending to server.
+        return Send(sd);
+    }
+#endif
 
 #ifdef GW_TESTING_MODE
     // Sending determined message to master node.
@@ -688,7 +831,7 @@ __forceinline uint32_t GatewayWorker::FinishConnect(SocketDataChunk *sd)
 uint32_t GatewayWorker::Accept(SocketDataChunk *sd)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_PRINT_WORKER << "Accept: socket " << sd->sock() << " chunk " << sd->get_chunk_index() << std::endl;
+    GW_PRINT_WORKER << "Accept: socket " << sd->get_socket() << " chunk " << sd->get_chunk_index() << std::endl;
 #endif
 
     // This socket data is for receiving.
@@ -731,7 +874,7 @@ uint32_t GatewayWorker::Accept(SocketDataChunk *sd)
 uint32_t GatewayWorker::FinishAccept(SocketDataChunk *sd, int32_t numBytesReceived)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_PRINT_WORKER << "FinishAccept: socket " << sd->sock() << " chunk " << sd->get_chunk_index() << std::endl;
+    GW_PRINT_WORKER << "FinishAccept: socket " << sd->get_socket() << " chunk " << sd->get_chunk_index() << std::endl;
 #endif
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
@@ -852,14 +995,14 @@ uint32_t GatewayWorker::WorkerRoutine()
                     continue;
 
                 // Checking for IOCP operation result.
-                if (TRUE != WSAGetOverlappedResult(sd->sock(), sd->get_ovl(), (LPDWORD)&numBytes, FALSE, (LPDWORD)&flags))
+                if (TRUE != WSAGetOverlappedResult(sd->get_socket(), sd->get_ovl(), (LPDWORD)&numBytes, FALSE, (LPDWORD)&flags))
                 {
                     err_code = WSAGetLastError();
                     if ((WSA_IO_PENDING != err_code) && (WSA_IO_INCOMPLETE != err_code))
                     {
 #ifdef GW_ERRORS_DIAG
                         GW_PRINT_WORKER << "IOCP operation failed: " << GetOperTypeString(sd->type_of_network_oper()) <<
-                            " " << sd->sock() << " " << sd->get_chunk_index() << ". Disconnecting socket..." << std::endl;
+                            " " << sd->get_socket() << " " << sd->get_chunk_index() << ". Disconnecting socket..." << std::endl;
 #endif
                         PrintLastError();
 
@@ -1117,23 +1260,37 @@ uint32_t GatewayWorker::SendPredefinedMessage(
 
 #ifdef GW_TESTING_MODE
 
-// Sends HTTP counted request.
-uint32_t GatewayWorker::SendCountedHttpPing(SocketDataChunk *sd, int64_t echo_id)
+// Sends HTTP echo to master.
+uint32_t GatewayWorker::SendHttpEcho(SocketDataChunk *sd, int64_t echo_id)
 {
 #ifdef GW_ECHO_STATISTICS
     GW_PRINT_WORKER << "Sending echo: " << echo_id << std::endl;
 #endif
 
     // Copying HTTP response.
-    AccumBuffer* accum_buf = sd->get_accum_buf();
-    memcpy(accum_buf->get_orig_buf_ptr(), kHttpEchoRequest, kHttpEchoRequestLength);
+    memcpy(sd->get_data_blob(), kHttpEchoRequest, kHttpEchoRequestLength);
 
     // Inserting number into HTTP ping request.
-    uint64_to_hex_string(echo_id, (char*)accum_buf->get_orig_buf_ptr() + kHttpEchoRequestInsertPoint, 8, false);
+    uint64_to_hex_string(echo_id, (char*)sd->get_data_blob() + kHttpEchoRequestInsertPoint, 8, false);
 
     // Sending Ping request to server.
     return SendPredefinedMessage(sd, NULL, kHttpEchoRequestLength);
 }
+
+// Sends raw echo to master.
+uint32_t GatewayWorker::SendRawEcho(SocketDataChunk *sd, int64_t echo_id)
+{
+#ifdef GW_ECHO_STATISTICS
+    GW_PRINT_WORKER << "Sending echo: " << echo_id << std::endl;
+#endif
+
+    // Inserting raw echo id.
+    (*(int64_t*)sd->get_data_blob()) = echo_id;
+
+    // Sending Ping request to server.
+    return SendPredefinedMessage(sd, NULL, sizeof(echo_id));
+}
+
 
 // Sends certain message to master node.
 uint32_t GatewayWorker::ProcessMasterMessage(SocketDataChunk *sd, bool just_connected)
@@ -1144,32 +1301,22 @@ uint32_t GatewayWorker::ProcessMasterMessage(SocketDataChunk *sd, bool just_conn
     {
         case GatewayTestingMode::MODE_GATEWAY_PING:
         {
-            // Performing send back.
-            return Send(sd);
-
-            break;
-        }
-
-        case GatewayTestingMode::MODE_GATEWAY_HTTP:
-        case GatewayTestingMode::MODE_APPS_HTTP:
-        {
             if (just_connected)
             {
                 // Connect operation just finished.
-                goto SEND_ECHO_TO_MASTER;
+                goto SEND_RAW_ECHO_TO_MASTER;
             }
             else
             {
                 // Obtaining original echo number.
-                //int64_t echo_id = *(int32_t*)sd->get_data_blob();
-                int64_t echo_id = hex_string_to_uint64((char*)sd->get_data_blob() + kHttpEchoResponseInsertPoint, kHttpEchoBodyLength);
+                int64_t echo_id = *(int32_t*)sd->get_data_blob();
 
 #ifdef GW_ECHO_STATISTICS
                 GW_PRINT_WORKER << "Received echo: " << echo_id << std::endl;
 #endif
 
-                // Confirming received HTTP echo.
-                g_gateway.ConfirmHttpEcho(echo_id);
+                // Confirming received echo.
+                g_gateway.ConfirmEcho(echo_id);
 
                 // Checking if all echo responses are returned.
                 if (g_gateway.CheckConfirmedEchoResponses())
@@ -1192,17 +1339,77 @@ uint32_t GatewayWorker::ProcessMasterMessage(SocketDataChunk *sd, bool just_conn
                 }
                 else
                 {
-                    goto SEND_ECHO_TO_MASTER;
+                    goto SEND_RAW_ECHO_TO_MASTER;
                 }
             }
 
-SEND_ECHO_TO_MASTER:
+SEND_RAW_ECHO_TO_MASTER:
 
             // Checking that not all echoes are sent.
             if (!g_gateway.AllEchoesSent())
             {
                 // Sending echo request to server.
-                err_code = SendCountedHttpPing(sd, g_gateway.GetNextEchoNumber());
+                err_code = SendRawEcho(sd, g_gateway.GetNextEchoNumber());
+                if (err_code)
+                    return err_code;
+            }
+
+            break;
+        }
+
+        case GatewayTestingMode::MODE_GATEWAY_HTTP:
+        case GatewayTestingMode::MODE_APPS_HTTP:
+        {
+            if (just_connected)
+            {
+                // Connect operation just finished.
+                goto SEND_HTTP_ECHO_TO_MASTER;
+            }
+            else
+            {
+                // Obtaining original echo number.
+                //int64_t echo_id = *(int32_t*)sd->get_data_blob();
+                int64_t echo_id = hex_string_to_uint64((char*)sd->get_data_blob() + kHttpEchoResponseInsertPoint, kHttpEchoBodyLength);
+
+#ifdef GW_ECHO_STATISTICS
+                GW_PRINT_WORKER << "Received echo: " << echo_id << std::endl;
+#endif
+
+                // Confirming received echo.
+                g_gateway.ConfirmEcho(echo_id);
+
+                // Checking if all echo responses are returned.
+                if (g_gateway.CheckConfirmedEchoResponses())
+                {
+                    GW_PRINT_WORKER << "All ECHO messages are confirmed on the client." << std::endl;
+
+                    // Returning this chunk to database.
+                    WorkerDbInterface *db = active_dbs_[sd->get_db_index()];
+                    assert(db != NULL);
+
+                    // Returning chunks to pool.
+                    return db->ReturnSocketDataChunksToPool(this, sd);
+                        
+                    /*
+                    EnterGlobalLock();
+                    g_gateway.ResetEchoTests();
+                    LeaveGlobalLock();
+                    return 0;
+                    */
+                }
+                else
+                {
+                    goto SEND_HTTP_ECHO_TO_MASTER;
+                }
+            }
+
+SEND_HTTP_ECHO_TO_MASTER:
+
+            // Checking that not all echoes are sent.
+            if (!g_gateway.AllEchoesSent())
+            {
+                // Sending echo request to server.
+                err_code = SendHttpEcho(sd, g_gateway.GetNextEchoNumber());
                 if (err_code)
                     return err_code;
             }
