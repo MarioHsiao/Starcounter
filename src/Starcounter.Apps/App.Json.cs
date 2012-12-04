@@ -29,25 +29,13 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// To the json UTF8.
-        /// </summary>
-        /// <param name="includeView">if set to <c>true</c> [include view].</param>
-        /// <param name="includeSessionId">if set to <c>true</c> [include session id].</param>
-        /// <returns>System.Byte[][].</returns>
-        public byte[] ToJsonUtf8(bool includeView, bool includeSessionId)
-        {
-            return Encoding.UTF8.GetBytes(ToJson(includeView, false, includeSessionId ));
-        }
-
-        /// <summary>
         /// To the json.
         /// </summary>
         /// <param name="includeView">if set to <c>true</c> [include view].</param>
         /// <param name="includeSchema">if set to <c>true</c> [include schema].</param>
-        /// <param name="includeSessionId">if set to <c>true</c> [include session id].</param>
         /// <returns>System.String.</returns>
         /// <exception cref="System.NotImplementedException"></exception>
-        public virtual string ToJson(bool includeView = false, bool includeSchema = false, bool includeSessionId = false) { //, IncludeView includeViewContent = IncludeView.Default) {
+        public virtual string ToJson(bool includeView = false, bool includeSchema = false) { //, IncludeView includeViewContent = IncludeView.Default) {
 #if QUICKTUPLE
             var sb = new StringBuilder();
             var templ = this.Template;
@@ -171,12 +159,12 @@ namespace Starcounter {
 
             }
 
-            if (includeSessionId)
+            if (ViewModelId != -1)
             {
                 if (t > 0)
                     sb.Append(',');
                 sb.Append("\"View-Model\":");
-                sb.Append("\"1\"");
+                sb.Append(ViewModelId);
             }
 
 //            if (t > 0)

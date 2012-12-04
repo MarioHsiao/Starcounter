@@ -8,6 +8,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 using NUnit.Framework;
+using Starcounter.Apps;
 using Starcounter.Internal;
 using Starcounter.Internal.Application;
 using Starcounter.Internal.Application.JsonReader;
@@ -128,8 +129,9 @@ namespace Starcounter.Internal.JsonPatch.Test
             Session session = new Session();
             session.Execute(null, () =>
             {
-                Session.Current.AttachRootApp(CreateSampleApp().App);
-                JsonPatch.EvaluatePatches(System.Text.Encoding.UTF8.GetBytes(patchBlob));
+                App rootApp = CreateSampleApp().App;
+                Session.Current.AttachRootApp(rootApp);
+                JsonPatch.EvaluatePatches(rootApp, System.Text.Encoding.UTF8.GetBytes(patchBlob));
             });
         }
 
@@ -141,43 +143,44 @@ namespace Starcounter.Internal.JsonPatch.Test
         {
             AppExeModule.IsRunningTests = true;
 
-            ChangeLog.BeginRequest(new ChangeLog());
-            
-            AppAndTemplate aat = CreateSampleApp();
-            dynamic app = aat.App;
+            Session session = new Session();
 
-            AppAndTemplate obj = JsonPatch.Evaluate(app, "/FirstName");
-            String value = obj.App.GetValue((StringProperty)obj.Template);
-            Assert.AreEqual(value, "Cliff");
+            session.Execute(null, () => {
 
-            obj = JsonPatch.Evaluate(app, "/LastName");
-            value = obj.App.GetValue((StringProperty)obj.Template);
-            Assert.AreEqual(value, "Barnes");
+                AppAndTemplate aat = CreateSampleApp();
+                dynamic app = aat.App;
 
-            obj = JsonPatch.Evaluate(app, "/Items/0/Description");
-            value = obj.App.GetValue((StringProperty)obj.Template);
-            Assert.AreEqual(value, "Take a nap!");
+                AppAndTemplate obj = JsonPatch.Evaluate(app, "/FirstName");
+                String value = obj.App.GetValue((StringProperty)obj.Template);
+                Assert.AreEqual(value, "Cliff");
 
-            obj = JsonPatch.Evaluate(app, "/Items/1/IsDone");
-            bool b = obj.App.GetValue((BoolProperty)obj.Template);
-            Assert.AreEqual(b, true);
+                obj = JsonPatch.Evaluate(app, "/LastName");
+                value = obj.App.GetValue((StringProperty)obj.Template);
+                Assert.AreEqual(value, "Barnes");
 
-            obj = JsonPatch.Evaluate(app, "/Items/1");
-//                Assert.IsInstanceOf<SampleApp.ItemsApp>(obj);
+                obj = JsonPatch.Evaluate(app, "/Items/0/Description");
+                value = obj.App.GetValue((StringProperty)obj.Template);
+                Assert.AreEqual(value, "Take a nap!");
 
-            Assert.Throws<Exception>(() => { JsonPatch.Evaluate(app, "/Nonono"); },
-                                        "Unknown token 'Nonono' in patch message '/Nonono'");
+                obj = JsonPatch.Evaluate(app, "/Items/1/IsDone");
+                bool b = obj.App.GetValue((BoolProperty)obj.Template);
+                Assert.AreEqual(b, true);
 
-            Int32 repeat = 1;
-            DateTime start = DateTime.Now;
-            for (Int32 i = 0; i < repeat; i++)
-            {
-                obj = JsonPatch.Evaluate(app, "/FirstName");
-            }
-            DateTime stop = DateTime.Now;
+                obj = JsonPatch.Evaluate(app, "/Items/1");
+                //                Assert.IsInstanceOf<SampleApp.ItemsApp>(obj);
 
-            Console.WriteLine("Evaluated {0} jsonpatches in {1} ms.", repeat, (stop - start).TotalMilliseconds);
-            ChangeLog.EndRequest();
+                Assert.Throws<Exception>(() => { JsonPatch.Evaluate(app, "/Nonono"); },
+                                            "Unknown token 'Nonono' in patch message '/Nonono'");
+
+                Int32 repeat = 1;
+                DateTime start = DateTime.Now;
+                for (Int32 i = 0; i < repeat; i++) {
+                    obj = JsonPatch.Evaluate(app, "/FirstName");
+                }
+                DateTime stop = DateTime.Now;
+
+                Console.WriteLine("Evaluated {0} jsonpatches in {1} ms.", repeat, (stop - start).TotalMilliseconds);
+            });
         }
 
         /// <summary>
@@ -285,37 +288,37 @@ namespace Starcounter.Internal.JsonPatch.Test
             AppExeModule.IsRunningTests = true;
             Int32 repeat = 1;
 
-            ChangeLog.BeginRequest(new ChangeLog());
-            AppAndTemplate aat = CreateSampleApp();
+            Session session = new Session();
+            session.Execute(null, () => {
+                AppAndTemplate aat = CreateSampleApp();
 
-            appt = (AppTemplate)aat.Template;
+                appt = (AppTemplate)aat.Template;
 
-            StringProperty lastName = (StringProperty)appt.Properties[1]; 
-            ListingProperty items = (ListingProperty)appt.Properties[2];
+                StringProperty lastName = (StringProperty)appt.Properties[1];
+                ListingProperty items = (ListingProperty)appt.Properties[2];
 
-            dynamic app = aat.App;
-            app.LastName = "Ewing";
-            app.Items.RemoveAt(0);
-            dynamic newitem = app.Items.Add();
-            newitem.Description = "Aight!";
-            app.LastName = "Poe";
+                dynamic app = aat.App;
+                app.LastName = "Ewing";
+                app.Items.RemoveAt(0);
+                dynamic newitem = app.Items.Add();
+                newitem.Description = "Aight!";
+                app.LastName = "Poe";
 
-            start = DateTime.Now;
-            for (Int32 i = 0; i < repeat; i++)
-            {
-                ChangeLog.UpdateValue(app, lastName);
-//                ChangeLog.RemoveItemInList(app, items, 0);
-                ChangeLog.AddItemInList(app, items, app.Items.Count - 1);
+                start = DateTime.Now;
+                for (Int32 i = 0; i < repeat; i++) {
+                    ChangeLog.UpdateValue(app, lastName);
+                    //                ChangeLog.RemoveItemInList(app, items, 0);
+                    ChangeLog.AddItemInList(app, items, app.Items.Count - 1);
 
-                //ChangeLog.UpdateValue(app, aat.Template.Children[2].Children[0].Children[0]);
-                ChangeLog.UpdateValue(app, lastName);
+                    //ChangeLog.UpdateValue(app, aat.Template.Children[2].Children[0].Children[0]);
+                    ChangeLog.UpdateValue(app, lastName);
 
-                response = HttpPatchBuilder.CreateHttpPatchResponse(ChangeLog.Log);
-                ChangeLog.Log.Clear();
-            }
-            stop = DateTime.Now;
+                    response = HttpPatchBuilder.CreateHttpPatchResponse(session.changeLog);
+                    session.changeLog.Clear();
+                }
+                stop = DateTime.Now;
 
-            ChangeLog.EndRequest();
+            });
             Console.WriteLine("Created {0} responses in {1} ms", repeat, (stop - start).TotalMilliseconds);
             Console.WriteLine(Encoding.UTF8.GetString(response));
         }

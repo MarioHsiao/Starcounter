@@ -23,6 +23,7 @@
 #include <boost/thread/thread.hpp>
 #include <boost/call_traits.hpp>
 #include <boost/bind.hpp>
+#include "macro_definitions.hpp"
 
 namespace starcounter {
 namespace core {
@@ -56,9 +57,16 @@ private:
 		return is_initialized_;
 	}
 
+#if defined (IPC_SHARED_MEMORY_MANAGER_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	boost::interprocess::interprocess_mutex mutex_;
 	boost::interprocess::interprocess_condition initialized_;
 	bool is_initialized_;
+	
+#else // !defined (IPC_SHARED_MEMORY_MANAGER_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+	boost::interprocess::interprocess_mutex mutex_;
+	boost::interprocess::interprocess_condition initialized_;
+	bool is_initialized_;
+#endif // defined (IPC_SHARED_MEMORY_MANAGER_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 };
 
 } // namespace core

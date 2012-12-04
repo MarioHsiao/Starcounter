@@ -23,6 +23,11 @@ registrar_(),
 active_databases_file_updater_thread_(),
 #if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 resources_watching_thread_(),
+test_thread_(),
+thread_a_(),
+thread_b_(),
+thread_c_(),
+test_id_(5),
 #endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 owner_id_counter_(owner_id::none) {
 	/// TODO: Use Boost.Program_options.
@@ -241,6 +246,10 @@ monitor::~monitor() {
 
 #if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 	resources_watching_thread_.join();
+	thread_a_.join();
+	thread_b_.join();
+	thread_c_.join();
+	test_thread_.join();
 #endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 }
 
@@ -284,6 +293,19 @@ void monitor::run() {
 	// Start the resources watching thread.
 	resources_watching_thread_ = boost::thread(boost::bind
 	(&monitor::watch_resources, this));
+	
+	if ((abc_event = ::CreateEvent(NULL, TRUE, FALSE, NULL)) == NULL) {
+		std::cout << "Error: Failed to create the abc_event\n";
+		return;
+	}
+
+	// Start the a, b and c threads.
+	thread_a_ = boost::thread(boost::bind(&monitor::test_a, this));
+	thread_b_ = boost::thread(boost::bind(&monitor::test_b, this));
+	thread_c_ = boost::thread(boost::bind(&monitor::test_c, this));
+
+	// Start the test thread.
+	test_thread_ = boost::thread(boost::bind(&monitor::test, this));
 #endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 }
 
@@ -701,19 +723,43 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 								//   owned, for clean up. This prepares for the
 								//   clean up job to be done by the schedulers.
 								//print_event_register();
-								//std::cout << "Searching for terminated " << owner_id_of_terminated_process
-								//<< "...\n"; /// DEBUG
 								
 								for (std::size_t n = 0; n < max_number_of_clients; ++n) {
 									if (shared.client_interface(n).get_owner_id()
 									== owner_id_of_terminated_process) {
-										//std::cout << "clean up: client_interface[" << n << "]\n"; /// DEBUG
 										client_interface_type* client_interface_ptr
 										= &shared.client_interface(n);
 										
 										//common_client_interface_type* common_client_interface_ptr
 										//= &shared.common_client_interface();
 										
+										_mm_mfence();
+
+										///=====================================
+										/// Unlock all robust spinlocks that may
+										/// have been left in a locked state by
+										/// the terminated client process.
+										///=====================================
+
+										// Unlock the scheduler_interface[s]
+										// channel number queue.
+
+#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+										for (std::size_t si = 0; si < shared.common_scheduler_interface()
+										.number_of_active_schedulers(); ++si) {
+											if (shared.scheduler_interface(si).channel_number()
+											.if_locked_with_id_recover_and_unlock
+											(owner_id_of_terminated_process.get()) == true) {
+												//std::cout << "Unlocked scheduler_interface(" << si
+												//<< ") with owner_id_of_terminated_process = "
+												//< owner_id_of_terminated_process.get() << std::endl;
+											}
+											//else {
+											//	std::cout << "scheduler_interface(" << si << ") is not locked with id of terminated_process." << std::endl;
+											//}
+										}
+#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+
 										if (client_interface_ptr) {
 											//common_client_interface_ptr->increment_client_interfaces_to_clean_up();
 											shared.common_client_interface().increment_client_interfaces_to_clean_up();
@@ -728,11 +774,6 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 
 											++channels_to_recover;
 										}
-
-										//std::cout << "client_interfaces_to_clean_up: "
-										//<< shared.common_client_interface().client_interfaces_to_clean_up() << "\n"; /// DEBUG
-
-										//std::cout << "channels_to_recover: " << channels_to_recover << "\n"; /// DEBUG
 
 										// For each of the channels the client
 										// owned, try to notify the scheduler.
@@ -869,7 +910,6 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 								
 								// Get a new unique owner_id.
 								owner_id new_owner_id = get_new_owner_id();
-								
 								// Insert client process info.
 								process_register_[new_owner_id] =
 								process_info(the_event,
@@ -1067,9 +1107,43 @@ void __stdcall monitor::apc_function(boost::detail::win32::ulong_ptr arg) {
 	// return and continue in the switch case WAIT_IO_COMPLETION of the caller.
 }
 
+#if defined (IPC_OWNER_ID_IS_32_BIT)
+inline owner_id monitor::get_new_owner_id() {
+	// The register_mutex_ is already locked by the caller.
+	
+	// The owner_id value type was changed from 64-bit to 32-bit. Therefore it
+	// may wrap so this need to be handled. The range will be owner_id::id_field
+	// except that owner_id::none (0) and owner_id::anonymous (1) is out of the
+	// id range, since smp::spinlocks are unlocked with 0, and anonymously
+	// locked with 1. Using the smp::spinlocks in robust mode requires locking
+	// with an id in the range 2 to 2^30 -1. Bit 31 (MSB) in the owner_id is
+	// used to flag clean-up so the range is about 31-bits.
+
+	//--------------------------------------------------------------------------
+	// At most max_number_of_monitored_processes +2 (0 and 1) IDs can be taken.
+	for (std::size_t i = 0; i < max_number_of_monitored_processes +2; ++i) {
+		++owner_id_counter_;
+		owner_id_counter_ &= owner_id::id_field;
+
+		if (owner_id_counter_ != owner_id::none
+		&& owner_id_counter_ != owner_id::anonymous) {
+			if (process_register_.find(owner_id_counter_) == process_register_.end()) {
+				// This owner_id is not used by any monitored process.
+				return owner_id_counter_;
+			}
+		}
+	}
+
+	// Getting here should be impossible. Returning owner_id::none to a
+	// registering process indicates it could not register and be monitored.
+	return owner_id::none;
+}
+
+#else // !defined (IPC_OWNER_ID_IS_32_BIT)
 inline owner_id monitor::get_new_owner_id() {
 	return ++owner_id_counter_;
 }
+#endif // defined (IPC_OWNER_ID_IS_32_BIT)
 
 #if 0
 void monitor::update_active_databases() {
@@ -1212,11 +1286,429 @@ void monitor::print_rate_with_precision(double rate) {
 }
 #endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 
+void monitor::test_a() {
+	Sleep(INFINITE);
+	Sleep(100);
+	std::cout << "Terminating with access violation in 2000 ms..." << std::endl;
+	Sleep(2000);
+	_mm_mfence();
+	*((int*) 0) = 0;
+	_mm_mfence();
+	Sleep(INFINITE);
+	Sleep(100);
+	owner_id new_owner_id;
+
+	std::size_t i;
+	std::size_t inserted_counter = 0;
+
+	for (i = 2; i < 16386; ++i) {
+		if (process_register_.find(i) == process_register_.end()) {
+			// Insert client process info.
+			process_register_[i] = process_info();
+			++inserted_counter;
+		}
+	}
+	
+	std::cout << "Successfully inserted " << inserted_counter << " process_info objects.\n";
+	
+	process_register_.erase(1000);
+
+	for (i = 0; i < 100; ++i) {
+		new_owner_id = get_new_owner_id();
+
+		if (new_owner_id == owner_id::none) {
+			std::cout << "owner_id::none on i = " << i << "\n";
+		}
+		else {
+			if (process_register_.find(new_owner_id) == process_register_.end()) {
+				// Insert client process info.
+				process_register_[new_owner_id] = process_info();
+				std::cout << new_owner_id << " successfully inserted.\n";
+			}
+			else {
+				std::cout << new_owner_id << " was not insterted because it already exist in the process register.\n";
+			}
+		}
+	}
+	Sleep(INFINITE);
+
+	
+	owner_id x;
+	owner_id y(1);
+	owner_id z = 2;
+
+	if (x.is_no_owner_id()) {
+		std::cout << "x is not an owner_id.\n";
+	}
+	else {
+		std::cout << "x is an owner_id.\n";
+	}
+
+	if (y.is_no_owner_id()) {
+		std::cout << "y is not an owner_id.\n";
+	}
+	else {
+		std::cout << "y is an owner_id.\n";
+	}
+
+	std::cout << "x = " << x << "\n";
+	std::cout << "y = " << y << "\n";
+	std::cout << "z = " << z << "\n";
+	++x;
+	std::cout << "++x; x = " << x << "\n";
+	y = z;
+	std::cout << "y = z; y = " << y << "\n";
+	z.set(10);
+	std::cout << "z.set(10); z = " << z << "\n";
+	y.mark_for_clean_up();
+	std::cout << "y.mark_for_clean_up(); y = " << y << "\n";
+
+	if (y.get_clean_up()) {
+		std::cout << "y.get_clean_up(); true\n";
+	}
+	else {
+		std::cout << "y.get_clean_up(); false\n";
+	}
+
+	std::cout << "y.get_owner_id(): " << y.get_owner_id() << "\n";
+
+	y.set(5);
+	std::cout << "y.set(5); y = " << y << "\n";
+
+	if (y.get_clean_up()) {
+		std::cout << "y.get_clean_up(); true\n";
+	}
+	else {
+		std::cout << "y.get_clean_up(); false\n";
+	}
+
+	
+	Sleep(INFINITE);
+	smp::spinlock::milliseconds timeout = 3000;
+	timeout.add_tick_count();
+	smp::spinlock::milliseconds time_left = timeout;
+
+	// Compute time left:
+
+	while (true) {
+		std::cout << "time_left = " << time_left << "\n";
+		if ((time_left = timeout -timeout.tick_count()) > 0) {
+			continue;
+		}
+		else {
+			break;
+		}
+	}
+
+	std::cout << "Time is up! time_left = " << time_left << "\n";
+	Sleep(INFINITE);
+
+	do {
+		// "A" see that the queue is empty and waits...
+		// After 1000 ms several items are pushed by another thread and
+		// "A" receives a notification.
+		::WaitForSingleObject(abc_event, INFINITE);
+		::ResetEvent(abc_event);
+
+		// "A" takes one item, there is still several items left.
+
+		std::cout << "A";
+	} while (true);
+}
+
+void monitor::test_b() {
+	Sleep(INFINITE);
+
+	do {
+		// "B" checks the queue, it is empty.
+		// "B" is switched out by chance...
+		// "B" comes back. While "B" was switched out
+		Sleep(3000);
+		// several items was pushed to the queue, and
+		// a notification was sent. "A" woke up and reset
+		// the event and took one object. There are several left.
+		// "B" thinks there aren't any, and waits...forever.
+		::WaitForSingleObject(abc_event, INFINITE);
+		::ResetEvent(abc_event);
+		std::cout << "B";
+	} while (true);
+}
+
+void monitor::test_c() {
+	Sleep(INFINITE);
+	do {
+		Sleep(500);
+		::WaitForSingleObject(abc_event, INFINITE);
+		::ResetEvent(abc_event);
+		std::cout << "C";
+	} while (true);
+}
+
+void monitor::test() {
+	do {
+		Sleep(1000);
+		SetEvent(abc_event);
+		Sleep(INFINITE);
+	} while (true);
+	Sleep(INFINITE);
+	std::cout << "monitor::test(): start\n";
+#if 0
+	{
+		if (test_lock().is_locked()) {
+			std::cout << "monitor::test(): Owns test_lock() " << &test_lock() << " locked with " << test_lock() << "\n";
+		}
+		else {
+			std::cout << "monitor::test(): Do not own test_lock() " << &test_lock() << " locked with " << test_lock() << "\n";
+		}
+
+		if (test_lock().try_lock(test_id()) == true) {
+			std::cout << "monitor::test(): Owns test_lock() " << &test_lock() << " locked with " << test_lock() << "\n";
+		}
+		else {
+			std::cout << "monitor::test(): Do not own test_lock() " << &test_lock() << " locked with " << test_lock() << "\n";
+		}
+
+		test_lock().unlock_if_locked_with_id(3);
+
+		if (test_lock().is_locked()) {
+			std::cout << "monitor::test(): Owns test_lock() " << &test_lock() << " locked with " << test_lock() << "\n";
+		}
+		else {
+			std::cout << "monitor::test(): Do not own test_lock() " << &test_lock() << " locked with " << test_lock() << "\n";
+		}
+
+		test_lock().unlock_if_locked_with_id(test_id());
+
+		if (test_lock().is_locked()) {
+			std::cout << "monitor::test(): Owns test_lock() " << &test_lock() << " locked with " << test_lock() << "\n";
+		}
+		else {
+			std::cout << "monitor::test(): Do not own test_lock() " << &test_lock() << " locked with " << test_lock() << "\n";
+		}
+	}
+
+	Sleep(INFINITE);
+#endif
+	try {
+		/// TESTING SPINLOCK IN THE MONITOR OBJECT:
+		smp::spinlock::milliseconds abs_timeout = 2500;
+
+#if 0 // "A"
+		{
+			smp::spinlock::scoped_lock lock(test_lock());
+		}
+		{
+			smp::spinlock::scoped_lock lock(test_lock());
+			lock.unlock();
+		}
+#endif // "A"
+#if 0 // "B"
+		{
+			smp::spinlock::scoped_lock lock(test_lock(),
+			smp::spinlock::scoped_lock::try_to_lock_type());
+		}
+		{
+			smp::spinlock::scoped_lock lock(test_lock(),
+			smp::spinlock::scoped_lock::try_to_lock_type());
+			lock.unlock();
+		}
+#endif // "B"
+#if 0 // "C"
+		{
+			smp::spinlock::scoped_lock lock(test_lock(), test_id(),
+			smp::spinlock::scoped_lock::try_to_lock_type());
+		}
+		{
+			smp::spinlock::scoped_lock lock(test_lock(), test_id(),
+			smp::spinlock::scoped_lock::try_to_lock_type());
+			lock.unlock();
+		}
+#endif // "C"
+#if 1 // "D"
+		Sleep(100);
+		{
+			//smp::spinlock::scoped_lock lock(test_lock(), test_id(), abs_timeout);
+			smp::spinlock::scoped_lock lock(test_lock(), test_id(),
+			smp::spinlock::scoped_lock::try_to_lock_type());
+			
+			if (lock.owns()) {
+				std::cout << "<1> OWNS. UNLOCKING.\n";
+				lock.unlock();
+			}
+			else {
+				std::cout << "<1> OWNS...NOT\n";
+			}
+			//lock.timed_lock(test_id(), abs_timeout);
+			if (lock.owns()) {
+				std::cout << "<2> OWNS\n";
+			}
+			else {
+				std::cout << "<2> OWNS...NOT\n";
+			}
+			lock.try_lock(test_id());
+			if (lock.owns()) {
+				std::cout << "<3> OWNS\n";
+			}
+			else {
+				std::cout << "<3> OWNS...NOT\n";
+			}
+		}
+		{
+			//smp::spinlock::scoped_lock lock(test_lock(), abs_timeout);
+			//lock.unlock();
+		}
+#endif // "D"
+		std::cout << "monitor::test(): Sleeps forever.\n";
+		Sleep(INFINITE);
+		// "B"
+		//std::cout << "<6> monitor::test(): scoped_lock::scoped_lock(spinlock&)\n";
+		//smp::spinlock::scoped_lock lock(test_lock(),
+		//smp::spinlock::scoped_lock::try_to_lock_type());
+
+		//lock.unlock();
+		#if 0
+		if (lock.timed_lock(abs_timeout)) {
+			std::cout << "<6> monitor::test(): lock.timed_lock(abs_timeout): NOT ACQUIRED\n";
+		}
+		else {
+			std::cout << "<6> monitor::test(): lock.timed_lock(abs_timeout): ACQUIRED\n";
+		}
+
+		// "C"
+		//std::cout << "<6> monitor::test(): scoped_lock::scoped_lock(spinlock&)\n";
+		//smp::spinlock::scoped_lock lock(test_lock(), test_id(),
+		//smp::spinlock::scoped_lock::try_to_lock_type());
+
+		// "D"
+		//std::cout << "<6> monitor::test(): scoped_lock::scoped_lock(spinlock&, milliseconds)\n";
+		//smp::spinlock::scoped_lock lock(test_lock(), test_id(), 5000);
+		
+		if (lock.owns()) {
+			std::cout << "<6> monitor::test(): Owns lock " << &lock << " locked with " << lock << "\n";
+		}
+		else {
+			std::cout << "<6> monitor::test(): Do not own lock " << &lock << " locked with " << lock << "\n";
+		}
+		#endif
+	}
+	catch (smp::spinlock::scoped_lock::lock_exception&) {
+		std::cout << "error: lock exception caught.\n";
+	}
+	catch (...) {
+		std::cout << "error: unknown exception caught.\n";
+	}
+
+	std::cout << "<6> monitor::test(): Sleeping forever. . .\n";
+	Sleep(INFINITE);
+
+	///----------------------------------------------------------------------------------
+	/// TESTING SPINLOCK IN THE MONITOR_INTERFACE SHARED MEMORY SEGMENT:
+#if 0
+	{
+		smp::spinlock::scoped_lock lock(the_monitor_interface_->sp(),
+        smp::spinlock::scoped_lock::try_to_lock_type());
+
+		if (lock.owns()) {
+			std::cout << "2 monitor::test(): Owns lock " << &lock << " locked with " << lock << "\n";
+		}
+		else {
+			std::cout << "2 monitor::test(): Do not own lock " << &lock << " locked with " << lock << "\n";
+		}
+	}
+
+	// Now the lock shall defenitely be locked.
+	std::cout << "monitor::test(): timed_lock(30000)...\n";
+	if (the_monitor_interface_->sp().timed_lock(30000) == true) {
+		int count = 10;
+
+		do {
+			std::cout << "monitor::test(): LOCKED! Current value is: "
+			<< the_monitor_interface_->sp() << "\n";
+			Sleep(400);
+		} while (--count);
+	
+		the_monitor_interface_->sp().unlock();
+		std::cout << "monitor::test(): UNLOCKED! Current value is: "
+		<< the_monitor_interface_->sp() << "\n";
+	}
+	else {
+		std::cout << "monitor::test(): A timeout occurred. Giving up trying to acquire the lock.\n";
+	}
+
+#endif
+	Sleep(INFINITE);
+}
+
 /// NOTE: Originally was ment to be able to show multiple databases at once,
 /// which it can but then statistics are messed up completely. Only test with
 /// one database running.
 #if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 void monitor::watch_resources() {
+	Sleep(INFINITE);
+	test_lock().lock(test_id()); // Spins until acquires the lock.
+	//test_lock().lock(); // Spins until acquires the lock.
+	//Sleep(5500);
+	//test_lock().unlock(); // Spins until acquires the lock.
+	Sleep(INFINITE);
+
+	if (test_lock().is_locked() == true) {
+		std::cout << "<3> monitor::watch_resources(): test_lock().lock(test_id() succeeded!\n";
+	}
+	else {
+		std::cout << "<3> monitor::watch_resources(): test_lock().lock(test_id() failed!\n";
+	}
+
+	std::cout << "<3> monitor::watch_resources(): Sleeping 2 seconds. . .\n";
+	Sleep(2000);
+
+	test_lock().unlock();
+	std::cout << "<3> monitor::watch_resources(): test_lock().unlock()\n";
+	std::cout << "<3> monitor::watch_resources(): Sleeping forever. . .\n";
+	Sleep(INFINITE);
+
+	/// TESTING SPINLOCK IN THE MONITOR OBJECT:
+	if (test_lock().try_lock() == true) {
+		std::cout << "<4> monitor::watch_resources(): try_lock() succeeded!\n";
+	}
+	else {
+		std::cout << "<4> monitor::watch_resources(): try_lock() failed!\n";
+	}
+
+	if (test_lock().try_lock(test_id()) == true) {
+		std::cout << "<5> monitor::watch_resources(): try_lock(" << test_id() << ") succeeded!\n";
+	}
+	else {
+		std::cout << "<5> monitor::watch_resources(): try_lock(" << test_id() << ") failed!\n";
+	}
+
+	do {
+		std::cout << "monitor::watch_resources(): Try to unlock me! Current value is: "
+		<< test_lock() << "\n";
+		Sleep(1000);
+	} while (test_lock());
+	
+	std::cout << "monitor::watch_resources(): Sleeping. . .\n";
+	Sleep(INFINITE);
+
+	///----------------------------------------------------------------------------------
+	/// TESTING SPINLOCK IN THE MONITOR_INTERFACE SHARED MEMORY SEGMENT:
+	Sleep(INFINITE);
+	if (the_monitor_interface_->sp().try_lock(1000) == true) {
+		std::cout << "monitor::watch_resources(): try_lock(1000) succeeded!\n";
+	}
+	else {
+		std::cout << "monitor::watch_resources(): try_lock(1000) failed!\n";
+	}
+
+	do {
+		std::cout << "monitor::watch_resources(): Try to unlock me! Current value is: "
+		<< the_monitor_interface_->sp() << "\n";
+		Sleep(1000);
+	} while (the_monitor_interface_->sp());
+	
+	Sleep(INFINITE);
+	///----------------------------------------------------------------------------------
+
 	// Vector of all shared interfaces.
 	std::vector<boost::shared_ptr<shared_interface> > shared;
 	shared.reserve(256);
@@ -1570,6 +2062,7 @@ void monitor::remove_database_process_event(process_info::handle_type e) {
 		}
 	}
 }
+
 #endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 
 void monitor::remove_database_process_event(std::size_t group, uint32_t

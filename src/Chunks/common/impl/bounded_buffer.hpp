@@ -62,6 +62,7 @@ spin_count, uint32_t timeout_milliseconds) {
 			// The item was successfully pushed.
 			return true;
 		}
+		_mm_pause();
 	}
 
 	// Failed to aquire the lock while spinning. If failing to aquire the lock
@@ -113,6 +114,7 @@ spin_count, uint32_t timeout_milliseconds) {
 			// The item has been popped.
 			return true;
 		}
+		_mm_pause();
 	}
 
 	// Failed to aquire the lock while spinning. If failing to aquire the lock
