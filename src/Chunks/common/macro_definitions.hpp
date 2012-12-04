@@ -46,12 +46,19 @@
 #endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 
 ///********************************************************************************************
+///********************************************************************************************
+/// Define IPC_SHARED_MEMORY_MANAGER_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
+/// to use a robust spinlock and windows events to synchronize access to
+/// shared_memory_manager.
+#define IPC_SHARED_MEMORY_MANAGER_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
+
+#if defined (IPC_SHARED_MEMORY_MANAGER_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+#else // !defined (IPC_SHARED_MEMORY_MANAGER_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+#endif // defined (IPC_SHARED_MEMORY_MANAGER_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+
+///********************************************************************************************
 
 #define IPC_OWNER_ID_IS_32_BIT
-
-#if defined (IPC_OWNER_ID_IS_32_BIT)
-#else // !defined (IPC_OWNER_ID_IS_32_BIT)
-#endif // defined (IPC_OWNER_ID_IS_32_BIT)
 
 /// Define INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC to use Windows Event
 /// synchronization in interprocess communication. Comment this out in order to use

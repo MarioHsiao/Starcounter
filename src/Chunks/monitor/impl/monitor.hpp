@@ -744,6 +744,7 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 										// Unlock the scheduler_interface[s]
 										// channel number queue.
 
+#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 										for (std::size_t si = 0; si < shared.common_scheduler_interface()
 										.number_of_active_schedulers(); ++si) {
 											if (shared.scheduler_interface(si).channel_number()
@@ -757,6 +758,7 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 											//	std::cout << "scheduler_interface(" << si << ") is not locked with id of terminated_process." << std::endl;
 											//}
 										}
+#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 
 										if (client_interface_ptr) {
 											//common_client_interface_ptr->increment_client_interfaces_to_clean_up();
