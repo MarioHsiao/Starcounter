@@ -150,13 +150,32 @@ namespace Starcounter
         public static void DELETE(string uri, Func<object> handler) {
             UriMatcherBuilder.RegisterHandler("DELETE " + uri, handler);
         }
+
         /// <summary>
         /// PATCHs the specified URI.
         /// </summary>
         /// <param name="uri">The URI.</param>
         /// <param name="handler">The handler.</param>
-        public static void PATCH(string uri, Func<string, object> handler) {
+        public static void PATCH(string uri, Func<object> handler) {
             UriMatcherBuilder.RegisterHandler("PATCH " + uri, handler);
+        }
+
+        /// <summary>
+        /// PATCHs the specified URI.
+        /// </summary>
+        /// <param name="uri">The URI.</param>
+        /// <param name="handler">The handler.</param>
+        public static void PATCH<T1>(string uri, Func<T1, object> handler) {
+            UriMatcherBuilder.RegisterHandler<T1>("PATCH " + uri, handler);
+        }
+
+        /// <summary>
+        /// PATCHs the specified URI.
+        /// </summary>
+        /// <param name="uri">The URI.</param>
+        /// <param name="handler">The handler.</param>
+        public static void PATCH<T1, T2>(string uri, Func<T1, T2, object> handler) {
+            UriMatcherBuilder.RegisterHandler<T1, T2>("PATCH " + uri, handler);
         }
 
 //        public static T Get<T>(string uri) where T : App {

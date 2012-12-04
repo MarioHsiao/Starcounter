@@ -6,62 +6,11 @@
 
 using System;
 using System.Text;
-using Starcounter.Internal.REST;
-using Starcounter.Internal.Application;
 using HttpStructs;
+using Starcounter.Apps;
+using Starcounter.Internal.REST;
 
 namespace Starcounter.Internal.Web {
-
-    /// <summary>
-    /// Class HardcodedStuff
-    /// </summary>
-    public class HardcodedStuff
-    {
-        /// <summary>
-        /// The HTTP request
-        /// </summary>
-        public HttpRequest HttpRequest;
-        /// <summary>
-        /// The sessions
-        /// </summary>
-        public SessionDictionary Sessions;
-
-        /// <summary>
-        /// The here
-        /// </summary>
-        [ThreadStatic]
-        public static HardcodedStuff Here;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="HardcodedStuff" /> class.
-        /// </summary>
-        /// <param name="request">The request.</param>
-        /// <param name="sessions">The sessions.</param>
-        private HardcodedStuff(HttpRequest request, SessionDictionary sessions)
-        {
-            HttpRequest = request;
-            Sessions = sessions;
-        }
-
-        /// <summary>
-        /// Begins the request.
-        /// </summary>
-        /// <param name="request">The request.</param>
-        /// <param name="sessions">The sessions.</param>
-        public static void BeginRequest(HttpRequest request, SessionDictionary sessions)
-        {
-            Here = new HardcodedStuff(request, sessions);
-        }
-
-        /// <summary>
-        /// Ends the request.
-        /// </summary>
-        public static void EndRequest()
-        {
-            Here = null;
-        }
-    }
-
     /// <summary>
     /// Wrapps the file based http web resource resolver and the App view model resolver.
     /// </summary>
@@ -81,20 +30,16 @@ namespace Starcounter.Internal.Web {
         public StaticWebServer StaticFileServer;
 
         /// <summary>
-        /// The sessions
-        /// </summary>
-        protected SessionDictionary Sessions;
-
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="HttpAppServer" /> class.
         /// </summary>
         /// <param name="staticFileServer">The static file server.</param>
-        /// <param name="sessions">The sessions.</param>
-        public HttpAppServer(StaticWebServer staticFileServer, SessionDictionary sessions ) {
+        public HttpAppServer(StaticWebServer staticFileServer) {
             StaticFileServer = staticFileServer;
-            Sessions = sessions;
         }
+
+        // TODO:
+        // Temporary for testing.
+        private static Session Session = new Session();
 
         /// <summary>
         /// The GET Method. Returns a representation of a resource.
@@ -104,90 +49,54 @@ namespace Starcounter.Internal.Web {
         /// <returns>The bytes according to the appropriate protocol</returns>
         /// <exception cref="System.NotImplementedException"></exception>
         public override HttpResponse Handle(  HttpRequest request ) {
-            Session session;
-            // TODO!
-            //SessionID sid = request.SessionID;
-
-            // TODO:
-            // Is the sessionid sent in the header or as part of the uri 
-            // for patch and __vm messages?
-            // Sending it in the header seems like a better idea since we
-            // are going to need some kind of temporary accessible object.
-          
-            //if (sid.IsNullSession)
-            //{
-            //    request.Debug(" (new session)");
-            //    session = Sessions.CreateSession();
-            //}
-            //else
-            //{
-            //    session = Sessions.GetSession(sid);
-            //}
-
-            HardcodedStuff.BeginRequest(request, Sessions);
+            HttpResponse response = null;
 
             try {
-                Object x = RequestHandler.RequestProcessor.Invoke(request);
-                if (x != null) {
-                    if (x is App) {
-                        var app = (App)x;
-                        //                       return new HttpResponse() { Uncompressed = HttpResponseBuilder.CreateMinimalOk200WithContent(data, 0, len) };
+                // TODO:
+                // Temporary for testing.
+                Session.Execute(request, () => {
+                    Object x = RequestHandler.RequestProcessor.Invoke(request);
+                    if (x != null) {
+                        if (x is App) {
+                            var app = (App)x;
+//                       return new HttpResponse() { Uncompressed = HttpResponseBuilder.CreateMinimalOk200WithContent(data, 0, len) };
 
-                        request.Debug(" (new view model)");
-
-                        session = Sessions.GetSession(1);
-                        session.AttachRootApp(app);
-
-                        // TODO:
-                        // Just need it here to be able to get the sessionId when serializing app.
-                        // Needs to be rewritten.
-                        session.Execute(request, () => {
+                            request.Debug(" (new view model)");
+                            int vmId = Session.Current.AttachRootApp(app);
                             request.IsAppView = true;
-                            request.ViewModel = app.ToJsonUtf8(false, true);
+                            request.ViewModel = app.ToJsonUtf8(false, vmId);
                             request.NeedsScriptInjection = true;
-                            //                    request.CanUseStaticResponse = false; // We need to provide the view model, so we can use 
-                            //                                                          // cached (and gziped) content, but not a complete cached
-                            //                                                          // response.
-                        });
+//                    request.CanUseStaticResponse = false; // We need to provide the view model, so we can use 
+//                                                          // cached (and gziped) content, but not a complete cached
+//                                                          // response.
 
-                        var view = (string)app.View;
-                        if (view == null) {
-                            view = app.Template.ClassName + ".html";
+                            var view = (string)app.View;
+                            if (view == null) {
+                                view = app.Template.ClassName + ".html";
+                            }
+                            view = "/" + view;
+                            request.GzipAdvisable = false;
+//                        return new HttpResponse() { Uncompressed = ResolveAndPrepareFile(view, request) };
+                            response = new HttpResponse() { Uncompressed = ResolveAndPrepareFile(view, request) };
                         }
-                        view = "/" + view;
-                        request.GzipAdvisable = false;
-                        return new HttpResponse() { Uncompressed = ResolveAndPrepareFile(view, request) };
+                        else if (x is HttpResponse) {
+//                        return x as HttpResponse;
+                            response = x as HttpResponse;
+                        } else if (x is string) {
+//                        return new HttpResponse() { Uncompressed = HttpResponseBuilder.FromText((string)x/*, sid*/) };
+                            response = new HttpResponse() { Uncompressed = HttpResponseBuilder.FromText((string)x/*, sid*/) };
+                        } else {
+                            throw new NotImplementedException();
+                        }
                     }
-                    if (x is HttpResponse) {
-                        return x as HttpResponse;
-                    } else if (x is string) {
-                        return new HttpResponse() { Uncompressed = HttpResponseBuilder.FromText((string)x/*, sid*/) };
-                    } else {
-                        throw new NotImplementedException();
-                    }
-                    //                else
-                    //                {
-                    //                    if (request.Uri.StartsWith("/__vm/"))
-                    //                    {
-                    //                        //                    session = Sessions.GetSession(request.Uri.Substring(8));
-                    //                        if (sid.IsNullSession)
-                    //                            response = new HttpResponse() { Uncompressed = HttpResponseBuilder.NotFound404("Invalid session") };
-                    //                        else
-                    //                        {
-                    ////                            response = new HttpResponse() { Uncompressed = HttpResponseBuilder.JsonFromBytes(Encoding.UTF8.GetBytes(this.Sessions.GetRootApp(sid).ToJson()), sid) };
-                    //                        }
-                    //                        return;
-                    //                    }
-                    //                }
-                }
-                return new HttpResponse() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
+//                return new HttpResponse() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
+                    if (response == null)
+                        response = new HttpResponse() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
+                });
+                return response;
             } catch (Exception ex) {
                 byte[] error = Encoding.UTF8.GetBytes(this.GetExceptionString(ex));
                 return new HttpResponse() { Uncompressed = HttpResponseBuilder.Create500WithContent(error) };
-            }
-            finally
-            {
-                HardcodedStuff.EndRequest();
             }
         }
 
@@ -235,9 +144,6 @@ namespace Starcounter.Internal.Web {
 			}
 			return sb.ToString();
 		}
-
-
-
 
         /// <summary>
         /// Sent from the Node when the user runs a module (an .EXE).
