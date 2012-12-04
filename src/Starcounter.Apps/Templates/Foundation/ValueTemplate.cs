@@ -13,6 +13,7 @@ namespace Starcounter.Client.Template {
 using Starcounter.Templates;
 using System.Collections.Generic;
 using Starcounter.Templates.DataBinding;
+using System.Diagnostics;
 namespace Starcounter {
 #endif
     /// <summary>
@@ -112,17 +113,17 @@ namespace Starcounter {
                 }
                 if (!input.Cancelled)
                 {
-                    Console.WriteLine("Setting value after custom handler: " + input.Value);
+                    Debug.WriteLine("Setting value after custom handler: " + input.Value);
                     app.SetValue((Property<TValue>)this, input.Value);
                 }
                 else
                 {
-                    Console.WriteLine("Handler cancelled: " + value);
+                    Debug.WriteLine("Handler cancelled: " + value);
                 }
             }
             else
             {
-                Console.WriteLine("Setting value after no handler: " + value);
+                Debug.WriteLine("Setting value after no handler: " + value);
                 app.SetValue((Property<TValue>)this, value);
             }
         }

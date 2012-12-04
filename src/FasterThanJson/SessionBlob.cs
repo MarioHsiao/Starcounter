@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using System;
+using System.Diagnostics;
 using System.Text;
 
 namespace Starcounter.Internal
@@ -182,7 +183,7 @@ namespace Starcounter.Internal
       {
          // Default size is 2Kb
          Int32 size = 2048;
-         Console.WriteLine("Allocating {0} of session state memory", size);
+         Debug.WriteLine("Allocating {0} of session state memory", size);
          SessionBlob* blob = (SessionBlob*)System.Runtime.InteropServices.Marshal.AllocHGlobal(size);
 #if DEBUG
          for (int t = 0 ; t < size ; t++ )
