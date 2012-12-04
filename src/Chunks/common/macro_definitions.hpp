@@ -39,22 +39,30 @@
 /// Define IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
 /// to use a robust spinlock and windows events to synchronize access to
 /// scheduler_interface.
-#define IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
+//#define IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
 
 #if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 #else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 #endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 
 ///********************************************************************************************
-///********************************************************************************************
 /// Define IPC_SHARED_MEMORY_MANAGER_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
 /// to use a robust spinlock and windows events to synchronize access to
 /// shared_memory_manager.
-#define IPC_SHARED_MEMORY_MANAGER_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
+////#define IPC_SHARED_MEMORY_MANAGER_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
 
 #if defined (IPC_SHARED_MEMORY_MANAGER_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 #else // !defined (IPC_SHARED_MEMORY_MANAGER_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 #endif // defined (IPC_SHARED_MEMORY_MANAGER_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+
+///********************************************************************************************
+/// Defining IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP
+/// means the IPC monitor do the release of chunks instead of the schedulers.
+////#define IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP
+
+#if defined (IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP)
+#else // !defined (IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP)
+#endif // defined (IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP)
 
 ///********************************************************************************************
 

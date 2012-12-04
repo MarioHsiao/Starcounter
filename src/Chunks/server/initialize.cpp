@@ -238,7 +238,7 @@ is_system, uint32_t chunks_total_number) try {
 		scheduler_interface[n % schedulers].insert(n, 1 /* id */,
 		smp::spinlock::milliseconds(10000));
 #else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-		scheduler_interface[n % schedulers].push_front_channel_number(n);
+		scheduler_interface[n % schedulers].push_front_channel_number(n, 1 /* id */);
 #endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	}
 	
