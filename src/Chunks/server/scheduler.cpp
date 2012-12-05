@@ -79,21 +79,9 @@ namespace starcounter {
 namespace core {
 
 class server_port {
-	#if defined(_MSC_VER) // Windows
-	# if defined(_M_X64) || (_M_AMD64) // LLP64 machine
 	enum {
 		channel_masks_ = 4
 	};
-
-	# elif defined(_M_IX86) // ILP32 machine 
-	enum {
-		channel_masks_ = 8
-	};
-	
-	# endif // (_M_X64) || (_M_AMD64)
-	#else
-	# error Compiler not supported.
-	#endif // (_MSC_VER)
 
 	scheduler_channel_type *this_scheduler_task_channel_;
 	scheduler_channel_type *this_scheduler_signal_channel_;
@@ -118,7 +106,8 @@ class server_port {
 	starcounter::core::shared_memory_object shared_memory_object_;
 	starcounter::core::mapped_region mapped_region_;
 	std::size_t id_;	
-	
+	owner_id owner_id_;
+
 	// TODO: Remove gotoxy() - used during debug.
 	void gotoxy(int16_t x, int16_t y) {
 		COORD coord;
@@ -986,7 +975,29 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 	if (channels_left == 0) {
 		if (client_interface_ptr->get_owner_id().get_clean_up()) {
 			// Is the client_interface marked for clean up?
-			// Clean up job to do.
+#if defined (IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP)
+			///=================================================================
+			/// Notify the IPC monitor to repush_front_channel_numberlease all chunks in this
+			/// client_interface, making them available for anyone to allocate.
+			///=================================================================
+			//std::cout << "TODO: Notify the IPC monitor to release all chunks in this client_interface." << std::endl;
+
+#if 1
+			bool release_chunk_result = release_clients_chunks
+			(client_interface_ptr, 10000 /* milliseconds */);
+			
+			// Release the client_interface[the_client_number].
+			client_interface_ptr->set_owner_id(owner_id::none);
+			
+			bool release_client_number_res =
+			common_client_interface_->release_client_number(the_client_number,
+			client_interface_ptr);
+			
+			common_client_interface_->decrement_client_interfaces_to_clean_up();
+
+#endif
+
+#else // !defined (IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP)
 			///=================================================================
 			/// Release all chunks in this client_interface, making them
 			/// available for anyone to allocate.
@@ -1016,6 +1027,7 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 			
 			common_client_interface_->decrement_client_interfaces_to_clean_up();
 			// Clean up done for client_interface[the_client_number].
+#endif // defined (IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP)
 		}
 	}
 }
@@ -1398,7 +1410,7 @@ uint32_t timeout_milliseconds) {
 	
 	// Release the_channel_number.
 	scheduler_interface_[the_scheduler_number]
-	.push_front_channel_number(the_channel_number);
+	.push_front_channel_number(the_channel_number, owner_id_);
 	
 	return true; /// TODO: Timeout, return false when not successfull.
 }

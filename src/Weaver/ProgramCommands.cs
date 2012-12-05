@@ -8,6 +8,7 @@ namespace Weaver {
 
     internal static class ProgramCommands {
         internal const string Weave = "Weave";
+        internal const string WeaveBootstrapper = "WeaveBootstrapper";
         internal const string Verify = "Verify";
     }
 }
