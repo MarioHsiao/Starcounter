@@ -10,6 +10,7 @@ using System.ComponentModel;
 using Starcounter.Templates;
 using Starcounter.Internal.REST;
 using Starcounter.Internal;
+using Starcounter.Apps;
 
 #if CLIENT
 using Starcounter.Client.Template;
@@ -59,6 +60,7 @@ namespace Starcounter {
         /// </summary>
         public App() : base() {
             _cacheIndexInList = -1;
+            ViewModelId = -1;
         }
 
         /// <summary>
@@ -81,6 +83,11 @@ namespace Starcounter {
         /// </summary>
         /// <value>The is serialized.</value>
         public Boolean IsSerialized { get; internal set; }
+
+        /// <summary>
+        /// Returns the id of this app or -1 if not used.
+        /// </summary>
+        internal int ViewModelId { get; set; }
 
         /// <summary>
         /// Cache field of index if this apps parent is a list.
@@ -195,6 +202,14 @@ namespace Starcounter {
                 }
                 _transaction = value;
             }
+        }
+
+        /// <summary>
+        /// Returns the transaction that is set on this app. Does NOT
+        /// look in parents.
+        /// </summary>
+        internal Transaction TransactionOnThisApp {
+            get { return _transaction; }
         }
 
         /// <summary>

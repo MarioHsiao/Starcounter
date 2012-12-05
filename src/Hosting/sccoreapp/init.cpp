@@ -74,8 +74,8 @@ void __stdcall __critical_log_handler(void *c, LPCWSTR message)
 	uint64_t hlogs = (uint64_t)__hlogs;
 	if (hlogs)
 	{
-		SCKernelWriteToLogs(hlogs, SC_ENTRY_CRITICAL, message);
-		SCFlushToLogs(hlogs);
+		sccorelog_kernel_write_to_logs(hlogs, SC_ENTRY_CRITICAL, message);
+		sccorelog_flush_to_logs(hlogs);
 	}
 }
 

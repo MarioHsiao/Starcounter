@@ -8,6 +8,7 @@ using Starcounter.Templates;
 using Starcounter.Templates.Interfaces;
 using System;
 using System.ComponentModel;
+using Starcounter.Apps;
 
 #if CLIENT
 namespace Starcounter.Client {

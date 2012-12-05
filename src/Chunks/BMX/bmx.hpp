@@ -77,7 +77,7 @@ namespace bmx
     const uint32_t SOCKET_DATA_NUM_CLONE_BYTES = 136;
     const uint32_t BMX_NUM_CLONE_BYTES = BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_NUM_CLONE_BYTES;
 
-    const uint32_t SOCKET_DATA_HTTP_REQUEST_OFFSET = 208;
+    const uint32_t SOCKET_DATA_HTTP_REQUEST_OFFSET = 216;
     const uint32_t BMX_HTTP_REQUEST_OFFSET = BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_HTTP_REQUEST_OFFSET;
 
     const uint32_t SOCKET_DATA_NUM_CHUNKS_OFFSET = 84;
@@ -556,6 +556,15 @@ namespace bmx
 
     // Global BMX data.
     extern BmxData* g_bmx_data;
+
+    // Managed callback to destroy Apps session.
+    typedef void (*DestroyAppsSessionCallback)(
+        uint64_t apps_session_index,
+        uint64_t apps_session_salt,
+        uint32_t scheduler_id);
+
+    // Callback to destroy Apps inactive session.
+    extern DestroyAppsSessionCallback g_destroy_apps_session_callback;
 
 }  // namespace bmx
 }; // namespace starcounter

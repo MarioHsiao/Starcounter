@@ -46,8 +46,8 @@ typedef uint32_t session_index_type;
 typedef uint64_t session_timestamp_type;
 
 // Some defines, e.g. debugging, statistics, etc.
-//#define GW_COLLECT_SOCKET_STATISTICS
-//#define GW_GLOBAL_STATISTICS
+#define GW_COLLECT_SOCKET_STATISTICS
+#define GW_GLOBAL_STATISTICS
 //#define GW_ECHO_STATISTICS
 //#define GW_SOCKET_DIAG
 //#define GW_HTTP_DIAG
@@ -59,6 +59,7 @@ typedef uint64_t session_timestamp_type;
 #define GW_SESSIONS_DIAG
 //#define GW_PONG_MODE
 //#define GW_TESTING_MODE
+//#define GW_PROXY_MODE
 
 // TODO: Move error codes to errors XML!
 #define SCERRGWINCORRECTHANDLER 12345
@@ -139,11 +140,14 @@ const int32_t MAX_FETCHED_OVLS = 256;
 // Maximum size of HTTP body.
 const int32_t MAX_HTTP_BODY_SIZE = 1024 * 1024 * 32;
 
+// Maximum number of proxied URIs.
+const int32_t MAX_PROXIED_URIS = 32;
+
 // Number of sockets to increase the accept roof.
 const int32_t ACCEPT_ROOF_STEP_SIZE = 1;
 
 // Offset of data blob in socket data.
-const int32_t SOCKET_DATA_BLOB_OFFSET_BYTES = 688;
+const int32_t SOCKET_DATA_BLOB_OFFSET_BYTES = 696;
 
 // Length of blob data in bytes.
 const int32_t SOCKET_DATA_BLOB_SIZE_BYTES = bmx::MAX_DATA_BYTES_IN_CHUNK - bmx::BMX_HEADER_MAX_SIZE_BYTES - SOCKET_DATA_BLOB_OFFSET_BYTES;
@@ -173,7 +177,7 @@ const session_salt_type INVALID_SESSION_SALT = 0;
 const session_salt_type INVALID_APPS_SESSION_SALT = 0;
 
 // Invalid Apps unique number.
-const uint64_t INVALID_APPS_UNIQUE_SESSION_NUMBER = 0;
+const uint64_t INVALID_APPS_UNIQUE_SESSION_NUMBER = ~(uint64_t)0;
 
 // Maximum number of chunks to keep in private chunk pool
 // until we release them to shared chunk pool.
@@ -265,11 +269,21 @@ uint32_t OuterPortProcessData(
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled);
 
-uint32_t PortProcessData(
+uint32_t AppsPortProcessData(
     GatewayWorker *gw,
     SocketDataChunk *sd,
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled);
+
+#ifdef GW_TESTING_MODE
+
+uint32_t GatewayPortProcessData(
+    GatewayWorker *gw,
+    SocketDataChunk *sd,
+    BMX_HANDLER_TYPE handler_id,
+    bool* is_handled);
+
+#endif
 
 uint32_t OuterSubportProcessData(
     GatewayWorker *gw,
@@ -277,11 +291,21 @@ uint32_t OuterSubportProcessData(
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled);
 
-uint32_t SubportProcessData(
+uint32_t AppsSubportProcessData(
     GatewayWorker *gw,
     SocketDataChunk *sd,
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled);
+
+#ifdef GW_TESTING_MODE
+
+uint32_t GatewaySubportProcessData(
+    GatewayWorker *gw,
+    SocketDataChunk *sd,
+    BMX_HANDLER_TYPE handler_id,
+    bool* is_handled);
+
+#endif
 
 uint32_t OuterUriProcessData(
     GatewayWorker *gw,
@@ -304,6 +328,12 @@ uint32_t GatewayUriProcessEcho(
     bool* is_handled);
 
 #endif
+
+uint32_t GatewayUriProcessProxy(
+    GatewayWorker *gw,
+    SocketDataChunk *sd,
+    BMX_HANDLER_TYPE handler_id,
+    bool* is_handled);
 
 extern std::string GetOperTypeString(SocketOperType typeOfOper);
 
@@ -523,6 +553,12 @@ public:
         accum_len_bytes_ = 0;
     }
 
+    // Prepare buffer to proxy outside.
+    void PrepareForSend()
+    {
+        buf_len_bytes_ = accum_len_bytes_;
+    }
+
     // Prepare socket to continue receiving.
     void ContinueReceive()
     {
@@ -584,11 +620,11 @@ public:
 struct ScSessionStruct
 {
     // Session random salt.
-    session_salt_type session_salt_;
+    session_salt_type gw_session_salt_;
 
     // Unique session linear index.
     // Points to the element in sessions linear array.
-    session_index_type session_index_;
+    session_index_type gw_session_index_;
 
     // Scheduler ID.
     uint32_t scheduler_id_;
@@ -608,14 +644,14 @@ struct ScSessionStruct
     // Checks if session is valid.
     bool IsValid()
     {
-        return (scheduler_id_ != INVALID_SCHEDULER_ID) && (session_index_ != INVALID_SESSION_INDEX);
+        return /*(scheduler_id_ != INVALID_SCHEDULER_ID) &&*/ (gw_session_index_ != INVALID_SESSION_INDEX);
     }
 
     // Reset.
     void Reset()
     {
-        session_salt_ = INVALID_SESSION_SALT;
-        session_index_ = INVALID_SESSION_INDEX;
+        gw_session_salt_ = INVALID_SESSION_SALT;
+        gw_session_index_ = INVALID_SESSION_INDEX;
         scheduler_id_ = INVALID_SCHEDULER_ID;
         apps_unique_session_num_ = INVALID_APPS_UNIQUE_SESSION_NUMBER;
         apps_session_salt_ = INVALID_APPS_SESSION_SALT;
@@ -629,8 +665,8 @@ struct ScSessionStruct
         session_salt_type apps_session_salt,
         uint32_t scheduler_id)
     {
-        session_salt_ = session_salt;
-        session_index_ = session_index;
+        gw_session_salt_ = session_salt;
+        gw_session_index_ = session_index;
         scheduler_id_ = scheduler_id;
         apps_unique_session_num_ = apps_unique_session_num;
         apps_session_salt_ = apps_session_salt;
@@ -641,23 +677,23 @@ struct ScSessionStruct
         session_salt_type session_salt,
         session_index_type session_index)
     {
-        return (session_salt_ == session_salt) && (session_index_ == session_index);
+        return (gw_session_salt_ == session_salt) && (gw_session_index_ == session_index);
     }
 
     // Comparing two sessions.
     bool IsEqual(ScSessionStruct* session_struct)
     {
-        return IsEqual(session_struct->session_salt_, session_struct->session_index_);
+        return IsEqual(session_struct->gw_session_salt_, session_struct->gw_session_index_);
     }
 
     // Converts session to string.
     int32_t ConvertToString(char *str_out)
     {
         // Translating session index.
-        int32_t sessionStringLen = uint64_to_hex_string(session_index_, str_out, 8, false);
+        int32_t sessionStringLen = uint64_to_hex_string(gw_session_index_, str_out, 8, false);
 
         // Translating session random salt.
-        sessionStringLen += uint64_to_hex_string(session_salt_, str_out + sessionStringLen, 16, false);
+        sessionStringLen += uint64_to_hex_string(gw_session_salt_, str_out + sessionStringLen, 16, false);
 
         return sessionStringLen;
     }
@@ -665,8 +701,8 @@ struct ScSessionStruct
     // Copying one session structure into another.
     void Copy(ScSessionStruct* session_struct)
     {
-        session_salt_ = session_struct->session_salt_;
-        session_index_ = session_struct->session_index_;
+        gw_session_salt_ = session_struct->gw_session_salt_;
+        gw_session_index_ = session_struct->gw_session_index_;
         scheduler_id_ = session_struct->scheduler_id_;
         apps_unique_session_num_ = session_struct->apps_unique_session_num_;
         apps_session_salt_ = session_struct->apps_session_salt_;
@@ -681,23 +717,23 @@ struct ScSessionStruct
     // Getting session unique salt.
     session_salt_type get_session_salt()
     {
-        return session_salt_;
+        return gw_session_salt_;
     }
 
     // Unique session linear index.
     // Points to the element in sessions linear array.
     session_index_type get_session_index()
     {
-        return session_index_;
+        return gw_session_index_;
     }
 
     // Compare socket stamps of two sessions.
     bool CompareSalts(session_salt_type session_salt)
     {
-        if (INVALID_SESSION_INDEX == session_index_)
+        if (INVALID_SESSION_INDEX == gw_session_index_)
             return false;
 
-        return session_salt_ == session_salt;
+        return gw_session_salt_ == session_salt;
     }
 };
 
@@ -855,6 +891,10 @@ public:
     {
         assert(active_sockets_[s] == false);
 
+#ifdef GW_SOCKET_DIAG
+        GW_COUT << "Tracking socket: " << s << std::endl;
+#endif
+
         InterlockedAdd64(&num_used_sockets_, 1);
         active_sockets_[s] = true;
     }
@@ -863,6 +903,10 @@ public:
     void UntrackSocket(SOCKET s)
     {
         assert(active_sockets_[s] == true);
+
+#ifdef GW_SOCKET_DIAG
+        GW_COUT << "UnTracking socket: " << s << std::endl;
+#endif
 
         InterlockedAdd64(&num_used_sockets_, -1);
         active_sockets_[s] = false;
@@ -1055,6 +1099,27 @@ public:
     }
 };
 
+
+// Information about the reversed proxy.
+struct ReverseProxyInfo
+{
+    // Uri that is being proxied.
+    std::string uri_;
+    int32_t uri_len_;
+
+    // IP address of the destination server.
+    std::string ip_;
+
+    // Port on which proxied service sits on.
+    uint16_t port_;
+
+    // Proxied service address socket info.
+    sockaddr_in addr_;
+
+    // Predefined redirect response.
+    std::string http_redirect_;
+};
+
 class GatewayWorker;
 class Gateway
 {
@@ -1188,7 +1253,7 @@ class Gateway
 #ifdef GW_TESTING_MODE
 
     // Confirmed HTTP requests map.
-    uint8_t* confirmed_http_echoes_;
+    uint8_t* confirmed_echoes_;
 
     // Number of confirmed echoes.
     volatile int64_t num_confirmed_echoes_;
@@ -1213,6 +1278,10 @@ class Gateway
     // The socket address of the server.
     sockaddr_in* server_addr_;
 
+    // List of proxied servers.
+    ReverseProxyInfo reverse_proxies_[MAX_PROXIED_URIS];
+    int32_t num_reversed_proxies_;
+
     // Number of active schedulers.
     uint32_t num_schedulers_;
 
@@ -1223,6 +1292,28 @@ class Gateway
     HANDLE iocp_;
 
 public:
+
+    // Returns instance of proxied server.
+    ReverseProxyInfo* GetProxiedServerAddress(int32_t index)
+    {
+        return reverse_proxies_ + index;
+    }
+
+    // Returns instance of proxied server.
+    ReverseProxyInfo* SearchProxiedServerAddress(char* uri)
+    {
+        for (int32_t i = 0; i < num_reversed_proxies_; i++)
+        {
+            int32_t k = 0;
+            while (reverse_proxies_[i].uri_[k] == uri[k])
+                k++;
+
+            if (k >= reverse_proxies_[i].uri_len_)
+                return reverse_proxies_ + i;
+        }
+
+        return NULL;
+    }
 
     // Adds some URI handler: either Apps or Gateway.
     uint32_t AddUriHandler(
@@ -1270,11 +1361,11 @@ public:
     }
 
     // Registering confirmed HTTP echo.
-    void ConfirmHttpEcho(int64_t index)
+    void ConfirmEcho(int64_t index)
     {
-        assert(confirmed_http_echoes_[index] < 1);
+        assert(confirmed_echoes_[index] < 1);
 
-        confirmed_http_echoes_[index]++;
+        confirmed_echoes_[index]++;
         InterlockedIncrement64(&num_confirmed_echoes_);
     }
 
@@ -1294,7 +1385,7 @@ public:
             for (int32_t i = 0; i < setting_num_echoes_to_master_; i++)
             {
                 // Checking that number of confirmed echoes is correct in each slot.
-                if (confirmed_http_echoes_[i] != 1)
+                if (confirmed_echoes_[i] != 1)
                     return false;
             }
 
@@ -1311,7 +1402,7 @@ public:
         current_echo_number_ = -1;
 
         for (int32_t i = 0; i < setting_num_echoes_to_master_; i++)
-            confirmed_http_echoes_[i] = 0;
+            confirmed_echoes_[i] = 0;
     }
 
     // Incrementing and getting next echo number.
@@ -1693,19 +1784,21 @@ public:
     int32_t StartGateway();
 
     // Deletes existing session.
-    uint32_t KillSession(session_index_type session_index)
+    uint32_t KillSession(session_index_type session_index, bool* was_killed)
     {
         assert(INVALID_SESSION_INDEX != session_index);
 
-        // Entering the critical section.
-        EnterCriticalSection(&cs_session_);
-
-        // Number of active sessions should always be correct.
-        assert(num_active_sessions_unsafe_ > 0);
+        *was_killed = false;
 
         // Only killing the session is its valid.
         if (all_sessions_unsafe_[session_index].session_.IsValid())
         {
+            // Entering the critical section.
+            EnterCriticalSection(&cs_session_);
+
+            // Number of active sessions should always be correct.
+            assert(num_active_sessions_unsafe_ > 0);
+
             // Resetting the session cell.
             all_sessions_unsafe_[session_index].session_.Reset();
 
@@ -1715,10 +1808,13 @@ public:
             // Decrementing number of active sessions.
             num_active_sessions_unsafe_--;
             free_session_indexes_unsafe_[num_active_sessions_unsafe_] = session_index;
-        }
 
-        // Leaving the critical section.
-        LeaveCriticalSection(&cs_session_);
+            // Indicating that session is killed.
+            *was_killed = true;
+
+            // Leaving the critical section.
+            LeaveCriticalSection(&cs_session_);
+        }
 
         return 0;
     }

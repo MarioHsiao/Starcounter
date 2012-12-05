@@ -193,17 +193,17 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
         case COOKIE_FIELD:
         {
             // Check if its an old session from a different socket.
-            const char* session_id_value = GetSessionIdValue(at, length);
+            const char* session_id_string = GetSessionIdValue(at, length);
 
             // Checking if Starcounter session id is presented.
-            if (session_id_value)
+            if (session_id_string)
             {
                 // Setting the session offset.
-                http->http_request_.session_string_offset_ = session_id_value - (char*)http->sd_ref_;
+                http->http_request_.session_string_offset_ = session_id_string - (char*)http->sd_ref_;
                 http->http_request_.session_string_len_bytes_ = SC_SESSION_STRING_LEN_CHARS;
 
                 // Reading received session index (skipping session header name and equality).
-                session_index_type cookie_session_index = hex_string_to_uint64(at + kScSessionIdStringLength + 1, 8);
+                session_index_type cookie_session_index = hex_string_to_uint64(session_id_string, 8);
                 if (INVALID_CONVERTED_NUMBER == cookie_session_index)
                 {
                     GW_COUT << "Session index stored in the HTTP header has wrong format." << std::endl;
@@ -211,7 +211,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
                 }
 
                 // Reading received session random salt.
-                uint64_t cookie_random_salt = hex_string_to_uint64(at + kScSessionIdStringLength + 1 + 8, 16);
+                uint64_t cookie_random_salt = hex_string_to_uint64(session_id_string + 8, 16);
                 if (INVALID_CONVERTED_NUMBER == cookie_random_salt)
                 {
                     GW_COUT << "Session random salt stored in the HTTP header has wrong format." << std::endl;
@@ -404,7 +404,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
 
         // Checking for any errors.
         uint32_t err_code = GetMethodAndUri(
-            (char*)(sd->get_accum_buf()->get_orig_buf_ptr()),
+            (char*)(sd->get_data_blob()),
             sd->get_accum_buf()->get_accum_len_bytes(),
             method_and_uri_lower_case,
             &method_and_uri_len,
@@ -414,6 +414,17 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         // Checking for any errors.
         if (err_code)
         {
+#ifdef GW_PROXY_MODE
+
+            // Checking if we are proxying.
+            if (sd->get_with_proxied_server_flag())
+            {
+                // Just running proxy processing.
+                *is_handled = true;
+                return GatewayHttpWsReverseProxy(gw, sd, handler_index, is_handled);
+            }
+#endif
+
             // Continue receiving.
             sd->get_accum_buf()->ContinueReceive();
 
@@ -471,6 +482,10 @@ uint32_t HttpWsProto::HttpUriDispatcher(
 
         // Indicating that matching URI index was found.
         set_matched_uri_index(matched_index);
+
+        // Setting determined HTTP URI settings (e.g. for reverse proxy).
+        sd->get_http_ws_proto()->http_request_.uri_offset_ = SOCKET_DATA_BLOB_OFFSET_BYTES + uri_offset;
+        sd->get_http_ws_proto()->http_request_.uri_len_bytes_ = method_and_uri_len - uri_offset;
 
         // Running determined handler now.
         return reg_uris->GetEntryByIndex(matched_index).RunHandlers(gw, sd);
@@ -1016,6 +1031,84 @@ uint32_t AppsUriProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_
 {
     return sd->get_http_ws_proto()->AppsHttpWsProcessData(gw, sd, handler_id, is_handled);
 }
+
+#ifdef GW_PROXY_MODE
+
+// HTTP/WebSockets handler for Gateway proxy.
+uint32_t GatewayUriProcessProxy(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+{
+    return sd->get_http_ws_proto()->GatewayHttpWsReverseProxy(gw, sd, handler_id, is_handled);
+}
+
+// Reverse proxies the HTTP traffic.
+uint32_t HttpWsProto::GatewayHttpWsReverseProxy(
+    GatewayWorker *gw,
+    SocketDataChunk *sd,
+    BMX_HANDLER_TYPE handler_id,
+    bool* is_handled)
+{
+    uint32_t err_code;
+
+    // Not handled yet.
+    *is_handled = true;
+
+    // Checking if already in proxy mode.
+    if (sd->get_proxy_socket() != INVALID_SOCKET)
+    {
+        // Posting cloning receive for client.
+        uint32_t err_code = sd->CloneToReceive(gw);
+        GW_ERR_CHECK(err_code);
+
+        // Finished receiving from proxied server,
+        // now sending to the original user.
+        sd->ExchangeToProxySocket();
+
+        // Enabling proxy mode.
+        sd->set_with_proxied_server_flag(true);
+
+        // Disabling receiving mode.
+        sd->set_receiving_flag(false);
+
+        // Setting number of bytes to send.
+        sd->get_accum_buf()->PrepareForSend();
+
+        // Sending data to user.
+        return gw->Send(sd);
+    }
+    else // We have not started a proxy mode yet.
+    {
+        // Setting proxy mode.
+        sd->set_with_proxied_server_flag(true);
+
+        // Posting cloning receive for client.
+        err_code = sd->CloneToReceive(gw);
+        GW_ERR_CHECK(err_code);
+
+        // Since we are proxying this instance also receives.
+        sd->set_receiving_flag(true);
+
+        // Creating new socket to proxied server.
+        err_code = gw->CreateProxySocket(sd, gw->get_sd_receive_clone());
+        GW_ERR_CHECK(err_code);
+
+#ifdef GW_SOCKET_DIAG
+        GW_COUT << "Created proxy socket: " << sd->get_socket() << std::endl;
+#endif
+
+        // Setting number of bytes to send.
+        sd->get_accum_buf()->PrepareForSend();
+
+        // Getting proxy information.
+        ReverseProxyInfo* proxy_info = g_gateway.SearchProxiedServerAddress((char*)sd + sd->get_http_ws_proto()->http_request_.uri_offset_);
+
+        // Connecting to the server.
+        return gw->Connect(sd, &proxy_info->addr_);
+    }
+
+    return SCERRGWHTTPPROCESSFAILED;
+}
+
+#endif
 
 } // namespace network
 } // namespace starcounter

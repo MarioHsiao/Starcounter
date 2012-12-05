@@ -23,6 +23,7 @@ namespace core {
 
 // Member functions:
 
+#if defined (IPC_OWNER_ID_IS_32_BIT)
 // Constructor.
 inline owner_id::owner_id(param_type n) {
 	assign(n);
@@ -32,6 +33,86 @@ inline owner_id::owner_id(param_type n) {
 inline volatile owner_id& owner_id::operator=(const owner_id& a) volatile {
 	_mm_mfence();
 	value_ = a.value_;
+	_mm_mfence();
+	return *this;
+}
+
+// operator&=() with volatile qualifier.
+inline volatile owner_id& owner_id::operator&=(const owner_id& a) volatile {
+	_mm_mfence();
+	value_ &= a.value_;
+	_mm_mfence();
+	return *this;
+}
+
+// Assignment from param_type.
+inline owner_id& owner_id::operator=(param_type n) {
+	return assign(n);
+}
+
+// Assign in place.
+inline owner_id& owner_id::assign(param_type n) {
+	_mm_mfence();
+	value_ = n;
+	_mm_mfence();
+	return *this;
+}
+
+// Access to representation.
+
+inline owner_id::return_type owner_id::get() const {
+	return value_;
+}
+
+inline void owner_id::set(param_type n) {
+	_mm_mfence();
+	value_ = n;
+	_mm_mfence();
+}
+
+inline owner_id::return_type owner_id::get_owner_id() const {
+	// Mask bit 31 containing the clean-up flag. A zero will be shifted in from
+	// the left side since value_ is unsigned.
+
+	// TODO: Optimize. Which is faster?
+	//return value_ & id_field;
+	return (value_ << 1) >> 1;
+}
+
+inline owner_id::return_type owner_id::get_clean_up() const {
+	// Mask bit 30:0 containing the owner_id field.
+	return value_ >> 31;
+}
+
+inline void owner_id::mark_for_clean_up() {
+	_mm_mfence();
+	value_ |= 1UL << 31;
+	_mm_mfence();
+}
+
+inline bool owner_id::is_no_owner_id() const {
+	return static_cast<bool>(((value_ << 1) >> 1) == none);
+}
+
+#else // !defined (IPC_OWNER_ID_IS_32_BIT)
+
+// Constructor.
+inline owner_id::owner_id(param_type n) {
+	assign(n);
+}
+
+// Copy assignment for owner_id with volatile qualifier.
+inline volatile owner_id& owner_id::operator=(const owner_id& a) volatile {
+	_mm_mfence();
+	value_ = a.value_;
+	_mm_mfence();
+	return *this;
+}
+
+// operator&=() with volatile qualifier.
+inline volatile owner_id& owner_id::operator&=(const owner_id& a) volatile {
+	_mm_mfence();
+	value_ &= a.value_;
 	_mm_mfence();
 	return *this;
 }
@@ -64,6 +145,9 @@ inline void owner_id::set(param_type n) {
 inline owner_id::return_type owner_id::get_owner_id() const {
 	// Mask bit 63 containing the clean-up flag. A zero will be shifted in from
 	// the left side since value_ is unsigned.
+
+	// TODO: Optimize. Which is faster?
+	//return value_ & id_field;
 	return (value_ << 1) >> 1;
 }
 
@@ -81,6 +165,7 @@ inline void owner_id::mark_for_clean_up() {
 inline bool owner_id::is_no_owner_id() const {
 	return static_cast<bool>(((value_ << 1) >> 1) == none);
 }
+#endif // defined (IPC_OWNER_ID_IS_32_BIT)
 
 // Unary operators.
 
