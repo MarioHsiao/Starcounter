@@ -186,7 +186,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{F5866E
 		Chunks\common\scheduler_number_pool.hpp = Chunks\common\scheduler_number_pool.hpp
 		Chunks\common\shared_chunk_pool.hpp = Chunks\common\shared_chunk_pool.hpp
 		Chunks\common\shared_interface.hpp = Chunks\common\shared_interface.hpp
-		Chunks\common\shared_memory_manager.hpp = Chunks\common\shared_memory_manager.hpp
 		Chunks\common\shared_memory_object.cpp = Chunks\common\shared_memory_object.cpp
 		Chunks\common\spinlock.hpp = Chunks\common\spinlock.hpp
 		Chunks\common\timeout.hpp = Chunks\common\timeout.hpp
