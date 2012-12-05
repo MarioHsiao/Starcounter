@@ -114,6 +114,10 @@ namespace Weaver {
                     ExecuteVerifyCommand(inputDirectory, cacheDirectory, fileName, arguments);
                     break;
 
+                case ProgramCommands.WeaveBootstrapper:
+                    ExecuteWeaveBootstrapCommand(inputDirectory, cacheDirectory, fileName, arguments);
+                    break;
+
                 default:
                     error = Error.SCERRBADCOMMANDLINESYNTAX;
                     ReportProgramError(
@@ -179,6 +183,41 @@ namespace Weaver {
             // error itself.
 
             weaver.Execute();
+        }
+
+        /// <summary>
+        /// Weaves an executable to support bootstraping it from the OS shell.
+        /// </summary>
+        /// <param name="inputDirectory">
+        /// The directory where we expect to find the executable.</param>
+        /// <param name="cacheDirectory">The cache directory.</param>
+        /// <param name="fileName">The name of the executable file.</param>
+        /// <param name="arguments">Arguments to the command, parsed from the
+        /// command-line.</param>
+        static void ExecuteWeaveBootstrapCommand(
+            string inputDirectory,
+            string cacheDirectory,
+            string fileName,
+            ApplicationArguments arguments) {
+            
+            BootstrapWeaver.WeaveExecutable(Path.Combine(inputDirectory, fileName));
+
+#if false
+            // Implementation using the PostSharp-based weaver
+            CodeWeaver weaver;
+            weaver = new CodeWeaver(inputDirectory, fileName, cacheDirectory);
+            weaver.RunWeaver = true;
+            weaver.WeaveBootstrapperCode = true;
+            weaver.WeaveForIPC = true;//!arguments.ContainsFlag("noipc");
+            weaver.DisableWeaverCache = arguments.ContainsFlag("nocache");
+            weaver.WeaveToCacheOnly = false;
+
+            // Invoke the weaver subsystem. If it fails, it will report the
+            // error itself.
+
+            weaver.Execute();
+
+#endif
         }
 
         static void ApplyGlobalProgramOptions(ApplicationArguments arguments) {
@@ -314,6 +353,13 @@ namespace Weaver {
             // Optional flag instructing the program not to use the weaver cache when
             // analyzing/weaving code.
             commandDefinition.DefineFlag("nocache", "Instructs the weaver not to use the weaver cache.");
+
+            // Define the "WeaveBootstrapper" command, used to analyze and verify user code.
+
+            // Define the command. Exactly one parameter - the executable - is
+            // expected.
+            commandDefinition = syntaxDefinition.DefineCommand(
+                ProgramCommands.WeaveBootstrapper, "Enables the executable to be bootstraped in Starcounter from the OS shell.", 1);
 
             // Create the syntax, validating it
             syntax = syntaxDefinition.CreateSyntax();

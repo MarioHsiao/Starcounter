@@ -197,7 +197,6 @@
     <ClInclude Include="..\common\scheduler_number.hpp" />
     <ClInclude Include="..\common\shared_interface.hpp" />
     <ClInclude Include="..\common\database_number.hpp" />
-    <ClInclude Include="..\common\shared_memory_manager.hpp" />
     <ClInclude Include="initialize.hpp" />
     <ClInclude Include="scheduler.hpp" />
     <ClInclude Include="server.hpp" />

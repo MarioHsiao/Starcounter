@@ -5,8 +5,10 @@
 // ***********************************************************************
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics; // TODO: Remove when HttpRequest can be sent in to the handler. And remove reference from Apps
 using HttpStructs;
+using Starcounter.Templates;
 
 namespace Starcounter.Apps {
     // TODO:
@@ -20,10 +22,10 @@ namespace Starcounter.Apps {
         [ThreadStatic]
         private static Session current;
 
-        private App rootApp;
+        private App[] rootApps;
+        private int nextVMId;
         private bool isInUse;
         private HttpRequest request; // TODO: Remove when it can be sent in to the handler.
-
         internal ChangeLog changeLog;
 
         /// <summary>
@@ -37,7 +39,8 @@ namespace Starcounter.Apps {
         /// </summary>
         internal Session() {
             changeLog = new ChangeLog();
-            rootApp = null;
+            rootApps = new App[16]; // TODO: Configurable.
+            nextVMId = 0;
         }
 
         /// <summary>
@@ -45,8 +48,17 @@ namespace Starcounter.Apps {
         /// </summary>
         /// <param name="rootApp">The root app.</param>
         internal void AttachRootApp(App rootApp) {
-            this.rootApp = rootApp;
-            rootApp.ViewModelId = 1;
+            App existingApp;
+
+            if (nextVMId == rootApps.Length)
+                nextVMId = 0;
+
+            existingApp = rootApps[nextVMId];
+            if (existingApp != null)
+                DisposeAppRecursively(existingApp);
+            
+            rootApps[nextVMId] = rootApp;
+            rootApp.ViewModelId = nextVMId++;
         }
 
         /// <summary>
@@ -54,11 +66,16 @@ namespace Starcounter.Apps {
         /// </summary>
         /// <value></value>
         internal App GetRootApp(int index) {
-            if (rootApp != null) {
-                var trans = rootApp.Transaction;
-                if (trans != null)
-                    Transaction.SetCurrent(trans);
-            }
+            App rootApp;
+
+            if (index < 0 || index >= rootApps.Length)
+                throw new ArgumentOutOfRangeException("index");
+
+            rootApp = rootApps[index];
+            var trans = rootApp.Transaction;
+            if (trans != null)
+                Transaction.SetCurrent(trans);
+
             return rootApp;
         }
 
@@ -130,7 +147,41 @@ namespace Starcounter.Apps {
         /// 
         /// </summary>
         public void Destroy() {
-            throw new NotImplementedException();
+            for (int i = 0; i < rootApps.Length; i++) {
+                DisposeAppRecursively(rootApps[i]);
+            }
+            rootApps = null;
+            changeLog = null;
+            request = null;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="app"></param>
+        private void DisposeAppRecursively(App app) {
+            if (app == null)
+                return;
+
+            if (app.TransactionOnThisApp != null) {
+                app.TransactionOnThisApp.Dispose();
+            }
+
+            if (app.Template == null)
+                return;
+
+            foreach (Template child in app.Template.Children) {
+                if (child is AppTemplate) {
+                    DisposeAppRecursively(app.GetValue((AppTemplate)child));
+                } else if (child is ListingProperty) {
+                    Listing listing = app.GetValue((ListingProperty)child);
+                    foreach (App listApp in listing) {
+                        DisposeAppRecursively(listApp);
+                    }
+                }
+            }
+
+        }
+
     }
 }
