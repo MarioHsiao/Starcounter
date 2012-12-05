@@ -208,7 +208,6 @@
     <ClInclude Include="..\common\scheduler_number.hpp" />
     <ClInclude Include="..\common\shared_chunk_pool.hpp" />
     <ClInclude Include="..\common\shared_interface.hpp" />
-    <ClInclude Include="..\common\shared_memory_manager.hpp" />
     <ClInclude Include="..\common\timeout.hpp" />
     <ClInclude Include="client_port.hpp" />
   </ItemGroup>

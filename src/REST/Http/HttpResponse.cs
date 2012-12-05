@@ -66,6 +66,7 @@ namespace Starcounter {
       /// Initializes a new instance of the <see cref="HttpResponse" /> class.
       /// </summary>
       public HttpResponse() {
+          HeaderInjectionPoint = -1;
       }
 
       /// <summary>
@@ -110,6 +111,13 @@ namespace Starcounter {
       /// </summary>
       /// <value>The length of the content length.</value>
       public int ContentLengthLength { get; set; } // Used for injection
+
+        /// <summary>
+        /// Used for injecting headers. Specifies where to insert additional
+        /// headers that might be needed.
+        /// </summary>
+        public int HeaderInjectionPoint { get; set; }
+
       #endregion
 
       /// <summary>

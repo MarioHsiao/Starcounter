@@ -73,13 +73,13 @@ namespace Starcounter.Internal.Uri {
             var result1 = compilation.Emit(ms);
             if (!result1.Success) {
                 foreach (var d in result1.Diagnostics) {
-                    Console.WriteLine(d);
+                    Debug.WriteLine(d);
                 }
                 return null;
             }
 
             var ilCode = ms.GetBuffer();
-            Console.WriteLine(String.Format("Wrote IL code ({0} bytes) to {1}.", ilCode.Length, path));
+            Debug.WriteLine(String.Format("Wrote IL code ({0} bytes) to {1}.", ilCode.Length, path));
             var fs = File.Create(path);
             fs.Write(ilCode, 0, ilCode.Length);
             fs.Close();
