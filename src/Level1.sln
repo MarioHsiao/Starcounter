@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Starcounter.ErrorCodes", "Starcounter.ErrorCodes", "{FF0868CF-A78E-44A4-93E5-57182F039F31}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "08. Hosting", "08. Hosting", "{E80CE545-83CD-41D4-8F89-56654E751392}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "07. Hosting", "07. Hosting", "{E80CE545-83CD-41D4-8F89-56654E751392}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Hosting", "Hosting\Starcounter.Hosting\Starcounter.Hosting.csproj", "{B427C63B-C13F-47CC-B101-29CED68A68B8}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sccoreapp", "Hosting\sccoreapp\sccoreapp.vcxproj", "{D6998D59-8E4F-42B6-BC63-924D6E69AC6F}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "13. Samples", "13. Samples", "{2E993A9D-C78B-45A5-AA0D-1FAA58825805}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "14. Samples", "14. Samples", "{2E993A9D-C78B-45A5-AA0D-1FAA58825805}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter", "Starcounter\Starcounter.csproj", "{7BF06E68-1088-47EE-B06C-DE546AFABDB0}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -132,13 +132,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "06. VMDBMS", "06. VMDBMS", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03. Network Gateway", "03. Network Gateway", "{A5B0117C-DD6D-4C9A-84D0-DCB9F47B7709}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "09. Apps", "09. Apps", "{6AEA43EE-D1B7-4F8E-9599-7133FB507C66}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "08. Apps", "08. Apps", "{6AEA43EE-D1B7-4F8E-9599-7133FB507C66}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "05. Hypermedia", "05. Hypermedia", "{A8A6B3A7-41B4-4FC8-AB0E-6C9799BE7F27}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "10. Bootstrap", "10. Bootstrap", "{486A7359-839A-4F76-AF69-43F47D2AEAB5}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "09. Bootstrap", "09. Bootstrap", "{486A7359-839A-4F76-AF69-43F47D2AEAB5}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "07. Weaver", "07. Weaver", "{1AC7C23F-67AD-470E-B5CC-67D2C89DD18F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "10. Weaver", "10. Weaver", "{1AC7C23F-67AD-470E-B5CC-67D2C89DD18F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BitsAndBytes.Unsafe", "Starcounter.BitsAndBytes.Unsafe\BitsAndBytes.Unsafe.csproj", "{885EB31B-CF41-4C6C-A7BE-53B32A0C8B82}"
 EndProject
@@ -211,7 +211,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "impl", "impl", "{FFD0C045-E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLTest", "Samples\SQLTest\SQLTest.csproj", "{75FD7F1C-71C9-4083-8F70-D20B2C665F77}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "99. Development", "99. Development", "{B39115F7-A3E8-42CE-AAB8-932AB8D4DFB4}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "13. Development", "13. Development", "{B39115F7-A3E8-42CE-AAB8-932AB8D4DFB4}"
 	ProjectSection(SolutionItems) = preProject
 		Development\About.txt = Development\About.txt
 	EndProjectSection

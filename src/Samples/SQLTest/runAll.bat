@@ -24,7 +24,7 @@ REM RMDIR .db /S /Q
 REM RMDIR .db.output /S /Q
 REM RMDIR SQLTest /S /Q
 ECHO Error: The regression test is failed!
-EXIT 1
+EXIT /b 1
 ) ELSE (
 :: clean up and exit code on success
 CMD /C kill_all.bat 2> NUL
@@ -32,5 +32,5 @@ REM RMDIR .db /S /Q
 REM RMDIR .db.output /S /Q
 REM RMDIR SQLTest /S /Q
 ECHO Regression test succeeded.
-EXIT 0
+EXIT /b 0
 )
