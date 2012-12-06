@@ -1,4 +1,5 @@
-LIBRARY Starcounter.SqlParser
+LIBRARY "Starcounter.SqlParser"
+
 EXPORTS
 	InitParser
 	ParseQueryToString
