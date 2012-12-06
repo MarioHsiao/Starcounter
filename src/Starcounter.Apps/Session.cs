@@ -5,7 +5,6 @@
 // ***********************************************************************
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics; // TODO: Remove when HttpRequest can be sent in to the handler. And remove reference from Apps
 using HttpStructs;
 using Starcounter.Templates;
@@ -23,7 +22,7 @@ namespace Starcounter.Apps {
         private static Session current;
 
         private App[] rootApps;
-        private int nextVMId;
+        private VMID nextVMId;
         private bool isInUse;
         private HttpRequest request; // TODO: Remove when it can be sent in to the handler.
         internal ChangeLog changeLog;
@@ -40,7 +39,9 @@ namespace Starcounter.Apps {
         internal Session() {
             changeLog = new ChangeLog();
             rootApps = new App[16]; // TODO: Configurable.
-            nextVMId = 0;
+
+            nextVMId.Index = 0;
+            nextVMId.Count = 1;
         }
 
         /// <summary>
@@ -50,14 +51,11 @@ namespace Starcounter.Apps {
         internal void AttachRootApp(App rootApp) {
             App existingApp;
 
-            if (nextVMId == rootApps.Length)
-                nextVMId = 0;
-
-            existingApp = rootApps[nextVMId];
+            existingApp = rootApps[nextVMId.Index];
             if (existingApp != null)
                 DisposeAppRecursively(existingApp);
             
-            rootApps[nextVMId] = rootApp;
+            rootApps[nextVMId.Index] = rootApp;
             rootApp.ViewModelId = nextVMId++;
         }
 
@@ -65,13 +63,20 @@ namespace Starcounter.Apps {
         /// Gets an attached root application.
         /// </summary>
         /// <value></value>
-        internal App GetRootApp(int index) {
+        internal App GetRootApp(int id) {
             App rootApp;
+            VMID existingId;
+            VMID vmId = id;
 
-            if (index < 0 || index >= rootApps.Length)
-                throw new ArgumentOutOfRangeException("index");
+            if (vmId.Index < 0 || vmId.Index >= rootApps.Length)
+                throw new ArgumentOutOfRangeException("vmID");
 
-            rootApp = rootApps[index];
+            rootApp = rootApps[vmId.Index];
+            existingId = rootApp.ViewModelId;
+
+            if (vmId.Count != existingId.Count)
+                throw new Exception("The session for the viewmodel has timed out.");
+
             var trans = rootApp.Transaction;
             if (trans != null)
                 Transaction.SetCurrent(trans);
@@ -183,5 +188,32 @@ namespace Starcounter.Apps {
 
         }
 
+    }
+
+    internal struct VMID {
+        internal ushort Index;
+        internal ushort Count;
+
+        public static implicit operator VMID(int value) {
+            VMID id;
+            id.Index = (ushort)value;
+            id.Count = (ushort)(value >> 16);
+            return id;
+        }
+
+        public static implicit operator int(VMID value) {
+            int id;
+            id = value.Count << 16;
+            id |= value.Index;
+            return id;
+        }
+
+        public static VMID operator ++(VMID value) {
+            value.Count++;
+            value.Index++;
+            if (value.Index == 16)
+                value.Index = 0;
+            return value;
+        }
     }
 }
