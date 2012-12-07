@@ -44,6 +44,7 @@
 #include "../common/overflow_buffer.hpp"
 #include "../common/config_param.hpp"
 #include "../common/bit_operations.hpp"
+#include "../common/owner_id_value_type.h"
 
 #include <scerrres.h>
 
@@ -59,7 +60,7 @@ typedef struct _sc_io_event
 } sc_io_event;
 
 EXTERN_C unsigned long sc_sizeof_port();
-EXTERN_C unsigned long sc_initialize_port(void *port, const char *name, unsigned long port_number);
+EXTERN_C unsigned long sc_initialize_port(void *port, const char *name, unsigned long port_number, owner_id_value_type owner_id_value);
 EXTERN_C unsigned long server_get_next_signal_or_task(void *port, unsigned int timeout_milliseconds, sc_io_event *pio_event);
 EXTERN_C unsigned long server_get_next_signal(void *port, unsigned int timeout_milliseconds, unsigned long *pchunk_index);
 EXTERN_C long server_has_task(void *port);
@@ -126,7 +127,7 @@ public:
 	server_port()
 	: next_channel_(0) {}
 	
-	unsigned long init(const char *name, std::size_t id);
+	unsigned long init(const char *name, std::size_t id, owner_id oid);
 	unsigned long get_next_signal_or_task(unsigned int timeout_milliseconds, sc_io_event &the_io_event);
 	unsigned long get_next_signal(unsigned int timeout_milliseconds, unsigned long *pchunk_index);
 	long has_task();
@@ -382,8 +383,11 @@ private:
 	}
 };
 
-unsigned long server_port::init(const char* database_name, std::size_t id) {
+unsigned long server_port::init(const char* database_name, std::size_t id, owner_id oid) {
 	try {
+		// Assign owner_id.
+		owner_id_ = oid;
+		
 		// Open the database shared memory segment.
 		shared_memory_object_.init_open(database_name);
 		
@@ -1433,10 +1437,11 @@ unsigned long sc_sizeof_port()
 }
 
 unsigned long sc_initialize_port(void *port, const char *name, unsigned
-long port_number) {
+long port_number, owner_id_value_type owner_id_value) {
 	using namespace starcounter::core;
 	server_port *the_port = new (port) server_port();
-	return the_port->init(name, port_number);
+	return the_port->init(name, port_number,
+	starcounter::core::owner_id(owner_id_value));
 }
 
 unsigned long server_get_next_signal_or_task(void *port, unsigned int
