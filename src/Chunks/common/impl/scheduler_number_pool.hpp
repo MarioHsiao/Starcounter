@@ -159,14 +159,10 @@ smp::spinlock::milliseconds timeout) {
 template<class T, std::size_t N>
 inline bool scheduler_number_pool<T, N>::acquire(value_type* item, owner_id id,
 smp::spinlock::milliseconds timeout) {
-	//std::cout << "scheduler_number_pool<T, N>::acquire() with ID = " << id.get() << std::endl;
 	smp::spinlock::scoped_lock lock(spinlock(), id.get(),
 	timeout -timeout.tick_count());
 
 	if (lock.owns()) {
-		//std::cout << this << " scheduler_number_pool<T, N>::acquire(): Acquired the lock. Access violation in 3 seconds. . ." << std::endl; Sleep(3000);
-		//_mm_mfence(); *((int*) 0) = 0; /// ACCESS VIOLATION
-
 		for (std::size_t i = 0; i < masks; ++i) {
 			for (mask_type mask = mask_[i]; mask; mask &= mask -1) {
 				std::size_t bit = bit_scan_forward(mask);
@@ -190,9 +186,6 @@ smp::spinlock::milliseconds timeout) {
 			}
 		}
 	}
-	else {
-		//std::cout << this << " scheduler_number_pool<T, N>::acquire(): Could not acquire the lock." << std::endl;
-	}
 
 	// Not acquired.
 	return false;
@@ -206,16 +199,14 @@ smp::spinlock::milliseconds timeout) {
 	
 	if (lock.owns()) {
 		if (item < capacity()) {
-			if (elem_[item] == id) {
-				elem_[item] = 1;
-				std::size_t i = item >> 6;
-				std::size_t bit = item & 63;
-				mask_[i] |= 1ULL << bit;
-				++size_;
+			elem_[item] = 1;
+			std::size_t i = item >> 6;
+			std::size_t bit = item & 63;
+			mask_[i] |= 1ULL << bit;
+			++size_;
 
-				// Successfully released.
-				return true;
-			}
+			// Successfully released.
+			return true;
 		}
 	}
 
@@ -225,7 +216,6 @@ smp::spinlock::milliseconds timeout) {
 
 template<class T, std::size_t N>
 inline void scheduler_number_pool<T, N>::adjust_mask() {
-	//std::cout << "scheduler_number_pool<T, N>::adjust_mask()" << std::endl;
 	clear_mask();
 	
 	for (size_type i = 0; i < buffer_capacity; ++i) {
@@ -237,7 +227,6 @@ inline void scheduler_number_pool<T, N>::adjust_mask() {
 
 template<class T, std::size_t N>
 inline void scheduler_number_pool<T, N>::adjust_size() {
-	//std::cout << "scheduler_number_pool<T, N>::adjust_size()" << std::endl;
 	size_type sum = 0;
 	
 	// Sum up the population count of the masks.
@@ -252,7 +241,6 @@ inline void scheduler_number_pool<T, N>::adjust_size() {
 template<class T, std::size_t N>
 inline bool scheduler_number_pool<T, N>::if_locked_with_id_recover_and_unlock
 (smp::spinlock::locker_id_type id) {
-	//std::cout << "scheduler_number_pool<T, N>::if_locked_with_id_recover_and_unlock()" << std::endl;
 	if (spinlock().is_locked_with_id(id)) {
 		// Release elements marked with id.
 		for (size_type i = 0; i < buffer_capacity; ++i) {
@@ -274,14 +262,6 @@ inline bool scheduler_number_pool<T, N>::if_locked_with_id_recover_and_unlock
 	// The scheduler_number_pool was not locked with id. No recovery to be done here.
 	return false;
 }
-
-#if 0 /// obsolete code
-template<class T, std::size_t N>
-inline bool scheduler_number_pool<T, N>::pop_back(value_type* item,
-uint32_t spin_count, smp::spinlock::milliseconds timeout) {
-	return false;
-}
-#endif /// obsolete code
 
 template<class T, std::size_t N>
 inline bool scheduler_number_pool<T, N>::is_not_empty() const {
