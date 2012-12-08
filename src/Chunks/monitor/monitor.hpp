@@ -246,6 +246,11 @@ public:
 	/// relatively long time so this is only used for debug.
 	void print_event_register();
 	
+#if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
+	/// Show statistics and resource usage.
+	void watch_resources();
+#endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
+	
 	/// The apc_function() calls this so that we can access member variables
 	/// without having to make getters and setters for all.
 	//void do_registration();

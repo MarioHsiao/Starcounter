@@ -106,8 +106,7 @@ class server_port {
 	shared_chunk_pool_type* shared_chunk_pool_;
 	starcounter::core::shared_memory_object shared_memory_object_;
 	starcounter::core::mapped_region mapped_region_;
-	std::size_t id_;	
-	owner_id owner_id_;
+	std::size_t id_;
 
 	// TODO: Remove gotoxy() - used during debug.
 	void gotoxy(int16_t x, int16_t y) {
@@ -117,6 +116,10 @@ class server_port {
 		SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 	}
 	
+	owner_id& get_owner_id() {
+		return this_scheduler_interface_->get_owner_id();
+	}
+
 public:
 	enum {
 		// TODO: Experiment with this treshold, which decides when to acquire
@@ -385,9 +388,6 @@ private:
 
 unsigned long server_port::init(const char* database_name, std::size_t id, owner_id oid) {
 	try {
-		// Assign owner_id.
-		owner_id_ = oid;
-		
 		// Open the database shared memory segment.
 		shared_memory_object_.init_open(database_name);
 		
@@ -454,6 +454,9 @@ unsigned long server_port::init(const char* database_name, std::size_t id, owner
 		
 		// Get this scheduler's scheduler_interface.
 		this_scheduler_interface_ = scheduler_interface + id_;
+		
+		// Assign owner_id.
+		this_scheduler_interface_->set_owner_id(oid);
 
 		// Find the client_interface for this scheduler and store it in this
 		// scheduler_interface. The value of the client_interface pointer is
@@ -1414,7 +1417,7 @@ uint32_t timeout_milliseconds) {
 	
 	// Release the_channel_number.
 	scheduler_interface_[the_scheduler_number]
-	.push_front_channel_number(the_channel_number, owner_id_);
+	.push_front_channel_number(the_channel_number, get_owner_id());
 	
 	return true; /// TODO: Timeout, return false when not successfull.
 }
