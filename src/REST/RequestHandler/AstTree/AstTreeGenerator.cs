@@ -52,29 +52,41 @@ namespace Starcounter.Internal.Uri {
                     Parent = rpclass,
                     ParseNode = input
                 };
+            } else {
+                var pver = new AstVerifyFunction() {
+                    Parent = rpclass,
+                    VerificationName = rpclass.PropertyName,
+                    Handler = input.Handler
+                };
             }
 
             var fn = new AstProcessFunction() {
                 Parent = rpclass
             };
 
-
             AstNode nextParent = fn;
             if (input.IsParseTypeNode) {
-                var pin = new AstUnsafe() {
-                    Parent = nextParent,
-//                    VerificationIndex = rpclass.PropertyName
+                var verify = new AstVerifier() {
+                    Parent = nextParent
                 };
+                nextParent = verify;
+
                 var parse = new AstParseCode() {
-                    Parent = pin,
+                    Parent = nextParent,
                     ParseNode = input
                 };
                 nextParent = parse;
             }
             else if (input.HandlerIndex != -1) {
+                var verify = new AstVerifier() {
+                    Parent = nextParent
+                };
                 var invoke = new AstInvoke() {
-                    Parent = nextParent,
+                    Parent = verify,
                     ParseNode = input
+                };
+                var fnFail = new AstProcessFail() {
+                    Parent = fn
                 };
             }
 
