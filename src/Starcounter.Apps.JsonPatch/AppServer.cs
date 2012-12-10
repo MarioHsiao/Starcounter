@@ -56,7 +56,8 @@ namespace Starcounter.Internal.Web {
                     session.Start(request);
                 }
 
-                Object x = RequestHandler.RequestProcessor.Invoke(request);
+                object x;
+                RequestHandler.RequestProcessor.Invoke(request, out x);
                 if (x != null) {
                     if (x is App) {
                         var app = (App)x;
