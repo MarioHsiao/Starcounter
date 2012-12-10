@@ -180,6 +180,11 @@ namespace Starcounter.Internal.Test {
             byte[] h5 = Encoding.UTF8.GetBytes("POST /transfer?99\r\n\r\n");
             byte[] h6 = Encoding.UTF8.GetBytes("POST /deposit?56754\r\n\r\n");
             byte[] h7 = Encoding.UTF8.GetBytes("DELETE /all\r\n\r\n");
+            
+            // TODO:
+            // These two cases fails today, since the generated code expects a
+            // space after the uri and not a '\r' character.
+            // The generated code needs to be updated.
             byte[] h8 = Encoding.UTF8.GetBytes("GET /players\r\n\r\n");
             byte[] h9 = Encoding.UTF8.GetBytes("GET /\r\n\r\n");
 
