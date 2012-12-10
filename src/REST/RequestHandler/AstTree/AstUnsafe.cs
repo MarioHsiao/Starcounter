@@ -19,17 +19,8 @@ namespace Starcounter.Internal.Uri {
         internal override void GenerateCsCodeForNode() {
             Prefix.Add("unsafe {");
             Prefix.Add("   byte* pfrag = (byte*)fragment;");
-            Prefix.Add("   byte* ptempl = (byte*)PointerVerificationBytes;");
-            var sb = new StringBuilder();
-       //     if (VerificationIndex != null) {
-       //         sb.Append("   ptempl += ");
-       //         sb.Append(VerificationIndex);
-       //         sb.Append(';');
-       //         Prefix.Add(sb.ToString());
-       //     }
             Prefix.Add("   int nextSize = size;");
             Suffix.Add("}");
         }
-
     }
 }
