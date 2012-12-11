@@ -19,6 +19,10 @@
       <Compile Include="@(gFiles)" />
     </ItemGroup>
   </Target>
+
+  <Target Name="AfterBuild">
+    <Exec Command="&quot;$(StarcounterBin)\scweaver.exe&quot; WeaveBootstrapper &quot;$(TargetPath)&quot;"/>
+  </Target>
 </Project>
 
 

@@ -20,12 +20,18 @@
 
 #include <iostream>
 #include <cstddef>
+#include <climits>
 #include <boost/cstdint.hpp>
 #define WIN32_LEAN_AND_MEAN
 # include <windows.h>
+# include <intrin.h>
+// Declaring interlocked functions for use as intrinsics.
+# pragma intrinsic (_InterlockedAnd64)
+# pragma intrinsic (_InterlockedOr64)
 #undef WIN32_LEAN_AND_MEAN
-#include "../common/macro_definitions.hpp"
-#include "../common/channel_number.hpp"
+#include "bit_operations.hpp"
+#include "channel_number.hpp"
+#include "macro_definitions.hpp"
 
 namespace starcounter {
 namespace core {
@@ -38,25 +44,11 @@ namespace core {
 template<std::size_t Channels>
 class channel_mask {
 public:
-	#if defined(__x86_64__) || defined (__amd64__) || defined (_M_X64) \
-	|| defined(_M_AMD64)
-	
 	typedef uint64_t mask_type;
 	
 	enum {
-		mask_bits = 64
+		mask_bits = sizeof(mask_type) * CHAR_BIT
 	};
-	
-	#elif defined(__i386__) || defined (_M_IX86)
-	
-	typedef uint32_t mask_type;
-	
-	enum {
-		mask_bits = 32
-	};
-	
-	#endif // defined(__x86_64__) || defined (__amd64__) || defined (_M_X64)
-	// || defined(_M_AMD64)
 	
 	// Construction/Destruction.
 	channel_mask() {
@@ -72,57 +64,23 @@ public:
 	
 	bool get_channel_number_flag(channel_number ch) const {
 		// Get channel number flag in channel_mask_.
-		#if defined(__x86_64__) || defined (__amd64__) || defined (_M_X64) \
-		|| defined(_M_AMD64)
 		return bool(channel_mask_[ch >> 6] & (1ULL << (ch & 63)));
-
-		#elif defined(__i386__) || defined (_M_IX86)
-		return bool(channel_mask_[ch >> 5] & (1 << (ch & 31)));
-		
-		#endif // defined(__x86_64__) || defined (__amd64__) || defined (_M_X64)
-		// || defined(_M_AMD64)
 	}
 	
 	void set_channel_number_flag(channel_number ch) {
 		// Set channel number flag in channel_mask_.
-		#if defined(__x86_64__) || defined (__amd64__) || defined (_M_X64) \
-		|| defined(_M_AMD64)
-		
 		std::size_t channel_mask_index = ch >> 6;
 		mask_type mask = 1ULL << (ch & 0x3FULL);
 		_InterlockedOr64((volatile __int64*)
 		&channel_mask_[channel_mask_index], mask);
-		
-		#elif defined(__i386__) || defined (_M_IX86)
-		
-		std::size_t channel_mask_index = ch >> 5;
-		mask_type mask = 1UL << (ch & 0x1FUL);
-		_InterlockedOr((volatile long int*)
-		&channel_mask_[channel_mask_index], mask);
-		
-		#endif // defined(__x86_64__) || defined (__amd64__) || defined (_M_X64)
-		// || defined(_M_AMD64)
 	}
 	
 	void clear_channel_number_flag(channel_number ch) {
 		// Clear channel number flag in channel_mask_.
-		#if defined(__x86_64__) || defined (__amd64__) || defined (_M_X64) \
-		|| defined(_M_AMD64)
-		
 		std::size_t channel_mask_index = ch >> 6;
 		uint64_t mask = ~(1ULL << (ch & 0x3FULL));
 		_InterlockedAnd64((volatile __int64*)
 		&channel_mask_[channel_mask_index], mask);
-		
-		#elif defined(__i386__) || defined (_M_IX86)
-		
-		std::size_t channel_mask_index = ch >> 5;
-		mask_type mask = ~(1UL << (ch & 0x1FUL));
-		_InterlockedAnd((volatile long int*)
-		&channel_mask_[channel_mask_index], mask);
-		
-		#endif // defined(__x86_64__) || defined (__amd64__) || defined (_M_X64)
-		// || defined(_M_AMD64)
 	}
 	
 	std::size_t channel_masks() const {

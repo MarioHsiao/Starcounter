@@ -10,7 +10,7 @@ namespace Starcounter.Internal.Uri {
     /// <summary>
     /// Class AstElseIfList
     /// </summary>
-    internal class AstElseIfList : AstVerifier {
+    internal class AstElseIfList : AstJump {
 
         /// <summary>
         /// Gets or sets the parse node.
@@ -42,7 +42,7 @@ namespace Starcounter.Internal.Uri {
         /// Generates C# source code for this abstract syntax tree (AST) node
         /// </summary>
         internal override void GenerateCsCodeForNode() {
-            GenVerifier(ParseNode.MatchParseCharInTemplateRelativeToSwitch,!(Parent is AstUnsafe));
+            GenerateJump(ParseNode.MatchParseCharInTemplateRelativeToSwitch,!(Parent is AstUnsafe));
         }
 
     }

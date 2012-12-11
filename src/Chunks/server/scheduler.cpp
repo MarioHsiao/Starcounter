@@ -44,6 +44,7 @@
 #include "../common/overflow_buffer.hpp"
 #include "../common/config_param.hpp"
 #include "../common/bit_operations.hpp"
+#include "../common/owner_id_value_type.h"
 
 #include <scerrres.h>
 
@@ -59,7 +60,7 @@ typedef struct _sc_io_event
 } sc_io_event;
 
 EXTERN_C unsigned long sc_sizeof_port();
-EXTERN_C unsigned long sc_initialize_port(void *port, const char *name, unsigned long port_number);
+EXTERN_C unsigned long sc_initialize_port(void *port, const char *name, unsigned long port_number, owner_id_value_type owner_id_value);
 EXTERN_C unsigned long server_get_next_signal_or_task(void *port, unsigned int timeout_milliseconds, sc_io_event *pio_event);
 EXTERN_C unsigned long server_get_next_signal(void *port, unsigned int timeout_milliseconds, unsigned long *pchunk_index);
 EXTERN_C long server_has_task(void *port);
@@ -79,21 +80,9 @@ namespace starcounter {
 namespace core {
 
 class server_port {
-	#if defined(_MSC_VER) // Windows
-	# if defined(_M_X64) || (_M_AMD64) // LLP64 machine
 	enum {
 		channel_masks_ = 4
 	};
-
-	# elif defined(_M_IX86) // ILP32 machine 
-	enum {
-		channel_masks_ = 8
-	};
-	
-	# endif // (_M_X64) || (_M_AMD64)
-	#else
-	# error Compiler not supported.
-	#endif // (_MSC_VER)
 
 	scheduler_channel_type *this_scheduler_task_channel_;
 	scheduler_channel_type *this_scheduler_signal_channel_;
@@ -117,8 +106,8 @@ class server_port {
 	shared_chunk_pool_type* shared_chunk_pool_;
 	starcounter::core::shared_memory_object shared_memory_object_;
 	starcounter::core::mapped_region mapped_region_;
-	std::size_t id_;	
-	
+	std::size_t id_;
+
 	// TODO: Remove gotoxy() - used during debug.
 	void gotoxy(int16_t x, int16_t y) {
 		COORD coord;
@@ -127,6 +116,10 @@ class server_port {
 		SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 	}
 	
+	owner_id& get_owner_id() {
+		return this_scheduler_interface_->get_owner_id();
+	}
+
 public:
 	enum {
 		// TODO: Experiment with this treshold, which decides when to acquire
@@ -137,7 +130,7 @@ public:
 	server_port()
 	: next_channel_(0) {}
 	
-	unsigned long init(const char *name, std::size_t id);
+	unsigned long init(const char *name, std::size_t id, owner_id oid);
 	unsigned long get_next_signal_or_task(unsigned int timeout_milliseconds, sc_io_event &the_io_event);
 	unsigned long get_next_signal(unsigned int timeout_milliseconds, unsigned long *pchunk_index);
 	long has_task();
@@ -393,7 +386,7 @@ private:
 	}
 };
 
-unsigned long server_port::init(const char* database_name, std::size_t id) {
+unsigned long server_port::init(const char* database_name, std::size_t id, owner_id oid) {
 	try {
 		// Open the database shared memory segment.
 		shared_memory_object_.init_open(database_name);
@@ -461,6 +454,9 @@ unsigned long server_port::init(const char* database_name, std::size_t id) {
 		
 		// Get this scheduler's scheduler_interface.
 		this_scheduler_interface_ = scheduler_interface + id_;
+		
+		// Assign owner_id.
+		this_scheduler_interface_->set_owner_id(oid);
 
 		// Find the client_interface for this scheduler and store it in this
 		// scheduler_interface. The value of the client_interface pointer is
@@ -602,25 +598,11 @@ main_processing_loop:
 			
 			for (channel_number mask_word_counter = 0;
 			mask_word_counter < channel_masks_; ++mask_word_counter) {
-#if defined(_MSC_VER) // Windows
-# if defined(_M_X64) || defined(_M_AMD64) // LLP64 machine
-				/// 64-bit version
 				for (uint64_t mask = this_scheduler_interface_
 				->get_channel_mask_word(mask_word_counter);
 				mask; mask &= mask -1) {
 					channel_number this_channel = bit_scan_forward(mask);
 					this_channel += mask_word_counter << 6;
-# elif defined(_M_IX86) // ILP32 machine
-				/// 32-bit version
-				for (uint32_t mask = this_scheduler_interface_
-				->get_channel_mask_word(mask_word_counter);
-				mask; mask &= mask -1) {
-					channel_number this_channel = bit_scan_forward(mask);
-					this_channel += mask_word_counter << 5;
-# endif // (_M_X64) || (_M_AMD64)
-#else
-# error Compiler not supported.
-#endif // (_MSC_VER)
 					channel_type& the_channel = channel_[this_channel];
 					
 					// Check if the channel is marked for release, assuming not.
@@ -648,9 +630,6 @@ main_processing_loop:
 		}
 
 check_next_channel:
-#if defined(_MSC_VER) // Windows
-# if defined(_M_X64) || defined(_M_AMD64) // LLP64 machine
-		/// 64-bit version
 		for (channel_number mask_word_counter = next_channel_ >> 6;
 		mask_word_counter < channel_masks_; ++mask_word_counter) {
 			uint32_t prev = (next_channel_ & 63);
@@ -659,20 +638,6 @@ check_next_channel:
 			mask; mask &= mask -1) {
 				channel_number this_channel = bit_scan_forward(mask);
 				this_channel += mask_word_counter << 6;
-# elif defined(_M_IX86) // ILP32 machine
-		/// 32-bit version
-		for (channel_number mask_word_counter = next_channel_ >> 5;
-		mask_word_counter < channel_masks_; ++mask_word_counter) {
-			uint32_t prev = (next_channel_ & 31);
-			for (uint32_t mask = (this_scheduler_interface_
-			->get_channel_mask_word(mask_word_counter) >> prev) << prev;
-			mask; mask &= mask -1) {
-				channel_number this_channel = bit_scan_forward(mask);
-				this_channel += mask_word_counter << 5;
-# endif // (_M_X64) || (_M_AMD64)
-#else
-# error Compiler not supported.
-#endif // (_MSC_VER)
 				// next_channel_ = (this_channel +1) % channels;
 				next_channel_ = (this_channel +1) & (channels -1);
 				channel_type& the_channel = channel_[this_channel];
@@ -710,23 +675,11 @@ check_next_channel:
 				}
 			}
 			
-#if defined(_MSC_VER) // Windows
-# if defined(_M_X64) || defined(_M_AMD64) // LLP64 machine
 			// A 64-bit mask word have been scanned, therefore add mask size 64.
 			next_channel_ += 64;
 
 			// Keep the mask word counter value (bit 7:6), and clear all other bits.
 			next_channel_ &= 192; // ...011000000
-# elif defined(_M_IX86) // ILP32 machine
-			// A 32-bit mask word have been scanned, therefore add mask size 32.
-			next_channel_ += 32;
-
-			// Keep the mask word counter value (bit 7:5), and clear all other bits.
-			next_channel_ &= 224; // ...011100000
-# endif // (_M_X64) || (_M_AMD64)
-#else
-# error Compiler not supported.
-#endif // (_MSC_VER)
 		}
 		
 		// The scheduler has completed a scan of all its channels in queues.
@@ -771,23 +724,10 @@ long server_port::has_task() {
 	if (this_scheduler_task_channel_->in.has_more()) return 1;
 
 	for (channel_number n = 0; n < channel_masks_; ++n) {
-#if defined(_MSC_VER) // Windows
-# if defined(_M_X64) || defined(_M_AMD64) // LLP64 machine
-		/// 64-bit version
 		for (uint64_t mask = this_scheduler_interface_
 		->get_channel_mask_word(n); mask; mask &= mask -1) {
 			uint32_t ch = bit_scan_forward(mask);
 			ch += n << 6;
-# elif defined(_M_IX86) // ILP32 machine
-		/// 32-bit version
-		for (uint32_t mask = this_scheduler_interface_
-		->get_channel_mask_word(n); mask; mask &= mask -1) {
-			uint32_t ch = bit_scan_forward(mask);
-			ch += n << 5;
-# endif // (_M_X64) || (_M_AMD64)
-#else
-# error Compiler not supported.
-#endif // (_MSC_VER)
 			if (channel_[ch].in.has_more()) return 1;
 		}
 	}
@@ -1030,7 +970,7 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 	_mm_lfence(); // Synchronizes instruction stream.
 	
 	// Release the channel.
-	release_channel_number(the_channel_index, the_scheduler_number); /// TEST: Shall not be commented.
+	release_channel_number(the_channel_index, the_scheduler_number);
 	_mm_mfence();
 	_mm_lfence(); // Synchronizes instruction stream.
 	
@@ -1042,36 +982,59 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 	if (channels_left == 0) {
 		if (client_interface_ptr->get_owner_id().get_clean_up()) {
 			// Is the client_interface marked for clean up?
-			// Clean up job to do.
+#if defined (IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP)
+			///=================================================================
+			/// Notify the IPC monitor to repush_front_channel_numberlease all chunks in this
+			/// client_interface, making them available for anyone to allocate.
+			///=================================================================
+			//std::cout << "TODO: Notify the IPC monitor to release all chunks in this client_interface." << std::endl;
+
+#if 1
+			bool release_chunk_result = release_clients_chunks
+			(client_interface_ptr, 10000 /* milliseconds */);
+			
+			// Release the client_interface[the_client_number].
+			client_interface_ptr->set_owner_id(owner_id::none);
+			
+			bool release_client_number_res =
+			common_client_interface_->release_client_number(the_client_number,
+			client_interface_ptr);
+			
+			common_client_interface_->decrement_client_interfaces_to_clean_up();
+
+#endif
+
+#else // !defined (IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP)
 			///=================================================================
 			/// Release all chunks in this client_interface, making them
 			/// available for anyone to allocate.
 			///=================================================================
-	
+			
 			// Search through the overflow_pool and for each chunk that is
 			// marked in the resource_map of this client, remove it. Otherwise
 			// put it back into the overflow_pool. Not sure if this is needed.
 			// Maybe tranquility means there is no chunks left, because they
 			// were thrown away already. Should be the case, verify!
-	
+			
 			// Now there shall not exist any more chunk indices around, except
 			// those in the resource_map. Release them.
-	
+			
 			//std::size_t chunks_flagged = client_interface_ptr
 			//->get_resource_map().count_chunk_flags_set();
-	
+			
 			bool release_chunk_result = release_clients_chunks
 			(client_interface_ptr, 10000 /* milliseconds */);
-	
+			
 			// Release the client_interface[the_client_number].
 			client_interface_ptr->set_owner_id(owner_id::none);
-	
+			
 			bool release_client_number_res =
 			common_client_interface_->release_client_number(the_client_number,
 			client_interface_ptr);
-	
+			
 			common_client_interface_->decrement_client_interfaces_to_clean_up();
 			// Clean up done for client_interface[the_client_number].
+#endif // defined (IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP)
 		}
 	}
 }
@@ -1454,7 +1417,7 @@ uint32_t timeout_milliseconds) {
 	
 	// Release the_channel_number.
 	scheduler_interface_[the_scheduler_number]
-	.push_front_channel_number(the_channel_number);
+	.push_front_channel_number(the_channel_number, get_owner_id());
 	
 	return true; /// TODO: Timeout, return false when not successfull.
 }
@@ -1477,10 +1440,11 @@ unsigned long sc_sizeof_port()
 }
 
 unsigned long sc_initialize_port(void *port, const char *name, unsigned
-long port_number) {
+long port_number, owner_id_value_type owner_id_value) {
 	using namespace starcounter::core;
 	server_port *the_port = new (port) server_port();
-	return the_port->init(name, port_number);
+	return the_port->init(name, port_number,
+	starcounter::core::owner_id(owner_id_value));
 }
 
 unsigned long server_get_next_signal_or_task(void *port, unsigned int

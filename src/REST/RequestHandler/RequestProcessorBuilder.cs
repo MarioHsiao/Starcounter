@@ -28,6 +28,9 @@ namespace Starcounter.Internal.Uri {
     /// version is generated and replaces the old version (not yet implemented).
     /// </summary>
     public partial class RequestProcessorBuilder {
+        // If changes are made to the code generator, update this number to force a 
+        // recompilation of the cached handlers.
+        private const int GENERATED_VERSION_NO = 1;
 
         /// <summary>
         /// The application developers Verb + URI handlers. A handler is registred
@@ -81,7 +84,7 @@ namespace Starcounter.Internal.Uri {
         /// </summary>
         public string Namespace {
             get {
-                return "__RP_" + HandlerSetChecksum;
+                return "__RP_" + GENERATED_VERSION_NO + "_" + HandlerSetChecksum;
             }
         }
 
@@ -234,7 +237,7 @@ namespace Starcounter.Internal.Uri {
                 var a = Assembly.Load(ms.GetBuffer());
                 topRp = (TopLevelRequestProcessor)a.CreateInstance(Namespace + ".GeneratedRequestProcessor");
                 sw.Stop();
-                Console.WriteLine(String.Format("Found cached assembly {0} ({1} seconds spent).", fileName, (double)sw.ElapsedMilliseconds / 1000));
+                Debug.WriteLine(String.Format("Found cached assembly {0} ({1} seconds spent).", fileName, (double)sw.ElapsedMilliseconds / 1000));
             }
             else {
                 sw.Start();
@@ -244,7 +247,7 @@ namespace Starcounter.Internal.Uri {
                 ast.Namespace = Namespace;
                 topRp = compiler.CreateMatcher(ast,fileName);
                 sw.Stop();
-                Console.WriteLine(String.Format("Time to create request processor is {0} seconds.", (double)sw.ElapsedMilliseconds / 1000));
+                Debug.WriteLine(String.Format("Time to create request processor is {0} seconds.", (double)sw.ElapsedMilliseconds / 1000));
             }
 
             foreach (var h in Handlers) {

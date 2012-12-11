@@ -461,6 +461,73 @@ public:
 	 * @param A const reference to scheduler work event (i).
 	 */ 
 	const HANDLE& scheduler_work_event(std::size_t i) const;
+
+#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+	/// Open open_scheduler_number_pool_not_empty event (i) and return a reference to it.
+	/// NOTE: Before attempting to open the event, sets the event to 0
+	/// regardless of if the event is already open or not.
+	/**
+	 * @param i The scheduler's number, related to scheduler number i.
+	 * @return A reference to open_scheduler_number_pool_not_empty event (i). NULL if failed to open.
+	 */ 
+	HANDLE& open_scheduler_number_pool_not_empty_event(std::size_t i);
+
+	/// Close open_scheduler_number_pool_not_empty event (i). It does not actually close the event,
+	/// the database do that before terminating, instead it sets the event to 0.
+	/**
+	 * @param i The scheduler's number, related to scheduler number i.
+	 */ 
+	void close_scheduler_number_pool_not_empty_event(std::size_t i);
+
+	/// Open open_scheduler_number_pool_not_full event (i) and return a reference to it.
+	/// NOTE: Before attempting to open the event, sets the event to 0
+	/// regardless of if the event is already open or not.
+	/**
+	 * @param i The scheduler's number, related to scheduler number i.
+	 * @return A reference to open_scheduler_number_pool_not_full event (i). NULL if failed to open.
+	 */ 
+	HANDLE& open_scheduler_number_pool_not_full_event(std::size_t i);
+
+	/// Close open_scheduler_number_pool_not_full event (i). It does not actually close the event,
+	/// the database do that before terminating, instead it sets the event to 0.
+	/**
+	 * @param i The scheduler's number, related to scheduler number i.
+	 */ 
+	void close_scheduler_number_pool_not_full_event(std::size_t i);
+
+	/// Get a reference to scheduler_number_pool_not_empty event (i).
+	/**
+	 * @param i The scheduler's number, related to
+	 *		scheduler_interface[i].
+	 * @return A reference to scheduler_number_pool_not_empty event (i).
+	 */ 
+	HANDLE& scheduler_number_pool_not_empty_event(std::size_t i);
+	
+	/// Get a const reference to scheduler_number_pool_not_empty event (i).
+	/**
+	 * @param i The scheduler's number, related to
+	 *		scheduler_interface[i].
+	 * @param A const reference to scheduler_number_pool_not_empty event (i).
+	 */ 
+	const HANDLE& scheduler_number_pool_not_empty_event(std::size_t i) const;
+
+	/// Get a reference to scheduler_number_pool_not_full event (i).
+	/**
+	 * @param i The scheduler's number, related to
+	 *		scheduler_interface[i].
+	 * @return A reference to scheduler_number_pool_not_full event (i).
+	 */ 
+	HANDLE& scheduler_number_pool_not_full_event(std::size_t i);
+	
+	/// Get a const reference to scheduler_number_pool_not_full event (i).
+	/**
+	 * @param i The scheduler's number, related to
+	 *		scheduler_interface[i].
+	 * @param A const reference to scheduler_number_pool_not_full event (i).
+	 */ 
+	const HANDLE& scheduler_number_pool_not_full_event(std::size_t i) const;
+#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 private:
@@ -495,6 +562,16 @@ private:
 	// To notify any scheduler. In this array of HANDLEs, only those that correspond to
 	// an active scheduler will be opened/closed.
 	HANDLE scheduler_work_[max_number_of_schedulers];
+
+#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+	// To notify that scheduler_number_pool_not_empty_[n]. In this array of HANDLEs,
+	// only those that correspond to an active scheduler will be opened/closed.
+	HANDLE scheduler_number_pool_not_empty_[max_number_of_schedulers];
+
+	// To notify that scheduler_number_pool_not_full_[n]. In this array of HANDLEs,
+	// only those that correspond to an active scheduler will be opened/closed.
+	HANDLE scheduler_number_pool_not_full_[max_number_of_schedulers];
+#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
