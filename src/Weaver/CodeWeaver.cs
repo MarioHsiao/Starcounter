@@ -181,6 +181,7 @@ namespace Weaver {
             }
 
             AddStandardWeaverExcludes();
+            AddWeaverExcludesFromFile();
         }
 
         public bool Execute() {
@@ -217,6 +218,8 @@ namespace Weaver {
             foreach (var cachedAssembly in this.Cache.Schema.Assemblies) {
                 ScAnalysisTask.DatabaseSchema.Assemblies.Add(cachedAssembly);
             }
+
+
 
             using (IPostSharpObject postSharpObject = PostSharpObject.CreateInstance(postSharpSettings, this)) {
                 ((PostSharpObject)postSharpObject).Domain.AssemblyLocator.DefaultOptions |= PostSharp.Sdk.CodeModel.AssemblyLocatorOptions.ForClrLoading;
@@ -681,6 +684,18 @@ namespace Weaver {
                 "Starcounter.dll"}
                 ) {
                 AddExcludeExpression(exclude, weaverExcludes);
+            }
+        }
+
+        void AddWeaverExcludesFromFile() {
+            string[] excludes;
+            string filepath = Path.Combine(this.InputDirectory, ".weaverignore");
+
+            if (File.Exists(filepath)) {
+                excludes = File.ReadAllLines(filepath);
+                foreach (var exclude in excludes) {
+                    AddExcludeExpression(exclude, weaverExcludes);
+                }
             }
         }
 
