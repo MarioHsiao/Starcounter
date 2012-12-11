@@ -22,14 +22,20 @@ class GatewayWorker
     int64_t worker_stats_bytes_received_,
         worker_stats_bytes_sent_,
         worker_stats_sent_num_,
-        worker_stats_recv_num_,
-        worker_stats_last_bound_num_;
+        worker_stats_recv_num_;
+
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+    int64_t port_num_active_conns_[MAX_PORTS_NUM];
+#endif
 
     // All actively connected databases.
-    WorkerDbInterface* active_dbs_[MAX_ACTIVE_DATABASES];
+    WorkerDbInterface* worker_dbs_[MAX_ACTIVE_DATABASES];
 
     // Worker suspend state.
-    volatile bool worker_suspended_;
+    volatile bool worker_suspended_unsafe_;
+
+    // Round-robin global scheduler number.
+    int16_t cur_scheduler_id_;
 
     // Some worker temporary data.
     char uri_lower_case_[bmx::MAX_URI_STRING_LEN];
@@ -40,7 +46,80 @@ class GatewayWorker
     // Clone made during last iteration.
     SocketDataChunk *sd_receive_clone_;
 
+    // List of reusable connect sockets.
+    std::list<SOCKET> reusable_connect_sockets_;
+
 public:
+
+    // Getting number of reusable connect sockets.
+    int32_t NumberOfReusableConnectSockets()
+    {
+        return reusable_connect_sockets_.size();
+    }
+
+    // Tracks certain socket.
+    void TrackSocket(int32_t db_index, SOCKET s)
+    {
+#ifdef GW_SOCKET_DIAG
+        GW_COUT << "Tracking socket: " << s << std::endl;
+#endif
+
+        worker_dbs_[db_index]->TrackSocket(s);
+    }
+
+    // Untracks certain socket.
+    void UntrackSocket(int32_t db_index, SOCKET s)
+    {
+#ifdef GW_SOCKET_DIAG
+        GW_COUT << "UnTracking socket: " << s << std::endl;
+#endif
+
+        worker_dbs_[db_index]->UntrackSocket(s);
+    }
+
+    // Getting number of used sockets.
+    int64_t NumberUsedSocketPerDatabase(int32_t db_index)
+    {
+        if (worker_dbs_[db_index] != NULL)
+        {
+            return worker_dbs_[db_index]->get_num_used_sockets();
+        }
+
+        return 0;
+    }
+
+    // Getting number of used chunks.
+    int64_t NumberUsedChunksPerDatabasePerWorker(int32_t db_index)
+    {
+        if (worker_dbs_[db_index] != NULL)
+        {
+            return worker_dbs_[db_index]->get_num_used_chunks();
+        }
+
+        return 0;
+    }
+
+    // Gets certain socket state.
+    bool GetSocketState(int32_t db_index, SOCKET s)
+    {
+        return worker_dbs_[db_index]->GetSocketState(s);
+    }
+
+    // Round-robin scheduler number.
+    int16_t GetSchedulerId()
+    {
+        cur_scheduler_id_++;
+        if (cur_scheduler_id_ >= g_gateway.get_num_schedulers())
+            cur_scheduler_id_ = 0;
+
+        return cur_scheduler_id_;
+    }
+
+    // Getting number of reusable connect sockets.
+    int32_t GetNumReusableConnectSockets()
+    {
+        return reusable_connect_sockets_.size();
+    }
 
     // Clone made during last iteration.
     SocketDataChunk *get_sd_receive_clone()
@@ -49,7 +128,7 @@ public:
     }
 
     // Checks if cloning was performed and does operations.
-    uint32_t ProcessReceiveClones(SocketDataChunk *sd, bool just_delete_clone);
+    uint32_t ProcessReceiveClones(bool just_delete_clone);
 
     // Sets the clone for the next iteration.
     void SetReceiveClone(SocketDataChunk *sd_clone)
@@ -60,13 +139,38 @@ public:
         sd_receive_clone_ = sd_clone;
     }
 
+    // Changes number of accepting sockets.
+    int64_t ChangeNumAcceptingSockets(int32_t port_index, int64_t change_value)
+    {
+#ifdef GW_DETAILED_STATISTICS
+        GW_COUT << "ChangeNumAcceptingSockets: " << change_value << std::endl;
+#endif
+
+        return g_gateway.get_server_port(port_index)->ChangeNumAcceptingSockets(change_value);
+    }
+
 #ifdef GW_COLLECT_SOCKET_STATISTICS
 
-    // Changes number of pending network operations.
-    void ChangeNumPendingNetworkOperations(SocketDataChunk* sd, int64_t changeValue)
+    // Changes number of active connections.
+    void ChangeNumActiveConnections(int32_t port_index, int64_t change_value)
     {
-        //GW_COUT << "ChangeNumPendingSockets: " << changeValue << std::endl;
-        g_gateway.get_server_port(sd->get_port_index())->ChangeNumPendingNetworkOperations(sd->get_db_index(), changeValue);
+#ifdef GW_DETAILED_STATISTICS
+        GW_COUT << "ChangeNumActiveConnections: " << change_value << std::endl;
+#endif
+
+        port_num_active_conns_[port_index] += change_value;
+    }
+
+    // Set number of active connections.
+    void SetNumActiveConnections(int32_t port_index, int64_t set_value)
+    {
+        port_num_active_conns_[port_index] += set_value;
+    }
+
+    // Getting number of active connections per port.
+    int64_t NumberOfActiveConnectionsPerPortPerWorker(int32_t port_index)
+    {
+        return port_num_active_conns_[port_index];
     }
 
 #endif
@@ -91,19 +195,19 @@ public:
     // Sets worker suspend state.
     void set_worker_suspended(bool value)
     {
-        worker_suspended_ = value;
+        worker_suspended_unsafe_ = value;
     }
 
     // Gets worker suspend state.
     bool worker_suspended()
     {
-        return worker_suspended_;
+        return worker_suspended_unsafe_;
     }
 
     // Gets global lock.
     void EnterGlobalLock()
     {
-        worker_suspended_ = true;
+        worker_suspended_unsafe_ = true;
 
         // Entering global lock.
         g_gateway.EnterGlobalLock();
@@ -112,16 +216,16 @@ public:
     // Releases global lock.
     void LeaveGlobalLock()
     {
-        worker_suspended_ = false;
+        worker_suspended_unsafe_ = false;
 
         // Leaving global lock.
         g_gateway.LeaveGlobalLock();
     }
 
     // Getting one of the active databases.
-    WorkerDbInterface* GetDatabase(int32_t dbSlotIndex)
+    WorkerDbInterface* GetWorkerDb(int32_t dbSlotIndex)
     {
-        return active_dbs_[dbSlotIndex];
+        return worker_dbs_[dbSlotIndex];
     }
 
     // Deleting inactive database.
@@ -157,12 +261,6 @@ public:
         return worker_stats_recv_num_;
     }
 
-    // Getting the number of receives statistics.
-    int64_t get_worker_stats_last_bound_num()
-    {
-        return worker_stats_last_bound_num_;
-    }
-
     // Worker initialization function.
     int32_t Init(int32_t workerId);
 
@@ -192,29 +290,29 @@ public:
     uint32_t CreateNewConnections(int32_t how_many, int32_t port_index, int32_t db_index);
 
     // Allocates a bunch of new connections.
-    uint32_t CreateProxySocket(SocketDataChunk* proxy_sd, SocketDataChunk* client_sd);
+    uint32_t CreateProxySocket(SocketDataChunk* proxy_sd);
 
     // Functions to process finished IOCP events.
-    uint32_t FinishReceive(SocketDataChunk *sd, int32_t numBytesReceived, bool& called_from_receive);
-    uint32_t FinishSend(SocketDataChunk *sd, int32_t numBytesSent);
-    uint32_t FinishDisconnect(SocketDataChunk *sd);
-    uint32_t FinishConnect(SocketDataChunk *sd);
-    uint32_t FinishAccept(SocketDataChunk *sd, int32_t numBytesReceived);
+    uint32_t FinishReceive(SocketDataChunk*& sd, int32_t numBytesReceived, bool& called_from_receive);
+    uint32_t FinishSend(SocketDataChunk*& sd, int32_t numBytesSent);
+    uint32_t FinishDisconnect(SocketDataChunk*& sd);
+    uint32_t FinishConnect(SocketDataChunk*& sd);
+    uint32_t FinishAccept(SocketDataChunk*& sd, int32_t numBytesReceived);
 
     // Running connect on socket data.
-    uint32_t Connect(SocketDataChunk *sd, sockaddr_in *serverAddr);
+    uint32_t Connect(SocketDataChunk*& sd, sockaddr_in *serverAddr);
 
     // Running disconnect on socket data.
-    uint32_t DisconnectAndReleaseChunk(SocketDataChunk *sd);
+    uint32_t DisconnectAndReleaseChunk(SocketDataChunk*& sd);
 
     // Running send on socket data.
-    uint32_t Send(SocketDataChunk *sd);
+    uint32_t Send(SocketDataChunk*& sd);
 
     // Running receive on socket data.
-    uint32_t Receive(SocketDataChunk *sd);
+    uint32_t Receive(SocketDataChunk*& sd);
 
     // Running accept on socket data.
-    uint32_t Accept(SocketDataChunk *sd);
+    uint32_t Accept(SocketDataChunk*& sd);
 
     // Processes socket data to database.
     uint32_t RunReceiveHandlers(SocketDataChunk *sd)
@@ -222,8 +320,10 @@ public:
         // Putting socket data to database.
         sd->PrepareToDb();
 
+        bool is_handled = false;
+
         // Here we have to process socket data using handlers.
-        uint32_t err_code = sd->RunHandlers(this);
+        uint32_t err_code = sd->RunHandlers(this, &is_handled);
         if (err_code)
         {
             // Ban the fucking IP.
@@ -240,8 +340,10 @@ public:
         // Putting socket data from database.
         sd->PrepareFromDb();
 
+        bool is_handled = false;
+
         // Here we have to process socket data using handlers.
-        uint32_t err_code = sd->RunHandlers(this);
+        uint32_t err_code = sd->RunHandlers(this, &is_handled);
         if (err_code)
         {
             // Ban the fucking IP.
@@ -272,9 +374,6 @@ public:
 
     // Sends raw echo to master.
     uint32_t SendRawEcho(SocketDataChunk *sd, int64_t echo_id);
-
-    // Sends certain message to master node.
-    uint32_t ProcessMasterMessage(SocketDataChunk *sd, bool just_connected);
 
 #endif
 };

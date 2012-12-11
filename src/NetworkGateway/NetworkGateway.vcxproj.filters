@@ -121,5 +121,11 @@
     <Xml Include="scripts\scnetworkgateway.xml">
       <Filter>scripts</Filter>
     </Xml>
+    <Xml Include="scripts\gw_test_pair_client.xml">
+      <Filter>scripts</Filter>
+    </Xml>
+    <Xml Include="scripts\gw_test_pair_server.xml">
+      <Filter>scripts</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

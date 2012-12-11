@@ -33,12 +33,18 @@
       <ServerPort>80</ServerPort>
       <URI>/wiki</URI>
     </ReverseProxy>
+    
+    <ReverseProxy>
+      <ServerIP>69.16.244.74</ServerIP>
+      <ServerPort>80</ServerPort>
+      <URI>/queue-signup.php</URI>
+    </ReverseProxy>
       
   </ReverseProxies>    
   
   <!-- Local interfaces to bind -->
   <LocalIP>127.0.0.1</LocalIP>
-  <!--
+  <!-- <LocalIP>192.168.8.113</LocalIP>
   <LocalIP>10.0.0.2</LocalIP>
   <LocalIP>10.0.0.3</LocalIP>
   <LocalIP>10.0.0.4</LocalIP>

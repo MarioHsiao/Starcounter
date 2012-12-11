@@ -46,8 +46,9 @@ typedef uint32_t session_index_type;
 typedef uint64_t session_timestamp_type;
 
 // Some defines, e.g. debugging, statistics, etc.
-#define GW_COLLECT_SOCKET_STATISTICS
-#define GW_GLOBAL_STATISTICS
+//#define GW_COLLECT_SOCKET_STATISTICS
+//#define GW_GLOBAL_STATISTICS
+//#define GW_DETAILED_STATISTICS
 //#define GW_ECHO_STATISTICS
 //#define GW_SOCKET_DIAG
 //#define GW_HTTP_DIAG
@@ -158,14 +159,23 @@ const int32_t OVERLAPPED_SIZE = sizeof(OVERLAPPED);
 // Bad database index.
 const int32_t INVALID_DB_INDEX = -1;
 
+// Bad worker index.
+const int32_t INVALID_WORKER_INDEX = -1;
+
+// Bad port index.
+const int32_t INVALID_PORT_INDEX = -1;
+
+// Bad URI index.
+const int32_t INVALID_URI_INDEX = -1;
+
+// Bad handler index.
+const int32_t INVALID_HANDLER_INDEX = -1;
+
 // Bad chunk index.
 const uint32_t INVALID_CHUNK_INDEX = shared_memory_chunk::LINK_TERMINATOR;
 
 // Bad linear session index.
 const session_index_type INVALID_SESSION_INDEX = ~0;
-
-// Bad linear URI index.
-const uint32_t INVALID_URI_INDEX = ~0;
 
 // Bad scheduler index.
 const uint32_t INVALID_SCHEDULER_ID = ~0;
@@ -179,6 +189,9 @@ const session_salt_type INVALID_APPS_SESSION_SALT = 0;
 // Invalid Apps unique number.
 const uint64_t INVALID_APPS_UNIQUE_SESSION_NUMBER = ~(uint64_t)0;
 
+// Bad unique database number.
+const session_salt_type INVALID_UNIQUE_DB_NUMBER = 0;
+
 // Maximum number of chunks to keep in private chunk pool
 // until we release them to shared chunk pool.
 const int32_t MAX_CHUNKS_IN_PRIVATE_POOL = 256;
@@ -186,14 +199,11 @@ const int32_t MAX_CHUNKS_IN_PRIVATE_POOL = 256;
 // Number of predefined gateway port types
 const int32_t NUM_PREDEFINED_PORT_TYPES = 5;
 
-// Minimum inactive sessions life in seconds.
-const int32_t MIN_INACTIVE_SESSION_LIFE_SECONDS = 400;
-
 // Size of local/remove address structure.
 const int32_t SOCKADDR_SIZE_EXT = sizeof(sockaddr_in) + 16;
 
 // Maximum number of active databases.
-const int32_t MAX_ACTIVE_DATABASES = 32;
+const int32_t MAX_ACTIVE_DATABASES = 16;
 
 // Maximum number of workers.
 const int32_t MAX_WORKER_THREADS = 32;
@@ -202,10 +212,16 @@ const int32_t MAX_WORKER_THREADS = 32;
 const int32_t MAX_ACTIVE_SERVER_PORTS = 32;
 
 // Maximum port handle integer.
-const int32_t MAX_SOCKET_HANDLE = 100000;
+const int32_t MAX_SOCKET_HANDLE = 1000000;
 
 // Hardcoded gateway test port number on server.
 const int32_t GATEWAY_TEST_PORT_NUMBER_SERVER = 80;
+
+// Session life time multiplier.
+const int32_t SESSION_LIFETIME_MULTIPLIER = 3;
+
+// First port number used for binding.
+const uint16_t FIRST_BIND_PORT_NUM = 1500;
 
 // Gateway mode.
 enum GatewayTestingMode
@@ -244,14 +260,14 @@ enum PortType
 // Type of operation on the socket.
 enum SocketOperType
 {
-    SEND_OPER,
-    RECEIVE_OPER,
-    ACCEPT_OPER,
-    CONNECT_OPER,
-    DISCONNECT_OPER,
-    TO_DB_OPER,
-    FROM_DB_OPER,
-    UNKNOWN_OPER
+    // Active connections statistics.
+    RECEIVE_SOCKET_OPER,
+    DISCONNECT_SOCKET_OPER,
+    // Non-active connections.
+    ACCEPT_SOCKET_OPER,
+    SEND_SOCKET_OPER,
+    CONNECT_SOCKET_OPER,
+    UNKNOWN_SOCKET_OPER
 };
 
 class SocketDataChunk;
@@ -277,7 +293,7 @@ uint32_t AppsPortProcessData(
 
 #ifdef GW_TESTING_MODE
 
-uint32_t GatewayPortProcessData(
+uint32_t GatewayPortProcessEcho(
     GatewayWorker *gw,
     SocketDataChunk *sd,
     BMX_HANDLER_TYPE handler_id,
@@ -299,7 +315,7 @@ uint32_t AppsSubportProcessData(
 
 #ifdef GW_TESTING_MODE
 
-uint32_t GatewaySubportProcessData(
+uint32_t GatewaySubportProcessEcho(
     GatewayWorker *gw,
     SocketDataChunk *sd,
     BMX_HANDLER_TYPE handler_id,
@@ -650,8 +666,8 @@ struct ScSessionStruct
     // Reset.
     void Reset()
     {
-        gw_session_salt_ = INVALID_SESSION_SALT;
         gw_session_index_ = INVALID_SESSION_INDEX;
+        gw_session_salt_ = INVALID_SESSION_SALT;
         scheduler_id_ = INVALID_SCHEDULER_ID;
         apps_unique_session_num_ = INVALID_APPS_UNIQUE_SESSION_NUMBER;
         apps_session_salt_ = INVALID_APPS_SESSION_SALT;
@@ -766,16 +782,7 @@ class ActiveDatabase
     std::string db_name_;
 
     // Unique sequence number.
-    volatile uint64_t unique_num_;
-
-    // Open socket handles.
-    bool active_sockets_[MAX_SOCKET_HANDLE];
-
-    // Number of used sockets.
-    volatile int64_t num_used_sockets_;
-
-    // Number of used chunks.
-    volatile int64_t num_used_chunks_;
+    volatile uint64_t unique_num_unsafe_;
 
     // Indicates if closure was performed.
     bool were_sockets_closed_;
@@ -794,6 +801,9 @@ class ActiveDatabase
 
     // Apps session salts.
     session_salt_type* apps_session_salts_unsafe_;
+
+    // Indicates if database is ready to be deleted.
+    bool is_empty_;
 
 public:
 
@@ -864,67 +874,19 @@ public:
         return user_handlers_;
     }
 
-    // Getting the number of used sockets.
-    int64_t num_used_sockets()
-    {
-        return num_used_sockets_;
-    }
-
-    // Increments or decrements the number of active chunks.
-    void ChangeNumUsedChunks(int64_t change_value)
-    {
-        InterlockedAdd64(&num_used_chunks_, change_value);
-        //GW_COUT << "ChangeNumUsedChunks: " << change_value << " and " << num_used_chunks_ << std::endl;
-    }
-
-    // Getting the number of used chunks.
-    int64_t num_used_chunks()
-    {
-        return num_used_chunks_;
-    }
-
     // Closes all tracked sockets.
     void CloseSocketData();
-
-    // Tracks certain socket.
-    void TrackSocket(SOCKET s, uint32_t port_index)
-    {
-        assert(active_sockets_[s] == false);
-
-#ifdef GW_SOCKET_DIAG
-        GW_COUT << "Tracking socket: " << s << std::endl;
-#endif
-
-        InterlockedAdd64(&num_used_sockets_, 1);
-        active_sockets_[s] = true;
-    }
-
-    // Untracks certain socket.
-    void UntrackSocket(SOCKET s)
-    {
-        assert(active_sockets_[s] == true);
-
-#ifdef GW_SOCKET_DIAG
-        GW_COUT << "UnTracking socket: " << s << std::endl;
-#endif
-
-        InterlockedAdd64(&num_used_sockets_, -1);
-        active_sockets_[s] = false;
-    }
 
     // Makes this database slot empty.
     void StartDeletion();
 
     // Checks if this database slot empty.
-    bool IsEmpty()
-    {
-        return ((0 == unique_num_) && (0 == num_used_chunks_) && (0 == num_used_sockets_));
-    }
+    bool IsEmpty();
 
     // Checks if this database slot emptying was started.
     bool IsDeletionStarted()
     {
-        return (0 == unique_num_);
+        return (INVALID_UNIQUE_DB_NUMBER == unique_num_unsafe_);
     }
 
     // Active database constructor.
@@ -942,7 +904,7 @@ public:
     // Returns unique number for this database.
     uint64_t unique_num()
     {
-        return unique_num_;
+        return unique_num_unsafe_;
     }
 
     // Initializes this active database slot.
@@ -965,9 +927,12 @@ class ServerPort
     uint16_t port_number_;
 
     // Statistics.
-    volatile int64_t num_allocated_sockets_[MAX_ACTIVE_DATABASES];
-    volatile int64_t num_active_conns_[MAX_ACTIVE_DATABASES];
-    volatile int64_t num_pending_network_operations_[MAX_ACTIVE_DATABASES];
+    volatile int64_t num_accepting_sockets_unsafe_;
+
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+    volatile int64_t num_allocated_accept_sockets_unsafe_;
+    volatile int64_t num_allocated_connect_sockets_unsafe_;
+#endif
 
     // Offset for the user data to be written.
     int32_t blob_user_data_offset_;
@@ -981,6 +946,9 @@ class ServerPort
     // All registered subports belonging to this port.
     // TODO: Fix full support!
     RegisteredSubports* registered_subports_;
+
+    // This port index in global array.
+    int32_t port_index_;
 
 public:
 
@@ -1017,17 +985,14 @@ public:
     // Removes this port.
     void Erase();
 
-    // Checks if this database slot empty.
-    bool EmptyForDb(int32_t db_index)
-    {
-        return (num_allocated_sockets_[db_index] == 0) && (num_active_conns_[db_index] == 0);
-    }
+    // Resets the number of created sockets and active connections.
+    void Reset();
 
     // Checking if port is unused by any database.
     bool IsEmpty();
 
     // Initializes server socket.
-    void Init(uint16_t port_number, SOCKET port_socket, int32_t blob_user_data_offset);
+    void Init(int32_t port_index, uint16_t port_number, SOCKET port_socket, int32_t blob_user_data_offset);
 
     // Server port.
     ServerPort();
@@ -1035,8 +1000,8 @@ public:
     // Server port.
     ~ServerPort();
 
-    // Getting port socket.
-    SOCKET get_port_socket()
+    // Getting port listening socket.
+    SOCKET get_listening_sock()
     {
         return listening_sock_;
     }
@@ -1048,57 +1013,55 @@ public:
     }
 
     // Retrieves the number of active connections.
-    int64_t get_num_active_conns(int32_t db_index)
+    int64_t NumberOfActiveConnections();
+
+    // Retrieves the number of accepting sockets.
+    int64_t get_num_accepting_sockets()
     {
-        return num_active_conns_[db_index];
+        return num_accepting_sockets_unsafe_;
     }
 
-    // Increments or decrements the number of active connections.
-    int64_t ChangeNumActiveConns(int32_t db_index, int64_t changeValue)
+    // Increments or decrements the number of accepting sockets.
+    int64_t ChangeNumAcceptingSockets(int64_t change_value)
     {
-        InterlockedAdd64(&(num_active_conns_[db_index]), changeValue);
-        return num_active_conns_[db_index];
-    }
+#ifdef GW_DETAILED_STATISTICS
+        GW_COUT << "ChangeNumAcceptingSockets: " << change_value << " of " << num_accepting_sockets_unsafe_ << std::endl;
+#endif
 
-    // Retrieves the number of allocated sockets.
-    int64_t get_num_allocated_sockets(int32_t db_index)
-    {
-        return num_allocated_sockets_[db_index];
-    }
-
-    // Increments or decrements the number of created sockets.
-    int64_t ChangeNumAllocatedSockets(int32_t db_index, int64_t changeValue)
-    {
-        InterlockedAdd64(&(num_allocated_sockets_[db_index]), changeValue);
-        return num_allocated_sockets_[db_index];
+        InterlockedAdd64(&num_accepting_sockets_unsafe_, change_value);
+        return num_accepting_sockets_unsafe_;
     }
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
 
-    // Retrieves the number of pending sockets.
-    int64_t get_num_pending_network_operations(int32_t db_index)
+    // Retrieves the number of allocated accept sockets.
+    int64_t get_num_allocated_accept_sockets()
     {
-        return num_pending_network_operations_[db_index];
+        return num_allocated_accept_sockets_unsafe_;
     }
 
-    // Increments or decrements the number of pending network operations.
-    int64_t ChangeNumPendingNetworkOperations(int32_t db_index, int64_t changeValue)
+    // Increments or decrements the number of created accept sockets.
+    int64_t ChangeNumAllocatedAcceptSockets(int64_t change_value)
     {
-        InterlockedAdd64(&(num_pending_network_operations_[db_index]), changeValue);
-        return num_pending_network_operations_[db_index];
+        InterlockedAdd64(&num_allocated_accept_sockets_unsafe_, change_value);
+        return num_allocated_accept_sockets_unsafe_;
+    }
+
+    // Retrieves the number of allocated connect sockets.
+    int64_t get_num_allocated_connect_sockets()
+    {
+        return num_allocated_connect_sockets_unsafe_;
+    }
+
+    // Increments or decrements the number of created connect sockets.
+    int64_t ChangeNumAllocatedConnectSockets(int64_t change_value)
+    {
+        InterlockedAdd64(&num_allocated_connect_sockets_unsafe_, change_value);
+        return num_allocated_connect_sockets_unsafe_;
     }
 
 #endif
-
-    // Resets the number of created sockets and active connections.
-    void Reset(int32_t db_index)
-    {
-        InterlockedAnd64(&(num_allocated_sockets_[db_index]), 0);
-        InterlockedAnd64(&(num_active_conns_[db_index]), 0);
-        InterlockedAnd64(&(num_pending_network_operations_[db_index]), 0);
-    }
 };
-
 
 // Information about the reversed proxy.
 struct ReverseProxyInfo
@@ -1115,9 +1078,6 @@ struct ReverseProxyInfo
 
     // Proxied service address socket info.
     sockaddr_in addr_;
-
-    // Predefined redirect response.
-    std::string http_redirect_;
 };
 
 class GatewayWorker;
@@ -1145,6 +1105,7 @@ class Gateway
 
     // Inactive session timeout in seconds.
     int32_t setting_inactive_session_timeout_seconds_;
+    int32_t min_inactive_session_life_seconds_;
 
     // Local network interfaces to bind on.
     std::vector<std::string> setting_local_interfaces_;
@@ -1208,27 +1169,20 @@ class Gateway
     ScSessionStructPlus* all_sessions_unsafe_;
 
     // Represents delete state for all sockets.
-    bool deleted_sockets_unsafe_[MAX_SOCKET_HANDLE];
-
-    // Indexes to server ports.
-    // TODO: Find a better solution!
-    uint8_t sockets_port_indexes_unsafe_[MAX_SOCKET_HANDLE];
+    std::bitset<MAX_SOCKET_HANDLE> deleted_sockets_bitset_;
 
     // Free session indexes.
     session_index_type* free_session_indexes_unsafe_;
 
     // Number of active sessions.
-    volatile uint32_t num_active_sessions_unsafe_;
-
-    // Round-robin global scheduler number.
-    volatile uint32_t global_scheduler_id_unsafe_;
+    volatile int64_t num_active_sessions_unsafe_;
 
     // Global timer to keep track on old sessions.
     volatile session_timestamp_type global_timer_unsafe_;
 
     // Sessions to cleanup.
     session_index_type* sessions_to_cleanup_unsafe_;
-    volatile session_index_type num_sessions_to_cleanup_unsafe_;
+    volatile int64_t num_sessions_to_cleanup_unsafe_;
 
     // Critical section for sessions cleanup.
     CRITICAL_SECTION cs_sessions_cleanup_;
@@ -1244,7 +1198,7 @@ class Gateway
     CRITICAL_SECTION cs_global_lock_;
 
     // Global lock.
-    volatile bool global_lock_;
+    volatile bool global_lock_unsafe_;
 
     ////////////////////////
     // OTHER STUFF
@@ -1256,10 +1210,10 @@ class Gateway
     uint8_t* confirmed_echoes_;
 
     // Number of confirmed echoes.
-    volatile int64_t num_confirmed_echoes_;
+    volatile int64_t num_confirmed_echoes_unsafe_;
 
     // Current echo number.
-    volatile int64_t current_echo_number_;
+    volatile int64_t current_echo_number_unsafe_;
 
 #endif
 
@@ -1270,10 +1224,10 @@ class Gateway
     ServerPort server_ports_[MAX_ACTIVE_SERVER_PORTS];
 
     // Number of used server ports.
-    volatile int32_t num_server_ports_;
+    volatile int32_t num_server_ports_unsafe_;
 
     // Number of processed HTTP requests.
-    volatile uint64_t num_processed_http_requests_;
+    volatile int64_t num_processed_http_requests_unsafe_;
 
     // The socket address of the server.
     sockaddr_in* server_addr_;
@@ -1291,7 +1245,63 @@ class Gateway
     // Global IOCP handle.
     HANDLE iocp_;
 
+    // Last bound port number.
+    volatile int64_t last_bind_port_num_unsafe_;
+
+    // Last bound interface number.
+    volatile int64_t last_bind_interface_num_unsafe_;
+
 public:
+
+    // Getting the number of used sockets.
+    int64_t NumberUsedSocketsAllWorkersAndDatabases();
+
+    // Getting the number of reusable connect sockets.
+    int64_t NumberOfReusableConnectSockets();
+
+    // Getting the number of used sockets per worker.
+    int64_t NumberUsedSocketsPerWorker(int32_t worker_id);
+
+    // Getting the number of used sockets per database.
+    int64_t NumberUsedSocketsPerDatabase(int32_t db_index);
+
+    // Last bind port number.
+    int64_t get_last_bind_port_num()
+    {
+        return last_bind_port_num_unsafe_;
+    }
+
+    // Last bind interface number.
+    int64_t get_last_bind_interface_num()
+    {
+        return last_bind_interface_num_unsafe_;
+    }
+
+    // Generating new port/interface.
+    void GenerateNewBindPortInterfaceNumbers()
+    {
+        InterlockedAdd64(&last_bind_port_num_unsafe_, 1);
+
+        if (last_bind_port_num_unsafe_ == (0xFFFF - setting_num_workers_))
+        {
+            // NOTE: The following is done only by one worker.
+
+            // Resetting the port number.
+            last_bind_port_num_unsafe_ = FIRST_BIND_PORT_NUM;
+
+            // Checking how we should change the interface number.
+            if (last_bind_interface_num_unsafe_ == (setting_local_interfaces_.size() - 1))
+                last_bind_interface_num_unsafe_ = 0;
+            else
+                InterlockedAdd64(&last_bind_interface_num_unsafe_, 1);
+        }
+    }
+
+    // Getting minimum session lifetime.
+    int32_t get_min_inactive_session_life_seconds()
+    {
+        return min_inactive_session_life_seconds_;
+    }
 
     // Returns instance of proxied server.
     ReverseProxyInfo* GetProxiedServerAddress(int32_t index)
@@ -1366,20 +1376,20 @@ public:
         assert(confirmed_echoes_[index] < 1);
 
         confirmed_echoes_[index]++;
-        InterlockedIncrement64(&num_confirmed_echoes_);
+        InterlockedIncrement64(&num_confirmed_echoes_unsafe_);
     }
 
     // Getting number of confirmed echoes.
     int64_t get_num_confirmed_echoes()
     {
-        return num_confirmed_echoes_;
+        return num_confirmed_echoes_unsafe_;
     }
 
     // Checks that echo responses are correct.
     bool CheckConfirmedEchoResponses()
     {
         // First checking if we have confirmed all echoes.
-        if (num_confirmed_echoes_ == setting_num_echoes_to_master_)
+        if (num_confirmed_echoes_unsafe_ == setting_num_echoes_to_master_)
         {
             // Running through all echoes.
             for (int32_t i = 0; i < setting_num_echoes_to_master_; i++)
@@ -1398,8 +1408,8 @@ public:
     // Resetting echo tests.
     void ResetEchoTests()
     {
-        num_confirmed_echoes_ = 0;
-        current_echo_number_ = -1;
+        num_confirmed_echoes_unsafe_ = 0;
+        current_echo_number_unsafe_ = -1;
 
         for (int32_t i = 0; i < setting_num_echoes_to_master_; i++)
             confirmed_echoes_[i] = 0;
@@ -1408,13 +1418,13 @@ public:
     // Incrementing and getting next echo number.
     int64_t GetNextEchoNumber()
     {
-        return InterlockedIncrement64(&current_echo_number_);
+        return InterlockedIncrement64(&current_echo_number_unsafe_);
     }
 
     // Checks if all echoes have been sent already.
     bool AllEchoesSent()
     {
-        return current_echo_number_ == (setting_num_echoes_to_master_ - 1);
+        return current_echo_number_unsafe_ == (setting_num_echoes_to_master_ - 1);
     }
 
     // Gateway operational mode.
@@ -1437,20 +1447,24 @@ public:
 
 #endif
 
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+
     // Increments number of processed HTTP requests.
     void IncrementNumProcessedHttpRequests()
     {
-        num_processed_http_requests_++;
+        InterlockedAdd64(&num_processed_http_requests_unsafe_, 1);
     }
 
+#endif
+
     // Get number of processed HTTP requests.
-    uint64_t get_num_processed_http_requests()
+    int64_t get_num_processed_http_requests()
     {
-        return num_processed_http_requests_;
+        return num_processed_http_requests_unsafe_;
     }
 
     // Number of active sessions.
-    uint32_t get_num_active_sessions_unsafe()
+    int64_t get_num_active_sessions_unsafe()
     {
         return num_active_sessions_unsafe_;
     }
@@ -1459,7 +1473,7 @@ public:
     uint32_t CollectInactiveSessions();
 
     // Gets number of sessions to cleanup.
-    int32_t get_num_sessions_to_cleanup_unsafe()
+    int64_t get_num_sessions_to_cleanup_unsafe()
     {
         return num_sessions_to_cleanup_unsafe_;
     }
@@ -1477,30 +1491,6 @@ public:
     void step_global_timer_unsafe(int32_t value)
     {
         global_timer_unsafe_ += value;
-    }
-
-    // Tracks certain socket.
-    // TODO: Find a better solution.
-    void TrackSocket(SOCKET s, uint32_t port_index)
-    {
-        assert(sockets_port_indexes_unsafe_[s] == 255);
-
-        sockets_port_indexes_unsafe_[s] = port_index;
-    }
-
-    // Untracks certain socket.
-    // TODO: Find a better solution.
-    void UntrackSocket(SOCKET s)
-    {
-        assert(sockets_port_indexes_unsafe_[s] < MAX_PORTS_NUM);
-
-        sockets_port_indexes_unsafe_[s] = 255;
-    }
-
-    // Get socket port index.
-    uint8_t GetSocketPortIndex(SOCKET s)
-    {
-        return sockets_port_indexes_unsafe_[s];
     }
 
     // Getting settings log file directory.
@@ -1524,36 +1514,22 @@ public:
         return worker_thread_handles_[worker_id];
     }
 
-    // Round-robin global scheduler number.
-    uint32_t obtain_scheduler_id_unsafe()
-    {
-        // NOTE: Using simple increment here not interlocked!
-        uint32_t global_scheduler_id_unsafe = ++global_scheduler_id_unsafe_;
-        if (global_scheduler_id_unsafe >= num_schedulers_)
-        {
-            global_scheduler_id_unsafe_ = 0;
-            return 0;
-        }
-
-        return global_scheduler_id_unsafe;
-    }
-
     // Getting state of the socket.
     bool ShouldSocketBeDeleted(SOCKET sock)
     {
-        return deleted_sockets_unsafe_[sock];
+        return deleted_sockets_bitset_[sock];
     }
 
     // Deletes specific socket.
     void MarkSocketDelete(SOCKET sock)
     {
-        deleted_sockets_unsafe_[sock] = true;
+        deleted_sockets_bitset_[sock] = true;
     }
 
     // Makes specific socket available.
     void MarkSocketAlive(SOCKET sock)
     {
-        deleted_sockets_unsafe_[sock] = false;
+        deleted_sockets_bitset_[sock] = false;
     }
 
     // Getting gateway handlers.
@@ -1565,7 +1541,7 @@ public:
     // Checks if certain server port exists.
     ServerPort* FindServerPort(uint16_t port_num)
     {
-        for (int32_t i = 0; i < num_server_ports_; i++)
+        for (int32_t i = 0; i < num_server_ports_unsafe_; i++)
         {
             if (port_num == server_ports_[i].get_port_number())
                 return server_ports_ + i;
@@ -1577,13 +1553,13 @@ public:
     // Checks if certain server port exists.
     int32_t FindServerPortIndex(uint16_t port_num)
     {
-        for (int32_t i = 0; i < num_server_ports_; i++)
+        for (int32_t i = 0; i < num_server_ports_unsafe_; i++)
         {
             if (port_num == server_ports_[i].get_port_number())
                 return i;
         }
 
-        return -1;
+        return INVALID_PORT_INDEX;
     }
 
     // Adds new server port.
@@ -1591,18 +1567,18 @@ public:
     {
         // Looking for an empty server port slot.
         int32_t empty_slot = 0;
-        for (empty_slot = 0; empty_slot < num_server_ports_; ++empty_slot)
+        for (empty_slot = 0; empty_slot < num_server_ports_unsafe_; ++empty_slot)
         {
             if (server_ports_[empty_slot].IsEmpty())
                 break;
         }
 
         // Initializing server port on this slot.
-        server_ports_[empty_slot].Init(port_num, listening_sock, blob_user_data_offset);
+        server_ports_[empty_slot].Init(empty_slot, port_num, listening_sock, blob_user_data_offset);
 
         // Checking if it was the last slot.
-        if (empty_slot >= num_server_ports_)
-            num_server_ports_++;
+        if (empty_slot >= num_server_ports_unsafe_)
+            num_server_ports_unsafe_++;
 
         return empty_slot;
     }
@@ -1622,7 +1598,7 @@ public:
     // Get number of active server ports.
     int32_t get_num_server_ports()
     {
-        return num_server_ports_;
+        return num_server_ports_unsafe_;
     }
 
     // Gets server address.
@@ -1638,9 +1614,9 @@ public:
     void EnterGlobalLock()
     {
         // Checking if already locked.
-        if (global_lock_)
+        if (global_lock_unsafe_)
         {
-            while (global_lock_)
+            while (global_lock_unsafe_)
                 Sleep(1);
         }
 
@@ -1648,7 +1624,7 @@ public:
         EnterCriticalSection(&cs_global_lock_);
 
         // Setting the global lock key.
-        global_lock_ = true;
+        global_lock_unsafe_ = true;
 
         // Waiting until all workers reach the safe point and freeze there.
         WaitAllWorkersSuspended();
@@ -1665,7 +1641,7 @@ public:
     // Releases global lock.
     void LeaveGlobalLock()
     {
-        global_lock_ = false;
+        global_lock_unsafe_ = false;
 
         // Leaving critical section.
         LeaveCriticalSection(&cs_global_lock_);
@@ -1674,7 +1650,7 @@ public:
     // Gets global lock value.
     bool global_lock()
     {
-        return global_lock_;
+        return global_lock_unsafe_;
     }
 
     // Returns active database on this slot index.
@@ -1705,30 +1681,16 @@ public:
     }
 
     // Getting the total number of used chunks for all databases.
-    int64_t GetTotalNumUsedChunks()
-    {
-        int64_t totalActiveChunks = 0;
-        for (int32_t i = 0; i < get_num_dbs_slots(); i++)
-        {
-            if (!active_databases_[i].IsEmpty())
-                totalActiveChunks += (active_databases_[i].num_used_chunks());
-        }
+    int64_t NumberUsedChunksAllWorkersAndDatabases();
 
-        return totalActiveChunks;
-    }
+    // Getting the number of used sockets per database.
+    int64_t NumberUsedChunksPerDatabase(int32_t db_index);
 
-    // Getting the number of used sockets for all databases.
-    int64_t GetTotalNumUsedSockets()
-    {
-        int64_t totalActiveSockets = 0;
-        for (int32_t i = 0; i < get_num_dbs_slots(); i++)
-        {
-            if (!active_databases_[i].IsEmpty())
-                totalActiveSockets += (active_databases_[i].num_used_sockets());
-        }
+    // Getting the number of used sockets per worker.
+    int64_t NumberUsedChunksPerWorker(int32_t worker_id);
 
-        return totalActiveSockets;
-    }
+    // Getting the number of active connections per port.
+    int64_t NumberOfActiveConnectionsPerPort(int32_t port_index);
 
     // Get IOCP.
     HANDLE get_iocp()
@@ -1791,26 +1753,31 @@ public:
         *was_killed = false;
 
         // Only killing the session is its valid.
+        // NOTE: Using double-checked locking.
         if (all_sessions_unsafe_[session_index].session_.IsValid())
         {
             // Entering the critical section.
             EnterCriticalSection(&cs_session_);
 
-            // Number of active sessions should always be correct.
-            assert(num_active_sessions_unsafe_ > 0);
+            // Only killing the session is its valid.
+            if (all_sessions_unsafe_[session_index].session_.IsValid())
+            {
+                // Number of active sessions should always be correct.
+                assert(num_active_sessions_unsafe_ > 0);
 
-            // Resetting the session cell.
-            all_sessions_unsafe_[session_index].session_.Reset();
+                // Resetting the session cell.
+                all_sessions_unsafe_[session_index].session_.Reset();
 
-            // Setting the session time stamp to zero.
-            all_sessions_unsafe_[session_index].session_timestamp_ = 0;
+                // Setting the session time stamp to zero.
+                all_sessions_unsafe_[session_index].session_timestamp_ = 0;
 
-            // Decrementing number of active sessions.
-            num_active_sessions_unsafe_--;
-            free_session_indexes_unsafe_[num_active_sessions_unsafe_] = session_index;
+                // Decrementing number of active sessions.
+                num_active_sessions_unsafe_--;
+                free_session_indexes_unsafe_[num_active_sessions_unsafe_] = session_index;
 
-            // Indicating that session is killed.
-            *was_killed = true;
+                // Indicating that session is killed.
+                *was_killed = true;
+            }
 
             // Leaving the critical section.
             LeaveCriticalSection(&cs_session_);
