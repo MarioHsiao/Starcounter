@@ -35,6 +35,11 @@
 #include <boost/thread/thread.hpp>
 #include <boost/call_traits.hpp>
 #include <boost/bind.hpp>
+#if defined(_MSC_VER) // Windows
+# include <intrin.h>
+#else 
+# error Compiler not supported.
+#endif // (_MSC_VER)
 
 namespace starcounter {
 namespace core {
@@ -78,19 +83,15 @@ namespace core {
 /// class bounded_buffer
 /**
  * @param T The type of the elements stored in the bounded_buffer.
- *
  * @par Type Requirements T
- *      The T has to be SGIAssignable (SGI STL defined combination of Assignable
- *      and CopyConstructible), and EqualityComparable and/or LessThanComparable
- *      if the bounded_buffer will be compared with another container.
- *
+ *		The T has to be SGIAssignable (SGI STL defined combination of Assignable
+ *		and CopyConstructible), and EqualityComparable and/or LessThanComparable
+ *		if the bounded_buffer will be compared with another container.
  * @param Alloc The allocator type used for all internal memory management.
- *
  * @par Type Requirements Alloc
- *      The Alloc has to meet the allocator requirements imposed by STL.
- *
+ *		The Alloc has to meet the allocator requirements imposed by STL.
  * @par Default Alloc
- *      std::allocator<T>
+ *		std::allocator<T>
  */
 template<class T, class Alloc = std::allocator<T> >
 class bounded_buffer {
@@ -140,15 +141,12 @@ public:
 	/// Create an empty bounded_buffer with the specified capacity.
 	/**
 	 * @param buffer_capacity The maximum number of elements which can be stored
-	 *      in the bounded_buffer.
-	 *
+	 *		in the bounded_buffer.
 	 * @param alloc The allocator.
-	 *
 	 * @throws "An allocation error" if memory is exhausted (std::bad_alloc if
-	 *      the standard allocator is used).
-	 *
+	 *		the standard allocator is used).
 	 * @par Complexity
-	 *      Constant.
+	 *		Constant.
 	 */
 	explicit bounded_buffer(size_type buffer_capacity, const allocator_type&
 	alloc = allocator_type());
@@ -158,60 +156,48 @@ public:
 	/// Get the number of elements currently stored in the bounded_buffer.
 	/**
 	 * @return The number of elements stored in the bounded_buffer.
-	 *      This is the number of unread elements.
-	 *
+	 *		This is the number of unread elements.
 	 * @throws Nothing.
-	 *
 	 * @par Exception Safety
-	 *      No-throw.
-	 *
+	 *		No-throw.
 	 * @par Complexity
-	 *      Constant (in the size of the bounded_buffer).
+	 *		Constant (in the size of the bounded_buffer).
 	 */
 	size_type size() const;
 	
 	/// Get the capacity of the bounded_buffer.
 	/**
 	 * @return The maximum number of elements which can be stored in the
-	 *      bounded_buffer.
-	 *
+	 *		bounded_buffer.
 	 * @throws Nothing.
-	 *
 	 * @par Exception Safety
-	 *      No-throw.
-	 *
+	 *		No-throw.
 	 * @par Complexity
-	 *      Constant (in the size of the bounded_buffer).
+	 *		Constant (in the size of the bounded_buffer).
 	 */
 	size_type capacity() const;
 	
 	/// Is the bounded_buffer empty?
 	/**
 	 * @return true if there are no elements stored in the bounded_buffer;
-	 *      false otherwise.
-	 *
+	 *		false otherwise.
 	 * @throws Nothing.
-	 *
 	 * @par Exception Safety
-	 *      No-throw.
-	 *
+	 *		No-throw.
 	 * @par Complexity
-	 *      Constant (in the size of the bounded_buffer).
+	 *		Constant (in the size of the bounded_buffer).
 	 */
 	//bool empty() const;
 	
 	/// Is the bounded_buffer full?
 	/**
 	 * @return true if the number of elements stored in the bounded_buffer
-	 *      equals the capacity of the bounded_buffer; false otherwise.
-	 *
+	 *		equals the capacity of the bounded_buffer; false otherwise.
 	 * @throws Nothing.
-	 *
 	 * @par Exception Safety
-	 *      No-throw.
-	 *
+	 *		No-throw.
 	 * @par Complexity
-	 *      Constant (in the size of the bounded_buffer).
+	 *		Constant (in the size of the bounded_buffer).
 	 */
 	//bool full() const;
 	
@@ -220,14 +206,11 @@ public:
 	 * @param item The item to be pushed to the front of the queue.
 	 *		param_type represents the "best" way to pass a parameter of type
 	 *		value_type to a method.
-	 *
 	 * @param spin_count The number of times to try locking (without blocking)
 	 *		before waiting for the acquisition of the lock. It is affected by
 	 *		the type of processor and the clock rate, etc.
-	 *
 	 * @param timeout_milliseconds The number of milliseconds to wait before a
-	 *      timeout may occur.
-	 *
+	 *		timeout may occur.
 	 * @return false if failing to push the item before the time period
 	 *		specified by timeout_milliseconds has elapsed, true otherwise.
 	 */
@@ -237,14 +220,11 @@ public:
 	/// Pop item from the back of the queue.
 	/**
 	 * @param item The item to be popped from the back of the queue.
-	 *
 	 * @param spin_count The number of times to try locking (without blocking)
 	 *		before waiting for the acquisition of the lock. It is affected by
 	 *		the type of processor and the clock rate, etc.
-	 *
 	 * @param timeout_milliseconds The number of milliseconds to wait before a
-	 *      timeout may occur.
-	 *
+	 *		timeout may occur.
 	 * @return false if failing to pop the item before the time period specified
 	 *		by timeout_milliseconds has elapsed, true otherwise.
 	 */

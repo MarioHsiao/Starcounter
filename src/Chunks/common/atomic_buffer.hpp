@@ -30,11 +30,11 @@ namespace core {
 
 // The implementation of atomic_buffer relies on the rules of x86 and x64 CPU
 // memory reordering operations, and is broken on some other architectures.
-#if defined(__x86_64__) || defined (__amd64__) || defined (_M_X64) \
-|| defined(_M_AMD64) || defined(__i386__) || defined (_M_IX86)
+#if defined(__x86_64__) || defined(__amd64__) || defined(_M_X64) \
+|| defined(_M_AMD64) || defined(__i386__) || defined(_M_IX86)
 
 // Template param N expresses the number of elements as 2^N.
-// For 64 elements, N = 6; for 4096 elements, N = 12, and so on.
+// For 64 elements, N = 6; for 4096 elements, N = 12, etc.
 template<typename T, int32_t N>
 class atomic_buffer {
 public:

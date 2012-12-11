@@ -64,7 +64,6 @@
     <Compile Include="JsonPatch.cs" />
     <Compile Include="JsonPointer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SessionDictionary.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HTTP\HttpStructs\HttpStructs.csproj">

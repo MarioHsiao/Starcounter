@@ -31,7 +31,7 @@ namespace Starcounter.Internal.Uri {
         /// </summary>
         internal override void GenerateCsCodeForNode() {
             var sb = new StringBuilder();
-            sb.Append("public override bool Process( IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {");
+            sb.Append("public override bool Process(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {");
             Prefix.Add("");
             Prefix.Add(sb.ToString());
             Suffix.Add("}");

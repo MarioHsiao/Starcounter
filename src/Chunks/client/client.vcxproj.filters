@@ -74,9 +74,6 @@
     <ClInclude Include="..\common\common_client_interface.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\shared_memory_manager.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="client_port.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>

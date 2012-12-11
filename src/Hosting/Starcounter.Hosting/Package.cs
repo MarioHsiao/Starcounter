@@ -95,6 +95,8 @@ namespace Starcounter.Hosting {
 
                 UpdateDatabaseSchemaAndRegisterTypes();
 
+                CallInfrastructureInitializerIfPresent();
+
                 ExecuteEntryPoint();
             } finally {
                 OnProcessingCompleted();
@@ -194,6 +196,17 @@ namespace Starcounter.Hosting {
 #endif
 
             return storedTableDef;
+        }
+
+        private void CallInfrastructureInitializerIfPresent() {
+            if (assembly_ != null && assembly_.EntryPoint != null) {
+                var entrypointType = assembly_.EntryPoint.DeclaringType;
+
+                var m = entrypointType.GetMethod("STARCOUNTERGENERATED_InitializeAppsInfrastructure");
+                if (m != null) {
+                    m.Invoke(null, new object[] { this.WorkingDirectory, this.EntrypointArguments ?? new string[] { } });
+                }
+            }
         }
 
         /// <summary>

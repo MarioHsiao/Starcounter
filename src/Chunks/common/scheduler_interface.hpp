@@ -30,11 +30,18 @@
 # include <windows.h>
 # include <intrin.h>
 #undef WIN32_LEAN_AND_MEAN
+#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+#include "../common/scheduler_number_pool.hpp"
+#else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+#include "../common/bounded_buffer.hpp"
+#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 #include "../common/channel.hpp"
 #include "../common/channel_mask.hpp"
 #include "../common/client_interface.hpp"
 #include "../common/overflow_buffer.hpp"
 #include "../common/chunk_pool.hpp"
+#include "../common/spinlock.hpp"
+#include "../common/owner_id.hpp"
 #include "../common/macro_definitions.hpp"
 
 namespace starcounter {
@@ -61,8 +68,13 @@ class scheduler_interface {
 public:
 	// Basic types
 	
+#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+	// The type of queue for channel_number.
+	typedef scheduler_number_pool<T, channel_bits> channel_number_queue_type;
+#else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	// The type of queue for channel_number.
 	typedef bounded_buffer<T, Alloc> channel_number_queue_type;
+#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	
 	// The type of queue for chunk_pool.
 	typedef chunk_pool<T2, Alloc2> chunk_pool_type;
@@ -71,8 +83,13 @@ public:
 	typedef overflow_buffer<T2, Alloc2> overflow_pool_type;
 	
 	// The type of an allocator used in the channel_number_queue.
+#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+	//typedef typename channel_number_queue_type::allocator_type
+	//channel_number_queue_allocator_type;
+#else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	typedef typename channel_number_queue_type::allocator_type
 	channel_number_queue_allocator_type;
+#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	
 	// The type of an allocator used in the chunk_pool.
 	typedef typename chunk_pool_type::allocator_type
@@ -100,16 +117,23 @@ public:
 	std::size_t channel_number_queue_capacity,
 	std::size_t chunk_pool_capacity,
 	std::size_t overflow_pool_capacity,
+#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+#else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	const channel_number_queue_allocator_type& channel_number_queue_alloc
-	= channel_number_queue_allocator_type(),
+	= channel_number_queue_allocator_type(), /// TODO: Not used - remove.
+#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	const chunk_pool_allocator_type& chunk_pool_alloc
 	= chunk_pool_allocator_type(),
 	const overflow_pool_allocator_type& overflow_pool_alloc
 	= overflow_pool_allocator_type(),
 	const char* segment_name = 0,
 	int32_t id = -1)
+#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+	: channel_number_(segment_name, id),
+#else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	: channel_number_(channel_number_queue_capacity,
 	channel_number_queue_alloc),
+#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	chunk_pool_(chunk_pool_capacity, chunk_pool_alloc),
 	overflow_pool_(overflow_pool_capacity, overflow_pool_alloc),
 	channel_scan_mask_(),
@@ -156,13 +180,27 @@ public:
 	}
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
-	void pop_back_channel_number(channel_number* the_channel_number) {
+	void insert(channel_number the_channel_number, owner_id id, smp::spinlock::milliseconds timeout) {
+		// Release the_channel_number to this channel_number_ queue.
+		//channel_number_.push_front(the_channel_number);
+		channel_number_.insert(the_channel_number, id, timeout);
+	}
+
+	void pop_back_channel_number(channel_number* the_channel_number, owner_id id) {
+#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+		channel_number_.acquire(the_channel_number, id, smp::spinlock::milliseconds(10000));
+#else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 		channel_number_.pop_back(the_channel_number);
+#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	}
 	
-	void push_front_channel_number(channel_number the_channel_number) {
+	void push_front_channel_number(channel_number the_channel_number, owner_id id) {
 		// Release the_channel_number to this channel_number_ queue.
+#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+		channel_number_.release(the_channel_number, id, smp::spinlock::milliseconds(10000));
+#else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 		channel_number_.push_front(the_channel_number);
+#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	}
 	
 	/// Access to this schedulers channel_number queue. It is not synchronized,
@@ -481,8 +519,20 @@ public:
 	}
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
+	channel_number_queue_type& channel_number() {
+		return channel_number_;
+	}
+
+	void set_owner_id(owner_id oid) {
+		owner_id_ = oid;
+	}
+
+	owner_id& get_owner_id() {
+		return owner_id_;
+	}
+
 private:
-	// Condition to wait when the all of this scheduler's channels in queues,
+	// Condition to wait when all of this scheduler's channels in queues,
 	// and the scheduler channels in queue are empty.
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	HANDLE work_;
@@ -515,6 +565,7 @@ private:
 	// We store the pointer as uint64_t to provide compatibility between 64-bit
 	// server and 32-bit client.
 	uint64_t client_interface_; // client_interface_type*
+	owner_id owner_id_;
 	char cache_line_pad_5_[CACHE_LINE_SIZE -sizeof(uint64_t)];
 
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.

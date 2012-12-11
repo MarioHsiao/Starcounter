@@ -36,7 +36,6 @@
 #include "../common/channel.hpp"
 #include "../common/scheduler_number.hpp"
 #include "../common/shared_interface.hpp"
-#include "../common/shared_memory_manager.hpp"
 #include "../common/database_shared_memory_parameters.hpp"
 #include "../common/monitor_interface.hpp"
 

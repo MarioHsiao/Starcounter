@@ -48,7 +48,7 @@ namespace Starcounter.Internal.Uri {
                 sb.Append("else ");
             sb.Append("if (");
             sb.Append(RpClass.PropertyName);
-            sb.Append(".Process((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))");
+            sb.Append(".Process(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))");
 //            sb.Append( ParseNode.Parent.MatchParseCharInTemplateRelativeToProcessor);
             Prefix.Add(sb.ToString());
         }

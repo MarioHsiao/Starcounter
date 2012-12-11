@@ -26,6 +26,7 @@ namespace Weaver {
     internal class CodeWeaver : MarshalByRefObject, IPostSharpHost {
         const string AnalyzerProjectFileName = "ScAnalyzeOnly.psproj";
         const string WeaverProjectFileName = "ScTransform.psproj";
+        const string BootstrapWeaverProjectFileName = "ScWeaveBootstrap.psproj";
 
         private readonly List<Regex> weaverExcludes = new List<Regex>();
 
@@ -71,6 +72,13 @@ namespace Weaver {
         /// binaries.
         /// </summary>
         public bool WeaveToCacheOnly { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value that instructs the weaver to invoke the
+        /// functionality involved when doing weaving to support bootstrapping
+        /// of executables.
+        /// </summary>
+        public bool WeaveBootstrapperCode { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating if the weaver cache should be
@@ -142,6 +150,16 @@ namespace Weaver {
         private string WeaverProjectFile;
 
         /// <summary>
+        /// Gets the path to the bootstrap weaver project file, once resolved.
+        /// This file is used to weave executables and make them "bootable" from
+        /// the OS shell.
+        /// </summary>
+        /// <remarks>
+        /// The value is the full path to the file.
+        /// </remarks>
+        private string BootstrapWeaverProjectFile;
+
+        /// <summary>
         /// Holds a reference to the weaver cache we'll use when the weaver
         /// executes.
         /// </summary>
@@ -152,6 +170,7 @@ namespace Weaver {
             this.CacheDirectory = cacheDirectory;
             this.RunWeaver = true;
             this.WeaveForIPC = true;
+            this.WeaveBootstrapperCode = false;
             this.DisableWeaverCache = false;
             this.AssemblyFile = file;
 
@@ -162,6 +181,7 @@ namespace Weaver {
             }
 
             AddStandardWeaverExcludes();
+            AddWeaverExcludesFromFile();
         }
 
         public bool Execute() {
@@ -198,6 +218,8 @@ namespace Weaver {
             foreach (var cachedAssembly in this.Cache.Schema.Assemblies) {
                 ScAnalysisTask.DatabaseSchema.Assemblies.Add(cachedAssembly);
             }
+
+
 
             using (IPostSharpObject postSharpObject = PostSharpObject.CreateInstance(postSharpSettings, this)) {
                 ((PostSharpObject)postSharpObject).Domain.AssemblyLocator.DefaultOptions |= PostSharp.Sdk.CodeModel.AssemblyLocatorOptions.ForClrLoading;
@@ -284,6 +306,17 @@ namespace Weaver {
             }
             this.WeaverProjectFile = weaverProjectFile;
 
+            var bootstrapWeaverProjectFile = Path.GetFullPath(Path.Combine(this.WeaverRuntimeDirectory, CodeWeaver.BootstrapWeaverProjectFileName));
+            if (!File.Exists(bootstrapWeaverProjectFile)) {
+                errorCode = Error.SCERRWEAVERPROJECTFILENOTFOUND;
+                Program.ReportProgramError(
+                    errorCode,
+                    ErrorCode.ToMessage(errorCode, string.Format("Path: {0}", bootstrapWeaverProjectFile))
+                    );
+                return false;
+            }
+            this.BootstrapWeaverProjectFile = bootstrapWeaverProjectFile;
+
             // Decide all finalized directory paths to use and make sure all
             // directories we might need is actually in place.
 
@@ -354,7 +387,16 @@ namespace Weaver {
             //   We give the user the option to override this by specifying
             // in configuration files he/she want's to explicitly exclude.
 
-            var dlls = Directory.GetFiles(this.InputDirectory, "*.dll");
+            // 20121126
+            // When we extend the weaver to support an alternative weaving,
+            // weaving only the executables entrypoint to support bootstraping,
+            // we consider nothing more than the executable itself.
+            string[] dlls;
+            if (this.WeaveBootstrapperCode) {
+                dlls = new string[0];
+            } else {
+                dlls = Directory.GetFiles(this.InputDirectory, "*.dll");
+            }
             filesToConsider = dlls;
 
             if (Path.GetExtension(this.AssemblyFile).Equals(".exe")) {
@@ -585,6 +627,7 @@ namespace Weaver {
             ProjectInvocationParameters parameters = null;
             string file = module.FileName;
             ModuleLoadStrategy loadStrategy;
+            string weaverProjectFile;
 
             // Check if the module is part of the set of assemblies we have
             // established we must process.
@@ -601,7 +644,8 @@ namespace Weaver {
             // Yes, we'll have it processed.
 
             if (RunWeaver) {
-                parameters = new ProjectInvocationParameters(this.WeaverProjectFile);
+                weaverProjectFile = this.WeaveBootstrapperCode ? this.BootstrapWeaverProjectFile : this.WeaverProjectFile;
+                parameters = new ProjectInvocationParameters(weaverProjectFile);
                 parameters.Properties["ScInputDirectory"] = this.WeaverInputPath;
                 parameters.PreventOverwriteAssemblyNames = false;
                 parameters.Properties["WeaveForIPC"] = this.WeaveForIPC ? bool.TrueString : bool.FalseString;
@@ -621,7 +665,7 @@ namespace Weaver {
             parameters.Properties["CacheTimestamp"] =
                 XmlConvert.ToString(File.GetLastWriteTime(file),
                 XmlDateTimeSerializationMode.RoundtripKind);
-            parameters.ProcessDependenciesFirst = true;
+            parameters.ProcessDependenciesFirst = !this.WeaveBootstrapperCode;
             parameters.Properties["ScWeaverDirectives"] = "0";
             parameters.Properties["AssemblyName"] = Path.GetFileNameWithoutExtension(file);
             parameters.Properties["AssemblyExtension"] = Path.GetExtension(file);
@@ -640,6 +684,18 @@ namespace Weaver {
                 "Starcounter.dll"}
                 ) {
                 AddExcludeExpression(exclude, weaverExcludes);
+            }
+        }
+
+        void AddWeaverExcludesFromFile() {
+            string[] excludes;
+            string filepath = Path.Combine(this.InputDirectory, ".weaverignore");
+
+            if (File.Exists(filepath)) {
+                excludes = File.ReadAllLines(filepath);
+                foreach (var exclude in excludes) {
+                    AddExcludeExpression(exclude, weaverExcludes);
+                }
             }
         }
 
