@@ -193,6 +193,10 @@ namespace Starcounter.Internal
         public const uint SCCOREDB_LOAD_DATABASE = 0x00100000;
 
         /// <summary>
+        /// </summary>
+        public const uint SCCOREDB_USE_BUFFERED_IO = 0x00200000;
+
+        /// <summary>
         /// The SCCORED b_ ENABL e_ CHEC k_ FIL e_ O n_ LOAD
         /// </summary>
         public const uint SCCOREDB_ENABLE_CHECK_FILE_ON_LOAD = 0x00010000;
