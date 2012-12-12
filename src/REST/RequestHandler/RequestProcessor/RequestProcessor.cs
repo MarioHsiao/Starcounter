@@ -68,7 +68,7 @@ namespace Starcounter.Internal.Uri
             uint vuSize;
             int vuSize2;
 
-            request.GetRawMethodAndUriPlusSpace(out pvu, out vuSize);
+            request.GetRawMethodAndUriPlusAnExtraCharacter(out pvu, out vuSize);
             vuSize2 = (int)vuSize - 1;
             return Process(pvu, vuSize2, pvu, vuSize2, true, request, out rp, out resource);
         }
