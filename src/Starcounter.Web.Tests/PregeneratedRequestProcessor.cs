@@ -63,18 +63,12 @@ namespace __urimatcher__ {
                   pfrag += 5;
                   switch (*pfrag) {
                      case (byte)' ':
+                     case (byte)'\r':
                         if (Sub0.Process(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                            return true;
                         break;
                      case (byte)'p':
                         nextSize -= 7;
-
-                        if (nextSize == 0) {
-                            if (Sub1.Process(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                return true;
-                            break;
-                        }
-
                         if (nextSize < 0) {
                             handler = null;
                             resource = null;
@@ -83,6 +77,7 @@ namespace __urimatcher__ {
                         pfrag += 7;
                         switch (*pfrag) {
                            case (byte)' ':
+                           case (byte)'\r':
                               if (Sub1.Process(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
                               break;
