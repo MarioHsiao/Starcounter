@@ -40,12 +40,7 @@
 /// to use a robust spinlock and windows events to synchronize access to
 /// scheduler_interface.
 
-/// Fix resource leak first - channels are not released.
-//#define IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
-
-#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-#else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+#define IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
 
 ///********************************************************************************************
 /// Defining IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP
@@ -58,6 +53,7 @@
 
 ///********************************************************************************************
 
+/// Comment macro IPC_OWNER_ID_IS_32_BIT to go back to the old 64-bit owner_id type.
 #define IPC_OWNER_ID_IS_32_BIT
 
 /// Define INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC to use Windows Event

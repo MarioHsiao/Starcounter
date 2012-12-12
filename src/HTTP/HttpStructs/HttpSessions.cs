@@ -111,12 +111,13 @@ namespace HttpStructs
         // Destroys existing Apps session.
         public UInt32 DestroySession(UInt64 apps_session_index, UInt64 apps_unique_salt)
         {
-            // Checking that session is not being used at the moment.
-            Debug.Assert(!apps_sessions_[apps_session_index].apps_session_int_.IsBeingUsed());
-
             // Checking that salt is correct.
             if (apps_sessions_[apps_session_index].apps_session_salt_ == apps_unique_salt)
             {
+                // Checking that session is not being used at the moment.
+                if (apps_sessions_[apps_session_index].apps_session_int_.IsBeingUsed())
+                    throw new Exception("Trying to destroy a session that is already used in some task!");
+
                 // Destroys existing Apps session.
                 apps_sessions_[apps_session_index].Destroy();
 
@@ -257,7 +258,10 @@ namespace HttpStructs
     /// </summary>
     public class AppsSession : IAppsSession
     {
+        // Indicates if session is being used by a task.
         Boolean is_used_ = false;
+
+        // Linked list node with this session in it.
         LinkedListNode<AppsSession> node_ = null;
 
         /// <summary>

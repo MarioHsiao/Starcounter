@@ -11,19 +11,36 @@
   <AggregationPort>0</AggregationPort>
   
   <!-- Number of worker threads -->
-  <WorkersNumber>3</WorkersNumber>
+  <WorkersNumber>2</WorkersNumber>
   
   <!-- Maximum number of connections -->
   <MaxConnections>100000</MaxConnections>
 
-  <!-- Number of connections to make to master node from this client -->
-  <NumConnectionsToMaster>10</NumConnectionsToMaster>
-
-  <!-- Number of tracked echoes to master node from this client -->
-  <NumEchoesToMaster>10000000</NumEchoesToMaster>
-
   <!-- Inactive session life time in seconds -->
   <InactiveSessionTimeout>1200</InactiveSessionTimeout>
+  
+  <!-- Information on reverse proxies if any. -->
+  <ReverseProxies>
+      
+    <ReverseProxy>
+      <ServerIP>69.16.244.74</ServerIP>
+      <ServerPort>80</ServerPort>
+      <URI>/forum</URI>
+    </ReverseProxy>
+
+    <ReverseProxy>
+      <ServerIP>69.16.244.74</ServerIP>
+      <ServerPort>80</ServerPort>
+      <URI>/wiki</URI>
+    </ReverseProxy>
+    
+    <ReverseProxy>
+      <ServerIP>69.16.244.74</ServerIP>
+      <ServerPort>80</ServerPort>
+      <URI>/queue-signup.php</URI>
+    </ReverseProxy> 
+      
+  </ReverseProxies>  
   
   <!-- Local interfaces to bind -->
   <LocalIP>127.0.0.1</LocalIP>
@@ -41,5 +58,11 @@
   MODE_GATEWAY_HTTP = 3,
   MODE_APPS_HTTP = 4
   -->
+
+  <!-- Number of connections to make to master node from this client -->
+  <NumConnectionsToMaster>10</NumConnectionsToMaster>
+
+  <!-- Number of tracked echoes to master node from this client -->
+  <NumEchoesToMaster>10000000</NumEchoesToMaster>
   
 </NetworkGateway>

@@ -221,7 +221,7 @@ namespace Starcounter
             SingleRequestProcessorBase handler;
             unsafe {
                 fixed (byte* pvu = vu) {
-                    RequestHandler.RequestProcessor.Process((IntPtr)pvu, vu.Length, true, null, out handler, out ret);
+                    RequestHandler.RequestProcessor.Process((IntPtr)pvu, vu.Length, (IntPtr)pvu, vu.Length, true, null, out handler, out ret);
                 }
             }
             return ret;

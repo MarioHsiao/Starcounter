@@ -185,7 +185,7 @@ public:
     uint32_t Unregister()
     {
         type_ = bmx::HANDLER_TYPE::UNUSED_HANDLER;
-        handler_id_ = -1;
+        handler_id_ = INVALID_HANDLER_INDEX;
         num_entries_ = 0;
 
         return 0;
@@ -229,19 +229,18 @@ public:
     }
 
     // Runs port handlers.
-    uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunk *sd)
+    uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunk *sd, bool* is_handled)
     {
         uint32_t err_code;
-        bool is_handled = false;
 
         // Going through all registered handlers.
         for (int32_t i = 0; i < num_entries_; i++)
         {
             // Running the handler.
-            err_code = handlers_[i](gw, sd, handler_id_, &is_handled);
+            err_code = handlers_[i](gw, sd, handler_id_, is_handled);
 
             // Checking if information was handled and no errors occurred.
-            if (is_handled || err_code)
+            if (*is_handled || err_code)
                 return err_code;
         }
 
@@ -311,7 +310,7 @@ public:
             }
         }
 
-        return -1;
+        return INVALID_HANDLER_INDEX;
     }
 
     // Find subport handler id.
@@ -331,7 +330,7 @@ public:
             }
         }
 
-        return -1;
+        return INVALID_HANDLER_INDEX;
     }
 
     // Find URI handler id.
@@ -354,7 +353,7 @@ public:
             }
         }
 
-        return -1;
+        return INVALID_HANDLER_INDEX;
     }
 
     // Gets specific handler.
@@ -611,7 +610,7 @@ public:
             }
         }
 
-        return -1;
+        return INVALID_HANDLER_INDEX;
     }
 
     // Checking if certain handler is contained.
@@ -626,7 +625,7 @@ public:
             }
         }
 
-        return -1;
+        return INVALID_HANDLER_INDEX;
     }
 
     // Checking if certain handler is contained.
@@ -642,7 +641,7 @@ public:
             }
         }
 
-        return -1;
+        return INVALID_HANDLER_INDEX;
     }
 
     void set_port_number(uint16_t port_num)
@@ -680,18 +679,17 @@ public:
     }
 
     // Running all registered handlers.
-    uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunk *sd)
+    uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunk *sd, bool* is_handled)
     {
         uint32_t err_code;
-        bool is_handled = false;
 
         // Going through all handler list.
         for (int32_t i = 0; i < handlers_.get_num_entries(); ++i)
         {
-            err_code = (handlers_[i].get_handler())(gw, sd, -1, &is_handled);
+            err_code = (handlers_[i].get_handler())(gw, sd, INVALID_HANDLER_INDEX, is_handled);
 
             // Checking if information was handled and no errors occurred.
-            if (is_handled || err_code)
+            if (*is_handled || err_code)
                 return err_code;
         }
 

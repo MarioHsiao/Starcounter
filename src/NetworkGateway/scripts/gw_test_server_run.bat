@@ -6,7 +6,7 @@ START CMD /C "scipcmonitor.exe PERSONAL .db.output"
 
 timeout 1
 
-START CMD /C "scnetworkgateway.exe personal scnetworkgateway.xml .db.output"
+START CMD /C "scnetworkgateway.exe personal gw_test_pair_server.xml .db.output"
 
 timeout 1
 

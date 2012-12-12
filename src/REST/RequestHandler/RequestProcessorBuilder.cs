@@ -28,6 +28,9 @@ namespace Starcounter.Internal.Uri {
     /// version is generated and replaces the old version (not yet implemented).
     /// </summary>
     public partial class RequestProcessorBuilder {
+        // If changes are made to the code generator, update this number to force a 
+        // recompilation of the cached handlers.
+        private const int GENERATED_VERSION_NO = 2;
 
         /// <summary>
         /// The application developers Verb + URI handlers. A handler is registred
@@ -81,7 +84,7 @@ namespace Starcounter.Internal.Uri {
         /// </summary>
         public string Namespace {
             get {
-                return "__RP_" + HandlerSetChecksum;
+                return "__RP_" + GENERATED_VERSION_NO + "_" + HandlerSetChecksum;
             }
         }
 

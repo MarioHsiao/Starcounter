@@ -10,7 +10,7 @@ namespace Starcounter.Internal.Uri
     /// <summary>
     /// Class AstSwitch
     /// </summary>
-    internal class AstSwitch : AstVerifier
+    internal class AstSwitch : AstJump
     {
         /// <summary>
         /// Gets or sets the parse node.
@@ -32,7 +32,7 @@ namespace Starcounter.Internal.Uri
         /// Generates C# source code for this abstract syntax tree (AST) node
         /// </summary>
         internal override void GenerateCsCodeForNode() {
-            GenVerifier(ParseNode.MatchCharInTemplateRelative,false);
+            GenerateJump(ParseNode.MatchCharInTemplateRelative, false);
             Prefix.Add("switch (*pfrag) {");
             Suffix.Add("}");
         }

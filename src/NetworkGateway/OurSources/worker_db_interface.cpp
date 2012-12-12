@@ -83,7 +83,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
             if (bmx::BMX_MANAGEMENT_HANDLER == smc->get_bmx_protocol())
             {
                 // Changing number of database chunks.
-                g_gateway.GetDatabase(db_index_)->ChangeNumUsedChunks(1);
+                ChangeNumUsedChunks(1);
 
                 // Entering global lock.
                 gw->EnterGlobalLock();
@@ -125,14 +125,14 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
                 assert(sd->get_num_chunks() > 2);
 
                 // NOTE: One chunk for WSA buffers will already be counted.
-                current_db->ChangeNumUsedChunks(-1);
+                ChangeNumUsedChunks(-1);
             }
 
             // Changing number of used chunks.
-            current_db->ChangeNumUsedChunks(sd->get_num_chunks());
+            ChangeNumUsedChunks(sd->get_num_chunks());
 
 #ifdef GW_CHUNKS_DIAG
-            GW_PRINT_WORKER << "Popping chunk: socket " << sd->sock() << " chunk " << sd->get_chunk_index() << std::endl;
+            GW_PRINT_WORKER << "Popping chunk: socket " << sd->sock() << ":" << sd->get_chunk_index() << std::endl;
 #endif
 
             // Checking if new session was generated.
@@ -237,12 +237,12 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
                 gw->DisconnectAndReleaseChunk(sd);
 
                 // Releasing the cloned chunk.
-                gw->ProcessReceiveClones(sd, true);
+                gw->ProcessReceiveClones(true);
             }
             else
             {
                 // Processing clones during last iteration.
-                gw->ProcessReceiveClones(sd, false);
+                gw->ProcessReceiveClones(false);
             }
         }
     }
@@ -258,7 +258,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
 uint32_t WorkerDbInterface::PushLinkedChunksToDb(
     core::chunk_index chunk_index,
     int32_t stats_num_chunks,
-    int32_t sched_id,
+    int16_t sched_id,
     bool not_overflow_chunk = true)
 {
     // Obtaining the channel.
@@ -299,31 +299,38 @@ uint32_t WorkerDbInterface::PushLinkedChunksToDb(
     }
 
     // Chunk was pushed successfully either to channel or overflow pool.
-    g_gateway.GetDatabase(db_index_)->ChangeNumUsedChunks(-stats_num_chunks);
+    ChangeNumUsedChunks(-stats_num_chunks);
 
     return 0;
 }
 
 // Returns given socket data chunk to private chunk pool.
-uint32_t WorkerDbInterface::ReturnSocketDataChunksToPool(GatewayWorker *gw, SocketDataChunk *sd)
+uint32_t WorkerDbInterface::ReturnSocketDataChunksToPool(GatewayWorker* gw, SocketDataChunk*& sd)
 {
 #ifdef GW_CHUNKS_DIAG
     GW_PRINT_WORKER << "Returning chunk: " << sd->sock() << " " << sd->get_chunk_index() << std::endl;
 #endif
 
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+    assert(sd->get_socket_diag_active_conn_flag() == false);
+#endif
+
     // Returning linked multiple chunks.
-    return ReturnLinkedChunksToPool(sd->get_num_chunks(), sd->get_chunk_index());
+    ReturnLinkedChunksToPool(sd->get_num_chunks(), sd->get_chunk_index());
+
+    // IMPORTANT: Preventing further usages of this socket data.
+    sd = NULL;
+
+    return 0;
 }
 
 // Returns given chunk to private chunk pool.
+// NOTE: This function should always succeed.
 uint32_t WorkerDbInterface::ReturnLinkedChunksToPool(int32_t num_linked_chunks, core::chunk_index& first_linked_chunk)
 {
     // Releasing chunk to private pool.
     bool success = private_chunk_pool_.release_linked_chunks(&shared_int_.chunk(0), first_linked_chunk);
     assert(success == true);
-
-    // Chunk has been released.
-    g_gateway.GetDatabase(db_index_)->ChangeNumUsedChunks(-num_linked_chunks);
 
     // Check if there are too many private chunks so
     // we need to release them to the shared chunk pool.
@@ -338,6 +345,9 @@ uint32_t WorkerDbInterface::ReturnLinkedChunksToPool(int32_t num_linked_chunks, 
         //assert(err_code == 0);
     }
 
+    // Chunks have been released.
+    ChangeNumUsedChunks(-num_linked_chunks);
+
     return 0;
 }
 
@@ -345,7 +355,7 @@ uint32_t WorkerDbInterface::ReturnLinkedChunksToPool(int32_t num_linked_chunks, 
 uint32_t WorkerDbInterface::PushSocketDataToDb(GatewayWorker* gw, SocketDataChunk *sd, BMX_HANDLER_TYPE user_handler_id)
 {
 #ifdef GW_CHUNKS_DIAG
-    GW_PRINT_WORKER << "Pushing chunk: socket " << sd->sock() << " chunk " << sd->get_chunk_index() << " handler_id " << user_handler_id << std::endl;
+    GW_PRINT_WORKER << "Pushing chunk: socket " << sd->sock() << ":" << sd->get_chunk_index() << " handler_id " << user_handler_id << std::endl;
 #endif
 
     // Checking if chunk belongs to this database.
@@ -374,11 +384,11 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(GatewayWorker* gw, SocketDataChun
     smc->set_request_size(4);
 
     // Obtaining the current scheduler id.
-    uint32_t sched_id = g_gateway.GetGlobalSessionSchedulerId(sd->get_session_index());
+    int16_t sched_id = g_gateway.GetGlobalSessionSchedulerId(sd->get_session_index());
 
     // Checking scheduler id validity.
     if (INVALID_SCHEDULER_ID == sched_id)
-        sched_id = g_gateway.obtain_scheduler_id_unsafe();
+        sched_id = gw->GetSchedulerId();
 
     // Setting scheduler id to session.
     sd->set_scheduler_id(sched_id);
@@ -720,6 +730,11 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                         GW_PRINT_WORKER << "Ignoring Apps URI '" << uri << "' since Gateway is already in ECHO mode." << handler_id << std::endl;
                         break;
                     }
+                }
+                else
+                {
+                    GW_PRINT_WORKER << "Ignoring Apps URI '" << uri << "' since Gateway is in raw ECHO mode." << handler_id << std::endl;
+                    break;
                 }
 
 #endif

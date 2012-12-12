@@ -5,8 +5,8 @@
 #include "http_proto.hpp"
 #include "socket_data.hpp"
 #include "tls_proto.hpp"
-#include "worker.hpp"
 #include "worker_db_interface.hpp"
+#include "worker.hpp"
 
 namespace starcounter {
 namespace network {
@@ -44,7 +44,7 @@ void SocketDataChunk::Init(
     flags_ = 0;
     set_to_database_direction_flag(true);
 
-    type_of_network_oper_ = UNKNOWN_OPER;
+    type_of_network_oper_ = UNKNOWN_SOCKET_OPER;
     recv_flags_ = 0;
     num_chunks_ = 1;
 
@@ -61,7 +61,7 @@ void SocketDataChunk::Reset()
 
     proxy_sock_ = INVALID_SOCKET;
 
-    type_of_network_oper_ = DISCONNECT_OPER;
+    type_of_network_oper_ = DISCONNECT_SOCKET_OPER;
 
     fixed_handler_id_ = 0;
 
@@ -95,7 +95,7 @@ uint32_t SocketDataChunk::ContinueAccumulation(GatewayWorker* gw, bool* is_accum
             if (INVALID_CHUNK_INDEX == cur_chunk_index)
                 cur_chunk_index = chunk_index_;
 
-            WorkerDbInterface* worker_db = gw->GetDatabase(db_index_);
+            WorkerDbInterface* worker_db = gw->GetWorkerDb(db_index_);
 
             // Getting new chunk and attaching to current one.
             shared_memory_chunk *new_smc;
@@ -135,23 +135,35 @@ uint32_t SocketDataChunk::ContinueAccumulation(GatewayWorker* gw, bool* is_accum
 uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
 {
     // Since another socket is going to be attached.
-    set_receiving_flag(false);
+    set_socket_representer_flag(false);
 
     SocketDataChunk* sd_clone = NULL;
     uint32_t err_code = gw->CreateSocketData(sock_, port_index_, db_index_, &sd_clone);
     GW_ERR_CHECK(err_code);
 
     sd_clone->session_ = session_;
+
     sd_clone->set_to_database_direction_flag(true);
     sd_clone->set_web_sockets_upgrade_flag(sd_clone->get_web_sockets_upgrade_flag());
     sd_clone->set_db_unique_seq_num(db_unique_seq_num_);
     sd_clone->set_proxy_socket(proxy_sock_);
 
     // This socket becomes attached.
-    sd_clone->set_receiving_flag(true);
+    sd_clone->set_socket_representer_flag(true);
+
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+    bool active_conn = get_socket_diag_active_conn_flag();
+    set_socket_diag_active_conn_flag(false);
+    sd_clone->set_socket_diag_active_conn_flag(active_conn);
+#endif
 
     // Setting the clone for the next iteration.
     gw->SetReceiveClone(sd_clone);
+
+#ifdef GW_SOCKET_DIAG
+    GW_COUT << "Cloned socket " << sock_ << ":" << chunk_index_ << " to " <<
+        sd_clone->get_socket() << ":" << sd_clone->get_chunk_index() << std::endl;
+#endif
 
     return 0;
 }
@@ -255,7 +267,7 @@ uint32_t SocketDataChunk::ReturnExtraLinkedChunks(GatewayWorker* gw)
         return 0;
 
     // We have to return attached chunks.
-    WorkerDbInterface *db = gw->GetDatabase(db_index_);
+    WorkerDbInterface *db = gw->GetWorkerDb(db_index_);
     assert(db != NULL);
 
     // Checking if any chunks are linked.
@@ -301,30 +313,38 @@ bool SocketDataChunk::ForceSocketDataValidity(GatewayWorker* gw)
 
 CORRECT_STATISTICS_AND_RELEASE_CHUNK:
 
-    // Getting corresponding server port.
-    ServerPort* server_port = g_gateway.get_server_port(port_index_);
+    GW_COUT << "Force cleaning socket data: " << sock_ << ":" << chunk_index_ << std::endl;
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
-    server_port->ChangeNumPendingNetworkOperations(db_index_, -1);
-#endif
 
-    // Checking type of operation.
+    // Correcting statistics based on operations.
     switch (type_of_network_oper_)
     {
-        // ACCEPT, CONNECT finished.
-        case ACCEPT_OPER:
-        case CONNECT_OPER:
-        case SEND_OPER:
+        case ACCEPT_SOCKET_OPER:
+        {
+            gw->ChangeNumAcceptingSockets(port_index_, -1);
+            break;
+        }
+
+        case CONNECT_SOCKET_OPER:
+        {
+            break;
+        }
+
+        case SEND_SOCKET_OPER:
         {
             // Do nothing.
             break;
         }
 
-        // DISCONNECT, SEND, RECEIVE finished.
-        case DISCONNECT_OPER:
-        case RECEIVE_OPER:
+        case DISCONNECT_SOCKET_OPER:
+        case RECEIVE_SOCKET_OPER:
         {
-            server_port->ChangeNumActiveConns(db_index_, -1);
+            if (get_socket_diag_active_conn_flag())
+            {
+                gw->ChangeNumActiveConnections(port_index_, -1);
+                set_socket_diag_active_conn_flag(false);
+            }
             break;
         }
 
@@ -336,8 +356,7 @@ CORRECT_STATISTICS_AND_RELEASE_CHUNK:
         }
     }
 
-    // Releasing socket data chunks back to pool.
-    gw->GetDatabase(db_index_)->ReturnSocketDataChunksToPool(gw, this);
+#endif
 
     return false;
 }

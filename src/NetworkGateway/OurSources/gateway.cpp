@@ -5,8 +5,8 @@
 #include "http_proto.hpp"
 #include "socket_data.hpp"
 #include "tls_proto.hpp"
-#include "worker.hpp"
 #include "worker_db_interface.hpp"
+#include "worker.hpp"
 
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "winmm.lib")
@@ -35,16 +35,14 @@ std::string GetOperTypeString(SocketOperType typeOfOper)
 {
     switch (typeOfOper)
     {
-        case SEND_OPER: return "SEND_OPER";
-        case RECEIVE_OPER: return "RECEIVE_OPER";
-        case ACCEPT_OPER: return "ACCEPT_OPER";
-        case CONNECT_OPER: return "CONNECT_OPER";
-        case DISCONNECT_OPER: return "DISCONNECT_OPER";
-        case TO_DB_OPER: return "TODB_OPER";
-        case FROM_DB_OPER: return "FROMDB_OPER";
-        case UNKNOWN_OPER: return "UNKNOWN_OPER";
+        case SEND_SOCKET_OPER: return "SEND_SOCKET_OPER";
+        case RECEIVE_SOCKET_OPER: return "RECEIVE_SOCKET_OPER";
+        case ACCEPT_SOCKET_OPER: return "ACCEPT_SOCKET_OPER";
+        case CONNECT_SOCKET_OPER: return "CONNECT_SOCKET_OPER";
+        case DISCONNECT_SOCKET_OPER: return "DISCONNECT_SOCKET_OPER";
+        case UNKNOWN_SOCKET_OPER: return "UNKNOWN_SOCKET_OPER";
     }
-    return "ERROR_OPER";
+    return "ERROR_SOCKET_OPER";
 }
 
 Gateway::Gateway()
@@ -77,14 +75,10 @@ Gateway::Gateway()
     db_seq_num_ = 0;
 
     // Initializing scheduler information.
-    global_scheduler_id_unsafe_ = 0;
     num_schedulers_ = 0;
 
     // No reverse proxies by default.
     num_reversed_proxies_ = 0;
-
-    // Initializing global timer.
-    global_timer_unsafe_ = MIN_INACTIVE_SESSION_LIFE_SECONDS;
 
     server_addr_ = NULL;
 
@@ -97,10 +91,16 @@ Gateway::Gateway()
     gw_handlers_ = new HandlersTable();
 
     // Initial number of server ports.
-    num_server_ports_ = 0;
+    num_server_ports_unsafe_ = 0;
 
     // Resetting number of processed HTTP requests.
-    num_processed_http_requests_ = 0;
+    num_processed_http_requests_unsafe_ = 0;
+
+    // Initializing to first bind port number.
+    last_bind_port_num_unsafe_ = FIRST_BIND_PORT_NUM;
+
+    // First bind interface number.
+    last_bind_interface_num_unsafe_ = 0;
 
 #ifdef GW_TESTING_MODE
 
@@ -156,13 +156,17 @@ uint32_t Gateway::ReadArguments(int argc, wchar_t* argv[])
         return SCERRGWCANTCREATELOGDIR;
     }
 
+    // Full path to gateway log file.
     setting_log_file_path_ = setting_log_file_dir_ + L"\\network_gateway.log";
+
+    // Deleting old log file first.
+    DeleteFile(setting_log_file_path_.c_str());
 
     return 0;
 }
 
 // Initializes server socket.
-void ServerPort::Init(uint16_t port_number, SOCKET listening_sock, int32_t blob_user_data_offset)
+void ServerPort::Init(int32_t port_index, uint16_t port_number, SOCKET listening_sock, int32_t blob_user_data_offset)
 {
     // Allocating needed tables.
     port_handlers_ = new PortHandlers();
@@ -173,19 +177,38 @@ void ServerPort::Init(uint16_t port_number, SOCKET listening_sock, int32_t blob_
     port_number_ = port_number;
     blob_user_data_offset_ = blob_user_data_offset;
     port_handlers_->set_port_number(port_number_);
+    port_index_ = port_index;
+}
+
+// Resets the number of created sockets and active connections.
+void ServerPort::Reset()
+{
+    InterlockedAnd64(&(num_accepting_sockets_unsafe_), 0);
+
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+
+    for (int32_t w = 0; w < g_gateway.setting_num_workers(); w++)
+    {
+        g_gateway.get_worker(w)->SetNumActiveConnections(port_index_, 0);
+    }
+
+    InterlockedAnd64(&num_allocated_accept_sockets_unsafe_, 0);
+    InterlockedAnd64(&num_allocated_connect_sockets_unsafe_, 0);
+
+#endif
 }
 
 // Removes this port.
 void ServerPort::EraseDb(int32_t db_index)
 {
     // Deleting port handlers if any.
-    get_port_handlers()->RemoveEntry(db_index);
+    port_handlers_->RemoveEntry(db_index);
 
     // Deleting URI handlers if any.
-    get_registered_uris()->RemoveEntry(db_index);
+    registered_uris_->RemoveEntry(db_index);
 
     // Deleting subport handlers if any.
-    get_registered_subports()->RemoveEntry(db_index);
+    registered_subports_->RemoveEntry(db_index);
 }
 
 // Checking if port is unused by any database.
@@ -203,15 +226,26 @@ bool ServerPort::IsEmpty()
     if (registered_subports_ && (!registered_subports_->IsEmpty()))
         return false;
 
-    // Checking every database.
-    for (int32_t i = 0; i < g_gateway.get_num_dbs_slots(); i++)
-    {
-        if (!EmptyForDb(i))
-            return false;
-    }
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+
+    // Checking connections.
+    if (g_gateway.NumberOfActiveConnectionsPerPort(port_number_))
+        return false;
+
+#endif
 
     return true;
 }
+
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+
+// Retrieves the number of active connections.
+int64_t ServerPort::NumberOfActiveConnections()
+{
+    return g_gateway.NumberOfActiveConnectionsPerPort(port_index_);
+}
+
+#endif
 
 // Removes this port.
 void ServerPort::Erase()
@@ -249,6 +283,9 @@ void ServerPort::Erase()
 
     port_number_ = 0;
     blob_user_data_offset_ = -1;
+    port_index_ = INVALID_PORT_INDEX;
+
+    Reset();
 }
 
 // Printing the registered URIs.
@@ -335,8 +372,16 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
 
     // Getting inactive session timeout.
     setting_inactive_session_timeout_seconds_ = atoi(rootElem->first_node("InactiveSessionTimeout")->value());
-    if ((setting_inactive_session_timeout_seconds_ % MIN_INACTIVE_SESSION_LIFE_SECONDS) != 0)
+
+    // Just enforcing minimum session timeout multiplier.
+    if ((setting_inactive_session_timeout_seconds_ % SESSION_LIFETIME_MULTIPLIER) != 0)
         return SCERRGWWRONGMAXIDLESESSIONLIFETIME;
+
+    // Setting minimum session time.
+    min_inactive_session_life_seconds_ = setting_inactive_session_timeout_seconds_ / SESSION_LIFETIME_MULTIPLIER;
+
+    // Initializing global timer.
+    global_timer_unsafe_ = min_inactive_session_life_seconds_;
 
 #ifdef GW_PROXY_MODE
 
@@ -360,15 +405,6 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
             server_addr->sin_family = AF_INET;
             server_addr->sin_addr.s_addr = inet_addr(reverse_proxies_[i].ip_.c_str());
             server_addr->sin_port = htons(reverse_proxies_[i].port_);
-
-            // PreCreating HTTP redirect response.
-            reverse_proxies_[i].http_redirect_ =
-                "HTTP/1.1 302 Found\r\n"
-                "Server: Starcounter\r\n"
-                "Content-Length: 0\r\n"
-                "Location: ";
-
-            reverse_proxies_[i].http_redirect_ += reverse_proxies_[i].uri_ + "/\r\n\r\n";
 
             // Getting next reverse proxy information.
             proxy_node = proxy_node->next_sibling("ReverseProxy");
@@ -403,7 +439,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         GW_COUT << portNames[i] << ": " << portNumbers[i] << std::endl;
 
         // Checking if several protocols are on the same port.
-        int32_t samePortIndex = -1;
+        int32_t samePortIndex = INVALID_PORT_INDEX;
         for (int32_t k = 0; k < i; k++)
         {
             if ((portNumbers[i] > 0) && (portNumbers[i] == portNumbers[k]))
@@ -440,10 +476,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
 
     // Cleaning all sockets data.
     for (int32_t i = 0; i < MAX_SOCKET_HANDLE; i++)
-    {
-        sockets_port_indexes_unsafe_[i] = 255;
-        deleted_sockets_unsafe_[i] = false;
-    }
+        deleted_sockets_bitset_[i] = false;
 
     delete [] config_contents;
 
@@ -563,7 +596,7 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
     // Setting checking events for each worker.
 	for (std::size_t worker_id = 0; worker_id < g_gateway.setting_num_workers(); ++worker_id)
     {
-		WorkerDbInterface* db_int = g_gateway.get_worker(worker_id)->GetDatabase(db_index);
+		WorkerDbInterface* db_int = g_gateway.get_worker(worker_id)->GetWorkerDb(db_index);
 		db_shared_int = db_int->get_shared_int();
 
 		work_events[worker_id] = db_shared_int->open_client_work_event(db_shared_int->get_client_number());
@@ -710,16 +743,20 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
 
 #ifdef GW_TESTING_MODE
 
+            uint16_t port_number = GATEWAY_TEST_PORT_NUMBER_SERVER;
+            if (!g_gateway.setting_is_master())
+                port_number++;
+
             // Checking if we are in Gateway HTTP mode.
-            if (g_gateway.setting_is_master())
+            switch (g_gateway.setting_mode())
             {
-                if (g_gateway.setting_mode() == GatewayTestingMode::MODE_GATEWAY_HTTP)
+                case GatewayTestingMode::MODE_GATEWAY_HTTP:
                 {
                     // Registering URI handlers.
                     err_code = AddUriHandler(
                         &gw_workers_[0],
                         gw_handlers_,
-                        GATEWAY_TEST_PORT_NUMBER_SERVER,
+                        port_number,
                         kHttpEchoUrl,
                         kHttpEchoUrlLength,
                         bmx::HTTP_METHODS::OTHER_METHOD,
@@ -734,17 +771,20 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
 
                         return err_code;
                     }
+
+                    break;
                 }
-                else if (g_gateway.setting_mode() == GatewayTestingMode::MODE_GATEWAY_PING)
+                    
+                case GatewayTestingMode::MODE_GATEWAY_PING:
                 {
                     // Registering port handler.
                     err_code = AddPortHandler(
                         &gw_workers_[0],
                         gw_handlers_,
-                        GATEWAY_TEST_PORT_NUMBER_SERVER,
+                        port_number,
                         bmx::INVALID_HANDLER_ID,
                         empty_db_index,
-                        GatewayPortProcessData);
+                        GatewayPortProcessEcho);
 
                     if (err_code)
                     {
@@ -753,8 +793,11 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
 
                         return err_code;
                     }
+
+                    break;
                 }
             }
+
 #endif
 
 #ifdef GW_PROXY_MODE
@@ -789,7 +832,7 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
             LeaveGlobalLock();
 
             // Registering push channel on first worker.
-            err_code = gw_workers_[0].GetDatabase(empty_db_index)->RegisterAllPushChannels();
+            err_code = gw_workers_[0].GetWorkerDb(empty_db_index)->RegisterAllPushChannels();
             GW_ERR_CHECK(err_code);
         }
     }
@@ -851,16 +894,12 @@ void ActiveDatabase::Init(std::string db_name, uint64_t unique_num, int32_t db_i
     user_handlers_ = new HandlersTable();
 
     db_name_ = db_name;
-    unique_num_ = unique_num;
+    unique_num_unsafe_ = unique_num;
     db_index_ = db_index;
     were_sockets_closed_ = false;
 
     num_confirmed_push_channels_ = 0;
-    num_used_sockets_ = 0;
-    num_used_chunks_ = 0;
-
-    for (int32_t i = 0; i < MAX_SOCKET_HANDLE; i++)
-        active_sockets_[i] = false;
+    is_empty_ = false;
 }
 
 // Checks if its enough confirmed push channels.
@@ -873,6 +912,19 @@ bool ActiveDatabase::IsAllPushChannelsConfirmed()
 ActiveDatabase::~ActiveDatabase()
 {
     StartDeletion();
+}
+
+// Checks if this database slot empty.
+bool ActiveDatabase::IsEmpty()
+{
+    if (is_empty_)
+        return true;
+
+    // Checking if all chunks for this database were released.
+    is_empty_ = (INVALID_UNIQUE_DB_NUMBER == unique_num_unsafe_) &&
+        (0 == g_gateway.NumberUsedChunksPerDatabase(db_index_));
+
+    return is_empty_;
 }
 
 // Makes this database slot empty.
@@ -888,10 +940,7 @@ void ActiveDatabase::StartDeletion()
         user_handlers_ = NULL;
     }
 
-    // Setting incorrect index immediately.
-    db_index_ = -1;
-
-    unique_num_ = 0;
+    unique_num_unsafe_ = INVALID_UNIQUE_DB_NUMBER;
     db_name_ = "";
 }
 
@@ -908,15 +957,26 @@ void ActiveDatabase::CloseSocketData()
     // Checking if just marking for deletion.
     for (SOCKET s = 0; s < MAX_SOCKET_HANDLE; s++)
     {
+        bool needs_deletion = false;
+
+        // Checking if socket was active in any workers.
+        for (int32_t w = 0; w < g_gateway.setting_num_workers(); w++)
+        {
+            if (g_gateway.get_worker(w)->GetWorkerDb(db_index_)->GetSocketState(s))
+                needs_deletion = true;
+
+            g_gateway.get_worker(w)->GetWorkerDb(db_index_)->UntrackSocket(s);
+        }
+
         // Checking if socket is active.
-        if (active_sockets_[s])
+        if (needs_deletion)
         {
             // Marking deleted socket.
             g_gateway.MarkSocketDelete(s);
 
             // NOTE: Can't kill the session here, because it can be used by other databases.
 
-            // Closing socket which will results in Disconnect.
+            // NOTE: Closing socket which will results in stop of all pending operations on that socket.
             if (closesocket(s))
             {
 #ifdef GW_ERRORS_DIAG
@@ -924,20 +984,6 @@ void ActiveDatabase::CloseSocketData()
 #endif
                 PrintLastError();
             }
-
-            // Stop tracking this socket.
-            UntrackSocket(s);
-
-            // Decreasing number of connections.
-            uint8_t port_index = g_gateway.GetSocketPortIndex(s);
-            assert(port_index < MAX_PORTS_NUM);
-
-            // Getting server port corresponding to this socket.
-            ServerPort* server_port = g_gateway.get_server_port(port_index);
-            g_gateway.UntrackSocket(s);
-
-            // Changing number of allocated sockets.
-            server_port->ChangeNumAllocatedSockets(db_index_, -1);
         }
     }
 }
@@ -984,7 +1030,7 @@ uint32_t Gateway::Init()
 #endif
 
         // Going throw all needed ports.
-        for(int32_t p = 0; p < num_server_ports_; p++)
+        for(int32_t p = 0; p < num_server_ports_unsafe_; p++)
         {
             SOCKET server_socket = INVALID_SOCKET;
 
@@ -1150,7 +1196,7 @@ GatewayWorker* Gateway::get_worker(int32_t worker_id)
 uint32_t Gateway::DeletePortsForDb(int32_t db_index)
 {
     // Going through all ports.
-    for (int32_t i = 0; i < num_server_ports_; i++)
+    for (int32_t i = 0; i < num_server_ports_unsafe_; i++)
     {
         // Deleting port handlers if any.
         server_ports_[i].EraseDb(db_index);
@@ -1161,17 +1207,130 @@ uint32_t Gateway::DeletePortsForDb(int32_t db_index)
     }
 
     // Removing deleted trailing server ports.
-    for (int32_t i = (num_server_ports_ - 1); i >= 0; i--)
+    for (int32_t i = (num_server_ports_unsafe_ - 1); i >= 0; i--)
     {
         // Removing until one server port is not empty.
         if (!server_ports_[i].IsEmpty())
             break;
 
-        num_server_ports_--;
+        num_server_ports_unsafe_--;
     }
 
     return 0;
 }
+
+// Getting the number of used sockets.
+int64_t Gateway::NumberUsedSocketsAllWorkersAndDatabases()
+{
+    int64_t num_used_sockets = 0;
+
+    for (int32_t d = 0; d < num_dbs_slots_; d++)
+    {
+        for (int32_t w = 0; w < setting_num_workers_; w++)
+        {
+            num_used_sockets += gw_workers_[w].NumberUsedSocketPerDatabase(d);
+        }
+    }
+
+    return num_used_sockets;
+}
+
+// Getting the number of reusable connect sockets.
+int64_t Gateway::NumberOfReusableConnectSockets()
+{
+    int64_t num_reusable_connect_sockets = 0;
+
+    for (int32_t w = 0; w < setting_num_workers_; w++)
+    {
+        num_reusable_connect_sockets += gw_workers_[w].NumberOfReusableConnectSockets();
+    }
+
+    return num_reusable_connect_sockets;
+}
+
+// Getting the number of used sockets per database.
+int64_t Gateway::NumberUsedSocketsPerDatabase(int32_t db_index)
+{
+    int64_t num_used_sockets = 0;
+
+    for (int32_t w = 0; w < setting_num_workers_; w++)
+    {
+        num_used_sockets += gw_workers_[w].NumberUsedSocketPerDatabase(db_index);
+    }
+
+    return num_used_sockets;
+}
+
+// Getting the number of used sockets per worker.
+int64_t Gateway::NumberUsedSocketsPerWorker(int32_t worker_id)
+{
+    int64_t num_used_sockets = 0;
+
+    for (int32_t d = 0; d < num_dbs_slots_; d++)
+    {
+        num_used_sockets += gw_workers_[worker_id].NumberUsedSocketPerDatabase(d);
+    }
+
+    return num_used_sockets;
+}
+
+// Getting the total number of used chunks for all databases.
+int64_t Gateway::NumberUsedChunksAllWorkersAndDatabases()
+{
+    int64_t total_used_chunks = 0;
+    for (int32_t d = 0; d < num_dbs_slots_; d++)
+    {
+        for (int32_t w = 0; w < setting_num_workers_; w++)
+        {
+            total_used_chunks += (gw_workers_[w].NumberUsedChunksPerDatabasePerWorker(d));
+        }
+    }
+
+    return total_used_chunks;
+}
+
+// Getting the number of used chunks per database.
+int64_t Gateway::NumberUsedChunksPerDatabase(int32_t db_index)
+{
+    int64_t num_used_chunks = 0;
+
+    for (int32_t w = 0; w < setting_num_workers_; w++)
+    {
+        num_used_chunks += gw_workers_[w].NumberUsedChunksPerDatabasePerWorker(db_index);
+    }
+
+    return num_used_chunks;
+}
+
+// Getting the number of used chunks per worker.
+int64_t Gateway::NumberUsedChunksPerWorker(int32_t worker_id)
+{
+    int64_t num_used_chunks = 0;
+
+    for (int32_t d = 0; d < num_dbs_slots_; d++)
+    {
+        num_used_chunks += gw_workers_[worker_id].NumberUsedChunksPerDatabasePerWorker(d);
+    }
+
+    return num_used_chunks;
+}
+
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+
+// Getting the number of active connections per port.
+int64_t Gateway::NumberOfActiveConnectionsPerPort(int32_t port_index)
+{
+    int64_t num_active_conns = 0;
+
+    for (int32_t w = 0; w < setting_num_workers_; w++)
+    {
+        num_active_conns += gw_workers_[w].NumberOfActiveConnectionsPerPortPerWorker(port_index);
+    }
+
+    return num_active_conns;
+}
+
+#endif
 
 // Waits for all workers to suspend.
 void Gateway::WaitAllWorkersSuspended()
@@ -1318,7 +1477,7 @@ uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
     EnterCriticalSection(&cs_sessions_cleanup_);
 
     // Going through all collected inactive sessions.
-    int32_t num_sessions_to_cleanup = num_sessions_to_cleanup_unsafe_;
+    int64_t num_sessions_to_cleanup = num_sessions_to_cleanup_unsafe_;
     for (int32_t i = 0; i < num_sessions_to_cleanup; i++)
     {
         // Getting existing session copy.
@@ -1337,7 +1496,7 @@ uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
                 // Pushing dead session message to all databases.
                 for (int32_t d = 0; d < num_dbs_slots_; d++)
                 {
-                    WorkerDbInterface *db = gw->GetDatabase(d);
+                    WorkerDbInterface *db = gw->GetWorkerDb(d);
                     if (NULL != db)
                     {
                         // Sending session destroyed message.
@@ -1357,7 +1516,7 @@ uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
         }
 
         // Inactive session was successfully cleaned up.
-        --num_sessions_to_cleanup_unsafe_;
+        num_sessions_to_cleanup_unsafe_--;
     }
 
     assert(0 == num_sessions_to_cleanup_unsafe_);
@@ -1411,10 +1570,10 @@ uint32_t __stdcall InactiveSessionsCleanupRoutine(LPVOID params)
     while (1)
     {
         // Sleeping minimum interval.
-        Sleep(MIN_INACTIVE_SESSION_LIFE_SECONDS * 1000);
+        Sleep(g_gateway.get_min_inactive_session_life_seconds() * 1000);
 
         // Increasing global time by minimum number of seconds.
-        g_gateway.step_global_timer_unsafe(MIN_INACTIVE_SESSION_LIFE_SECONDS);
+        g_gateway.step_global_timer_unsafe(g_gateway.get_min_inactive_session_life_seconds());
 
         // Collecting inactive sessions if any.
         g_gateway.CollectInactiveSessions();
@@ -1530,9 +1689,10 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
 
         // Global statistics.
         std::cout << "Global: " <<
-            "Active chunks " << g_gateway.GetTotalNumUsedChunks() <<
-            ", allocated sockets " << g_gateway.GetTotalNumUsedSockets() <<
+            "Active chunks " << g_gateway.NumberUsedChunksAllWorkersAndDatabases() <<
             ", active sessions " << g_gateway.get_num_active_sessions_unsafe() <<
+            ", used sockets " << g_gateway.NumberUsedSocketsAllWorkersAndDatabases() <<
+            ", reusable conn socks " << g_gateway.NumberOfReusableConnectSockets() <<
             std::endl;
 
         // Individual workers statistics.
@@ -1546,20 +1706,23 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         }
 
         // Printing handlers information for each attached database and gateway.
-        for (int32_t p = 0; p < num_server_ports_; p++)
+        for (int32_t p = 0; p < num_server_ports_unsafe_; p++)
         {
-            for (int32_t d = 0; d < num_dbs_slots_; d++)
+            if (!server_ports_->IsEmpty())
             {
-                if (!server_ports_->EmptyForDb(d))
-                {
-                    std::cout << "Port " << server_ports_[p].get_port_number() <<
-                        ", db \"" << active_databases_[d].db_name() << "\"" <<
-                        ": active conns " << server_ports_[p].get_num_active_conns(d) <<
+                std::cout << "Port " << server_ports_[p].get_port_number() <<
+
 #ifdef GW_COLLECT_SOCKET_STATISTICS
-                        ": pending sockets " << server_ports_[p].get_num_pending_network_operations(d) <<
+                    ": active conns " << server_ports_[p].NumberOfActiveConnections() <<
 #endif
-                        ", allocated sockets " << server_ports_[p].get_num_allocated_sockets(d) << std::endl;
-                }
+
+                    ": accepting socks " << server_ports_[p].get_num_accepting_sockets() <<
+
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+                    ", alloc acc-socks " << server_ports_[p].get_num_allocated_accept_sockets() <<
+                    ", alloc conn-socks " << server_ports_[p].get_num_allocated_connect_sockets() <<
+#endif                        
+                    std::endl;
             }
         }
 

@@ -40,6 +40,15 @@ class WorkerDbInterface
     // Worker id to which this interface belongs.
     int32_t worker_id_;
 
+    // Open socket handles.
+    std::bitset<MAX_SOCKET_HANDLE> active_sockets_bitset_;
+
+    // Number of used sockets.
+    int64_t num_used_sockets_;
+
+    // Number of used chunks.
+    int64_t num_used_chunks_;
+
     // Acquires needed amount of chunks from shared pool.
     uint32_t AcquireChunksFromSharedPool(int32_t num_chunks)
     {
@@ -71,6 +80,48 @@ class WorkerDbInterface
 
 public:
 
+    // Increments or decrements the number of active chunks.
+    void ChangeNumUsedChunks(int64_t change_value)
+    {
+        num_used_chunks_ += change_value;
+
+#ifdef GW_CHUNKS_DIAG
+        GW_COUT << "ChangeNumUsedChunks: " << change_value << " and " << num_used_chunks_ << std::endl;
+#endif
+    }
+
+    // Getting the number of used chunks.
+    int64_t get_num_used_chunks()
+    {
+        return num_used_chunks_;
+    }
+
+    // Tracks certain socket.
+    void TrackSocket(SOCKET s)
+    {
+        num_used_sockets_++;
+        active_sockets_bitset_[s] = true;
+    }
+
+    // Untracks certain socket.
+    void UntrackSocket(SOCKET s)
+    {
+        num_used_sockets_--;
+        active_sockets_bitset_[s] = false;
+    }
+
+    // Getting number of used sockets.
+    int64_t get_num_used_sockets()
+    {
+        return num_used_sockets_;
+    }
+
+    // Gets certain socket state.
+    bool GetSocketState(SOCKET s)
+    {
+        return active_sockets_bitset_[s];
+    }
+
     // Sends session destroyed message.
     uint32_t PushDeadSession(const ScSessionStruct& session);
 
@@ -101,14 +152,20 @@ public:
     // Resets the existing interface.
     void Reset()
     {
-        db_index_ = -1;
-        worker_id_ = -1;
+        db_index_ = INVALID_DB_INDEX;
+        worker_id_ = INVALID_WORKER_INDEX;
+        num_used_sockets_ = 0;
+        num_used_chunks_ = 0;
 
         if (channels_)
         {
             delete[] channels_;
             channels_ = NULL;
         }
+
+        // Setting all sockets as inactive.
+        for (int32_t i = 0; i < MAX_SOCKET_HANDLE; i++)
+            active_sockets_bitset_[i] = false;
     }
 
     // Allocates different channels and pools.
@@ -172,7 +229,7 @@ public:
     uint32_t PushLinkedChunksToDb(
         core::chunk_index chunk_index,
         int32_t num_chunks,
-        int32_t sched_id,
+        int16_t sched_id,
         bool not_overflow_chunk);
 
     uint32_t PushSocketDataToDb(GatewayWorker* gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id);
@@ -197,7 +254,7 @@ public:
         }
 
         // Changing number of database chunks.
-        g_gateway.GetDatabase(db_index_)->ChangeNumUsedChunks(1);
+        ChangeNumUsedChunks(1);
 
         // Getting data pointer.
         (*smc) = (shared_memory_chunk *)(&shared_int_.chunk(*chunk_index));
@@ -213,7 +270,7 @@ public:
     }
 
     // Returns given socket data chunk to private chunk pool.
-    uint32_t ReturnSocketDataChunksToPool(GatewayWorker *gw, SocketDataChunk *sd);
+    uint32_t ReturnSocketDataChunksToPool(GatewayWorker *gw, SocketDataChunk*& sd);
 
     // Returns given linked chunks to private chunk pool (and if needed then to shared).
     uint32_t ReturnLinkedChunksToPool(int32_t num_linked_chunks, core::chunk_index& first_linked_chunk);
