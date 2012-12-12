@@ -41,6 +41,11 @@ namespace Starcounter.Internal.Uri
             sb.Append((char)ParseNode.Match);
             sb.Append("':");
             Prefix.Add(sb.ToString());
+
+            if (ParseNode.Match == (byte)' ') {
+                Prefix.Add("case (byte)'\\r':");
+            }
+
 //            Prefix.Add("Console.WriteLine(\"Tested true for '" + (char)ParseNode.Match + "'\");");
             Suffix.Add("   break;");
         }

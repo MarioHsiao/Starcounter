@@ -5,6 +5,7 @@
 #include "http_proto.hpp"
 #include "socket_data.hpp"
 #include "tls_proto.hpp"
+#include "worker_db_interface.hpp"
 #include "worker.hpp"
 
 namespace starcounter {
@@ -101,6 +102,7 @@ uint32_t HandlersTable::RegisterPortHandler(
 
 #ifdef GW_TESTING_MODE
 
+        // On the test client we immediately creating all needed connections.
         if (!g_gateway.setting_is_master())
             how_many = g_gateway.setting_num_connections_to_master();
 
@@ -214,6 +216,7 @@ uint32_t HandlersTable::RegisterSubPortHandler(
 
 #ifdef GW_TESTING_MODE
 
+        // On the test client we immediately creating all needed connections.
         if (!g_gateway.setting_is_master())
             how_many = g_gateway.setting_num_connections_to_master();
 
@@ -330,6 +333,7 @@ uint32_t HandlersTable::RegisterUriHandler(
 
 #ifdef GW_TESTING_MODE
 
+        // On the test client we immediately creating all needed connections.
         if (!g_gateway.setting_is_master())
             how_many = g_gateway.setting_num_connections_to_master();
 
@@ -396,39 +400,36 @@ uint32_t HandlersTable::UnregisterHandler(BMX_HANDLER_TYPE handler_id)
 // Outer port handler.
 uint32_t OuterPortProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_index, bool* is_handled)
 {
-    // Setting handled flag.
-    *is_handled = false;
-
+    // First searching in database handlers table.
     HandlersTable* handlers_table = g_gateway.GetDatabase(sd->get_db_index())->get_user_handlers();
 
-    // Checking if data goes to user code.
-    if (sd->get_to_database_direction_flag())
+    // Getting the corresponding port number.
+    uint16_t port_num = g_gateway.get_server_port(sd->get_port_index())->get_port_number();
+
+    // Searching for the user code handler id.
+    handler_index = handlers_table->FindPortHandlerIndex(port_num);
+
+    // Checking if handler was not found in database handlers.
+    if (INVALID_HANDLER_INDEX == handler_index)
     {
-        // Getting the corresponding port number.
-        uint16_t port_num = g_gateway.get_server_port(sd->get_port_index())->get_port_number();
+        // Switching to gateway handlers.
+        handlers_table = g_gateway.get_gw_handlers();
 
         // Searching for the user code handler id.
         handler_index = handlers_table->FindPortHandlerIndex(port_num);
-
-        // Checking if user handler was not found.
-        if (!handler_index)
-        {
-            // Returning error code.
-            return SCERRGWINCORRECTHANDLER;
-        }
     }
 
+    // Making sure that handler index is obtained.
+    assert(INVALID_HANDLER_INDEX != handler_index);
+
     // Now running specific handler.
-    return handlers_table->get_handler_list(handler_index)->RunHandlers(gw, sd);
+    return handlers_table->get_handler_list(handler_index)->RunHandlers(gw, sd, is_handled);
 }
 
 // General sockets handler.
 uint32_t AppsPortProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled)
 {
     uint32_t err_code;
-
-    // Setting handled flag.
-    *is_handled = false;
 
     // Checking if data goes to user code.
     if (sd->get_to_database_direction_flag())
@@ -470,23 +471,90 @@ uint32_t AppsPortProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER
 
 #ifdef GW_TESTING_MODE
 
-// General sockets handler.
-uint32_t GatewayPortProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled)
+// Port echo handler.
+uint32_t GatewayPortProcessEcho(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled)
 {
     uint32_t err_code;
 
     // Setting handled flag.
-    *is_handled = false;
-
-    // Prepare buffer to send outside.
-    sd->get_accum_buf()->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_written_bytes());
-
-    // Sending data.
-    err_code = gw->Send(sd);
-    GW_ERR_CHECK(err_code);
-
-    // Setting handled flag.
     *is_handled = true;
+
+    if (g_gateway.setting_is_master())
+    {
+        AccumBuffer* accum_buffer = sd->get_accum_buf();
+
+        assert(accum_buffer->get_accum_len_bytes() == 8);
+
+        // Copying echo message.
+        int64_t orig_echo = *(int64_t*)accum_buffer->get_orig_buf_ptr();
+
+        // Duplicating this echo.
+        *(int64_t*)(accum_buffer->get_orig_buf_ptr() + 8) = orig_echo;
+
+        // Prepare buffer to send outside.
+        accum_buffer->PrepareForSend(accum_buffer->get_orig_buf_ptr(), 16);
+
+        // Sending data.
+        err_code = gw->Send(sd);
+        GW_ERR_CHECK(err_code);
+    }
+    else
+    {
+        if (g_gateway.setting_mode() == GatewayTestingMode::MODE_GATEWAY_PING)
+        {
+            // Asserting correct number of bytes received.
+            assert(sd->get_accum_buf()->get_accum_len_bytes() == 16);
+
+            // Obtaining original echo number.
+            int64_t echo_id = *(int32_t*)(sd->get_data_blob() + 8);
+
+#ifdef GW_ECHO_STATISTICS
+            GW_PRINT_WORKER << "Received echo: " << echo_id << std::endl;
+#endif
+
+            // Confirming received echo.
+            g_gateway.ConfirmEcho(echo_id);
+
+            // Checking if all echo responses are returned.
+            if (g_gateway.CheckConfirmedEchoResponses())
+            {
+                GW_COUT << "All ECHO messages are confirmed on the client." << std::endl;
+
+                // Returning this chunk to database.
+                WorkerDbInterface *db = gw->GetWorkerDb(sd->get_db_index());
+                assert(db != NULL);
+
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+                sd->set_socket_diag_active_conn_flag(false);
+#endif
+
+                // Returning chunks to pool.
+                return db->ReturnSocketDataChunksToPool(gw, sd);
+                        
+                /*
+                EnterGlobalLock();
+                g_gateway.ResetEchoTests();
+                LeaveGlobalLock();
+                return 0;
+                */
+            }
+            else
+            {
+                goto SEND_RAW_ECHO_TO_MASTER;
+            }
+
+SEND_RAW_ECHO_TO_MASTER:
+
+            // Checking that not all echoes are sent.
+            if (!g_gateway.AllEchoesSent())
+            {
+                // Sending echo request to server.
+                err_code = gw->SendRawEcho(sd, g_gateway.GetNextEchoNumber());
+                if (err_code)
+                    return err_code;
+            }
+        }
+    }
 
     return 0;
 }
@@ -507,10 +575,10 @@ uint32_t AppsSubportProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HAND
 
 #ifdef GW_TESTING_MODE
 
-// Subport handler.
-uint32_t GatewaySubportProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled)
+// Subport echo handler.
+uint32_t GatewaySubportProcessEcho(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled)
 {
-    return GatewayPortProcessData(gw, sd, user_handler_id, is_handled);
+    return GatewayPortProcessEcho(gw, sd, user_handler_id, is_handled);
 }
 
 #endif

@@ -44,6 +44,7 @@
 #include "../common/overflow_buffer.hpp"
 #include "../common/config_param.hpp"
 #include "../common/bit_operations.hpp"
+#include "../common/owner_id_value_type.h"
 
 #include <scerrres.h>
 
@@ -59,7 +60,7 @@ typedef struct _sc_io_event
 } sc_io_event;
 
 EXTERN_C unsigned long sc_sizeof_port();
-EXTERN_C unsigned long sc_initialize_port(void *port, const char *name, unsigned long port_number);
+EXTERN_C unsigned long sc_initialize_port(void *port, const char *name, unsigned long port_number, owner_id_value_type owner_id_value);
 EXTERN_C unsigned long server_get_next_signal_or_task(void *port, unsigned int timeout_milliseconds, sc_io_event *pio_event);
 EXTERN_C unsigned long server_get_next_signal(void *port, unsigned int timeout_milliseconds, unsigned long *pchunk_index);
 EXTERN_C long server_has_task(void *port);
@@ -105,8 +106,7 @@ class server_port {
 	shared_chunk_pool_type* shared_chunk_pool_;
 	starcounter::core::shared_memory_object shared_memory_object_;
 	starcounter::core::mapped_region mapped_region_;
-	std::size_t id_;	
-	owner_id owner_id_;
+	std::size_t id_;
 
 	// TODO: Remove gotoxy() - used during debug.
 	void gotoxy(int16_t x, int16_t y) {
@@ -116,6 +116,10 @@ class server_port {
 		SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 	}
 	
+	owner_id& get_owner_id() {
+		return this_scheduler_interface_->get_owner_id();
+	}
+
 public:
 	enum {
 		// TODO: Experiment with this treshold, which decides when to acquire
@@ -126,7 +130,7 @@ public:
 	server_port()
 	: next_channel_(0) {}
 	
-	unsigned long init(const char *name, std::size_t id);
+	unsigned long init(const char *name, std::size_t id, owner_id oid);
 	unsigned long get_next_signal_or_task(unsigned int timeout_milliseconds, sc_io_event &the_io_event);
 	unsigned long get_next_signal(unsigned int timeout_milliseconds, unsigned long *pchunk_index);
 	long has_task();
@@ -382,7 +386,7 @@ private:
 	}
 };
 
-unsigned long server_port::init(const char* database_name, std::size_t id) {
+unsigned long server_port::init(const char* database_name, std::size_t id, owner_id oid) {
 	try {
 		// Open the database shared memory segment.
 		shared_memory_object_.init_open(database_name);
@@ -450,6 +454,9 @@ unsigned long server_port::init(const char* database_name, std::size_t id) {
 		
 		// Get this scheduler's scheduler_interface.
 		this_scheduler_interface_ = scheduler_interface + id_;
+		
+		// Assign owner_id.
+		this_scheduler_interface_->set_owner_id(oid);
 
 		// Find the client_interface for this scheduler and store it in this
 		// scheduler_interface. The value of the client_interface pointer is
@@ -1410,7 +1417,7 @@ uint32_t timeout_milliseconds) {
 	
 	// Release the_channel_number.
 	scheduler_interface_[the_scheduler_number]
-	.push_front_channel_number(the_channel_number, owner_id_);
+	.push_front_channel_number(the_channel_number, get_owner_id());
 	
 	return true; /// TODO: Timeout, return false when not successfull.
 }
@@ -1433,10 +1440,11 @@ unsigned long sc_sizeof_port()
 }
 
 unsigned long sc_initialize_port(void *port, const char *name, unsigned
-long port_number) {
+long port_number, owner_id_value_type owner_id_value) {
 	using namespace starcounter::core;
 	server_port *the_port = new (port) server_port();
-	return the_port->init(name, port_number);
+	return the_port->init(name, port_number,
+	starcounter::core::owner_id(owner_id_value));
 }
 
 unsigned long server_get_next_signal_or_task(void *port, unsigned int

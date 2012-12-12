@@ -41,6 +41,7 @@
 #include "../common/overflow_buffer.hpp"
 #include "../common/chunk_pool.hpp"
 #include "../common/spinlock.hpp"
+#include "../common/owner_id.hpp"
 #include "../common/macro_definitions.hpp"
 
 namespace starcounter {
@@ -522,6 +523,14 @@ public:
 		return channel_number_;
 	}
 
+	void set_owner_id(owner_id oid) {
+		owner_id_ = oid;
+	}
+
+	owner_id& get_owner_id() {
+		return owner_id_;
+	}
+
 private:
 	// Condition to wait when all of this scheduler's channels in queues,
 	// and the scheduler channels in queue are empty.
@@ -556,6 +565,7 @@ private:
 	// We store the pointer as uint64_t to provide compatibility between 64-bit
 	// server and 32-bit client.
 	uint64_t client_interface_; // client_interface_type*
+	owner_id owner_id_;
 	char cache_line_pad_5_[CACHE_LINE_SIZE -sizeof(uint64_t)];
 
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.

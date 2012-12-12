@@ -52,7 +52,11 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="scripts\scnetworkgateway.xml" />
+    <Xml Include="scripts\gw_test_pair_client.xml" />
+    <Xml Include="scripts\gw_test_pair_server.xml" />
+    <Xml Include="scripts\scnetworkgateway.xml">
+      <SubType>Designer</SubType>
+    </Xml>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{AD395461-89C1-4EFA-AEEF-8AE43C6B656D}</ProjectGuid>

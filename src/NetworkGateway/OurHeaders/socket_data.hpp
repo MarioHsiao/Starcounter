@@ -11,13 +11,15 @@ class HttpWsProto;
 enum SOCKET_DATA_FLAGS
 {
     SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION = 1,
-    SOCKET_DATA_FLAGS_RECEIVING_STATE = 2,
+    SOCKET_DATA_FLAGS_SOCKET_REPRESENTER = 2,
     SOCKET_DATA_FLAGS_NEW_SESSION = 4,
     SOCKET_DATA_FLAGS_ACCUMULATING_STATE = 8,
     SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND = 16,
-    HTTP_WS_FLAGS_UPGRADE = 32,
-    HTTP_WS_FLAGS_COMPLETE_HEADER = 64,
-    HTTP_WS_FLAGS_BEING_PROXIED = 128
+    SOCKET_DATA_FLAGS_ACTIVE_CONN = 32,
+    HTTP_WS_FLAGS_UPGRADE = 64,
+    HTTP_WS_FLAGS_COMPLETE_HEADER = 128,
+    HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 256,
+    HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 512,
 };
 
 // Socket data chunk.
@@ -132,6 +134,18 @@ public:
     // Continues fill up if needed.
     uint32_t ContinueAccumulation(GatewayWorker* gw, bool* is_accumulated);
 
+    // Get socket data flags.
+    uint32_t get_flags()
+    {
+        return flags_;
+    }
+
+    // Set socket data flags.
+    void set_flags(uint32_t flags)
+    {
+        flags_ = flags;
+    }
+
     // Getting to database direction flag.
     bool get_to_database_direction_flag()
     {
@@ -147,36 +161,70 @@ public:
             flags_ &= ~SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION;
     }
 
-    // Getting receiving flag.
-    bool get_receiving_flag()
+    // Getting socket representer flag.
+    bool get_socket_representer_flag()
     {
-        return flags_ & SOCKET_DATA_FLAGS_RECEIVING_STATE;
+        return flags_ & SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
     }
 
-    // Setting receiving flag.
-    void set_receiving_flag(bool value)
+    // setting socket representer flag.
+    void set_socket_representer_flag(bool value)
     {
         if (value)
-            flags_ |= SOCKET_DATA_FLAGS_RECEIVING_STATE;
+            flags_ |= SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
         else
-            flags_ &= ~SOCKET_DATA_FLAGS_RECEIVING_STATE;
+            flags_ &= ~SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
     }
+
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+
+    // Getting socket diagnostics active connection flag.
+    bool get_socket_diag_active_conn_flag()
+    {
+        return flags_ & SOCKET_DATA_FLAGS_ACTIVE_CONN;
+    }
+
+    // Getting socket diagnostics active connection flag.
+    void set_socket_diag_active_conn_flag(bool value)
+    {
+        if (value)
+            flags_ |= SOCKET_DATA_FLAGS_ACTIVE_CONN;
+        else
+            flags_ &= ~SOCKET_DATA_FLAGS_ACTIVE_CONN;
+    }
+
+#endif
 
 #ifdef GW_PROXY_MODE
 
     // Getting proxying flag.
-    bool get_with_proxied_server_flag()
+    bool get_proxied_server_socket_flag()
     {
-        return flags_ & HTTP_WS_FLAGS_BEING_PROXIED;
+        return flags_ & HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET;
     }
 
     // Setting proxying flag.
-    void set_with_proxied_server_flag(bool value)
+    void set_proxied_server_socket_flag(bool value)
     {
         if (value)
-            flags_ |= HTTP_WS_FLAGS_BEING_PROXIED;
+            flags_ |= HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET;
         else
-            flags_ &= ~HTTP_WS_FLAGS_BEING_PROXIED;
+            flags_ &= ~HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET;
+    }
+
+    // Getting proxying unknown protocol flag.
+    bool get_unknown_proxied_proto_flag()
+    {
+        return flags_ & HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO;
+    }
+
+    // Setting proxying unknown protocol flag.
+    void set_unknown_proxied_proto_flag(bool value)
+    {
+        if (value)
+            flags_ |= HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO;
+        else
+            flags_ &= ~HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO;
     }
 
 #endif
@@ -388,9 +436,15 @@ public:
     }
 
     // Current type of network operation.
-    SocketOperType type_of_network_oper()
+    SocketOperType get_type_of_network_oper()
     {
         return type_of_network_oper_;
+    }
+
+    // Current type of network operation.
+    void set_type_of_network_oper(SocketOperType type_of_network_oper)
+    {
+        type_of_network_oper_ = type_of_network_oper;
     }
 
     // Accept data.
@@ -480,16 +534,16 @@ public:
     void Reset();
 
     // Does general data processing using port handlers.
-    uint32_t RunHandlers(GatewayWorker *gw)
+    uint32_t RunHandlers(GatewayWorker *gw, bool* is_handled)
     {
         // Checking if handler id is not determined yet.
         if (bmx::INVALID_HANDLER_ID == fixed_handler_id_)
         {
-            return g_gateway.get_server_port(port_index_)->get_port_handlers()->RunHandlers(gw, this);
+            return g_gateway.get_server_port(port_index_)->get_port_handlers()->RunHandlers(gw, this, is_handled);
         }
         else // We have a determined handler id.
         {
-            return g_gateway.GetDatabase(db_index_)->get_user_handlers()->get_handler_list(fixed_handler_id_)->RunHandlers(gw, this);
+            return g_gateway.GetDatabase(db_index_)->get_user_handlers()->get_handler_list(fixed_handler_id_)->RunHandlers(gw, this, is_handled);
         }
     }
 
@@ -517,7 +571,7 @@ public:
     // Start receiving on socket.
     uint32_t ReceiveSingleChunk(uint32_t *numBytes)
     {
-        type_of_network_oper_ = RECEIVE_OPER;
+        type_of_network_oper_ = RECEIVE_SOCKET_OPER;
         memset(&ovl_, 0, OVERLAPPED_SIZE);
         return WSARecv(sock_, (WSABUF *)&accum_buf_, 1, (LPDWORD)numBytes, (LPDWORD)&recv_flags_, &ovl_, NULL);
     }
@@ -525,7 +579,7 @@ public:
     // Start receiving on socket using multiple chunks.
     uint32_t ReceiveMultipleChunks(core::shared_interface* shared_int, uint32_t *numBytes)
     {
-        type_of_network_oper_ = RECEIVE_OPER;
+        type_of_network_oper_ = RECEIVE_SOCKET_OPER;
         memset(&ovl_, 0, OVERLAPPED_SIZE);
 
         // NOTE: Need to subtract two chunks from being included in receive.
@@ -535,7 +589,7 @@ public:
     // Start sending on socket.
     uint32_t SendSingleChunk(uint32_t *numBytes)
     {
-        type_of_network_oper_ = SEND_OPER;
+        type_of_network_oper_ = SEND_SOCKET_OPER;
         memset(&ovl_, 0, OVERLAPPED_SIZE);
         return WSASend(sock_, (WSABUF *)&accum_buf_, 1, (LPDWORD)numBytes, 0, &ovl_, NULL);
     }
@@ -543,7 +597,7 @@ public:
     // Start sending on socket.
     uint32_t SendMultipleChunks(core::shared_interface* shared_int, uint32_t *numBytes)
     {
-        type_of_network_oper_ = SEND_OPER;
+        type_of_network_oper_ = SEND_SOCKET_OPER;
         memset(&ovl_, 0, OVERLAPPED_SIZE);
 
         // NOTE: Need to subtract two chunks from being included in send.
@@ -553,16 +607,12 @@ public:
     // Start accepting on socket.
     uint32_t Accept(GatewayWorker* gw)
     {
-        type_of_network_oper_ = ACCEPT_OPER;
+        type_of_network_oper_ = ACCEPT_SOCKET_OPER;
         memset(&ovl_, 0, OVERLAPPED_SIZE);
-
-        // Start tracking this socket.
-        g_gateway.GetDatabase(db_index_)->TrackSocket(sock_, port_index_);
-        g_gateway.TrackSocket(sock_, port_index_);
 
         // Running Windows API AcceptEx function.
         return AcceptExFunc(
-            g_gateway.get_server_port(port_index_)->get_port_socket(),
+            g_gateway.get_server_port(port_index_)->get_listening_sock(),
             sock_,
             accept_data_,
             0,
@@ -573,13 +623,9 @@ public:
     }
 
     // Start connecting on socket.
-    uint32_t Connect(sockaddr_in *serverAddr)
+    uint32_t Connect(GatewayWorker* gw, sockaddr_in *serverAddr)
     {
-        // Start tracking this socket.
-        g_gateway.GetDatabase(db_index_)->TrackSocket(sock_, port_index_);
-        g_gateway.TrackSocket(sock_, port_index_);
-
-        type_of_network_oper_ = CONNECT_OPER;
+        type_of_network_oper_ = CONNECT_SOCKET_OPER;
         memset(&ovl_, 0, OVERLAPPED_SIZE);
         return ConnectExFunc(sock_, (SOCKADDR *) serverAddr, sizeof(sockaddr_in), NULL, 0, NULL, &ovl_);
     }
@@ -587,7 +633,7 @@ public:
     // Start disconnecting socket.
     uint32_t Disconnect()
     {
-        type_of_network_oper_ = DISCONNECT_OPER;
+        type_of_network_oper_ = DISCONNECT_SOCKET_OPER;
         memset(&ovl_, 0, OVERLAPPED_SIZE);
         return DisconnectExFunc(sock_, &ovl_, TF_REUSE_SOCKET, 0);
     }
@@ -595,9 +641,6 @@ public:
     // Puts socket data to database.
     void PrepareToDb()
     {
-        // Setting network operation type.
-        type_of_network_oper_ = TO_DB_OPER;
-
         // Setting database data direction flag.
         set_to_database_direction_flag(true);
     }
@@ -605,9 +648,6 @@ public:
     // Puts socket data from database.
     void PrepareFromDb()
     {
-        // Setting network operation type.
-        type_of_network_oper_ = FROM_DB_OPER;
-
         // Removing database data direction flag.
         set_to_database_direction_flag(false);
     }

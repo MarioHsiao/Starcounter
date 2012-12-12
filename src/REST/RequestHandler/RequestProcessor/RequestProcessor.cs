@@ -45,29 +45,32 @@ namespace Starcounter.Internal.Uri
         /// <summary>
         /// Tries to match and parse a verb and a URI. Can also envoke its handler.
         /// </summary>
-        /// <param name="fragment">The buffer containing the verb and the URI</param>
+        /// <param name="uri">A pointer to the beginning of the buffer containing the verb and URI</param>
+        /// <param name="uriSize">Size of the uri</param>
+        /// <param name="fragment">A pointer to the current position in the buffer containing the verb and the URI</param>
         /// <param name="fragmentSize">Size of the fragment.</param>
         /// <param name="invoke">If true, the handler (delegate) will be called with the parsed parameters</param>
         /// <param name="request">If the handler accepts a request as a parameter and invoke is true, this request will be passed as a parameter to the handler delegate</param>
         /// <param name="handler">The RequestProcessor matching the verb and URI provided in the fragment</param>
         /// <param name="resource">If invoke is true, this is the return value from the handler delegate</param>
         /// <returns>True if a match was made. If parsing of the parameter fails, false is returned. This allows the caller to try ambiguous handlers.</returns>
-        public abstract bool Process( IntPtr fragment, int fragmentSize, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource);
+        public abstract bool Process(IntPtr uri, int uriSize, IntPtr fragment, int fragmentSize, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource);
 
         /// <summary>
         /// Invokes the specified request.
         /// </summary>
-        /// <param name="request">The request.</param>
-        /// <returns>System.Object.</returns>
-        public object Invoke( HttpRequest request ) {
-            object resource;
+        /// <param name="request">The request to handle.</param>
+        /// <param name="resource">Optional resource returned from handler.</param>
+        /// <returns>true if the request was handled, false otherwise.</returns>
+        public bool Invoke(HttpRequest request, out object resource) {
             SingleRequestProcessorBase rp;
             IntPtr pvu;
             uint vuSize;
-            request.GetRawMethodAndUriPlusSpace(out pvu, out vuSize);
-            if (!Process( pvu, (int) vuSize - 1, true, request, out rp, out resource))
-                return null;
-            return resource;
+            int vuSize2;
+
+            request.GetRawMethodAndUriPlusAnExtraCharacter(out pvu, out vuSize);
+            vuSize2 = (int)vuSize - 1;
+            return Process(pvu, vuSize2, pvu, vuSize2, true, request, out rp, out resource);
         }
 
         /// <summary>

@@ -23,13 +23,8 @@ registrar_(),
 active_databases_file_updater_thread_(),
 #if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 resources_watching_thread_(),
-test_thread_(),
-thread_a_(),
-thread_b_(),
-thread_c_(),
-test_id_(5),
 #endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
-owner_id_counter_(owner_id::none) {
+owner_id_counter_(1) {
 	/// TODO: Use Boost.Program_options.
 	/// ScErrCreateMonitorInterface is reserved in errorcodes.xml for later use.
 	
@@ -246,10 +241,6 @@ monitor::~monitor() {
 
 #if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 	resources_watching_thread_.join();
-	thread_a_.join();
-	thread_b_.join();
-	thread_c_.join();
-	test_thread_.join();
 #endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
 }
 

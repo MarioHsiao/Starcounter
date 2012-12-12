@@ -40,7 +40,7 @@ namespace Starcounter.Internal.Uri {
             int t = 0;
             bool comma = false;
             foreach (var handler in ParseNode.AllHandlers) {
-//                Prefix.Add("public int " + handler.AstClass.PropertyName + "VerificationOffset = " + t + ";");
+                Prefix.Add("public static int " + handler.AstClass.PropertyName + "VerificationOffset = " + t + ";");
                 foreach (byte c in handler.PreparedVerbAndUri) {
                     if (c == '@')
                         break;

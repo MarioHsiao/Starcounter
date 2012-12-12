@@ -16,6 +16,7 @@
 #include <cstddef>
 #include <boost/call_traits.hpp>
 #include <boost/cstdint.hpp>
+#include "owner_id_value_type.h"
 #include "macro_definitions.hpp"
 
 namespace starcounter {
@@ -88,7 +89,7 @@ namespace core {
 class owner_id {
 public:
 	// Type definitions.
-	typedef uint32_t value_type;
+	typedef owner_id_value_type value_type;
 	typedef value_type* iterator;
 	typedef const value_type* const_iterator;
 	typedef value_type& reference;
@@ -239,7 +240,7 @@ private:
 class owner_id {
 public:
 	// Type definitions.
-	typedef uint64_t value_type;
+	typedef owner_id_value_type value_type;
 	typedef value_type* iterator;
 	typedef const value_type* const_iterator;
 	typedef value_type& reference;

@@ -46,6 +46,17 @@ namespace Starcounter.Internal.Test {
                 return "404 Not Found";
             });
             */
+
+            GET("/", () => {
+                Console.WriteLine("Root called");
+                return null;
+            });
+
+            GET("/players", () => {
+                Console.WriteLine("players");
+                return null;
+            });
+
             GET("/players/{?}", (int playerId) => {
                 Assert.AreEqual(123, playerId);
                 Console.WriteLine("playerId=" + playerId);
@@ -87,8 +98,6 @@ namespace Starcounter.Internal.Test {
                 Console.WriteLine("deleteAll");
                 return null;
             });
- 
- 
         }
 
 
@@ -171,6 +180,13 @@ namespace Starcounter.Internal.Test {
             byte[] h5 = Encoding.UTF8.GetBytes("POST /transfer?99\r\n\r\n");
             byte[] h6 = Encoding.UTF8.GetBytes("POST /deposit?56754\r\n\r\n");
             byte[] h7 = Encoding.UTF8.GetBytes("DELETE /all\r\n\r\n");
+            
+            // TODO:
+            // These two cases fails today, since the generated code expects a
+            // space after the uri and not a '\r' character.
+            // The generated code needs to be updated.
+            byte[] h8 = Encoding.UTF8.GetBytes("GET /players\r\n\r\n");
+            byte[] h9 = Encoding.UTF8.GetBytes("GET /\r\n\r\n");
 
             Main();
 //            var rp = MainApp.RequestProcessor;
@@ -179,13 +195,16 @@ namespace Starcounter.Internal.Test {
                 um.Register(x.Key, x.Value.CodeAsObj );
             }
 
-            um.Invoke(new HttpRequest(h1));
-            um.Invoke(new HttpRequest(h2));
-            um.Invoke(new HttpRequest(h3));
-            um.Invoke(new HttpRequest(h4));
-            um.Invoke(new HttpRequest(h5));
-            um.Invoke(new HttpRequest(h6));
-            um.Invoke(new HttpRequest(h7));
+            object resource;
+            Assert.True(um.Invoke(new HttpRequest(h1), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h2), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h3), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h4), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h5), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h6), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h7), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h8), out resource)); // TODO: Fails right now
+            Assert.True(um.Invoke(new HttpRequest(h9), out resource)); // TODO: Fails right now
         }
 
         /// <summary>
@@ -222,10 +241,9 @@ namespace Starcounter.Internal.Test {
             byte[] h2 = Encoding.UTF8.GetBytes("GET /products/Test\r\n\r\n");
 
             var um = RequestHandler.RequestProcessor;
-
-            um.Invoke(new HttpRequest(h1));
-            um.Invoke(new HttpRequest(h2));
-
+            object resource;
+            Assert.True(um.Invoke(new HttpRequest(h1), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h2), out resource));
         }
 
         /// <summary>
@@ -245,13 +263,14 @@ namespace Starcounter.Internal.Test {
             Main(); // Register some handlers
             var um = RequestHandler.RequestProcessor;
 
-            um.Invoke(new HttpRequest(h1));
-            um.Invoke(new HttpRequest(h2));
-            um.Invoke(new HttpRequest(h3));
-            um.Invoke(new HttpRequest(h4));
-            um.Invoke(new HttpRequest(h5));
-            um.Invoke(new HttpRequest(h6));
-            um.Invoke(new HttpRequest(h7));
+            object resource;
+            Assert.True(um.Invoke(new HttpRequest(h1), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h2), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h3), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h4), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h5), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h6), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h7), out resource));
 
         }
 

@@ -156,7 +156,7 @@ public:
             }
         }
 
-        return -1;
+        return INVALID_DB_INDEX;
     }
 
     // Removes certain entry.
@@ -213,17 +213,17 @@ public:
     }
 
     // Running all registered handlers.
-    uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunk *sd)
+    uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunk *sd, bool* is_handled)
     {
         uint32_t err_code;
 
         // Going through all handler list.
         for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++)
         {
-            err_code = handler_lists_[i].get_handlers_list()->RunHandlers(gw, sd);
+            err_code = handler_lists_[i].get_handlers_list()->RunHandlers(gw, sd, is_handled);
 
             // Checking if information was handled and no errors occurred.
-            if (err_code)
+            if (*is_handled || err_code)
                 return err_code;
         }
 
@@ -430,7 +430,7 @@ public:
         }
 
         // Returning negative if nothing is found.
-        return -1;
+        return INVALID_URI_INDEX;
     }
 
     // Find certain URI entry.
@@ -440,7 +440,7 @@ public:
         int32_t same_chars = 0;
         out_max_matched_chars = 0;
 
-        int32_t matched_index = -1;
+        int32_t matched_index = INVALID_URI_INDEX;
         for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)
         {
             // Checking if this row is similar to previous more than same chars.
