@@ -30,7 +30,7 @@ namespace Starcounter.Internal.Uri {
     public partial class RequestProcessorBuilder {
         // If changes are made to the code generator, update this number to force a 
         // recompilation of the cached handlers.
-        private const int GENERATED_VERSION_NO = 1;
+        private const int GENERATED_VERSION_NO = 2;
 
         /// <summary>
         /// The application developers Verb + URI handlers. A handler is registred
