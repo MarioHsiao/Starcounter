@@ -1193,7 +1193,7 @@ uint32_t GatewayWorker::ScanChannels(bool* found_something)
                 DeleteInactiveDatabase(i);
 
 #ifdef GW_DATABASES_DIAG
-                GW_PRINT_WORKER << "Deleted shared memory for db slot: " << db->db_slot_index() << std::endl;
+                GW_PRINT_WORKER << "Deleted shared memory for db slot: " << i << std::endl;
 #endif
 
                 // Leaving global lock.
