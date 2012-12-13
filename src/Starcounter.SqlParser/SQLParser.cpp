@@ -53,7 +53,7 @@ bool DumpMemoryLeaks()
 ///<param name="query">Query string to parse.</param>
 ///<param name="errorcode">Used to return error code. 0 if no error produced. More error information obtained from another function</param>
 ///<returns>Returns list of raw parsed trees. Usually list contains single tree, since query string contains one query.</returns>
-List *ParseQuery(const char *query, int *errorcode)
+List *ParseQuery(const wchar_t *query, int *errorcode)
 {
 	List *parsedTree = NULL;
 	if (TopMemoryContext == NULL)
@@ -65,7 +65,8 @@ List *ParseQuery(const char *query, int *errorcode)
 	}
 	try
 	{
-		parsedTree = raw_parser(query);
+		Size qlen = wcslen(query)*2;
+		parsedTree = raw_parser((char*)query, qlen);
 	}
 	catch (UnmanagedParserException& e)
 	{
@@ -88,7 +89,7 @@ char* TreeToString(List *tree)
 	return nodeToString(tree);
 }
 
-char* ParseQueryToString(const char *str)
+char* ParseQueryToString(const wchar_t *str)
 {
 	int errorcode = 0;
 	List *parseTree = ParseQuery(str, &errorcode);
@@ -119,14 +120,14 @@ List* LCons(Node *flist, List *slist)
 }
 
 
-int main(void)
-{
-	int errorcode = 0;
-	printf(TreeToString(ParseQuery("select * from tbl", &errorcode)));
-	CleanMemoryContext();
-	DumpMemoryLeaks();
-	return 0;
-}
+//int main(void)
+//{
+//	int errorcode = 0;
+//	printf(TreeToString(ParseQuery("select * from tbl", &errorcode)));
+//	CleanMemoryContext();
+//	DumpMemoryLeaks();
+//	return 0;
+//}
 
 //int _tmain(int argc, TCHAR* argv[])
 //{

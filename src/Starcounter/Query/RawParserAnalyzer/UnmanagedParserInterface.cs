@@ -16,7 +16,7 @@ namespace Starcounter.Query.RawParserAnalyzer
         internal static extern void InitParser();
 
         [DllImport("Starcounter.SqlParser.dll")]
-        internal static unsafe extern List* ParseQuery(string query, int* scerrorcode);
+        internal static unsafe extern List* ParseQuery([MarshalAs(UnmanagedType.LPWStr)]string query, int* scerrorcode);
 
         [DllImport("Starcounter.SqlParser.dll")]
         internal static unsafe extern ScError* GetScError();

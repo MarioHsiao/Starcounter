@@ -110,7 +110,7 @@ typedef void *core_yyscan_t;
 extern core_yyscan_t scanner_init(const char *str,
 			 core_yy_extra_type *yyext,
 			 const ScanKeyword *keywords,
-			 int num_keywords);
+			 int num_keywords, Size slen);
 extern void scanner_finish(core_yyscan_t yyscanner);
 extern int core_yylex(core_YYSTYPE *lvalp, YYLTYPE *llocp,
 		   core_yyscan_t yyscanner);

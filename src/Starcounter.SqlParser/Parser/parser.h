@@ -26,7 +26,7 @@ typedef enum
 }	BackslashQuoteType;
 
 /* Primary entry point for the raw parsing functions */
-extern List *raw_parser(const char *str);
+extern List *raw_parser(const char *str, Size slen);
 
 /* Utility functions exported by gram.y (perhaps these should be elsewhere) */
 extern List *SystemFuncName(char *name);
