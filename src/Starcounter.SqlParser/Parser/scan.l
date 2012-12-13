@@ -177,10 +177,10 @@ extern void core_yyset_column(int column_no, yyscan_t yyscanner);
  * to agree, and see also the plpgsql lexer.
  */
 
-space			[ \t\n\r\f]
-horiz_space		[ \t\f]
-newline			[\n\r]
-non_newline		[^\n\r]
+space			[ \t\n\r\f]\x00
+horiz_space		[ \t\f]\x00
+newline			[\n\r]\x00
+non_newline		[^\n\r]\x00
 
 comment			("--"{non_newline}*)
 
@@ -955,9 +955,9 @@ core_yyscan_t
 scanner_init(const char *str,
 			 core_yy_extra_type *yyext,
 			 const ScanKeyword *keywords,
-			 int num_keywords)
+			 int num_keywords, Size slen)
 {
-	Size		slen = strlen(str);
+	//Size		slen = strlen(str);
 	yyscan_t	scanner;
 
 	if (yylex_init(&scanner) != 0)
