@@ -144,6 +144,7 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select foreign, primary, where, column from index, limit where use");
             analyzer.ParseQuery("select analyze, analyse");
             analyzer.ParseQuery("select absolute, aggregate, also, assertion, assignment, attribute, backward, called");
+            analyzer.ParseQuery("select\r\na\tfrom \ft -- Comment\nwhere k>2");
         }
 
         [Test]
