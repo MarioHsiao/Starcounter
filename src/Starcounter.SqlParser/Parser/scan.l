@@ -182,7 +182,7 @@ horiz_space		[ \t\f]\x00
 newline			[\n\r]\x00
 non_newline		[^\n\r]\x00
 
-comment			("--"{non_newline}*)
+comment			("-"\x00"-"\x00{non_newline}*)
 
 whitespace		({space}+|{comment})
 
@@ -206,10 +206,10 @@ whitespace_with_newline	({horiz_whitespace}*{newline}{special_whitespace}*)
  * The actions for {quotestop} and {quotefail} must throw back characters
  * beyond the quote proper.
  */
-quote			'
+quote			'\x00
 quotestop		{quote}{whitespace}*
 quotecontinue	{quote}{whitespace_with_newline}{quote}
-quotefail		{quote}{whitespace}*"-"
+quotefail		{quote}{whitespace}*"-"\x00
 
 /* Bit string
  * It is tempting to scan the string for only those characters
@@ -220,31 +220,31 @@ quotefail		{quote}{whitespace}*"-"
  * Better to pass the string forward and let the input routines
  * validate the contents.
  */
-xbstart			[bB]{quote}
-xbinside		[^']*
+\\xbstart			[bB]{quote}
+\\xbinside		[^']*
 
 /* Hexadecimal number */
-xhstart			[xX]{quote}
-xhinside		[^']*
+xhstart			[xX]\x00{quote}
+xhinside		([^']\x00)*
 
 /* National character */
-xnstart			[nN]{quote}
+xnstart			[nN]\x00{quote}
 
 /* Quoted string that allows backslash escapes */
-xestart			[eE]{quote}
-xeinside		[^\\']+
-xeescape		[\\][^0-7]
-xeoctesc		[\\][0-7]{1,3}
-xehexesc		[\\]x[0-9A-Fa-f]{1,2}
-xeunicode		[\\](u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})
-xeunicodefail	[\\](u[0-9A-Fa-f]{0,3}|U[0-9A-Fa-f]{0,7})
+xestart			[eE]\x00{quote}
+xeinside		([^\\']\x00)+
+xeescape		[\\]\x00[^0-7]\x00
+xeoctesc		[\\]\x00([0-7]\x00){1,3}
+xehexesc		[\\]\x00x\x00([0-9A-Fa-f]\x00){1,2}
+xeunicode		[\\]\x00(u\x00([0-9A-Fa-f]\x00){4}|U\x00([0-9A-Fa-f]\x00){8})
+xeunicodefail	[\\]\x00(u\x00([0-9A-Fa-f]\x00){0,3}|U\x00([0-9A-Fa-f]\x00){0,7})
 
 /* Extended quote
  * xqdouble implements embedded quote, ''''
  */
 xqstart			{quote}
 xqdouble		{quote}{quote}
-xqinside		[^']+
+xqinside		([^']\x00)+
 
 /* $foo$ style quotes ("dollar quoting")
  * The quoted string starts with $foo$ where "foo" is an optional string
@@ -255,38 +255,38 @@ xqinside		[^']+
  * {dolqfailed} is an error rule to avoid scanner backup when {dolqdelim}
  * fails to match its trailing "$".
  */
-dolq_start		[A-Za-z\200-\377_]
-dolq_cont		[A-Za-z\200-\377_0-9]
-dolqdelim		\$({dolq_start}{dolq_cont}*)?\$
-dolqfailed		\${dolq_start}{dolq_cont}*
-dolqinside		[^$]+
+\\dolq_start		[A-Za-z\200-\377_]
+\\dolq_cont		[A-Za-z\200-\377_0-9]
+\\dolqdelim		\$({dolq_start}{dolq_cont}*)?\$
+\\dolqfailed		\${dolq_start}{dolq_cont}*
+\\dolqinside		[^$]+
 
 /* Double quote
  * Allows embedded spaces and other special characters into identifiers.
  */
-dquote			\"
+dquote			\"\x00
 xdstart			{dquote}
 xdstop			{dquote}
 xddouble		{dquote}{dquote}
-xdinside		[^"]+
+xdinside		([^"]\x00)+
 
 /* Unicode escapes */
-uescape			[uU][eE][sS][cC][aA][pP][eE]{whitespace}*{quote}[^']{quote}
+//uescape			[uU][eE][sS][cC][aA][pP][eE]{whitespace}*{quote}[^']{quote}
 /* error rule to avoid backup */
-uescapefail		("-"|[uU][eE][sS][cC][aA][pP][eE]{whitespace}*"-"|[uU][eE][sS][cC][aA][pP][eE]{whitespace}*{quote}[^']|[uU][eE][sS][cC][aA][pP][eE]{whitespace}*{quote}|[uU][eE][sS][cC][aA][pP][eE]{whitespace}*|[uU][eE][sS][cC][aA][pP]|[uU][eE][sS][cC][aA]|[uU][eE][sS][cC]|[uU][eE][sS]|[uU][eE]|[uU])
+//uescapefail		("-"|[uU][eE][sS][cC][aA][pP][eE]{whitespace}*"-"|[uU][eE][sS][cC][aA][pP][eE]{whitespace}*{quote}[^']|[uU][eE][sS][cC][aA][pP][eE]{whitespace}*{quote}|[uU][eE][sS][cC][aA][pP][eE]{whitespace}*|[uU][eE][sS][cC][aA][pP]|[uU][eE][sS][cC][aA]|[uU][eE][sS][cC]|[uU][eE][sS]|[uU][eE]|[uU])
 
 /* Quoted identifier with Unicode escapes */
-xuistart		[uU]&{dquote}
-xuistop1		{dquote}{whitespace}*{uescapefail}?
-xuistop2		{dquote}{whitespace}*{uescape}
+//xuistart		[uU]&{dquote}
+//xuistop1		{dquote}{whitespace}*{uescapefail}?
+//xuistop2		{dquote}{whitespace}*{uescape}
 
 /* Quoted string with Unicode escapes */
-xusstart		[uU]&{quote}
-xusstop1		{quote}{whitespace}*{uescapefail}?
-xusstop2		{quote}{whitespace}*{uescape}
+//xusstart		[uU]&{quote}
+//xusstop1		{quote}{whitespace}*{uescapefail}?
+//xusstop2		{quote}{whitespace}*{uescape}
 
 /* error rule to avoid backup */
-xufailed		[uU]&
+//xufailed		[uU]&
 
 
 /* C-style comments
@@ -307,9 +307,9 @@ xufailed		[uU]&
  *    problem.
  * Dash-dash comments have similar interactions with the operator rule.
  */
-xcstart			\/\*{op_chars}*
-xcstop			\*+\/
-xcinside		[^*/]+
+xcstart			\/\x00\*\x00{op_chars}*
+xcstop			(\*\x00)+\/\x00
+xcinside		([^*/]\x00)+
 
 digit			[0-9]
 ident_start		[A-Za-z\200-\377_]
