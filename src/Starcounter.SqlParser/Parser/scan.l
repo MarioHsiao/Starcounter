@@ -311,9 +311,9 @@ xcstart			\/\x00\*\x00{op_chars}*
 xcstop			(\*\x00)+\/\x00
 xcinside		([^*/]\x00)+
 
-digit			[0-9]
-ident_start		[A-Za-z\200-\377_]
-ident_cont		[A-Za-z\200-\377_0-9\$]
+digit			[0-9]\x00
+ident_start		[A-Za-z\200-\377_]\x00
+ident_cont		[A-Za-z\200-\377_0-9\$]\x00
 
 identifier		{ident_start}{ident_cont}*
 
