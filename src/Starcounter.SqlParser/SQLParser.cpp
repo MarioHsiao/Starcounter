@@ -65,7 +65,7 @@ List *ParseQuery(const wchar_t *query, int *errorcode)
 	}
 	try
 	{
-		Size qlen = wcslen(query)*2;
+		Size qlen = wcslen(query)*sizeof(wchar_t);
 		parsedTree = raw_parser((char*)query, qlen);
 	}
 	catch (UnmanagedParserException& e)

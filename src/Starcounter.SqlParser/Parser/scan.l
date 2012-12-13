@@ -220,8 +220,8 @@ quotefail		{quote}{whitespace}*"-"\x00
  * Better to pass the string forward and let the input routines
  * validate the contents.
  */
-\\xbstart			[bB]{quote}
-\\xbinside		[^']*
+xbstart			[bB]\x00{quote}
+xbinside		([^']\x00)*
 
 /* Hexadecimal number */
 xhstart			[xX]\x00{quote}
@@ -255,11 +255,11 @@ xqinside		([^']\x00)+
  * {dolqfailed} is an error rule to avoid scanner backup when {dolqdelim}
  * fails to match its trailing "$".
  */
-\\dolq_start		[A-Za-z\200-\377_]
-\\dolq_cont		[A-Za-z\200-\377_0-9]
-\\dolqdelim		\$({dolq_start}{dolq_cont}*)?\$
-\\dolqfailed		\${dolq_start}{dolq_cont}*
-\\dolqinside		[^$]+
+dolq_start		[A-Za-z\200-\377_]\x00
+dolq_cont		[A-Za-z\200-\377_0-9]\x00
+dolqdelim		\$\x00({dolq_start}{dolq_cont}*)?\$\x00
+dolqfailed		\$\x00{dolq_start}{dolq_cont}*
+dolqinside		([^$]\x00)+
 
 /* Double quote
  * Allows embedded spaces and other special characters into identifiers.
@@ -271,22 +271,22 @@ xddouble		{dquote}{dquote}
 xdinside		([^"]\x00)+
 
 /* Unicode escapes */
-//uescape			[uU][eE][sS][cC][aA][pP][eE]{whitespace}*{quote}[^']{quote}
+uescape			[uU]\x00[eE]\x00[sS]\x00[cC]\x00[aA]\x00[pP]\x00[eE]\x00{whitespace}*{quote}[^']\x00{quote}
 /* error rule to avoid backup */
-//uescapefail		("-"|[uU][eE][sS][cC][aA][pP][eE]{whitespace}*"-"|[uU][eE][sS][cC][aA][pP][eE]{whitespace}*{quote}[^']|[uU][eE][sS][cC][aA][pP][eE]{whitespace}*{quote}|[uU][eE][sS][cC][aA][pP][eE]{whitespace}*|[uU][eE][sS][cC][aA][pP]|[uU][eE][sS][cC][aA]|[uU][eE][sS][cC]|[uU][eE][sS]|[uU][eE]|[uU])
+uescapefail		("-"\x00|[uU]\x00[eE]\x00[sS]\x00[cC]\x00[aA]\x00[pP]\x00[eE]\x00{whitespace}*"-"\x00|[uU]\x00[eE]\x00[sS]\x00[cC]\x00[aA]\x00[pP]\x00[eE]\x00{whitespace}*{quote}[^']\x00|[uU]\x00[eE]\x00[sS]\x00[cC]\x00[aA]\x00[pP]\x00[eE]\x00{whitespace}*{quote}|[uU]\x00[eE]\x00[sS]\x00[cC]\x00[aA]\x00[pP]\x00[eE]\x00{whitespace}*|[uU]\x00[eE]\x00[sS]\x00[cC]\x00[aA]\x00[pP]\x00|[uU]\x00[eE]\x00[sS]\x00[cC]\x00[aA]\x00|[uU]\x00[eE]\x00[sS]\x00[cC]\x00|[uU]\x00[eE]\x00[sS]\x00|[uU]\x00[eE]\x00|[uU]\x00)
 
 /* Quoted identifier with Unicode escapes */
-//xuistart		[uU]&{dquote}
-//xuistop1		{dquote}{whitespace}*{uescapefail}?
-//xuistop2		{dquote}{whitespace}*{uescape}
+xuistart		[uU]\x00&\x00{dquote}
+xuistop1		{dquote}{whitespace}*{uescapefail}?
+xuistop2		{dquote}{whitespace}*{uescape}
 
 /* Quoted string with Unicode escapes */
-//xusstart		[uU]&{quote}
-//xusstop1		{quote}{whitespace}*{uescapefail}?
-//xusstop2		{quote}{whitespace}*{uescape}
+xusstart		[uU]\x00&\x00{quote}
+xusstop1		{quote}{whitespace}*{uescapefail}?
+xusstop2		{quote}{whitespace}*{uescape}
 
 /* error rule to avoid backup */
-//xufailed		[uU]&
+xufailed		[uU]\x00&\x00
 
 
 /* C-style comments
@@ -312,13 +312,13 @@ xcstop			(\*\x00)+\/\x00
 xcinside		([^*/]\x00)+
 
 digit			[0-9]\x00
-ident_start		[A-Za-z\200-\377_]\x00
-ident_cont		[A-Za-z\200-\377_0-9\$]\x00
+ident_start		[A-Za-z\200-\377_]\x00|[\x00-\xFF]\x04
+ident_cont		[A-Za-z\200-\377_0-9\$]\x00|[\x00-\xFF]\x04
 
 identifier		{ident_start}{ident_cont}*
 
-dot_dot			\.\.
-colon_equals	":="
+dot_dot			\.\x00\.\x00
+colon_equals	":"\x00"="\x00
 
 /*
  * "self" is the set of chars that should be returned as single-character
@@ -330,8 +330,8 @@ colon_equals	":="
  * If you change either set, adjust the character lists appearing in the
  * rule for "operator"!
  */
-self			[,()\[\].;\:\?\+\-\*\/\%\^\<\>\=]
-op_chars		[\~\!\@\#\^\&\|\`\+\-\*\/\%\<\>\=]
+self			[,()\[\].;\:\?\+\-\*\/\%\^\<\>\=]\x00
+op_chars		[\~\!\@\#\^\&\|\`\+\-\*\/\%\<\>\=]\x00
 operator		{op_chars}+
 
 /* we no longer allow unary minus in numbers.
@@ -345,15 +345,15 @@ operator		{op_chars}+
  */
 
 integer			{digit}+
-decimal			(({digit}*\.{digit}+)|({digit}+\.{digit}*))
-decimalfail		{digit}+\.\.
-real			({integer}|{decimal})[Ee][-+]?{digit}+
-realfail1		({integer}|{decimal})[Ee]
-realfail2		({integer}|{decimal})[Ee][-+]
+decimal			(({digit}*\.\x00{digit}+)|({digit}+\.\x00{digit}*))
+decimalfail		{digit}+\.\x00\.\x00
+real			({integer}|{decimal})[Ee]\00([-+]\x00)?{digit}+
+realfail1		({integer}|{decimal})[Ee]\x00
+realfail2		({integer}|{decimal})[Ee]\x00[-+]\x00
 
-param			\${integer}|\?
+param			\$\x00{integer}|\?\x00
 
-other			.
+other			.\x00
 
 /*
  * Dollar quoted strings are totally opaque, and no escaping is done on them.
