@@ -146,6 +146,7 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select absolute, aggregate, also, assertion, assignment, attribute, backward, called");
             analyzer.ParseQuery("select\r\na\tfrom/* comment ** comment*/ \ft -- Comment\nwhere k>2");
             analyzer.ParseQuery("select å from öl");
+            analyzer.ParseQuery("select \u0066");
         }
 
         [Test]
