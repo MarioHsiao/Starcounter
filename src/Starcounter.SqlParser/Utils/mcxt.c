@@ -500,15 +500,15 @@ repalloc(void *pointer, Size size)
  * MemoryContextStrdup
  *		Like strdup(), but allocate from the specified context
  */
-char *
-MemoryContextStrdup(MemoryContext context, const char *string)
+wchar_t *
+MemoryContextStrdup(MemoryContext context, const wchar_t *string)
 {
-	char	   *nstr;
-	Size		len = strlen(string) + 1;
+	wchar_t	   *nstr;
+	Size		len = wcslen(string) + 1;
 
-	nstr = (char *) MemoryContextAlloc(context, len);
+	nstr = (wchar_t *) MemoryContextAlloc(context, len);
 
-	memcpy(nstr, string, len);
+	wmemcpy(nstr, string, len);
 
 	return nstr;
 }

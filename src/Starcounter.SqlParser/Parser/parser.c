@@ -32,7 +32,7 @@
  * Returns a list of raw (un-analyzed) parse trees.
  */
 List *
-raw_parser(const char *str, Size slen)
+raw_parser(const wchar_t *str)
 {
 	core_yyscan_t yyscanner;
 	base_yy_extra_type yyextra;
@@ -40,7 +40,7 @@ raw_parser(const char *str, Size slen)
 
 	/* initialize the flex scanner */
 	yyscanner = scanner_init(str, &yyextra.core_yy_extra,
-							 ScanKeywords, NumScanKeywords, slen);
+							 ScanKeywords, NumScanKeywords);
 
 	/* base_yylex() only needs this much initialization */
 	yyextra.have_lookahead = false;

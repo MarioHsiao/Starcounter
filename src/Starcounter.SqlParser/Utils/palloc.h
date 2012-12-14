@@ -76,8 +76,9 @@ extern void *repalloc(void *pointer, Size size);
  * These are like standard strdup() except the copied string is
  * allocated in a context, not with malloc().
  */
-extern char *MemoryContextStrdup(MemoryContext context, const char *string);
+extern wchar_t *MemoryContextStrdup(MemoryContext context, const wchar_t *string);
 
-#define pstrdup(str)  MemoryContextStrdup(TopMemoryContext, (str))
+#define pstrdup(str)  (char*)MemoryContextStrdup(TopMemoryContext, ((wchar_t*)str))
+#define wpstrdup(str)  MemoryContextStrdup(TopMemoryContext, (str))
 
 #endif   /* PALLOC_H */

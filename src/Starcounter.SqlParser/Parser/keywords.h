@@ -23,7 +23,7 @@
 
 typedef struct ScanKeyword
 {
-	const char *name;			/* in lower case */
+	const wchar_t *name;			/* in lower case */
 	int16		value;			/* grammar's token code */
 	int16		category;		/* see codes above */
 } ScanKeyword;
@@ -31,7 +31,7 @@ typedef struct ScanKeyword
 extern const ScanKeyword ScanKeywords[];
 extern const int NumScanKeywords;
 
-extern const ScanKeyword *ScanKeywordLookup(const char *text,
+extern const ScanKeyword *ScanKeywordLookup(const wchar_t *text,
 				  const ScanKeyword *keywords,
 				  int num_keywords);
 

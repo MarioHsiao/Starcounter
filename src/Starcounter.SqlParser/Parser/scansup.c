@@ -46,7 +46,7 @@ scanstr(const char *s)
 				j;
 
 	if (s == NULL || s[0] == '\0')
-		return pstrdup("");
+		return (char*)pstrdup(L"");
 
 	len = strlen(s);
 
