@@ -8,6 +8,16 @@ namespace Starcounter.SqlParser.Tests
 {
     [TestFixture]
     public static class TestSqlParser {
+
+        [Test]
+        public static void TestScannerWcharFixForErrors() {
+            ParserAnalyzer analyzer = new ParserAnalyzer();
+            analyzer.ParseQuery("SELECT 1");
+            analyzer.ParseQuery("SELECT Abc FROM tbL");
+            analyzer.ParseQuery("SELECT Å");
+            analyzer.ParseQuery("SELECT У");
+        }
+
         [Test]
         public static void ParseQueriesForErrors() {
             ParserAnalyzer analyzer = new ParserAnalyzer();

@@ -88,10 +88,10 @@ const bool			standard_conforming_strings = true;
 #define startlit()  ( yyextra->literallen = 0 )
 static void addlit(char *ytext, int yleng, core_yyscan_t yyscanner);
 static void addlitchar(unsigned char ychar, core_yyscan_t yyscanner);
-static char *litbufdup(core_yyscan_t yyscanner);
-static char *litbuf_udeescape(unsigned char escape, core_yyscan_t yyscanner);
+static wchar_t *litbufdup(core_yyscan_t yyscanner);
+static wchar_t *litbuf_udeescape(unsigned char escape, core_yyscan_t yyscanner);
 static unsigned char unescape_single_char(unsigned char c, core_yyscan_t yyscanner);
-static int	process_integer_literal(const char *token, YYSTYPE *lval);
+static int	process_integer_literal(const wchar_t *token, YYSTYPE *lval);
 static bool is_utf16_surrogate_first(pg_wchar c);
 static bool is_utf16_surrogate_second(pg_wchar c);
 static pg_wchar surrogate_pair_to_codepoint(pg_wchar first, pg_wchar second);
@@ -453,7 +453,7 @@ other			.\x00
 					SET_YYLLOC();
 					yyless(1);				/* eat only 'n' this time */
 
-					keyword = ScanKeywordLookup("nchar",
+					keyword = ScanKeywordLookup(L"nchar",
 												yyextra->keywords,
 												yyextra->num_keywords);
 					if (keyword != NULL)
@@ -464,7 +464,7 @@ other			.\x00
 					else
 					{
 						/* If NCHAR isn't a keyword, just return "n" */
-						yylval->str = pstrdup("n");
+						yylval->str = wpstrdup(L"n");
 						return IDENT;
 					}
 				}
@@ -611,7 +611,7 @@ other			.\x00
 					startlit();
 				}
 <xd>{xdstop}	{
-					char		   *ident;
+					wchar_t		   *ident;
 
 					BEGIN(INITIAL);
 					if (yyextra->literallen == 0)
@@ -621,7 +621,7 @@ other			.\x00
 					return IDENT;
 				}
 <xui>{xuistop1}	{
-					char		   *ident;
+					wchar_t		   *ident;
 
 					BEGIN(INITIAL);
 					if (yyextra->literallen == 0)
@@ -633,7 +633,7 @@ other			.\x00
 					return IDENT;
 				}
 <xui>{xuistop2}	{
-					char		   *ident;
+					wchar_t		   *ident;
 
 					BEGIN(INITIAL);
 					if (yyextra->literallen == 0)
@@ -651,14 +651,14 @@ other			.\x00
 <xd,xui><<EOF>>		{ yyerror("unterminated quoted identifier"); }
 
 {xufailed}	{
-					char		   *ident;
+					//char		   *ident;
 
 					SET_YYLLOC();
 					/* throw back all but the initial u/U */
 					yyless(1);
 					/* and treat it as {identifier} */
-					ident = downcase_identifier(yytext, yyleng, true);
-					yylval->str = ident;
+					//ident = downcase_identifier(yytext, yyleng, true);
+					yylval->str = wpstrdup((wchar_t*)yytext);
 					return IDENT;
 				}
 
@@ -751,9 +751,9 @@ other			.\x00
 
 					/* Convert "!=" operator to "<>" for compatibility */
 					if (strcmp(yytext, "!=") == 0)
-						yylval->str = pstrdup("<>");
+						yylval->str = wpstrdup(L"<>");
 					else
-						yylval->str = pstrdup(yytext);
+						yylval->str = wpstrdup((wchar_t*)yytext);
 					return Op;
 				}
 
@@ -765,22 +765,22 @@ other			.\x00
 
 {integer}		{
 					SET_YYLLOC();
-					return process_integer_literal(yytext, yylval);
+					return process_integer_literal((wchar_t*)yytext, yylval);
 				}
 {decimal}		{
 					SET_YYLLOC();
-					yylval->str = pstrdup(yytext);
+					yylval->str = wpstrdup((wchar_t*)yytext);
 					return FCONST;
 				}
 {decimalfail}	{
 					/* throw back the .., and treat as integer */
 					yyless(yyleng-2);
 					SET_YYLLOC();
-					return process_integer_literal(yytext, yylval);
+					return process_integer_literal((wchar_t*)yytext, yylval);
 				}
 {real}			{
 					SET_YYLLOC();
-					yylval->str = pstrdup(yytext);
+					yylval->str = wpstrdup((wchar_t*)yytext);
 					return FCONST;
 				}
 {realfail1}		{
@@ -792,26 +792,26 @@ other			.\x00
 					 */
 					yyless(yyleng-1);
 					SET_YYLLOC();
-					yylval->str = pstrdup(yytext);
+					yylval->str = wpstrdup((wchar_t*)yytext);
 					return FCONST;
 				}
 {realfail2}		{
 					/* throw back the [Ee][+-], and proceed as above */
 					yyless(yyleng-2);
 					SET_YYLLOC();
-					yylval->str = pstrdup(yytext);
+					yylval->str = wpstrdup((wchar_t*)yytext);
 					return FCONST;
 				}
 
 
 {identifier}	{
 					const ScanKeyword *keyword;
-					char		   *ident;
+					//char		   *ident;
 
 					SET_YYLLOC();
 
 					/* Is it a keyword? */
-					keyword = ScanKeywordLookup(yytext,
+					keyword = ScanKeywordLookup((wchar_t*)yytext,
 												yyextra->keywords,
 												yyextra->num_keywords);
 					if (keyword != NULL)
@@ -824,8 +824,8 @@ other			.\x00
 					 * No.  Convert the identifier to lower case, and truncate
 					 * if necessary.
 					 */
-					ident = downcase_identifier(yytext, yyleng, true);
-					yylval->str = ident;
+					//ident = downcase_identifier(yytext, yyleng, true);
+					yylval->str = wpstrdup((wchar_t*)yytext);
 					return IDENT;
 				}
 
@@ -891,12 +891,12 @@ scanner_yyerror(const char *message, core_yyscan_t yyscanner)
  * Called before any actual parsing is done
  */
 core_yyscan_t
-scanner_init(const char *str,
+scanner_init(const wchar_t *str,
 			 core_yy_extra_type *yyext,
 			 const ScanKeyword *keywords,
-			 int num_keywords, Size slen)
+			 int num_keywords)
 {
-	//Size		slen = strlen(str);
+	Size		slen = wcslen(str)*sizeof(wchar_t);
 	yyscan_t	scanner;
 
 	if (yylex_init(&scanner) != 0)
@@ -916,7 +916,7 @@ scanner_init(const char *str,
 	 */
 	yyext->scanbuf = (char *) palloc(slen + 2);
 	yyext->scanbuflen = slen;
-	memcpy(yyext->scanbuf, str, slen);
+	memcpy(yyext->scanbuf, (char*)str, slen);
 	yyext->scanbuf[slen] = yyext->scanbuf[slen + 1] = YY_END_OF_BUFFER_CHAR;
 	yy_scan_buffer(yyext->scanbuf, slen + 2, scanner);
 
@@ -989,26 +989,26 @@ addlitchar(unsigned char ychar, core_yyscan_t yyscanner)
 /*
  * Create a palloc'd copy of literalbuf, adding a trailing null.
  */
-static char *
+static wchar_t *
 litbufdup(core_yyscan_t yyscanner)
 {
 	int			llen = yyextra->literallen;
 	char	   *new;
 
-	new = palloc(llen + 1);
+	new = palloc(llen + 2);
 	memcpy(new, yyextra->literalbuf, llen);
-	new[llen] = '\0';
-	return new;
+	new[llen] = new[llen+1] = '\0';
+	return (wchar_t*)new;
 }
 
 static int
-process_integer_literal(const char *token, YYSTYPE *lval)
+process_integer_literal(const wchar_t *token, YYSTYPE *lval)
 {
 	long		val;
-	char	   *endptr;
+	wchar_t	   *endptr;
 
 	errno = 0;
-	val = strtol(token, &endptr, 10);
+	val = wcstol(token, &endptr, 10);
 	if (*endptr != '\0' || errno == ERANGE
 #ifdef HAVE_LONG_INT_64
 		/* if long > 32 bits, check for overflow of int4 */
@@ -1017,7 +1017,7 @@ process_integer_literal(const char *token, YYSTYPE *lval)
 		)
 	{
 		/* integer too large, treat it as a float */
-		lval->str = pstrdup(token);
+		lval->str = wpstrdup(token);
 		return FCONST;
 	}
 	lval->ival = val;
@@ -1086,7 +1086,7 @@ addunicode(pg_wchar c, core_yyscan_t yyscanner)
 	addlit(buf, pg_mblen(buf), yyscanner);
 }
 
-static char *
+static wchar_t *
 litbuf_udeescape(unsigned char escape, core_yyscan_t yyscanner)
 {
 	char *new;
@@ -1112,9 +1112,9 @@ litbuf_udeescape(unsigned char escape, core_yyscan_t yyscanner)
 	 * cannot be longer than its escaped representation.
 	 */
 	new = palloc(yyextra->literallen + 1);
-
 	in = litbuf;
 	out = new;
+	/*
 	while (*in)
 	{
 		if (in[0] == escape)
@@ -1124,6 +1124,7 @@ litbuf_udeescape(unsigned char escape, core_yyscan_t yyscanner)
 				if (pair_first)
 				{
 					ADVANCE_YYLLOC(in - litbuf + 3);   /* 3 for U&" */
+					/*
 					yyerror("invalid Unicode surrogate pair");
 				}
 				*out++ = escape;
@@ -1151,6 +1152,7 @@ litbuf_udeescape(unsigned char escape, core_yyscan_t yyscanner)
 					else
 					{
 						ADVANCE_YYLLOC(in - litbuf + 3);   /* 3 for U&" */
+						/*
 						yyerror("invalid Unicode surrogate pair");
 					}
 				}
@@ -1193,6 +1195,7 @@ litbuf_udeescape(unsigned char escape, core_yyscan_t yyscanner)
 					else
 					{
 						ADVANCE_YYLLOC(in - litbuf + 3);   /* 3 for U&" */
+						/*
 						yyerror("invalid Unicode surrogate pair");
 					}
 				}
@@ -1211,6 +1214,7 @@ litbuf_udeescape(unsigned char escape, core_yyscan_t yyscanner)
 			else
 			{
 				ADVANCE_YYLLOC(in - litbuf + 3);   /* 3 for U&" */
+				/*
 				yyerror("invalid Unicode escape value");
 			}
 		}
@@ -1219,20 +1223,21 @@ litbuf_udeescape(unsigned char escape, core_yyscan_t yyscanner)
 			if (pair_first)
 			{
 				ADVANCE_YYLLOC(in - litbuf + 3);   /* 3 for U&" */
+				/*
 				yyerror("invalid Unicode surrogate pair");
 			}
 			*out++ = *in++;
 		}
 	}
-
 	*out = '\0';
+	*/
 	/*
 	 * We could skip pg_verifymbstr if we didn't process any non-7-bit-ASCII
 	 * codes; but it's probably not worth the trouble, since this isn't
 	 * likely to be a performance-critical path.
 	 */
-	pg_verifymbstr(new, out - new, false);
-	return new;
+	//pg_verifymbstr(new, out - new, false);
+	return (wchar_t*)new;
 }
 
 static unsigned char

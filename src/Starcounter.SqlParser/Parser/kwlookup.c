@@ -41,17 +41,17 @@
  * receive a different case-normalization mapping.
  */
 const ScanKeyword *
-ScanKeywordLookup(const char *text,
+ScanKeywordLookup(const wchar_t *text,
 				  const ScanKeyword *keywords,
 				  int num_keywords)
 {
 	int			len,
 				i;
-	char		word[NAMEDATALEN];
+	wchar_t		word[NAMEDATALEN];
 	const ScanKeyword *low;
 	const ScanKeyword *high;
 
-	len = strlen(text);
+	len = wcslen(text);
 	/* We assume all keywords are shorter than NAMEDATALEN. */
 	if (len >= NAMEDATALEN)
 		return NULL;
@@ -62,7 +62,7 @@ ScanKeywordLookup(const char *text,
 	 */
 	for (i = 0; i < len; i++)
 	{
-		char		ch = text[i];
+		wchar_t		ch = text[i];
 
 		if (ch >= 'A' && ch <= 'Z')
 			ch += 'a' - 'A';
@@ -81,7 +81,7 @@ ScanKeywordLookup(const char *text,
 		int			difference;
 
 		middle = low + (high - low) / 2;
-		difference = strcmp(middle->name, word);
+		difference = wcscmp(middle->name, word);
 		if (difference == 0)
 			return middle;
 		else if (difference < 0)

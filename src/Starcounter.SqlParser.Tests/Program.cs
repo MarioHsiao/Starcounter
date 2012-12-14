@@ -8,6 +8,7 @@ namespace Starcounter.SqlParser.Tests {
     static class Program {
         static void Main(string[] args) {
             Console.WriteLine("Unit tests of SQL Parser.");
+            TestSqlParser.TestScannerWcharFixForErrors();
             TestSqlParser.ParseQueriesForErrors();
             TestSqlParser.MultithreadedTest();
             Console.WriteLine("Test completed.");

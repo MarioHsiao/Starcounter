@@ -30,8 +30,8 @@
 typedef union core_YYSTYPE
 {
 	int			ival;			/* for integer literals */
-	char	   *str;			/* for identifiers and non-integer literals */
-	const char *keyword;		/* canonical spelling of keywords */
+	wchar_t	   *str;			/* for identifiers and non-integer literals */
+	const wchar_t *keyword;		/* canonical spelling of keywords */
 } core_YYSTYPE;
 
 /*
@@ -107,10 +107,10 @@ typedef void *core_yyscan_t;
 
 
 /* Entry points in parser/scan.l */
-extern core_yyscan_t scanner_init(const char *str,
+extern core_yyscan_t scanner_init(const wchar_t *str,
 			 core_yy_extra_type *yyext,
 			 const ScanKeyword *keywords,
-			 int num_keywords, Size slen);
+			 int num_keywords);
 extern void scanner_finish(core_yyscan_t yyscanner);
 extern int core_yylex(core_YYSTYPE *lvalp, YYLTYPE *llocp,
 		   core_yyscan_t yyscanner);

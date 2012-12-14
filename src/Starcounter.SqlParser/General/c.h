@@ -72,6 +72,7 @@ typedef unsigned int Oid;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <wchar.h>
 #include <stddef.h>
 #include <stdarg.h>
 #ifdef HAVE_STRINGS_H
