@@ -142,7 +142,6 @@ extern void core_yyset_column(int column_no, yyscan_t yyscanner);
  *  <xh> hexadecimal numeric string
  *  <xq> standard quoted strings
  *  <xe> extended quoted strings (support backslash escape sequences)
- *  <xdolq> $foo$ quoted strings
  *  <xui> quoted identifier with Unicode escapes
  *  <xus> quoted string with Unicode escapes
  *  <xeu> Unicode surrogate pair in extended quoted string
@@ -154,7 +153,6 @@ extern void core_yyset_column(int column_no, yyscan_t yyscanner);
 %x xh
 %x xe
 %x xq
-%x xdolq
 %x xui
 %x xus
 %x xeu
@@ -245,21 +243,6 @@ xeunicodefail	[\\]\x00(u\x00([0-9A-Fa-f]\x00){0,3}|U\x00([0-9A-Fa-f]\x00){0,7})
 xqstart			{quote}
 xqdouble		{quote}{quote}
 xqinside		([^']\x00)+
-
-/* $foo$ style quotes ("dollar quoting")
- * The quoted string starts with $foo$ where "foo" is an optional string
- * in the form of an identifier, except that it may not contain "$",
- * and extends to the first occurrence of an identical string.
- * There is *no* processing of the quoted text.
- *
- * {dolqfailed} is an error rule to avoid scanner backup when {dolqdelim}
- * fails to match its trailing "$".
- */
-dolq_start		[A-Za-z\200-\377_]\x00
-dolq_cont		[A-Za-z\200-\377_0-9]\x00
-dolqdelim		\$\x00({dolq_start}{dolq_cont}*)?\$\x00
-dolqfailed		\$\x00{dolq_start}{dolq_cont}*
-dolqinside		([^$]\x00)+
 
 /* Double quote
  * Allows embedded spaces and other special characters into identifiers.
@@ -616,50 +599,6 @@ other			.\x00
 				}
 <xq,xe,xus><<EOF>>		{ yyerror("unterminated quoted string"); }
 
-{dolqdelim}		{
-					SET_YYLLOC();
-					yyextra->dolqstart = pstrdup(yytext);
-					BEGIN(xdolq);
-					startlit();
-				}
-{dolqfailed}	{
-					SET_YYLLOC();
-					/* throw back all but the initial "$" */
-					yyless(1);
-					/* and treat it as {other} */
-					return yytext[0];
-				}
-<xdolq>{dolqdelim} {
-					if (strcmp(yytext, yyextra->dolqstart) == 0)
-					{
-						pfree(yyextra->dolqstart);
-						yyextra->dolqstart = NULL;
-						BEGIN(INITIAL);
-						yylval->str = litbufdup(yyscanner);
-						return SCONST;
-					}
-					else
-					{
-						/*
-						 * When we fail to match $...$ to dolqstart, transfer
-						 * the $... part to the output, but put back the final
-						 * $ for rescanning.  Consider $delim$...$junk$delim$
-						 */
-						addlit(yytext, yyleng-1, yyscanner);
-						yyless(yyleng-1);
-					}
-				}
-<xdolq>{dolqinside} {
-					addlit(yytext, yyleng, yyscanner);
-				}
-<xdolq>{dolqfailed} {
-					addlit(yytext, yyleng, yyscanner);
-				}
-<xdolq>.		{
-					/* This is only needed for $ inside the quoted text */
-					addlitchar(yytext[0], yyscanner);
-				}
-<xdolq><<EOF>>	{ yyerror("unterminated dollar-quoted string"); }
 
 {xdstart}		{
 					SET_YYLLOC();
