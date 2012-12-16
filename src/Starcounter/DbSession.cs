@@ -48,10 +48,11 @@ namespace Starcounter {
 
         Action action_;
         unsafe void* hEvent_;
+        Exception exception_;
 
         /// <summary>
         /// </summary>
-        public unsafe Task(Action action, void* hEvent) {
+        internal unsafe Task(Action action, void* hEvent) {
             action_ = action;
             hEvent_ = hEvent;
         }
@@ -61,6 +62,9 @@ namespace Starcounter {
         public void Run() {
             try {
                 action_();
+            }
+            catch (Exception e) {
+                exception_ = e;
             }
             finally {
                 unsafe {
@@ -72,6 +76,7 @@ namespace Starcounter {
             }
         }
 
+        internal Exception GetException() { return exception_; }
     }
 
     /// <summary>
@@ -91,18 +96,43 @@ namespace Starcounter {
         public void RunSync(Action action) {
             unsafe {
                 uint r;
-                void* hEvent;
-                r = sccorelib.cm3_mevt_new(null, 0, &hEvent);
-                if (r == 0) {
-                    try {
-                        TaskScheduler.Run(new Task(action, hEvent));
-                        r = sccorelib.cm3_mevt_wait(hEvent, UInt32.MaxValue, 0);
-                        if (r != 0) throw ErrorCode.ToException(r);
+
+                byte schedulerNumber;
+                r = sccorelib.cm3_get_cpun(null, &schedulerNumber);
+                if (r != 0) {
+                    void* hEvent;
+                    r = sccorelib.cm3_mevt_new(null, 0, &hEvent);
+                    if (r == 0) {
+                        try {
+                            var task = new Task(action, hEvent);
+
+                            TaskScheduler.Run(task);
+
+                            r = sccorelib.cm3_mevt_wait(hEvent, UInt32.MaxValue, 0);
+                            if (r != 0) throw ErrorCode.ToException(r);
+
+                            var e = task.GetException();
+                            if (e != null) {
+                                var dbe = (e as DbException);
+                                if (dbe != null) {
+                                    throw ErrorCode.ToException(dbe.ErrorCode, dbe);
+                                }
+                                else {
+                                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, e);
+                                }
+                            }
+                        }
+                        finally {
+                            r = sccorelib.cm3_mevt_rel(hEvent);
+                            if (r != 0) ExceptionManager.HandleInternalFatalError(r);
+                        }
                     }
-                    finally {
-                        r = sccorelib.cm3_mevt_rel(hEvent);
-                        if (r != 0) ExceptionManager.HandleInternalFatalError(r);
+                    else {
+                        throw ErrorCode.ToException(r);
                     }
+                }
+                else {
+                    action();
                 }
             }
         }
