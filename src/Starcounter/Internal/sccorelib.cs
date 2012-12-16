@@ -462,6 +462,28 @@ namespace Starcounter.Internal
         internal extern static UInt32 cm_send_to_client(UInt32 chunk_index);
 
         /// <summary>
+        /// </summary>
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
+        internal extern static unsafe uint cm3_mevt_new(void* h_opt, int set, void** ph);
+
+        /// <summary>
+        /// </summary>
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
+        internal extern static unsafe uint cm3_mevt_rel(void* h);
+
+        /// <summary>
+        /// </summary>
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
+        internal extern static unsafe uint cm3_mevt_set(void* h);
+
+        /// <summary>
+        /// </summary>
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
+        internal extern static unsafe uint cm3_mevt_wait(void* h, uint time, uint flags);
+
+        internal const uint CM3_WAIT_FLAG_BLOCK_SCHED = 0x00000001;
+
+        /// <summary>
         /// Gets the cpu count.
         /// </summary>
         /// <param name="handle">The handle.</param>
@@ -507,10 +529,14 @@ namespace Starcounter.Internal
 
         /// <summary>
         /// </summary>
-        public const ushort TYPE_PROCESS_PACKAGE = 0x0100;
+        public const ushort TYPE_RECYCLE_SCRAP = 0x0100;
 
         /// <summary>
         /// </summary>
-        public const ushort TYPE_RECYCLE_SCRAP = 0x0101;
+        public const ushort TYPE_RUN_TASK = 0x0101;
+        
+        /// <summary>
+        /// </summary>
+        public const ushort TYPE_PROCESS_PACKAGE = 0x0102;
     }
 }
