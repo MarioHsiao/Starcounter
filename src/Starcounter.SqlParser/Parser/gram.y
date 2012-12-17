@@ -1042,16 +1042,16 @@ var_value:	opt_boolean_or_string
 				{ $$ = makeAConst($1, @1); }
 		;
 
-iso_level:	READ UNCOMMITTED						{ $$ = "read uncommitted"; }
-			| READ COMMITTED						{ $$ = "read committed"; }
-			| REPEATABLE READ						{ $$ = "repeatable read"; }
-			| SERIALIZABLE							{ $$ = "serializable"; }
+iso_level:	READ UNCOMMITTED						{ $$ = L"read uncommitted"; }
+			| READ COMMITTED						{ $$ = L"read committed"; }
+			| REPEATABLE READ						{ $$ = L"repeatable read"; }
+			| SERIALIZABLE							{ $$ = L"serializable"; }
 		;
 
 opt_boolean_or_string:
-			TRUE_P									{ $$ = "true"; }
-			| FALSE_P								{ $$ = "false"; }
-			| ON									{ $$ = "on"; }
+			TRUE_P									{ $$ = L"true"; }
+			| FALSE_P								{ $$ = L"false"; }
+			| ON									{ $$ = L"on"; }
 			/*
 			 * OFF is also accepted as a boolean value, but is handled
 			 * by the ColId rule below. The action for booleans and strings
@@ -3859,8 +3859,8 @@ explain_option_elem:
 
 explain_option_name:
 			ColId					{ $$ = $1; }
-			| analyze_keyword		{ $$ = "analyze"; }
-			| VERBOSE				{ $$ = "verbose"; }
+			| analyze_keyword		{ $$ = L"analyze"; }
+			| VERBOSE				{ $$ = L"verbose"; }
 		;
 
 explain_option_arg:
@@ -5474,17 +5474,17 @@ CharacterWithoutLength:	 character opt_charset
 		;
 
 character:	CHARACTER opt_varying
-										{ $$ = $2 ? "varchar": "bpchar"; }
+										{ $$ = $2 ? L"varchar": L"bpchar"; }
 			| CHAR_P opt_varying
-										{ $$ = $2 ? "varchar": "bpchar"; }
+										{ $$ = $2 ? L"varchar": L"bpchar"; }
 			| VARCHAR
-										{ $$ = "varchar"; }
+										{ $$ = L"varchar"; }
 			| NATIONAL CHARACTER opt_varying
-										{ $$ = $3 ? "varchar": "bpchar"; }
+										{ $$ = $3 ? L"varchar": L"bpchar"; }
 			| NATIONAL CHAR_P opt_varying
-										{ $$ = $3 ? "varchar": "bpchar"; }
+										{ $$ = $3 ? L"varchar": L"bpchar"; }
 			| NCHAR opt_varying
-										{ $$ = $2 ? "varchar": "bpchar"; }
+										{ $$ = $2 ? L"varchar": L"bpchar"; }
 		;
 
 opt_varying:
@@ -7196,15 +7196,15 @@ all_Op:		Op										{ $$ = $1; }
 			| MathOp								{ $$ = $1; }
 		;
 
-MathOp:		 '+'									{ $$ = "+"; }
-			| '-'									{ $$ = "-"; }
-			| '*'									{ $$ = "*"; }
-			| '/'									{ $$ = "/"; }
-			| '%'									{ $$ = "%"; }
-			| '^'									{ $$ = "^"; }
-			| '<'									{ $$ = "<"; }
-			| '>'									{ $$ = ">"; }
-			| '='									{ $$ = "="; }
+MathOp:		 '+'									{ $$ = L"+"; }
+			| '-'									{ $$ = L"-"; }
+			| '*'									{ $$ = L"*"; }
+			| '/'									{ $$ = L"/"; }
+			| '%'									{ $$ = L"%"; }
+			| '^'									{ $$ = L"^"; }
+			| '<'									{ $$ = L"<"; }
+			| '>'									{ $$ = L">"; }
+			| '='									{ $$ = L"="; }
 		;
 
 qual_Op:	Op
