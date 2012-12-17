@@ -157,6 +157,7 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select\r\na\tfrom/* comment ** comment*/ \ft -- Comment\nwhere k>2");
             analyzer.ParseQuery("select å from öl");
             analyzer.ParseQuery("select \u0066");
+            analyzer.ParseQuery("SELECT -(-1.2E+02), -(-1.2), -(+1), +(-2), -(+.2E+02)");
         }
 
         [Test]
