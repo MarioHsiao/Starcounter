@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Starcounter.Binding;
 using Starcounter.Query.Execution;
 using Starcounter.Query.Optimization;
@@ -38,7 +39,7 @@ namespace Starcounter.Query.RawParserAnalyzer
             SQLParserAssert(col->name != null, "Assuming alias name");
             //SQLParserAssert(val->type == NodeTag.T_String, "Expected T_String, but got " + val->type.ToString());
             SQLParserAssert(extent->alias != null, "Assuming that alias is given after the extent name");
-            SQLParserAssert(new String(extent->alias->aliasname) == new String(col->name), "Assuming that aliases are equivalent");
+            SQLParserAssert(Marshal.PtrToStringAuto(extent->alias->aliasname) == Marshal.PtrToStringAuto(col->name), "Assuming that aliases are equivalent");
             SQLParserAssert(stmt->sortClause == null, "Assuming no order by");
             SQLParserAssert(stmt->whereClause == null, "Assuming no where clause");
             SQLParserAssert(stmt->optionClause == null, "Assuming no option clause with optimizer hints");

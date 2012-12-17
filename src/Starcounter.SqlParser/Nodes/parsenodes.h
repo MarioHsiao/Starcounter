@@ -81,7 +81,7 @@ typedef struct ColumnRef
 {
 	NodeTag		type;
 	List	   *fields;			/* field names (Value strings) or A_Star */
-	char	   *name;			/* name of a filed */
+	wchar_t	   *name;			/* name of a filed */
 	int			location;		/* token location, or -1 if unknown */
 } ColumnRef;
 
