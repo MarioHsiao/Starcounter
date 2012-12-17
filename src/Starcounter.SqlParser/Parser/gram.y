@@ -117,13 +117,13 @@ static void base_yyerror(YYLTYPE *locp, core_yyscan_t yyscanner,
 static Node *makeColumnRef(char *colname, List *indirection,
 						   YYLTYPE location, core_yyscan_t yyscanner);
 static Node *makeTypeCast(Node *arg, TypeName *typename, YYLTYPE location);
-static Node *makeStringConst(char *str, YYLTYPE location);
-static Node *makeStringConstCast(char *str, YYLTYPE location, TypeName *typename);
+static Node *makeStringConst(wchar_t *str, YYLTYPE location);
+static Node *makeStringConstCast(wchar_t *str, YYLTYPE location, TypeName *typename);
 static Node *makeBinaryConst(char *str, YYLTYPE location);
 static Node *makeObjectConst(int val, YYLTYPE location);
 static Node *makeIntConst(int val, YYLTYPE location);
-static Node *makeFloatConst(char *str, YYLTYPE location);
-static Node *makeBitStringConst(char *str, YYLTYPE location);
+static Node *makeFloatConst(wchar_t *str, YYLTYPE location);
+static Node *makeBitStringConst(wchar_t *str, YYLTYPE location);
 static Node *makeNullAConst(YYLTYPE location);
 static Node *makeAConst(Value *v, YYLTYPE location);
 static Node *makeBoolAConst(bool state, YYLTYPE location);
@@ -727,37 +727,37 @@ AlterOptRoleElem:
 					 * the following special-case codes, to avoid bloating the
 					 * size of the main parser.
 					 */
-					if (strcmp($1, "superuser") == 0)
+					if (wcscmp($1, L"superuser") == 0)
 						$$ = makeDefElem("superuser", (Node *)makeInteger(TRUE));
-					else if (strcmp($1, "nosuperuser") == 0)
+					else if (wcscmp($1, L"nosuperuser") == 0)
 						$$ = makeDefElem("superuser", (Node *)makeInteger(FALSE));
 					else if (strcmp($1, "createuser") == 0)
 					{
 						/* For backwards compatibility, synonym for SUPERUSER */
 						$$ = makeDefElem("superuser", (Node *)makeInteger(TRUE));
 					}
-					else if (strcmp($1, "nocreateuser") == 0)
+					else if (wcscmp($1, L"nocreateuser") == 0)
 					{
 						/* For backwards compatibility, synonym for SUPERUSER */
 						$$ = makeDefElem("superuser", (Node *)makeInteger(FALSE));
 					}
-					else if (strcmp($1, "createrole") == 0)
+					else if (wcscmp($1, L"createrole") == 0)
 						$$ = makeDefElem("createrole", (Node *)makeInteger(TRUE));
-					else if (strcmp($1, "nocreaterole") == 0)
+					else if (wcscmp($1, L"nocreaterole") == 0)
 						$$ = makeDefElem("createrole", (Node *)makeInteger(FALSE));
-					else if (strcmp($1, "replication") == 0)
+					else if (wcscmp($1, L"replication") == 0)
 						$$ = makeDefElem("isreplication", (Node *)makeInteger(TRUE));
-					else if (strcmp($1, "noreplication") == 0)
+					else if (wcscmp($1, L"noreplication") == 0)
 						$$ = makeDefElem("isreplication", (Node *)makeInteger(FALSE));
-					else if (strcmp($1, "createdb") == 0)
+					else if (wcscmp($1, L"createdb") == 0)
 						$$ = makeDefElem("createdb", (Node *)makeInteger(TRUE));
-					else if (strcmp($1, "nocreatedb") == 0)
+					else if (wcscmp($1, L"nocreatedb") == 0)
 						$$ = makeDefElem("createdb", (Node *)makeInteger(FALSE));
-					else if (strcmp($1, "login") == 0)
+					else if (wcscmp($1, L"login") == 0)
 						$$ = makeDefElem("canlogin", (Node *)makeInteger(TRUE));
-					else if (strcmp($1, "nologin") == 0)
+					else if (wcscmp($1, L"nologin") == 0)
 						$$ = makeDefElem("canlogin", (Node *)makeInteger(FALSE));
-					else if (strcmp($1, "noinherit") == 0)
+					else if (wcscmp($1, L"noinherit") == 0)
 					{
 						/*
 						 * Note that INHERIT is a keyword, so it's handled by main parser, but
@@ -7315,12 +7315,12 @@ extract_list:
  */
 extract_arg:
 			IDENT									{ $$ = $1; }
-			| YEAR_P								{ $$ = "year"; }
-			| MONTH_P								{ $$ = "month"; }
-			| DAY_P									{ $$ = "day"; }
-			| HOUR_P								{ $$ = "hour"; }
-			| MINUTE_P								{ $$ = "minute"; }
-			| SECOND_P								{ $$ = "second"; }
+			| YEAR_P								{ $$ = L"year"; }
+			| MONTH_P								{ $$ = L"month"; }
+			| DAY_P									{ $$ = L"day"; }
+			| HOUR_P								{ $$ = L"hour"; }
+			| MINUTE_P								{ $$ = L"minute"; }
+			| SECOND_P								{ $$ = L"second"; }
 			| Sconst								{ $$ = $1; }
 		;
 
@@ -8254,7 +8254,7 @@ makeTypeCast(Node *arg, TypeName *typename, YYLTYPE location)
 }
 
 static Node *
-makeStringConst(char *str, YYLTYPE location)
+makeStringConst(wchar_t *str, YYLTYPE location)
 {
 	A_Const *n = makeNode(A_Const);
 
@@ -8295,7 +8295,7 @@ makeBinaryConst(char *str, YYLTYPE location)
 }
 
 static Node *
-makeStringConstCast(char *str, YYLTYPE location, TypeName *typename)
+makeStringConstCast(wchar_t *str, YYLTYPE location, TypeName *typename)
 {
 	Node *s = makeStringConst(str, location);
 
@@ -8327,7 +8327,7 @@ makeObjectConst(int val, YYLTYPE location)
 }
 
 static Node *
-makeFloatConst(char *str, YYLTYPE location)
+makeFloatConst(wchar_t *str, YYLTYPE location)
 {
 	A_Const *n = makeNode(A_Const);
 
@@ -8339,7 +8339,7 @@ makeFloatConst(char *str, YYLTYPE location)
 }
 
 static Node *
-makeBitStringConst(char *str, YYLTYPE location)
+makeBitStringConst(wchar_t *str, YYLTYPE location)
 {
 	A_Const *n = makeNode(A_Const);
 
@@ -8642,19 +8642,19 @@ doNegate(Node *n, YYLTYPE location)
 static void
 doNegateFloat(Value *v)
 {
-	char   *oldval = v->val.str;
+	wchar_t   *oldval = v->val.str;
 
 	Assert(IsA(v, Float));
 	if (*oldval == '+')
-		oldval++;
+		oldval += sizeof(wchar_t);
 	if (*oldval == '-')
-		v->val.str = oldval+1;	/* just strip the '-' */
+		v->val.str = oldval+sizeof(wchar_t);	/* just strip the '-' */
 	else
 	{
-		char   *newval = (char *) palloc(strlen(oldval) + 2);
+		wchar_t   *newval = (wchar_t *) palloc((wcslen(oldval) + 2)*sizeof(wchar_t));
 
-		*newval = '-';
-		strcpy(newval+1, oldval);
+		*newval = L'-';
+		wcscpy(newval+sizeof(wchar_t), oldval);
 		v->val.str = newval;
 	}
 }

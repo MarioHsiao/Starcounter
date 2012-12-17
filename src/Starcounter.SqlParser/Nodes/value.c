@@ -35,7 +35,7 @@ makeInteger(long i)
  * Caller is responsible for passing a palloc'd string.
  */
 Value *
-makeFloat(char *numericStr)
+makeFloat(wchar_t *numericStr)
 {
 	Value	   *v = makeNode(Value);
 
@@ -50,7 +50,7 @@ makeFloat(char *numericStr)
  * Caller is responsible for passing a palloc'd string.
  */
 Value *
-makeString(char *str)
+makeString(wchar_t *str)
 {
 	Value	   *v = makeNode(Value);
 
