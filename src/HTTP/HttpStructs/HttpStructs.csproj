@@ -71,10 +71,10 @@
     <Content Include="..\HttpParser\x64\$(Configuration)\HttpParser.pdb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\..\bin\$(Configuration)\scerrres.dll">
+    <Content Include="..\..\Starcounter.ErrorCodes\scerrres\x64\$(Configuration)\scerrres.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\..\bin\$(Configuration)\scerrres.pdb">
+    <Content Include="..\..\Starcounter.ErrorCodes\scerrres\x64\$(Configuration)\scerrres.pdb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
