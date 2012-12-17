@@ -20,12 +20,12 @@
 extern A_Expr *makeA_Expr(A_Expr_Kind kind, List *name,
 		   Node *lexpr, Node *rexpr, int location);
 
-extern A_Expr *makeSimpleA_Expr(A_Expr_Kind kind, const char *name,
+extern A_Expr *makeSimpleA_Expr(A_Expr_Kind kind, wchar_t *name,
 				 Node *lexpr, Node *rexpr, int location);
 
 extern RangeVar *makeRangeVar(List *namespaces, char *relname, int location);
 
-extern TypeName *makeTypeName(char *typnam);
+extern TypeName *makeTypeName(wchar_t *typnam);
 extern TypeName *makeTypeNameFromNameList(List *names);
 extern TypeName *makeTypeNameFromOid(Oid typeOid, int32 typmod);
 

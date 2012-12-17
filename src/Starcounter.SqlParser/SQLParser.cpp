@@ -102,7 +102,7 @@ char* ParseQueryToString(const wchar_t *str)
 /*
  * Interface functions to help functions of C parser.
 */
-char* StrVal(Node *val)
+wchar_t* StrVal(Node *val)
 {
 	return strVal(val);
 }
