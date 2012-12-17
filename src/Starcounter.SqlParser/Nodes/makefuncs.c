@@ -41,13 +41,13 @@ makeA_Expr(A_Expr_Kind kind, List *name,
  *		As above, given a simple (unqualified) operator name
  */
 A_Expr *
-makeSimpleA_Expr(A_Expr_Kind kind, const char *name,
+makeSimpleA_Expr(A_Expr_Kind kind, wchar_t *name,
 				 Node *lexpr, Node *rexpr, int location)
 {
 	A_Expr	   *a = makeNode(A_Expr);
 
 	a->kind = kind;
-	a->name = list_make1(makeString((char *) name));
+	a->name = list_make1(makeString(name));
 	a->lexpr = lexpr;
 	a->rexpr = rexpr;
 	a->location = location;
@@ -80,7 +80,7 @@ makeRangeVar(List *namespaces, char *relname, int location)
  * typmod is defaulted, but can be changed later by caller.
  */
 TypeName *
-makeTypeName(char *typnam)
+makeTypeName(wchar_t *typnam)
 {
 	return makeTypeNameFromNameList(list_make1(makeString(typnam)));
 }

@@ -409,7 +409,7 @@ _copyAConst(A_Const *from)
 		case T_Float:
 		case T_String:
 		case T_BitString:
-			COPY_STRING_FIELD(val.val.str);
+			W_COPY_STRING_FIELD(val.val.str);
 			break;
 		case T_Null:
 			/* nothing to do */
@@ -1354,7 +1354,7 @@ _copyValue(Value *from)
 		case T_Float:
 		case T_String:
 		case T_BitString:
-			COPY_STRING_FIELD(val.str);
+			W_COPY_STRING_FIELD(val.str);
 			break;
 		case T_Null:
 			/* nothing to do */

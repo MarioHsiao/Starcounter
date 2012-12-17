@@ -663,16 +663,16 @@ _outValue(StringInfo str, Value *value)
 			 * We assume the value is a valid numeric literal and so does not
 			 * need quoting.
 			 */
-			appendStringInfoString(str, value->val.str);
+			appendStringInfoString(str, (char*)value->val.str);
 			break;
 		case T_String:
 			appendStringInfoChar(str, '"');
-			_outToken(str, value->val.str);
+			_outToken(str, (char*)value->val.str);
 			appendStringInfoChar(str, '"');
 			break;
 		case T_BitString:
 			/* internal representation already has leading 'b' */
-			appendStringInfoString(str, value->val.str);
+			appendStringInfoString(str, (char*)value->val.str);
 			break;
 		case T_Null:
 			/* this is seen only within A_Const, not in transformed trees */

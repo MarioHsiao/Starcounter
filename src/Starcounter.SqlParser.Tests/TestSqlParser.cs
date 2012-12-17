@@ -16,6 +16,7 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("SELECT Abc FROM tbL");
             analyzer.ParseQuery("SELECT Å");
             analyzer.ParseQuery("SELECT У");
+            analyzer.ParseQuery("SELECT -(-1.2E+02), -(-1.2), -(+1), +(-2), -(+.2E+02)");
         }
 
         [Test]
