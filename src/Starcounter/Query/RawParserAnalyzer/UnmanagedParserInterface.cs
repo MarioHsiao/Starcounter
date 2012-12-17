@@ -95,7 +95,7 @@ namespace Starcounter.Query.RawParserAnalyzer
         [FieldOffset(0)]
         internal long ival;		/* machine integer */
         [FieldOffset(0)]
-        internal sbyte* str;		/* string */
+        internal IntPtr str;		/* string */
     }
 
     [StructLayout(LayoutKind.Sequential)]
