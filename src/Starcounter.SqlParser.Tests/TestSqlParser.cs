@@ -16,7 +16,6 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("selec", true);
             analyzer.ParseQuery("select * from t1");
             analyzer.ParseQuery("select sd order byd", true);
-            analyzer.ParseQuery("select * from tbl where col like '\\n and \\u and \\\\'");
             analyzer.ParseQuery("select * from tble limit 1, 2", true);
             analyzer.ParseQuery("(SELECT foo ORDER BY bar) ORDER BY baz", true);
             analyzer.ParseQuery("SELECT * from table1 offsetkey 4");
@@ -148,6 +147,7 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select å from öl");
             analyzer.ParseQuery("select \u0066");
             analyzer.ParseQuery("SELECT -(-1.2E+02), -(-1.2), -(+1), +(-2), -(+.2E+02)");
+            analyzer.ParseQuery("select * from tbl where col like '\\n and \\u and \\\\'");
         }
 
         [Test]
