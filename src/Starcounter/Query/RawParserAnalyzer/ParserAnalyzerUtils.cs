@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Starcounter;
 using Starcounter.Binding;
@@ -17,11 +18,11 @@ namespace Starcounter.Query.RawParserAnalyzer
             Debug.Assert(curCell != null);
             Debug.Assert(((Node *)curCell->data.ptr_value)->type == NodeTag.T_ColumnRef, "Expected T_ColumnRef, but got " +
                 ((Node*)curCell->data.ptr_value)->type.ToString());
-            String name = new String(((ColumnRef*)curCell->data.ptr_value)->name);
+            String name = Marshal.PtrToStringAuto(((ColumnRef*)curCell->data.ptr_value)->name);
             curCell = curCell->next;
             while (curCell != null) {
                 name += '.';
-                name += new String(((ColumnRef*)curCell->data.ptr_value)->name);
+                name += Marshal.PtrToStringAuto(((ColumnRef*)curCell->data.ptr_value)->name);
                 curCell = curCell->next;
             }
             return name;

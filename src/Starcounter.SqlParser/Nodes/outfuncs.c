@@ -76,7 +76,7 @@
 /* Write a character-string (possibly NULL) field */
 #define WRITE_STRING_FIELD(fldname) \
 	(appendStringInfo(str, " :" CppAsString(fldname) " "), \
-	 _outToken(str, node->fldname))
+	 _outToken(str, (char*)node->fldname))
 
 /* Write a parse location field (actually same as INT case) */
 #define WRITE_LOCATION_FIELD(fldname) \

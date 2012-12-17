@@ -38,7 +38,7 @@
 typedef struct Alias
 {
 	NodeTag		type;
-	char	   *aliasname;		/* aliased rel name (never qualified) */
+	wchar_t	   *aliasname;		/* aliased rel name (never qualified) */
 	List	   *colnames;		/* optional list of column aliases */
 } Alias;
 

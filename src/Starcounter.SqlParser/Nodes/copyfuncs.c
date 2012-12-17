@@ -48,6 +48,10 @@
 #define COPY_STRING_FIELD(fldname) \
 	(newnode->fldname = from->fldname ? pstrdup(from->fldname) : (char *) NULL)
 
+/* Copy a field that is a pointer to a C string, or perhaps NULL */
+#define W_COPY_STRING_FIELD(fldname) \
+	(newnode->fldname = from->fldname ? wpstrdup(from->fldname) : (wchar_t *) NULL)
+
 /* Copy a field that is a pointer to a simple palloc'd object of size sz */
 #define COPY_POINTER_FIELD(fldname, sz) \
 	do { \
@@ -74,7 +78,7 @@ _copyAlias(Alias *from)
 {
 	Alias	   *newnode = makeNode(Alias);
 
-	COPY_STRING_FIELD(aliasname);
+	W_COPY_STRING_FIELD(aliasname);
 	COPY_NODE_FIELD(colnames);
 
 	return newnode;

@@ -506,7 +506,7 @@ MemoryContextStrdup(MemoryContext context, const wchar_t *string)
 	wchar_t	   *nstr;
 	Size		len = wcslen(string) + 1;
 
-	nstr = (wchar_t *) MemoryContextAlloc(context, len);
+	nstr = (wchar_t *) MemoryContextAlloc(context, len*sizeof(wchar_t));
 
 	wmemcpy(nstr, string, len);
 
