@@ -41,28 +41,32 @@
     </ReverseProxy>
       
   </ReverseProxies>
-  
-  <!-- Local interfaces to bind -->
-  <LocalIP>127.0.0.1</LocalIP>
+
   <!--
+  List of local interfaces to bind to.
+  Declare them when you expect the number of outgoing
+  connections(e.g. due to proxying) to be more than 64K.
+  -->
+  <!--
+  <LocalIP>10.0.0.1</LocalIP>
   <LocalIP>10.0.0.2</LocalIP>
   <LocalIP>10.0.0.3</LocalIP>
   <LocalIP>10.0.0.4</LocalIP>
   <LocalIP>10.0.0.5</LocalIP>
   -->
   
-  <TestingMode>3</TestingMode>
+  <TestingMode>2</TestingMode>
   <!--
-  MODE_GATEWAY_PING = 1,
-  MODE_APPS_PING = 2,
-  MODE_GATEWAY_HTTP = 3,
-  MODE_APPS_HTTP = 4
+    MODE_GATEWAY_PING = 1,
+    MODE_GATEWAY_HTTP = 2,
+    MODE_APPS_PING = 3,
+    MODE_APPS_HTTP = 4
   -->
   
   <!-- Number of connections to make to master node from this client -->
-  <NumConnectionsToMaster>1</NumConnectionsToMaster>
+  <NumConnectionsToMaster>250000</NumConnectionsToMaster>
 
   <!-- Number of tracked echoes to master node from this client -->
-  <NumEchoesToMaster>1</NumEchoesToMaster>
+  <NumEchoesToMaster>1000000</NumEchoesToMaster>
 
 </NetworkGateway>

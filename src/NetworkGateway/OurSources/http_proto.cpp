@@ -377,7 +377,11 @@ uint32_t HttpWsProto::HttpUriDispatcher(
 {
 
 #ifdef GW_TESTING_MODE
-    return GatewayHttpWsProcessEcho(gw, sd, handler_index, is_handled);
+
+    // Checking if we are in gateway HTTP mode.
+    if (g_gateway.setting_mode() == GatewayTestingMode::MODE_GATEWAY_HTTP)
+        return GatewayHttpWsProcessEcho(gw, sd, handler_index, is_handled);
+
 #endif
 
     // Checking if data goes to user code.
@@ -683,9 +687,12 @@ ALL_DATA_ACCUMULATED:
             g_gateway.IncrementNumProcessedHttpRequests();
 #endif
 
+            // Skipping cloning when in testing mode.
+#ifndef GW_TESTING_MODE
             // Posting cloning receive since all data is accumulated.
             err_code = sd->CloneToReceive(gw);
             GW_ERR_CHECK(err_code);
+#endif
 
             // Checking type of response.
             switch (resp_type_)
@@ -980,7 +987,7 @@ ALL_DATA_ACCUMULATED:
                 assert (http_request_.body_len_bytes_ == kHttpEchoBodyLength);
 
                 // Converting the string to number.
-                //int64_t echo_id = hex_string_to_uint64((char*)sd + http_request_.body_offset_, kHttpGatewayEchoRequestBodyLength);
+                //echo_id_type echo_id = hex_string_to_uint64((char*)sd + http_request_.body_offset_, kHttpGatewayEchoRequestBodyLength);
 
                 // Saving echo string into temporary buffer.
                 char copied_echo_string[kHttpEchoBodyLength];
@@ -1010,15 +1017,17 @@ ALL_DATA_ACCUMULATED:
         assert(sd->get_accum_buf()->get_accum_len_bytes() == kHttpEchoResponseLength);
 
         // Obtaining original echo number.
-        //int64_t echo_id = *(int32_t*)sd->get_data_blob();
-        int64_t echo_id = hex_string_to_uint64((char*)sd->get_data_blob() + kHttpEchoResponseInsertPoint, kHttpEchoBodyLength);
+        //echo_id_type echo_id = *(int32_t*)sd->get_data_blob();
+        echo_id_type echo_id = hex_string_to_uint64((char*)sd->get_data_blob() + kHttpEchoResponseInsertPoint, kHttpEchoBodyLength);
 
 #ifdef GW_ECHO_STATISTICS
         GW_PRINT_WORKER << "Received echo: " << echo_id << std::endl;
 #endif
 
+#ifdef GW_LIMITED_ECHO_TEST
         // Confirming received echo.
         g_gateway.ConfirmEcho(echo_id);
+#endif
 
         // Handled successfully.
         *is_handled = true;
@@ -1026,7 +1035,8 @@ ALL_DATA_ACCUMULATED:
         // Checking if all echo responses are returned.
         if (g_gateway.CheckConfirmedEchoResponses())
         {
-            GW_COUT << "All ECHO messages are confirmed on the client." << std::endl;
+            // Gracefully finishing the test.
+            g_gateway.ShutdownTest(true);
 
             // Returning this chunk to database.
             WorkerDbInterface *db = gw->GetWorkerDb(sd->get_db_index());
@@ -1056,8 +1066,15 @@ SEND_HTTP_ECHO_TO_MASTER:
         // Checking that not all echoes are sent.
         if (!g_gateway.AllEchoesSent())
         {
+            // Generating echo number.
+            echo_id_type new_echo_num = 0;
+
+#ifdef GW_LIMITED_ECHO_TEST
+            new_echo_num = g_gateway.GetNextEchoNumber();
+#endif
+
             // Sending echo request to server.
-            return gw->SendHttpEcho(sd, g_gateway.GetNextEchoNumber());
+            return gw->SendHttpEcho(sd, new_echo_num);
         }
     }
 
