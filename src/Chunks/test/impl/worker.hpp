@@ -136,13 +136,9 @@ try {
 						// Successfully pushed the chunk_index. Notify the
 						// scheduler.
 						worked = true;
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 						the_channel.scheduler()->notify(shared()
 						.scheduler_work_event(the_channel
 						.get_scheduler_number()));
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-						the_channel.scheduler()->notify();
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 					}
 					else {
 						// Could not push the request message to the channels in
@@ -179,12 +175,8 @@ acquire_chunk_from_private_chunk_pool:
 					// Successfully pushed the chunk_index. Notify the
 					// scheduler.
 					worked = true;
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 					the_channel.scheduler()->notify(shared()
 					.scheduler_work_event(the_channel.get_scheduler_number()));
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-					the_channel.scheduler()->notify();
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 				}
 				else {
 					// Could not push the request to the channels in
@@ -239,13 +231,9 @@ acquire_chunk_from_private_chunk_pool:
 				// A message on channel ch was received. Notify the database
 				// that the out queue in this channel is not full.
 				worked = true;
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 				/// No reason, nobody waits!
 				//the_channel.scheduler()->notify(shared().scheduler_work_event
 				//(the_channel.get_scheduler_number()));
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-				//the_channel.scheduler()->notify();
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 				
 				///=============================================================
 				/// Handle all responses in this chunk.
@@ -317,7 +305,6 @@ acquire_chunk_from_private_chunk_pool:
 				// Nothing was pushed or popped for scan_count_reset number of
 				// iterations. This thread will now wait for any scheduler to
 				// push or pop on any of this worker's channels.
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 				if (shared().client_interface().wait_for_work
 				(shared().client_work_event(), wait_for_work_milli_seconds)
 				== true) {
@@ -330,19 +317,6 @@ acquire_chunk_from_private_chunk_pool:
 					shared().client_interface().set_notify_flag(false);
 					scan_counter = scan_counter_preset; // or 1?
 				}
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-				if (shared().client_interface().wait_for_work
-				(wait_for_work_milli_seconds) == true) {
-					// This worker was notified there is work to do.
-					shared().client_interface().set_notify_flag(false);
-					scan_counter = scan_counter_preset;
-				}
-				else {
-					// A timeout occurred.
-					shared().client_interface().set_notify_flag(false);
-					scan_counter = scan_counter_preset; // or 1?
-				}
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 			}
 		}
 	}
@@ -484,7 +458,6 @@ inline void worker::release_all_resources() {
 			the_channel.set_to_be_released();
 			
 			if (scheduler_interface_ptr) {
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events
 				// The scheduler may be waiting so notify it.
 				if ((scheduler_interface_ptr->try_to_notify_scheduler_to_do_clean_up
 				(shared().scheduler_work_event(the_channel.get_scheduler_number())))
@@ -495,13 +468,6 @@ inline void worker::release_all_resources() {
 					//std::cout << " try_to_notify_scheduler_to_do_clean_up() "
 					//"failed in worker::release_all_resources().\n"; /// DEBUG
 				}
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess
-				// The scheduler may be waiting so try to notify it. Wait up to 64 ms.
-				if ((scheduler_interface_ptr->try_to_notify_scheduler_to_do_clean_up
-				(64 /* ms to wait */)) == true) {
-					// Succeessfully notified the scheduler on this channel.
-				}
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 			}
 		}
 	}

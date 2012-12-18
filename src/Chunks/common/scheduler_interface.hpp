@@ -140,8 +140,9 @@ public:
 	channel_scan_counter_(0),
 	notify_(false),
 	predicate_(false),
-	client_interface_(0) {
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
+	client_interface_(0),
+	owner_id_(),
+	ipc_monitor_cleanup_event_() {
 		if (segment_name != 0) {
 			char work_notify_name[segment_and_notify_name_size];
 			std::size_t length;
@@ -171,14 +172,11 @@ public:
 		else {
 			// Error: No segment name. Throw exception error_code.
 		}
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	}
 	
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	~scheduler_interface() {
 		::CloseHandle(work_);
 	}
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 	void insert(channel_number the_channel_number, owner_id id, smp::spinlock::milliseconds timeout) {
 		// Release the_channel_number to this channel_number_ queue.
@@ -297,7 +295,6 @@ public:
 		_mm_mfence();
 	}
 	
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	/// Clients call notify() each time they push a message to a channel, or
 	/// mark the channel for release, in order to wake up the scheduler it
 	/// communicates with, if but only if it is waiting for work.
@@ -340,34 +337,12 @@ public:
 			}
 		}
 	}
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-	/// Clients call notify() each time they push a message to a channel, or
-	/// mark the channel for release, in order to wake up the scheduler it
-	/// communicates with, if but only if it is waiting for work.
-	void notify() {
-		if (get_notify_flag() == false) {
-			// No need to notify the scheduler because it is not waiting.
-			return;
-		}
-		else {
-			boost::interprocess::scoped_lock
-			<boost::interprocess::interprocess_mutex> lock(mutex_);
-			
-			// Need to notify the scheduler that a message has been pushed into
-			// some queue. The scheduler is probably waiting.
-			set_predicate(true);
-			lock.unlock();
-			work_.notify_one(); // In the client interface we notify all.
-		}
-	}
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 	//--------------------------------------------------------------------------
 	// The monitor call try_to_notify_scheduler_to_do_clean_up() if a client
 	// process has crashed, in order to wake up the scheduler if it is waiting.
 	// A scheduler that is woken up is required to see if the channel is marked
 	// for clean-up. Maybe this is not at all required, it may be irrelevent.
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	/// try_to_notify_scheduler_to_do_clean_up() is used by the monitor only.
 	/**
 	 * @param work The named event that the monitor have opened.
@@ -381,36 +356,6 @@ public:
 		// Error. Failed to notify the scheduler.
 		return false;
 	}
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-	/// try_to_notify_scheduler_to_do_clean_up() is used by the monitor only.
-	/**
-	 * @param timeout_milliseconds The number of milliseconds to wait before
-	 *		giving up.
-	 * @return true if successfully notified, otherwise false.
-	 */
-	bool try_to_notify_scheduler_to_do_clean_up(uint32_t timeout_milliseconds) {
-		const boost::system_time timeout = boost::posix_time::microsec_clock
-		::universal_time() +boost::posix_time::milliseconds
-		(timeout_milliseconds);
-		
-		boost::interprocess::scoped_lock
-		<boost::interprocess::interprocess_mutex> lock(mutex_, timeout);
-		
-		if (lock.owns()) {
-			// Need to notify the scheduler to clean-up.
-			set_predicate(true);
-			lock.unlock();
-			work_.notify_one(); // In the client interface we notify all.
-			return true;
-		}
-		else {
-			// The timeout_milliseconds time period has elapsed and the
-			// operation has failed. Could not notify the scheduler on this
-			// channel.
-			return false;
-		}
-	}
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 	// Setting predicate to true means the condition is met
 	// and the wait is over, the thread waiting will not wait any more.
@@ -433,7 +378,6 @@ public:
 	 * @return false if the call is returning because the time period specified
 	 *		by timeout_milliseconds has elapsed, true otherwise.
 	 */
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	bool wait_for_work(unsigned int timeout_milliseconds) {
 		switch (::WaitForSingleObject(work_, timeout_milliseconds)) {
 		case WAIT_OBJECT_0:
@@ -457,35 +401,6 @@ public:
 		}
 		return false;
 	}
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-	bool wait_for_work(unsigned int timeout_milliseconds) {
-		// boost::get_system_time() also works.
-		const boost::system_time timeout
-		= boost::posix_time::microsec_clock::universal_time()
-		+boost::posix_time::milliseconds(timeout_milliseconds);
-		
-		boost::interprocess::scoped_lock
-		<boost::interprocess::interprocess_mutex> lock(mutex_);
-		
-		if (!lock.owns()) {
-			// The timeout_milliseconds time period has elapsed.
-			return false;
-		}
-		
-		// Wait until at least one message has been pushed into some channel,
-		// or the timeout_milliseconds time period has elapsed.
-		if (work_.timed_wait(lock, timeout,
-		boost::bind(&scheduler_interface_type::do_work, this)) == true) {
-			// The scheduler was notified that there is work to do.
-			set_predicate(false);
-			return true;
-		}
-		
-		// The timeout_milliseconds time period has elapsed.
-		// Shall the predicate be set to false on timeout? I think not.
-		return false;
-	}
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 	uint64_t get_client_interface_as_qword() {
 		boost::interprocess::scoped_lock
@@ -505,7 +420,6 @@ public:
 		client_interface_ = reinterpret_cast<uint64_t>(p);
 	}
 	
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	/// Get the work notify name, used to open the event. In order to reduce the
 	/// time taken to open the work_ event the name is cached. Otherwise the
 	/// work notify name have to be formated before opening it.
@@ -517,7 +431,6 @@ public:
 	const wchar_t* work_notify_name() const {
 		return work_notify_name_;
 	}
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 	channel_number_queue_type& channel_number() {
 		return channel_number_;
@@ -531,15 +444,26 @@ public:
 		return owner_id_;
 	}
 
+	/// Get a reference to the ipc_monitor_cleanup_event.
+	/**
+	 * @return A reference to the ipc_monitor_cleanup_event.
+	 */ 
+	HANDLE& ipc_monitor_cleanup_event() {
+		return ipc_monitor_cleanup_event_;
+	}
+	
+	/// Get a const reference to the ipc_monitor_cleanup_event.
+	/**
+	 * @param A const reference to the ipc_monitor_cleanup_event.
+	 */ 
+	const HANDLE& ipc_monitor_cleanup_event() const {
+		return ipc_monitor_cleanup_event_;
+	}
+
 private:
 	// Condition to wait when all of this scheduler's channels in queues,
 	// and the scheduler channels in queue are empty.
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	HANDLE work_;
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-	boost::interprocess::interprocess_condition work_;
-	boost::interprocess::interprocess_mutex mutex_;
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 	// Sync access to client_interface - probably not needed.
 	boost::interprocess::interprocess_mutex client_interface_mutex_;
@@ -566,13 +490,25 @@ private:
 	// server and 32-bit client.
 	uint64_t client_interface_; // client_interface_type*
 	owner_id owner_id_;
-	char cache_line_pad_5_[CACHE_LINE_SIZE -sizeof(uint64_t)];
+	
+	// Event to notify the monitor to do cleanup.
+	HANDLE ipc_monitor_cleanup_event_;
+	
+	char cache_line_pad_5_[CACHE_LINE_SIZE
+	-sizeof(uint64_t) // client_interface_
+	-sizeof(owner_id) // owner_id_
+	-sizeof(HANDLE) // ipc_monitor_cleanup_event_
+	];
 
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	// In order to reduce the time taken to open the work_ event the name is
 	// cached. Otherwise the name have to be formated before opening it.
 	wchar_t work_notify_name_[segment_and_notify_name_size];
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
+	
+	// In order to reduce the time taken to open the ipc_monitor_clean_up_event_
+	// the name is cached. Otherwise the name have to be formated before opening it.
+	wchar_t ipc_monitor_clean_up_event_name_[segment_and_notify_name_size];
 };
 
 typedef starcounter::core::simple_shared_memory_allocator<channel_number>

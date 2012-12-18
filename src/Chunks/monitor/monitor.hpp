@@ -125,7 +125,7 @@ public:
 	};
 	
 	enum {
-		max_number_of_monitored_database_processes = 64,
+		max_number_of_monitored_database_processes = max_number_of_databases,
 
 		max_number_of_clients_per_database = 256,
 
@@ -221,9 +221,9 @@ public:
 #endif
 	
 #if 0 // idea
-	// Methods for updating the event_register
-	void insert_into_event_register(pid_type, owner_id) {
-		boost::mutex::scoped_lock lock(event_register_mutex_);
+	// Methods for updating the process_register_.
+	void insert_into_process_register(pid_type, owner_id) {
+		boost::mutex::scoped_lock lock(register_mutex_);
 		//...
 	}
 #endif
@@ -246,10 +246,10 @@ public:
 	/// relatively long time so this is only used for debug.
 	void print_event_register();
 	
-#if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
+#if defined (IPC_MONITOR_SHOW_ACTIVITY)
 	/// Show statistics and resource usage.
 	void watch_resources();
-#endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
+#endif // defined (IPC_MONITOR_SHOW_ACTIVITY)
 	
 	/// The apc_function() calls this so that we can access member variables
 	/// without having to make getters and setters for all.
@@ -303,6 +303,9 @@ private:
 	/// The registration thread calls this.
 	void registrar();
 	
+	/// The cleanup_ thread calls this.
+	void cleanup();
+	
 	static void __stdcall apc_function(boost::detail::win32::ulong_ptr arg);
 	
 	/// Get a new owner_id.
@@ -327,6 +330,9 @@ private:
 	// The state of the monitor.
 	state state_; /// TODO: implement shutdown.
 	
+	// Event to notify the monitor to do clean up.
+	HANDLE ipc_monitor_cleanup_event_;
+
 	/// TODO Maybe put this in a nested struct. Saved time not doing it.
 	// The register_mutex_ is locked whenever a thread need to update any of the
 	// variables below: the process_register_, the owner_id_counter_.
@@ -387,6 +393,9 @@ private:
 	// complete the wait_for_registration
 	boost::thread registrar_;
 	
+	// Clean up thread.
+	boost::thread cleanup_;
+
 	// The active databases file updater thread waits for a notification from
 	// any thread that updates the register, and will write a list of active
 	// databases to the file:

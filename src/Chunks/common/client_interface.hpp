@@ -87,14 +87,9 @@ public:
 	explicit client_interface(const allocator_type& alloc = allocator_type(),
 	const char* segment_name = 0, int32_t id = -1)
 	: notify_(false),
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-	predicate_(false),
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	owner_id_(owner_id::none),
-	allocated_channels_(0) {
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
+	allocated_channels_(0),
+	database_cleanup_index_(-1) {
 		if (segment_name != 0) {
 			char work_notify_name[segment_and_notify_name_size];
 			std::size_t length;
@@ -124,17 +119,14 @@ public:
 		else {
 			// Error: No segment name. Throw exception error_code.
 		}
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	}
 	
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	~client_interface() {
 		if (work_ != 0) {
 			::CloseHandle(work_);
 			work_ = 0;
 		}
 	}
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 	bool get_notify_flag() const {
 		return notify_;
@@ -154,7 +146,6 @@ public:
 	
 	/// Schedulers call notify() each time they push a message on a channel.
 	/// The monitor call notify() if the database goes down.
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	void notify() {
 		if (get_notify_flag() == false) {
 			// No need to notify the scheduler because it is not waiting.
@@ -171,31 +162,6 @@ public:
 			}
 		}
 	}
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-	void notify() {
-		if (get_notify_flag() == false) {
-			// No need to notify, because no client thread is waiting,
-			// or the channel has been returned or is about to be returned.
-			return;
-		}
-		else {
-			// Notify the waiting client that a message is available.
-			boost::interprocess::scoped_lock
-			<boost::interprocess::interprocess_mutex> lock(mutex_);
-			
-			set_predicate(true);
-			lock.unlock();
-
-			// In the scheduler interface we notify one. Here we notify all
-			// because all client threads with the same client number need to
-			// be awakened. One thread may be pushing to the in queue and
-			// another thread may be popping from the out queue in a given
-			// channel. In this model, a pair of threads work together on a
-			// channel and both threads need the notification to start working.
-			work_.notify_all();
-		}
-	}
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 	// Setting predicate to true means the condition is met and the wait is
 	// over. Threads that are waiting will not wait any more. Setting the
@@ -242,7 +208,6 @@ public:
 	 * @return false if the call is returning because the time period specified
 	 *		by timeout_milliseconds has elapsed, otherwise true.
 	 */
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	void reset_work_event() {
 		::ResetEvent(work_);
 	}
@@ -291,35 +256,6 @@ public:
 		}
 		return false;
 	}
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-	bool wait_for_work(uint32_t timeout_milliseconds) {
-		// boost::get_system_time() also works.
-		const boost::system_time timeout
-		= boost::posix_time::microsec_clock::universal_time()
-		+boost::posix_time::milliseconds(timeout_milliseconds);
-		
-		boost::interprocess::scoped_lock
-		<boost::interprocess::interprocess_mutex> lock(mutex_, timeout);
-		
-		if (!lock.owns()) {
-			// The timeout_milliseconds time period has elapsed.
-			return false;
-		}
-		
-		// Wait until at least one message has been pushed into some channel,
-		// or the timeout_milliseconds time period has elapsed.
-		if (work_.timed_wait(lock, timeout,
-		boost::bind(&client_interface<value_type, allocator_type>::do_work,
-		this)) == true) {
-			// The client was notified.
-			set_predicate(false);
-			return true;
-		}
-		
-		// The timeout_milliseconds time period has elapsed.
-		return false;
-	}
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 	/// Set the owner_id when acquiring and releasing a client_interface.
 	/**
@@ -411,7 +347,6 @@ public:
 		return resource_map_.owns_chunk(n);
 	}
 
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	HANDLE get_work_event() const {
 		return work_;
 	}
@@ -427,23 +362,16 @@ public:
 	const wchar_t* work_notify_name() const {
 		return work_notify_name_;
 	}
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
+	int32_t& database_cleanup_index() {
+		return database_cleanup_index_;
+	}
+
 private:
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	HANDLE work_;
 	char cache_line_pad_0_[CACHE_LINE_SIZE
 	-sizeof(HANDLE) // work_
 	];
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-	boost::interprocess::interprocess_mutex mutex_;
-	// Condition to wait when all of this clients channels out queues are empty.
-	boost::interprocess::interprocess_condition work_;
-	char cache_line_pad_0_[CACHE_LINE_SIZE
-	-sizeof(boost::interprocess::interprocess_mutex) // mutex_
-	-sizeof(boost::interprocess::interprocess_condition) // work_
-	];
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 	volatile bool notify_;
 	char cache_line_pad_1_[CACHE_LINE_SIZE
@@ -459,6 +387,16 @@ private:
 	// resource_map_.
 	owner_id owner_id_;
 	volatile uint32_t allocated_channels_;
+	
+	// The IPC monitor will set database_cleanup_index_ (range 0 to databases -1)
+	// when starting the cleanup. When the database is done with the cleanup
+	// related to this client_interface, it will use this index to access an entry
+	// in the monitor_interface where it will flag that it is done with the cleanup.
+	// Then it will notify the cleanup thread in the IPC monitor to check this container.
+	// There it will find this, and use the data there to access the IPC shared memory
+	// segment and search through the client_interface[s] for
+	int32_t database_cleanup_index_;
+
 	char cache_line_pad_3_[CACHE_LINE_SIZE
 	-sizeof(owner_id) // owner_id_
 	-sizeof(uint32_t) // allocated_channels_
@@ -466,11 +404,9 @@ private:
 	
 	resource_map resource_map_;
 
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	// In order to reduce the time taken to open the work_ event the name is
 	// cached. Otherwise the name have to be formated before opening it.
 	wchar_t work_notify_name_[segment_and_notify_name_size];
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 };
 
 typedef simple_shared_memory_allocator<channel_number>
