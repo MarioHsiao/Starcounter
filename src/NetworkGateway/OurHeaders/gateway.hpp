@@ -44,12 +44,15 @@ typedef uint64_t apps_unique_session_num_type;
 typedef uint64_t session_salt_type;
 typedef uint32_t session_index_type;
 typedef uint64_t session_timestamp_type;
+typedef int64_t echo_id_type;
 
-// Some defines, e.g. debugging, statistics, etc.
-//#define GW_COLLECT_SOCKET_STATISTICS
+// Statistics macros.
 //#define GW_GLOBAL_STATISTICS
+//#define GW_COLLECT_SOCKET_STATISTICS
 //#define GW_DETAILED_STATISTICS
 //#define GW_ECHO_STATISTICS
+
+// Diagnostics macros.
 //#define GW_SOCKET_DIAG
 //#define GW_HTTP_DIAG
 //#define GW_WEBSOCKET_DIAG
@@ -58,9 +61,21 @@ typedef uint64_t session_timestamp_type;
 //#define GW_CHUNKS_DIAG
 #define GW_DATABASES_DIAG
 #define GW_SESSIONS_DIAG
+
+// Mode macros.
 //#define GW_PONG_MODE
 //#define GW_TESTING_MODE
 //#define GW_PROXY_MODE
+//#define GW_LOOPED_TEST_MODE
+//#define GW_PROFILER_ON
+//#define GW_LIMITED_ECHO_TEST
+
+// Checking that macro definitions are correct.
+#ifdef GW_LOOPED_TEST_MODE
+#ifndef GW_TESTING_MODE
+#error GW_LOOPED_TEST_MODE requires defining GW_TESTING_MODE
+#endif
+#endif
 
 // TODO: Move error codes to errors XML!
 #define SCERRGWINCORRECTHANDLER 12345
@@ -136,7 +151,7 @@ const int32_t ACCEPT_DATA_SIZE_BYTES = 64;
 const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 128;
 
 // Maximum number of fetched OVLs at once.
-const int32_t MAX_FETCHED_OVLS = 256;
+const int32_t MAX_FETCHED_OVLS = 1000;
 
 // Maximum size of HTTP body.
 const int32_t MAX_HTTP_BODY_SIZE = 1024 * 1024 * 32;
@@ -145,7 +160,7 @@ const int32_t MAX_HTTP_BODY_SIZE = 1024 * 1024 * 32;
 const int32_t MAX_PROXIED_URIS = 32;
 
 // Number of sockets to increase the accept roof.
-const int32_t ACCEPT_ROOF_STEP_SIZE = 1;
+const int32_t ACCEPT_ROOF_STEP_SIZE = 100;
 
 // Offset of data blob in socket data.
 const int32_t SOCKET_DATA_BLOB_OFFSET_BYTES = 696;
@@ -212,7 +227,16 @@ const int32_t MAX_WORKER_THREADS = 32;
 const int32_t MAX_ACTIVE_SERVER_PORTS = 32;
 
 // Maximum port handle integer.
-const int32_t MAX_SOCKET_HANDLE = 1000000;
+const int32_t MAX_SOCKET_HANDLE = 10000000;
+
+// Maximum number of test echoes.
+const int32_t MAX_TEST_ECHOES = 10000000;
+
+// Maximum reusable connect sockets per worker.
+const int32_t MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER = 10000;
+
+// Maximum blacklisted IPs per worker.
+const int32_t MAX_BLACK_LIST_IPS_PER_WORKER = 10000;
 
 // Hardcoded gateway test port number on server.
 const int32_t GATEWAY_TEST_PORT_NUMBER_SERVER = 80;
@@ -227,8 +251,8 @@ const uint16_t FIRST_BIND_PORT_NUM = 1500;
 enum GatewayTestingMode
 {
     MODE_GATEWAY_PING = 1,
-    MODE_APPS_PING = 2,
-    MODE_GATEWAY_HTTP = 3,
+    MODE_GATEWAY_HTTP = 2,
+    MODE_APPS_PING = 3,
     MODE_APPS_HTTP = 4
 };
 
@@ -263,6 +287,7 @@ enum SocketOperType
     // Active connections statistics.
     RECEIVE_SOCKET_OPER,
     DISCONNECT_SOCKET_OPER,
+
     // Non-active connections.
     ACCEPT_SOCKET_OPER,
     SEND_SOCKET_OPER,
@@ -278,6 +303,20 @@ typedef uint32_t (*GENERIC_HANDLER_CALLBACK) (
     SocketDataChunk *sd,
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled);
+
+#ifdef GW_LOOPED_TEST_MODE
+
+// Looped processors.
+typedef uint32_t (*ECHO_REQUEST_CREATOR) (char* buf, echo_id_type echo_id, uint32_t* num_request_bytes);
+typedef uint32_t (*ECHO_RESPONSE_PROCESSOR) (char* buf, uint32_t buf_len, echo_id_type* echo_id);
+
+extern uint32_t DefaultHttpEchoRequestCreator(char* buf, echo_id_type echo_id, uint32_t* num_request_bytes);
+extern uint32_t DefaultHttpEchoResponseProcessor(char* buf, uint32_t buf_len, echo_id_type* echo_id);
+
+extern uint32_t DefaultRawEchoRequestCreator(char* buf, echo_id_type echo_id, uint32_t* num_request_bytes);
+extern uint32_t DefaultRawEchoResponseProcessor(char* buf, uint32_t buf_len, echo_id_type* echo_id);
+
+#endif
 
 uint32_t OuterPortProcessData(
     GatewayWorker *gw,
@@ -456,6 +495,58 @@ public:
     void Sort()
     {
         std::sort(elems_, elems_ + num_entries_);
+    }
+};
+
+template <class T, uint32_t MaxElems>
+class LinearStack
+{
+    T elems_[MaxElems];
+    uint32_t push_index_;
+    uint32_t pop_index_;
+    int32_t stripe_length_;
+
+public:
+
+    LinearStack()
+    {
+        Clear();
+    }
+
+    void Clear()
+    {
+        push_index_ = 0;
+        pop_index_ = 0;
+        stripe_length_ = 0;
+    }
+
+    void PushBack(T& new_elem)
+    {
+        elems_[push_index_] = new_elem;
+        push_index_++;
+        stripe_length_++;
+        assert (stripe_length_ <= MaxElems);
+
+        if (push_index_ == MaxElems)
+            push_index_ = 0;
+    }
+
+    T& PopFront()
+    {
+        T& ret_value = elems_[pop_index_];
+        pop_index_++;
+        stripe_length_--;
+        assert (stripe_length_ >= 0);
+
+        if (pop_index_ == MaxElems)
+            pop_index_ = 0;
+
+        return ret_value;
+    }
+
+    int32_t get_num_entries()
+    {
+        return stripe_length_;
     }
 };
 
@@ -1121,6 +1212,9 @@ class Gateway
     // Number of connections to make to master node.
     int32_t setting_num_connections_to_master_;
 
+    // Number of connections to make to master node per worker.
+    int32_t setting_num_connections_to_master_per_worker_;
+
     // Number of tracked echoes to master.
     int32_t setting_num_echoes_to_master_;
 
@@ -1207,13 +1301,28 @@ class Gateway
 #ifdef GW_TESTING_MODE
 
     // Confirmed HTTP requests map.
-    uint8_t* confirmed_echoes_;
+    std::bitset<MAX_TEST_ECHOES> confirmed_echoes_;
 
     // Number of confirmed echoes.
     volatile int64_t num_confirmed_echoes_unsafe_;
 
     // Current echo number.
     volatile int64_t current_echo_number_unsafe_;
+
+    // Number of operations per second.
+    int64_t num_ops_per_second_;
+
+    // Number of measures.
+    int64_t num_ops_measures_;
+
+#ifdef GW_LOOPED_TEST_MODE
+
+    // Looped echo processors.
+    ECHO_RESPONSE_PROCESSOR looped_echo_response_processor_;
+
+    ECHO_REQUEST_CREATOR looped_echo_request_creator_;
+
+#endif
 
 #endif
 
@@ -1240,7 +1349,7 @@ class Gateway
     uint32_t num_schedulers_;
 
     // Black list with malicious IP-addresses.
-    std::list<uint32_t> black_list_ips_unsafe_;
+    LinearList<uint32_t, MAX_BLACK_LIST_IPS_PER_WORKER> black_list_ips_unsafe_;
 
     // Global IOCP handle.
     HANDLE iocp_;
@@ -1364,6 +1473,12 @@ public:
         return setting_num_connections_to_master_;
     }
 
+    // Number of connections to make to master node per worker.
+    int32_t setting_num_connections_to_master_per_worker()
+    {
+        return setting_num_connections_to_master_per_worker_;
+    }
+
     // Number of tracked echoes to master.
     int32_t get_setting_num_echoes_to_master()
     {
@@ -1373,9 +1488,9 @@ public:
     // Registering confirmed HTTP echo.
     void ConfirmEcho(int64_t index)
     {
-        assert(confirmed_echoes_[index] < 1);
+        assert(confirmed_echoes_[index] == false);
 
-        confirmed_echoes_[index]++;
+        confirmed_echoes_[index] = true;
         InterlockedIncrement64(&num_confirmed_echoes_unsafe_);
     }
 
@@ -1394,9 +1509,14 @@ public:
             // Running through all echoes.
             for (int32_t i = 0; i < setting_num_echoes_to_master_; i++)
             {
-                // Checking that number of confirmed echoes is correct in each slot.
-                if (confirmed_echoes_[i] != 1)
+                // Checking that each echo is confirmed.
+                if (confirmed_echoes_[i] != true)
+                {
+                    // Failing test if echo is not confirmed.
+                    ShutdownTest(false);
+
                     return false;
+                }
             }
 
             return true;
@@ -1412,7 +1532,7 @@ public:
         current_echo_number_unsafe_ = -1;
 
         for (int32_t i = 0; i < setting_num_echoes_to_master_; i++)
-            confirmed_echoes_[i] = 0;
+            confirmed_echoes_[i] = false;
     }
 
     // Incrementing and getting next echo number.
@@ -1444,6 +1564,30 @@ public:
     {
         return setting_is_master_;
     }
+
+    // Getting average number of measured operations.
+    int64_t GetAverageOpsPerSecond()
+    {
+        int64_t aver_num_ops = num_ops_per_second_ / num_ops_measures_;
+
+        num_ops_per_second_ = 0;
+        num_ops_measures_ = 0;
+
+        return aver_num_ops;
+    }
+
+#ifdef GW_LOOPED_TEST_MODE
+    // Looped echo processors.
+    ECHO_RESPONSE_PROCESSOR get_looped_echo_response_processor()
+    {
+        return looped_echo_response_processor_;
+    }
+
+    ECHO_REQUEST_CREATOR get_looped_echo_request_creator()
+    {
+        return looped_echo_request_creator_;
+    }
+#endif
 
 #endif
 
@@ -1855,8 +1999,14 @@ public:
         // Fetching the session by index.
         return all_sessions_unsafe_[session_index].session_.scheduler_id_;
     }
+
+#ifdef GW_TESTING_MODE
+    // Gracefully shutdowns all needed processes after test is finished.
+    uint32_t ShutdownTest(bool success);
+#endif
 };
 
+// Globally accessed gateway object.
 extern Gateway g_gateway;
 
 } // namespace network

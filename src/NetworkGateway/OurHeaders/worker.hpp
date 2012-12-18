@@ -47,14 +47,32 @@ class GatewayWorker
     SocketDataChunk *sd_receive_clone_;
 
     // List of reusable connect sockets.
-    std::list<SOCKET> reusable_connect_sockets_;
+    LinearStack<SOCKET, MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER> reusable_connect_sockets_;
+
+#ifdef GW_LOOPED_TEST_MODE
+    LinearStack<SocketDataChunk*, MAX_TEST_ECHOES> emulated_network_events_queue_;
+    int32_t num_created_conns_worker_;
+#endif
 
 public:
+
+#ifdef GW_LOOPED_TEST_MODE
+
+    // Pushing given sd to network emulation queue.
+    void PushToNetworkEmulationQueue(SocketDataChunk* sd)
+    {
+        emulated_network_events_queue_.PushBack(sd);
+    }
+
+    // Processes looped queue.
+    bool ProcessEmulatedNetworkOperations(OVERLAPPED_ENTRY *removedOvls, ULONG* removedOvlsNum, uint32_t max_fetched);
+
+#endif
 
     // Getting number of reusable connect sockets.
     int32_t NumberOfReusableConnectSockets()
     {
-        return reusable_connect_sockets_.size();
+        return reusable_connect_sockets_.get_num_entries();
     }
 
     // Tracks certain socket.
@@ -113,12 +131,6 @@ public:
             cur_scheduler_id_ = 0;
 
         return cur_scheduler_id_;
-    }
-
-    // Getting number of reusable connect sockets.
-    int32_t GetNumReusableConnectSockets()
-    {
-        return reusable_connect_sockets_.size();
     }
 
     // Clone made during last iteration.
@@ -289,15 +301,17 @@ public:
     // Used to create new connections when reaching the limit.
     uint32_t CreateNewConnections(int32_t how_many, int32_t port_index, int32_t db_index);
 
+#ifdef GW_PROXY_MODE
     // Allocates a bunch of new connections.
     uint32_t CreateProxySocket(SocketDataChunk* proxy_sd);
+#endif
 
     // Functions to process finished IOCP events.
     uint32_t FinishReceive(SocketDataChunk*& sd, int32_t numBytesReceived, bool& called_from_receive);
     uint32_t FinishSend(SocketDataChunk*& sd, int32_t numBytesSent);
     uint32_t FinishDisconnect(SocketDataChunk*& sd);
     uint32_t FinishConnect(SocketDataChunk*& sd);
-    uint32_t FinishAccept(SocketDataChunk*& sd, int32_t numBytesReceived);
+    uint32_t FinishAccept(SocketDataChunk*& sd);
 
     // Running connect on socket data.
     uint32_t Connect(SocketDataChunk*& sd, sockaddr_in *serverAddr);
@@ -370,10 +384,10 @@ public:
 #ifdef GW_TESTING_MODE
 
     // Sends HTTP echo to master.
-    uint32_t SendHttpEcho(SocketDataChunk *sd, int64_t echo_id);
+    uint32_t SendHttpEcho(SocketDataChunk *sd, echo_id_type echo_id);
 
     // Sends raw echo to master.
-    uint32_t SendRawEcho(SocketDataChunk *sd, int64_t echo_id);
+    uint32_t SendRawEcho(SocketDataChunk *sd, echo_id_type echo_id);
 
 #endif
 };

@@ -96,6 +96,13 @@ class SocketDataChunk
 
 public:
 
+#ifdef GW_LOOPED_TEST_MODE
+
+    // Pushing given sd to network emulation queue.
+    void PushToNetworkEmulationQueue(GatewayWorker* gw);
+
+#endif
+
     // Checks if socket data is in correct state.
     uint32_t AssertCorrectState()
     {
@@ -569,36 +576,58 @@ public:
     }
 
     // Start receiving on socket.
-    uint32_t ReceiveSingleChunk(uint32_t *numBytes)
+    uint32_t ReceiveSingleChunk(GatewayWorker *gw, uint32_t *num_bytes)
     {
         type_of_network_oper_ = RECEIVE_SOCKET_OPER;
         memset(&ovl_, 0, OVERLAPPED_SIZE);
-        return WSARecv(sock_, (WSABUF *)&accum_buf_, 1, (LPDWORD)numBytes, (LPDWORD)&recv_flags_, &ovl_, NULL);
+
+#ifdef GW_LOOPED_TEST_MODE
+        PushToNetworkEmulationQueue(gw);
+        return WSA_IO_PENDING;
+#endif
+
+        return WSARecv(sock_, (WSABUF *)&accum_buf_, 1, (LPDWORD)num_bytes, (LPDWORD)&recv_flags_, &ovl_, NULL);
     }
 
     // Start receiving on socket using multiple chunks.
-    uint32_t ReceiveMultipleChunks(core::shared_interface* shared_int, uint32_t *numBytes)
+    uint32_t ReceiveMultipleChunks(GatewayWorker *gw, core::shared_interface* shared_int, uint32_t* num_bytes)
     {
         type_of_network_oper_ = RECEIVE_SOCKET_OPER;
         memset(&ovl_, 0, OVERLAPPED_SIZE);
 
+#ifdef GW_LOOPED_TEST_MODE
+        PushToNetworkEmulationQueue(gw);
+        return WSA_IO_PENDING;
+#endif
+
         // NOTE: Need to subtract two chunks from being included in receive.
-        return WSARecv(sock_, (WSABUF*)&(shared_int->chunk(extra_chunk_index_)), num_chunks_ - 2, (LPDWORD)numBytes, (LPDWORD)&recv_flags_, &ovl_, NULL);
+        return WSARecv(sock_, (WSABUF*)&(shared_int->chunk(extra_chunk_index_)), num_chunks_ - 2, (LPDWORD)num_bytes, (LPDWORD)&recv_flags_, &ovl_, NULL);
     }
 
     // Start sending on socket.
-    uint32_t SendSingleChunk(uint32_t *numBytes)
+    uint32_t SendSingleChunk(GatewayWorker* gw, uint32_t *numBytes)
     {
         type_of_network_oper_ = SEND_SOCKET_OPER;
         memset(&ovl_, 0, OVERLAPPED_SIZE);
+
+#ifdef GW_LOOPED_TEST_MODE
+        PushToNetworkEmulationQueue(gw);
+        return WSA_IO_PENDING;
+#endif
+
         return WSASend(sock_, (WSABUF *)&accum_buf_, 1, (LPDWORD)numBytes, 0, &ovl_, NULL);
     }
 
     // Start sending on socket.
-    uint32_t SendMultipleChunks(core::shared_interface* shared_int, uint32_t *numBytes)
+    uint32_t SendMultipleChunks(GatewayWorker* gw, core::shared_interface* shared_int, uint32_t *numBytes)
     {
         type_of_network_oper_ = SEND_SOCKET_OPER;
         memset(&ovl_, 0, OVERLAPPED_SIZE);
+
+#ifdef GW_LOOPED_TEST_MODE
+        PushToNetworkEmulationQueue(gw);
+        return WSA_IO_PENDING;
+#endif
 
         // NOTE: Need to subtract two chunks from being included in send.
         return WSASend(sock_, (WSABUF*)&(shared_int->chunk(extra_chunk_index_)), num_chunks_ - 2, (LPDWORD)numBytes, 0, &ovl_, NULL);
@@ -609,6 +638,11 @@ public:
     {
         type_of_network_oper_ = ACCEPT_SOCKET_OPER;
         memset(&ovl_, 0, OVERLAPPED_SIZE);
+
+#ifdef GW_LOOPED_TEST_MODE
+        PushToNetworkEmulationQueue(gw);
+        return FALSE;
+#endif
 
         // Running Windows API AcceptEx function.
         return AcceptExFunc(
@@ -627,14 +661,26 @@ public:
     {
         type_of_network_oper_ = CONNECT_SOCKET_OPER;
         memset(&ovl_, 0, OVERLAPPED_SIZE);
+
+#ifdef GW_LOOPED_TEST_MODE
+        PushToNetworkEmulationQueue(gw);
+        return FALSE;
+#endif
+
         return ConnectExFunc(sock_, (SOCKADDR *) serverAddr, sizeof(sockaddr_in), NULL, 0, NULL, &ovl_);
     }
 
     // Start disconnecting socket.
-    uint32_t Disconnect()
+    uint32_t Disconnect(GatewayWorker *gw)
     {
         type_of_network_oper_ = DISCONNECT_SOCKET_OPER;
         memset(&ovl_, 0, OVERLAPPED_SIZE);
+
+#ifdef GW_LOOPED_TEST_MODE
+        PushToNetworkEmulationQueue(gw);
+        return FALSE;
+#endif
+
         return DisconnectExFunc(sock_, &ovl_, TF_REUSE_SOCKET, 0);
     }
 

@@ -434,12 +434,10 @@ uint32_t AppsPortProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER
     // Checking if data goes to user code.
     if (sd->get_to_database_direction_flag())
     {
-        // Looking for attached session or generating a new one.
-        /*if (sd->GetAttachedSession() == NULL)
-        {
-            // Generating and attaching new session.
-            sd->AttachToSession(g_gateway.GenerateNewSession(gw));
-        }*/
+        // Resetting user data parameters.
+        sd->set_user_data_written_bytes(sd->get_accum_buf()->get_accum_len_bytes());
+        sd->ResetUserDataOffset();
+        sd->ResetMaxUserDataBytes();
 
         // Push chunk to corresponding channel/scheduler.
         // TODO: Deal with situation when not able to push.
@@ -500,59 +498,57 @@ uint32_t GatewayPortProcessEcho(GatewayWorker *gw, SocketDataChunk *sd, BMX_HAND
     }
     else
     {
-        if (g_gateway.setting_mode() == GatewayTestingMode::MODE_GATEWAY_PING)
-        {
-            // Asserting correct number of bytes received.
-            assert(sd->get_accum_buf()->get_accum_len_bytes() == 16);
+        // Asserting correct number of bytes received.
+        assert(sd->get_accum_buf()->get_accum_len_bytes() == 16);
 
-            // Obtaining original echo number.
-            int64_t echo_id = *(int32_t*)(sd->get_data_blob() + 8);
+        // Obtaining original echo number.
+        echo_id_type echo_id = *(int32_t*)(sd->get_data_blob() + 8);
 
 #ifdef GW_ECHO_STATISTICS
-            GW_PRINT_WORKER << "Received echo: " << echo_id << std::endl;
+        GW_PRINT_WORKER << "Received echo: " << echo_id << std::endl;
 #endif
 
-            // Confirming received echo.
-            g_gateway.ConfirmEcho(echo_id);
+        // Confirming received echo.
+        g_gateway.ConfirmEcho(echo_id);
 
-            // Checking if all echo responses are returned.
-            if (g_gateway.CheckConfirmedEchoResponses())
-            {
-                GW_COUT << "All ECHO messages are confirmed on the client." << std::endl;
+        // Checking if all echo responses are returned.
+        if (g_gateway.CheckConfirmedEchoResponses())
+        {
+            // Gracefully finishing the test.
+            g_gateway.ShutdownTest(true);
 
-                // Returning this chunk to database.
-                WorkerDbInterface *db = gw->GetWorkerDb(sd->get_db_index());
-                assert(db != NULL);
+            // Returning this chunk to database.
+            WorkerDbInterface *db = gw->GetWorkerDb(sd->get_db_index());
+            assert(db != NULL);
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
-                sd->set_socket_diag_active_conn_flag(false);
+            sd->set_socket_diag_active_conn_flag(false);
 #endif
 
-                // Returning chunks to pool.
-                return db->ReturnSocketDataChunksToPool(gw, sd);
+            // Returning chunks to pool.
+            return db->ReturnSocketDataChunksToPool(gw, sd);
                         
-                /*
-                EnterGlobalLock();
-                g_gateway.ResetEchoTests();
-                LeaveGlobalLock();
-                return 0;
-                */
-            }
-            else
-            {
-                goto SEND_RAW_ECHO_TO_MASTER;
-            }
+            /*
+            EnterGlobalLock();
+            g_gateway.ResetEchoTests();
+            LeaveGlobalLock();
+            return 0;
+            */
+        }
+        else
+        {
+            goto SEND_RAW_ECHO_TO_MASTER;
+        }
 
 SEND_RAW_ECHO_TO_MASTER:
 
-            // Checking that not all echoes are sent.
-            if (!g_gateway.AllEchoesSent())
-            {
-                // Sending echo request to server.
-                err_code = gw->SendRawEcho(sd, g_gateway.GetNextEchoNumber());
-                if (err_code)
-                    return err_code;
-            }
+        // Checking that not all echoes are sent.
+        if (!g_gateway.AllEchoesSent())
+        {
+            // Sending echo request to server.
+            err_code = gw->SendRawEcho(sd, g_gateway.GetNextEchoNumber());
+            if (err_code)
+                return err_code;
         }
     }
 
