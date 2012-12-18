@@ -32,7 +32,10 @@ inline bool monitor_interface::out::is_data_available() const {
 #endif /// TODO: Figure how to bind this.
 
 inline monitor_interface::monitor_interface()
-: in_(), out_(), is_ready_flag_(false) {}
+: in_(),
+out_(),
+is_ready_flag_(false),
+cleanup_task_() {}
 
 inline void monitor_interface::wait_until_ready() {
 	boost::interprocess::scoped_lock<boost::interprocess
@@ -487,6 +490,132 @@ inline void monitor_interface::set_owner_id(owner_id oid) {
 
 inline owner_id monitor_interface::get_owner_id() const {
 	return out_.owner_id_;
+}
+
+inline monitor_interface::cleanup_task::cleanup_task()
+: segment_name_mask_(0),
+cleanup_mask_(0) {
+	// Initialize segment_name_[s] to 0. 
+	for (std::size_t s = 0; s < max_number_of_databases; ++s) {
+		*segment_name_[s] = 0;
+	}
+}
+
+//------------------------------------------------------------------------------
+inline int32_t monitor_interface::cleanup_task::insert_segment_name
+(const char* segment_name) {
+	int32_t i;
+	mask_type old_mask = segment_name_mask_;
+	mask_type current_mask = old_mask;
+	mask_type new_mask;
+
+	while (true) {
+		// Calculate the new_mask.
+		i = 0;
+
+		// bit_scan_forward() returns a valid index if at least one bit is set.
+		if (~segment_name_mask_) {
+			// Search for the first 0 bit.
+			i = bit_scan_forward(~segment_name_mask_);
+		}
+		else {
+			// Trying to insert more segment name's than can fit. A bug.
+			return -1;
+		}
+
+		new_mask = segment_name_mask_ | 1ULL << i;
+
+		// set the new value if the current value is still the expected one
+		current_mask = InterlockedCompareExchange(&segment_name_mask_, new_mask,
+		old_mask);
+		
+		if (current_mask == old_mask) {
+			// The exchange happened.
+			break;
+		}
+
+		// The exchange did not happen, someone else have changed the segment_name_mask_.
+		if (current_mask != -1LL) {
+			old_mask = current_mask;
+		}
+		else {
+			// Trying to insert more segment name's than can fit. A bug.
+			return -1;
+		}
+	}
+
+	// Successfully acquired an index. Inserting the segment name.
+	std::strcpy(segment_name_[i], segment_name);
+	_mm_mfence();
+	return i;
+}
+
+inline const char* monitor_interface::cleanup_task::get_a_segment_name() {
+	int32_t i;
+	mask_type old_mask = cleanup_mask_;
+	mask_type current_mask = old_mask;
+	mask_type new_mask;
+
+	while (true) {
+		// Calculate the new_mask.
+		i = 0;
+
+		// bit_scan_forward() returns a valid index if at least one bit is set.
+		if (cleanup_mask_) {
+			i = bit_scan_forward(cleanup_mask_);
+		}
+
+		new_mask = cleanup_mask_ & ~(1ULL << i);
+
+		// set the new value if the current value is still the expected one
+		current_mask = InterlockedCompareExchange(&cleanup_mask_, new_mask,
+		old_mask);
+		
+		if (current_mask == old_mask) {
+			// The exchange happened.
+			break;
+		}
+
+		// The exchange did not happen, someone else have changed the cleanup_mask_.
+		if (current_mask != 0) {
+			old_mask = current_mask;
+		}
+		else {
+			// There are no segment names in the table. Possibly a bug.
+			return 0;
+		}
+	}
+
+	// Found a segment_name.
+	return segment_name_[i];
+}
+
+inline void monitor_interface::cleanup_task::set_cleanup_flag(int32_t index) {
+	mask_type old_mask = cleanup_mask_;
+	mask_type current_mask = old_mask;
+	mask_type new_mask;
+
+	while (true) {
+		// Calculate the new_mask.
+		new_mask = cleanup_mask_ | 1ULL << index;
+
+		// set the new value if the current value is still the expected one
+		current_mask = InterlockedCompareExchange(&cleanup_mask_, new_mask,
+		old_mask);
+		
+		if (current_mask == old_mask) {
+			// The exchange happened.
+			break;
+		}
+
+		// The exchange did not happen, someone else have changed the cleanup_mask_.
+		old_mask = current_mask;
+	}
+	_mm_mfence();
+}
+
+inline uint64_t monitor_interface::cleanup_task::get_cleanup_flag() {
+	return cleanup_mask_;
 }
 
 // output operator for monitor_interface::process_type

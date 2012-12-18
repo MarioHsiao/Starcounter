@@ -16,14 +16,16 @@ namespace starcounter {
 namespace core {
 
 monitor::monitor(int argc, wchar_t* argv[])
-: monitor_interface_(),
+: ipc_monitor_cleanup_event_(),
+monitor_interface_(),
 active_segments_update_(active_segments_buffer_capacity),
 active_databases_updated_flag_(false),
 registrar_(),
+cleanup_(),
 active_databases_file_updater_thread_(),
-#if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
+#if defined (IPC_MONITOR_SHOW_ACTIVITY)
 resources_watching_thread_(),
-#endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
+#endif // defined (IPC_MONITOR_SHOW_ACTIVITY)
 owner_id_counter_(1) {
 	/// TODO: Use Boost.Program_options.
 	/// ScErrCreateMonitorInterface is reserved in errorcodes.xml for later use.
@@ -114,6 +116,37 @@ owner_id_counter_(1) {
 	monitor_interface_shared_memory_object_name = server_name_ +"_"
 	+MONITOR_INTERFACE_SUFFIX;
 	
+	//--------------------------------------------------------------------------
+	// Construct the ipc_monitor_cleanup_event_name.
+	char ipc_monitor_cleanup_event_name[ipc_monitor_cleanup_event_name_size];
+
+	// Format: "Local\<server_name>_ipc_monitor_cleanup_event".
+	if ((length = _snprintf_s(ipc_monitor_cleanup_event_name, _countof
+	(ipc_monitor_cleanup_event_name), ipc_monitor_cleanup_event_name_size
+	-1 /* null */, "Local\\%s_ipc_monitor_cleanup_event", server_name_.c_str()))
+	< 0) {
+		throw bad_monitor("failed to format the ipc_monitor_cleanup_event_name");
+	}
+	ipc_monitor_cleanup_event_name[length] = '\0';
+
+	wchar_t w_ipc_monitor_cleanup_event_name[ipc_monitor_cleanup_event_name_size];
+
+	/// TODO: Fix insecure
+	if ((length = mbstowcs(w_ipc_monitor_cleanup_event_name,
+	ipc_monitor_cleanup_event_name, segment_name_size)) < 0) {
+		// Failed to convert ipc_monitor_cleanup_event_name to multi-byte string.
+		throw bad_monitor("failed to convert ipc_monitor_cleanup_event_name to multi-byte string");
+	}
+	w_ipc_monitor_cleanup_event_name[length] = L'\0';
+
+	// Create the ipc_monitor_cleanup_event_ to be used when waiting for a
+	// database to finnish doing its part of the cleanup.
+	if ((ipc_monitor_cleanup_event_ = ::CreateEvent(NULL, TRUE, FALSE,
+	w_ipc_monitor_cleanup_event_name)) == NULL) {
+		// Failed to create event.
+		throw bad_monitor("failed to create the ipc_monitor_cleanup_event");
+	}
+
 	//--------------------------------------------------------------------------
 	// Check if the monitor_interface with the name
 	// monitor_interface_shared_memory_object_name already exist. That indicates
@@ -237,11 +270,12 @@ monitor::~monitor() {
 	}
 	
 	registrar_.join();
+	cleanup_.join();
 	active_databases_file_updater_thread_.join();
 
-#if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
+#if defined (IPC_MONITOR_SHOW_ACTIVITY)
 	resources_watching_thread_.join();
-#endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
+#endif // defined (IPC_MONITOR_SHOW_ACTIVITY)
 }
 
 void monitor::run() {
@@ -275,29 +309,25 @@ void monitor::run() {
 	// for those threads have been stored, since it is used in the call to
 	// QueueUserAPC() by the registrar_ thread.
 	registrar_ = boost::thread(boost::bind(&monitor::registrar, this));
+
+	// Start the clean up thread.
+	cleanup_ = boost::thread(boost::bind(&monitor::cleanup, this));
 	
 	// Start the active databases thread.
 	active_databases_file_updater_thread_ = boost::thread(boost::bind
 	(&monitor::update_active_databases_file, this));
 	
-#if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
+#if defined (IPC_MONITOR_SHOW_ACTIVITY)
 	// Start the resources watching thread.
 	resources_watching_thread_ = boost::thread(boost::bind
 	(&monitor::watch_resources, this));
-#endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
+#endif // defined (IPC_MONITOR_SHOW_ACTIVITY)
 }
 
 void monitor::wait_for_database_process_event(std::size_t group) {
-	using boost::detail::win32::handle;
-	using boost::detail::win32::infinite;
-	
-	std::string header_message = "monitor::wait_for_database_process_event "
-	"(group " +boost::lexical_cast<std::string>(group) +"):\n";
-	std::string message;
-	message.reserve(0x100);
 	// The event code returned from WaitForMultipleObjectsEx() and SleepEx().
-	DWORD event_code = 0;
-	boost::detail::win32::handle the_event;
+	uint32_t event_code = 0;
+	HANDLE the_event;
 	
 	/// TODO: termination
 	while (true) {
@@ -306,11 +336,11 @@ void monitor::wait_for_database_process_event(std::size_t group) {
 			event_code = WaitForMultipleObjectsEx(
 			database_process_group_[group].event_.size(),
 			event::const_iterator(&database_process_group_[group].event_[0]),
-			false, infinite, true);
+			false, INFINITE, true);
 		}
 		else {
 			// No process exit_event(s) to wait for, just wait for an APC.
-			event_code = SleepEx(infinite, true);
+			event_code = SleepEx(INFINITE, true);
 		}
 		
 		/// If the vector was updated in the APC call it is either the same
@@ -325,12 +355,9 @@ void monitor::wait_for_database_process_event(std::size_t group) {
 			= process_register_.begin(); process_register_it
 			!= process_register_.end(); ++process_register_it) {
 				if (process_register_it->second.get_handle() == exit_event) {
-					std::string pt;
-					
 					switch (process_register_it->second.get_process_type()) {
 					case monitor_interface::database_process: /// It must be!
-						pt = "database"; /// debug
-						// A registrered database process exit (crashed):
+						// A registrered database process terminated:
 						// All clients that think they are still connected to
 						// the database process need to know that it is down.
 						// Try to set the state to
@@ -426,10 +453,8 @@ void monitor::wait_for_database_process_event(std::size_t group) {
 						}
 						break;
 					case monitor_interface::client_process: /// It can't be!
-						pt = "client"; /// debug
 						break;
 					default: /// Impossible!
-						pt = "unknown"; /// debug
 						// Unknown proess type exit. Cosmic X-ray corrupted RAM?
 						break;
 					}
@@ -580,16 +605,9 @@ void monitor::wait_for_database_process_event(std::size_t group) {
 }
 
 void monitor::wait_for_client_process_event(std::size_t group) {
-	using boost::detail::win32::handle;
-	using boost::detail::win32::infinite;
-	
-	std::string header_message = "monitor::wait_for_client_process_event "
-	"(group " +boost::lexical_cast<std::string>(group) +"):\n";
-	std::string message;
-	message.reserve(0x100);
 	// The event code returned from WaitForMultipleObjectsEx() and SleepEx().
 	uint32_t event_code = 0;
-	boost::detail::win32::handle the_event;
+	HANDLE the_event;
 	
 	/// TODO: termination
 	while (true) {
@@ -598,11 +616,11 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 			event_code = WaitForMultipleObjectsEx(
 			client_process_group_[group].event_.size(),
 			event::const_iterator(&client_process_group_[group].event_[0]),
-			false, infinite, true);
+			false, INFINITE, true);
 		}
 		else {
 			// No process exit_event(s) to wait for, just wait for an APC.
-			event_code = SleepEx(infinite, true);
+			event_code = SleepEx(INFINITE, true);
 		}
 		
 		/// If the vector was updated in the APC call it is either the same
@@ -619,11 +637,8 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 				owner_id owner_id_of_terminated_process(owner_id::none);
 				
 				if (process_register_it->second.get_handle() == exit_event) {
-					std::string pt;
-					
 					switch (process_register_it->second.get_process_type()) {
 					case monitor_interface::client_process: /// It must be!
-						pt = "client"; /// debug
 						owner_id_of_terminated_process
 						= process_register_it->first;
 						
@@ -665,11 +680,15 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 							// mapping all is very dangerous because we can be
 							// out of memory and the system goes down.
 							
+							/// TODO: Try to optimize and hold this mutex
+							/// for the shortest time possible, as usual.
+							boost::mutex::scoped_lock register_lock(register_mutex_);
+
 							// Search for all segment names in the register.
 							for (process_register_type::iterator
 							process_register_it_2 = process_register_.begin();
 							process_register_it_2 != process_register_.end();
-							++process_register_it_2) {
+							++process_register_it_2) { /// Iterating through process_register, trying to find databases
 								if (process_register_it_2
 								->second.get_segment_name().empty()) {
 									// Not a database process.
@@ -677,10 +696,15 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 								}
 								
 								// Found a database shared memory segment.
-								
+								int32_t cleanup_task_index = the_monitor_interface_->insert_segment_name(process_register_it_2->second.get_segment_name().c_str());
+
+								if (cleanup_task_index == -1) {
+									std::cout << "Could not insert segment name. Bug!" << std::endl;
+								}
+
 								shared_interface shared(process_register_it_2
 								->second.get_segment_name(), std::string(),
-								pid_type(pid_type::no_pid));
+								pid_type(pid_type::no_pid)); /// (1)
 								
 								// If failed to open the segment, a
 								// shared_interface_exception is thrown.
@@ -694,22 +718,12 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 								std::size_t channels_to_recover = 0;
 								
 								// For each client_interface, find the ones that
-								// have the same owner_id:
-								// • Set the owner_id's clean up flag, thereby
-								//   indirectly marking all resources (chunks
-								//   and channels) that the client process
-								//   owned, for clean up. This prepares for the
-								//   clean up job to be done by the schedulers.
-								//print_event_register();
-								
+								// have the owner_id_of_terminated_process.
 								for (std::size_t n = 0; n < max_number_of_clients; ++n) {
 									if (shared.client_interface(n).get_owner_id()
 									== owner_id_of_terminated_process) {
 										client_interface_type* client_interface_ptr
 										= &shared.client_interface(n);
-										
-										//common_client_interface_type* common_client_interface_ptr
-										//= &shared.common_client_interface();
 										
 										_mm_mfence();
 
@@ -727,7 +741,7 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 										.number_of_active_schedulers(); ++si) {
 											if (shared.scheduler_interface(si).channel_number()
 											.if_locked_with_id_recover_and_unlock
-											(owner_id_of_terminated_process.get()) == true) {
+											(owner_id_of_terminated_process.get()) == true) { /// (2)
 												//std::cout << "Unlocked scheduler_interface(" << si
 												//<< ") with owner_id_of_terminated_process = "
 												//< owner_id_of_terminated_process.get() << std::endl;
@@ -737,20 +751,22 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 											//}
 										}
 #endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-
+										
 										if (client_interface_ptr) {
 											//common_client_interface_ptr->increment_client_interfaces_to_clean_up();
-											shared.common_client_interface().increment_client_interfaces_to_clean_up();
+											shared.common_client_interface().increment_client_interfaces_to_clean_up(); /// (3)
+											client_interface_ptr->database_cleanup_index() = cleanup_task_index;
 
 											// I think it is important that the increment above is done before
 											// marking for clean up below.
 											_mm_mfence();
 											_mm_lfence(); // serializes instructions
-											client_interface_ptr->get_owner_id().mark_for_clean_up();
-											
-											/// If no schedulers will do it then the monitor must do it.
 
-											++channels_to_recover;
+											// Set the owner_id's clean up flag, thereby
+											// indirectly marking all resources (chunks
+											// and channels) that the client process
+											// owned, for clean up.
+											client_interface_ptr->get_owner_id().mark_for_clean_up(); /// (4)
 										}
 
 										// For each of the channels the client
@@ -760,7 +776,7 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 										// For each mask word, bitscan to find the channels owned by the terminated client.
 										for (uint32_t ch_index = 0; ch_index < resource_map::channels_mask_size; ++ch_index) {
 											for (resource_map::mask_type mask = client_interface_ptr->get_resource_map()
-											.get_owned_channels_mask(ch_index); mask; mask &= mask -1) {
+											.get_owned_channels_mask(ch_index); mask; mask &= mask -1) { /// (5)
 												uint32_t ch = bit_scan_forward(mask);
 												ch += ch_index << resource_map::shift_bits_in_mask_type;
 												channel_type& the_channel = shared.channel(ch);
@@ -771,6 +787,9 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 													scheduler_interface_ptr = &shared.scheduler_interface(the_scheduler_number);
 												}
 
+												HANDLE notify_scheduler_to_do_clean_up_event
+												= shared.scheduler_work_event(the_channel.get_scheduler_number());
+
 												// A fence is needed so that all accesses to the channel is
 												// completed when marking it to be released.
 												_mm_mfence();
@@ -779,22 +798,13 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 												// Mark channel to be released.
 												// After this the channel cannot
 												// be accessed by the monitor.
-												the_channel.set_to_be_released();
+												the_channel.set_to_be_released(); /// (6)
+												++channels_to_recover;
 												
-												// The scheduler may be waiting,
-												// so try to notify it.
-												
-												// Try to notify the scheduler
-												// that probes this channel.
+												// The scheduler may be waiting. Try to notify the scheduler that probes this channel.
 												if (scheduler_interface_ptr) {
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 													if ((scheduler_interface_ptr->try_to_notify_scheduler_to_do_clean_up
-													(shared.scheduler_work_event(the_channel.get_scheduler_number()))) == true) {
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-													// Wait up to 64 ms / channel.
-													if ((scheduler_interface_ptr->try_to_notify_scheduler_to_do_clean_up
-													(64 /* ms to wait */)) == true) {
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
+													(notify_scheduler_to_do_clean_up_event)) == true) {
 														// Succeessfully notified the scheduler on this channel.
 													}
 													else {
@@ -808,13 +818,50 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 										}
 									}
 								}
-								
-								// The schedulers in this segment were
-								// notified and number of resources to recover.
-								//process_register_it_2->second.get_segment_name()
-								// were notified to perform clean up.
-							}
-						}
+#if 0 // moved to cleanup()
+								bool recover_chunks = false;
+
+								// Wait until all channels of this database have been released,
+								// before releasing the chunks and client_interface, if any.
+								if (channels_to_recover) {
+									/// Wait for signal from the database to finnish releasing channels.
+									std::cout << "Waiting for scheduler(s) to release channels in database segment "
+									<< process_register_it_2->second.get_segment_name() << std::endl;
+
+									switch (::WaitForSingleObject(ipc_monitor_cleanup_event_, INFINITE)) {
+									case WAIT_OBJECT_0:
+										// The scheduler was notified to recover resources,
+										// the database is done with recovering the channels.
+										// If queue is empty, ::ResetEvent(ipc_monitor_clean_up_event);
+										recover_chunks = true;
+										break;
+									case WAIT_TIMEOUT:
+										// The IPC monitor was not notified. A timeout occurred.
+										std::cout << "Timeout." << std::endl;
+										break;
+									case WAIT_FAILED:
+										// The IPC monitor was not notified. An error occurred.
+										std::cout << "Wait failed." << std::endl;
+										break;
+									}
+								}
+								else {
+									std::cout << "No channels to recover." << std::endl;
+								}
+
+								///=============================================
+								/// Recover chunks.
+								///=============================================
+
+								if (recover_chunks) {
+									std::cout << "Recovering chunks." << std::endl;
+								}
+								else {
+									std::cout << "Not recovering chunks." << std::endl;
+								}
+#endif // moved to cleanup()
+							} /// Iterating through process_register, trying to find databases
+						} /// Try body. Unlocks register_lock.
 						catch (shared_interface_exception&) {
 							// Failed to open the database shared memory segment and
 							// is unable to notify the clients.
@@ -829,7 +876,6 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 						break;
 
 					case monitor_interface::database_process: /// It can't be!
-						pt = "database"; /// debug
 						// A registrered database process exit (crashed):
 						// All clients that think they are still connected to
 						// the terminated database process need to know...set
@@ -839,13 +885,12 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 						break;
 					
 					default: /// Impossible!
-						pt = "unknown"; /// debug
 						// Unknown proess type exit. Cosmic X-ray corrupted RAM?
 						break;
-					}
+					} /// Getting iterator to process register.
 					break;
-				}
-			}
+				} /// Found event == exit event
+			} /// Search for client process exit_event in the process_register_.
 			remove_client_process_event(group, event_code);
 		}
 		else {
@@ -969,10 +1014,6 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 /// private:
 
 void monitor::registrar() {
-	std::string header_message = "monitor::registrar():\n";
-	std::string message;
-	message.reserve(0x100);
-	
 	/// TODO: Shutdown mechanism.
 	while (true) {
 		the_monitor_interface_->wait_for_registration();
@@ -1079,6 +1120,32 @@ void monitor::registrar() {
 	}
 }
 
+void monitor::cleanup() {
+	/// TODO: Shutdown mechanism.
+	while (true) {
+		std::cout << the_monitor_interface_->get_cleanup_flag() << std::endl;
+		Sleep(100);
+		continue;
+
+		switch (::WaitForSingleObject(ipc_monitor_cleanup_event_, INFINITE)) {
+		case WAIT_OBJECT_0:
+			// The scheduler was notified to recover resources,
+			// the database is done with recovering the channels.
+			// If queue is empty, ::ResetEvent(ipc_monitor_clean_up_event);
+			std::cout << "Recovering chunks." << std::endl;
+			break;
+		case WAIT_TIMEOUT:
+			// The IPC monitor was not notified. A timeout occurred.
+			std::cout << "Timeout." << std::endl;
+			break;
+		case WAIT_FAILED:
+			// The IPC monitor was not notified. An error occurred.
+			std::cout << "Wait failed." << std::endl;
+			break;
+		}
+	}
+}
+
 void __stdcall monitor::apc_function(boost::detail::win32::ulong_ptr arg) {
 	// Instead of accessing the object from here like this:
 	// reinterpret_cast<monitor*>(arg)->do_registration();
@@ -1098,7 +1165,7 @@ inline owner_id monitor::get_new_owner_id() {
 	// used to flag clean-up so the range is about 31-bits.
 
 	//--------------------------------------------------------------------------
-	// At most max_number_of_monitored_processes +2 (0 and 1) IDs can be taken.
+	// At most max_number_of_monitored_processes +2 (0 and 1) IDs can be in use.
 	for (std::size_t i = 0; i < max_number_of_monitored_processes +2; ++i) {
 		++owner_id_counter_;
 		owner_id_counter_ &= owner_id::id_field;
@@ -1267,7 +1334,7 @@ void monitor::print_rate_with_precision(double rate) {
 /// NOTE: Originally was ment to be able to show multiple databases at once,
 /// which it can but then statistics are messed up completely. Only test with
 /// one database running.
-#if defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
+#if defined (IPC_MONITOR_SHOW_ACTIVITY)
 void monitor::watch_resources() {
 	// Vector of all shared interfaces.
 	std::vector<boost::shared_ptr<shared_interface> > shared;
@@ -1623,7 +1690,7 @@ void monitor::remove_database_process_event(process_info::handle_type e) {
 	}
 }
 
-#endif // defined (CONNECTIVITY_MONITOR_SHOW_ACTIVITY)
+#endif // defined (IPC_MONITOR_SHOW_ACTIVITY)
 
 void monitor::remove_database_process_event(std::size_t group, uint32_t
 event_code) {
