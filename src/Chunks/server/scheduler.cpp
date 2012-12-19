@@ -59,7 +59,6 @@ typedef struct _sc_io_event
 	unsigned long chunk_index_;
 } sc_io_event;
 
-EXTERN_C unsigned long sc_sizeof_port();
 EXTERN_C unsigned long sc_initialize_port(void *port, const char *name, unsigned long port_number, owner_id_value_type owner_id_value);
 EXTERN_C unsigned long server_get_next_signal_or_task(void *port, unsigned int timeout_milliseconds, sc_io_event *pio_event);
 EXTERN_C unsigned long server_get_next_signal(void *port, unsigned int timeout_milliseconds, unsigned long *pchunk_index);
@@ -1432,12 +1431,6 @@ inline void server_port::show_linked_chunks(chunk_index head) {
 
 } // namespace core
 } // namespace starcounter
-
-unsigned long sc_sizeof_port()
-{
-	using namespace starcounter::core;
-	return sizeof(server_port);
-}
 
 unsigned long sc_initialize_port(void *port, const char *name, unsigned
 long port_number, owner_id_value_type owner_id_value) {
