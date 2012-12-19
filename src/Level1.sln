@@ -95,7 +95,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.MsBuild", "Star
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Web.Tests", "Starcounter.Web.Tests\Starcounter.Web.Tests.csproj", "{8670B44F-5240-4E27-AEAC-E7C58F626777}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Weaver", "Weaver\Weaver.csproj", "{76C95AD5-A9B4-4672-856A-18A1CE45D2B1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "scweaver", "scweaver\scweaver.csproj", "{76C95AD5-A9B4-4672-856A-18A1CE45D2B1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ThirdParty", "ThirdParty", "{5069EDE6-F3FE-4CD3-89C8-1AF15ED4B047}"
 EndProject
