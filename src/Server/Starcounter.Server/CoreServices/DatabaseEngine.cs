@@ -240,6 +240,7 @@ namespace Starcounter.Server {
             process.Refresh();
             if (process.HasExited) {
                 process.Close();
+                database.Apps.Clear();
                 database.WorkerProcess = null;
                 return false;
             }
