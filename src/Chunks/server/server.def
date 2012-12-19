@@ -3,7 +3,6 @@ LIBRARY "server"
 
 EXPORTS
 	sc_initialize_io_service
-	sc_sizeof_port
 	sc_initialize_port
 	server_get_next_signal_or_task
 	server_get_next_signal
