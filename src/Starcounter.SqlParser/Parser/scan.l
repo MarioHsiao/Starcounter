@@ -315,7 +315,7 @@ colon_equals	":"\x00"="\x00
  */
 self			[,()\[\].;\:\?\+\-\*\/\%\^\<\>\=]\x00
 op_chars		[\~\!\@\#\^\&\|\`\+\-\*\/\%\<\>\=]\x00
-operator		{op_chars}+
+operator		{op_chars}{op_chars}
 
 /* we no longer allow unary minus in numbers.
  * instead we pass it separately to parser. there it gets
@@ -679,25 +679,13 @@ other			.\x00
 
 {operator}		{
 					/*
-					 * Check for embedded slash-star or dash-dash; those
-					 * are comment starts, so operator must stop there.
 					 * Note that slash-star or dash-dash at the first
 					 * character will match a prior rule, not this one.
 					 */
-					int		nchars = yyleng;
-					char   *slashstar = strstr(yytext, "/*");
-					char   *dashdash = strstr(yytext, "--");
+					if (wcscmp(yytext,L"/*") || wcscmp(yytext,L"--"))
+						yyerror("unexpected to get comment operator in 2char operator rule");
 
-					if (slashstar && dashdash)
-					{
-						/* if both appear, take the first one */
-						if (slashstar > dashdash)
-							slashstar = dashdash;
-					}
-					else if (!slashstar)
-						slashstar = dashdash;
-					if (slashstar)
-						nchars = slashstar - yytext;
+					SET_YYLLOC();
 
 					/*
 					 * For SQL compatibility, '+' and '-' cannot be the
@@ -707,47 +695,11 @@ other			.\x00
 					 * to forbid operator names like '?-' that could not be
 					 * sequences of SQL operators.
 					 */
-					while (nchars > 1 &&
-						   (yytext[nchars-1] == '+' ||
-							yytext[nchars-1] == '-'))
+					if (strchr("+-", yytext[2]) && !strchr("~!@#^&|`?%", yytext[0]))
 					{
-						int		ic;
-
-						for (ic = nchars-2; ic >= 0; ic--)
-						{
-							if (strchr("~!@#^&|`?%", yytext[ic]))
-								break;
-						}
-						if (ic >= 0)
-							break; /* found a char that makes it OK */
-						nchars--; /* else remove the +/-, and check again */
+						yyless(2);
+						return yytext[0];
 					}
-
-					SET_YYLLOC();
-
-					if (nchars < yyleng)
-					{
-						/* Strip the unwanted chars from the token */
-						yyless(nchars);
-						/*
-						 * If what we have left is only one char, and it's
-						 * one of the characters matching "self", then
-						 * return it as a character token the same way
-						 * that the "self" rule would have.
-						 */
-						if (nchars == 1 &&
-							strchr(",()[].;:+-*/%^<>=", yytext[0]))
-							return yytext[0];
-					}
-
-					/*
-					 * Complain if operator is too long.  Unlike the case
-					 * for identifiers, we make this an error not a notice-
-					 * and-truncate, because the odds are we are looking at
-					 * a syntactic mistake anyway.
-					 */
-					if (nchars >= NAMEDATALEN)
-						yyerror("operator too long");
 
 					/* Convert "!=" operator to "<>" for compatibility */
 					if (strcmp(yytext, "!=") == 0)
