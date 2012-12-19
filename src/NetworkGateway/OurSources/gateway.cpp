@@ -112,12 +112,19 @@ Gateway::Gateway()
 
     // Number of connections to establish to master.
     setting_num_connections_to_master_ = 0;
+    setting_num_connections_to_master_per_worker_ = 0;
 
     // Number of echoes to send to master node from clients.
     setting_num_echoes_to_master_ = 0;
 
     // Setting operational mode.
     setting_mode_ = GatewayTestingMode::MODE_APPS_HTTP;
+
+    // Number of operations per second.
+    num_ops_per_second_ = 0;
+
+    // Number of measures.
+    num_ops_measures_ = 0;
 
 #endif    
 }
@@ -143,6 +150,14 @@ uint32_t Gateway::ReadArguments(int argc, wchar_t* argv[])
 
     // Copying other fields.
     setting_sc_server_type_ = temp;
+
+    // Converting to upper case.
+    std::transform(
+        setting_sc_server_type_.begin(),
+        setting_sc_server_type_.end(),
+        setting_sc_server_type_.begin(),
+        ::toupper);
+
     setting_config_file_path_ = argv[2];
     setting_log_file_dir_ = argv[3];
     setting_log_file_dir_ += L"\\network_gateway";
@@ -340,30 +355,6 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         localIpElem = localIpElem->next_sibling("LocalIP");
     }
 
-#ifdef GW_TESTING_MODE
-
-    // Getting master node IP address.
-    setting_master_ip_ = rootElem->first_node("MasterIP")->value();
-
-    // Master node does not need its own IP.
-    if (setting_master_ip_ == "")
-        setting_is_master_ = true;
-    else
-        setting_is_master_ = false;
-
-    // Number of connections to establish to master.
-    setting_num_connections_to_master_ = atoi(rootElem->first_node("NumConnectionsToMaster")->value());
-
-    // Number of echoes to send to master node from clients.
-    setting_num_echoes_to_master_ = atoi(rootElem->first_node("NumEchoesToMaster")->value());
-    confirmed_echoes_ = new uint8_t[setting_num_echoes_to_master_];
-    ResetEchoTests();
-
-    // Obtaining testing mode.
-    setting_mode_ = (GatewayTestingMode) atoi(rootElem->first_node("TestingMode")->value());
-
-#endif
-
     // Getting workers number.
     setting_num_workers_ = atoi(rootElem->first_node("WorkersNumber")->value());
 
@@ -382,6 +373,54 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
 
     // Initializing global timer.
     global_timer_unsafe_ = min_inactive_session_life_seconds_;
+
+#ifdef GW_TESTING_MODE
+
+    // Getting master node IP address.
+    setting_master_ip_ = rootElem->first_node("MasterIP")->value();
+
+    // Master node does not need its own IP.
+    if (setting_master_ip_ == "")
+        setting_is_master_ = true;
+    else
+        setting_is_master_ = false;
+
+    // Number of connections to establish to master.
+    setting_num_connections_to_master_ = atoi(rootElem->first_node("NumConnectionsToMaster")->value());
+    assert((setting_num_connections_to_master_ % (setting_num_workers_ * ACCEPT_ROOF_STEP_SIZE)) == 0);
+    setting_num_connections_to_master_per_worker_ = setting_num_connections_to_master_ / setting_num_workers_;
+
+    // Number of echoes to send to master node from clients.
+    setting_num_echoes_to_master_ = atoi(rootElem->first_node("NumEchoesToMaster")->value());
+    ResetEchoTests();
+
+    // Obtaining testing mode.
+    setting_mode_ = (GatewayTestingMode) atoi(rootElem->first_node("TestingMode")->value());
+
+#ifdef GW_LOOPED_TEST_MODE
+    switch (setting_mode_)
+    {
+        case GatewayTestingMode::MODE_GATEWAY_HTTP:
+        case GatewayTestingMode::MODE_APPS_HTTP:
+        {
+            looped_echo_request_creator_ = DefaultHttpEchoRequestCreator;
+            looped_echo_response_processor_ = DefaultHttpEchoResponseProcessor;
+            
+            break;
+        }
+        
+        case GatewayTestingMode::MODE_GATEWAY_PING:
+        case GatewayTestingMode::MODE_APPS_PING:
+        {
+            looped_echo_request_creator_ = DefaultRawEchoRequestCreator;
+            looped_echo_response_processor_ = DefaultRawEchoResponseProcessor;
+
+            break;
+        }
+    }
+#endif
+
+#endif
 
 #ifdef GW_PROXY_MODE
 
@@ -535,14 +574,14 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
     SetFileCompletionNotificationModes((HANDLE) sock, FILE_SKIP_COMPLETION_PORT_ON_SUCCESS);
 
     // The socket address to be passed to bind.
-    sockaddr_in bindAddr;
-    memset(&bindAddr, 0, sizeof(sockaddr_in));
-    bindAddr.sin_family = AF_INET;
-    bindAddr.sin_addr.s_addr = INADDR_ANY; //inet_addr(g_data.g_MasterIP.c_str());
-    bindAddr.sin_port = htons(port_num);
+    sockaddr_in binding_addr;
+    memset(&binding_addr, 0, sizeof(sockaddr_in));
+    binding_addr.sin_family = AF_INET;
+    binding_addr.sin_addr.s_addr = INADDR_ANY;
+    binding_addr.sin_port = htons(port_num);
 
     // Binding socket to certain interface and port.
-    if (bind(sock, (SOCKADDR*) &bindAddr, sizeof(bindAddr)))
+    if (bind(sock, (SOCKADDR*) &binding_addr, sizeof(binding_addr)))
     {
         GW_COUT << "Failed to bind server port " << port_num << std::endl;
         return PrintLastError();
@@ -644,8 +683,12 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
     // Reading file line by line.
     uint32_t err_code;
     std::string current_db_name;
-    while(getline(ad_file, current_db_name))
+    while (getline(ad_file, current_db_name))
     {
+        // Skipping incorrect database names.
+        if (current_db_name.compare(0, server_name_len, setting_sc_server_type_) != 0)
+            continue;
+
         // Extracting the database name (skipping the server name and underscore).
         current_db_name = current_db_name.substr(server_name_len + 1, current_db_name.length() - server_name_len);
 
@@ -1110,8 +1153,7 @@ uint32_t Gateway::InitSharedMemory(std::string setting_databaseName,
     // Construct the database_shared_memory_parameters_name. The format is
     // <DATABASE_NAME_PREFIX>_<SERVER_TYPE>_<DATABASE_NAME>_0
     std::string shm_params_name = (std::string)DATABASE_NAME_PREFIX + "_" +
-        boost::to_upper_copy(setting_sc_server_type_) + "_" +
-        boost::to_upper_copy(setting_databaseName) + "_0";
+        setting_sc_server_type_ + "_" + boost::to_upper_copy(setting_databaseName) + "_0";
 
     // Open the database shared memory parameters file and obtains a pointer to
     // the shared structure.
@@ -1152,7 +1194,7 @@ uint32_t Gateway::InitSharedMemory(std::string setting_databaseName,
 
     // Name of the database shared memory segment.
     std::string shm_seg_name = std::string(DATABASE_NAME_PREFIX) + "_" +
-        boost::to_upper_copy(setting_sc_server_type_) + "_" +
+        setting_sc_server_type_ + "_" +
         boost::to_upper_copy(setting_databaseName) + "_" +
         boost::lexical_cast<std::string>(db_shm_params->get_sequence_number());
 
@@ -1685,6 +1727,27 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         double recv_bandwidth_mbit_total = ((diffBytesReceivedAllWorkers * 8) / 1000000.0);
         double send_bandwidth_mbit_total = ((diffBytesSentAllWorkers * 8) / 1000000.0);
 
+#ifdef GW_TESTING_MODE
+        switch (g_gateway.setting_mode())
+        {
+            case GatewayTestingMode::MODE_GATEWAY_HTTP:
+            case GatewayTestingMode::MODE_APPS_HTTP:
+            {
+                num_ops_per_second_ += diffProcessedHttpRequestsAllWorkers;
+                break;
+            }
+
+            case GatewayTestingMode::MODE_GATEWAY_PING:
+            case GatewayTestingMode::MODE_APPS_PING:
+            {
+                num_ops_per_second_ += diffRecvNumAllWorkers;
+                break;
+            }
+        }
+
+        num_ops_measures_++;
+#endif
+
 #ifdef GW_GLOBAL_STATISTICS
 
         // Global statistics.
@@ -1730,9 +1793,9 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         std::cout << "All workers last sec " <<
             "recv_times " << diffRecvNumAllWorkers <<
             ", http_requests " << diffProcessedHttpRequestsAllWorkers <<
-            ", recv_bandwidth " << recv_bandwidth_mbit_total << " mbit/sec " <<
+            ", recv_bandwidth " << recv_bandwidth_mbit_total << " mbit/sec" <<
             ", sent_times " << diffSentNumAllWorkers <<
-            ", send_bandwidth " << send_bandwidth_mbit_total << " mbit/sec " << std::endl << std::endl;
+            ", send_bandwidth " << send_bandwidth_mbit_total << " mbit/sec" << std::endl << std::endl;
 #endif
 
     }
@@ -1853,6 +1916,37 @@ int32_t Gateway::StartGateway()
 
     return 0;
 }
+
+#ifdef GW_TESTING_MODE
+
+// Gracefully shutdowns all needed processes after test is finished.
+uint32_t Gateway::ShutdownTest(bool success)
+{
+    // Checking if we are on the build server.
+    bool is_on_build_server = (NULL != std::getenv("SC_RUNNING_ON_BUILD_SERVER"));
+
+    if (success)
+    {
+        // Test finished successfully, printing the results.
+        GW_COUT << "Echo test finished successfully!" << std::endl;
+        GW_COUT << "Average number of ops per second: " << GetAverageOpsPerSecond() << std::endl;
+
+        if (is_on_build_server)
+            ExitProcess(0);
+
+        return 0;
+    }
+
+    // This is a test failure.
+    GW_COUT << "ERROR with echo testing!" << std::endl;
+
+    if (is_on_build_server)
+        ExitProcess(1);
+
+    return 0;
+}
+
+#endif
 
 // Adds some URI handler: either Apps or Gateway.
 uint32_t Gateway::AddUriHandler(

@@ -106,8 +106,8 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
             SocketDataChunk *sd = (SocketDataChunk *)((uint8_t *)smc + bmx::BMX_HEADER_MAX_SIZE_BYTES);
 
             // Checking for socket data correctness.
-            assert((sd->get_db_index() >= 0) && (sd->get_db_index() <= 63));
-            assert(sd->get_socket() <= MAX_SOCKET_HANDLE);
+            assert((sd->get_db_index() >= 0) && (sd->get_db_index() < MAX_ACTIVE_DATABASES));
+            assert(sd->get_socket() < MAX_SOCKET_HANDLE);
 
             // Setting chunk index because of possible cloned chunks.
             sd->set_chunk_index(cur_chunk_index);
@@ -638,6 +638,13 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 if (!g_gateway.setting_is_master())
                     port++;
 
+                // Checking if Apps tries to register "echo" when it should not.
+                if (g_gateway.setting_mode() != GatewayTestingMode::MODE_APPS_PING)
+                {
+                    GW_PRINT_WORKER << "Ignoring Apps port handler '" << port << "' since Gateway is in different mode." << handler_id << std::endl;
+                    break;
+                }
+
 #endif
 
                 GW_PRINT_WORKER << "New port " << port << " user handler registration with handler id: " << handler_id << std::endl;
@@ -723,20 +730,12 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                     port++;
 
                 // Checking if Apps tries to register "echo" when it should not.
-                if (g_gateway.setting_mode() == GatewayTestingMode::MODE_GATEWAY_HTTP)
+                if (g_gateway.setting_mode() != GatewayTestingMode::MODE_APPS_HTTP)
                 {
-                    if (!strcmp(uri, kHttpEchoUrl))
-                    {
-                        GW_PRINT_WORKER << "Ignoring Apps URI '" << uri << "' since Gateway is already in ECHO mode." << handler_id << std::endl;
-                        break;
-                    }
-                }
-                else
-                {
-                    GW_PRINT_WORKER << "Ignoring Apps URI '" << uri << "' since Gateway is in raw ECHO mode." << handler_id << std::endl;
+                    GW_PRINT_WORKER << "Ignoring Apps URI '" << uri << "' since Gateway is in ECHO mode." << handler_id << std::endl;
                     break;
                 }
-
+                
 #endif
 
                 GW_PRINT_WORKER << "New URI handler \"" << uri << "\" on port " << port << " registration with handler id: " << handler_id << std::endl;

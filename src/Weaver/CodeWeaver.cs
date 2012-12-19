@@ -243,7 +243,28 @@ namespace Weaver {
                 Program.WriteDebug("Time weaving: {0:00.00} s.", stopwatch.ElapsedMilliseconds / 1000d);
             }
 
+            // TODO:
+            // This is a quick and dirty fix to have all exluded files copied to the temp-folder.
+            // It's needs to be implemented in a better way.
+            CopyExcludedFilesQuickAndDirty();
+
             return true;
+        }
+
+        private void CopyExcludedFilesQuickAndDirty() {
+            string tempFilePath;
+            string[] allFiles = Directory.GetFiles(this.InputDirectory, "*.dll");
+
+            foreach (var file in allFiles) {
+                if (FileIsToBeExcluded(file)) {
+                    tempFilePath = Path.Combine(this.TempDirectoryPath, "..", Path.GetFileName(file));
+
+                    try {
+                        File.Copy(file, tempFilePath, true);
+                    } catch {
+                    }
+                }
+            }
         }
 
         bool SetupEngine() {
