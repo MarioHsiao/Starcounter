@@ -1,7 +1,7 @@
 ﻿
 using System.Diagnostics;
 
-namespace boot
+namespace sccode
 {
     class Program
     {

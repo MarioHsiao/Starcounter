@@ -36,7 +36,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Internal", "Sta
 		{9E8D97FC-87A3-4A7C-B318-9414B5EEA60E} = {9E8D97FC-87A3-4A7C-B318-9414B5EEA60E}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "boot", "boot\boot.csproj", "{4F5A9009-7528-43E9-9142-26CF6A9F3ED7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sccode", "sccode\sccode.csproj", "{4F5A9009-7528-43E9-9142-26CF6A9F3ED7}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bmx", "Chunks\BMX\bmx.vcxproj", "{6665517F-743D-4809-94D3-13325FC2AF74}"
 	ProjectSection(ProjectDependencies) = postProject
