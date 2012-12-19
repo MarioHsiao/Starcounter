@@ -88,16 +88,30 @@ namespace NetworkIoTestApp
             GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpGetImage, out handler_id);
             Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
-            /*
-            RegisterPortHandler(port_number + 1, OnRawPort, out handlerId);
-            Console.WriteLine("Successfully registered new handler: " + handlerId);
+            GatewayHandlers.RegisterPortHandler((UInt16)(port_number + 1), OnRawPortEcho, out handler_id);
+            Console.WriteLine("Successfully registered new handler: " + handler_id);
 
+            /*
             RegisterPortHandler(port_number + 2, OnHttpPort, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
 
             RegisterPortHandler(port_number + 3, OnWebSocket, out handlerId);
             Console.WriteLine("Successfully registered new handler: " + handlerId);
             */
+        }
+
+        private static Boolean OnRawPortEcho(PortHandlerParams p)
+        {
+            Debug.Assert(p.DataStream.PayloadSize == 8);
+            UInt64[] buffer = new UInt64[2];
+
+            // Reading incoming echo message.
+            buffer[0] = p.DataStream.ReadUInt64(0);
+            buffer[1] = buffer[0];
+
+            // Writing back the response.
+            p.DataStream.SendResponse(buffer, 0, buffer.Length << 3);
+            return true;
         }
 
         private static Boolean OnRawPort(PortHandlerParams p)
@@ -115,7 +129,7 @@ namespace NetworkIoTestApp
             Byte[] responseBytes = Encoding.ASCII.GetBytes(response);
 
             // Writing back the response.
-            p.DataStream.Write(responseBytes, 0, responseBytes.Length);
+            p.DataStream.SendResponse(responseBytes, 0, responseBytes.Length);
             return true;
         }
 
@@ -134,7 +148,7 @@ namespace NetworkIoTestApp
             Byte[] responseBytes = Encoding.ASCII.GetBytes(response);
 
             // Writing back the response.
-            p.DataStream.Write(responseBytes, 0, responseBytes.Length);
+            p.DataStream.SendResponse(responseBytes, 0, responseBytes.Length);
             return true;
         }
 
@@ -153,7 +167,7 @@ namespace NetworkIoTestApp
             Byte[] responseBytes = Encoding.ASCII.GetBytes(response);
 
             // Writing back the response.
-            p.DataStream.Write(responseBytes, 0, responseBytes.Length);
+            p.DataStream.SendResponse(responseBytes, 0, responseBytes.Length);
 
             return true;
         }
@@ -182,12 +196,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.WriteResponse(responseBytes, 0, responseBytes.Length);
+                p.SendResponse(responseBytes, 0, responseBytes.Length);
             }
             catch
             {
                 // Writing back the error status.
-                p.WriteResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
             }
 
             return true;
@@ -217,12 +231,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.WriteResponse(responseBytes, 0, responseBytes.Length);
+                p.SendResponse(responseBytes, 0, responseBytes.Length);
             }
             catch
             {
                 // Writing back the error status.
-                p.WriteResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
             }
 
             return true;
@@ -302,12 +316,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.WriteResponse(responseBytes, 0, responseBytes.Length);
+                p.SendResponse(responseBytes, 0, responseBytes.Length);
             }
             catch
             {
                 // Writing back the error status.
-                p.WriteResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
             }
 
             return true;
@@ -347,12 +361,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.WriteResponse(responseBytes, 0, responseBytes.Length);
+                p.SendResponse(responseBytes, 0, responseBytes.Length);
             }
             catch
             {
                 // Writing back the error status.
-                p.WriteResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
             }
 
             return true;
@@ -392,12 +406,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.WriteResponse(responseBytes, 0, responseBytes.Length);
+                p.SendResponse(responseBytes, 0, responseBytes.Length);
             }
             catch
             {
                 // Writing back the error status.
-                p.WriteResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
             }
 
             return true;
@@ -426,12 +440,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.WriteResponse(responseBytes, 0, responseBytes.Length);
+                p.SendResponse(responseBytes, 0, responseBytes.Length);
             }
             catch
             {
                 // Writing back the error status.
-                p.WriteResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
             }
 
             return true;
@@ -467,12 +481,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.WriteResponse(responseBytes, 0, responseBytes.Length);
+                p.SendResponse(responseBytes, 0, responseBytes.Length);
             }
             catch
             {
                 // Writing back the error status.
-                p.WriteResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
             }
 
             return true;
@@ -523,12 +537,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.WriteResponse(responseBytes, 0, responseBytes.Length);
+                p.SendResponse(responseBytes, 0, responseBytes.Length);
             }
             catch
             {
                 // Writing back the error status.
-                p.WriteResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
             }
 
             return true;
@@ -553,12 +567,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.WriteResponse(responseBytes, 0, responseBytes.Length);
+                p.SendResponse(responseBytes, 0, responseBytes.Length);
             }
             catch
             {
                 // Writing back the error status.
-                p.WriteResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
             }
 
             return true;
@@ -588,12 +602,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.WriteResponse(responseBytes, 0, responseBytes.Length);
+                p.SendResponse(responseBytes, 0, responseBytes.Length);
             }
             catch
             {
                 // Writing back the error status.
-                p.WriteResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
             }
 
             return true;
@@ -615,12 +629,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.WriteResponse(responseBytes, 0, responseBytes.Length);
+                p.SendResponse(responseBytes, 0, responseBytes.Length);
             }
             catch
             {
                 // Writing back the error status.
-                p.WriteResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
             }
 
             return true;
@@ -647,12 +661,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.WriteResponse(responseBytes, 0, responseBytes.Length);
+                p.SendResponse(responseBytes, 0, responseBytes.Length);
             }
             catch
             {
                 // Writing back the error status.
-                p.WriteResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
             }
 
             return true;

@@ -80,12 +80,12 @@ namespace HttpStructs
         void Read(Byte[] buffer, Int32 offset, Int32 length);
 
         /// <summary>
-        /// Writes the specified buffer.
+        /// Send the specified buffer as a response.
         /// </summary>
         /// <param name="buffer">The buffer.</param>
         /// <param name="offset">The offset.</param>
         /// <param name="length">The length.</param>
-        void Write(Byte[] buffer, Int32 offset, Int32 length);
+        void SendResponse(Byte[] buffer, Int32 offset, Int32 length);
 
         /// <summary>
         /// Frees all data stream resources like chunks.
@@ -604,9 +604,9 @@ namespace HttpStructs
         /// <param name="buffer">The buffer.</param>
         /// <param name="offset">The offset.</param>
         /// <param name="length">The length.</param>
-        public void WriteResponse(Byte[] buffer, Int32 offset, Int32 length)
+        public void SendResponse(Byte[] buffer, Int32 offset, Int32 length)
         {
-            unsafe { data_stream_.Write(buffer, offset, length); }
+            unsafe { data_stream_.SendResponse(buffer, offset, length); }
         }
 
         /// <summary>
