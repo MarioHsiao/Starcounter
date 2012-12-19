@@ -31,6 +31,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\HTTP\HttpParser\ThirdPartySources\http_parser.c" />
+    <ClCompile Include="OurSources\echo_processors.cpp" />
     <ClCompile Include="OurSources\gateway.cpp" />
     <ClCompile Include="OurSources\http_proto.cpp" />
     <ClCompile Include="OurSources\handlers.cpp" />
@@ -52,8 +53,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="scripts\gw_test_pair_client.xml" />
-    <Xml Include="scripts\gw_test_pair_server.xml" />
+    <Xml Include="scripts\gw_test_pair_client.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+    <Xml Include="scripts\gw_test_pair_server.xml">
+      <SubType>Designer</SubType>
+    </Xml>
     <Xml Include="scripts\scnetworkgateway.xml">
       <SubType>Designer</SubType>
     </Xml>
@@ -80,10 +85,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>scnetworkgateway</TargetName>
     <OutDir>$(SolutionDir)..\bin\$(Configuration)\</OutDir>
+    <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>scnetworkgateway</TargetName>
     <OutDir>$(SolutionDir)..\bin\$(Configuration)\</OutDir>
+    <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>

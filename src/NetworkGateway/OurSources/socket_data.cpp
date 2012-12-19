@@ -361,5 +361,15 @@ CORRECT_STATISTICS_AND_RELEASE_CHUNK:
     return false;
 }
 
+#ifdef GW_LOOPED_TEST_MODE
+
+// Pushing given sd to network emulation queue.
+void SocketDataChunk::PushToNetworkEmulationQueue(GatewayWorker* gw)
+{
+    gw->PushToNetworkEmulationQueue(this);
+}
+
+#endif
+
 } // namespace network
 } // namespace starcounter

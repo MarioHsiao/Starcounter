@@ -71,7 +71,7 @@ namespace Starcounter.Internal {
         /// <returns>Returns true if the request was handled</returns>
         private static Boolean OnHttpMessageRoot(HttpRequest request) {
             HttpResponse result = appServer.Handle(request);
-            request.WriteResponse(result.Uncompressed, 0, result.Uncompressed.Length);
+            request.SendResponse(result.Uncompressed, 0, result.Uncompressed.Length);
             return true;
         }
     }
