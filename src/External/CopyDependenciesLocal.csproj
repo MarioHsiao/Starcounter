@@ -37,7 +37,8 @@
   <Target Name="CopyLocalFiles">
 
     <!-- Building Blue solution if any. -->
-    <!-- <Exec Condition="Exists('$(LocalBlueSolution)')" Command="C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe $(LocalBlueSolution) /property:Configuration=$(Configuration);Platform=x64;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" /> -->
+    <Exec Condition="'$(BUILD_BLUE_FROM_LEVEL1)' == 'True' AND Exists('$(LocalBlueSolution)')"
+          Command="C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe $(LocalBlueSolution) /property:Configuration=$(Configuration);Platform=x64;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" />
     
     <!-- Creating dynamic copied files lists. -->
     <ItemGroup>
