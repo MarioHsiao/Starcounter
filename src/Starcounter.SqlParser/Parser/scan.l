@@ -266,8 +266,8 @@ xcstop			(\*\x00)+\/\x00
 xcinside		([^*/]\x00)+
 
 digit			[0-9]\x00
-ident_start		[A-Za-z\200-\377_]\x00|[\x00-\xFF]\x04
-ident_cont		[A-Za-z\200-\377_0-9\$]\x00|[\x00-\xFF]\x04
+ident_start		[A-Za-z\200-\377_]\x00|{cyrillic}
+ident_cont		[A-Za-z\200-\377_0-9\$]\x00|{cyrillic}
 
 identifier		{ident_start}{ident_cont}*
 
