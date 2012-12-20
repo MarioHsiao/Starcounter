@@ -85,7 +85,7 @@
       <Project>{dd181012-dd9c-410f-ad8e-01d062cac820}</Project>
       <Name>FasterThanJson</Name>
     </ProjectReference>
-    <ProjectReference Include="..\REST\Starcounter.Rest.csproj">
+    <ProjectReference Include="..\Starcounter.Rest\Starcounter.Rest.csproj">
       <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
       <Name>Starcounter.Rest</Name>
     </ProjectReference>
