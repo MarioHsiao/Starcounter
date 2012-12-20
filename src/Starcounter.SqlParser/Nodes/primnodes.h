@@ -65,7 +65,7 @@ typedef struct RangeVar
 {
 	NodeTag		type;
 	List       *path;     /* Names of namespaces in order from most outer to most inner */
-	char	   *relname;		/* the relation/sequence name */
+	wchar_t	   *relname;		/* the relation/sequence name */
 	InhOption	inhOpt;			/* expand rel by inheritance? recursively act
 								 * on children? */
 	char		relpersistence; /* see RELPERSISTENCE_* in pg_class.h -> postgres.h */
@@ -84,7 +84,7 @@ typedef struct IntoClause
 	List	   *colNames;		/* column names to assign, or NIL */
 	List	   *options;		/* options from WITH clause */
 	OnCommitAction onCommit;	/* what do we do at COMMIT? */
-	char	   *tableSpaceName; /* table space to use, or NULL */
+	wchar_t	   *tableSpaceName; /* table space to use, or NULL */
 } IntoClause;
 
 
@@ -135,7 +135,7 @@ typedef struct NamedArgExpr
 {
 	Expr		xpr;
 	Expr	   *arg;			/* the argument expression */
-	char	   *name;			/* the name */
+	wchar_t	   *name;			/* the name */
 	int			argnumber;		/* argument's number in positional notation */
 	int			location;		/* argument name location, or -1 if unknown */
 } NamedArgExpr;
@@ -352,7 +352,7 @@ typedef struct XmlExpr
 {
 	Expr		xpr;
 	XmlExprOp	op;				/* xml function ID */
-	char	   *name;			/* name in xml(NAME foo ...) syntaxes */
+	wchar_t	   *name;			/* name in xml(NAME foo ...) syntaxes */
 	List	   *named_args;		/* non-XML expressions for xml_attributes */
 	List	   *arg_names;		/* parallel list of Value strings */
 	List	   *args;			/* list of expressions */

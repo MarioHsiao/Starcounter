@@ -23,14 +23,14 @@ extern A_Expr *makeA_Expr(A_Expr_Kind kind, List *name,
 extern A_Expr *makeSimpleA_Expr(A_Expr_Kind kind, wchar_t *name,
 				 Node *lexpr, Node *rexpr, int location);
 
-extern RangeVar *makeRangeVar(List *namespaces, char *relname, int location);
+extern RangeVar *makeRangeVar(List *namespaces, wchar_t *relname, int location);
 
 extern TypeName *makeTypeName(wchar_t *typnam);
 extern TypeName *makeTypeNameFromNameList(List *names);
 extern TypeName *makeTypeNameFromOid(Oid typeOid, int32 typmod);
 
-extern DefElem *makeDefElem(char *name, Node *arg);
-extern DefElem *makeDefElemExtended(char *nameSpace, char *name, Node *arg,
+extern DefElem *makeDefElem(wchar_t *name, Node *arg);
+extern DefElem *makeDefElemExtended(wchar_t *nameSpace, wchar_t *name, Node *arg,
 					DefElemAction defaction);
 
 extern DefElem *defWithOids(bool value); // from defrem.h

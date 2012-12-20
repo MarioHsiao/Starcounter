@@ -33,7 +33,7 @@ namespace Starcounter.Query.RawParserAnalyzer
         /// Interface to help methods on unmanaged structures
 
         [DllImport("Starcounter.SqlParser.dll")]
-        internal static unsafe extern sbyte* StrVal(Node* node);
+        internal static unsafe extern IntPtr StrVal(Node* node);
 
         [DllImport("Starcounter.SqlParser.dll")]
         internal static unsafe extern int Location(Node* node);
@@ -53,7 +53,7 @@ namespace Starcounter.Query.RawParserAnalyzer
             internal int scerrorcode;
             internal sbyte* scerrmessage;
             internal int scerrposition;
-            internal sbyte* tocken;
+            internal IntPtr tocken;
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -170,7 +170,7 @@ namespace Starcounter.Query.RawParserAnalyzer
     {
         internal NodeTag type;
         internal List* path;     /* Names of namespaces in order from most outer to most inner */
-        internal sbyte* relname;		/* the relation/sequence name */
+        internal IntPtr relname;		/* the relation/sequence name */
         internal InhOption inhOpt;			/* expand rel by inheritance? recursively act
 								 * on children? */
         internal char relpersistence; /* see RELPERSISTENCE_* in pg_class.h */
@@ -190,7 +190,7 @@ namespace Starcounter.Query.RawParserAnalyzer
     internal unsafe struct ResTarget
     {
         internal NodeTag type;
-        internal sbyte* name;			/* column name or NULL */
+        internal IntPtr name;			/* column name or NULL */
         internal List* indirection;	/* subscripts, field names, and '*', or NIL */
         internal Node* val;			/* the value expression to compute or assign */
         internal int location;		/* token location, or -1 if unknown */
@@ -209,7 +209,7 @@ namespace Starcounter.Query.RawParserAnalyzer
     internal unsafe struct FuncCall
     {
         internal NodeTag type;
-        internal sbyte* funcname;		/* qualified name of function */
+        internal IntPtr funcname;		/* qualified name of function */
         internal List* args;			/* the arguments (list of exprs) */
         internal List* agg_order;		/* ORDER BY (list of SortBy) */
         internal bool agg_star;		/* argument was really '*' */
@@ -224,8 +224,8 @@ namespace Starcounter.Query.RawParserAnalyzer
     internal unsafe struct WindowDef
     {
         internal NodeTag type;
-        internal sbyte* name;			/* window's own name */
-        internal sbyte* refname;		/* referenced window name, if any */
+        internal IntPtr name;			/* window's own name */
+        internal IntPtr refname;		/* referenced window name, if any */
         internal List* partitionClause;	/* PARTITION BY expression list */
         internal List* orderClause;	/* ORDER BY (list of SortBy) */
         internal int frameOptions;	/* frame_clause options, see below */

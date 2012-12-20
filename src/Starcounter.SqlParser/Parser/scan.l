@@ -682,7 +682,7 @@ other			.\x00
 					 * Note that slash-star or dash-dash at the first
 					 * character will match a prior rule, not this one.
 					 */
-					if (wcscmp(yytext,L"/*") || wcscmp(yytext,L"--"))
+					if (wcscmp((wchar_t*)yytext,L"/*") || wcscmp((wchar_t*)yytext,L"--"))
 						yyerror("unexpected to get comment operator in 2char operator rule");
 
 					SET_YYLLOC();
@@ -702,7 +702,7 @@ other			.\x00
 					}
 
 					/* Convert "!=" operator to "<>" for compatibility */
-					if (strcmp(yytext, "!=") == 0)
+					if (wcscmp((wchar_t*)yytext, L"!=") == 0)
 						yylval->str = wpstrdup(L"<>");
 					else
 						yylval->str = wpstrdup((wchar_t*)yytext);
@@ -834,7 +834,7 @@ scanner_yyerror(const char *message, core_yyscan_t yyscanner)
 	else
 	{
 		errprint("\nERROR SYNTAX_ERROR: %s at or near \"%s\"",_(message), loc);
-		ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, *yylloc, loc, ScErrMessageStr("%s",message));
+		ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, *yylloc, (wchar_t*)loc, ScErrMessageStr("%s",message));
 	}
 }
 

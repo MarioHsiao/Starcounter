@@ -59,7 +59,7 @@ makeSimpleA_Expr(A_Expr_Kind kind, wchar_t *name,
  *	  creates a RangeVar node (rather oversimplified case)
  */
 RangeVar *
-makeRangeVar(List *namespaces, char *relname, int location)
+makeRangeVar(List *namespaces, wchar_t *relname, int location)
 {
 	RangeVar   *r = makeNode(RangeVar);
 
@@ -127,7 +127,7 @@ makeTypeNameFromOid(Oid typeOid, int32 typmod)
  * and no special action.
  */
 DefElem *
-makeDefElem(char *name, Node *arg)
+makeDefElem(wchar_t *name, Node *arg)
 {
 	DefElem    *res = makeNode(DefElem);
 
@@ -144,7 +144,7 @@ makeDefElem(char *name, Node *arg)
  *	build a DefElem node with all fields available to be specified
  */
 DefElem *
-makeDefElemExtended(char *nameSpace, char *name, Node *arg,
+makeDefElemExtended(wchar_t *nameSpace, wchar_t *name, Node *arg,
 					DefElemAction defaction)
 {
 	DefElem    *res = makeNode(DefElem);
@@ -164,5 +164,5 @@ makeDefElemExtended(char *nameSpace, char *name, Node *arg,
 DefElem *
 defWithOids(bool value)
 {
-	return makeDefElem("oids", (Node *) makeInteger(value));
+	return makeDefElem(L"oids", (Node *) makeInteger(value));
 }

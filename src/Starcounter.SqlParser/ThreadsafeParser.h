@@ -9,21 +9,21 @@
 
 extern void ThrowException(char *msg);
 extern void ThrowExceptionCode(int scerrcode, char *msg);
-extern void ThrowExceptionReport(int scerrorcode, int position, char *tocken, char *message);
+extern void ThrowExceptionReport(int scerrorcode, int position, wchar_t *tocken, char *message);
 
 typedef struct ScError
 {
 	int scerrorcode;
 	char *scerrmessage;
 	int scerrposition;
-	char *tocken;
+	wchar_t *tocken;
 } ScError;
 
 //static Thread ScError scerror = {0, NULL, -1};
 extern Thread ScError *scerror;
 extern void InitScError();
 void ResetScError();
-extern void ScEreport(int scerrorcode, int position, char *tocken, char *message);
+extern void ScEreport(int scerrorcode, int position, wchar_t *tocken, char *message);
 extern void ScCodeEreport(int scerrorcode);
 
 extern char *ScErrMessage(const char *fmt);

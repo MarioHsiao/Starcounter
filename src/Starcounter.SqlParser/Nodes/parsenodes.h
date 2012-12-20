@@ -155,7 +155,7 @@ typedef struct CollateClause
 typedef struct FuncCall
 {
 	NodeTag		type;
-	char	   *funcname;		/* qualified name of function */
+	wchar_t	   *funcname;		/* qualified name of function */
 	List	   *args;			/* the arguments (list of exprs) */
 	List	   *agg_order;		/* ORDER BY (list of SortBy) */
 	bool		agg_star;		/* argument was really '*' */
@@ -240,7 +240,7 @@ typedef struct A_ArrayExpr
 typedef struct ResTarget
 {
 	NodeTag		type;
-	char	   *name;			/* column name or NULL */
+	wchar_t	   *name;			/* column name or NULL */
 	List	   *indirection;	/* subscripts, field names, and '*', or NIL */
 	Node	   *val;			/* the value expression to compute or assign */
 	int			location;		/* token location, or -1 if unknown */
@@ -279,8 +279,8 @@ typedef struct LimitOffset
 typedef struct WindowDef
 {
 	NodeTag		type;
-	char	   *name;			/* window's own name */
-	char	   *refname;		/* referenced window name, if any */
+	wchar_t	   *name;			/* window's own name */
+	wchar_t	   *refname;		/* referenced window name, if any */
 	List	   *partitionClause;	/* PARTITION BY expression list */
 	List	   *orderClause;	/* ORDER BY (list of SortBy) */
 	int			frameOptions;	/* frame_clause options, see below */
@@ -454,8 +454,8 @@ typedef enum DefElemAction
 typedef struct DefElem
 {
 	NodeTag		type;
-	char	   *defnamespace;	/* NULL if unqualified name */
-	char	   *defname;
+	wchar_t	   *defnamespace;	/* NULL if unqualified name */
+	wchar_t	   *defname;
 	Node	   *arg;			/* a (Value *) or a (TypeName *) */
 	DefElemAction defaction;	/* unspecified action, or SET/ADD/DROP */
 } DefElem;
@@ -749,7 +749,7 @@ typedef struct AlterTableCmd	/* one subcommand of an ALTER TABLE */
 {
 	NodeTag		type;
 	AlterTableType subtype;		/* Type of table alteration to apply */
-	char	   *name;			/* column, constraint, or trigger to act on,
+	wchar_t	   *name;			/* column, constraint, or trigger to act on,
 								 * or new owner or tablespace */
 	Node	   *def;			/* definition of new column, index,
 								 * constraint, or parent table */
@@ -833,7 +833,7 @@ typedef struct PrivGrantee
 typedef struct AccessPriv
 {
 	NodeTag		type;
-	char	   *priv_name;		/* string name of privilege */
+	wchar_t	   *priv_name;		/* string name of privilege */
 	List	   *cols;			/* list of Value strings */
 } AccessPriv;
 
@@ -853,7 +853,7 @@ typedef struct GrantRoleStmt
 	List	   *grantee_roles;	/* list of member roles to add/delete */
 	bool		is_grant;		/* true = GRANT, false = REVOKE */
 	bool		admin_opt;		/* with admin option */
-	char	   *grantor;		/* set grantor to other than current role */
+	wchar_t	   *grantor;		/* set grantor to other than current role */
 	DropBehavior behavior;		/* drop behavior (for REVOKE) */
 } GrantRoleStmt;
 
@@ -878,7 +878,7 @@ typedef struct VariableSetStmt
 {
 	NodeTag		type;
 	VariableSetKind kind;
-	char	   *name;			/* variable to be set */
+	wchar_t	   *name;			/* variable to be set */
 	List	   *args;			/* List of A_Const nodes */
 	bool		is_local;		/* SET LOCAL? */
 } VariableSetStmt;
@@ -890,7 +890,7 @@ typedef struct VariableSetStmt
 typedef struct VariableShowStmt
 {
 	NodeTag		type;
-	char	   *name;
+	wchar_t	   *name;
 } VariableShowStmt;
 
 /* ----------------------
@@ -915,7 +915,7 @@ typedef struct CreateStmt
 	List	   *constraints;	/* constraints (list of Constraint nodes) */
 	List	   *options;		/* options from WITH clause */
 	OnCommitAction oncommit;	/* what do we do at COMMIT? */
-	char	   *tablespacename; /* table space to use, or NULL */
+	wchar_t	   *tablespacename; /* table space to use, or NULL */
 	bool		if_not_exists;	/* just do nothing if it already exists? */
 } CreateStmt;
 
@@ -984,7 +984,7 @@ typedef struct Constraint
 	ConstrType	contype;		/* see above */
 
 	/* Fields used for most/all constraint types: */
-	char	   *conname;		/* Constraint name, or NULL if unnamed */
+	wchar_t	   *conname;		/* Constraint name, or NULL if unnamed */
 	bool		deferrable;		/* DEFERRABLE? */
 	bool		initdeferred;	/* INITIALLY DEFERRED? */
 	int			location;		/* token location, or -1 if unknown */
@@ -1001,8 +1001,8 @@ typedef struct Constraint
 
 	/* Fields used for index constraints (UNIQUE, PRIMARY KEY, EXCLUSION): */
 	List	   *options;		/* options from WITH clause */
-	char	   *indexname;		/* existing index to use; otherwise NULL */
-	char	   *indexspace;		/* index tablespace; NULL for default */
+	wchar_t	   *indexname;		/* existing index to use; otherwise NULL */
+	wchar_t	   *indexspace;		/* index tablespace; NULL for default */
 	/* These could be, but currently are not, used for UNIQUE/PKEY: */
 	char	   *access_method;	/* index access method; NULL for default */
 	Node	   *where_clause;	/* partial index predicate */
@@ -1025,7 +1025,7 @@ typedef struct Constraint
 typedef struct CreateTrigStmt
 {
 	NodeTag		type;
-	char	   *trigname;		/* TRIGGER's name */
+	wchar_t	   *trigname;		/* TRIGGER's name */
 	RangeVar   *relation;		/* relation trigger is on */
 	List	   *funcname;		/* qual. name of function to call */
 	List	   *args;			/* list of (T_String) Values or NIL */
@@ -1206,7 +1206,7 @@ typedef struct SecLabelStmt
 typedef struct IndexStmt
 {
 	NodeTag		type;
-	char	   *idxname;		/* name of new index, or NULL for default */
+	wchar_t	   *idxname;		/* name of new index, or NULL for default */
 	RangeVar   *relation;		/* relation to build index on */
 	char	   *accessMethod;	/* name of access method (eg. btree) */
 	char	   *tableSpace;		/* tablespace, or NULL for default */
@@ -1269,7 +1269,7 @@ typedef struct ViewStmt
 typedef struct CreatedbStmt
 {
 	NodeTag		type;
-	char	   *dbname;			/* name of database to create */
+	wchar_t	   *dbname;			/* name of database to create */
 	List	   *options;		/* List of DefElem nodes */
 } CreatedbStmt;
 
@@ -1280,14 +1280,14 @@ typedef struct CreatedbStmt
 typedef struct AlterDatabaseStmt
 {
 	NodeTag		type;
-	char	   *dbname;			/* name of database to alter */
+	wchar_t	   *dbname;			/* name of database to alter */
 	List	   *options;		/* List of DefElem nodes */
 } AlterDatabaseStmt;
 
 typedef struct AlterDatabaseSetStmt
 {
 	NodeTag		type;
-	char	   *dbname;			/* database name */
+	wchar_t	   *dbname;			/* database name */
 	VariableSetStmt *setstmt;	/* SET or RESET subcommand */
 } AlterDatabaseSetStmt;
 
@@ -1298,7 +1298,7 @@ typedef struct AlterDatabaseSetStmt
 typedef struct DropdbStmt
 {
 	NodeTag		type;
-	char	   *dbname;			/* database to drop */
+	wchar_t	   *dbname;			/* database to drop */
 	bool		missing_ok;		/* skip error if db is missing? */
 } DropdbStmt;
 
@@ -1376,7 +1376,7 @@ typedef struct ReindexStmt
 	NodeTag		type;
 	ObjectType	kind;			/* OBJECT_INDEX, OBJECT_TABLE, OBJECT_DATABASE */
 	RangeVar   *relation;		/* Table or index to reindex */
-	const char *name;			/* name of database to reindex */
+	const wchar_t *name;			/* name of database to reindex */
 	bool		do_system;		/* include system tables in database case */
 	bool		do_user;		/* include user tables in database case */
 } ReindexStmt;
@@ -1388,7 +1388,7 @@ typedef struct ReindexStmt
 typedef struct PrepareStmt
 {
 	NodeTag		type;
-	char	   *name;			/* Name of plan, arbitrary */
+	wchar_t	   *name;			/* Name of plan, arbitrary */
 	List	   *argtypes;		/* Types of parameters (List of TypeName) */
 	Node	   *query;			/* The query itself (as a raw parsetree) */
 } PrepareStmt;
@@ -1402,7 +1402,7 @@ typedef struct PrepareStmt
 typedef struct ExecuteStmt
 {
 	NodeTag		type;
-	char	   *name;			/* The name of the plan to execute */
+	wchar_t	   *name;			/* The name of the plan to execute */
 	IntoClause *into;			/* Optional table to store results in */
 	List	   *params;			/* Values to assign to parameters */
 } ExecuteStmt;
@@ -1415,7 +1415,7 @@ typedef struct ExecuteStmt
 typedef struct DeallocateStmt
 {
 	NodeTag		type;
-	char	   *name;			/* The name of the plan to remove */
+	wchar_t	   *name;			/* The name of the plan to remove */
 	/* NULL means DEALLOCATE ALL */
 } DeallocateStmt;
 
@@ -1436,7 +1436,7 @@ typedef struct ReassignOwnedStmt
 {
 	NodeTag		type;
 	List	   *roles;
-	char	   *newrole;
+	wchar_t	   *newrole;
 } ReassignOwnedStmt;
 
 #endif   /* PARSENODES_H */

@@ -141,7 +141,7 @@ static Node *makeSetOp(SetOperation op, bool all, Node *larg, Node *rarg);
 static Node *doNegate(Node *n, YYLTYPE location);
 static void doNegateFloat(Value *v);
 static Node *makeAArrayExpr(List *elements, YYLTYPE location);
-static Node *makeXmlExpr(XmlExprOp op, char *name, List *named_args,
+static Node *makeXmlExpr(XmlExprOp op, wchar_t *name, List *named_args,
 						 List *args, YYLTYPE location);
 static RangeVar *makeRangeVarFromAnyName(List *names, YYLTYPE position, core_yyscan_t yyscanner);
 static void SplitColQualList(List *qualList,
@@ -1027,8 +1027,8 @@ set_rest:	/* Generic SET syntaxes: */
 var_name:	ColId								{ $$ = $1; }
 			| var_name '.' ColId
 				{
-					$$ = palloc(strlen($1) + strlen($3) + 2);
-					sprintf($$, "%s.%s", $1, $3);
+					$$ = palloc((wcslen($1) + wcslen($3) + 2) * sizeof(wchar_t));
+					swprintf($$, "%s.%s", $1, $3);
 				}
 		;
 
@@ -5657,7 +5657,7 @@ a_expr:		c_expr									{ $$ = $1; }
 			| a_expr AT TIME ZONE a_expr			%prec AT
 				{
 					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("timezone");
+					n->funcname = SystemFuncName(L"timezone");
 					n->args = list_make2($5, $1);
 					n->agg_order = NIL;
 					n->agg_star = FALSE;
@@ -5718,7 +5718,7 @@ a_expr:		c_expr									{ $$ = $1; }
 			| a_expr LIKE a_expr ESCAPE a_expr
 				{
 					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("like_escape");
+					n->funcname = SystemFuncName(L"like_escape");
 					n->args = list_make2($3, $5);
 					n->agg_order = NIL;
 					n->agg_star = FALSE;
@@ -5733,7 +5733,7 @@ a_expr:		c_expr									{ $$ = $1; }
 			| a_expr NOT LIKE a_expr ESCAPE a_expr
 				{
 					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("like_escape");
+					n->funcname = SystemFuncName(L"like_escape");
 					n->args = list_make2($4, $6);
 					n->agg_order = NIL;
 					n->agg_star = FALSE;
@@ -5750,7 +5750,7 @@ a_expr:		c_expr									{ $$ = $1; }
 			| a_expr ILIKE a_expr ESCAPE a_expr
 				{
 					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("like_escape");
+					n->funcname = SystemFuncName(L"like_escape");
 					n->args = list_make2($3, $5);
 					n->agg_order = NIL;
 					n->agg_star = FALSE;
@@ -5765,7 +5765,7 @@ a_expr:		c_expr									{ $$ = $1; }
 			| a_expr NOT ILIKE a_expr ESCAPE a_expr
 				{
 					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("like_escape");
+					n->funcname = SystemFuncName(L"like_escape");
 					n->args = list_make2($4, $6);
 					n->agg_order = NIL;
 					n->agg_star = FALSE;
@@ -5779,7 +5779,7 @@ a_expr:		c_expr									{ $$ = $1; }
 			| a_expr SIMILAR TO a_expr				%prec SIMILAR
 				{
 					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("similar_escape");
+					n->funcname = SystemFuncName(L"similar_escape");
 					n->args = list_make2($4, makeNullAConst(-1));
 					n->agg_order = NIL;
 					n->agg_star = FALSE;
@@ -5792,7 +5792,7 @@ a_expr:		c_expr									{ $$ = $1; }
 			| a_expr SIMILAR TO a_expr ESCAPE a_expr
 				{
 					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("similar_escape");
+					n->funcname = SystemFuncName(L"similar_escape");
 					n->args = list_make2($4, $6);
 					n->agg_order = NIL;
 					n->agg_star = FALSE;
@@ -5805,7 +5805,7 @@ a_expr:		c_expr									{ $$ = $1; }
 			| a_expr NOT SIMILAR TO a_expr			%prec SIMILAR
 				{
 					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("similar_escape");
+					n->funcname = SystemFuncName(L"similar_escape");
 					n->args = list_make2($5, makeNullAConst(-1));
 					n->agg_order = NIL;
 					n->agg_star = FALSE;
@@ -5818,7 +5818,7 @@ a_expr:		c_expr									{ $$ = $1; }
 			| a_expr NOT SIMILAR TO a_expr ESCAPE a_expr
 				{
 					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("similar_escape");
+					n->funcname = SystemFuncName(L"similar_escape");
 					n->args = list_make2($5, $7);
 					n->agg_order = NIL;
 					n->agg_star = FALSE;
@@ -6627,7 +6627,7 @@ standard_func_call:
 			| TYPEOF '(' Typename ')'
 				{
 					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("typeof");
+					n->funcname = SystemFuncName(L"typeof");
 					n->args = $3;
 					n->agg_order = NIL;
 					n->agg_star = FALSE;
@@ -6640,7 +6640,7 @@ standard_func_call:
 			| EXTRACT '(' extract_list ')'
 				{
 					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("date_part");
+					n->funcname = SystemFuncName(L"date_part");
 					n->args = $3;
 					n->agg_order = NIL;
 					n->agg_star = FALSE;
@@ -6658,7 +6658,7 @@ standard_func_call:
 					 * overlay(A, B, C)
 					 */
 					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("overlay");
+					n->funcname = SystemFuncName(L"overlay");
 					n->args = $3;
 					n->agg_order = NIL;
 					n->agg_star = FALSE;
@@ -6672,7 +6672,7 @@ standard_func_call:
 				{
 					/* position(A in B) is converted to position(B, A) */
 					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("position");
+					n->funcname = SystemFuncName(L"position");
 					n->args = $3;
 					n->agg_order = NIL;
 					n->agg_star = FALSE;
@@ -6688,7 +6688,7 @@ standard_func_call:
 					 * substring(A, B, C) - thomas 2000-11-28
 					 */
 					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("substring");
+					n->funcname = SystemFuncName(L"substring");
 					n->args = $3;
 					n->agg_order = NIL;
 					n->agg_star = FALSE;
@@ -6726,7 +6726,7 @@ standard_func_call:
 					 * - thomas 1997-07-19
 					 */
 					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("btrim");
+					n->funcname = SystemFuncName(L"btrim");
 					n->args = $4;
 					n->agg_order = NIL;
 					n->agg_star = FALSE;
@@ -6739,7 +6739,7 @@ standard_func_call:
 			| TRIM '(' LEADING trim_list ')'
 				{
 					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("ltrim");
+					n->funcname = SystemFuncName(L"ltrim");
 					n->args = $4;
 					n->agg_order = NIL;
 					n->agg_star = FALSE;
@@ -6752,7 +6752,7 @@ standard_func_call:
 			| TRIM '(' TRAILING trim_list ')'
 				{
 					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("rtrim");
+					n->funcname = SystemFuncName(L"rtrim");
 					n->args = $4;
 					n->agg_order = NIL;
 					n->agg_star = FALSE;
@@ -6765,7 +6765,7 @@ standard_func_call:
 			| TRIM '(' trim_list ')'
 				{
 					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("btrim");
+					n->funcname = SystemFuncName(L"btrim");
 					n->args = $3;
 					n->agg_order = NIL;
 					n->agg_star = FALSE;
@@ -6827,7 +6827,7 @@ standard_func_call:
 					/* xmlexists(A PASSING [BY REF] B [BY REF]) is
 					 * converted to xmlexists(A, B)*/
 					FuncCall *n = makeNode(FuncCall);
-					n->funcname = SystemFuncName("xmlexists");
+					n->funcname = SystemFuncName(L"xmlexists");
 					n->args = list_make2($3, $4);
 					n->agg_order = NIL;
 					n->agg_star = FALSE;
@@ -8408,7 +8408,7 @@ makeOverlaps(List *largs, List *rargs, YYLTYPE location, core_yyscan_t yyscanner
 {
 	FuncCall *n = makeNode(FuncCall);
 
-	n->funcname = SystemFuncName("overlaps");
+	n->funcname = SystemFuncName(L"overlaps");
 	if (list_length(largs) == 1)
 		largs = lappend(largs, largs);
 	else if (list_length(largs) != 2)
@@ -8670,7 +8670,7 @@ makeAArrayExpr(List *elements, int location)
 }
 
 static Node *
-makeXmlExpr(XmlExprOp op, char *name, List *named_args, List *args,
+makeXmlExpr(XmlExprOp op, wchar_t *name, List *named_args, List *args,
 			YYLTYPE location)
 {
 	XmlExpr    *x = makeNode(XmlExpr);

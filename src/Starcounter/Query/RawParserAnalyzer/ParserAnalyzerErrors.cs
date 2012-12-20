@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Starcounter;
 
@@ -32,7 +33,7 @@ namespace Starcounter.Query.RawParserAnalyzer
                     else
                         message += " in the query \"" + Query + "\"";
                     if (scerror->tocken != null)
-                        message += "The error is near or at: " + new String(scerror->tocken);
+                        message += "The error is near or at: " + Marshal.PtrToStringAuto(scerror->tocken);
                     throw ErrorCode.ToException((uint)scerror->scerrorcode, message);
                 }
             }
@@ -45,7 +46,7 @@ namespace Starcounter.Query.RawParserAnalyzer
         /// <returns>Part of error message about location of the error.</returns>
         internal unsafe String LocationMessageForError(Node* node)
         {
-            return LocationMessageForError(node, new String(UnmanagedParserInterface.StrVal(node)));
+            return LocationMessageForError(node, Marshal.PtrToStringAuto(UnmanagedParserInterface.StrVal(node)));
         }
 
         internal unsafe String LocationMessageForError(Node* node, String token)

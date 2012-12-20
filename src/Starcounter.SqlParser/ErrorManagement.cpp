@@ -27,7 +27,7 @@ void InitScError()
 
 ///<summary>Reporting errors into thread global variable, which is used to propogate error in managed code.
 ///</summary>
-void ScEreport(int scerrorcode, int position, char *tocken, char *message)
+void ScEreport(int scerrorcode, int position, wchar_t *tocken, char *message)
 {
 	if (scerror->scerrorcode==SCERRUNEXPERRSPRINTFSQLSYNTAX)
 		return;
@@ -146,7 +146,7 @@ void ThrowExceptionCode(int scerrcode, char *msg)
 	throw UnmanagedParserException(scerrcode);
 }
 
-void ThrowExceptionReport(int scerrorcode, int position, char *tocken, char *message)
+void ThrowExceptionReport(int scerrorcode, int position, wchar_t *tocken, char *message)
 {
 	ScEreport(scerrorcode, position, tocken, message);
 	throw UnmanagedParserException(scerrorcode);
