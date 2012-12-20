@@ -63,9 +63,9 @@ typedef int64_t echo_id_type;
 #define GW_SESSIONS_DIAG
 
 // Mode macros.
+#define GW_PROXY_MODE
 //#define GW_PONG_MODE
 //#define GW_TESTING_MODE
-//#define GW_PROXY_MODE
 //#define GW_LOOPED_TEST_MODE
 //#define GW_PROFILER_ON
 //#define GW_LIMITED_ECHO_TEST

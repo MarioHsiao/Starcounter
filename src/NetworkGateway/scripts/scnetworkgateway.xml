@@ -20,6 +20,7 @@
   <InactiveSessionTimeout>1200</InactiveSessionTimeout>
 
   <!-- Information on reverse proxies if any. -->
+  <!--
   <ReverseProxies>
       
     <ReverseProxy>
@@ -40,7 +41,8 @@
       <URI>/queue-signup.php</URI>
     </ReverseProxy>
       
-  </ReverseProxies>    
+  </ReverseProxies>
+  -->
   
   <!--
   List of local interfaces to bind to.
@@ -55,7 +57,7 @@
   <LocalIP>10.0.0.5</LocalIP>
   -->
   
-  <TestingMode>1</TestingMode>
+  <TestingMode>2</TestingMode>
   <!--
     MODE_GATEWAY_PING = 1,
     MODE_GATEWAY_HTTP = 2,
