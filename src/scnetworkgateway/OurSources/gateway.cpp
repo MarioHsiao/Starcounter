@@ -429,29 +429,29 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     if (proxies_node)
     {
         xml_node<char>* proxy_node = proxies_node->first_node("ReverseProxy");
-        int32_t i = 0;
+        int32_t n = 0;
         while (proxy_node)
         {
             // Filling reverse proxy information.
-            reverse_proxies_[i].ip_ = proxy_node->first_node("ServerIP")->value();
-            reverse_proxies_[i].port_ = atoi(proxy_node->first_node("ServerPort")->value());
-            reverse_proxies_[i].uri_ = proxy_node->first_node("URI")->value();
-            reverse_proxies_[i].uri_len_ = reverse_proxies_[i].uri_.length();
+            reverse_proxies_[n].ip_ = proxy_node->first_node("ServerIP")->value();
+            reverse_proxies_[n].port_ = atoi(proxy_node->first_node("ServerPort")->value());
+            reverse_proxies_[n].uri_ = proxy_node->first_node("URI")->value();
+            reverse_proxies_[n].uri_len_ = reverse_proxies_[n].uri_.length();
 
             // Loading proxied servers.
-            sockaddr_in* server_addr = &reverse_proxies_[i].addr_;
+            sockaddr_in* server_addr = &reverse_proxies_[n].addr_;
             memset(server_addr, 0, sizeof(sockaddr_in));
             server_addr->sin_family = AF_INET;
-            server_addr->sin_addr.s_addr = inet_addr(reverse_proxies_[i].ip_.c_str());
-            server_addr->sin_port = htons(reverse_proxies_[i].port_);
+            server_addr->sin_addr.s_addr = inet_addr(reverse_proxies_[n].ip_.c_str());
+            server_addr->sin_port = htons(reverse_proxies_[n].port_);
 
             // Getting next reverse proxy information.
             proxy_node = proxy_node->next_sibling("ReverseProxy");
 
-            i++;
+            n++;
         }
 
-        num_reversed_proxies_ = i;
+        num_reversed_proxies_ = n;
     }
 
 #endif

@@ -115,7 +115,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "11. Server", "11. Server", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Server", "Server\Starcounter.Server\Starcounter.Server.csproj", "{28E1D438-7DC4-4BF7-A486-0598C78DBBE9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "screferenceserver", "screferenceserver\screferenceserver.csproj", "{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "screferenceserver", "Server\screferenceserver\screferenceserver.csproj", "{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{C74FD2EF-8675-42C1-BC45-E4CF1EB0BB48}"
 	ProjectSection(SolutionItems) = preProject
@@ -250,6 +250,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpStructs.Tests", "HTTP\HttpStructs.Tests\HttpStructs.Tests.csproj", "{DD81F07E-8E1E-490B-A940-F651D7DAF6B6}"
 	ProjectSection(ProjectDependencies) = postProject
 		{594FE78A-A893-4757-A946-5ED350D383D2} = {594FE78A-A893-4757-A946-5ED350D383D2}
+		{8B599BFF-B414-41A3-A270-96CDA0C522AF} = {8B599BFF-B414-41A3-A270-96CDA0C522AF}
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HTTP", "HTTP", "{A264E76D-83B0-46AD-AEE6-84713C2DFE21}"

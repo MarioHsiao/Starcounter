@@ -34,3 +34,5 @@ src/Starcounter.SqlParser/Parser/gram.h
 src/Starcounter.SqlParser/Parser/scan.c
 
 *.output
+
+src/Samples/NetworkIoTest/image.png
