@@ -58,7 +58,6 @@
  */
 const int				backslash_quote = BACKSLASH_QUOTE_SAFE_ENCODING;
 const bool			escape_string_warning = true;
-const bool			standard_conforming_strings = true;
 
 /*
  * Set the type of YYSTYPE.
@@ -89,13 +88,8 @@ const bool			standard_conforming_strings = true;
 static void addlit(char *ytext, int yleng, core_yyscan_t yyscanner);
 static void addlitchar(unsigned char ychar, core_yyscan_t yyscanner);
 static wchar_t *litbufdup(core_yyscan_t yyscanner);
-static wchar_t *litbuf_udeescape(unsigned char escape, core_yyscan_t yyscanner);
 static unsigned char unescape_single_char(unsigned char c, core_yyscan_t yyscanner);
 static int	process_integer_literal(const wchar_t *token, YYSTYPE *lval);
-static bool is_utf16_surrogate_first(pg_wchar c);
-static bool is_utf16_surrogate_second(pg_wchar c);
-static pg_wchar surrogate_pair_to_codepoint(pg_wchar first, pg_wchar second);
-static void addunicode(pg_wchar c, yyscan_t yyscanner);
 
 #define yyerror(msg)  scanner_yyerror(msg, yyscanner)
 
@@ -151,11 +145,7 @@ extern void core_yyset_column(int column_no, yyscan_t yyscanner);
 %x xc
 %x xd
 %x xh
-%x xe
 %x xq
-%x xui
-%x xus
-%x xeu
 
 /*
  * In order to make the world safe for Windows and Mac clients as well as
@@ -228,15 +218,6 @@ xhinside		([^']\x00)*
 /* National character */
 xnstart			[nN]\x00{quote}
 
-/* Quoted string that allows backslash escapes */
-xestart			[eE]\x00{quote}
-xeinside		([^\\']\x00)+
-xeescape		[\\]\x00[^0-7]\x00
-xeoctesc		[\\]\x00([0-7]\x00){1,3}
-xehexesc		[\\]\x00x\x00([0-9A-Fa-f]\x00){1,2}
-xeunicode		[\\]\x00(u\x00([0-9A-Fa-f]\x00){4}|U\x00([0-9A-Fa-f]\x00){8})
-xeunicodefail	[\\]\x00(u\x00([0-9A-Fa-f]\x00){0,3}|U\x00([0-9A-Fa-f]\x00){0,7})
-
 /* Extended quote
  * xqdouble implements embedded quote, ''''
  */
@@ -253,23 +234,8 @@ xdstop			{dquote}
 xddouble		{dquote}{dquote}
 xdinside		([^"]\x00)+
 
-/* Unicode escapes */
-uescape			[uU]\x00[eE]\x00[sS]\x00[cC]\x00[aA]\x00[pP]\x00[eE]\x00{whitespace}*{quote}[^']\x00{quote}
-/* error rule to avoid backup */
-uescapefail		("-"\x00|[uU]\x00[eE]\x00[sS]\x00[cC]\x00[aA]\x00[pP]\x00[eE]\x00{whitespace}*"-"\x00|[uU]\x00[eE]\x00[sS]\x00[cC]\x00[aA]\x00[pP]\x00[eE]\x00{whitespace}*{quote}[^']\x00|[uU]\x00[eE]\x00[sS]\x00[cC]\x00[aA]\x00[pP]\x00[eE]\x00{whitespace}*{quote}|[uU]\x00[eE]\x00[sS]\x00[cC]\x00[aA]\x00[pP]\x00[eE]\x00{whitespace}*|[uU]\x00[eE]\x00[sS]\x00[cC]\x00[aA]\x00[pP]\x00|[uU]\x00[eE]\x00[sS]\x00[cC]\x00[aA]\x00|[uU]\x00[eE]\x00[sS]\x00[cC]\x00|[uU]\x00[eE]\x00[sS]\x00|[uU]\x00[eE]\x00|[uU]\x00)
-
-/* Quoted identifier with Unicode escapes */
-xuistart		[uU]\x00&\x00{dquote}
-xuistop1		{dquote}{whitespace}*{uescapefail}?
-xuistop2		{dquote}{whitespace}*{uescape}
-
-/* Quoted string with Unicode escapes */
-xusstart		[uU]\x00&\x00{quote}
-xusstop1		{quote}{whitespace}*{uescapefail}?
-xusstop2		{quote}{whitespace}*{uescape}
-
-/* error rule to avoid backup */
-xufailed		[uU]\x00&\x00
+/* error rule to avoid backup 
+xufailed		[uU]\x00&\x00 */
 
 
 /* C-style comments
@@ -473,32 +439,12 @@ other			.\x00
 					yyextra->warn_on_first_escape = true;
 					yyextra->saw_non_ascii = false;
 					SET_YYLLOC();
-					if (standard_conforming_strings)
-						BEGIN(xq);
-					else
-						BEGIN(xe);
+					BEGIN(xq);
 					startlit();
 				}
-{xestart}		{
-					yyextra->warn_on_first_escape = false;
-					yyextra->saw_non_ascii = false;
-					SET_YYLLOC();
-					BEGIN(xe);
-					startlit();
-				}
-{xusstart}		{
-					SET_YYLLOC();
-					if (!standard_conforming_strings)
-					{
-						ScCodeEreport(SCERRSQLNOTSUPPORTED);
-						yyerror("Unsafe use of string constant with Unicode escapes. String constants with Unicode escapes cannot be used when standard_conforming_strings is off.");
-					}
-					BEGIN(xus);
-					startlit();
-				}
-<xq,xe>{quotestop}	|
-<xq,xe>{quotefail} {
-					yyless(1);
+<xq>{quotestop}	|
+<xq>{quotefail} {
+					yyless(sizeof(wchar_t));
 					BEGIN(INITIAL);
 					/*
 					 * check that the data remains valid if it might have been
@@ -511,103 +457,21 @@ other			.\x00
 					yylval->str = litbufdup(yyscanner);
 					return SCONST;
 				}
-<xus>{xusstop1} {
-					/* throw back all but the quote */
-					yyless(1);
-					BEGIN(INITIAL);
-					yylval->str = litbuf_udeescape('\\', yyscanner);
-					return SCONST;
-				}
-<xus>{xusstop2} {
-					BEGIN(INITIAL);
-					yylval->str = litbuf_udeescape(yytext[yyleng-2], yyscanner);
-					return SCONST;
-				}
-<xq,xe,xus>{xqdouble} {
+<xq>{xqdouble} {
 					addlitchar('\'', yyscanner);
 				}
-<xq,xus>{xqinside}  {
+<xq>{xqinside}  {
 					addlit(yytext, yyleng, yyscanner);
 				}
-<xe>{xeinside}  {
-					addlit(yytext, yyleng, yyscanner);
-				}
-<xe>{xeunicode} {
-					pg_wchar c = strtoul(yytext+2, NULL, 16);
-
-					if (is_utf16_surrogate_first(c))
-					{
-						yyextra->utf16_first_part = c;
-						BEGIN(xeu);
-					}
-					else if (is_utf16_surrogate_second(c))
-						yyerror("invalid Unicode surrogate pair");
-					else
-						addunicode(c, yyscanner);
-				}
-<xeu>{xeunicode} {
-					pg_wchar c = strtoul(yytext+2, NULL, 16);
-
-					if (!is_utf16_surrogate_second(c))
-						yyerror("invalid Unicode surrogate pair");
-
-					c = surrogate_pair_to_codepoint(yyextra->utf16_first_part, c);
-
-					addunicode(c, yyscanner);
-
-					BEGIN(xe);
-				}
-<xeu>.			{ yyerror("invalid Unicode surrogate pair"); }
-<xeu>\n			{ yyerror("invalid Unicode surrogate pair"); }
-<xeu><<EOF>>	{ yyerror("invalid Unicode surrogate pair"); }
-<xe,xeu>{xeunicodefail}	{
-						errprint("\nERROR INVALID_ESCAPE_SEQUENCE: invalid Unicode escape.\nUnicode escapes must be \\uXXXX or \\UXXXXXXXX.");
-						yyerror("Invalid Unicode escape.\nUnicode escapes must be \\uXXXX or \\UXXXXXXXX.");
-				}
-<xe>{xeescape}  {
-//					if (yytext[1] == '\'') // Sc: We don't have limitations on how escape character is used.
-//					{
-//						if (backslash_quote == BACKSLASH_QUOTE_OFF)
-//						 || (backslash_quote == BACKSLASH_QUOTE_SAFE_ENCODING &&
-//							 PG_ENCODING_IS_CLIENT_ONLY(pg_get_client_encoding())))
-//							errprint("\nERROR NONSTANDARD_USE_OF_ESCAPE_CHARACTER: unsafe use of \\' in a string literal.\nUse '' to write quotes in strings. \\' is insecure in client-only encodings.");
-//					}
-					// Sc: can fail for unsafe use escape character, since this code was not run in Postgre in the error case.
-					addlitchar(unescape_single_char(yytext[1], yyscanner),
-							   yyscanner);
-				}
-<xe>{xeoctesc}  {
-					unsigned char c = strtoul(yytext+1, NULL, 8);
-
-					addlitchar(c, yyscanner);
-					if (c == '\0' || IS_HIGHBIT_SET(c))
-						yyextra->saw_non_ascii = true;
-				}
-<xe>{xehexesc}  {
-					unsigned char c = strtoul(yytext+2, NULL, 16);
-
-					addlitchar(c, yyscanner);
-					if (c == '\0' || IS_HIGHBIT_SET(c))
-						yyextra->saw_non_ascii = true;
-				}
-<xq,xe,xus>{quotecontinue} {
+<xq>{quotecontinue} {
 					/* ignore */
 				}
-<xe>.			{
-					/* This is only needed for \ just before EOF */
-					addlitchar(yytext[0], yyscanner);
-				}
-<xq,xe,xus><<EOF>>		{ yyerror("unterminated quoted string"); }
+<xq><<EOF>>		{ yyerror("unterminated quoted string"); }
 
 
 {xdstart}		{
 					SET_YYLLOC();
 					BEGIN(xd);
-					startlit();
-				}
-{xuistart}		{
-					SET_YYLLOC();
-					BEGIN(xui);
 					startlit();
 				}
 <xd>{xdstop}	{
@@ -620,47 +484,25 @@ other			.\x00
 					yylval->str = ident;
 					return IDENT;
 				}
-<xui>{xuistop1}	{
-					wchar_t		   *ident;
-
-					BEGIN(INITIAL);
-					if (yyextra->literallen == 0)
-						yyerror("zero-length delimited identifier");
-					ident = litbuf_udeescape('\\', yyscanner);
-					yylval->str = ident;
-					/* throw back all but the quote */
-					yyless(1);
-					return IDENT;
-				}
-<xui>{xuistop2}	{
-					wchar_t		   *ident;
-
-					BEGIN(INITIAL);
-					if (yyextra->literallen == 0)
-						yyerror("zero-length delimited identifier");
-					ident = litbuf_udeescape(yytext[yyleng - 2], yyscanner);
-					yylval->str = ident;
-					return IDENT;
-				}
-<xd,xui>{xddouble}	{
+<xd>{xddouble}	{
 					addlitchar('"', yyscanner);
 				}
-<xd,xui>{xdinside}	{
+<xd>{xdinside}	{
 					addlit(yytext, yyleng, yyscanner);
 				}
-<xd,xui><<EOF>>		{ yyerror("unterminated quoted identifier"); }
 
+				/*
 {xufailed}	{
 					//char		   *ident;
 
 					SET_YYLLOC();
-					/* throw back all but the initial u/U */
+					/* throw back all but the initial u/U 
 					yyless(1);
-					/* and treat it as {identifier} */
+					/* and treat it as {identifier} 
 					//ident = downcase_identifier(yytext, yyleng, true);
 					yylval->str = wpstrdup((wchar_t*)yytext);
 					return IDENT;
-				}
+				}*/
 
 {dot_dot}		{
 					SET_YYLLOC();
@@ -988,208 +830,6 @@ hexval(unsigned char c)
 	errprint("\nERROR: invalid hexadecimal digit");
 	ThrowExceptionCode(SCERRSQLINCORRECTSYNTAX, ScErrMessage("Scanner error: invalid hexadecimal digit"));
 	return 0; /* not reached */
-}
-
-static void
-check_unicode_value(pg_wchar c, char *loc, core_yyscan_t yyscanner)
-{
-	if (GetDatabaseEncoding() == PG_UTF8)
-		return;
-
-	if (c > 0x7F)
-	{
-		ADVANCE_YYLLOC(loc - yyextra->literalbuf + 3);   /* 3 for U&" */
-		yyerror("Unicode escape values cannot be used for code point values above 007F when the server encoding is not UTF8");
-	}
-}
-
-static bool
-is_utf16_surrogate_first(pg_wchar c)
-{
-	return (c >= 0xD800 && c <= 0xDBFF);
-}
-
-static bool
-is_utf16_surrogate_second(pg_wchar c)
-{
-	return (c >= 0xDC00 && c <= 0xDFFF);
-}
-
-static pg_wchar
-surrogate_pair_to_codepoint(pg_wchar first, pg_wchar second)
-{
-	return ((first & 0x3FF) << 10) + 0x10000 + (second & 0x3FF);
-}
-
-static void
-addunicode(pg_wchar c, core_yyscan_t yyscanner)
-{
-	char buf[8];
-
-	if (c == 0 || c > 0x10FFFF)
-		yyerror("invalid Unicode escape value");
-	if (c > 0x7F)
-	{
-		if (GetDatabaseEncoding() != PG_UTF8)
-			yyerror("Unicode escape values cannot be used for code point values above 007F when the server encoding is not UTF8");
-		yyextra->saw_non_ascii = true;
-	}
-	unicode_to_utf8(c, (unsigned char *) buf);
-	addlit(buf, pg_mblen(buf), yyscanner);
-}
-
-static wchar_t *
-litbuf_udeescape(unsigned char escape, core_yyscan_t yyscanner)
-{
-	char *new;
-	char *litbuf, *in, *out;
-	pg_wchar pair_first = 0;
-
-	if (isxdigit(escape)
-		|| escape == '+'
-		|| escape == '\''
-		|| escape == '"'
-		|| scanner_isspace(escape))
-	{
-		ADVANCE_YYLLOC(yyextra->literallen + yyleng + 1);
-		yyerror("invalid Unicode escape character");
-	}
-
-	/* Make literalbuf null-terminated to simplify the scanning loop */
-	litbuf = yyextra->literalbuf;
-	litbuf[yyextra->literallen] = '\0';
-
-	/*
-	 * This relies on the subtle assumption that a UTF-8 expansion
-	 * cannot be longer than its escaped representation.
-	 */
-	new = palloc(yyextra->literallen + 1);
-	in = litbuf;
-	out = new;
-	/*
-	while (*in)
-	{
-		if (in[0] == escape)
-		{
-			if (in[1] == escape)
-			{
-				if (pair_first)
-				{
-					ADVANCE_YYLLOC(in - litbuf + 3);   /* 3 for U&" */
-					/*
-					yyerror("invalid Unicode surrogate pair");
-				}
-				*out++ = escape;
-				in += 2;
-			}
-			else if (isxdigit((unsigned char) in[1]) &&
-					 isxdigit((unsigned char) in[2]) &&
-					 isxdigit((unsigned char) in[3]) &&
-					 isxdigit((unsigned char) in[4]))
-			{
-				pg_wchar unicode;
-
-				unicode = (hexval(in[1]) << 12) +
-					(hexval(in[2]) << 8) +
-					(hexval(in[3]) << 4) +
-					hexval(in[4]);
-				check_unicode_value(unicode, in, yyscanner);
-				if (pair_first)
-				{
-					if (is_utf16_surrogate_second(unicode))
-					{
-						unicode = surrogate_pair_to_codepoint(pair_first, unicode);
-						pair_first = 0;
-					}
-					else
-					{
-						ADVANCE_YYLLOC(in - litbuf + 3);   /* 3 for U&" */
-						/*
-						yyerror("invalid Unicode surrogate pair");
-					}
-				}
-				else if (is_utf16_surrogate_second(unicode))
-					yyerror("invalid Unicode surrogate pair");
-
-				if (is_utf16_surrogate_first(unicode))
-					pair_first = unicode;
-				else
-				{
-					unicode_to_utf8(unicode, (unsigned char *) out);
-					out += pg_mblen(out);
-				}
-				in += 5;
-			}
-			else if (in[1] == '+' &&
-					 isxdigit((unsigned char) in[2]) &&
-					 isxdigit((unsigned char) in[3]) &&
-					 isxdigit((unsigned char) in[4]) &&
-					 isxdigit((unsigned char) in[5]) &&
-					 isxdigit((unsigned char) in[6]) &&
-					 isxdigit((unsigned char) in[7]))
-			{
-				pg_wchar unicode;
-
-				unicode = (hexval(in[2]) << 20) +
-					(hexval(in[3]) << 16) +
-					(hexval(in[4]) << 12) +
-					(hexval(in[5]) << 8) +
-					(hexval(in[6]) << 4) +
-					hexval(in[7]);
-				check_unicode_value(unicode, in, yyscanner);
-				if (pair_first)
-				{
-					if (is_utf16_surrogate_second(unicode))
-					{
-						unicode = surrogate_pair_to_codepoint(pair_first, unicode);
-						pair_first = 0;
-					}
-					else
-					{
-						ADVANCE_YYLLOC(in - litbuf + 3);   /* 3 for U&" */
-						/*
-						yyerror("invalid Unicode surrogate pair");
-					}
-				}
-				else if (is_utf16_surrogate_second(unicode))
-					yyerror("invalid Unicode surrogate pair");
-
-				if (is_utf16_surrogate_first(unicode))
-					pair_first = unicode;
-				else
-				{
-					unicode_to_utf8(unicode, (unsigned char *) out);
-					out += pg_mblen(out);
-				}
-				in += 8;
-			}
-			else
-			{
-				ADVANCE_YYLLOC(in - litbuf + 3);   /* 3 for U&" */
-				/*
-				yyerror("invalid Unicode escape value");
-			}
-		}
-		else
-		{
-			if (pair_first)
-			{
-				ADVANCE_YYLLOC(in - litbuf + 3);   /* 3 for U&" */
-				/*
-				yyerror("invalid Unicode surrogate pair");
-			}
-			*out++ = *in++;
-		}
-	}
-	*out = '\0';
-	*/
-	/*
-	 * We could skip pg_verifymbstr if we didn't process any non-7-bit-ASCII
-	 * codes; but it's probably not worth the trouble, since this isn't
-	 * likely to be a performance-critical path.
-	 */
-	//pg_verifymbstr(new, out - new, false);
-	return (wchar_t*)new;
 }
 
 static unsigned char

@@ -37,7 +37,7 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select * from tbl where col = $1");
             analyzer.ParseQuery("select * from table", true);
             analyzer.ParseQuery("select * from \"table\"");
-            analyzer.ParseQuery("SELECT E'\\xDEADBEEF'");
+            analyzer.ParseQuery("SELECT E'\\xDEADBEEF'", true);
             analyzer.ParseQuery("select * from tbl option index (tbl indx1)");
             analyzer.ParseQuery("select * from tbl option index tbl indx1", true);
             analyzer.ParseQuery("select * from tbl option index tbl", true);
@@ -99,7 +99,7 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select u from User u; select d from Department d");
             analyzer.ParseQuery("select u from User u where u.name = u&'\\asdf'", true);
             analyzer.ParseQuery("SELECT p FROM Photo p WHERE p.Description = 'Smith\\'s family'", true);
-            analyzer.ParseQuery("select E'\\''");
+            analyzer.ParseQuery("select E'\\''",true);
             analyzer.ParseQuery("ALTER DEFAULT PRIVILEGES IN SCHEMA myschema REVOKE GRANT OPTION FOR SELECT ON TABLES FROM internal", true);
             analyzer.ParseQuery("select A.D.B<C>.F.G<A>(d,A<d>.D<s>())");
             analyzer.ParseQuery("select 2<3 and 3>4");
