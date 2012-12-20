@@ -57,9 +57,7 @@ namespace Starcounter.Internal {
                     UInt16 handlerId;
 
                     // TODO! Alexey. Please allow to register to Gateway with only port (i.e without Verb and URI)
-                    GatewayHandlers.RegisterUriHandler((ushort)port, "GET /", OnHttpMessageRoot, out handlerId);
-                    // TODO! Alexey. Please allow to register to Gateway with only port (i.e without Verb and URI)
-                    GatewayHandlers.RegisterUriHandler((ushort)port, "PATCH /", OnHttpMessageRoot, out handlerId);
+                    GatewayHandlers.RegisterUriHandler((ushort)port, "/", OnHttpMessageRoot, out handlerId);
                 });
             }
         }

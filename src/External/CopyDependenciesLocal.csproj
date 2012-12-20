@@ -23,7 +23,7 @@
     <LocalKillAllScript>..\BuildSystem\Scripts\kill_all.bat</LocalKillAllScript>
     <LocalGatewayXML>..\scnetworkgateway\scripts\scnetworkgateway.xml</LocalGatewayXML>
     <LocalServiceXML>..\scservice\config\personal.xml</LocalServiceXML>
-    <ScerrresDll>..\Starcounter.ErrorCodes\scerrres\x64\$(Configuration)\scerrres.dll</ScerrresDll>
+    <ScerrresDll>..\Starcounter.ErrorCodes\scerrres\x64\$(Configuration)\scerrres.dll;..\Starcounter.ErrorCodes\scerrres\x64\$(Configuration)\scerrres.pdb</ScerrresDll>
   </PropertyGroup>
   
   <PropertyGroup>
@@ -37,7 +37,8 @@
   <Target Name="CopyLocalFiles">
 
     <!-- Building Blue solution if any. -->
-    <!-- <Exec Condition="Exists('$(LocalBlueSolution)')" Command="C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe $(LocalBlueSolution) /property:Configuration=$(Configuration);Platform=x64;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" /> -->
+    <Exec Condition="'$(BUILD_BLUE_FROM_LEVEL1)' == 'True' AND Exists('$(LocalBlueSolution)')"
+          Command="C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe $(LocalBlueSolution) /property:Configuration=$(Configuration);Platform=x64;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" />
     
     <!-- Creating dynamic copied files lists. -->
     <ItemGroup>
