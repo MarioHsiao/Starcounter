@@ -164,6 +164,9 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select * from tbl where col like '\\n and \\u and \\\\'");
             analyzer.ParseQuery("select * from tbl where a >= b and c != d and e <> k /* comment */ and tt -- kk */");
             analyzer.ParseQuery("select 'ghf k kjn''jgk''''k''kjkjh'");
+            analyzer.ParseQuery("select B'010010', X'FD13A', N'Text'");
+            analyzer.ParseQuery("select B'010A010'", true);
+            analyzer.ParseQuery("select X'FID13A'", true);
         }
 
         [Test]
