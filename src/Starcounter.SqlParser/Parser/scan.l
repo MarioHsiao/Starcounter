@@ -417,7 +417,7 @@ other			.\x00
 					const ScanKeyword *keyword;
 
 					SET_YYLLOC();
-					yyless(1);				/* eat only 'n' this time */
+					yyless(sizeof(wchar_t));				/* eat only 'n' this time */
 
 					keyword = ScanKeywordLookup(L"nchar",
 												yyextra->keywords,
@@ -524,8 +524,6 @@ other			.\x00
 					 * Note that slash-star or dash-dash at the first
 					 * character will match a prior rule, not this one.
 					 */
-					if (wcscmp((wchar_t*)yytext,L"/*") || wcscmp((wchar_t*)yytext,L"--"))
-						yyerror("unexpected to get comment operator in 2char operator rule");
 
 					SET_YYLLOC();
 
