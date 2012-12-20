@@ -15,8 +15,6 @@
 #ifndef SCANSUP_H
 #define SCANSUP_H
 
-extern char *scanstr(const char *s);
-
 extern char *downcase_identifier(const char *ident, int len,
 							 bool warn);
 
