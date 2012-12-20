@@ -20,6 +20,7 @@
   <InactiveSessionTimeout>1200</InactiveSessionTimeout>
   
   <!-- Information on reverse proxies if any. -->
+  <!--
   <ReverseProxies>
       
     <ReverseProxy>
@@ -41,6 +42,7 @@
     </ReverseProxy>
       
   </ReverseProxies>
+  -->
 
   <!--
   List of local interfaces to bind to.

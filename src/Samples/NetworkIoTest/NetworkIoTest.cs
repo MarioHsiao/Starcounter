@@ -6,6 +6,7 @@ using HttpStructs;
 using Starcounter;
 using System.Diagnostics;
 using System.Collections.Generic;
+using Starcounter.Internal;
 
 namespace NetworkIoTestApp
 {
@@ -17,6 +18,12 @@ namespace NetworkIoTestApp
             "\r\n";
 
         static readonly Byte[] kHttpServiceUnavailable = Encoding.ASCII.GetBytes(kHttpServiceUnavailableString);
+
+        /*internal static void Main(String[] args)
+        { 
+            AppsBootstrapper.Bootstrap(80, "c:\\ScOnScWeb\\sc\\www.starcounter.com");
+            RequestHandler.GET("/", null);
+        }*/
 
         internal static void Main(String[] args)
         {
