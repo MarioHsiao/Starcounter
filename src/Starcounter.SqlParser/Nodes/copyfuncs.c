@@ -344,7 +344,7 @@ _copyCommonTableExpr(CommonTableExpr *from)
 {
 	CommonTableExpr *newnode = makeNode(CommonTableExpr);
 
-	COPY_STRING_FIELD(ctename);
+	W_COPY_STRING_FIELD(ctename);
 	COPY_NODE_FIELD(aliascolnames);
 	COPY_NODE_FIELD(ctequery);
 	COPY_LOCATION_FIELD(location);
@@ -610,9 +610,9 @@ _copyIndexElem(IndexElem *from)
 {
 	IndexElem  *newnode = makeNode(IndexElem);
 
-	COPY_STRING_FIELD(name);
+	W_COPY_STRING_FIELD(name);
 	COPY_NODE_FIELD(expr);
-	COPY_STRING_FIELD(indexcolname);
+	W_COPY_STRING_FIELD(indexcolname);
 	COPY_NODE_FIELD(collation);
 	COPY_NODE_FIELD(opclass);
 	COPY_SCALAR_FIELD(ordering);
@@ -626,7 +626,7 @@ _copyColumnDef(ColumnDef *from)
 {
 	ColumnDef  *newnode = makeNode(ColumnDef);
 
-	COPY_STRING_FIELD(colname);
+	W_COPY_STRING_FIELD(colname);
 	COPY_NODE_FIELD(typeName);
 	COPY_SCALAR_FIELD(inhcount);
 	COPY_SCALAR_FIELD(is_local);
@@ -813,7 +813,7 @@ _copyAlterDomainStmt(AlterDomainStmt *from)
 
 	COPY_SCALAR_FIELD(subtype);
 	COPY_NODE_FIELD(typeName);
-	COPY_STRING_FIELD(name);
+	W_COPY_STRING_FIELD(name);
 	COPY_NODE_FIELD(def);
 	COPY_SCALAR_FIELD(behavior);
 
@@ -842,7 +842,7 @@ _copyPrivGrantee(PrivGrantee *from)
 {
 	PrivGrantee *newnode = makeNode(PrivGrantee);
 
-	COPY_STRING_FIELD(rolname);
+	W_COPY_STRING_FIELD(rolname);
 
 	return newnode;
 }
@@ -975,7 +975,7 @@ _copyIndexStmt(IndexStmt *from)
 	W_COPY_STRING_FIELD(idxname);
 	COPY_NODE_FIELD(relation);
 	COPY_STRING_FIELD(accessMethod);
-	COPY_STRING_FIELD(tableSpace);
+	W_COPY_STRING_FIELD(tableSpace);
 	COPY_NODE_FIELD(indexParams);
 	COPY_NODE_FIELD(options);
 	COPY_NODE_FIELD(whereClause);
@@ -1168,7 +1168,7 @@ _copyDropPropertyStmt(DropPropertyStmt *from)
 	DropPropertyStmt *newnode = makeNode(DropPropertyStmt);
 
 	COPY_NODE_FIELD(relation);
-	COPY_STRING_FIELD(property);
+	W_COPY_STRING_FIELD(property);
 	COPY_SCALAR_FIELD(removeType);
 	COPY_SCALAR_FIELD(behavior);
 	COPY_SCALAR_FIELD(missing_ok);
@@ -1182,7 +1182,7 @@ _copyCreateRoleStmt(CreateRoleStmt *from)
 	CreateRoleStmt *newnode = makeNode(CreateRoleStmt);
 
 	COPY_SCALAR_FIELD(stmt_type);
-	COPY_STRING_FIELD(role);
+	W_COPY_STRING_FIELD(role);
 	COPY_NODE_FIELD(options);
 
 	return newnode;

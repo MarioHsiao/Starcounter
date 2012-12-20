@@ -380,7 +380,7 @@ typedef struct RangeFunction
 typedef struct ColumnDef
 {
 	NodeTag		type;
-	char	   *colname;		/* name of column */
+	wchar_t	   *colname;		/* name of column */
 	TypeName   *typeName;		/* type of column */
 	int			inhcount;		/* number of times column is inherited */
 	bool		is_local;		/* column has local (non-inherited) def'n */
@@ -424,9 +424,9 @@ typedef enum CreateStmtLikeOption
 typedef struct IndexElem
 {
 	NodeTag		type;
-	char	   *name;			/* name of attribute to index, or NULL */
+	wchar_t	   *name;			/* name of attribute to index, or NULL */
 	Node	   *expr;			/* expression to index, or NULL */
-	char	   *indexcolname;	/* name for index column; NULL = default */
+	wchar_t	   *indexcolname;	/* name for index column; NULL = default */
 	List	   *collation;		/* name of collation; NIL = default */
 	List	   *opclass;		/* name of desired opclass; NIL = default */
 	SortByDir	ordering;		/* ASC/DESC/default */
@@ -512,7 +512,7 @@ typedef struct WithClause
 typedef struct CommonTableExpr
 {
 	NodeTag		type;
-	char	   *ctename;		/* query name (never qualified) */
+	wchar_t	   *ctename;		/* query name (never qualified) */
 	List	   *aliascolnames;	/* optional list of column names */
 	/* SelectStmt/InsertStmt/etc before parse analysis, Query afterwards: */
 	Node	   *ctequery;		/* the CTE's subquery */
@@ -777,7 +777,7 @@ typedef struct AlterDomainStmt
 								 *------------
 								 */
 	List	   *typeName;		/* domain to work on */
-	char	   *name;			/* column or constraint name to act on */
+	wchar_t	   *name;			/* column or constraint name to act on */
 	Node	   *def;			/* definition of default or constraint */
 	DropBehavior behavior;		/* RESTRICT or CASCADE for DROP cases */
 } AlterDomainStmt;
@@ -820,7 +820,7 @@ typedef struct GrantStmt
 typedef struct PrivGrantee
 {
 	NodeTag		type;
-	char	   *rolname;		/* if NULL then PUBLIC */
+	wchar_t	   *rolname;		/* if NULL then PUBLIC */
 } PrivGrantee;
 
 /*
@@ -1062,7 +1062,7 @@ typedef struct CreateRoleStmt
 {
 	NodeTag		type;
 	RoleStmtType stmt_type;		/* ROLE/USER/GROUP */
-	char	   *role;			/* role name */
+	wchar_t	   *role;			/* role name */
 	List	   *options;		/* List of DefElem nodes */
 } CreateRoleStmt;
 
@@ -1161,7 +1161,7 @@ typedef struct DropPropertyStmt
 {
 	NodeTag		type;
 	RangeVar   *relation;		/* owning relation */
-	char	   *property;		/* name of rule, trigger, etc */
+	wchar_t	   *property;		/* name of rule, trigger, etc */
 	ObjectType	removeType;		/* OBJECT_RULE or OBJECT_TRIGGER */
 	DropBehavior behavior;		/* RESTRICT or CASCADE behavior */
 	bool		missing_ok;		/* skip error if missing? */
@@ -1209,7 +1209,7 @@ typedef struct IndexStmt
 	wchar_t	   *idxname;		/* name of new index, or NULL for default */
 	RangeVar   *relation;		/* relation to build index on */
 	char	   *accessMethod;	/* name of access method (eg. btree) */
-	char	   *tableSpace;		/* tablespace, or NULL for default */
+	wchar_t	   *tableSpace;		/* tablespace, or NULL for default */
 	List	   *indexParams;	/* a list of IndexElem */
 	List	   *options;		/* options from WITH clause */
 	Node	   *whereClause;	/* qualification (partial-index predicate) */
