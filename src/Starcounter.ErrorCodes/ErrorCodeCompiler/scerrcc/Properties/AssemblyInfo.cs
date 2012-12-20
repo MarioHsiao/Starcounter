@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("scerrcc")]
 [assembly: AssemblyDescription("Starcounter error code compiler")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Starcounter")]
+[assembly: AssemblyCompany("Starcounter AB")]
 [assembly: AssemblyProduct("scerrcc")]
-[assembly: AssemblyCopyright("Copyright © Starcounter 2008")]
+[assembly: AssemblyCopyright("Copyright © Starcounter AB 2008")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

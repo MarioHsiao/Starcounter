@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("StarcounterServer")]
+[assembly: AssemblyTitle("Starcounter.Internal.Interfaces")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Microsoft")]
-[assembly: AssemblyProduct("StarcounterServer")]
-[assembly: AssemblyCopyright("Copyright © Microsoft 2012")]
+[assembly: AssemblyCompany("Starcounter AB")]
+[assembly: AssemblyProduct("Starcounter.Internal.Interfaces")]
+[assembly: AssemblyCopyright("Copyright © Starcounter AB 2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("94f003c5-e9ac-4f32-9799-fd178c8124a4")]
+[assembly: Guid("1dea55fe-06b2-480f-8102-7230087b7459")]
 
 // Version information for an assembly consists of the following four values:
 //

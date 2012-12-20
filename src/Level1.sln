@@ -36,7 +36,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Internal", "Sta
 		{9E8D97FC-87A3-4A7C-B318-9414B5EEA60E} = {9E8D97FC-87A3-4A7C-B318-9414B5EEA60E}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "boot", "boot\boot.csproj", "{4F5A9009-7528-43E9-9142-26CF6A9F3ED7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sccode", "sccode\sccode.csproj", "{4F5A9009-7528-43E9-9142-26CF6A9F3ED7}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bmx", "Chunks\BMX\bmx.vcxproj", "{6665517F-743D-4809-94D3-13325FC2AF74}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -59,9 +59,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Bootstrap", "St
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FasterThanJson", "FasterThanJson\FasterThanJson.csproj", "{DD181012-DD9C-410F-AD8E-01D062CAC820}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NetworkGateway", "NetworkGateway\NetworkGateway.vcxproj", "{AD395461-89C1-4EFA-AEEF-8AE43C6B656D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "scnetworkgateway", "scnetworkgateway\scnetworkgateway.vcxproj", "{AD395461-89C1-4EFA-AEEF-8AE43C6B656D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Rest", "REST\Starcounter.Rest.csproj", "{C3E5398F-48FB-4565-8720-D73AF2ACFC1C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Rest", "Starcounter.Rest\Starcounter.Rest.csproj", "{C3E5398F-48FB-4565-8720-D73AF2ACFC1C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Apps", "Starcounter.Apps\Starcounter.Apps.csproj", "{BBAAD98C-2661-42DC-85E4-3F2D11BBE010}"
 EndProject
@@ -95,7 +95,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.MsBuild", "Star
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Web.Tests", "Starcounter.Web.Tests\Starcounter.Web.Tests.csproj", "{8670B44F-5240-4E27-AEAC-E7C58F626777}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Weaver", "Weaver\Weaver.csproj", "{76C95AD5-A9B4-4672-856A-18A1CE45D2B1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "scweaver", "scweaver\scweaver.csproj", "{76C95AD5-A9B4-4672-856A-18A1CE45D2B1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ThirdParty", "ThirdParty", "{5069EDE6-F3FE-4CD3-89C8-1AF15ED4B047}"
 EndProject
@@ -115,7 +115,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "11. Server", "11. Server", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Server", "Server\Starcounter.Server\Starcounter.Server.csproj", "{28E1D438-7DC4-4BF7-A486-0598C78DBBE9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReferenceServer", "Server\ReferenceServer\ReferenceServer.csproj", "{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "screferenceserver", "Server\screferenceserver\screferenceserver.csproj", "{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{C74FD2EF-8675-42C1-BC45-E4CF1EB0BB48}"
 	ProjectSection(SolutionItems) = preProject

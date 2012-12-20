@@ -21,7 +21,7 @@
     <LocalBlueSolution>..\..\..\Level0\src\Blue.sln</LocalBlueSolution>
     <LocalStartAllScript>..\BuildSystem\Scripts\start_all.bat</LocalStartAllScript>
     <LocalKillAllScript>..\BuildSystem\Scripts\kill_all.bat</LocalKillAllScript>
-    <LocalGatewayXML>..\NetworkGateway\scripts\scnetworkgateway.xml</LocalGatewayXML>
+    <LocalGatewayXML>..\scnetworkgateway\scripts\scnetworkgateway.xml</LocalGatewayXML>
     <LocalServiceXML>..\scservice\config\personal.xml</LocalServiceXML>
     <ScerrresDll>..\Starcounter.ErrorCodes\scerrres\x64\$(Configuration)\scerrres.dll;..\Starcounter.ErrorCodes\scerrres\x64\$(Configuration)\scerrres.pdb</ScerrresDll>
   </PropertyGroup>
@@ -31,7 +31,7 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <LocalGatewayTestFiles Include="..\NetworkGateway\scripts\gw_test_*" />
+    <LocalGatewayTestFiles Include="..\scnetworkgateway\scripts\gw_test_*" />
   </ItemGroup>
 
   <Target Name="CopyLocalFiles">
