@@ -93,7 +93,7 @@ _copyRangeVar(RangeVar *from)
 	RangeVar   *newnode = makeNode(RangeVar);
 
 	COPY_NODE_FIELD(path);
-	COPY_STRING_FIELD(relname);
+	W_COPY_STRING_FIELD(relname);
 	COPY_SCALAR_FIELD(inhOpt);
 	COPY_SCALAR_FIELD(relpersistence);
 	COPY_NODE_FIELD(alias);
@@ -114,7 +114,7 @@ _copyIntoClause(IntoClause *from)
 	COPY_NODE_FIELD(colNames);
 	COPY_NODE_FIELD(options);
 	COPY_SCALAR_FIELD(onCommit);
-	COPY_STRING_FIELD(tableSpaceName);
+	W_COPY_STRING_FIELD(tableSpaceName);
 
 	return newnode;
 }
@@ -128,7 +128,7 @@ _copyNamedArgExpr(NamedArgExpr *from)
 	NamedArgExpr *newnode = makeNode(NamedArgExpr);
 
 	COPY_NODE_FIELD(arg);
-	COPY_STRING_FIELD(name);
+	W_COPY_STRING_FIELD(name);
 	COPY_SCALAR_FIELD(argnumber);
 	COPY_LOCATION_FIELD(location);
 
@@ -245,7 +245,7 @@ _copyXmlExpr(XmlExpr *from)
 	XmlExpr    *newnode = makeNode(XmlExpr);
 
 	COPY_SCALAR_FIELD(op);
-	COPY_STRING_FIELD(name);
+	W_COPY_STRING_FIELD(name);
 	COPY_NODE_FIELD(named_args);
 	COPY_NODE_FIELD(arg_names);
 	COPY_NODE_FIELD(args);
@@ -489,7 +489,7 @@ _copyResTarget(ResTarget *from)
 {
 	ResTarget  *newnode = makeNode(ResTarget);
 
-	COPY_STRING_FIELD(name);
+	W_COPY_STRING_FIELD(name);
 	COPY_NODE_FIELD(indirection);
 	COPY_NODE_FIELD(val);
 	COPY_LOCATION_FIELD(location);
@@ -546,8 +546,8 @@ _copyWindowDef(WindowDef *from)
 {
 	WindowDef  *newnode = makeNode(WindowDef);
 
-	COPY_STRING_FIELD(name);
-	COPY_STRING_FIELD(refname);
+	W_COPY_STRING_FIELD(name);
+	W_COPY_STRING_FIELD(refname);
 	COPY_NODE_FIELD(partitionClause);
 	COPY_NODE_FIELD(orderClause);
 	COPY_SCALAR_FIELD(frameOptions);
@@ -648,7 +648,7 @@ _copyConstraint(Constraint *from)
 	Constraint *newnode = makeNode(Constraint);
 
 	COPY_SCALAR_FIELD(contype);
-	COPY_STRING_FIELD(conname);
+	W_COPY_STRING_FIELD(conname);
 	COPY_SCALAR_FIELD(deferrable);
 	COPY_SCALAR_FIELD(initdeferred);
 	COPY_LOCATION_FIELD(location);
@@ -657,8 +657,8 @@ _copyConstraint(Constraint *from)
 	COPY_NODE_FIELD(keys);
 	COPY_NODE_FIELD(exclusions);
 	COPY_NODE_FIELD(options);
-	COPY_STRING_FIELD(indexname);
-	COPY_STRING_FIELD(indexspace);
+	W_COPY_STRING_FIELD(indexname);
+	W_COPY_STRING_FIELD(indexspace);
 	COPY_STRING_FIELD(access_method);
 	COPY_NODE_FIELD(where_clause);
 	COPY_NODE_FIELD(pktable);
@@ -678,8 +678,8 @@ _copyDefElem(DefElem *from)
 {
 	DefElem    *newnode = makeNode(DefElem);
 
-	COPY_STRING_FIELD(defnamespace);
-	COPY_STRING_FIELD(defname);
+	W_COPY_STRING_FIELD(defnamespace);
+	W_COPY_STRING_FIELD(defname);
 	COPY_NODE_FIELD(arg);
 	COPY_SCALAR_FIELD(defaction);
 
@@ -798,7 +798,7 @@ _copyAlterTableCmd(AlterTableCmd *from)
 	AlterTableCmd *newnode = makeNode(AlterTableCmd);
 
 	COPY_SCALAR_FIELD(subtype);
-	COPY_STRING_FIELD(name);
+	W_COPY_STRING_FIELD(name);
 	COPY_NODE_FIELD(def);
 	COPY_SCALAR_FIELD(behavior);
 	COPY_SCALAR_FIELD(missing_ok);
@@ -852,7 +852,7 @@ _copyAccessPriv(AccessPriv *from)
 {
 	AccessPriv *newnode = makeNode(AccessPriv);
 
-	COPY_STRING_FIELD(priv_name);
+	W_COPY_STRING_FIELD(priv_name);
 	COPY_NODE_FIELD(cols);
 
 	return newnode;
@@ -867,7 +867,7 @@ _copyGrantRoleStmt(GrantRoleStmt *from)
 	COPY_NODE_FIELD(grantee_roles);
 	COPY_SCALAR_FIELD(is_grant);
 	COPY_SCALAR_FIELD(admin_opt);
-	COPY_STRING_FIELD(grantor);
+	W_COPY_STRING_FIELD(grantor);
 	COPY_SCALAR_FIELD(behavior);
 
 	return newnode;
@@ -889,7 +889,7 @@ CopyCreateStmtFields(CreateStmt *from, CreateStmt *newnode)
 	COPY_NODE_FIELD(constraints);
 	COPY_NODE_FIELD(options);
 	COPY_SCALAR_FIELD(oncommit);
-	COPY_STRING_FIELD(tablespacename);
+	W_COPY_STRING_FIELD(tablespacename);
 	COPY_SCALAR_FIELD(if_not_exists);
 }
 
@@ -972,7 +972,7 @@ _copyIndexStmt(IndexStmt *from)
 {
 	IndexStmt  *newnode = makeNode(IndexStmt);
 
-	COPY_STRING_FIELD(idxname);
+	W_COPY_STRING_FIELD(idxname);
 	COPY_NODE_FIELD(relation);
 	COPY_STRING_FIELD(accessMethod);
 	COPY_STRING_FIELD(tableSpace);
@@ -1034,7 +1034,7 @@ _copyCreatedbStmt(CreatedbStmt *from)
 {
 	CreatedbStmt *newnode = makeNode(CreatedbStmt);
 
-	COPY_STRING_FIELD(dbname);
+	W_COPY_STRING_FIELD(dbname);
 	COPY_NODE_FIELD(options);
 
 	return newnode;
@@ -1045,7 +1045,7 @@ _copyAlterDatabaseStmt(AlterDatabaseStmt *from)
 {
 	AlterDatabaseStmt *newnode = makeNode(AlterDatabaseStmt);
 
-	COPY_STRING_FIELD(dbname);
+	W_COPY_STRING_FIELD(dbname);
 	COPY_NODE_FIELD(options);
 
 	return newnode;
@@ -1056,7 +1056,7 @@ _copyAlterDatabaseSetStmt(AlterDatabaseSetStmt *from)
 {
 	AlterDatabaseSetStmt *newnode = makeNode(AlterDatabaseSetStmt);
 
-	COPY_STRING_FIELD(dbname);
+	W_COPY_STRING_FIELD(dbname);
 	COPY_NODE_FIELD(setstmt);
 
 	return newnode;
@@ -1067,7 +1067,7 @@ _copyDropdbStmt(DropdbStmt *from)
 {
 	DropdbStmt *newnode = makeNode(DropdbStmt);
 
-	COPY_STRING_FIELD(dbname);
+	W_COPY_STRING_FIELD(dbname);
 	COPY_SCALAR_FIELD(missing_ok);
 
 	return newnode;
@@ -1113,7 +1113,7 @@ _copyVariableSetStmt(VariableSetStmt *from)
 	VariableSetStmt *newnode = makeNode(VariableSetStmt);
 
 	COPY_SCALAR_FIELD(kind);
-	COPY_STRING_FIELD(name);
+	W_COPY_STRING_FIELD(name);
 	COPY_NODE_FIELD(args);
 	COPY_SCALAR_FIELD(is_local);
 
@@ -1125,7 +1125,7 @@ _copyVariableShowStmt(VariableShowStmt *from)
 {
 	VariableShowStmt *newnode = makeNode(VariableShowStmt);
 
-	COPY_STRING_FIELD(name);
+	W_COPY_STRING_FIELD(name);
 
 	return newnode;
 }
@@ -1145,7 +1145,7 @@ _copyCreateTrigStmt(CreateTrigStmt *from)
 {
 	CreateTrigStmt *newnode = makeNode(CreateTrigStmt);
 
-	COPY_STRING_FIELD(trigname);
+	W_COPY_STRING_FIELD(trigname);
 	COPY_NODE_FIELD(relation);
 	COPY_NODE_FIELD(funcname);
 	COPY_NODE_FIELD(args);
@@ -1229,7 +1229,7 @@ _copyReindexStmt(ReindexStmt *from)
 
 	COPY_SCALAR_FIELD(kind);
 	COPY_NODE_FIELD(relation);
-	COPY_STRING_FIELD(name);
+	W_COPY_STRING_FIELD(name);
 	COPY_SCALAR_FIELD(do_system);
 	COPY_SCALAR_FIELD(do_user);
 
@@ -1241,7 +1241,7 @@ _copyPrepareStmt(PrepareStmt *from)
 {
 	PrepareStmt *newnode = makeNode(PrepareStmt);
 
-	COPY_STRING_FIELD(name);
+	W_COPY_STRING_FIELD(name);
 	COPY_NODE_FIELD(argtypes);
 	COPY_NODE_FIELD(query);
 
@@ -1253,7 +1253,7 @@ _copyExecuteStmt(ExecuteStmt *from)
 {
 	ExecuteStmt *newnode = makeNode(ExecuteStmt);
 
-	COPY_STRING_FIELD(name);
+	W_COPY_STRING_FIELD(name);
 	COPY_NODE_FIELD(into);
 	COPY_NODE_FIELD(params);
 
@@ -1265,7 +1265,7 @@ _copyDeallocateStmt(DeallocateStmt *from)
 {
 	DeallocateStmt *newnode = makeNode(DeallocateStmt);
 
-	COPY_STRING_FIELD(name);
+	W_COPY_STRING_FIELD(name);
 
 	return newnode;
 }
