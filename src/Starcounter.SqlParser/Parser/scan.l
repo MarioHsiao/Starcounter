@@ -373,7 +373,7 @@ other			.\x00
 				}
 <xb>{quotestop}	|
 <xb>{quotefail} {
-					yyless(1);
+					yyless(sizeof(wchar_t));
 					BEGIN(INITIAL);
 					yylval->str = litbufdup(yyscanner);
 					return BCONST;
@@ -402,7 +402,7 @@ other			.\x00
 				}
 <xh>{quotestop}	|
 <xh>{quotefail} {
-					yyless(1);
+					yyless(sizeof(wchar_t));
 					BEGIN(INITIAL);
 					yylval->str = litbufdup(yyscanner);
 					return XCONST;
@@ -768,7 +768,7 @@ static void
 addlitchar(unsigned char ychar, core_yyscan_t yyscanner)
 {
 	/* enlarge buffer if needed */
-	if ((yyextra->literallen + 1) >= yyextra->literalalloc)
+	if ((yyextra->literallen + sizeof(wchar_t)) >= yyextra->literalalloc)
 	{
 		yyextra->literalalloc *= 2;
 		yyextra->literalbuf = (char *) repalloc(yyextra->literalbuf,
@@ -776,7 +776,8 @@ addlitchar(unsigned char ychar, core_yyscan_t yyscanner)
 	}
 	/* append new data */
 	yyextra->literalbuf[yyextra->literallen] = ychar;
-	yyextra->literallen += 1;
+	yyextra->literalbuf[yyextra->literallen+1] = '\x0';
+	yyextra->literallen += sizeof(wchar_t);
 }
 
 
