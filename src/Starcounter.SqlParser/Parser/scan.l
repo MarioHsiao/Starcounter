@@ -88,7 +88,6 @@ const bool			escape_string_warning = true;
 static void addlit(char *ytext, int yleng, core_yyscan_t yyscanner);
 static void addlitchar(unsigned char ychar, core_yyscan_t yyscanner);
 static wchar_t *litbufdup(core_yyscan_t yyscanner);
-static unsigned char unescape_single_char(unsigned char c, core_yyscan_t yyscanner);
 static int	process_integer_literal(const wchar_t *token, YYSTYPE *lval);
 
 #define yyerror(msg)  scanner_yyerror(msg, yyscanner)
@@ -174,6 +173,12 @@ comment			("-"\x00"-"\x00{non_newline}*)
 
 whitespace		({space}+|{comment})
 
+cyrillic		[\x00-\xFF]\x04
+qcharletter		[^']\x00
+qletter			{qcharletter}|{cyrillic}
+dqcharletter	[^"]\x00
+dqletter		{dqcharletter}|{cyrillic}
+
 /*
  * SQL requires at least one newline in the whitespace separating
  * string literals that are to be concatenated.  Silly, but who are we
@@ -209,11 +214,11 @@ quotefail		{quote}{whitespace}*"-"\x00
  * validate the contents.
  */
 xbstart			[bB]\x00{quote}
-xbinside		([^']\x00)*
+xbinside		{qletter}*
 
 /* Hexadecimal number */
 xhstart			[xX]\x00{quote}
-xhinside		([^']\x00)*
+xhinside		{qletter}*
 
 /* National character */
 xnstart			[nN]\x00{quote}
@@ -223,7 +228,7 @@ xnstart			[nN]\x00{quote}
  */
 xqstart			{quote}
 xqdouble		{quote}{quote}
-xqinside		([^']\x00)+
+xqinside		{qletter}+
 
 /* Double quote
  * Allows embedded spaces and other special characters into identifiers.
@@ -232,7 +237,7 @@ dquote			\"\x00
 xdstart			{dquote}
 xdstop			{dquote}
 xddouble		{dquote}{dquote}
-xdinside		([^"]\x00)+
+xdinside		{dqletter}+
 
 /* error rule to avoid backup 
 xufailed		[uU]\x00&\x00 */
@@ -436,8 +441,6 @@ other			.\x00
 				}
 
 {xqstart}		{
-					yyextra->warn_on_first_escape = true;
-					yyextra->saw_non_ascii = false;
 					SET_YYLLOC();
 					BEGIN(xq);
 					startlit();
@@ -446,14 +449,6 @@ other			.\x00
 <xq>{quotefail} {
 					yyless(sizeof(wchar_t));
 					BEGIN(INITIAL);
-					/*
-					 * check that the data remains valid if it might have been
-					 * made invalid by unescaping any chars.
-					 */
-					if (yyextra->saw_non_ascii)
-						pg_verifymbstr(yyextra->literalbuf,
-									   yyextra->literallen,
-									   false);
 					yylval->str = litbufdup(yyscanner);
 					return SCONST;
 				}
@@ -829,30 +824,6 @@ hexval(unsigned char c)
 	errprint("\nERROR: invalid hexadecimal digit");
 	ThrowExceptionCode(SCERRSQLINCORRECTSYNTAX, ScErrMessage("Scanner error: invalid hexadecimal digit"));
 	return 0; /* not reached */
-}
-
-static unsigned char
-unescape_single_char(unsigned char c, core_yyscan_t yyscanner)
-{
-	switch (c)
-	{
-		case 'b':
-			return '\b';
-		case 'f':
-			return '\f';
-		case 'n':
-			return '\n';
-		case 'r':
-			return '\r';
-		case 't':
-			return '\t';
-		default:
-			/* check for backslash followed by non-7-bit-ASCII */
-			if (c == '\0' || IS_HIGHBIT_SET(c))
-				yyextra->saw_non_ascii = true;
-
-			return c;
-	}
 }
 
 /*
