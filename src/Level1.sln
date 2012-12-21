@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Starcounter.ErrorCodes", "Starcounter.ErrorCodes", "{FF0868CF-A78E-44A4-93E5-57182F039F31}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "08. Hosting", "08. Hosting", "{E80CE545-83CD-41D4-8F89-56654E751392}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "07. Hosting", "07. Hosting", "{E80CE545-83CD-41D4-8F89-56654E751392}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Hosting", "Hosting\Starcounter.Hosting\Starcounter.Hosting.csproj", "{B427C63B-C13F-47CC-B101-29CED68A68B8}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sccoreapp", "Hosting\sccoreapp\sccoreapp.vcxproj", "{D6998D59-8E4F-42B6-BC63-924D6E69AC6F}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "13. Samples", "13. Samples", "{2E993A9D-C78B-45A5-AA0D-1FAA58825805}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "14. Samples", "14. Samples", "{2E993A9D-C78B-45A5-AA0D-1FAA58825805}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter", "Starcounter\Starcounter.csproj", "{7BF06E68-1088-47EE-B06C-DE546AFABDB0}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -36,7 +36,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Internal", "Sta
 		{9E8D97FC-87A3-4A7C-B318-9414B5EEA60E} = {9E8D97FC-87A3-4A7C-B318-9414B5EEA60E}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "boot", "boot\boot.csproj", "{4F5A9009-7528-43E9-9142-26CF6A9F3ED7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sccode", "sccode\sccode.csproj", "{4F5A9009-7528-43E9-9142-26CF6A9F3ED7}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bmx", "Chunks\BMX\bmx.vcxproj", "{6665517F-743D-4809-94D3-13325FC2AF74}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -59,9 +59,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Bootstrap", "St
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FasterThanJson", "FasterThanJson\FasterThanJson.csproj", "{DD181012-DD9C-410F-AD8E-01D062CAC820}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NetworkGateway", "NetworkGateway\NetworkGateway.vcxproj", "{AD395461-89C1-4EFA-AEEF-8AE43C6B656D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "scnetworkgateway", "scnetworkgateway\scnetworkgateway.vcxproj", "{AD395461-89C1-4EFA-AEEF-8AE43C6B656D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Rest", "REST\Starcounter.Rest.csproj", "{C3E5398F-48FB-4565-8720-D73AF2ACFC1C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Rest", "Starcounter.Rest\Starcounter.Rest.csproj", "{C3E5398F-48FB-4565-8720-D73AF2ACFC1C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Apps", "Starcounter.Apps\Starcounter.Apps.csproj", "{BBAAD98C-2661-42DC-85E4-3F2D11BBE010}"
 EndProject
@@ -95,7 +95,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.MsBuild", "Star
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Web.Tests", "Starcounter.Web.Tests\Starcounter.Web.Tests.csproj", "{8670B44F-5240-4E27-AEAC-E7C58F626777}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Weaver", "Weaver\Weaver.csproj", "{76C95AD5-A9B4-4672-856A-18A1CE45D2B1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "scweaver", "scweaver\scweaver.csproj", "{76C95AD5-A9B4-4672-856A-18A1CE45D2B1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ThirdParty", "ThirdParty", "{5069EDE6-F3FE-4CD3-89C8-1AF15ED4B047}"
 EndProject
@@ -115,7 +115,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "11. Server", "11. Server", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Server", "Server\Starcounter.Server\Starcounter.Server.csproj", "{28E1D438-7DC4-4BF7-A486-0598C78DBBE9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReferenceServer", "Server\ReferenceServer\ReferenceServer.csproj", "{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "screferenceserver", "Server\screferenceserver\screferenceserver.csproj", "{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{C74FD2EF-8675-42C1-BC45-E4CF1EB0BB48}"
 	ProjectSection(SolutionItems) = preProject
@@ -132,13 +132,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "06. VMDBMS", "06. VMDBMS", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03. Network Gateway", "03. Network Gateway", "{A5B0117C-DD6D-4C9A-84D0-DCB9F47B7709}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "09. Apps", "09. Apps", "{6AEA43EE-D1B7-4F8E-9599-7133FB507C66}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "08. Apps", "08. Apps", "{6AEA43EE-D1B7-4F8E-9599-7133FB507C66}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "05. Hypermedia", "05. Hypermedia", "{A8A6B3A7-41B4-4FC8-AB0E-6C9799BE7F27}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "10. Bootstrap", "10. Bootstrap", "{486A7359-839A-4F76-AF69-43F47D2AEAB5}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "09. Bootstrap", "09. Bootstrap", "{486A7359-839A-4F76-AF69-43F47D2AEAB5}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "07. Weaver", "07. Weaver", "{1AC7C23F-67AD-470E-B5CC-67D2C89DD18F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "10. Weaver", "10. Weaver", "{1AC7C23F-67AD-470E-B5CC-67D2C89DD18F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BitsAndBytes.Unsafe", "Starcounter.BitsAndBytes.Unsafe\BitsAndBytes.Unsafe.csproj", "{885EB31B-CF41-4C6C-A7BE-53B32A0C8B82}"
 EndProject
@@ -177,15 +177,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{F5866E
 		Chunks\common\name_definitions.hpp = Chunks\common\name_definitions.hpp
 		Chunks\common\overflow_buffer.hpp = Chunks\common\overflow_buffer.hpp
 		Chunks\common\owner_id.hpp = Chunks\common\owner_id.hpp
+		Chunks\common\owner_id_value_type.h = Chunks\common\owner_id_value_type.h
 		Chunks\common\pid_type.hpp = Chunks\common\pid_type.hpp
 		Chunks\common\resource_map.hpp = Chunks\common\resource_map.hpp
 		Chunks\common\scheduler_channel.hpp = Chunks\common\scheduler_channel.hpp
 		Chunks\common\scheduler_interface.hpp = Chunks\common\scheduler_interface.hpp
 		Chunks\common\scheduler_mask.hpp = Chunks\common\scheduler_mask.hpp
 		Chunks\common\scheduler_number.hpp = Chunks\common\scheduler_number.hpp
+		Chunks\common\scheduler_number_pool.hpp = Chunks\common\scheduler_number_pool.hpp
 		Chunks\common\shared_chunk_pool.hpp = Chunks\common\shared_chunk_pool.hpp
 		Chunks\common\shared_interface.hpp = Chunks\common\shared_interface.hpp
-		Chunks\common\shared_memory_manager.hpp = Chunks\common\shared_memory_manager.hpp
 		Chunks\common\shared_memory_object.cpp = Chunks\common\shared_memory_object.cpp
 		Chunks\common\spinlock.hpp = Chunks\common\spinlock.hpp
 		Chunks\common\timeout.hpp = Chunks\common\timeout.hpp
@@ -203,6 +204,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "impl", "impl", "{FFD0C045-E
 		Chunks\common\impl\overflow_buffer.hpp = Chunks\common\impl\overflow_buffer.hpp
 		Chunks\common\impl\owner_id.hpp = Chunks\common\impl\owner_id.hpp
 		Chunks\common\impl\pid_type.hpp = Chunks\common\impl\pid_type.hpp
+		Chunks\common\impl\scheduler_number_pool.hpp = Chunks\common\impl\scheduler_number_pool.hpp
 		Chunks\common\impl\shared_chunk_pool.hpp = Chunks\common\impl\shared_chunk_pool.hpp
 		Chunks\common\impl\shared_interface.hpp = Chunks\common\impl\shared_interface.hpp
 		Chunks\common\impl\timeout.hpp = Chunks\common\impl\timeout.hpp
@@ -210,7 +212,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "impl", "impl", "{FFD0C045-E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLTest", "Samples\SQLTest\SQLTest.csproj", "{75FD7F1C-71C9-4083-8F70-D20B2C665F77}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "99. Development", "99. Development", "{B39115F7-A3E8-42CE-AAB8-932AB8D4DFB4}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "13. Development", "13. Development", "{B39115F7-A3E8-42CE-AAB8-932AB8D4DFB4}"
 	ProjectSection(SolutionItems) = preProject
 		Development\About.txt = Development\About.txt
 	EndProjectSection
@@ -248,6 +250,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpStructs.Tests", "HTTP\HttpStructs.Tests\HttpStructs.Tests.csproj", "{DD81F07E-8E1E-490B-A940-F651D7DAF6B6}"
 	ProjectSection(ProjectDependencies) = postProject
 		{594FE78A-A893-4757-A946-5ED350D383D2} = {594FE78A-A893-4757-A946-5ED350D383D2}
+		{8B599BFF-B414-41A3-A270-96CDA0C522AF} = {8B599BFF-B414-41A3-A270-96CDA0C522AF}
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HTTP", "HTTP", "{A264E76D-83B0-46AD-AEE6-84713C2DFE21}"

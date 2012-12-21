@@ -45,55 +45,12 @@ typedef uint32_t (__stdcall *GENERIC_HANDLER_CALLBACK)(
     bool* is_handled
 );
 
-// Initializes bmx manager.
-EXTERN_C uint32_t sc_init_bmx_manager();
-
-// Waits for BMX manager to be ready.
-EXTERN_C void sc_wait_for_bmx_ready();
-
-// Handles all incoming chunks.
-EXTERN_C uint32_t sc_handle_incoming_chunks(CM2_TASK_DATA* task_data);
-
-// Register port handler.
-EXTERN_C uint32_t sc_bmx_register_port_handler(
-    uint16_t port, 
-    GENERIC_HANDLER_CALLBACK callback, 
-    BMX_HANDLER_TYPE* handler_id
-);
-
-// Register sub-port handler.
-EXTERN_C uint32_t sc_bmx_register_subport_handler(
-    uint16_t port,
-    uint32_t subport,
-    GENERIC_HANDLER_CALLBACK callback, 
-    BMX_HANDLER_TYPE* handler_id
-);
-
-// Register URI handler.
-EXTERN_C uint32_t sc_bmx_register_uri_handler(
-    uint16_t port,
-    char* uri_string,
-    uint8_t http_method,
-    GENERIC_HANDLER_CALLBACK callback, 
-    BMX_HANDLER_TYPE* handler_id
-);
-
-// Construct BMX Ping message.
-EXTERN_C uint32_t sc_bmx_construct_ping(
-    uint64_t ping_data, 
-    shared_memory_chunk* smc
-    );
-
-// Parse BMX Pong message.
-EXTERN_C uint32_t sc_bmx_parse_pong(
-    shared_memory_chunk* smc,
-    uint64_t* pong_data
-    );
-
 namespace starcounter
 {
 namespace bmx
 {
+    typedef uint32_t BMX_SUBPORT_TYPE;
+
     // Flag indicating that multiple chunks are passed.
     const uint8_t LINKED_CHUNKS_FLAG = 1;
 
@@ -120,7 +77,7 @@ namespace bmx
     const uint32_t SOCKET_DATA_NUM_CLONE_BYTES = 136;
     const uint32_t BMX_NUM_CLONE_BYTES = BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_NUM_CLONE_BYTES;
 
-    const uint32_t SOCKET_DATA_HTTP_REQUEST_OFFSET = 208;
+    const uint32_t SOCKET_DATA_HTTP_REQUEST_OFFSET = 216;
     const uint32_t BMX_HTTP_REQUEST_OFFSET = BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_HTTP_REQUEST_OFFSET;
 
     const uint32_t SOCKET_DATA_NUM_CHUNKS_OFFSET = 84;
@@ -208,7 +165,7 @@ namespace bmx
         uint16_t port_;
 
         // Sub-port number.
-        uint32_t subport_;
+        BMX_SUBPORT_TYPE subport_;
 
         // URI string.
         char uri_string_[bmx::MAX_URI_STRING_LEN];
@@ -242,7 +199,7 @@ namespace bmx
         }
 
         // Gets sub-port number.
-        uint32_t get_subport()
+        BMX_SUBPORT_TYPE get_subport()
         {
             return subport_;
         }
@@ -313,7 +270,7 @@ namespace bmx
             bmx::HANDLER_TYPE type,
             BMX_HANDLER_TYPE handler_id,
             uint16_t port,
-            uint32_t subport,
+            BMX_SUBPORT_TYPE subport,
             char* uri_string,
             uint32_t uri_len_chars,
             bmx::HTTP_METHODS http_method)
@@ -564,7 +521,7 @@ namespace bmx
         // Registers sub-port handler.
         uint32_t RegisterSubPortHandler(
             uint16_t port,
-            uint32_t subport,
+            BMX_SUBPORT_TYPE subport,
             GENERIC_HANDLER_CALLBACK subport_handler,
             BMX_HANDLER_TYPE* handler_id);
 
@@ -600,7 +557,61 @@ namespace bmx
     // Global BMX data.
     extern BmxData* g_bmx_data;
 
+    // Managed callback to destroy Apps session.
+    typedef void (*DestroyAppsSessionCallback)(
+        uint64_t apps_session_index,
+        uint64_t apps_session_salt,
+        uint32_t scheduler_id);
+
+    // Callback to destroy Apps inactive session.
+    extern DestroyAppsSessionCallback g_destroy_apps_session_callback;
+
 }  // namespace bmx
 }; // namespace starcounter
+
+// Initializes bmx manager.
+EXTERN_C uint32_t sc_init_bmx_manager();
+
+// Waits for BMX manager to be ready.
+EXTERN_C void sc_wait_for_bmx_ready();
+
+// Handles all incoming chunks.
+EXTERN_C uint32_t sc_handle_incoming_chunks(CM2_TASK_DATA* task_data);
+
+// Register port handler.
+EXTERN_C uint32_t sc_bmx_register_port_handler(
+    uint16_t port, 
+    GENERIC_HANDLER_CALLBACK callback, 
+    BMX_HANDLER_TYPE* handler_id
+    );
+
+// Register sub-port handler.
+EXTERN_C uint32_t sc_bmx_register_subport_handler(
+    uint16_t port,
+    starcounter::bmx::BMX_SUBPORT_TYPE subport,
+    GENERIC_HANDLER_CALLBACK callback, 
+    BMX_HANDLER_TYPE* handler_id
+    );
+
+// Register URI handler.
+EXTERN_C uint32_t sc_bmx_register_uri_handler(
+    uint16_t port,
+    char* uri_string,
+    uint8_t http_method,
+    GENERIC_HANDLER_CALLBACK callback, 
+    BMX_HANDLER_TYPE* handler_id
+    );
+
+// Construct BMX Ping message.
+EXTERN_C uint32_t sc_bmx_construct_ping(
+    uint64_t ping_data, 
+    shared_memory_chunk* smc
+    );
+
+// Parse BMX Pong message.
+EXTERN_C uint32_t sc_bmx_parse_pong(
+    shared_memory_chunk* smc,
+    uint64_t* pong_data
+    );
 
 #endif

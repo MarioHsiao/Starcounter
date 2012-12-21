@@ -127,7 +127,7 @@ namespace StarcounterInternal.Bootstrap
             // Initializing the BMX manager if network gateway is used.
             if (!configuration.NoNetworkGateway)
             {
-                bmx.sc_init_bmx_manager();
+                bmx.sc_init_bmx_manager(HttpStructs.GlobalSessions.g_destroy_apps_session_callback);
                 OnBmxManagerInitialized();
             }
 
@@ -371,14 +371,14 @@ namespace StarcounterInternal.Bootstrap
         {
             uint e;
 
-            e = sccorelog.SCInitModule_LOG(hmenv);
+            e = sccorelog.sccorelog_init(hmenv);
             if (e != 0) throw ErrorCode.ToException(e);
 
             ulong hlogs;
-            e = sccorelog.SCConnectToLogs(c.Name, null, null, &hlogs);
+            e = sccorelog.sccorelog_connect_to_logs(c.Name, null, &hlogs);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccorelog.SCBindLogsToDir(hlogs, c.OutputDirectory);
+            e = sccorelog.sccorelog_bind_logs_to_dir(hlogs, c.OutputDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
             return hlogs;
@@ -519,6 +519,7 @@ namespace StarcounterInternal.Bootstrap
 
             uint flags = 0;
             flags |= sccoredb.SCCOREDB_LOAD_DATABASE;
+            flags |= sccoredb.SCCOREDB_USE_BUFFERED_IO;
             flags |= sccoredb.SCCOREDB_ENABLE_CHECK_FILE_ON_LOAD;
             //flags |= sccoredb.SCCOREDB_ENABLE_CHECK_FILE_ON_CHECKP;
             flags |= sccoredb.SCCOREDB_ENABLE_CHECK_FILE_ON_BACKUP;

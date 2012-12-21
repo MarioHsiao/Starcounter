@@ -64,7 +64,6 @@
     <Compile Include="JsonPatch.cs" />
     <Compile Include="JsonPointer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SessionDictionary.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HTTP\HttpStructs\HttpStructs.csproj">
@@ -75,7 +74,7 @@
       <Project>{bbaad98c-2661-42dc-85e4-3f2d11bbe010}</Project>
       <Name>Starcounter.Apps</Name>
     </ProjectReference>
-    <ProjectReference Include="..\REST\Starcounter.Rest.csproj">
+    <ProjectReference Include="..\Starcounter.Rest\Starcounter.Rest.csproj">
       <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
       <Name>Starcounter.Rest</Name>
     </ProjectReference>

@@ -14,6 +14,7 @@ using Starcounter.Client.Template;
 namespace Starcounter.Client {
 #else
 using Starcounter.Templates;
+using Starcounter.Apps;
 namespace Starcounter {
 #endif
     /// <summary>
@@ -336,7 +337,7 @@ namespace Starcounter {
 
 #if QUICKTUPLE
 
-            indexesToRemove = QuickAndDirtyArray.Count - 1;
+            indexesToRemove = QuickAndDirtyArray.Count;
             for (int i = (indexesToRemove - 1); i >= 0; i--) {
                 ChangeLog.RemoveItemInList(app, property, i);
             }

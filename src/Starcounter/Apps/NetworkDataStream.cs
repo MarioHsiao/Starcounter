@@ -199,35 +199,75 @@ namespace Starcounter
         }
 
         /// <summary>
+        /// Copies scalar bytes from incoming buffer to variable.
+        /// </summary>
+        /// <param name="offset">The offset.</param>
+        public UInt64 ReadUInt64(Int32 offset)
+        {
+            unsafe
+            {
+                // Reading user data offset.
+                Int32* user_data_offset_ptr = (Int32*)(unmanaged_chunk_ + USER_DATA_OFFSET);
+
+                // Returning scalar value.
+                return *(UInt64*)(unmanaged_chunk_ + BMX_HEADER_MAX_SIZE_BYTES + *user_data_offset_ptr + offset);
+            }
+        }
+
+        /// <summary>
         /// Writes the specified buffer.
         /// </summary>
         /// <param name="buffer">The buffer.</param>
         /// <param name="offset">The offset.</param>
-        /// <param name="length">The length.</param>
-        public void Write(Byte[] buffer, Int32 offset, Int32 length)
+        /// <param name="length_bytes">The length in bytes.</param>
+        public void SendResponse(UInt64[] buffer, Int32 offset, Int32 length_bytes)
         {
             // Checking if already destroyed.
             if (chunk_index_ == INVALID_CHUNK_INDEX)
                 return;
 
-            // TODO:
-            // It should be possible to call Write several times and each time 
-            // the data is sent to the gateway. 
-            // We need someway to tag chunks with needed metadata as well
-            // as make sure we have a new chunk or a pointer to an existing chunk.
+            fixed (UInt64* p = buffer)
+            {
+                SendResponseBufferInternal((Byte*)p, offset, length_bytes);
+            }
+        }
+
+        /// <summary>
+        /// Writes the specified buffer.
+        /// </summary>
+        /// <param name="buffer">The buffer.</param>
+        /// <param name="offset">The offset.</param>
+        /// <param name="length_bytes">The length in bytes.</param>
+        public void SendResponse(Byte[] buffer, Int32 offset, Int32 length_bytes)
+        {
+            // Checking if already destroyed.
+            if (chunk_index_ == INVALID_CHUNK_INDEX)
+                return;
+
             fixed (Byte* p = buffer)
             {
-                // Processing user data and sending it to gateway.
-                UInt32 cur_chunk_index = chunk_index_;
-                UInt32 ec = bmx.sc_bmx_send_buffer(p + offset, (UInt32)length, &cur_chunk_index, unmanaged_chunk_);
-                chunk_index_ = cur_chunk_index;
+                SendResponseBufferInternal(p, offset, length_bytes);
+            }
+        }
 
-                // Checking if any error occurred.
-                if (ec != 0)
-                {
-                    Console.WriteLine("Failed to obtain chunk!");
-                    throw ErrorCode.ToException(ec);
-                }
+        /// <summary>
+        /// Writes the given buffer.
+        /// </summary>
+        /// <param name="p">The buffer.</param>
+        /// <param name="offset">The offset.</param>
+        /// <param name="length_bytes">The length in bytes.</param>
+        unsafe void SendResponseBufferInternal(Byte* p, Int32 offset, Int32 length_bytes)
+        {
+            // Processing user data and sending it to gateway.
+            UInt32 cur_chunk_index = chunk_index_;
+            UInt32 ec = bmx.sc_bmx_send_buffer(p + offset, (UInt32)length_bytes, &cur_chunk_index, unmanaged_chunk_);
+            chunk_index_ = cur_chunk_index;
+
+            // Checking if any error occurred.
+            if (ec != 0)
+            {
+                Console.WriteLine("Failed to obtain chunk!");
+                throw ErrorCode.ToException(ec);
             }
         }
 

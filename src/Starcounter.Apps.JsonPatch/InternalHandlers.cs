@@ -5,9 +5,7 @@
 // ***********************************************************************
 
 using System;
-using System.Text;
-using HttpStructs;
-using Starcounter.Internal.Application;
+using Starcounter.Apps;
 using Starcounter.Internal.Web;
 using Starcounter.Templates;
 
@@ -23,52 +21,48 @@ namespace Starcounter.Internal.JsonPatch
         /// </summary>
         public static void Register()
         {
-            Console.WriteLine("Registering internal handlers for patch and getting root apps");
-
-            GET("/__vm/@s", (string sessionId) =>
+            GET<int>("/__vm/{?}", (int viewModelId) =>
             {
+                App rootApp;
+                Byte[] json;
                 HttpResponse response = null;
-                Session s = HardcodedStuff.Here.Sessions.GetSession(sessionId);
 
-                s.Execute(HardcodedStuff.Here.HttpRequest, () => {
-                    Byte[] json = s.RootApp.ToJsonUtf8(false);
-                    response = new HttpResponse() { Uncompressed = HttpResponseBuilder.CreateMinimalOk200WithContent(json, 0, (uint)json.Length) };
-                });
+                rootApp = Session.Current.GetRootApp(viewModelId);
+                json = rootApp.ToJsonUtf8(false);
+                response = new HttpResponse() { Uncompressed = HttpResponseBuilder.CreateMinimalOk200WithContent(json, 0, (uint)json.Length) };
 
                 return response;
             });
 
-            PATCH("/__vm/@s", (string sessionId) =>
+            PATCH<int>("/__vm/{?}", (int viewModelId) =>
             {
+                App rootApp;
+                Session session;
                 HttpResponse response = null;
-                Session s = HardcodedStuff.Here.Sessions.GetSession(sessionId);
 
-                s.Execute(HardcodedStuff.Here.HttpRequest, () =>
-                {
-                    response = new HttpResponse();
-                    try {
-                        App rootApp = Session.Current.RootApp;
-                        HttpRequest request = Session.Current.HttpRequest;
+                response = new HttpResponse();
+                try {
+                    session = Session.Current;
+                    rootApp = session.GetRootApp(viewModelId);
+                    
+                    JsonPatch.EvaluatePatches(rootApp, session.HttpRequest.GetBodyByteArray_Slow());
 
-                        JsonPatch.EvaluatePatches(request.GetBodyByteArray_Slow());
+                    // TODO:
+                    // Quick and dirty hack to autorefresh dependent properties that might have been 
+                    // updated. This implementation should be removed after the demo.
+                    RefreshAllValues(rootApp, session.changeLog);
 
-                        // TODO:
-                        // Quick and dirty hack to autorefresh dependent properties that might have been 
-                        // updated. This implementation should be removed after the demo.
-                        RefreshAllValues(rootApp);
-
-                        response.Uncompressed = HttpPatchBuilder.CreateHttpPatchResponse(Session.Current._changeLog);
-                    } catch (NotSupportedException nex) {
-                        response.Uncompressed = HttpPatchBuilder.Create415Response(nex.Message);
-                    } catch (Exception ex) {
-                        response.Uncompressed = HttpPatchBuilder.Create400Response(ex.Message);
-                    }
-                });
+                    response.Uncompressed = HttpPatchBuilder.CreateHttpPatchResponse(session.changeLog);
+                } catch (NotSupportedException nex) {
+                    response.Uncompressed = HttpPatchBuilder.Create415Response(nex.Message);
+                } catch (Exception ex) {
+                    response.Uncompressed = HttpPatchBuilder.Create400Response(ex.Message);
+                }
                 return response;
             });
         }
 
-        private static void RefreshAllValues(App app) {
+        private static void RefreshAllValues(App app, ChangeLog log) {
             foreach (Template template in app.Template.Children) {
                 if (!template.Bound)
                     continue;
@@ -76,13 +70,13 @@ namespace Starcounter.Internal.JsonPatch
                 if (template is ListingProperty) {
                     Listing l = app.GetValue((ListingProperty)template);
                     foreach (App childApp in l) {
-                        RefreshAllValues(childApp);
+                        RefreshAllValues(childApp, log);
                     }
                     continue;
                 }
                 
                 if (template is AppTemplate) {
-                    RefreshAllValues(app.GetValue((AppTemplate)template));
+                    RefreshAllValues(app.GetValue((AppTemplate)template), log);
                     continue;
                 }
                 

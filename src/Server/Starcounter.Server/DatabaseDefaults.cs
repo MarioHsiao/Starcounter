@@ -36,7 +36,7 @@ namespace Starcounter.Server {
             internal static extern Int32 GlobalMemoryStatusEx(ref MEMORYSTATUSEX lpBuffer);
         }
 
-        private const long MIN_DEFAULT_MAX_IMAGE_SIZE = 256;
+        private const long MIN_DEFAULT_MAX_IMAGE_SIZE = 1024;
         private const long MIN_DEFAULT_TRANSACTION_LOG_SIZE = 256;
 
         /// <summary>
@@ -123,7 +123,7 @@ namespace Starcounter.Server {
             m.dwLength = (UInt32)Marshal.SizeOf(m);
             br = Win32.GlobalMemoryStatusEx(ref m);
             if (br != 0) {
-                v = (long)((m.ullTotalPhys / 1048576) * 3);
+                v = (long)(((decimal)(m.ullTotalPhys / 1048576)) * 1.5m);
             } else {
                 // Unable to fetch memory information for some reason. Go with
                 // default.
