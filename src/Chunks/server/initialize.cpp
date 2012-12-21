@@ -34,8 +34,8 @@
 #include "../common/common_client_interface.hpp"
 #include "../common/client_interface.hpp"
 #include "../common/client_number.hpp"
-#include "../common/shared_memory_manager.hpp"
 #include "../common/config_param.hpp"
+#include "../common/spinlock.hpp"
 #include "../common/macro_definitions.hpp"
 #include "../common/interprocess.hpp"
 #include "../common/name_definitions.hpp"
@@ -190,8 +190,14 @@ is_system, uint32_t chunks_total_number) try {
 	// Construct the scheduler_interface array in shared memory.
 	
 	// Initialize shared memory STL-compatible allocator.
+#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+	const shm_alloc_for_the_scheduler_interfaces2
+	scheduler_interface_alloc_inst(segment_region.get_address()); /// remove?
+#else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	const shm_alloc_for_the_scheduler_interfaces2
 	scheduler_interface_alloc_inst(segment_region.get_address());
+#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+	
 	const shm_alloc_for_the_scheduler_interfaces2b
 	scheduler_interface_alloc_inst2(segment_region.get_address());
 	
@@ -205,17 +211,34 @@ is_system, uint32_t chunks_total_number) try {
 	= (scheduler_interface_type*) p;
 	
 	for (std::size_t i = 0; i < schedulers; ++i) {
-		new(scheduler_interface +i) scheduler_interface_type(channels,
-		chunks_total_number, chunks_total_number,
-		scheduler_interface_alloc_inst, scheduler_interface_alloc_inst2,
-		scheduler_interface_alloc_inst2, segment_name, i);
+		new(scheduler_interface +i) scheduler_interface_type(
+		channels,
+		chunks_total_number,
+		chunks_total_number,
+#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+		scheduler_interface_alloc_inst2,
+		scheduler_interface_alloc_inst2,
+		segment_name,
+		i);
+#else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+		scheduler_interface_alloc_inst,
+		scheduler_interface_alloc_inst2,
+		scheduler_interface_alloc_inst2,
+		segment_name,
+		i);
+#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	}
-	
+
 	// Initialize the scheduler_interface by pushing in channel_number(s).
 	// These channel_number(s) represents free channels. For now, the
 	// channels are more or less evenly distributed among the schedulers.
 	for (std::size_t n = 0; n < channels; ++n) {
-		scheduler_interface[n % schedulers].push_front_channel_number(n);
+#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+		scheduler_interface[n % schedulers].insert(n, 1 /* id */,
+		smp::spinlock::milliseconds(10000));
+#else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+		scheduler_interface[n % schedulers].push_front_channel_number(n, 1 /* id */);
+#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	}
 	
 	//--------------------------------------------------------------------------

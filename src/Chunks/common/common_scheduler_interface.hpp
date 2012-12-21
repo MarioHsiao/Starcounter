@@ -33,10 +33,6 @@ namespace core {
 /// class common_scheduler_interface.
 /**
  * @param T Is not used.
- * @par Type Requirements T
- *		The T has to be SGIAssignable (SGI STL defined combination of Assignable
- *		and CopyConstructible), and EqualityComparable and/or LessThanComparable
- *		if the bounded_buffer will be compared with another container.
  * @param Alloc The allocator type used for all internal memory management.
  * @par Type Requirements Alloc
  *		The Alloc has to meet the allocator requirements imposed by STL.
@@ -48,7 +44,6 @@ class common_scheduler_interface {
 public:
 	// Basic types
 	
-	// The type of elements stored in the bounded_buffer.
 	typedef typename uint64_t value_type; // uint64_t is the mask type.
 	typedef scheduler_mask<max_number_of_schedulers> scheduler_mask_type;
 	

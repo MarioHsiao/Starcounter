@@ -32,11 +32,7 @@ namespace Starcounter.Internal.Test {
     /// </summary>
     [TestFixture]
     class TestRoutes : RequestHandler {
-        /// <summary>
-        /// Defines the entry point of the application.
-        /// </summary>
         public static void Main() {
-
             Reset();
 
 /*            GET("/@s/viewmodels/subs/@s", (string app, string vm) => {
@@ -46,6 +42,34 @@ namespace Starcounter.Internal.Test {
                 return "404 Not Found";
             });
             */
+
+            GET("/", () => {
+                Console.WriteLine("Root called");
+                return null;
+            });
+
+            GET("/uri-with-req", (HttpRequest r) => {
+                Assert.IsNotNull(r);
+                return null;
+            });
+
+            GET("/uri-with-req/{?}", (HttpRequest r, int i) => {
+                Assert.AreEqual(123, i);
+                Assert.IsNotNull(r);
+                return null;
+            });
+
+            GET("/uri-with-req2/{?}", (string s, HttpRequest r) => {
+                Assert.AreEqual("KalleKula", s);
+                Assert.IsNotNull(r);
+                return null;
+            });
+
+            GET("/players", () => {
+                Console.WriteLine("players");
+                return null;
+            });
+
             GET("/players/{?}", (int playerId) => {
                 Assert.AreEqual(123, playerId);
                 Console.WriteLine("playerId=" + playerId);
@@ -83,24 +107,48 @@ namespace Starcounter.Internal.Test {
                 return null;
             });
 
+            //POST("/find-player?firstname={?}&lastname={?}&age={?}", (string fn, string ln, int age) => {
+
+            //    return null;
+            //});
+
             DELETE("/all", () => {
                 Console.WriteLine("deleteAll");
                 return null;
             });
- 
- 
         }
 
+        private static void SetupComplexTemplates() {
+            
+            GET("/{?}/viewmodels/{?}", (string app, string vm) => {
+                return "404 Not Found";
+            });
 
-        /// <summary>
-        /// Generates the ast tree overview.
-        /// </summary>
+            POST("/find-player?firstname={?}&lastname={?}&age={?}", (string fn, string ln, int age) => {
+                return null;
+            });
+        }
+
         [Test]
         public void GenerateAstTreeOverview() {
 
             Reset();
 
             Main(); // Register some handlers
+            var umb = RequestHandler.UriMatcherBuilder;
+            var tree = umb.CreateAstTree();
+            Console.WriteLine(tree.ToString());
+        }
+
+        /// <summary>
+        /// Generates the ast tree overview.
+        /// </summary>
+        [Test]
+        public void GenerateComplexAstTreeOverview() {
+            Reset();
+
+            SetupComplexTemplates();
+            
             var umb = RequestHandler.UriMatcherBuilder;
             var tree = umb.CreateAstTree();
             Console.WriteLine(tree.ToString());
@@ -164,6 +212,10 @@ namespace Starcounter.Internal.Test {
         public void DebugPregeneratedRequestProcessor() {
             var um = new __urimatcher__.GeneratedRequestProcessor();
 
+            // TODO: 
+            // Add test for sending in the wrong datatype in the uri.
+            // The parser doesn't fail as it should.
+
             byte[] h1 = Encoding.UTF8.GetBytes("GET /players/123\r\n\r\n");
             byte[] h2 = Encoding.UTF8.GetBytes("GET /dashboard/123\r\n\r\n");
             byte[] h3 = Encoding.UTF8.GetBytes("GET /players?KalleKula\r\n\r\n");
@@ -171,6 +223,11 @@ namespace Starcounter.Internal.Test {
             byte[] h5 = Encoding.UTF8.GetBytes("POST /transfer?99\r\n\r\n");
             byte[] h6 = Encoding.UTF8.GetBytes("POST /deposit?56754\r\n\r\n");
             byte[] h7 = Encoding.UTF8.GetBytes("DELETE /all\r\n\r\n");
+            byte[] h8 = Encoding.UTF8.GetBytes("GET /players\r\n\r\n");
+            byte[] h9 = Encoding.UTF8.GetBytes("GET /\r\n\r\n");
+            byte[] h10 = Encoding.UTF8.GetBytes("GET /uri-with-req\r\n\r\n");
+            byte[] h11 = Encoding.UTF8.GetBytes("GET /uri-with-req/123\r\n\r\n");
+            byte[] h12 = Encoding.UTF8.GetBytes("GET /uri-with-req2/KalleKula\r\n\r\n");
 
             Main();
 //            var rp = MainApp.RequestProcessor;
@@ -179,13 +236,19 @@ namespace Starcounter.Internal.Test {
                 um.Register(x.Key, x.Value.CodeAsObj );
             }
 
-            um.Invoke(new HttpRequest(h1));
-            um.Invoke(new HttpRequest(h2));
-            um.Invoke(new HttpRequest(h3));
-            um.Invoke(new HttpRequest(h4));
-            um.Invoke(new HttpRequest(h5));
-            um.Invoke(new HttpRequest(h6));
-            um.Invoke(new HttpRequest(h7));
+            object resource;
+            Assert.True(um.Invoke(new HttpRequest(h1), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h2), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h3), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h4), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h5), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h6), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h7), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h8), out resource)); 
+            Assert.True(um.Invoke(new HttpRequest(h9), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h10), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h11), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h12), out resource));
         }
 
         /// <summary>
@@ -222,10 +285,9 @@ namespace Starcounter.Internal.Test {
             byte[] h2 = Encoding.UTF8.GetBytes("GET /products/Test\r\n\r\n");
 
             var um = RequestHandler.RequestProcessor;
-
-            um.Invoke(new HttpRequest(h1));
-            um.Invoke(new HttpRequest(h2));
-
+            object resource;
+            Assert.True(um.Invoke(new HttpRequest(h1), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h2), out resource));
         }
 
         /// <summary>
@@ -245,13 +307,14 @@ namespace Starcounter.Internal.Test {
             Main(); // Register some handlers
             var um = RequestHandler.RequestProcessor;
 
-            um.Invoke(new HttpRequest(h1));
-            um.Invoke(new HttpRequest(h2));
-            um.Invoke(new HttpRequest(h3));
-            um.Invoke(new HttpRequest(h4));
-            um.Invoke(new HttpRequest(h5));
-            um.Invoke(new HttpRequest(h6));
-            um.Invoke(new HttpRequest(h7));
+            object resource;
+            Assert.True(um.Invoke(new HttpRequest(h1), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h2), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h3), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h4), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h5), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h6), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h7), out resource));
 
         }
 

@@ -47,7 +47,13 @@ namespace Starcounter.VisualStudio.Projects {
             var client = ClientServerFactory.CreateClientUsingNamedPipes(pipeName);
 
             properties.Add("AssemblyPath", debugConfiguration.AssemblyPath);
-            properties.Add("WorkingDir", debugConfiguration.WorkingDirectory);
+
+            var workingDir = debugConfiguration.WorkingDirectory;
+            if (!Path.IsPathRooted(workingDir)) {
+                workingDir = Path.Combine(Path.GetDirectoryName(debugConfiguration.AssemblyPath), workingDir);
+            }
+            properties.Add("WorkingDir", workingDir);
+
             if (debugConfiguration.Arguments.Length > 0) {
                 properties.Add("Args", KeyValueBinary.FromArray(debugConfiguration.Arguments).Value);
             }

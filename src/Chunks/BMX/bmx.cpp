@@ -161,7 +161,7 @@ uint32_t BmxData::RegisterPortHandler(
 // Registers sub-port handler.
 uint32_t BmxData::RegisterSubPortHandler(
     uint16_t port,
-    uint32_t subport,
+    BMX_SUBPORT_TYPE subport,
     GENERIC_HANDLER_CALLBACK subport_handler, 
     BMX_HANDLER_TYPE* handler_id)
 {
@@ -389,14 +389,15 @@ uint32_t BmxData::HandleDestroyedSession(request_chunk_part* request, TASK_INFO_
     uint32_t err_code = 0;
 
     // Reading Apps unique session number.
-    uint64_t apps_unique_session_num = request->read_uint64();
+    uint64_t apps_unique_session_index = request->read_uint64();
 
     // Reading Apps session salt.
     uint64_t apps_session_salt = request->read_uint64();
 
-    std::cout << "Session " << apps_unique_session_num << ":" << apps_session_salt << " was destroyed." << std::endl;
+    // Calling managed function to destroy session.
+    g_destroy_apps_session_callback(apps_unique_session_index, apps_session_salt, task_info->scheduler_number);
 
-    // TODO: Handle destroyed session.
+    std::cout << "Session " << apps_unique_session_index << ":" << apps_session_salt << " was destroyed." << std::endl;
 
     return err_code;
 }

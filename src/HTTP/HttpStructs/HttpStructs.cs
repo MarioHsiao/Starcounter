@@ -80,12 +80,12 @@ namespace HttpStructs
         void Read(Byte[] buffer, Int32 offset, Int32 length);
 
         /// <summary>
-        /// Writes the specified buffer.
+        /// Send the specified buffer as a response.
         /// </summary>
         /// <param name="buffer">The buffer.</param>
         /// <param name="offset">The offset.</param>
         /// <param name="length">The length.</param>
-        void Write(Byte[] buffer, Int32 offset, Int32 length);
+        void SendResponse(Byte[] buffer, Int32 offset, Int32 length);
 
         /// <summary>
         /// Frees all data stream resources like chunks.
@@ -102,14 +102,14 @@ namespace HttpStructs
         /// <summary>
         /// The session random salt.
         /// </summary>
-        public UInt64 session_salt_;
+        public UInt64 gw_session_salt_;
 
         // Unique session linear index.
         // Points to the element in sessions linear array.
         /// <summary>
         /// The session_index_
         /// </summary>
-        public UInt32 session_index_;
+        public UInt32 gw_session_index_;
 
         // Scheduler ID.
         /// <summary>
@@ -120,7 +120,7 @@ namespace HttpStructs
         /// <summary>
         /// Unique number coming from Apps.
         /// </summary>
-        public UInt64 apps_unique_session_num_;
+        public UInt64 apps_unique_session_index_;
 
         /// <summary>
         /// Apps session salt.
@@ -604,9 +604,9 @@ namespace HttpStructs
         /// <param name="buffer">The buffer.</param>
         /// <param name="offset">The offset.</param>
         /// <param name="length">The length.</param>
-        public void WriteResponse(Byte[] buffer, Int32 offset, Int32 length)
+        public void SendResponse(Byte[] buffer, Int32 offset, Int32 length)
         {
-            unsafe { data_stream_.Write(buffer, offset, length); }
+            unsafe { data_stream_.SendResponse(buffer, offset, length); }
         }
 
         /// <summary>
@@ -630,11 +630,11 @@ namespace HttpStructs
         }
 
         /// <summary>
-        /// Gets the raw method and URI plus space.
+        /// Gets the raw method and URI plus extra character.
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawMethodAndUriPlusSpace(out IntPtr ptr, out UInt32 sizeBytes)
+        public void GetRawMethodAndUriPlusAnExtraCharacter(out IntPtr ptr, out UInt32 sizeBytes)
         {
             unsafe { http_request_struct_->GetRawMethodAndUri(out ptr, out sizeBytes); }
             sizeBytes += 1;
@@ -707,17 +707,17 @@ namespace HttpStructs
         /// <summary>
         /// Invalid session index.
         /// </summary>
-        const UInt32 INVALID_SESSION_INDEX = UInt32.MaxValue;
+        public const UInt32 INVALID_GW_SESSION_INDEX = UInt32.MaxValue;
 
         /// <summary>
         /// Invalid Apps session unique number.
         /// </summary>
-        const UInt64 INVALID_APPS_UNIQUE_SESSION_NUMBER = 0;
+        public const UInt64 INVALID_APPS_UNIQUE_SESSION_NUMBER = UInt64.MaxValue;
 
         /// <summary>
         /// Invalid Apps session salt.
         /// </summary>
-        const UInt64 INVALID_APPS_SESSION_SALT = 0;
+        public const UInt64 INVALID_APPS_SESSION_SALT = 0;
 
         /// <summary>
         /// Checks if HTTP request already has session.
@@ -728,55 +728,99 @@ namespace HttpStructs
             {
                 unsafe
                 {
-                    return INVALID_APPS_UNIQUE_SESSION_NUMBER != (session_->apps_unique_session_num_);
+                    return INVALID_APPS_UNIQUE_SESSION_NUMBER != (session_->apps_unique_session_index_);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Gets certain Apps session.
+        /// </summary>
+        public IAppsSession AppsSessionInterface
+        {
+            get
+            {
+                unsafe
+                {
+                    return GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(
+                        session_->scheduler_id_,
+                        session_->apps_unique_session_index_);
+                }
+            }
+        }
+
+        // New session creation indicator.
+        Boolean newSession_ = false;
+
+        /// <summary>
+        /// Indicates if new session was created.
+        /// </summary>
+        public Boolean HasNewSession
+        {
+            get
+            {
+                return newSession_;
             }
         }
 
         /// <summary>
         /// Generates session number and writes it to response.
         /// </summary>
-        public UInt64 GenerateNewSession()
+        public UInt32 GenerateNewSession(IAppsSession apps_session)
         {
             unsafe
             {
+                // Indicating that new session was created.
+                newSession_ = true;
+
                 // Resetting the session index.
-                session_->session_index_ = INVALID_SESSION_INDEX;
+                session_->gw_session_index_ = INVALID_GW_SESSION_INDEX;
 
-                // Generating new session and assigning it to current.
-                session_->apps_unique_session_num_ = GlobalSessions.AllSessions.GenerateUniqueNumber();
-
-                // Creating new session salt.
-                session_->apps_session_salt_ = GlobalSessions.AllSessions.GenerateSalt();
-
-                // Returning Apps unique number.
-                return session_->apps_unique_session_num_;
+                // Simply generating new session.
+                return GlobalSessions.AllGlobalSessions.CreateNewSession(
+                    apps_session,
+                    session_->scheduler_id_,
+                    ref session_->apps_unique_session_index_,
+                    ref session_->apps_session_salt_);
             }
         }
 
         /// <summary>
-        /// Kills the existing session.
+        /// Kills existing session.
         /// </summary>
-        public void KillSession()
+        public UInt32 DestroySession()
         {
+            UInt32 err_code;
+
             unsafe
             {
+                // Indicating that session was destroyed.
+                newSession_ = false;
+
+                // Simply generating new session.
+                err_code = GlobalSessions.AllGlobalSessions.DestroySession(
+                    session_->apps_unique_session_index_,
+                    session_->apps_session_salt_,
+                    session_->scheduler_id_);
+
                 // Killing this session by setting invalid unique number and salt.
-                session_->apps_unique_session_num_ = INVALID_APPS_UNIQUE_SESSION_NUMBER;
+                session_->apps_unique_session_index_ = INVALID_APPS_UNIQUE_SESSION_NUMBER;
                 session_->apps_session_salt_ = INVALID_APPS_SESSION_SALT;
             }
+
+            return err_code;
         }
 
         /// <summary>
         /// Returns unique session number.
         /// </summary>
-        public UInt64 UniqueSessionNumber
+        public UInt64 UniqueSessionIndex
         {
             get
             {
                 unsafe
                 {
-                    return session_->apps_unique_session_num_;
+                    return session_->apps_unique_session_index_;
                 }
             }
         }

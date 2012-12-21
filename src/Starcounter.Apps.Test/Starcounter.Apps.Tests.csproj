@@ -113,7 +113,7 @@
       <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
       <Name>Starcounter.Apps.Interfaces</Name>
     </ProjectReference>
-    <ProjectReference Include="..\REST\Starcounter.Rest.csproj">
+    <ProjectReference Include="..\Starcounter.Rest\Starcounter.Rest.csproj">
       <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
       <Name>Starcounter.Rest</Name>
     </ProjectReference>
