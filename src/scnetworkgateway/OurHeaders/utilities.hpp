@@ -105,6 +105,30 @@ inline uint64_t hex_string_to_uint64(const char *str_in, int32_t num_4bits)
     return result;
 }
 
+inline uint32_t WriteUIntToString(char* buf, uint32_t value)
+{
+    uint32_t num_bytes = 0;
+
+    // Checking for zero value.
+    if (value < 10)
+    {
+        buf[0] = (char)'0' + value;
+        return 1;
+    }
+
+    // Writing integers in reversed order.
+    while (value != 0)
+    {
+        buf[num_bytes++] = (char)(value % 10 + '0');
+        value = value / 10;
+    }
+
+    // Reversing the string.
+    revert_string(buf, num_bytes);
+
+    return num_bytes;
+}
+
 // Checking if one string starts after another.
 inline uint32_t StartsWith(
     char* reg_uri,

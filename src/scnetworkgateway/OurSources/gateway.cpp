@@ -86,6 +86,7 @@ Gateway::Gateway()
     InitializeCriticalSection(&cs_session_);
     InitializeCriticalSection(&cs_global_lock_);
     InitializeCriticalSection(&cs_sessions_cleanup_);
+    InitializeCriticalSection(&cs_statistics_);
 
     // Creating gateway handlers table.
     gw_handlers_ = new HandlersTable();
@@ -101,6 +102,13 @@ Gateway::Gateway()
 
     // First bind interface number.
     last_bind_interface_num_unsafe_ = 0;
+
+    // Resetting Starcounter log handle.
+    sc_log_handle_ = INVALID_LOG_HANDLE;
+
+    // Empty global statistics.
+    global_statistics_stream_ << "Empty string!";
+    memcpy(global_statistics_string_, kHttpStatsHeader, kHttpStatsHeaderLength);
 
 #ifdef GW_TESTING_MODE
 
@@ -138,8 +146,8 @@ uint32_t Gateway::ReadArguments(int argc, wchar_t* argv[])
     // Checking correct number of arguments.
     if (argc < 4)
     {
-        std::cout << "scnetworkgateway.exe [ServerTypeName] [PathToGatewayXmlConfig] [PathToMonitorOutputDirectory]" << std::endl;
-        std::cout << "Example: scnetworkgateway.exe personal \"c:\\github\\NetworkGateway\\src\\scripts\\server.xml\" \"c:\\github\\Orange\\bin\\Debug\\.db.output\"" << std::endl;
+        std::cout << GW_PROGRAM_NAME << ".exe [ServerTypeName] [PathToGatewayXmlConfig] [PathToOutputDirectory]" << std::endl;
+        std::cout << "Example: " << GW_PROGRAM_NAME << ".exe personal \"c:\\github\\NetworkGateway\\src\\scripts\\server.xml\" \"c:\\github\\Orange\\bin\\Debug\\.db.output\"" << std::endl;
 
         return SCERRGWWRONGARGS;
     }
@@ -159,8 +167,9 @@ uint32_t Gateway::ReadArguments(int argc, wchar_t* argv[])
         ::toupper);
 
     setting_config_file_path_ = argv[2];
-    setting_log_file_dir_ = argv[3];
-    setting_log_file_dir_ += L"\\network_gateway";
+    setting_output_dir_ = argv[3];
+
+    std::wstring setting_log_file_dir_ = setting_output_dir_ + L"\\network_gateway";
 
     // Trying to create network gateway log directory.
     if ((!CreateDirectory(setting_log_file_dir_.c_str(), NULL)) &&
@@ -363,6 +372,9 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
 
     // Getting inactive session timeout.
     setting_inactive_session_timeout_seconds_ = atoi(rootElem->first_node("InactiveSessionTimeout")->value());
+
+    // Getting gateway statistics port.
+    setting_gw_stats_port_ = (uint16_t)atoi(rootElem->first_node("GatewayStatisticsPort")->value());
 
     // Just enforcing minimum session timeout multiplier.
     if ((setting_inactive_session_timeout_seconds_ % SESSION_LIFETIME_MULTIPLIER) != 0)
@@ -871,6 +883,29 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
 
 #endif
 
+#ifdef GW_GLOBAL_STATISTICS
+
+            // Registering URI handler for gateway statistics.
+            err_code = AddUriHandler(
+                &gw_workers_[0],
+                gw_handlers_,
+                setting_gw_stats_port_,
+                "/",
+                1,
+                bmx::HTTP_METHODS::OTHER_METHOD,
+                bmx::INVALID_HANDLER_ID,
+                empty_db_index,
+                GatewayStatisticsInfo);
+
+            if (err_code)
+            {
+                // Leaving global lock.
+                LeaveGlobalLock();
+
+                return err_code;
+            }
+#endif
+
             // Leaving global lock.
             LeaveGlobalLock();
 
@@ -1214,6 +1249,34 @@ uint32_t Gateway::InitSharedMemory(std::string setting_databaseName,
     return 0;
 }
 
+// Current global statistics value.
+const char* Gateway::GetGlobalStatisticsString(int32_t* out_len)
+{
+    *out_len = 0;
+
+    EnterCriticalSection(&cs_statistics_);
+
+    // Getting number of written characters.
+    int32_t n = global_statistics_stream_.tellp();
+    assert(n < MAX_STATS_LENGTH);
+    *out_len = kHttpStatsHeaderLength + n;
+
+    // Copying characters from stream to given buffer.
+    global_statistics_stream_.seekg(0);
+    global_statistics_stream_.rdbuf()->sgetn(global_statistics_string_ + kHttpStatsHeaderLength, n);
+    global_statistics_string_[kHttpStatsHeaderLength + n] = '\0';
+
+    // Making length a white space.
+    *(uint64_t*)(global_statistics_string_ + kHttpStatsHeaderInsertPoint) = 0x2020202020202020;
+    
+    // Converting body length to string.
+    WriteUIntToString(global_statistics_string_ + kHttpStatsHeaderInsertPoint, n);
+
+    LeaveCriticalSection(&cs_statistics_);
+
+    return global_statistics_string_;
+}
+
 // Check and wait for global lock.
 void Gateway::SuspendWorker(GatewayWorker* gw)
 {
@@ -1410,12 +1473,12 @@ void Gateway::WakeUpAllWorkers()
 }
 
 // Entry point for monitoring databases thread.
-uint32_t __stdcall MonitorDatabasesRoutine(LPVOID params)
+uint32_t __stdcall MonitorDatabases(LPVOID params)
 {
     uint32_t err_code = 0;
 
     // Creating path to IPC monitor directory active databases.
-    std::wstring active_databases_dir = g_gateway.get_setting_log_file_dir() + L"\\..\\"+ W_DEFAULT_MONITOR_DIR_NAME + L"\\" + W_DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME + L"\\";
+    std::wstring active_databases_dir = g_gateway.get_setting_output_dir() + L"\\"+ W_DEFAULT_MONITOR_DIR_NAME + L"\\" + W_DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME + L"\\";
 
     // Obtaining full path to IPC monitor directory.
     wchar_t active_databases_dir_full[1024];
@@ -1492,14 +1555,35 @@ uint32_t __stdcall MonitorDatabasesRoutine(LPVOID params)
 }
 
 // Entry point for gateway worker.
+uint32_t __stdcall MonitorDatabasesRoutine(LPVOID params)
+{
+    // Catching all unhandled exceptions in this thread.
+    GW_SC_BEGIN_FUNC
+
+    return MonitorDatabases(params);
+
+    // Catching all unhandled exceptions in this thread.
+    GW_SC_END_FUNC
+}
+
+// Entry point for gateway worker.
 uint32_t __stdcall GatewayWorkerRoutine(LPVOID params)
 {
+    // Catching all unhandled exceptions in this thread.
+    GW_SC_BEGIN_FUNC
+
     return ((GatewayWorker *)params)->WorkerRoutine();
+
+    // Catching all unhandled exceptions in this thread.
+    GW_SC_END_FUNC
 }
 
 // Entry point for channels events monitor.
 uint32_t __stdcall AllDatabasesChannelsEventsMonitorRoutine(LPVOID params)
 {
+    // Catching all unhandled exceptions in this thread.
+    GW_SC_BEGIN_FUNC
+
     /*while (1)
     {
         for (int32_t i = 0; i < g_gateway.get_num_dbs_slots(); i++)
@@ -1509,6 +1593,9 @@ uint32_t __stdcall AllDatabasesChannelsEventsMonitorRoutine(LPVOID params)
     }*/
 
     return 0;
+
+    // Catching all unhandled exceptions in this thread.
+    GW_SC_END_FUNC
 }
 
 // Cleans up all collected inactive sessions.
@@ -1609,6 +1696,9 @@ uint32_t Gateway::CollectInactiveSessions()
 // Entry point for inactive sessions cleanup.
 uint32_t __stdcall InactiveSessionsCleanupRoutine(LPVOID params)
 {
+    // Catching all unhandled exceptions in this thread.
+    GW_SC_BEGIN_FUNC
+
     while (1)
     {
         // Sleeping minimum interval.
@@ -1622,6 +1712,9 @@ uint32_t __stdcall InactiveSessionsCleanupRoutine(LPVOID params)
     }
 
     return 0;
+
+    // Catching all unhandled exceptions in this thread.
+    GW_SC_END_FUNC
 }
 
 // Cleaning up all global resources.
@@ -1750,22 +1843,29 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
 
 #ifdef GW_GLOBAL_STATISTICS
 
+        EnterCriticalSection(&cs_statistics_);
+
+        // Emptying the statistics stream.
+        global_statistics_stream_.clear();
+        global_statistics_stream_.seekp(0);
+
         // Global statistics.
-        std::cout << "Global: " <<
+        global_statistics_stream_ << "Global: " <<
             "Active chunks " << g_gateway.NumberUsedChunksAllWorkersAndDatabases() <<
             ", active sessions " << g_gateway.get_num_active_sessions_unsafe() <<
             ", used sockets " << g_gateway.NumberUsedSocketsAllWorkersAndDatabases() <<
             ", reusable conn socks " << g_gateway.NumberOfReusableConnectSockets() <<
-            std::endl;
+            "<br>" << std::endl;
 
         // Individual workers statistics.
         for (int32_t worker_id_ = 0; worker_id_ < setting_num_workers_; worker_id_++)
         {
-            std::cout << "[" << worker_id_ << "]: " <<
+            global_statistics_stream_ << "[" << worker_id_ << "]: " <<
                 "recv_bytes " << gw_workers_[worker_id_].get_worker_stats_bytes_received() <<
                 ", recv_times " << gw_workers_[worker_id_].get_worker_stats_recv_num() <<
                 ", sent_bytes " << gw_workers_[worker_id_].get_worker_stats_bytes_sent() <<
-                ", sent_times " << gw_workers_[worker_id_].get_worker_stats_sent_num() << std::endl;
+                ", sent_times " << gw_workers_[worker_id_].get_worker_stats_sent_num() <<
+                "<br>" << std::endl;
         }
 
         // Printing handlers information for each attached database and gateway.
@@ -1773,7 +1873,7 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         {
             if (!server_ports_->IsEmpty())
             {
-                std::cout << "Port " << server_ports_[p].get_port_number() <<
+                global_statistics_stream_ << "Port " << server_ports_[p].get_port_number() <<
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
                     ": active conns " << server_ports_[p].NumberOfActiveConnections() <<
@@ -1785,17 +1885,24 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
                     ", alloc acc-socks " << server_ports_[p].get_num_allocated_accept_sockets() <<
                     ", alloc conn-socks " << server_ports_[p].get_num_allocated_connect_sockets() <<
 #endif                        
-                    std::endl;
+                    "<br>" << std::endl;
             }
         }
 
         // Printing all workers stats.
-        std::cout << "All workers last sec " <<
+        global_statistics_stream_ << "All workers last sec " <<
             "recv_times " << diffRecvNumAllWorkers <<
             ", http_requests " << diffProcessedHttpRequestsAllWorkers <<
             ", recv_bandwidth " << recv_bandwidth_mbit_total << " mbit/sec" <<
             ", sent_times " << diffSentNumAllWorkers <<
-            ", send_bandwidth " << send_bandwidth_mbit_total << " mbit/sec" << std::endl << std::endl;
+            ", send_bandwidth " << send_bandwidth_mbit_total << " mbit/sec" <<
+            "<br>" << std::endl;
+
+        LeaveCriticalSection(&cs_statistics_);
+
+        // Printing the statistics string.
+        //int32_t len;
+        //std::cout << GetGlobalStatisticsString(&len);
 #endif
 
     }
@@ -2057,11 +2164,58 @@ uint32_t Gateway::AddSubPortHandler(
         db_index);
 }
 
+// Opens Starcounter log for writing.
+uint32_t Gateway::OpenStarcounterLog()
+{
+    uint32_t err_code = sccorelog_init(0);
+    if (err_code != 0)
+        return err_code;
+
+    err_code = sccorelog_connect_to_logs(GW_PROGRAM_NAME, NULL, &sc_log_handle_);
+    if (err_code != 0)
+        return err_code;
+
+    err_code = sccorelog_bind_logs_to_dir(sc_log_handle_, setting_output_dir_.c_str());
+    if (err_code != 0)
+        return err_code;
+
+    return 0;
+}
+
+// Closes Starcounter log.
+void Gateway::CloseStarcounterLog()
+{
+    sccorelog_release_logs(sc_log_handle_);
+}
+
+// Write critical into log.
+void Gateway::LogWriteCritical(const wchar_t* msg)
+{
+    sccorelog_kernel_write_to_logs(
+        sc_log_handle_,
+        SC_ENTRY_CRITICAL,
+        msg
+        );
+
+    sccorelog_flush_to_logs(sc_log_handle_);
+}
+
 } // namespace network
 } // namespace starcounter
 
+VOID SCAPI LogGatewayCrash(VOID *pc, LPCWSTR str)
+{
+    starcounter::network::g_gateway.LogWriteCritical(str);
+}
+
 int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 {
+    // Catching all unhandled exceptions in this thread.
+    GW_SC_BEGIN_FUNC
+
+    // Setting the critical log handler.
+    _SetCriticalLogHandler(LogGatewayCrash, NULL);
+
     using namespace starcounter::network;
     uint32_t err_code;
 
@@ -2070,18 +2224,32 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 
     // Reading arguments.
     err_code = g_gateway.ReadArguments(argc, argv);
-    if (err_code) return err_code;
+    if (err_code)
+        return err_code;
+
+    // Opening Starcounter log.
+    err_code = g_gateway.OpenStarcounterLog();
+    if (err_code)
+        return err_code;
+
+    //int32_t xxx = 0;
+    //int32_t yyy = 123 / xxx;
 
     // Stating the network gateway.
     err_code = g_gateway.StartGateway();
-    if (err_code) return err_code;
+    if (err_code)
+        return err_code;
 
     // Cleaning up resources.
     err_code = g_gateway.GlobalCleanup();
-    if (err_code) return err_code;
+    if (err_code)
+        return err_code;
 
     GW_COUT << "Press any key to exit." << std::endl;
     _getch();
 
     return 0;
+
+    // Catching all unhandled exceptions in this thread.
+    GW_SC_END_FUNC
 }

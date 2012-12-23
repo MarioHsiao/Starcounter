@@ -15,10 +15,10 @@ class TlsProtocol
     {
     }
 
-    uint32_t ProcessTlsData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);
+    uint32_t ProcessTlsData(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);
 };
 
-uint32_t HttpsProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);
+uint32_t HttpsProcessData(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);
 
 } // namespace network
 } // namespace starcounter
