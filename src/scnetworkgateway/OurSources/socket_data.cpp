@@ -138,7 +138,7 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
     set_socket_representer_flag(false);
 
     SocketDataChunk* sd_clone = NULL;
-    uint32_t err_code = gw->CreateSocketData(sock_, port_index_, db_index_, &sd_clone);
+    uint32_t err_code = gw->CreateSocketData(sock_, port_index_, db_index_, sd_clone);
     GW_ERR_CHECK(err_code);
 
     sd_clone->session_ = session_;
@@ -284,9 +284,7 @@ uint32_t SocketDataChunk::ReturnExtraLinkedChunks(GatewayWorker* gw)
     accum_buf_.Init(SOCKET_DATA_BLOB_SIZE_BYTES, data_blob_, true);
 
     // Returning all linked chunks back to pool.
-    uint32_t err_code = db->ReturnLinkedChunksToPool(num_chunks_ - 1, first_linked_chunk);
-    if (err_code)
-        return err_code;
+    db->ReturnLinkedChunksToPool(num_chunks_ - 1, first_linked_chunk);
 
     // Since all linked chunks have been returned.
     smc->terminate_link();

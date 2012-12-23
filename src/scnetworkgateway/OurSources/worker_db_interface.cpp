@@ -103,7 +103,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
             }
 
             // Process the chunk.
-            SocketDataChunk *sd = (SocketDataChunk *)((uint8_t *)smc + bmx::BMX_HEADER_MAX_SIZE_BYTES);
+            SocketDataChunk* sd = (SocketDataChunk*)((uint8_t *)smc + bmx::BMX_HEADER_MAX_SIZE_BYTES);
 
             // Checking for socket data correctness.
             assert((sd->get_db_index() >= 0) && (sd->get_db_index() < MAX_ACTIVE_DATABASES));
@@ -305,7 +305,7 @@ uint32_t WorkerDbInterface::PushLinkedChunksToDb(
 }
 
 // Returns given socket data chunk to private chunk pool.
-uint32_t WorkerDbInterface::ReturnSocketDataChunksToPool(GatewayWorker* gw, SocketDataChunk*& sd)
+void WorkerDbInterface::ReturnSocketDataChunksToPool(GatewayWorker* gw, SocketDataChunkRef sd)
 {
 #ifdef GW_CHUNKS_DIAG
     GW_PRINT_WORKER << "Returning chunk: " << sd->sock() << " " << sd->get_chunk_index() << std::endl;
@@ -320,13 +320,11 @@ uint32_t WorkerDbInterface::ReturnSocketDataChunksToPool(GatewayWorker* gw, Sock
 
     // IMPORTANT: Preventing further usages of this socket data.
     sd = NULL;
-
-    return 0;
 }
 
 // Returns given chunk to private chunk pool.
 // NOTE: This function should always succeed.
-uint32_t WorkerDbInterface::ReturnLinkedChunksToPool(int32_t num_linked_chunks, core::chunk_index& first_linked_chunk)
+void WorkerDbInterface::ReturnLinkedChunksToPool(int32_t num_linked_chunks, core::chunk_index& first_linked_chunk)
 {
     // Releasing chunk to private pool.
     bool success = private_chunk_pool_.release_linked_chunks(&shared_int_.chunk(0), first_linked_chunk);
@@ -347,12 +345,10 @@ uint32_t WorkerDbInterface::ReturnLinkedChunksToPool(int32_t num_linked_chunks, 
 
     // Chunks have been released.
     ChangeNumUsedChunks(-num_linked_chunks);
-
-    return 0;
 }
 
 // Push given chunk to database queue.
-uint32_t WorkerDbInterface::PushSocketDataToDb(GatewayWorker* gw, SocketDataChunk *sd, BMX_HANDLER_TYPE user_handler_id)
+uint32_t WorkerDbInterface::PushSocketDataToDb(GatewayWorker* gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id)
 {
 #ifdef GW_CHUNKS_DIAG
     GW_PRINT_WORKER << "Pushing chunk: socket " << sd->sock() << ":" << sd->get_chunk_index() << " handler_id " << user_handler_id << std::endl;

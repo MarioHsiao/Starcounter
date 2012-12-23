@@ -24,6 +24,9 @@
 #include "common/interprocess.hpp"
 #include "common/name_definitions.hpp"
 
+// Level0 includes.
+#include "../../../../Level0/src/include/sccorelog.h"
+
 // HTTP related stuff.
 #include "../../HTTP/HttpParser/OurHeaders/http_request.hpp"
 
@@ -45,10 +48,11 @@ typedef uint64_t session_salt_type;
 typedef uint32_t session_index_type;
 typedef uint64_t session_timestamp_type;
 typedef int64_t echo_id_type;
+typedef uint64_t log_handle_type;
 
 // Statistics macros.
-//#define GW_GLOBAL_STATISTICS
-//#define GW_COLLECT_SOCKET_STATISTICS
+#define GW_GLOBAL_STATISTICS
+#define GW_COLLECT_SOCKET_STATISTICS
 //#define GW_DETAILED_STATISTICS
 //#define GW_ECHO_STATISTICS
 
@@ -61,6 +65,15 @@ typedef int64_t echo_id_type;
 //#define GW_CHUNKS_DIAG
 #define GW_DATABASES_DIAG
 #define GW_SESSIONS_DIAG
+//#define GW_DEV_DEBUG
+
+#ifdef GW_DEV_DEBUG
+#define GW_SC_BEGIN_FUNC
+#define GW_SC_END_FUNC
+#else
+#define GW_SC_BEGIN_FUNC _SC_BEGIN_FUNC
+#define GW_SC_END_FUNC _SC_END_FUNC
+#endif
 
 // Mode macros.
 #define GW_PROXY_MODE
@@ -131,6 +144,7 @@ typedef int64_t echo_id_type;
 #define SCERRGWFAILEDFINDNEXTCHANGENOTIFICATION 12395
 #define SCERRGWWRONGMAXIDLESESSIONLIFETIME 12396
 #define SCERRGWWRONGDATABASEINDEX 12397
+#define SCERRJUSTRELEASEDSOCKETDATA 12398
 
 // Maximum number of ports the gateway operates with.
 const int32_t MAX_PORTS_NUM = 16;
@@ -160,7 +174,7 @@ const int32_t MAX_HTTP_BODY_SIZE = 1024 * 1024 * 32;
 const int32_t MAX_PROXIED_URIS = 32;
 
 // Number of sockets to increase the accept roof.
-const int32_t ACCEPT_ROOF_STEP_SIZE = 100;
+const int32_t ACCEPT_ROOF_STEP_SIZE = 1;
 
 // Offset of data blob in socket data.
 const int32_t SOCKET_DATA_BLOB_OFFSET_BYTES = 696;
@@ -185,6 +199,9 @@ const int32_t INVALID_URI_INDEX = -1;
 
 // Bad handler index.
 const int32_t INVALID_HANDLER_INDEX = -1;
+
+// Bad log handler.
+const log_handle_type INVALID_LOG_HANDLE = 0;
 
 // Bad chunk index.
 const uint32_t INVALID_CHUNK_INDEX = shared_memory_chunk::LINK_TERMINATOR;
@@ -238,7 +255,7 @@ const int32_t MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER = 10000;
 // Maximum blacklisted IPs per worker.
 const int32_t MAX_BLACK_LIST_IPS_PER_WORKER = 10000;
 
-// Hardcoded gateway test port number on server.
+// Hard-coded gateway test port number on server.
 const int32_t GATEWAY_TEST_PORT_NUMBER_SERVER = 80;
 
 // Session life time multiplier.
@@ -246,6 +263,9 @@ const int32_t SESSION_LIFETIME_MULTIPLIER = 3;
 
 // First port number used for binding.
 const uint16_t FIRST_BIND_PORT_NUM = 1500;
+
+// Maximum length of gateway statistics string.
+const int32_t MAX_STATS_LENGTH = 8192;
 
 // Gateway mode.
 enum GatewayTestingMode
@@ -270,6 +290,9 @@ const int32_t WS_BLOB_USER_DATA_OFFSET = 16;
 // Printing prefixes.
 #define GW_PRINT_WORKER (GW_COUT << "[" << worker_id_ << "]: ")
 #define GW_PRINT_GLOBAL (GW_COUT << "Global: ")
+
+// Gateway program name.
+const wchar_t* const GW_PROGRAM_NAME = L"scnetworkgateway";
 
 // Port types.
 enum PortType
@@ -296,11 +319,15 @@ enum SocketOperType
 };
 
 class SocketDataChunk;
+
+// Defining reference type for socket data chunk.
+typedef SocketDataChunk*& SocketDataChunkRef;
+
 class GatewayWorker;
 
 typedef uint32_t (*GENERIC_HANDLER_CALLBACK) (
     GatewayWorker *gw,
-    SocketDataChunk *sd,
+    SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled);
 
@@ -320,13 +347,13 @@ extern uint32_t DefaultRawEchoResponseProcessor(char* buf, uint32_t buf_len, ech
 
 uint32_t OuterPortProcessData(
     GatewayWorker *gw,
-    SocketDataChunk *sd,
+    SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled);
 
 uint32_t AppsPortProcessData(
     GatewayWorker *gw,
-    SocketDataChunk *sd,
+    SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled);
 
@@ -334,7 +361,7 @@ uint32_t AppsPortProcessData(
 
 uint32_t GatewayPortProcessEcho(
     GatewayWorker *gw,
-    SocketDataChunk *sd,
+    SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled);
 
@@ -342,13 +369,13 @@ uint32_t GatewayPortProcessEcho(
 
 uint32_t OuterSubportProcessData(
     GatewayWorker *gw,
-    SocketDataChunk *sd,
+    SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled);
 
 uint32_t AppsSubportProcessData(
     GatewayWorker *gw,
-    SocketDataChunk *sd,
+    SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled);
 
@@ -356,7 +383,7 @@ uint32_t AppsSubportProcessData(
 
 uint32_t GatewaySubportProcessEcho(
     GatewayWorker *gw,
-    SocketDataChunk *sd,
+    SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled);
 
@@ -364,13 +391,13 @@ uint32_t GatewaySubportProcessEcho(
 
 uint32_t OuterUriProcessData(
     GatewayWorker *gw,
-    SocketDataChunk *sd,
+    SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled);
 
 uint32_t AppsUriProcessData(
     GatewayWorker *gw,
-    SocketDataChunk *sd,
+    SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled);
 
@@ -378,7 +405,18 @@ uint32_t AppsUriProcessData(
 
 uint32_t GatewayUriProcessEcho(
     GatewayWorker *gw,
-    SocketDataChunk *sd,
+    SocketDataChunkRef sd,
+    BMX_HANDLER_TYPE handler_id,
+    bool* is_handled);
+
+#endif
+
+#ifdef GW_GLOBAL_STATISTICS
+
+// HTTP/WebSockets statistics for Gateway.
+uint32_t GatewayStatisticsInfo(
+    GatewayWorker *gw,
+    SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled);
 
@@ -386,7 +424,7 @@ uint32_t GatewayUriProcessEcho(
 
 uint32_t GatewayUriProcessProxy(
     GatewayWorker *gw,
-    SocketDataChunk *sd,
+    SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled);
 
@@ -1185,7 +1223,7 @@ class Gateway
     std::string setting_sc_server_type_;
 
     // Gateway log file name.
-    std::wstring setting_log_file_dir_;
+    std::wstring setting_output_dir_;
     std::wstring setting_log_file_path_;
 
     // Gateway config file name.
@@ -1193,6 +1231,9 @@ class Gateway
 
     // Number of worker threads.
     int32_t setting_num_workers_;
+
+    // Gateway statistics port.
+    uint16_t setting_gw_stats_port_;
 
     // Inactive session timeout in seconds.
     int32_t setting_inactive_session_timeout_seconds_;
@@ -1298,6 +1339,9 @@ class Gateway
     // OTHER STUFF
     ////////////////////////
 
+    // Handle to Starcounter log.
+    log_handle_type sc_log_handle_;
+
 #ifdef GW_TESTING_MODE
 
     // Confirmed HTTP requests map.
@@ -1360,7 +1404,17 @@ class Gateway
     // Last bound interface number.
     volatile int64_t last_bind_interface_num_unsafe_;
 
+    // Current global statistics stream.
+    std::stringstream global_statistics_stream_;
+    char global_statistics_string_[MAX_STATS_LENGTH];
+
+    // Critical section for statistics.
+    CRITICAL_SECTION cs_statistics_;
+
 public:
+
+    // Current global statistics value.
+    const char* GetGlobalStatisticsString(int32_t* out_len);
 
     // Getting the number of used sockets.
     int64_t NumberUsedSocketsAllWorkersAndDatabases();
@@ -1638,9 +1692,9 @@ public:
     }
 
     // Getting settings log file directory.
-    std::wstring& get_setting_log_file_dir()
+    std::wstring& get_setting_output_dir()
     {
-        return setting_log_file_dir_;
+        return setting_output_dir_;
     }
 
     // Getting maximum number of connections.
@@ -1888,6 +1942,15 @@ public:
 
     // Main function to start network gateway.
     int32_t StartGateway();
+
+    // Opens Starcounter log for writing.
+    uint32_t OpenStarcounterLog();
+
+    // Closes Starcounter log.
+    void CloseStarcounterLog();
+
+    // Write critical into log.
+    void LogWriteCritical(const wchar_t* msg);
 
     // Deletes existing session.
     uint32_t KillSession(session_index_type session_index, bool* was_killed)

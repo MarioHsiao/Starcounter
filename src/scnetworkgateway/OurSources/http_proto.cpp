@@ -371,7 +371,7 @@ void HttpGlobalInit()
 // Determines the correct HTTP handler.
 uint32_t HttpWsProto::HttpUriDispatcher(
     GatewayWorker *gw,
-    SocketDataChunk *sd,
+    SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_index,
     bool* is_handled)
 {
@@ -505,7 +505,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
 // Parses the HTTP request and pushes processed data to database.
 uint32_t HttpWsProto::AppsHttpWsProcessData(
     GatewayWorker *gw,
-    SocketDataChunk *sd,
+    SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled)
 {
@@ -798,7 +798,7 @@ ALL_DATA_ACCUMULATED:
 // Parses the HTTP request and pushes processed data to database.
 uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
     GatewayWorker *gw,
-    SocketDataChunk *sd,
+    SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled)
 {
@@ -1082,7 +1082,7 @@ SEND_HTTP_ECHO_TO_MASTER:
 }
 
 // HTTP/WebSockets handler for Gateway.
-uint32_t GatewayUriProcessEcho(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t GatewayUriProcessEcho(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
     return sd->get_http_ws_proto()->GatewayHttpWsProcessEcho(gw, sd, handler_id, is_handled);
 }
@@ -1090,13 +1090,13 @@ uint32_t GatewayUriProcessEcho(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDL
 #endif
 
 // Outer HTTP/WebSockets handler.
-uint32_t OuterUriProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t OuterUriProcessData(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
     return sd->get_http_ws_proto()->HttpUriDispatcher(gw, sd, handler_id, is_handled);
 }
 
 // HTTP/WebSockets handler for Apps.
-uint32_t AppsUriProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t AppsUriProcessData(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
     return sd->get_http_ws_proto()->AppsHttpWsProcessData(gw, sd, handler_id, is_handled);
 }
@@ -1104,7 +1104,7 @@ uint32_t AppsUriProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_
 #ifdef GW_PROXY_MODE
 
 // HTTP/WebSockets handler for Gateway proxy.
-uint32_t GatewayUriProcessProxy(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t GatewayUriProcessProxy(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
     return sd->get_http_ws_proto()->GatewayHttpWsReverseProxy(gw, sd, handler_id, is_handled);
 }
@@ -1112,7 +1112,7 @@ uint32_t GatewayUriProcessProxy(GatewayWorker *gw, SocketDataChunk *sd, BMX_HAND
 // Reverse proxies the HTTP traffic.
 uint32_t HttpWsProto::GatewayHttpWsReverseProxy(
     GatewayWorker *gw,
-    SocketDataChunk *sd,
+    SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled)
 {
@@ -1176,6 +1176,19 @@ uint32_t HttpWsProto::GatewayHttpWsReverseProxy(
     }
 
     return SCERRGWHTTPPROCESSFAILED;
+}
+
+#endif
+
+#ifdef GW_GLOBAL_STATISTICS
+
+// HTTP/WebSockets statistics for Gateway.
+uint32_t GatewayStatisticsInfo(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+{
+    int32_t len;
+    const char* stats_page_string = g_gateway.GetGlobalStatisticsString(&len);
+    *is_handled = true;
+    return gw->SendPredefinedMessage(sd, /*kHttpGatewayPongResponse, kHttpGatewayPongResponseLength*/stats_page_string, len);
 }
 
 #endif

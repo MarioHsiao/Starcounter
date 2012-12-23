@@ -232,7 +232,7 @@ public:
         int16_t sched_id,
         bool not_overflow_chunk);
 
-    uint32_t PushSocketDataToDb(GatewayWorker* gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id);
+    uint32_t PushSocketDataToDb(GatewayWorker* gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id);
 
     // Releases chunks from private chunk pool to the shared chunk pool.
     uint32_t ReleaseToSharedChunkPool(int32_t num_chunks);
@@ -270,10 +270,10 @@ public:
     }
 
     // Returns given socket data chunk to private chunk pool.
-    uint32_t ReturnSocketDataChunksToPool(GatewayWorker *gw, SocketDataChunk*& sd);
+    void ReturnSocketDataChunksToPool(GatewayWorker *gw, SocketDataChunkRef sd);
 
     // Returns given linked chunks to private chunk pool (and if needed then to shared).
-    uint32_t ReturnLinkedChunksToPool(int32_t num_linked_chunks, core::chunk_index& first_linked_chunk);
+    void ReturnLinkedChunksToPool(int32_t num_linked_chunks, core::chunk_index& first_linked_chunk);
 
     // Handles management chunks.
     uint32_t HandleManagementChunks(GatewayWorker *gw, shared_memory_chunk* smc);

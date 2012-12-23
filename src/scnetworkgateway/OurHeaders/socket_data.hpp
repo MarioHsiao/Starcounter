@@ -540,20 +540,6 @@ public:
     // Resetting socket.
     void Reset();
 
-    // Does general data processing using port handlers.
-    uint32_t RunHandlers(GatewayWorker *gw, bool* is_handled)
-    {
-        // Checking if handler id is not determined yet.
-        if (bmx::INVALID_HANDLER_ID == fixed_handler_id_)
-        {
-            return g_gateway.get_server_port(port_index_)->get_port_handlers()->RunHandlers(gw, this, is_handled);
-        }
-        else // We have a determined handler id.
-        {
-            return g_gateway.GetDatabase(db_index_)->get_user_handlers()->get_handler_list(fixed_handler_id_)->RunHandlers(gw, this, is_handled);
-        }
-    }
-
     // Checking that database and corresponding port handler exists.
     bool ForceSocketDataValidity(GatewayWorker* gw);
 
@@ -654,6 +640,17 @@ public:
             SOCKADDR_SIZE_EXT,
             NULL,
             &ovl_);
+    }
+
+    // Setting SO_UPDATE_ACCEPT_CONTEXT.
+    uint32_t SetAcceptSocketOptions()
+    {
+        SOCKET listening_sock = g_gateway.get_server_port(port_index_)->get_listening_sock();
+
+        if (setsockopt(sock_, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char *)&listening_sock, sizeof(listening_sock)))
+            return SCERRGWACCEPTEXFAILED;
+
+        return 0;
     }
 
     // Start connecting on socket.

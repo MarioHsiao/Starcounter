@@ -44,7 +44,7 @@ class GatewayWorker
     random_generator* rand_gen_;
 
     // Clone made during last iteration.
-    SocketDataChunk *sd_receive_clone_;
+    SocketDataChunk* sd_receive_clone_;
 
     // List of reusable connect sockets.
     LinearStack<SOCKET, MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER> reusable_connect_sockets_;
@@ -59,7 +59,7 @@ public:
 #ifdef GW_LOOPED_TEST_MODE
 
     // Pushing given sd to network emulation queue.
-    void PushToNetworkEmulationQueue(SocketDataChunk* sd)
+    void PushToNetworkEmulationQueue(SocketDataChunkRef sd)
     {
         emulated_network_events_queue_.PushBack(sd);
     }
@@ -134,7 +134,7 @@ public:
     }
 
     // Clone made during last iteration.
-    SocketDataChunk *get_sd_receive_clone()
+    SocketDataChunkRef get_sd_receive_clone()
     {
         return sd_receive_clone_;
     }
@@ -143,7 +143,7 @@ public:
     uint32_t ProcessReceiveClones(bool just_delete_clone);
 
     // Sets the clone for the next iteration.
-    void SetReceiveClone(SocketDataChunk *sd_clone)
+    void SetReceiveClone(SocketDataChunkRef sd_clone)
     {
         // Only one clone at a time is possible.
         assert(sd_receive_clone_ == NULL);
@@ -245,7 +245,7 @@ public:
 
     // Sends given predefined response.
     uint32_t SendPredefinedMessage(
-        SocketDataChunk *sd,
+        SocketDataChunkRef sd,
         const char* message,
         const int32_t message_len);
 
@@ -303,33 +303,33 @@ public:
 
 #ifdef GW_PROXY_MODE
     // Allocates a bunch of new connections.
-    uint32_t CreateProxySocket(SocketDataChunk* proxy_sd);
+    uint32_t CreateProxySocket(SocketDataChunkRef proxy_sd);
 #endif
 
     // Functions to process finished IOCP events.
-    uint32_t FinishReceive(SocketDataChunk*& sd, int32_t numBytesReceived, bool& called_from_receive);
-    uint32_t FinishSend(SocketDataChunk*& sd, int32_t numBytesSent);
-    uint32_t FinishDisconnect(SocketDataChunk*& sd);
-    uint32_t FinishConnect(SocketDataChunk*& sd);
-    uint32_t FinishAccept(SocketDataChunk*& sd);
+    uint32_t FinishReceive(SocketDataChunkRef sd, int32_t numBytesReceived, bool& called_from_receive);
+    uint32_t FinishSend(SocketDataChunkRef sd, int32_t numBytesSent);
+    uint32_t FinishDisconnect(SocketDataChunkRef sd, bool just_release);
+    uint32_t FinishConnect(SocketDataChunkRef sd);
+    uint32_t FinishAccept(SocketDataChunkRef sd);
 
     // Running connect on socket data.
-    uint32_t Connect(SocketDataChunk*& sd, sockaddr_in *serverAddr);
+    uint32_t Connect(SocketDataChunkRef sd, sockaddr_in *serverAddr);
 
     // Running disconnect on socket data.
-    uint32_t DisconnectAndReleaseChunk(SocketDataChunk*& sd);
+    void DisconnectAndReleaseChunk(SocketDataChunkRef sd);
 
     // Running send on socket data.
-    uint32_t Send(SocketDataChunk*& sd);
+    uint32_t Send(SocketDataChunkRef sd);
 
     // Running receive on socket data.
-    uint32_t Receive(SocketDataChunk*& sd);
+    uint32_t Receive(SocketDataChunkRef sd);
 
     // Running accept on socket data.
-    uint32_t Accept(SocketDataChunk*& sd);
+    uint32_t Accept(SocketDataChunkRef sd);
 
     // Processes socket data to database.
-    uint32_t RunReceiveHandlers(SocketDataChunk *sd)
+    uint32_t RunReceiveHandlers(SocketDataChunkRef sd)
     {
         // Putting socket data to database.
         sd->PrepareToDb();
@@ -337,7 +337,7 @@ public:
         bool is_handled = false;
 
         // Here we have to process socket data using handlers.
-        uint32_t err_code = sd->RunHandlers(this, &is_handled);
+        uint32_t err_code = RunHandlers(this, sd, &is_handled);
         if (err_code)
         {
             // Ban the fucking IP.
@@ -349,7 +349,7 @@ public:
     }
 
     // Processes socket data from database.
-    uint32_t RunFromDbHandlers(SocketDataChunk *sd)
+    uint32_t RunFromDbHandlers(SocketDataChunkRef sd)
     {
         // Putting socket data from database.
         sd->PrepareFromDb();
@@ -357,7 +357,7 @@ public:
         bool is_handled = false;
 
         // Here we have to process socket data using handlers.
-        uint32_t err_code = sd->RunHandlers(this, &is_handled);
+        uint32_t err_code = RunHandlers(this, sd, &is_handled);
         if (err_code)
         {
             // Ban the fucking IP.
@@ -368,8 +368,23 @@ public:
         return 0;
     }
 
+    // Does general data processing using port handlers.
+    uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled)
+    {
+        // Checking if handler id is not determined yet.
+        BMX_HANDLER_TYPE fixed_handler_id = sd->get_fixed_handler_id();
+        if (bmx::INVALID_HANDLER_ID == fixed_handler_id)
+        {
+            return g_gateway.get_server_port(sd->get_port_index())->get_port_handlers()->RunHandlers(gw, sd, is_handled);
+        }
+        else // We have a determined handler id.
+        {
+            return g_gateway.GetDatabase(sd->get_db_index())->get_user_handlers()->get_handler_list(fixed_handler_id)->RunHandlers(gw, sd, is_handled);
+        }
+    }
+
     // Push given chunk to database queue.
-    uint32_t PushSocketDataToDb(SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id);
+    uint32_t PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id);
 
     // Scans all channels for any incoming chunks.
     uint32_t ScanChannels(bool* found_something);
@@ -379,15 +394,15 @@ public:
         SOCKET sock,
         int32_t port_index,
         int32_t db_index,
-        SocketDataChunk** out_sd);
+        SocketDataChunkRef out_sd);
 
 #ifdef GW_TESTING_MODE
 
     // Sends HTTP echo to master.
-    uint32_t SendHttpEcho(SocketDataChunk *sd, echo_id_type echo_id);
+    uint32_t SendHttpEcho(SocketDataChunkRef sd, echo_id_type echo_id);
 
     // Sends raw echo to master.
-    uint32_t SendRawEcho(SocketDataChunk *sd, echo_id_type echo_id);
+    uint32_t SendRawEcho(SocketDataChunkRef sd, echo_id_type echo_id);
 
 #endif
 };
