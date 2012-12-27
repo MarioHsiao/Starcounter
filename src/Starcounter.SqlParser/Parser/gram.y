@@ -4853,7 +4853,7 @@ table_ref:	member_func_expr
 			| ONLY member_func_expr
 				{
 					/* no inheritance */
-					RangeVar *r = (Node *) makeRangeVar($1, NULL, @1);
+					RangeVar *r = (Node *) makeRangeVar($2, NULL, @1);
 					r->inhOpt = INH_NO;
 					$$ = (Node *) r;
 				}
