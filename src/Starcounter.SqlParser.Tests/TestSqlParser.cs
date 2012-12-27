@@ -168,6 +168,8 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select B'010A010'", true);
             analyzer.ParseQuery("select X'FID13A'", true);
             analyzer.ParseQuery("select 9223372036854775807", true);
+            analyzer.ParseQuery("select 345, -234, 123 from mytable t where c = -2343 and t = 4520904907");
+            analyzer.ParseQuery("select 324.23423, 342, -234.234e+12");
         }
 
         [Test]
