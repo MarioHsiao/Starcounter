@@ -33,7 +33,7 @@ void ScEreport(int scerrorcode, int position, wchar_t *tocken, char *message)
 		return;
 	if (scerror->scerrorcode == 0)
 		scerror->scerrorcode = scerrorcode;
-	scerror->scerrposition = position;
+	scerror->scerrposition = position / sizeof(wchar_t);
 	scerror->tocken = tocken;
 	scerror->scerrmessage = message;
 }
