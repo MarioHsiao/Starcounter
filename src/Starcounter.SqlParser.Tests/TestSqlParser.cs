@@ -168,6 +168,7 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select B'010A010'", true);
             analyzer.ParseQuery("select X'FID13A'", true);
             analyzer.ParseQuery("select 'Константа' from \"Таблица\" таблица");
+            analyzer.ParseQuery("select 9223372036854775807", true);
         }
 
         [Test]
