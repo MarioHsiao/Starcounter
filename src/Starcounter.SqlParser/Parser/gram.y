@@ -121,7 +121,7 @@ static Node *makeStringConst(wchar_t *str, YYLTYPE location);
 static Node *makeStringConstCast(wchar_t *str, YYLTYPE location, TypeName *typename);
 static Node *makeBinaryConst(char *str, YYLTYPE location);
 static Node *makeObjectConst(int val, YYLTYPE location);
-static Node *makeIntConst(int val, YYLTYPE location);
+static Node *makeIntConst(__int64 val, YYLTYPE location);
 static Node *makeFloatConst(wchar_t *str, YYLTYPE location);
 static Node *makeBitStringConst(wchar_t *str, YYLTYPE location);
 static Node *makeNullAConst(YYLTYPE location);
@@ -8303,7 +8303,7 @@ makeStringConstCast(wchar_t *str, YYLTYPE location, TypeName *typename)
 }
 
 static Node *
-makeIntConst(int val, YYLTYPE location)
+makeIntConst(__int64 val, YYLTYPE location)
 {
 	A_Const *n = makeNode(A_Const);
 
