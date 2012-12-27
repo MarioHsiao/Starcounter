@@ -792,17 +792,12 @@ litbufdup(core_yyscan_t yyscanner)
 static int
 process_integer_literal(const wchar_t *token, YYSTYPE *lval)
 {
-	long		val;
+	__int64		val;
 	wchar_t	   *endptr;
 
 	errno = 0;
-	val = wcstol(token, &endptr, 10);
-	if (*endptr != '\0' || errno == ERANGE
-#ifdef HAVE_LONG_INT_64
-		/* if long > 32 bits, check for overflow of int4 */
-		|| val != (long) ((int32) val)
-#endif
-		)
+	val = _wcstoi64(token, &endptr, 10);
+	if (*endptr != L'\0' || errno == ERANGE)
 	{
 		/* integer too large, treat it as a float */
 		lval->str = wpstrdup(token);

@@ -29,7 +29,7 @@
  */
 typedef union core_YYSTYPE
 {
-	int			ival;			/* for integer literals */
+	__int64			ival;			/* for integer literals */
 	wchar_t	   *str;			/* for identifiers and non-integer literals */
 	const wchar_t *keyword;		/* canonical spelling of keywords */
 } core_YYSTYPE;
