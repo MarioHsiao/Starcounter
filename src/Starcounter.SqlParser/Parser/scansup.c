@@ -29,51 +29,6 @@
 
 
 /*
- * downcase_identifier() --- do appropriate downcasing and
- * truncation of an unquoted identifier.  Optionally warn of truncation.
- *
- * Returns a palloc'd string containing the adjusted identifier.
- *
- * Note: in some usages the passed string is not null-terminated.
- *
- * Note: the API of this function is designed to allow for downcasing
- * transformations that increase the string length, but we don't yet
- * support that.  If you want to implement it, you'll need to fix
- * SplitIdentifierString() in utils/adt/varlena.c.
- */
-char *
-downcase_identifier(const char *ident, int len, bool warn)
-{
-	char	   *result;
-	int			i;
-
-	result = palloc(len + 1);
-
-	/*
-	 * SQL99 specifies Unicode-aware case normalization, which we don't yet
-	 * have the infrastructure for.  Instead we use tolower() to provide a
-	 * locale-aware translation.  However, there are some locales where this
-	 * is not right either (eg, Turkish may do strange things with 'i' and
-	 * 'I').  Our current compromise is to use tolower() for characters with
-	 * the high bit set, and use an ASCII-only downcasing for 7-bit
-	 * characters.
-	 */
-	for (i = 0; i < len; i++)
-	{
-		unsigned char ch = (unsigned char) ident[i];
-
-		if (ch >= 'A' && ch <= 'Z')
-			ch += 'a' - 'A';
-		else if (IS_HIGHBIT_SET(ch) && isupper(ch))
-			ch = tolower(ch);
-		result[i] = (char) ch;
-	}
-	result[i] = '\0';
-
-	return result;
-}
-
-/*
  * scanner_isspace() --- return TRUE if flex scanner considers char whitespace
  *
  * This should be used instead of the potentially locale-dependent isspace()
