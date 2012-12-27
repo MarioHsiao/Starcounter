@@ -26,7 +26,7 @@ typedef union YYSTYPE
 {
 	core_YYSTYPE		core_yystype;
 	/* these fields must match core_YYSTYPE: */
-	int					ival;
+	__int64				ival;
 	wchar_t				*str;
 	const wchar_t		*keyword;
 

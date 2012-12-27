@@ -44,7 +44,7 @@ typedef struct Value
 	NodeTag		type;			/* tag appropriately (eg. T_String) */
 	union ValUnion
 	{
-		long		ival;		/* machine integer */
+		__int64		ival;		/* machine integer */
 		wchar_t	   *str;		/* string */
 	}			val;
 } Value;
