@@ -94,6 +94,7 @@
     <ClInclude Include="Parser\keywords.h" />
     <ClInclude Include="Parser\kwlist.h" />
     <ClInclude Include="Parser\parser.h" />
+    <ClInclude Include="Parser\scanfuncs.h" />
     <ClInclude Include="Parser\scanner.h" />
     <ClInclude Include="Parser\scansup.h" />
     <ClInclude Include="stdafx.h" />
