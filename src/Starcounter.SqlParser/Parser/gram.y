@@ -686,39 +686,39 @@ OptRoleList:
 AlterOptRoleElem:
 			PASSWORD Sconst
 				{
-					$$ = makeDefElem("password",
+					$$ = makeDefElem(L"password",
 									 (Node *)makeString($2));
 				}
 			| PASSWORD NULL_P
 				{
-					$$ = makeDefElem("password", NULL);
+					$$ = makeDefElem(L"password", NULL);
 				}
 			| ENCRYPTED PASSWORD Sconst
 				{
-					$$ = makeDefElem("encryptedPassword",
+					$$ = makeDefElem(L"encryptedPassword",
 									 (Node *)makeString($3));
 				}
 			| UNENCRYPTED PASSWORD Sconst
 				{
-					$$ = makeDefElem("unencryptedPassword",
+					$$ = makeDefElem(L"unencryptedPassword",
 									 (Node *)makeString($3));
 				}
 			| INHERIT
 				{
-					$$ = makeDefElem("inherit", (Node *)makeInteger(TRUE));
+					$$ = makeDefElem(L"inherit", (Node *)makeInteger(TRUE));
 				}
 			| CONNECTION LIMIT SignedIconst
 				{
-					$$ = makeDefElem("connectionlimit", (Node *)makeInteger($3));
+					$$ = makeDefElem(L"connectionlimit", (Node *)makeInteger($3));
 				}
 			| VALID UNTIL Sconst
 				{
-					$$ = makeDefElem("validUntil", (Node *)makeString($3));
+					$$ = makeDefElem(L"validUntil", (Node *)makeString($3));
 				}
 		/*	Supported but not documented for roles, for use by ALTER GROUP. */
 			| USER name_list
 				{
-					$$ = makeDefElem("rolemembers", (Node *)$2);
+					$$ = makeDefElem(L"rolemembers", (Node *)$2);
 				}
 			| IDENT
 				{
@@ -728,42 +728,42 @@ AlterOptRoleElem:
 					 * size of the main parser.
 					 */
 					if (wcscmp($1, L"superuser") == 0)
-						$$ = makeDefElem("superuser", (Node *)makeInteger(TRUE));
+						$$ = makeDefElem(L"superuser", (Node *)makeInteger(TRUE));
 					else if (wcscmp($1, L"nosuperuser") == 0)
-						$$ = makeDefElem("superuser", (Node *)makeInteger(FALSE));
+						$$ = makeDefElem(L"superuser", (Node *)makeInteger(FALSE));
 					else if (strcmp($1, "createuser") == 0)
 					{
 						/* For backwards compatibility, synonym for SUPERUSER */
-						$$ = makeDefElem("superuser", (Node *)makeInteger(TRUE));
+						$$ = makeDefElem(L"superuser", (Node *)makeInteger(TRUE));
 					}
 					else if (wcscmp($1, L"nocreateuser") == 0)
 					{
 						/* For backwards compatibility, synonym for SUPERUSER */
-						$$ = makeDefElem("superuser", (Node *)makeInteger(FALSE));
+						$$ = makeDefElem(L"superuser", (Node *)makeInteger(FALSE));
 					}
 					else if (wcscmp($1, L"createrole") == 0)
-						$$ = makeDefElem("createrole", (Node *)makeInteger(TRUE));
+						$$ = makeDefElem(L"createrole", (Node *)makeInteger(TRUE));
 					else if (wcscmp($1, L"nocreaterole") == 0)
-						$$ = makeDefElem("createrole", (Node *)makeInteger(FALSE));
+						$$ = makeDefElem(L"createrole", (Node *)makeInteger(FALSE));
 					else if (wcscmp($1, L"replication") == 0)
-						$$ = makeDefElem("isreplication", (Node *)makeInteger(TRUE));
+						$$ = makeDefElem(L"isreplication", (Node *)makeInteger(TRUE));
 					else if (wcscmp($1, L"noreplication") == 0)
-						$$ = makeDefElem("isreplication", (Node *)makeInteger(FALSE));
+						$$ = makeDefElem(L"isreplication", (Node *)makeInteger(FALSE));
 					else if (wcscmp($1, L"createdb") == 0)
-						$$ = makeDefElem("createdb", (Node *)makeInteger(TRUE));
+						$$ = makeDefElem(L"createdb", (Node *)makeInteger(TRUE));
 					else if (wcscmp($1, L"nocreatedb") == 0)
-						$$ = makeDefElem("createdb", (Node *)makeInteger(FALSE));
+						$$ = makeDefElem(L"createdb", (Node *)makeInteger(FALSE));
 					else if (wcscmp($1, L"login") == 0)
-						$$ = makeDefElem("canlogin", (Node *)makeInteger(TRUE));
+						$$ = makeDefElem(L"canlogin", (Node *)makeInteger(TRUE));
 					else if (wcscmp($1, L"nologin") == 0)
-						$$ = makeDefElem("canlogin", (Node *)makeInteger(FALSE));
+						$$ = makeDefElem(L"canlogin", (Node *)makeInteger(FALSE));
 					else if (wcscmp($1, L"noinherit") == 0)
 					{
 						/*
 						 * Note that INHERIT is a keyword, so it's handled by main parser, but
 						 * NOINHERIT is handled here.
 						 */
-						$$ = makeDefElem("inherit", (Node *)makeInteger(FALSE));
+						$$ = makeDefElem(L"inherit", (Node *)makeInteger(FALSE));
 					}
 					else
 					{
@@ -778,23 +778,23 @@ CreateOptRoleElem:
 			/* The following are not supported by ALTER ROLE/USER/GROUP */
 			| SYSID Iconst
 				{
-					$$ = makeDefElem("sysid", (Node *)makeInteger($2));
+					$$ = makeDefElem(L"sysid", (Node *)makeInteger($2));
 				}
 			| ADMIN name_list
 				{
-					$$ = makeDefElem("adminmembers", (Node *)$2);
+					$$ = makeDefElem(L"adminmembers", (Node *)$2);
 				}
 			| ROLE name_list
 				{
-					$$ = makeDefElem("rolemembers", (Node *)$2);
+					$$ = makeDefElem(L"rolemembers", (Node *)$2);
 				}
 			| IN_P ROLE name_list
 				{
-					$$ = makeDefElem("addroleto", (Node *)$3);
+					$$ = makeDefElem(L"addroleto", (Node *)$3);
 				}
 			| IN_P GROUP_P name_list
 				{
-					$$ = makeDefElem("addroleto", (Node *)$3);
+					$$ = makeDefElem(L"addroleto", (Node *)$3);
 				}
 		;
 
@@ -2383,51 +2383,51 @@ SeqOptList: SeqOptElem								{ $$ = list_make1($1); }
 
 SeqOptElem: CACHE NumericOnly
 				{
-					$$ = makeDefElem("cache", (Node *)$2);
+					$$ = makeDefElem(L"cache", (Node *)$2);
 				}
 			| CYCLE
 				{
-					$$ = makeDefElem("cycle", (Node *)makeInteger(TRUE));
+					$$ = makeDefElem(L"cycle", (Node *)makeInteger(TRUE));
 				}
 			| NO CYCLE
 				{
-					$$ = makeDefElem("cycle", (Node *)makeInteger(FALSE));
+					$$ = makeDefElem(L"cycle", (Node *)makeInteger(FALSE));
 				}
 			| INCREMENT opt_by NumericOnly
 				{
-					$$ = makeDefElem("increment", (Node *)$3);
+					$$ = makeDefElem(L"increment", (Node *)$3);
 				}
 			| MAXVALUE NumericOnly
 				{
-					$$ = makeDefElem("maxvalue", (Node *)$2);
+					$$ = makeDefElem(L"maxvalue", (Node *)$2);
 				}
 			| MINVALUE NumericOnly
 				{
-					$$ = makeDefElem("minvalue", (Node *)$2);
+					$$ = makeDefElem(L"minvalue", (Node *)$2);
 				}
 			| NO MAXVALUE
 				{
-					$$ = makeDefElem("maxvalue", NULL);
+					$$ = makeDefElem(L"maxvalue", NULL);
 				}
 			| NO MINVALUE
 				{
-					$$ = makeDefElem("minvalue", NULL);
+					$$ = makeDefElem(L"minvalue", NULL);
 				}
 			| OWNED BY any_name
 				{
-					$$ = makeDefElem("owned_by", (Node *)$3);
+					$$ = makeDefElem(L"owned_by", (Node *)$3);
 				}
 			| START opt_with NumericOnly
 				{
-					$$ = makeDefElem("start", (Node *)$3);
+					$$ = makeDefElem(L"start", (Node *)$3);
 				}
 			| RESTART
 				{
-					$$ = makeDefElem("restart", NULL);
+					$$ = makeDefElem(L"restart", NULL);
 				}
 			| RESTART opt_with NumericOnly
 				{
-					$$ = makeDefElem("restart", (Node *)$3);
+					$$ = makeDefElem(L"restart", (Node *)$3);
 				}
 		;
 
@@ -2743,7 +2743,7 @@ DefineStmt:
 					n->kind = OBJECT_COLLATION;
 					n->args = NIL;
 					n->defnames = $3;
-					n->definition = list_make1(makeDefElem("from", (Node *) $5));
+					n->definition = list_make1(makeDefElem(L"from", (Node *) $5));
 					$$ = (Node *)n;
 				}
 		;
@@ -3445,7 +3445,7 @@ TransactionStmt:
 				{
 					TransactionStmt *n = makeNode(TransactionStmt);
 					n->kind = TRANS_STMT_SAVEPOINT;
-					n->options = list_make1(makeDefElem("savepoint_name",
+					n->options = list_make1(makeDefElem(L"savepoint_name",
 														(Node *)makeString($2)));
 					$$ = (Node *)n;
 				}
@@ -3453,7 +3453,7 @@ TransactionStmt:
 				{
 					TransactionStmt *n = makeNode(TransactionStmt);
 					n->kind = TRANS_STMT_RELEASE;
-					n->options = list_make1(makeDefElem("savepoint_name",
+					n->options = list_make1(makeDefElem(L"savepoint_name",
 														(Node *)makeString($3)));
 					$$ = (Node *)n;
 				}
@@ -3461,7 +3461,7 @@ TransactionStmt:
 				{
 					TransactionStmt *n = makeNode(TransactionStmt);
 					n->kind = TRANS_STMT_RELEASE;
-					n->options = list_make1(makeDefElem("savepoint_name",
+					n->options = list_make1(makeDefElem(L"savepoint_name",
 														(Node *)makeString($2)));
 					$$ = (Node *)n;
 				}
@@ -3469,7 +3469,7 @@ TransactionStmt:
 				{
 					TransactionStmt *n = makeNode(TransactionStmt);
 					n->kind = TRANS_STMT_ROLLBACK_TO;
-					n->options = list_make1(makeDefElem("savepoint_name",
+					n->options = list_make1(makeDefElem(L"savepoint_name",
 														(Node *)makeString($5)));
 					$$ = (Node *)n;
 				}
@@ -3477,7 +3477,7 @@ TransactionStmt:
 				{
 					TransactionStmt *n = makeNode(TransactionStmt);
 					n->kind = TRANS_STMT_ROLLBACK_TO;
-					n->options = list_make1(makeDefElem("savepoint_name",
+					n->options = list_make1(makeDefElem(L"savepoint_name",
 														(Node *)makeString($4)));
 					$$ = (Node *)n;
 				}
@@ -3511,19 +3511,19 @@ opt_transaction:	WORK							{}
 
 transaction_mode_item:
 			ISOLATION LEVEL iso_level
-					{ $$ = makeDefElem("transaction_isolation",
+					{ $$ = makeDefElem(L"transaction_isolation",
 									   makeStringConst($3, @3)); }
 			| READ ONLY
-					{ $$ = makeDefElem("transaction_read_only",
+					{ $$ = makeDefElem(L"transaction_read_only",
 									   makeIntConst(TRUE, @1)); }
 			| READ WRITE
-					{ $$ = makeDefElem("transaction_read_only",
+					{ $$ = makeDefElem(L"transaction_read_only",
 									   makeIntConst(FALSE, @1)); }
 			| DEFERRABLE
-					{ $$ = makeDefElem("transaction_deferrable",
+					{ $$ = makeDefElem(L"transaction_deferrable",
 									   makeIntConst(TRUE, @1)); }
 			| NOT DEFERRABLE
-					{ $$ = makeDefElem("transaction_deferrable",
+					{ $$ = makeDefElem(L"transaction_deferrable",
 									   makeIntConst(FALSE, @1)); }
 		;
 
@@ -3619,47 +3619,47 @@ createdb_opt_list:
 createdb_opt_item:
 			TEMPLATE opt_equal name
 				{
-					$$ = makeDefElem("template", (Node *)makeString($3));
+					$$ = makeDefElem(L"template", (Node *)makeString($3));
 				}
 			| TEMPLATE opt_equal DEFAULT
 				{
-					$$ = makeDefElem("template", NULL);
+					$$ = makeDefElem(L"template", NULL);
 				}
 			| ENCODING opt_equal Sconst
 				{
-					$$ = makeDefElem("encoding", (Node *)makeString($3));
+					$$ = makeDefElem(L"encoding", (Node *)makeString($3));
 				}
 			| ENCODING opt_equal Iconst
 				{
-					$$ = makeDefElem("encoding", (Node *)makeInteger($3));
+					$$ = makeDefElem(L"encoding", (Node *)makeInteger($3));
 				}
 			| ENCODING opt_equal DEFAULT
 				{
-					$$ = makeDefElem("encoding", NULL);
+					$$ = makeDefElem(L"encoding", NULL);
 				}
 			| LC_COLLATE_P opt_equal Sconst
 				{
-					$$ = makeDefElem("lc_collate", (Node *)makeString($3));
+					$$ = makeDefElem(L"lc_collate", (Node *)makeString($3));
 				}
 			| LC_COLLATE_P opt_equal DEFAULT
 				{
-					$$ = makeDefElem("lc_collate", NULL);
+					$$ = makeDefElem(L"lc_collate", NULL);
 				}
 			| LC_CTYPE_P opt_equal Sconst
 				{
-					$$ = makeDefElem("lc_ctype", (Node *)makeString($3));
+					$$ = makeDefElem(L"lc_ctype", (Node *)makeString($3));
 				}
 			| LC_CTYPE_P opt_equal DEFAULT
 				{
-					$$ = makeDefElem("lc_ctype", NULL);
+					$$ = makeDefElem(L"lc_ctype", NULL);
 				}
 			| OWNER opt_equal name
 				{
-					$$ = makeDefElem("owner", (Node *)makeString($3));
+					$$ = makeDefElem(L"owner", (Node *)makeString($3));
 				}
 			| OWNER opt_equal DEFAULT
 				{
-					$$ = makeDefElem("owner", NULL);
+					$$ = makeDefElem(L"owner", NULL);
 				}
 		;
 
@@ -3808,17 +3808,17 @@ ExplainStmt:
 				{
 					ExplainStmt *n = makeNode(ExplainStmt);
 					n->query = $4;
-					n->options = list_make1(makeDefElem("analyze", NULL));
+					n->options = list_make1(makeDefElem(L"analyze", NULL));
 					if ($3)
 						n->options = lappend(n->options,
-											 makeDefElem("verbose", NULL));
+											 makeDefElem(L"verbose", NULL));
 					$$ = (Node *) n;
 				}
 		| EXPLAIN VERBOSE ExplainableStmt
 				{
 					ExplainStmt *n = makeNode(ExplainStmt);
 					n->query = $3;
-					n->options = list_make1(makeDefElem("verbose", NULL));
+					n->options = list_make1(makeDefElem(L"verbose", NULL));
 					$$ = (Node *) n;
 				}
 		| EXPLAIN '(' explain_option_list ')' ExplainableStmt

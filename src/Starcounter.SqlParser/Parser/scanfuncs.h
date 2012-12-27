@@ -62,8 +62,6 @@ process_integer_literal(const wchar_t *token, YYSTYPE *lval)
 		lval->str = wpstrdup(token);
 		return FCONST;
 	}
-	if (errno != 0)
-		ScEreport(SCERRUNEXPSQLPARSER, -1, (wchar_t*)token, ScErrMessageInt("Unexpected error %d in conversion of string to Int64", errno));
 	lval->ival = val;
 	return ICONST;
 }
