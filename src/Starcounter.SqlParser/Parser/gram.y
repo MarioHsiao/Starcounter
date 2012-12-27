@@ -1027,8 +1027,9 @@ set_rest:	/* Generic SET syntaxes: */
 var_name:	ColId								{ $$ = $1; }
 			| var_name '.' ColId
 				{
-					$$ = palloc((wcslen($1) + wcslen($3) + 2) * sizeof(wchar_t));
-					swprintf($$, "%s.%s", $1, $3);
+					Size new_len = wcslen($1) + wcslen($3) + 2;
+					$$ = palloc(new_len * sizeof(wchar_t));
+					swprintf($$, new_len, L"%s.%s", $1, $3);
 				}
 		;
 
@@ -2644,9 +2645,9 @@ TriggerFuncArgs:
 TriggerFuncArg:
 			Iconst
 				{
-					char buf[64];
-					snprintf(buf, sizeof(buf), "%d", $1);
-					$$ = makeString(pstrdup(buf));
+					wchar_t buf[64];
+					_snwprintf(buf, sizeof(buf), L"%d", $1);
+					$$ = makeString(wpstrdup(buf));
 				}
 			| FCONST								{ $$ = makeString($1); }
 			| Sconst								{ $$ = makeString($1); }
@@ -2767,7 +2768,7 @@ def_elem:	ColLabel '=' def_arg
 
 /* Note: any simple identifier will be returned as a type name! */
 def_arg:	func_type						{ $$ = (Node *)$1; }
-			| reserved_keyword				{ $$ = (Node *)makeString(pstrdup($1)); }
+			| reserved_keyword				{ $$ = (Node *)makeString(wpstrdup($1)); }
 			| qual_all_Op					{ $$ = (Node *)$1; }
 			| NumericOnly					{ $$ = (Node *)$1; }
 			| Sconst						{ $$ = (Node *)makeString($1); }
@@ -3008,21 +3009,21 @@ privilege_list:	privilege							{ $$ = list_make1($1); }
 privilege:	SELECT opt_column_list
 			{
 				AccessPriv *n = makeNode(AccessPriv);
-				n->priv_name = pstrdup($1);
+				n->priv_name = wpstrdup($1);
 				n->cols = $2;
 				$$ = n;
 			}
 		| REFERENCES opt_column_list
 			{
 				AccessPriv *n = makeNode(AccessPriv);
-				n->priv_name = pstrdup($1);
+				n->priv_name = wpstrdup($1);
 				n->cols = $2;
 				$$ = n;
 			}
 		| CREATE opt_column_list
 			{
 				AccessPriv *n = makeNode(AccessPriv);
-				n->priv_name = pstrdup($1);
+				n->priv_name = wpstrdup($1);
 				n->cols = $2;
 				$$ = n;
 			}
