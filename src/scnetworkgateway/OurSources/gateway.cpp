@@ -140,17 +140,25 @@ Gateway::Gateway()
 // Reading command line arguments.
 // 1: Server type.
 // 2: Gateway configuration file path.
-// 3: Shared memory monitor logging directory path.
-uint32_t Gateway::ReadArguments(int argc, wchar_t* argv[])
+// 3: Starcounter server output directory path.
+uint32_t Gateway::ProcessArgumentsAndInitLog(int argc, wchar_t* argv[])
 {
     // Checking correct number of arguments.
     if (argc < 4)
     {
         std::cout << GW_PROGRAM_NAME << ".exe [ServerTypeName] [PathToGatewayXmlConfig] [PathToOutputDirectory]" << std::endl;
-        std::cout << "Example: " << GW_PROGRAM_NAME << ".exe personal \"c:\\github\\NetworkGateway\\src\\scripts\\server.xml\" \"c:\\github\\Orange\\bin\\Debug\\.db.output\"" << std::endl;
+        std::cout << "Example: " << GW_PROGRAM_NAME << ".exe personal \"c:\\github\\NetworkGateway\\src\\scripts\\server.xml\" \"c:\\github\\Level1\\bin\\Debug\\.db.output\"" << std::endl;
 
         return SCERRGWWRONGARGS;
     }
+
+    // Reading the Starcounter log directory.
+    setting_output_dir_ = argv[3];
+
+    // Opening Starcounter log.
+    uint32_t err_code = g_gateway.OpenStarcounterLog();
+    if (err_code)
+        return err_code;
 
     // Converting Starcounter server type to narrow char.
     char temp[128];
@@ -167,9 +175,8 @@ uint32_t Gateway::ReadArguments(int argc, wchar_t* argv[])
         ::toupper);
 
     setting_config_file_path_ = argv[2];
-    setting_output_dir_ = argv[3];
 
-    std::wstring setting_log_file_dir_ = setting_output_dir_ + L"\\network_gateway";
+    std::wstring setting_log_file_dir_ = setting_output_dir_ + L"\\" + GW_PROGRAM_NAME;
 
     // Trying to create network gateway log directory.
     if ((!CreateDirectory(setting_log_file_dir_.c_str(), NULL)) &&
@@ -181,7 +188,7 @@ uint32_t Gateway::ReadArguments(int argc, wchar_t* argv[])
     }
 
     // Full path to gateway log file.
-    setting_log_file_path_ = setting_log_file_dir_ + L"\\network_gateway.log";
+    setting_log_file_path_ = setting_log_file_dir_ + L"\\" + GW_PROGRAM_NAME + L".log";
 
     // Deleting old log file first.
     DeleteFile(setting_log_file_path_.c_str());
@@ -399,7 +406,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
 
     // Number of connections to establish to master.
     setting_num_connections_to_master_ = atoi(rootElem->first_node("NumConnectionsToMaster")->value());
-    assert((setting_num_connections_to_master_ % (setting_num_workers_ * ACCEPT_ROOF_STEP_SIZE)) == 0);
+    GW_ASSERT((setting_num_connections_to_master_ % (setting_num_workers_ * ACCEPT_ROOF_STEP_SIZE)) == 0);
     setting_num_connections_to_master_per_worker_ = setting_num_connections_to_master_ / setting_num_workers_;
 
     // Number of echoes to send to master node from clients.
@@ -546,9 +553,9 @@ uint32_t Gateway::AssertCorrectState()
         goto FAILED;
 
     // Checking overall gateway stuff.
-    assert(sizeof(ScSessionStruct) == bmx::SESSION_STRUCT_SIZE);
+    GW_ASSERT(sizeof(ScSessionStruct) == bmx::SESSION_STRUCT_SIZE);
 
-    assert(sizeof(ScSessionStructPlus) == 64);
+    GW_ASSERT(sizeof(ScSessionStructPlus) == 64);
 
     return 0;
 
@@ -1070,7 +1077,7 @@ void ActiveDatabase::CloseSocketData()
 uint32_t Gateway::Init()
 {
     // Checking if already initialized.
-    assert ((gw_workers_ == NULL) && (worker_thread_handles_ == NULL));
+    GW_ASSERT((gw_workers_ == NULL) && (worker_thread_handles_ == NULL));
 
     // Initialize WinSock.
     WSADATA wsaData = { 0 };
@@ -1258,7 +1265,7 @@ const char* Gateway::GetGlobalStatisticsString(int32_t* out_len)
 
     // Getting number of written characters.
     int32_t n = global_statistics_stream_.tellp();
-    assert(n < MAX_STATS_LENGTH);
+    GW_ASSERT(n < MAX_STATS_LENGTH);
     *out_len = kHttpStatsHeaderLength + n;
 
     // Copying characters from stream to given buffer.
@@ -1648,7 +1655,7 @@ uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
         num_sessions_to_cleanup_unsafe_--;
     }
 
-    assert(0 == num_sessions_to_cleanup_unsafe_);
+    GW_ASSERT(0 == num_sessions_to_cleanup_unsafe_);
 
     LeaveCriticalSection(&cs_sessions_cleanup_);
 
@@ -1664,7 +1671,7 @@ uint32_t Gateway::CollectInactiveSessions()
 
     EnterCriticalSection(&cs_sessions_cleanup_);
 
-    assert(0 == num_sessions_to_cleanup_unsafe_);
+    GW_ASSERT(0 == num_sessions_to_cleanup_unsafe_);
 
     int32_t num_inactive = 0;
 
@@ -1678,6 +1685,10 @@ uint32_t Gateway::CollectInactiveSessions()
             sessions_to_cleanup_unsafe_[num_inactive] = i;
             ++num_inactive;
         }
+
+        // Checking if we have checked all active sessions.
+        if (num_inactive >= num_active_sessions_unsafe_)
+            break;
     }
 
     num_sessions_to_cleanup_unsafe_ = num_inactive;
@@ -1933,7 +1944,7 @@ uint32_t Gateway::StartWorkerAndManagementThreads(
             (LPDWORD)&workerThreadIds[i]); // Returns the thread identifier.
 
         // Checking if threads are created.
-        assert(worker_thread_handles_[i] != NULL);
+        GW_ASSERT(worker_thread_handles_[i] != NULL);
     }
 
     uint32_t dbScanThreadId;
@@ -2168,15 +2179,15 @@ uint32_t Gateway::AddSubPortHandler(
 uint32_t Gateway::OpenStarcounterLog()
 {
     uint32_t err_code = sccorelog_init(0);
-    if (err_code != 0)
+    if (err_code)
         return err_code;
 
     err_code = sccorelog_connect_to_logs(GW_PROGRAM_NAME, NULL, &sc_log_handle_);
-    if (err_code != 0)
+    if (err_code)
         return err_code;
 
     err_code = sccorelog_bind_logs_to_dir(sc_log_handle_, setting_output_dir_.c_str());
-    if (err_code != 0)
+    if (err_code)
         return err_code;
 
     return 0;
@@ -2185,19 +2196,21 @@ uint32_t Gateway::OpenStarcounterLog()
 // Closes Starcounter log.
 void Gateway::CloseStarcounterLog()
 {
-    sccorelog_release_logs(sc_log_handle_);
+    uint32_t err_code = sccorelog_release_logs(sc_log_handle_);
+
+    GW_ASSERT(0 == err_code);
 }
 
 // Write critical into log.
 void Gateway::LogWriteCritical(const wchar_t* msg)
 {
-    sccorelog_kernel_write_to_logs(
-        sc_log_handle_,
-        SC_ENTRY_CRITICAL,
-        msg
-        );
+    uint32_t err_code = sccorelog_kernel_write_to_logs(sc_log_handle_, SC_ENTRY_CRITICAL, msg);
 
-    sccorelog_flush_to_logs(sc_log_handle_);
+    GW_ASSERT(0 == err_code);
+
+    err_code = sccorelog_flush_to_logs(sc_log_handle_);
+
+    GW_ASSERT(0 == err_code);
 }
 
 } // namespace network
@@ -2219,21 +2232,17 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     using namespace starcounter::network;
     uint32_t err_code;
 
-    // Setting I/O as low priority.
-    SetPriorityClass(GetCurrentProcess(), PROCESS_MODE_BACKGROUND_BEGIN);
-
-    // Reading arguments.
-    err_code = g_gateway.ReadArguments(argc, argv);
-    if (err_code)
-        return err_code;
-
-    // Opening Starcounter log.
-    err_code = g_gateway.OpenStarcounterLog();
+    // Processing arguments and initializing log file.
+    err_code = g_gateway.ProcessArgumentsAndInitLog(argc, argv);
     if (err_code)
         return err_code;
 
     //int32_t xxx = 0;
     //int32_t yyy = 123 / xxx;
+    //GW_ASSERT(123 == 1);
+
+    // Setting I/O as low priority.
+    SetPriorityClass(GetCurrentProcess(), PROCESS_MODE_BACKGROUND_BEGIN);
 
     // Stating the network gateway.
     err_code = g_gateway.StartGateway();

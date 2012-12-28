@@ -108,17 +108,17 @@ public:
     {
         uint8_t* sd = (uint8_t*) this;
 
-        assert((data_blob_ - sd) == SOCKET_DATA_BLOB_OFFSET_BYTES);
+        GW_ASSERT((data_blob_ - sd) == SOCKET_DATA_BLOB_OFFSET_BYTES);
 
-        assert(((uint8_t*)http_ws_proto_.get_http_request() - sd) == bmx::SOCKET_DATA_HTTP_REQUEST_OFFSET);
+        GW_ASSERT(((uint8_t*)http_ws_proto_.get_http_request() - sd) == bmx::SOCKET_DATA_HTTP_REQUEST_OFFSET);
 
-        assert(((uint8_t*)(&accum_buf_) - sd) == bmx::SOCKET_DATA_NUM_CLONE_BYTES);
+        GW_ASSERT(((uint8_t*)(&accum_buf_) - sd) == bmx::SOCKET_DATA_NUM_CLONE_BYTES);
 
-        assert(((uint8_t*)&num_chunks_ - sd) == bmx::SOCKET_DATA_NUM_CHUNKS_OFFSET);
+        GW_ASSERT(((uint8_t*)&num_chunks_ - sd) == bmx::SOCKET_DATA_NUM_CHUNKS_OFFSET);
 
-        assert(((uint8_t*)&max_user_data_bytes_ - sd) == (bmx::MAX_USER_DATA_BYTES_OFFSET - bmx::BMX_HEADER_MAX_SIZE_BYTES));
+        GW_ASSERT(((uint8_t*)&max_user_data_bytes_ - sd) == (bmx::MAX_USER_DATA_BYTES_OFFSET - bmx::BMX_HEADER_MAX_SIZE_BYTES));
 
-        assert(((uint8_t*)&user_data_written_bytes_ - sd) == (bmx::USER_DATA_WRITTEN_BYTES_OFFSET - bmx::BMX_HEADER_MAX_SIZE_BYTES));
+        GW_ASSERT(((uint8_t*)&user_data_written_bytes_ - sd) == (bmx::USER_DATA_WRITTEN_BYTES_OFFSET - bmx::BMX_HEADER_MAX_SIZE_BYTES));
 
         return 0;
     }

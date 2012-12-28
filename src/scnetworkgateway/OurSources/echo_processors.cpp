@@ -32,7 +32,7 @@ uint32_t DefaultHttpEchoRequestCreator(char* buf, echo_id_type echo_id, uint32_t
 uint32_t DefaultHttpEchoResponseProcessor(char* buf, uint32_t buf_len, echo_id_type* echo_id)
 {
     // Asserting correct number of bytes received.
-    assert(buf_len == kHttpEchoResponseLength);
+    GW_ASSERT(buf_len == kHttpEchoResponseLength);
 
     // Obtaining original echo number.
     *echo_id = hex_string_to_uint64(buf + kHttpEchoResponseInsertPoint, kHttpEchoBodyLength);
@@ -54,7 +54,7 @@ uint32_t DefaultRawEchoRequestCreator(char* buf, echo_id_type echo_id, uint32_t*
 uint32_t DefaultRawEchoResponseProcessor(char* buf, uint32_t buf_len, echo_id_type* echo_id)
 {
     // Asserting correct number of bytes received.
-    assert(buf_len == 16);
+    GW_ASSERT(buf_len == 16);
 
     // Obtaining original echo number.
     *echo_id = *(int32_t*)(buf + 8);

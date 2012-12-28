@@ -763,7 +763,7 @@ ALL_DATA_ACCUMULATED:
         {
             // New session cookie was created searching for it.
             char* session_cookie = strstr((char*)sd->get_data_blob(), kScSessionIdString);
-            assert(NULL != session_cookie);
+            GW_ASSERT(NULL != session_cookie);
 
             // Skipping cookie header and equality symbol.
             session_cookie += kScSessionIdStringLength + 1;
@@ -984,7 +984,7 @@ ALL_DATA_ACCUMULATED:
             if (g_gateway.setting_mode() == MODE_GATEWAY_HTTP)
             {
                 // Translating HTTP body.
-                assert (http_request_.body_len_bytes_ == kHttpEchoBodyLength);
+                GW_ASSERT(http_request_.body_len_bytes_ == kHttpEchoBodyLength);
 
                 // Converting the string to number.
                 //echo_id_type echo_id = hex_string_to_uint64((char*)sd + http_request_.body_offset_, kHttpGatewayEchoRequestBodyLength);
@@ -1014,7 +1014,7 @@ ALL_DATA_ACCUMULATED:
     else
     {
         // Asserting correct number of bytes received.
-        assert(sd->get_accum_buf()->get_accum_len_bytes() == kHttpEchoResponseLength);
+        GW_ASSERT(sd->get_accum_buf()->get_accum_len_bytes() == kHttpEchoResponseLength);
 
         // Obtaining original echo number.
         //echo_id_type echo_id = *(int32_t*)sd->get_data_blob();
@@ -1040,7 +1040,7 @@ ALL_DATA_ACCUMULATED:
 
             // Returning this chunk to database.
             WorkerDbInterface *db = gw->GetWorkerDb(sd->get_db_index());
-            assert(db != NULL);
+            GW_ASSERT(db != NULL);
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
             sd->set_socket_diag_active_conn_flag(false);

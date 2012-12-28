@@ -65,14 +65,20 @@ typedef uint64_t log_handle_type;
 //#define GW_CHUNKS_DIAG
 #define GW_DATABASES_DIAG
 #define GW_SESSIONS_DIAG
+
+// If you are debugging the gateway uncomment the following.
 //#define GW_DEV_DEBUG
 
 #ifdef GW_DEV_DEBUG
 #define GW_SC_BEGIN_FUNC
 #define GW_SC_END_FUNC
+#define GW_ASSERT assert
+#define GW_ASSERT_DEBUG assert
 #else
 #define GW_SC_BEGIN_FUNC _SC_BEGIN_FUNC
 #define GW_SC_END_FUNC _SC_END_FUNC
+#define GW_ASSERT _SC_ASSERT
+#define GW_ASSERT_DEBUG _SC_ASSERT_DEBUG
 #endif
 
 // Mode macros.
@@ -563,7 +569,7 @@ public:
         elems_[push_index_] = new_elem;
         push_index_++;
         stripe_length_++;
-        assert (stripe_length_ <= MaxElems);
+        GW_ASSERT(stripe_length_ <= MaxElems);
 
         if (push_index_ == MaxElems)
             push_index_ = 0;
@@ -574,7 +580,7 @@ public:
         T& ret_value = elems_[pop_index_];
         pop_index_++;
         stripe_length_--;
-        assert (stripe_length_ >= 0);
+        GW_ASSERT(stripe_length_ >= 0);
 
         if (pop_index_ == MaxElems)
             pop_index_ = 0;
@@ -1542,7 +1548,7 @@ public:
     // Registering confirmed HTTP echo.
     void ConfirmEcho(int64_t index)
     {
-        assert(confirmed_echoes_[index] == false);
+        GW_ASSERT(confirmed_echoes_[index] == false);
 
         confirmed_echoes_[index] = true;
         InterlockedIncrement64(&num_confirmed_echoes_unsafe_);
@@ -1864,7 +1870,7 @@ public:
     }
 
     // Reading command line arguments.
-    uint32_t ReadArguments(int argc, wchar_t* argv[]);
+    uint32_t ProcessArgumentsAndInitLog(int argc, wchar_t* argv[]);
 
     // Get number of active schedulers.
     uint32_t get_num_schedulers()
@@ -1955,7 +1961,7 @@ public:
     // Deletes existing session.
     uint32_t KillSession(session_index_type session_index, bool* was_killed)
     {
-        assert(INVALID_SESSION_INDEX != session_index);
+        GW_ASSERT(INVALID_SESSION_INDEX != session_index);
 
         *was_killed = false;
 
@@ -1970,7 +1976,7 @@ public:
             if (all_sessions_unsafe_[session_index].session_.IsValid())
             {
                 // Number of active sessions should always be correct.
-                assert(num_active_sessions_unsafe_ > 0);
+                GW_ASSERT(num_active_sessions_unsafe_ > 0);
 
                 // Resetting the session cell.
                 all_sessions_unsafe_[session_index].session_.Reset();

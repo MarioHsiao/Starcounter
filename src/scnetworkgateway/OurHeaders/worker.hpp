@@ -146,7 +146,7 @@ public:
     void SetReceiveClone(SocketDataChunkRef sd_clone)
     {
         // Only one clone at a time is possible.
-        assert(sd_receive_clone_ == NULL);
+        GW_ASSERT(sd_receive_clone_ == NULL);
 
         sd_receive_clone_ = sd_clone;
     }
