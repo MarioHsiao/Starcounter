@@ -146,8 +146,8 @@ uint32_t Gateway::ProcessArgumentsAndInitLog(int argc, wchar_t* argv[])
     // Checking correct number of arguments.
     if (argc < 4)
     {
-        std::cout << GW_PROGRAM_NAME << ".exe [ServerTypeName] [PathToGatewayXmlConfig] [PathToOutputDirectory]" << std::endl;
-        std::cout << "Example: " << GW_PROGRAM_NAME << ".exe personal \"c:\\github\\NetworkGateway\\src\\scripts\\server.xml\" \"c:\\github\\Level1\\bin\\Debug\\.db.output\"" << std::endl;
+        std::wcout << GW_PROGRAM_NAME << L".exe [ServerTypeName] [PathToGatewayXmlConfig] [PathToOutputDirectory]" << std::endl;
+        std::wcout << L"Example: " << GW_PROGRAM_NAME << L".exe personal \"c:\\github\\NetworkGateway\\src\\scripts\\server.xml\" \"c:\\github\\Level1\\bin\\Debug\\.db.output\"" << std::endl;
 
         return SCERRGWWRONGARGS;
     }
@@ -1646,7 +1646,7 @@ uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
                 }
 
 #ifdef GW_SESSIONS_DIAG
-                std::cout << "Inactive session " << global_session_copy.gw_session_index_ << ":" << global_session_copy.gw_session_salt_ << " was destroyed." << std::endl;
+                GW_COUT << "Inactive session " << global_session_copy.gw_session_index_ << ":" << global_session_copy.gw_session_salt_ << " was destroyed." << std::endl;
 #endif
             }
         }
