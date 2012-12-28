@@ -197,7 +197,7 @@ uint32_t SocketDataChunk::CreateWSABuffers(
     core::chunk_index cur_chunk_index = smc->get_link();
 
     // Checking if we need to obtain an extra chunk.
-    assert(INVALID_CHUNK_INDEX == extra_chunk_index_);
+    GW_ASSERT(INVALID_CHUNK_INDEX == extra_chunk_index_);
     if (INVALID_CHUNK_INDEX == extra_chunk_index_)
     {
         // Getting new chunk from pool.
@@ -254,7 +254,7 @@ uint32_t SocketDataChunk::CreateWSABuffers(
 
     // Checking that maximum number of WSABUFs in chunk is correct.
     // NOTE: Skipping initial chunk and extra chunk in check.
-    assert ((num_chunks_ - 2) <= starcounter::bmx::MAX_NUM_LINKED_WSABUFS);
+    GW_ASSERT((num_chunks_ - 2) <= starcounter::bmx::MAX_NUM_LINKED_WSABUFS);
 
     return 0;
 }
@@ -268,14 +268,14 @@ uint32_t SocketDataChunk::ReturnExtraLinkedChunks(GatewayWorker* gw)
 
     // We have to return attached chunks.
     WorkerDbInterface *db = gw->GetWorkerDb(db_index_);
-    assert(db != NULL);
+    GW_ASSERT(db != NULL);
 
     // Checking if any chunks are linked.
     shared_memory_chunk* smc = get_smc();
 
     // Checking that there are linked chunks.
     core::chunk_index first_linked_chunk = smc->get_link();
-    assert(INVALID_CHUNK_INDEX != first_linked_chunk);
+    GW_ASSERT(INVALID_CHUNK_INDEX != first_linked_chunk);
 
     // Resetting extra chunk index.
     extra_chunk_index_ = INVALID_CHUNK_INDEX;
@@ -350,7 +350,7 @@ CORRECT_STATISTICS_AND_RELEASE_CHUNK:
     default:
         {
             // NOTE: This situation should never happen.
-            assert(1 == 0);
+            GW_ASSERT(1 == 0);
         }
     }
 

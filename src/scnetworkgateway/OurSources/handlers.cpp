@@ -420,7 +420,7 @@ uint32_t OuterPortProcessData(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     }
 
     // Making sure that handler index is obtained.
-    assert(INVALID_HANDLER_INDEX != handler_index);
+    GW_ASSERT(INVALID_HANDLER_INDEX != handler_index);
 
     // Now running specific handler.
     return handlers_table->get_handler_list(handler_index)->RunHandlers(gw, sd, is_handled);
@@ -481,7 +481,7 @@ uint32_t GatewayPortProcessEcho(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HA
     {
         AccumBuffer* accum_buffer = sd->get_accum_buf();
 
-        assert(accum_buffer->get_accum_len_bytes() == 8);
+        GW_ASSERT(accum_buffer->get_accum_len_bytes() == 8);
 
         // Copying echo message.
         int64_t orig_echo = *(int64_t*)accum_buffer->get_orig_buf_ptr();
@@ -499,7 +499,7 @@ uint32_t GatewayPortProcessEcho(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HA
     else
     {
         // Asserting correct number of bytes received.
-        assert(sd->get_accum_buf()->get_accum_len_bytes() == 16);
+        GW_ASSERT(sd->get_accum_buf()->get_accum_len_bytes() == 16);
 
         // Obtaining original echo number.
         echo_id_type echo_id = *(int32_t*)(sd->get_data_blob() + 8);
@@ -519,7 +519,7 @@ uint32_t GatewayPortProcessEcho(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HA
 
             // Returning this chunk to database.
             WorkerDbInterface *db = gw->GetWorkerDb(sd->get_db_index());
-            assert(db != NULL);
+            GW_ASSERT(db != NULL);
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
             sd->set_socket_diag_active_conn_flag(false);

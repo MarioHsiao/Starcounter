@@ -675,7 +675,7 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
 #endif
 
     WorkerDbInterface *db = worker_dbs_[sd->get_db_index()];
-    assert(db != NULL);
+    GW_ASSERT(db != NULL);
 
     // Returning chunks to pool.
     db->ReturnSocketDataChunksToPool(this, sd);
@@ -760,7 +760,7 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
 RELEASE_CHUNK_TO_POOL:
 
     WorkerDbInterface *db = worker_dbs_[sd->get_db_index()];
-    assert(db != NULL);
+    GW_ASSERT(db != NULL);
 
     // Returning chunks to pool.
     db->ReturnSocketDataChunksToPool(this, sd);
@@ -774,11 +774,11 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd, bo
 #endif
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
-    assert(sd->get_type_of_network_oper() != UNKNOWN_SOCKET_OPER);
+    GW_ASSERT(sd->get_type_of_network_oper() != UNKNOWN_SOCKET_OPER);
 #endif
 
     // NOTE: Since we are here means that this socket data represents this socket.
-    assert(sd->get_socket_representer_flag() == true);
+    GW_ASSERT(sd->get_socket_representer_flag() == true);
 
     // Stop tracking this socket.
     UntrackSocket(sd->get_db_index(), sd->get_socket());
@@ -866,7 +866,7 @@ uint32_t GatewayWorker::Connect(SocketDataChunkRef sd, sockaddr_in *server_addr)
 #endif
 
         // Checking if operation completed immediately.
-        assert(TRUE != err_code);
+        GW_ASSERT(TRUE != err_code);
 
         int32_t wsa_err_code = WSAGetLastError();
 
@@ -934,7 +934,7 @@ __forceinline uint32_t GatewayWorker::FinishConnect(SocketDataChunkRef sd)
 #ifdef GW_PROXY_MODE
 
     // Checking if we are in proxy mode.
-    assert(sd->get_proxied_server_socket_flag() == true);
+    GW_ASSERT(sd->get_proxied_server_socket_flag() == true);
 
     // Sending to proxied server.
     return Send(sd);
@@ -1004,7 +1004,7 @@ uint32_t GatewayWorker::Accept(SocketDataChunkRef sd)
 #endif
 
     // Checking if operation completed immediately.
-    assert(TRUE != err_code);
+    GW_ASSERT(TRUE != err_code);
 
     int32_t wsa_err_code = WSAGetLastError();
 
@@ -1188,9 +1188,9 @@ uint32_t GatewayWorker::WorkerRoutine()
 #endif
 
                 // Checking for socket data correctness.
-                assert((sd->get_db_index() >= 0) && (sd->get_db_index() < MAX_ACTIVE_DATABASES));
-                assert(sd->get_socket() < MAX_SOCKET_HANDLE);
-                assert(sd->get_chunk_index() != INVALID_CHUNK_INDEX);
+                GW_ASSERT((sd->get_db_index() >= 0) && (sd->get_db_index() < MAX_ACTIVE_DATABASES));
+                GW_ASSERT(sd->get_socket() < MAX_SOCKET_HANDLE);
+                GW_ASSERT(sd->get_chunk_index() != INVALID_CHUNK_INDEX);
 
                 // Checking that socket is valid.
                 if (!sd->ForceSocketDataValidity(this))
@@ -1203,7 +1203,7 @@ uint32_t GatewayWorker::WorkerRoutine()
 
                 // Checking if its not receiving socket data.
                 if (!sd->get_socket_representer_flag())
-                    assert(sd->get_type_of_network_oper() > DISCONNECT_SOCKET_OPER);
+                    GW_ASSERT(sd->get_type_of_network_oper() > DISCONNECT_SOCKET_OPER);
 
 #ifdef GW_LOOPED_TEST_MODE
                 oper_num_bytes = fetched_ovls[i].dwNumberOfBytesTransferred;
@@ -1271,7 +1271,7 @@ uint32_t GatewayWorker::WorkerRoutine()
                     // Unknown operation.
                     default:
                     {
-                        assert(1 == 0);
+                        GW_ASSERT(1 == 0);
                     }
                 }
 
@@ -1435,7 +1435,7 @@ uint32_t GatewayWorker::AddNewDatabase(
 uint32_t GatewayWorker::PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
 {
     WorkerDbInterface *db = GetWorkerDb(sd->get_db_index());
-    assert(NULL != db);
+    GW_ASSERT(NULL != db);
     
     return db->PushSocketDataToDb(this, sd, handler_id);
 }
@@ -1606,7 +1606,7 @@ uint32_t GatewayWorker::SendRawEcho(SocketDataChunkRef sd, echo_id_type echo_id)
                     {
                         // Returning this chunk to database.
                         WorkerDbInterface *db = GetWorkerDb(sd->get_db_index());
-                        assert(db != NULL);
+                        GW_ASSERT(db != NULL);
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
                         sd->set_socket_diag_active_conn_flag(false);
@@ -1625,7 +1625,7 @@ uint32_t GatewayWorker::SendRawEcho(SocketDataChunkRef sd, echo_id_type echo_id)
                 // Unknown operation.
                 default:
                 {
-                    assert(1 == 0);
+                    GW_ASSERT(1 == 0);
                 }
             }
 

@@ -106,8 +106,8 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
             SocketDataChunk* sd = (SocketDataChunk*)((uint8_t *)smc + bmx::BMX_HEADER_MAX_SIZE_BYTES);
 
             // Checking for socket data correctness.
-            assert((sd->get_db_index() >= 0) && (sd->get_db_index() < MAX_ACTIVE_DATABASES));
-            assert(sd->get_socket() < MAX_SOCKET_HANDLE);
+            GW_ASSERT((sd->get_db_index() >= 0) && (sd->get_db_index() < MAX_ACTIVE_DATABASES));
+            GW_ASSERT(sd->get_socket() < MAX_SOCKET_HANDLE);
 
             // Setting chunk index because of possible cloned chunks.
             sd->set_chunk_index(cur_chunk_index);
@@ -122,7 +122,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
             {
                 // Creating special chunk for keeping WSA buffers information there.
                 sd->CreateWSABuffers(this, smc, 0, 0, sd->get_user_data_written_bytes());
-                assert(sd->get_num_chunks() > 2);
+                GW_ASSERT(sd->get_num_chunks() > 2);
 
                 // NOTE: One chunk for WSA buffers will already be counted.
                 ChangeNumUsedChunks(-1);
@@ -312,7 +312,7 @@ void WorkerDbInterface::ReturnSocketDataChunksToPool(GatewayWorker* gw, SocketDa
 #endif
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
-    assert(sd->get_socket_diag_active_conn_flag() == false);
+    GW_ASSERT(sd->get_socket_diag_active_conn_flag() == false);
 #endif
 
     // Returning linked multiple chunks.
@@ -328,7 +328,7 @@ void WorkerDbInterface::ReturnLinkedChunksToPool(int32_t num_linked_chunks, core
 {
     // Releasing chunk to private pool.
     bool success = private_chunk_pool_.release_linked_chunks(&shared_int_.chunk(0), first_linked_chunk);
-    assert(success == true);
+    GW_ASSERT(success == true);
 
     // Check if there are too many private chunks so
     // we need to release them to the shared chunk pool.
@@ -340,7 +340,7 @@ void WorkerDbInterface::ReturnLinkedChunksToPool(int32_t num_linked_chunks, core
         // but for the future with centralized chunk pool this should never happen!
 
         // TODO: Uncomment when centralized chunks are ready!
-        //assert(err_code == 0);
+        //GW_ASSERT(0 == err_code);
     }
 
     // Chunks have been released.
@@ -767,14 +767,14 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 // Getting handlers list.
                 HandlersTable* handlers_table = g_gateway.GetDatabase(db_index_)->get_user_handlers();
                 HandlersList* handlers_list = handlers_table->FindHandler(handler_id);
-                assert(handlers_list != NULL);
+                GW_ASSERT(handlers_list != NULL);
 
                 // Removing handler with certain id.
                 err_code = handlers_table->UnregisterHandler(handler_id);
 
                 // Removing from global data structures.
                 ServerPort* server_port = g_gateway.FindServerPort(handlers_list->get_port());
-                assert(server_port != NULL);
+                GW_ASSERT(server_port != NULL);
 
                 // Removing this handler from all possible places.
                 server_port->get_registered_uris()->RemoveEntry(handlers_list);
@@ -782,7 +782,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 if (bmx::HANDLER_TYPE::PORT_HANDLER == handlers_list->get_type())
                 {
                     // Should always be only one user handler.
-                    assert(1 == handlers_list->get_num_entries());
+                    GW_ASSERT(1 == handlers_list->get_num_entries());
 
                     // Removing corresponding handler.
                     server_port->get_port_handlers()->RemoveEntry(db_index_, handlers_list->get_handlers()[0]);
