@@ -154,7 +154,7 @@ internal class SortSpecification
             fixed (sccoredb.SCCOREDB_SORT_SPEC_ELEM* fixed_sort_spec = sort_spec)
             {
                 sccoredb.SC_INDEX_INFO kernel_index_info;
-                uint r = sccoredb.sccoredb_get_index_info_by_sort(typeBind.DefHandle, fixed_sort_spec, &kernel_index_info);
+                uint r = sccoredb.sccoredb_get_index_info_by_sort(typeBind.TableId, fixed_sort_spec, &kernel_index_info);
                 if (r == 0)
                 {
                     return new IndexUseInfo(typeBind.TypeDef.TableDef.CreateIndexInfo(&kernel_index_info), SortOrder.Ascending);
@@ -173,7 +173,7 @@ internal class SortSpecification
             fixed (sccoredb.SCCOREDB_SORT_SPEC_ELEM* fixed_sort_spec = sort_spec)
             {
                 sccoredb.SC_INDEX_INFO kernel_index_info;
-                uint r = sccoredb.sccoredb_get_index_info_by_sort(typeBind.DefHandle, fixed_sort_spec, &kernel_index_info);
+                uint r = sccoredb.sccoredb_get_index_info_by_sort(typeBind.TableId, fixed_sort_spec, &kernel_index_info);
                 if (r == 0)
                 {
                     return new IndexUseInfo(typeBind.TypeDef.TableDef.CreateIndexInfo(&kernel_index_info), SortOrder.Descending);
