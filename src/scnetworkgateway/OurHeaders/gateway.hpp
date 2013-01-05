@@ -66,6 +66,9 @@ typedef uint64_t log_handle_type;
 #define GW_DATABASES_DIAG
 #define GW_SESSIONS_DIAG
 
+// Enable to check for unique socket usage.
+#define GW_SOCKET_ID_CHECK
+
 // If you are debugging the gateway uncomment the following.
 //#define GW_DEV_DEBUG
 
@@ -151,6 +154,11 @@ typedef uint64_t log_handle_type;
 #define SCERRGWWRONGMAXIDLESESSIONLIFETIME 12396
 #define SCERRGWWRONGDATABASEINDEX 12397
 #define SCERRJUSTRELEASEDSOCKETDATA 12398
+#define SCERRGWCHANNELSEVENTSTHREADISDEAD 12399
+#define SCERRGWSESSIONSCLEANUPTHREADISDEAD 12400
+#define SCERRGWGATEWAYLOGGINGTHREADISDEAD 12401
+#define SCERRGWSOMETHREADDIED 12402
+#define SCERRGWOPERATIONONWRONGSOCKET 12403
 
 // Maximum number of ports the gateway operates with.
 const int32_t MAX_PORTS_NUM = 16;
@@ -176,6 +184,9 @@ const int32_t MAX_FETCHED_OVLS = 1000;
 // Maximum size of HTTP body.
 const int32_t MAX_HTTP_BODY_SIZE = 1024 * 1024 * 32;
 
+// Size of circular log buffer.
+const int32_t GW_LOG_BUFFER_SIZE = 8192 * 32;
+
 // Maximum number of proxied URIs.
 const int32_t MAX_PROXIED_URIS = 32;
 
@@ -183,7 +194,7 @@ const int32_t MAX_PROXIED_URIS = 32;
 const int32_t ACCEPT_ROOF_STEP_SIZE = 1;
 
 // Offset of data blob in socket data.
-const int32_t SOCKET_DATA_BLOB_OFFSET_BYTES = 696;
+const int32_t SOCKET_DATA_BLOB_OFFSET_BYTES = 704;
 
 // Length of blob data in bytes.
 const int32_t SOCKET_DATA_BLOB_SIZE_BYTES = bmx::MAX_DATA_BYTES_IN_CHUNK - bmx::BMX_HEADER_MAX_SIZE_BYTES - SOCKET_DATA_BLOB_OFFSET_BYTES;
@@ -199,6 +210,9 @@ const int32_t INVALID_WORKER_INDEX = -1;
 
 // Bad port index.
 const int32_t INVALID_PORT_INDEX = -1;
+
+// Bad port number.
+const int32_t INVALID_PORT_NUMBER = 0;
 
 // Bad URI index.
 const int32_t INVALID_URI_INDEX = -1;
@@ -697,9 +711,9 @@ public:
     }
 
     // Prepare buffer to send outside.
-    void PrepareForSend(uint8_t *data, ULONG num_bytes)
+    void PrepareForSend(uint8_t *data, ULONG num_bytes_to_write)
     {
-        buf_len_bytes_ = num_bytes;
+        buf_len_bytes_ = num_bytes_to_write;
         cur_buf_ptr_ = data;
         accum_len_bytes_ = 0;
     }
@@ -849,35 +863,6 @@ struct ScSessionStruct
         return sessionStringLen;
     }
 
-    // Copying one session structure into another.
-    void Copy(ScSessionStruct* session_struct)
-    {
-        gw_session_salt_ = session_struct->gw_session_salt_;
-        gw_session_index_ = session_struct->gw_session_index_;
-        scheduler_id_ = session_struct->scheduler_id_;
-        apps_unique_session_num_ = session_struct->apps_unique_session_num_;
-        apps_session_salt_ = session_struct->apps_session_salt_;
-    }
-
-    // Scheduler ID.
-    uint32_t get_scheduler_id()
-    {
-        return scheduler_id_;
-    }
-
-    // Getting session unique salt.
-    session_salt_type get_session_salt()
-    {
-        return gw_session_salt_;
-    }
-
-    // Unique session linear index.
-    // Points to the element in sessions linear array.
-    session_index_type get_session_index()
-    {
-        return gw_session_index_;
-    }
-
     // Compare socket stamps of two sessions.
     bool CompareSalts(session_salt_type session_salt)
     {
@@ -898,10 +883,12 @@ _declspec(align(64)) struct ScSessionStructPlus
     // Session last activity timestamp.
     session_timestamp_type session_timestamp_;
 
+    // Unique number for socket.
+    session_salt_type unique_socket_id_;
+
     // Padding to cache size (64 bytes).
     uint64_t pad1;
     uint64_t pad2;
-    uint64_t pad3;
 };
 
 // Represents an active database.
@@ -1026,9 +1013,6 @@ public:
 
     // Active database constructor.
     ActiveDatabase();
-
-    // Destructor.
-    ~ActiveDatabase();
 
     // Gets the name of the database.
     std::string db_name()
@@ -1160,7 +1144,7 @@ public:
     int64_t ChangeNumAcceptingSockets(int64_t change_value)
     {
 #ifdef GW_DETAILED_STATISTICS
-        GW_COUT << "ChangeNumAcceptingSockets: " << change_value << " of " << num_accepting_sockets_unsafe_ << std::endl;
+        GW_COUT << "ChangeNumAcceptingSockets: " << change_value << " of " << num_accepting_sockets_unsafe_ << GW_ENDL;
 #endif
 
         InterlockedAdd64(&num_accepting_sockets_unsafe_, change_value);
@@ -1213,6 +1197,48 @@ struct ReverseProxyInfo
 
     // Proxied service address socket info.
     sockaddr_in addr_;
+};
+
+class GatewayLogWriter
+{
+    // Critical section for exclusive writes.
+    CRITICAL_SECTION write_lock_;
+
+    // Circular buffer for log entries.
+    char log_buf_[GW_LOG_BUFFER_SIZE];
+
+    // Current write position.
+    int32_t log_write_pos_;
+
+    // Current log read position.
+    int32_t log_read_pos_;
+
+    // Log file handle.
+    HANDLE log_file_handle_;
+
+    // Length of accumulated but not dumped data.
+    int32_t accum_length_;
+
+public:
+
+    void Init(std::wstring& log_file_path);
+
+    ~GatewayLogWriter()
+    {
+        DeleteCriticalSection(&write_lock_);
+
+        CloseHandle(log_file_handle_);
+    }
+
+#ifdef GW_LOGGING_ON
+
+    // Writes given string to log buffer.
+    void WriteToLog(const char* text, int32_t text_len);
+
+    // Dump accumulated logs in buffer to file.
+    void DumpToLogFile();
+
+#endif
 };
 
 class GatewayWorker;
@@ -1302,6 +1328,15 @@ class Gateway
     // Channels events monitor thread handle.
     HANDLE channels_events_thread_handle_;
 
+    // Dead sessions cleanup thread handle.
+    HANDLE dead_sessions_cleanup_thread_handle_;
+
+    // Gateway logging thread handle.
+    HANDLE gateway_logging_thread_handle_;
+
+    // All threads monitor thread handle.
+    HANDLE all_threads_monitor_handle_;
+
     ////////////////////////
     // SESSIONS
     ////////////////////////
@@ -1345,8 +1380,14 @@ class Gateway
     // OTHER STUFF
     ////////////////////////
 
+    // Unique linear socket id.
+    session_salt_type unique_socket_id_;
+
     // Handle to Starcounter log.
     log_handle_type sc_log_handle_;
+
+    // Specific gateway log writer.
+    GatewayLogWriter gw_log_writer_;
 
 #ifdef GW_TESTING_MODE
 
@@ -1418,6 +1459,58 @@ class Gateway
     CRITICAL_SECTION cs_statistics_;
 
 public:
+
+#ifdef GW_SOCKET_ID_CHECK
+    // Checking if unique socket number is correct.
+    bool CompareUniqueSocketId(SOCKET s, session_salt_type socket_id)
+    {
+        GW_ASSERT(s < setting_max_connections_);
+
+        return (all_sessions_unsafe_[s].unique_socket_id_ == socket_id);
+    }
+
+    // Setting new unique socket number.
+    session_salt_type SetUniqueSocketId(SOCKET s)
+    {
+        session_salt_type unique_id = get_unique_socket_id();
+
+        all_sessions_unsafe_[s].unique_socket_id_ = unique_id;
+
+#ifdef GW_SOCKET_DIAG
+        GW_COUT << "New unique socket id " << s << ":" << unique_id << GW_ENDL;
+#endif
+
+        return unique_id;
+    }
+
+    // Getting unique socket number.
+    session_salt_type GetUniqueSocketId(SOCKET s)
+    {
+        return all_sessions_unsafe_[s].unique_socket_id_;
+    }
+#endif
+
+    // Unique linear socket id.
+    session_salt_type get_unique_socket_id()
+    {
+        // NOTE: Doing simple increment here.
+        return ++unique_socket_id_;
+    }
+
+    // Checks that all Gateway threads are alive.
+    uint32_t AllThreadsMonitor();
+
+    // Getting Gateway log writer.
+    GatewayLogWriter* get_gw_log_writer()
+    {
+        return &gw_log_writer_;
+    }
+
+    // Full path to gateway log file.
+    std::wstring& setting_log_file_path()
+    {
+        return setting_log_file_path_;
+    }
 
     // Current global statistics value.
     const char* GetGlobalStatisticsString(int32_t* out_len);
@@ -1941,7 +2034,9 @@ public:
         LPTHREAD_START_ROUTINE workerRoutine,
         LPTHREAD_START_ROUTINE scanDbsRoutine,
         LPTHREAD_START_ROUTINE channelsEventsMonitorRoutine,
-        LPTHREAD_START_ROUTINE oldSessionsCleanupRoutine);
+        LPTHREAD_START_ROUTINE oldSessionsCleanupRoutine,
+        LPTHREAD_START_ROUTINE gatewayLoggingRoutine,
+        LPTHREAD_START_ROUTINE threadsMonitorRoutine);
 
     // Cleanup resources.
     uint32_t GlobalCleanup();
@@ -1967,22 +2062,28 @@ public:
 
         // Only killing the session is its valid.
         // NOTE: Using double-checked locking.
-        if (all_sessions_unsafe_[session_index].session_.IsValid())
+        ScSessionStructPlus* session_plus = all_sessions_unsafe_ + session_index;
+        if (session_plus->session_.IsValid())
         {
             // Entering the critical section.
             EnterCriticalSection(&cs_session_);
 
             // Only killing the session is its valid.
-            if (all_sessions_unsafe_[session_index].session_.IsValid())
+            if (session_plus->session_.IsValid())
             {
                 // Number of active sessions should always be correct.
                 GW_ASSERT(num_active_sessions_unsafe_ > 0);
 
+#ifdef GW_SESSIONS_DIAG
+                GW_COUT << "Session being killed: " << session_plus->session_.gw_session_index_ << ":"
+                    << session_plus->session_.gw_session_salt_ << GW_ENDL;
+#endif
+
                 // Resetting the session cell.
-                all_sessions_unsafe_[session_index].session_.Reset();
+                session_plus->session_.Reset();
 
                 // Setting the session time stamp to zero.
-                all_sessions_unsafe_[session_index].session_timestamp_ = 0;
+                session_plus->session_timestamp_ = 0;
 
                 // Decrementing number of active sessions.
                 num_active_sessions_unsafe_--;
@@ -2010,7 +2111,7 @@ public:
         if (num_active_sessions_unsafe_ >= setting_max_connections_)
         {
 #ifdef GW_SESSIONS_DIAG
-            GW_COUT << "Exhausted sessions pool!" << std::endl;
+            GW_COUT << "Exhausted sessions pool!" << GW_ENDL;
 #endif
 
             return ScSessionStruct();
@@ -2034,7 +2135,7 @@ public:
         SetSessionTimeStamp(free_session_index);
 
 #ifdef GW_SESSIONS_DIAG
-        GW_COUT << "New session generated: " << free_session_index << ":" << session_salt << std::endl;
+        GW_COUT << "New session generated: " << free_session_index << ":" << session_salt << GW_ENDL;
 #endif
 
         // Incrementing number of active sessions.

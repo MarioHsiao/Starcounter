@@ -34,11 +34,13 @@ namespace network {
 // Print error code.
 uint32_t PrintLastError()
 {
+    const int32_t max_err_msg_len = 512;
+
     // Retrieve the system error message for the last-error code.
-    TCHAR *msgBuf;
-    TCHAR *displayBuf;
+    TCHAR *err_buf;
     uint32_t dw = GetLastError();
 
+    // Getting system error message.
     FormatMessage(
         FORMAT_MESSAGE_ALLOCATE_BUFFER |
         FORMAT_MESSAGE_FROM_SYSTEM |
@@ -46,21 +48,23 @@ uint32_t PrintLastError()
         NULL,
         dw,
         MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        (LPTSTR) &msgBuf,
-        0, NULL );
-
-    // Display the error message and exit the process.
-    displayBuf = (TCHAR *)LocalAlloc(LMEM_ZEROINIT, (lstrlen(msgBuf) + 50) * sizeof(TCHAR)); 
+        (LPTSTR) &err_buf,
+        0,
+        NULL);
 
     // Copying the error message.
-    StringCchPrintf(displayBuf, LocalSize(displayBuf) / sizeof(TCHAR), TEXT("Error %d: %s"), dw, msgBuf); 
+    TCHAR err_display_buf[max_err_msg_len];
+    StringCchPrintf(err_display_buf, max_err_msg_len, TEXT("Error %d: %s"), dw, err_buf); 
 
-    // Printing the error to console.
-    tcout << displayBuf << std::endl;
+    // Converting wchar_t to char.
+    char err_display_buf_char[max_err_msg_len];
+    wcstombs(err_display_buf_char, err_display_buf, max_err_msg_len);
+
+    // Printing error to log.
+    GW_COUT << err_display_buf_char << GW_ENDL;
 
     // Free message resources.
-    LocalFree(msgBuf);
-    LocalFree(displayBuf);
+    LocalFree(err_buf);
 
     return dw;
 }

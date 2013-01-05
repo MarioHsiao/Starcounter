@@ -8,9 +8,47 @@
 namespace starcounter {
 namespace network {
 
+// Define if you want to log into Gateway specific log file.
+//#define GW_LOG_TO_FILE
+
+// Define if Gateway log should be printed to console as well.
+//#define GW_LOG_TO_CONSOLE
+
+#if defined(GW_LOG_TO_FILE) || defined(GW_LOG_TO_CONSOLE)
+#define GW_LOGGING_ON
+#endif
+
+class ThreadSafeCout
+{
+public:
+
+    // Writing to log once object is destroyed.
+    ~ThreadSafeCout();
+
+    // Overloading all needed streaming operators.
+    template <typename T> ThreadSafeCout& operator<<(T const& t)
+    {
+#ifdef GW_LOGGING_ON
+        ss << t; // Accumulate into a non-shared stringstream, no threading issues.
+#endif
+        return *this;
+    }
+
+private:
+
+#ifdef GW_LOGGING_ON
+    std::stringstream ss;
+#endif
+};
+
 // Defining two streams output object.
+#define GW_COUT ThreadSafeCout()
+#define GW_ENDL "\n"
+
+/*
 //#define GW_COUT std::cout
 #define GW_COUT (*g_cout)
+
 typedef boost::iostreams::tee_device<std::ostream, std::ofstream> TeeDevice;
 typedef boost::iostreams::stream<TeeDevice> TeeLogStream;
 
@@ -22,6 +60,7 @@ extern TeeLogStream *g_cout;
 #else
 #define tcout std::cout
 #endif
+*/
 
 //uint64_t ReadDecimal(const char *start);
 uint32_t PrintLastError();

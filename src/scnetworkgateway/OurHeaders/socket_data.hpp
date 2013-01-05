@@ -55,6 +55,9 @@ class SocketDataChunk
     // Socket to which this data belongs.
     SOCKET sock_;
 
+    // Unique number for socket.
+    session_salt_type unique_socket_id_;
+
     // Receive flags.
     uint32_t recv_flags_;
 
@@ -122,6 +125,20 @@ public:
 
         return 0;
     }
+
+#ifdef GW_SOCKET_ID_CHECK
+    // Setting new unique socket number.
+    void SetUniqueSocketId()
+    {
+        unique_socket_id_ = g_gateway.SetUniqueSocketId(sock_);
+    }
+
+    // Checking if unique socket number is correct.
+    bool CompareUniqueSocketId()
+    {
+        return g_gateway.CompareUniqueSocketId(sock_, unique_socket_id_);
+    }
+#endif
 
     // Returns all linked chunks except the main one.
     uint32_t ReturnExtraLinkedChunks(GatewayWorker* gw);
@@ -312,7 +329,7 @@ public:
     }
 
     // Getting session index.
-    uint32_t get_session_index()
+    session_index_type get_session_index()
     {
         return session_.gw_session_index_;
     }
@@ -329,6 +346,12 @@ public:
         return session_.apps_session_salt_;
     }
 
+    // Getting unique id.
+    session_salt_type get_unique_socket_id()
+    {
+        return unique_socket_id_;
+    }
+
     // Setting Apps unique session number.
     void set_apps_unique_session_num(apps_unique_session_num_type apps_unique_session_num)
     {
@@ -342,7 +365,7 @@ public:
     }
 
     // Getting session salt.
-    uint64_t get_session_salt()
+    session_salt_type get_session_salt()
     {
         return session_.gw_session_salt_;
     }
@@ -518,9 +541,21 @@ public:
     // Exchanges sockets during proxying.
     void ExchangeToProxySocket()
     {
+        // Getting corresponding proxy socket id.
+        session_salt_type proxy_unique_socket_id = g_gateway.GetUniqueSocketId(proxy_sock_);
+
+#ifdef GW_SOCKET_DIAG
+        GW_COUT << "Exchanging sockets: " << sock_ << "<->" << proxy_sock_ << " and ids " <<
+            unique_socket_id_ << "<->" << proxy_unique_socket_id << GW_ENDL;
+#endif
+
+        // Switching places with current and proxy socket.
         SOCKET tmp_sock = sock_;
         sock_ = proxy_sock_;
         proxy_sock_ = tmp_sock;
+
+        // Setting unique socket id.
+        unique_socket_id_ = proxy_unique_socket_id;
     }
 
     // Attaching to certain database.

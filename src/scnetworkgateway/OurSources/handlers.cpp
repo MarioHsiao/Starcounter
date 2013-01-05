@@ -48,14 +48,11 @@ uint32_t HandlersTable::RegisterPortHandler(
                     {
                         // Adding new handler to list.
                         err_code = registered_handlers_[i].AddHandler(port_handler);
+                        GW_ERR_CHECK(err_code);
+                    }
 
-                        return err_code;
-                    }
-                    else
-                    {
-                        // Same handler already exists just returning.
-                        return 0;
-                    }
+                    // Same handler already exists, checking server port.
+                    goto PROCESS_SERVER_PORT;
                 }
                 else
                 {
@@ -76,6 +73,8 @@ uint32_t HandlersTable::RegisterPortHandler(
     // New handler added.
     if (empty_slot == max_num_entries_)
         max_num_entries_++;
+
+PROCESS_SERVER_PORT:
 
     // Checking if there is a corresponding server port created.
     ServerPort* server_port = g_gateway.FindServerPort(port_num);
@@ -161,14 +160,11 @@ uint32_t HandlersTable::RegisterSubPortHandler(
                         {
                             // Adding new handler to list.
                             err_code = registered_handlers_[i].AddHandler(subport_handler);
+                            GW_ERR_CHECK(err_code);
+                        }
 
-                            return err_code;
-                        }
-                        else
-                        {
-                            // Same handler already exists just returning.
-                            return 0;
-                        }
+                        // Same handler already exists, checking server port.
+                        goto PROCESS_SERVER_PORT;
                     }
                     else
                     {
@@ -190,6 +186,8 @@ uint32_t HandlersTable::RegisterSubPortHandler(
     // New handler added.
     if (empty_slot == max_num_entries_)
         max_num_entries_++;
+
+PROCESS_SERVER_PORT:
 
     // Checking if there is a corresponding server port created.
     ServerPort* server_port = g_gateway.FindServerPort(port_num);
@@ -278,14 +276,11 @@ uint32_t HandlersTable::RegisterUriHandler(
                         {
                             // Adding new handler to list.
                             err_code = registered_handlers_[i].AddHandler(uri_handler);
+                            GW_ERR_CHECK(err_code);
+                        }
 
-                            return err_code;
-                        }
-                        else
-                        {
-                            // Same handler already exists just returning.
-                            return 0;
-                        }
+                        // Same handler already exists, checking server port.
+                        goto PROCESS_SERVER_PORT;
                     }
                     else
                     {
@@ -307,6 +302,8 @@ uint32_t HandlersTable::RegisterUriHandler(
     // New handler added.
     if (empty_slot == max_num_entries_)
         max_num_entries_++;
+
+PROCESS_SERVER_PORT:
 
     // Checking if there is a corresponding server port created.
     ServerPort* server_port = g_gateway.FindServerPort(port_num);
@@ -505,7 +502,7 @@ uint32_t GatewayPortProcessEcho(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HA
         echo_id_type echo_id = *(int32_t*)(sd->get_data_blob() + 8);
 
 #ifdef GW_ECHO_STATISTICS
-        GW_PRINT_WORKER << "Received echo: " << echo_id << std::endl;
+        GW_PRINT_WORKER << "Received echo: " << echo_id << GW_ENDL;
 #endif
 
         // Confirming received echo.
