@@ -266,11 +266,11 @@ public:
     // Printing the registered URIs.
     void Print(uint16_t port)
     {
-        GW_PRINT_GLOBAL << "Port " << port << " has following URIs registered: " << std::endl;
+        GW_PRINT_GLOBAL << "Port " << port << " has following URIs registered: " << GW_ENDL;
         for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)
         {
             GW_COUT << "    \"" << reg_uris_[i].get_uri() << "\" with handlers lists: " <<
-                reg_uris_[i].GetHandlersListsNumber() << std::endl;
+                reg_uris_[i].GetHandlersListsNumber() << GW_ENDL;
         }
     }
 

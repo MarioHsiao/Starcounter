@@ -530,7 +530,7 @@ public:
         {
             GW_COUT << handlers_[i].GetNumberOfAttachedDbs() << ", ";
         }
-        GW_COUT << std::endl;
+        GW_COUT << GW_ENDL;
     }
 
     // Constructor.

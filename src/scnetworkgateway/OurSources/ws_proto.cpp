@@ -64,7 +64,7 @@ uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunkRef sd, BM
     uint8_t *payload = GetFrameInfo(&frame_info_, sd->get_accum_buf()->get_orig_buf_ptr());
 
 #ifdef GW_WEBSOCKET_DIAG
-    GW_COUT << "[" << gw->get_worker_id() << "]: " << "WS_OPCODE: " << frame_info_.opcode_ << std::endl;
+    GW_COUT << "[" << gw->get_worker_id() << "]: " << "WS_OPCODE: " << frame_info_.opcode_ << GW_ENDL;
 #endif
 
     uint32_t err_code;
@@ -235,7 +235,7 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd)
 
     // Printing the outgoing packet.
 #ifdef GW_WEBSOCKET_DIAG
-    GW_COUT << respDataBegin << std::endl;
+    GW_COUT << respDataBegin << GW_ENDL;
 #endif
 
     return 0;

@@ -134,14 +134,18 @@ uint32_t SocketDataChunk::ContinueAccumulation(GatewayWorker* gw, bool* is_accum
 // Clones existing socket data chunk for receiving.
 uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
 {
-    // Since another socket is going to be attached.
-    set_socket_representer_flag(false);
-
     SocketDataChunk* sd_clone = NULL;
     uint32_t err_code = gw->CreateSocketData(sock_, port_index_, db_index_, sd_clone);
     GW_ERR_CHECK(err_code);
 
+    // Since another socket is going to be attached.
+    set_socket_representer_flag(false);
+
+    // Copying session completely.
     sd_clone->session_ = session_;
+
+    // Copying unique socket id.
+    sd_clone->unique_socket_id_ = unique_socket_id_;
 
     sd_clone->set_to_database_direction_flag(true);
     sd_clone->set_web_sockets_upgrade_flag(sd_clone->get_web_sockets_upgrade_flag());
@@ -162,7 +166,7 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
 
 #ifdef GW_SOCKET_DIAG
     GW_COUT << "Cloned socket " << sock_ << ":" << chunk_index_ << " to " <<
-        sd_clone->get_socket() << ":" << sd_clone->get_chunk_index() << std::endl;
+        sd_clone->get_socket() << ":" << sd_clone->get_chunk_index() << GW_ENDL;
 #endif
 
     return 0;
@@ -311,7 +315,7 @@ bool SocketDataChunk::ForceSocketDataValidity(GatewayWorker* gw)
 
 CORRECT_STATISTICS_AND_RELEASE_CHUNK:
 
-    GW_COUT << "Force cleaning socket data: " << sock_ << ":" << chunk_index_ << std::endl;
+    GW_COUT << "Force cleaning socket data: " << sock_ << ":" << chunk_index_ << GW_ENDL;
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
 

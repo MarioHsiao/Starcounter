@@ -79,7 +79,7 @@ public:
     void TrackSocket(int32_t db_index, SOCKET s)
     {
 #ifdef GW_SOCKET_DIAG
-        GW_COUT << "Tracking socket: " << s << std::endl;
+        GW_COUT << "Tracking socket: " << s << GW_ENDL;
 #endif
 
         worker_dbs_[db_index]->TrackSocket(s);
@@ -89,7 +89,7 @@ public:
     void UntrackSocket(int32_t db_index, SOCKET s)
     {
 #ifdef GW_SOCKET_DIAG
-        GW_COUT << "UnTracking socket: " << s << std::endl;
+        GW_COUT << "UnTracking socket: " << s << GW_ENDL;
 #endif
 
         worker_dbs_[db_index]->UntrackSocket(s);
@@ -155,7 +155,7 @@ public:
     int64_t ChangeNumAcceptingSockets(int32_t port_index, int64_t change_value)
     {
 #ifdef GW_DETAILED_STATISTICS
-        GW_COUT << "ChangeNumAcceptingSockets: " << change_value << std::endl;
+        GW_COUT << "ChangeNumAcceptingSockets: " << change_value << GW_ENDL;
 #endif
 
         return g_gateway.get_server_port(port_index)->ChangeNumAcceptingSockets(change_value);
@@ -167,7 +167,7 @@ public:
     void ChangeNumActiveConnections(int32_t port_index, int64_t change_value)
     {
 #ifdef GW_DETAILED_STATISTICS
-        GW_COUT << "ChangeNumActiveConnections: " << change_value << std::endl;
+        GW_COUT << "ChangeNumActiveConnections: " << change_value << GW_ENDL;
 #endif
 
         port_num_active_conns_[port_index] += change_value;
@@ -182,6 +182,8 @@ public:
     // Getting number of active connections per port.
     int64_t NumberOfActiveConnectionsPerPortPerWorker(int32_t port_index)
     {
+        GW_ASSERT((port_index >= 0) && (port_index < MAX_PORTS_NUM));
+
         return port_num_active_conns_[port_index];
     }
 

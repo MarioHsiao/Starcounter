@@ -19,7 +19,7 @@ public:
         if (QueryPerformanceFrequency(&freqTempVar) == false)
         {
             // High-performance counter not supported.
-            GW_COUT << "High-performance counter not supported." << std::endl;
+            GW_COUT << "High-performance counter not supported." << GW_ENDL;
             return;
         }
 
@@ -154,7 +154,7 @@ public:
     /// </summary>
     void DrawResults()
     {
-        GW_COUT << GetResults() << std::endl;
+        GW_COUT << GetResults() << GW_ENDL;
     }
 
     /// <summary>
@@ -166,29 +166,29 @@ public:
         std::stringstream stringStream;
 
         // Going through all timers.
-        stringStream << "==== Profiling results ====" << std::endl;
+        stringStream << "==== Profiling results ====" << GW_ENDL;
         for (int32_t i = 0; i < timers_num_; i++)
         {
             if (!timer_names_[i].empty())
             {
-                stringStream << "  #" << i << " \"" << timer_names_[i] << "\" took " << stopwatches_[i].DurationMs() << " ms and was started " << stopwatches_[i].start_count() << " times." << std::endl;
+                stringStream << "  #" << i << " \"" << timer_names_[i] << "\" took " << stopwatches_[i].DurationMs() << " ms and was started " << stopwatches_[i].start_count() << " times." << GW_ENDL;
                 stopwatches_[i].Reset();
             }
         }
-        stringStream << "==== End of Profiling results ====" << std::endl;
+        stringStream << "==== End of Profiling results ====" << GW_ENDL;
 
         // Printing all checkpoints.
-        stringStream << "==== Checkpoint results ====" << std::endl;
+        stringStream << "==== Checkpoint results ====" << GW_ENDL;
         for (int32_t i = 0; i < timers_num_; i++)
         {
             if (!checkpoint_names_[i].empty())
             {
-                stringStream << "  #" << i << " \"" << checkpoint_names_[i] << "\" was called " << checkpoint_ticks_[i] << " times." << std::endl;
+                stringStream << "  #" << i << " \"" << checkpoint_names_[i] << "\" was called " << checkpoint_ticks_[i] << " times." << GW_ENDL;
                 checkpoint_ticks_[i] = 0;
             }
         }
 
-        stringStream << "==== End of Checkpoint results ====" << std::endl;
+        stringStream << "==== End of Checkpoint results ====" << GW_ENDL;
 
         // Outputting to string.
         return stringStream.str();
@@ -201,16 +201,16 @@ public:
     {
         // Assuming that timer is stopped at this moment.
         std::stringstream stringStream;
-        stringStream << "==== Specific Timer results ====" << std::endl;
+        stringStream << "==== Specific Timer results ====" << GW_ENDL;
 
         // Checking if timer was running at all.
         if (!timer_names_[timerId].empty())
         {
-            stringStream << "  #" << timerId << " \"" << timer_names_[timerId] << "\" took " << stopwatches_[timerId].DurationMs() << " ms and was started " << stopwatches_[timerId].start_count() << " times." << std::endl;
+            stringStream << "  #" << timerId << " \"" << timer_names_[timerId] << "\" took " << stopwatches_[timerId].DurationMs() << " ms and was started " << stopwatches_[timerId].start_count() << " times." << GW_ENDL;
             stopwatches_[timerId].Reset();
         }
 
-        stringStream << "==== End of Timer results ====" << std::endl;
+        stringStream << "==== End of Timer results ====" << GW_ENDL;
 
         // Outputting to string.
         return stringStream.str();
