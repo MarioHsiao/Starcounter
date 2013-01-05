@@ -557,13 +557,13 @@ namespace Starcounter.Internal
         /// <summary>
         /// Sccoredb_get_index_info_by_sorts the specified definition_addr.
         /// </summary>
-        /// <param name="definition_addr">The definition_addr.</param>
+        /// <param name="table_id"></param>
         /// <param name="sort_spec">The sort_spec.</param>
         /// <param name="pii">The pii.</param>
         /// <returns>UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public unsafe extern static UInt32 sccoredb_get_index_info_by_sort(
-            UInt64 definition_addr,
+            ushort table_id,
             SCCOREDB_SORT_SPEC_ELEM *sort_spec,
             SC_INDEX_INFO *pii
             );
