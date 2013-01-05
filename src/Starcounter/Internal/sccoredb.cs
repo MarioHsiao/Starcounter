@@ -188,7 +188,6 @@ namespace Starcounter.Internal
         public static extern uint sccoredb_set_system_variable(string key, string value);
 
         /// <summary>
-        /// The SCCORED b_ LOA d_ DATABASE
         /// </summary>
         public const uint SCCOREDB_LOAD_DATABASE = 0x00100000;
 
@@ -197,47 +196,32 @@ namespace Starcounter.Internal
         public const uint SCCOREDB_USE_BUFFERED_IO = 0x00200000;
 
         /// <summary>
-        /// The SCCORED b_ ENABL e_ CHEC k_ FIL e_ O n_ LOAD
         /// </summary>
         public const uint SCCOREDB_ENABLE_CHECK_FILE_ON_LOAD = 0x00010000;
 
         /// <summary>
-        /// The SCCORED b_ ENABL e_ CHEC k_ FIL e_ O n_ CHECKP
         /// </summary>
         public const uint SCCOREDB_ENABLE_CHECK_FILE_ON_CHECKP = 0x00020000;
 
         /// <summary>
-        /// The SCCORED b_ ENABL e_ CHEC k_ FIL e_ O n_ BACKUP
         /// </summary>
         public const uint SCCOREDB_ENABLE_CHECK_FILE_ON_BACKUP = 0x00040000;
 
         /// <summary>
-        /// The SCCORED b_ ENABL e_ CHEC k_ MEMOR y_ O n_ CHECKP
         /// </summary>
         public const uint SCCOREDB_ENABLE_CHECK_MEMORY_ON_CHECKP = 0x00080000;
 
         /// <summary>
-        /// Sccoredb_connects the specified flags.
         /// </summary>
-        /// <param name="flags">The flags.</param>
-        /// <param name="hsched">The hsched.</param>
-        /// <param name="hmenv">The hmenv.</param>
-        /// <param name="hlogs">The hlogs.</param>
-        /// <param name="pempty">The pempty.</param>
-        /// <returns>System.UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern unsafe uint sccoredb_connect(uint flags, void* hsched, ulong hmenv, ulong hlogs, int* pempty);
 
         /// <summary>
-        /// The SCCORED b_ UNLOA d_ DATABASE
         /// </summary>
         public const uint SCCOREDB_UNLOAD_DATABASE = 0x00200000;
 
         /// <summary>
-        /// Sccoredb_disconnects the specified flags.
         /// </summary>
-        /// <param name="flags">The flags.</param>
-        /// <returns>System.UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern uint sccoredb_disconnect(uint flags);
 
