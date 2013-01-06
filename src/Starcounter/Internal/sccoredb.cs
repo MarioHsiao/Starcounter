@@ -298,42 +298,6 @@ namespace Starcounter.Internal
         public const ushort MDB_ATTRFLAG_NULLABLE = 0x0040;
 
         /// <summary>
-        /// Struct Mdb_DefinitionInfo
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential, Pack = 8)]
-        public unsafe struct Mdb_DefinitionInfo
-        {
-            /// <summary>
-            /// The table_name
-            /// </summary>
-            public char* table_name;
-            /// <summary>
-            /// The column_count
-            /// </summary>
-            public uint column_count;
-            /// <summary>
-            /// The inheriting_definition_count
-            /// </summary>
-            public uint inheriting_definition_count;
-            /// <summary>
-            /// The inheriting_definition_addrs
-            /// </summary>
-            public ulong* inheriting_definition_addrs;
-            /// <summary>
-            /// The inherited_definition_addr
-            /// </summary>
-            public ulong inherited_definition_addr;
-            /// <summary>
-            /// The table_id
-            /// </summary>
-            public ushort table_id;
-            /// <summary>
-            /// The flags
-            /// </summary>
-            public ushort flags;
-        }
-
-        /// <summary>
         /// Struct Mdb_AttributeInfo
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Pack=8)]
@@ -362,29 +326,6 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="etiDefinition"></param>
-        /// <returns></returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public extern static int Mdb_DefinitionFromCodeClassString(
-            string name,
-            out ulong etiDefinition
-            );
-
-        /// <summary>
-        /// MDB_s the definition to definition info.
-        /// </summary>
-        /// <param name="etiDefinition">The eti definition.</param>
-        /// <param name="definitionInfo">The definition info.</param>
-        /// <returns>System.Int32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static int Mdb_DefinitionToDefinitionInfo(
-            UInt64 etiDefinition,
-            out Mdb_DefinitionInfo definitionInfo
-            );
-
-        /// <summary>
         /// MDB_s the definition attribute index to info.
         /// </summary>
         /// <param name="etiDefinition">The eti definition.</param>
@@ -397,6 +338,60 @@ namespace Starcounter.Internal
             ushort index,
             out Mdb_AttributeInfo attributeInfo
             );
+
+        /// <summary>
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential, Pack=8)]
+        internal unsafe struct SCCOREDB_TABLE_INFO
+        {
+            /// <summary>
+            /// </summary>
+            public ulong definition_addr;
+
+            /// <summary>
+            /// </summary>
+            public char* table_name;
+
+            /// <summary>
+            /// </summary>
+            public uint column_count;
+
+            /// <summary>
+            /// </summary>
+            public uint inheriting_table_count;
+
+            /// <summary>
+            /// </summary>
+            public ushort* inheriting_table_ids;
+
+            /// <summary>
+            /// </summary>
+            public ushort table_id;
+
+            /// <summary>
+            /// </summary>
+            public ushort inherited_table_id;
+
+            /// <summary>
+            /// </summary>
+            public ushort flags;
+        };
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal extern static uint sccoredb_get_table_info_by_id(
+            ushort table_id,
+            out SCCOREDB_TABLE_INFO table_info
+            );
+        
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        internal extern static uint sccoredb_get_table_info_by_name(
+	        string name,
+	        out SCCOREDB_TABLE_INFO table_info
+	        );
 
         /// <summary>
         /// Struct SC_COLUMN_DEFINITION

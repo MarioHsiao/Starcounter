@@ -19,54 +19,41 @@ namespace Starcounter.Binding
     {
 
         /// <summary>
-        /// Constructs the table def.
         /// </summary>
-        /// <param name="definitionAddr">The definition addr.</param>
-        /// <param name="definitionInfo">The definition info.</param>
-        /// <returns>TableDef.</returns>
-        internal unsafe static TableDef ConstructTableDef(ulong definitionAddr, sccoredb.Mdb_DefinitionInfo definitionInfo)
-        {
-            string name = new String(definitionInfo.table_name);
-            ushort tableId = definitionInfo.table_id;
-            uint columnCount = definitionInfo.column_count;
+        internal unsafe static TableDef ConstructTableDef(sccoredb.SCCOREDB_TABLE_INFO tableInfo) {
+            string name = new String(tableInfo.table_name);
+            ulong definitionAddr = tableInfo.definition_addr;
+            ushort tableId = tableInfo.table_id;
+            uint columnCount = tableInfo.column_count;
             string baseName = null;
 
-            int b = 1;
-
-            if (definitionInfo.inherited_definition_addr != sccoredb.INVALID_DEFINITION_ADDR)
-            {
-                b = sccoredb.Mdb_DefinitionToDefinitionInfo(definitionInfo.inherited_definition_addr, out definitionInfo);
-                if (b != 0)
-                {
-                    baseName = new String(definitionInfo.table_name);
+            if (tableInfo.inherited_table_id != ushort.MaxValue) {
+                var r = sccoredb.sccoredb_get_table_info_by_id(tableInfo.inherited_table_id, out tableInfo);
+                if (r == 0) {
+                    baseName = new String(tableInfo.table_name);
+                }
+                else {
+                    throw ErrorCode.ToException(r);
                 }
             }
 
-            if (b != 0)
-            {
-                ColumnDef[] columns = new ColumnDef[columnCount];
-                for (ushort i = 0; i < columns.Length; i++)
-                {
-                    sccoredb.Mdb_AttributeInfo attributeInfo;
-                    b = sccoredb.Mdb_DefinitionAttributeIndexToInfo(definitionAddr, i, out attributeInfo);
-                    if (b != 0)
-                    {
-                        columns[i] = new ColumnDef(
-                            new string(attributeInfo.PtrName),
-                            BindingHelper.ConvertScTypeCodeToDbTypeCode(attributeInfo.Type),
-                            (attributeInfo.Flags & sccoredb.MDB_ATTRFLAG_NULLABLE) != 0,
-                            (attributeInfo.Flags & sccoredb.MDB_ATTRFLAG_DERIVED) != 0
-                            );
-                    }
-                    else
-                    {
-                        throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
-                    }
+            ColumnDef[] columns = new ColumnDef[columnCount];
+            for (ushort i = 0; i < columns.Length; i++) {
+                sccoredb.Mdb_AttributeInfo attributeInfo;
+                var b = sccoredb.Mdb_DefinitionAttributeIndexToInfo(definitionAddr, i, out attributeInfo);
+                if (b != 0) {
+                    columns[i] = new ColumnDef(
+                        new string(attributeInfo.PtrName),
+                        BindingHelper.ConvertScTypeCodeToDbTypeCode(attributeInfo.Type),
+                        (attributeInfo.Flags & sccoredb.MDB_ATTRFLAG_NULLABLE) != 0,
+                        (attributeInfo.Flags & sccoredb.MDB_ATTRFLAG_DERIVED) != 0
+                        );
                 }
-                return new TableDef(name, baseName, columns, tableId, definitionAddr);
+                else {
+                    throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
+                }
             }
-
-            throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
+            return new TableDef(name, baseName, columns, tableId, definitionAddr);
         }
 
         /// <summary>
