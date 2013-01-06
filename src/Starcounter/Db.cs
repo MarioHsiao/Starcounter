@@ -25,26 +25,13 @@ namespace Starcounter
         {
             unsafe
             {
-                int b;
-                ulong definitionAddr;
-
-                b = sccoredb.Mdb_DefinitionFromCodeClassString(name, out definitionAddr);
-                if (b != 0)
+                sccoredb.SCCOREDB_TABLE_INFO tableInfo;
+                var r = sccoredb.sccoredb_get_table_info_by_name(name, out tableInfo);
+                if (r == 0)
                 {
-                    if (definitionAddr != sccoredb.INVALID_DEFINITION_ADDR)
-                    {
-                        sccoredb.Mdb_DefinitionInfo definitionInfo;
-                        b = sccoredb.Mdb_DefinitionToDefinitionInfo(definitionAddr, out definitionInfo);
-                        if (b != 0)
-                        {
-                            return TableDef.ConstructTableDef(definitionAddr, definitionInfo);
-                        }
-                    }
-                    else
-                    {
-                        return null;
-                    }
+                    return TableDef.ConstructTableDef(tableInfo);
                 }
+                if (r == Error.SCERRTABLENOTFOUND) return null;
                 throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
             }
         }
