@@ -89,6 +89,8 @@ namespace Weaver {
 
             if (!arguments.TryGetProperty("outdir", out outputDirectory)) {
                 outputDirectory = Path.Combine(inputDirectory, CodeWeaver.DefaultOutputDirectoryName);
+            } else {
+                outputDirectory = Path.Combine(inputDirectory, outputDirectory);
             }
 
             if (!Directory.Exists(outputDirectory)) {
@@ -108,6 +110,8 @@ namespace Weaver {
 
             if (!arguments.TryGetProperty("cachedir", out cacheDirectory)) {
                 cacheDirectory = Path.Combine(outputDirectory, CodeWeaver.DefaultCacheDirectoryName);
+            } else {
+                cacheDirectory = Path.Combine(outputDirectory, cacheDirectory);
             }
 
             if (!Directory.Exists(cacheDirectory)) {
