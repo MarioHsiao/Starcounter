@@ -1124,6 +1124,15 @@
     <code hex="0072" severity="Error" name="ScErrKilledByProcessManager">
       <message>Process was killed by process manager.</message>
     </code>
+    <code hex="0073" severity="Error" name="ScErrBadServerConfig">
+        <message>Server configuration is invalid.</message>
+        <remarks>
+            <para>
+                The server configuration file doesn't exist, isn't accessible or
+                isn't formatted correctly.
+            </para>
+        </remarks>
+    </code>
   </facility>
 
   <!-- I/O error codes. -->
