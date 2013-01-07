@@ -120,25 +120,6 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Creates the index.
-        /// </summary>
-        /// <param name="definitionAddr">The definition addr.</param>
-        /// <param name="name">The name.</param>
-        /// <param name="columnIndex">Index of the column.</param>
-        public static void CreateIndex(ulong definitionAddr, string name, short columnIndex) // TODO:
-        {
-            unsafe
-            {
-                short* column_indexes = stackalloc short[2];
-                column_indexes[0] = columnIndex;
-                column_indexes[1] = -1;
-                uint e = sccoredb.sccoredb_create_index(definitionAddr, name, 0, column_indexes, 0);
-                if (e == 0) return;
-                throw ErrorCode.ToException(e);
-            }
-        }
-
-        /// <summary>
         /// Transactions the specified action.
         /// </summary>
         /// <param name="action">The action.</param>

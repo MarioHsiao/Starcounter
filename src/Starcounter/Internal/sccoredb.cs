@@ -566,15 +566,9 @@ namespace Starcounter.Internal
 
         /// <summary>
         /// </summary>
-        /// <param name="definition_addr"></param>
-        /// <param name="name"></param>
-        /// <param name="sort_mask"></param>
-        /// <param name="column_indexes"></param>
-        /// <param name="flags"></param>
-        /// <returns></returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public extern unsafe static UInt32 sccoredb_create_index(
-            ulong definition_addr,
+        public extern unsafe static uint sccoredb_create_index(
+            ushort table_id,
             string name,
             ushort sort_mask,
             short* column_indexes,
