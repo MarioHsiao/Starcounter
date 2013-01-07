@@ -275,7 +275,8 @@ namespace Starcounter.Binding
         {
             Dictionary<string, TypeBinding> typeBindingsByName = new Dictionary<string, TypeBinding>(typeBindingsByName_);
             typeBindingsByName.Add(typeBinding.Name, typeBinding);
-            typeBindingsByName.Add(typeBinding.LowerName, typeBinding);
+            if (typeBinding.Name != typeBinding.LowerName)
+                typeBindingsByName.Add(typeBinding.LowerName, typeBinding);
 
             List<TypeBinding> typeBindingsById = new List<TypeBinding>(typeBindingsById_);
             var tableId = typeBinding.TypeDef.TableDef.TableId;
