@@ -307,7 +307,7 @@ realfail2		({integer}|{decimal})[Ee]\x00[-+]\x00
 
 param			\$\x00{integer}|\?\x00
 
-other			.\x00
+other			.
 
 /*
  * Dollar quoted strings are totally opaque, and no escaping is done on them.
