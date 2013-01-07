@@ -239,10 +239,6 @@ xdstop			{dquote}
 xddouble		{dquote}{dquote}
 xdinside		{dqletter}+
 
-/* error rule to avoid backup 
-xufailed		[uU]\x00&\x00 */
-
-
 /* C-style comments
  *
  * The "extended comment" syntax closely resembles allowable operator syntax.
@@ -485,19 +481,6 @@ other			.
 <xd>{xdinside}	{
 					addlit(yytext, yyleng, yyscanner);
 				}
-
-				/*
-{xufailed}	{
-					//char		   *ident;
-
-					SET_YYLLOC();
-					/* throw back all but the initial u/U 
-					yyless(1);
-					/* and treat it as {identifier} 
-					//ident = downcase_identifier(yytext, yyleng, true);
-					yylval->str = wpstrdup((wchar_t*)yytext);
-					return IDENT;
-				}*/
 
 {dot_dot}		{
 					SET_YYLLOC();
