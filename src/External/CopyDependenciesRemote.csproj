@@ -44,6 +44,7 @@
 	  <RemoteCecilBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\Cecil\Release\*" />
       <RemoteMinGW64Binaries Include="$(BinariesFTP)\SCDev\ThirdParty\MinGW_x64\**\*" />
       <RemoteParserToolsBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\ParserTools\**\*" />
+      <RemoteCRTBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\CRT\x64\$(Configuration)\*" />
     </ItemGroup>
 
     <!-- Remote files from FTP. -->
@@ -54,6 +55,7 @@
 	<Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(RemotePrologSQLParser)" DestinationFolder="$(OutputPath)\32BitComponents" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteMinGW64Binaries)" DestinationFiles="@(RemoteMinGW64Binaries->'$(OutputPath)\MinGW\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteParserToolsBinaries)" DestinationFiles="@(RemoteParserToolsBinaries->'..\packages\ParserTools\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteCRTBinaries)" DestinationFolder="$(OutputPath)" />
 
   </Target>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
