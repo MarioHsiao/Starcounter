@@ -33,7 +33,7 @@ namespace Starcounter.Query.RawParserAnalyzer
                     else
                         message += " in the query \"" + Query + "\"";
                     if (scerror->tocken != null)
-                        message += "The error is near or at: " + Marshal.PtrToStringAuto(scerror->tocken);
+                        message += "The error is near or at: " + scerror->tocken;
                     throw ErrorCode.ToException((uint)scerror->scerrorcode, message);
                 }
             }
@@ -46,7 +46,7 @@ namespace Starcounter.Query.RawParserAnalyzer
         /// <returns>Part of error message about location of the error.</returns>
         internal unsafe String LocationMessageForError(Node* node)
         {
-            return LocationMessageForError(node, Marshal.PtrToStringAuto(UnmanagedParserInterface.StrVal(node)));
+            return LocationMessageForError(node, UnmanagedParserInterface.StrVal(node));
         }
 
         internal unsafe String LocationMessageForError(Node* node, String token)

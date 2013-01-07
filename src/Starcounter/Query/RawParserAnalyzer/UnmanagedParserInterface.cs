@@ -33,7 +33,11 @@ namespace Starcounter.Query.RawParserAnalyzer
         /// Interface to help methods on unmanaged structures
 
         [DllImport("Starcounter.SqlParser.dll")]
-        internal static unsafe extern IntPtr StrVal(Node* node);
+        private static unsafe extern IntPtr _StrVal(Node* node);
+
+        internal static unsafe String StrVal(Node* node) {
+            return Marshal.PtrToStringAuto(_StrVal(node));
+        }
 
         [DllImport("Starcounter.SqlParser.dll")]
         internal static unsafe extern int Location(Node* node);
@@ -53,7 +57,13 @@ namespace Starcounter.Query.RawParserAnalyzer
             internal int scerrorcode;
             internal sbyte* scerrmessage;
             internal int scerrposition;
-            internal IntPtr tocken;
+            private IntPtr _tocken;
+
+            internal String tocken {
+                get {
+                    return Marshal.PtrToStringAuto(_tocken);
+                }
+            }
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -95,7 +105,13 @@ namespace Starcounter.Query.RawParserAnalyzer
         [FieldOffset(0)]
         internal long ival;		/* machine integer */
         [FieldOffset(0)]
-        internal IntPtr str;		/* string */
+        private IntPtr _str;		/* string */
+
+        internal String str {
+            get {
+                return Marshal.PtrToStringAuto(_str);
+            }
+        }
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -161,8 +177,14 @@ namespace Starcounter.Query.RawParserAnalyzer
     internal unsafe struct Alias
     {
         internal NodeTag type;
-        internal IntPtr aliasname;		/* aliased rel name (never qualified) */
+        private IntPtr _aliasname;		/* aliased rel name (never qualified) */
         internal List* colnames;		/* optional list of column aliases */
+
+        internal String aliasname {
+            get {
+                return Marshal.PtrToStringAuto(_aliasname);
+            }
+        }
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -170,12 +192,18 @@ namespace Starcounter.Query.RawParserAnalyzer
     {
         internal NodeTag type;
         internal List* path;     /* Names of namespaces in order from most outer to most inner */
-        internal IntPtr relname;		/* the relation/sequence name */
+        private IntPtr _relname;		/* the relation/sequence name */
         internal InhOption inhOpt;			/* expand rel by inheritance? recursively act
 								 * on children? */
         internal char relpersistence; /* see RELPERSISTENCE_* in pg_class.h */
         internal Alias* alias;			/* table alias & optional column aliases */
         internal int location;		/* token location, or -1 if unknown */
+
+        internal String relname {
+            get {
+                return Marshal.PtrToStringAuto(_relname);
+            }
+        }
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -190,10 +218,21 @@ namespace Starcounter.Query.RawParserAnalyzer
     internal unsafe struct ResTarget
     {
         internal NodeTag type;
-        internal IntPtr name;			/* column name or NULL */
+        private IntPtr _name;			/* column name or NULL */
         internal List* indirection;	/* subscripts, field names, and '*', or NIL */
         internal Node* val;			/* the value expression to compute or assign */
-        internal int location;		/* token location, or -1 if unknown */
+        private int int_location;		/* token location, or -1 if unknown */
+
+        internal String name {
+            get {
+                return Marshal.PtrToStringAuto(_name);
+            }
+        }
+        //internal int location {
+        //    get {
+        //        return int_location > 0 ? int_location / 2 : int_location;
+        //    }
+        //}
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -201,15 +240,21 @@ namespace Starcounter.Query.RawParserAnalyzer
     {
         internal NodeTag type;
         internal List* fields;			/* field names (Value strings) or A_Star */
-        internal IntPtr name;			/* name of a filed */
+        private IntPtr _name;			/* name of a filed */
         internal int location;		/* token location, or -1 if unknown */
+
+        internal String name {
+            get {
+                return Marshal.PtrToStringAuto(_name);
+            }
+        }
     }
 
     [StructLayout(LayoutKind.Sequential)]
     internal unsafe struct FuncCall
     {
         internal NodeTag type;
-        internal IntPtr funcname;		/* qualified name of function */
+        private IntPtr _funcname;		/* qualified name of function */
         internal List* args;			/* the arguments (list of exprs) */
         internal List* agg_order;		/* ORDER BY (list of SortBy) */
         internal bool agg_star;		/* argument was really '*' */
@@ -218,20 +263,37 @@ namespace Starcounter.Query.RawParserAnalyzer
         internal WindowDef* over;		/* OVER clause, if any */
         internal List* generics;		/* Generic method invocation */
         internal int location;		/* token location, or -1 if unknown */
+
+        internal String funcname {
+            get {
+                return Marshal.PtrToStringAuto(_funcname);
+            }
+        }
     }
 
     [StructLayout(LayoutKind.Sequential)]
     internal unsafe struct WindowDef
     {
         internal NodeTag type;
-        internal IntPtr name;			/* window's own name */
-        internal IntPtr refname;		/* referenced window name, if any */
+        private IntPtr _name;			/* window's own name */
+        private IntPtr _refname;		/* referenced window name, if any */
         internal List* partitionClause;	/* PARTITION BY expression list */
         internal List* orderClause;	/* ORDER BY (list of SortBy) */
         internal int frameOptions;	/* frame_clause options, see below */
         internal Node* startOffset;	/* expression for starting bound, if any */
         internal Node* endOffset;		/* expression for ending bound, if any */
         internal int location;		/* parse location, or -1 if none/unknown */
+
+        internal String name {
+            get {
+                return Marshal.PtrToStringAuto(_name);
+            }
+        }
+        internal String refname {
+            get {
+                return Marshal.PtrToStringAuto(_refname);
+            }
+        }
     }
 
     [StructLayout(LayoutKind.Sequential)]

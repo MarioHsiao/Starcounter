@@ -30,7 +30,7 @@ namespace Starcounter.Query.RawParserAnalyzer
             SQLParserAssert(selectClause->length == 1, "Assuming projection of an alias");
             SQLParserAssert(((Node*)selectClause->head->data.ptr_value)->type == NodeTag.T_ResTarget, "Expected T_ResTarget, but got " + ((Node*)selectClause->head->data.ptr_value)->type.ToString());
             ResTarget* target = (ResTarget*)selectClause->head->data.ptr_value;
-            SQLParserAssert(Marshal.PtrToStringAuto(target->name) == null);
+            SQLParserAssert(target->name == null);
             SQLParserAssert(target->val->type == NodeTag.T_List, "Expected T_List, but got " + target->val->type.ToString());
             SQLParserAssert(((List*)target->val)->length == 1, "Expected list with one element - alias access");
             SQLParserAssert(((Node*)((List*)target->val)->head->data.ptr_value)->type == NodeTag.T_ColumnRef, "Expected T_ColumnRef, but got " + 
@@ -39,7 +39,7 @@ namespace Starcounter.Query.RawParserAnalyzer
             SQLParserAssert(col->name != null, "Assuming alias name");
             //SQLParserAssert(val->type == NodeTag.T_String, "Expected T_String, but got " + val->type.ToString());
             SQLParserAssert(extent->alias != null, "Assuming that alias is given after the extent name");
-            SQLParserAssert(Marshal.PtrToStringAuto(extent->alias->aliasname) == Marshal.PtrToStringAuto(col->name), "Assuming that aliases are equivalent");
+            SQLParserAssert(extent->alias->aliasname == col->name, "Assuming that aliases are equivalent");
             SQLParserAssert(stmt->sortClause == null, "Assuming no order by");
             SQLParserAssert(stmt->whereClause == null, "Assuming no where clause");
             SQLParserAssert(stmt->optionClause == null, "Assuming no option clause with optimizer hints");
