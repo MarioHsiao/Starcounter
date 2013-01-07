@@ -64,11 +64,13 @@ namespace Starcounter.Binding
             });
 
 #if true
-            Db.CreateIndex(
-                newTableDef.DefinitionAddr,
-                "auto",
-                0
-                );
+            unsafe {
+                short* column_indexes = stackalloc short[2];
+                column_indexes[0] = 0;
+                column_indexes[1] = -1;
+                var r = Starcounter.Internal.sccoredb.sccoredb_create_index(newTableDef.TableId, "auto", 0, column_indexes, 0);
+                if (r != 0) throw ErrorCode.ToException(r);
+            }
 #endif
 
             return newTableDef;
