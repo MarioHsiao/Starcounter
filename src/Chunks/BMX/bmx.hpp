@@ -66,21 +66,20 @@ namespace bmx
     const uint32_t BMX_PROTOCOL_BEGIN_OFFSET = 16;
     const uint32_t REQUEST_SIZE_BEGIN = BMX_PROTOCOL_BEGIN_OFFSET + BMX_HANDLER_SIZE;
     const uint32_t BMX_HEADER_MAX_SIZE_BYTES = 24;
-
     const uint32_t GATEWAY_DATA_BEGIN_OFFSET = BMX_HEADER_MAX_SIZE_BYTES + 32;
+
+    // WARNING: Change corresponding managed code variables
+    // that have exactly the same names!
     const uint32_t SESSION_STRUCT_SIZE = 32;
+    const uint32_t SOCKET_DATA_NUM_CHUNKS_OFFSET = 84;
+    const uint32_t SOCKET_DATA_NUM_CLONE_BYTES = 144;
+    const uint32_t SOCKET_DATA_HTTP_REQUEST_OFFSET = 224;
 
     const uint32_t USER_DATA_OFFSET = GATEWAY_DATA_BEGIN_OFFSET + SESSION_STRUCT_SIZE;
     const uint32_t MAX_USER_DATA_BYTES_OFFSET = USER_DATA_OFFSET + 4;
     const uint32_t USER_DATA_WRITTEN_BYTES_OFFSET = MAX_USER_DATA_BYTES_OFFSET + 4;
-
-    const uint32_t SOCKET_DATA_NUM_CLONE_BYTES = 136;
     const uint32_t BMX_NUM_CLONE_BYTES = BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_NUM_CLONE_BYTES;
-
-    const uint32_t SOCKET_DATA_HTTP_REQUEST_OFFSET = 216;
     const uint32_t BMX_HTTP_REQUEST_OFFSET = BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_HTTP_REQUEST_OFFSET;
-
-    const uint32_t SOCKET_DATA_NUM_CHUNKS_OFFSET = 84;
     const uint32_t GATEWAY_ORIG_CHUNK_DATA_SIZE = starcounter::core::chunk_size - BMX_HEADER_MAX_SIZE_BYTES - shared_memory_chunk::LINK_SIZE;
 
     // Predefined BMX management handler.
