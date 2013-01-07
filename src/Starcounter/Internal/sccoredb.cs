@@ -304,10 +304,6 @@ namespace Starcounter.Internal
         {
             /// <summary>
             /// </summary>
-            public ulong definition_addr;
-
-            /// <summary>
-            /// </summary>
             public char* name;
 
             /// <summary>
