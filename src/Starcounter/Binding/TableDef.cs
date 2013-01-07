@@ -22,7 +22,6 @@ namespace Starcounter.Binding
         /// </summary>
         internal unsafe static TableDef ConstructTableDef(sccoredb.SCCOREDB_TABLE_INFO tableInfo) {
             string name = new String(tableInfo.name);
-            ulong definitionAddr = tableInfo.definition_addr;
             ushort tableId = tableInfo.table_id;
             uint columnCount = tableInfo.column_count;
             string baseName = null;
@@ -53,7 +52,7 @@ namespace Starcounter.Binding
                     throw ErrorCode.ToException(r);
                 }
             }
-            return new TableDef(name, baseName, columns, tableId, definitionAddr);
+            return new TableDef(name, baseName, columns, tableId);
         }
 
         /// <summary>
@@ -77,16 +76,11 @@ namespace Starcounter.Binding
         public ushort TableId;
 
         /// <summary>
-        /// The definition addr
-        /// </summary>
-        public ulong DefinitionAddr;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="TableDef" /> class.
         /// </summary>
         /// <param name="name">The name.</param>
         /// <param name="columnsDefs">The columns defs.</param>
-        public TableDef(string name, ColumnDef[] columnsDefs) : this(name, null, columnsDefs, 0xFFFF, sccoredb.INVALID_DEFINITION_ADDR) { }
+        public TableDef(string name, ColumnDef[] columnsDefs) : this(name, null, columnsDefs, 0xFFFF) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TableDef" /> class.
@@ -94,7 +88,7 @@ namespace Starcounter.Binding
         /// <param name="name">The name.</param>
         /// <param name="baseName">Name of the base.</param>
         /// <param name="columnsDefs">The columns defs.</param>
-        public TableDef(string name, string baseName, ColumnDef[] columnsDefs) : this(name, baseName, columnsDefs, 0xFFFF, sccoredb.INVALID_DEFINITION_ADDR) { }
+        public TableDef(string name, string baseName, ColumnDef[] columnsDefs) : this(name, baseName, columnsDefs, 0xFFFF) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TableDef" /> class.
@@ -103,15 +97,13 @@ namespace Starcounter.Binding
         /// <param name="baseName">Name of the base.</param>
         /// <param name="columnsDefs">The columns defs.</param>
         /// <param name="tableId">The table id.</param>
-        /// <param name="definitionAddr">The definition addr.</param>
-        public TableDef(string name, string baseName, ColumnDef[] columnsDefs, ushort tableId, ulong definitionAddr)
+        public TableDef(string name, string baseName, ColumnDef[] columnsDefs, ushort tableId)
         {
             Name = name;
             BaseName = baseName;
             ColumnDefs = columnsDefs;
 
             TableId = tableId;
-            DefinitionAddr = definitionAddr;
         }
 
         /// <summary>
@@ -142,7 +134,7 @@ namespace Starcounter.Binding
             {
                 clonedColumnDefs[i] = ColumnDefs[i].Clone();
             }
-            return new TableDef(Name, BaseName, clonedColumnDefs, TableId, DefinitionAddr);
+            return new TableDef(Name, BaseName, clonedColumnDefs, TableId);
         }
 
         /// <summary>
