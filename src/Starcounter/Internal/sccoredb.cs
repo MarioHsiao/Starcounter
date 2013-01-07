@@ -438,10 +438,6 @@ namespace Starcounter.Internal
             /// </summary>
             public UInt64 handle;
             /// <summary>
-            /// The definition addr
-            /// </summary>
-            public UInt64 definitionAddr;
-            /// <summary>
             /// The name
             /// </summary>
             public Char* name;
