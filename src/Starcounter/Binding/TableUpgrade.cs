@@ -391,7 +391,7 @@ namespace Starcounter.Binding
             uint e;
             unsafe
             {
-                e = sccoredb.sccoredb_replace(source.ObjectID, source.ETI, newTableDef_.DefinitionAddr);
+                e = sccoredb.sccoredb_replace(source.ObjectID, source.ETI, newTableDef_.TableId);
             }
             if (e == 0)
             {
