@@ -128,15 +128,6 @@ namespace Weaver {
         private string TempDirectoryPath;
 
         /// <summary>
-        /// The actual input path used by the transformation engine when an
-        /// assembly needs to be transformed. In such case, the assembly is
-        /// first copied to this directory and then compiled into the cache,
-        /// after it has been transformed. Then it is copied back to the
-        /// original directory.
-        /// </summary>
-        private string WeaverInputPath;
-
-        /// <summary>
         /// Gets or sets the set of assemblies that we need to load to consider
         /// if they need to be analyzed/weaved or not.
         /// </summary>
@@ -364,23 +355,6 @@ namespace Weaver {
             this.TempDirectoryPath = Path.Combine(this.CacheDirectory, "WeaverTemp");
             if (!Directory.Exists(this.TempDirectoryPath)) Directory.CreateDirectory(this.TempDirectoryPath);
 
-            // Setup the weaver input path. The path normally is a temporary path
-            // under the cache directory, and we copy inputs there (and load them
-            // from there). This can be adapted by the WeaveToCacheOnly property.
-
-            if (!this.WeaveToCacheOnly) {
-                // Standard setup.
-
-                this.WeaverInputPath = Path.Combine(this.CacheDirectory, "WeaverInput");
-                if (!Directory.Exists(this.WeaverInputPath)) Directory.CreateDirectory(this.WeaverInputPath);
-            } else {
-                // Weave only to the cache.
-                // In such case, we read the input straight from the given input
-                // directory, with no extra copying.
-
-                this.WeaverInputPath = this.InputDirectory;
-            }
-
             // Create the cache
 
             this.Cache = new WeaverCache(this.CacheDirectory);
@@ -493,50 +467,12 @@ namespace Weaver {
                     WeaverUtilities.GetExtractionFailureReason(cachedAssembly)
                     );
 
-                if (RunWeaver) {
-                    // We are told to weave. Prepare the assembly for that.
-                    //if (!WeaveToCacheOnly) {
-                    //    CopyToWeaverInputDirectory(file);
-                    //}
-
-                    fileToLoad = Path.Combine(this.WeaverInputPath, Path.GetFileName(file));
-                } else {
-                    fileToLoad = Path.Combine(this.InputDirectory, Path.GetFileName(file));
-                }
-
+                fileToLoad = Path.Combine(this.InputDirectory, Path.GetFileName(file));
                 fileToLoad = Path.GetFullPath(fileToLoad);
                 this.Assemblies.Add(fileToLoad, new ModuleLoadDirectFromFileStrategy(fileToLoad, false));
             }
 
             return true;
-        }
-
-        /// <summary>
-        /// Copies the given file from the specified library directory into the
-        /// established weaver input directory, from where the transformation task(s)
-        /// of the weaver engine will try to load it.
-        /// </summary>
-        /// <param name="applicationAssemblyPath">File to be copied.</param>
-        void CopyToWeaverInputDirectory(string applicationAssemblyPath) {
-            string sourceDirectory;
-            string destinationFile;
-            string pdb;
-
-            sourceDirectory = Path.GetDirectoryName(applicationAssemblyPath);
-
-            destinationFile = Path.Combine(this.WeaverInputPath, Path.GetFileName(applicationAssemblyPath));
-            if (File.Exists(destinationFile))
-                File.Delete(destinationFile);
-            File.Copy(applicationAssemblyPath, destinationFile);
-
-            pdb = Path.Combine(sourceDirectory, Path.GetFileNameWithoutExtension(applicationAssemblyPath) + ".pdb");
-            if (File.Exists(pdb)) {
-                destinationFile = Path.Combine(this.WeaverInputPath, Path.GetFileName(pdb));
-                if (File.Exists(destinationFile))
-                    File.Delete(destinationFile);
-
-                File.Copy(pdb, destinationFile);
-            }
         }
 
         bool FileIsToBeExcluded(string file) {
@@ -675,7 +611,6 @@ namespace Weaver {
             if (RunWeaver) {
                 weaverProjectFile = this.WeaveBootstrapperCode ? this.BootstrapWeaverProjectFile : this.WeaverProjectFile;
                 parameters = new ProjectInvocationParameters(weaverProjectFile);
-                parameters.Properties["ScInputDirectory"] = this.WeaverInputPath;
                 parameters.PreventOverwriteAssemblyNames = false;
                 parameters.Properties["WeaveForIPC"] = this.WeaveForIPC ? bool.TrueString : bool.FalseString;
                 parameters.Properties["TempDirectory"] = this.TempDirectoryPath;
@@ -684,12 +619,12 @@ namespace Weaver {
                 // We are only analyzing. Do this straight from the input directory.
 
                 parameters = new ProjectInvocationParameters(this.AnalyzerProjectFile);
-                parameters.Properties["ScInputDirectory"] = this.InputDirectory;
                 parameters.PreventOverwriteAssemblyNames = true;
             }
 
             // Apply all general, shared parameters
 
+            parameters.Properties["ScInputDirectory"] = this.InputDirectory;
             parameters.Properties["ScCacheDirectory"] = this.CacheDirectory;
             parameters.Properties["CacheTimestamp"] =
                 XmlConvert.ToString(File.GetLastWriteTime(file),
