@@ -308,7 +308,7 @@ namespace Starcounter.Internal
 
             /// <summary>
             /// </summary>
-            public char* table_name;
+            public char* name;
 
             /// <summary>
             /// </summary>

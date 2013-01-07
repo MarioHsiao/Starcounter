@@ -21,7 +21,7 @@ namespace Starcounter.Binding
         /// <summary>
         /// </summary>
         internal unsafe static TableDef ConstructTableDef(sccoredb.SCCOREDB_TABLE_INFO tableInfo) {
-            string name = new String(tableInfo.table_name);
+            string name = new String(tableInfo.name);
             ulong definitionAddr = tableInfo.definition_addr;
             ushort tableId = tableInfo.table_id;
             uint columnCount = tableInfo.column_count;
@@ -30,7 +30,7 @@ namespace Starcounter.Binding
             if (tableInfo.inherited_table_id != ushort.MaxValue) {
                 var r = sccoredb.sccoredb_get_table_info(tableInfo.inherited_table_id, out tableInfo);
                 if (r == 0) {
-                    baseName = new String(tableInfo.table_name);
+                    baseName = new String(tableInfo.name);
                 }
                 else {
                     throw ErrorCode.ToException(r);
