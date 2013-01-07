@@ -403,16 +403,11 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
-        /// Sc_create_tables the specified name.
         /// </summary>
-        /// <param name="name">The name.</param>
-        /// <param name="base_definition_addr">The base_definition_addr.</param>
-        /// <param name="column_definitions">The column_definitions.</param>
-        /// <returns>System.UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern unsafe uint sccoredb_create_table(
             char *name,
-            ulong base_definition_addr,
+            ushort base_table_id,
             SC_COLUMN_DEFINITION *column_definitions
             );
 
