@@ -148,5 +148,10 @@ extern int ExceptionalCondition(const char *conditionName,
 										 * UPDATE */
 #define AccessExclusiveLock		8		/* ALTER TABLE, DROP TABLE, VACUUM
 										 * FULL, and unqualified LOCK TABLE */
+/*****
+ * For calculating location
+ ****/
+// Sets the location of n to l divided by 2
+#define SET_LOCATION(n, l) n->location = (l>0 ? l / 2: l)
 
 #endif   /* POSTGRES_H */

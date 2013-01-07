@@ -124,6 +124,8 @@ namespace Starcounter.Query.RawParserAnalyzer
                     if (!errorExpected)
                         // Throw exception if error
                         RawParserError(scerrorcode);
+                    else
+                        Console.WriteLine(GetErrorMessage(scerrorcode));
                 } finally {
                     UnmanagedParserInterface.CleanMemoryContext(); // Otherwise memory leaks
                     IsOpenParserThread = false; // Important to allow calling parser again
