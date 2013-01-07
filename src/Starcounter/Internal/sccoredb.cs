@@ -747,17 +747,12 @@ namespace Starcounter.Internal
             );
 
         /// <summary>
-        /// Sccoredb_replaces the specified record_id.
         /// </summary>
-        /// <param name="record_id">The record_id.</param>
-        /// <param name="record_addr">The record_addr.</param>
-        /// <param name="definition_addr">The definition_addr.</param>
-        /// <returns>System.UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint sccoredb_replace(
             ulong record_id,
             ulong record_addr,
-            ulong definition_addr
+            ushort table_id
             );
 
         /// <summary>
