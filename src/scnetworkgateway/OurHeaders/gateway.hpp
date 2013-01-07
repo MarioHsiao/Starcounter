@@ -69,9 +69,6 @@ typedef uint64_t log_handle_type;
 // Enable to check for unique socket usage.
 #define GW_SOCKET_ID_CHECK
 
-// If you are debugging the gateway uncomment the following.
-//#define GW_DEV_DEBUG
-
 #ifdef GW_DEV_DEBUG
 #define GW_SC_BEGIN_FUNC
 #define GW_SC_END_FUNC

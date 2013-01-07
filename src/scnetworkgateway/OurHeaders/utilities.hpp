@@ -8,11 +8,16 @@
 namespace starcounter {
 namespace network {
 
+// If you are debugging the gateway uncomment the following.
+//#define GW_DEV_DEBUG
+
 // Define if you want to log into Gateway specific log file.
 //#define GW_LOG_TO_FILE
 
 // Define if Gateway log should be printed to console as well.
-//#define GW_LOG_TO_CONSOLE
+#ifdef GW_DEV_DEBUG
+#define GW_LOG_TO_CONSOLE
+#endif
 
 #if defined(GW_LOG_TO_FILE) || defined(GW_LOG_TO_CONSOLE)
 #define GW_LOGGING_ON
