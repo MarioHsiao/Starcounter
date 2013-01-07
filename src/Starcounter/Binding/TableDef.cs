@@ -39,18 +39,18 @@ namespace Starcounter.Binding
 
             ColumnDef[] columns = new ColumnDef[columnCount];
             for (ushort i = 0; i < columns.Length; i++) {
-                sccoredb.Mdb_AttributeInfo attributeInfo;
-                var b = sccoredb.Mdb_DefinitionAttributeIndexToInfo(definitionAddr, i, out attributeInfo);
-                if (b != 0) {
+                sccoredb.SCCOREDB_COLUMN_INFO columnInfo;
+                var r = sccoredb.sccoredb_get_column_info(tableId, i, out columnInfo);
+                if (r == 0) {
                     columns[i] = new ColumnDef(
-                        new string(attributeInfo.PtrName),
-                        BindingHelper.ConvertScTypeCodeToDbTypeCode(attributeInfo.Type),
-                        (attributeInfo.Flags & sccoredb.MDB_ATTRFLAG_NULLABLE) != 0,
-                        (attributeInfo.Flags & sccoredb.MDB_ATTRFLAG_DERIVED) != 0
+                        new string(columnInfo.name),
+                        BindingHelper.ConvertScTypeCodeToDbTypeCode(columnInfo.type),
+                        (columnInfo.flags & sccoredb.MDB_ATTRFLAG_NULLABLE) != 0,
+                        (columnInfo.flags & sccoredb.MDB_ATTRFLAG_DERIVED) != 0
                         );
                 }
                 else {
-                    throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
+                    throw ErrorCode.ToException(r);
                 }
             }
             return new TableDef(name, baseName, columns, tableId, definitionAddr);

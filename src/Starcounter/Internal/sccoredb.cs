@@ -298,48 +298,6 @@ namespace Starcounter.Internal
         public const ushort MDB_ATTRFLAG_NULLABLE = 0x0040;
 
         /// <summary>
-        /// Struct Mdb_AttributeInfo
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential, Pack=8)]
-        public unsafe struct Mdb_AttributeInfo
-        {
-            /// <summary>
-            /// The flags
-            /// </summary>
-            public ushort Flags;
-            /// <summary>
-            /// The PTR name
-            /// </summary>
-            public char* PtrName;
-            /// <summary>
-            /// The index
-            /// </summary>
-            public ushort Index;
-            /// <summary>
-            /// The type
-            /// </summary>
-            public byte Type;
-            /// <summary>
-            /// The ref def
-            /// </summary>
-            public ulong RefDef;
-        }
-
-        /// <summary>
-        /// MDB_s the definition attribute index to info.
-        /// </summary>
-        /// <param name="etiDefinition">The eti definition.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="attributeInfo">The attribute info.</param>
-        /// <returns>System.Int32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static int Mdb_DefinitionAttributeIndexToInfo(
-            ulong etiDefinition,
-            ushort index,
-            out Mdb_AttributeInfo attributeInfo
-            );
-
-        /// <summary>
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Pack=8)]
         internal unsafe struct SCCOREDB_TABLE_INFO
@@ -391,6 +349,36 @@ namespace Starcounter.Internal
         internal extern static uint sccoredb_get_table_info_by_name(
 	        string name,
 	        out SCCOREDB_TABLE_INFO table_info
+	        );
+
+        /// <summary>
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential, Pack=8)]
+        internal unsafe struct SCCOREDB_COLUMN_INFO {
+            /// <summary>
+            /// </summary>
+            public char* name;
+
+            /// <summary>
+            /// </summary>
+            public ushort index;
+
+            /// <summary>
+            /// </summary>
+            public ushort flags;
+
+            /// <summary>
+            /// </summary>
+            public byte type;
+        };
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal extern static uint sccoredb_get_column_info(
+	        ushort table_id,
+	        ushort index,
+	        out SCCOREDB_COLUMN_INFO column_info
 	        );
 
         /// <summary>
