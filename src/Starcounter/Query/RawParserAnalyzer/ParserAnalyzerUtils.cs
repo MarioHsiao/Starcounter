@@ -13,16 +13,16 @@ namespace Starcounter.Query.RawParserAnalyzer
         // I should investigate the exception first, since it might be not related
         internal unsafe String GetFullName(RangeVar* extent) {
             Debug.Assert(extent->path != null);
-            Debug.Assert(Marshal.PtrToStringAuto(extent->relname) == null);
+            Debug.Assert(extent->relname == null);
             ListCell* curCell = extent->path->head;
             Debug.Assert(curCell != null);
             Debug.Assert(((Node *)curCell->data.ptr_value)->type == NodeTag.T_ColumnRef, "Expected T_ColumnRef, but got " +
                 ((Node*)curCell->data.ptr_value)->type.ToString());
-            String name = Marshal.PtrToStringAuto(((ColumnRef*)curCell->data.ptr_value)->name);
+            String name = ((ColumnRef*)curCell->data.ptr_value)->name;
             curCell = curCell->next;
             while (curCell != null) {
                 name += '.';
-                name += Marshal.PtrToStringAuto(((ColumnRef*)curCell->data.ptr_value)->name);
+                name += ((ColumnRef*)curCell->data.ptr_value)->name;
                 curCell = curCell->next;
             }
             return name;
