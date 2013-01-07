@@ -106,32 +106,18 @@ namespace Starcounter.Configuration {
         private Boolean _sqlAggregationSupport;
 
         /// <summary>
-        /// Size of the shared memory chunk, degree of 2.
-        /// </summary>
-        public int SharedMemoryChunkSize {
-            get {
-                return _sharedMemoryChunkSize;
-            }
-            set {
-                _sharedMemoryChunkSize = value;
-                OnPropertyChanged("SharedMemoryChunkSize");
-            }
-        }
-        private int _sharedMemoryChunkSize;
-
-        /// <summary>
         /// Number of shared memory chunks, dividable by 256.
         /// </summary>
-        public int SharedMemoryChunksNumber {
+        public int ChunksNumber {
             get {
-                return _sharedMemoryChunksNumber;
+                return _chunksNumber;
             }
             set {
-                _sharedMemoryChunksNumber = value;
-                OnPropertyChanged("SharedMemoryChunksNumber");
+                _chunksNumber = value;
+                OnPropertyChanged("ChunksNumber");
             }
         }
-        private int _sharedMemoryChunksNumber;
+        private int _chunksNumber;
 
         /// <summary>
         /// Number of schedulers the database host should utilize.
