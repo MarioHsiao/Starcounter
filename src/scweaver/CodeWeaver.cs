@@ -210,7 +210,7 @@ namespace Weaver {
 
             if (this.Assemblies.Count == 0) {
                 Program.WriteInformation("No assemblies needed to be weaved.");
-                return true;
+                return CompleteMirroringAfterWeaver();
             }
 
             // Prepare the underlying weaver and the execution of PostSharp.
@@ -257,9 +257,73 @@ namespace Weaver {
             // TODO:
             // This is a quick and dirty fix to have all exluded files copied to the temp-folder.
             // It's needs to be implemented in a better way.
-            CopyExcludedFilesQuickAndDirty();
+            // CopyExcludedFilesQuickAndDirty();
 
+            return CompleteMirroringAfterWeaver();
+        }
+
+        private bool CompleteMirroringAfterWeaver() {
+            string currentBinary;
+            string path1;
+            bool fileNeedsMirroring;
+
+            if (this.WeaveToCacheOnly)
+                return true;
+
+            var files = new List<string>();
+            files.AddRange(Directory.GetFiles(this.InputDirectory, "*.dll"));
+            files.AddRange(Directory.GetFiles(this.InputDirectory, "*.exe"));
+
+            Program.WriteDebug("Assuring mirroring of {0} files.", files.Count);
+
+            foreach (var file in files) {
+                currentBinary = Path.GetFileName(file);
+                path1 = Path.Combine(this.OutputDirectory, currentBinary);
+
+                if (!File.Exists(path1)) {
+                    Program.WriteInformation("Mirrored file {0} not found  - copying it.", currentBinary);
+                    fileNeedsMirroring = true;
+                } else if (File.GetLastWriteTime(path1) < File.GetLastWriteTime(file)) {
+                    Program.WriteInformation("Mirrored file {0} outdated - copying it.", currentBinary);
+                    fileNeedsMirroring = true;
+                } else {
+                    Program.WriteDebug("Mirrored file {0} up-to-date.", currentBinary);
+                    fileNeedsMirroring = false;
+                }
+
+                if (fileNeedsMirroring) {
+                    // If there is no corresponding file in the output
+                    // directory, or if the file in the output directory is
+                    // older, we perform a copy of the binary and an eventual
+                    // debug database file.
+                    try {
+                        MirrorBinary(currentBinary);
+                    } catch (Exception e) {
+                        Program.ReportProgramError(Error.SCERRUNSPECIFIED, "Failed mirroring file {0}; exception: {1}", currentBinary, e.Message);
+                        return false;
+                    }
+                }
+            }
+            
             return true;
+        }
+
+        private void MirrorBinary(string filename) {
+            string filenameWithoutExtension;
+            string sourcePath;
+            string targetPath;
+
+            sourcePath = Path.Combine(this.InputDirectory, filename);
+            targetPath = Path.Combine(this.OutputDirectory, filename);
+            File.Copy(sourcePath, targetPath, true);
+
+            filenameWithoutExtension = Path.GetFileNameWithoutExtension(filename);
+            filename = string.Concat(filenameWithoutExtension, ".pdb");
+            sourcePath = Path.Combine(this.InputDirectory, filename);
+            if (File.Exists(sourcePath)) {
+                targetPath = Path.Combine(this.OutputDirectory, filename);
+                File.Copy(sourcePath, targetPath, true);
+            }
         }
 
         private void CopyExcludedFilesQuickAndDirty() {
