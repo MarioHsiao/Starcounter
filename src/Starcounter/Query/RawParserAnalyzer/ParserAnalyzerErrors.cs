@@ -39,6 +39,23 @@ namespace Starcounter.Query.RawParserAnalyzer
             }
         }
 
+        internal unsafe String GetErrorMessage(int scerrorcode) {
+            if (scerrorcode == 0)
+                return "No error";
+            unsafe {
+                ScError* scerror = UnmanagedParserInterface.GetScError();
+                // Throw Starcounter exception for parsing error
+                String message = new String(scerror->scerrmessage);
+                if (scerror->scerrposition >= 0)
+                    message += " Position " + scerror->scerrposition + " in the query \"" + Query + "\"";
+                else
+                    message += " in the query \"" + Query + "\"";
+                if (scerror->tocken != null)
+                    message += "The error is near or at: " + scerror->tocken;
+                return message;
+            }
+        }
+
         /// <summary>
         /// Generates a string reporting position and token in the given query for an error.
         /// </summary>

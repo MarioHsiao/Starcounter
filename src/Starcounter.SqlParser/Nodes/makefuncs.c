@@ -32,7 +32,7 @@ makeA_Expr(A_Expr_Kind kind, List *name,
 	a->name = name;
 	a->lexpr = lexpr;
 	a->rexpr = rexpr;
-	a->location = location;
+	SET_LOCATION(a, location);
 	return a;
 }
 
@@ -50,7 +50,7 @@ makeSimpleA_Expr(A_Expr_Kind kind, wchar_t *name,
 	a->name = list_make1(makeString(name));
 	a->lexpr = lexpr;
 	a->rexpr = rexpr;
-	a->location = location;
+	SET_LOCATION(a, location);
 	return a;
 }
 
@@ -68,7 +68,7 @@ makeRangeVar(List *namespaces, wchar_t *relname, int location)
 	r->inhOpt = INH_DEFAULT;
 	r->relpersistence = RELPERSISTENCE_PERMANENT;
 	r->alias = NULL;
-	r->location = location;
+	SET_LOCATION(r, location);
 
 	return r;
 }
@@ -100,7 +100,7 @@ makeTypeNameFromNameList(List *names)
 	n->typmods = NIL;
 	n->typemod = -1;
 	n->generics = NIL;
-	n->location = -1;
+	SET_LOCATION(n, -1);
 	return n;
 }
 
@@ -115,7 +115,7 @@ makeTypeNameFromOid(Oid typeOid, int32 typmod)
 
 	n->typeOid = typeOid;
 	n->typemod = typmod;
-	n->location = -1;
+	SET_LOCATION(n, -1);
 	return n;
 }
 
