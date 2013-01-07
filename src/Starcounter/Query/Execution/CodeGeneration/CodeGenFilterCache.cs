@@ -181,7 +181,7 @@ internal sealed class CodeGenFilterCacheShared
             fixed (UInt32* instrPointer = instrArray.GetArrayRef)
             {
                 // Using native interface to create a filter.
-                errorCode = CodeGenFilterNativeInterface.SCCreateFilter(tb.DefHandle,
+                errorCode = CodeGenFilterNativeInterface.SCCreateFilter(tb.TableId,
                                                                         maxStackSize,
                                                                         dataCount,
                                                                         instrCount,

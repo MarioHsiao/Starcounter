@@ -1491,18 +1491,10 @@ namespace Starcounter.Internal
     {
 
         /// <summary>
-        /// SCs the create filter.
         /// </summary>
-        /// <param name="definitionAddr">The definition addr.</param>
-        /// <param name="stackSize">Size of the stack.</param>
-        /// <param name="varCount">The var count.</param>
-        /// <param name="instrCount">The instr count.</param>
-        /// <param name="instrstr">The instrstr.</param>
-        /// <param name="ph">The ph.</param>
-        /// <returns>UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern unsafe UInt32 SCCreateFilter(
-            UInt64 definitionAddr,
+            ushort tableId,
             UInt32 stackSize,
             UInt32 varCount,
             UInt32 instrCount,
