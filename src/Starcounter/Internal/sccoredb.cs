@@ -710,15 +710,10 @@ namespace Starcounter.Internal
             );
 
         /// <summary>
-        /// Sc_inserts the specified definition_addr.
         /// </summary>
-        /// <param name="definition_addr">The definition_addr.</param>
-        /// <param name="pnew_oid">The pnew_oid.</param>
-        /// <param name="pnew_addr">The pnew_addr.</param>
-        /// <returns>System.UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public unsafe extern static uint sccoredb_insert(
-            ulong definition_addr,
+            ushort table_id,
             ulong* pnew_oid,
             ulong* pnew_addr
             );
