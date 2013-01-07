@@ -70,7 +70,7 @@
     <Compile Include="TemplateFromJs.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\REST\Starcounter.Rest.csproj">
+    <ProjectReference Include="..\Starcounter.Rest\Starcounter.Rest.csproj">
       <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
       <Name>Starcounter.Rest</Name>
     </ProjectReference>

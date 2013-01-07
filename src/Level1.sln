@@ -22,7 +22,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hello", "Samples\hello\hell
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkIoTest", "Samples\NetworkIoTest\NetworkIoTest.csproj", "{1606D39A-79E6-468E-828A-42526C06A197}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "External", "External", "{E64C1F28-D2C1-47D2-A62B-151A6968D158}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BuildSystem", "BuildSystem", "{E64C1F28-D2C1-47D2-A62B-151A6968D158}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CopyDependenciesLocal", "External\CopyDependenciesLocal.csproj", "{8B599BFF-B414-41A3-A270-96CDA0C522AF}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -37,7 +37,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Internal", "Sta
 		{9E8D97FC-87A3-4A7C-B318-9414B5EEA60E} = {9E8D97FC-87A3-4A7C-B318-9414B5EEA60E}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "boot", "boot\boot.csproj", "{4F5A9009-7528-43E9-9142-26CF6A9F3ED7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sccode", "sccode\sccode.csproj", "{4F5A9009-7528-43E9-9142-26CF6A9F3ED7}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bmx", "Chunks\BMX\bmx.vcxproj", "{6665517F-743D-4809-94D3-13325FC2AF74}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -60,9 +60,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Bootstrap", "St
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FasterThanJson", "FasterThanJson\FasterThanJson.csproj", "{DD181012-DD9C-410F-AD8E-01D062CAC820}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NetworkGateway", "NetworkGateway\NetworkGateway.vcxproj", "{AD395461-89C1-4EFA-AEEF-8AE43C6B656D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "scnetworkgateway", "scnetworkgateway\scnetworkgateway.vcxproj", "{AD395461-89C1-4EFA-AEEF-8AE43C6B656D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Rest", "REST\Starcounter.Rest.csproj", "{C3E5398F-48FB-4565-8720-D73AF2ACFC1C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Rest", "Starcounter.Rest\Starcounter.Rest.csproj", "{C3E5398F-48FB-4565-8720-D73AF2ACFC1C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Apps", "Starcounter.Apps\Starcounter.Apps.csproj", "{BBAAD98C-2661-42DC-85E4-3F2D11BBE010}"
 EndProject
@@ -96,7 +96,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.MsBuild", "Star
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Web.Tests", "Starcounter.Web.Tests\Starcounter.Web.Tests.csproj", "{8670B44F-5240-4E27-AEAC-E7C58F626777}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Weaver", "Weaver\Weaver.csproj", "{76C95AD5-A9B4-4672-856A-18A1CE45D2B1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "scweaver", "scweaver\scweaver.csproj", "{76C95AD5-A9B4-4672-856A-18A1CE45D2B1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ThirdParty", "ThirdParty", "{5069EDE6-F3FE-4CD3-89C8-1AF15ED4B047}"
 EndProject
@@ -116,7 +116,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "11. Server", "11. Server", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Server", "Server\Starcounter.Server\Starcounter.Server.csproj", "{28E1D438-7DC4-4BF7-A486-0598C78DBBE9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReferenceServer", "Server\ReferenceServer\ReferenceServer.csproj", "{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "screferenceserver", "Server\screferenceserver\screferenceserver.csproj", "{C4FD8183-EA2E-46C9-88A1-DBE9EB5EBE45}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{C74FD2EF-8675-42C1-BC45-E4CF1EB0BB48}"
 	ProjectSection(SolutionItems) = preProject
@@ -254,11 +254,18 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpStructs.Tests", "HTTP\HttpStructs.Tests\HttpStructs.Tests.csproj", "{DD81F07E-8E1E-490B-A940-F651D7DAF6B6}"
 	ProjectSection(ProjectDependencies) = postProject
 		{594FE78A-A893-4757-A946-5ED350D383D2} = {594FE78A-A893-4757-A946-5ED350D383D2}
+		{8B599BFF-B414-41A3-A270-96CDA0C522AF} = {8B599BFF-B414-41A3-A270-96CDA0C522AF}
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HTTP", "HTTP", "{A264E76D-83B0-46AD-AEE6-84713C2DFE21}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Internal.Tests", "Starcounter.Internal.Tests\Starcounter.Internal.Tests.csproj", "{7DC7044D-7E04-47EE-B5E8-0E1F600CE4A4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "15. Utilities", "15. Utilities", "{6534DA47-76A7-410D-98B4-ED941B3409FF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sc.Tools.Logging", "Utilities\Sc.Tools.Logging\Sc.Tools.Logging.csproj", "{D41F6760-FB7D-413B-B07B-3062A9741EF5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerLogTail", "Utilities\ServerLogTail\ServerLogTail.csproj", "{AA1EC2F1-24B2-4C37-B14B-236883EA4098}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -504,6 +511,14 @@ Global
 		{7DC7044D-7E04-47EE-B5E8-0E1F600CE4A4}.Debug|x64.Build.0 = Debug|Any CPU
 		{7DC7044D-7E04-47EE-B5E8-0E1F600CE4A4}.Release|x64.ActiveCfg = Release|Any CPU
 		{7DC7044D-7E04-47EE-B5E8-0E1F600CE4A4}.Release|x64.Build.0 = Release|Any CPU
+		{D41F6760-FB7D-413B-B07B-3062A9741EF5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D41F6760-FB7D-413B-B07B-3062A9741EF5}.Debug|x64.Build.0 = Debug|Any CPU
+		{D41F6760-FB7D-413B-B07B-3062A9741EF5}.Release|x64.ActiveCfg = Release|Any CPU
+		{D41F6760-FB7D-413B-B07B-3062A9741EF5}.Release|x64.Build.0 = Release|Any CPU
+		{AA1EC2F1-24B2-4C37-B14B-236883EA4098}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AA1EC2F1-24B2-4C37-B14B-236883EA4098}.Debug|x64.Build.0 = Debug|Any CPU
+		{AA1EC2F1-24B2-4C37-B14B-236883EA4098}.Release|x64.ActiveCfg = Release|Any CPU
+		{AA1EC2F1-24B2-4C37-B14B-236883EA4098}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -572,5 +587,7 @@ Global
 		{524A9D92-4E74-413B-85E1-B3E893B4A25A} = {B39115F7-A3E8-42CE-AAB8-932AB8D4DFB4}
 		{7DB7527C-79F6-4C05-A8CF-B7A52E5E7A19} = {B39115F7-A3E8-42CE-AAB8-932AB8D4DFB4}
 		{9EC88A3E-0A53-4982-8548-BF262F2DDDE7} = {B39115F7-A3E8-42CE-AAB8-932AB8D4DFB4}
+		{D41F6760-FB7D-413B-B07B-3062A9741EF5} = {6534DA47-76A7-410D-98B4-ED941B3409FF}
+		{AA1EC2F1-24B2-4C37-B14B-236883EA4098} = {6534DA47-76A7-410D-98B4-ED941B3409FF}
 	EndGlobalSection
 EndGlobal
