@@ -30,7 +30,7 @@ namespace Starcounter.Query.RawParserAnalyzer
             SQLParserAssert(selectClause->length == 1, "Assuming projection of an alias");
             SQLParserAssert(((Node*)selectClause->head->data.ptr_value)->type == NodeTag.T_ResTarget, "Expected T_ResTarget, but got " + ((Node*)selectClause->head->data.ptr_value)->type.ToString());
             ResTarget* target = (ResTarget*)selectClause->head->data.ptr_value;
-            SQLParserAssert(target->name == null);
+            SQLParserAssert(Marshal.PtrToStringAuto(target->name) == null);
             SQLParserAssert(target->val->type == NodeTag.T_List, "Expected T_List, but got " + target->val->type.ToString());
             SQLParserAssert(((List*)target->val)->length == 1, "Expected list with one element - alias access");
             SQLParserAssert(((Node*)((List*)target->val)->head->data.ptr_value)->type == NodeTag.T_ColumnRef, "Expected T_ColumnRef, but got " + 
