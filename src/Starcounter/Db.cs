@@ -55,7 +55,7 @@ namespace Starcounter
             unsafe
             {
                 int inheritedColumnCount = 0;
-                ulong inheritedDefinitionAddr = sccoredb.INVALID_DEFINITION_ADDR;
+                ushort inheritedTableId = UInt16.MaxValue;
                 if (inheritedTableDef != null)
                 {
                     // TODO:
@@ -64,7 +64,7 @@ namespace Starcounter
                     // definition and the inherited table definition matches.
                     
                     inheritedColumnCount = inheritedTableDef.ColumnDefs.Length;
-                    inheritedDefinitionAddr = inheritedTableDef.DefinitionAddr;
+                    inheritedTableId = inheritedTableDef.TableId;
                 }
                 ColumnDef[] columns = tableDef.ColumnDefs;
                 sccoredb.SC_COLUMN_DEFINITION[] column_definitions = new sccoredb.SC_COLUMN_DEFINITION[columns.Length - inheritedColumnCount + 1];
@@ -80,7 +80,7 @@ namespace Starcounter
                     name = (char*)Marshal.StringToCoTaskMemUni(tableDef.Name);
                     fixed (sccoredb.SC_COLUMN_DEFINITION* fixed_column_definitions = column_definitions)
                     {
-                        uint e = sccoredb.sccoredb_create_table(name, inheritedDefinitionAddr, fixed_column_definitions);
+                        uint e = sccoredb.sccoredb_create_table(name, inheritedTableId, fixed_column_definitions);
                         if (e != 0) throw ErrorCode.ToException(e);
                     }
                 }
