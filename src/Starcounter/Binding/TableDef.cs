@@ -28,7 +28,7 @@ namespace Starcounter.Binding
             string baseName = null;
 
             if (tableInfo.inherited_table_id != ushort.MaxValue) {
-                var r = sccoredb.sccoredb_get_table_info_by_id(tableInfo.inherited_table_id, out tableInfo);
+                var r = sccoredb.sccoredb_get_table_info(tableInfo.inherited_table_id, out tableInfo);
                 if (r == 0) {
                     baseName = new String(tableInfo.table_name);
                 }

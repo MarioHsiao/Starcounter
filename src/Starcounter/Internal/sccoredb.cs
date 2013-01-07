@@ -338,7 +338,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static uint sccoredb_get_table_info_by_id(
+        internal extern static uint sccoredb_get_table_info(
             ushort table_id,
             out SCCOREDB_TABLE_INFO table_info
             );
