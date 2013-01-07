@@ -170,6 +170,12 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("select 9223372036854775807");
             analyzer.ParseQuery("select 345, -234, 123 from mytable t where c = -2343 and t = 4520904907");
             analyzer.ParseQuery("select 324.23423, 342, -234.234e+12");
+            analyzer.ParseQuery("asdfqad",true);
+            analyzer.ParseQuery("1342", true);
+            analyzer.ParseQuery("()", true);
+            analyzer.ParseQuery("");
+            analyzer.ParseQuery(" ");
+            analyzer.ParseQuery("\n");
         }
 
         [Test]
