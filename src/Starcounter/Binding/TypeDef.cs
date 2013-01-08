@@ -38,6 +38,32 @@ namespace Starcounter.Binding
         /// </summary>
         public TableDef TableDef;
 
+        private string LowerName_;
+        /// <summary>
+        /// Gets the full name of the class in lowercase.
+        /// </summary>
+        public string LowerName {
+            get {
+                if (LowerName_ == null)
+                    LowerName_ = Name.ToLower();
+                return LowerName_;
+            }
+        }
+
+        private string ShortName_;
+        /// <summary>
+        /// Gets the class name without namespaces in lowercase.
+        /// </summary>
+        public string ShortName {
+            get {
+                if (ShortName_ == null) {
+                    int pos = Name.LastIndexOf('.');
+                    ShortName_ = pos == -1 ? Name.ToLower() : Name.Substring(pos + 1).ToLower();
+                }
+                return ShortName_;
+            }
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="TypeDef" /> class.
         /// </summary>

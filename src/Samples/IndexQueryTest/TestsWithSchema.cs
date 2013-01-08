@@ -37,7 +37,7 @@ namespace IndexQueryTest
             try
             {
                 Db.SlowSQL("CREATE INDEX userLN ON Accounttest.UsEr (Lastname ASC)");
-                Console.WriteLine("Created index userLN ON AccountTest.User (LastName ASC)");
+                Console.WriteLine("Created index userLN ON accounttest.User (LastName ASC)");
             }
             catch (Starcounter.DbException ex)
             {
@@ -50,8 +50,8 @@ namespace IndexQueryTest
 
         static void DropIndexUserLN()
         {
-            Db.SlowSQL("DROP INDEX UserLN ON AccountTest.user");
-            Console.WriteLine("Dropped index userLN ON AccountTest.User");
+            Db.SlowSQL("DROP INDEX UserLN ON accounttest.user");
+            Console.WriteLine("Dropped index userLN ON accounttest.User");
         }
 
         static void TestCreateDropIndex()
@@ -90,7 +90,7 @@ namespace IndexQueryTest
         {
             Db.Transaction(delegate
             {
-                foreach (AccountTest.User u in Db.SQL("select u from user u where userid = ? option index (u userLN)", "KalLar01"))
+                foreach (accounttest.User u in Db.SQL("select u from user u where userid = ? option index (u userLN)", "KalLar01"))
                     Console.WriteLine(u.ToString());
                 Console.WriteLine(Db.SQL("select u from user u where userid = ? option index (u userLN)", "KalLar01").GetEnumerator().ToString());
             });
@@ -110,7 +110,7 @@ namespace IndexQueryTest
             Console.WriteLine("Test path expression as join with index");
             CreateIndexUserLN();
             Db.Transaction(delegate {
-                foreach (AccountTest.Account a in Db.SQL("select a from account a where a.Client.lastname = ?", "Popov")) {
+                foreach (accounttest.account a in Db.SQL("select a from account a where a.Client.lastname = ?", "Popov")) {
                     Console.WriteLine(a.Client.ToString());
                     Console.WriteLine(a.ToString());
                 }

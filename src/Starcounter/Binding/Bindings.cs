@@ -60,8 +60,12 @@ namespace Starcounter.Binding
             {
                 typeDef = typeDefs[i];
                 typeDefsByName.Add(typeDef.Name, typeDef);
-                if (typeDef.Name != typeDef.Name.ToLower())
-                    typeDefsByName.Add(typeDef.Name.ToLower(), typeDef);
+                if (typeDef.Name != typeDef.LowerName)
+                    typeDefsByName.Add(typeDef.LowerName, typeDef);
+                if (typeDef.LowerName != typeDef.ShortName)
+                    if (typeDefsByName.ContainsKey(typeDef.ShortName))
+                        typeDefsByName[typeDef.ShortName] = null;
+                    else typeDefsByName.Add(typeDef.ShortName, typeDef);
             }
 
             List<TypeDef> typeDefsById = new List<TypeDef>(typeDefsById_);
@@ -275,7 +279,13 @@ namespace Starcounter.Binding
         {
             Dictionary<string, TypeBinding> typeBindingsByName = new Dictionary<string, TypeBinding>(typeBindingsByName_);
             typeBindingsByName.Add(typeBinding.Name, typeBinding);
-            typeBindingsByName.Add(typeBinding.LowerName, typeBinding);
+            if (typeBinding.Name != typeBinding.LowerName)
+                typeBindingsByName.Add(typeBinding.LowerName, typeBinding);
+            if (typeBinding.LowerName != typeBinding.ShortName)
+                if (typeBindingsByName.ContainsKey(typeBinding.ShortName))
+                    typeBindingsByName[typeBinding.ShortName] = null;
+                else
+                    typeBindingsByName.Add(typeBinding.ShortName, typeBinding);
 
             List<TypeBinding> typeBindingsById = new List<TypeBinding>(typeBindingsById_);
             var tableId = typeBinding.TypeDef.TableDef.TableId;
