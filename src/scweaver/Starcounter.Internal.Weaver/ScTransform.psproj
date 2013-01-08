@@ -65,6 +65,15 @@
       CleanIntermediate="false"
       SignAssembly="false"
       />
+
+    <!--
+    Touch the file(s) in the cache directory, making sure they all
+    share the same time last written to.
+    -->
+    <ScTouch
+      Files="{$ScCacheDirectory}\{$AssemblyName}{$AssemblyExtension};{$ScCacheDirectory}\{$AssemblyName}.pdb"
+      Timestamp="{$CacheTimestamp}"
+      />
     
     <!-- 
     After we have compiled the weaved file, we make sure it gets copied from
@@ -73,17 +82,8 @@
     -->
     <ScCopy 
       Disabled="{$DontCopyToOutput}"
-      InputFiles="{$ScCacheDirectory}\{$AssemblyName}{$AssemblyExtension};{$ScCacheDirectory}\{$AssemblyName}.pdb"
-      OutputFiles="{$ScOutputDirectory}\{$AssemblyName}{$AssemblyExtension};{$ScOutputDirectory}\{$AssemblyName}.pdb"
-      />
-    
-    <!--
-    Finally, we touch the file(s) in the cache directory, making sure they all
-    share the same time last written to.
-    -->
-    <ScTouch 
-      Files="{$ScCacheDirectory}\{$AssemblyName}{$AssemblyExtension};{$ScCacheDirectory}\{$AssemblyName}.pdb"
-      Timestamp="{$CacheTimestamp}"
+      InputFiles="{$ScCacheDirectory}\{$AssemblyName}{$AssemblyExtension};{$ScCacheDirectory}\{$AssemblyName}.pdb;{$ScCacheDirectory}\{$AssemblyName}.schema"
+      OutputFiles="{$ScOutputDirectory}\{$AssemblyName}{$AssemblyExtension};{$ScOutputDirectory}\{$AssemblyName}.pdb;{$ScOutputDirectory}\{$AssemblyName}.schema"
       />
     
   </Tasks>

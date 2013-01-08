@@ -35,6 +35,7 @@ namespace Weaver {
         static void ApplyOptionsAndExecuteGivenCommand(ApplicationArguments arguments) {
             string inputDirectory;
             string cacheDirectory;
+            string outputDirectory;
             uint error;
             string fileName;
             string givenFilePath;
@@ -47,6 +48,7 @@ namespace Weaver {
 
             givenFilePath = arguments.CommandParameters[0];
             inputDirectory = null;
+            outputDirectory = null;
             fileName = null;
 
             try {
@@ -83,11 +85,33 @@ namespace Weaver {
             inputDirectory = Path.GetDirectoryName(givenFilePath);
             inputDirectory = inputDirectory.Trim('"');
 
+            // Resolve the output directory to use when transforming/weaving.
+
+            if (!arguments.TryGetProperty("outdir", out outputDirectory)) {
+                outputDirectory = Path.Combine(inputDirectory, CodeWeaver.DefaultOutputDirectoryName);
+            } else {
+                outputDirectory = Path.Combine(inputDirectory, outputDirectory);
+            }
+
+            if (!Directory.Exists(outputDirectory)) {
+                try {
+                    Directory.CreateDirectory(outputDirectory);
+                } catch (Exception e) {
+                    error = Error.SCERRCODELIBFAILEDNEWCACHEDIR;
+                    ReportProgramError(
+                        error,
+                        ErrorCode.ToMessage(error, string.Format("Message: {0}.", e.Message)));
+                    return;
+                }
+            }
+
             // Resolve a cache directory to use, either from the given input
             // or from using the default directory.
 
             if (!arguments.TryGetProperty("cachedir", out cacheDirectory)) {
-                cacheDirectory = Path.Combine(inputDirectory, CodeWeaver.DefaultCacheDirectoryName);
+                cacheDirectory = Path.Combine(outputDirectory, CodeWeaver.DefaultCacheDirectoryName);
+            } else {
+                cacheDirectory = Path.Combine(outputDirectory, cacheDirectory);
             }
 
             if (!Directory.Exists(cacheDirectory)) {
@@ -107,7 +131,7 @@ namespace Weaver {
             switch (arguments.Command) {
 
                 case ProgramCommands.Weave:
-                    ExecuteWeaveCommand(inputDirectory, cacheDirectory, fileName, arguments);
+                    ExecuteWeaveCommand(inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
                     break;
 
                 case ProgramCommands.Verify:
@@ -132,11 +156,13 @@ namespace Weaver {
         /// Executes the command "Weave".
         /// </summary>
         /// <param name="inputDirectory">The input directory.</param>
+        /// <param name="outputDirectory">The output directory.</param>
         /// <param name="cacheDirectory">The cache directory.</param>
         /// <param name="fileName">The name of the file to give the weaver.</param>
         /// <param name="arguments">Parsed and verified program arguments.</param>
         static void ExecuteWeaveCommand(
             string inputDirectory,
+            string outputDirectory,
             string cacheDirectory,
             string fileName,
             ApplicationArguments arguments) {
@@ -145,7 +171,8 @@ namespace Weaver {
             // Create the code weaver facade and configure it properly. Then
             // execute the underlying weaver engine.
 
-            weaver = new CodeWeaver(inputDirectory, fileName, cacheDirectory);
+            weaver = new CodeWeaver(inputDirectory, fileName, outputDirectory, cacheDirectory);
+            weaver.OutputDirectory = outputDirectory;
             weaver.RunWeaver = true;
             weaver.WeaveForIPC = true;//!arguments.ContainsFlag("noipc");
             weaver.DisableWeaverCache = arguments.ContainsFlag("nocache");
@@ -174,7 +201,7 @@ namespace Weaver {
             // Create the code weaver facade and configure it properly. Then
             // execute the underlying weaver engine.
 
-            weaver = new CodeWeaver(inputDirectory, fileName, cacheDirectory);
+            weaver = new CodeWeaver(inputDirectory, fileName, null, cacheDirectory);
             weaver.RunWeaver = false;
             weaver.WeaveForIPC = true;
             weaver.DisableWeaverCache = arguments.ContainsFlag("nocache");
@@ -312,6 +339,11 @@ namespace Weaver {
             // Define the command. Exactly one parameter - the executable - is
             // expected.
             commandDefinition = syntaxDefinition.DefineCommand(ProgramCommands.Weave, "Weaves user code.", 1);
+
+            // Optional specification of the output directory to use. If no output
+            // directory is explicitly given, a default output directory will be used,
+            // based on the input directory.
+            commandDefinition.DefineProperty("outdir", "Specifies the output directory to use.");
 
             // Optional specification of the cache directory to use. The cache is used
             // to cache assembly analysis results and possibly transformed/weaved binaries.
