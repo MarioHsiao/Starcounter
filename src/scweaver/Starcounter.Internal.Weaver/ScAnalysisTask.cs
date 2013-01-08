@@ -53,6 +53,11 @@ namespace Starcounter.Internal.Weaver {
         private readonly InstructionWriter _writer = new InstructionWriter();
 
         /// <summary>
+        /// Attributes that are synonyms, mapped to their target field (by name).
+        /// </summary>
+        private readonly Dictionary<DatabaseAttribute, string> _synonymousToAttributes = new Dictionary<DatabaseAttribute, string>();
+
+        /// <summary>
         /// The _forbidden assemblies
         /// </summary>
         private readonly String[] _forbiddenAssemblies = new[] {
@@ -106,6 +111,10 @@ namespace Starcounter.Internal.Weaver {
         /// The _DB object type
         /// </summary>
         private ITypeSignature _dbObjectType;
+        /// <summary>
+        /// The type corresponding to the SynonymousToAttribute .NET type.
+        /// </summary>
+        private IType _synonymousToAttributeType;
 
         /// <summary>
         /// Gets the <see cref="DatabaseSchema" /> for the current application.
@@ -541,7 +550,8 @@ namespace Starcounter.Internal.Weaver {
                 _entityType = FindStarcounterType(typeof(Entity));
                 _dbObjectType = FindStarcounterType(typeof(Entity));
                 _notPersistentAttributeType = FindStarcounterType(typeof(NotPersistentAttribute));
-                
+                _synonymousToAttributeType = FindStarcounterType(typeof(SynonymousToAttribute));
+
                 // Set up dependencies for this assembly.
                 // First assure we add dependencies recursively, starting from the
                 // module currently being analyzed. Then add references to the
@@ -1337,8 +1347,17 @@ namespace Starcounter.Internal.Weaver {
                 // When the field is not persistent, we don't care about its type.
                 databaseAttribute.AttributeType = new DatabaseUnsupportedType(field.FieldType.ToString());
             } else {
+                
                 // Check the attribute type.
                 SetDatabaseAttributeType(field, databaseAttribute.IsPersistent, databaseAttribute);
+                
+                // Check if it's a synonym and if so, record it as such for
+                // later processing.
+
+                CustomAttributeDeclaration synonymToAttribute = field.CustomAttributes.GetOneByType(this._synonymousToAttributeType);
+                if (synonymToAttribute != null) {
+                    this._synonymousToAttributes.Add(databaseAttribute, (string)synonymToAttribute.ConstructorArguments[0].Value.GetRuntimeValue());
+                }
             }
             databaseAttribute.IsPublicRead = field.IsPublic();
         }
