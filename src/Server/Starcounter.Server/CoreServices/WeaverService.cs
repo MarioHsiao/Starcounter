@@ -59,9 +59,7 @@ namespace Starcounter.Server {
             string arguments;
 
             weaverExe = Path.Combine(engine.InstallationDirectory, "scweaver.exe");
-            // TODO: Made a quick fix for Cogozilla. Remove "--FLAG:nocache" in future.
-            arguments = string.Format("Weave \"{0}\" --FLAG:tocache --FLAG:nocache --cachedir=\"{1}\"",
-                givenAssembly, runtimeDirectory);
+            arguments = string.Format("Weave \"{0}\" --outdir=\"{1}\"", givenAssembly, runtimeDirectory);
 
             ToolInvocationHelper.InvokeTool(new ProcessStartInfo(weaverExe, arguments));
 
