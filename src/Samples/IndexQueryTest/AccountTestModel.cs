@@ -2,9 +2,9 @@
 using Starcounter.Binding;
 using System;
 
-namespace AccountTest
-{
 #if ACCOUNTTEST_MODEL
+namespace accounttest
+{
     public class User : Entity
     {
         public String FirstName;
@@ -17,11 +17,12 @@ namespace AccountTest
         }
     }
 
-    public class Account : Entity
+    public class account : Entity
     {
         public Int64 AccountId;
         public User Client;
         public Decimal Amount;
     }
-#endif
+
 }
+#endif

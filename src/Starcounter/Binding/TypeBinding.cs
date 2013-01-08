@@ -66,6 +66,11 @@ namespace Starcounter.Binding
             {
                 name_ = value;
                 lowername_ = value.ToLower();
+                int pos = value.LastIndexOf('.');
+                if (pos == -1)
+                    shortname_ = value;
+                else
+                    shortname_ = value.Substring(pos + 1).ToLower();
             }
         }
 
@@ -80,17 +85,25 @@ namespace Starcounter.Binding
         /// <value>The table id.</value>
         public ushort TableId { get { return tableId_; } internal set { tableId_ = value; } }
 
-        //private string shortname_;
+        /// <summary>
+        /// Short name is class name, i.e., last name of the full name.
+        /// </summary>
+        private string shortname_;
         /// <summary>
         /// The uppername_
         /// </summary>
         private string lowername_;
 
         /// <summary>
-        /// Gets the name of the upper.
+        /// Gets the name of the lower.
         /// </summary>
-        /// <value>The name of the upper.</value>
+        /// <value>The name of the lower.</value>
         public string LowerName { get { return lowername_; } internal set { lowername_ = value; } }
+
+        /// <summary>
+        /// Gets the class name without namespaces in lowercase.
+        /// </summary>
+        public string ShortName { get { return shortname_; } internal set { shortname_ = value; } }
 
         private ushort[] currentAndBaseTableIds_; // Sorted lowest to highest.
 

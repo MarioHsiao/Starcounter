@@ -457,7 +457,8 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     if (0 == num_bytes_received)
     {
 #ifdef GW_ERRORS_DIAG
-        GW_PRINT_WORKER << "Zero-bytes receive on socket: " << sd->get_socket() << ". Remote side closed the connection." << GW_ENDL;
+        GW_PRINT_WORKER << "Zero-bytes receive on socket: " << sd->get_socket() << " " <<
+            sd->get_chunk_index() << ". Remote side closed the connection." << GW_ENDL;
 #endif
 
         return SCERRGWSOCKETCLOSEDBYPEER;
@@ -637,7 +638,13 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
 
 #ifdef GW_SOCKET_ID_CHECK
     // Checking correct unique socket.
-    GW_ASSERT(true == sd->CompareUniqueSocketId());
+    if (false == sd->CompareUniqueSocketId())
+    {
+        // Only non-representative socket data can have wrong socket id.
+        GW_ASSERT(false == sd->get_socket_representer_flag());
+
+        return SCERRGWOPERATIONONWRONGSOCKET;
+    }
 #endif
 
     AccumBuffer* accum_buf = sd->get_accum_buf();
