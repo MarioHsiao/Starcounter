@@ -1,8 +1,9 @@
 ﻿using System;
 
 namespace QueryProcessingTest {
-    class Program {
+    class QueryProcessingTestProgram {
         static void Main(string[] args) {
+            BindingTestDirect.DirectBindingTest();
         }
     }
 }
