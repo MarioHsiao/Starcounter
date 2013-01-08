@@ -581,6 +581,11 @@ namespace Starcounter.Internal.Weaver {
                     }
                 }
 
+                // Process all synonyms we have detected and make sure they map
+                // to attributes that we can find and materialize.
+
+                ProcessSynonymousToAttributes();
+
                 // Now that the schema is complete, validate it.
 
                 if ((_weaverDirectives & WeaverDirectives.ExcludeConstraintValidation) == 0) {
@@ -1422,6 +1427,41 @@ namespace Starcounter.Internal.Weaver {
         //        }
         //    }
         //}
+
+        /// <summary>
+        /// Go through all detected and recorded synonym declarations and materialize
+        /// the target, by fetching the attribute using the target name.
+        /// </summary>
+        private bool ProcessSynonymousToAttributes() {
+            int errorCount = 0;
+
+            foreach (KeyValuePair<DatabaseAttribute, string> pair in _synonymousToAttributes) {
+                DatabaseAttribute databaseAttribute = pair.Key;
+                string targetFieldName = pair.Value;
+                ScAnalysisTrace.Instance.WriteLine(
+                    "ProcessSynonymousToAttributes: processing [SynonymTo] for {0}.{1}.",
+                    databaseAttribute.DeclaringClass.Name, databaseAttribute.Name);
+                
+                DatabaseAttribute targetAttribute = databaseAttribute.DeclaringClass.FindAttributeInAncestors(targetFieldName);
+                if (targetAttribute == null) {
+                    // The target field could not be found.
+                    // The field {0}.{1} is marked to be a synonym of a field {2},
+                    // but this field could not be found in the current and base classes.
+#pragma warning disable 618
+                    ScMessageSource.Instance.Write(SeverityType.Error, "SCPFV06", new object[] {
+                        databaseAttribute.DeclaringClass.Name, databaseAttribute.Name,
+                        targetFieldName
+                    });
+#pragma warning restore 618
+                    errorCount++;
+
+                } else {
+                    databaseAttribute.SynonymousTo = targetAttribute;
+                }
+            }
+
+            return errorCount > 0;
+        }
 
         /// <summary>
         /// Inspects a reflection <see cref="PropertyInfo" /> and builds the corresponding schema object
