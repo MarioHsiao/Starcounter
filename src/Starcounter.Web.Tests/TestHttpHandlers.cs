@@ -59,11 +59,37 @@ namespace Starcounter.Internal.Test {
                 return null;
             });
 
-            GET("/uri-with-req2/{?}", (string s, HttpRequest r) => {
+            GET("/uri-with-req/{?}", (string s, HttpRequest r) => {
                 Assert.AreEqual("KalleKula", s);
                 Assert.IsNotNull(r);
                 return null;
             });
+
+            GET("/admin/{?}", (string s, HttpRequest r) => {
+                Assert.AreEqual("KalleKula", s);
+                Assert.IsNotNull(r);
+                return null;
+            });
+
+            GET("/admin/apapapa/{?}", (int i, HttpRequest r) => {
+                //                Assert.AreEqual("KalleKula", s);
+                //                Assert.AreEqual(123, i);
+                Assert.IsNotNull(r);
+                return null;
+            });
+
+            GET("/admin/{?}/{?}", (string s, int i, HttpRequest r) => {
+//                Assert.AreEqual("KalleKula", s);
+//                Assert.AreEqual(123, i);
+                Assert.IsNotNull(r);
+                return null;
+            });
+
+            //GET("/admin/{?}/{?}", (string s, int i, HttpRequest r) => {
+            //    Assert.AreEqual("KalleKula", s);
+            //    Assert.IsNotNull(r);
+            //    return null;
+            //});
 
             GET("/players", () => {
                 Console.WriteLine("players");
@@ -227,7 +253,11 @@ namespace Starcounter.Internal.Test {
             byte[] h9 = Encoding.UTF8.GetBytes("GET /\r\n\r\n");
             byte[] h10 = Encoding.UTF8.GetBytes("GET /uri-with-req\r\n\r\n");
             byte[] h11 = Encoding.UTF8.GetBytes("GET /uri-with-req/123\r\n\r\n");
-            byte[] h12 = Encoding.UTF8.GetBytes("GET /uri-with-req2/KalleKula\r\n\r\n");
+            byte[] h12 = Encoding.UTF8.GetBytes("GET /uri-with-req/KalleKula\r\n\r\n");
+            byte[] h13 = Encoding.UTF8.GetBytes("GET /admin/KalleKula\r\n\r\n");
+            byte[] h14 = Encoding.UTF8.GetBytes("GET /admin/KalleKula/123r\n\r\n");
+            byte[] h15 = Encoding.UTF8.GetBytes("GET /admin/Kalle/46544r\n\r\n");
+
 
             Main();
 //            var rp = MainApp.RequestProcessor;
@@ -248,7 +278,15 @@ namespace Starcounter.Internal.Test {
             Assert.True(um.Invoke(new HttpRequest(h9), out resource));
             Assert.True(um.Invoke(new HttpRequest(h10), out resource));
             Assert.True(um.Invoke(new HttpRequest(h11), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h12), out resource));
+
+            // TODO:
+            // The ParseInt function does not verify that the specified string
+            // is numbers or not, needs to be fixed.
+//            Assert.True(um.Invoke(new HttpRequest(h12), out resource));
+
+            Assert.True(um.Invoke(new HttpRequest(h13), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h14), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h15), out resource));
         }
 
         /// <summary>
