@@ -8,7 +8,7 @@ namespace Starcounter {
     /// of an allready defined field, declared in the same class or one of the base-classes
     /// to the class declaring the synonym.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
     public sealed class SynonymousToAttribute : Attribute {
 
         /// <summary>
