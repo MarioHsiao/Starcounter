@@ -18,7 +18,7 @@ namespace IndexQueryTest
                     Console.WriteLine("It seems that User table was deleted");
                     PrintAllObjects();
                 }
-                Db.SlowSQL("DELETE FROM Accounttest.Account");
+                Db.SlowSQL("DELETE FROM Account");
                 Db.SlowSQL("DELETE FROM Accounttest.User");
             });
         }
