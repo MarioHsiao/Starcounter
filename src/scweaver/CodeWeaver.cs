@@ -31,9 +31,24 @@ namespace Weaver {
         private readonly List<Regex> weaverExcludes = new List<Regex>();
 
         /// <summary>
-        /// The name of the default cache directory, if no cache directory is given.
+        /// The name of the default output directory, utilized by the weaver
+        /// when no output directory is explicitly given.
         /// </summary>
-        public const string DefaultCacheDirectoryName = ".starcounter";
+        /// <remarks>
+        /// If no output directory is given, the output directory will be a
+        /// subdirectory of the input directory, with this name.
+        /// </remarks>
+        public const string DefaultOutputDirectoryName = ".starcounter";
+
+        /// <summary>
+        /// The name of the default cache directory, if no cache directory
+        /// is given.
+        /// </summary>
+        /// <remarks>
+        /// If no cache directory is given, the cache directory will be a
+        /// subdirectory of the output directory, with this name.
+        /// </remarks>
+        public const string DefaultCacheDirectoryName = "cache";
 
         /// <summary>
         /// The directory where the weaver looks for input.
@@ -44,6 +59,12 @@ namespace Weaver {
         /// The cache directory used by the weaver.
         /// </summary>
         public readonly string CacheDirectory;
+
+        /// <summary>
+        /// The output directory, mirroring the binaries in the input directory
+        /// with relevant binaries weaved.
+        /// </summary>
+        public string OutputDirectory;
 
         /// <summary>
         /// Gets or sets the assembly file the weaver should act upon. The
@@ -107,15 +128,6 @@ namespace Weaver {
         private string TempDirectoryPath;
 
         /// <summary>
-        /// The actual input path used by the transformation engine when an
-        /// assembly needs to be transformed. In such case, the assembly is
-        /// first copied to this directory and then compiled into the cache,
-        /// after it has been transformed. Then it is copied back to the
-        /// original directory.
-        /// </summary>
-        private string WeaverInputPath;
-
-        /// <summary>
         /// Gets or sets the set of assemblies that we need to load to consider
         /// if they need to be analyzed/weaved or not.
         /// </summary>
@@ -165,8 +177,9 @@ namespace Weaver {
         /// </summary>
         private WeaverCache Cache;
 
-        public CodeWeaver(string directory, string file, string cacheDirectory) {
+        public CodeWeaver(string directory, string file, string outputDirectory, string cacheDirectory) {
             this.InputDirectory = directory;
+            this.OutputDirectory = outputDirectory;
             this.CacheDirectory = cacheDirectory;
             this.RunWeaver = true;
             this.WeaveForIPC = true;
@@ -197,7 +210,7 @@ namespace Weaver {
 
             if (this.Assemblies.Count == 0) {
                 Program.WriteInformation("No assemblies needed to be weaved.");
-                return true;
+                return CompleteMirroringAfterWeaver();
             }
 
             // Prepare the underlying weaver and the execution of PostSharp.
@@ -218,8 +231,6 @@ namespace Weaver {
             foreach (var cachedAssembly in this.Cache.Schema.Assemblies) {
                 ScAnalysisTask.DatabaseSchema.Assemblies.Add(cachedAssembly);
             }
-
-
 
             using (IPostSharpObject postSharpObject = PostSharpObject.CreateInstance(postSharpSettings, this)) {
                 ((PostSharpObject)postSharpObject).Domain.AssemblyLocator.DefaultOptions |= PostSharp.Sdk.CodeModel.AssemblyLocatorOptions.ForClrLoading;
@@ -243,27 +254,70 @@ namespace Weaver {
                 Program.WriteDebug("Time weaving: {0:00.00} s.", stopwatch.ElapsedMilliseconds / 1000d);
             }
 
-            // TODO:
-            // This is a quick and dirty fix to have all exluded files copied to the temp-folder.
-            // It's needs to be implemented in a better way.
-            CopyExcludedFilesQuickAndDirty();
+            return CompleteMirroringAfterWeaver();
+        }
 
+        private bool CompleteMirroringAfterWeaver() {
+            string currentBinary;
+            string path1;
+            bool fileNeedsMirroring;
+
+            if (this.WeaveToCacheOnly)
+                return true;
+
+            var files = new List<string>();
+            files.AddRange(Directory.GetFiles(this.InputDirectory, "*.dll"));
+            files.AddRange(Directory.GetFiles(this.InputDirectory, "*.exe"));
+
+            Program.WriteDebug("Assuring mirroring of {0} files.", files.Count);
+
+            foreach (var file in files) {
+                currentBinary = Path.GetFileName(file);
+                path1 = Path.Combine(this.OutputDirectory, currentBinary);
+
+                if (!File.Exists(path1)) {
+                    Program.WriteInformation("Mirrored file {0} not found  - copying it.", currentBinary);
+                    fileNeedsMirroring = true;
+                } else if (File.GetLastWriteTime(path1) < File.GetLastWriteTime(file)) {
+                    Program.WriteInformation("Mirrored file {0} outdated - copying it.", currentBinary);
+                    fileNeedsMirroring = true;
+                } else {
+                    Program.WriteDebug("Mirrored file {0} up-to-date.", currentBinary);
+                    fileNeedsMirroring = false;
+                }
+
+                if (fileNeedsMirroring) {
+                    // If there is no corresponding file in the output
+                    // directory, or if the file in the output directory is
+                    // older, we perform a copy of the binary and an eventual
+                    // debug database file.
+                    try {
+                        MirrorBinary(currentBinary);
+                    } catch (Exception e) {
+                        Program.ReportProgramError(Error.SCERRUNSPECIFIED, "Failed mirroring file {0}; exception: {1}", currentBinary, e.Message);
+                        return false;
+                    }
+                }
+            }
+            
             return true;
         }
 
-        private void CopyExcludedFilesQuickAndDirty() {
-            string tempFilePath;
-            string[] allFiles = Directory.GetFiles(this.InputDirectory, "*.dll");
+        private void MirrorBinary(string filename) {
+            string filenameWithoutExtension;
+            string sourcePath;
+            string targetPath;
 
-            foreach (var file in allFiles) {
-                if (FileIsToBeExcluded(file)) {
-                    tempFilePath = Path.Combine(this.TempDirectoryPath, "..", Path.GetFileName(file));
+            sourcePath = Path.Combine(this.InputDirectory, filename);
+            targetPath = Path.Combine(this.OutputDirectory, filename);
+            File.Copy(sourcePath, targetPath, true);
 
-                    try {
-                        File.Copy(file, tempFilePath, true);
-                    } catch {
-                    }
-                }
+            filenameWithoutExtension = Path.GetFileNameWithoutExtension(filename);
+            filename = string.Concat(filenameWithoutExtension, ".pdb");
+            sourcePath = Path.Combine(this.InputDirectory, filename);
+            if (File.Exists(sourcePath)) {
+                targetPath = Path.Combine(this.OutputDirectory, filename);
+                File.Copy(sourcePath, targetPath, true);
             }
         }
 
@@ -343,23 +397,6 @@ namespace Weaver {
 
             this.TempDirectoryPath = Path.Combine(this.CacheDirectory, "WeaverTemp");
             if (!Directory.Exists(this.TempDirectoryPath)) Directory.CreateDirectory(this.TempDirectoryPath);
-
-            // Setup the weaver input path. The path normally is a temporary path
-            // under the cache directory, and we copy inputs there (and load them
-            // from there). This can be adapted by the WeaveToCacheOnly property.
-
-            if (!this.WeaveToCacheOnly) {
-                // Standard setup.
-
-                this.WeaverInputPath = Path.Combine(this.CacheDirectory, "WeaverInput");
-                if (!Directory.Exists(this.WeaverInputPath)) Directory.CreateDirectory(this.WeaverInputPath);
-            } else {
-                // Weave only to the cache.
-                // In such case, we read the input straight from the given input
-                // directory, with no extra copying.
-
-                this.WeaverInputPath = this.InputDirectory;
-            }
 
             // Create the cache
 
@@ -450,7 +487,7 @@ namespace Weaver {
                 if (this.WeaveToCacheOnly) {
                     cachedAssembly = this.Cache.Get(cachedName);
                 } else {
-                    cachedAssembly = this.Cache.Extract(cachedName, this.InputDirectory);
+                    cachedAssembly = this.Cache.Extract(cachedName, this.OutputDirectory);
                 }
 
                 if (cachedAssembly.Assembly != null) {
@@ -473,62 +510,12 @@ namespace Weaver {
                     WeaverUtilities.GetExtractionFailureReason(cachedAssembly)
                     );
 
-                if (RunWeaver) {
-                    // We are told to weave. Prepare the assembly for that.
-
-                    // Copy it to the weaver input path and specify that path as the
-                    // path to use. But only copy it if we actually need to overwrite
-                    // the original. Otherwise, we should have the input directory be
-                    // the same and do no copying.
-
-                    // Standard procedure ("overwrite" mode, i.e. overwriting input)
-                    // input\code.dll -> copied to -> temp\code.dll <- read from -> recompiled to -> \cache\code.dll -> copied to -> input\code.dll
-
-                    // When only compiling to cache:
-                    // input\code.dll <- read from -> recompiled to -> \cache\code.dll
-
-                    if (!WeaveToCacheOnly) {
-                        CopyToWeaverInputDirectory(file);
-                    }
-
-                    fileToLoad = Path.Combine(this.WeaverInputPath, Path.GetFileName(file));
-                } else {
-                    fileToLoad = Path.Combine(this.InputDirectory, Path.GetFileName(file));
-                }
-
+                fileToLoad = Path.Combine(this.InputDirectory, Path.GetFileName(file));
                 fileToLoad = Path.GetFullPath(fileToLoad);
                 this.Assemblies.Add(fileToLoad, new ModuleLoadDirectFromFileStrategy(fileToLoad, false));
             }
 
             return true;
-        }
-
-        /// <summary>
-        /// Copies the given file from the specified library directory into the
-        /// established weaver input directory, from where the transformation task(s)
-        /// of the weaver engine will try to load it.
-        /// </summary>
-        /// <param name="applicationAssemblyPath">File to be copied.</param>
-        void CopyToWeaverInputDirectory(string applicationAssemblyPath) {
-            string sourceDirectory;
-            string destinationFile;
-            string pdb;
-
-            sourceDirectory = Path.GetDirectoryName(applicationAssemblyPath);
-
-            destinationFile = Path.Combine(this.WeaverInputPath, Path.GetFileName(applicationAssemblyPath));
-            if (File.Exists(destinationFile))
-                File.Delete(destinationFile);
-            File.Copy(applicationAssemblyPath, destinationFile);
-
-            pdb = Path.Combine(sourceDirectory, Path.GetFileNameWithoutExtension(applicationAssemblyPath) + ".pdb");
-            if (File.Exists(pdb)) {
-                destinationFile = Path.Combine(this.WeaverInputPath, Path.GetFileName(pdb));
-                if (File.Exists(destinationFile))
-                    File.Delete(destinationFile);
-
-                File.Copy(pdb, destinationFile);
-            }
         }
 
         bool FileIsToBeExcluded(string file) {
@@ -667,21 +654,20 @@ namespace Weaver {
             if (RunWeaver) {
                 weaverProjectFile = this.WeaveBootstrapperCode ? this.BootstrapWeaverProjectFile : this.WeaverProjectFile;
                 parameters = new ProjectInvocationParameters(weaverProjectFile);
-                parameters.Properties["ScInputDirectory"] = this.WeaverInputPath;
                 parameters.PreventOverwriteAssemblyNames = false;
                 parameters.Properties["WeaveForIPC"] = this.WeaveForIPC ? bool.TrueString : bool.FalseString;
                 parameters.Properties["TempDirectory"] = this.TempDirectoryPath;
-                parameters.Properties["ScOutputDirectory"] = this.InputDirectory;
+                parameters.Properties["ScOutputDirectory"] = this.OutputDirectory;
             } else {
                 // We are only analyzing. Do this straight from the input directory.
 
                 parameters = new ProjectInvocationParameters(this.AnalyzerProjectFile);
-                parameters.Properties["ScInputDirectory"] = this.InputDirectory;
                 parameters.PreventOverwriteAssemblyNames = true;
             }
 
             // Apply all general, shared parameters
 
+            parameters.Properties["ScInputDirectory"] = this.InputDirectory;
             parameters.Properties["ScCacheDirectory"] = this.CacheDirectory;
             parameters.Properties["CacheTimestamp"] =
                 XmlConvert.ToString(File.GetLastWriteTime(file),
