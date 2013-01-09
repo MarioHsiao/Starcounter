@@ -180,32 +180,38 @@ inline uint32_t ParseDecimalStringToUint(const char *at, size_t length)
 }
 
 // Starcounter session string in HTTP.
-const char* const kScSessionIdString = "ScSessionId";
-const int32_t kScSessionIdStringLength = (int32_t)strlen(kScSessionIdString);
+const char* const kScSessionIdStringPlusEquals = "ScSessionId=";
+const int32_t kScSessionIdStringPlusEqualsLength = (int32_t)strlen(kScSessionIdStringPlusEquals);
+const char* const kScFullSessionIdString = "ScSessionId=########################";
+const int32_t kScFullSessionIdStringLength = (int32_t)strlen(kScFullSessionIdString);
 
 // Session string length in characters.
 const int32_t SC_SESSION_STRING_LEN_CHARS = 24;
+const int32_t SC_SESSION_STRING_INDEX_LEN_CHARS = 8;
+const int32_t SC_SESSION_STRING_SALT_LEN_CHARS = SC_SESSION_STRING_LEN_CHARS - SC_SESSION_STRING_INDEX_LEN_CHARS;
 
 // Searching for the Starcounter session cookie among other cookies.
 // Returns pointer to Starcounter session cookie value.
-inline const char* GetSessionIdValue(const char *at, size_t length)
+inline const char* GetSessionIdValueString(const char *at, size_t length)
 {
-    int32_t i = 0;
-    if (length >= kScSessionIdStringLength)
-    {
-        while(i < length)
-        {
-            // Checking if this cookie is Starcounter session cookie.
-            if ((kScSessionIdString[0] == at[i]) &&
-                (kScSessionIdString[1] == at[i + 1]) &&
-                ('=' == at[i + kScSessionIdStringLength]))
-            {
-                // Skipping session header name and equality symbol.
-                return at + i + kScSessionIdStringLength + 1;
-            }
-            i++;
-        }
-    }
+    // Immediately excluding wrong cookie.
+    if (length < kScFullSessionIdStringLength)
+        return NULL;
+
+    // Null terminating the string.
+    char* atnull = (char*)at;
+    char c = atnull[length];
+    atnull[length] = '\0';
+
+    // Searching using optimized strstr.
+    const char* session_string = strstr(atnull, kScSessionIdStringPlusEquals);
+
+    // Restoring back the old character.
+    atnull[length] = c;
+
+    // Checking if session was found.
+    if (session_string)
+        return session_string + kScSessionIdStringPlusEqualsLength;
 
     return NULL;
 }

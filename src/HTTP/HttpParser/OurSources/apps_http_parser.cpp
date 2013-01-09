@@ -115,13 +115,13 @@ inline int OnHeaderValue(http_parser* p, const char *at, size_t length)
         case COOKIE_FIELD:
         {
             // Check if its an old session from a different socket.
-            const char* session_id_value = GetSessionIdValue(at, length);
+            const char* session_id_value_string = GetSessionIdValueString(at, length);
 
             // Checking if Starcounter session id is presented.
-            if (session_id_value)
+            if (session_id_value_string)
             {
                 // Setting the session offset.
-                http->http_request_->session_string_offset_ = (uint32_t)(session_id_value - (char*)http->request_buf_);
+                http->http_request_->session_string_offset_ = (uint32_t)(session_id_value_string - (char*)http->request_buf_);
                 http->http_request_->session_string_len_bytes_ = SC_SESSION_STRING_LEN_CHARS;
             }
 

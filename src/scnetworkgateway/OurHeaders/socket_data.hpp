@@ -55,6 +55,9 @@ class SocketDataChunk
     // Socket to which this data belongs.
     SOCKET sock_;
 
+    // Unique number for socket.
+    session_salt_type unique_socket_id_;
+
     // Receive flags.
     uint32_t recv_flags_;
 
@@ -108,20 +111,34 @@ public:
     {
         uint8_t* sd = (uint8_t*) this;
 
-        assert((data_blob_ - sd) == SOCKET_DATA_BLOB_OFFSET_BYTES);
+        GW_ASSERT((data_blob_ - sd) == SOCKET_DATA_BLOB_OFFSET_BYTES);
 
-        assert(((uint8_t*)http_ws_proto_.get_http_request() - sd) == bmx::SOCKET_DATA_HTTP_REQUEST_OFFSET);
+        GW_ASSERT(((uint8_t*)http_ws_proto_.get_http_request() - sd) == bmx::SOCKET_DATA_HTTP_REQUEST_OFFSET);
 
-        assert(((uint8_t*)(&accum_buf_) - sd) == bmx::SOCKET_DATA_NUM_CLONE_BYTES);
+        GW_ASSERT(((uint8_t*)(&accum_buf_) - sd) == bmx::SOCKET_DATA_NUM_CLONE_BYTES);
 
-        assert(((uint8_t*)&num_chunks_ - sd) == bmx::SOCKET_DATA_NUM_CHUNKS_OFFSET);
+        GW_ASSERT(((uint8_t*)&num_chunks_ - sd) == bmx::SOCKET_DATA_NUM_CHUNKS_OFFSET);
 
-        assert(((uint8_t*)&max_user_data_bytes_ - sd) == (bmx::MAX_USER_DATA_BYTES_OFFSET - bmx::BMX_HEADER_MAX_SIZE_BYTES));
+        GW_ASSERT(((uint8_t*)&max_user_data_bytes_ - sd) == (bmx::MAX_USER_DATA_BYTES_OFFSET - bmx::BMX_HEADER_MAX_SIZE_BYTES));
 
-        assert(((uint8_t*)&user_data_written_bytes_ - sd) == (bmx::USER_DATA_WRITTEN_BYTES_OFFSET - bmx::BMX_HEADER_MAX_SIZE_BYTES));
+        GW_ASSERT(((uint8_t*)&user_data_written_bytes_ - sd) == (bmx::USER_DATA_WRITTEN_BYTES_OFFSET - bmx::BMX_HEADER_MAX_SIZE_BYTES));
 
         return 0;
     }
+
+#ifdef GW_SOCKET_ID_CHECK
+    // Setting new unique socket number.
+    void SetUniqueSocketId()
+    {
+        unique_socket_id_ = g_gateway.SetUniqueSocketId(sock_);
+    }
+
+    // Checking if unique socket number is correct.
+    bool CompareUniqueSocketId()
+    {
+        return g_gateway.CompareUniqueSocketId(sock_, unique_socket_id_);
+    }
+#endif
 
     // Returns all linked chunks except the main one.
     uint32_t ReturnExtraLinkedChunks(GatewayWorker* gw);
@@ -312,7 +329,7 @@ public:
     }
 
     // Getting session index.
-    uint32_t get_session_index()
+    session_index_type get_session_index()
     {
         return session_.gw_session_index_;
     }
@@ -329,6 +346,12 @@ public:
         return session_.apps_session_salt_;
     }
 
+    // Getting unique id.
+    session_salt_type get_unique_socket_id()
+    {
+        return unique_socket_id_;
+    }
+
     // Setting Apps unique session number.
     void set_apps_unique_session_num(apps_unique_session_num_type apps_unique_session_num)
     {
@@ -342,7 +365,7 @@ public:
     }
 
     // Getting session salt.
-    uint64_t get_session_salt()
+    session_salt_type get_session_salt()
     {
         return session_.gw_session_salt_;
     }
@@ -518,9 +541,21 @@ public:
     // Exchanges sockets during proxying.
     void ExchangeToProxySocket()
     {
+        // Getting corresponding proxy socket id.
+        session_salt_type proxy_unique_socket_id = g_gateway.GetUniqueSocketId(proxy_sock_);
+
+#ifdef GW_SOCKET_DIAG
+        GW_COUT << "Exchanging sockets: " << sock_ << "<->" << proxy_sock_ << " and ids " <<
+            unique_socket_id_ << "<->" << proxy_unique_socket_id << GW_ENDL;
+#endif
+
+        // Switching places with current and proxy socket.
         SOCKET tmp_sock = sock_;
         sock_ = proxy_sock_;
         proxy_sock_ = tmp_sock;
+
+        // Setting unique socket id.
+        unique_socket_id_ = proxy_unique_socket_id;
     }
 
     // Attaching to certain database.
@@ -539,20 +574,6 @@ public:
 
     // Resetting socket.
     void Reset();
-
-    // Does general data processing using port handlers.
-    uint32_t RunHandlers(GatewayWorker *gw, bool* is_handled)
-    {
-        // Checking if handler id is not determined yet.
-        if (bmx::INVALID_HANDLER_ID == fixed_handler_id_)
-        {
-            return g_gateway.get_server_port(port_index_)->get_port_handlers()->RunHandlers(gw, this, is_handled);
-        }
-        else // We have a determined handler id.
-        {
-            return g_gateway.GetDatabase(db_index_)->get_user_handlers()->get_handler_list(fixed_handler_id_)->RunHandlers(gw, this, is_handled);
-        }
-    }
 
     // Checking that database and corresponding port handler exists.
     bool ForceSocketDataValidity(GatewayWorker* gw);
@@ -654,6 +675,17 @@ public:
             SOCKADDR_SIZE_EXT,
             NULL,
             &ovl_);
+    }
+
+    // Setting SO_UPDATE_ACCEPT_CONTEXT.
+    uint32_t SetAcceptSocketOptions()
+    {
+        SOCKET listening_sock = g_gateway.get_server_port(port_index_)->get_listening_sock();
+
+        if (setsockopt(sock_, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char *)&listening_sock, sizeof(listening_sock)))
+            return SCERRGWACCEPTEXFAILED;
+
+        return 0;
     }
 
     // Start connecting on socket.

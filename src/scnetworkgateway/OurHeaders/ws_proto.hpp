@@ -105,11 +105,11 @@ public:
         sub_protocol_len_ = 0;
     }
 
-    uint32_t ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id);
+    uint32_t ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id);
 
-    uint32_t ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id);
+    uint32_t ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id);
 
-    uint32_t DoHandshake(GatewayWorker *gw, SocketDataChunk *sd);
+    uint32_t DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd);
 
     void MaskUnMask(int32_t payloadLen, uint64_t mask, uint64_t *data);
 

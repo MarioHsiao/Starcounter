@@ -18,9 +18,11 @@ namespace network {
 Gateway g_gateway;
 
 // Logging system.
+/*
 TeeLogStream *g_cout = NULL;
 TeeDevice *g_log_tee = NULL;
 std::ofstream *g_log_stream = NULL;
+*/
 
 // Pointers to extended WinSock functions.
 LPFN_ACCEPTEX AcceptExFunc = NULL;
@@ -44,6 +46,166 @@ std::string GetOperTypeString(SocketOperType typeOfOper)
     }
     return "ERROR_SOCKET_OPER";
 }
+
+// Writing to log once object is destroyed.
+ThreadSafeCout::~ThreadSafeCout()
+{
+#ifdef GW_LOGGING_ON
+
+    std::string str = ss.str();
+    g_gateway.get_gw_log_writer()->WriteToLog(str.c_str(), str.length());
+
+#endif
+}
+
+void GatewayLogWriter::Init(std::wstring& log_file_path)
+{
+    log_write_pos_ = 0;
+
+    log_read_pos_ = 0;
+
+    accum_length_ = 0;
+
+    InitializeCriticalSection(&write_lock_);
+
+    // Opening log file for writes.
+    log_file_handle_ = CreateFile(
+        (log_file_path + L"_new").c_str(),
+        GENERIC_WRITE,
+        FILE_SHARE_READ,
+        NULL,
+        OPEN_ALWAYS,
+        FILE_ATTRIBUTE_NORMAL,
+        NULL);
+
+    GW_ASSERT(INVALID_HANDLE_VALUE != log_file_handle_);
+
+    // Seeking to the end of file.
+    DWORD file_ptr = SetFilePointer(
+        log_file_handle_,
+        NULL,
+        NULL,
+        FILE_END
+        );
+
+    GW_ASSERT(INVALID_SET_FILE_POINTER != file_ptr);
+}
+
+// Writes given string to log buffer.
+#ifdef GW_LOGGING_ON
+void GatewayLogWriter::WriteToLog(const char* text, int32_t text_len)
+{
+    EnterCriticalSection(&write_lock_);
+
+#ifdef GW_LOG_TO_FILE
+
+    int32_t left_space = GW_LOG_BUFFER_SIZE - log_write_pos_;
+
+    // Checking if text fits in the buffer.
+    if (text_len <= left_space)
+    {
+        memcpy(log_buf_ + log_write_pos_, text, text_len);
+        log_write_pos_ += text_len;
+    }
+    // Checking if we should write to the beginning.
+    else if (left_space == 0)
+    {
+        memcpy(log_buf_, text, text_len);
+        log_write_pos_ = text_len;
+    }
+    // Splitted write.
+    else
+    {
+        memcpy(log_buf_ + log_write_pos_, text, left_space);
+        memcpy(log_buf_, text + left_space, text_len - left_space);
+        log_write_pos_ = text_len - left_space;
+    }
+
+    // Adjusting accumulated log size.
+    accum_length_ += text_len;
+    GW_ASSERT(accum_length_ < GW_LOG_BUFFER_SIZE);
+
+#endif
+
+    // Printing everything to console as well.
+#ifdef GW_LOG_TO_CONSOLE
+    std::cout << text;
+#endif
+
+    LeaveCriticalSection(&write_lock_);
+}
+
+// Dump accumulated logs in buffer to file.
+void GatewayLogWriter::DumpToLogFile()
+{
+    if (log_write_pos_ == log_read_pos_)
+        return;
+
+    // Saving current write position of log.
+    int32_t log_write_pos = log_write_pos_;
+    int32_t num_bytes_to_write;
+    BOOL err_code;
+
+    // Simplest case when writes are linear in log buffer.
+    if (log_write_pos > log_read_pos_)
+    {
+        num_bytes_to_write = log_write_pos - log_read_pos_;
+
+        err_code = WriteFile(
+            log_file_handle_,
+            log_buf_ + log_read_pos_,
+            num_bytes_to_write,
+            NULL,
+            NULL
+            );
+
+        GW_ASSERT(TRUE == err_code);
+    }
+    else
+    {
+        num_bytes_to_write = GW_LOG_BUFFER_SIZE - log_read_pos_;
+
+        if (num_bytes_to_write)
+        {
+            // Write log_read_pos_ to LOG_BUFFER_SIZE.
+            err_code = WriteFile(
+                log_file_handle_,
+                log_buf_ + log_read_pos_,
+                num_bytes_to_write,
+                NULL,
+                NULL
+                );
+
+            GW_ASSERT(TRUE == err_code);
+        }
+
+        num_bytes_to_write = log_write_pos;
+
+        if (num_bytes_to_write)
+        {
+            // Write 0 to log_write_pos.
+            err_code = WriteFile(
+                log_file_handle_,
+                log_buf_,
+                num_bytes_to_write,
+                NULL,
+                NULL
+                );
+
+            GW_ASSERT(TRUE == err_code);
+        }
+
+        num_bytes_to_write =  GW_LOG_BUFFER_SIZE - log_read_pos_ + log_write_pos;
+    }
+
+    // Shifting log read position.
+    log_read_pos_ = log_write_pos;
+
+    // Adjusting accumulated log size.
+    accum_length_ -= num_bytes_to_write;
+    GW_ASSERT(accum_length_ >= 0);
+}
+#endif
 
 Gateway::Gateway()
 {
@@ -80,12 +242,17 @@ Gateway::Gateway()
     // No reverse proxies by default.
     num_reversed_proxies_ = 0;
 
+    // Starting linear unique socket with 0.
+    unique_socket_id_ = 0;
+
+    // Server address for testing.
     server_addr_ = NULL;
 
     // Initializing critical sections.
     InitializeCriticalSection(&cs_session_);
     InitializeCriticalSection(&cs_global_lock_);
     InitializeCriticalSection(&cs_sessions_cleanup_);
+    InitializeCriticalSection(&cs_statistics_);
 
     // Creating gateway handlers table.
     gw_handlers_ = new HandlersTable();
@@ -101,6 +268,13 @@ Gateway::Gateway()
 
     // First bind interface number.
     last_bind_interface_num_unsafe_ = 0;
+
+    // Resetting Starcounter log handle.
+    sc_log_handle_ = INVALID_LOG_HANDLE;
+
+    // Empty global statistics.
+    global_statistics_stream_ << "Empty string!";
+    memcpy(global_statistics_string_, kHttpStatsHeader, kHttpStatsHeaderLength);
 
 #ifdef GW_TESTING_MODE
 
@@ -132,17 +306,25 @@ Gateway::Gateway()
 // Reading command line arguments.
 // 1: Server type.
 // 2: Gateway configuration file path.
-// 3: Shared memory monitor logging directory path.
-uint32_t Gateway::ReadArguments(int argc, wchar_t* argv[])
+// 3: Starcounter server output directory path.
+uint32_t Gateway::ProcessArgumentsAndInitLog(int argc, wchar_t* argv[])
 {
     // Checking correct number of arguments.
     if (argc < 4)
     {
-        std::cout << "scnetworkgateway.exe [ServerTypeName] [PathToGatewayXmlConfig] [PathToMonitorOutputDirectory]" << std::endl;
-        std::cout << "Example: scnetworkgateway.exe personal \"c:\\github\\NetworkGateway\\src\\scripts\\server.xml\" \"c:\\github\\Orange\\bin\\Debug\\.db.output\"" << std::endl;
+        std::wcout << GW_PROGRAM_NAME << L".exe [ServerTypeName] [PathToGatewayXmlConfig] [PathToOutputDirectory]" << std::endl;
+        std::wcout << L"Example: " << GW_PROGRAM_NAME << L".exe personal \"c:\\github\\NetworkGateway\\src\\scripts\\server.xml\" \"c:\\github\\Level1\\bin\\Debug\\.db.output\"" << std::endl;
 
         return SCERRGWWRONGARGS;
     }
+
+    // Reading the Starcounter log directory.
+    setting_output_dir_ = argv[3];
+
+    // Opening Starcounter log.
+    uint32_t err_code = g_gateway.OpenStarcounterLog();
+    if (err_code)
+        return err_code;
 
     // Converting Starcounter server type to narrow char.
     char temp[128];
@@ -159,8 +341,8 @@ uint32_t Gateway::ReadArguments(int argc, wchar_t* argv[])
         ::toupper);
 
     setting_config_file_path_ = argv[2];
-    setting_log_file_dir_ = argv[3];
-    setting_log_file_dir_ += L"\\network_gateway";
+
+    std::wstring setting_log_file_dir_ = setting_output_dir_ + L"\\" + GW_PROGRAM_NAME;
 
     // Trying to create network gateway log directory.
     if ((!CreateDirectory(setting_log_file_dir_.c_str(), NULL)) &&
@@ -171,8 +353,13 @@ uint32_t Gateway::ReadArguments(int argc, wchar_t* argv[])
         return SCERRGWCANTCREATELOGDIR;
     }
 
+    // Obtaining full path to log directory.
+    wchar_t log_file_dir_full[1024];
+    DWORD num_copied_chars = GetFullPathName(setting_log_file_dir_.c_str(), 1024, log_file_dir_full, NULL);
+    GW_ASSERT(num_copied_chars != 0);
+
     // Full path to gateway log file.
-    setting_log_file_path_ = setting_log_file_dir_ + L"\\network_gateway.log";
+    setting_log_file_path_ = std::wstring(log_file_dir_full) + L"\\" + GW_PROGRAM_NAME + L".log";
 
     // Deleting old log file first.
     DeleteFile(setting_log_file_path_.c_str());
@@ -183,6 +370,8 @@ uint32_t Gateway::ReadArguments(int argc, wchar_t* argv[])
 // Initializes server socket.
 void ServerPort::Init(int32_t port_index, uint16_t port_number, SOCKET listening_sock, int32_t blob_user_data_offset)
 {
+    GW_ASSERT((port_index >= 0) && (port_index < MAX_PORTS_NUM));
+
     // Allocating needed tables.
     port_handlers_ = new PortHandlers();
     registered_uris_ = new RegisteredUris();
@@ -229,6 +418,10 @@ void ServerPort::EraseDb(int32_t db_index)
 // Checking if port is unused by any database.
 bool ServerPort::IsEmpty()
 {
+    // Checks port index first.
+    if (INVALID_PORT_INDEX == port_index_)
+        return true;
+
     // Checking port handlers.
     if (port_handlers_ && (!port_handlers_->IsEmpty()))
         return false;
@@ -244,7 +437,7 @@ bool ServerPort::IsEmpty()
 #ifdef GW_COLLECT_SOCKET_STATISTICS
 
     // Checking connections.
-    if (g_gateway.NumberOfActiveConnectionsPerPort(port_number_))
+    if (NumberOfActiveConnections())
         return false;
 
 #endif
@@ -271,7 +464,7 @@ void ServerPort::Erase()
         if (closesocket(listening_sock_))
         {
 #ifdef GW_ERRORS_DIAG
-            GW_COUT << "closesocket() failed." << std::endl;
+            GW_COUT << "closesocket() failed." << GW_ENDL;
 #endif
             PrintLastError();
         }
@@ -296,7 +489,7 @@ void ServerPort::Erase()
         registered_subports_ = NULL;
     }
 
-    port_number_ = 0;
+    port_number_ = INVALID_PORT_NUMBER;
     blob_user_data_offset_ = -1;
     port_index_ = INVALID_PORT_INDEX;
 
@@ -364,6 +557,9 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     // Getting inactive session timeout.
     setting_inactive_session_timeout_seconds_ = atoi(rootElem->first_node("InactiveSessionTimeout")->value());
 
+    // Getting gateway statistics port.
+    setting_gw_stats_port_ = (uint16_t)atoi(rootElem->first_node("GatewayStatisticsPort")->value());
+
     // Just enforcing minimum session timeout multiplier.
     if ((setting_inactive_session_timeout_seconds_ % SESSION_LIFETIME_MULTIPLIER) != 0)
         return SCERRGWWRONGMAXIDLESESSIONLIFETIME;
@@ -387,7 +583,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
 
     // Number of connections to establish to master.
     setting_num_connections_to_master_ = atoi(rootElem->first_node("NumConnectionsToMaster")->value());
-    assert((setting_num_connections_to_master_ % (setting_num_workers_ * ACCEPT_ROOF_STEP_SIZE)) == 0);
+    GW_ASSERT((setting_num_connections_to_master_ % (setting_num_workers_ * ACCEPT_ROOF_STEP_SIZE)) == 0);
     setting_num_connections_to_master_per_worker_ = setting_num_connections_to_master_ / setting_num_workers_;
 
     // Number of echoes to send to master node from clients.
@@ -457,9 +653,11 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
 #endif
 
     // Creating double output object.
+    /*
     g_log_stream = new std::ofstream(setting_log_file_path_, std::ios::out | std::ios::app);
     g_log_tee = new TeeDevice(std::cout, *g_log_stream);
     g_cout = new TeeLogStream(*g_log_tee);
+    */
 
     // Predefined ports constants.
     PortType portTypes[NUM_PREDEFINED_PORT_TYPES] = { HTTP_PORT, HTTPS_PORT, WEBSOCKETS_PORT, GENSOCKETS_PORT, AGGREGATION_PORT };
@@ -475,7 +673,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         if (portNumbers[i] <= 0)
             continue;
 
-        GW_COUT << portNames[i] << ": " << portNumbers[i] << std::endl;
+        GW_COUT << portNames[i] << ": " << portNumbers[i] << GW_ENDL;
 
         // Checking if several protocols are on the same port.
         int32_t samePortIndex = INVALID_PORT_INDEX;
@@ -534,9 +732,9 @@ uint32_t Gateway::AssertCorrectState()
         goto FAILED;
 
     // Checking overall gateway stuff.
-    assert(sizeof(ScSessionStruct) == bmx::SESSION_STRUCT_SIZE);
+    GW_ASSERT(sizeof(ScSessionStruct) == bmx::SESSION_STRUCT_SIZE);
 
-    assert(sizeof(ScSessionStructPlus) == 64);
+    GW_ASSERT(sizeof(ScSessionStructPlus) == 64);
 
     return 0;
 
@@ -553,7 +751,7 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
     sock = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
     if (sock == INVALID_SOCKET)
     {
-        GW_COUT << "WSASocket() failed." << std::endl;
+        GW_COUT << "WSASocket() failed." << GW_ENDL;
         return PrintLastError();
     }
 
@@ -566,7 +764,7 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
     HANDLE temp = CreateIoCompletionPort((HANDLE) sock, iocp, 0, setting_num_workers_);
     if (temp != iocp)
     {
-        GW_COUT << "Wrong IOCP returned when adding reference." << std::endl;
+        GW_COUT << "Wrong IOCP returned when adding reference." << GW_ENDL;
         return PrintLastError();
     }
 
@@ -583,14 +781,14 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
     // Binding socket to certain interface and port.
     if (bind(sock, (SOCKADDR*) &binding_addr, sizeof(binding_addr)))
     {
-        GW_COUT << "Failed to bind server port " << port_num << std::endl;
+        GW_COUT << "Failed to bind server port " << port_num << GW_ENDL;
         return PrintLastError();
     }
 
     // Listening to connections.
     if (listen(sock, SOMAXCONN))
     {
-        GW_COUT << "Error listening on server socket." << std::endl;
+        GW_COUT << "Error listening on server socket." << GW_ENDL;
         return PrintLastError();
     }
 
@@ -727,7 +925,7 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
         {
 
 #ifdef GW_DATABASES_DIAG
-            GW_PRINT_GLOBAL << "Attaching a new database: " << current_db_name << std::endl;
+            GW_PRINT_GLOBAL << "Attaching a new database: " << current_db_name << GW_ENDL;
 #endif
 
             // Entering global lock.
@@ -871,6 +1069,29 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
 
 #endif
 
+#ifdef GW_GLOBAL_STATISTICS
+
+            // Registering URI handler for gateway statistics.
+            err_code = AddUriHandler(
+                &gw_workers_[0],
+                gw_handlers_,
+                setting_gw_stats_port_,
+                "/",
+                1,
+                bmx::HTTP_METHODS::OTHER_METHOD,
+                bmx::INVALID_HANDLER_ID,
+                empty_db_index,
+                GatewayStatisticsInfo);
+
+            if (err_code)
+            {
+                // Leaving global lock.
+                LeaveGlobalLock();
+
+                return err_code;
+            }
+#endif
+
             // Leaving global lock.
             LeaveGlobalLock();
 
@@ -886,7 +1107,7 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
         if ((db_did_go_down_[s]) && (!active_databases_[s].IsDeletionStarted()))
         {
 #ifdef GW_DATABASES_DIAG
-            GW_PRINT_GLOBAL << "Start detaching dead database: " << active_databases_[s].db_name() << std::endl;
+            GW_PRINT_GLOBAL << "Start detaching dead database: " << active_databases_[s].db_name() << GW_ENDL;
 #endif
 
             // Entering global lock.
@@ -949,12 +1170,6 @@ void ActiveDatabase::Init(std::string db_name, uint64_t unique_num, int32_t db_i
 bool ActiveDatabase::IsAllPushChannelsConfirmed()
 {
     return (num_confirmed_push_channels_ >= g_gateway.get_num_schedulers());
-}
-
-// Destructor.
-ActiveDatabase::~ActiveDatabase()
-{
-    StartDeletion();
 }
 
 // Checks if this database slot empty.
@@ -1023,7 +1238,7 @@ void ActiveDatabase::CloseSocketData()
             if (closesocket(s))
             {
 #ifdef GW_ERRORS_DIAG
-                GW_COUT << "closesocket() failed." << std::endl;
+                GW_COUT << "closesocket() failed." << GW_ENDL;
 #endif
                 PrintLastError();
             }
@@ -1035,14 +1250,14 @@ void ActiveDatabase::CloseSocketData()
 uint32_t Gateway::Init()
 {
     // Checking if already initialized.
-    assert ((gw_workers_ == NULL) && (worker_thread_handles_ == NULL));
+    GW_ASSERT((gw_workers_ == NULL) && (worker_thread_handles_ == NULL));
 
     // Initialize WinSock.
     WSADATA wsaData = { 0 };
     int32_t errCode = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (errCode != 0)
     {
-        GW_COUT << "WSAStartup() failed: " << errCode << std::endl;
+        GW_COUT << "WSAStartup() failed: " << errCode << GW_ENDL;
         return errCode;
     }
 
@@ -1054,7 +1269,7 @@ uint32_t Gateway::Init()
     iocp_ = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, setting_num_workers_);
     if (iocp_ == NULL)
     {
-        GW_COUT << "Failed to create IOCP." << std::endl;
+        GW_COUT << "Failed to create IOCP." << GW_ENDL;
         return PrintLastError();
     }
 
@@ -1091,31 +1306,34 @@ uint32_t Gateway::Init()
     SOCKET tempSocket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
     if (tempSocket == INVALID_SOCKET)
     {
-        GW_COUT << "WSASocket() failed." << std::endl;
+        GW_COUT << "WSASocket() failed." << GW_ENDL;
         return PrintLastError();
     }
 
     if (WSAIoctl(tempSocket, SIO_GET_EXTENSION_FUNCTION_POINTER, &AcceptExGuid, sizeof(AcceptExGuid), &AcceptExFunc, sizeof(AcceptExFunc), (LPDWORD)&temp, NULL, NULL))
     {
-        GW_COUT << "Failed WSAIoctl(AcceptEx)." << std::endl;
+        GW_COUT << "Failed WSAIoctl(AcceptEx)." << GW_ENDL;
         return PrintLastError();
     }
 
     if (WSAIoctl(tempSocket, SIO_GET_EXTENSION_FUNCTION_POINTER, &ConnectExGuid, sizeof(ConnectExGuid), &ConnectExFunc, sizeof(ConnectExFunc), (LPDWORD)&temp, NULL, NULL))
     {
-        GW_COUT << "Failed WSAIoctl(ConnectEx)." << std::endl;
+        GW_COUT << "Failed WSAIoctl(ConnectEx)." << GW_ENDL;
         return PrintLastError();
     }
 
     if (WSAIoctl(tempSocket, SIO_GET_EXTENSION_FUNCTION_POINTER, &DisconnectExGuid, sizeof(DisconnectExGuid), &DisconnectExFunc, sizeof(DisconnectExFunc), (LPDWORD)&temp, NULL, NULL))
     {
-        GW_COUT << "Failed WSAIoctl(DisconnectEx)." << std::endl;
+        GW_COUT << "Failed WSAIoctl(DisconnectEx)." << GW_ENDL;
         return PrintLastError();
     }
     closesocket(tempSocket);
 
     // Global HTTP init.
     HttpGlobalInit();
+
+    // Initializing Gateway logger.
+    gw_log_writer_.Init(setting_log_file_path_);
 
 #ifdef GW_TESTING_MODE
 
@@ -1133,13 +1351,13 @@ uint32_t Gateway::Init()
 
     // Indicating that network gateway is ready
     // (should be first line of the output).
-    GW_COUT << "Gateway is ready!" << std::endl;
+    GW_COUT << "Gateway is ready!" << GW_ENDL;
 
     // Indicating begin of new logging session.
     time_t rawtime;
     time(&rawtime);
     tm *timeinfo = localtime(&rawtime);
-    GW_PRINT_GLOBAL << "New logging session: " << asctime(timeinfo) << std::endl;
+    GW_PRINT_GLOBAL << "New logging session: " << asctime(timeinfo) << GW_ENDL;
 
     return 0;
 }
@@ -1180,7 +1398,7 @@ uint32_t Gateway::InitSharedMemory(std::string setting_databaseName,
         the_owner_id, 10000/*ms*/)) != 0)
     {
         // Failed to register this client process pid.
-        GW_COUT << "Can't register client process, error code: " << error_code << std::endl;
+        GW_COUT << "Can't register client process, error code: " << error_code << GW_ENDL;
         return error_code;
     }
 
@@ -1189,7 +1407,7 @@ uint32_t Gateway::InitSharedMemory(std::string setting_databaseName,
     {
         // Cannot open the database shared memory segment, because it is not
         // initialized yet.
-        GW_COUT << "Cannot open the database shared memory segment!" << std::endl;
+        GW_COUT << "Cannot open the database shared memory segment!" << GW_ENDL;
     }
 
     // Name of the database shared memory segment.
@@ -1208,10 +1426,38 @@ uint32_t Gateway::InitSharedMemory(std::string setting_databaseName,
     if (num_schedulers_ == 0)
     {
         num_schedulers_ = sharedInt[0].common_scheduler_interface().number_of_active_schedulers();
-        GW_PRINT_GLOBAL << "Number of active schedulers: " << num_schedulers_ << std::endl;
+        GW_PRINT_GLOBAL << "Number of active schedulers: " << num_schedulers_ << GW_ENDL;
     }
 
     return 0;
+}
+
+// Current global statistics value.
+const char* Gateway::GetGlobalStatisticsString(int32_t* out_len)
+{
+    *out_len = 0;
+
+    EnterCriticalSection(&cs_statistics_);
+
+    // Getting number of written characters.
+    int32_t n = global_statistics_stream_.tellp();
+    GW_ASSERT(n < MAX_STATS_LENGTH);
+    *out_len = kHttpStatsHeaderLength + n;
+
+    // Copying characters from stream to given buffer.
+    global_statistics_stream_.seekg(0);
+    global_statistics_stream_.rdbuf()->sgetn(global_statistics_string_ + kHttpStatsHeaderLength, n);
+    global_statistics_string_[kHttpStatsHeaderLength + n] = '\0';
+
+    // Making length a white space.
+    *(uint64_t*)(global_statistics_string_ + kHttpStatsHeaderInsertPoint) = 0x2020202020202020;
+    
+    // Converting body length to string.
+    WriteUIntToString(global_statistics_string_ + kHttpStatsHeaderInsertPoint, n);
+
+    LeaveCriticalSection(&cs_statistics_);
+
+    return global_statistics_string_;
 }
 
 // Check and wait for global lock.
@@ -1410,25 +1656,25 @@ void Gateway::WakeUpAllWorkers()
 }
 
 // Entry point for monitoring databases thread.
-uint32_t __stdcall MonitorDatabasesRoutine(LPVOID params)
+uint32_t __stdcall MonitorDatabases(LPVOID params)
 {
     uint32_t err_code = 0;
 
     // Creating path to IPC monitor directory active databases.
-    std::wstring active_databases_dir = g_gateway.get_setting_log_file_dir() + L"\\..\\"+ W_DEFAULT_MONITOR_DIR_NAME + L"\\" + W_DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME + L"\\";
+    std::wstring active_databases_dir = g_gateway.get_setting_output_dir() + L"\\"+ W_DEFAULT_MONITOR_DIR_NAME + L"\\" + W_DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME + L"\\";
 
     // Obtaining full path to IPC monitor directory.
     wchar_t active_databases_dir_full[1024];
     if (!GetFullPathName(active_databases_dir.c_str(), 1024, active_databases_dir_full, NULL))
     {
-        GW_PRINT_GLOBAL << "Can't obtain full path for IPC monitor output directory: " << PrintLastError() << std::endl;
+        GW_PRINT_GLOBAL << "Can't obtain full path for IPC monitor output directory: " << PrintLastError() << GW_ENDL;
         return SCERRGWPATHTOIPCMONITORDIR;
     }
 
     // Waiting until active databases directory is up.
     while (GetFileAttributes(active_databases_dir_full) == INVALID_FILE_ATTRIBUTES)
     {
-        GW_PRINT_GLOBAL << "Please start the IPC monitor process first!" << std::endl;
+        GW_PRINT_GLOBAL << "Please start the IPC monitor process first!" << GW_ENDL;
         Sleep(500);
     }
 
@@ -1440,7 +1686,7 @@ uint32_t __stdcall MonitorDatabasesRoutine(LPVOID params)
     HANDLE dir_changes_hook_handle = FindFirstChangeNotification(active_databases_dir_full, FALSE, FILE_NOTIFY_CHANGE_LAST_WRITE);
     if ((INVALID_HANDLE_VALUE == dir_changes_hook_handle) || (NULL == dir_changes_hook_handle))
     {
-        GW_PRINT_GLOBAL << "Can't listen for active databases directory changes: " << PrintLastError() << std::endl;
+        GW_PRINT_GLOBAL << "Can't listen for active databases directory changes: " << PrintLastError() << GW_ENDL;
         FindCloseChangeNotification(dir_changes_hook_handle);
 
         return SCERRGWACTIVEDBLISTENPROBLEM;
@@ -1450,7 +1696,7 @@ uint32_t __stdcall MonitorDatabasesRoutine(LPVOID params)
     {
         // Waiting infinitely on directory changes.
         DWORD wait_status = WaitForSingleObject(dir_changes_hook_handle, INFINITE);
-        GW_PRINT_GLOBAL << "Changes in active databases directory detected." << std::endl;
+        GW_PRINT_GLOBAL << "Changes in active databases directory detected." << GW_ENDL;
 
         switch (wait_status)
         {
@@ -1469,7 +1715,7 @@ uint32_t __stdcall MonitorDatabasesRoutine(LPVOID params)
                 // handle the next time it detects an appropriate change.
                 if (FindNextChangeNotification(dir_changes_hook_handle) == FALSE)
                 {
-                    GW_PRINT_GLOBAL << "Failed to find next change notification on monitor active databases directory: " << PrintLastError() << std::endl;
+                    GW_PRINT_GLOBAL << "Failed to find next change notification on monitor active databases directory: " << PrintLastError() << GW_ENDL;
                     FindCloseChangeNotification(dir_changes_hook_handle);
 
                     return SCERRGWFAILEDFINDNEXTCHANGENOTIFICATION;
@@ -1480,7 +1726,7 @@ uint32_t __stdcall MonitorDatabasesRoutine(LPVOID params)
 
             default:
             {
-                GW_PRINT_GLOBAL << "Error listening for active databases directory changes: " << PrintLastError() << std::endl;
+                GW_PRINT_GLOBAL << "Error listening for active databases directory changes: " << PrintLastError() << GW_ENDL;
                 FindCloseChangeNotification(dir_changes_hook_handle);
 
                 return SCERRGWACTIVEDBLISTENPROBLEM;
@@ -1492,23 +1738,49 @@ uint32_t __stdcall MonitorDatabasesRoutine(LPVOID params)
 }
 
 // Entry point for gateway worker.
+uint32_t __stdcall MonitorDatabasesRoutine(LPVOID params)
+{
+    // Catching all unhandled exceptions in this thread.
+    GW_SC_BEGIN_FUNC
+
+    return MonitorDatabases(params);
+
+    // Catching all unhandled exceptions in this thread.
+    GW_SC_END_FUNC
+}
+
+// Entry point for gateway worker.
 uint32_t __stdcall GatewayWorkerRoutine(LPVOID params)
 {
+    // Catching all unhandled exceptions in this thread.
+    GW_SC_BEGIN_FUNC
+
     return ((GatewayWorker *)params)->WorkerRoutine();
+
+    // Catching all unhandled exceptions in this thread.
+    GW_SC_END_FUNC
 }
 
 // Entry point for channels events monitor.
 uint32_t __stdcall AllDatabasesChannelsEventsMonitorRoutine(LPVOID params)
 {
-    /*while (1)
+    // Catching all unhandled exceptions in this thread.
+    GW_SC_BEGIN_FUNC
+
+    while (true)
     {
+        Sleep(100000);
+
         for (int32_t i = 0; i < g_gateway.get_num_dbs_slots(); i++)
         {
 
         }
-    }*/
+    }
 
     return 0;
+
+    // Catching all unhandled exceptions in this thread.
+    GW_SC_END_FUNC
 }
 
 // Cleans up all collected inactive sessions.
@@ -1538,11 +1810,33 @@ uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
                 // Pushing dead session message to all databases.
                 for (int32_t d = 0; d < num_dbs_slots_; d++)
                 {
-                    WorkerDbInterface *db = gw->GetWorkerDb(d);
-                    if (NULL != db)
+                    ActiveDatabase* global_db = g_gateway.GetDatabase(d);
+
+                    // Checking if database was already deleted.
+                    if (global_db->IsDeletionStarted())
+                        continue;
+
+                    WorkerDbInterface *worker_db = gw->GetWorkerDb(d);
+
+                    // Checking if database was already deleted.
+                    if (!worker_db)
+                        continue;
+
+                    // Getting and checking Apps unique session number.
+                    apps_unique_session_num_type apps_unique_session_num = global_db->GetAppsUniqueSessionNumber(global_session_copy.gw_session_index_);
+
+                    // Checking if Apps session information is correct.
+                    if (apps_unique_session_num != INVALID_APPS_UNIQUE_SESSION_NUMBER)
                     {
+                        // Getting Apps session salt.
+                        session_salt_type apps_session_salt = global_db->GetAppsSessionSalt(global_session_copy.gw_session_index_);
+
                         // Sending session destroyed message.
-                        err_code = db->PushDeadSession(global_session_copy);
+                        err_code = worker_db->PushDeadSession(
+                            apps_unique_session_num,
+                            apps_session_salt,
+                            global_session_copy.scheduler_id_);
+
                         if (err_code)
                         {
                             LeaveCriticalSection(&cs_sessions_cleanup_);
@@ -1552,7 +1846,8 @@ uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
                 }
 
 #ifdef GW_SESSIONS_DIAG
-                std::cout << "Inactive session " << global_session_copy.gw_session_index_ << ":" << global_session_copy.gw_session_salt_ << " was destroyed." << std::endl;
+                GW_COUT << "Inactive session " << global_session_copy.gw_session_index_ << ":"
+                    << global_session_copy.gw_session_salt_ << " was destroyed." << GW_ENDL;
 #endif
             }
         }
@@ -1561,7 +1856,7 @@ uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
         num_sessions_to_cleanup_unsafe_--;
     }
 
-    assert(0 == num_sessions_to_cleanup_unsafe_);
+    GW_ASSERT(0 == num_sessions_to_cleanup_unsafe_);
 
     LeaveCriticalSection(&cs_sessions_cleanup_);
 
@@ -1577,7 +1872,7 @@ uint32_t Gateway::CollectInactiveSessions()
 
     EnterCriticalSection(&cs_sessions_cleanup_);
 
-    assert(0 == num_sessions_to_cleanup_unsafe_);
+    GW_ASSERT(0 == num_sessions_to_cleanup_unsafe_);
 
     int32_t num_inactive = 0;
 
@@ -1591,6 +1886,10 @@ uint32_t Gateway::CollectInactiveSessions()
             sessions_to_cleanup_unsafe_[num_inactive] = i;
             ++num_inactive;
         }
+
+        // Checking if we have checked all active sessions.
+        if (num_inactive >= num_active_sessions_unsafe_)
+            break;
     }
 
     num_sessions_to_cleanup_unsafe_ = num_inactive;
@@ -1609,7 +1908,10 @@ uint32_t Gateway::CollectInactiveSessions()
 // Entry point for inactive sessions cleanup.
 uint32_t __stdcall InactiveSessionsCleanupRoutine(LPVOID params)
 {
-    while (1)
+    // Catching all unhandled exceptions in this thread.
+    GW_SC_BEGIN_FUNC
+
+    while (true)
     {
         // Sleeping minimum interval.
         Sleep(g_gateway.get_min_inactive_session_life_seconds() * 1000);
@@ -1622,6 +1924,44 @@ uint32_t __stdcall InactiveSessionsCleanupRoutine(LPVOID params)
     }
 
     return 0;
+
+    // Catching all unhandled exceptions in this thread.
+    GW_SC_END_FUNC
+}
+
+// Entry point for Gateway logging routine.
+uint32_t __stdcall GatewayLoggingRoutine(LPVOID params)
+{
+    // Catching all unhandled exceptions in this thread.
+    GW_SC_BEGIN_FUNC
+
+    while (true)
+    {
+        // Sleeping some interval.
+        Sleep(5000);
+
+        // Dumping to gateway log file (if anything new was logged).
+#ifdef GW_LOG_TO_FILE
+        g_gateway.get_gw_log_writer()->DumpToLogFile();
+#endif
+    }
+
+    return 0;
+
+    // Catching all unhandled exceptions in this thread.
+    GW_SC_END_FUNC
+}
+
+// Entry point for all threads monitor routine.
+uint32_t __stdcall AllThreadsMonitorRoutine(LPVOID params)
+{
+    // Catching all unhandled exceptions in this thread.
+    GW_SC_BEGIN_FUNC
+
+    return g_gateway.AllThreadsMonitor();
+
+    // Catching all unhandled exceptions in this thread.
+    GW_SC_END_FUNC
 }
 
 // Cleaning up all global resources.
@@ -1631,9 +1971,9 @@ uint32_t Gateway::GlobalCleanup()
     CloseHandle(iocp_);
 
     // Closing logging system.
-    delete g_cout;
-    delete g_log_tee;
-    delete g_log_stream;
+    //delete g_cout;
+    //delete g_log_tee;
+    //delete g_log_stream;
 
     // Cleanup WinSock.
     WSACleanup();
@@ -1642,6 +1982,60 @@ uint32_t Gateway::GlobalCleanup()
     DeleteCriticalSection(&cs_session_);
     DeleteCriticalSection(&cs_global_lock_);
     DeleteCriticalSection(&cs_sessions_cleanup_);
+    DeleteCriticalSection(&cs_statistics_);
+
+    // Closing the log.
+    CloseStarcounterLog();
+
+    return 0;
+}
+
+// Checks that all Gateway threads are alive.
+uint32_t Gateway::AllThreadsMonitor()
+{
+    while (1)
+    {
+        // Sleeping some interval.
+        Sleep(5000);
+
+        // Checking if workers are still running.
+        for (int32_t i = 0; i < setting_num_workers_; i++)
+        {
+            if (!WaitForSingleObject(worker_thread_handles_[i], 0))
+            {
+                GW_COUT << "Worker " << i << " is dead." << GW_ENDL;
+                return SCERRGWWORKERISDEAD;
+            }
+        }
+
+        // Checking if database monitor thread is alive.
+        if (!WaitForSingleObject(db_monitor_thread_handle_, 0))
+        {
+            GW_COUT << "Active databases monitor thread is dead." << GW_ENDL;
+            return SCERRGWDATABASEMONITORISDEAD;
+        }
+
+        // Checking if database channels events thread is alive.
+        if (!WaitForSingleObject(channels_events_thread_handle_, 0))
+        {
+            GW_COUT << "Channels events thread is dead." << GW_ENDL;
+            return SCERRGWCHANNELSEVENTSTHREADISDEAD;
+        }
+
+        // Checking if dead sessions cleanup thread is alive.
+        if (!WaitForSingleObject(dead_sessions_cleanup_thread_handle_, 0))
+        {
+            GW_COUT << "Dead sessions cleanup thread is dead." << GW_ENDL;
+            return SCERRGWSESSIONSCLEANUPTHREADISDEAD;
+        }
+
+        // Checking if gateway logging thread is alive.
+        if (!WaitForSingleObject(gateway_logging_thread_handle_, 0))
+        {
+            GW_COUT << "Gateway logging thread is dead." << GW_ENDL;
+            return SCERRGWGATEWAYLOGGINGTHREADISDEAD;
+        }
+    }
 
     return 0;
 }
@@ -1675,22 +2069,12 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         // Waiting some time for statistics updates.
         Sleep(1000);
 
-        // Checking if workers are still running.
-        for (int32_t i = 0; i < setting_num_workers_; i++)
+        // Checking that all gateway threads are alive.
+        if (!WaitForSingleObject(all_threads_monitor_handle_, 0))
         {
-            if (!WaitForSingleObject(worker_thread_handles_[i], 0))
-            {
-                GW_COUT << "Worker " << i << " is dead. Quiting..." << std::endl;
-                //getch();
-                return SCERRGWWORKERISDEAD;
-            }
-        }
+            GW_COUT << "Some of the gateway threads are dead. Exiting process." << GW_ENDL;
 
-        // Checking if database monitor thread is alive.
-        if (!WaitForSingleObject(db_monitor_thread_handle_, 0))
-        {
-            GW_COUT << "Active databases monitor thread is dead. Quiting..." << std::endl;
-            return SCERRGWDATABASEMONITORISDEAD;
+            ExitProcess(SCERRGWSOMETHREADDIED);
         }
 
         // Resetting new values.
@@ -1750,22 +2134,29 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
 
 #ifdef GW_GLOBAL_STATISTICS
 
+        EnterCriticalSection(&cs_statistics_);
+
+        // Emptying the statistics stream.
+        global_statistics_stream_.clear();
+        global_statistics_stream_.seekp(0);
+
         // Global statistics.
-        std::cout << "Global: " <<
+        global_statistics_stream_ << "Global: " <<
             "Active chunks " << g_gateway.NumberUsedChunksAllWorkersAndDatabases() <<
             ", active sessions " << g_gateway.get_num_active_sessions_unsafe() <<
             ", used sockets " << g_gateway.NumberUsedSocketsAllWorkersAndDatabases() <<
             ", reusable conn socks " << g_gateway.NumberOfReusableConnectSockets() <<
-            std::endl;
+            "<br>" << GW_ENDL;
 
         // Individual workers statistics.
         for (int32_t worker_id_ = 0; worker_id_ < setting_num_workers_; worker_id_++)
         {
-            std::cout << "[" << worker_id_ << "]: " <<
+            global_statistics_stream_ << "[" << worker_id_ << "]: " <<
                 "recv_bytes " << gw_workers_[worker_id_].get_worker_stats_bytes_received() <<
                 ", recv_times " << gw_workers_[worker_id_].get_worker_stats_recv_num() <<
                 ", sent_bytes " << gw_workers_[worker_id_].get_worker_stats_bytes_sent() <<
-                ", sent_times " << gw_workers_[worker_id_].get_worker_stats_sent_num() << std::endl;
+                ", sent_times " << gw_workers_[worker_id_].get_worker_stats_sent_num() <<
+                "<br>" << GW_ENDL;
         }
 
         // Printing handlers information for each attached database and gateway.
@@ -1773,7 +2164,7 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         {
             if (!server_ports_->IsEmpty())
             {
-                std::cout << "Port " << server_ports_[p].get_port_number() <<
+                global_statistics_stream_ << "Port " << server_ports_[p].get_port_number() <<
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
                     ": active conns " << server_ports_[p].NumberOfActiveConnections() <<
@@ -1785,17 +2176,24 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
                     ", alloc acc-socks " << server_ports_[p].get_num_allocated_accept_sockets() <<
                     ", alloc conn-socks " << server_ports_[p].get_num_allocated_connect_sockets() <<
 #endif                        
-                    std::endl;
+                    "<br>" << GW_ENDL;
             }
         }
 
         // Printing all workers stats.
-        std::cout << "All workers last sec " <<
+        global_statistics_stream_ << "All workers last sec " <<
             "recv_times " << diffRecvNumAllWorkers <<
             ", http_requests " << diffProcessedHttpRequestsAllWorkers <<
             ", recv_bandwidth " << recv_bandwidth_mbit_total << " mbit/sec" <<
             ", sent_times " << diffSentNumAllWorkers <<
-            ", send_bandwidth " << send_bandwidth_mbit_total << " mbit/sec" << std::endl << std::endl;
+            ", send_bandwidth " << send_bandwidth_mbit_total << " mbit/sec" <<
+            "<br>" << GW_ENDL;
+
+        LeaveCriticalSection(&cs_statistics_);
+
+        // Printing the statistics string.
+        //int32_t len;
+        //std::cout << GetGlobalStatisticsString(&len);
 #endif
 
     }
@@ -1808,7 +2206,9 @@ uint32_t Gateway::StartWorkerAndManagementThreads(
     LPTHREAD_START_ROUTINE workerRoutine,
     LPTHREAD_START_ROUTINE monitorDatabasesRoutine,
     LPTHREAD_START_ROUTINE channelsEventsMonitorRoutine,
-    LPTHREAD_START_ROUTINE deadSessionsCleanupRoutine)
+    LPTHREAD_START_ROUTINE deadSessionsCleanupRoutine,
+    LPTHREAD_START_ROUTINE gatewayLoggingRoutine,
+    LPTHREAD_START_ROUTINE allThreadsMonitorRoutine)
 {
     // Allocating threads-related data structures.
     uint32_t *workerThreadIds = new uint32_t[setting_num_workers_];
@@ -1826,7 +2226,7 @@ uint32_t Gateway::StartWorkerAndManagementThreads(
             (LPDWORD)&workerThreadIds[i]); // Returns the thread identifier.
 
         // Checking if threads are created.
-        assert(worker_thread_handles_[i] != NULL);
+        GW_ASSERT(worker_thread_handles_[i] != NULL);
     }
 
     uint32_t dbScanThreadId;
@@ -1840,6 +2240,9 @@ uint32_t Gateway::StartWorkerAndManagementThreads(
         0, // Use default creation flags.
         (LPDWORD)&dbScanThreadId); // Returns the thread identifier.
 
+    // Checking if thread is created.
+    GW_ASSERT(db_monitor_thread_handle_ != NULL);
+
     uint32_t channelsEventsThreadId;
 
     // Starting channels events monitor thread.
@@ -1851,16 +2254,48 @@ uint32_t Gateway::StartWorkerAndManagementThreads(
         0, // Use default creation flags.
         (LPDWORD)&channelsEventsThreadId); // Returns the thread identifier.
 
+    // Checking if thread is created.
+    GW_ASSERT(channels_events_thread_handle_ != NULL);
+
     uint32_t deadSessionsCleanupThreadId;
 
     // Starting dead sessions cleanup thread.
-    channels_events_thread_handle_ = CreateThread(
+    dead_sessions_cleanup_thread_handle_ = CreateThread(
         NULL, // Default security attributes.
         0, // Use default stack size.
         deadSessionsCleanupRoutine, // Thread function name.
         NULL, // Argument to thread function.
         0, // Use default creation flags.
         (LPDWORD)&deadSessionsCleanupThreadId); // Returns the thread identifier.
+
+    // Checking if thread is created.
+    GW_ASSERT(dead_sessions_cleanup_thread_handle_ != NULL);
+
+    uint32_t gatewayLogRoutineThreadId;
+
+    // Starting dead sessions cleanup thread.
+    gateway_logging_thread_handle_ = CreateThread(
+        NULL, // Default security attributes.
+        0, // Use default stack size.
+        gatewayLoggingRoutine, // Thread function name.
+        NULL, // Argument to thread function.
+        0, // Use default creation flags.
+        (LPDWORD)&gatewayLogRoutineThreadId); // Returns the thread identifier.
+
+    // Checking if thread is created.
+    GW_ASSERT(gateway_logging_thread_handle_ != NULL);
+
+    // Starting dead sessions cleanup thread.
+    all_threads_monitor_handle_ = CreateThread(
+        NULL, // Default security attributes.
+        0, // Use default stack size.
+        allThreadsMonitorRoutine, // Thread function name.
+        NULL, // Argument to thread function.
+        0, // Use default creation flags.
+        (LPDWORD)&gatewayLogRoutineThreadId); // Returns the thread identifier.
+
+    // Checking if thread is created.
+    GW_ASSERT(all_threads_monitor_handle_ != NULL);
 
     // Printing statistics.
     uint32_t err_code = g_gateway.StatisticsAndMonitoringRoutine();
@@ -1887,7 +2322,7 @@ int32_t Gateway::StartGateway()
     errCode = AssertCorrectState();
     if (errCode)
     {
-        GW_COUT << "Asserting correct state failed." << std::endl;
+        GW_COUT << "Asserting correct state failed." << GW_ENDL;
         return errCode;
     }
 
@@ -1895,7 +2330,7 @@ int32_t Gateway::StartGateway()
     errCode = LoadSettings(setting_config_file_path_);
     if (errCode)
     {
-        GW_COUT << "Loading configuration settings failed." << std::endl;
+        GW_COUT << "Loading configuration settings failed." << GW_ENDL;
         return errCode;
     }
 
@@ -1909,7 +2344,9 @@ int32_t Gateway::StartGateway()
         (LPTHREAD_START_ROUTINE)GatewayWorkerRoutine,
         (LPTHREAD_START_ROUTINE)MonitorDatabasesRoutine,
         (LPTHREAD_START_ROUTINE)AllDatabasesChannelsEventsMonitorRoutine,
-        (LPTHREAD_START_ROUTINE)InactiveSessionsCleanupRoutine);
+        (LPTHREAD_START_ROUTINE)InactiveSessionsCleanupRoutine,
+        (LPTHREAD_START_ROUTINE)GatewayLoggingRoutine,
+        (LPTHREAD_START_ROUTINE)AllThreadsMonitorRoutine);
 
     if (errCode)
         return errCode;
@@ -1928,8 +2365,8 @@ uint32_t Gateway::ShutdownTest(bool success)
     if (success)
     {
         // Test finished successfully, printing the results.
-        GW_COUT << "Echo test finished successfully!" << std::endl;
-        GW_COUT << "Average number of ops per second: " << GetAverageOpsPerSecond() << std::endl;
+        GW_COUT << "Echo test finished successfully!" << GW_ENDL;
+        GW_COUT << "Average number of ops per second: " << GetAverageOpsPerSecond() << GW_ENDL;
 
         if (is_on_build_server)
             ExitProcess(0);
@@ -1938,7 +2375,7 @@ uint32_t Gateway::ShutdownTest(bool success)
     }
 
     // This is a test failure.
-    GW_COUT << "ERROR with echo testing!" << std::endl;
+    GW_COUT << "ERROR with echo testing!" << GW_ENDL;
 
     if (is_on_build_server)
         ExitProcess(1);
@@ -2057,31 +2494,90 @@ uint32_t Gateway::AddSubPortHandler(
         db_index);
 }
 
+// Opens Starcounter log for writing.
+uint32_t Gateway::OpenStarcounterLog()
+{
+    uint32_t err_code = sccorelog_init(0);
+    if (err_code)
+        return err_code;
+
+    err_code = sccorelog_connect_to_logs(GW_PROGRAM_NAME, NULL, &sc_log_handle_);
+    if (err_code)
+        return err_code;
+
+    err_code = sccorelog_bind_logs_to_dir(sc_log_handle_, setting_output_dir_.c_str());
+    if (err_code)
+        return err_code;
+
+    return 0;
+}
+
+// Closes Starcounter log.
+void Gateway::CloseStarcounterLog()
+{
+    uint32_t err_code = sccorelog_release_logs(sc_log_handle_);
+
+    GW_ASSERT(0 == err_code);
+}
+
+// Write critical into log.
+void Gateway::LogWriteCritical(const wchar_t* msg)
+{
+    uint32_t err_code = sccorelog_kernel_write_to_logs(sc_log_handle_, SC_ENTRY_CRITICAL, msg);
+
+    GW_ASSERT(0 == err_code);
+
+    err_code = sccorelog_flush_to_logs(sc_log_handle_);
+
+    GW_ASSERT(0 == err_code);
+}
+
 } // namespace network
 } // namespace starcounter
 
+VOID SCAPI LogGatewayCrash(VOID *pc, LPCWSTR str)
+{
+    starcounter::network::g_gateway.LogWriteCritical(str);
+}
+
 int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 {
+    // Catching all unhandled exceptions in this thread.
+    GW_SC_BEGIN_FUNC
+
+    // Setting the critical log handler.
+    _SetCriticalLogHandler(LogGatewayCrash, NULL);
+
     using namespace starcounter::network;
     uint32_t err_code;
+
+    // Processing arguments and initializing log file.
+    err_code = g_gateway.ProcessArgumentsAndInitLog(argc, argv);
+    if (err_code)
+        return err_code;
+
+    //int32_t xxx = 0;
+    //int32_t yyy = 123 / xxx;
+    //GW_ASSERT(123 == 1);
 
     // Setting I/O as low priority.
     SetPriorityClass(GetCurrentProcess(), PROCESS_MODE_BACKGROUND_BEGIN);
 
-    // Reading arguments.
-    err_code = g_gateway.ReadArguments(argc, argv);
-    if (err_code) return err_code;
-
     // Stating the network gateway.
     err_code = g_gateway.StartGateway();
-    if (err_code) return err_code;
+    if (err_code)
+        return err_code;
 
     // Cleaning up resources.
     err_code = g_gateway.GlobalCleanup();
-    if (err_code) return err_code;
+    if (err_code)
+        return err_code;
 
-    GW_COUT << "Press any key to exit." << std::endl;
-    _getch();
+    //GW_COUT << "Press any key to exit." << GW_ENDL;
+    //_getch();
 
     return 0;
+
+    // Catching all unhandled exceptions in this thread.
+    GW_SC_END_FUNC
 }

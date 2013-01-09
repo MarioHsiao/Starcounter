@@ -134,14 +134,18 @@ uint32_t SocketDataChunk::ContinueAccumulation(GatewayWorker* gw, bool* is_accum
 // Clones existing socket data chunk for receiving.
 uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
 {
+    SocketDataChunk* sd_clone = NULL;
+    uint32_t err_code = gw->CreateSocketData(sock_, port_index_, db_index_, sd_clone);
+    GW_ERR_CHECK(err_code);
+
     // Since another socket is going to be attached.
     set_socket_representer_flag(false);
 
-    SocketDataChunk* sd_clone = NULL;
-    uint32_t err_code = gw->CreateSocketData(sock_, port_index_, db_index_, &sd_clone);
-    GW_ERR_CHECK(err_code);
-
+    // Copying session completely.
     sd_clone->session_ = session_;
+
+    // Copying unique socket id.
+    sd_clone->unique_socket_id_ = unique_socket_id_;
 
     sd_clone->set_to_database_direction_flag(true);
     sd_clone->set_web_sockets_upgrade_flag(sd_clone->get_web_sockets_upgrade_flag());
@@ -162,7 +166,7 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
 
 #ifdef GW_SOCKET_DIAG
     GW_COUT << "Cloned socket " << sock_ << ":" << chunk_index_ << " to " <<
-        sd_clone->get_socket() << ":" << sd_clone->get_chunk_index() << std::endl;
+        sd_clone->get_socket() << ":" << sd_clone->get_chunk_index() << GW_ENDL;
 #endif
 
     return 0;
@@ -197,7 +201,7 @@ uint32_t SocketDataChunk::CreateWSABuffers(
     core::chunk_index cur_chunk_index = smc->get_link();
 
     // Checking if we need to obtain an extra chunk.
-    assert(INVALID_CHUNK_INDEX == extra_chunk_index_);
+    GW_ASSERT(INVALID_CHUNK_INDEX == extra_chunk_index_);
     if (INVALID_CHUNK_INDEX == extra_chunk_index_)
     {
         // Getting new chunk from pool.
@@ -254,7 +258,7 @@ uint32_t SocketDataChunk::CreateWSABuffers(
 
     // Checking that maximum number of WSABUFs in chunk is correct.
     // NOTE: Skipping initial chunk and extra chunk in check.
-    assert ((num_chunks_ - 2) <= starcounter::bmx::MAX_NUM_LINKED_WSABUFS);
+    GW_ASSERT((num_chunks_ - 2) <= starcounter::bmx::MAX_NUM_LINKED_WSABUFS);
 
     return 0;
 }
@@ -268,14 +272,14 @@ uint32_t SocketDataChunk::ReturnExtraLinkedChunks(GatewayWorker* gw)
 
     // We have to return attached chunks.
     WorkerDbInterface *db = gw->GetWorkerDb(db_index_);
-    assert(db != NULL);
+    GW_ASSERT(db != NULL);
 
     // Checking if any chunks are linked.
     shared_memory_chunk* smc = get_smc();
 
     // Checking that there are linked chunks.
     core::chunk_index first_linked_chunk = smc->get_link();
-    assert(INVALID_CHUNK_INDEX != first_linked_chunk);
+    GW_ASSERT(INVALID_CHUNK_INDEX != first_linked_chunk);
 
     // Resetting extra chunk index.
     extra_chunk_index_ = INVALID_CHUNK_INDEX;
@@ -284,9 +288,7 @@ uint32_t SocketDataChunk::ReturnExtraLinkedChunks(GatewayWorker* gw)
     accum_buf_.Init(SOCKET_DATA_BLOB_SIZE_BYTES, data_blob_, true);
 
     // Returning all linked chunks back to pool.
-    uint32_t err_code = db->ReturnLinkedChunksToPool(num_chunks_ - 1, first_linked_chunk);
-    if (err_code)
-        return err_code;
+    db->ReturnLinkedChunksToPool(num_chunks_ - 1, first_linked_chunk);
 
     // Since all linked chunks have been returned.
     smc->terminate_link();
@@ -313,7 +315,7 @@ bool SocketDataChunk::ForceSocketDataValidity(GatewayWorker* gw)
 
 CORRECT_STATISTICS_AND_RELEASE_CHUNK:
 
-    GW_COUT << "Force cleaning socket data: " << sock_ << ":" << chunk_index_ << std::endl;
+    GW_COUT << "Force cleaning socket data: " << sock_ << ":" << chunk_index_ << GW_ENDL;
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
 
@@ -352,7 +354,7 @@ CORRECT_STATISTICS_AND_RELEASE_CHUNK:
     default:
         {
             // NOTE: This situation should never happen.
-            assert(1 == 0);
+            GW_ASSERT(1 == 0);
         }
     }
 

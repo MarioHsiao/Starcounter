@@ -49,7 +49,7 @@ inline uint32_t GetMethodAndUri(
     if (pos < http_data_len)
     {
         // Checking for HTTP keyword.
-        if (http_data[pos + 1] != 'H')
+        if (*(uint32_t*)(http_data + pos + 1) != *(uint32_t*)"HTTP")
         {
             // Wrong protocol.
             return SCERRGWNONHTTPPROTOCOL;
@@ -83,7 +83,7 @@ inline uint32_t GetMethodAndUri(
 inline int HttpWsProto::OnMessageBegin(http_parser* p)
 {
 #ifdef GW_HTTP_DIAG
-    GW_COUT << "HTTPOnMessageBegin" << std::endl;
+    GW_COUT << "OnMessageBegin" << GW_ENDL;
 #endif
 
     HttpWsProto *http = (HttpWsProto *)p;
@@ -93,7 +93,7 @@ inline int HttpWsProto::OnMessageBegin(http_parser* p)
 inline int HttpWsProto::OnHeadersComplete(http_parser* p)
 {
 #ifdef GW_HTTP_DIAG
-    GW_COUT << "HTTPOnHeadersComplete" << std::endl;
+    GW_COUT << "OnHeadersComplete" << GW_ENDL;
 #endif
 
     HttpWsProto *http = (HttpWsProto *)p;
@@ -110,7 +110,7 @@ inline int HttpWsProto::OnHeadersComplete(http_parser* p)
 inline int HttpWsProto::OnMessageComplete(http_parser* p)
 {
 #ifdef GW_HTTP_DIAG
-    GW_COUT << "HTTPOnMessageComplete" << std::endl;
+    GW_COUT << "OnMessageComplete" << GW_ENDL;
 #endif
 
     HttpWsProto *http = (HttpWsProto *)p;
@@ -123,7 +123,7 @@ inline int HttpWsProto::OnUri(http_parser* p, const char *at, size_t length)
     char at_ref[256];
     memcpy(at_ref, at, length);
     at_ref[length] = '\0';
-    GW_COUT << "HTTPOnUri: " << at_ref << std::endl;
+    GW_COUT << "OnUri: " << at_ref << GW_ENDL;
 #endif
 
     HttpWsProto *http = (HttpWsProto *)p;
@@ -141,7 +141,7 @@ inline int HttpWsProto::OnHeaderField(http_parser* p, const char *at, size_t len
     char at_ref[256];
     memcpy(at_ref, at, length);
     at_ref[length] = '\0';
-    GW_COUT << "HTTPOnHeaderField: " << at_ref << std::endl;
+    GW_COUT << "OnHeaderField: " << at_ref << GW_ENDL;
 #endif
 
     HttpWsProto *http = (HttpWsProto *)p;
@@ -169,7 +169,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
     char at_ref[256];
     memcpy(at_ref, at, length);
     at_ref[length] = '\0';
-    GW_COUT << "HTTPOnHeaderValue: " << at_ref << std::endl;
+    GW_COUT << "OnHeaderValue: " << at_ref << GW_ENDL;
 #endif
 
     HttpWsProto *http = (HttpWsProto *)p;
@@ -183,7 +183,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
     if (http->http_request_.num_headers_ >= MAX_HTTP_HEADERS)
     {
         // Too many HTTP headers.
-        GW_COUT << "Too many HTTP headers detected, maximum allowed: " << MAX_HTTP_HEADERS << std::endl;
+        GW_COUT << "Too many HTTP headers detected, maximum allowed: " << MAX_HTTP_HEADERS << GW_ENDL;
         return SCERRGWHTTPTOOMANYHEADERS;
     }
 
@@ -193,28 +193,28 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
         case COOKIE_FIELD:
         {
             // Check if its an old session from a different socket.
-            const char* session_id_string = GetSessionIdValue(at, length);
+            const char* session_id_value_string = GetSessionIdValueString(at, length);
 
             // Checking if Starcounter session id is presented.
-            if (session_id_string)
+            if (session_id_value_string)
             {
                 // Setting the session offset.
-                http->http_request_.session_string_offset_ = session_id_string - (char*)http->sd_ref_;
+                http->http_request_.session_string_offset_ = session_id_value_string - (char*)http->sd_ref_;
                 http->http_request_.session_string_len_bytes_ = SC_SESSION_STRING_LEN_CHARS;
 
                 // Reading received session index (skipping session header name and equality).
-                session_index_type cookie_session_index = hex_string_to_uint64(session_id_string, 8);
+                session_index_type cookie_session_index = hex_string_to_uint64(session_id_value_string, SC_SESSION_STRING_INDEX_LEN_CHARS);
                 if (INVALID_CONVERTED_NUMBER == cookie_session_index)
                 {
-                    GW_COUT << "Session index stored in the HTTP header has wrong format." << std::endl;
+                    GW_COUT << "Session index stored in the HTTP header has wrong format." << GW_ENDL;
                     return SCERRGWHTTPWRONGSESSIONINDEXFORMAT;
                 }
 
                 // Reading received session random salt.
-                uint64_t cookie_random_salt = hex_string_to_uint64(session_id_string + 8, 16);
+                uint64_t cookie_random_salt = hex_string_to_uint64(session_id_value_string + SC_SESSION_STRING_INDEX_LEN_CHARS, SC_SESSION_STRING_SALT_LEN_CHARS);
                 if (INVALID_CONVERTED_NUMBER == cookie_random_salt)
                 {
-                    GW_COUT << "Session random salt stored in the HTTP header has wrong format." << std::endl;
+                    GW_COUT << "Session random salt stored in the HTTP header has wrong format." << GW_ENDL;
                     return SCERRGWHTTPWRONGSESSIONSALTFORMAT;
                 }
 
@@ -225,7 +225,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
                 if (!global_session_copy.CompareSalts(cookie_random_salt))
                 {
 #ifdef GW_SESSIONS_DIAG
-                    GW_COUT << "Session stored in the HTTP header is wrong/outdated." << std::endl;
+                    GW_COUT << "Session stored in the HTTP header is wrong/outdated." << GW_ENDL;
 #endif
 
                     // Resetting the session information.
@@ -257,20 +257,17 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
 
         case ACCEPT_ENCODING_FIELD:
         {
+            // Null-terminating the string.
+            char* atnull = (char*)at;
+            char c = atnull[length];
+            atnull[length] = '\0';
+
             // Checking if Gzip is accepted.
-            int32_t i = 0;
-            while (i < length)
-            {
-                if (at[i] == 'g')
-                {
-                    if (at[i + 1] == 'z')
-                    {
-                        http->http_request_.gzip_accepted_ = true;
-                        break;
-                    }
-                }
-                i++;
-            }
+            if (strstr(atnull, "gzip"))
+                http->http_request_.gzip_accepted_ = true;
+
+            // Restoring old character.
+            atnull[length] = c;
 
             break;
         }
@@ -286,7 +283,8 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
         case UPGRADE_FIELD:
         {
             // Double checking if its a WebSocket upgrade.
-            if ((at[0] == 'w') && (length == 9))
+            if ((length == 9) &&
+                (*(uint64_t*)at == *(uint64_t*)"websocket"))
             {
                 return 0;
             }
@@ -313,7 +311,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
         case WS_VERSION_FIELD:
         {
             // Checking the WebSocket protocol version.
-            if (at[0] == '1' && at[1] == '3')
+            if (*(uint16_t*)at == *(uint16_t*)"13")
             {
                 return 0;
             }
@@ -338,7 +336,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
 inline int HttpWsProto::OnBody(http_parser* p, const char *at, size_t length)
 {
 #ifdef GW_HTTP_DIAG
-    GW_COUT << "HTTPOnBody" << std::endl;
+    GW_COUT << "OnBody" << GW_ENDL;
 #endif
 
     HttpWsProto *http = (HttpWsProto *)p;
@@ -371,7 +369,7 @@ void HttpGlobalInit()
 // Determines the correct HTTP handler.
 uint32_t HttpWsProto::HttpUriDispatcher(
     GatewayWorker *gw,
-    SocketDataChunk *sd,
+    SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_index,
     bool* is_handled)
 {
@@ -505,7 +503,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
 // Parses the HTTP request and pushes processed data to database.
 uint32_t HttpWsProto::AppsHttpWsProcessData(
     GatewayWorker *gw,
-    SocketDataChunk *sd,
+    SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled)
 {
@@ -558,7 +556,7 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
         if (http_parser_.upgrade)
         {
 #ifdef GW_WEBSOCKET_DIAG
-            GW_COUT << "Upgrade to another protocol detected, data: " << std::endl;
+            GW_COUT << "Upgrade to another protocol detected, data: " << GW_ENDL;
 #endif
 
             // Handled successfully.
@@ -570,7 +568,7 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
         // Handle error. Usually just close the connection.
         else if (bytes_parsed != (accum_buf->get_accum_len_bytes()))
         {
-            GW_COUT << "HTTP packet has incorrect data!" << std::endl;
+            GW_COUT << "HTTP packet has incorrect data!" << GW_ENDL;
             return SCERRGWHTTPINCORRECTDATA;
         }
         // Standard HTTP.
@@ -652,7 +650,7 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
                         sd->set_disconnect_after_send_flag(true);
 
 #ifdef GW_WARNINGS_DIAG
-                        GW_COUT << "Maximum supported HTTP request body size is 32 Mb!" << std::endl;
+                        GW_COUT << "Maximum supported HTTP request body size is 32 Mb!" << GW_ENDL;
 #endif
 
                         // Sending corresponding HTTP response.
@@ -737,7 +735,7 @@ ALL_DATA_ACCUMULATED:
 
             // Printing the outgoing packet.
 #ifdef GW_HTTP_DIAG
-            GW_COUT << sd->get_data_blob() << std::endl;
+            GW_COUT << sd->get_data_blob() << GW_ENDL;
 #endif
         }
 
@@ -761,21 +759,30 @@ ALL_DATA_ACCUMULATED:
         // Correcting the session cookie.
         if (sd->get_new_session_flag())
         {
-            // New session cookie was created searching for it.
-            char* session_cookie = strstr((char*)sd->get_data_blob(), kScSessionIdString);
-            assert(NULL != session_cookie);
+            // New session cookie was created so searching for it.
+            char* session_cookie = strstr((char*)sd->get_data_blob(), kScFullSessionIdString);
+            GW_ASSERT(NULL != session_cookie);
 
             // Skipping cookie header and equality symbol.
-            session_cookie += kScSessionIdStringLength + 1;
+            session_cookie += kScSessionIdStringPlusEqualsLength;
 
-            // Writing gateway session to response cookie.
+            // Getting session global copy.
             ScSessionStruct global_session_copy = g_gateway.GetGlobalSessionDataCopy(sd->get_session_index());
-            if (global_session_copy.CompareSalts(sd->get_session_salt()))
-                global_session_copy.ConvertToString(session_cookie);
+
+            // Comparing session salts for correctness.
+            bool correct_session = global_session_copy.CompareSalts(sd->get_session_salt());
+            GW_ASSERT(true == correct_session);
+            
+            // Writing gateway session to response cookie.
+            global_session_copy.ConvertToString(session_cookie);
 
             // Session has been created.
             sd->set_new_session_flag(false);
         }
+
+        // Checking for correct behavior for sessions.
+        char* session_cookie = strstr((char*)sd->get_data_blob(), kScFullSessionIdString);
+        GW_ASSERT(NULL == session_cookie);
 
         // Prepare buffer to send outside.
         sd->get_accum_buf()->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_written_bytes());
@@ -798,7 +805,7 @@ ALL_DATA_ACCUMULATED:
 // Parses the HTTP request and pushes processed data to database.
 uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
     GatewayWorker *gw,
-    SocketDataChunk *sd,
+    SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled)
 {
@@ -851,7 +858,7 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
         if (http_parser_.upgrade)
         {
 #ifdef GW_WEBSOCKET_DIAG
-            GW_COUT << "Upgrade to another protocol detected, data: " << std::endl;
+            GW_COUT << "Upgrade to another protocol detected, data: " << GW_ENDL;
 #endif
 
             // Handled successfully.
@@ -863,7 +870,7 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
         // Handle error. Usually just close the connection.
         else if (bytes_parsed != (accum_buf->get_accum_len_bytes()))
         {
-            GW_COUT << "HTTP packet has incorrect data!" << std::endl;
+            GW_COUT << "HTTP packet has incorrect data!" << GW_ENDL;
             return SCERRGWHTTPINCORRECTDATA;
         }
         // Standard HTTP.
@@ -945,7 +952,7 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
                         sd->set_disconnect_after_send_flag(true);
 
 #ifdef GW_WARNINGS_DIAG
-                        GW_COUT << "Maximum supported HTTP request body size is 32 Mb!" << std::endl;
+                        GW_COUT << "Maximum supported HTTP request body size is 32 Mb!" << GW_ENDL;
 #endif
 
                         // Sending corresponding HTTP response.
@@ -984,7 +991,7 @@ ALL_DATA_ACCUMULATED:
             if (g_gateway.setting_mode() == MODE_GATEWAY_HTTP)
             {
                 // Translating HTTP body.
-                assert (http_request_.body_len_bytes_ == kHttpEchoBodyLength);
+                GW_ASSERT(http_request_.body_len_bytes_ == kHttpEchoBodyLength);
 
                 // Converting the string to number.
                 //echo_id_type echo_id = hex_string_to_uint64((char*)sd + http_request_.body_offset_, kHttpGatewayEchoRequestBodyLength);
@@ -1014,14 +1021,14 @@ ALL_DATA_ACCUMULATED:
     else
     {
         // Asserting correct number of bytes received.
-        assert(sd->get_accum_buf()->get_accum_len_bytes() == kHttpEchoResponseLength);
+        GW_ASSERT(sd->get_accum_buf()->get_accum_len_bytes() == kHttpEchoResponseLength);
 
         // Obtaining original echo number.
         //echo_id_type echo_id = *(int32_t*)sd->get_data_blob();
         echo_id_type echo_id = hex_string_to_uint64((char*)sd->get_data_blob() + kHttpEchoResponseInsertPoint, kHttpEchoBodyLength);
 
 #ifdef GW_ECHO_STATISTICS
-        GW_PRINT_WORKER << "Received echo: " << echo_id << std::endl;
+        GW_PRINT_WORKER << "Received echo: " << echo_id << GW_ENDL;
 #endif
 
 #ifdef GW_LIMITED_ECHO_TEST
@@ -1040,7 +1047,7 @@ ALL_DATA_ACCUMULATED:
 
             // Returning this chunk to database.
             WorkerDbInterface *db = gw->GetWorkerDb(sd->get_db_index());
-            assert(db != NULL);
+            GW_ASSERT(db != NULL);
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
             sd->set_socket_diag_active_conn_flag(false);
@@ -1082,7 +1089,7 @@ SEND_HTTP_ECHO_TO_MASTER:
 }
 
 // HTTP/WebSockets handler for Gateway.
-uint32_t GatewayUriProcessEcho(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t GatewayUriProcessEcho(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
     return sd->get_http_ws_proto()->GatewayHttpWsProcessEcho(gw, sd, handler_id, is_handled);
 }
@@ -1090,13 +1097,13 @@ uint32_t GatewayUriProcessEcho(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDL
 #endif
 
 // Outer HTTP/WebSockets handler.
-uint32_t OuterUriProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t OuterUriProcessData(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
     return sd->get_http_ws_proto()->HttpUriDispatcher(gw, sd, handler_id, is_handled);
 }
 
 // HTTP/WebSockets handler for Apps.
-uint32_t AppsUriProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t AppsUriProcessData(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
     return sd->get_http_ws_proto()->AppsHttpWsProcessData(gw, sd, handler_id, is_handled);
 }
@@ -1104,7 +1111,7 @@ uint32_t AppsUriProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_
 #ifdef GW_PROXY_MODE
 
 // HTTP/WebSockets handler for Gateway proxy.
-uint32_t GatewayUriProcessProxy(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t GatewayUriProcessProxy(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
     return sd->get_http_ws_proto()->GatewayHttpWsReverseProxy(gw, sd, handler_id, is_handled);
 }
@@ -1112,7 +1119,7 @@ uint32_t GatewayUriProcessProxy(GatewayWorker *gw, SocketDataChunk *sd, BMX_HAND
 // Reverse proxies the HTTP traffic.
 uint32_t HttpWsProto::GatewayHttpWsReverseProxy(
     GatewayWorker *gw,
-    SocketDataChunk *sd,
+    SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
     bool* is_handled)
 {
@@ -1153,7 +1160,7 @@ uint32_t HttpWsProto::GatewayHttpWsReverseProxy(
 
 #ifdef GW_SOCKET_DIAG
         GW_COUT << "Created proxy socket: " << gw->get_sd_receive_clone()->get_socket() << ":" << gw->get_sd_receive_clone()->get_chunk_index() <<
-            " -> " << sd->get_socket() << ":" << sd->get_chunk_index() << std::endl;
+            " -> " << sd->get_socket() << ":" << sd->get_chunk_index() << GW_ENDL;
 #endif
 
         // Setting client proxy socket.
@@ -1176,6 +1183,19 @@ uint32_t HttpWsProto::GatewayHttpWsReverseProxy(
     }
 
     return SCERRGWHTTPPROCESSFAILED;
+}
+
+#endif
+
+#ifdef GW_GLOBAL_STATISTICS
+
+// HTTP/WebSockets statistics for Gateway.
+uint32_t GatewayStatisticsInfo(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+{
+    int32_t len;
+    const char* stats_page_string = g_gateway.GetGlobalStatisticsString(&len);
+    *is_handled = true;
+    return gw->SendPredefinedMessage(sd, /*kHttpGatewayPongResponse, kHttpGatewayPongResponseLength*/stats_page_string, len);
 }
 
 #endif

@@ -15,7 +15,7 @@ CMD /C sccreatedb.exe -ip .db -lp .db SqlTest
 START scipcmonitor.exe PERSONAL .db.output
 START scdata.exe SQLTEST SqlTest .db.output
 :: start the program
-CMD /C scweaver.exe s\SQLTest\SQLTest.exe --FLAG:tocache
+CMD /C scweaver.exe s\SQLTest\SQLTest.exe
 CALL sccode.exe SQLTEST --DatabaseDir=.db --OutputDir=.db.output --TempDir=.db.output --CompilerPath=MinGW\bin\x86_64-w64-mingw32-gcc.exe --AutoStartExePath="s\SQLTest\.starcounter\SQLTest.exe" --FLAG:UseConsole  --FLAG:NoNetworkGateway
 IF %ERRORLEVEL% NEQ 0 (
 :: clean up and exit code on fail
