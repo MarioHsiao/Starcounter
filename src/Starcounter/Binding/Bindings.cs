@@ -302,14 +302,33 @@ namespace Starcounter.Binding
         private static void AddTypeBinding(TypeBinding typeBinding)
         {
             Dictionary<string, TypeBinding> typeBindingsByName = new Dictionary<string, TypeBinding>(typeBindingsByName_);
-            typeBindingsByName.Add(typeBinding.Name, typeBinding);
+            // Before adding the unique name, it is necessary to check if it is already there.
+            // The only case for this if the unique name has no namespaces and a short name was added before.
+            try {
+                typeBindingsByName.Add(typeBinding.Name, typeBinding);
+            } catch (ArgumentException) {
+#if DEBUG
+                TypeBinding alreadyTypeBinding;
+                typeBindingsByName.TryGetValue(typeBinding.Name, out alreadyTypeBinding);
+                if (alreadyTypeBinding != null)
+                    Debug.Assert(alreadyTypeBinding.ShortName == typeBinding.Name && alreadyTypeBinding.Name != typeBinding.Name);
+#endif
+                typeBindingsByName[typeBinding.Name] = typeBinding;
+            }
+            // Add lower case name if the name is not already in lower case.
             if (typeBinding.Name != typeBinding.LowerName)
                 typeBindingsByName.Add(typeBinding.LowerName, typeBinding);
-            if (typeBinding.LowerName != typeBinding.ShortName)
-                if (typeBindingsByName.ContainsKey(typeBinding.ShortName))
-                    typeBindingsByName[typeBinding.ShortName] = null;
-                else
-                    typeBindingsByName.Add(typeBinding.ShortName, typeBinding);
+            // Add short name, i.e., without namespaces, if the original name is not the short name.
+            // Short name don't need to be unique, since the same class name can be given in different namespaces.
+            // It is important to check if the existing short name is actual name of a class with no namespaces.
+            if (typeBinding.LowerName != typeBinding.ShortName) {
+                TypeBinding alreadyTypeBinding;
+                if (typeBindingsByName.TryGetValue(typeBinding.ShortName, out alreadyTypeBinding)) {
+                    if (alreadyTypeBinding != null) // Already ambiguous short names
+                        if (typeBinding.ShortName != alreadyTypeBinding.Name) // If equal then stored short name is real name
+                            typeBindingsByName[typeBinding.ShortName] = null; // Ambiguous short name
+                } else typeBindingsByName.Add(typeBinding.ShortName, typeBinding); // New short name
+            } 
 
             List<TypeBinding> typeBindingsById = new List<TypeBinding>(typeBindingsById_);
             var tableId = typeBinding.TypeDef.TableDef.TableId;
