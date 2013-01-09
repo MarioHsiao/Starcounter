@@ -8,9 +8,52 @@
 namespace starcounter {
 namespace network {
 
+// If you are debugging the gateway uncomment the following.
+//#define GW_DEV_DEBUG
+
+// Define if you want to log into Gateway specific log file.
+//#define GW_LOG_TO_FILE
+
+// Define if Gateway log should be printed to console as well.
+#ifdef GW_DEV_DEBUG
+#define GW_LOG_TO_CONSOLE
+#endif
+
+#if defined(GW_LOG_TO_FILE) || defined(GW_LOG_TO_CONSOLE)
+#define GW_LOGGING_ON
+#endif
+
+class ThreadSafeCout
+{
+public:
+
+    // Writing to log once object is destroyed.
+    ~ThreadSafeCout();
+
+    // Overloading all needed streaming operators.
+    template <typename T> ThreadSafeCout& operator<<(T const& t)
+    {
+#ifdef GW_LOGGING_ON
+        ss << t; // Accumulate into a non-shared stringstream, no threading issues.
+#endif
+        return *this;
+    }
+
+private:
+
+#ifdef GW_LOGGING_ON
+    std::stringstream ss;
+#endif
+};
+
 // Defining two streams output object.
+#define GW_COUT ThreadSafeCout()
+#define GW_ENDL "\n"
+
+/*
 //#define GW_COUT std::cout
 #define GW_COUT (*g_cout)
+
 typedef boost::iostreams::tee_device<std::ostream, std::ofstream> TeeDevice;
 typedef boost::iostreams::stream<TeeDevice> TeeLogStream;
 
@@ -22,6 +65,7 @@ extern TeeLogStream *g_cout;
 #else
 #define tcout std::cout
 #endif
+*/
 
 //uint64_t ReadDecimal(const char *start);
 uint32_t PrintLastError();
@@ -103,6 +147,30 @@ inline uint64_t hex_string_to_uint64(const char *str_in, int32_t num_4bits)
     }
 
     return result;
+}
+
+inline uint32_t WriteUIntToString(char* buf, uint32_t value)
+{
+    uint32_t num_bytes = 0;
+
+    // Checking for zero value.
+    if (value < 10)
+    {
+        buf[0] = (char)'0' + value;
+        return 1;
+    }
+
+    // Writing integers in reversed order.
+    while (value != 0)
+    {
+        buf[num_bytes++] = (char)(value % 10 + '0');
+        value = value / 10;
+    }
+
+    // Reversing the string.
+    revert_string(buf, num_bytes);
+
+    return num_bytes;
 }
 
 // Checking if one string starts after another.

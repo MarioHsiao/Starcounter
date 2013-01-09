@@ -59,12 +59,12 @@ const char *kWsBadProto =
 
 const int32_t kWsBadProtoLen = strlen(kWsBadProto) + 1;
 
-uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE user_handler_id)
+uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id)
 {
     uint8_t *payload = GetFrameInfo(&frame_info_, sd->get_accum_buf()->get_orig_buf_ptr());
 
 #ifdef GW_WEBSOCKET_DIAG
-    GW_COUT << "[" << gw->get_worker_id() << "]: " << "WS_OPCODE: " << frame_info_.opcode_ << std::endl;
+    GW_COUT << "[" << gw->get_worker_id() << "]: " << "WS_OPCODE: " << frame_info_.opcode_ << GW_ENDL;
 #endif
 
     uint32_t err_code;
@@ -152,7 +152,7 @@ uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunk *sd, BMX_
     return 0;
 }
 
-uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id)
+uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
 {
     // Getting user data.
     uint8_t *payload = sd->UserDataBuffer();
@@ -173,7 +173,7 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunk *sd, BM
     return 0;
 }
 
-uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunk *sd)
+uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd)
 {
     uint32_t err_code;
 
@@ -235,7 +235,7 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunk *sd)
 
     // Printing the outgoing packet.
 #ifdef GW_WEBSOCKET_DIAG
-    GW_COUT << respDataBegin << std::endl;
+    GW_COUT << respDataBegin << GW_ENDL;
 #endif
 
     return 0;

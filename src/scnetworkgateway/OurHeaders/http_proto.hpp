@@ -213,7 +213,7 @@ public:
     }
 
     // Running all registered handlers.
-    uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunk *sd, bool* is_handled)
+    uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled)
     {
         uint32_t err_code;
 
@@ -266,11 +266,11 @@ public:
     // Printing the registered URIs.
     void Print(uint16_t port)
     {
-        GW_PRINT_GLOBAL << "Port " << port << " has following URIs registered: " << std::endl;
+        GW_PRINT_GLOBAL << "Port " << port << " has following URIs registered: " << GW_ENDL;
         for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)
         {
             GW_COUT << "    \"" << reg_uris_[i].get_uri() << "\" with handlers lists: " <<
-                reg_uris_[i].GetHandlersListsNumber() << std::endl;
+                reg_uris_[i].GetHandlersListsNumber() << GW_ENDL;
         }
     }
 
@@ -491,7 +491,7 @@ class HttpWsProto
     HttpRequest http_request_;
 
     // To which socket this instance belongs.
-    SocketDataChunk *sd_ref_;
+    SocketDataChunk* sd_ref_;
 
     // Index to already determined URI.
     uint32_t matched_uri_index_;
@@ -561,15 +561,15 @@ public:
     }
 
     // Entry point for outer data processing.
-    uint32_t HttpUriDispatcher(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);
+    uint32_t HttpUriDispatcher(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);
 
     // Standard HTTP/WS handler once URI is determined.
-    uint32_t AppsHttpWsProcessData(GatewayWorker *gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);
+    uint32_t AppsHttpWsProcessData(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);
 
     // Parses the HTTP request and pushes processed data to database.
     uint32_t GatewayHttpWsProcessEcho(
         GatewayWorker *gw,
-        SocketDataChunk *sd,
+        SocketDataChunkRef sd,
         BMX_HANDLER_TYPE handler_id,
         bool* is_handled);
 
@@ -578,13 +578,13 @@ public:
     // Reverse proxies the HTTP traffic.
     uint32_t GatewayHttpWsReverseProxy(
         GatewayWorker *gw,
-        SocketDataChunk *sd,
+        SocketDataChunkRef sd,
         BMX_HANDLER_TYPE handler_id,
         bool* is_handled);
 #endif
 
     // Attaching socket data and gateway worker to parser.
-    void AttachToParser(SocketDataChunk *sd)
+    void AttachToParser(SocketDataChunkRef sd)
     {
         sd_ref_ = sd;
     }
@@ -616,6 +616,16 @@ const char* const kHttpEchoResponse =
 const int32_t kHttpEchoResponseLength = strlen(kHttpEchoResponse);
 
 const int32_t kHttpEchoResponseInsertPoint = strstr(kHttpEchoResponse, "@") - kHttpEchoResponse;
+
+const char* const kHttpStatsHeader =
+    "HTTP/1.1 200 OK\r\n"
+    "Content-Type: text/html\r\n"
+    "Content-Length: @@@@@@@@\r\n"
+    "\r\n";
+
+const int32_t kHttpStatsHeaderLength = strlen(kHttpStatsHeader);
+
+const int32_t kHttpStatsHeaderInsertPoint = strstr(kHttpStatsHeader, "@") - kHttpStatsHeader;
 
 const char* const kHttpGatewayPongResponse =
     "HTTP/1.1 200 OK\r\n"

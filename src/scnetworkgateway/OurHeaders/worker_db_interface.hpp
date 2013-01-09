@@ -63,10 +63,13 @@ class WorkerDbInterface
         {
             // Some problem acquiring enough chunks.
 #ifdef GW_ERRORS_DIAG
-            GW_COUT << "Problem acquiring chunks from shared chunk pool." << std::endl;
+            GW_COUT << "Problem acquiring chunks from shared chunk pool." << GW_ENDL;
 #endif
             return SCERRACQUIRELINKEDCHUNKS;
         }
+
+        // Changing number of database chunks.
+        ChangeNumUsedChunks(num_chunks);
 
         return 0;
     }
@@ -86,7 +89,7 @@ public:
         num_used_chunks_ += change_value;
 
 #ifdef GW_CHUNKS_DIAG
-        GW_COUT << "ChangeNumUsedChunks: " << change_value << " and " << num_used_chunks_ << std::endl;
+        GW_COUT << "ChangeNumUsedChunks: " << change_value << " and " << num_used_chunks_ << GW_ENDL;
 #endif
     }
 
@@ -123,7 +126,10 @@ public:
     }
 
     // Sends session destroyed message.
-    uint32_t PushDeadSession(const ScSessionStruct& session);
+    uint32_t PushDeadSession(
+        apps_unique_session_num_type apps_unique_session,
+        session_salt_type apps_session_salt,
+        uint32_t scheduler_id);
 
     // Getting shared interface.
     core::shared_interface* get_shared_int()
@@ -218,21 +224,20 @@ public:
             uint32_t sched_num = (chunk_index_and_sched >> 24) & 0xFFUL;
 
             // Pushing chunk using standard procedure.
-            uint32_t errCode = PushLinkedChunksToDb(chunk_index, 0, sched_num, false);
-            GW_ERR_CHECK(errCode);
+            PushLinkedChunksToDb(chunk_index, 0, sched_num, false);
         }
 
         return 0;
     }
 
     // Push whatever chunks we have to channels.
-    uint32_t PushLinkedChunksToDb(
+    void PushLinkedChunksToDb(
         core::chunk_index chunk_index,
         int32_t num_chunks,
         int16_t sched_id,
         bool not_overflow_chunk);
 
-    uint32_t PushSocketDataToDb(GatewayWorker* gw, SocketDataChunk *sd, BMX_HANDLER_TYPE handler_id);
+    uint32_t PushSocketDataToDb(GatewayWorker* gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id);
 
     // Releases chunks from private chunk pool to the shared chunk pool.
     uint32_t ReleaseToSharedChunkPool(int32_t num_chunks);
@@ -249,12 +254,9 @@ public:
         while (!private_chunk_pool_.acquire_linked_chunks_counted(&shared_int_.chunk(0), *chunk_index, 1))
         {
             // Getting chunks from shared chunk pool.
-            err_code = AcquireChunksFromSharedPool(ACCEPT_ROOF_STEP_SIZE);
+            err_code = AcquireChunksFromSharedPool(MAX_CHUNKS_IN_PRIVATE_POOL);
             GW_ERR_CHECK(err_code);
         }
-
-        // Changing number of database chunks.
-        ChangeNumUsedChunks(1);
 
         // Getting data pointer.
         (*smc) = (shared_memory_chunk *)(&shared_int_.chunk(*chunk_index));
@@ -263,17 +265,20 @@ public:
         (*smc)->terminate_link();
 
 #ifdef GW_CHUNKS_DIAG
-        GW_COUT << "Getting new chunk: " << *chunk_index << std::endl;
+        GW_COUT << "Getting new chunk: " << *chunk_index << GW_ENDL;
 #endif
 
         return 0;
     }
 
     // Returns given socket data chunk to private chunk pool.
-    uint32_t ReturnSocketDataChunksToPool(GatewayWorker *gw, SocketDataChunk*& sd);
+    void ReturnSocketDataChunksToPool(GatewayWorker *gw, SocketDataChunkRef sd);
 
     // Returns given linked chunks to private chunk pool (and if needed then to shared).
-    uint32_t ReturnLinkedChunksToPool(int32_t num_linked_chunks, core::chunk_index& first_linked_chunk);
+    void ReturnLinkedChunksToPool(int32_t num_linked_chunks, core::chunk_index& first_linked_chunk);
+
+    // Returns all chunks from private pool to shared.
+    void ReturnAllPrivateChunksToSharedPool();
 
     // Handles management chunks.
     uint32_t HandleManagementChunks(GatewayWorker *gw, shared_memory_chunk* smc);

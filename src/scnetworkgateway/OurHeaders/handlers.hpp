@@ -229,7 +229,7 @@ public:
     }
 
     // Runs port handlers.
-    uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunk *sd, bool* is_handled)
+    uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled)
     {
         uint32_t err_code;
 
@@ -530,7 +530,7 @@ public:
         {
             GW_COUT << handlers_[i].GetNumberOfAttachedDbs() << ", ";
         }
-        GW_COUT << std::endl;
+        GW_COUT << GW_ENDL;
     }
 
     // Constructor.
@@ -679,7 +679,7 @@ public:
     }
 
     // Running all registered handlers.
-    uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunk *sd, bool* is_handled)
+    uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled)
     {
         uint32_t err_code;
 
