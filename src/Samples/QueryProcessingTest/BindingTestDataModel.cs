@@ -37,3 +37,5 @@ public class commonclass : Entity {
 public class nonameclass : Entity {
     public decimal DecimalProperty;
 }
+
+// Add another namespace with common class inside
