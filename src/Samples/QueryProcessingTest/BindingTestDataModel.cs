@@ -11,7 +11,7 @@ namespace QueryProcessingTest.CamelNameSpace {
     }
 
     public class CamelClass : Entity {
-        public double DoubleProperty;
+        public decimal DecimalProperty;
     }
 }
 
@@ -25,7 +25,7 @@ namespace lowercasenamespace {
     }
 
     public class lowercaseclass : Entity {
-        public double DoubleProperty;
+        public decimal DecimalProperty;
     }
 }
 
@@ -35,5 +35,5 @@ public class commonclass : Entity {
 }
 
 public class nonameclass : Entity {
-    public double DoubleProperty;
+    public decimal DecimalProperty;
 }
