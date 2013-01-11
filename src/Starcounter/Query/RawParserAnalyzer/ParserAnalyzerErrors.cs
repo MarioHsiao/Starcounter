@@ -34,7 +34,7 @@ namespace Starcounter.Query.RawParserAnalyzer
                         message += " in the query \"" + Query + "\"";
                     if (scerror->tocken != null)
                         message += "The error is near or at: " + scerror->tocken;
-                    throw ErrorCode.ToException((uint)scerror->scerrorcode, message);
+                    throw GetSqlException((uint)scerror->scerrorcode, message, scerror->scerrposition, scerror->tocken);
                 }
             }
         }
@@ -75,7 +75,8 @@ namespace Starcounter.Query.RawParserAnalyzer
         // Proper error should be returned from here.
         internal unsafe void UnknownNode(Node* node)
         {
-            throw ErrorCode.ToException(Error.SCERRSQLNOTIMPLEMENTED, "");
+            throw GetSqlException(Error.SCERRSQLNOTIMPLEMENTED, "The statement or clause is not implemented"+LocationMessageForError(node), 
+                UnmanagedParserInterface.Location(node), UnmanagedParserInterface.StrVal(node));
         }
 
         /// <summary>
@@ -103,6 +104,13 @@ namespace Starcounter.Query.RawParserAnalyzer
             Debug.Assert(condition, message);
             if (!condition)
                 throw new SQLParserAssertException();
+        }
+
+        internal static Exception GetSqlException(uint errorCode, string message, int location, string token) {
+            List<string> tokens = new List<string>(1);
+            tokens.Add(token);
+            SqlException ex = new SqlException(message, tokens, location);
+            return ErrorCode.ToException(errorCode, "", (m, e) => ex);
         }
     }
 
