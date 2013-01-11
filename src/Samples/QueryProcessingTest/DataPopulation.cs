@@ -17,6 +17,16 @@ namespace QueryProcessingTest {
             });
         }
 
+        public static void PopulateUsers(Int64 nrUsers, Int64 nrAccountPerUser) {
+            DeleteAccounts();
+            for (int i = 0; i < nrUsers; i++)
+                Db.Transaction(delegate {
+                    User newUser = new User { UserId = FakeUserId(i) };
+                    for (int j = 0; j < nrAccountPerUser; j++)
+                        new Account { AccountId = i * nrAccountPerUser + j, Amount = 100.0m, Client = newUser };
+                });
+        }
+
         public static void DeleteAccounts() {
             Db.SlowSQL("DELETE FROM Account");
             Db.SlowSQL("DELETE FROM QueryProcessingTest.User");
