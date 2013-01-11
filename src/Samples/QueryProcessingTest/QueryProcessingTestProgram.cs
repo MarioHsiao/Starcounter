@@ -8,6 +8,7 @@ namespace QueryProcessingTest {
 
         static void RunQueryProcessingTest() {
             DataPopulation.PopulateAccounts(100000, 3);
+            TestErrorMessages.RunTestErrorMessages();
         }
     }
 }
