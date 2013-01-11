@@ -43,78 +43,90 @@ namespace Starcounter.Internal.Test {
             });
             */
 
-            GET("/", () => {
-                Console.WriteLine("Root called");
-                return null;
-            });
+            //GET("/", () => {
+            //    Console.WriteLine("Root called");
+            //    return null;
+            //});
 
-            GET("/uri-with-req", (HttpRequest r) => {
-                Assert.IsNotNull(r);
-                return null;
-            });
+            //GET("/uri-with-req", (HttpRequest r) => {
+            //    Assert.IsNotNull(r);
+            //    return null;
+            //});
 
-            GET("/uri-with-req/{?}", (HttpRequest r, int i) => {
-                Assert.AreEqual(123, i);
-                Assert.IsNotNull(r);
-                return null;
-            });
+            //GET("/uri-with-req/{?}", (HttpRequest r, int i) => {
+            //    Assert.AreEqual(123, i);
+            //    Assert.IsNotNull(r);
+            //    return null;
+            //});
 
-            GET("/uri-with-req/{?}", (string s, HttpRequest r) => {
-                Assert.AreEqual("KalleKula", s);
-                Assert.IsNotNull(r);
-                return null;
-            });
+            //GET("/uri-with-req/{?}", (string s, HttpRequest r) => {
+            //    Assert.AreEqual("KalleKula", s);
+            //    Assert.IsNotNull(r);
+            //    return null;
+            //});
 
-            GET("/admin/apapapa/{?}", (int i, HttpRequest r) => {
-                Assert.AreEqual(19, i);
-                Assert.IsNotNull(r);
-                return null;
-            });
+            //GET("/admin/apapapa/{?}", (int i, HttpRequest r) => {
+            //    Assert.AreEqual(19, i);
+            //    Assert.IsNotNull(r);
+            //    return null;
+            //});
 
-            GET("/admin/{?}", (string s, HttpRequest r) => {
-                Assert.AreEqual("KalleKula", s);
-                Assert.IsNotNull(r);
-                return null;
-            });
+            //GET("/admin/{?}", (string s, HttpRequest r) => {
+            //    Assert.AreEqual("KalleKula", s);
+            //    Assert.IsNotNull(r);
+            //    return null;
+            //});
 
-            GET("/admin/{?}/{?}", (string s, int i, HttpRequest r) => {
-                Assert.AreEqual("KalleKula", s);
-                Assert.AreEqual(123, i);
-                Assert.IsNotNull(r);
-                return null;
-            });
+            //GET("/admin/{?}/{?}", (string s, int i, HttpRequest r) => {
+            //    Assert.AreEqual("KalleKula", s);
+            //    Assert.AreEqual(123, i);
+            //    Assert.IsNotNull(r);
+            //    return null;
+            //});
 
-            GET("/players", () => {
-                Console.WriteLine("players");
-                return null;
-            });
+            //GET("/players", () => {
+            //    Console.WriteLine("players");
+            //    return null;
+            //});
 
-            GET("/players/{?}", (int playerId) => {
-                Assert.AreEqual(123, playerId);
-                Console.WriteLine("playerId=" + playerId);
-                return null;
-            });
+            //GET("/players/{?}", (int playerId) => {
+            //    Assert.AreEqual(123, playerId);
+            //    Console.WriteLine("playerId=" + playerId);
+            //    return null;
+            //});
 
-            GET("/dashboard/{?}", (int playerId) => {
-                Assert.AreEqual(123, playerId);
-                Console.WriteLine("playerId=" + playerId);
-                return null;
-            });
+            //GET("/dashboard/{?}", (int playerId) => {
+            //    Assert.AreEqual(123, playerId);
+            //    Console.WriteLine("playerId=" + playerId);
+            //    return null;
+            //});
 
-            GET("/players?{?}", (string fullName) => {
-                Assert.AreEqual("KalleKula", fullName);
-                Console.WriteLine("f=" + fullName);
-                return null;
-            });
+            //GET("/players?{?}", (string fullName) => {
+            //    Assert.AreEqual("KalleKula", fullName);
+            //    Console.WriteLine("f=" + fullName);
+            //    return null;
+            //});
 
-            GET("/whatever/{?}/more/{?}/{?}", (string v1, int v2, string v3) => {
-                Assert.AreEqual("apapapa", v1);
-                Assert.AreEqual(5547, v2);
-                Assert.AreEqual("KalleKula", v3);
-                return null;
-            });
+            //GET("/whatever/{?}/more/{?}/{?}", (string v1, int v2, string v3) => {
+            //    Assert.AreEqual("apapapa", v1);
+            //    Assert.AreEqual(5547, v2);
+            //    Assert.AreEqual("KalleKula", v3);
+            //    return null;
+            //});
 
             GET("/whatever/{?}/xxYx/{?}", (string v1, int v2) => {
+                Assert.AreEqual("abrakadabra", v1);
+                Assert.AreEqual(911, v2);
+                return null;
+            });
+
+            GET("/whatever/{?}/xxZx/{?}", (string v1, int v2) => {
+                Assert.AreEqual("abrakadabra", v1);
+                Assert.AreEqual(911, v2);
+                return null;
+            });
+
+            GET("/whatmore/{?}/xxZx/{?}", (string v1, int v2) => {
                 Assert.AreEqual("abrakadabra", v1);
                 Assert.AreEqual(911, v2);
                 return null;
@@ -127,27 +139,27 @@ namespace Starcounter.Internal.Test {
                 return null;
             });
 
-            POST("/transfer?{?}", (int from) => {
-                Assert.AreEqual(99, from);
-                Console.WriteLine("From: " + from);
-                return null;
-            });
+            //POST("/transfer?{?}", (int from) => {
+            //    Assert.AreEqual(99, from);
+            //    Console.WriteLine("From: " + from);
+            //    return null;
+            //});
 
-            POST("/deposit?{?}", (int to) => {
-                Assert.AreEqual(56754, to);
-                Console.WriteLine("To: " + to);
-                return null;
-            });
+            //POST("/deposit?{?}", (int to) => {
+            //    Assert.AreEqual(56754, to);
+            //    Console.WriteLine("To: " + to);
+            //    return null;
+            //});
 
-            POST("/find-player?firstname={?}&lastname={?}&age={?}", (string fn, string ln, int age) => {
+            //POST("/find-player?firstname={?}&lastname={?}&age={?}", (string fn, string ln, int age) => {
 
-                return null;
-            });
+            //    return null;
+            //});
 
-            DELETE("/all", () => {
-                Console.WriteLine("deleteAll");
-                return null;
-            });
+            //DELETE("/all", () => {
+            //    Console.WriteLine("deleteAll");
+            //    return null;
+            //});
         }
 
         [Test]
@@ -220,7 +232,9 @@ namespace Starcounter.Internal.Test {
             byte[] h1 = Encoding.UTF8.GetBytes("GET /players/123\r\n\r\n");
             byte[] h2 = Encoding.UTF8.GetBytes("GET /dashboard/123\r\n\r\n");
             byte[] h3 = Encoding.UTF8.GetBytes("GET /players?KalleKula\r\n\r\n");
+            
             byte[] h4 = Encoding.UTF8.GetBytes("PUT /players/123\r\n\r\n");
+
             byte[] h5 = Encoding.UTF8.GetBytes("POST /transfer?99\r\n\r\n");
             byte[] h6 = Encoding.UTF8.GetBytes("POST /deposit?56754\r\n\r\n");
             byte[] h7 = Encoding.UTF8.GetBytes("DELETE /all\r\n\r\n");
@@ -232,37 +246,58 @@ namespace Starcounter.Internal.Test {
             byte[] h13 = Encoding.UTF8.GetBytes("GET /admin/KalleKula\r\n\r\n");
             byte[] h14 = Encoding.UTF8.GetBytes("GET /admin/KalleKula/123\r\n\r\n");
             byte[] h15 = Encoding.UTF8.GetBytes("GET /admin/apapapa/19\r\n\r\n");
+
+
             byte[] h16 = Encoding.UTF8.GetBytes("GET /whatever/abrakadabra/xxYx/911\r\n\r\n");
+            
+            byte[] h19 = Encoding.UTF8.GetBytes("GET /whatever/abrakadabra/xaYx/911\r\n\r\n");
+
+            byte[] h20 = Encoding.UTF8.GetBytes("GET /whatmore/abrakadabra/xxZx/911\r\n\r\n");
+
             byte[] h17 = Encoding.UTF8.GetBytes("GET /whatever/apapapa/more/5547/KalleKula\r\n\r\n");
 
+
+
+
+            byte[] h18 = Encoding.UTF8.GetBytes("PUT /plaiers/123\r\n\r\n");
+
             Main();
+
 
             foreach (var x in RequestHandler.RequestProcessor.Registrations) {
                 um.Register(x.Key, x.Value.CodeAsObj );
             }
 
             object resource;
-            Assert.True(um.Invoke(new HttpRequest(h2), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h3), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h4), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h5), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h6), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h7), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h8), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h9), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h10), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h11), out resource));
+            //Assert.True(um.Invoke(new HttpRequest(h2), out resource));
+            //Assert.True(um.Invoke(new HttpRequest(h3), out resource));
+
+            //Assert.True(um.Invoke(new HttpRequest(h4), out resource));
+            //Assert.False(um.Invoke(new HttpRequest(h18), out resource));
+
+            //Assert.True(um.Invoke(new HttpRequest(h5), out resource));
+            //Assert.True(um.Invoke(new HttpRequest(h6), out resource));
+            //Assert.True(um.Invoke(new HttpRequest(h7), out resource));
+            //Assert.True(um.Invoke(new HttpRequest(h8), out resource));
+            //Assert.True(um.Invoke(new HttpRequest(h9), out resource));
+            //Assert.True(um.Invoke(new HttpRequest(h10), out resource));
+            //Assert.True(um.Invoke(new HttpRequest(h11), out resource));
 
             // TODO:
             // The ParseInt function does not verify that the specified string
             // is numbers or not, needs to be fixed.
 //            Assert.True(um.Invoke(new HttpRequest(h12), out resource));
 
-            Assert.True(um.Invoke(new HttpRequest(h13), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h14), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h15), out resource));
+            //Assert.True(um.Invoke(new HttpRequest(h13), out resource));
+            //Assert.True(um.Invoke(new HttpRequest(h14), out resource));
+            //Assert.True(um.Invoke(new HttpRequest(h15), out resource));
+
             Assert.True(um.Invoke(new HttpRequest(h16), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h17), out resource));
+            Assert.False(um.Invoke(new HttpRequest(h19), out resource));
+
+            Assert.True(um.Invoke(new HttpRequest(h20), out resource));
+
+            //Assert.True(um.Invoke(new HttpRequest(h17), out resource));
         }
 
         /// <summary>
