@@ -10,723 +10,313 @@ using HttpStructs;
 
 namespace __urimatcher__ {
 
-    public class GeneratedRequestProcessor : TopLevelRequestProcessor {
+   public class GeneratedRequestProcessor : TopLevelRequestProcessor {
 
-        public static int Sub0VerificationOffset = 0;
-        public static int Sub1VerificationOffset = 6;
-        public static int Sub2VerificationOffset = 24;
-        public static int Sub3VerificationOffset = 42;
-        public static int Sub4VerificationOffset = 60;
-        public static int Sub6VerificationOffset = 79;
-        public static int Sub7VerificationOffset = 90;
-        public static int Sub8VerificationOffset = 101;
-        public static int Sub9VerificationOffset = 114;
-        public static int Sub11VerificationOffset = 127;
-        public static int Sub10VerificationOffset = 142;
-        public static int Sub14VerificationOffset = 155;
-        public static int Sub15VerificationOffset = 169;
-        public static int Sub16VerificationOffset = 183;
-        public static int Sub17VerificationOffset = 196;
-        public static int Sub18VerificationOffset = 211;
-        public static int Sub21VerificationOffset = 225;
-        public static int Sub22VerificationOffset = 253;
-        public static byte[] VerificationBytes = new byte[] { (byte)'G', (byte)'E', (byte)'T', (byte)' ', (byte)'/', (byte)' ', (byte)'G', (byte)'E', (byte)'T', (byte)' ', (byte)'/', (byte)'u', (byte)'r', (byte)'i', (byte)'-', (byte)'w', (byte)'i', (byte)'t', (byte)'h', (byte)'-', (byte)'r', (byte)'e', (byte)'q', (byte)' ', (byte)'G', (byte)'E', (byte)'T', (byte)' ', (byte)'/', (byte)'u', (byte)'r', (byte)'i', (byte)'-', (byte)'w', (byte)'i', (byte)'t', (byte)'h', (byte)'-', (byte)'r', (byte)'e', (byte)'q', (byte)'/', (byte)'G', (byte)'E', (byte)'T', (byte)' ', (byte)'/', (byte)'u', (byte)'r', (byte)'i', (byte)'-', (byte)'w', (byte)'i', (byte)'t', (byte)'h', (byte)'-', (byte)'r', (byte)'e', (byte)'q', (byte)'/', (byte)'G', (byte)'E', (byte)'T', (byte)' ', (byte)'/', (byte)'a', (byte)'d', (byte)'m', (byte)'i', (byte)'n', (byte)'/', (byte)'a', (byte)'p', (byte)'a', (byte)'p', (byte)'a', (byte)'p', (byte)'a', (byte)'/', (byte)'G', (byte)'E', (byte)'T', (byte)' ', (byte)'/', (byte)'a', (byte)'d', (byte)'m', (byte)'i', (byte)'n', (byte)'/', (byte)'G', (byte)'E', (byte)'T', (byte)' ', (byte)'/', (byte)'a', (byte)'d', (byte)'m', (byte)'i', (byte)'n', (byte)'/', (byte)'G', (byte)'E', (byte)'T', (byte)' ', (byte)'/', (byte)'p', (byte)'l', (byte)'a', (byte)'y', (byte)'e', (byte)'r', (byte)'s', (byte)' ', (byte)'G', (byte)'E', (byte)'T', (byte)' ', (byte)'/', (byte)'p', (byte)'l', (byte)'a', (byte)'y', (byte)'e', (byte)'r', (byte)'s', (byte)'/', (byte)'G', (byte)'E', (byte)'T', (byte)' ', (byte)'/', (byte)'d', (byte)'a', (byte)'s', (byte)'h', (byte)'b', (byte)'o', (byte)'a', (byte)'r', (byte)'d', (byte)'/', (byte)'G', (byte)'E', (byte)'T', (byte)' ', (byte)'/', (byte)'p', (byte)'l', (byte)'a', (byte)'y', (byte)'e', (byte)'r', (byte)'s', (byte)'?', (byte)'G', (byte)'E', (byte)'T', (byte)' ', (byte)'/', (byte)'w', (byte)'h', (byte)'a', (byte)'t', (byte)'e', (byte)'v', (byte)'e', (byte)'r', (byte)'/', (byte)'G', (byte)'E', (byte)'T', (byte)' ', (byte)'/', (byte)'w', (byte)'h', (byte)'a', (byte)'t', (byte)'e', (byte)'v', (byte)'e', (byte)'r', (byte)'/', (byte)'P', (byte)'U', (byte)'T', (byte)' ', (byte)'/', (byte)'p', (byte)'l', (byte)'a', (byte)'y', (byte)'e', (byte)'r', (byte)'s', (byte)'/', (byte)'P', (byte)'O', (byte)'S', (byte)'T', (byte)' ', (byte)'/', (byte)'t', (byte)'r', (byte)'a', (byte)'n', (byte)'s', (byte)'f', (byte)'e', (byte)'r', (byte)'?', (byte)'P', (byte)'O', (byte)'S', (byte)'T', (byte)' ', (byte)'/', (byte)'d', (byte)'e', (byte)'p', (byte)'o', (byte)'s', (byte)'i', (byte)'t', (byte)'?', (byte)'P', (byte)'O', (byte)'S', (byte)'T', (byte)' ', (byte)'/', (byte)'f', (byte)'i', (byte)'n', (byte)'d', (byte)'-', (byte)'p', (byte)'l', (byte)'a', (byte)'y', (byte)'e', (byte)'r', (byte)'?', (byte)'f', (byte)'i', (byte)'r', (byte)'s', (byte)'t', (byte)'n', (byte)'a', (byte)'m', (byte)'e', (byte)'=', (byte)'D', (byte)'E', (byte)'L', (byte)'E', (byte)'T', (byte)'E', (byte)' ', (byte)'/', (byte)'a', (byte)'l', (byte)'l', (byte)' ' };
-        public static IntPtr PointerVerificationBytes;
+      public static int Sub1VerificationOffset = 0;
+      public static int Sub2VerificationOffset = 25;
+      public static int Sub3VerificationOffset = 50;
+      public static int Sub4VerificationOffset = 50;
+      public static int Sub5VerificationOffset = 75;
+      public static byte[] VerificationBytes = new byte[] {(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Y',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Z',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'m',(byte)'o',(byte)'r',(byte)'e',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Z',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'U',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' '};
+      public static IntPtr PointerVerificationBytes;
 
-        public static Sub0Processor Sub0 = new Sub0Processor();
-        public static Sub1Processor Sub1 = new Sub1Processor();
-        public static Sub2Processor Sub2 = new Sub2Processor();
-        public static Sub3Processor Sub3 = new Sub3Processor();
-        public static Sub4Processor Sub4 = new Sub4Processor();
-        public static Sub5Processor Sub5 = new Sub5Processor();
-        public static Sub6Processor Sub6 = new Sub6Processor();
-        public static Sub7Processor Sub7 = new Sub7Processor();
-        public static Sub8Processor Sub8 = new Sub8Processor();
-        public static Sub9Processor Sub9 = new Sub9Processor();
-        public static Sub10Processor Sub10 = new Sub10Processor();
-        public static Sub11Processor Sub11 = new Sub11Processor();
-        public static Sub12Processor Sub12 = new Sub12Processor();
-        public static Sub13Processor Sub13 = new Sub13Processor();
-        public static Sub14Processor Sub14 = new Sub14Processor();
-        public static Sub15Processor Sub15 = new Sub15Processor();
-        public static Sub16Processor Sub16 = new Sub16Processor();
-        public static Sub17Processor Sub17 = new Sub17Processor();
-        public static Sub18Processor Sub18 = new Sub18Processor();
-        public static Sub19Processor Sub19 = new Sub19Processor();
-        public static Sub20Processor Sub20 = new Sub20Processor();
-        public static Sub21Processor Sub21 = new Sub21Processor();
-        public static Sub22Processor Sub22 = new Sub22Processor();
+      public static Sub0Processor Sub0 = new Sub0Processor();
+      public static Sub1Processor Sub1 = new Sub1Processor();
+      public static Sub2Processor Sub2 = new Sub2Processor();
+      public static Sub3Processor Sub3 = new Sub3Processor();
+      public static Sub4Processor Sub4 = new Sub4Processor();
+      public static Sub5Processor Sub5 = new Sub5Processor();
 
-        public GeneratedRequestProcessor() {
-            Registrations["GET / "] = Sub0;
-            Registrations["GET /uri-with-req "] = Sub1;
-            Registrations["GET /uri-with-req/@i "] = Sub2;
-            Registrations["GET /uri-with-req/@s "] = Sub3;
-            Registrations["GET /admin/apapapa/@i "] = Sub4;
-            Registrations["GET /admin/@s "] = Sub6;
-            Registrations["GET /admin/@s/@i "] = Sub7;
-            Registrations["GET /players "] = Sub8;
-            Registrations["GET /players/@i "] = Sub9;
-            Registrations["GET /dashboard/@i "] = Sub11;
-            Registrations["GET /players?@s "] = Sub10;
-            Registrations["GET /whatever/@s/more/@i/@s "] = Sub14;
-            Registrations["GET /whatever/@s/xxYx/@i "] = Sub15;
-            Registrations["PUT /players/@i "] = Sub16;
-            Registrations["POST /transfer?@i "] = Sub17;
-            Registrations["POST /deposit?@i "] = Sub18;
-            Registrations["POST /find-player?firstname=@s&lastname=@s&age=@i "] = Sub21;
-            Registrations["DELETE /all "] = Sub22;
-            PointerVerificationBytes = BitsAndBytes.Alloc(VerificationBytes.Length); // TODO. Free when program exists
-            BitsAndBytes.SlowMemCopy(PointerVerificationBytes, VerificationBytes, (uint)VerificationBytes.Length);
-        }
+      public GeneratedRequestProcessor() {
+          Registrations["GET /whatever/@s/xxYx/@i "] = Sub1;
+          Registrations["GET /whatever/@s/xxZx/@i "] = Sub2;
+          Registrations["GET /whatmore/@s/xxZx/@i "] = Sub4;
+          Registrations["PUT /players/@i "] = Sub5;
+          PointerVerificationBytes = BitsAndBytes.Alloc(VerificationBytes.Length); // TODO. Free when program exists
+          BitsAndBytes.SlowMemCopy( PointerVerificationBytes, VerificationBytes, (uint)VerificationBytes.Length);
+      }
 
-        public override bool Process(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            unsafe {
-                byte* pfrag = (byte*)fragment;
-                int nextSize = size;
-                switch (*pfrag) {
-                    case (byte)'G':
-                        nextSize -= 5;
-                        if (nextSize < 0) {
-                            handler = null;
-                            resource = null;
-                            return false;
+      public override bool Process(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+         unsafe {
+            byte* pfrag = (byte*)fragment;
+            byte* ptempl = (byte*)PointerVerificationBytes;
+            int nextSize = size;
+            switch (*pfrag) {
+               case (byte)'G':
+                  nextSize -= 8;
+                  if (nextSize<0 || (*(UInt64*)pfrag) != (*(UInt64*)ptempl) ) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += 8;
+                  ptempl += 8;
+                  nextSize --;
+                  if (nextSize<0 || (*pfrag) != (*ptempl) ) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag ++;
+                  ptempl ++;
+                  switch (*pfrag) {
+                     case (byte)'e':
+                        nextSize -= 4;
+                        if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
+                            break;
                         }
-                        pfrag += 5;
-                        switch (*pfrag) {
-                            case (byte)' ':
-                            case (byte)'\r':
-                                if (Sub0.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                    return true;
-                                break;
-                            case (byte)'u':
-                                nextSize -= 12;
-                                if (nextSize < 0) {
-                                    handler = null;
-                                    resource = null;
-                                    return false;
-                                }
-                                pfrag += 12;
-                                switch (*pfrag) {
-                                    case (byte)' ':
-                                    case (byte)'\r':
-                                        if (Sub1.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                            return true;
-                                        break;
-                                    case (byte)'/':
-                                        nextSize -= 1;
-                                        if (nextSize < 0) {
-                                            break;
-                                        }
-                                        pfrag += 1;
-                                        if (Sub2.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                            return true;
-                                        else if (Sub3.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                            return true;
-                                        break;
-                                }
-                                break;
-                            case (byte)'a':
-                                nextSize -= 6;
-                                if (nextSize < 0) {
-                                    handler = null;
-                                    resource = null;
-                                    return false;
-                                }
-                                pfrag += 6;
-                                switch (*pfrag) {
-                                    case (byte)'a':
-                                        nextSize -= 8;
-                                        if (nextSize < 0) {
-                                            break;
-                                        }
-                                        pfrag += 8;
-                                        if (Sub4.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                            return true;
-                                        break;
-                                    default:
-                                        if (Sub5.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                            return true;
-                                        break;
-                                }
-                                break;
-                            case (byte)'p':
-                                nextSize -= 7;
-                                if (nextSize < 0) {
-                                    handler = null;
-                                    resource = null;
-                                    return false;
-                                }
-                                pfrag += 7;
-                                switch (*pfrag) {
-                                    case (byte)' ':
-                                    case (byte)'\r':
-                                        if (Sub8.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                            return true;
-                                        break;
-                                    case (byte)'/':
-                                        nextSize -= 1;
-                                        if (nextSize < 0) {
-                                            break;
-                                        }
-                                        pfrag += 1;
-                                        if (Sub9.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                            return true;
-                                        break;
-                                    case (byte)'?':
-                                        nextSize -= 1;
-                                        if (nextSize < 0) {
-                                            break;
-                                        }
-                                        pfrag += 1;
-                                        if (Sub10.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                            return true;
-                                        break;
-                                }
-                                break;
-                            case (byte)'d':
-                                nextSize -= 10;
-                                if (nextSize < 0) {
-                                    break;
-                                }
-                                pfrag += 10;
-                                if (Sub11.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                    return true;
-                                break;
-                            case (byte)'w':
-                                nextSize -= 9;
-                                if (nextSize < 0) {
-                                    break;
-                                }
-                                pfrag += 9;
-                                if (Sub12.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                    return true;
-                                break;
+                        pfrag += 4;
+                        ptempl += 4;
+                        nextSize --;
+                        if (nextSize<0 || (*pfrag) != (*ptempl) ) {
+                            break;
                         }
+                        pfrag ++;
+                        ptempl ++;
+                        if (Sub0.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                           return true;
                         break;
-                    case (byte)'P':
-                        nextSize -= 1;
-                        if (nextSize < 0) {
-                            handler = null;
-                            resource = null;
-                            return false;
+                     case (byte)'m':
+                        ptempl += Sub3VerificationOffset;
+                        nextSize -= 4;
+                        if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
+                            break;
                         }
-                        pfrag += 1;
-                        switch (*pfrag) {
-                            case (byte)'U':
-                                nextSize -= 12;
-                                if (nextSize < 0) {
-                                    break;
-                                }
-                                pfrag += 12;
-                                if (Sub16.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                    return true;
-                                break;
-                            case (byte)'O':
-                                nextSize -= 5;
-                                if (nextSize < 0) {
-                                    handler = null;
-                                    resource = null;
-                                    return false;
-                                }
-                                pfrag += 5;
-                                switch (*pfrag) {
-                                    case (byte)'t':
-                                        nextSize -= 9;
-                                        if (nextSize < 0) {
-                                            break;
-                                        }
-                                        pfrag += 9;
-                                        if (Sub17.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                            return true;
-                                        break;
-                                    case (byte)'d':
-                                        nextSize -= 8;
-                                        if (nextSize < 0) {
-                                            break;
-                                        }
-                                        pfrag += 8;
-                                        if (Sub18.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                            return true;
-                                        break;
-                                    case (byte)'f':
-                                        nextSize -= 22;
-                                        if (nextSize < 0) {
-                                            break;
-                                        }
-                                        pfrag += 22;
-                                        if (Sub19.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                            return true;
-                                        break;
-                                }
-                                break;
+                        pfrag += 4;
+                        ptempl += 4;
+                        nextSize --;
+                        if (nextSize<0 || (*pfrag) != (*ptempl) ) {
+                            break;
                         }
+                        pfrag ++;
+                        ptempl ++;
+                        if (Sub3.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                           return true;
                         break;
-                    case (byte)'D':
-                        if (Sub22.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                            return true;
+                  }
+                  break;
+               case (byte)'P':
+                  ptempl += Sub5VerificationOffset;
+                  nextSize -= 8;
+                  if (nextSize<0 || (*(UInt64*)pfrag) != (*(UInt64*)ptempl) ) {
+                      break;
+                  }
+                  pfrag += 8;
+                  ptempl += 8;
+                  nextSize -= 4;
+                  if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
+                      break;
+                  }
+                  pfrag += 4;
+                  ptempl += 4;
+                  nextSize --;
+                  if (nextSize<0 || (*pfrag) != (*ptempl) ) {
+                      break;
+                  }
+                  pfrag ++;
+                  ptempl ++;
+                  if (Sub5.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                     return true;
+                  break;
+            }
+         }
+         handler = null;
+         resource = null;
+         return false;
+      }
+
+      public class Sub0Processor : RequestProcessor {
+
+         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            string val;
+            int vsize = SizeToDelimiterOrEnd(fragment, size, '/');
+            if (ParseUriString(fragment, vsize, out val)) {
+               unsafe {
+                  byte* pfrag = (byte*)fragment;
+                  byte* ptempl = (byte*)PointerVerificationBytes;
+                  int nextSize = size;
+                  nextSize -= vsize;
+                  if (nextSize < 0) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += vsize;
+                  ptempl += Sub1VerificationOffset;
+                  nextSize -= 2;
+                  if (nextSize<0 || (*(UInt16*)pfrag) != (*(UInt16*)ptempl) ) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += 2;
+                  ptempl += 2;
+                  nextSize --;
+                  if (nextSize<0 || (*pfrag) != (*ptempl) ) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag ++;
+                  ptempl ++;
+                  switch (*pfrag) {
+                     case (byte)'Y':
+                        ptempl += Sub1VerificationOffset;
+                        nextSize -= 2;
+                        if (nextSize<0 || (*(UInt16*)pfrag) != (*(UInt16*)ptempl) ) {
+                            break;
+                        }
+                        pfrag += 2;
+                        ptempl += 2;
+                        nextSize --;
+                        if (nextSize<0 || (*pfrag) != (*ptempl) ) {
+                            break;
+                        }
+                        pfrag ++;
+                        ptempl ++;
+                        if (Sub1.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                           return true;
                         break;
-                }
+                     case (byte)'Z':
+                        ptempl += Sub2VerificationOffset;
+                        nextSize -= 2;
+                        if (nextSize<0 || (*(UInt16*)pfrag) != (*(UInt16*)ptempl) ) {
+                            break;
+                        }
+                        pfrag += 2;
+                        ptempl += 2;
+                        nextSize --;
+                        if (nextSize<0 || (*pfrag) != (*ptempl) ) {
+                            break;
+                        }
+                        pfrag ++;
+                        ptempl ++;
+                        if (Sub2.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                           return true;
+                        break;
+                  }
+               }
             }
             handler = null;
             resource = null;
             return false;
-        }
+         }
+      }
 
-        public class Sub0Processor : SingleRequestProcessor {
+      public class Sub1Processor : SingleRequestProcessor<String,Int32> {
 
-            public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-                handler = this;
-                if (!invoke)
-                    resource = null;
-                else
-                    resource = Code.Invoke();
-                return true;
+         public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            int val;
+            if (ParseUriInt(fragment, size, out val)) {
+               handler = this;
+               if (!invoke)
+                  resource = null;
+               else
+                  resource = Code.Invoke(val1, val);
+               return true;
             }
-        }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
 
-        public class Sub1Processor : SingleRequestProcessor<HttpRequest> {
+      public class Sub2Processor : SingleRequestProcessor<String,Int32> {
 
-            public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-                handler = this;
-                if (!invoke)
-                    resource = null;
-                else
-                    resource = Code.Invoke(request);
-                return true;
+         public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            int val;
+            if (ParseUriInt(fragment, size, out val)) {
+               handler = this;
+               if (!invoke)
+                  resource = null;
+               else
+                  resource = Code.Invoke(val1, val);
+               return true;
             }
-        }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
 
-        public class Sub2Processor : SingleRequestProcessor<HttpRequest, Int32> {
+      public class Sub3Processor : RequestProcessor {
 
-            public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-                int val;
-                if (ParseUriInt(fragment, size, out val)) {
-                    handler = this;
-                    if (!invoke)
-                        resource = null;
-                    else
-                        resource = Code.Invoke(request, val);
-                    return true;
-                }
-                handler = null;
-                resource = null;
-                return false;
+         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            string val;
+            int vsize = SizeToDelimiterOrEnd(fragment, size, '/');
+            if (ParseUriString(fragment, vsize, out val)) {
+               unsafe {
+                  byte* pfrag = (byte*)fragment;
+                  byte* ptempl = (byte*)PointerVerificationBytes;
+                  int nextSize = size;
+                  nextSize -= vsize;
+                  if (nextSize < 0) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += vsize;
+                  ptempl += Sub4VerificationOffset;
+                  nextSize -= 4;
+                  if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += 4;
+                  ptempl += 4;
+                  nextSize -= 2;
+                  if (nextSize<0 || (*(UInt16*)pfrag) != (*(UInt16*)ptempl) ) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += 2;
+                  ptempl += 2;
+                  if (Sub4.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                     return true;
+               }
             }
-        }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
 
-        public class Sub3Processor : SingleRequestProcessor<String, HttpRequest> {
+      public class Sub4Processor : SingleRequestProcessor<String,Int32> {
 
-            public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-                string val;
-                if (ParseUriString(fragment, size, out val)) {
-                    handler = this;
-                    if (!invoke)
-                        resource = null;
-                    else
-                        resource = Code.Invoke(val, request);
-                    return true;
-                }
-                handler = null;
-                resource = null;
-                return false;
+         public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            int val;
+            if (ParseUriInt(fragment, size, out val)) {
+               handler = this;
+               if (!invoke)
+                  resource = null;
+               else
+                  resource = Code.Invoke(val1, val);
+               return true;
             }
-        }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
 
-        public class Sub4Processor : SingleRequestProcessor<Int32, HttpRequest> {
+      public class Sub5Processor : SingleRequestProcessor<Int32> {
 
-            public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-                int val;
-                if (ParseUriInt(fragment, size, out val)) {
-                    handler = this;
-                    if (!invoke)
-                        resource = null;
-                    else
-                        resource = Code.Invoke(val, request);
-                    return true;
-                }
-                handler = null;
-                resource = null;
-                return false;
+         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            int val;
+            if (ParseUriInt(fragment, size, out val)) {
+               handler = this;
+               if (!invoke)
+                  resource = null;
+               else
+                  resource = Code.Invoke(val);
+               return true;
             }
-        }
-
-        public class Sub5Processor : RequestProcessor {
-
-            public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-                string val;
-                int vsize = SizeToDelimiterOrEnd(fragment, size, '/');
-                if (ParseUriString(fragment, vsize, out val)) {
-                    unsafe {
-                        byte* pfrag = (byte*)fragment;
-                        int nextSize = size;
-                        nextSize -= (vsize);
-                        if (nextSize < 0) {
-                            handler = null;
-                            resource = null;
-                            return false;
-                        }
-                        pfrag += (vsize);
-                        switch (*pfrag) {
-                            case (byte)' ':
-                            case (byte)'\r':
-                                if (Sub6.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                    return true;
-                                break;
-                            case (byte)'/':
-                                nextSize -= 1;
-                                if (nextSize < 0) {
-                                    break;
-                                }
-                                pfrag += 1;
-                                if (Sub7.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                    return true;
-                                break;
-                        }
-                    }
-                }
-                handler = null;
-                resource = null;
-                return false;
-            }
-        }
-
-        public class Sub6Processor : SingleRequestProcessor<String, HttpRequest> {
-
-            public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-                handler = this;
-                if (!invoke)
-                    resource = null;
-                else
-                    resource = Code.Invoke(val1, request);
-                return true;
-            }
-        }
-
-        public class Sub7Processor : SingleRequestProcessor<String, Int32, HttpRequest> {
-
-            public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-                int val;
-                if (ParseUriInt(fragment, size, out val)) {
-                    handler = this;
-                    if (!invoke)
-                        resource = null;
-                    else
-                        resource = Code.Invoke(val1, val, request);
-                    return true;
-                }
-                handler = null;
-                resource = null;
-                return false;
-            }
-        }
-
-        public class Sub8Processor : SingleRequestProcessor {
-
-            public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-                handler = this;
-                if (!invoke)
-                    resource = null;
-                else
-                    resource = Code.Invoke();
-                return true;
-            }
-        }
-
-        public class Sub9Processor : SingleRequestProcessor<Int32> {
-
-            public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-                int val;
-                if (ParseUriInt(fragment, size, out val)) {
-                    handler = this;
-                    if (!invoke)
-                        resource = null;
-                    else
-                        resource = Code.Invoke(val);
-                    return true;
-                }
-                handler = null;
-                resource = null;
-                return false;
-            }
-        }
-
-        public class Sub10Processor : SingleRequestProcessor<String> {
-
-            public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-                string val;
-                if (ParseUriString(fragment, size, out val)) {
-                    handler = this;
-                    if (!invoke)
-                        resource = null;
-                    else
-                        resource = Code.Invoke(val);
-                    return true;
-                }
-                handler = null;
-                resource = null;
-                return false;
-            }
-        }
-
-        public class Sub11Processor : SingleRequestProcessor<Int32> {
-
-            public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-                int val;
-                if (ParseUriInt(fragment, size, out val)) {
-                    handler = this;
-                    if (!invoke)
-                        resource = null;
-                    else
-                        resource = Code.Invoke(val);
-                    return true;
-                }
-                handler = null;
-                resource = null;
-                return false;
-            }
-        }
-
-        public class Sub12Processor : RequestProcessor {
-
-            public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-                string val;
-                int vsize = SizeToDelimiterOrEnd(fragment, size, '/');
-                if (ParseUriString(fragment, vsize, out val)) {
-                    unsafe {
-                        byte* pfrag = (byte*)fragment;
-                        int nextSize = size;
-                        nextSize -= (vsize + 1);
-                        if (nextSize < 0) {
-                            handler = null;
-                            resource = null;
-                            return false;
-                        }
-                        pfrag += (vsize + 1);
-                        switch (*pfrag) {
-                            case (byte)'m':
-                                nextSize -= 5;
-                                if (nextSize < 0) {
-                                    break;
-                                }
-                                pfrag += 5;
-                                if (Sub13.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                    return true;
-                                break;
-                            case (byte)'x':
-                                nextSize -= 5;
-                                if (nextSize < 0) {
-                                    break;
-                                }
-                                pfrag += 5;
-                                if (Sub15.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                    return true;
-                                break;
-                        }
-                    }
-                }
-                handler = null;
-                resource = null;
-                return false;
-            }
-        }
-
-        public class Sub13Processor : RequestProcessor {
-
-            public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-                int val;
-                int vsize = SizeToDelimiterOrEnd(fragment, size, '/');
-                if (ParseUriInt(fragment, vsize, out val)) {
-                    unsafe {
-                        byte* pfrag = (byte*)fragment;
-                        int nextSize = size;
-                        nextSize -= (vsize + 1);
-                        if (nextSize < 0) {
-                            handler = null;
-                            resource = null;
-                            return false;
-                        }
-                        pfrag += (vsize + 1);
-                        if (Sub14.SubProcess(val1, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                            return true;
-                    }
-                }
-                handler = null;
-                resource = null;
-                return false;
-            }
-        }
-
-        public class Sub14Processor : SingleRequestProcessor<String, Int32, String> {
-
-            public bool SubProcess(string val1, int val2, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-                string val;
-                if (ParseUriString(fragment, size, out val)) {
-                    handler = this;
-                    if (!invoke)
-                        resource = null;
-                    else
-                        resource = Code.Invoke(val1, val2, val);
-                    return true;
-                }
-                handler = null;
-                resource = null;
-                return false;
-            }
-        }
-
-        public class Sub15Processor : SingleRequestProcessor<String, Int32> {
-
-            public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-                int val;
-                if (ParseUriInt(fragment, size, out val)) {
-                    handler = this;
-                    if (!invoke)
-                        resource = null;
-                    else
-                        resource = Code.Invoke(val1, val);
-                    return true;
-                }
-                handler = null;
-                resource = null;
-                return false;
-            }
-        }
-
-        public class Sub16Processor : SingleRequestProcessor<Int32> {
-
-            public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-                int val;
-                if (ParseUriInt(fragment, size, out val)) {
-                    handler = this;
-                    if (!invoke)
-                        resource = null;
-                    else
-                        resource = Code.Invoke(val);
-                    return true;
-                }
-                handler = null;
-                resource = null;
-                return false;
-            }
-        }
-
-        public class Sub17Processor : SingleRequestProcessor<Int32> {
-
-            public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-                int val;
-                if (ParseUriInt(fragment, size, out val)) {
-                    handler = this;
-                    if (!invoke)
-                        resource = null;
-                    else
-                        resource = Code.Invoke(val);
-                    return true;
-                }
-                handler = null;
-                resource = null;
-                return false;
-            }
-        }
-
-        public class Sub18Processor : SingleRequestProcessor<Int32> {
-
-            public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-                int val;
-                if (ParseUriInt(fragment, size, out val)) {
-                    handler = this;
-                    if (!invoke)
-                        resource = null;
-                    else
-                        resource = Code.Invoke(val);
-                    return true;
-                }
-                handler = null;
-                resource = null;
-                return false;
-            }
-        }
-
-        public class Sub19Processor : RequestProcessor {
-
-            public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-                string val;
-                int vsize = SizeToDelimiterOrEnd(fragment, size, '/');
-                if (ParseUriString(fragment, vsize, out val)) {
-                    unsafe {
-                        byte* pfrag = (byte*)fragment;
-                        int nextSize = size;
-                        nextSize -= (vsize + 10);
-                        if (nextSize < 0) {
-                            handler = null;
-                            resource = null;
-                            return false;
-                        }
-                        pfrag += (vsize + 10);
-                        if (Sub20.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                            return true;
-                    }
-                }
-                handler = null;
-                resource = null;
-                return false;
-            }
-        }
-
-        public class Sub20Processor : RequestProcessor {
-
-            public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-                string val;
-                int vsize = SizeToDelimiterOrEnd(fragment, size, '/');
-                if (ParseUriString(fragment, vsize, out val)) {
-                    unsafe {
-                        byte* pfrag = (byte*)fragment;
-                        int nextSize = size;
-                        nextSize -= (vsize + 5);
-                        if (nextSize < 0) {
-                            handler = null;
-                            resource = null;
-                            return false;
-                        }
-                        pfrag += (vsize + 5);
-                        if (Sub21.SubProcess(val1, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                            return true;
-                    }
-                }
-                handler = null;
-                resource = null;
-                return false;
-            }
-        }
-
-        public class Sub21Processor : SingleRequestProcessor<String, String, Int32> {
-
-            public bool SubProcess(string val1, string val2, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-                int val;
-                if (ParseUriInt(fragment, size, out val)) {
-                    handler = this;
-                    if (!invoke)
-                        resource = null;
-                    else
-                        resource = Code.Invoke(val1, val2, val);
-                    return true;
-                }
-                handler = null;
-                resource = null;
-                return false;
-            }
-        }
-
-        public class Sub22Processor : SingleRequestProcessor {
-
-            public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-                handler = this;
-                if (!invoke)
-                    resource = null;
-                else
-                    resource = Code.Invoke();
-                return true;
-            }
-        }
-    }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
+   }
 }
