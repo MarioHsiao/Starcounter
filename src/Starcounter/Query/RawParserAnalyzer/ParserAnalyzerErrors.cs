@@ -63,7 +63,7 @@ namespace Starcounter.Query.RawParserAnalyzer
         /// <returns>Part of error message about location of the error.</returns>
         internal unsafe String LocationMessageForError(Node* node)
         {
-            return LocationMessageForError(node, UnmanagedParserInterface.StrVal(node));
+            return LocationMessageForError(node, UnmanagedParserInterface.GetStrVal(node));
         }
 
         internal unsafe String LocationMessageForError(Node* node, String token)
@@ -75,8 +75,8 @@ namespace Starcounter.Query.RawParserAnalyzer
         // Proper error should be returned from here.
         internal unsafe void UnknownNode(Node* node)
         {
-            throw GetSqlException(Error.SCERRSQLNOTIMPLEMENTED, "The statement or clause is not implemented"+LocationMessageForError(node), 
-                UnmanagedParserInterface.Location(node), UnmanagedParserInterface.StrVal(node));
+            throw GetSqlException(Error.SCERRSQLNOTIMPLEMENTED, "The statement or clause is not implemented. "+LocationMessageForError(node), 
+                UnmanagedParserInterface.Location(node), UnmanagedParserInterface.GetStrVal(node));
         }
 
         /// <summary>
@@ -109,8 +109,7 @@ namespace Starcounter.Query.RawParserAnalyzer
         internal static Exception GetSqlException(uint errorCode, string message, int location, string token) {
             List<string> tokens = new List<string>(1);
             tokens.Add(token);
-            SqlException ex = new SqlException(message, tokens, location);
-            return ErrorCode.ToException(errorCode, "", (m, e) => ex);
+            return ErrorCode.ToException(errorCode, message, (m, e) => new SqlException(m, tokens, location));
         }
     }
 

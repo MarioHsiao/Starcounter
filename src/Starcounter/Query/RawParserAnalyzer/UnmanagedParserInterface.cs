@@ -33,10 +33,10 @@ namespace Starcounter.Query.RawParserAnalyzer
         /// Interface to help methods on unmanaged structures
 
         [DllImport("Starcounter.SqlParser.dll")]
-        private static unsafe extern IntPtr _StrVal(Node* node);
+        private static unsafe extern IntPtr StrVal(Node* node);
 
-        internal static unsafe String StrVal(Node* node) {
-            return Marshal.PtrToStringAuto(_StrVal(node));
+        internal static unsafe String GetStrVal(Node* node) {
+            return Marshal.PtrToStringAuto(StrVal(node));
         }
 
         [DllImport("Starcounter.SqlParser.dll")]
