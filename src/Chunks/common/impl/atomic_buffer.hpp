@@ -21,8 +21,6 @@ template<typename T, int32_t N>
 inline atomic_buffer<T, N>::atomic_buffer()
 : head_(0), tail_(0) {}
 
-
-
 // Specialization
 template<typename T>
 inline atomic_buffer<T, 8>::atomic_buffer()

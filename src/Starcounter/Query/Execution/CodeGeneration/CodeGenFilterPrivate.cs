@@ -75,21 +75,21 @@ internal sealed class CodeGenFilterPrivate
     Boolean numTypeChanged = false; // Indicates if instruction codes changed as a reflection of variable type change.
     UInt64 filterHandle = 0; // Handle to recently used filter.
     ILogicalExpression queryCondition = null; // Condition tree.
-    CompositeTypeBinding typeBinding = null; // Result type binding.
+    RowTypeBinding typeBinding = null; // Result type binding.
     DbTypeCode[] numVarTypes = null; // Array of variable types.
     Int32 extentNumber = -1; // Extent number.
     Boolean printFilterOutput = false; // Print debug info?
     
     // Constructor for initial copy and cloning.
     public CodeGenFilterPrivate(ILogicalExpression queryCond,
-                                CompositeTypeBinding resultTypeBinding,
+                                RowTypeBinding rowTypeBinding,
                                 Int32 extentNum, // Indicates an extent to which this condition tree belongs.
                                 DbTypeCode[] recentNumVarTypes,
                                 CodeGenFilterCacheShared sharedFilterCache,
                                 UInt64 recentFilterHandle)
     {
         queryCondition = queryCond;
-        typeBinding = resultTypeBinding;
+        typeBinding = rowTypeBinding;
         extentNumber = extentNum;
         numVarTypes = recentNumVarTypes;
         filterCache = sharedFilterCache;
@@ -108,7 +108,7 @@ internal sealed class CodeGenFilterPrivate
     }
 
     public CodeGenFilterPrivate Clone(ILogicalExpression conditionClone,
-                                      CompositeTypeBinding typeBindingClone)
+                                      RowTypeBinding typeBindingClone)
     {
         // Creating clone of numerical variable types.
         DbTypeCode[] newNumVarTypes = null;
@@ -241,7 +241,7 @@ internal sealed class CodeGenFilterPrivate
     }
 
     // Getting data stream.
-    public Byte[] GetDataStream(CompositeObject obj)
+    public Byte[] GetDataStream(Row obj)
     {
         if (dataLeaves != null)
         {

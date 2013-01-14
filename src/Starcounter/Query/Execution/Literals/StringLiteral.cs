@@ -8,6 +8,7 @@ using Starcounter.Query.Optimization;
 using System;
 using System.Globalization;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 
 namespace Starcounter.Query.Execution
@@ -112,7 +113,7 @@ internal class StringLiteral : Literal, ILiteral, IStringPathItem
     /// </summary>
     /// <param name="obj">Not used.</param>
     /// <returns>A copy of this literal.</returns>
-    public IStringExpression Instantiate(CompositeObject obj)
+    public IStringExpression Instantiate(Row obj)
     {
         return new StringLiteral(value);
     }
@@ -165,5 +166,26 @@ internal class StringLiteral : Literal, ILiteral, IStringPathItem
     {
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "\"" + value.ToString() + "\"");
     }
+
+#if DEBUG
+    public bool AssertEquals(ITypeExpression other) {
+        StringLiteral otherNode = other as StringLiteral;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(StringLiteral other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check basic types
+        Debug.Assert(this.value == other.value);
+        if (this.value != other.value)
+            return false;
+        Debug.Assert(this.isPreEvaluatedPattern == other.isPreEvaluatedPattern);
+        if (this.isPreEvaluatedPattern != other.isPreEvaluatedPattern)
+            return false;
+        return true;
+    }
+#endif
 }
 }

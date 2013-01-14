@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 
 namespace Starcounter.Query.Execution
@@ -84,6 +85,7 @@ internal class ObjectThis : CodeGenFilterNode, IObjectExpression, IProperty
             return DbTypeCode.Object;
         }
     }
+
     public QueryTypeCode QueryTypeCode
     {
         get
@@ -103,6 +105,11 @@ internal class ObjectThis : CodeGenFilterNode, IObjectExpression, IProperty
         }
     }
 
+    public Boolean InvolvesCodeExecution()
+    {
+        return false;
+    }
+
     /// <summary>
     /// Calculates the value of this pseudo property when evaluated on an input object,
     /// which is the input object itself.
@@ -115,9 +122,9 @@ internal class ObjectThis : CodeGenFilterNode, IObjectExpression, IProperty
         {
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect obj.");
         }
-        if (obj is CompositeObject)
+        if (obj is Row)
         {
-            IObjectView partObj = (obj as CompositeObject).AccessObject(extentNumber);
+            IObjectView partObj = (obj as Row).AccessObject(extentNumber);
             if (partObj == null)
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "No elementary object at extent number: " + extentNumber);
@@ -139,13 +146,13 @@ internal class ObjectThis : CodeGenFilterNode, IObjectExpression, IProperty
     }
 
     /// <summary>
-    /// Creates an more instantiated copy of this expression by evaluating it on a result-object.
-    /// Properties, with extent numbers for which there exist objects attached to the result-object,
+    /// Creates an more instantiated copy of this expression by evaluating it on a Row.
+    /// Properties, with extent numbers for which there exist objects attached to the Row,
     /// are evaluated and instantiated to literals, other properties are not changed.
     /// </summary>
-    /// <param name="obj">The result-object on which to evaluate the expression.</param>
+    /// <param name="obj">The Row on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public IObjectExpression Instantiate(CompositeObject obj)
+    public IObjectExpression Instantiate(Row obj)
     {
         if (obj != null && extentNumber >= 0 && obj.AccessObject(extentNumber) != null)
         {
@@ -243,7 +250,7 @@ internal class ObjectThis : CodeGenFilterNode, IObjectExpression, IProperty
     /// Appends data of this leaf to the provided filter key.
     /// </summary>
     /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    /// <param name="obj">Results object for which evaluation should be performed.</param>
+    /// <param name="obj">Row for which evaluation should be performed.</param>
     public override void AppendToByteArray(ByteArrayBuilder key, IObjectView obj)
     {
         // Checking if its an object from some previous extent
@@ -292,5 +299,29 @@ internal class ObjectThis : CodeGenFilterNode, IObjectExpression, IProperty
     {
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "GetThisObject();");
     }
+
+#if DEBUG
+    public bool AssertEquals(ITypeExpression other) {
+        ObjectThis otherNode = other as ObjectThis;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(ObjectThis other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check basic types
+        Debug.Assert(this.typeBinding == other.typeBinding);
+        if (this.typeBinding != other.typeBinding)
+            return false;
+        Debug.Assert(this.extentNumber == other.extentNumber);
+        if (this.extentNumber != other.extentNumber)
+            return false;
+        Debug.Assert(this.objFromPreviousExtent == other.objFromPreviousExtent);
+        if (this.objFromPreviousExtent != other.objFromPreviousExtent)
+            return false;
+        return true;
+    }
+#endif
 }
 }

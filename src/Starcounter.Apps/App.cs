@@ -9,6 +9,8 @@ using Starcounter.Templates.Interfaces;
 using System.ComponentModel;
 using Starcounter.Templates;
 using Starcounter.Internal.REST;
+using Starcounter.Internal;
+using Starcounter.Apps;
 
 #if CLIENT
 using Starcounter.Client.Template;
@@ -40,33 +42,35 @@ namespace Starcounter {
     /// in case you which to validate the change).</remarks>
     public partial class App : AppNode
 #if IAPP
-        , IApp
+, IApp
 #endif
-    {
+ {
+        /// <summary>
+        /// 
+        /// </summary>
+        private Transaction _transaction;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private Entity _Data;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="App" /> class.
         /// </summary>
-       public App() : base() 
-       {
-           _cacheIndexInList = -1;
-       }
+        public App() : base() {
+            _cacheIndexInList = -1;
+            ViewModelId = -1;
+        }
 
-       /// <summary>
-       /// Initializes a new instance of the <see cref="App" /> class.
-       /// </summary>
-       /// <param name="data">The data.</param>
-       public App(Entity data) : this() {
-          Data = data;
-       }
+        /// <summary>
+        /// Rest-server responsible for delivering static resources.
+        /// </summary>
+        public static HttpRestServer StaticResources;
 
-       /// <summary>
-       /// The static resources
-       /// </summary>
-       public static HttpRestServer StaticResources;
-
-       /// <summary>
-       /// Triggers the type initialization.
-       /// </summary>
+        /// <summary>
+        /// Triggers the type initialization.
+        /// </summary>
         static internal void TriggerTypeInitialization() {
             // Calling a static method will trigger type initialization.
             // This is important to detect if the EXE module is running out of process.
@@ -75,35 +79,34 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Gets the is serialized.
+        /// Returns true if this app have been serialed and sent to the client.
         /// </summary>
         /// <value>The is serialized.</value>
         public Boolean IsSerialized { get; internal set; }
 
         /// <summary>
-        /// The _cache index in list
+        /// Returns the id of this app or -1 if not used.
+        /// </summary>
+        internal int ViewModelId { get; set; }
+
+        /// <summary>
+        /// Cache field of index if this apps parent is a list.
         /// </summary>
         internal Int32 _cacheIndexInList;
 
         /// <summary>
         /// Fills the index path.
         /// </summary>
-        /// <param name="path">The path.</param>
-        /// <param name="pos">The pos.</param>
-        internal override void FillIndexPath(int[] path, int pos)
-        {
-            if (Parent != null)
-            {
-                if (Parent is Listing)
-                {
-                    if (_cacheIndexInList == -1)
-                    {
+        /// <param name="path">The patharray to fill</param>
+        /// <param name="pos">The position to fill</param>
+        internal override void FillIndexPath(int[] path, int pos) {
+            if (Parent != null) {
+                if (Parent is Listing) {
+                    if (_cacheIndexInList == -1) {
                         _cacheIndexInList = ((Listing)Parent).IndexOf(this);
                     }
                     path[pos] = _cacheIndexInList;
-                }
-                else
-                {
+                } else {
                     path[pos] = Template.Index;
                 }
                 Parent.FillIndexPath(path, pos - 1);
@@ -111,11 +114,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// The _ data
-        /// </summary>
-        private Entity _Data;
-        /// <summary>
-        /// Gets or sets the data.
+        /// Gets or sets the underlying entity object.
         /// </summary>
         /// <value>The data.</value>
         public Entity Data {
@@ -123,8 +122,40 @@ namespace Starcounter {
                 return _Data;
             }
             set {
-                _Data = value;
-                OnData();
+                if (Transaction == null) {
+                    Transaction = Transaction._current;
+                }
+                InternalSetData(value);
+            }
+        }
+
+        /// <summary>
+        /// Sets the underlying dataobject and refreshes all bound values.
+        /// This function does not check for a valid transaction as the 
+        /// public Data-property does.
+        /// </summary>
+        /// <param name="data"></param>
+        internal void InternalSetData(Entity data) {
+            _Data = data;
+
+            if (Template.Bound) {
+                Template.SetBoundValue((App)this.Parent, data);
+            }
+
+            RefreshAllBoundValues();
+            OnData();
+        }
+
+        /// <summary>
+        /// Refreshes all databound values for this app.
+        /// </summary>
+        private void RefreshAllBoundValues() {
+            Template child;
+            for (Int32 i = 0; i < this.Template.Properties.Count; i++) {
+                child = Template.Properties[i];
+                if (child.Bound) {
+                    Refresh(child);
+                }
             }
         }
 
@@ -135,7 +166,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Called when [data].
+        /// Called after the data object is set.
         /// </summary>
         protected virtual void OnData() {
         }
@@ -151,22 +182,86 @@ namespace Starcounter {
 //        }
 
         /// <summary>
-        /// Commits this instance.
+        /// Gets the closest transaction for this app looking up in the tree.
+        /// Sets this transaction.
         /// </summary>
-        public virtual void Commit() {
+        public Transaction Transaction {
+            get {
+                if (_transaction != null)
+                    return _transaction;
+
+                App parent = GetNearestAppParent();
+                if (parent != null)
+                    return parent.Transaction;
+
+                return null;
+            }
+            set {
+                if (_transaction != null) {
+                    throw new Exception("An transaction is already set for this App. Changing transaction is not allowed.");
+                }
+                _transaction = value;
+            }
         }
 
         /// <summary>
-        /// Refreshes the specified model.
+        /// Returns the transaction that is set on this app. Does NOT
+        /// look in parents.
         /// </summary>
-        /// <param name="model">The model.</param>
-        public void Refresh(Template model) {
+        internal Transaction TransactionOnThisApp {
+            get { return _transaction; }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private App GetNearestAppParent() {
+            AppNode parent = Parent;
+            while ((parent != null) && (!(parent is App))) {
+                parent = parent.Parent;
+            }
+            return (App)parent;
+        }
+
+        /// <summary>
+        /// Commits this instance.
+        /// </summary>
+        public virtual void Commit() {
+            if (_transaction != null) {
+                _transaction.Commit();
+            }
         }
 
         /// <summary>
         /// Aborts this instance.
         /// </summary>
         public virtual void Abort() {
+            if (_transaction != null) {
+                _transaction.Rollback();
+            }
+        }
+
+        /// <summary>
+        /// Refreshes the specified template.
+        /// </summary>
+        /// <param name="model">The model.</param>
+        public void Refresh(Template model) {
+            if (model is ListingProperty) {
+                ListingProperty apa = (ListingProperty)model;
+                this.SetValue(apa, apa.GetBoundValue(this));
+            } else if (model is AppTemplate) {
+                AppTemplate at = (AppTemplate)model;
+
+                // TODO:
+                Entity v = at.GetBoundValue(this);
+                if (v != null)
+                    this.SetValue(at, v);
+            } else {
+                Property p = model as Property;
+                if (p != null)
+                    ChangeLog.UpdateValue(this, p);
+            }
         }
 
         /// <summary>
@@ -182,9 +277,8 @@ namespace Starcounter {
         /// The template defining the properties of this App.
         /// </summary>
         /// <value>The template.</value>
-        public new AppTemplate Template 
-        { 
-            get { return (AppTemplate)base.Template; } 
+        public new AppTemplate Template {
+            get { return (AppTemplate)base.Template; }
             set { base.Template = value; }
         }
 
@@ -242,7 +336,7 @@ namespace Starcounter {
         /// <param name="pars">The pars.</param>
         /// <returns>SqlResult.</returns>
         public static SqlResult SQL(string str, params object[] pars) {
-            return Db.SQL(str,pars);
+            return Db.SQL(str, pars);
         }
 
         /// <summary>
@@ -252,17 +346,17 @@ namespace Starcounter {
         /// <param name="str">The STR.</param>
         /// <param name="pars">The pars.</param>
         /// <returns>SqlResult2{``0}.</returns>
-        public static SqlResult2<T> SQL<T>(string str, params object[] pars) where T:Entity {
+        public static SqlResult2<T> SQL<T>(string str, params object[] pars) where T : Entity {
             return null;
         }
 
-        /// <summary>
-        /// Transactions the specified action.
-        /// </summary>
-        /// <param name="action">The action.</param>
-        public static void Transaction(Action action) {
-            Db.Transaction(action);
-        }
+        ///// <summary>
+        ///// Transactions the specified action.
+        ///// </summary>
+        ///// <param name="action">The action.</param>
+        //public static void Transaction(Action action) {
+        //    Db.Transaction(action);
+        //}
 
         /// <summary>
         /// Slows the SQL.

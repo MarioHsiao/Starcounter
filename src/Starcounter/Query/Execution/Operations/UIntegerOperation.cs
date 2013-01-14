@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Text;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 
 namespace Starcounter.Query.Execution
@@ -83,12 +84,18 @@ internal class UIntegerOperation : IUIntegerExpression, INumericalOperation
             return DbTypeCode.UInt64;
         }
     }
+
     public QueryTypeCode QueryTypeCode
     {
         get
         {
             return QueryTypeCode.UInteger;
         }
+    }
+
+    public Boolean InvolvesCodeExecution()
+    {
+        return (expr1.InvolvesCodeExecution() || (expr2 != null && expr2.InvolvesCodeExecution()));
     }
 
     /// <summary>
@@ -246,13 +253,13 @@ internal class UIntegerOperation : IUIntegerExpression, INumericalOperation
     }
 
     /// <summary>
-    /// Creates an more instantiated copy of this expression by evaluating it on a result-object.
-    /// Properties, with extent numbers for which there exist objects attached to the result-object,
+    /// Creates an more instantiated copy of this expression by evaluating it on a Row.
+    /// Properties, with extent numbers for which there exist objects attached to the Row,
     /// are evaluated and instantiated to literals, other properties are not changed.
     /// </summary>
-    /// <param name="obj">The result-object on which to evaluate the expression.</param>
+    /// <param name="obj">The Row on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public INumericalExpression Instantiate(CompositeObject obj)
+    public INumericalExpression Instantiate(Row obj)
     {
         if (expr2 != null)
         {
@@ -316,5 +323,46 @@ internal class UIntegerOperation : IUIntegerExpression, INumericalOperation
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, " " + numOperator.ToString() + " ");
         expr2.GenerateCompilableCode(stringGen);
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    public bool AssertEquals(ITypeExpression other) {
+        UIntegerOperation otherNode = other as UIntegerOperation;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(UIntegerOperation other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check basic types
+        Debug.Assert(this.numOperator == other.numOperator);
+        if (this.numOperator != other.numOperator)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = true;
+        if (this.expr1 == null) {
+            Debug.Assert(other.expr1 == null);
+            areEquals = other.expr1 == null;
+        } else
+            areEquals = this.expr1.AssertEquals(other.expr1);
+        if (areEquals)
+            if (this.expr2 == null) {
+                Debug.Assert(other.expr2 == null);
+                areEquals = other.expr2 == null;
+            } else
+                areEquals = this.expr2.AssertEquals(other.expr2);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Starcounter.Internal;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -71,7 +72,7 @@ internal class DateTimeVariable : Variable, IVariable, IDateTimeExpression
     /// Appends data of this leaf to the provided filter key.
     /// </summary>
     /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    /// <param name="obj">Results object for which evaluation should be performed.</param>
+    /// <param name="obj">Row for which evaluation should be performed.</param>
     public override void AppendToByteArray(ByteArrayBuilder key, IObjectView obj)
     {
         key.Append(value);
@@ -131,7 +132,7 @@ internal class DateTimeVariable : Variable, IVariable, IDateTimeExpression
     /// </summary>
     /// <param name="obj">Not used.</param>
     /// <returns>A copy of this variable.</returns>
-    public IDateTimeExpression Instantiate(CompositeObject obj)
+    public IDateTimeExpression Instantiate(Row obj)
     {
         return this;
     }
@@ -228,5 +229,26 @@ internal class DateTimeVariable : Variable, IVariable, IDateTimeExpression
         value = new DateTime((*(Int64*)(buffer + 1)));
         buffer += 9;
     }
+
+#if DEBUG
+    public bool AssertEquals(ITypeExpression other) {
+        DateTimeVariable otherNode = other as DateTimeVariable;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(DateTimeVariable other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check parent
+        if (!base.AssertEquals(other))
+            return false;
+        // Check basic types
+        Debug.Assert(this.value == other.value);
+        if (this.value != other.value)
+            return false;
+        return true;
+    }
+#endif
 }
 }

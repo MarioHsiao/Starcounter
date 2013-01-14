@@ -72,9 +72,17 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\HTTP\HttpStructs.csproj">
+    <ProjectReference Include="..\..\HTTP\HttpStructs\HttpStructs.csproj">
       <Project>{90d57166-b42e-4bbe-b9ec-cfb33e551b77}</Project>
       <Name>HttpStructs</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Starcounter.Rest\Starcounter.Rest.csproj">
+      <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
+      <Name>Starcounter.Rest</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Starcounter.Bootstrap\Starcounter.Bootstrap.csproj">
+      <Project>{8278b17c-e0e9-49b7-8bda-f15282445d45}</Project>
+      <Name>Starcounter.Bootstrap</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Starcounter\Starcounter.csproj">
       <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>

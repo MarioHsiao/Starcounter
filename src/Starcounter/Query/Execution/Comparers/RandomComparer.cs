@@ -14,7 +14,7 @@ namespace Starcounter.Query.Execution
 {
 /// <summary>
 /// Class that holds information about a random comparer which is a comparer that
-/// gives a random result when comparing composite objects.
+/// gives a random result when comparing Rows.
 /// </summary>
 internal class RandomComparer : IQueryComparer
 {
@@ -25,7 +25,7 @@ internal class RandomComparer : IQueryComparer
         random = new Random();
     }
 
-    public Int32 Compare(CompositeObject obj1, CompositeObject obj2)
+    public Int32 Compare(Row obj1, Row obj2)
     {
         if (obj1.Random == -1)
         {

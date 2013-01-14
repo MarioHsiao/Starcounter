@@ -52,7 +52,9 @@
     <Compile Include="ABCIPC\Reply.cs" />
     <Compile Include="ABCIPC\Request.cs" />
     <Compile Include="ABCIPC\Server.cs" />
+    <Compile Include="CommandLine\CommandLineStringParser.cs" />
     <Compile Include="CommandLine\InvalidCommandLineException.cs" />
+    <Compile Include="Constants\Constants.cs" />
     <Compile Include="Diagnostics.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="ErrorHandling\ErrorCode.cs" />
@@ -72,6 +74,9 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\Starcounter.ErrorCodes\errorcodes.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

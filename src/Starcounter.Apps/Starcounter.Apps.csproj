@@ -57,7 +57,7 @@
     <Optimize>true</Optimize>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
@@ -80,8 +80,10 @@
     <Compile Include="App.QuickTuple.cs" />
     <Compile Include="App.GetSetValue.cs" />
     <Compile Include="ChangeLog.cs" />
+    <Compile Include="DataBinding.cs" />
     <Compile Include="Input\Input.cs" />
     <Compile Include="ManagedTupleWriter.cs" />
+    <Compile Include="Session.cs" />
     <Compile Include="Temp.cs" />
     <Compile Include="TemplateAttribute.cs" />
     <Compile Include="ValueMetadata\DecimalMetadata.cs" />
@@ -124,9 +126,17 @@
       <Project>{dd181012-dd9c-410f-ad8e-01d062cac820}</Project>
       <Name>FasterThanJson</Name>
     </ProjectReference>
+    <ProjectReference Include="..\HTTP\HttpStructs\HttpStructs.csproj">
+      <Project>{90d57166-b42e-4bbe-b9ec-cfb33e551b77}</Project>
+      <Name>HttpStructs</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Starcounter.BitsAndBytes.Unsafe\BitsAndBytes.Unsafe.csproj">
       <Project>{885eb31b-cf41-4c6c-a7be-53b32a0c8b82}</Project>
       <Name>BitsAndBytes.Unsafe</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
+      <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
+      <Name>Starcounter.Internal</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter\Starcounter.csproj">
       <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
@@ -136,7 +146,7 @@
       <Project>{a9ae40ff-1a21-414a-9fe7-3be13644cc6d}</Project>
       <Name>Newtonsoft.Json</Name>
     </ProjectReference>
-    <ProjectReference Include="..\REST\Starcounter.Rest.csproj">
+    <ProjectReference Include="..\Starcounter.Rest\Starcounter.Rest.csproj">
       <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
       <Name>Starcounter.Rest</Name>
     </ProjectReference>

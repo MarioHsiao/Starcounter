@@ -259,11 +259,10 @@ namespace Starcounter.VisualStudio.Projects {
                 this.ReportError(
                     "Unexpected exception when trying to run the debugging launch sequence: {0}", unexpectedException.Message);
                 launchResult = false;
-            }
-
-            if (launchResult == false) {
+            } finally {
                 debugLaunchPending = false;
                 debugLaunchDescription = "";
+                WriteDebugLaunchStatus(null);
             }
 
             return launchResult ? VSConstants.S_OK : VSConstants.S_FALSE;

@@ -8,6 +8,7 @@ using Starcounter.Query.Optimization;
 using System;
 using System.Globalization;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 
 namespace Starcounter.Query.Execution
@@ -63,7 +64,7 @@ internal class ObjectLiteral : Literal, ILiteral, IObjectPathItem
     /// <summary>
     /// Constructor.
     /// </summary>
-    /// <param name="typeBind">The type resultTypeBind of this null-literal.</param>
+    /// <param name="typeBind">The type binding of this null-literal.</param>
     internal ObjectLiteral(ITypeBinding typeBind)
     {
         if (typeBind == null)
@@ -97,7 +98,7 @@ internal class ObjectLiteral : Literal, ILiteral, IObjectPathItem
     }
 
     /// <summary>
-    /// The type resultTypeBind of the object.
+    /// The type rowTypeBind of the object.
     /// </summary>
     public QueryTypeCode QueryTypeCode
     {
@@ -154,7 +155,7 @@ internal class ObjectLiteral : Literal, ILiteral, IObjectPathItem
     /// </summary>
     /// <param name="obj">Not used.</param>
     /// <returns>A copy of this literal.</returns>
-    public IObjectExpression Instantiate(CompositeObject obj)
+    public IObjectExpression Instantiate(Row obj)
     {
         if (value != null)
         {
@@ -211,5 +212,35 @@ internal class ObjectLiteral : Literal, ILiteral, IObjectPathItem
     {
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, value.ToString());
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    public bool AssertEquals(ITypeExpression other) {
+        ObjectLiteral otherNode = other as ObjectLiteral;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(ObjectLiteral other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check basic types
+        Debug.Assert(this.typeBinding == other.typeBinding);
+        if (this.typeBinding != other.typeBinding)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = this.value.AssertEquals(other.value);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }

@@ -88,7 +88,7 @@ namespace Starcounter.Internal
         /// </summary>
         /// <returns>UInt32.</returns>
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public extern static UInt32 sc_init_bmx_manager();
+        public extern static UInt32 sc_init_bmx_manager(HttpStructs.GlobalSessions.DestroyAppsSessionCallback dasc);
 
         /// <summary>
         /// Sc_wait_for_bmx_readies this instance.
@@ -123,6 +123,31 @@ namespace Starcounter.Internal
         );
 
         /// <summary>
+        /// sc_bmx_copy_all_chunks the specified chunk_index.
+        /// </summary>
+        /// <returns>UInt32.</returns>
+        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public unsafe extern static UInt32 sc_bmx_copy_all_chunks(
+            UInt32 chunk_index,
+            Byte* first_smc,
+            UInt32 first_chunk_offset,
+            UInt32 total_copy_bytes,
+            Byte* dest_buffer,
+            UInt32 dest_buffer_size
+        );
+
+        /// <summary>
+        /// sc_bmx_plain_copy_and_release_chunks the specified chunk_index.
+        /// </summary>
+        /// <returns>UInt32.</returns>
+        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public unsafe extern static UInt32 sc_bmx_plain_copy_and_release_chunks(
+            UInt32 first_chunk_index,
+            Byte* first_chunk_data,
+            Byte* buffer
+        );
+
+        /// <summary>
         /// Sc_bmx_send_buffers the specified buf.
         /// </summary>
         /// <param name="buf">The buf.</param>
@@ -134,9 +159,17 @@ namespace Starcounter.Internal
         public unsafe extern static UInt32 sc_bmx_send_buffer(
             Byte* buf,
             UInt32 buf_len_bytes,
-            UInt32 chunk_index,
+            UInt32* chunk_index,
             Byte* chunk_memory
         );
+
+        /// <summary>
+        /// sc_bmx_release_linked_chunks.
+        /// </summary>
+        /// <param name="chunk_index">The chunk_index.</param>
+        /// <returns>UInt32.</returns>
+        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public unsafe extern static UInt32 sc_bmx_release_linked_chunks(UInt32 chunk_index);
 
         /// <summary>
         /// Sc_bmx_register_port_handlers the specified port.

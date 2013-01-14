@@ -9,6 +9,7 @@ using Starcounter.Internal;
 using Starcounter.Query.Execution;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Optimization
 {
@@ -20,7 +21,7 @@ internal class SortSpecification
     /// <summary>
     /// The type binding of the resulting objects of the current query.
     /// </summary>
-    CompositeTypeBinding resultTypeBind;
+    RowTypeBinding rowTypeBind;
 
     /// <summary>
     /// A list of sort specifications of a query (specified in the ORDER BY clause).
@@ -30,17 +31,17 @@ internal class SortSpecification
     /// <summary>
     /// Constructor.
     /// </summary>
-    internal SortSpecification(CompositeTypeBinding resultTypeBind, List<ISingleComparer> sortSpecItemList)
+    internal SortSpecification(RowTypeBinding rowTypeBind, List<ISingleComparer> sortSpecItemList)
     {
-        if (resultTypeBind == null)
+        if (rowTypeBind == null)
         {
-            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect resultTypeBind.");
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
         }
         if (sortSpecItemList == null && sortSpecItemList.Count > 0)
         {
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect sortSpecList.");
         }
-        this.resultTypeBind = resultTypeBind;
+        this.rowTypeBind = rowTypeBind;
         this.sortSpecItemList = sortSpecItemList;
     }
 
@@ -111,7 +112,7 @@ internal class SortSpecification
         IndexUseInfo indexUseInfo = null;
         for (Int32 i = 0; i < pathComparerListList.Count; i++)
         {
-            indexUseInfo = GetIndexUseInfo(resultTypeBind, pathComparerListList[i]);
+            indexUseInfo = GetIndexUseInfo(rowTypeBind, pathComparerListList[i]);
             if (indexUseInfo != null)
             {
                 indexUseInfoList.Add(indexUseInfo);
@@ -124,7 +125,7 @@ internal class SortSpecification
         return indexUseInfoList;
     }
 
-    private static IndexUseInfo GetIndexUseInfo(CompositeTypeBinding resultTypeBind, List<IPathComparer> pathComparerList)
+    private static IndexUseInfo GetIndexUseInfo(RowTypeBinding rowTypeBind, List<IPathComparer> pathComparerList)
     {
         if (pathComparerList.Count == 0)
         {
@@ -132,7 +133,7 @@ internal class SortSpecification
         }
 
         Int32 extentNumber = pathComparerList[0].Path.ExtentNumber;
-        TypeBinding typeBind = (resultTypeBind.GetTypeBinding(extentNumber) as TypeBinding);
+        TypeBinding typeBind = (rowTypeBind.GetTypeBinding(extentNumber) as TypeBinding);
 
 #if true
         unsafe
@@ -303,6 +304,39 @@ internal class SortSpecification
         }
         return new MultiComparer(sortSpecItemList);
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    internal bool AssertEquals(SortSpecification other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check cardinalities of collections
+        Debug.Assert(this.sortSpecItemList.Count == other.sortSpecItemList.Count);
+        if (this.sortSpecItemList.Count != other.sortSpecItemList.Count)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = true;
+        if (this.rowTypeBind == null) {
+            Debug.Assert(other.rowTypeBind == null);
+            areEquals = other.rowTypeBind == null;
+        } else
+            areEquals = this.rowTypeBind.AssertEquals(other.rowTypeBind);
+        // Check collections of objects
+        for (int i = 0; i < this.sortSpecItemList.Count && areEquals; i++)
+            areEquals = this.sortSpecItemList[i].AssertEquals(other.sortSpecItemList[i]);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }
 

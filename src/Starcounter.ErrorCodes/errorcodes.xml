@@ -736,7 +736,7 @@
           ownership of the database environment on startup.
         </para>
         <para>
-          Could indicate that the memory manager is unresponsive (scpmm.exe). Try
+          Could indicate that the memory manager is unresponsive (scdata.exe). Try
           again after terminating this process.
         </para>
       </remarks>
@@ -898,7 +898,7 @@
       <message>
 		The database intends to register with the monitor, but it failed to open
 		the monitor interface shared memory object. If there is no monitor
-		(ScConnMonitor.exe) running, this is likely the cause of the problem.
+		(scipcmonitor.exe) running, this is likely the cause of the problem.
       </message>
     </code>
 	-->
@@ -961,7 +961,7 @@
       </message>
       <remarks>
         <para>
-			If there is no monitor (ScConnMonitor.exe) running in the same
+			If there is no monitor (scipcmonitor.exe) running in the same
 			terminal server session as the database process, this is likely the
 			cause of the error. If the database is to be started in session 0,
 			it may help to start the Starcounter System Server service. If the
@@ -1111,6 +1111,27 @@
         The properties of the disk drive doesn't match the transaction log (is the disk drive is
         configured for a different sector size than the transaction log is built for?).
       </message>
+    </code>
+    <code hex="0071" severity="Error" name="ScErrBadServiceConfig">
+      <message>Service configuration is invalid.</message>
+      <remarks>
+        <para>
+          The service configuration file doesn't exist, isn't accessible or
+          isn't formatted correctly.
+        </para>
+      </remarks>
+    </code>
+    <code hex="0072" severity="Error" name="ScErrKilledByProcessManager">
+      <message>Process was killed by process manager.</message>
+    </code>
+    <code hex="0073" severity="Error" name="ScErrBadServerConfig">
+        <message>Server configuration is invalid.</message>
+        <remarks>
+            <para>
+                The server configuration file doesn't exist, isn't accessible or
+                isn't formatted correctly.
+            </para>
+        </remarks>
     </code>
   </facility>
 
@@ -2799,6 +2820,12 @@
     <code hex="00E9" severity="Error" name="ScErrSystemIndex">
       <message>Index can't be altered or dropped because it is a system index.</message>
     </code>
+    <code hex="00EA" severity="Error" name="ScErrCheckpointAborted">
+      <message>Checkpoint was aborted.</message>
+    </code>
+    <code hex="00EF" severity="Error" name="ScErrCheckpWaitForSpaceAborted">
+      <message>Wait for disk space to become available before completing checkpoint was aborted.</message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
@@ -3046,16 +3073,16 @@
     </code>
     <code hex="0001" severity="Error" name="ScErrSqlExportSchemaFailed">
       <message>SQL module was unable to write a schema file to the current temp directory.</message>
-      <remarks>The schema file is used by external process StarcounterSQL.exe.</remarks>
+      <remarks>The schema file is used by external process scsqlparser.exe.</remarks>
     </code>
     <code hex="0002" severity="Error" name="ScErrSqlStartProcessFailed">
-      <message>SQL module was unable to start external process StarcounterSQL.exe.</message>
+      <message>SQL module was unable to start external process scsqlparser.exe.</message>
     </code>
     <code hex="0003" severity="Error" name="ScErrSqlVerifyProcessFailed">
-      <message>SQL module was unable to verify external process StarcounterSQL.exe.</message>
+      <message>SQL module was unable to verify external process scsqlparser.exe.</message>
     </code>
     <code hex="0004" severity="Error" name="ScErrSqlProcessQueryFailed">
-      <message>External process StarcounterSQL.exe was unable to process the current SQL query.</message>
+      <message>External process scsqlparser.exe was unable to process the current SQL query.</message>
     </code>
     <!--
     <code hex="0005" severity="Error" name="ScErrLinqInternalError">
@@ -3676,6 +3703,16 @@
             </message>
         </code>
         
+    </facility>
+
+    <!-- Error codes related to Apps -->
+    <facility name="Apps" hex="000E">
+        <code hex="0001" severity="Error" name="ScErrAppsHttpParserIncompleteHeaders">
+            <message>HTTP request has incomplete headers.</message>
+        </code>
+        <code hex="0002" severity="Error" name="ScErrAppsHttpParserIncorrect">
+            <message>HTTP contains incorrect data.</message>
+        </code>
     </facility>
     
 </error-codes>

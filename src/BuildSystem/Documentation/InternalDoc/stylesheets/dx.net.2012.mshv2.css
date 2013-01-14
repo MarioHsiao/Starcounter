@@ -40,3 +40,7 @@ div.OH_topic
 {
 	display: none;	
 }
+
+#lbCloseLink {
+	background-image: url('ms-xhelp:///?;/images/slimbox-closelabel.png');
+}

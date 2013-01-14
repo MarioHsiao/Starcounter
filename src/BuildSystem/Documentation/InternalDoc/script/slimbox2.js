@@ -95,11 +95,15 @@ MIT-style license.
         images = _images;
         options.loop = options.loop && (images.length > 1);
         return changeImage(startImage);
-    };    
+    };
 
     $.slimbox.linkMapper = function (el) {
-            return [el.href, el.title];
-        };
+        var href = $(el).data('href');
+        if (!href) {
+            href = el.href;
+        }
+        return [href, el.title];
+    };
 
     /*
     options:	Optional options object, see jQuery.slimbox()

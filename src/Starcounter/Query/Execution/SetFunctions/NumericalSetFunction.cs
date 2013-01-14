@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -246,5 +247,55 @@ internal class NumericalSetFunction : SetFunction, ISetFunction
     {
         numExpr.GenerateCompilableCode(stringGen);
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    public bool AssertEquals(ISetFunction other) {
+        NumericalSetFunction otherNode = other as NumericalSetFunction;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(NumericalSetFunction other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check basic types
+        Debug.Assert(this.decResult == other.decResult);
+        if (this.decResult != other.decResult)
+            return false;
+        Debug.Assert(this.dblResult == other.dblResult);
+        if (this.dblResult != other.dblResult)
+            return false;
+        Debug.Assert(this.decSum == other.decSum);
+        if (this.decSum != other.decSum)
+            return false;
+        Debug.Assert(this.dblSum == other.dblSum);
+        if (this.dblSum != other.dblSum)
+            return false;
+        Debug.Assert(this.count == other.count);
+        if (this.count != other.count)
+            return false;
+        Debug.Assert(this.typeCode == other.typeCode);
+        if (this.typeCode != other.typeCode)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = true;
+        if (this.numExpr == null) {
+            Debug.Assert(other.numExpr == null);
+            areEquals = other.numExpr == null;
+        } else
+            areEquals = this.numExpr.AssertEquals(other.numExpr);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }

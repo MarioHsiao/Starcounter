@@ -10,40 +10,66 @@ using System.Collections.Generic;
 namespace Starcounter.Internal.Application.CodeGeneration
 {
     /// <summary>
-    /// Class CodeBehindMetadata
+    /// Class containing metadata information parsed from a codebehind file for an App
     /// </summary>
     public class CodeBehindMetadata
     {
         /// <summary>
-        /// The empty
+        /// An empty instance of the codebehind metadata. Used when there is no
+        /// codebehind file.
         /// </summary>
         public static readonly CodeBehindMetadata Empty
-            = new CodeBehindMetadata("", new List<JsonMapInfo>(), new List<InputBindingInfo>());
+            = new CodeBehindMetadata("", null, false, new List<JsonMapInfo>(), new List<InputBindingInfo>());
 
         /// <summary>
-        /// The root namespace
+        /// The root namespace of the main app.
         /// </summary>
         public readonly String RootNamespace;
+
         /// <summary>
-        /// The json property map list
+        /// Boolean telling if this app inherits from a generic App and the properties
+        /// in the app should be automatically bound to the Entity.
+        /// </summary>
+        public readonly bool AutoBindToEntity;
+
+        /// <summary>
+        /// Contains the generic argument (if any) for the class.
+        /// </summary>
+        public readonly string GenericArgument;
+
+        /// <summary>
+        /// A list of classes from the code-behind file that should be connected
+        /// to the correct app in the generated code.
         /// </summary>
         public readonly List<JsonMapInfo> JsonPropertyMapList;
+
         /// <summary>
-        /// The input binding list
+        /// A list of inputbindings which should be registered in the generated code.
         /// </summary>
         public readonly List<InputBindingInfo> InputBindingList;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CodeBehindMetadata" /> class.
         /// </summary>
-        /// <param name="ns">The ns.</param>
-        /// <param name="mapList">The map list.</param>
-        /// <param name="inputList">The input list.</param>
-        internal CodeBehindMetadata(String ns, 
+        /// <param name="ns">The root namespace</param>
+        /// <param name="genericArgument">
+        /// the generic argument if any of the class
+        /// </param>
+        /// <param name="autoBindToEntity">
+        /// If true all properties in the json file should be bound 
+        /// to the underlying Entity
+        /// </param>
+        /// <param name="mapList">The list of mappings</param>
+        /// <param name="inputList">The list of inputbindings.</param>
+        internal CodeBehindMetadata(string ns,
+                                    string genericArgument,
+                                    bool autoBindToEntity,
                                     List<JsonMapInfo> mapList, 
                                     List<InputBindingInfo> inputList)
         {
             RootNamespace = ns;
+            GenericArgument = genericArgument;
+            AutoBindToEntity = autoBindToEntity;
             JsonPropertyMapList = mapList;
             InputBindingList = inputList;
         }

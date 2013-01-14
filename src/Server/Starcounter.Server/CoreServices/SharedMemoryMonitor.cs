@@ -4,6 +4,7 @@
 // </copyright>
 // ***********************************************************************
 
+#if false // TODO: Remove!
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -15,7 +16,7 @@ namespace Starcounter.Server {
     /// connection monitor (primarily just starting it).
     /// </summary>
     internal sealed class SharedMemoryMonitor {
-        internal const string ExecutableFileName = "ScConnMonitor.exe";
+        internal const string ExecutableFileName = StarcounterConstants.ProgramNames.ScIpcMonitor + ".exe";
         readonly ServerEngine engine;
 
         /// <summary>
@@ -73,3 +74,4 @@ namespace Starcounter.Server {
         }
     }
 }
+#endif

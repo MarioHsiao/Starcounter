@@ -4,6 +4,9 @@
 // </copyright>
 // ***********************************************************************
 
+using System;
+using Starcounter.Templates;
+
 namespace Starcounter {
     /// <summary>
     /// Class App
@@ -14,6 +17,10 @@ namespace Starcounter {
         /// Gets or sets the data.
         /// </summary>
         /// <value>The data.</value>
-        public new T Data { get; set; }
+        public new T Data 
+        {
+            get { return (T)base.Data; }
+            set { base.Data = value; }
+        }
     }
 }

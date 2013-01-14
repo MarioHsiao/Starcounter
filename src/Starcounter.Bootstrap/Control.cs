@@ -17,6 +17,7 @@ using Starcounter.Internal; // TODO:
 using Starcounter.Logging;
 using StarcounterInternal.Hosting;
 using Error = Starcounter.Internal.Error;
+using HttpStructs;
 
 namespace StarcounterInternal.Bootstrap
 {
@@ -120,10 +121,13 @@ namespace StarcounterInternal.Bootstrap
             mem += 512;
             OnKernelMemoryConfigured();
 
+            // Initializing Apps internal HTTP request parser.
+            HttpRequest.sc_init_http_parser();
+
             // Initializing the BMX manager if network gateway is used.
             if (!configuration.NoNetworkGateway)
             {
-                bmx.sc_init_bmx_manager();
+                bmx.sc_init_bmx_manager(HttpStructs.GlobalSessions.g_destroy_apps_session_callback);
                 OnBmxManagerInitialized();
             }
 
@@ -177,7 +181,7 @@ namespace StarcounterInternal.Bootstrap
             // Install handlers for the type of requests we accept.
 
             // Handles execution requests for executables that support
-            // lauching into Starcounter from the OS shell. This handler
+            // launching into Starcounter from the OS shell. This handler
             // requires only a single parameter - the path to the assembly
             // file - and will use the defaults based on that.
             server.Handle("Exec", delegate(Request r)
@@ -254,8 +258,20 @@ namespace StarcounterInternal.Bootstrap
             // Executing auto-start task if any.
             if (configuration.AutoStartExePath != null)
             {
+                // Trying to get user arguments if any.
+                String userArgs = null;
+                String[] userArgsArray = null;
+                configuration.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.UserArguments, out userArgs);
+                if (userArgs != null)
+                    userArgsArray = userArgs.Split((String[])null, StringSplitOptions.RemoveEmptyEntries);
+
+                // Trying to get explicit working directory.
+                String workingDir = null;
+                configuration.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.WorkingDir, out workingDir);
+
                 // Loading the given application.
-                Loader.ExecApp(hsched_, configuration.AutoStartExePath);
+                Loader.ExecApp(hsched_, configuration.AutoStartExePath, workingDir, userArgsArray);
+
                 OnAutoStartModuleExecuted();
             }
                 
@@ -367,14 +383,14 @@ namespace StarcounterInternal.Bootstrap
         {
             uint e;
 
-            e = sccorelog.SCInitModule_LOG(hmenv);
+            e = sccorelog.sccorelog_init(hmenv);
             if (e != 0) throw ErrorCode.ToException(e);
 
             ulong hlogs;
-            e = sccorelog.SCConnectToLogs(c.Name, null, null, &hlogs);
+            e = sccorelog.sccorelog_connect_to_logs(c.Name, null, &hlogs);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccorelog.SCBindLogsToDir(hlogs, c.OutputDirectory);
+            e = sccorelog.sccorelog_bind_logs_to_dir(hlogs, c.OutputDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
             return hlogs;
@@ -449,14 +465,18 @@ namespace StarcounterInternal.Bootstrap
             else orange_nodb.orange_configure_scheduler_callbacks(ref setup);
 
             void* hsched;
-            uint e = sccorelib.cm2_setup(&setup, &hsched);
+            uint r = sccorelib.cm2_setup(&setup, &hsched);
 
             Marshal.FreeHGlobal((IntPtr)setup.name);
             Marshal.FreeHGlobal((IntPtr)setup.server_name);
             Marshal.FreeHGlobal((IntPtr)setup.db_data_dir_path);
 
-            if (e == 0) return hsched;
-            throw ErrorCode.ToException(e);
+            if (r == 0) {
+                Processor.Setup(hsched);
+                return hsched;
+            }
+
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>
@@ -467,34 +487,34 @@ namespace StarcounterInternal.Bootstrap
         {
             uint e;
 
-            e = sccoredb.SCConfigSetValue("NAME", c.Name);
+            e = sccoredb.sccoredb_set_system_variable("NAME", c.Name);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccoredb.SCConfigSetValue("IMAGEDIR", c.DatabaseDirectory);
+            e = sccoredb.sccoredb_set_system_variable("IMAGEDIR", c.DatabaseDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccoredb.SCConfigSetValue("OLOGDIR", c.DatabaseDirectory);
+            e = sccoredb.sccoredb_set_system_variable("OLOGDIR", c.DatabaseDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccoredb.SCConfigSetValue("TLOGDIR", c.DatabaseDirectory);
+            e = sccoredb.sccoredb_set_system_variable("TLOGDIR", c.DatabaseDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccoredb.SCConfigSetValue("TEMPDIR", c.TempDirectory);
+            e = sccoredb.sccoredb_set_system_variable("TEMPDIR", c.TempDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccoredb.SCConfigSetValue("COMPPATH", c.CompilerPath);
+            e = sccoredb.sccoredb_set_system_variable("COMPPATH", c.CompilerPath);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccoredb.SCConfigSetValue("OUTDIR", c.OutputDirectory);
+            e = sccoredb.sccoredb_set_system_variable("OUTDIR", c.OutputDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
             // TODO: What is this configuration for?
-            e = sccoredb.SCConfigSetValue("ELOGDIR", c.OutputDirectory);
+            e = sccoredb.sccoredb_set_system_variable("ELOGDIR", c.OutputDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            sccoredb.sccoredb_config config = new sccoredb.sccoredb_config();
-            orange.orange_configure_database_callbacks(ref config);
-            e = sccoredb.sccoredb_configure(&config);
+            var callbacks = new sccoredb.sccoredb_callbacks();
+            orange.orange_configure_database_callbacks(ref callbacks);
+            e = sccoredb.sccoredb_set_system_callbacks(&callbacks);
             if (e != 0) throw ErrorCode.ToException(e);
         }
 
@@ -511,13 +531,11 @@ namespace StarcounterInternal.Bootstrap
 
             uint flags = 0;
             flags |= sccoredb.SCCOREDB_LOAD_DATABASE;
+            flags |= sccoredb.SCCOREDB_USE_BUFFERED_IO;
             flags |= sccoredb.SCCOREDB_ENABLE_CHECK_FILE_ON_LOAD;
             //flags |= sccoredb.SCCOREDB_ENABLE_CHECK_FILE_ON_CHECKP;
             flags |= sccoredb.SCCOREDB_ENABLE_CHECK_FILE_ON_BACKUP;
             flags |= sccoredb.SCCOREDB_ENABLE_CHECK_MEMORY_ON_CHECKP;
-
-            // Temporary solution. See flag docs for details.
-            flags |= sccoredb.SCCOREDB_COMPLETE_INIT;
 
             int empty;
             e = sccoredb.sccoredb_connect(flags, hsched, hmenv, hlogs, &empty);

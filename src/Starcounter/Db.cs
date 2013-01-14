@@ -163,34 +163,28 @@ namespace Starcounter
             ulong handle;
             ulong verify;
 
-            // TODO:
-            // Handle if transaction not locked on thread (and not the default
-            // transaction) by simply lock the transaction on thread instead of
-            // creating a new one.
-
             maxRetries = 100;
             retries = 0;
 
             for (; ; )
             {
-                r = sccoredb.sccoredb_create_transaction_and_set_current(1, out handle, out verify);
+                r = sccoredb.sccoredb_create_transaction_and_set_current(0, 1, out handle, out verify);
                 if (r == 0)
                 {
-                    try
-                    {
+                    var currentTransaction = Starcounter.Transaction._current;
+                    Starcounter.Transaction._current = null;
+
+                    try {
                         action();
                         Starcounter.Transaction.Commit(1, 1);
                         return;
                     }
-                    catch (Exception ex)
-                    {
+                    catch (Exception ex) {
                         if (
                             sccoredb.sccoredb_set_current_transaction(1, 0, 0) == 0 &&
                             sccoredb.sccoredb_free_transaction(handle, verify) == 0
-                            )
-                        {
-                            if (ex is ITransactionConflictException)
-                            {
+                            ) {
+                            if (ex is ITransactionConflictException) {
                                 if (++retries <= maxRetries) continue;
                                 throw ErrorCode.ToException(Error.SCERRUNHANDLEDTRANSACTCONFLICT, ex);
                             }
@@ -198,10 +192,20 @@ namespace Starcounter
                         }
                         HandleFatalErrorInTransactionScope();
                     }
+                    finally {
+                        if (currentTransaction != null) {
+                            // There should be no current transaction and so
+                            // there should be no reason setting the current
+                            // transaction to the replaced one (other then the
+                            // current transcation being bound to another
+                            // thread).
+
+                            Starcounter.Transaction.SetCurrent(currentTransaction);
+                        }
+                    }
                 }
 
-                if (r == Error.SCERRTRANSACTIONLOCKEDONTHREAD)
-                {
+                if (r == Error.SCERRTRANSACTIONLOCKEDONTHREAD) {
                     // We already have a transaction locked on thread so we're
                     // already in a transaction scope (possibly an implicit one if
                     // for example in the context of a trigger): Just invoke the
