@@ -67,7 +67,7 @@ namespace TeamCityBranchBuild
                 // Checking that all needed variables are defined.
                 if (!BuildSystem.AllEnvVariablesExist(new String[] { "Configuration",
                 "Platform",
-                "BUILD_NUMBER",
+                BuildSystem.BuildNumberEnvVar,
                 BuildSystem.CheckOutDirEnvVar }))
                 {
                     throw new Exception("Some needed environment variables do not exist...");
@@ -100,7 +100,7 @@ namespace TeamCityBranchBuild
                 Directory.Delete(Path.Combine(devRootDir, @"Level0"), true);
 
                 // Target build directory.
-                String buildNumber = Environment.GetEnvironmentVariable("BUILD_NUMBER");
+                String buildNumber = Environment.GetEnvironmentVariable(BuildSystem.BuildNumberEnvVar);
                 String targetBuildDir = Path.Combine(BuildSystem.LocalBuildsFolder, Path.Combine(buildsFolderName, buildNumber));
 
                 // Stopping previous versions of the same build type.
@@ -166,7 +166,7 @@ namespace TeamCityBranchBuild
                 versionFileContents += "  <Platform>" + Environment.GetEnvironmentVariable("Platform") + "</Platform>" + Environment.NewLine;
 
                 // Adding current build version.
-                versionFileContents += "  <Version>" + Environment.GetEnvironmentVariable("BUILD_NUMBER") + "</Version>" + Environment.NewLine;
+                versionFileContents += "  <Version>" + Environment.GetEnvironmentVariable(BuildSystem.BuildNumberEnvVar) + "</Version>" + Environment.NewLine;
 
                 // Adding builds folder name.
                 versionFileContents += "  <BuildsFolderName>" + buildsFolderName + "</BuildsFolderName>" + Environment.NewLine;
