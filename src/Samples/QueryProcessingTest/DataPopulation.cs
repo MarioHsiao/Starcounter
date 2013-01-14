@@ -28,8 +28,10 @@ namespace QueryProcessingTest {
         }
 
         public static void DeleteAccounts() {
-            Db.SlowSQL("DELETE FROM Account");
-            Db.SlowSQL("DELETE FROM QueryProcessingTest.User");
+            Db.Transaction(delegate {
+                Db.SlowSQL("DELETE FROM Account");
+                Db.SlowSQL("DELETE FROM QueryProcessingTest.User");
+            });
         }
     }
 }
