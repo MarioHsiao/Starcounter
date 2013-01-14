@@ -631,6 +631,8 @@ namespace Starcounter.Internal.Weaver {
                 }
             }
 
+            ConvertIndirectSynonymsToDirectSynonyms();
+
             // Save the assembly to a file.
 
             if (!String.IsNullOrEmpty(SaveTo)) {
@@ -1461,6 +1463,33 @@ namespace Starcounter.Internal.Weaver {
             }
 
             return errorCount > 0;
+        }
+
+        /// <summary>
+        /// Convert all indirect synonyms, i.e. synonyms to synonyms, to direct
+        /// ones, i.e. synonym to fields.
+        /// </summary>
+        private void ConvertIndirectSynonymsToDirectSynonyms() {
+            foreach (DatabaseAttribute databaseAttribute in _synonymousToAttributes.Keys) {
+                List<DatabaseAttribute> chain = new List<DatabaseAttribute>();
+                DatabaseAttribute targetAttribute = databaseAttribute.SynonymousTo;
+                while (targetAttribute.SynonymousTo != null) {
+                    if (chain.Contains(targetAttribute)) {
+#pragma warning disable 618
+                        ScMessageSource.Instance.Write(SeverityType.Error, "SCPFV22",
+                                                       new object[]
+                    {
+                        databaseAttribute.DeclaringClass.Name,
+                        databaseAttribute.Name
+                    });
+#pragma warning restore 618
+                        break;
+                    }
+                    chain.Add(targetAttribute);
+                    targetAttribute = targetAttribute.SynonymousTo;
+                }
+                databaseAttribute.SynonymousTo = targetAttribute;
+            }
         }
 
         /// <summary>
