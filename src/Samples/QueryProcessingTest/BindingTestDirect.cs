@@ -10,7 +10,7 @@ namespace QueryProcessingTest {
             } catch (Starcounter.DbException dbExc) {
                 receivedErrorCode = dbExc.ErrorCode;
             }
-            Debug.Assert(receivedErrorCode == errorCode, "Exception SCERR" + errorCode + " is expected during get type binding");
+            Trace.Assert(receivedErrorCode == errorCode, "Exception SCERR" + errorCode + " is expected during get type binding");
             return receivedErrorCode;
         }
 
