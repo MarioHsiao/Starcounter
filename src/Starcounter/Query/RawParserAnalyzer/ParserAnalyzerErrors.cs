@@ -63,20 +63,20 @@ namespace Starcounter.Query.RawParserAnalyzer
         /// <returns>Part of error message about location of the error.</returns>
         internal unsafe String LocationMessageForError(Node* node)
         {
-            return LocationMessageForError(node, UnmanagedParserInterface.GetStrVal(node));
+            return LocationMessageForError(node, node->type.ToString());
         }
 
         internal unsafe String LocationMessageForError(Node* node, String token)
         {
             return "Position " + UnmanagedParserInterface.Location(node) + " in the query \"" + Query + "\"" +
-                "The error is near or at: " + token;
+                ". The error is near or at: " + token;
         }
 
         // Proper error should be returned from here.
         internal unsafe void UnknownNode(Node* node)
         {
             throw GetSqlException(Error.SCERRSQLNOTIMPLEMENTED, "The statement or clause is not implemented. "+LocationMessageForError(node), 
-                UnmanagedParserInterface.Location(node), UnmanagedParserInterface.GetStrVal(node));
+                UnmanagedParserInterface.Location(node), node->type.ToString());
         }
 
         /// <summary>
