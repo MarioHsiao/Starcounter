@@ -953,7 +953,7 @@ namespace Starcounter.Internal.Weaver {
                                 ScMessageSource.WriteError(
                                     MessageLocation.Of(databaseAttribute),
                                     Error.SCERRSYNVISIBILITYMISMATCH,
-                                    string.Format("Field {0}.{1}, synonymous to synonymous to {2}.{3}",
+                                    string.Format("Field {0}.{1}, synonymous to {2}.{3}",
                                     databaseAttribute.DeclaringClass.Name,
                                     databaseAttribute.Name,
                                     synonymTo.DeclaringClass.Name,
@@ -966,17 +966,15 @@ namespace Starcounter.Internal.Weaver {
                             // only as well.
                             if ((synonymFieldDef.Attributes & FieldAttributes.InitOnly) != 0
                                     && (fieldDef.Attributes & FieldAttributes.InitOnly) == 0) {
-#pragma warning disable 618
-                                ScMessageSource.Instance.Write(
-                                    SeverityType.Error,
-                                    "SCPFV09",
-                                    new Object[] {
-                                        databaseAttribute.DeclaringClass.Name,
-                                        databaseAttribute.Name,
-                                        synonymTo.DeclaringClass.Name,
-                                        synonymTo.Name
-                                    });
-#pragma warning restore 618
+                                
+                                ScMessageSource.WriteError(
+                                    MessageLocation.Of(databaseAttribute),
+                                    Error.SCERRSYNREADONLYMISMATCH,
+                                    string.Format("Field {0}.{1}, synonymous to {2}.{3}",
+                                    databaseAttribute.DeclaringClass.Name,
+                                    databaseAttribute.Name,
+                                    synonymTo.DeclaringClass.Name,
+                                    synonymTo.Name));
                             }
                         }
                     }
@@ -1596,14 +1594,14 @@ namespace Starcounter.Internal.Weaver {
                 DatabaseAttribute targetAttribute = databaseAttribute.DeclaringClass.FindAttributeInAncestors(targetFieldName);
                 if (targetAttribute == null) {
                     // The target field could not be found.
-                    // The field {0}.{1} is marked to be a synonym of a field {2},
-                    // but this field could not be found in the current and base classes.
-#pragma warning disable 618
-                    ScMessageSource.Instance.Write(SeverityType.Error, "SCPFV06", new object[] {
-                        databaseAttribute.DeclaringClass.Name, databaseAttribute.Name,
-                        targetFieldName
-                    });
-#pragma warning restore 618
+                    ScMessageSource.WriteError(
+                        MessageLocation.Of(databaseAttribute),
+                        Error.SCERRSYNNOTARGET,
+                        string.Format("Field {0}.{1}, synonymous to missing field \"{2}\".",
+                        databaseAttribute.DeclaringClass.Name,
+                        databaseAttribute.Name,
+                        targetFieldName)
+                        );
                     errorCount++;
 
                 } else {
