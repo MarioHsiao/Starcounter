@@ -622,6 +622,11 @@ namespace Starcounter.Internal.Weaver {
                         if (databaseEntityClass != null) {
                             ValidateEntityClass(databaseEntityClass);
                         }
+
+                        // Validate attributes of this class.
+                        foreach (DatabaseAttribute databaseAttribute in dbc.Attributes) {
+                            ValidateDatabaseAttribute(databaseAttribute);
+                        }
                     }
                 }
 
@@ -886,6 +891,125 @@ namespace Starcounter.Internal.Weaver {
                                                "SCDCV02",
                                                new Object[] { databaseClass.Name });
 #pragma warning restore 618
+            }
+        }
+
+        /// <summary>
+        /// Validates a database attribute.
+        /// </summary>
+        /// <param name="databaseAttribute">The database attribute.</param>
+        private static void ValidateDatabaseAttribute(DatabaseAttribute databaseAttribute) {
+            DatabaseAttribute synonymTo;
+            FieldAttributes fieldVisibility;
+            FieldAttributes targetVisibility;
+            FieldDefDeclaration fieldDef;
+            FieldDefDeclaration synonymFieldDef;
+
+            if (databaseAttribute.AttributeKind == DatabaseAttributeKind.PersistentField) {
+                if (databaseAttribute.SynonymousTo != null) {
+                    synonymTo = databaseAttribute.SynonymousTo;
+
+                    // The target attribute should be a persistent field.
+                    if (synonymTo.AttributeKind != DatabaseAttributeKind.PersistentField) {
+#pragma warning disable 618
+                        // SCPFV12
+                        ScMessageSource.Instance.Write(
+                            SeverityType.Error,
+                            "SCPFV12",
+                            new Object[] {
+                                databaseAttribute.DeclaringClass.Name,
+                                databaseAttribute.Name,
+                                synonymTo.DeclaringClass.Name,
+                                synonymTo.Name
+                            });
+#pragma warning restore 618
+                    } else {
+                        // When a field is decorated with the [SynonymousTo] custom attribute
+                        // and if the target field is in a different type as the current field,
+                        // the target field should be assignable from the current field.
+                        // If field types are intrinsic, both types should match exactly.
+                        fieldDef = databaseAttribute.GetFieldDefinition();
+                        synonymFieldDef = synonymTo.GetFieldDefinition();
+
+                        if ((!fieldDef.FieldType.BelongsToClassification(TypeClassifications.ValueType)
+                                    && !(synonymFieldDef.FieldType.IsAssignableTo(fieldDef.FieldType)
+                                            || fieldDef.FieldType.IsAssignableTo(synonymFieldDef.FieldType)))
+                                || (fieldDef.FieldType.BelongsToClassification(TypeClassifications.ValueType)
+                                        && fieldDef.FieldType != synonymFieldDef.FieldType)) {
+                            // SCPFV07
+#pragma warning disable 618
+                            ScMessageSource.Instance.Write(
+                                SeverityType.Error,
+                                "SCPFV07",
+                                new Object[] {
+                                    databaseAttribute.DeclaringClass.Name,
+                                    databaseAttribute.Name,
+                                    synonymTo.DeclaringClass.Name,
+                                    synonymTo.Name
+                                });
+#pragma warning restore 618
+                        }
+
+                        if (synonymTo.DeclaringClass != databaseAttribute.DeclaringClass) {
+                            targetVisibility = synonymFieldDef.Attributes
+                                                    & FieldAttributes.FieldAccessMask;
+                            fieldVisibility = fieldDef.Attributes
+                                                    & FieldAttributes.FieldAccessMask;
+
+                            // When a field is decorated with the [SynonymousTo] custom attribute,
+                            // and if the target field is in a different type as the current field,
+                            // the target field may not be private.
+                            if (targetVisibility == FieldAttributes.Private) {
+#pragma warning disable 618
+                                ScMessageSource.Instance.Write(
+                                    SeverityType.Error,
+                                    "SCPVF20",
+                                    new Object[] {
+                                        databaseAttribute.DeclaringClass.Name,
+                                        databaseAttribute.Name
+                                    });
+#pragma warning restore 618
+                            }
+
+                            // When a field is decorated with the [SynonymousTo] custom attribute,
+                            // the field should not have larger visibility as the target field.
+                            // Amazingly,  values of the FieldAttributes for visibility are sorted 
+                            // in the correct order.
+                            if ((int)fieldVisibility > (int)targetVisibility) {
+#pragma warning disable 618
+                                ScMessageSource.Instance.Write(
+                                    SeverityType.Error,
+                                    "SCPFV08",
+                                    new Object[] {
+                                        databaseAttribute.DeclaringClass.Name,
+                                        databaseAttribute.Name,
+                                        synonymTo.DeclaringClass.Name,
+                                        synonymTo.Name
+                                    });
+#pragma warning restore 618
+                            }
+
+                            // When a field is decorated with the [SynonymousTo] custom attribute
+                            // and the target field is in a different type than the current field,
+                            // and the target field is read-only, the synonym field must be read
+                            // only as well.
+                            if ((synonymFieldDef.Attributes & FieldAttributes.InitOnly) != 0
+                                    && (fieldDef.Attributes & FieldAttributes.InitOnly) == 0) {
+#pragma warning disable 618
+                                ScMessageSource.Instance.Write(
+                                    SeverityType.Error,
+                                    "SCPFV09",
+                                    new Object[] {
+                                        databaseAttribute.DeclaringClass.Name,
+                                        databaseAttribute.Name,
+                                        synonymTo.DeclaringClass.Name,
+                                        synonymTo.Name
+                                    });
+#pragma warning restore 618
+                            }
+                        }
+                    }
+                }
             }
         }
 
