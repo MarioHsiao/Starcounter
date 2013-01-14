@@ -435,7 +435,7 @@ namespace Weaver {
 
             Console.WriteLine("Usage:");
             Console.WriteLine();
-            Console.Write("scweaver.exe");
+            Console.Write(Starcounter.Internal.StarcounterConstants.ProgramNames.ScWeaver + ".exe");
             foreach (var globalFlag in syntax.Flags) {
                 Console.Write(" --FLAG:{0}", globalFlag.Name);
             }
