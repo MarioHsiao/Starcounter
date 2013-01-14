@@ -912,22 +912,19 @@ namespace Starcounter.Internal.Weaver {
                         synonymFieldDef = synonymTo.GetFieldDefinition();
 
                         if ((!fieldDef.FieldType.BelongsToClassification(TypeClassifications.ValueType)
-                                    && !(synonymFieldDef.FieldType.IsAssignableTo(fieldDef.FieldType)
-                                            || fieldDef.FieldType.IsAssignableTo(synonymFieldDef.FieldType)))
-                                || (fieldDef.FieldType.BelongsToClassification(TypeClassifications.ValueType)
-                                        && fieldDef.FieldType != synonymFieldDef.FieldType)) {
-                            // SCPFV07
-#pragma warning disable 618
-                            ScMessageSource.Instance.Write(
-                                SeverityType.Error,
-                                "SCPFV07",
-                                new Object[] {
-                                    databaseAttribute.DeclaringClass.Name,
-                                    databaseAttribute.Name,
-                                    synonymTo.DeclaringClass.Name,
-                                    synonymTo.Name
-                                });
-#pragma warning restore 618
+                            && !(synonymFieldDef.FieldType.IsAssignableTo(fieldDef.FieldType)
+                            || fieldDef.FieldType.IsAssignableTo(synonymFieldDef.FieldType)))
+                            || (fieldDef.FieldType.BelongsToClassification(TypeClassifications.ValueType)
+                            && fieldDef.FieldType != synonymFieldDef.FieldType)) {
+                            
+                            ScMessageSource.WriteError(
+                                MessageLocation.Of(databaseAttribute),
+                                Error.SCERRSYNTYPEMISMATCH,
+                                string.Format("{0}.{1}, synonymous to {2}.{3}",
+                                databaseAttribute.DeclaringClass.Name,
+                                databaseAttribute.Name,
+                                synonymTo.DeclaringClass.Name,
+                                synonymTo.Name));
                         }
 
                         if (synonymTo.DeclaringClass != databaseAttribute.DeclaringClass) {
@@ -940,15 +937,12 @@ namespace Starcounter.Internal.Weaver {
                             // and if the target field is in a different type as the current field,
                             // the target field may not be private.
                             if (targetVisibility == FieldAttributes.Private) {
-#pragma warning disable 618
-                                ScMessageSource.Instance.Write(
-                                    SeverityType.Error,
-                                    "SCPVF20",
-                                    new Object[] {
-                                        databaseAttribute.DeclaringClass.Name,
-                                        databaseAttribute.Name
-                                    });
-#pragma warning restore 618
+                                ScMessageSource.WriteError(
+                                    MessageLocation.Of(databaseAttribute),
+                                    Error.SCERRSYNVISIBILITYMISMATCH,
+                                    string.Format("Field {0}.{1}, synonymous to external, private field.",
+                                    databaseAttribute.DeclaringClass.Name,
+                                    databaseAttribute.Name));
                             }
 
                             // When a field is decorated with the [SynonymousTo] custom attribute,
@@ -956,17 +950,14 @@ namespace Starcounter.Internal.Weaver {
                             // Amazingly,  values of the FieldAttributes for visibility are sorted 
                             // in the correct order.
                             if ((int)fieldVisibility > (int)targetVisibility) {
-#pragma warning disable 618
-                                ScMessageSource.Instance.Write(
-                                    SeverityType.Error,
-                                    "SCPFV08",
-                                    new Object[] {
-                                        databaseAttribute.DeclaringClass.Name,
-                                        databaseAttribute.Name,
-                                        synonymTo.DeclaringClass.Name,
-                                        synonymTo.Name
-                                    });
-#pragma warning restore 618
+                                ScMessageSource.WriteError(
+                                    MessageLocation.Of(databaseAttribute),
+                                    Error.SCERRSYNVISIBILITYMISMATCH,
+                                    string.Format("Field {0}.{1}, synonymous to synonymous to {2}.{3}",
+                                    databaseAttribute.DeclaringClass.Name,
+                                    databaseAttribute.Name,
+                                    synonymTo.DeclaringClass.Name,
+                                    synonymTo.Name));
                             }
 
                             // When a field is decorated with the [SynonymousTo] custom attribute
