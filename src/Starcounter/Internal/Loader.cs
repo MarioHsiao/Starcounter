@@ -140,18 +140,15 @@ namespace Starcounter.Internal
         /// <param name="propertyDefs">The property defs.</param>
         /// <param name="subClass">if set to <c>true</c> [sub class].</param>
         /// <exception cref="System.Exception"></exception>
-        private static void GatherColumnAndPropertyDefs(DatabaseEntityClass databaseClass, List<ColumnDef> columnDefs, List<PropertyDef> propertyDefs, bool subClass)
-        {
+        private static void GatherColumnAndPropertyDefs(DatabaseEntityClass databaseClass, List<ColumnDef> columnDefs, List<PropertyDef> propertyDefs, bool subClass) {
             var baseDatabaseClass = databaseClass.BaseClass as DatabaseEntityClass;
-            if (baseDatabaseClass != null)
-            {
+            if (baseDatabaseClass != null) {
                 GatherColumnAndPropertyDefs(baseDatabaseClass, columnDefs, propertyDefs, true);
             }
 
             var databaseAttributes = databaseClass.Attributes;
 
-            for (int i = 0; i < databaseAttributes.Count; i++)
-            {
+            for (int i = 0; i < databaseAttributes.Count; i++) {
                 var databaseAttribute = databaseAttributes[i];
 
                 DbTypeCode type;
@@ -164,25 +161,16 @@ namespace Starcounter.Internal
                 DatabaseEntityClass databaseEntityClass;
                 DatabaseArrayType databaseArrayType;
 
-                if ((databasePrimitiveType = databaseAttributeType as DatabasePrimitiveType) != null)
-                {
+                if ((databasePrimitiveType = databaseAttributeType as DatabasePrimitiveType) != null) {
                     type = PrimitiveToTypeCode(databasePrimitiveType.Primitive);
-                }
-                else if ((databaseEnumType = databaseAttributeType as DatabaseEnumType) != null)
-                {
+                } else if ((databaseEnumType = databaseAttributeType as DatabaseEnumType) != null) {
                     type = PrimitiveToTypeCode(databaseEnumType.UnderlyingType);
-                }
-                else if ((databaseEntityClass = databaseAttributeType as DatabaseEntityClass) != null)
-                {
+                } else if ((databaseEntityClass = databaseAttributeType as DatabaseEntityClass) != null) {
                     type = DbTypeCode.Object;
                     targetTypeName = databaseEntityClass.Name;
-                }
-                else if ((databaseArrayType = databaseAttributeType as DatabaseArrayType) != null)
-                {
+                } else if ((databaseArrayType = databaseAttributeType as DatabaseArrayType) != null) {
                     type = DbTypeCode.String;
-                }
-                else
-                {
+                } else {
                     if (!databaseAttribute.IsPersistent) continue;
 
                     // This type is not supported (but theres no way code will
@@ -203,12 +191,12 @@ namespace Starcounter.Internal
                 }
 
                 var isNullable = databaseAttribute.IsNullable;
+                var isSynonym = databaseAttribute.SynonymousTo != null;
 
                 // Fix handling that always nullable types are correcly
                 // tagged as nullable in the schema file.
 
-                switch (type)
-                {
+                switch (type) {
                     case DbTypeCode.Object:
                     case DbTypeCode.String:
                     case DbTypeCode.Binary:
@@ -217,62 +205,61 @@ namespace Starcounter.Internal
                         break;
                 }
 
-                switch (databaseAttribute.AttributeKind)
-                {
-                case DatabaseAttributeKind.PersistentField:
-                    columnDefs.Add(new ColumnDef(
-                        databaseAttribute.Name,
-                        type,
-                        isNullable,
-                        subClass
-                        ));
-
-                    if (databaseAttribute.IsPublicRead)
-                    {
-                       var propertyDef = new PropertyDef(
-                            databaseAttribute.Name,
-                            type,
-                            isNullable,
-                            targetTypeName
-                            );
-                        propertyDef.ColumnName = databaseAttribute.Name;
-                        propertyDefs.Add(propertyDef);
-                    }
-                    break;
-                case DatabaseAttributeKind.PersistentProperty:
-                    if (databaseAttribute.IsPublicRead)
-                    {
-                        var propertyDef = new PropertyDef(
-                            databaseAttribute.Name,
-                            type,
-                            isNullable,
-                            targetTypeName
-                            );
-                        propertyDef.ColumnName = databaseAttribute.PersistentProperty.AttributeFieldIndex;
-                        propertyDefs.Add(propertyDef);
-                    }
-                    break;
-                case DatabaseAttributeKind.NotPersistentProperty:
-                    if (databaseAttribute.IsPublicRead)
-                    {
-                        var propertyDef = new PropertyDef(
-                            databaseAttribute.Name,
-                            type,
-                            isNullable,
-                            targetTypeName
-                            );
-
-                        string columnName = null;
-                        var backingField = databaseAttribute.BackingField;
-                        if (backingField != null && backingField.AttributeKind == DatabaseAttributeKind.PersistentField)
-                        {
-                            columnName = backingField.Name;
+                switch (databaseAttribute.AttributeKind) {
+                    case DatabaseAttributeKind.PersistentField:
+                        if (!isSynonym) {
+                            columnDefs.Add(new ColumnDef(
+                                databaseAttribute.Name,
+                                type,
+                                isNullable,
+                                subClass
+                                ));
                         }
-                        propertyDef.ColumnName = columnName;
 
-                        propertyDefs.Add(propertyDef);
-                    }
-                    break;
+                        var targetAttribute = databaseAttribute.SynonymousTo ?? databaseAttribute;
+
+                        if (databaseAttribute.IsPublicRead) {
+                            var propertyDef = new PropertyDef(
+                                 targetAttribute.Name,
+                                 type,
+                                 isNullable,
+                                 targetTypeName
+                                 );
+                            propertyDef.ColumnName = targetAttribute.Name;
+                            propertyDefs.Add(propertyDef);
+                        }
+                        break;
+                    case DatabaseAttributeKind.PersistentProperty:
+                        if (databaseAttribute.IsPublicRead) {
+                            var propertyDef = new PropertyDef(
+                                databaseAttribute.Name,
+                                type,
+                                isNullable,
+                                targetTypeName
+                                );
+                            propertyDef.ColumnName = databaseAttribute.PersistentProperty.AttributeFieldIndex;
+                            propertyDefs.Add(propertyDef);
+                        }
+                        break;
+                    case DatabaseAttributeKind.NotPersistentProperty:
+                        if (databaseAttribute.IsPublicRead) {
+                            var propertyDef = new PropertyDef(
+                                databaseAttribute.Name,
+                                type,
+                                isNullable,
+                                targetTypeName
+                                );
+
+                            string columnName = null;
+                            var backingField = databaseAttribute.BackingField;
+                            if (backingField != null && backingField.AttributeKind == DatabaseAttributeKind.PersistentField) {
+                                columnName = backingField.Name;
+                            }
+                            propertyDef.ColumnName = columnName;
+
+                            propertyDefs.Add(propertyDef);
+                        }
+                        break;
                 }
             }
         }
