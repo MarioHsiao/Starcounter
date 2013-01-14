@@ -205,7 +205,7 @@ namespace BuildSystemHelper
             }
 
             // Checking if its a scheduled nightly build.
-            if (nightlyEnvVar || (DateTime.Now.Hour >= 1) && (DateTime.Now.Hour <= 6))
+            if (nightlyEnvVar /*|| (DateTime.Now.Hour >= 1) && (DateTime.Now.Hour <= 6)*/)
             {
                 _nightlyBuild = true;
                 return true;
