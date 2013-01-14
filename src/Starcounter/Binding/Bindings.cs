@@ -6,6 +6,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("QueryProcessingTest")]
 
 namespace Starcounter.Binding
 {
@@ -59,13 +63,33 @@ namespace Starcounter.Binding
             for (int i = 0; i < typeDefs.Length; i++)
             {
                 typeDef = typeDefs[i];
-                typeDefsByName.Add(typeDef.Name, typeDef);
+                // Before adding the unique name, it is necessary to check if it is already there.
+                // The only case for this if the unique name has no namespaces and a short name was added before.
+                try {
+                    typeDefsByName.Add(typeDef.Name, typeDef);
+                } catch (ArgumentException) {
+#if DEBUG
+                    TypeDef alreadyTypeDef;
+                    typeDefsByName.TryGetValue(typeDef.Name, out alreadyTypeDef);
+                    if (alreadyTypeDef != null)
+                        Debug.Assert(alreadyTypeDef.ShortName == typeDef.Name && alreadyTypeDef.Name != typeDef.Name);
+#endif
+                    typeDefsByName[typeDef.Name] = typeDef;
+                }
+                // Add lower case name if the name is not already in lower case.
                 if (typeDef.Name != typeDef.LowerName)
                     typeDefsByName.Add(typeDef.LowerName, typeDef);
-                if (typeDef.LowerName != typeDef.ShortName)
-                    if (typeDefsByName.ContainsKey(typeDef.ShortName))
-                        typeDefsByName[typeDef.ShortName] = null;
-                    else typeDefsByName.Add(typeDef.ShortName, typeDef);
+                // Add short name, i.e., without namespaces, if the original name is not the short name.
+                // Short name don't need to be unique, since the same class name can be given in different namespaces.
+                // It is important to check if the existing short name is actual name of a class with no namespaces.
+                if (typeDef.LowerName != typeDef.ShortName) {
+                    TypeDef alreadyTypeDef;
+                    if (typeDefsByName.TryGetValue(typeDef.ShortName, out alreadyTypeDef)) {
+                        if (alreadyTypeDef != null) // Already ambiguous short names
+                            if (typeDef.ShortName != alreadyTypeDef.Name) // If equal then stored short name is real name
+                                typeDefsByName[typeDef.ShortName] = null; // Ambiguous short name
+                    } else typeDefsByName.Add(typeDef.ShortName, typeDef); // New short name
+                }
             }
 
             List<TypeDef> typeDefsById = new List<TypeDef>(typeDefsById_);
@@ -279,13 +303,9 @@ namespace Starcounter.Binding
         {
             Dictionary<string, TypeBinding> typeBindingsByName = new Dictionary<string, TypeBinding>(typeBindingsByName_);
             typeBindingsByName.Add(typeBinding.Name, typeBinding);
+            // Add lower case name if the name is not already in lower case.
             if (typeBinding.Name != typeBinding.LowerName)
                 typeBindingsByName.Add(typeBinding.LowerName, typeBinding);
-            if (typeBinding.LowerName != typeBinding.ShortName)
-                if (typeBindingsByName.ContainsKey(typeBinding.ShortName))
-                    typeBindingsByName[typeBinding.ShortName] = null;
-                else
-                    typeBindingsByName.Add(typeBinding.ShortName, typeBinding);
 
             List<TypeBinding> typeBindingsById = new List<TypeBinding>(typeBindingsById_);
             var tableId = typeBinding.TypeDef.TableDef.TableId;
