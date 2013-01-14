@@ -137,7 +137,11 @@ namespace Starcounter.Server {
             ipcServer.Handle("GetCommand", delegate(Request request) {
                 var commandId = request.GetParameter<string>();
                 var command = runtime.GetCommand(CommandId.Parse(commandId));
-                request.Respond(responseSerializer.SerializeResponse(command));
+                if (command == null) {
+                    request.Respond(false);
+                } else {
+                    request.Respond(responseSerializer.SerializeResponse(command));
+                }
             });
 
             // Allows a client to get the latest copy of the command info for
@@ -146,8 +150,8 @@ namespace Starcounter.Server {
             ipcServer.Handle("GetCompletedCommand", delegate(Request request) {
                 var commandId = request.GetParameter<string>();
                 var command = runtime.GetCommand(CommandId.Parse(commandId));
-                if (!command.IsCompleted) {
-                    request.Respond(true);
+                if (command == null || !command.IsCompleted) {
+                    request.Respond(false);
                 } else {
                     request.Respond(responseSerializer.SerializeResponse(command));
                 }
@@ -170,14 +174,18 @@ namespace Starcounter.Server {
                 synchronous = properties.ContainsKey("@@Synchronous");
                 
                 command = new CreateDatabaseCommand(this.engine, name);
+                command.EnableWaiting = synchronous;
                 runtime = engine.CurrentPublicModel;
 
                 var info = runtime.Execute(command);
                 if (synchronous) {
-                    info = runtime.Wait(info.Id);
+                    info = runtime.Wait(info);
                 }
 
-                request.Respond(true, responseSerializer.SerializeResponse(info));
+                // We respond always with a carry, that is the serialized version
+                // of the command information. If the command indicates it has an
+                // error, we responde FALSE to indicate the command was a failure.
+                request.Respond(!info.HasError, responseSerializer.SerializeResponse(info));
             });
 
             ipcServer.Handle("StartDatabase", delegate(Request request) {
@@ -197,14 +205,18 @@ namespace Starcounter.Server {
                 synchronous = properties.ContainsKey("@@Synchronous");
 
                 command = new StartDatabaseCommand(this.engine, name);
+                command.EnableWaiting = synchronous;
                 runtime = engine.CurrentPublicModel;
                 
                 var info = runtime.Execute(command);
                 if (synchronous) {
-                    info = runtime.Wait(info.Id);
+                    info = runtime.Wait(info);
                 }
 
-                request.Respond(true, responseSerializer.SerializeResponse(info));
+                // We respond always with a carry, that is the serialized version
+                // of the command information. If the command indicates it has an
+                // error, we responde FALSE to indicate the command was a failure.
+                request.Respond(!info.HasError, responseSerializer.SerializeResponse(info));
             });
 
             ipcServer.Handle("StopDatabase", delegate(Request request) {
@@ -228,14 +240,18 @@ namespace Starcounter.Server {
 
                 command = new StopDatabaseCommand(this.engine, name);
                 command.StopDatabaseProcess = properties.ContainsKey("StopDb");
+                command.EnableWaiting = synchronous;
                 runtime = engine.CurrentPublicModel;
 
                 var info = runtime.Execute(command);
                 if (synchronous) {
-                    info = runtime.Wait(info.Id);
+                    info = runtime.Wait(info);
                 }
 
-                request.Respond(true, responseSerializer.SerializeResponse(info));
+                // We respond always with a carry, that is the serialized version
+                // of the command information. If the command indicates it has an
+                // error, we responde FALSE to indicate the command was a failure.
+                request.Respond(!info.HasError, responseSerializer.SerializeResponse(info));
             });
 
             #region Command stubs not yet implemented
@@ -298,16 +314,20 @@ namespace Starcounter.Server {
                 runtime = engine.CurrentPublicModel;
 
                 command = new ExecAppCommand(this.engine, exePath, workingDirectory, argsArray);
+                command.EnableWaiting = synchronous;
                 if (properties.ContainsKey("PrepareOnly")) {
                     command.PrepareOnly = true;
                 }
 
                 var info = runtime.Execute(command);
                 if (synchronous) {
-                    info = runtime.Wait(info.Id);
+                    info = runtime.Wait(info);
                 }
 
-                request.Respond(true, responseSerializer.SerializeResponse(info));
+                // We respond always with a carry, that is the serialized version
+                // of the command information. If the command indicates it has an
+                // error, we responde FALSE to indicate the command was a failure.
+                request.Respond(!info.HasError, responseSerializer.SerializeResponse(info));
             });
         }
 

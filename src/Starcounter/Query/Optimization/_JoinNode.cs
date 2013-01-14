@@ -7,23 +7,24 @@
 using Starcounter.Query.Execution;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Optimization
 {
 internal class JoinNode : IOptimizationNode
 {
-    CompositeTypeBinding compTypeBind;
+    RowTypeBinding rowTypeBind;
     JoinType joinType;
     IOptimizationNode leftNode;
     IOptimizationNode rightNode;
     VariableArray varArray;
     String query;
 
-    internal JoinNode(CompositeTypeBinding compTypeBind, JoinType joinType, IOptimizationNode leftNode, IOptimizationNode rightNode, 
+    internal JoinNode(RowTypeBinding rowTypeBind, JoinType joinType, IOptimizationNode leftNode, IOptimizationNode rightNode, 
         VariableArray varArray, String query)
     {
-        if (compTypeBind == null)
-            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect compTypeBind.");
+        if (rowTypeBind == null)
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
         if (leftNode == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect leftNode.");
         if (rightNode == null)
@@ -31,7 +32,7 @@ internal class JoinNode : IOptimizationNode
         if (query == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect query.");
 
-        this.compTypeBind = compTypeBind;
+        this.rowTypeBind = rowTypeBind;
         if (joinType != JoinType.RightOuter)
         {
             this.joinType = joinType;
@@ -74,7 +75,7 @@ internal class JoinNode : IOptimizationNode
             {
                 currentLeftNode = leftPermutationList[i].Clone();
                 currentRightNode = rightPermutationList[j].Clone();
-                permutationList.Add(new JoinNode(compTypeBind, joinType, currentLeftNode, currentRightNode, varArray, query));
+                permutationList.Add(new JoinNode(rowTypeBind, joinType, currentLeftNode, currentRightNode, varArray, query));
             }
         }
         
@@ -90,7 +91,7 @@ internal class JoinNode : IOptimizationNode
             {
                 currentRightNode = rightPermutationList[i].Clone();
                 currentLeftNode = leftPermutationList[j].Clone();
-                permutationList.Add(new JoinNode(compTypeBind, joinType, currentRightNode, currentLeftNode, varArray, query));
+                permutationList.Add(new JoinNode(rowTypeBind, joinType, currentRightNode, currentLeftNode, varArray, query));
             }
         }
         return permutationList;
@@ -98,7 +99,7 @@ internal class JoinNode : IOptimizationNode
 
     public IOptimizationNode Clone()
     {
-        return new JoinNode(compTypeBind, joinType, leftNode.Clone(), rightNode.Clone(), varArray, query);
+        return new JoinNode(rowTypeBind, joinType, leftNode.Clone(), rightNode.Clone(), varArray, query);
     }
 
     public Int32 EstimateCost()
@@ -110,7 +111,63 @@ internal class JoinNode : IOptimizationNode
     {
         IExecutionEnumerator leftEnumerator = leftNode.CreateExecutionEnumerator(null, fetchOffsetKeyExpr);
         IExecutionEnumerator rightEnumerator = rightNode.CreateExecutionEnumerator(null, fetchOffsetKeyExpr);
-        return new Join(compTypeBind, joinType, leftEnumerator, rightEnumerator, fetchNumExpr, varArray, query);
+        return new Join(rowTypeBind, joinType, leftEnumerator, rightEnumerator, fetchNumExpr, varArray, query);
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    public bool AssertEquals(IOptimizationNode other) {
+        JoinNode otherNode = other as JoinNode;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(JoinNode other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check basic types
+        Debug.Assert(this.query == other.query);
+        if (this.query != other.query)
+            return false;
+        Debug.Assert(this.joinType == other.joinType);
+        if (this.joinType != other.joinType)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = true;
+        if (this.leftNode == null) {
+            Debug.Assert(other.leftNode == null);
+            areEquals = other.leftNode == null;
+        } else
+            areEquals = this.leftNode.AssertEquals(other.leftNode);
+        if (areEquals)
+            if (this.rightNode == null) {
+                Debug.Assert(other.rightNode == null);
+                areEquals = other.rightNode == null;
+            } else
+                areEquals = this.rightNode.AssertEquals(other.rightNode);
+        if (areEquals)
+            if (this.rowTypeBind == null) {
+                Debug.Assert(other.rowTypeBind == null);
+                areEquals = other.rowTypeBind == null;
+            } else
+                areEquals = this.rowTypeBind.AssertEquals(other.rowTypeBind);
+        if (areEquals)
+            if (this.varArray == null) {
+                Debug.Assert(other.varArray == null);
+                areEquals = other.varArray == null;
+            } else
+                areEquals = this.varArray.AssertEquals(other.varArray);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }

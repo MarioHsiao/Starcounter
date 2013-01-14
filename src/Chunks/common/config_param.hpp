@@ -40,7 +40,8 @@ const std::size_t channels = 1 << channel_bits;
 // The capacity of each channels in and out queues.
 // This parameter is currently hard coded in the channel class itself
 // to use 8 = 256 elements.
-const std::size_t channel_capacity = 256;
+const std::size_t channel_capacity_bits = 8;
+const std::size_t channel_capacity = 1 << channel_capacity_bits;
 
 // The max number of schedulers that can exist (per NUMA node).
 const std::size_t max_number_of_schedulers = 31;

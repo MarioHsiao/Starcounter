@@ -137,6 +137,7 @@ namespace Starcounter.Internal.Web {
             len = payload.Length;
 
             string str = "HTTP/1.1 " + code + "\r\nServer:SC\r\nConnection:keep-alive\r\n";
+            
             // string[] parts = fileName.Split('.');
             // string ext = parts[parts.Length-1];
             //            Console.WriteLine("Type for " + fileName + "." + fileExtension + " is " + contentType);
@@ -199,6 +200,7 @@ namespace Starcounter.Internal.Web {
 
             fres.ContentLengthInjectionPoint = header.Length - 4 - lenStr.Length;  // TODO! Should really measure bytes. In UTF-8 bytes and characters for numeric characters is one and the same.
             fres.ScriptInjectionPoint += header.Length;
+            fres.HeaderInjectionPoint = 9 + code.Length + 2; // "HTTP/1.1 " + code + "/r/n"
 
             byte[] response;
 

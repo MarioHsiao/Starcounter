@@ -32,7 +32,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
        dataStreamChanged = false; // True if data stream has changed.
 
     Enumerator<Entity> enumerator = null; // Handle to execution enumerator.
-    CompositeObject contextObject = null; // This object comes from the outer loop in joins.
+    Row contextObject = null; // This object comes from the outer loop in joins.
 
     CodeGenFilterPrivate privateFilter = null; // Filter code generator instance.
     Byte[] filterDataStream = null; // Points to the created data stream.
@@ -51,7 +51,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     Boolean usedNativeFillUp = false; // Indicating that native fill up functionality was used.
 
     internal FullTableScan(
-        CompositeTypeBinding compTypeBind,
+        RowTypeBinding rowTypeBind,
         Int32 extentNum, IndexInfo indexInfo,
         ILogicalExpression queryCond,
         SortOrder sortingType,
@@ -60,16 +60,15 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         Boolean innermostExtent, 
         CodeGenFilterPrivate privFilter,
         VariableArray varArr, String query)
-        : base(varArr)
+        : base(rowTypeBind, varArr)
     {
-        if (compTypeBind == null)
-            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect compTypeBind.");
+        if (rowTypeBind == null)
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
+        if (varArr == null)
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect varArr.");
         if (queryCond == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect queryCond.");
-        if (varArr == null)
-            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect variables clone.");
 
-        compTypeBinding = compTypeBind;
         extentNumber = extentNum;
         indexHandle = indexInfo.Handle;
         this.indexInfo = indexInfo;
@@ -83,7 +82,6 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         this.innermostExtent = innermostExtent;
 
         this.query = query;
-        variableArray = varArr;
 
         iterHelper = IteratorHelper.GetIndex(indexHandle); // Caching index handle.
 
@@ -96,7 +94,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             // Query has not been cached before, so we need
             // to create a private filter and shared filter cache.
             privateFilter = new CodeGenFilterPrivate(condition,
-                compTypeBinding,
+                rowTypeBinding,
                 extentNumber,
                 null, // Current numerical variable types should be determined at execution time.
                 new CodeGenFilterCacheShared(4), // Maximum 4 filters can be cached per query.
@@ -251,7 +249,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                 }
 
                 default:
-                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect typeCode.");
+                    throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect typeCode.");
             }
         }
 
@@ -267,10 +265,15 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     {
         get
         {
-            if (singleObject)
-                return compTypeBinding.GetPropertyBinding(0).TypeBinding;
+            if (projectionTypeCode == null)
+                return rowTypeBinding;
 
-            return compTypeBinding;
+            // Singleton object.
+            if (projectionTypeCode == DbTypeCode.Object)
+                return rowTypeBinding.GetPropertyBinding(0).TypeBinding;
+
+            // Singleton non-object.
+            return null;
         }
     }
 
@@ -296,17 +299,69 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         {
             if (currentObject != null)
             {
-                if (singleObject)
-                    return currentObject.GetObject(0);
+                switch (projectionTypeCode)
+                {
+                    case null:
+                        return currentObject;
 
-                return currentObject;
+                    case DbTypeCode.Binary:
+                        return currentObject.GetBinary(0);
+
+                    case DbTypeCode.Boolean:
+                        return currentObject.GetBoolean(0);
+
+                    case DbTypeCode.Byte:
+                        return currentObject.GetByte(0);
+
+                    case DbTypeCode.DateTime:
+                        return currentObject.GetDateTime(0);
+
+                    case DbTypeCode.Decimal:
+                        return currentObject.GetDecimal(0);
+
+                    case DbTypeCode.Double:
+                        return currentObject.GetDouble(0);
+
+                    case DbTypeCode.Int16:
+                        return currentObject.GetInt16(0);
+
+                    case DbTypeCode.Int32:
+                        return currentObject.GetInt32(0);
+
+                    case DbTypeCode.Int64:
+                        return currentObject.GetInt64(0);
+
+                    case DbTypeCode.Object:
+                        return currentObject.GetObject(0);
+
+                    case DbTypeCode.SByte:
+                        return currentObject.GetSByte(0);
+
+                    case DbTypeCode.Single:
+                        return currentObject.GetSingle(0);
+
+                    case DbTypeCode.String:
+                        return currentObject.GetString(0);
+
+                    case DbTypeCode.UInt16:
+                        return currentObject.GetUInt16(0);
+
+                    case DbTypeCode.UInt32:
+                        return currentObject.GetUInt32(0);
+
+                    case DbTypeCode.UInt64:
+                        return currentObject.GetUInt64(0);
+
+                    default:
+                        throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect projectionTypeCode.");
+                }
             }
 
             throw new InvalidOperationException("Enumerator has not started or has already finished.");
         }
     }
 
-    public CompositeObject CurrentCompositeObject
+    public Row CurrentRow
     {
         get
         {
@@ -469,7 +524,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                 enableRecreateObjectCheck = false;
             }
 
-            currentObject = new CompositeObject(compTypeBinding);
+            currentObject = new Row(rowTypeBinding);
             currentObject.AttachObject(extentNumber, enumerator.Current);
             counter++;
             return true;
@@ -662,8 +717,8 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         if (counter <= 0 || force)
         {
             // Create a "null" object.
-            NullObject nullObj = new NullObject(compTypeBinding.GetTypeBinding(extentNumber));
-            currentObject = new CompositeObject(compTypeBinding);
+            NullObject nullObj = new NullObject(rowTypeBinding.GetTypeBinding(extentNumber));
+            currentObject = new Row(rowTypeBinding);
             currentObject.AttachObject(extentNumber, nullObj);
             counter++;
             return true;
@@ -678,7 +733,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     /// (reset already includes iterator disposal).
     /// </summary>
     /// <param name="obj">Context object from another enumerator.</param>
-    public override void Reset(CompositeObject obj)
+    public override void Reset(Row obj)
     {
         // We are disposing the lowest level internal iterator here.
         enumerator.Dispose();
@@ -696,7 +751,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         privateFilter.ResetCached(); // Reseting private filters.
     }
 
-    public override IExecutionEnumerator Clone(CompositeTypeBinding typeBindingClone, VariableArray varArrClone)
+    public override IExecutionEnumerator Clone(RowTypeBinding typeBindingClone, VariableArray varArrClone)
     {
         ILogicalExpression conditionClone = condition.Clone(varArrClone);
 
@@ -733,6 +788,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         stringBuilder.AppendLine(tabs, ")");
     }
 
+#if false
     // Does the continuous object ETIs and IDs fill up into the dedicated buffer.
     public override unsafe UInt32 FillupFoundObjectIDs(Byte* results, UInt32 resultsMaxBytes, UInt32* resultsNum, UInt32* flags)
     {
@@ -758,6 +814,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         // Just calling the underlying enumerator for function implementation.
         return enumerator.NativeFillupFoundObjectIDs(results, resultsMaxBytes, resultsNum, flags);
     }
+#endif
 
     /// <summary>
     /// Generates compilable code representation of this data structure.

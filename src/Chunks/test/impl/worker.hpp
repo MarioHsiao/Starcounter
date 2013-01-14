@@ -42,16 +42,14 @@ void worker::start() {
 	///=========================================================================
 	
 	if (!shared().acquire_client_number()) {
-		std::cout << "worker[" << worker_id_ << "]: "
-		"failed to acquire client number." << std::endl;
+		// Failed to acquire client number.
 		throw worker_exception(4000);
 	}
 	
-	//std::cout << "worker[" << worker_id_ << "]:" << " acquired client number "
-	//<< shared().get_client_number() << std::endl;
-	
 	// Acquire a channel_number for each scheduler.
 	for (scheduler_number i = 0; i < num_active_schedulers_; ++i) {
+		channel_[i] = invalid_channel_number;
+
 		if (!shared().acquire_channel(&channel_[i], i /*scheduler_number*/)) {
 			std::cout << " worker[" << worker_id_ << "] error: "
 			"invalid channel number." << std::endl;
@@ -62,19 +60,10 @@ void worker::start() {
 	
 	channel_[num_channels_] = invalid_channel_number;
 	
-	//std::cout << "worker[" << worker_id_ << "]: allocated " << num_channels_
-	//<< " channels: ";
-	
-	//for (std::size_t i = 0; i < num_channels_; ++i) {
-	//	std::cout << channel_[i] << ", ";
-	//}
-	
-	//std::cout << std::endl;
-	
 	///=========================================================================
 	/// Start worker thread
 	///=========================================================================
-	
+
 	thread_ = boost::thread(&worker::work, this); 
 	thread_handle_ = thread_.native_handle();	
 }
@@ -322,12 +311,9 @@ acquire_chunk_from_private_chunk_pool:
 				// set, and pushed or popped on any channel without notifying.
 				--scan_counter;
 				_mm_pause();
-				//std::cout << this << " preparing to wait.\n"; /// DEBUG
 				continue;
 			}
 			else if (scan_counter == 0) {
-				//std::cout << "get_notify=" << shared().client_interface().get_notify_flag() << std::endl;
-
 				// Nothing was pushed or popped for scan_count_reset number of
 				// iterations. This thread will now wait for any scheduler to
 				// push or pop on any of this worker's channels.
@@ -365,7 +351,6 @@ acquire_chunk_from_private_chunk_pool:
 	release_all_resources();
 	
 	/// Exit thread.
-	//std::cout << "worker[" << worker_id_ << "]: exit." << std::endl;
 	return;
 }
 catch (starcounter::interprocess_communication::worker_exception& e) {
@@ -486,7 +471,6 @@ inline void worker::release_all_resources() {
 			.get_scheduler_number();
 			
 			/// TODO: Check if the_scheduler_number is out of range!!!
-			//std::cout << "ch " << ch << " -> scheduler_number " << the_scheduler_number << std::endl; /// DEBUG
 			
 			scheduler_interface_type* scheduler_interface_ptr = &shared()
 			.scheduler_interface(the_scheduler_number);
@@ -508,8 +492,8 @@ inline void worker::release_all_resources() {
 					// Succeessfully notified the scheduler on this channel.
 				}
 				else { /// REMOVE THIS DEBUG TEST
-					std::cout << " try_to_notify_scheduler_to_do_clean_up() "
-					"failed in worker::release_all_resources().\n"; /// DEBUG
+					//std::cout << " try_to_notify_scheduler_to_do_clean_up() "
+					//"failed in worker::release_all_resources().\n"; /// DEBUG
 				}
 #else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess
 				// The scheduler may be waiting so try to notify it. Wait up to 64 ms.

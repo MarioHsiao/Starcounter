@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
+using Starcounter.Internal;
 
 namespace Starcounter.Server {
 
@@ -58,9 +59,8 @@ namespace Starcounter.Server {
             string weaverExe;
             string arguments;
 
-            weaverExe = Path.Combine(engine.InstallationDirectory, "weaver.exe");
-            arguments = string.Format("Weave \"{0}\" --FLAG:tocache --cachedir=\"{1}\"",
-                givenAssembly, runtimeDirectory);
+            weaverExe = Path.Combine(engine.InstallationDirectory, StarcounterConstants.ProgramNames.ScWeaver + ".exe");
+            arguments = string.Format("Weave \"{0}\" --outdir=\"{1}\"", givenAssembly, runtimeDirectory);
 
             ToolInvocationHelper.InvokeTool(new ProcessStartInfo(weaverExe, arguments));
 

@@ -27,14 +27,25 @@ namespace Starcounter.Server.PublicModel {
         /// this call will return when some basic validation has occured
         /// and the returned value will represent the state of the command
         /// just after it has been enqueued. To find it the result of the
-        /// completed command, use <see cref="Wait"/> or use <see cref="GetCommand"/>
-        /// to get the latest snapshot of the command state.
+        /// completed command, use <see cref="Wait(CommandId)"/>, <see cref="Wait(CommandInfo)"/>
+        /// or use <see cref="GetCommand"/> to get the latest snapshot of
+        /// the command state.
         /// </remarks>
         /// <param name="command">The <see cref="ServerCommand"/>
         /// to execute.</param>
         /// <returns>A <see cref="CommandInfo"/> representing the state of
         /// the command.</returns>
         CommandInfo Execute(ServerCommand command);
+
+        /// <summary>
+        /// Waits for the server command represented by the given
+        /// <see cref="CommandInfo"/> to complete.
+        /// </summary>
+        /// <param name="info">The <see cref="CommandInfo"/> representing
+        /// the command to wait for.</param>
+        /// <returns>A <see cref="CommandInfo"/> representing the state
+        /// of the command after it has finished.</returns>
+        CommandInfo Wait(CommandInfo info);
 
         /// <summary>
         /// Waits for the server command represented by the given

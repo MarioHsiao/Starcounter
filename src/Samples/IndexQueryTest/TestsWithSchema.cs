@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using Starcounter;
 using Starcounter.Binding;
+using Starcounter.Query.Execution;
 
 namespace IndexQueryTest
 {
@@ -26,7 +28,7 @@ namespace IndexQueryTest
             PrintUserByLastName("Popov");
             Db.Transaction(delegate
             {
-                Console.WriteLine(((ISqlEnumerator)Db.SQL("select u from User u where LastName = ?", "Popov").GetEnumerator()).ToString());
+                Console.WriteLine(((IEnumerator)Db.SQL("select u from User u where LastName = ?", "Popov").GetEnumerator()).ToString());
             });
         }
 
@@ -35,7 +37,7 @@ namespace IndexQueryTest
             try
             {
                 Db.SlowSQL("CREATE INDEX userLN ON Accounttest.UsEr (Lastname ASC)");
-                Console.WriteLine("Created index userLN ON AccountTest.User (LastName ASC)");
+                Console.WriteLine("Created index userLN ON accounttest.User (LastName ASC)");
             }
             catch (Starcounter.DbException ex)
             {
@@ -48,8 +50,8 @@ namespace IndexQueryTest
 
         static void DropIndexUserLN()
         {
-            Db.SlowSQL("DROP INDEX UserLN ON AccountTest.user");
-            Console.WriteLine("Dropped index userLN ON AccountTest.User");
+            Db.SlowSQL("DROP INDEX UserLN ON accounttest.user");
+            Console.WriteLine("Dropped index userLN ON accounttest.User");
         }
 
         static void TestCreateDropIndex()
@@ -70,7 +72,7 @@ namespace IndexQueryTest
             PrintUsersOrderByLastName();
             Db.Transaction(delegate
             {
-                Console.WriteLine(((ISqlEnumerator)Db.SQL("select u from User u order by LastName").GetEnumerator()).ToString());
+                Console.WriteLine(((IEnumerator)Db.SQL("select u from User u order by LastName").GetEnumerator()).ToString());
             });
         }
 
@@ -88,7 +90,7 @@ namespace IndexQueryTest
         {
             Db.Transaction(delegate
             {
-                foreach (AccountTest.User u in Db.SQL("select u from user u where userid = ? option index (u userLN)", "KalLar01"))
+                foreach (accounttest.User u in Db.SQL("select u from user u where userid = ? option index (u userLN)", "KalLar01"))
                     Console.WriteLine(u.ToString());
                 Console.WriteLine(Db.SQL("select u from user u where userid = ? option index (u userLN)", "KalLar01").GetEnumerator().ToString());
             });
@@ -108,7 +110,7 @@ namespace IndexQueryTest
             Console.WriteLine("Test path expression as join with index");
             CreateIndexUserLN();
             Db.Transaction(delegate {
-                foreach (AccountTest.Account a in Db.SQL("select a from account a where a.Client.lastname = ?", "Popov")) {
+                foreach (accounttest.account a in Db.SQL("select a from account a where a.Client.lastname = ?", "Popov")) {
                     Console.WriteLine(a.Client.ToString());
                     Console.WriteLine(a.ToString());
                 }
@@ -121,6 +123,34 @@ namespace IndexQueryTest
             Console.WriteLine("Test create/drop index without doing query");
             CreateIndexUserLN();
             DropIndexUserLN();
+        }
+
+        static void TestSumTransaction() {
+            Decimal? sum = Db.SlowSQL("select sum(amount*(amount - amount +2)) from account").First;
+            if (sum == null)
+                Console.WriteLine("The sum is null");
+            else Console.WriteLine("The sum is " + sum);
+        }
+
+        static void TestSumTransaction(String name) {
+            Decimal? sum = Db.SlowSQL("select sum(amount) from account where Client.FirstName = ?", 
+                name).First;
+            if (sum == null)
+                Console.WriteLine("The sum is null");
+            else Console.WriteLine("The sum is " + sum);
+        }
+
+        static void TestAggregate() {
+            Console.WriteLine("Test Aggregate");
+            Db.Transaction(delegate {
+                TestSumTransaction();
+            });
+            TestSumTransaction();
+            Db.Transaction(delegate {
+                TestSumTransaction("Oleg");
+            });
+            TestSumTransaction("Oleg");
+            Console.WriteLine("Test finished");
         }
 #endif
     }

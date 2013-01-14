@@ -57,36 +57,11 @@ class client_interface {
 public:
 	// Basic types
 	
-	// The type of queue for channel_number.
-	//typedef bounded_buffer<T, Alloc> queue_type;
-	
-	// The type of elements stored in the bounded_buffer.
 	typedef typename T value_type;
 	//typedef typename queue_type::value_type value_type;
 	
-	// A pointer to an element.
-	//typedef typename queue_type::pointer pointer;
-	
-	// A const pointer to the element.
-	//typedef typename queue_type::const_pointer const_pointer;
-	
-	// A reference to an element.
-	//typedef typename queue_type::reference reference;
-	
-	// A const reference to an element.
-	//typedef typename queue_type::const_reference const_reference;
-	
-	// The distance type. (A signed integral type used to represent the distance
-	// between two iterators.)
-	//typedef typename queue_type::difference_type difference_type;
-	
-	// The size type. (An unsigned integral type that can represent any non-
-	// negative value of the container's distance type.)
-	//typedef typename queue_type::size_type size_type;
-	
-	// The type of an allocator used in the bounded_buffer.
+	// The type of an allocator used.
 	typedef Alloc allocator_type;
-	//typedef typename queue_type::allocator_type allocator_type;
 	
 	// Helper types
 	
@@ -283,20 +258,16 @@ public:
 			if (reset) {
 				// Reset the event.
 				::ResetEvent(work_event[event_code]);
-				//std::cout << "ResetEvent(" << work_event[event_code] << ")\n"; /// DEBUG
 			}
 			work_event_index = event_code;
 			return true;
 		}
 		else switch (event_code) {
 		case WAIT_TIMEOUT:
-			//std::cout << "client_interface::wait_for_work() <multiple>: WAIT_TIMEOUT occurred. event_code = " << event_code << "\n"; /// DEBUG
 			return false;
 		case WAIT_FAILED:
-			//std::cout << "client_interface::wait_for_work() <multiple>: WAIT_FAILED: OS err: " <<  GetLastError() << "\n"; /// DEBUG
 			return false;
 		default:
-			//std::cout << "client_interface::wait_for_work() <multiple>: Unknown error occured: OS err: " <<  GetLastError() << "\n"; /// DEBUG
 			return false;
 		}
 		return false;
@@ -310,14 +281,12 @@ public:
 				return true;
 			}
 			else {
-				//std::cout << this << " client ResetEvent(" << work << ") <4> failed. Error" << ::GetLastError() << "\n"; /// DEBUG
 				return true; // Anyway.
 			}
 			return true;
 		case WAIT_TIMEOUT:
-			std::cout << this << " <4> client is running (timeout)\n"; /// DEBUG
 			return false;
-		case WAIT_FAILED: // Windows system error code: 6 = The handle is invalid.
+		case WAIT_FAILED:
 			return false;
 		}
 		return false;
@@ -334,11 +303,8 @@ public:
 		
 		if (!lock.owns()) {
 			// The timeout_milliseconds time period has elapsed.
-			//std::cout << this << " client is running (timeout, failed to acquire lock)\n"; /// DEBUG
 			return false;
 		}
-		
-		//std::cout << this << " client is waiting...\n"; /// DEBUG
 		
 		// Wait until at least one message has been pushed into some channel,
 		// or the timeout_milliseconds time period has elapsed.
@@ -346,13 +312,11 @@ public:
 		boost::bind(&client_interface<value_type, allocator_type>::do_work,
 		this)) == true) {
 			// The client was notified.
-			//std::cout << this << " client is running (notified)\n"; /// DEBUG
 			set_predicate(false);
 			return true;
 		}
 		
 		// The timeout_milliseconds time period has elapsed.
-		//std::cout << this << " client is running (wait timeout)\n"; /// DEBUG
 		return false;
 	}
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.

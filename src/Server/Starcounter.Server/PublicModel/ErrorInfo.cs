@@ -6,6 +6,7 @@
 
 using Starcounter.Internal;
 using System;
+using System.Collections.Generic;
 
 namespace Starcounter.Server.PublicModel {
 
@@ -17,10 +18,6 @@ namespace Starcounter.Server.PublicModel {
     /// applications).
     /// </summary>
     public sealed class ErrorInfo {
-        //private static readonly ResourceManager resourceManager =
-        //    new ResourceManager("Starcounter.Management.Contracts.ErrorMessages",
-        //                        typeof(ErrorInfo).Assembly);
-
         /// <summary>
         /// Prefix used when an <see cref="ErrorInfo"/> represent a message
         /// already properly created.
@@ -33,6 +30,19 @@ namespace Starcounter.Server.PublicModel {
         /// accross the wire.
         /// </summary>
         internal const string MessagePostfixPrefix = "34B66911-B05F-417D-82FA-3BA8BABE0F72";
+
+        /// <summary>
+        /// Enumerates over all error messages constructed from the given array
+        /// of <see cref="ErrorInfo"/> instances, sorted from the most relevant
+        /// to the outermost one.
+        /// </summary>
+        /// <param name="errors">Errors to iterate.</param>
+        /// <returns>A enumerable collection with sorted error messages.</returns>
+        public static IEnumerable<ErrorMessage> GetSortedErrorMessages(ErrorInfo[] errors) {
+            for (int i = errors.Length - 1; i >= 0; i--) {
+                yield return errors[i].ToErrorMessage();
+            }
+        }
 
         /// <summary>
         /// Creates a <see cref="ErrorInfo"/> from an exception.
@@ -195,19 +205,12 @@ namespace Starcounter.Server.PublicModel {
         /// An <see cref="ErrorMessage"/> instance representing the error encapsulated
         /// by the current instance.
         /// </returns>
-        internal ErrorMessage ToErrorMessage() {
-            //string format;
+        public ErrorMessage ToErrorMessage() {
             string message;
             uint numericCode;
             string firstArgument;
             string[] argumentsWithoutPrefix;
-            //string header;
-            //string body;
-            //string helplink;
-
-            // Try first with the new way use the ErrorInfo type: using a
-            // standardized error code (with possible cargo).
-
+            
             if (uint.TryParse(ErrorId, out numericCode)) {
                 // Check the various tricks we have up our sleeve to
                 // see how we should format the returned string.
@@ -237,35 +240,6 @@ namespace Starcounter.Server.PublicModel {
 
                 return ErrorCode.ToMessageWithArguments(numericCode, string.Empty, this.Arguments);
             }
-
-            // If it can't be parsed as a code, try the resource manager.
-
-            //numericCode = Error.SCERRUNSPECIFIED;
-            //format = resourceManager.GetString(this.ErrorId);
-            //if (format != null)
-            //{
-            //    // The old way to retreive error information. Still supported
-            //    // but will be replaced fully in time.
-
-            //    body = this.Arguments != null ? string.Format(format, this.Arguments) : format;
-            //    header = string.Format("{0} ({1})", this.ErrorId, ErrorCode.ToDecoratedCode(numericCode));
-            //    message = string.Format("{0}: {1}", header, body);
-            //    helplink = ErrorCode.ToHelpLinkMessage(numericCode);
-
-            //    // Use the dedicated, legacy error message class.
-
-            //    return new ResourceManagerErrorMessage(
-            //        message + " " + helplink,
-            //        numericCode,
-            //        header,
-            //        body,
-            //        message,
-            //        ErrorCode.ToHelpLink(numericCode)
-            //        );
-            //}
-
-            // If nothing else worked, raise an exception, with a message
-            // indicating what message failed.
 
             message = string.Format("Invalid invocation: ErrorInfo.ToErrorMessage([\"{0}\"])", this.ErrorId);
             numericCode = Error.SCERRINVALIDOPERATION;

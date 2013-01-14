@@ -113,13 +113,14 @@ namespace StarcounterInternal.Hosting
         /// </summary>
         private static sccoredb.ON_NEW_SCHEMA on_new_schema = new sccoredb.ON_NEW_SCHEMA(orange_on_new_schema);
 
+        private static sccoredb.ON_NO_TRANSACTION on_new_transaction = new sccoredb.ON_NO_TRANSACTION(orange_on_no_transaction);
+
         /// <summary>
-        /// Orange_configure_database_callbackses the specified config.
         /// </summary>
-        /// <param name="config">The config.</param>
-        public static unsafe void orange_configure_database_callbacks(ref sccoredb.sccoredb_config config)
+        public static unsafe void orange_configure_database_callbacks(ref sccoredb.sccoredb_callbacks callbacks)
         {
-            config.on_new_schema = (void*)Marshal.GetFunctionPointerForDelegate(on_new_schema);
+            callbacks.on_new_schema = (void*)Marshal.GetFunctionPointerForDelegate(on_new_schema);
+            callbacks.on_no_transaction = (void*)Marshal.GetFunctionPointerForDelegate(on_new_transaction);
         }
 
 #if false
@@ -172,7 +173,7 @@ namespace StarcounterInternal.Hosting
             uint e = sccoredb.SCResetThread();
             if (e == 0)
             {
-                sccorelog.SCNewActivity();
+                sccorelog.sccorelog_new_activity();
                 return;
             }
             orange_fatal_error(e);
@@ -296,6 +297,20 @@ namespace StarcounterInternal.Hosting
             catch (System.Exception ex)
             {
                 if (!ExceptionManager.HandleUnhandledException(ex)) throw;
+            }
+        }
+
+        private static uint orange_on_no_transaction() {
+            try {
+                Starcounter.Transaction.NewCurrent();
+                return 0;
+            }
+            catch (System.OutOfMemoryException) {
+                return Starcounter.Error.SCERROUTOFMEMORY;
+            }
+            catch (System.Exception ex) {
+                if (!ExceptionManager.HandleUnhandledException(ex)) throw;
+                return Starcounter.Error.SCERRUNSPECIFIED;
             }
         }
 
@@ -434,7 +449,7 @@ namespace StarcounterInternal.Hosting
         /// <param name="p">The p.</param>
         private static unsafe void orange_thread_reset(void* hsched, byte cpun, void* p)
         {
-            sccorelog.SCNewActivity();
+            sccorelog.sccorelog_new_activity();
         }
 
         /// <summary>

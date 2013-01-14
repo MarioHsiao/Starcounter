@@ -8,6 +8,7 @@ using Starcounter;
 using Starcounter.Hosting;
 using Starcounter.Internal;
 using System;
+using System.Runtime.InteropServices;
 
 namespace StarcounterInternal.Hosting
 {
@@ -17,6 +18,14 @@ namespace StarcounterInternal.Hosting
     /// </summary>
     public static class Processor
     {
+
+        /// <summary>
+        /// </summary>
+        public unsafe static void Setup(void* hsched) {
+            TaskScheduler.SetImplementation(new TaskSchedulerImpl(hsched));
+            ScrapHeap.Setup(hsched);
+            new CaptureGC();
+        }
 
         /// <summary>
         /// Runs the message loop.
@@ -46,10 +55,20 @@ namespace StarcounterInternal.Hosting
                             case sccorelib.CM2_TYPE_REQUEST:
                                 break;
 
+                            case sccorelib_ext.TYPE_RECYCLE_SCRAP:
+                                ScrapHeap.RecycleScrap();
+                                break;
+
+                            case sccorelib_ext.TYPE_RUN_TASK:
+                                RunTask((IntPtr)task_data.Output3);
+                                break;
+
                             case sccorelib_ext.TYPE_PROCESS_PACKAGE:
                                 Package.Process((IntPtr)task_data.Output3);
                                 break;
                         };
+
+                        TaskHelper.Reset();
                     }
                     else
                     {
@@ -61,6 +80,13 @@ namespace StarcounterInternal.Hosting
             {
                 if (!ExceptionManager.HandleUnhandledException(ex)) throw;
             }
+        }
+
+        static void RunTask(IntPtr hTask) {
+            var gcHandle = (GCHandle)hTask;
+            var task = (ITask)gcHandle.Target;
+            gcHandle.Free();
+            task.Run();
         }
     }
 }

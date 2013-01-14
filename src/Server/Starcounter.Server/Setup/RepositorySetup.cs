@@ -128,8 +128,7 @@ namespace Starcounter.Server.Setup {
                 TransactionLogDirectory = Path.Combine(structure.DataDirectory, "[DatabaseName]"),
                 TempDirectory = Path.Combine(structure.TempDirectory, "[DatabaseName]"),
                 SQLProcessPort = 8066 + serverPortRange,
-                SharedMemoryChunkSize = 4096,
-                SharedMemoryChunksNumber = 4096,
+                ChunksNumber = 4096,
             };
 
             databaseConfiguration = new DatabaseConfiguration() {

@@ -15,7 +15,7 @@ namespace SQLTest
             Db.Transaction(delegate
             {
                 List<String> resultList = null;
-                ISqlEnumerator sqlEnum = null;
+                SqlEnumerator sqlEnum = null;
 
                 for (Int32 i = 0; i < queryList.Count; i++)
                 {
@@ -41,23 +41,23 @@ namespace SQLTest
                         {
                             // Call appropriate method to create execution enumerator.
                             if (queryList[i].IncludesLiteral)
-                                sqlEnum = Db.SlowSQL(queryList[i].QueryString, queryList[i].VariableValuesArr).GetEnumerator() as ISqlEnumerator;
+                                sqlEnum = Db.SlowSQL(queryList[i].QueryString, queryList[i].VariableValuesArr).GetEnumerator() as SqlEnumerator;
                             else
-                                sqlEnum = Db.SQL(queryList[i].QueryString, queryList[i].VariableValuesArr).GetEnumerator() as ISqlEnumerator;
+                                sqlEnum = Db.SQL(queryList[i].QueryString, queryList[i].VariableValuesArr).GetEnumerator() as SqlEnumerator;
                         }
                         else
                         {
                             // Call appropriate method to create execution enumerator.
                             if (queryList[i].IncludesLiteral)
-                                sqlEnum = Db.SlowSQL(queryList[i].QueryString).GetEnumerator() as ISqlEnumerator;
+                                sqlEnum = Db.SlowSQL(queryList[i].QueryString).GetEnumerator() as SqlEnumerator;
                             else
-                                sqlEnum = Db.SQL(queryList[i].QueryString).GetEnumerator() as ISqlEnumerator;
+                                sqlEnum = Db.SQL(queryList[i].QueryString).GetEnumerator() as SqlEnumerator;
                         }
                         // Collect the result of the query.
                         if (!queryList[i].SingleObjectProjection)
                             resultList = CreateResultComposite(sqlEnum);
                         else
-                            resultList = CreateResultEntity(sqlEnum);
+                            resultList = CreateResultSingleton(sqlEnum);
 
                         // Save execution plan and result.
                         if (firstExecution)
@@ -96,7 +96,7 @@ namespace SQLTest
             });
         }
 
-        private static void ResultLoop(ISqlEnumerator sqlEnum)
+        private static void ResultLoop(SqlEnumerator sqlEnum)
         {
             IObjectView obj = null;
             while (sqlEnum.MoveNext())
@@ -105,9 +105,9 @@ namespace SQLTest
             }
         }
 
-        private static List<String> CreateResultEntity(ISqlEnumerator sqlEnum)
+        private static List<String> CreateResultSingleton(SqlEnumerator sqlEnum)
         {
-            String result = headerFieldSeparator + "Object" + headerFieldSeparator;
+            String result = headerFieldSeparator + sqlEnum.ProjectionTypeCode.ToString() + headerFieldSeparator;
             List<String> resultList = new List<String>();
             String strValue = null;
 
@@ -115,13 +115,9 @@ namespace SQLTest
 
             while (sqlEnum.MoveNext())
             {
-                if (sqlEnum.Current != null && !(sqlEnum.Current is Entity))
+                if (sqlEnum.ProjectionTypeCode == null)
                     throw new Exception("Incorrect Entity object. Maybe due to incorrect declaration \"SingleObjectProjection: True\".");
-                if (sqlEnum.Current != null)
-                    //strValue = DbHelper.GetObjectID(sqlEnum.Current as Entity).ToString();
-                    strValue = Utilities.GetObjectIdString(sqlEnum.Current);
-                else
-                    strValue = Db.NullString;
+                strValue = Utilities.GetSingletonResult((DbTypeCode)sqlEnum.ProjectionTypeCode, sqlEnum.Current);
                 result = Utilities.FieldSeparator + strValue + Utilities.FieldSeparator;
                 resultList.Add(result);
             }
@@ -129,7 +125,7 @@ namespace SQLTest
             return resultList;
         }
 
-        private static List<String> CreateResultComposite(ISqlEnumerator sqlEnum)
+        private static List<String> CreateResultComposite(SqlEnumerator sqlEnum)
         {
             String result = headerFieldSeparator;
             List<String> resultList = new List<String>();

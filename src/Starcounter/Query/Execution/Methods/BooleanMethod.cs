@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Text;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -31,8 +32,8 @@ internal class BooleanMethod : IBooleanPathItem, IMethod
     /// <param name="extNum">The extent number to which this method belongs.
     /// If it does not belong to any extent number, which is the case for path expressions,
     /// then the number should be -1.</param>
-    /// <param name="typeBind">The type resultTypeBind of the object to which this method belongs.</param>
-    /// <param name="argument">The type resultTypeBind of the return object.</param>
+    /// <param name="typeBind">The type rowTypeBind of the object to which this method belongs.</param>
+    /// <param name="argument">The type rowTypeBind of the return object.</param>
     internal BooleanMethod(Int32 extNum, ITypeBinding typeBind, IObjectExpression argument)
     : base()
     {
@@ -92,6 +93,7 @@ internal class BooleanMethod : IBooleanPathItem, IMethod
             return DbTypeCode.Boolean;
         }
     }
+
     public QueryTypeCode QueryTypeCode
     {
         get
@@ -100,11 +102,16 @@ internal class BooleanMethod : IBooleanPathItem, IMethod
         }
     }
 
+    public Boolean InvolvesCodeExecution()
+    {
+        return true;
+    }
+
     /// <summary>
     /// Appends data of this leaf to the provided filter key.
     /// </summary>
     /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    /// <param name="obj">Results object for which evaluation should be performed.</param>
+    /// <param name="obj">Row for which evaluation should be performed.</param>
     public void AppendToKey(ByteArrayBuilder key, IObjectView obj)
     {
         key.Append(EvaluateToBoolean(obj));
@@ -112,7 +119,7 @@ internal class BooleanMethod : IBooleanPathItem, IMethod
 
     /// <summary>
     /// Calculates the return value of this method when evaluated on an input object.
-    /// If the input object is not a CompositeObject then all member references in this expression (argExpression) should refer
+    /// If the input object is not a Row then all member references in this expression (argExpression) should refer
     /// to the extent number (extentNumber) of this method and the input object should belong to the corresponding extent.
     /// </summary>
     /// <param name="obj">The object on which to evaluate this method.</param>
@@ -125,7 +132,7 @@ internal class BooleanMethod : IBooleanPathItem, IMethod
     /// <summary>
     /// Calculates the return value of this method when evaluated on an input object and a start-object of the path to which
     /// the input object belongs.
-    /// If the input object is not a CompositeObject then all member references in this expression (argExpression) should refer
+    /// If the input object is not a Row then all member references in this expression (argExpression) should refer
     /// to the extent number (extentNumber) of this method and the input object should belong to the corresponding extent.
     /// </summary>
     /// <param name="obj">The object on which to evaluate this method.</param>
@@ -141,12 +148,12 @@ internal class BooleanMethod : IBooleanPathItem, IMethod
         {
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect startObj.");
         }
-        if (obj is CompositeObject)
+        if (obj is Row)
         {
             // Type control removed since type hierarchy and interfaces were not handled.
-            // if ((obj.TypeBinding as CompositeTypeBinding).GetTypeBinding(extentNumber) == typeBinding)
+            // if ((obj.TypeBinding as RowTypeBinding).GetTypeBinding(extentNumber) == typeBinding)
             // {
-            IObjectView partObj = (obj as CompositeObject).AccessObject(extentNumber);
+            IObjectView partObj = (obj as Row).AccessObject(extentNumber);
             if (partObj == null)
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "No elementary object at extent number: " + extentNumber);
@@ -182,13 +189,13 @@ internal class BooleanMethod : IBooleanPathItem, IMethod
     }
 
     /// <summary>
-    /// Creates an more instantiated copy of this expression by evaluating it on a result-object.
-    /// Members, with extent numbers for which there exist objects attached to the result-object,
+    /// Creates an more instantiated copy of this expression by evaluating it on a Row.
+    /// Members, with extent numbers for which there exist objects attached to the Row,
     /// are evaluated and instantiated to literals, other members are not changed.
     /// </summary>
-    /// <param name="obj">The result-object on which to evaluate the expression.</param>
+    /// <param name="obj">The Row on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public IBooleanExpression Instantiate(CompositeObject obj)
+    public IBooleanExpression Instantiate(Row obj)
     {
         IObjectExpression instArgumentExpr = argumentExpr.Instantiate(obj);
         if (obj != null && extentNumber >= 0 && obj.AccessObject(extentNumber) != null)
@@ -239,5 +246,43 @@ internal class BooleanMethod : IBooleanPathItem, IMethod
     {
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "ObjectGenericMethod");
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    public bool AssertEquals(ITypeExpression other) {
+        BooleanMethod otherNode = other as BooleanMethod;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(BooleanMethod other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check basic types
+        Debug.Assert(this.extentNumber == other.extentNumber);
+        if (this.extentNumber != other.extentNumber)
+            return false;
+        Debug.Assert(this.typeBinding == other.typeBinding);
+        if (this.typeBinding != other.typeBinding)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = true;
+        if (this.argumentExpr == null) {
+            Debug.Assert(other.argumentExpr == null);
+            areEquals = other.argumentExpr == null;
+        } else
+            areEquals = this.argumentExpr.AssertEquals(other.argumentExpr);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }

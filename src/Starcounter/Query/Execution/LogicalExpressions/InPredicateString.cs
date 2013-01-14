@@ -13,6 +13,7 @@ using System.Text.RegularExpressions;
 using System.Collections;
 using System.Text;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 
 namespace Starcounter.Query.Execution
@@ -81,6 +82,18 @@ internal class InPredicateString : ILogicalExpression
         exprList = list;
     }
 
+    public Boolean InvolvesCodeExecution()
+    {
+        Boolean codeExecution = expression.InvolvesCodeExecution();
+        Int32 i = 0;
+        while (codeExecution == false && i < exprList.Count)
+        {
+            codeExecution = exprList[i].InvolvesCodeExecution();
+            i++;
+        }
+        return codeExecution;
+    }
+
     /// <summary>
     /// Calculates the truth value of this in-predicate when evaluated on an input object.
     /// All properties in this in-predicate are evaluated on the input object.
@@ -133,13 +146,13 @@ internal class InPredicateString : ILogicalExpression
     }
 
     /// <summary>
-    /// Creates an more instantiated copy of this expression by evaluating it on a result-object.
-    /// Properties, with extent numbers for which there exist objects attached to the result-object,
+    /// Creates an more instantiated copy of this expression by evaluating it on a Row.
+    /// Properties, with extent numbers for which there exist objects attached to the Row,
     /// are evaluated and instantiated to literals, other properties are not changed.
     /// </summary>
-    /// <param name="obj">The result-object on which to evaluate the expression.</param>
+    /// <param name="obj">The Row on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public ILogicalExpression Instantiate(CompositeObject obj)
+    public ILogicalExpression Instantiate(Row obj)
     {
         IStringExpression instExpr = null;
         List<IStringExpression> instExprList = new List<IStringExpression>();
@@ -193,5 +206,43 @@ internal class InPredicateString : ILogicalExpression
     {
         expression.GenerateCompilableCode(stringGen);
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    public bool AssertEquals(ILogicalExpression other) {
+        InPredicateString otherNode = other as InPredicateString;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(InPredicateString other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check cardinalities of collections
+        Debug.Assert(this.exprList.Count == other.exprList.Count);
+        if (this.exprList.Count != other.exprList.Count)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = true;
+        if (this.expression == null) {
+            Debug.Assert(other.expression == null);
+            areEquals = other.expression == null;
+        } else
+            areEquals = this.expression.AssertEquals(other.expression);
+        // Check collections of objects
+        for (int i = 0; i < this.exprList.Count && areEquals; i++)
+            areEquals = this.exprList[i].AssertEquals(other.exprList[i]);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }

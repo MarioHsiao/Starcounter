@@ -8,6 +8,7 @@ using Starcounter.Query.Optimization;
 using System;
 using System.Globalization;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 
 namespace Starcounter.Query.Execution
@@ -85,7 +86,7 @@ internal class DateTimeLiteral : Literal, ILiteral, IDateTimePathItem
     /// </summary>
     /// <param name="obj">Not used.</param>
     /// <returns>A copy of this literal.</returns>
-    public IDateTimeExpression Instantiate(CompositeObject obj)
+    public IDateTimeExpression Instantiate(Row obj)
     {
         return new DateTimeLiteral(value);
     }
@@ -138,5 +139,23 @@ internal class DateTimeLiteral : Literal, ILiteral, IDateTimePathItem
     {
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, value.ToString());
     }
+
+#if DEBUG
+    public bool AssertEquals(ITypeExpression other) {
+        DateTimeLiteral otherNode = other as DateTimeLiteral;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(DateTimeLiteral other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check basic types
+        Debug.Assert(this.value == other.value);
+        if (this.value != other.value)
+            return false;
+        return true;
+    }
+#endif
 }
 }

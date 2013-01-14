@@ -19,26 +19,11 @@ namespace Starcounter
     /// </summary>
     public interface ISqlEnumerator : IEnumerator, IDisposable
     {
-        /// <summary>
-        /// Moves to the next of the resulting objects of the query.
-        /// </summary>
-        /// <returns>True if there is a next object, otherwise false.</returns>
-        new Boolean MoveNext();
 
         /// <summary>
-        /// Gets the current object (IObjectView) in the result of the query.
+        /// Gets the current item (row) in the result of the query.
         /// </summary>
         new dynamic Current { get; }
-
-        /// <summary>
-        /// Resets the result by setting the cursor at the position before the first object.
-        /// </summary>
-        new void Reset();
-
-        /// <summary>
-        /// Releases unmanaged resources.
-        /// </summary>
-        new void Dispose();
 
         /// <summary>
         /// The SQL query this SQL enumerator executes.
@@ -46,9 +31,14 @@ namespace Starcounter
         String Query { get; }
 
         /// <summary>
-        /// The type binding of the resulting objects of the query.
+        /// If the projection is an (Entity or Row) object, then the type binding of that object, otherwise null.
         /// </summary>
         ITypeBinding TypeBinding { get; }
+
+        /// <summary>
+        /// If the projection is a singleton, then the DbTypeCode of that singleton, otherwise null.
+        /// </summary>
+        Nullable<DbTypeCode> ProjectionTypeCode { get; }
 
         /// <summary>
         /// Counts the number of returned objects.

@@ -1,4 +1,5 @@
-﻿// ***********************************************************************
+﻿#if false
+// ***********************************************************************
 // <copyright file="SqlConnectivity.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
@@ -23,7 +24,6 @@ internal static class SqlConnectivity
     /// <summary>
     /// Needs to be static so that function pointers do not get destroyed.
     /// </summary>
-//    internal static SC_SQL_CALLBACKS sqlCallbacks = new SC_SQL_CALLBACKS();
     internal static Starcounter.Internal.SC_SQL_CALLBACKS sqlCallbacks = new Starcounter.Internal.SC_SQL_CALLBACKS();
 
     // Returns the error based on the raised exception.
@@ -148,13 +148,11 @@ internal static class SqlConnectivity
             // Getting the enumerator from cache.
             IExecutionEnumerator sqlEnum = Scheduler.GetInstance(schedId).SqlEnumCache.GetCachedEnumerator(queryId);
 
-#if false // TODO EOH2: Transaction id
             // Attaching to current transaction.
             if (Starcounter.Transaction.Current != null)
                 sqlEnum.TransactionId = Starcounter.Transaction.Current.TransactionId;
             else
                 sqlEnum.TransactionId = 0;
-#endif
 
             try
             {
@@ -200,7 +198,7 @@ internal static class SqlConnectivity
                         if (!hasRecreationKey)
                         {
                             // Getting the amount of leaves in execution tree (number of enumerators).
-                            Int32 leavesNum = sqlEnum.CompositeTypeBinding.ExtentOrder.Count;
+                            Int32 leavesNum = sqlEnum.RowTypeBinding.ExtentOrder.Count;
                             globalOffset = ((leavesNum << 3) + IteratorHelper.RK_HEADER_LEN);
 
                             // Saving number of enumerators.
@@ -382,7 +380,6 @@ internal static class SqlConnectivity
                 break;
             }
 
-#if false // TODO EOH2: Profiler
             case SqlConnectivityInterface.PRINT_PROFILER_RESULTS:
             {
                 // Copying the profiling results.
@@ -393,10 +390,10 @@ internal static class SqlConnectivity
 
                 break;
             }
-#endif
         }
 
         return 0;
     }
 }
 }
+#endif

@@ -64,10 +64,9 @@
     <Compile Include="JsonPatch.cs" />
     <Compile Include="JsonPointer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SessionDictionary.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\HTTP\HttpStructs.csproj">
+    <ProjectReference Include="..\HTTP\HttpStructs\HttpStructs.csproj">
       <Project>{90d57166-b42e-4bbe-b9ec-cfb33e551b77}</Project>
       <Name>HttpStructs</Name>
     </ProjectReference>
@@ -75,7 +74,7 @@
       <Project>{bbaad98c-2661-42dc-85e4-3f2d11bbe010}</Project>
       <Name>Starcounter.Apps</Name>
     </ProjectReference>
-    <ProjectReference Include="..\REST\Starcounter.Rest.csproj">
+    <ProjectReference Include="..\Starcounter.Rest\Starcounter.Rest.csproj">
       <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
       <Name>Starcounter.Rest</Name>
     </ProjectReference>
@@ -98,6 +97,10 @@
     <ProjectReference Include="..\Starcounter\Starcounter.csproj">
       <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
       <Name>Starcounter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ThirdParty\Newtonsoft.Json\Newtonsoft.Json.csproj">
+      <Project>{a9ae40ff-1a21-414a-9fe7-3be13644cc6d}</Project>
+      <Name>Newtonsoft.Json</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 
 namespace Starcounter.Query.Execution
@@ -84,6 +85,7 @@ internal class ObjectPath : Path, IObjectExpression, IPath
             return DbTypeCode.Object;
         }
     }
+
     public QueryTypeCode QueryTypeCode
     {
         get
@@ -92,8 +94,20 @@ internal class ObjectPath : Path, IObjectExpression, IPath
         }
     }
 
+    public Boolean InvolvesCodeExecution()
+    {
+        Boolean codeExecution = member.InvolvesCodeExecution();
+        Int32 i = 0;
+        while (codeExecution == false && i < pathList.Count)
+        {
+            codeExecution = pathList[i].InvolvesCodeExecution();
+            i++;
+        }
+        return codeExecution;
+    }
+
     /// <summary>
-    /// The type resultTypeBind of the end (object) member of this path.
+    /// The type binding of the end (object) member of this path.
     /// </summary>
     public ITypeBinding TypeBinding
     {
@@ -107,7 +121,7 @@ internal class ObjectPath : Path, IObjectExpression, IPath
     /// Appends data of this leaf to the provided filter key.
     /// </summary>
     /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    /// <param name="obj">Results object for which evaluation should be performed.</param>
+    /// <param name="obj">Row for which evaluation should be performed.</param>
     public override void AppendToByteArray(ByteArrayBuilder key, IObjectView obj)
     {
         key.Append(EvaluateToObject(obj));
@@ -154,13 +168,13 @@ internal class ObjectPath : Path, IObjectExpression, IPath
     }
 
     /// <summary>
-    /// Creates an more instantiated copy of this expression by evaluating it on a result-object.
-    /// Members, with extent numbers for which there exist objects attached to the result-object,
+    /// Creates an more instantiated copy of this expression by evaluating it on a Row.
+    /// Members, with extent numbers for which there exist objects attached to the Row,
     /// are evaluated and instantiated to literals, other members are not changed.
     /// </summary>
-    /// <param name="obj">The result-object on which to evaluate the expression.</param>
+    /// <param name="obj">The Row on which to evaluate the expression.</param>
     /// <returns>A more instantiated expression.</returns>
-    public IObjectExpression Instantiate_OLD(CompositeObject obj)
+    public IObjectExpression Instantiate_OLD(Row obj)
     {
         List<IObjectPathItem> instPathList = new List<IObjectPathItem>();
         Int32 i = 0;
@@ -178,7 +192,7 @@ internal class ObjectPath : Path, IObjectExpression, IPath
         return new ObjectPath(extentNumber, instPathList, instMember);
     }
 
-    public IObjectExpression Instantiate(CompositeObject obj)
+    public IObjectExpression Instantiate(Row obj)
     {
         List<IObjectPathItem> instPathList = new List<IObjectPathItem>();
         Int32 i = 0;
@@ -229,5 +243,39 @@ internal class ObjectPath : Path, IObjectExpression, IPath
     {
         member.GenerateCompilableCode(stringGen);
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    public bool AssertEquals(ITypeExpression other) {
+        ObjectPath otherNode = other as ObjectPath;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(ObjectPath other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check parent
+        if (!base.AssertEquals(other))
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = true;
+        if (this.member == null) {
+            Debug.Assert(other.member == null);
+            areEquals = other.member == null;
+        } else
+            areEquals = this.member.AssertEquals(other.member);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }

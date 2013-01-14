@@ -47,7 +47,13 @@ namespace Starcounter.VisualStudio.Projects {
             var client = ClientServerFactory.CreateClientUsingNamedPipes(pipeName);
 
             properties.Add("AssemblyPath", debugConfiguration.AssemblyPath);
-            properties.Add("WorkingDir", debugConfiguration.WorkingDirectory);
+
+            var workingDir = debugConfiguration.WorkingDirectory;
+            if (!Path.IsPathRooted(workingDir)) {
+                workingDir = Path.Combine(Path.GetDirectoryName(debugConfiguration.AssemblyPath), workingDir);
+            }
+            properties.Add("WorkingDir", workingDir);
+
             if (debugConfiguration.Arguments.Length > 0) {
                 properties.Add("Args", KeyValueBinary.FromArray(debugConfiguration.Arguments).Value);
             }
@@ -67,22 +73,28 @@ namespace Starcounter.VisualStudio.Projects {
             this.WriteDebugLaunchStatus(null);
             
             // Utilize the prepare-only solution to be able to debug the
-            // entrypoint. This will be slightly rewritten to be more of a
-            // final solution.
+            // entrypoint, unless the user hasn't specified we should run
+            // without the debugger. In the later case, we issue a single
+            // synchronous call to the server, completing the entire launch
+            // in one step.
 
-            properties.Add("PrepareOnly", bool.TrueString);
+            properties.Add("@@Synchronous", bool.TrueString);
+            if ((flags & __VSDBGLAUNCHFLAGS.DBGLAUNCH_NoDebug) == 0) {
+                properties.Add("PrepareOnly", bool.TrueString);
+            }
 
             client.Send("ExecApp", properties, (Reply reply) => {
                 if (!reply.IsSuccess) throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, reply.ToString());
                 command = ServerUtility.DeserializeCarry<CommandInfo>(reply);
             });
 
+#if false
+            // Wait for the completion of the command by polling the server
+            // for the completion data.
+
             int threadSuspensionTimeout = 650;
             int triesBeforeSwitchingThread = int.MaxValue;
-#if false
-            threadSuspensionTimeout = 200;
-            triesBeforeSwitchingThread = 10;
-#endif
+            
             for (int i = 0; i < triesBeforeSwitchingThread; i++) {
                 if (command.IsCompleted)
                     break;
@@ -90,38 +102,40 @@ namespace Starcounter.VisualStudio.Projects {
                 Thread.Sleep(threadSuspensionTimeout);
 
                 client.Send("GetCompletedCommand", command.Id.ToString(), (Reply reply) => {
-                    if (!reply.IsSuccess) throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, reply.ToString());
+                    // Once the reply has carry, we interpret that as the completed
+                    // command information, and we deserialize it.
+                    // However, if this fails, and the reply indicates the request
+                    // was a failure, the request failed for some other reason and
+                    // we use the carry as an error information instead.
+                    //
+                    // Currently, there is a glitch in the return value design of
+                    // ABCIPC-request/responses. Clients have to be able to distinguish
+                    // between different kind of failures, like here: we have to be
+                    // able to return FALSE as in "not completed" and FALSE as in
+                    // "command not found". I guess codes are the approprate way to
+                    // go, and/or possible raise client side exceptions for "system-
+                    // like" errors.
                     if (reply.HasCarry) {
-                        command = ServerUtility.DeserializeCarry<CommandInfo>(reply);
+                        try {
+                            command = ServerUtility.DeserializeCarry<CommandInfo>(reply);
+                        } catch (Exception e) {
+                            string carry;
+                            reply.TryGetCarry(out carry);
+                            throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, e, carry);
+                        }
                     }
                 });
             }
-
-#if false
-            if (!command.IsCompleted) {
-                // We are switching to another thread. We must pass the
-                // command identity and the debug information along, since we'll
-                // need it when we must get back to the GUI thread again.
-                //
-                // If we decide to use this option, we should probably
-                // consider keeping a dedicated thread around, since it can
-                // indicate a long running task, and we shouldn't lock one
-                // from the pool up.
-
-                ThreadPool.QueueUserWorkItem(this.WaitForExecAssemblyCommandAndThenCallLauchDebugger, new object[] { client, command.Id, flags, debugConfiguration });
-                return true;
-            }
 #endif
-            // Invoke the method actually attaching the debugger, after
-            // we have assured the server has fully processed the exec assembly
-            // command.
+            // Invoke the method actually attaching the debugger.
 
             LaunchDebugEngineIfExecCommandSucceeded(client, command, flags, debugConfiguration);
             
-            // When utilizing PrepareOnly, we execute the entrypoint in a pooled thread.
-            // This will be slightly changed.
+            // When utilizing PrepareOnly, we execute the entrypoint after we have
+            // executed the preparation.
+
             if (properties.Remove("PrepareOnly")) {
-                ThreadPool.QueueUserWorkItem(ExecuteAppEntrypointWithDebuggerAttached, new object[] { client, properties });
+                ExecuteAppEntrypointWithDebuggerAttached(client, properties);
             }
 
             var finish = DateTime.Now;
@@ -130,19 +144,12 @@ namespace Starcounter.VisualStudio.Projects {
             return true;
         }
 
-        void ExecuteAppEntrypointWithDebuggerAttached(object state) {
-            object[] args = (object[])state;
-            var client = (Client)args[0];
-            var properties = (Dictionary<string, string>)args[1];
-            
+        void ExecuteAppEntrypointWithDebuggerAttached(Client client, Dictionary<string, string> properties) {
             // Currently, we don't bother waiting here since waiting will mean
             // we are waiting for the entire entrypoint to be exeuced. We just
-            // want to return back before that.
-            //
-            // We have to take this another round to decide the final solution,
-            // to make sure we can guarantee that at least everything up until
-            // the invocation of the boot-handler executes.
-
+            // want to return back before that. Hence, we make sure the modifier
+            // for synchronous invocation is removed (if ever specified).
+            properties.Remove("@@Synchronous");
             client.Send("ExecApp", properties, (Reply reply) => {
                 if (!reply.IsSuccess) throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, reply.ToString());
             });
@@ -163,6 +170,13 @@ namespace Starcounter.VisualStudio.Projects {
             // database from the command.
             if (execResult.HasError)
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, execResult.Errors[0].ToString());
+
+            // Respect the "Start without debugging" option. If specified,
+            // we consider this method a success right here and now.
+
+            if ((flags & __VSDBGLAUNCHFLAGS.DBGLAUNCH_NoDebug) != 0) {
+                return;
+            }
 
             // The exec command succeeded. It should mean we could now get
             // the database information, including all we need to attach the
@@ -312,7 +326,7 @@ namespace Starcounter.VisualStudio.Projects {
             var info = new VsDebugTargetInfo2();
 
             info.cbSize = (uint)Marshal.SizeOf(info);
-            info.bstrExe = Path.Combine(BaseVsPackage.InstallationDirectory, "boot.exe");
+            info.bstrExe = Path.Combine(BaseVsPackage.InstallationDirectory, "sccode.exe");
             info.dlo = (uint)DEBUG_LAUNCH_OPERATION.DLO_AlreadyRunning;
             info.LaunchFlags = (uint) flags;
             info.dwProcessId = (uint)database.HostProcessId;

@@ -12,6 +12,7 @@ using System.Text;
 using System.Runtime.InteropServices;
 using Starcounter.Internal;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -74,7 +75,7 @@ internal class StringVariable : Variable, IVariable, IStringExpression
     /// Appends data of this leaf to the provided filter key.
     /// </summary>
     /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    /// <param name="obj">Results object for which evaluation should be performed.</param>
+    /// <param name="obj">Row for which evaluation should be performed.</param>
     public override void AppendToByteArray(ByteArrayBuilder key, IObjectView obj)
     {
         // Appending the current value, not MAXIMUM.
@@ -132,7 +133,7 @@ internal class StringVariable : Variable, IVariable, IStringExpression
     /// </summary>
     /// <param name="obj">Not used.</param>
     /// <returns>A copy of this variable.</returns>
-    public IStringExpression Instantiate(CompositeObject obj)
+    public IStringExpression Instantiate(Row obj)
     {
         return this;
     }
@@ -266,5 +267,29 @@ internal class StringVariable : Variable, IVariable, IStringExpression
         buffer += lenBytes + 4;
         */
     }
+
+#if DEBUG
+    public bool AssertEquals(ITypeExpression other) {
+        StringVariable otherNode = other as StringVariable;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(StringVariable other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check parent
+        if (!base.AssertEquals(other))
+            return false;
+        // Check basic types
+        Debug.Assert(this.value == other.value);
+        if (this.value != other.value)
+            return false;
+        Debug.Assert(this.stringBuffer == other.stringBuffer);
+        if (this.stringBuffer != other.stringBuffer)
+            return false;
+        return true;
+    }
+#endif
 }
 }

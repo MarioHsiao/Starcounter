@@ -40,6 +40,7 @@ namespace Starcounter.Apps.Bootstrap {
         /// App really lives in a database worker process and transfers control
         /// to such (via the server) if it doesn't.
         /// </summary>
+        [DebuggerNonUserCode]
         public static void AssertInDatabaseOrSendStartRequest() {
             var process = Process.GetCurrentProcess();
             if (IsDatabaseWorkerProcess(process))
@@ -146,7 +147,7 @@ namespace Starcounter.Apps.Bootstrap {
         /// <param name="p">The p.</param>
         /// <returns><c>true</c> if [is database worker process] [the specified p]; otherwise, <c>false</c>.</returns>
         static bool IsDatabaseWorkerProcess(Process p) {
-            return p.ProcessName.Equals("boot");
+            return p.ProcessName.Equals(StarcounterConstants.ProgramNames.ScCode);
         }
     }
 }

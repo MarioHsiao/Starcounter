@@ -45,7 +45,7 @@ namespace GenerateInstaller
 
                 // Checking if its a personal build.
                 if ((BuildSystem.IsPersonalBuild()) &&
-                    (Environment.GetEnvironmentVariable("SC_GENERATE_INSTALLER") == null))
+                    (Environment.GetEnvironmentVariable(BuildSystem.GenerateInstallerEnvVar) == null))
                 {
                     errorOut.WriteLine("Skipping generation of a Installer since its a Personal build...");
                     return 0;
@@ -92,7 +92,7 @@ namespace GenerateInstaller
                 }
 
                 // Getting current build version.
-                String version = Environment.GetEnvironmentVariable("BUILD_NUMBER");
+                String version = Environment.GetEnvironmentVariable(BuildSystem.BuildNumberEnvVar);
                 if (version == null)
                 {
                     throw new Exception("Environment variable 'BUILD_NUMBER' does not exist.");

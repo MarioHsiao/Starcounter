@@ -83,6 +83,24 @@ namespace Starcounter.Templates {
         public string Bind { get; set; }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="app"></param>
+        /// <returns></returns>
+        public virtual object GetBoundValueAsObject(IApp app) {
+            return null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="app"></param>
+        /// <param name="value"></param>
+        public virtual void SetBoundValueAsObject(IApp app, object value) {
+
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Template" /> class.
         /// </summary>
 		public Template()
@@ -199,7 +217,7 @@ namespace Starcounter.Templates {
                         var props = (PropertyList)(parent.Properties);
                         props.ChildNameIsSet(this);
                     }
-                }
+                }   
             }
         }
 
@@ -215,7 +233,7 @@ namespace Starcounter.Templates {
                 return _PropertyName;
             }
             set {
-                if (_PropertyName != null)
+                if (_PropertyName != null && _PropertyName != value )
                     throw new Exception("Once the PropertyName is set, it cannot be changed");
                 _PropertyName = value;
                 if (Parent != null ) {

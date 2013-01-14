@@ -8,6 +8,7 @@ using Starcounter.Query.Optimization;
 using System;
 using System.Globalization;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 
 namespace Starcounter.Query.Execution
@@ -229,7 +230,7 @@ internal class DecimalLiteral : Literal, ILiteral, IDecimalPathItem
     /// </summary>
     /// <param name="obj">Not used.</param>
     /// <returns>A copy of this literal.</returns>
-    public INumericalExpression Instantiate(CompositeObject obj)
+    public INumericalExpression Instantiate(Row obj)
     {
         return new DecimalLiteral(value);
     }
@@ -287,5 +288,23 @@ internal class DecimalLiteral : Literal, ILiteral, IDecimalPathItem
     {
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, value.ToString());
     }
+
+#if DEBUG
+    public bool AssertEquals(ITypeExpression other) {
+        DecimalLiteral otherNode = other as DecimalLiteral;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(DecimalLiteral other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check basic types
+        Debug.Assert(this.value == other.value);
+        if (this.value != other.value)
+            return false;
+        return true;
+    }
+#endif
 }
 }

@@ -12,34 +12,85 @@ namespace Starcounter.Client.Template {
 #else
 using Starcounter.Templates;
 using System.Collections.Generic;
+using Starcounter.Templates.DataBinding;
+using System.Diagnostics;
 namespace Starcounter {
 #endif
-
     /// <summary>
-    /// Class Property
+    /// 
     /// </summary>
-    /// <typeparam name="TValue">The type of the T value.</typeparam>
+    /// <typeparam name="TValue">The primitive system type of this property.</typeparam>
     public abstract class Property<TValue> : Property {
-        /// <summary>
-        /// The custom input event creator
-        /// </summary>
-        public Func<App, Property<TValue>, TValue, Input<TValue>> CustomInputEventCreator = null;
-        /// <summary>
-        /// The custom input handlers
-        /// </summary>
-        public List<Action<App,Input<TValue>>> CustomInputHandlers = new List<Action<App,Input<TValue>>>();
+        internal Func<App, Property<TValue>, TValue, Input<TValue>> CustomInputEventCreator = null;
+        internal List<Action<App,Input<TValue>>> CustomInputHandlers = new List<Action<App,Input<TValue>>>();
 
-
+        private DataBinding<TValue> dataBinding;
+        
         /// <summary>
-        /// Adds the handler.
+        /// Adds an inputhandler to this property.
         /// </summary>
-        /// <param name="createInputEvent">The create input event.</param>
-        /// <param name="handler">The handler.</param>
+        /// <param name="createInputEvent"></param>
+        /// <param name="handler"></param>
         public void AddHandler(
             Func<App, Property<TValue>, TValue, Input<TValue>> createInputEvent = null,
             Action<App, Input<TValue>> handler = null) {
             this.CustomInputEventCreator = createInputEvent;
             this.CustomInputHandlers.Add(handler);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dataGetter"></param>
+        public void AddDataBinding(Func<App, TValue> dataGetter) {
+            dataBinding = new DataBinding<TValue>(dataGetter);
+            Bound = true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dataGetter"></param>
+        /// <param name="dataSetter"></param>
+        public void AddDataBinding(Func<App, TValue> dataGetter, Action<App, TValue> dataSetter) {
+            dataBinding = new DataBinding<TValue>(dataGetter, dataSetter);
+            Bound = true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="app"></param>
+        /// <param name="value"></param>
+        public void SetBoundValue(App app, TValue value) {
+            dataBinding.SetValue(app, value);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="app"></param>
+        /// <returns></returns>
+        public TValue GetBoundValue(App app) {
+            return dataBinding.GetValue(app);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="app"></param>
+        /// <returns></returns>
+        public override object GetBoundValueAsObject(IApp app) {
+            return dataBinding.GetValue((App)app);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="app"></param>
+        /// <param name="value"></param>
+        public override void SetBoundValueAsObject(IApp app, object value) {
+            dataBinding.SetValue((App)app, (TValue)value);
         }
 
         /// <summary>
@@ -62,18 +113,18 @@ namespace Starcounter {
                 }
                 if (!input.Cancelled)
                 {
-                    Console.WriteLine("Setting value after custom handler: " + value);
-                    app.SetValue(this, value);
+                    Debug.WriteLine("Setting value after custom handler: " + input.Value);
+                    app.SetValue((Property<TValue>)this, input.Value);
                 }
                 else
                 {
-                    Console.WriteLine("Handler cancelled: " + value);
+                    Debug.WriteLine("Handler cancelled: " + value);
                 }
             }
             else
             {
-                Console.WriteLine("Setting value after no handler: " + value);
-                app.SetValue(this, value);
+                Debug.WriteLine("Setting value after no handler: " + value);
+                app.SetValue((Property<TValue>)this, value);
             }
         }
     }
@@ -87,7 +138,6 @@ namespace Starcounter {
         , IValueTemplate
 #endif
     {
-
         /// <summary>
         /// Gets a value indicating whether this instance has instance value on client.
         /// </summary>

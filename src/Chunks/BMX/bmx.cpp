@@ -161,7 +161,7 @@ uint32_t BmxData::RegisterPortHandler(
 // Registers sub-port handler.
 uint32_t BmxData::RegisterSubPortHandler(
     uint16_t port,
-    uint32_t subport,
+    BMX_SUBPORT_TYPE subport,
     GENERIC_HANDLER_CALLBACK subport_handler, 
     BMX_HANDLER_TYPE* handler_id)
 {
@@ -368,7 +368,7 @@ uint32_t BmxData::SendRegisterPushChannelResponse(shared_memory_chunk* smc, TASK
         return err_code;
 
     // Increasing number of registered push channels.
-    num_registered_push_channels_++;
+    InterlockedIncrement(&num_registered_push_channels_);
 
     response_chunk_part *response = smc->get_response_chunk();
     response->reset_offset();
@@ -385,17 +385,18 @@ uint32_t BmxData::SendRegisterPushChannelResponse(shared_memory_chunk* smc, TASK
 // Handles destroyed session message.
 uint32_t BmxData::HandleDestroyedSession(request_chunk_part* request, TASK_INFO_TYPE* task_info)
 {
-    // Entering critical section.
-    uint32_t err_code = 0;
-
     // Reading Apps unique session number.
-    uint64_t apps_unique_session_num = request->read_uint64();
+    uint64_t apps_unique_session_index = request->read_uint64();
 
-    std::cout << "Session " << apps_unique_session_num << " was destroyed." << std::endl;
+    // Reading Apps session salt.
+    uint64_t apps_session_salt = request->read_uint64();
 
-    // TODO: Handle destroyed session.
+    // Calling managed function to destroy session.
+    g_destroy_apps_session_callback(apps_unique_session_index, apps_session_salt, task_info->scheduler_number);
 
-    return err_code;
+    std::cout << "Session " << apps_unique_session_index << ":" << apps_session_salt << " was destroyed." << std::endl;
+
+    return 0;
 }
 
 // Sends information about all registered handlers.
@@ -501,8 +502,7 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
 
     // Retrieve the chunk.
     err_code = cm_get_shared_memory_chunk(task_info.chunk_index, &raw_chunk);
-    if (err_code != 0)
-        goto finish;
+    assert(err_code == 0);
 
     // Read the metadata in the chunk (session id and handler id).
     smc = (shared_memory_chunk*)raw_chunk;
@@ -515,7 +515,7 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
 
     task_info.handler_id = handler_id;
     if (smc->get_link() != smc->LINK_TERMINATOR)
-        task_info.flags |= LINKED_CHUNK;
+        task_info.flags |= LINKED_CHUNKS_FLAG;
 
     // TODO: Init session values.
 

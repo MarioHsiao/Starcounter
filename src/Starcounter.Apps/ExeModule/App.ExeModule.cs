@@ -134,8 +134,28 @@ namespace Starcounter {
         /// </summary>
         /// <param name="uri">The URI.</param>
         /// <param name="handler">The handler.</param>
-        public static new void PATCH(string uri, Func<string, object> handler)
+        public static new void PATCH(string uri, Func<object> handler)
         {
+            CheckProcess();
+            RequestHandler.PATCH(uri, handler);
+        }
+
+        /// <summary>
+        /// PATCHs the specified URI.
+        /// </summary>
+        /// <param name="uri">The URI.</param>
+        /// <param name="handler">The handler.</param>
+        public static new void PATCH<T1>(string uri, Func<T1, object> handler) {
+            CheckProcess();
+            RequestHandler.PATCH(uri, handler);
+        }
+
+        /// <summary>
+        /// PATCHs the specified URI.
+        /// </summary>
+        /// <param name="uri">The URI.</param>
+        /// <param name="handler">The handler.</param>
+        public static new void PATCH<T1, T2>(string uri, Func<T1, T2, object> handler) {
             CheckProcess();
             RequestHandler.PATCH(uri, handler);
         }
@@ -194,7 +214,12 @@ namespace Starcounter {
             {
                 Process pr = Process.GetCurrentProcess();
                 string pn = pr.ProcessName;
-                if (pn != "boot" && pn != "AppsStarterMsSql" && pn != "AppsStarterMsSql.vshost" && pn != "scdbs" && pn != "scdbsw" && pn != "Fakeway" && pn != "Fakeway.vshost")
+                if (pn != StarcounterConstants.ProgramNames.ScData &&
+                    pn != "AppsStarterMsSql" &&
+                    pn != "AppsStarterMsSql.vshost" &&
+                    pn != StarcounterConstants.ProgramNames.ScCode &&
+                    pn != "Fakeway" &&
+                    pn != "Fakeway.vshost")
                 {
                     // TODO! Is this code still operational? TellServer does not do anything anymore.
                     Console.WriteLine();

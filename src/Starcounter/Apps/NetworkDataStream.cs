@@ -8,6 +8,7 @@ using System;
 using System.Runtime.InteropServices;
 using HttpStructs;
 using Starcounter.Internal;
+using System.Diagnostics;
 
 namespace Starcounter
 {
@@ -16,70 +17,81 @@ namespace Starcounter
     /// </summary>
     public unsafe struct NetworkDataStream : INetworkDataStream
     {
-        // Data offset/size constants.
         /// <summary>
-        /// The BM x_ HANDLE r_ SIZE
+        /// Data offset/size constants. 
         /// </summary>
         public const Int32 BMX_HANDLER_SIZE = 2;
+
+        /// <summary>
+        /// BMX protocol begin offset.
+        /// </summary>
+        public const Int32 BMX_PROTOCOL_BEGIN_OFFSET = 16;
         
         /// <summary>
-        /// The BM x_ PROTOCO l_ BEGIN
+        /// Request size begin offset.
         /// </summary>
-        public const Int32 BMX_PROTOCOL_BEGIN = 16;
+        public const Int32 REQUEST_SIZE_BEGIN_OFFSET = BMX_PROTOCOL_BEGIN_OFFSET + BMX_HANDLER_SIZE;
         
         /// <summary>
-        /// The REQUES t_ SIZ e_ BEGIN
+        /// BMX header max size.
         /// </summary>
-        public const Int32 REQUEST_SIZE_BEGIN = BMX_PROTOCOL_BEGIN + BMX_HANDLER_SIZE;
+        public const Int32 BMX_HEADER_MAX_SIZE_BYTES = 24;
         
         /// <summary>
-        /// The GATEWA y_ CHUN k_ BEGIN
+        /// Offset of gateway data in chunk.
         /// </summary>
-        public const Int32 GATEWAY_CHUNK_BEGIN = 24;
+        public const Int32 GATEWAY_DATA_BEGIN_OFFSET = BMX_HEADER_MAX_SIZE_BYTES + 32;
         
         /// <summary>
-        /// The GATEWA y_ DAT a_ BEGIN
+        /// Gateway session salt offset.
         /// </summary>
-        public const Int32 GATEWAY_DATA_BEGIN = GATEWAY_CHUNK_BEGIN + 32;
-        
-        /// <summary>
-        /// The SESSIO n_ SAL T_ OFFSET
-        /// </summary>
-        public const Int32 SESSION_SALT_OFFSET = GATEWAY_DATA_BEGIN;
+        public const Int32 SESSION_SALT_OFFSET = GATEWAY_DATA_BEGIN_OFFSET;
        
         /// <summary>
-        /// The SESSIO n_ INDE x_ OFFSET
+        /// Gateway session index offset.
         /// </summary>
-        public const Int32 SESSION_INDEX_OFFSET = GATEWAY_DATA_BEGIN + 8;
+        public const Int32 SESSION_INDEX_OFFSET = GATEWAY_DATA_BEGIN_OFFSET + 8;
         
         /// <summary>
-        /// The SESSIO n_ INDE x_ OFFSET
+        /// Apps session index offset.
         /// </summary>
-        public const Int32 SESSION_APPS_UNIQUE_SESSION_NUMBER_OFFSET = GATEWAY_DATA_BEGIN + 16;
+        public const Int32 SESSION_APPS_UNIQUE_SESSION_NUMBER_OFFSET = GATEWAY_DATA_BEGIN_OFFSET + 16;
+
+        /// <summary>
+        /// Size of the session structure in bytes.
+        /// </summary>
+        public const Int32 SESSION_STRUCT_SIZE = 32;
+
+        /// <summary>
+        /// User data offset in chunk.
+        /// </summary>
+        public const Int32 USER_DATA_OFFSET = GATEWAY_DATA_BEGIN_OFFSET + SESSION_STRUCT_SIZE;
         
         /// <summary>
-        /// The USE r_ DAT a_ OFFSET
+        /// Max user data offset in chunk.
         /// </summary>
-        public const Int32 USER_DATA_OFFSET = GATEWAY_DATA_BEGIN + 24;
+        public const Int32 MAX_USER_DATA_BYTES_OFFSET = USER_DATA_OFFSET + 4;
         
         /// <summary>
-        /// The MA x_ USE r_ DAT a_ BYTE s_ OFFSET
+        /// User data written bytes offset.
         /// </summary>
-        public const Int32 MAX_USER_DATA_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 28;
-        
+        public const Int32 USER_DATA_WRITTEN_BYTES_OFFSET = MAX_USER_DATA_BYTES_OFFSET + 4;
+
         /// <summary>
-        /// The USE r_ DAT a_ WRITTE n_ BYTE s_ OFFSET
+        /// Invalid chunk index.
         /// </summary>
-        public const Int32 USER_DATA_WRITTEN_BYTES_OFFSET = GATEWAY_DATA_BEGIN + 32;
+        const UInt32 INVALID_CHUNK_INDEX = UInt32.MaxValue;
 
         /// <summary>
         /// The unmanaged_chunk_
         /// </summary>
         Byte* unmanaged_chunk_;
+
         /// <summary>
         /// The single_chunk_
         /// </summary>
         Boolean single_chunk_;
+
         /// <summary>
         /// The chunk_index_
         /// </summary>
@@ -159,7 +171,7 @@ namespace Starcounter
 
                     // Copying the data to user buffer.
                     Marshal.Copy(
-                        (IntPtr)(unmanaged_chunk_ + GATEWAY_CHUNK_BEGIN + *userDataOffsetPtr),
+                        (IntPtr)(unmanaged_chunk_ + BMX_HEADER_MAX_SIZE_BYTES + *userDataOffsetPtr),
                         buffer,
                         offset,
                         PayloadSize);
@@ -187,27 +199,94 @@ namespace Starcounter
         }
 
         /// <summary>
+        /// Copies scalar bytes from incoming buffer to variable.
+        /// </summary>
+        /// <param name="offset">The offset.</param>
+        public UInt64 ReadUInt64(Int32 offset)
+        {
+            unsafe
+            {
+                // Reading user data offset.
+                Int32* user_data_offset_ptr = (Int32*)(unmanaged_chunk_ + USER_DATA_OFFSET);
+
+                // Returning scalar value.
+                return *(UInt64*)(unmanaged_chunk_ + BMX_HEADER_MAX_SIZE_BYTES + *user_data_offset_ptr + offset);
+            }
+        }
+
+        /// <summary>
         /// Writes the specified buffer.
         /// </summary>
         /// <param name="buffer">The buffer.</param>
         /// <param name="offset">The offset.</param>
-        /// <param name="length">The length.</param>
-        public void Write(Byte[] buffer, Int32 offset, Int32 length)
+        /// <param name="length_bytes">The length in bytes.</param>
+        public void SendResponse(UInt64[] buffer, Int32 offset, Int32 length_bytes)
         {
-            // TODO:
-            // It should be possible to call Write several times and each time 
-            // the data is sent to the gateway. 
-            // We need someway to tag chunks with needed metadata as well
-            // as make sure we have a new chunk or a pointer to an existing chunk.
+            // Checking if already destroyed.
+            if (chunk_index_ == INVALID_CHUNK_INDEX)
+                return;
+
+            fixed (UInt64* p = buffer)
+            {
+                SendResponseBufferInternal((Byte*)p, offset, length_bytes);
+            }
+        }
+
+        /// <summary>
+        /// Writes the specified buffer.
+        /// </summary>
+        /// <param name="buffer">The buffer.</param>
+        /// <param name="offset">The offset.</param>
+        /// <param name="length_bytes">The length in bytes.</param>
+        public void SendResponse(Byte[] buffer, Int32 offset, Int32 length_bytes)
+        {
+            // Checking if already destroyed.
+            if (chunk_index_ == INVALID_CHUNK_INDEX)
+                return;
+
             fixed (Byte* p = buffer)
             {
-                // Processing user data and sending it to gateway.
-                UInt32 ec = bmx.sc_bmx_send_buffer(p + offset, (UInt32)length, chunk_index_, unmanaged_chunk_);
-
-                // Checking if any error occurred.
-                if (ec != 0)
-                    throw ErrorCode.ToException(ec);
+                SendResponseBufferInternal(p, offset, length_bytes);
             }
+        }
+
+        /// <summary>
+        /// Writes the given buffer.
+        /// </summary>
+        /// <param name="p">The buffer.</param>
+        /// <param name="offset">The offset.</param>
+        /// <param name="length_bytes">The length in bytes.</param>
+        unsafe void SendResponseBufferInternal(Byte* p, Int32 offset, Int32 length_bytes)
+        {
+            // Processing user data and sending it to gateway.
+            UInt32 cur_chunk_index = chunk_index_;
+            UInt32 ec = bmx.sc_bmx_send_buffer(p + offset, (UInt32)length_bytes, &cur_chunk_index, unmanaged_chunk_);
+            chunk_index_ = cur_chunk_index;
+
+            // Checking if any error occurred.
+            if (ec != 0)
+            {
+                Console.WriteLine("Failed to obtain chunk!");
+                throw ErrorCode.ToException(ec);
+            }
+        }
+
+        /// <summary>
+        /// Frees all data stream resources like chunks.
+        /// </summary>
+        public void Destroy()
+        {
+            // Checking if already destroyed.
+            if (chunk_index_ == INVALID_CHUNK_INDEX)
+                return;
+
+            // Returning linked chunks to pool.
+            UInt32 ec = bmx.sc_bmx_release_linked_chunks(chunk_index_);
+            Debug.Assert(ec == 0);
+
+            // This data stream becomes unusable.
+            unmanaged_chunk_ = null;
+            chunk_index_ = INVALID_CHUNK_INDEX;
         }
     }
 }

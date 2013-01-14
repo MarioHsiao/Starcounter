@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Text;
 using Starcounter.Internal;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Optimization
 {
@@ -33,7 +34,7 @@ internal class ExtentNode : IOptimizationNode
     /// <summary>
     /// The type binding of the resulting objects of the current query.
     /// </summary>
-    CompositeTypeBinding compTypeBind;
+    RowTypeBinding rowTypeBind;
 
     /// <summary>
     /// The extent number of the extent represented by this extent node.
@@ -87,16 +88,16 @@ internal class ExtentNode : IOptimizationNode
     /// <summary>
     /// Constructor.
     /// </summary>
-    /// <param name="compTypeBind">The comp type bind.</param>
+    /// <param name="rowTypeBind">The comp type bind.</param>
     /// <param name="extentNumber">The extent number.</param>
     /// <param name="varArr">The var arr.</param>
     /// <param name="query">The query.</param>
-    internal ExtentNode(CompositeTypeBinding compTypeBind, Int32 extentNumber, VariableArray varArr, String query)
+    internal ExtentNode(RowTypeBinding rowTypeBind, Int32 extentNumber, VariableArray varArr, String query)
     {
-        if (compTypeBind == null)
-            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect compTypeBind.");
+        if (rowTypeBind == null)
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
 
-        this.compTypeBind = compTypeBind;
+        this.rowTypeBind = rowTypeBind;
         this.extentNumber = extentNumber;
         conditionList = new List<ILogicalExpression>();
         refLookUpExpression = null;
@@ -167,7 +168,7 @@ internal class ExtentNode : IOptimizationNode
 
     public IOptimizationNode Clone()
     {
-        return new ExtentNode(compTypeBind, extentNumber, variableArr, query);
+        return new ExtentNode(rowTypeBind, extentNumber, variableArr, query);
     }
 
     internal void AddConditions(List<ILogicalExpression> condList)
@@ -214,7 +215,7 @@ internal class ExtentNode : IOptimizationNode
             }
         }
         // Get all index infos for the current type.
-        IndexInfo[] indexInfoArr = (compTypeBind.GetTypeBinding(extentNumber) as TypeBinding).GetAllIndexInfos();
+        IndexInfo[] indexInfoArr = (rowTypeBind.GetTypeBinding(extentNumber) as TypeBinding).GetAllIndexInfos();
 
         // Select an index determined by the order the conditions occur in the query.
         Int32 bestValue = 0;
@@ -306,7 +307,7 @@ internal class ExtentNode : IOptimizationNode
 
         if (refLookUpExpression != null)
         {
-            return new ReferenceLookup(compTypeBind, extentNumber, refLookUpExpression, GetCondition(), fetchNumExpr, variableArr, query);
+            return new ReferenceLookup(rowTypeBind, extentNumber, refLookUpExpression, GetCondition(), fetchNumExpr, variableArr, query);
         }
 
         if (bestIndexInfo != null)
@@ -321,7 +322,7 @@ internal class ExtentNode : IOptimizationNode
                 // Trying to create a scan which uses native filter code generation.
                 try
                 {
-                    IExecutionEnumerator exec_enum = new FullTableScan(compTypeBind,
+                    IExecutionEnumerator exec_enum = new FullTableScan(rowTypeBind,
                         extentNumber,
                         extentIndexInfo,
                         GetCondition(),
@@ -338,14 +339,14 @@ internal class ExtentNode : IOptimizationNode
                 }
                 catch
                 {
-                    Console.WriteLine("Filter code generation for the query \"" + query + "\" has failed. Launching managed-level full table scan...");
+                    //Console.WriteLine("Filter code generation for the query \"" + query + "\" has failed. Launching managed-level full table scan...");
                 }
             }
 
             // Proceeding with the worst case: full table scan on managed code level.
             return CreateIndexScan(extentIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetKeyExpr);
         }
-        ITypeBinding typeBind = compTypeBind.GetTypeBinding(extentNumber);
+        ITypeBinding typeBind = rowTypeBind.GetTypeBinding(extentNumber);
         throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "There is no index for type: " + typeBind.Name);
     }
 
@@ -408,7 +409,7 @@ internal class ExtentNode : IOptimizationNode
         }
 
         // Creating index scan enumerator.
-        return new IndexScan(compTypeBind,
+        return new IndexScan(rowTypeBind,
                              extentNumber,
                              indexInfo,
                              strPathList,
@@ -421,7 +422,7 @@ internal class ExtentNode : IOptimizationNode
 
     private IExecutionEnumerator CreateFullTableScan(IndexInfo indexInfo, IIntegerExpression fetchNumExpr, IBinaryExpression fetchOffsetKeyExpr)
     {
-        return new FullTableScan(compTypeBind,
+        return new FullTableScan(rowTypeBind,
                                  extentNumber,
                                  indexInfo,
                                  GetCondition(),
@@ -434,7 +435,94 @@ internal class ExtentNode : IOptimizationNode
 
     internal IndexInfo GetIndexInfo(String indexName)
     {
-        return (compTypeBind.GetTypeBinding(extentNumber) as TypeBinding).GetIndexInfo(indexName);
+        return (rowTypeBind.GetTypeBinding(extentNumber) as TypeBinding).GetIndexInfo(indexName);
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    public bool AssertEquals(IOptimizationNode other) {
+        ExtentNode otherNode = other as ExtentNode;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(ExtentNode other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check basic types
+        Debug.Assert(this.query == other.query);
+        if (this.query != other.query)
+            return false;
+        Debug.Assert(this.InnermostExtent == other.InnermostExtent);
+        if (this.InnermostExtent != other.InnermostExtent)
+            return false;
+        Debug.Assert(this.extentNumber == other.extentNumber);
+        if (this.extentNumber != other.extentNumber)
+            return false;
+        Debug.Assert(this.bestIndexInfoUsedArity == other.bestIndexInfoUsedArity);
+        if (this.bestIndexInfoUsedArity != other.bestIndexInfoUsedArity)
+            return false;
+        // Check cardinalities of collections
+        Debug.Assert(this.conditionList.Count == other.conditionList.Count);
+        if (this.conditionList.Count != other.conditionList.Count)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = true;
+        if (this.rowTypeBind == null) {
+            Debug.Assert(other.rowTypeBind == null);
+            areEquals = other.rowTypeBind == null;
+        } else
+            areEquals = this.rowTypeBind.AssertEquals(other.rowTypeBind);
+        if (areEquals)
+            if (this.refLookUpExpression == null) {
+                Debug.Assert(other.refLookUpExpression == null);
+                areEquals = other.refLookUpExpression == null;
+            } else
+                areEquals = this.refLookUpExpression.AssertEquals(other.refLookUpExpression);
+        if (areEquals)
+            if (this.hintedIndexInfo == null) {
+                Debug.Assert(other.hintedIndexInfo == null);
+                areEquals = other.hintedIndexInfo == null;
+            } else
+                areEquals = this.hintedIndexInfo.AssertEquals(other.hintedIndexInfo);
+        if (areEquals)
+            if (this.bestIndexInfo == null) {
+                Debug.Assert(other.bestIndexInfo == null);
+                areEquals = other.bestIndexInfo == null;
+            } else
+                areEquals = this.bestIndexInfo.AssertEquals(other.bestIndexInfo);
+        if (areEquals)
+            if (this.sortIndexInfo == null) {
+                Debug.Assert(other.sortIndexInfo == null);
+                areEquals = other.sortIndexInfo == null;
+            } else
+                areEquals = this.sortIndexInfo.AssertEquals(other.sortIndexInfo);
+        if (areEquals)
+            if (this.extentIndexInfo == null) {
+                Debug.Assert(other.extentIndexInfo == null);
+                areEquals = other.extentIndexInfo == null;
+            } else
+                areEquals = this.extentIndexInfo.AssertEquals(other.extentIndexInfo);
+        if (areEquals)
+            if (this.variableArr == null) {
+                Debug.Assert(other.variableArr == null);
+                areEquals = other.variableArr == null;
+            } else
+                areEquals = this.variableArr.AssertEquals(other.variableArr);
+        // Check collections of objects
+        for (int i = 0; i < this.conditionList.Count && areEquals; i++)
+            areEquals = this.conditionList[i].AssertEquals(other.conditionList[i]);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }

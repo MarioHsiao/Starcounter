@@ -15,6 +15,8 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
+using StarcounterInternal.Bootstrap;
+using Starcounter.Internal;
 
 namespace Starcounter.Server {
 
@@ -35,8 +37,8 @@ namespace Starcounter.Server {
             internal static extern Int32 CloseHandle(IntPtr hObject);
         }
 
-        internal const string DatabaseExeFileName = "scpmm.exe";
-        internal const string WorkerProcessExeFileName = "boot.exe";
+        internal const string DatabaseExeFileName = StarcounterConstants.ProgramNames.ScData + ".exe";
+        internal const string WorkerProcessExeFileName = StarcounterConstants.ProgramNames.ScCode + ".exe";
         internal const string MinGWCompilerFileName = "x86_64-w64-mingw32-gcc.exe";
 
         /// <summary>
@@ -240,6 +242,7 @@ namespace Starcounter.Server {
             process.Refresh();
             if (process.HasExited) {
                 process.Close();
+                database.Apps.Clear();
                 database.WorkerProcess = null;
                 return false;
             }
@@ -295,18 +298,18 @@ namespace Starcounter.Server {
             args = new StringBuilder();
             // args.Append("--FLAG:attachdebugger ");  // Apply to attach a debugger to the boot sequence.
             args.Append(database.Name.ToUpper());
-            args.AppendFormat(" --DatabaseDir \"{0}\"", database.Configuration.Runtime.ImageDirectory);
-            args.AppendFormat(" --OutputDir \"{0}\"", database.Server.Configuration.LogDirectory);
-            args.AppendFormat(" --TempDir \"{0}\"", database.Configuration.Runtime.TempDirectory);
-            args.AppendFormat(" --CompilerPath \"{0}\"", this.MinGWCompilerPath);
+            args.AppendFormat(" --" + ProgramCommandLine.OptionNames.DatabaseDir + " \"{0}\"", database.Configuration.Runtime.ImageDirectory);
+            args.AppendFormat(" --" + ProgramCommandLine.OptionNames.OutputDir + " \"{0}\"", database.Server.Configuration.LogDirectory);
+            args.AppendFormat(" --" + ProgramCommandLine.OptionNames.TempDir + " \"{0}\"", database.Configuration.Runtime.TempDirectory);
+            args.AppendFormat(" --" + ProgramCommandLine.OptionNames.CompilerPath + " \"{0}\"", this.MinGWCompilerPath);
             
             if (startWithNoDb) {
-                args.Append(" --FLAG:NoDb");
+                args.Append(" --FLAG:" + ProgramCommandLine.OptionNames.NoDb);
             }
-            // args.Append(" --FLAG:NoNetworkGateway");
+            // args.Append(" --FLAG:" + ProgramCommandLine.OptionNames.NoNetworkGateway);
 
             if (database.Configuration.Runtime.SchedulerCount.HasValue) {
-                args.AppendFormat(" --SchedulerCount {0}", database.Configuration.Runtime.SchedulerCount.Value);
+                args.AppendFormat(" --" + ProgramCommandLine.OptionNames.SchedulerCount + " {0}", database.Configuration.Runtime.SchedulerCount.Value);
             }
             
             processStart = new ProcessStartInfo(this.WorkerProcessExePath, args.ToString().Trim());
@@ -322,7 +325,7 @@ namespace Starcounter.Server {
         string GetDatabaseControlEventName(Database database) {
             ScUri uri = ScUri.FromString(database.Uri);
             string processControlEventName = string.Format(
-                "SCPMM_EXE_{0}_{1}",
+                "SCDATA_EXE_{0}_{1}",
                 uri.ServerName.ToUpperInvariant(),
                 uri.DatabaseName.ToUpperInvariant()
                 );

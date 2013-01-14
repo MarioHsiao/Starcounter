@@ -79,22 +79,34 @@ namespace Starcounter
     /// </summary>
 	public unsafe class GatewayHandlers
 	{
-        // Offset in bytes for HttpRequest structure.
         /// <summary>
-        /// The HTT p_ REQUES t_ OFFSE t_ BYTES
+        /// Linked chunk flag.
         /// </summary>
-        const Int32 HTTP_REQUEST_OFFSET_BYTES = 200;
+        const Int32 LINKED_CHUNKS_FLAG = 1;
 
-        // Maximum size of BMX header in the beginning of the chunk
-        // after which the gateway data can be placed.
         /// <summary>
-        /// The BM x_ HEADE r_ MA x_ SIZ e_ BYTES
+        /// Maximum size of BMX header in the beginning of the chunk
+        /// after which the gateway data can be placed.
         /// </summary>
         const Int32 BMX_HEADER_MAX_SIZE_BYTES = 24;
 
-        // Maximum number of handlers to register.
         /// <summary>
-        /// The MA x_ HANDLERS
+        /// Offset in bytes for HttpRequest structure.
+        /// </summary>
+        const Int32 SOCKET_DATA_HTTP_REQUEST_OFFSET = 224;
+
+        /// <summary>
+        /// Number of chunks offset in gateway.
+        /// </summary>
+        const Int32 SOCKET_DATA_NUM_CHUNKS_OFFSET = 84;
+
+        /// <summary>
+        /// Shared memory chunk size.
+        /// </summary>
+        const Int32 SM_CHUNK_SIZE = 1 << 12; // 4K chunks.
+
+        /// <summary>
+        /// Maximum number of user handlers to register.
         /// </summary>
         const Int32 MAX_HANDLERS = 1024;
 
@@ -176,6 +188,9 @@ namespace Starcounter
 
             // Calling user callback.
             *is_handled = user_callback(handler_params);
+            
+            // Reset managed task state before exiting managed task entry point.
+            TaskHelper.Reset();
 
 			return 0;
 		}
@@ -217,6 +232,9 @@ namespace Starcounter
 
             // Calling user callback.
             *is_handled = user_callback(handler_params);
+            
+            // Reset managed task state before exiting managed task entry point.
+            TaskHelper.Reset();
 
             return 0;
         }
@@ -246,22 +264,59 @@ namespace Starcounter
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED); // SCERRHANDLERNOTFOUND
 
             // Determining if chunk is single.
-            Boolean is_single_chunk = ((task_info->flags & 0x01) == 0);
+            Boolean is_single_chunk = ((task_info->flags & LINKED_CHUNKS_FLAG) == 0);
 
             // Creating network data stream object.
             NetworkDataStream data_stream = new NetworkDataStream();
 
-            // Obtaining HttpRequest structure.
-            HttpRequest http_request = new HttpRequest(
-                raw_chunk,
-                is_single_chunk,
-                task_info->chunk_index,
-                raw_chunk + BMX_HEADER_MAX_SIZE_BYTES + HTTP_REQUEST_OFFSET_BYTES,
-                raw_chunk + BMX_HEADER_MAX_SIZE_BYTES,
-                data_stream);
+            // Checking if we need to process linked chunks.
+            if (!is_single_chunk)
+            {
+                UInt32 num_chunks = *(UInt32*)(raw_chunk + BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_NUM_CHUNKS_OFFSET);
+
+                Byte[] plain_chunks_data = new Byte[num_chunks * SM_CHUNK_SIZE];
+
+                fixed (Byte* p_plain_chunks_data = plain_chunks_data)
+                {
+                    // Copying all chunks data.
+                    UInt32 errorCode = bmx.sc_bmx_plain_copy_and_release_chunks(
+                        chunk_index,
+                        raw_chunk,
+                        p_plain_chunks_data);
+
+                    if (errorCode != 0)
+                        throw ErrorCode.ToException(errorCode);
+
+                    // Obtaining HttpRequest structure.
+                    HttpRequest http_request = new HttpRequest(
+                        raw_chunk,
+                        is_single_chunk,
+                        task_info->chunk_index,
+                        p_plain_chunks_data + BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_HTTP_REQUEST_OFFSET,
+                        p_plain_chunks_data + BMX_HEADER_MAX_SIZE_BYTES,
+                        data_stream);
+
+                    // Calling user callback.
+                    *is_handled = user_callback(http_request);
+                }
+            }
+            else
+            {
+                // Obtaining HttpRequest structure.
+                HttpRequest http_request = new HttpRequest(
+                    raw_chunk,
+                    is_single_chunk,
+                    task_info->chunk_index,
+                    raw_chunk + BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_HTTP_REQUEST_OFFSET,
+                    raw_chunk + BMX_HEADER_MAX_SIZE_BYTES,
+                    data_stream);
+
+                // Calling user callback.
+                *is_handled = user_callback(http_request);
+            }
             
-            // Calling user callback.
-            *is_handled = user_callback(http_request);
+            // Reset managed task state before exiting managed task entry point.
+            TaskHelper.Reset();
 
             return 0;
         }

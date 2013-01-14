@@ -1,4 +1,5 @@
-﻿// ***********************************************************************
+﻿#if false
+// ***********************************************************************
 // <copyright file="UserSqlEnumerator.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
@@ -103,8 +104,10 @@ namespace Starcounter.Query.Execution
             ClientQueryCache queryCache,
             UInt32 queryFlags,
             UserSqlEnumProperties props)
-            : base(varArr)
+            : base(null, varArr)
         {
+            if (varArr == null)
+                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect varArr.");
             if (sqlQuery == null)
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect query.");
 
@@ -254,7 +257,7 @@ namespace Starcounter.Query.Execution
             }
         }
 
-        public CompositeObject CurrentCompositeObject
+        public Row CurrentRow
         {
             get
             {
@@ -481,7 +484,7 @@ namespace Starcounter.Query.Execution
         /// Resets the enumerator with a context object.
         /// </summary>
         /// <param name="obj">Context object from another enumerator.</param>
-        public override void Reset(CompositeObject obj)
+        public override void Reset(Row obj)
         {
             iteratorCreated = false;
             currentProxyObject = null;
@@ -510,7 +513,7 @@ namespace Starcounter.Query.Execution
             enumSpecificFlags = 0;
         }
 
-        public override IExecutionEnumerator Clone(CompositeTypeBinding typeBindingClone, VariableArray varArrClone)
+        public override IExecutionEnumerator Clone(RowTypeBinding typeBindingClone, VariableArray varArrClone)
         {
             // Basically creating new client enumerator.
             return new UserSqlEnumerator(query, uniqueQueryID, varArrClone, null, 0, sharedProps);
@@ -903,3 +906,4 @@ namespace Starcounter.Query.Execution
         }
     }
 }
+#endif

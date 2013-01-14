@@ -10,6 +10,7 @@ using Starcounter.Query.Sql;
 using Starcounter.Query.Execution;
 using System;
 using System.Diagnostics;
+using Starcounter.Internal;
 
 namespace Starcounter.Query
 {
@@ -21,7 +22,7 @@ namespace Starcounter.Query
         // Configuration of query module.
         //static String processFolder = StarcounterEnvironment.SystemDirectory + "\\32BitComponents\\";
         internal static String ProcessFolder = AppDomain.CurrentDomain.BaseDirectory + "32BitComponents\\";
-        internal const String ProcessFileName = "StarcounterSQL.exe";
+        internal const String ProcessFileName = StarcounterConstants.ProgramNames.ScSqlParser + ".exe";
         internal const String ProcessVersion = "121017";
         internal static Int32 ProcessPort = 0;
         //static readonly String schemaFilePath = AppDomain.CurrentDomain.BaseDirectory + "\\schema.pl";
@@ -37,12 +38,14 @@ namespace Starcounter.Query
         /// <param name="processPort">External SQL process port. If 0 then default should be used.</param>
         public static void Initiate(Int32 processPort)
         {
+#if false
             // Connect managed and native Sql functions.
             UInt32 errCode = SqlConnectivity.InitSqlFunctions();
 
             // Checking for error code and translating it.
             if (errCode != 0)
                 SqlConnectivity.ThrowConvertedServerError(errCode);
+#endif
 
             // Start external SQL process (Prolog-process).
             ProcessPort = processPort;

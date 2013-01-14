@@ -8,12 +8,13 @@ using Starcounter;
 using System;
 using System.Collections.Generic;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
 /// <summary>
 /// Class that holds information about a Boolean comparer which is a comparer that
-/// uses a Boolean expression and a sort ordering to compare composite objects.
+/// uses a Boolean expression and a sort ordering to compare Rows.
 /// </summary>
 internal class BooleanComparer : ISingleComparer
 {
@@ -101,14 +102,14 @@ internal class BooleanComparer : ISingleComparer
         }
     }
 
-    public Int32 Compare(CompositeObject obj1, CompositeObject obj2)
+    public Int32 Compare(Row obj1, Row obj2)
     {
         Nullable<Boolean> value1 = expression.EvaluateToBoolean(obj1);
         Nullable<Boolean> value2 = expression.EvaluateToBoolean(obj2);
         return InternalCompare(value1, value2);
     }
 
-    public Int32 Compare(ILiteral value, CompositeObject obj)
+    public Int32 Compare(ILiteral value, Row obj)
     {
         if (!(value is BooleanLiteral))
         {
@@ -119,7 +120,7 @@ internal class BooleanComparer : ISingleComparer
         return InternalCompare(value1, value2);
     }
 
-    public ILiteral Evaluate(CompositeObject obj)
+    public ILiteral Evaluate(Row obj)
     {
         return new BooleanLiteral(expression.EvaluateToBoolean(obj));
     }
@@ -149,5 +150,35 @@ internal class BooleanComparer : ISingleComparer
     {
         expression.GenerateCompilableCode(stringGen);
     }
+
+#if DEBUG
+    private bool AssertEqualsVisited = false;
+    public bool AssertEquals(ISingleComparer other) {
+        BooleanComparer otherNode = other as BooleanComparer;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(BooleanComparer other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check if there are not cyclic references
+        Debug.Assert(!this.AssertEqualsVisited);
+        if (this.AssertEqualsVisited)
+            return false;
+        Debug.Assert(!other.AssertEqualsVisited);
+        if (other.AssertEqualsVisited)
+            return false;
+        // Check basic types
+        Debug.Assert(this.ordering == other.ordering);
+        if (this.ordering != other.ordering)
+            return false;
+        // Check references. This should be checked if there is cyclic reference.
+        AssertEqualsVisited = true;
+        bool areEquals = this.expression.AssertEquals(other.expression);
+        AssertEqualsVisited = false;
+        return areEquals;
+    }
+#endif
 }
 }

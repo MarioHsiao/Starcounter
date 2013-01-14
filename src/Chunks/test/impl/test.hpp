@@ -46,13 +46,8 @@ active_schedulers_(0) {
 		
 		initialize(db_shm_params_name.c_str());
 		
-		//std::cout << "Opened the database shared memory segment: "
-		//<< shared_.get_segment_name() << std::endl;
-		
 		active_schedulers_ = shared_.common_scheduler_interface()
 		.number_of_active_schedulers();
-		
-		//std::cout << "Active schedulers: " << active_schedulers_ << std::endl;
 	}
 	else {
 		// The first argument (name of the database to be opened) must be
@@ -64,7 +59,6 @@ active_schedulers_(0) {
 test::~test() {
 	// Join worker threads.
 	for (std::size_t i = 0; i < workers; ++i) {
-		//std::cout << "worker_[" << i << "].join()" << std::endl; /// DEBUG
 		worker_[i].join();
 	}
 }
@@ -132,7 +126,7 @@ void test::initialize(const char* database_name) {
 	// Get process id and store it in the monitor_interface.
 	pid_.set_current();
 	uint32_t error_code;
-	
+
 	// Try to register this client process pid. Wait up to 10000 ms.
 	if ((error_code = the_monitor_interface->register_client_process(pid_,
 	owner_id_, 10000/*ms*/)) != 0) {
@@ -141,7 +135,7 @@ void test::initialize(const char* database_name) {
 	}
 	
 	// Threads in this process can now acquire resources.
-	
+
 	///=========================================================================
 	/// Open the database shared memory segment.
 	///=========================================================================
@@ -174,8 +168,6 @@ void test::initialize(const char* database_name) {
 	/// Construct a shared_interface.
 	///=========================================================================
 	
-	//shared_ = new starcounter::core::shared_interface(segment_name,
-	//monitor_interface_name, pid, the_owner_id);
 	shared_.init(segment_name, monitor_interface_name, pid_, owner_id_);
 
 	for (std::size_t i = 0; i < workers; ++i) {
@@ -238,6 +230,7 @@ duration_time_milliseconds) {
 
 		// Start the worker - starts the workers thread.
 		worker_[i].start();
+		std::cout << "test::run(): Started worker[" << i << "]" << std::endl;
 	}
 	
 	#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
@@ -258,7 +251,6 @@ void test::stop_all_workers() {
 	for (std::size_t i = 0; i < workers; ++i) {
 		worker_[i].set_state(worker::stopped);
 		worker_[i].join();
-		//std::cout << "test::stop_workers(): worker_[" << i << "].join()" << std::endl; /// DEBUG
 	}
 }
 

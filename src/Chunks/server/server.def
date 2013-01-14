@@ -3,8 +3,7 @@ LIBRARY "server"
 
 EXPORTS
 	sc_initialize_io_service
-	sc_sizeof_port
-	sc_initialize_port
+	server_initialize_port
 	server_get_next_signal_or_task
 	server_get_next_signal
 	server_has_task
@@ -15,6 +14,7 @@ EXPORTS
 	sc_add_ref_to_channel
 	sc_release_channel
 	sc_get_shared_memory_chunk
+    sc_release_linked_shared_memory_chunks
 	sc_acquire_shared_memory_chunk
 	sc_acquire_linked_shared_memory_chunks
     sc_acquire_linked_shared_memory_chunks_counted

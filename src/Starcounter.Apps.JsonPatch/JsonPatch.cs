@@ -1,4 +1,4 @@
-﻿// ***********************************************************************
+// ***********************************************************************
 // <copyright file="JsonPatch.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
@@ -6,9 +6,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
+using Newtonsoft.Json;
 using Starcounter.Internal;
-using Starcounter.Internal.Application;
 using Starcounter.Templates;
 
 namespace Starcounter.Internal.JsonPatch {
@@ -105,8 +106,9 @@ namespace Starcounter.Internal.JsonPatch {
         /// <summary>
         /// Evaluates the patches.
         /// </summary>
-        /// <param name="body">The body.</param>
-        public static void EvaluatePatches(byte[] body) {
+        /// <param name="rootApp">the root app for this request.</param>
+        /// <param name="body">The body of the request.</param>
+        public static void EvaluatePatches(App rootApp, byte[] body) {
             Byte[] contentArr;
             Byte current;
             Int32 bracketCount;
@@ -131,7 +133,7 @@ namespace Starcounter.Internal.JsonPatch {
                         if (patchType != REMOVE) {
                             offset = GetPatchValue(contentArr, offset, out value);
                         }
-                        HandleParsedPatch(patchType, pointer, value);
+                        HandleParsedPatch(rootApp, patchType, pointer, value);
                     }
                     bracketCount++;
                 } else if (current == '}') {
@@ -145,12 +147,13 @@ namespace Starcounter.Internal.JsonPatch {
         /// Called after a jsonpatch is read. Will evaluate the jsonpointer
         /// and call the appropriate handler in Apps.
         /// </summary>
+        /// <param name="rootApp">The root application from which the pointer starts.</param>
         /// <param name="patchType">The type of patch</param>
         /// <param name="pointer">A jsonpointer that points to the value to be patched</param>
         /// <param name="value">The value.</param>
         /// <exception cref="System.Exception">TODO:</exception>
-        private static void HandleParsedPatch(Int32 patchType, JsonPointer pointer, Byte[] value) {
-            AppAndTemplate aat = JsonPatch.Evaluate(Session.Current.RootApp, pointer);
+        private static void HandleParsedPatch(App rootApp, Int32 patchType, JsonPointer pointer, Byte[] value) {
+            AppAndTemplate aat = JsonPatch.Evaluate(rootApp, pointer);
             ((Property)aat.Template).ProcessInput(aat.App, value);
         }
 
@@ -270,7 +273,7 @@ namespace Starcounter.Internal.JsonPatch {
                 patchType = REPLACE;
                 offset += _replacePatchArr.Length + 1;
             } else {
-                throw new Exception("Unsupported json-patch");
+                throw new NotSupportedException();
             }
 
             if (quotationMark)
@@ -408,15 +411,10 @@ namespace Starcounter.Internal.JsonPatch {
             sb.Append('"');
             if (patchType != REMOVE) {
                 sb.Append(", \"value\":");
-
-                if (value is String) {
-                    sb.Append('"');
-                    sb.Append(value);
-                    sb.Append('"');
-                } else if (value is App) {
+                if (value is App) {
                     sb.Append(((App)value).ToJson());
                 } else {
-                    sb.Append(value);
+                    sb.Append(JsonConvert.SerializeObject(value));
                 }
             }
             return sb.ToString();

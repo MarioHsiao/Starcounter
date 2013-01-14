@@ -12,30 +12,12 @@
 #include "../../Starcounter.ErrorCodes/scerrres/scerrres.h"
 #include "../common/config_param.hpp"
 #include "../common/chunk.hpp"
-
-#ifdef __ARMCC // __arm
-# define PACKED __packed
-#else
-# define PACKED
-#endif
-
-#define SQL_FLAG_FIRST_ONLY 0x01
-#define SQL_FLAG_NO_PARAMS 0x02
-#define BLAST_CHUNKS_NUM 128
-
-struct shared_memory_header
-{
-	uint64_t owner_id_;
-	uint64_t user_data_;
-};
-
-const std::size_t chunk_size_wo_header = starcounter::core::chunk_size - sizeof(shared_memory_header); 
-const std::size_t chunk_size_data = chunk_size_wo_header - 8; //  - request_size and - linked index.
+#include "../common/macro_definitions.hpp"
 
 class chunk_part
 {
 private:
-	uint32_t offset_;
+	starcounter::core::chunk_type::message_size_type offset_;
 	uint8_t chunk_[1];
 
 	template<typename T>
@@ -62,7 +44,7 @@ private:
 
 public:
 
-	uint32_t get_offset()
+	starcounter::core::chunk_type::message_size_type get_offset()
 	{
 		return offset_;
 	}

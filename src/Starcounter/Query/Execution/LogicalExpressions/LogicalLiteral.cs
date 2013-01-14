@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -55,7 +56,7 @@ namespace Starcounter.Query.Execution
         /// </summary>
         /// <param name="obj">Not used.</param>
         /// <returns>A copy of this literal.</returns>
-        public ILogicalExpression Instantiate(CompositeObject obj)
+        public ILogicalExpression Instantiate(Row obj)
         {
             return new LogicalLiteral(value);
         }
@@ -88,7 +89,7 @@ namespace Starcounter.Query.Execution
         /// Appends data of this leaf to the provided filter key.
         /// </summary>
         /// <param name="key">Reference to the filter key to which data should be appended.</param>
-        /// <param name="obj">Results object for which evaluation should be performed.</param>
+        /// <param name="obj">Row for which evaluation should be performed.</param>
         public override void AppendToByteArray(ByteArrayBuilder key, IObjectView obj)
         {
             if (value == TruthValue.FALSE)
@@ -131,5 +132,23 @@ namespace Starcounter.Query.Execution
         {
             stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, value.ToString());
         }
+
+#if DEBUG
+        public bool AssertEquals(ILogicalExpression other) {
+            LogicalLiteral otherNode = other as LogicalLiteral;
+            Debug.Assert(otherNode != null);
+            return this.AssertEquals(otherNode);
+        }
+        internal bool AssertEquals(LogicalLiteral other) {
+            Debug.Assert(other != null);
+            if (other == null)
+                return false;
+            // Check basic types
+            Debug.Assert(this.value == other.value);
+            if (this.value != other.value)
+                return false;
+            return true;
+        }
+#endif
     }
 }

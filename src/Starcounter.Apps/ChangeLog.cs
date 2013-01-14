@@ -6,196 +6,162 @@
 
 using System;
 using System.Collections.Generic;
+using Starcounter.Apps;
 using Starcounter.Templates;
 using Starcounter.Templates.Interfaces;
 
-namespace Starcounter
-{
+namespace Starcounter {
     /// <summary>
-    /// Class ChangeLog
+    /// Class keeping track of all outgoing changes to the json-tree. In the end
+    /// of each patch-request, all changes will be converted to jsonpatches.
     /// </summary>
-    internal class ChangeLog : IEnumerable<Change>
-    {
-        // TODO:
-        // The session structure should be moved to App and 
-        // the session should hold the changelog instance. We dont 
-        // want several thread specific states (The log here and the current
-        // session)
+    internal class ChangeLog : IEnumerable<Change> {
         /// <summary>
-        /// The log
-        /// </summary>
-        [ThreadStatic]
-        internal static ChangeLog Log;
-
-        /// <summary>
-        /// The _changes
+        /// 
         /// </summary>
         private List<Change> _changes;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ChangeLog" /> class.
+        /// Initializes a new instance of the <see cref="Log" /> class.
         /// </summary>
-        internal ChangeLog()
-        {
+        internal ChangeLog() {
             _changes = new List<Change>();
         }
 
         /// <summary>
-        /// Begins the request.
+        /// 
         /// </summary>
-        /// <param name="log">The log.</param>
-        internal static void BeginRequest(ChangeLog log)
-        {
-            Log = log;
+        private static ChangeLog Log {
+            get {
+                Session session = Session.Current;
+                if (session != null)
+                    return session.changeLog;
+                return null;
+            }
         }
 
         /// <summary>
-        /// Ends the request.
-        /// </summary>
-        internal static void EndRequest()
-        {
-            Log.Clear();
-            Log = null;
-        }
-
-        /// <summary>
-        /// Updates the value.
+        /// Adds an valueupdate change.
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="property">The property.</param>
-        internal static void UpdateValue(App app, Property property)
-        {
-            if (!app.IsSerialized) return;
-            if (!Log._changes.Exists((match) => { return match.IsChangeOf(app, property); }))
-            {
-                Log._changes.Add(Change.Update(app, property));
+        internal static void UpdateValue(App app, Property property) {
+            ChangeLog log = Log;
+            if (log != null && app.IsSerialized) {
+                if (!log._changes.Exists((match) => { return match.IsChangeOf(app, property); })) {
+                    log._changes.Add(Change.Update(app, property));
+                }
             }
         }
 
         /// <summary>
-        /// Updates the value.
+        /// Adds an valueupdate change.
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="valueTemplate">The value template.</param>
-        internal static void UpdateValue(App app, IValueTemplate valueTemplate)
-        {
-            if (!app.IsSerialized) return;
-            if (!Log._changes.Exists((match) => { return match.IsChangeOf(app, (Template)valueTemplate); }))
-            {
-                Log._changes.Add(Change.Update(app, valueTemplate));
+        internal static void UpdateValue(App app, IValueTemplate valueTemplate) {
+            ChangeLog log = Log;
+            if (log != null && app.IsSerialized) {
+                if (!log._changes.Exists((match) => { return match.IsChangeOf(app, (Template)valueTemplate); })) {
+                    log._changes.Add(Change.Update(app, valueTemplate));
+                }
             }
         }
 
         /// <summary>
-        /// Adds the item in list.
+        /// Adds an add item change.
         /// </summary>
         /// <param name="app">The app.</param>
-        /// <param name="list">The list.</param>
-        /// <param name="index">The index.</param>
-        internal static void AddItemInList(App app, ListingProperty list, Int32 index)
-        {
-            if (!app.IsSerialized) return;
-            Log._changes.Add(Change.Add(app, list, index));
+        /// <param name="list">The property of the list that the item was added to.</param>
+        /// <param name="index">The index in the list where the item was added.</param>
+        internal static void AddItemInList(App app, ListingProperty list, Int32 index) {
+            ChangeLog log = Log;
+            if (log != null)
+                log._changes.Add(Change.Add(app, list, index));
         }
 
         /// <summary>
-        /// Removes the item in list.
+        /// Adds an remove item change.
         /// </summary>
         /// <param name="app">The app.</param>
-        /// <param name="list">The list.</param>
-        /// <param name="index">The index.</param>
-        internal static void RemoveItemInList(App app, ListingProperty list, Int32 index)
-        {
-            if (!app.IsSerialized) return;
-            Log._changes.Add(Change.Remove(app, list, index));
+        /// <param name="list">The property of the list the item was removed from.</param>
+        /// <param name="index">The index in the list of the removed item.</param>
+        internal static void RemoveItemInList(App app, ListingProperty list, Int32 index) {
+            ChangeLog log = Log;
+            if (log != null && app.IsSerialized)
+                log._changes.Add(Change.Remove(app, list, index));
         }
 
         /// <summary>
-        /// Clears this instance.
+        /// Clears all changes.
         /// </summary>
-        internal void Clear()
-        {
+        internal void Clear() {
             _changes.Clear();
         }
 
         /// <summary>
-        /// Gets the enumerator.
+        /// Returns a typed enumerator of all changes.
         /// </summary>
         /// <returns>IEnumerator{Change}.</returns>
-        public IEnumerator<Change> GetEnumerator()
-        {
+        public IEnumerator<Change> GetEnumerator() {
             return _changes.GetEnumerator();
         }
 
         /// <summary>
-        /// Returns an enumerator that iterates through a collection.
+        /// Returns an enumerator of all changes
         /// </summary>
-        /// <returns>An <see cref="T:System.Collections.IEnumerator" /> object that can be used to iterate through the collection.</returns>
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
+        /// <returns><see cref="T:System.Collections.IEnumerator" /></returns>
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
             return _changes.GetEnumerator();
         }
 
         /// <summary>
-        /// Gets the count.
+        /// Returns the number of changes in the log.
         /// </summary>
-        /// <value>The count.</value>
+        /// <value></value>
         internal Int32 Count { get { return _changes.Count; } }
     }
 
     /// <summary>
-    /// Struct Change
+    /// A change of either a value, added or removed item in an json-tree.
     /// </summary>
-    internal struct Change
-    {
-        /// <summary>
-        /// The UNDEFINED
-        /// </summary>
-        public const Int32 UNDEFINED = 0;
-        /// <summary>
-        /// The REMOVE
-        /// </summary>
-        public const Int32 REMOVE = 1;
-        /// <summary>
-        /// The REPLACE
-        /// </summary>
-        public const Int32 REPLACE = 2;
-        /// <summary>
-        /// The ADD
-        /// </summary>
-        public const Int32 ADD = 3;
+    internal struct Change {
+        internal const Int32 UNDEFINED = 0;
+        internal const Int32 REMOVE = 1;
+        internal const Int32 REPLACE = 2;
+        internal const Int32 ADD = 3;
 
-        /// <summary>
-        /// The null
-        /// </summary>
         internal static Change Null = new Change(UNDEFINED, null, null, -1);
 
         /// <summary>
-        /// The change type
+        /// The type of change.
         /// </summary>
         internal readonly Int32 ChangeType;
+
         /// <summary>
-        /// The app
+        /// The app that was changed.
         /// </summary>
         internal readonly App App;
+
         /// <summary>
-        /// The template
+        /// The template of the property that was changed.
         /// </summary>
         internal readonly Template Template;
+
         /// <summary>
-        /// The index
+        /// The index if the change is add or remove. Will be
+        /// -1 in other cases.
         /// </summary>
         internal readonly Int32 Index;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Change" /> struct.
         /// </summary>
-        /// <param name="changeType">Type of the change.</param>
-        /// <param name="app">The app.</param>
-        /// <param name="template">The template.</param>
+        /// <param name="changeType">The change type.</param>
+        /// <param name="app">The app that was changed.</param>
+        /// <param name="template">The template of the property that was changed.</param>
         /// <param name="index">The index.</param>
-        private Change(Int32 changeType, App app, Template template, Int32 index)
-        {
+        private Change(Int32 changeType, App app, Template template, Int32 index) {
             ChangeType = changeType;
             App = app;
             Template = template;
@@ -203,79 +169,54 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Determines whether [is change of] [the specified app].
+        /// Returns true if this change is a change of the same app and template.
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="template">The template.</param>
-        internal Boolean IsChangeOf(App app, Template template)
-        {
+        internal Boolean IsChangeOf(App app, Template template) {
             return (App == app && Template == template);
         }
 
         /// <summary>
-        /// Adds the specified app.
+        /// Creates and returns an instance of an Add change.
         /// </summary>
         /// <param name="app">The app.</param>
-        /// <param name="list">The list.</param>
-        /// <param name="index">The index.</param>
-        /// <returns>Change.</returns>
-        internal static Change Add(App app, ListingProperty list, Int32 index)
-        {
+        /// <param name="list">The property of the list where an item was added.</param>
+        /// <param name="index">The index in the list of the added item.</param>
+        /// <returns></returns>
+        internal static Change Add(App app, ListingProperty list, Int32 index) {
             return new Change(Change.ADD, app, list, index);
         }
 
         /// <summary>
-        /// Removes the specified app.
+        /// Creates and returns an instance of a Remove change.
         /// </summary>
         /// <param name="app">The app.</param>
-        /// <param name="list">The list.</param>
-        /// <param name="index">The index.</param>
-        /// <returns>Change.</returns>
-        internal static Change Remove(App app, ListingProperty list, Int32 index)
-        {
+        /// <param name="list">The property of the list where an item was removed.</param>
+        /// <param name="index">The index in the list of the removed item.</param>
+        /// <returns></returns>
+        internal static Change Remove(App app, ListingProperty list, Int32 index) {
             return new Change(Change.REMOVE, app, list, index);
         }
 
         /// <summary>
-        /// Updates the specified app.
+        /// Creates and returns an instance of an Update change.
         /// </summary>
         /// <param name="app">The app.</param>
-        /// <param name="property">The property.</param>
-        /// <returns>Change.</returns>
-        internal static Change Update(App app, Property property)
-        {
+        /// <param name="property">The template of the property that was updated.</param>
+        /// <returns></returns>
+        internal static Change Update(App app, Property property) {
             return new Change(Change.REPLACE, app, property, -1);
         }
 
         /// <summary>
-        /// Updates the specified app.
+        /// Creates and returns an instance of an Update change.
         /// </summary>
         /// <param name="app">The app.</param>
-        /// <param name="valueTemplate">The value template.</param>
-        /// <returns>Change.</returns>
-        internal static Change Update(App app, IValueTemplate valueTemplate)
-        {
+        /// <param name="valueTemplate">The IValueTemplate of the property that was updated.</param>
+        /// <returns></returns>
+        internal static Change Update(App app, IValueTemplate valueTemplate) {
             return new Change(Change.REPLACE, app, (Template)valueTemplate, -1);
         }
-
-        //public override bool Equals(object obj)
-        //{
-        //    return Change.Equals(this, (Change)obj);
-        //}
-
-        //public bool Equals(Change change)
-        //{
-        //    return Change.Equals(this, change);
-        //}
-
-        //public static bool Equals(Change c1, Change c2)
-        //{
-        //    return Template.Equals(c1.Template, c2.Template);
-        //}
-
-        //public override int GetHashCode()
-        //{
-        //    return Template.GetHashCode();
-        //}
     }
 }
