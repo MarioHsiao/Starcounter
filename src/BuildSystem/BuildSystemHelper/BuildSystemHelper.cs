@@ -499,7 +499,7 @@ namespace BuildSystemHelper
                 throw new Exception("Can't perform the following FTP operation: " + arguments);
             }
 
-            Console.Error.WriteLine("   Successfully finished FTP operation.");
+            Console.WriteLine("   Successfully finished FTP operation.");
         }
 
         /// <summary>
@@ -512,7 +512,7 @@ namespace BuildSystemHelper
             String uploadFileToFtp = "/console /command \"option batch on\" \"option confirm off\" \"open " + ftpConfigName + "\" \"put \"" +
                                      localFilePath + "\" \"" + remoteFTPPath + "\"\" \"exit\"";
 
-            Console.Error.WriteLine("Uploading file to FTP: " + remoteFTPPath);
+            Console.WriteLine("Uploading file to FTP: " + remoteFTPPath);
 
             ExecuteFTPOperation(uploadFileToFtp, asyncMode);
         }
@@ -527,7 +527,7 @@ namespace BuildSystemHelper
             String getFileFromFtp = "/console /command \"option batch on\" \"option confirm off\" \"open " + ftpConfigName + "\" \"get \"" +
                                      remoteFilePath + "\" \"" + localFilePath + "\"\" \"exit\"";
 
-            Console.Error.WriteLine("Downloading file from FTP: " + remoteFilePath);
+            Console.WriteLine("Downloading file from FTP: " + remoteFilePath);
 
             ExecuteFTPOperation(getFileFromFtp);
         }
@@ -541,7 +541,7 @@ namespace BuildSystemHelper
             String removeFileFromFtp = "/console /command \"option batch on\" \"option confirm off\" \"open " + ftpConfigName + "\" \"rm \"" +
                                      remoteFilePath + "\"\" \"exit\"";
 
-            Console.Error.WriteLine("Removing file from FTP: " + remoteFilePath);
+            Console.WriteLine("Removing file from FTP: " + remoteFilePath);
 
             ExecuteFTPOperation(removeFileFromFtp);
         }
