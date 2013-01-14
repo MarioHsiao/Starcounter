@@ -894,18 +894,15 @@ namespace Starcounter.Internal.Weaver {
 
                     // The target attribute should be a persistent field.
                     if (synonymTo.AttributeKind != DatabaseAttributeKind.PersistentField) {
-#pragma warning disable 618
-                        // SCPFV12
-                        ScMessageSource.Instance.Write(
-                            SeverityType.Error,
-                            "SCPFV12",
-                            new Object[] {
-                                databaseAttribute.DeclaringClass.Name,
-                                databaseAttribute.Name,
-                                synonymTo.DeclaringClass.Name,
-                                synonymTo.Name
-                            });
-#pragma warning restore 618
+                        ScMessageSource.WriteError(
+                            MessageLocation.Of(databaseAttribute),
+                            Error.SCERRSYNTARGETNOTPERSISTENT,
+                            string.Format("{0}.{1}, synonymous to {2}.{3}", 
+                            databaseAttribute.DeclaringClass.Name, 
+                            databaseAttribute.Name, synonymTo.
+                            DeclaringClass.Name,
+                            synonymTo.Name)
+                            );
                     } else {
                         // When a field is decorated with the [SynonymousTo] custom attribute
                         // and if the target field is in a different type as the current field,
@@ -1032,12 +1029,19 @@ namespace Starcounter.Internal.Weaver {
                 if (databaseClass == null
                         || (databaseAttribute = databaseClass.Attributes[field.Name]) == null
                         || !databaseAttribute.IsPersistent) {
+
+                            ErrorCode.ToMessage(Error.SCERRUNSPECIFIED);
+                    
+                    ScMessageSource.WriteError(
+                                MessageLocation.Of(synonymToEnumerator.Current.TargetElement),
+                                Error.SCERRUNSPECIFIED,
+                                "Hej");
 #pragma warning disable 618
-                    ScMessageSource.Instance.Write(
-                        SeverityType.Error,
-                        "SCPFV16",
-                        new Object[] { synonymToEnumerator.Current.TargetElement.ToString() }
-                        );
+                    //ScMessageSource.Instance.Write(
+                    //    SeverityType.Error,
+                    //    "SCPFV16",
+                    //    new Object[] { synonymToEnumerator.Current.TargetElement.ToString() }
+                    //    );
 #pragma warning restore 618
                 }
             }
