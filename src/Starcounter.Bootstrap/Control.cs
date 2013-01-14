@@ -181,7 +181,7 @@ namespace StarcounterInternal.Bootstrap
             // Install handlers for the type of requests we accept.
 
             // Handles execution requests for executables that support
-            // lauching into Starcounter from the OS shell. This handler
+            // launching into Starcounter from the OS shell. This handler
             // requires only a single parameter - the path to the assembly
             // file - and will use the defaults based on that.
             server.Handle("Exec", delegate(Request r)
@@ -258,8 +258,20 @@ namespace StarcounterInternal.Bootstrap
             // Executing auto-start task if any.
             if (configuration.AutoStartExePath != null)
             {
+                // Trying to get user arguments if any.
+                String userArgs = null;
+                String[] userArgsArray = null;
+                configuration.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.UserArguments, out userArgs);
+                if (userArgs != null)
+                    userArgsArray = userArgs.Split((String[])null, StringSplitOptions.RemoveEmptyEntries);
+
+                // Trying to get explicit working directory.
+                String workingDir = null;
+                configuration.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.WorkingDir, out workingDir);
+
                 // Loading the given application.
-                Loader.ExecApp(hsched_, configuration.AutoStartExePath);
+                Loader.ExecApp(hsched_, configuration.AutoStartExePath, workingDir, userArgsArray);
+
                 OnAutoStartModuleExecuted();
             }
                 
