@@ -27,9 +27,9 @@ namespace PackArtifactsAndUpload
                 }
 
                 // Checking if given directory exists.
-                String zipDir = args[0];
-                if (!Directory.Exists(zipDir))
-                    throw new Exception("Given directory '" + zipDir + "' does not exist.");
+                String dirPathToZip = args[0];
+                if (!Directory.Exists(dirPathToZip))
+                    throw new Exception("Given directory '" + dirPathToZip + "' does not exist.");
 
                 String buildType = args[1];
                 if ((buildType != BuildSystem.TestBetaName) &&
@@ -53,7 +53,7 @@ namespace PackArtifactsAndUpload
                     throw new Exception("Zip file " + zipLocalPath + " already exists!");
 
                 // Compressing given directory.
-                ZipFile.CreateFromDirectory(zipDir, zipLocalPath);
+                ZipFile.CreateFromDirectory(dirPathToZip, zipLocalPath);
 
                 // Start uploading to FTP.
                 String relativeZipWithSlashes = relativeZipPath.Replace("\\", "/");
