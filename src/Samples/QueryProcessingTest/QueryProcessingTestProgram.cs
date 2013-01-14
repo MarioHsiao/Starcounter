@@ -8,8 +8,9 @@ namespace QueryProcessingTest {
         }
 
         static void RunQueryProcessingTest() {
-            DataPopulation.PopulateUsers(100000, 3);
-            DataPopulation.PopulateAccounts(100000, 3);
+            DataPopulation.PopulateUsers(5, 3);
+            DataPopulation.PopulateUsers(10000, 3);
+            DataPopulation.PopulateAccounts(10000, 3);
         }
     }
 }
