@@ -628,6 +628,8 @@ namespace Starcounter.Internal.Weaver {
                             ValidateDatabaseAttribute(databaseAttribute);
                         }
                     }
+
+                    ValidateCustomAttributeUsage();
                 }
 
                 // If there was some error, return at this point.
@@ -687,25 +689,6 @@ namespace Starcounter.Internal.Weaver {
             StringBuilder builder = new StringBuilder(100);
             type.WriteReflectionName(builder, ReflectionNameOptions.None);
             return builder.ToString();
-        }
-
-        /// <summary>
-        /// Emit errors if Starcounter custom attributes have been used on unexpected
-        /// declaration.
-        /// </summary>
-        /// <remarks>This method is called after the discovery, so we apply the rule: if the
-        /// custom attribute was not discovered by the discovery process, it's because
-        /// it is used improperly.</remarks>
-        private void ValidateCustomAttributeUsage() {
-            AnnotationRepositoryTask annotationRepositoryTask;
-//            DatabaseAttribute databaseAttribute;
-//            DatabaseClass databaseClass;
-//            FieldDefDeclaration field;
-            
-            // Inspect that custom attributes were used were it makes sense.
-#pragma warning disable 612
-            annotationRepositoryTask = AnnotationRepositoryTask.GetTask(Project);
-#pragma warning restore 612
         }
 
         #endregion
@@ -1009,6 +992,53 @@ namespace Starcounter.Internal.Weaver {
                             }
                         }
                     }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Emit errors if Starcounter custom attributes have been used on unexpected
+        /// declaration.
+        /// </summary>
+        /// <remarks>
+        /// This method is called after the discovery, so we apply the rule: if the
+        /// custom attribute was not discovered by the discovery process, it's because
+        /// it is used improperly.
+        /// </remarks>
+        private void ValidateCustomAttributeUsage() {
+            AnnotationRepositoryTask annotationRepositoryTask;
+            DatabaseAttribute databaseAttribute;
+            DatabaseClass databaseClass;
+            FieldDefDeclaration field;
+            IEnumerator<IAnnotationInstance> synonymToEnumerator;
+            TypeDefDeclaration synoTypeDef = _synonymousToAttributeType.GetTypeDefinition();
+
+            // Inspect that custom attributes were used were it makes sense.
+#pragma warning disable 612
+            annotationRepositoryTask = AnnotationRepositoryTask.GetTask(Project);
+#pragma warning restore 612
+
+            // Check "Synonym" custom attributes (must be on a persistent database field).
+            synonymToEnumerator = annotationRepositoryTask.GetAnnotationsOfType(synoTypeDef, false);
+
+            while (synonymToEnumerator.MoveNext()) {
+                field = synonymToEnumerator.Current.TargetElement as FieldDefDeclaration;
+                if (field != null) {
+                    databaseClass = DatabaseSchema.FindDatabaseClass(GetTypeReflectionName(field.DeclaringType));
+                } else {
+                    databaseClass = null;
+                }
+
+                if (databaseClass == null
+                        || (databaseAttribute = databaseClass.Attributes[field.Name]) == null
+                        || !databaseAttribute.IsPersistent) {
+#pragma warning disable 618
+                    ScMessageSource.Instance.Write(
+                        SeverityType.Error,
+                        "SCPFV16",
+                        new Object[] { synonymToEnumerator.Current.TargetElement.ToString() }
+                        );
+#pragma warning restore 618
                 }
             }
         }
