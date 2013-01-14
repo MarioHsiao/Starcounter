@@ -32,6 +32,7 @@ namespace BuildSystemHelper
         public const String StableBuildsName = "StableBuilds";
         public const String NightlyBuildsName = "NightlyBuilds";
         public const String CustomBuildsName = "CustomBuilds";
+        public const String TestBetaName = "TestBeta";
 
         // FTP configurations and tool path.
         public const String StarcounterFtpConfigName = "builds@starcounter.com";
@@ -48,6 +49,11 @@ namespace BuildSystemHelper
         public const String CheckOutDirEnvVar = "SC_CHECKOUT_DIR";
 
         /// <summary>
+        /// Generate installer environment variable.
+        /// </summary>
+        public const String GenerateInstallerEnvVar = "SC_GENERATE_INSTALLER";
+
+        /// <summary>
         /// Represents the name of the checkout directory environment variable.
         /// </summary>
         public const String BuildSystemDirEnvVar = "SC_BUILD_SYSTEM_DIR";
@@ -56,6 +62,11 @@ namespace BuildSystemHelper
         /// Path to build output.
         /// </summary>
         public const String BuildOutputEnvVar = "SC_BUILD_OUTPUT_PATH";
+
+        /// <summary>
+        /// Build number env var.
+        /// </summary>
+        public const String BuildNumberEnvVar = "BUILD_NUMBER";
 
         /// <summary>
         /// Common path to default build output.
@@ -194,7 +205,7 @@ namespace BuildSystemHelper
             }
 
             // Checking if its a scheduled nightly build.
-            if (nightlyEnvVar || (DateTime.Now.Hour >= 1) && (DateTime.Now.Hour <= 6))
+            if (nightlyEnvVar /*|| (DateTime.Now.Hour >= 1) && (DateTime.Now.Hour <= 6)*/)
             {
                 _nightlyBuild = true;
                 return true;
@@ -443,7 +454,7 @@ namespace BuildSystemHelper
         /// Executes FTP operation using WinScp FTP client.
         /// </summary>
         /// <param name="arguments">Arguments for the program.</param>
-        public static void ExecuteFTPOperation(String arguments)
+        public static void ExecuteFTPOperation(String arguments, Boolean asyncMode = false)
         {
             Int32 errCode = 1;
 
@@ -462,8 +473,15 @@ namespace BuildSystemHelper
 
                 // Starting the FTP client...
                 Process ftpClientProc = Process.Start(ftpClientInfo);
-                ftpClientProc.WaitForExit();
-                errCode = ftpClientProc.ExitCode;
+                if (asyncMode)
+                {
+                    errCode = 0;
+                }
+                else
+                {
+                    ftpClientProc.WaitForExit();
+                    errCode = ftpClientProc.ExitCode;
+                }
                 ftpClientProc.Close();
 
                 // Breaking if success.
@@ -481,7 +499,7 @@ namespace BuildSystemHelper
                 throw new Exception("Can't perform the following FTP operation: " + arguments);
             }
 
-            Console.Error.WriteLine("   Successfully finished FTP operation.");
+            Console.WriteLine("   Successfully finished FTP operation.");
         }
 
         /// <summary>
@@ -489,14 +507,14 @@ namespace BuildSystemHelper
         /// </summary>
         /// <param name="localFilePath">Path to a local file.</param>
         /// <param name="targetFTPPath">Path to a file or directory(must end with slash) on FTP.</param>
-        public static void UploadFileToFTP(String ftpConfigName, String localFilePath, String remoteFTPPath)
+        public static void UploadFileToFTP(String ftpConfigName, String localFilePath, String remoteFTPPath, Boolean asyncMode = false)
         {
             String uploadFileToFtp = "/console /command \"option batch on\" \"option confirm off\" \"open " + ftpConfigName + "\" \"put \"" +
                                      localFilePath + "\" \"" + remoteFTPPath + "\"\" \"exit\"";
 
-            Console.Error.WriteLine("Uploading file to FTP: " + remoteFTPPath);
+            Console.WriteLine("Uploading file to FTP: " + remoteFTPPath);
 
-            ExecuteFTPOperation(uploadFileToFtp);
+            ExecuteFTPOperation(uploadFileToFtp, asyncMode);
         }
 
         /// <summary>
@@ -509,7 +527,7 @@ namespace BuildSystemHelper
             String getFileFromFtp = "/console /command \"option batch on\" \"option confirm off\" \"open " + ftpConfigName + "\" \"get \"" +
                                      remoteFilePath + "\" \"" + localFilePath + "\"\" \"exit\"";
 
-            Console.Error.WriteLine("Downloading file from FTP: " + remoteFilePath);
+            Console.WriteLine("Downloading file from FTP: " + remoteFilePath);
 
             ExecuteFTPOperation(getFileFromFtp);
         }
@@ -523,7 +541,7 @@ namespace BuildSystemHelper
             String removeFileFromFtp = "/console /command \"option batch on\" \"option confirm off\" \"open " + ftpConfigName + "\" \"rm \"" +
                                      remoteFilePath + "\"\" \"exit\"";
 
-            Console.Error.WriteLine("Removing file from FTP: " + remoteFilePath);
+            Console.WriteLine("Removing file from FTP: " + remoteFilePath);
 
             ExecuteFTPOperation(removeFileFromFtp);
         }

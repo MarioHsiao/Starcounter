@@ -16,7 +16,7 @@ namespace Starcounter.Server {
         /// <summary>
         /// A constant value holding the name of the gateway executable.
         /// </summary>
-        internal const string ExeName = "scnetworkgateway.exe";
+        internal const string ExeName = StarcounterConstants.ProgramNames.ScNetworkGateway + ".exe";
 
         /// <summary>
         /// Launches the Starcounter gateway process with the given arguments.
