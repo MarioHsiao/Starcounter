@@ -40,7 +40,7 @@ public class nonamespaceclass : Entity {
 
 // Add another namespace with common class inside
 
-namespace QueryProcessingTest.CamelNameSpace.LongNameSpace {
+namespace QueryProcessingTest.CamelNameSpace.AName {
     public class CommonClass : Entity {
         public int CamelIntProperty;
     }
