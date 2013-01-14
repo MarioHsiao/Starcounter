@@ -3116,7 +3116,7 @@
 	  <message>Incorrect SQL syntax.</message>
 	</code>
 	<code hex="0016" severity="Error" name="ScErrSQLNotImplemented">
-	  <message>Not yet implemented SQL feature.</message>
+	  <message>Not implemented SQL feature.</message>
 	</code>
 	<code hex="0017" severity="Error" name="ScErrSQLNotSupported">
 	  <message>Not supported SQL feature.</message>
