@@ -60,8 +60,7 @@ namespace PackArtifactsAndUpload
                 BuildSystem.UploadFileToFTP(
                     BuildSystem.StarcounterFtpConfigName,
                     zipLocalPath,
-                    relativeZipWithSlashes,
-                    true);
+                    relativeZipWithSlashes);
 
                 return 0;
             }
