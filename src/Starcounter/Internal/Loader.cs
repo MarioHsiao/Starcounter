@@ -220,7 +220,7 @@ namespace Starcounter.Internal
 
                         if (databaseAttribute.IsPublicRead) {
                             var propertyDef = new PropertyDef(
-                                 targetAttribute.Name,
+                                 databaseAttribute.Name,
                                  type,
                                  isNullable,
                                  targetTypeName
