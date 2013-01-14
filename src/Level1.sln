@@ -24,7 +24,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkIoTest", "Samples\Ne
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BuildSystem", "BuildSystem", "{E64C1F28-D2C1-47D2-A62B-151A6968D158}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CopyDependenciesLocal", "External\CopyDependenciesLocal.csproj", "{8B599BFF-B414-41A3-A270-96CDA0C522AF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CopyDependenciesLocal", "BuildSystem\CopyDependenciesLocal.csproj", "{8B599BFF-B414-41A3-A270-96CDA0C522AF}"
 	ProjectSection(ProjectDependencies) = postProject
 		{5A65D606-6613-4139-8853-B5F26313E4DF} = {5A65D606-6613-4139-8853-B5F26313E4DF}
 		{EC69526F-72FB-4E26-AD8D-7CF22B145C93} = {EC69526F-72FB-4E26-AD8D-7CF22B145C93}
@@ -235,7 +235,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "Chunks\test\test.vc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.VS.CSExeProjectTemplate", "Development\Starcounter.VS.CSExeProjectTemplate\Starcounter.VS.CSExeProjectTemplate.csproj", "{9EC88A3E-0A53-4982-8548-BF262F2DDDE7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CopyDependenciesRemote", "External\CopyDependenciesRemote.csproj", "{EC69526F-72FB-4E26-AD8D-7CF22B145C93}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CopyDependenciesRemote", "BuildSystem\CopyDependenciesRemote.csproj", "{EC69526F-72FB-4E26-AD8D-7CF22B145C93}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Starcounter.SqlParser", "Starcounter.SqlParser\Starcounter.SqlParser.vcxproj", "{D0026211-2592-42FD-AD67-BF609803D2DB}"
 	ProjectSection(ProjectDependencies) = postProject
