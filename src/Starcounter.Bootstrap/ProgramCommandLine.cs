@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
+using Starcounter.Internal;
 
 namespace StarcounterInternal.Bootstrap {
 
@@ -19,12 +20,12 @@ namespace StarcounterInternal.Bootstrap {
     /// and handling errors for the command line parameters given to this
     /// program.
     /// </summary>
-    internal static class ProgramCommandLine {
+    public static class ProgramCommandLine {
 
         /// <summary>
         /// Defines the commands this program accepts.
         /// </summary>
-        internal static class CommandNames {
+        public static class CommandNames {
             /// <summary>
             /// Defines the name of the Start command.
             /// </summary>
@@ -38,7 +39,7 @@ namespace StarcounterInternal.Bootstrap {
         /// <summary>
         /// Defines the options the "Start" command accepts.
         /// </summary>
-        internal static class OptionNames {
+        public static class OptionNames {
             /// <summary>
             /// Specifies the database directory to use.
             /// </summary>
@@ -70,12 +71,7 @@ namespace StarcounterInternal.Bootstrap {
             public const string ChunksNumber = "ChunksNumber";
 
             /// <summary>
-            /// Specifies the path to executable that should be run on startup.
-            /// </summary>
-            public const string AutoStartExePath = "AutoStartExePath";
-
-            /// <summary>
-            /// Specifies TCP/IP port to be used by scsqlparser.exe.
+            /// Specifies TCP/IP port to be used by SQL parser.
             /// </summary>
             public const string SQLProcessPort = "SQLProcessPort";
 
@@ -101,6 +97,21 @@ namespace StarcounterInternal.Bootstrap {
             /// rather than named pipes (with named pipes being the default).
             /// </summary>
             public const string UseConsole = "UseConsole";
+
+            /// <summary>
+            /// Specifies the path to executable that should be run on startup.
+            /// </summary>
+            public const string AutoStartExePath = "AutoStartExePath";
+
+            /// <summary>
+            /// User command line arguments.
+            /// </summary>
+            public const string UserArguments = "UserArguments";
+
+            /// <summary>
+            /// Explicit working directory.
+            /// </summary>
+            public const string WorkingDir = "WorkingDir";
         }
 
         /// <summary>
@@ -149,8 +160,10 @@ namespace StarcounterInternal.Bootstrap {
             commandDefinition.DefineProperty(OptionNames.ServerName, "Specifies the name of Starcounter server which started the database.");
             commandDefinition.DefineProperty(OptionNames.ChunksNumber, "Specifies the total number of chunks used for shared memory communication.");
             commandDefinition.DefineProperty(OptionNames.AutoStartExePath, "Specifies the path to executable that should be run on startup.");
-            commandDefinition.DefineProperty(OptionNames.SQLProcessPort, "Specifies TCP/IP port to be used by scsqlparser.exe.");
+            commandDefinition.DefineProperty(OptionNames.SQLProcessPort, "Specifies TCP/IP port to be used by " + StarcounterConstants.ProgramNames.ScSqlParser + ".exe.");
             commandDefinition.DefineProperty(OptionNames.SchedulerCount, "Specifies the number of schedulers.");
+            commandDefinition.DefineProperty(OptionNames.UserArguments, "User command line arguments.");
+
             commandDefinition.DefineFlag(OptionNames.NoDb, "Instructs the program not to connect to the database nor use the SQL engine.");
             commandDefinition.DefineFlag(OptionNames.NoNetworkGateway, "Indicates that the host does not need to utilize with network gateway.");
             commandDefinition.DefineFlag(OptionNames.UseConsole, "Instructs the host to use the console to expose management features, like booting executables.");
@@ -201,7 +214,7 @@ namespace StarcounterInternal.Bootstrap {
 
             Console.WriteLine("Usage:");
             Console.WriteLine();
-            Console.Write("sccode.exe");
+            Console.Write(StarcounterConstants.ProgramNames.ScCode + ".exe");
             foreach (var globalFlag in syntax.Flags) {
                 Console.Write(" --FLAG:{0}", globalFlag.Name);
             }
