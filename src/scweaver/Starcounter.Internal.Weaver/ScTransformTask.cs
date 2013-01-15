@@ -336,7 +336,7 @@ namespace Starcounter.Internal.Weaver {
 
                 // Generate field accessors and add corresponding advices
                 foreach (DatabaseAttribute dba in dbc.Attributes) {
-                    if (dba.IsField && dba.IsPersistent) {
+                    if (dba.IsField && dba.IsPersistent && dba.SynonymousTo == null) {
                         field = typeDef.Fields.GetByName(dba.Name);
                         GenerateFieldAccessors(dba, field);
                     }
@@ -361,11 +361,19 @@ namespace Starcounter.Internal.Weaver {
             }
 
             // Re-iterate all database classes in the current module and process
-            // each constructor.
+            // constructors and synonyms.
 
             foreach (DatabaseClass dbc in analysisTask.DatabaseClassesInCurrentModule) {
                 typeDef = (TypeDefDeclaration)_module.FindType(dbc.Name, BindingOptions.OnlyExisting);
                 EnhanceConstructors(typeDef, dbc);
+
+                // Generate field accessors for synonyms
+                foreach (DatabaseAttribute dba in dbc.Attributes) {
+                    if (dba.IsField && dba.IsPersistent && dba.SynonymousTo != null) {
+                        field = typeDef.Fields.GetByName(dba.Name);
+                        GenerateFieldAccessors(dba, field);
+                    }
+                }
             }
 
             // Look at imported types, fields and methods and add corresponding advices
@@ -1075,23 +1083,55 @@ namespace Starcounter.Internal.Weaver {
             MethodSemanticDeclaration setSemantic;
             ParameterDeclaration valueParameter;
             PropertyDeclaration property;
-            FieldDefDeclaration attributeIndexField;
+            IField attributeIndexField;
+            DatabaseAttribute synonymousTo;
 
             ScTransformTrace.Instance.WriteLine("Generating accessors for {0}.", databaseAttribute);
 
             attributeIndexField = null;
+            synonymousTo = databaseAttribute.SynonymousTo;
+            realDatabaseAttribute = synonymousTo ?? databaseAttribute;
 
             if (_weaveForIPC) {
-                // Generate a static field that can hold the attribute index in
-                // hosted environments.
 
-                attributeIndexField = new FieldDefDeclaration {
-                    Name = WeaverNamingConventions.MakeAttributeIndexVariableName(field.Name),
-                    Attributes = (FieldAttributes.Private | FieldAttributes.Static),
-                    FieldType = _module.Cache.GetIntrinsic(IntrinsicType.Int32)
-                };
-                field.DeclaringType.Fields.Add(attributeIndexField);
-                _weavingHelper.AddCompilerGeneratedAttribute(attributeIndexField.CustomAttributes);
+                if (synonymousTo == null) {
+                    // Generate a static field that can hold the attribute index in
+                    // hosted environments.
+
+                    attributeIndexField = new FieldDefDeclaration {
+                        Name = WeaverNamingConventions.MakeAttributeIndexVariableName(field.Name),
+                        Attributes = (FieldAttributes.Family | FieldAttributes.Static),
+                        FieldType = _module.Cache.GetIntrinsic(IntrinsicType.Int32)
+                    };
+                    field.DeclaringType.Fields.Add((FieldDefDeclaration)attributeIndexField);
+                    _weavingHelper.AddCompilerGeneratedAttribute(attributeIndexField.CustomAttributes);
+
+                } else {
+
+                    var nameOfAttributeIndexField = WeaverNamingConventions.MakeAttributeIndexVariableName(synonymousTo.Name);
+
+                    // We must locate the type of the target field. It might be a definition, or a
+                    // type reference.
+
+                    var synonymTargetType = (IType)_module.FindType(synonymousTo.DeclaringClass.Name, BindingOptions.OnlyExisting | BindingOptions.DontThrowException);
+                    if (synonymTargetType == null) {
+                        var typeEnumerator = _module.GetDeclarationEnumerator(TokenType.TypeRef);
+                        while (typeEnumerator.MoveNext()) {
+                            var typeRef = (TypeRefDeclaration)typeEnumerator.Current;
+                            if (ScAnalysisTask.GetTypeReflectionName(typeRef).Equals(synonymousTo.DeclaringClass.Name)) {
+                                synonymTargetType = typeRef;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Lets not do any verification here, since the analyzer should already
+                    // have done that for us. We simply rely on both the type and the field
+                    // to be found, or else let a null reference exception be raised.
+
+                    attributeIndexField = synonymTargetType.Fields.GetField(
+                        nameOfAttributeIndexField, synonymTargetType.Module.FindType(typeof(int)), BindingOptions.Default);
+                }
             }
 
             // Compute method attributes according to field attributes.
@@ -1125,8 +1165,6 @@ namespace Starcounter.Internal.Weaver {
             } else {
                 callingConvention = CallingConvention.HasThis;
             }
-
-            realDatabaseAttribute = databaseAttribute.SynonymousTo ?? databaseAttribute;
 
             // Generate the Get accessor.
             _dbStateMethodProvider.GetGetMethod(field.FieldType,
