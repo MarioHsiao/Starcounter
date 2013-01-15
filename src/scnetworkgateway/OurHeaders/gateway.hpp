@@ -280,7 +280,7 @@ const int32_t MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER = 10000;
 const int32_t MAX_BLACK_LIST_IPS_PER_WORKER = 10000;
 
 // Hard-coded gateway test port number on server.
-const int32_t GATEWAY_TEST_PORT_NUMBER_SERVER = 80;
+const int32_t GATEWAY_TEST_PORT_NUMBER_SERVER = 123;
 
 // Session life time multiplier.
 const int32_t SESSION_LIFETIME_MULTIPLIER = 3;
