@@ -23,12 +23,12 @@
 :: gw_test_bs.bat "3 MODE_GATEWAY_SMC_HTTP 100002 10000000 100 GwSmcSimpleHttpRPS3Worker100000Conn" 3 MODE_GATEWAY_SMC_HTTP 81 131072 --FLAG:NoDb
 
 :: Killing all processes.
-CMD /C "kill_all.bat" 2> NUL
+CMD /C "kill_all.bat" 2>NUL
 
 :: Checking if everything is pre-created.
 IF NOT EXIST .db ( MKDIR .db )
 IF NOT EXIST .db.output ( MKDIR .db.output )
-CMD /C "timeout 1" 2> NUL
+CMD /C "timeout 1"
 
 :: Starting SMC monitor first.
 START CMD /C "scipcmonitor.exe PERSONAL .db.output"
