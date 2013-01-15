@@ -12,6 +12,15 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
+///********************************************************************************************
+/// Defining IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL
+/// to activate the use of one overflow queue per channel, based on linked lists.
+//#define IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL
+
+#if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL) // Using the new linked list queue overflow() in the channel.
+#else // !defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL) // Using the old obsolete overflow buffer
+#endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL) // Using the new linked list queue overflow() in the channel.
+
 /// Define CONNECTIVITY_MONITOR_SHOW_ACTIVITY in order for the connectivity monitor
 /// to show the activity in shared memory between database(s) and client(s).
 /// It shows resource usage and activity in channels. Only used for debug, it shall
