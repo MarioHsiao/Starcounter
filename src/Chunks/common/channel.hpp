@@ -73,8 +73,16 @@ public:
 	
 	explicit channel(size_type capacity, const allocator_type& alloc
 	= allocator_type())
-	: in(), out(), scheduler_interface_(0), client_interface_(0),
-	server_refs_(0), is_to_be_released_(false) {}
+	: in(),
+	out(),
+	scheduler_interface_(0),
+	client_interface_(0),
+	server_refs_(0),
+	is_to_be_released_(false)
+#if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
+	, overflow_()
+#endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
+	{}
 	
 	void set_scheduler_interface(scheduler_interface_type* i) {
 		scheduler_interface_ = i;
@@ -159,6 +167,158 @@ public:
 	// alignment now.
 	//--------------------------------------------------------------------------
 	
+#if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
+	//--------------------------------------------------------------------------
+	// The queue here is synchronized enough by the operation of the
+	// co-operative scheduler threads. Its purpose is to replaces the other
+	// overflow buffer (in scheduler_interface[s]).
+	
+	class queue {
+	public:
+		typedef chunk_type::link_type link_type;
+
+		enum {
+			link_terminator = chunk_type::link_terminator
+		};
+
+		queue()
+		: front_(link_terminator),
+		back_(link_terminator),
+		chunk_(0) {}
+
+		bool empty() const {
+			return front_ == link_terminator;
+		}
+		
+		/// set_chunk_ptr() stores the address of the first chunk in an array of chunks,
+		/// so that operations on the queue can be done. The address is relative to the thread
+		/// operating on the queue, which is a scheduler thread. A client thread cannot
+		/// use this queue because the address would be incorrect.
+		/**
+		 * @param p The address of chunk[0], in the array of chunks.
+		 */
+		void set_chunk_ptr(chunk_type* p) {
+			chunk_ = p;
+		}
+
+		/// not_empty() returns a reference to the first element in the queue.
+		/**
+		 * @return true if the queue is not empty, false if the queue is empty.
+		 */
+		bool not_empty() const {
+			return front_ != link_terminator;
+		}
+
+		/// front() returns a reference to the first element in the queue.
+		/**
+		 * @return A reference to the first element in the queue.
+		 */
+		link_type& front() {
+			return front_;
+		}
+		
+		/// front() returns a const reference to the first element in the queue.
+		/**
+		 * @return A const reference to the first element in the queue.
+		 */
+		const link_type& front() const {
+			return front_;
+		}
+
+		/// back() returns a reference to the last element in the queue.
+		/**
+		 * @return A reference to the last element in the queue.
+		 */
+		link_type& back() {
+			return back_;
+		}
+
+		/// back() returns a const reference to the last element in the queue.
+		/**
+		 * @return A const reference to the last element in the queue.
+		 */
+		const link_type& back() const {
+			return back_;
+		}
+
+		/// push_back() will push_back chunk(n) at the end of the overflow queue.
+		/**
+		 * @param n Link to the chunk that shall be pushed into the overflow
+		 *		queue.
+		 */
+		void push(link_type n) {
+			if (not_empty()) {
+				chunk(back()).set_next(n);
+				back_ = n;
+			}
+			else {
+				front_ = n;
+				//back_ = n;
+			}
+		}
+
+		/// pop_front() will pop_front chunk(n) at the end of the overflow queue.
+		/**
+		 * @param n A reference to the link that will point to the popped chunk
+		 *		if returning true.
+		 * @return true if successfully popped an item from the queue,
+		 *		false otherwise.
+		 */
+		void pop() {
+			if (not_empty()) {
+				link_type temp_front = chunk(front()).get_next();
+				chunk(front()).terminate_next();
+				front_ = temp_front;
+			}
+
+			// The queue is empty, nothing to pop.
+		}
+
+		/// print() show the list as a tree. This is only used for debug.
+		/// However, when using this, synchronization is needed so that
+		/// scheduler's are not modifying the queue while it is printed.
+		void print() const {
+			for (link_type next = front_; next != link_terminator; next = chunk(back()).extended()) {
+				std::cout << "(";
+				for (link_type extended = front_; extended != link_terminator; extended = chunk(back()).extended()) {
+					std::cout << i << ", ";
+				}
+				std::cout << "),\n";
+			}
+		}
+
+	private:
+		// Returns a reference to chunk[n] relative to the scheduler process
+		// address space, so only the scheduler process that manages this
+		// channel can use it.
+		chunk_type& chunk(chunk_index n) {
+			return chunk_[n];
+		}
+
+		link_type front_;
+		link_type back_;
+
+		// chunk_ is a pointer relative to the scheduler process address space, so
+		// only the scheduler process that manages this channel can use it.
+		chunk_type* chunk_;
+	};
+	
+	queue& overflow() {
+		return overflow_;
+	}
+
+	const queue& overflow() const {
+		return overflow_;
+	}
+	
+	// During initialization of the channel, the chunk pointer
+	// is set relative to the scheduler process address space, so
+	// only the scheduler process that manages this channel can use it.
+	void set_chunk_ptr(chunk_type* p) {
+		overflow().set_chunk_ptr(p);
+	}
+#endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
+
 private:
 	// Here we are already aligned on a cache-line. The owner_id,
 	// client_interface_ and scheduler_interface_ are written only when
@@ -194,6 +354,14 @@ private:
 	+sizeof(client_number) // client_number_
 	+sizeof(bool) // is_to_be_released_
 	) % CACHE_LINE_SIZE];
+
+#if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
+	queue overflow_;
+
+	char cache_line_pad_1_[CACHE_LINE_SIZE -(
+	+sizeof(queue) // overflow_
+	) % CACHE_LINE_SIZE];
+#endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
 };
 
 typedef simple_shared_memory_allocator<chunk_index> shm_alloc_for_the_channels2;
