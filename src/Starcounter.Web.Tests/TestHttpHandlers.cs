@@ -123,6 +123,7 @@ namespace Starcounter.Internal.Test {
             });
 
             GET("/aaaaa/{?}/bbbb", (int v) => {
+                Assert.AreEqual(90510, v);
                 return null;
             });
 
@@ -141,6 +142,22 @@ namespace Starcounter.Internal.Test {
             GET("/whatmore/{?}/xxZx/{?}", (string v1, int v2) => {
                 Assert.AreEqual("abrakadabra", v1);
                 Assert.AreEqual(911, v2);
+                return null;
+            });
+
+            GET("/test-decimal/{?}", (decimal val) => {
+                return null;
+            });
+
+            GET("/test-double/{?}", (double val) => {
+                return null;
+            });
+
+            GET("/test-bool/{?}", (bool val) => {
+                return null;
+            });
+
+            GET("/test-datetime/{?}", (DateTime val) => {
                 return null;
             });
 
@@ -174,6 +191,7 @@ namespace Starcounter.Internal.Test {
                 Console.WriteLine("deleteAll");
                 return null;
             });
+
         }
 
         [Test]
@@ -265,6 +283,11 @@ namespace Starcounter.Internal.Test {
             byte[] h21 = Encoding.UTF8.GetBytes("GET /whatever/apapapa/more/5547/KalleKula\r\n\r\n");
             byte[] h22 = Encoding.UTF8.GetBytes("POST /find-player?firstname=Kalle&lastname=Kula&age=19\r\n\r\n");
             byte[] h23 = Encoding.UTF8.GetBytes("GET /aaaaa/90510/bbbb\r\n\r\n");
+
+            byte[] h24 = Encoding.UTF8.GetBytes("GET /test-decimal/99.123\r\n\r\n");
+            byte[] h25 = Encoding.UTF8.GetBytes("GET /test-double/99.123\r\n\r\n");
+            byte[] h26 = Encoding.UTF8.GetBytes("GET /test-bool/true\r\n\r\n");
+            byte[] h27 = Encoding.UTF8.GetBytes("GET /test-datetime/2013-01-17\r\n\r\n");
             
             // URI's that should fail due to verification or parse error.
             byte[] h501 = Encoding.UTF8.GetBytes("GET /whatever/abrakadabra/xaYx/911\r\n\r\n");     // xaYx -> xxYx
@@ -296,7 +319,7 @@ namespace Starcounter.Internal.Test {
             // TODO:
             // The ParseInt function does not verify that the specified string
             // is numbers or not, needs to be fixed.
-//            Assert.True(um.Invoke(new HttpRequest(h12), out resource));
+            //            Assert.True(um.Invoke(new HttpRequest(h12), out resource));
 
             Assert.True(um.Invoke(new HttpRequest(h13), out resource));
             Assert.True(um.Invoke(new HttpRequest(h14), out resource));
@@ -309,7 +332,11 @@ namespace Starcounter.Internal.Test {
             Assert.True(um.Invoke(new HttpRequest(h21), out resource));
             Assert.True(um.Invoke(new HttpRequest(h21), out resource));
             Assert.True(um.Invoke(new HttpRequest(h22), out resource));
-//            Assert.True(um.Invoke(new HttpRequest(h23), out resource));
+//            Assert.True(um.Invoke(new HttpRequest(h23), out resource)); // Value is wrong due to verification needed after parsing.
+            Assert.True(um.Invoke(new HttpRequest(h24), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h25), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h26), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h27), out resource));
 
             // TODO: 
             // Add more failing uri's
@@ -317,7 +344,7 @@ namespace Starcounter.Internal.Test {
             // Test URI's that should fail.
             Assert.False(um.Invoke(new HttpRequest(h501), out resource));
             Assert.False(um.Invoke(new HttpRequest(h502), out resource));
-//            Assert.False(um.Invoke(new HttpRequest(h503), out resource));
+//            Assert.False(um.Invoke(new HttpRequest(h503), out resource)); // Handler called even though not correct uri -> verification after parse needed.
 
         }
 
