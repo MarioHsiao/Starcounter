@@ -73,7 +73,7 @@ namespace BuildsFillupDaemon
                 // Setting all needed build environment variables.
                 Environment.SetEnvironmentVariable("Configuration", configuration);
                 Environment.SetEnvironmentVariable("Platform", platform);
-                Environment.SetEnvironmentVariable("BUILD_NUMBER", version);
+                Environment.SetEnvironmentVariable(BuildSystem.BuildNumberEnvVar, version);
                 Environment.SetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar, sourcesDir);
                 Environment.SetEnvironmentVariable(BuildSystem.BuildOutputEnvVar, Path.Combine(sourcesDir, BuildSystem.CommonDefaultBuildOutputPath));
                 Environment.SetEnvironmentVariable("SC_BUILD_SOURCES_PATH", Path.Combine(sourcesDir, @"Yellow\Src"));
@@ -89,7 +89,7 @@ namespace BuildsFillupDaemon
                 // Checking that all needed variables are defined.
                 if (!BuildSystem.AllEnvVariablesExist(new String[] { "Configuration",
                                                                      "Platform",
-                                                                     "BUILD_NUMBER",
+                                                                     BuildSystem.BuildNumberEnvVar,
                                                                      BuildSystem.CheckOutDirEnvVar,
                                                                      BuildSystem.BuildOutputEnvVar,
                                                                      "SC_BUILD_SOURCES_PATH",
