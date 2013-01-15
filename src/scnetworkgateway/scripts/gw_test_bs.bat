@@ -28,9 +28,9 @@ CMD /C "kill_all.bat" 2>NUL
 :: Checking if everything is pre-created.
 IF NOT EXIST .db ( MKDIR .db )
 IF NOT EXIST .db.output ( MKDIR .db.output )
-CMD /C "timeout 1"
+CMD /C "timeout 1" 2>NUL
 
-:: Starting SMC monitor first.
+:: Starting IPC monitor first.
 START CMD /C "scipcmonitor.exe PERSONAL .db.output"
 
 :: Starting database with some delay.
