@@ -54,6 +54,7 @@
     <Compile Include="ABCIPC\Server.cs" />
     <Compile Include="CommandLine\CommandLineStringParser.cs" />
     <Compile Include="CommandLine\InvalidCommandLineException.cs" />
+    <Compile Include="Constants\Constants.cs" />
     <Compile Include="Diagnostics.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="ErrorHandling\ErrorCode.cs" />

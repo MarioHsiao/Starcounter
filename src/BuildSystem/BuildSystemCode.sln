@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DaemonObserver", "DaemonObs
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WikiErrorCodes", "WikiErrorCodes\WikiErrorCodes.csproj", "{56CD2176-A48A-426D-8916-24146DB0AEAF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PackArtifactsAndUpload", "PackArtifactsAndUpload\PackArtifactsAndUpload.csproj", "{729F7148-376A-4E7F-BC73-E3339371D9D0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|AnyCPU = Debug|AnyCPU
@@ -73,6 +75,10 @@ Global
 		{56CD2176-A48A-426D-8916-24146DB0AEAF}.Debug|AnyCPU.Build.0 = Debug|Any CPU
 		{56CD2176-A48A-426D-8916-24146DB0AEAF}.Release|AnyCPU.ActiveCfg = Release|Any CPU
 		{56CD2176-A48A-426D-8916-24146DB0AEAF}.Release|AnyCPU.Build.0 = Release|Any CPU
+		{729F7148-376A-4E7F-BC73-E3339371D9D0}.Debug|AnyCPU.ActiveCfg = Debug|Any CPU
+		{729F7148-376A-4E7F-BC73-E3339371D9D0}.Debug|AnyCPU.Build.0 = Debug|Any CPU
+		{729F7148-376A-4E7F-BC73-E3339371D9D0}.Release|AnyCPU.ActiveCfg = Release|Any CPU
+		{729F7148-376A-4E7F-BC73-E3339371D9D0}.Release|AnyCPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

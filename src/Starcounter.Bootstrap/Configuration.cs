@@ -10,13 +10,11 @@ using System;
 
 namespace StarcounterInternal.Bootstrap
 {
-
     /// <summary>
     /// Basic host configuration.
     /// </summary>
     public class Configuration
     {
-
         /// <summary>
         /// Loads the specified program arguments.
         /// </summary>
@@ -31,7 +29,7 @@ namespace StarcounterInternal.Bootstrap
         /// Gets or sets the program arguments.
         /// </summary>
         /// <value>The program arguments.</value>
-        private ApplicationArguments ProgramArguments { get; set; }
+        public ApplicationArguments ProgramArguments { get; set; }
 
         /// <summary>
         /// Gets the scheduler count.

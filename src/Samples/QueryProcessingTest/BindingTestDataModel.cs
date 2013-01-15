@@ -34,8 +34,22 @@ public class commonclass : Entity {
     public int NoNamespaceProperty;
 }
 
-public class nonameclass : Entity {
+public class nonamespaceclass : Entity {
     public decimal DecimalProperty;
 }
 
 // Add another namespace with common class inside
+
+namespace QueryProcessingTest.CamelNameSpace.AName {
+    public class CommonClass : Entity {
+        public int CamelIntProperty;
+    }
+
+    public class lowercasecommonclass : Entity {
+        public string StringProperty;
+    }
+
+    public class LongNameCamelClass : Entity {
+        public decimal DecimalProperty;
+    }
+}

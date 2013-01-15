@@ -16,7 +16,7 @@ namespace Starcounter.Server {
     /// connection monitor (primarily just starting it).
     /// </summary>
     internal sealed class SharedMemoryMonitor {
-        internal const string ExecutableFileName = "scipcmonitor.exe";
+        internal const string ExecutableFileName = StarcounterConstants.ProgramNames.ScIpcMonitor + ".exe";
         readonly ServerEngine engine;
 
         /// <summary>
