@@ -53,6 +53,11 @@ namespace Starcounter.Internal.Weaver {
         private readonly InstructionWriter _writer = new InstructionWriter();
 
         /// <summary>
+        /// Attributes that are synonyms, mapped to their target field (by name).
+        /// </summary>
+        private readonly Dictionary<DatabaseAttribute, string> _synonymousToAttributes = new Dictionary<DatabaseAttribute, string>();
+
+        /// <summary>
         /// The _forbidden assemblies
         /// </summary>
         private readonly String[] _forbiddenAssemblies = new[] {
@@ -106,6 +111,10 @@ namespace Starcounter.Internal.Weaver {
         /// The _DB object type
         /// </summary>
         private ITypeSignature _dbObjectType;
+        /// <summary>
+        /// The type corresponding to the SynonymousToAttribute .NET type.
+        /// </summary>
+        private IType _synonymousToAttributeType;
 
         /// <summary>
         /// Gets the <see cref="DatabaseSchema" /> for the current application.
@@ -541,7 +550,8 @@ namespace Starcounter.Internal.Weaver {
                 _entityType = FindStarcounterType(typeof(Entity));
                 _dbObjectType = FindStarcounterType(typeof(Entity));
                 _notPersistentAttributeType = FindStarcounterType(typeof(NotPersistentAttribute));
-                
+                _synonymousToAttributeType = FindStarcounterType(typeof(SynonymousToAttribute));
+
                 // Set up dependencies for this assembly.
                 // First assure we add dependencies recursively, starting from the
                 // module currently being analyzed. Then add references to the
@@ -570,6 +580,11 @@ namespace Starcounter.Internal.Weaver {
                         }
                     }
                 }
+
+                // Process all synonyms we have detected and make sure they map
+                // to attributes that we can find and materialize.
+
+                ProcessSynonymousToAttributes();
 
                 // Now that the schema is complete, validate it.
 
@@ -607,7 +622,14 @@ namespace Starcounter.Internal.Weaver {
                         if (databaseEntityClass != null) {
                             ValidateEntityClass(databaseEntityClass);
                         }
+
+                        // Validate attributes of this class.
+                        foreach (DatabaseAttribute databaseAttribute in dbc.Attributes) {
+                            ValidateDatabaseAttribute(databaseAttribute);
+                        }
                     }
+
+                    ValidateCustomAttributeUsage();
                 }
 
                 // If there was some error, return at this point.
@@ -615,6 +637,8 @@ namespace Starcounter.Internal.Weaver {
                     return false;
                 }
             }
+
+            ConvertIndirectSynonymsToDirectSynonyms();
 
             // Save the assembly to a file.
 
@@ -665,25 +689,6 @@ namespace Starcounter.Internal.Weaver {
             StringBuilder builder = new StringBuilder(100);
             type.WriteReflectionName(builder, ReflectionNameOptions.None);
             return builder.ToString();
-        }
-
-        /// <summary>
-        /// Emit errors if Starcounter custom attributes have been used on unexpected
-        /// declaration.
-        /// </summary>
-        /// <remarks>This method is called after the discovery, so we apply the rule: if the
-        /// custom attribute was not discovered by the discovery process, it's because
-        /// it is used improperly.</remarks>
-        private void ValidateCustomAttributeUsage() {
-            AnnotationRepositoryTask annotationRepositoryTask;
-//            DatabaseAttribute databaseAttribute;
-//            DatabaseClass databaseClass;
-//            FieldDefDeclaration field;
-            
-            // Inspect that custom attributes were used were it makes sense.
-#pragma warning disable 612
-            annotationRepositoryTask = AnnotationRepositoryTask.GetTask(Project);
-#pragma warning restore 612
         }
 
         #endregion
@@ -869,6 +874,165 @@ namespace Starcounter.Internal.Weaver {
                                                "SCDCV02",
                                                new Object[] { databaseClass.Name });
 #pragma warning restore 618
+            }
+        }
+
+        /// <summary>
+        /// Validates a database attribute.
+        /// </summary>
+        /// <param name="databaseAttribute">The database attribute.</param>
+        private static void ValidateDatabaseAttribute(DatabaseAttribute databaseAttribute) {
+            DatabaseAttribute synonymTo;
+            FieldAttributes fieldVisibility;
+            FieldAttributes targetVisibility;
+            FieldDefDeclaration fieldDef;
+            FieldDefDeclaration synonymFieldDef;
+
+            if (databaseAttribute.AttributeKind == DatabaseAttributeKind.PersistentField) {
+                if (databaseAttribute.SynonymousTo != null) {
+                    synonymTo = databaseAttribute.SynonymousTo;
+
+                    // The target attribute should be a persistent field.
+                    if (synonymTo.AttributeKind != DatabaseAttributeKind.PersistentField) {
+                        ScMessageSource.WriteError(
+                            MessageLocation.Of(databaseAttribute),
+                            Error.SCERRSYNTARGETNOTPERSISTENT,
+                            string.Format("{0}.{1}, synonymous to {2}.{3}", 
+                            databaseAttribute.DeclaringClass.Name, 
+                            databaseAttribute.Name, synonymTo.
+                            DeclaringClass.Name,
+                            synonymTo.Name)
+                            );
+                    } else {
+                        // When a field is decorated with the [SynonymousTo] custom attribute
+                        // and if the target field is in a different type as the current field,
+                        // the target field should be assignable from the current field.
+                        // If field types are intrinsic, both types should match exactly.
+                        fieldDef = databaseAttribute.GetFieldDefinition();
+                        synonymFieldDef = synonymTo.GetFieldDefinition();
+
+                        if ((!fieldDef.FieldType.BelongsToClassification(TypeClassifications.ValueType)
+                            && !(synonymFieldDef.FieldType.IsAssignableTo(fieldDef.FieldType)
+                            || fieldDef.FieldType.IsAssignableTo(synonymFieldDef.FieldType)))
+                            || (fieldDef.FieldType.BelongsToClassification(TypeClassifications.ValueType)
+                            && fieldDef.FieldType != synonymFieldDef.FieldType)) {
+                            
+                            ScMessageSource.WriteError(
+                                MessageLocation.Of(databaseAttribute),
+                                Error.SCERRSYNTYPEMISMATCH,
+                                string.Format("{0}.{1}, synonymous to {2}.{3}",
+                                databaseAttribute.DeclaringClass.Name,
+                                databaseAttribute.Name,
+                                synonymTo.DeclaringClass.Name,
+                                synonymTo.Name));
+                        }
+
+                        if (synonymTo.DeclaringClass != databaseAttribute.DeclaringClass) {
+                            targetVisibility = synonymFieldDef.Attributes
+                                                    & FieldAttributes.FieldAccessMask;
+                            fieldVisibility = fieldDef.Attributes
+                                                    & FieldAttributes.FieldAccessMask;
+
+                            // When a field is decorated with the [SynonymousTo] custom attribute,
+                            // and if the target field is in a different type as the current field,
+                            // the target field may not be private.
+                            if (targetVisibility == FieldAttributes.Private) {
+                                ScMessageSource.WriteError(
+                                    MessageLocation.Of(databaseAttribute),
+                                    Error.SCERRSYNVISIBILITYMISMATCH,
+                                    string.Format("Field {0}.{1}, synonymous to external, private field.",
+                                    databaseAttribute.DeclaringClass.Name,
+                                    databaseAttribute.Name));
+                            }
+
+                            // When a field is decorated with the [SynonymousTo] custom attribute,
+                            // the field should not have larger visibility as the target field.
+                            // Amazingly,  values of the FieldAttributes for visibility are sorted 
+                            // in the correct order.
+                            if ((int)fieldVisibility > (int)targetVisibility) {
+                                ScMessageSource.WriteError(
+                                    MessageLocation.Of(databaseAttribute),
+                                    Error.SCERRSYNVISIBILITYMISMATCH,
+                                    string.Format("Field {0}.{1}, synonymous to {2}.{3}",
+                                    databaseAttribute.DeclaringClass.Name,
+                                    databaseAttribute.Name,
+                                    synonymTo.DeclaringClass.Name,
+                                    synonymTo.Name));
+                            }
+
+                            // When a field is decorated with the [SynonymousTo] custom attribute
+                            // and the target field is in a different type than the current field,
+                            // and the target field is read-only, the synonym field must be read
+                            // only as well.
+                            if ((synonymFieldDef.Attributes & FieldAttributes.InitOnly) != 0
+                                    && (fieldDef.Attributes & FieldAttributes.InitOnly) == 0) {
+                                
+                                ScMessageSource.WriteError(
+                                    MessageLocation.Of(databaseAttribute),
+                                    Error.SCERRSYNREADONLYMISMATCH,
+                                    string.Format("Field {0}.{1}, synonymous to {2}.{3}",
+                                    databaseAttribute.DeclaringClass.Name,
+                                    databaseAttribute.Name,
+                                    synonymTo.DeclaringClass.Name,
+                                    synonymTo.Name));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Emit errors if Starcounter custom attributes have been used on unexpected
+        /// declaration.
+        /// </summary>
+        /// <remarks>
+        /// This method is called after the discovery, so we apply the rule: if the
+        /// custom attribute was not discovered by the discovery process, it's because
+        /// it is used improperly.
+        /// </remarks>
+        private void ValidateCustomAttributeUsage() {
+            AnnotationRepositoryTask annotationRepositoryTask;
+            DatabaseAttribute databaseAttribute;
+            DatabaseClass databaseClass;
+            FieldDefDeclaration field;
+            IEnumerator<IAnnotationInstance> synonymToEnumerator;
+            TypeDefDeclaration synoTypeDef = _synonymousToAttributeType.GetTypeDefinition();
+
+            // Inspect that custom attributes were used were it makes sense.
+#pragma warning disable 612
+            annotationRepositoryTask = AnnotationRepositoryTask.GetTask(Project);
+#pragma warning restore 612
+
+            // Check "Synonym" custom attributes (must be on a persistent database field).
+            synonymToEnumerator = annotationRepositoryTask.GetAnnotationsOfType(synoTypeDef, false);
+
+            while (synonymToEnumerator.MoveNext()) {
+                field = synonymToEnumerator.Current.TargetElement as FieldDefDeclaration;
+                if (field != null) {
+                    databaseClass = DatabaseSchema.FindDatabaseClass(GetTypeReflectionName(field.DeclaringType));
+                } else {
+                    databaseClass = null;
+                }
+
+                if (databaseClass == null
+                        || (databaseAttribute = databaseClass.Attributes[field.Name]) == null
+                        || !databaseAttribute.IsPersistent) {
+
+                            ErrorCode.ToMessage(Error.SCERRUNSPECIFIED);
+                    
+                    ScMessageSource.WriteError(
+                                MessageLocation.Of(synonymToEnumerator.Current.TargetElement),
+                                Error.SCERRUNSPECIFIED,
+                                "Hej");
+#pragma warning disable 618
+                    //ScMessageSource.Instance.Write(
+                    //    SeverityType.Error,
+                    //    "SCPFV16",
+                    //    new Object[] { synonymToEnumerator.Current.TargetElement.ToString() }
+                    //    );
+#pragma warning restore 618
+                }
             }
         }
 
@@ -1337,8 +1501,17 @@ namespace Starcounter.Internal.Weaver {
                 // When the field is not persistent, we don't care about its type.
                 databaseAttribute.AttributeType = new DatabaseUnsupportedType(field.FieldType.ToString());
             } else {
+                
                 // Check the attribute type.
                 SetDatabaseAttributeType(field, databaseAttribute.IsPersistent, databaseAttribute);
+                
+                // Check if it's a synonym and if so, record it as such for
+                // later processing.
+
+                CustomAttributeDeclaration synonymToAttribute = field.CustomAttributes.GetOneByType(this._synonymousToAttributeType);
+                if (synonymToAttribute != null) {
+                    this._synonymousToAttributes.Add(databaseAttribute, (string)synonymToAttribute.ConstructorArguments[0].Value.GetRuntimeValue());
+                }
             }
             databaseAttribute.IsPublicRead = field.IsPublic();
         }
@@ -1403,6 +1576,68 @@ namespace Starcounter.Internal.Weaver {
         //        }
         //    }
         //}
+
+        /// <summary>
+        /// Go through all detected and recorded synonym declarations and materialize
+        /// the target, by fetching the attribute using the target name.
+        /// </summary>
+        private bool ProcessSynonymousToAttributes() {
+            int errorCount = 0;
+
+            foreach (KeyValuePair<DatabaseAttribute, string> pair in _synonymousToAttributes) {
+                DatabaseAttribute databaseAttribute = pair.Key;
+                string targetFieldName = pair.Value;
+                ScAnalysisTrace.Instance.WriteLine(
+                    "ProcessSynonymousToAttributes: processing [SynonymTo] for {0}.{1}.",
+                    databaseAttribute.DeclaringClass.Name, databaseAttribute.Name);
+                
+                DatabaseAttribute targetAttribute = databaseAttribute.DeclaringClass.FindAttributeInAncestors(targetFieldName);
+                if (targetAttribute == null) {
+                    // The target field could not be found.
+                    ScMessageSource.WriteError(
+                        MessageLocation.Of(databaseAttribute),
+                        Error.SCERRSYNNOTARGET,
+                        string.Format("Field {0}.{1}, synonymous to missing field \"{2}\".",
+                        databaseAttribute.DeclaringClass.Name,
+                        databaseAttribute.Name,
+                        targetFieldName)
+                        );
+                    errorCount++;
+
+                } else {
+                    databaseAttribute.SynonymousTo = targetAttribute;
+                }
+            }
+
+            return errorCount > 0;
+        }
+
+        /// <summary>
+        /// Convert all indirect synonyms, i.e. synonyms to synonyms, to direct
+        /// ones, i.e. synonym to fields.
+        /// </summary>
+        private void ConvertIndirectSynonymsToDirectSynonyms() {
+            foreach (DatabaseAttribute databaseAttribute in _synonymousToAttributes.Keys) {
+                List<DatabaseAttribute> chain = new List<DatabaseAttribute>();
+                DatabaseAttribute targetAttribute = databaseAttribute.SynonymousTo;
+                while (targetAttribute.SynonymousTo != null) {
+                    if (chain.Contains(targetAttribute)) {
+#pragma warning disable 618
+                        ScMessageSource.Instance.Write(SeverityType.Error, "SCPFV22",
+                                                       new object[]
+                    {
+                        databaseAttribute.DeclaringClass.Name,
+                        databaseAttribute.Name
+                    });
+#pragma warning restore 618
+                        break;
+                    }
+                    chain.Add(targetAttribute);
+                    targetAttribute = targetAttribute.SynonymousTo;
+                }
+                databaseAttribute.SynonymousTo = targetAttribute;
+            }
+        }
 
         /// <summary>
         /// Inspects a reflection <see cref="PropertyInfo" /> and builds the corresponding schema object
