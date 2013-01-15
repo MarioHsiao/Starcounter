@@ -146,18 +146,24 @@ namespace Starcounter.Internal.Test {
             });
 
             GET("/test-decimal/{?}", (decimal val) => {
+                Assert.AreEqual(99.123m, val);
                 return null;
             });
 
             GET("/test-double/{?}", (double val) => {
+                Assert.AreEqual(99.123d, val);
                 return null;
             });
 
             GET("/test-bool/{?}", (bool val) => {
+                Assert.AreEqual(true, val);
                 return null;
             });
 
             GET("/test-datetime/{?}", (DateTime val) => {
+                DateTime expected;
+                DateTime.TryParse("2013-01-17", out expected);
+                Assert.AreEqual(expected, val);
                 return null;
             });
 
@@ -293,6 +299,10 @@ namespace Starcounter.Internal.Test {
             byte[] h501 = Encoding.UTF8.GetBytes("GET /whatever/abrakadabra/xaYx/911\r\n\r\n");     // xaYx -> xxYx
             byte[] h502 = Encoding.UTF8.GetBytes("PUT /plaiers/123\r\n\r\n");  // plaiers -> players
             byte[] h503 = Encoding.UTF8.GetBytes("GET /aaaaa/90510/DDDD\r\n\r\n"); // DDDD -> bbbb
+            byte[] h504 = Encoding.UTF8.GetBytes("GET /test-decimal/DDDD\r\n\r\n"); // DDDD -> Not a decimal value
+            byte[] h505 = Encoding.UTF8.GetBytes("GET /test-double/DDDD\r\n\r\n"); // DDDD -> Not a double value
+            byte[] h506 = Encoding.UTF8.GetBytes("GET /test-datetime/DDDD\r\n\r\n"); // DDDD -> Not a datetime value
+            byte[] h507 = Encoding.UTF8.GetBytes("GET /test-bool/DDDD\r\n\r\n"); // DDDD -> Not a boolean value
 
             Main();
 
@@ -319,7 +329,7 @@ namespace Starcounter.Internal.Test {
             // TODO:
             // The ParseInt function does not verify that the specified string
             // is numbers or not, needs to be fixed.
-            //            Assert.True(um.Invoke(new HttpRequest(h12), out resource));
+//            Assert.True(um.Invoke(new HttpRequest(h12), out resource));
 
             Assert.True(um.Invoke(new HttpRequest(h13), out resource));
             Assert.True(um.Invoke(new HttpRequest(h14), out resource));
@@ -345,6 +355,10 @@ namespace Starcounter.Internal.Test {
             Assert.False(um.Invoke(new HttpRequest(h501), out resource));
             Assert.False(um.Invoke(new HttpRequest(h502), out resource));
 //            Assert.False(um.Invoke(new HttpRequest(h503), out resource)); // Handler called even though not correct uri -> verification after parse needed.
+            Assert.False(um.Invoke(new HttpRequest(h504), out resource));
+            Assert.False(um.Invoke(new HttpRequest(h505), out resource));
+            Assert.False(um.Invoke(new HttpRequest(h506), out resource));
+            Assert.False(um.Invoke(new HttpRequest(h507), out resource));
 
         }
 
