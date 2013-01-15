@@ -15,7 +15,7 @@
 ///********************************************************************************************
 /// Defining IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL
 /// to activate the use of one overflow queue per channel, based on linked lists.
-//#define IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL
+#define IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL
 
 #if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL) // Using the new linked list queue overflow() in the channel.
 #else // !defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL) // Using the old obsolete overflow buffer
