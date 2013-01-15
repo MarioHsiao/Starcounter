@@ -54,8 +54,8 @@ namespace core {
 typedef uint32_t chunk_index;
 
 
-#if 0 // old chunk layout
-Chunks are currently 32 KiByte.
+#if 0 // current chunk layout
+Chunks are currently 4 KiByte.
 
 byte 0..7 is no longer used:
 +----------------------------------------------------------------------+
@@ -89,15 +89,18 @@ byte 20 +request_size..23 +request_size
 +----------------------------------------------------------------------+
 | Blast2 response message(s).                                          |
 +----------------------------------------------------------------------+
-| 32-bit chunk_index link                                              |
+
+byte 4088..4091:
++----------------------------------------------------------------------+
+| 32-bit chunk_index next_link (-1 = LINK_TERMINATOR)                  |
 +----------------------------------------------------------------------+
 
-byte 32764..32767:
+byte 4092..4095:
 +----------------------------------------------------------------------+
 | 32-bit chunk_index link (-1 = LINK_TERMINATOR)                       |
 +----------------------------------------------------------------------+
 
-#endif // old chunk layout
+#endif // current chunk layout
 
 
 
@@ -114,7 +117,7 @@ byte 8..11:
 | 32-bit request_size                                                  |
 +----------------------------------------------------------------------+
 
-byte 12..32763:
+byte 12..4087:
 +----------------------------------------------------------------------+
 | Blast2 request message(s)                                            |
 +----------------------------------------------------------------------+
@@ -126,7 +129,12 @@ if response(s):
 | Blast2 response message(s)                                           |
 +----------------------------------------------------------------------+
 
-byte 32764..32767:
+byte 4088..4091:
++----------------------------------------------------------------------+
+| 32-bit chunk_index next_link (-1 = LINK_TERMINATOR)                  |
++----------------------------------------------------------------------+
+
+byte 4092..4095:
 +----------------------------------------------------------------------+
 | 32-bit chunk_index link (-1 = LINK_TERMINATOR)                       |
 +----------------------------------------------------------------------+
@@ -134,7 +142,7 @@ byte 32764..32767:
 #endif // new chunk layout - not implemented yet
 
 #ifdef _M_X64
-#pragma intrinsic (_InterlockedExchange64)
+# pragma intrinsic (_InterlockedExchange64)
 #endif
 
 // boost::array is documented here:
@@ -154,27 +162,31 @@ public:
 
 	typedef chunk_index link_type;
 
-    enum {
-        LINK_SIZE = sizeof(link_type),
-        BMX_HANDLER_SIZE = sizeof(bmx_protocol_type),
+	enum {
+		// There are two links: The stream_link, and the next_link.
+		// The links have no pad bytes inbetween.
+		// link_size represents the space required for these two links.
+		link_size = 2 * sizeof(link_type),
+		bmx_handler_size = sizeof(bmx_protocol_type),
 
-        // The last chunk in the chain of 1..N chunks is terminated by setting
-        // the link to LINK_TERMINATOR.
-        LINK_TERMINATOR = -1
-    };
+		// The last chunk in the chain of 1..N chunks is terminated by setting
+		// the link to link_terminator.
+		link_terminator = -1
+	};
 
 	enum {
-		OWNER_ID_BEGIN = 0,
-		USER_DATA_BEGIN = 8,
-		BMX_PROTOCOL_BEGIN = 16,
-		REQUEST_SIZE_BEGIN = BMX_PROTOCOL_BEGIN + BMX_HANDLER_SIZE,
-		LINK_BEGIN = static_size -LINK_SIZE
+		owner_id_begin = 0,
+		user_data_begin = 8,
+		bmx_protocol_begin = 16,
+		request_size_begin = bmx_protocol_begin +bmx_handler_size,
+		stream_link_begin = static_size -link_size,
+		next_link_begin = static_size -(2 * link_size)
 	};
 
 	// header size is constant
 	enum {
 		// Think about padding.
-		STATIC_HEADER_SIZE =
+		static_header_size =
 		+sizeof(owner_id) // to be removed later
 		+sizeof(user_data_type)
 		+sizeof(message_size_type)
@@ -183,8 +195,19 @@ public:
 	
 	// data size is constant
 	enum {
-		STATIC_DATA_SIZE = static_size -STATIC_HEADER_SIZE -LINK_SIZE
+		static_data_size = static_size -static_header_size -link_size,
 	};
+
+	/// TODO: Follow the coding standard - avoid ALL_CAPITAL identifiers.
+	/// Only macros shall use capital letters.
+    enum {
+        LINK_SIZE = link_size,
+        BMX_HANDLER_SIZE = bmx_handler_size,
+        LINK_TERMINATOR = link_terminator,
+		STATIC_DATA_SIZE = static_data_size,
+		STATIC_HEADER_SIZE = static_header_size,
+		REQUEST_SIZE_BEGIN = request_size_begin
+    };
 	
 	/// data_size() returns the number of bytes of the chunks data area. It does
 	/// not take into consideration the amount of data in use.
@@ -193,7 +216,7 @@ public:
 	 *		not including the header data.
 	 */
 	static size_type data_size() {
-		return N -STATIC_HEADER_SIZE;
+		return N -static_header_size;
 	}
 	
 	/// Header operations (synchronized by using atomics)
@@ -207,7 +230,7 @@ public:
 	 * @return A reference to this chunk.
 	 */
 	const chunk& set_owner_id(owner_id oid) {
-		InterlockedExchange64((__int64*)(elems + OWNER_ID_BEGIN), oid.get());
+		InterlockedExchange64((__int64*)(elems +owner_id_begin), oid.get());
 		return *this;
 	}
 	
@@ -216,7 +239,7 @@ public:
 	 * @return The owner_id.
 	 */
 	owner_id get_owner_id() const {
-		return *((owner_id*)(elems + OWNER_ID_BEGIN));
+		return *((owner_id*)(elems +owner_id_begin));
 	}
 	
 	/// set_user_data() writes user_data value to the chunk.
@@ -225,7 +248,7 @@ public:
 	 * @return A reference to this chunk.
 	 */
 	const chunk& set_user_data(user_data_type u) {
-		InterlockedExchange64((__int64*)(elems + USER_DATA_BEGIN), u);
+		InterlockedExchange64((__int64*)(elems +user_data_begin), u);
 		return *this;
 	}
 	
@@ -234,16 +257,15 @@ public:
 	 * @return The owner_id.
 	 */
 	user_data_type get_user_data() const {
-		return *((user_data_type*)(elems + USER_DATA_BEGIN));
+		return *((user_data_type*)(elems +user_data_begin));
 	}
 
 	/**
 	 * @param b The protocol value to write to the chunk.
-	 *
 	 * @return A reference to this chunk.
 	 */
 	const chunk& set_bmx_protocol(bmx_protocol_type b) {
-		(*(bmx_protocol_type*)(elems + BMX_PROTOCOL_BEGIN)) = b;
+		(*(bmx_protocol_type*)(elems +bmx_protocol_begin)) = b;
 		return *this;
 	}
 	
@@ -251,7 +273,7 @@ public:
 	 * @return The bmx protocol type.
 	 */
 	bmx_protocol_type get_bmx_protocol() const {
-		return *((bmx_protocol_type*)(elems + BMX_PROTOCOL_BEGIN));
+		return *((bmx_protocol_type*)(elems +bmx_protocol_begin));
 	}
 	
 	/// set_request_size() writes the request size value to the chunk.
@@ -260,7 +282,7 @@ public:
 	 * @return A reference to this chunk.
 	 */
 	const chunk& set_request_size(message_size_type sz) {
-		InterlockedExchange((LONG*)(elems + REQUEST_SIZE_BEGIN), sz);
+		InterlockedExchange((LONG*)(elems +request_size_begin), sz);
 		return *this;
 	}
 	
@@ -269,7 +291,7 @@ public:
 	 * @return The request size.
 	 */
 	message_size_type get_request_size() const {
-		return *((message_size_type*)(elems + REQUEST_SIZE_BEGIN));
+		return *((message_size_type*)(elems +request_size_begin));
 	}
 	
 	/// set_link() writes a link value to the chunk.
@@ -278,7 +300,7 @@ public:
 	 * @return A reference to this chunk.
 	 */
 	const chunk& set_link(link_type next) {
-		InterlockedExchange((LONG*)(elems + LINK_BEGIN), next);
+		InterlockedExchange((LONG*)(elems +stream_link_begin), next);
 		return *this;
 	}
 	
@@ -287,16 +309,16 @@ public:
 	 * @return The link value of the chunk.
 	 */
 	chunk_index get_link() const {
-		return *((chunk_index*)(elems + LINK_BEGIN));
+		return *((chunk_index*)(elems +stream_link_begin));
 	}
 	
 	/// terminate_link() terminates the link of the chunk.
 	/**
 	 * @return A reference to this chunk.
 	 */
-	const chunk& terminate_link() {
-		InterlockedExchange((LONG*)(elems + LINK_BEGIN),
-		LINK_TERMINATOR);
+	chunk& terminate_link() {
+		InterlockedExchange((LONG*)(elems +stream_link_begin),
+		link_terminator);
 		return *this;
 	}
 	
@@ -306,9 +328,50 @@ public:
 	 *		otherwise.
 	 */
 	bool is_terminated() const {
-		return *((chunk_index*)(elems + LINK_BEGIN))
-		== LINK_TERMINATOR;
+		return *((chunk_index*)(elems +stream_link_begin)) == link_terminator;
 	}
+
+	///-------------------------------------------------------------------------
+	/// NOTE: Operations on next link is done only by a scheduler so no
+	/// synchronization is needed.
+
+	/// set_next() writes the next_ link value to the chunk.
+	/**
+	 * @param next The link value to write, that refers to the next chunk.
+	 * @return A reference to this chunk.
+	 */
+	chunk& set_next(link_type next) {
+		*((chunk_index*)(elems +next_link_begin)) = next;
+		return *this;
+	}
+	
+	/// get_next_link() returns the next_link value of the chunk.
+	/**
+	 * @return The link value of the chunk.
+	 */
+	chunk_index get_next() const {
+		return *((chunk_index*)(elems +next_link_begin));
+	}
+	
+	/// terminate_next_link() terminates the next_link of the chunk.
+	/**
+	 * @return A reference to this chunk.
+	 */
+	const chunk& terminate_next() {
+		*((chunk_index*)(elems +next_link_begin)) = link_terminator;
+		return *this;
+	}
+	
+	/// is_next_terminated() test if the next_link is terminated.
+	/**
+	 * @return true if the next_link value of the chunk is link_terminator,
+	 *		false otherwise.
+	 */
+	bool is_next_terminated() const {
+		return *((chunk_index*)(elems +next_link_begin)) == link_terminator;
+	}
+	
+	///-------------------------------------------------------------------------
 
 	// Idéas:
 	// overload iterators and such, so that they start after the header and
