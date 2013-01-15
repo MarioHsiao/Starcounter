@@ -49,19 +49,32 @@ class GatewayWorker
     // List of reusable connect sockets.
     LinearStack<SOCKET, MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER> reusable_connect_sockets_;
 
-#ifdef GW_LOOPED_TEST_MODE
-    LinearStack<SocketDataChunk*, MAX_TEST_ECHOES> emulated_network_events_queue_;
     int32_t num_created_conns_worker_;
+
+#ifdef GW_LOOPED_TEST_MODE
+    LinearStack<SocketDataChunk*, MAX_TEST_ECHOES> emulated_measured_network_events_queue_;
+    LinearStack<SocketDataChunk*, MAX_TEST_ECHOES> emulated_preparation_network_events_queue_;
 #endif
 
 public:
 
 #ifdef GW_LOOPED_TEST_MODE
 
-    // Pushing given sd to network emulation queue.
-    void PushToNetworkEmulationQueue(SocketDataChunkRef sd)
+    int64_t GetNumberOfPreparationNetworkEvents()
     {
-        emulated_network_events_queue_.PushBack(sd);
+        return emulated_preparation_network_events_queue_.get_num_entries();
+    }
+
+    // Pushing given sd to network emulation queue.
+    void PushToMeasuredNetworkEmulationQueue(SocketDataChunk* sd)
+    {
+        emulated_measured_network_events_queue_.PushBack(sd);
+    }
+
+    // Pushing given sd to network emulation queue.
+    void PushToPreparationNetworkEmulationQueue(SocketDataChunk* sd)
+    {
+        emulated_preparation_network_events_queue_.PushBack(sd);
     }
 
     // Processes looped queue.
@@ -286,9 +299,15 @@ public:
     // Destructor.
     ~GatewayWorker()
     {
-        // Closing IOCP handle.
-        if (worker_iocp_ != g_gateway.get_iocp())
-            CloseHandle(worker_iocp_);
+        // Deleting only necessary stuff.
+        for (int32_t i = 0; i < MAX_ACTIVE_DATABASES; i++)
+        {
+            if (worker_dbs_[i])
+            {
+                delete worker_dbs_[i];
+                worker_dbs_[i] = NULL;
+            }
+        }
     }
 
     // Main worker function.
@@ -400,8 +419,16 @@ public:
 
 #ifdef GW_TESTING_MODE
 
+    int32_t get_num_created_conns_worker()
+    {
+        return num_created_conns_worker_;
+    }
+
     // Sends HTTP echo to master.
     uint32_t SendHttpEcho(SocketDataChunkRef sd, echo_id_type echo_id);
+
+    // Checks if measured test should be started and begins it.
+    void BeginMeasuredTestIfReady();
 
     // Sends raw echo to master.
     uint32_t SendRawEcho(SocketDataChunkRef sd, echo_id_type echo_id);

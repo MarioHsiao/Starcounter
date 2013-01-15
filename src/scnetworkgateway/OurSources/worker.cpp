@@ -12,9 +12,9 @@ namespace starcounter {
 namespace network {
 
 // Mandatory initialization function.
-int32_t GatewayWorker::Init(int32_t newWorkerId)
+int32_t GatewayWorker::Init(int32_t new_worker_id)
 {
-    worker_id_ = newWorkerId;
+    worker_id_ = new_worker_id;
 
     // Creating IO completion port.
     worker_iocp_ = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 1);
@@ -33,7 +33,7 @@ int32_t GatewayWorker::Init(int32_t newWorkerId)
     worker_stats_recv_num_ = 0;
     cur_scheduler_id_ = 0;
 
-#ifdef GW_LOOPED_TEST_MODE
+#ifdef GW_TESTING_MODE
     num_created_conns_worker_ = 0;
 #endif
 
@@ -341,7 +341,7 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_inde
 
 #endif
 
-#ifdef GW_LOOPED_TEST_MODE
+#ifdef GW_TESTING_MODE
     // Updating number of created connections for worker.
     num_created_conns_worker_ += how_many;
 #endif
@@ -447,6 +447,9 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
 #ifdef GW_SOCKET_DIAG
     GW_PRINT_WORKER << "FinishReceive: socket " << sd->get_socket() << ":" << sd->get_chunk_index() << GW_ENDL;
 #endif
+
+    // NOTE: Since we are here means that this socket data represents this socket.
+    GW_ASSERT(true == sd->get_socket_representer_flag());
 
 #ifdef GW_SOCKET_ID_CHECK
     // Checking correct unique socket.
@@ -815,7 +818,7 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd, bo
 #endif
 
     // NOTE: Since we are here means that this socket data represents this socket.
-    GW_ASSERT(sd->get_socket_representer_flag() == true);
+    GW_ASSERT(true == sd->get_socket_representer_flag());
 
     // Stop tracking this socket.
     UntrackSocket(sd->get_db_index(), sd->get_socket());
@@ -867,8 +870,16 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd, bo
 
     if (!g_gateway.setting_is_master())
     {
-        // Performing connect.
-        return Connect(sd, g_gateway.get_server_addr());
+        if (!g_gateway.AllEchoesSent())
+        {
+            // Performing connect.
+            return Connect(sd, g_gateway.get_server_addr());
+        }
+        else
+        {
+            // Do nothing.
+            return 0;
+        }
     }
 
 #endif
@@ -957,12 +968,14 @@ __forceinline uint32_t GatewayWorker::FinishConnect(SocketDataChunkRef sd)
     GW_ASSERT(true == sd->CompareUniqueSocketId());
 #endif
 
+#ifndef GW_LOOPED_TEST_MODE
     // Setting SO_UPDATE_CONNECT_CONTEXT.
     if (setsockopt(sd->get_socket(), SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, NULL, 0))
     {
         GW_PRINT_WORKER << "Can't set SO_UPDATE_CONNECT_CONTEXT on socket." << GW_ENDL;
         return SCERRGWCONNECTEXFAILED;
     }
+#endif
 
     // Since we are proxying this instance represents the socket.
     sd->set_socket_representer_flag(true);
@@ -995,7 +1008,9 @@ __forceinline uint32_t GatewayWorker::FinishConnect(SocketDataChunkRef sd)
     {
         switch (g_gateway.setting_mode())
         {
-            case MODE_GATEWAY_PING:
+            case GatewayTestingMode::MODE_GATEWAY_RAW:
+            case GatewayTestingMode::MODE_GATEWAY_SMC_RAW:
+            case GatewayTestingMode::MODE_GATEWAY_SMC_APPS_RAW:
             {
                 // Checking that not all echoes are sent.
                 if (!g_gateway.AllEchoesSent())
@@ -1006,7 +1021,9 @@ __forceinline uint32_t GatewayWorker::FinishConnect(SocketDataChunkRef sd)
                 break;
             }
             
-            case MODE_GATEWAY_HTTP:
+            case GatewayTestingMode::MODE_GATEWAY_HTTP:
+            case GatewayTestingMode::MODE_GATEWAY_SMC_HTTP:
+            case GatewayTestingMode::MODE_GATEWAY_SMC_APPS_HTTP:
             {
                 // Checking that not all echoes are sent.
                 if (!g_gateway.AllEchoesSent())
@@ -1247,7 +1264,7 @@ uint32_t GatewayWorker::WorkerRoutine()
 
                 // Checking for socket data correctness.
                 GW_ASSERT((sd->get_db_index() >= 0) && (sd->get_db_index() < MAX_ACTIVE_DATABASES));
-                GW_ASSERT(sd->get_socket() < MAX_SOCKET_HANDLE);
+                GW_ASSERT(sd->get_socket() < g_gateway.setting_max_connections());
                 GW_ASSERT(sd->get_chunk_index() != INVALID_CHUNK_INDEX);
 
                 // Checking that socket is valid.
@@ -1383,6 +1400,11 @@ uint32_t GatewayWorker::WorkerRoutine()
         // Checking inactive sessions cleanup (only first worker).
         if ((g_gateway.get_num_sessions_to_cleanup_unsafe()) && (worker_id_ == 0))
             g_gateway.CleanupInactiveSessions(this);
+
+#ifdef GW_TESTING_MODE
+        // Checking if its time to switch to measured test.
+        BeginMeasuredTestIfReady();
+#endif
 
 #ifdef GW_PROFILER_ON
 
@@ -1538,6 +1560,28 @@ uint32_t GatewayWorker::SendPredefinedMessage(
 
 #ifdef GW_TESTING_MODE
 
+// Checks if measured test should be started and begins it.
+void GatewayWorker::BeginMeasuredTestIfReady()
+{
+    if ((!g_gateway.get_started_measured_test()) &&
+        (0 == worker_id_) &&
+#ifdef GW_LOOPED_TEST_MODE
+        (0 == emulated_preparation_network_events_queue_.get_num_entries()) &&
+        (0 == g_gateway.GetNumberOfPreparationNetworkEventsAllWorkers()) &&
+#endif
+        (g_gateway.GetNumberOfCreatedConnectionsAllWorkers() >= g_gateway.setting_num_connections_to_master()))
+    {
+        // Entering global lock.
+        EnterGlobalLock();
+
+        // Starting test measurements.
+        g_gateway.StartMeasuredTest();
+
+        // Leaving global lock.
+        LeaveGlobalLock();
+    }
+}
+
 // Sends HTTP echo to master.
 uint32_t GatewayWorker::SendHttpEcho(SocketDataChunkRef sd, echo_id_type echo_id)
 {
@@ -1545,14 +1589,11 @@ uint32_t GatewayWorker::SendHttpEcho(SocketDataChunkRef sd, echo_id_type echo_id
     GW_PRINT_WORKER << "Sending echo: " << echo_id << GW_ENDL;
 #endif
 
-    // Copying HTTP response.
-    memcpy(sd->get_data_blob(), kHttpEchoRequest, kHttpEchoRequestLength);
-
-    // Inserting number into HTTP ping request.
-    uint64_to_hex_string(echo_id, (char*)sd->get_data_blob() + kHttpEchoRequestInsertPoint, 8, false);
+    // Generating HTTP request.
+    uint32_t http_request_len = g_gateway.GenerateHttpRequest((char*)sd->get_data_blob(), echo_id);
 
     // Sending Ping request to server.
-    return SendPredefinedMessage(sd, NULL, kHttpEchoRequestLength);
+    return SendPredefinedMessage(sd, NULL, http_request_len);
 }
 
 // Sends raw echo to master.
@@ -1573,144 +1614,171 @@ uint32_t GatewayWorker::SendRawEcho(SocketDataChunkRef sd, echo_id_type echo_id)
 
 #ifdef GW_LOOPED_TEST_MODE
 
-    // Processes emulated network operations.
-    bool GatewayWorker::ProcessEmulatedNetworkOperations(OVERLAPPED_ENTRY* fetched_ovls, ULONG* num_fetched_ovls, uint32_t max_fetched)
+// Processes emulated network operations.
+bool GatewayWorker::ProcessEmulatedNetworkOperations(
+    OVERLAPPED_ENTRY* fetched_ovls,
+    ULONG* num_fetched_ovls,
+    uint32_t max_fetched)
+{
+    int32_t num_processed = 0, num_entries_left;
+    uint32_t err_code;
+    SocketDataChunk* sd;
+
+    // Checking if its time to switch to measured test.
+    BeginMeasuredTestIfReady();
+
+    // Iterating over all network operations in queue.
+    if (!g_gateway.get_started_measured_test())
     {
-        int32_t num_processed = 0;
-        uint32_t err_code;
+        num_entries_left = emulated_preparation_network_events_queue_.get_num_entries();
+    }
+    else
+    {
+        GW_ASSERT(0 == emulated_preparation_network_events_queue_.get_num_entries());
 
-        // Iterating over all network operations in queue.
-        while (emulated_network_events_queue_.get_num_entries() && (num_processed < max_fetched))
+        num_entries_left = emulated_measured_network_events_queue_.get_num_entries();
+    }
+
+    // Looping until all entries are processed or we filled given buffer.
+    while ((num_entries_left > 0) && (num_processed < max_fetched))
+    {
+        // Popping latest socket data.
+        if (!g_gateway.get_started_measured_test())
         {
-            // Popping latest socket data.
-            SocketDataChunk* sd = emulated_network_events_queue_.PopFront();
-
-            // Clearing overlapped entry.
-            memset(fetched_ovls + num_processed, 0, sizeof(OVERLAPPED_ENTRY));
-
-            AccumBuffer* accum_buffer = sd->get_accum_buf();
-
-            switch (sd->get_type_of_network_oper())
-            {
-                // ACCEPT finished.
-                case ACCEPT_SOCKET_OPER:
-                {
-                    break;
-                }
-
-                // CONNECT finished.
-                case CONNECT_SOCKET_OPER:
-                {
-                    break;
-                }
-
-                // DISCONNECT finished.
-                case DISCONNECT_SOCKET_OPER:
-                {
-                    break;
-                }
-
-                // SEND finished.
-                case SEND_SOCKET_OPER: // Processing echo response here.
-                {
-                    echo_id_type echo_id = -1;
-
-                    // Executing selected echo response processor.
-                    err_code = g_gateway.get_looped_echo_response_processor()(
-                        (char*)sd->get_data_blob(),
-                        accum_buffer->get_buf_len_bytes(),
-                        &echo_id);
-
-                    GW_ERR_CHECK(err_code);
-
-#ifdef GW_ECHO_STATISTICS
-                    GW_PRINT_WORKER << "Received echo: " << echo_id << GW_ENDL;
-#endif
-
-#ifdef GW_LIMITED_ECHO_TEST
-                    // Confirming received echo.
-                    g_gateway.ConfirmEcho(echo_id);
-#endif
-
-                    // Checking if all echo responses are returned.
-                    if (g_gateway.CheckConfirmedEchoResponses())
-                    {
-                        // Gracefully finishing the test.
-                        g_gateway.ShutdownTest(true);
-                    }
-
-                    // Setting number of bytes sent.
-                    fetched_ovls[num_processed].dwNumberOfBytesTransferred = accum_buffer->get_buf_len_bytes();
-
-                    break;
-                }
-
-                // RECEIVE finished.
-                case RECEIVE_SOCKET_OPER: // Sending echo request here.
-                {
-                    // Checking that not all echoes are sent.
-                    if (!g_gateway.AllEchoesSent())
-                    {
-#ifdef GW_ECHO_STATISTICS
-                        GW_PRINT_WORKER << "Sending echo: " << echo_id << GW_ENDL;
-#endif
-                        // Generating echo number.
-                        echo_id_type new_echo_num = 0;
-
-#ifdef GW_LIMITED_ECHO_TEST
-                        new_echo_num = g_gateway.GetNextEchoNumber();
-#endif
-                        // Executing selected echo request creator.
-                        uint32_t num_request_bytes;
-                        err_code = g_gateway.get_looped_echo_request_creator()(
-                            (char*)sd->get_data_blob(),
-                            new_echo_num,
-                            &num_request_bytes);
-
-                        GW_ERR_CHECK(err_code);
-
-                        // Assigning number of processed bytes.
-                        fetched_ovls[num_processed].dwNumberOfBytesTransferred = num_request_bytes;
-                    }
-                    else
-                    {
-                        // Returning this chunk to database.
-                        WorkerDbInterface *db = GetWorkerDb(sd->get_db_index());
-                        GW_ASSERT(db != NULL);
-
-#ifdef GW_COLLECT_SOCKET_STATISTICS
-                        sd->set_socket_diag_active_conn_flag(false);
-#endif
-
-                        // Returning chunks to pool.
-                        db->ReturnSocketDataChunksToPool(this, sd);
-
-                        // Just jumping to next processing.
-                        continue;
-                    }
-
-                    break;
-                }
-
-                // Unknown operation.
-                default:
-                {
-                    GW_ASSERT(1 == 0);
-                }
-            }
-
-            fetched_ovls[num_processed].lpOverlapped = (LPOVERLAPPED)sd;
-            num_processed++;
+            sd = emulated_preparation_network_events_queue_.PopFront();
+        }
+        else
+        {
+            sd = emulated_measured_network_events_queue_.PopFront();
         }
 
-        // Assigning number of processed operations.
-        *num_fetched_ovls = num_processed;
+        num_entries_left--;
 
-        if (num_processed)
-            return true;
+        // Clearing overlapped entry.
+        memset(fetched_ovls + num_processed, 0, sizeof(OVERLAPPED_ENTRY));
 
-        return false;
+        AccumBuffer* accum_buffer = sd->get_accum_buf();
+
+        switch (sd->get_type_of_network_oper())
+        {
+            // ACCEPT finished.
+            case ACCEPT_SOCKET_OPER:
+            {
+                break;
+            }
+
+            // CONNECT finished.
+            case CONNECT_SOCKET_OPER:
+            {
+                break;
+            }
+
+            // DISCONNECT finished.
+            case DISCONNECT_SOCKET_OPER:
+            {
+                GW_ASSERT(1 == 0);
+                break;
+            }
+
+            // SEND finished.
+            case SEND_SOCKET_OPER: // Processing echo response here.
+            {
+                echo_id_type echo_id = -1;
+
+                // Executing selected echo response processor.
+                err_code = g_gateway.get_looped_echo_response_processor()(
+                    (char*)sd->get_data_blob(),
+                    accum_buffer->get_buf_len_bytes(),
+                    &echo_id);
+
+                GW_ASSERT(0 == err_code);
+
+#ifdef GW_ECHO_STATISTICS
+                GW_PRINT_WORKER << "Received echo: " << echo_id << GW_ENDL;
+#endif
+
+#ifdef GW_LIMITED_ECHO_TEST
+                // Confirming received echo.
+                g_gateway.ConfirmEcho(echo_id);
+#endif
+
+                // Checking if all echo responses are returned.
+                g_gateway.CheckConfirmedEchoResponses(this);
+
+                // Setting number of bytes sent.
+                fetched_ovls[num_processed].dwNumberOfBytesTransferred = accum_buffer->get_buf_len_bytes();
+
+                break;
+            }
+
+            // RECEIVE finished.
+            case RECEIVE_SOCKET_OPER: // Sending echo request here.
+            {
+                // Checking that not all echoes are sent.
+                if (!g_gateway.AllEchoesSent())
+                {
+                    // Generating echo number.
+                    echo_id_type new_echo_num = 0;
+
+#ifdef GW_LIMITED_ECHO_TEST
+                    new_echo_num = g_gateway.GetNextEchoNumber();
+#endif
+
+#ifdef GW_ECHO_STATISTICS
+                    GW_COUT << "Sending echo: " << new_echo_num << GW_ENDL;
+#endif
+
+                    // Executing selected echo request creator.
+                    uint32_t num_request_bytes;
+                    err_code = g_gateway.get_looped_echo_request_creator()(
+                        (char*)sd->get_data_blob(),
+                        new_echo_num,
+                        &num_request_bytes);
+
+                    GW_ASSERT(0 == err_code);
+
+                    // Assigning number of processed bytes.
+                    fetched_ovls[num_processed].dwNumberOfBytesTransferred = num_request_bytes;
+                }
+                else
+                {
+                    // Returning this chunk to database.
+                    WorkerDbInterface *db = GetWorkerDb(sd->get_db_index());
+                    GW_ASSERT(db != NULL);
+
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+                    sd->set_socket_diag_active_conn_flag(false);
+#endif
+
+                    // Returning chunks to pool.
+                    db->ReturnSocketDataChunksToPool(this, sd);
+
+                    // Just jumping to next processing.
+                    continue;
+                }
+
+                break;
+            }
+
+            // Unknown operation.
+            default:
+            {
+                GW_ASSERT(1 == 0);
+            }
+        }
+
+        fetched_ovls[num_processed].lpOverlapped = (LPOVERLAPPED)sd;
+        num_processed++;
     }
+
+    // Assigning number of processed operations.
+    *num_fetched_ovls = num_processed;
+
+    if (num_processed)
+        return true;
+
+    return false;
+}
 
 #endif
 

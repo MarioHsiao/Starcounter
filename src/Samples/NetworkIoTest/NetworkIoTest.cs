@@ -19,19 +19,40 @@ namespace NetworkIoTestApp
 
         static readonly Byte[] kHttpServiceUnavailable = Encoding.ASCII.GetBytes(kHttpServiceUnavailableString);
 
-        /*internal static void Main(String[] args)
-        { 
-            AppsBootstrapper.Bootstrap(80, "c:\\ScOnScWeb\\sc\\www.starcounter.com");
-            RequestHandler.GET("/", null);
-        }*/
-
-        internal static void Main(String[] args)
+        enum TestTypes
         {
-            String db_number_string = Environment.GetEnvironmentVariable("DB_NUMBER"),
-                port_number_string = Environment.GetEnvironmentVariable("DB_PORT");
+            MODE_GATEWAY_HTTP,
+            MODE_GATEWAY_SMC_HTTP,
+            MODE_GATEWAY_SMC_APPS_HTTP,
+            MODE_GATEWAY_SMC_RAW,
+            MODE_WEBSOCKETS_PORT,
+            MODE_STANDARD_BROWSER,
+            MODE_US_WEBSITE
+        }
+
+        static void Main(String[] args)
+        {
+            // Checking if length is correct.
+            if (args.Length != 3)
+                return;
+
+            String db_number_string = args[0].Replace("DbNumber=", ""),
+                port_number_string = args[1].Replace("PortNumber=", ""),
+                test_type_string = args[2].Replace("TestType=", "");
 
             Int32 db_number = 0;
-            UInt16 port_number = 80;
+            TestTypes test_type = TestTypes.MODE_STANDARD_BROWSER;
+            UInt16 port_number = 1235;
+
+            Array test_type_values = Enum.GetValues(typeof(TestTypes));
+            foreach (TestTypes t in test_type_values)
+            {
+                if (test_type_string == t.ToString())
+                {
+                    test_type = t;
+                    break;
+                }
+            }
             
             if (!String.IsNullOrWhiteSpace(db_number_string))
                 db_number = Int32.Parse(db_number_string);
@@ -39,77 +60,124 @@ namespace NetworkIoTestApp
             if (!String.IsNullOrWhiteSpace(port_number_string))
                 port_number = UInt16.Parse(port_number_string);
 
-            RegisterHandlers(db_number, port_number);
+            RegisterHandlers(db_number, port_number, test_type);
         }
 
         // Handlers registration.
-        private static void RegisterHandlers(Int32 db_number, UInt16 port_number)
+        static void RegisterHandlers(Int32 db_number, UInt16 port_number, TestTypes test_type)
         {
             String db_postfix = "_db" + db_number;
             UInt16 handler_id;
+            String handler_uri;
 
-            /*
-            GatewayHandlers.RegisterUriHandler(port_number, "GET /", OnHttpGetRoot, out handlerId);
-            Console.WriteLine("Successfully registered new handler: " + handlerId);
+            switch(test_type)
+            {
+                case TestTypes.MODE_STANDARD_BROWSER:
+                {
+                    handler_uri = "GET /";
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpGetRoot, out handler_id);
+                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
-            GatewayHandlers.RegisterUriHandler(port_number, "POST /", OnHttpPostRoot, out handlerId);
-            Console.WriteLine("Successfully registered new handler: " + handlerId);
+                    handler_uri = "POST /";
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpPostRoot, out handler_id);
+                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
-            GatewayHandlers.RegisterUriHandler(port_number, "/", OnHttpRoot, out handlerId);
-            Console.WriteLine("Successfully registered new handler: " + handlerId);
-            */
+                    handler_uri = "/";
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpRoot, out handler_id);
+                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
-            String handler_uri = "/users" + db_postfix;
-            GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpUsers, out handler_id);
-            Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
+                    handler_uri = "/users" + db_postfix;
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpUsers, out handler_id);
+                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
-            handler_uri = "/echo";
-            GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpEcho, out handler_id);
-            Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
+                    handler_uri = "OPTIONS /";
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpOptions, out handler_id);
+                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
-            handler_uri = "OPTIONS /";
-            GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpOptions, out handler_id);
-            Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
+                    handler_uri = "/session" + db_postfix;
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpSession, out handler_id);
+                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
-            handler_uri = "/session" + db_postfix;
-            GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpSession, out handler_id);
-            Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
+                    handler_uri = "POST /upload";
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpUpload, out handler_id);
+                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
-            handler_uri = "POST /upload";
-            GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpUpload, out handler_id);
-            Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
+                    handler_uri = "/internal-http-request";
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnInternalHttpRequest, out handler_id);
+                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
-            handler_uri = "/internal-http-request";
-            GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnInternalHttpRequest, out handler_id);
-            Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
+                    handler_uri = "GET /download";
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpDownload, out handler_id);
+                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
-            handler_uri = "GET /download";
-            GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpDownload, out handler_id);
-            Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
+                    handler_uri = "/killsession" + db_postfix;
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpKillSession, out handler_id);
+                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
-            handler_uri = "/killsession" + db_postfix;
-            GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpKillSession, out handler_id);
-            Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
+                    handler_uri = "GET /image" + db_postfix;
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpGetImage, out handler_id);
+                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
-            handler_uri = "GET /image" + db_postfix;
-            GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpGetImage, out handler_id);
-            Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
+                    break;
+                }
 
-            GatewayHandlers.RegisterPortHandler((UInt16)(port_number + 1), OnRawPortEcho, out handler_id);
-            Console.WriteLine("Successfully registered new handler: " + handler_id);
+                case TestTypes.MODE_GATEWAY_SMC_HTTP:
+                {
+                    handler_uri = "/smc-http-echo";
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpEcho, out handler_id);
+                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
-            /*
-            RegisterPortHandler(port_number + 2, OnHttpPort, out handlerId);
-            Console.WriteLine("Successfully registered new handler: " + handlerId);
+                    break;
+                }
 
-            RegisterPortHandler(port_number + 3, OnWebSocket, out handlerId);
-            Console.WriteLine("Successfully registered new handler: " + handlerId);
-            */
+                case TestTypes.MODE_GATEWAY_SMC_APPS_HTTP:
+                {
+                    handler_uri = "/smc-http-echo";
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpEcho, out handler_id);
+                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
+                    
+                    break;
+                }
+
+                case TestTypes.MODE_US_WEBSITE:
+                {
+                    AppsBootstrapper.Bootstrap(port_number, "c:\\ScOnScWeb\\sc\\www.starcounter.com");
+                    RequestHandler.GET("/", null);
+
+                    break;
+                }
+
+                case TestTypes.MODE_GATEWAY_SMC_RAW:
+                {
+                    GatewayHandlers.RegisterPortHandler(port_number, OnRawPortEcho, out handler_id);
+                    Console.WriteLine("Successfully registered new handler: " + handler_id);
+
+                    break;
+                }
+
+                case TestTypes.MODE_WEBSOCKETS_PORT:
+                {
+                    GatewayHandlers.RegisterPortHandler(port_number, OnWebSocket, out handler_id);
+                    Console.WriteLine("Successfully registered new handler: " + handler_id);
+
+                    break;
+                }
+
+                case TestTypes.MODE_GATEWAY_HTTP:
+                {
+                    // Do nothing since its purely a gateway test.
+                    Console.WriteLine("Not registering anything, since gateway mode only!");
+
+                    break;
+                }
+            }
         }
 
         private static Boolean OnRawPortEcho(PortHandlerParams p)
         {
-            Debug.Assert(p.DataStream.PayloadSize == 8);
+            if (p.DataStream.PayloadSize != 8)
+                throw new ArgumentOutOfRangeException();
+
             UInt64[] buffer = new UInt64[2];
 
             // Reading incoming echo message.
@@ -117,7 +185,7 @@ namespace NetworkIoTestApp
             buffer[1] = buffer[0];
 
             // Writing back the response.
-            p.DataStream.SendResponse(buffer, 0, buffer.Length << 3);
+            p.DataStream.SendResponse(buffer, 0, 16);
             return true;
         }
 
