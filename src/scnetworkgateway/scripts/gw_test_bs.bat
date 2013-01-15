@@ -33,7 +33,7 @@ IF NOT EXIST .db.output (
 MKDIR .db.output
 )
 
-timeout 1
+::timeout 1
 
 :: Starting SMC monitor first.
 START CMD /C "scipcmonitor.exe PERSONAL .db.output"
