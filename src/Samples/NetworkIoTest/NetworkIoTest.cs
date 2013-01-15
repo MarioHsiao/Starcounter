@@ -30,6 +30,20 @@ namespace NetworkIoTestApp
             MODE_US_WEBSITE
         }
 
+        // Performance related counters.
+        static volatile UInt32 perf_counter = 0;
+        static void PrintPerformanceThread()
+        {
+            while (true)
+            {
+                Thread.Sleep(1000);
+
+                Console.WriteLine("Database-side performance: " + perf_counter + " operations/s.");
+
+                perf_counter = 0;
+            }
+        }
+
         static void Main(String[] args)
         {
             // Checking if length is correct.
@@ -61,6 +75,10 @@ namespace NetworkIoTestApp
                 port_number = UInt16.Parse(port_number_string);
 
             RegisterHandlers(db_number, port_number, test_type);
+
+            // Starting performance statistics thread.
+            Thread perf_thread = new Thread(PrintPerformanceThread);
+            perf_thread.Start();
         }
 
         // Handlers registration.
@@ -186,6 +204,10 @@ namespace NetworkIoTestApp
 
             // Writing back the response.
             p.DataStream.SendResponse(buffer, 0, 16);
+
+            // Counting performance.
+            perf_counter++;
+
             return true;
         }
 
@@ -649,6 +671,9 @@ namespace NetworkIoTestApp
                 // Writing back the error status.
                 p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
             }
+
+            // Counting performance.
+            perf_counter++;
 
             return true;
         }
