@@ -14,7 +14,7 @@
   <WorkersNumber>1</WorkersNumber>
   
   <!-- Maximum number of connections -->
-  <MaxConnections>100000</MaxConnections>
+  <MaxConnections>1000000</MaxConnections>
 
   <!-- Inactive session life time in seconds -->
   <InactiveSessionTimeout>1200</InactiveSessionTimeout>
