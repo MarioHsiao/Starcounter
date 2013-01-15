@@ -140,7 +140,8 @@ public:
 	channel_scan_counter_(0),
 	notify_(false),
 	predicate_(false),
-	client_interface_(0) {
+	client_interface_(0),
+	stat_0_(0) {
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 		if (segment_name != 0) {
 			char work_notify_name[segment_and_notify_name_size];
@@ -531,6 +532,10 @@ public:
 		return owner_id_;
 	}
 
+	int64_t& stat_0() {
+		return stat_0_;
+	}
+
 private:
 	// Condition to wait when all of this scheduler's channels in queues,
 	// and the scheduler channels in queue are empty.
@@ -567,6 +572,8 @@ private:
 	uint64_t client_interface_; // client_interface_type*
 	owner_id owner_id_;
 	char cache_line_pad_5_[CACHE_LINE_SIZE -sizeof(uint64_t)];
+	int64_t stat_0_;
+	char cache_line_pad_6_[CACHE_LINE_SIZE -(1 * sizeof(int64_t))];
 
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	// In order to reduce the time taken to open the work_ event the name is
