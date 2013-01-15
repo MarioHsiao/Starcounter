@@ -19,6 +19,8 @@ namespace NetworkIoTestApp
 
         static readonly Byte[] kHttpServiceUnavailable = Encoding.ASCII.GetBytes(kHttpServiceUnavailableString);
 
+        const String ImagePath = @"c:\github\Level1\src\Samples\NetworkIoTest\image.png";
+
         enum TestTypes
         {
             MODE_GATEWAY_HTTP,
@@ -74,6 +76,13 @@ namespace NetworkIoTestApp
             if (!String.IsNullOrWhiteSpace(port_number_string))
                 port_number = UInt16.Parse(port_number_string);
 
+            // Reading the image file if any.
+            if (File.Exists(ImagePath))
+                ImageBodyBytes = File.ReadAllBytes(ImagePath);
+            else
+                ImageBodyBytes = new Byte[] { (Byte)'N', (Byte)'O', (Byte)'!' };
+
+            // Running handlers registration.
             RegisterHandlers(db_number, port_number, test_type);
 
             // Starting performance statistics thread.
@@ -741,7 +750,7 @@ namespace NetworkIoTestApp
         }
 
         // Loading image file from disk statically.
-        static readonly Byte[] ImageBodyBytes = File.ReadAllBytes(@"c:\github\Level1\src\Samples\NetworkIoTest\image.png");
+        static Byte[] ImageBodyBytes = null;
 
         private static Boolean OnHttpGetImage(HttpRequest p)
         {
