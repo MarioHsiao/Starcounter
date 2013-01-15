@@ -118,6 +118,10 @@ class server_port {
 	owner_id& get_owner_id() {
 		return this_scheduler_interface_->get_owner_id();
 	}
+	
+	int64_t& stat_0() {
+		return this_scheduler_interface_->stat_0();
+	}
 
 public:
 	enum {
@@ -510,6 +514,8 @@ channels_mask; channels_mask &= channels_mask -1) {
 
 unsigned long server_port::get_next_signal_or_task(unsigned int timeout_milliseconds,
 sc_io_event& the_io_event) try {
+	if ((++stat_0() & 131071) == 0) std::cout << "stat_0: " << stat_0() << "\n";
+
 	// The scheduler works with a chunk via the_chunk_index. Of course we may
 	// work with any number of chunks at the same time, but here we only work
 	// with one chunk at any given time.
