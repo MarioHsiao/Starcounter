@@ -511,6 +511,7 @@ channels_mask; channels_mask &= channels_mask -1) {
 
 #endif /// TODO: Test if this method results in a faster scan of the channels.
 //------------------------------------------------------------------------------
+
 unsigned long server_port::get_next_signal_or_task(unsigned int timeout_milliseconds,
 sc_io_event& the_io_event) try {
 	if ((++stat_0() & 131071) == 0) std::cout << "stat_0: " << stat_0() << "\n";
@@ -524,7 +525,6 @@ sc_io_event& the_io_event) try {
 	// push all chunks currently in the overflow buffer first, because it is
 	// more important to send back processed chunks before attempting to receive
 	// chunks to be processed.
-	
 #if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL) // Using the new linked list queue overflow() in the channel.
 	// This is done below where the IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL macro is
 	// defined, when checking the next channels in circular buffer. The
@@ -567,9 +567,9 @@ sc_io_event& the_io_event) try {
             this_scheduler_interface_->overflow_pool().pop_back(&chunk_index_and_channel);
 		}
 	}
+	
 main_processing_loop:
 #endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
-	
 	while (true) {
 		if (this_scheduler_signal_channel_->in.try_pop_back(&the_chunk_index) == true)
 		{
@@ -713,7 +713,7 @@ check_next_channel:
 		
 		// The scheduler has completed a scan of all its channels in queues.
 		this_scheduler_interface_->increment_channel_scan_counter();
-		
+				
 		// In the last scan we did not find any message to process in any of the
 		// channels that this scheduler watches (according to the mask), or in
 		// the in queue of this schedulers channel. Therefore this scheduler
@@ -797,7 +797,7 @@ chunk_index the_chunk_index) {
 	// reference used as shorthand
 	channel_type& the_channel = channel_[the_channel_index];
 	
-#if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
+#if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL) /// PROBLEM?
 	// If the channels overflow queue is empty (assumed), then try to push to
 	// the out queue. If that succeeds (assumed), return. If it fails, the
 	// item is pushed to the overflow queue.
@@ -828,6 +828,7 @@ chunk_index the_chunk_index) {
 		while (!the_channel.overflow().empty()) {
 			if (!the_channel.out.try_push_front(the_channel
 			.overflow().front())) {
+				
 				// Failed to push the item. Not removing it from
 				// the overflow queue.
 				break;
@@ -858,6 +859,7 @@ chunk_index the_chunk_index) {
 	if (this_scheduler_interface_->overflow_pool().empty() &&
         the_channel.out.try_push_front(the_chunk_index)) {
 		// Successfully pushed the response message to the channel.
+
 		return;
 	}
 	else {
@@ -884,7 +886,7 @@ chunk_index the_chunk_index) {
 		return;
 	}
 #endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
-	
+		
 	// call client_interface[the_channel.client_number()].notify();
 }
 
@@ -1188,7 +1190,6 @@ void server_port::release_channel_marked_for_release(channel_number the_channel_
 	///=========================================================================
 	/// Remove chunk indices from the overflow_pool targeted for this channel.
 	///=========================================================================
-
 #if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
 	// Remove chunk indices from the overflow queue in this channel.
 	while (!channel.overflow().empty()) {

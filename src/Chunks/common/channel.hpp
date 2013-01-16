@@ -186,10 +186,6 @@ public:
 		back_(link_terminator),
 		chunk_(0) {}
 
-		bool empty() const {
-			return front_ == link_terminator;
-		}
-		
 		/// set_chunk_ptr() stores the address of the first chunk in an array of chunks,
 		/// so that operations on the queue can be done. The address is relative to the thread
 		/// operating on the queue, which is a scheduler thread. A client thread cannot
@@ -201,12 +197,18 @@ public:
 			chunk_ = p;
 		}
 
-		/// not_empty() returns a reference to the first element in the queue.
+		bool empty() const {
+			return front_ == link_terminator;
+			//return back_ == link_terminator;
+		}
+		
+		/// not_empty() returns true if the queue is not empty, false if the queue is empty.
 		/**
 		 * @return true if the queue is not empty, false if the queue is empty.
 		 */
 		bool not_empty() const {
 			return front_ != link_terminator;
+			//return back_ != link_terminator;
 		}
 
 		/// front() returns a reference to the first element in the queue.
@@ -253,7 +255,8 @@ public:
 			}
 			else {
 				front_ = n;
-				//back_ = n;
+				back_ = n; // not needed!?
+				chunk(back()).set_next(link_terminator); // the caller should do this.
 			}
 		}
 
