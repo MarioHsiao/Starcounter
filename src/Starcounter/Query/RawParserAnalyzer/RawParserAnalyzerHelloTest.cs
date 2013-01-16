@@ -7,6 +7,9 @@ using System.Text;
 using Starcounter;
 using Starcounter.Query.Execution;
 using Starcounter.Query.Optimization;
+using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
+using Starcounter.Binding;
 
 [assembly: InternalsVisibleTo("Starcounter.SqlParser.Tests")]
 namespace Starcounter.Query.RawParserAnalyzer
@@ -174,5 +177,191 @@ namespace Starcounter.Query.RawParserAnalyzer
                 IsOpenParserThread = false;
             }
         }
+
+        internal unsafe void TestAnalyzeSelectStmt(SelectStmt* stmt) {
+            // Read and assert the input tree
+            Debug.Assert(JoinTree == null && WhereCondition == null && VarArray == null, "The variables for the result of analyzer should be reset.");
+            // Let's go through FROM clause first
+            List* fromClause = stmt->fromClause;
+            // Assume only one relation in from clause
+            SQLParserAssert(fromClause->length == 1, "Assuming one relation in from clause only");
+            SQLParserAssert(((Node*)fromClause->head->data.ptr_value)->type == NodeTag.T_RangeVar, "Expected T_RangeVar, but got " + ((Node*)fromClause->head->data.ptr_value)->type.ToString());
+            RangeVar* extent = (RangeVar*)fromClause->head->data.ptr_value;
+            List* selectClause = stmt->targetList;
+            SQLParserAssert(selectClause->length == 1, "Assuming projection of an alias");
+            SQLParserAssert(((Node*)selectClause->head->data.ptr_value)->type == NodeTag.T_ResTarget, "Expected T_ResTarget, but got " + ((Node*)selectClause->head->data.ptr_value)->type.ToString());
+            ResTarget* target = (ResTarget*)selectClause->head->data.ptr_value;
+            SQLParserAssert(target->name == null);
+            SQLParserAssert(target->val->type == NodeTag.T_List, "Expected T_List, but got " + target->val->type.ToString());
+            SQLParserAssert(((List*)target->val)->length == 1, "Expected list with one element - alias access");
+            SQLParserAssert(((Node*)((List*)target->val)->head->data.ptr_value)->type == NodeTag.T_ColumnRef, "Expected T_ColumnRef, but got " +
+                ((Node*)((List*)target->val)->head->data.ptr_value)->type.ToString());
+            ColumnRef* col = (ColumnRef*)((List*)target->val)->head->data.ptr_value;
+            SQLParserAssert(col->name != null, "Assuming alias name");
+            //SQLParserAssert(val->type == NodeTag.T_String, "Expected T_String, but got " + val->type.ToString());
+            SQLParserAssert(extent->alias != null, "Assuming that alias is given after the extent name");
+            SQLParserAssert(extent->alias->aliasname == col->name, "Assuming that aliases are equivalent");
+            SQLParserAssert(stmt->sortClause == null, "Assuming no order by");
+            SQLParserAssert(stmt->whereClause == null, "Assuming no where clause");
+            SQLParserAssert(stmt->optionClause == null, "Assuming no option clause with optimizer hints");
+            // Creating output structures
+            RowTypeBinding typeBindings = new RowTypeBinding();
+            Int32 extNum = 0;
+            TypeBinding extType = GetTypeBindingFor(extent);
+            typeBindings.AddTypeBinding(extType);
+            // Add projection to typebinding
+            ITypeExpression propExpr = new ObjectThis(extNum, extType);
+            typeBindings.AddPropertyMapping(extNum.ToString(), propExpr);
+            VarArray = new VariableArray(0);
+            if ((typeBindings.PropertyCount == 1) && (typeBindings.GetPropertyBinding(0).TypeCode == DbTypeCode.Object))
+                VarArray.QueryFlags = VarArray.QueryFlags | QueryFlags.SingletonProjection;
+            JoinTree = new ExtentNode(typeBindings, 0, VarArray, Query);
+            WhereCondition = new ConditionDictionary();
+            ILogicalExpression whereCond = new LogicalLiteral(TruthValue.TRUE);
+            WhereCondition.AddCondition(whereCond);
+            HintSpec = new HintSpecification();
+        }
+
+        // I should investigate the exception first, since it might be not related
+        internal unsafe String GetFullName(RangeVar* extent) {
+            Debug.Assert(extent->path != null);
+            Debug.Assert(extent->relname == null);
+            ListCell* curCell = extent->path->head;
+            Debug.Assert(curCell != null);
+            Debug.Assert(((Node*)curCell->data.ptr_value)->type == NodeTag.T_ColumnRef, "Expected T_ColumnRef, but got " +
+                ((Node*)curCell->data.ptr_value)->type.ToString());
+            String name = ((ColumnRef*)curCell->data.ptr_value)->name;
+            curCell = curCell->next;
+            while (curCell != null) {
+                name += '.';
+                name += ((ColumnRef*)curCell->data.ptr_value)->name;
+                curCell = curCell->next;
+            }
+            return name;
+        }
+
+        internal unsafe TypeBinding GetTypeBindingFor(RangeVar* extent) {
+            //Debug.Assert(extent->relname != null);
+            String relName = GetFullName(extent);
+            TypeBinding theType = null;
+            try {
+                theType = Bindings.GetTypeBindingInsensitive(relName);
+            } catch (DbException ex) {
+                throw ErrorCode.ToException(Error.SCERRSQLUNKNOWNNAME, ex, LocationMessageForError((Node*)extent, relName));
+            }
+            if (theType != null)
+                return theType;
+            //int res = TypeRepository.TryGetTypeBindingByShortName(shortname, out theType);
+            //if (res == 1)
+            //    return theType;
+            throw ErrorCode.ToException(Error.SCERRSQLUNKNOWNNAME, LocationMessageForError((Node*)extent, relName));
+        }
+
+        internal bool CompareTo(IExecutionEnumerator otherOptimizedPlan) {
+            String thisOptimizedPlanStr = Regex.Replace(this.OptimizedPlan.ToString(), "\\s", "");
+            String otherOptimizedPlanStr = Regex.Replace(otherOptimizedPlan.ToString(), "\\s", "");
+            return thisOptimizedPlanStr.Equals(otherOptimizedPlanStr);
+            //return this.OptimizedPlan.ToString().Equals(otherOptimizedPlan.ToString());
+        }
+
+        /// <summary>
+        /// Checks the error code if an error was returned by parser. If so the error 
+        /// information is read from unmanaged parser and a Starcounter exception is
+        /// thrown.
+        /// </summary>
+        /// <param name="scerrorcode">the code returned by the unmanaged parser. 
+        /// 0 means no error.</param>
+        internal unsafe void RawParserError(int scerrorcode) {
+            Debug.Assert(IsOpenParserThread, "Raw parser error management requires an open parser.");
+            if (scerrorcode > 0) {
+                // Unmanaged parser returned an error, thus throwing an exception.
+                unsafe {
+                    ScError* scerror = UnmanagedParserInterface.GetScError();
+                    // Throw Starcounter exception for parsing error
+                    String message = new String(scerror->scerrmessage);
+                    if (scerror->scerrposition >= 0)
+                        message += " Position " + scerror->scerrposition + " in the query \"" + Query + "\"";
+                    else
+                        message += " in the query \"" + Query + "\"";
+                    if (scerror->tocken != null)
+                        message += "The error is near or at: " + scerror->tocken;
+                    throw GetSqlException((uint)scerror->scerrorcode, message, scerror->scerrposition, scerror->tocken);
+                }
+            }
+        }
+
+        internal unsafe String GetErrorMessage(int scerrorcode) {
+            if (scerrorcode == 0)
+                return "No error";
+            unsafe {
+                ScError* scerror = UnmanagedParserInterface.GetScError();
+                // Throw Starcounter exception for parsing error
+                String message = new String(scerror->scerrmessage);
+                if (scerror->scerrposition >= 0)
+                    message += " Position " + scerror->scerrposition + " in the query \"" + Query + "\"";
+                else
+                    message += " in the query \"" + Query + "\"";
+                if (scerror->tocken != null)
+                    message += "The error is near or at: " + scerror->tocken;
+                return message;
+            }
+        }
+
+        /// <summary>
+        /// Generates a string reporting position and token in the given query for an error.
+        /// </summary>
+        /// <param name="node">Node of unmanaged tree where error happened.</param>
+        /// <returns>Part of error message about location of the error.</returns>
+        internal unsafe String LocationMessageForError(Node* node) {
+            return LocationMessageForError(node, node->type.ToString());
+        }
+
+        internal unsafe String LocationMessageForError(Node* node, String token) {
+            return "Position " + UnmanagedParserInterface.Location(node) + " in the query \"" + Query + "\"" +
+                ". The error is near or at: " + token;
+        }
+
+        // Proper error should be returned from here.
+        internal unsafe void UnknownNode(Node* node) {
+            throw GetSqlException(Error.SCERRSQLNOTIMPLEMENTED, "The statement or clause is not implemented. " + LocationMessageForError(node),
+                UnmanagedParserInterface.Location(node), node->type.ToString());
+        }
+
+        /// <summary>
+        /// Has to be called to assert if temporal assumption holds.
+        /// If not Debug.Assert is called and an exception is thrown to catch in the parent code and do different condition.
+        /// ONLY FOR DEVELOPMENT PURPOSE
+        /// </summary>
+        /// <param name="condition">The condition to check</param>
+        internal void SQLParserAssert(bool condition) {
+            Debug.Assert(condition);
+            if (!condition)
+                throw new SQLParserAssertException();
+        }
+
+        /// <summary>
+        /// Has to be called to assert if temporal assumption holds.
+        /// If not Debug.Assert is called and an exception is thrown to catch in the parent code and do different condition.
+        /// ONLY FOR DEVELOPMENT PURPOSE
+        /// </summary>
+        /// <param name="condition">The condition to check</param>
+        /// <param name="message">Adds message to Debug.Assert</param>
+        internal void SQLParserAssert(bool condition, string message) {
+            Debug.Assert(condition, message);
+            if (!condition)
+                throw new SQLParserAssertException();
+        }
+
+        internal static Exception GetSqlException(uint errorCode, string message, int location, string token) {
+            List<string> tokens = new List<string>(1);
+            tokens.Add(token);
+            return ErrorCode.ToException(errorCode, message, (m, e) => new SqlException(m, tokens, location));
+        }
+    }
+
+    /// <summary>
+    /// Exception class used during development to trigger that this parser cannot be used.
+    /// </summary>
+    internal class SQLParserAssertException : Exception {
     }
 }
