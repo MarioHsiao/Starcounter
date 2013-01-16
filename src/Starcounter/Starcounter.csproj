@@ -370,6 +370,7 @@
     <Compile Include="Mock\Schema\DatabaseUnsupportedType.cs" />
     <Compile Include="Mock\Schema\IDatabasePropertyType.cs" />
     <Compile Include="DbSession.cs" />
+    <Compile Include="SynonymousToAttribute.cs" />
     <Compile Include="Transaction.cs" />
     <Compile Include="TransactionAbortedException.cs" />
     <Compile Include="TransactionConflictDbException.cs" />

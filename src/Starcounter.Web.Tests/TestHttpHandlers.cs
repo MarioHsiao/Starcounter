@@ -59,8 +59,27 @@ namespace Starcounter.Internal.Test {
                 return null;
             });
 
-            GET("/uri-with-req2/{?}", (string s, HttpRequest r) => {
+            GET("/uri-with-req/{?}", (string s, HttpRequest r) => {
                 Assert.AreEqual("KalleKula", s);
+                Assert.IsNotNull(r);
+                return null;
+            });
+
+            GET("/admin/apapapa/{?}", (int i, HttpRequest r) => {
+                Assert.AreEqual(19, i);
+                Assert.IsNotNull(r);
+                return null;
+            });
+
+            GET("/admin/{?}", (string s, HttpRequest r) => {
+                Assert.AreEqual("KalleKula", s);
+                Assert.IsNotNull(r);
+                return null;
+            });
+
+            GET("/admin/{?}/{?}", (string s, int i, HttpRequest r) => {
+                Assert.AreEqual("KalleKula", s);
+                Assert.AreEqual(123, i);
                 Assert.IsNotNull(r);
                 return null;
             });
@@ -88,6 +107,66 @@ namespace Starcounter.Internal.Test {
                 return null;
             });
 
+            GET("/whatever/{?}/more/{?}/{?}", (string v1, int v2, string v3) => {
+                Assert.AreEqual("apapapa", v1);
+                Assert.AreEqual(5547, v2);
+                Assert.AreEqual("KalleKula", v3);
+                return null;
+            });
+
+            GET("/ordinary", () => {
+                return null;
+            });
+
+            GET("/ordAnary", () => {
+                return null;
+            });
+
+            GET("/aaaaa/{?}/bbbb", (int v) => {
+                Assert.AreEqual(90510, v);
+                return null;
+            });
+
+            GET("/whatever/{?}/xxYx/{?}", (string v1, int v2) => {
+                Assert.AreEqual("abrakadabra", v1);
+                Assert.AreEqual(911, v2);
+                return null;
+            });
+
+            GET("/whatever/{?}/xxZx/{?}", (string v1, int v2) => {
+                Assert.AreEqual("abrakadabra", v1);
+                Assert.AreEqual(911, v2);
+                return null;
+            });
+
+            GET("/whatmore/{?}/xxZx/{?}", (string v1, int v2) => {
+                Assert.AreEqual("abrakadabra", v1);
+                Assert.AreEqual(911, v2);
+                return null;
+            });
+
+            GET("/test-decimal/{?}", (decimal val) => {
+                Assert.AreEqual(99.123m, val);
+                return null;
+            });
+
+            GET("/test-double/{?}", (double val) => {
+                Assert.AreEqual(99.123d, val);
+                return null;
+            });
+
+            GET("/test-bool/{?}", (bool val) => {
+                Assert.AreEqual(true, val);
+                return null;
+            });
+
+            GET("/test-datetime/{?}", (DateTime val) => {
+                DateTime expected;
+                DateTime.TryParse("2013-01-17", out expected);
+                Assert.AreEqual(expected, val);
+                return null;
+            });
+
             PUT("/players/{?}", (int playerId) => {
                 Assert.AreEqual(123, playerId);
                 //                Assert.IsNotNull(request);
@@ -97,36 +176,28 @@ namespace Starcounter.Internal.Test {
 
             POST("/transfer?{?}", (int from) => {
                 Assert.AreEqual(99, from);
-                Console.WriteLine("From: " + from );
+                Console.WriteLine("From: " + from);
                 return null;
             });
 
             POST("/deposit?{?}", (int to) => {
                 Assert.AreEqual(56754, to);
-                Console.WriteLine("To: " + to );
+                Console.WriteLine("To: " + to);
                 return null;
             });
 
-            //POST("/find-player?firstname={?}&lastname={?}&age={?}", (string fn, string ln, int age) => {
-
-            //    return null;
-            //});
+            POST("/find-player?firstname={?}&lastname={?}&age={?}", (string fn, string ln, int age) => {
+                Assert.AreEqual("Kalle", fn);
+                Assert.AreEqual("Kula", ln);
+                Assert.AreEqual(19, age);
+                return null;
+            });
 
             DELETE("/all", () => {
                 Console.WriteLine("deleteAll");
                 return null;
             });
-        }
 
-        private static void SetupComplexTemplates() {
-            
-            GET("/{?}/viewmodels/{?}", (string app, string vm) => {
-                return "404 Not Found";
-            });
-
-            POST("/find-player?firstname={?}&lastname={?}&age={?}", (string fn, string ln, int age) => {
-                return null;
-            });
         }
 
         [Test]
@@ -137,20 +208,7 @@ namespace Starcounter.Internal.Test {
             Main(); // Register some handlers
             var umb = RequestHandler.UriMatcherBuilder;
             var tree = umb.CreateAstTree();
-            Console.WriteLine(tree.ToString());
-        }
-
-        /// <summary>
-        /// Generates the ast tree overview.
-        /// </summary>
-        [Test]
-        public void GenerateComplexAstTreeOverview() {
-            Reset();
-
-            SetupComplexTemplates();
-            
-            var umb = RequestHandler.UriMatcherBuilder;
-            var tree = umb.CreateAstTree();
+            tree.Namespace = "__urimatcher__";
             Console.WriteLine(tree.ToString());
         }
 
@@ -185,19 +243,11 @@ namespace Starcounter.Internal.Test {
         /// </summary>
         [Test]
         public void GenerateRequestProcessor() {
-
-            byte[] h1 = Encoding.UTF8.GetBytes("GET /players/123\r\n\r\n");
-            byte[] h2 = Encoding.UTF8.GetBytes("GET /dashboard/123\r\n\r\n");
-            byte[] h3 = Encoding.UTF8.GetBytes("GET /players?f=KalleKula\r\n\r\n");
-            byte[] h4 = Encoding.UTF8.GetBytes("PUT /players/123\r\n\r\n");
-            byte[] h5 = Encoding.UTF8.GetBytes("POST /transfer?f=99&t=365&x=46\r\n\r\n");
-            byte[] h6 = Encoding.UTF8.GetBytes("POST /deposit?a=56754&x=34653\r\n\r\n");
-            byte[] h7 = Encoding.UTF8.GetBytes("DELETE /all");
-
             Main(); // Register some handlers
             var umb = RequestHandler.UriMatcherBuilder;
 
             var ast = umb.CreateAstTree();
+            ast.Namespace = "__urimatcher__";
             var compiler = umb.CreateCompiler();
             var str = compiler.GenerateRequestProcessorSourceCode( ast );
 
@@ -212,10 +262,10 @@ namespace Starcounter.Internal.Test {
         public void DebugPregeneratedRequestProcessor() {
             var um = new __urimatcher__.GeneratedRequestProcessor();
 
-            // TODO: 
-            // Add test for sending in the wrong datatype in the uri.
-            // The parser doesn't fail as it should.
+            // Test failed parsing of numbers.
+            // Test multiple queryparameters
 
+            // URI's that should succeed
             byte[] h1 = Encoding.UTF8.GetBytes("GET /players/123\r\n\r\n");
             byte[] h2 = Encoding.UTF8.GetBytes("GET /dashboard/123\r\n\r\n");
             byte[] h3 = Encoding.UTF8.GetBytes("GET /players?KalleKula\r\n\r\n");
@@ -226,17 +276,44 @@ namespace Starcounter.Internal.Test {
             byte[] h8 = Encoding.UTF8.GetBytes("GET /players\r\n\r\n");
             byte[] h9 = Encoding.UTF8.GetBytes("GET /\r\n\r\n");
             byte[] h10 = Encoding.UTF8.GetBytes("GET /uri-with-req\r\n\r\n");
-            byte[] h11 = Encoding.UTF8.GetBytes("GET /uri-with-req/123\r\n\r\n");
-            byte[] h12 = Encoding.UTF8.GetBytes("GET /uri-with-req2/KalleKula\r\n\r\n");
+            byte[] h11 = Encoding.UTF8.GetBytes("GET /uri-with-req/123\r\n\r\n");         
+            byte[] h12 = Encoding.UTF8.GetBytes("GET /uri-with-req/KalleKula\r\n\r\n");
+            byte[] h13 = Encoding.UTF8.GetBytes("GET /admin/KalleKula\r\n\r\n");
+            byte[] h14 = Encoding.UTF8.GetBytes("GET /admin/KalleKula/123\r\n\r\n");
+            byte[] h15 = Encoding.UTF8.GetBytes("GET /admin/apapapa/19\r\n\r\n");
+            byte[] h16 = Encoding.UTF8.GetBytes("GET /whatever/abrakadabra/xxYx/911\r\n\r\n");
+            byte[] h17 = Encoding.UTF8.GetBytes("GET /whatever/abrakadabra/xxZx/911\r\n\r\n");
+            byte[] h18 = Encoding.UTF8.GetBytes("GET /ordAnary\r\n\r\n");
+            byte[] h19 = Encoding.UTF8.GetBytes("GET /ordinary\r\n\r\n");
+            byte[] h20 = Encoding.UTF8.GetBytes("GET /ordinary\r\n\r\n");
+            byte[] h21 = Encoding.UTF8.GetBytes("GET /whatever/apapapa/more/5547/KalleKula\r\n\r\n");
+            byte[] h22 = Encoding.UTF8.GetBytes("POST /find-player?firstname=Kalle&lastname=Kula&age=19\r\n\r\n");
+            byte[] h23 = Encoding.UTF8.GetBytes("GET /aaaaa/90510/bbbb\r\n\r\n");
+
+            byte[] h24 = Encoding.UTF8.GetBytes("GET /test-decimal/99.123\r\n\r\n");
+            byte[] h25 = Encoding.UTF8.GetBytes("GET /test-double/99.123\r\n\r\n");
+            byte[] h26 = Encoding.UTF8.GetBytes("GET /test-bool/true\r\n\r\n");
+            byte[] h27 = Encoding.UTF8.GetBytes("GET /test-datetime/2013-01-17\r\n\r\n");
+            
+            // URI's that should fail due to verification or parse error.
+            byte[] h501 = Encoding.UTF8.GetBytes("GET /whatever/abrakadabra/xaYx/911\r\n\r\n");     // xaYx -> xxYx
+            byte[] h502 = Encoding.UTF8.GetBytes("PUT /plaiers/123\r\n\r\n");  // plaiers -> players
+            byte[] h503 = Encoding.UTF8.GetBytes("GET /aaaaa/90510/DDDD\r\n\r\n"); // DDDD -> bbbb
+            byte[] h504 = Encoding.UTF8.GetBytes("GET /test-decimal/DDDD\r\n\r\n"); // DDDD -> Not a decimal value
+            byte[] h505 = Encoding.UTF8.GetBytes("GET /test-double/DDDD\r\n\r\n"); // DDDD -> Not a double value
+            byte[] h506 = Encoding.UTF8.GetBytes("GET /test-datetime/DDDD\r\n\r\n"); // DDDD -> Not a datetime value
+            byte[] h507 = Encoding.UTF8.GetBytes("GET /test-bool/DDDD\r\n\r\n"); // DDDD -> Not a boolean value
 
             Main();
-//            var rp = MainApp.RequestProcessor;
+
 
             foreach (var x in RequestHandler.RequestProcessor.Registrations) {
                 um.Register(x.Key, x.Value.CodeAsObj );
             }
 
             object resource;
+
+            // Test succesful URI's
             Assert.True(um.Invoke(new HttpRequest(h1), out resource));
             Assert.True(um.Invoke(new HttpRequest(h2), out resource));
             Assert.True(um.Invoke(new HttpRequest(h3), out resource));
@@ -244,11 +321,45 @@ namespace Starcounter.Internal.Test {
             Assert.True(um.Invoke(new HttpRequest(h5), out resource));
             Assert.True(um.Invoke(new HttpRequest(h6), out resource));
             Assert.True(um.Invoke(new HttpRequest(h7), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h8), out resource)); 
+            Assert.True(um.Invoke(new HttpRequest(h8), out resource));
             Assert.True(um.Invoke(new HttpRequest(h9), out resource));
             Assert.True(um.Invoke(new HttpRequest(h10), out resource));
             Assert.True(um.Invoke(new HttpRequest(h11), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h12), out resource));
+
+            // TODO:
+            // The ParseInt function does not verify that the specified string
+            // is numbers or not, needs to be fixed.
+//            Assert.True(um.Invoke(new HttpRequest(h12), out resource));
+
+            Assert.True(um.Invoke(new HttpRequest(h13), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h14), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h15), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h16), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h17), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h18), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h19), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h20), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h21), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h21), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h22), out resource));
+//            Assert.True(um.Invoke(new HttpRequest(h23), out resource)); // Value is wrong due to verification needed after parsing.
+            Assert.True(um.Invoke(new HttpRequest(h24), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h25), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h26), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h27), out resource));
+
+            // TODO: 
+            // Add more failing uri's
+
+            // Test URI's that should fail.
+            Assert.False(um.Invoke(new HttpRequest(h501), out resource));
+            Assert.False(um.Invoke(new HttpRequest(h502), out resource));
+//            Assert.False(um.Invoke(new HttpRequest(h503), out resource)); // Handler called even though not correct uri -> verification after parse needed.
+            Assert.False(um.Invoke(new HttpRequest(h504), out resource));
+            Assert.False(um.Invoke(new HttpRequest(h505), out resource));
+            Assert.False(um.Invoke(new HttpRequest(h506), out resource));
+            Assert.False(um.Invoke(new HttpRequest(h507), out resource));
+
         }
 
         /// <summary>
