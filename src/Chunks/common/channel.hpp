@@ -199,7 +199,6 @@ public:
 
 		bool empty() const {
 			return front_ == link_terminator;
-			//return back_ == link_terminator;
 		}
 		
 		/// not_empty() returns true if the queue is not empty, false if the queue is empty.
@@ -208,7 +207,6 @@ public:
 		 */
 		bool not_empty() const {
 			return front_ != link_terminator;
-			//return back_ != link_terminator;
 		}
 
 		/// front() returns a reference to the first element in the queue.
@@ -243,7 +241,7 @@ public:
 			return back_;
 		}
 
-		/// push_back() will push_back chunk(n) at the end of the overflow queue.
+		/// push_back() will push_back chunk(n) at the end of the queue.
 		/**
 		 * @param n Link to the chunk that shall be pushed into the overflow
 		 *		queue.
@@ -255,12 +253,12 @@ public:
 			}
 			else {
 				front_ = n;
-				back_ = n; // not needed!?
-				chunk(back()).set_next(link_terminator); // the caller should do this.
+				back_ = n;
+				//chunk(back()).set_next(link_terminator); // the caller should do this.
 			}
 		}
 
-		/// pop_front() will pop_front chunk(n) at the end of the overflow queue.
+		/// pop_front() will pop chunk(n) at the front of the queue.
 		/**
 		 * @param n A reference to the link that will point to the popped chunk
 		 *		if returning true.
