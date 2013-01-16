@@ -14,7 +14,7 @@ namespace Starcounter.Query.RawParserAnalyzer
     /// <summary>
     /// Contains methods to analyze raw parsed tree and generate necessary structures for current optimizer.
     /// </summary>
-    internal partial class ParserAnalyzer : IDisposable
+    internal partial class ParserAnalyzerHelloTest : IDisposable
     {
         /// <summary>
         /// Keeps knowledge if an open parser exists in this thread. It is important to have maximum one open parser per thread.
@@ -88,6 +88,7 @@ namespace Starcounter.Query.RawParserAnalyzer
         /// <returns></returns>
         internal unsafe void ParseQuery(string query)
         {
+            if (query == "") return;
             IsOpenParserThread = true; // Important to avoid destroying global variables in unmanaged parser.
             Query = query;
             int scerrorcode = 0;
@@ -148,7 +149,7 @@ namespace Starcounter.Query.RawParserAnalyzer
             Node* stmt = (Node*)parsedTree->head->data.ptr_value;
             switch (stmt->type)
             {
-                case NodeTag.T_SelectStmt: AnalyzeSelectStmt((SelectStmt*)stmt);
+                case NodeTag.T_SelectStmt: TestAnalyzeSelectStmt((SelectStmt*)stmt);
                     break;
                 default: UnknownNode(stmt);
                     break;

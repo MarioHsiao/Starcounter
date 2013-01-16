@@ -5,7 +5,7 @@ using Starcounter.Query.RawParserAnalyzer;
 namespace QueryProcessingTest {
     public static class TestErrorMessages {
         public static void RunTestErrorMessages() {
-            ParserAnalyzer analyzer = new ParserAnalyzer();
+            ParserAnalyzerHelloTest analyzer = new ParserAnalyzerHelloTest();
             analyzer.ParseAndAnalyzeQuery("DELETE FROM Account");
         }
     }

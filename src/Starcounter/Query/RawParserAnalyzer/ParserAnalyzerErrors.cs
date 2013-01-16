@@ -8,7 +8,7 @@ using Starcounter;
 
 namespace Starcounter.Query.RawParserAnalyzer
 {
-    internal partial class ParserAnalyzer
+    internal partial class ParserAnalyzerHelloTest
     {
         /// <summary>
         /// Checks the error code if an error was returned by parser. If so the error 
