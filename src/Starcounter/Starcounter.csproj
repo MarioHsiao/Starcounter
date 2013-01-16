@@ -324,7 +324,7 @@
     <Compile Include="Query\RawParserAnalyzer\ParserAnalyzerErrors.cs" />
     <Compile Include="Query\SQL\SqlResultGeneric.cs" />
     <Compile Include="Query\RawParserAnalyzer\ParserAnalyzerUtils.cs" />
-    <Compile Include="Query\RawParserAnalyzer\RawParserAnalyzer.cs" />
+    <Compile Include="Query\RawParserAnalyzer\RawParserAnalyzerHelloTest.cs" />
     <Compile Include="Query\RawParserAnalyzer\rawparser_enums.cs" />
     <Compile Include="Query\RawParserAnalyzer\SelectStmtAnalyzer.cs" />
     <Compile Include="Query\RawParserAnalyzer\UnmanagedParserInterface.cs" />

@@ -139,7 +139,7 @@ namespace Starcounter.Query.Sql
             HintSpecification hintSpec = CreateHintSpecification(rowTypeBind, hintListTerm, varArray);
             // Optimize and create enumerator.
             IExecutionEnumerator prologParsedQueryPlan;
-            Starcounter.Query.RawParserAnalyzer.ParserAnalyzer newAnalyzer = new Starcounter.Query.RawParserAnalyzer.ParserAnalyzer();
+            Starcounter.Query.RawParserAnalyzer.ParserAnalyzerHelloTest newAnalyzer = new Starcounter.Query.RawParserAnalyzer.ParserAnalyzerHelloTest();
             try {
                 newAnalyzer.ParseAndAnalyzeQuery(query);
             } catch (Starcounter.Query.RawParserAnalyzer.SQLParserAssertException) {
