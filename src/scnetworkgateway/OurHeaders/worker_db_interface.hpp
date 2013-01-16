@@ -223,8 +223,11 @@ public:
             core::chunk_index chunk_index = chunk_index_and_sched & 0xFFFFFFUL;
             uint32_t sched_num = (chunk_index_and_sched >> 24) & 0xFFUL;
 
+            // Just getting number of chunks to push.
+            SocketDataChunk* sd = (SocketDataChunk*)((uint8_t*)(&shared_int_.chunk(chunk_index)) + bmx::BMX_HEADER_MAX_SIZE_BYTES);
+
             // Pushing chunk using standard procedure.
-            PushLinkedChunksToDb(chunk_index, 0, sched_num, false);
+            PushLinkedChunksToDb(chunk_index, sd->get_num_chunks(), sched_num, false);
         }
 
         return 0;
