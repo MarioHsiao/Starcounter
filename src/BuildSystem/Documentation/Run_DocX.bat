@@ -19,7 +19,7 @@ if %errorlevel% neq 0 goto FAILED
 :: SCTESTSRV01
 net use Q: %SRVwebappsPath% /user:%SRVusername% %SRVpassword%
 rd /s /q "Q:\%DocumentationParentFolder%"
-robocopy .\%DocumentationProjectPath%\%DocumentationResultFolder%\ Q: /e
+CMD /C "robocopy .\%DocumentationProjectPath%\%DocumentationResultFolder%\ Q: /e" 1>NUL
 if %errorlevel% gtr 8 goto FAILED
 net use Q: /delete
 
