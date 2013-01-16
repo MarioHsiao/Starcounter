@@ -102,7 +102,8 @@ public:
 #ifdef GW_LOOPED_TEST_MODE
 
     // Pushing given sd to network emulation queue.
-    void PushToNetworkEmulationQueue(GatewayWorker* gw);
+    void PushToMeasuredNetworkEmulationQueue(GatewayWorker* gw);
+    void PushToPreparationNetworkEmulationQueue(GatewayWorker* gw);
 
 #endif
 
@@ -603,7 +604,7 @@ public:
         memset(&ovl_, 0, OVERLAPPED_SIZE);
 
 #ifdef GW_LOOPED_TEST_MODE
-        PushToNetworkEmulationQueue(gw);
+        PushToMeasuredNetworkEmulationQueue(gw);
         return WSA_IO_PENDING;
 #endif
 
@@ -617,7 +618,7 @@ public:
         memset(&ovl_, 0, OVERLAPPED_SIZE);
 
 #ifdef GW_LOOPED_TEST_MODE
-        PushToNetworkEmulationQueue(gw);
+        PushToMeasuredNetworkEmulationQueue(gw);
         return WSA_IO_PENDING;
 #endif
 
@@ -632,7 +633,7 @@ public:
         memset(&ovl_, 0, OVERLAPPED_SIZE);
 
 #ifdef GW_LOOPED_TEST_MODE
-        PushToNetworkEmulationQueue(gw);
+        PushToMeasuredNetworkEmulationQueue(gw);
         return WSA_IO_PENDING;
 #endif
 
@@ -646,7 +647,7 @@ public:
         memset(&ovl_, 0, OVERLAPPED_SIZE);
 
 #ifdef GW_LOOPED_TEST_MODE
-        PushToNetworkEmulationQueue(gw);
+        PushToMeasuredNetworkEmulationQueue(gw);
         return WSA_IO_PENDING;
 #endif
 
@@ -661,7 +662,7 @@ public:
         memset(&ovl_, 0, OVERLAPPED_SIZE);
 
 #ifdef GW_LOOPED_TEST_MODE
-        PushToNetworkEmulationQueue(gw);
+        PushToPreparationNetworkEmulationQueue(gw);
         return FALSE;
 #endif
 
@@ -682,8 +683,10 @@ public:
     {
         SOCKET listening_sock = g_gateway.get_server_port(port_index_)->get_listening_sock();
 
+#ifndef GW_LOOPED_TEST_MODE
         if (setsockopt(sock_, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char *)&listening_sock, sizeof(listening_sock)))
             return SCERRGWACCEPTEXFAILED;
+#endif
 
         return 0;
     }
@@ -695,7 +698,7 @@ public:
         memset(&ovl_, 0, OVERLAPPED_SIZE);
 
 #ifdef GW_LOOPED_TEST_MODE
-        PushToNetworkEmulationQueue(gw);
+        PushToPreparationNetworkEmulationQueue(gw);
         return FALSE;
 #endif
 
@@ -709,7 +712,7 @@ public:
         memset(&ovl_, 0, OVERLAPPED_SIZE);
 
 #ifdef GW_LOOPED_TEST_MODE
-        PushToNetworkEmulationQueue(gw);
+        PushToMeasuredNetworkEmulationQueue(gw);
         return FALSE;
 #endif
 

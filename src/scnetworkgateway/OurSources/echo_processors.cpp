@@ -17,14 +17,11 @@ namespace network {
 
 uint32_t DefaultHttpEchoRequestCreator(char* buf, echo_id_type echo_id, uint32_t* num_request_bytes)
 {
-    // Constructing HTTP request echo.
-    memcpy(buf, kHttpEchoRequest, kHttpEchoRequestLength);
-
-    // Inserting number into HTTP ping request.
-    uint64_to_hex_string(echo_id, buf + kHttpEchoRequestInsertPoint, 8, false);
+    // Generating HTTP request.
+    uint32_t http_request_len = g_gateway.GenerateHttpRequest(buf, echo_id);
 
     // Setting data length.
-    *num_request_bytes = kHttpEchoRequestLength;
+    *num_request_bytes = http_request_len;
 
     return 0;
 }

@@ -590,20 +590,6 @@ public:
     }
 };
 
-const char* const kHttpEchoUrl = "/echo";
-const int32_t kHttpEchoUrlLength = strlen(kHttpEchoUrl);
-
-const char* const kHttpEchoRequest =
-    "POST /echo HTTP/1.1\r\n"
-    "Content-Type: text/html\r\n"
-    "Content-Length: 8\r\n"
-    "\r\n"
-    "@@@@@@@@";
-
-const int32_t kHttpEchoRequestLength = strlen(kHttpEchoRequest);
-
-const int32_t kHttpEchoRequestInsertPoint = strstr(kHttpEchoRequest, "@") - kHttpEchoRequest;
-
 const int32_t kHttpEchoBodyLength = 8;
 
 const char* const kHttpEchoResponse =
