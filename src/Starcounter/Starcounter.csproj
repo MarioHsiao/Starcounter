@@ -321,7 +321,6 @@
     <Compile Include="Query\prologbeans\QueryAnswer.cs" />
     <Compile Include="Query\prologbeans\SupportClass.cs" />
     <Compile Include="Query\prologbeans\Term.cs" />
-    <Compile Include="Query\RawParserAnalyzer\ParserAnalyzerErrors.cs" />
     <Compile Include="Query\SQL\SqlResultGeneric.cs" />
     <Compile Include="Query\RawParserAnalyzer\RawParserAnalyzerHelloTest.cs" />
     <Compile Include="Query\RawParserAnalyzer\rawparser_enums.cs" />
