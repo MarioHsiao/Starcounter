@@ -321,10 +321,13 @@
     <Compile Include="Query\prologbeans\QueryAnswer.cs" />
     <Compile Include="Query\prologbeans\SupportClass.cs" />
     <Compile Include="Query\prologbeans\Term.cs" />
+    <Compile Include="Query\RawParserAnalyzer\IParserTreeAnalyzer.cs" />
+    <Compile Include="Query\RawParserAnalyzer\ParserTreeWalker.cs" />
+    <Compile Include="Query\RawParserAnalyzer\NativeParserErrors.cs" />
     <Compile Include="Query\SQL\SqlResultGeneric.cs" />
     <Compile Include="Query\RawParserAnalyzer\RawParserAnalyzerHelloTest.cs" />
     <Compile Include="Query\RawParserAnalyzer\rawparser_enums.cs" />
-    <Compile Include="Query\RawParserAnalyzer\SelectStmtAnalyzer.cs" />
+    <Compile Include="Query\RawParserAnalyzer\SelectStmtWalker.cs" />
     <Compile Include="Query\RawParserAnalyzer\UnmanagedParserInterface.cs" />
     <Compile Include="Query\SQL\PrologManager.cs" />
     <Compile Include="Query\SQL\PrologProcess.cs" />
