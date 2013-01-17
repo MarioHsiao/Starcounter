@@ -8,18 +8,16 @@ using Starcounter.Query.Sql;
 
 namespace Starcounter.Query.RawParserAnalyzer
 {
-    internal partial class ParserAnalyzerHelloTest
+    internal partial class ParserTreeWalker
     {
         /// <summary>
-        /// Analyze select statement and creates structures for optimizer.
+        /// Walk select statement and calls consumer.
         /// It replaces part of OptimizeAndCreateEnumerator, CreateNodeTree and
         /// others from _Creator.cs
         /// </summary>
-        /// <param name="stmt"></param>
-        internal unsafe void AnalyzeSelectStmt(SelectStmt* stmt) {
-            // Read and assert the input tree
-            Debug.Assert(JoinTree == null && WhereCondition == null && VarArray == null, "The variables for the result of analyzer should be reset.");
-
+        /// <param name="stmt">Native node with select statement</param>
+        /// <param name="consumer">Interface object to be called during tree walk</param>
+        internal unsafe void WalkSelectStmt(SelectStmt* stmt, IParserTreeAnalyzer consumer) {
             // Process FROM (fromClause)
             SQLParserAssert(stmt->fromClause == null, "From clause is not yet supported");
 
