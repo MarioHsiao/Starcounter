@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Starcounter.Query.Execution;
 using Starcounter.Query.Optimization;
@@ -30,6 +31,14 @@ namespace Starcounter.Query.RawParserAnalyzer {
         /// The execution plan produced by optimizer from the given parsed and analyzed tree.
         /// </summary>
         internal IExecutionEnumerator OptimizedPlan { get; private set; }
+
+        /// <summary>
+        /// Calls original optimizer on results of analyzer.
+        /// </summary>
+        internal void Optimize() {
+            Debug.Assert(JoinTree != null && WhereCondition != null && HintSpec != null, "Query should parsed and analyzed before optimization");
+            OptimizedPlan = Optimizer.Optimize(JoinTree, WhereCondition, FetchNumExpr, FetchOffsetKeyExpr, HintSpec);
+        }
         
         /// <summary>
         /// Compares this optimized plan with given optimized plan (e.g., produced by original parser and optimizer)
