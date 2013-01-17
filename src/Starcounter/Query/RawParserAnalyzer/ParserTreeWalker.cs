@@ -5,7 +5,7 @@ namespace Starcounter.Query.RawParserAnalyzer {
     /// <summary>
     /// Entry point to call parser and then to traverse the AST.
     /// </summary>
-    internal partial class ParserTreeWalker {
+    internal partial class ParserTreeWalker : IDisposable {
 
         /// <summary>
         /// Keeps knowledge if an open parser exists in this thread. It is important to have maximum one open parser per thread.
@@ -110,6 +110,16 @@ namespace Starcounter.Query.RawParserAnalyzer {
                     break;
                 default: UnknownNode(stmt);
                     break;
+            }
+        }
+
+        /// <summary>
+        /// Checks if native parser was closed, i.e., memory was cleaned. If not then calls memory clean up.
+        /// </summary>
+        public void Dispose() {
+            if (IsOpenParserThread) {
+                UnmanagedParserInterface.CleanMemoryContext();
+                IsOpenParserThread = false;
             }
         }
     }
