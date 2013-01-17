@@ -22,7 +22,7 @@ namespace Starcounter.Query.RawParserAnalyzer {
         /// </summary>
         /// <param name="query">Query to process</param>
         /// <param name="consumer">Interface object to be called during tree walk</param>
-        internal unsafe void ParseAndAnalyzeQuery(string query, IParserTreeAnalyzer consumer) {
+        internal unsafe void ParseQueryAndWalkTree(string query, IParserTreeAnalyzer consumer) {
             IsOpenParserThread = true; // Important to avoid destroying global variables in unmanaged parser.
             Query = query;
             // Call parser
@@ -35,7 +35,7 @@ namespace Starcounter.Query.RawParserAnalyzer {
                     // Throw exception if error
                     RawParserError(scerrorcode);
                     // Call analyzer, which can throw exception for errors
-                    AnalyzeParsedTree(parsedTree, consumer);
+                    WalkParsedTree(parsedTree, consumer);
                 } finally {
                     UnmanagedParserInterface.CleanMemoryContext(); // Otherwise memory leaks
                     IsOpenParserThread = false; // Important to allow calling parser again
@@ -100,7 +100,7 @@ namespace Starcounter.Query.RawParserAnalyzer {
         /// </summary>
         /// <param name="parsedTree">Parsed tree produced by the unmanaged bison-based parser.</param>
         /// <param name="consumer">Interface object to be called during tree walk</param>
-        internal unsafe void AnalyzeParsedTree(List* parsedTree, IParserTreeAnalyzer consumer) {
+        internal unsafe void WalkParsedTree(List* parsedTree, IParserTreeAnalyzer consumer) {
             Debug.Assert(parsedTree != null, "Parsed tree should not be null");
             Debug.Assert(parsedTree->type == NodeTag.T_List, "Parsed tree should be of T_List, but was " + parsedTree->type.ToString());
             Debug.Assert(parsedTree->length > 1, "The query should contain only one statement.");
