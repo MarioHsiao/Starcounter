@@ -24,6 +24,7 @@ namespace NetworkIoTestApp
         enum TestTypes
         {
             MODE_GATEWAY_HTTP,
+            MODE_GATEWAY_RAW,
             MODE_GATEWAY_SMC_HTTP,
             MODE_GATEWAY_SMC_APPS_HTTP,
             MODE_GATEWAY_SMC_RAW,
@@ -191,6 +192,7 @@ namespace NetworkIoTestApp
                 }
 
                 case TestTypes.MODE_GATEWAY_HTTP:
+                case TestTypes.MODE_GATEWAY_RAW:
                 {
                     // Do nothing since its purely a gateway test.
                     Console.WriteLine("Not registering anything, since gateway mode only!");
