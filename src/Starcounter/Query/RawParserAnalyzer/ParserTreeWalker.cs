@@ -103,7 +103,7 @@ namespace Starcounter.Query.RawParserAnalyzer {
         internal unsafe void WalkParsedTree(List* parsedTree, IParserTreeAnalyzer consumer) {
             Debug.Assert(parsedTree != null, "Parsed tree should not be null");
             Debug.Assert(parsedTree->type == NodeTag.T_List, "Parsed tree should be of T_List, but was " + parsedTree->type.ToString());
-            Debug.Assert(parsedTree->length > 1, "The query should contain only one statement.");
+            Debug.Assert(parsedTree->length == 1, "The query should contain only one statement.");
             Node* stmt = (Node*)parsedTree->head->data.ptr_value;
             switch (stmt->type) {
                 case NodeTag.T_SelectStmt: WalkSelectStmt((SelectStmt*)stmt, consumer);

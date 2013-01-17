@@ -18,6 +18,7 @@ namespace Starcounter.Query.RawParserAnalyzer
         /// <param name="stmt">Native node with select statement</param>
         /// <param name="consumer">Interface object to be called during tree walk</param>
         internal unsafe void WalkSelectStmt(SelectStmt* stmt, IParserTreeAnalyzer consumer) {
+            SQLParserAssert(stmt == null, "Select statement is not supported yet.");
             // Process FROM (fromClause)
             SQLParserAssert(stmt->fromClause == null, "From clause is not yet supported");
 
