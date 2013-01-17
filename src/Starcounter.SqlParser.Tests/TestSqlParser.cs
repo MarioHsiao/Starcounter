@@ -11,7 +11,7 @@ namespace Starcounter.SqlParser.Tests
 
         [Test]
         public static void TestScannerWcharFixForErrors() {
-            ParserAnalyzerHelloTest analyzer = new ParserAnalyzerHelloTest();
+            ParserTreeWalker analyzer = new ParserTreeWalker();
             analyzer.ParseQuery("SELECT 1");
             analyzer.ParseQuery("SELECT Abc FROM tbL");
             analyzer.ParseQuery("SELECT Å");
@@ -24,7 +24,7 @@ namespace Starcounter.SqlParser.Tests
 
         [Test]
         public static void ParseQueriesForErrors() {
-            ParserAnalyzerHelloTest analyzer = new ParserAnalyzerHelloTest();
+            ParserTreeWalker analyzer = new ParserTreeWalker();
             analyzer.ParseQuery("select u from Accounttest.auser u");
             analyzer.ParseQuery("select ", true);
             analyzer.ParseQuery("selec", true);
@@ -229,7 +229,7 @@ namespace Starcounter.SqlParser.Tests
         }
 
         private static void CallParser(object query) {
-            ParserAnalyzerHelloTest analyzer = new ParserAnalyzerHelloTest();
+            ParserTreeWalker analyzer = new ParserTreeWalker();
             analyzer.ParseQuery((String)query);
         }
     }

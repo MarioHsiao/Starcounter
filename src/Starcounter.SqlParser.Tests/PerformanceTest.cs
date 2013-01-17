@@ -10,7 +10,7 @@ namespace Starcounter.SqlParser.Tests {
 
         private static void MeasureQueryPerformance(String query) {
             Stopwatch timer = new Stopwatch();
-            ParserAnalyzerHelloTest analyzer = new ParserAnalyzerHelloTest();
+            ParserTreeWalker analyzer = new ParserTreeWalker();
             timer.Start();
             for (int i = 0; i < nrIterations; i++)
                 analyzer.ParseQuery(query);
