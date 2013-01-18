@@ -2295,6 +2295,12 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
             ", send_bandwidth " << send_bandwidth_mbit_total << " mbit/sec" <<
             "<br>" << GW_ENDL;
 
+#ifdef GW_TESTING_MODE
+        global_statistics_stream_ << "Perf Test Info: num confirmed echoes " << num_confirmed_echoes_unsafe_ <<
+            "(" << setting_num_echoes_to_master_ << "), num sent echoes " << (current_echo_number_unsafe_ + 1) <<
+            "(" << setting_num_echoes_to_master_ << ")" << "<br>" << GW_ENDL;
+#endif
+
         LeaveCriticalSection(&cs_statistics_);
 
         // Printing the statistics string.
@@ -2516,6 +2522,8 @@ bool Gateway::CheckConfirmedEchoResponses(GatewayWorker* gw)
         // Checking that each echo is confirmed.
         if (confirmed_echoes_shared_[i] != true)
         {
+            GW_COUT << "Incorrect echo: " << i << GW_ENDL;
+
             // Failing test if echo is not confirmed.
             ShutdownTest(gw, false);
 
