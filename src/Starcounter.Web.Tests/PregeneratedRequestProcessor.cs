@@ -21,35 +21,56 @@ namespace __urimatcher__ {
       public static int Sub2VerificationOffset = 24;
       public static int Sub3VerificationOffset = 45;
       public static int Sub4VerificationOffset = 66;
-      public static int Sub5VerificationOffset = 88;
-      public static int Sub6VerificationOffset = 88;
-      public static int Sub7VerificationOffset = 102;
-      public static int Sub8VerificationOffset = 119;
-      public static int Sub9VerificationOffset = 138;
-      public static int Sub10VerificationOffset = 151;
-      public static int Sub11VerificationOffset = 167;
-      public static int Sub12VerificationOffset = 183;
-      public static int Sub13VerificationOffset = 201;
-      public static int Sub14VerificationOffset = 201;
-      public static int Sub15VerificationOffset = 201;
-      public static int Sub16VerificationOffset = 229;
-      public static int Sub17VerificationOffset = 254;
-      public static int Sub18VerificationOffset = 279;
-      public static int Sub19VerificationOffset = 279;
-      public static int Sub20VerificationOffset = 304;
-      public static int Sub21VerificationOffset = 318;
-      public static int Sub22VerificationOffset = 332;
-      public static int Sub23VerificationOffset = 353;
-      public static int Sub24VerificationOffset = 373;
-      public static int Sub25VerificationOffset = 395;
-      public static int Sub26VerificationOffset = 413;
-      public static int Sub27VerificationOffset = 429;
-      public static int Sub28VerificationOffset = 447;
-      public static int Sub29VerificationOffset = 464;
-      public static int Sub30VerificationOffset = 464;
-      public static int Sub31VerificationOffset = 464;
-      public static int Sub32VerificationOffset = 514;
-      public static byte[] VerificationBytes = new byte[] {(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'a',(byte)'p',(byte)'a',(byte)'p',(byte)'a',(byte)'p',(byte)'a',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'a',(byte)'a',(byte)'a',(byte)'a',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'b',(byte)'b',(byte)'b',(byte)'b',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'?',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'d',(byte)'a',(byte)'s',(byte)'h',(byte)'b',(byte)'o',(byte)'a',(byte)'r',(byte)'d',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'m',(byte)'o',(byte)'r',(byte)'e',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Y',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Z',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'m',(byte)'o',(byte)'r',(byte)'e',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Z',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'o',(byte)'r',(byte)'d',(byte)'i',(byte)'n',(byte)'a',(byte)'r',(byte)'y',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'o',(byte)'r',(byte)'d',(byte)'A',(byte)'n',(byte)'a',(byte)'r',(byte)'y',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'e',(byte)'c',(byte)'i',(byte)'m',(byte)'a',(byte)'l',(byte)'/',(byte)'@',(byte)'m',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'o',(byte)'u',(byte)'b',(byte)'l',(byte)'e',(byte)'/',(byte)'@',(byte)'d',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'a',(byte)'t',(byte)'e',(byte)'t',(byte)'i',(byte)'m',(byte)'e',(byte)'/',(byte)'@',(byte)'t',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'b',(byte)'o',(byte)'o',(byte)'l',(byte)'/',(byte)'@',(byte)'b',(byte)' ',(byte)'P',(byte)'U',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'r',(byte)'a',(byte)'n',(byte)'s',(byte)'f',(byte)'e',(byte)'r',(byte)'?',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'d',(byte)'e',(byte)'p',(byte)'o',(byte)'s',(byte)'i',(byte)'t',(byte)'?',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'f',(byte)'i',(byte)'n',(byte)'d',(byte)'-',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'?',(byte)'f',(byte)'i',(byte)'r',(byte)'s',(byte)'t',(byte)'n',(byte)'a',(byte)'m',(byte)'e',(byte)'=',(byte)'@',(byte)'s',(byte)'&',(byte)'l',(byte)'a',(byte)'s',(byte)'t',(byte)'n',(byte)'a',(byte)'m',(byte)'e',(byte)'=',(byte)'@',(byte)'s',(byte)'&',(byte)'a',(byte)'g',(byte)'e',(byte)'=',(byte)'@',(byte)'i',(byte)' ',(byte)'D',(byte)'E',(byte)'L',(byte)'E',(byte)'T',(byte)'E',(byte)' ',(byte)'/',(byte)'a',(byte)'l',(byte)'l',(byte)' '};
+      public static int Sub5VerificationOffset = 87;
+      public static int Sub6VerificationOffset = 108;
+      public static int Sub7VerificationOffset = 130;
+      public static int Sub8VerificationOffset = 152;
+      public static int Sub9VerificationOffset = 152;
+      public static int Sub10VerificationOffset = 166;
+      public static int Sub11VerificationOffset = 183;
+      public static int Sub12VerificationOffset = 200;
+      public static int Sub13VerificationOffset = 219;
+      public static int Sub14VerificationOffset = 238;
+      public static int Sub15VerificationOffset = 251;
+      public static int Sub16VerificationOffset = 251;
+      public static int Sub17VerificationOffset = 274;
+      public static int Sub18VerificationOffset = 297;
+      public static int Sub19VerificationOffset = 313;
+      public static int Sub20VerificationOffset = 329;
+      public static int Sub21VerificationOffset = 347;
+      public static int Sub22VerificationOffset = 365;
+      public static int Sub23VerificationOffset = 365;
+      public static int Sub24VerificationOffset = 365;
+      public static int Sub25VerificationOffset = 393;
+      public static int Sub26VerificationOffset = 421;
+      public static int Sub27VerificationOffset = 446;
+      public static int Sub28VerificationOffset = 471;
+      public static int Sub29VerificationOffset = 496;
+      public static int Sub30VerificationOffset = 521;
+      public static int Sub31VerificationOffset = 521;
+      public static int Sub32VerificationOffset = 546;
+      public static int Sub33VerificationOffset = 571;
+      public static int Sub34VerificationOffset = 585;
+      public static int Sub35VerificationOffset = 599;
+      public static int Sub36VerificationOffset = 620;
+      public static int Sub37VerificationOffset = 641;
+      public static int Sub38VerificationOffset = 661;
+      public static int Sub39VerificationOffset = 681;
+      public static int Sub40VerificationOffset = 703;
+      public static int Sub41VerificationOffset = 725;
+      public static int Sub42VerificationOffset = 743;
+      public static int Sub43VerificationOffset = 761;
+      public static int Sub44VerificationOffset = 777;
+      public static int Sub45VerificationOffset = 793;
+      public static int Sub46VerificationOffset = 811;
+      public static int Sub47VerificationOffset = 829;
+      public static int Sub48VerificationOffset = 846;
+      public static int Sub49VerificationOffset = 863;
+      public static int Sub50VerificationOffset = 863;
+      public static int Sub51VerificationOffset = 863;
+      public static int Sub52VerificationOffset = 913;
+      public static int Sub53VerificationOffset = 963;
+      public static byte[] VerificationBytes = new byte[] {(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'a',(byte)'p',(byte)'a',(byte)'p',(byte)'a',(byte)'p',(byte)'a',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'a',(byte)'p',(byte)'a',(byte)'p',(byte)'a',(byte)'p',(byte)'a',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'a',(byte)'a',(byte)'a',(byte)'a',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'b',(byte)'b',(byte)'b',(byte)'b',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'a',(byte)'a',(byte)'a',(byte)'a',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'b',(byte)'b',(byte)'b',(byte)'b',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'a',(byte)'b',(byte)'c',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'a',(byte)'b',(byte)'c',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'?',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'?',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'d',(byte)'a',(byte)'s',(byte)'h',(byte)'b',(byte)'o',(byte)'a',(byte)'r',(byte)'d',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'d',(byte)'a',(byte)'s',(byte)'h',(byte)'b',(byte)'o',(byte)'a',(byte)'r',(byte)'d',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'m',(byte)'o',(byte)'r',(byte)'e',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'m',(byte)'o',(byte)'r',(byte)'e',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Y',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Y',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Z',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Z',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'m',(byte)'o',(byte)'r',(byte)'e',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Z',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'m',(byte)'o',(byte)'r',(byte)'e',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Z',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'o',(byte)'r',(byte)'d',(byte)'i',(byte)'n',(byte)'a',(byte)'r',(byte)'y',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'o',(byte)'r',(byte)'d',(byte)'A',(byte)'n',(byte)'a',(byte)'r',(byte)'y',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'e',(byte)'c',(byte)'i',(byte)'m',(byte)'a',(byte)'l',(byte)'/',(byte)'@',(byte)'m',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'e',(byte)'c',(byte)'i',(byte)'m',(byte)'a',(byte)'l',(byte)'/',(byte)'@',(byte)'m',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'o',(byte)'u',(byte)'b',(byte)'l',(byte)'e',(byte)'/',(byte)'@',(byte)'d',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'o',(byte)'u',(byte)'b',(byte)'l',(byte)'e',(byte)'/',(byte)'@',(byte)'d',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'a',(byte)'t',(byte)'e',(byte)'t',(byte)'i',(byte)'m',(byte)'e',(byte)'/',(byte)'@',(byte)'t',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'a',(byte)'t',(byte)'e',(byte)'t',(byte)'i',(byte)'m',(byte)'e',(byte)'/',(byte)'@',(byte)'t',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'b',(byte)'o',(byte)'o',(byte)'l',(byte)'/',(byte)'@',(byte)'b',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'b',(byte)'o',(byte)'o',(byte)'l',(byte)'/',(byte)'@',(byte)'b',(byte)' ',(byte)'P',(byte)'U',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'U',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'r',(byte)'a',(byte)'n',(byte)'s',(byte)'f',(byte)'e',(byte)'r',(byte)'?',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'r',(byte)'a',(byte)'n',(byte)'s',(byte)'f',(byte)'e',(byte)'r',(byte)'?',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'d',(byte)'e',(byte)'p',(byte)'o',(byte)'s',(byte)'i',(byte)'t',(byte)'?',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'d',(byte)'e',(byte)'p',(byte)'o',(byte)'s',(byte)'i',(byte)'t',(byte)'?',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'f',(byte)'i',(byte)'n',(byte)'d',(byte)'-',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'?',(byte)'f',(byte)'i',(byte)'r',(byte)'s',(byte)'t',(byte)'n',(byte)'a',(byte)'m',(byte)'e',(byte)'=',(byte)'@',(byte)'s',(byte)'&',(byte)'l',(byte)'a',(byte)'s',(byte)'t',(byte)'n',(byte)'a',(byte)'m',(byte)'e',(byte)'=',(byte)'@',(byte)'s',(byte)'&',(byte)'a',(byte)'g',(byte)'e',(byte)'=',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'f',(byte)'i',(byte)'n',(byte)'d',(byte)'-',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'?',(byte)'f',(byte)'i',(byte)'r',(byte)'s',(byte)'t',(byte)'n',(byte)'a',(byte)'m',(byte)'e',(byte)'=',(byte)'@',(byte)'s',(byte)'&',(byte)'l',(byte)'a',(byte)'s',(byte)'t',(byte)'n',(byte)'a',(byte)'m',(byte)'e',(byte)'=',(byte)'@',(byte)'s',(byte)'&',(byte)'a',(byte)'g',(byte)'e',(byte)'=',(byte)'@',(byte)'i',(byte)' ',(byte)'D',(byte)'E',(byte)'L',(byte)'E',(byte)'T',(byte)'E',(byte)' ',(byte)'/',(byte)'a',(byte)'l',(byte)'l',(byte)' '};
       public static IntPtr PointerVerificationBytes;
 
       public static Sub0Processor Sub0 = new Sub0Processor();
@@ -85,35 +106,56 @@ namespace __urimatcher__ {
       public static Sub30Processor Sub30 = new Sub30Processor();
       public static Sub31Processor Sub31 = new Sub31Processor();
       public static Sub32Processor Sub32 = new Sub32Processor();
+      public static Sub33Processor Sub33 = new Sub33Processor();
+      public static Sub34Processor Sub34 = new Sub34Processor();
+      public static Sub35Processor Sub35 = new Sub35Processor();
+      public static Sub36Processor Sub36 = new Sub36Processor();
+      public static Sub37Processor Sub37 = new Sub37Processor();
+      public static Sub38Processor Sub38 = new Sub38Processor();
+      public static Sub39Processor Sub39 = new Sub39Processor();
+      public static Sub40Processor Sub40 = new Sub40Processor();
+      public static Sub41Processor Sub41 = new Sub41Processor();
+      public static Sub42Processor Sub42 = new Sub42Processor();
+      public static Sub43Processor Sub43 = new Sub43Processor();
+      public static Sub44Processor Sub44 = new Sub44Processor();
+      public static Sub45Processor Sub45 = new Sub45Processor();
+      public static Sub46Processor Sub46 = new Sub46Processor();
+      public static Sub47Processor Sub47 = new Sub47Processor();
+      public static Sub48Processor Sub48 = new Sub48Processor();
+      public static Sub49Processor Sub49 = new Sub49Processor();
+      public static Sub50Processor Sub50 = new Sub50Processor();
+      public static Sub51Processor Sub51 = new Sub51Processor();
+      public static Sub52Processor Sub52 = new Sub52Processor();
+      public static Sub53Processor Sub53 = new Sub53Processor();
 
       public GeneratedRequestProcessor() {
           Registrations["GET / "] = Sub0;
           Registrations["GET /uri-with-req "] = Sub1;
-          Registrations["GET /uri-with-req/@i "] = Sub2;
-          Registrations["GET /uri-with-req/@s "] = Sub3;
-          Registrations["GET /admin/apapapa/@i "] = Sub4;
-          Registrations["GET /admin/@s "] = Sub6;
-          Registrations["GET /admin/@s/@i "] = Sub7;
-          Registrations["GET /players "] = Sub9;
-          Registrations["GET /players/@i "] = Sub10;
-          Registrations["GET /dashboard/@i "] = Sub12;
-          Registrations["GET /players?@s "] = Sub11;
-          Registrations["GET /whatever/@s/more/@i/@s "] = Sub15;
-          Registrations["GET /ordinary "] = Sub20;
-          Registrations["GET /ordAnary "] = Sub21;
-          Registrations["GET /aaaaa/@i/bbbb "] = Sub8;
-          Registrations["GET /whatever/@s/xxYx/@i "] = Sub16;
-          Registrations["GET /whatever/@s/xxZx/@i "] = Sub17;
-          Registrations["GET /whatmore/@s/xxZx/@i "] = Sub19;
-          Registrations["GET /test-decimal/@m "] = Sub22;
-          Registrations["GET /test-double/@d "] = Sub23;
-          Registrations["GET /test-bool/@b "] = Sub25;
-          Registrations["GET /test-datetime/@t "] = Sub24;
-          Registrations["PUT /players/@i "] = Sub26;
-          Registrations["POST /transfer?@i "] = Sub27;
-          Registrations["POST /deposit?@i "] = Sub28;
-          Registrations["POST /find-player?firstname=@s&lastname=@s&age=@i "] = Sub31;
-          Registrations["DELETE /all "] = Sub32;
+          Registrations["GET /uri-with-req/@i "] = Sub3;
+          Registrations["GET /uri-with-req/@s "] = Sub5;
+          Registrations["GET /admin/apapapa/@i "] = Sub7;
+          Registrations["GET /admin/@s "] = Sub9;
+          Registrations["GET /admin/@s/@i "] = Sub11;
+          Registrations["GET /players "] = Sub14;
+          Registrations["GET /players/@i/abc/@s "] = Sub17;
+          Registrations["GET /dashboard/@i "] = Sub21;
+          Registrations["GET /players?@s "] = Sub19;
+          Registrations["GET /whatever/@s/more/@i/@s "] = Sub25;
+          Registrations["GET /ordinary "] = Sub33;
+          Registrations["GET /ordAnary "] = Sub34;
+          Registrations["GET /aaaaa/@i/bbbb "] = Sub13;
+          Registrations["GET /whatever/@s/xxYx/@i "] = Sub27;
+          Registrations["GET /whatever/@s/xxZx/@i "] = Sub29;
+          Registrations["GET /whatmore/@s/xxZx/@i "] = Sub32;
+          Registrations["GET /test-decimal/@m "] = Sub36;
+          Registrations["GET /test-double/@d "] = Sub38;
+          Registrations["GET /test-bool/@b "] = Sub42;
+          Registrations["GET /test-datetime/@t "] = Sub40;
+          Registrations["PUT /players/@i "] = Sub44;
+          Registrations["POST /transfer?@i "] = Sub46;
+          Registrations["POST /deposit?@i "] = Sub48;
+          Registrations["POST /find-player?firstname=@s&lastname=@s&age=@i "] = Sub52;
+          Registrations["DELETE /all "] = Sub53;
           PointerVerificationBytes = BitsAndBytes.Alloc(VerificationBytes.Length); // TODO. Free when program exists
           BitsAndBytes.SlowMemCopy( PointerVerificationBytes, VerificationBytes, (uint)VerificationBytes.Length);
       }
@@ -130,6 +172,13 @@ namespace __urimatcher__ {
             int nextSize = size;
             switch (*pfrag) {
                case (byte)'G':
+                   pfrag++;
+                   nextSize--;
+               #if DEBUG
+               TemplateOutput += "{G} ";
+               UriOutput += "{G} ";
+               #endif
+                  ptempl = ((byte*)PointerVerificationBytes + Sub0VerificationOffset + 1);
                   #if DEBUG
                   UriOutput += "'";
                   TemplateOutput += "'";
@@ -149,31 +198,29 @@ namespace __urimatcher__ {
                   pfrag += 4;
                   ptempl += 4;
                   #if DEBUG
-                  for(int i = 0; i < 1; i++) {
-                      UriOutput += (char)pfrag[i];
-                      TemplateOutput += (char)ptempl[i];
-                  }
-                  #endif
-                  nextSize --;
-                  if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                      handler = null;
-                      resource = null;
-                      return false;
-                  }
-                  pfrag ++;
-                  ptempl ++;
-                  #if DEBUG
                   UriOutput += "' ";
                   TemplateOutput += "' ";
                   #endif
                   switch (*pfrag) {
                      case (byte)' ':
                      case (byte)'\r':
+                         pfrag++;
+                         nextSize--;
+                     #if DEBUG
+                     TemplateOutput += "{ } ";
+                     UriOutput += "{ } ";
+                     #endif
                         if (Sub0.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                            return true;
                         break;
                      case (byte)'u':
-                        ptempl = ((byte*)PointerVerificationBytes + Sub1VerificationOffset + 5);
+                         pfrag++;
+                         nextSize--;
+                     #if DEBUG
+                     TemplateOutput += "{u} ";
+                     UriOutput += "{u} ";
+                     #endif
+                        ptempl = ((byte*)PointerVerificationBytes + Sub1VerificationOffset + 6);
                         #if DEBUG
                         UriOutput += "'";
                         TemplateOutput += "'";
@@ -193,64 +240,19 @@ namespace __urimatcher__ {
                         pfrag += 8;
                         ptempl += 8;
                         #if DEBUG
-                        for(int i = 0; i < 4; i++) {
+                        for(int i = 0; i < 2; i++) {
                             UriOutput += (char)pfrag[i];
                             TemplateOutput += (char)ptempl[i];
                         }
                         #endif
-                        nextSize -= 4;
-                        if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
+                        nextSize -= 2;
+                        if (nextSize<0 || (*(UInt16*)pfrag) != (*(UInt16*)ptempl) ) {
                             handler = null;
                             resource = null;
                             return false;
                         }
-                        pfrag += 4;
-                        ptempl += 4;
-                        #if DEBUG
-                        UriOutput += "' ";
-                        TemplateOutput += "' ";
-                        #endif
-                        switch (*pfrag) {
-                           case (byte)' ':
-                           case (byte)'\r':
-                              if (Sub1.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                 return true;
-                              break;
-                           case (byte)'/':
-                              ptempl = ((byte*)PointerVerificationBytes + Sub2VerificationOffset + 17);
-                              #if DEBUG
-                              UriOutput += "'";
-                              TemplateOutput += "'";
-                              #endif
-                              #if DEBUG
-                              for(int i = 0; i < 1; i++) {
-                                  UriOutput += (char)pfrag[i];
-                                  TemplateOutput += (char)ptempl[i];
-                              }
-                              #endif
-                              nextSize --;
-                              if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                                  break;
-                              }
-                              pfrag ++;
-                              ptempl ++;
-                              #if DEBUG
-                              UriOutput += "' ";
-                              TemplateOutput += "' ";
-                              #endif
-                              if (Sub2.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                 return true;
-                              else if (Sub3.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                 return true;
-                              break;
-                        }
-                        break;
-                     case (byte)'a':
-                        ptempl = ((byte*)PointerVerificationBytes + Sub4VerificationOffset + 5);
-                        #if DEBUG
-                        UriOutput += "'";
-                        TemplateOutput += "'";
-                        #endif
+                        pfrag += 2;
+                        ptempl += 2;
                         #if DEBUG
                         for(int i = 0; i < 1; i++) {
                             UriOutput += (char)pfrag[i];
@@ -270,8 +272,47 @@ namespace __urimatcher__ {
                         TemplateOutput += "' ";
                         #endif
                         switch (*pfrag) {
+                           case (byte)' ':
+                           case (byte)'\r':
+                               pfrag++;
+                               nextSize--;
+                           #if DEBUG
+                           TemplateOutput += "{ } ";
+                           UriOutput += "{ } ";
+                           #endif
+                              if (Sub1.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                 return true;
+                              break;
+                           case (byte)'/':
+                               pfrag++;
+                               nextSize--;
+                           #if DEBUG
+                           TemplateOutput += "{/} ";
+                           UriOutput += "{/} ";
+                           #endif
+                              if (Sub2.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                 return true;
+                              else if (Sub4.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                 return true;
+                              break;
+                        }
+                        break;
+                     case (byte)'a':
+                         pfrag++;
+                         nextSize--;
+                     #if DEBUG
+                     TemplateOutput += "{a} ";
+                     UriOutput += "{a} ";
+                     #endif
+                        switch (*pfrag) {
                            case (byte)'d':
-                              ptempl = ((byte*)PointerVerificationBytes + Sub4VerificationOffset + 6);
+                               pfrag++;
+                               nextSize--;
+                           #if DEBUG
+                           TemplateOutput += "{d} ";
+                           UriOutput += "{d} ";
+                           #endif
+                              ptempl = ((byte*)PointerVerificationBytes + Sub6VerificationOffset + 7);
                               #if DEBUG
                               UriOutput += "'";
                               TemplateOutput += "'";
@@ -290,524 +331,19 @@ namespace __urimatcher__ {
                               }
                               pfrag += 4;
                               ptempl += 4;
-                              #if DEBUG
-                              for(int i = 0; i < 1; i++) {
-                                  UriOutput += (char)pfrag[i];
-                                  TemplateOutput += (char)ptempl[i];
-                              }
-                              #endif
-                              nextSize --;
-                              if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                                  handler = null;
-                                  resource = null;
-                                  return false;
-                              }
-                              pfrag ++;
-                              ptempl ++;
                               #if DEBUG
                               UriOutput += "' ";
                               TemplateOutput += "' ";
                               #endif
                               switch (*pfrag) {
                                  case (byte)'a':
-                                    ptempl = ((byte*)PointerVerificationBytes + Sub4VerificationOffset + 11);
-                                    #if DEBUG
-                                    UriOutput += "'";
-                                    TemplateOutput += "'";
-                                    #endif
-                                    #if DEBUG
-                                    for(int i = 0; i < 8; i++) {
-                                        UriOutput += (char)pfrag[i];
-                                        TemplateOutput += (char)ptempl[i];
-                                    }
-                                    #endif
-                                    nextSize -= 8;
-                                    if (nextSize<0 || (*(UInt64*)pfrag) != (*(UInt64*)ptempl) ) {
-                                        break;
-                                    }
-                                    pfrag += 8;
-                                    ptempl += 8;
-                                    #if DEBUG
-                                    UriOutput += "' ";
-                                    TemplateOutput += "' ";
-                                    #endif
-                                    if (Sub4.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                       return true;
-                                    break;
-                                 default:
-                                    if (Sub5.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                       return true;
-                                    break;
-                              }
-                              break;
-                           case (byte)'a':
-                              ptempl = ((byte*)PointerVerificationBytes + Sub8VerificationOffset + 6);
-                              #if DEBUG
-                              UriOutput += "'";
-                              TemplateOutput += "'";
-                              #endif
-                              #if DEBUG
-                              for(int i = 0; i < 4; i++) {
-                                  UriOutput += (char)pfrag[i];
-                                  TemplateOutput += (char)ptempl[i];
-                              }
-                              #endif
-                              nextSize -= 4;
-                              if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
-                                  break;
-                              }
-                              pfrag += 4;
-                              ptempl += 4;
-                              #if DEBUG
-                              for(int i = 0; i < 1; i++) {
-                                  UriOutput += (char)pfrag[i];
-                                  TemplateOutput += (char)ptempl[i];
-                              }
-                              #endif
-                              nextSize --;
-                              if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                                  break;
-                              }
-                              pfrag ++;
-                              ptempl ++;
-                              #if DEBUG
-                              UriOutput += "' ";
-                              TemplateOutput += "' ";
-                              #endif
-                              if (Sub8.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                 return true;
-                              break;
-                        }
-                        break;
-                     case (byte)'p':
-                        ptempl = ((byte*)PointerVerificationBytes + Sub9VerificationOffset + 5);
-                        #if DEBUG
-                        UriOutput += "'";
-                        TemplateOutput += "'";
-                        #endif
-                        #if DEBUG
-                        for(int i = 0; i < 4; i++) {
-                            UriOutput += (char)pfrag[i];
-                            TemplateOutput += (char)ptempl[i];
-                        }
-                        #endif
-                        nextSize -= 4;
-                        if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
-                            handler = null;
-                            resource = null;
-                            return false;
-                        }
-                        pfrag += 4;
-                        ptempl += 4;
-                        #if DEBUG
-                        for(int i = 0; i < 2; i++) {
-                            UriOutput += (char)pfrag[i];
-                            TemplateOutput += (char)ptempl[i];
-                        }
-                        #endif
-                        nextSize -= 2;
-                        if (nextSize<0 || (*(UInt16*)pfrag) != (*(UInt16*)ptempl) ) {
-                            handler = null;
-                            resource = null;
-                            return false;
-                        }
-                        pfrag += 2;
-                        ptempl += 2;
-                        #if DEBUG
-                        for(int i = 0; i < 1; i++) {
-                            UriOutput += (char)pfrag[i];
-                            TemplateOutput += (char)ptempl[i];
-                        }
-                        #endif
-                        nextSize --;
-                        if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                            handler = null;
-                            resource = null;
-                            return false;
-                        }
-                        pfrag ++;
-                        ptempl ++;
-                        #if DEBUG
-                        UriOutput += "' ";
-                        TemplateOutput += "' ";
-                        #endif
-                        switch (*pfrag) {
-                           case (byte)' ':
-                           case (byte)'\r':
-                              if (Sub9.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                 return true;
-                              break;
-                           case (byte)'/':
-                              ptempl = ((byte*)PointerVerificationBytes + Sub10VerificationOffset + 12);
-                              #if DEBUG
-                              UriOutput += "'";
-                              TemplateOutput += "'";
-                              #endif
-                              #if DEBUG
-                              for(int i = 0; i < 1; i++) {
-                                  UriOutput += (char)pfrag[i];
-                                  TemplateOutput += (char)ptempl[i];
-                              }
-                              #endif
-                              nextSize --;
-                              if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                                  break;
-                              }
-                              pfrag ++;
-                              ptempl ++;
-                              #if DEBUG
-                              UriOutput += "' ";
-                              TemplateOutput += "' ";
-                              #endif
-                              if (Sub10.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                 return true;
-                              break;
-                           case (byte)'?':
-                              ptempl = ((byte*)PointerVerificationBytes + Sub11VerificationOffset + 12);
-                              #if DEBUG
-                              UriOutput += "'";
-                              TemplateOutput += "'";
-                              #endif
-                              #if DEBUG
-                              for(int i = 0; i < 1; i++) {
-                                  UriOutput += (char)pfrag[i];
-                                  TemplateOutput += (char)ptempl[i];
-                              }
-                              #endif
-                              nextSize --;
-                              if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                                  break;
-                              }
-                              pfrag ++;
-                              ptempl ++;
-                              #if DEBUG
-                              UriOutput += "' ";
-                              TemplateOutput += "' ";
-                              #endif
-                              if (Sub11.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                 return true;
-                              break;
-                        }
-                        break;
-                     case (byte)'d':
-                        ptempl = ((byte*)PointerVerificationBytes + Sub12VerificationOffset + 5);
-                        #if DEBUG
-                        UriOutput += "'";
-                        TemplateOutput += "'";
-                        #endif
-                        #if DEBUG
-                        for(int i = 0; i < 8; i++) {
-                            UriOutput += (char)pfrag[i];
-                            TemplateOutput += (char)ptempl[i];
-                        }
-                        #endif
-                        nextSize -= 8;
-                        if (nextSize<0 || (*(UInt64*)pfrag) != (*(UInt64*)ptempl) ) {
-                            break;
-                        }
-                        pfrag += 8;
-                        ptempl += 8;
-                        #if DEBUG
-                        for(int i = 0; i < 2; i++) {
-                            UriOutput += (char)pfrag[i];
-                            TemplateOutput += (char)ptempl[i];
-                        }
-                        #endif
-                        nextSize -= 2;
-                        if (nextSize<0 || (*(UInt16*)pfrag) != (*(UInt16*)ptempl) ) {
-                            break;
-                        }
-                        pfrag += 2;
-                        ptempl += 2;
-                        #if DEBUG
-                        UriOutput += "' ";
-                        TemplateOutput += "' ";
-                        #endif
-                        if (Sub12.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                           return true;
-                        break;
-                     case (byte)'w':
-                        ptempl = ((byte*)PointerVerificationBytes + Sub13VerificationOffset + 5);
-                        #if DEBUG
-                        UriOutput += "'";
-                        TemplateOutput += "'";
-                        #endif
-                        #if DEBUG
-                        for(int i = 0; i < 4; i++) {
-                            UriOutput += (char)pfrag[i];
-                            TemplateOutput += (char)ptempl[i];
-                        }
-                        #endif
-                        nextSize -= 4;
-                        if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
-                            handler = null;
-                            resource = null;
-                            return false;
-                        }
-                        pfrag += 4;
-                        ptempl += 4;
-                        #if DEBUG
-                        UriOutput += "' ";
-                        TemplateOutput += "' ";
-                        #endif
-                        switch (*pfrag) {
-                           case (byte)'e':
-                              ptempl = ((byte*)PointerVerificationBytes + Sub13VerificationOffset + 9);
-                              #if DEBUG
-                              UriOutput += "'";
-                              TemplateOutput += "'";
-                              #endif
-                              #if DEBUG
-                              for(int i = 0; i < 4; i++) {
-                                  UriOutput += (char)pfrag[i];
-                                  TemplateOutput += (char)ptempl[i];
-                              }
-                              #endif
-                              nextSize -= 4;
-                              if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
-                                  break;
-                              }
-                              pfrag += 4;
-                              ptempl += 4;
-                              #if DEBUG
-                              for(int i = 0; i < 1; i++) {
-                                  UriOutput += (char)pfrag[i];
-                                  TemplateOutput += (char)ptempl[i];
-                              }
-                              #endif
-                              nextSize --;
-                              if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                                  break;
-                              }
-                              pfrag ++;
-                              ptempl ++;
-                              #if DEBUG
-                              UriOutput += "' ";
-                              TemplateOutput += "' ";
-                              #endif
-                              if (Sub13.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                 return true;
-                              break;
-                           case (byte)'m':
-                              ptempl = ((byte*)PointerVerificationBytes + Sub18VerificationOffset + 9);
-                              #if DEBUG
-                              UriOutput += "'";
-                              TemplateOutput += "'";
-                              #endif
-                              #if DEBUG
-                              for(int i = 0; i < 4; i++) {
-                                  UriOutput += (char)pfrag[i];
-                                  TemplateOutput += (char)ptempl[i];
-                              }
-                              #endif
-                              nextSize -= 4;
-                              if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
-                                  break;
-                              }
-                              pfrag += 4;
-                              ptempl += 4;
-                              #if DEBUG
-                              for(int i = 0; i < 1; i++) {
-                                  UriOutput += (char)pfrag[i];
-                                  TemplateOutput += (char)ptempl[i];
-                              }
-                              #endif
-                              nextSize --;
-                              if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                                  break;
-                              }
-                              pfrag ++;
-                              ptempl ++;
-                              #if DEBUG
-                              UriOutput += "' ";
-                              TemplateOutput += "' ";
-                              #endif
-                              if (Sub18.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                 return true;
-                              break;
-                        }
-                        break;
-                     case (byte)'o':
-                        ptempl = ((byte*)PointerVerificationBytes + Sub20VerificationOffset + 5);
-                        #if DEBUG
-                        UriOutput += "'";
-                        TemplateOutput += "'";
-                        #endif
-                        #if DEBUG
-                        for(int i = 0; i < 2; i++) {
-                            UriOutput += (char)pfrag[i];
-                            TemplateOutput += (char)ptempl[i];
-                        }
-                        #endif
-                        nextSize -= 2;
-                        if (nextSize<0 || (*(UInt16*)pfrag) != (*(UInt16*)ptempl) ) {
-                            handler = null;
-                            resource = null;
-                            return false;
-                        }
-                        pfrag += 2;
-                        ptempl += 2;
-                        #if DEBUG
-                        for(int i = 0; i < 1; i++) {
-                            UriOutput += (char)pfrag[i];
-                            TemplateOutput += (char)ptempl[i];
-                        }
-                        #endif
-                        nextSize --;
-                        if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                            handler = null;
-                            resource = null;
-                            return false;
-                        }
-                        pfrag ++;
-                        ptempl ++;
-                        #if DEBUG
-                        UriOutput += "' ";
-                        TemplateOutput += "' ";
-                        #endif
-                        switch (*pfrag) {
-                           case (byte)'i':
-                              ptempl = ((byte*)PointerVerificationBytes + Sub20VerificationOffset + 8);
-                              #if DEBUG
-                              UriOutput += "'";
-                              TemplateOutput += "'";
-                              #endif
-                              #if DEBUG
-                              for(int i = 0; i < 4; i++) {
-                                  UriOutput += (char)pfrag[i];
-                                  TemplateOutput += (char)ptempl[i];
-                              }
-                              #endif
-                              nextSize -= 4;
-                              if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
-                                  break;
-                              }
-                              pfrag += 4;
-                              ptempl += 4;
-                              #if DEBUG
-                              for(int i = 0; i < 1; i++) {
-                                  UriOutput += (char)pfrag[i];
-                                  TemplateOutput += (char)ptempl[i];
-                              }
-                              #endif
-                              nextSize --;
-                              if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                                  break;
-                              }
-                              pfrag ++;
-                              ptempl ++;
-                              #if DEBUG
-                              UriOutput += "' ";
-                              TemplateOutput += "' ";
-                              #endif
-                              if (Sub20.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                 return true;
-                              break;
-                           case (byte)'A':
-                              ptempl = ((byte*)PointerVerificationBytes + Sub21VerificationOffset + 8);
-                              #if DEBUG
-                              UriOutput += "'";
-                              TemplateOutput += "'";
-                              #endif
-                              #if DEBUG
-                              for(int i = 0; i < 4; i++) {
-                                  UriOutput += (char)pfrag[i];
-                                  TemplateOutput += (char)ptempl[i];
-                              }
-                              #endif
-                              nextSize -= 4;
-                              if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
-                                  break;
-                              }
-                              pfrag += 4;
-                              ptempl += 4;
-                              #if DEBUG
-                              for(int i = 0; i < 1; i++) {
-                                  UriOutput += (char)pfrag[i];
-                                  TemplateOutput += (char)ptempl[i];
-                              }
-                              #endif
-                              nextSize --;
-                              if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                                  break;
-                              }
-                              pfrag ++;
-                              ptempl ++;
-                              #if DEBUG
-                              UriOutput += "' ";
-                              TemplateOutput += "' ";
-                              #endif
-                              if (Sub21.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                 return true;
-                              break;
-                        }
-                        break;
-                     case (byte)'t':
-                        ptempl = ((byte*)PointerVerificationBytes + Sub22VerificationOffset + 5);
-                        #if DEBUG
-                        UriOutput += "'";
-                        TemplateOutput += "'";
-                        #endif
-                        #if DEBUG
-                        for(int i = 0; i < 4; i++) {
-                            UriOutput += (char)pfrag[i];
-                            TemplateOutput += (char)ptempl[i];
-                        }
-                        #endif
-                        nextSize -= 4;
-                        if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
-                            handler = null;
-                            resource = null;
-                            return false;
-                        }
-                        pfrag += 4;
-                        ptempl += 4;
-                        #if DEBUG
-                        for(int i = 0; i < 1; i++) {
-                            UriOutput += (char)pfrag[i];
-                            TemplateOutput += (char)ptempl[i];
-                        }
-                        #endif
-                        nextSize --;
-                        if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                            handler = null;
-                            resource = null;
-                            return false;
-                        }
-                        pfrag ++;
-                        ptempl ++;
-                        #if DEBUG
-                        UriOutput += "' ";
-                        TemplateOutput += "' ";
-                        #endif
-                        switch (*pfrag) {
-                           case (byte)'d':
-                              ptempl = ((byte*)PointerVerificationBytes + Sub22VerificationOffset + 10);
-                              #if DEBUG
-                              UriOutput += "'";
-                              TemplateOutput += "'";
-                              #endif
-                              #if DEBUG
-                              for(int i = 0; i < 1; i++) {
-                                  UriOutput += (char)pfrag[i];
-                                  TemplateOutput += (char)ptempl[i];
-                              }
-                              #endif
-                              nextSize --;
-                              if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                                  handler = null;
-                                  resource = null;
-                                  return false;
-                              }
-                              pfrag ++;
-                              ptempl ++;
-                              #if DEBUG
-                              UriOutput += "' ";
-                              TemplateOutput += "' ";
-                              #endif
-                              switch (*pfrag) {
-                                 case (byte)'e':
-                                    ptempl = ((byte*)PointerVerificationBytes + Sub22VerificationOffset + 11);
+                                     pfrag++;
+                                     nextSize--;
+                                 #if DEBUG
+                                 TemplateOutput += "{a} ";
+                                 UriOutput += "{a} ";
+                                 #endif
+                                    ptempl = ((byte*)PointerVerificationBytes + Sub6VerificationOffset + 12);
                                     #if DEBUG
                                     UriOutput += "'";
                                     TemplateOutput += "'";
@@ -852,11 +388,420 @@ namespace __urimatcher__ {
                                     UriOutput += "' ";
                                     TemplateOutput += "' ";
                                     #endif
-                                    if (Sub22.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                    if (Sub6.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                        return true;
                                     break;
-                                 case (byte)'o':
-                                    ptempl = ((byte*)PointerVerificationBytes + Sub23VerificationOffset + 11);
+                                 default:
+                                    if (Sub8.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                       return true;
+                                    break;
+                              }
+                              break;
+                           case (byte)'a':
+                               pfrag++;
+                               nextSize--;
+                           #if DEBUG
+                           TemplateOutput += "{a} ";
+                           UriOutput += "{a} ";
+                           #endif
+                              ptempl = ((byte*)PointerVerificationBytes + Sub12VerificationOffset + 7);
+                              #if DEBUG
+                              UriOutput += "'";
+                              TemplateOutput += "'";
+                              #endif
+                              #if DEBUG
+                              for(int i = 0; i < 4; i++) {
+                                  UriOutput += (char)pfrag[i];
+                                  TemplateOutput += (char)ptempl[i];
+                              }
+                              #endif
+                              nextSize -= 4;
+                              if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
+                                  break;
+                              }
+                              pfrag += 4;
+                              ptempl += 4;
+                              #if DEBUG
+                              UriOutput += "' ";
+                              TemplateOutput += "' ";
+                              #endif
+                              if (Sub12.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                 return true;
+                              break;
+                        }
+                        break;
+                     case (byte)'p':
+                         pfrag++;
+                         nextSize--;
+                     #if DEBUG
+                     TemplateOutput += "{p} ";
+                     UriOutput += "{p} ";
+                     #endif
+                        ptempl = ((byte*)PointerVerificationBytes + Sub14VerificationOffset + 6);
+                        #if DEBUG
+                        UriOutput += "'";
+                        TemplateOutput += "'";
+                        #endif
+                        #if DEBUG
+                        for(int i = 0; i < 4; i++) {
+                            UriOutput += (char)pfrag[i];
+                            TemplateOutput += (char)ptempl[i];
+                        }
+                        #endif
+                        nextSize -= 4;
+                        if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
+                            handler = null;
+                            resource = null;
+                            return false;
+                        }
+                        pfrag += 4;
+                        ptempl += 4;
+                        #if DEBUG
+                        for(int i = 0; i < 2; i++) {
+                            UriOutput += (char)pfrag[i];
+                            TemplateOutput += (char)ptempl[i];
+                        }
+                        #endif
+                        nextSize -= 2;
+                        if (nextSize<0 || (*(UInt16*)pfrag) != (*(UInt16*)ptempl) ) {
+                            handler = null;
+                            resource = null;
+                            return false;
+                        }
+                        pfrag += 2;
+                        ptempl += 2;
+                        #if DEBUG
+                        UriOutput += "' ";
+                        TemplateOutput += "' ";
+                        #endif
+                        switch (*pfrag) {
+                           case (byte)' ':
+                           case (byte)'\r':
+                               pfrag++;
+                               nextSize--;
+                           #if DEBUG
+                           TemplateOutput += "{ } ";
+                           UriOutput += "{ } ";
+                           #endif
+                              if (Sub14.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                 return true;
+                              break;
+                           case (byte)'/':
+                               pfrag++;
+                               nextSize--;
+                           #if DEBUG
+                           TemplateOutput += "{/} ";
+                           UriOutput += "{/} ";
+                           #endif
+                              if (Sub15.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                 return true;
+                              break;
+                           case (byte)'?':
+                               pfrag++;
+                               nextSize--;
+                           #if DEBUG
+                           TemplateOutput += "{?} ";
+                           UriOutput += "{?} ";
+                           #endif
+                              if (Sub18.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                 return true;
+                              break;
+                        }
+                        break;
+                     case (byte)'d':
+                         pfrag++;
+                         nextSize--;
+                     #if DEBUG
+                     TemplateOutput += "{d} ";
+                     UriOutput += "{d} ";
+                     #endif
+                        ptempl = ((byte*)PointerVerificationBytes + Sub20VerificationOffset + 6);
+                        #if DEBUG
+                        UriOutput += "'";
+                        TemplateOutput += "'";
+                        #endif
+                        #if DEBUG
+                        for(int i = 0; i < 8; i++) {
+                            UriOutput += (char)pfrag[i];
+                            TemplateOutput += (char)ptempl[i];
+                        }
+                        #endif
+                        nextSize -= 8;
+                        if (nextSize<0 || (*(UInt64*)pfrag) != (*(UInt64*)ptempl) ) {
+                            break;
+                        }
+                        pfrag += 8;
+                        ptempl += 8;
+                        #if DEBUG
+                        for(int i = 0; i < 1; i++) {
+                            UriOutput += (char)pfrag[i];
+                            TemplateOutput += (char)ptempl[i];
+                        }
+                        #endif
+                        nextSize --;
+                        if (nextSize<0 || (*pfrag) != (*ptempl) ) {
+                            break;
+                        }
+                        pfrag ++;
+                        ptempl ++;
+                        #if DEBUG
+                        UriOutput += "' ";
+                        TemplateOutput += "' ";
+                        #endif
+                        if (Sub20.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                           return true;
+                        break;
+                     case (byte)'w':
+                         pfrag++;
+                         nextSize--;
+                     #if DEBUG
+                     TemplateOutput += "{w} ";
+                     UriOutput += "{w} ";
+                     #endif
+                        ptempl = ((byte*)PointerVerificationBytes + Sub22VerificationOffset + 6);
+                        #if DEBUG
+                        UriOutput += "'";
+                        TemplateOutput += "'";
+                        #endif
+                        #if DEBUG
+                        for(int i = 0; i < 2; i++) {
+                            UriOutput += (char)pfrag[i];
+                            TemplateOutput += (char)ptempl[i];
+                        }
+                        #endif
+                        nextSize -= 2;
+                        if (nextSize<0 || (*(UInt16*)pfrag) != (*(UInt16*)ptempl) ) {
+                            handler = null;
+                            resource = null;
+                            return false;
+                        }
+                        pfrag += 2;
+                        ptempl += 2;
+                        #if DEBUG
+                        for(int i = 0; i < 1; i++) {
+                            UriOutput += (char)pfrag[i];
+                            TemplateOutput += (char)ptempl[i];
+                        }
+                        #endif
+                        nextSize --;
+                        if (nextSize<0 || (*pfrag) != (*ptempl) ) {
+                            handler = null;
+                            resource = null;
+                            return false;
+                        }
+                        pfrag ++;
+                        ptempl ++;
+                        #if DEBUG
+                        UriOutput += "' ";
+                        TemplateOutput += "' ";
+                        #endif
+                        switch (*pfrag) {
+                           case (byte)'e':
+                               pfrag++;
+                               nextSize--;
+                           #if DEBUG
+                           TemplateOutput += "{e} ";
+                           UriOutput += "{e} ";
+                           #endif
+                              ptempl = ((byte*)PointerVerificationBytes + Sub22VerificationOffset + 10);
+                              #if DEBUG
+                              UriOutput += "'";
+                              TemplateOutput += "'";
+                              #endif
+                              #if DEBUG
+                              for(int i = 0; i < 4; i++) {
+                                  UriOutput += (char)pfrag[i];
+                                  TemplateOutput += (char)ptempl[i];
+                              }
+                              #endif
+                              nextSize -= 4;
+                              if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
+                                  break;
+                              }
+                              pfrag += 4;
+                              ptempl += 4;
+                              #if DEBUG
+                              UriOutput += "' ";
+                              TemplateOutput += "' ";
+                              #endif
+                              if (Sub22.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                 return true;
+                              break;
+                           case (byte)'m':
+                               pfrag++;
+                               nextSize--;
+                           #if DEBUG
+                           TemplateOutput += "{m} ";
+                           UriOutput += "{m} ";
+                           #endif
+                              ptempl = ((byte*)PointerVerificationBytes + Sub30VerificationOffset + 10);
+                              #if DEBUG
+                              UriOutput += "'";
+                              TemplateOutput += "'";
+                              #endif
+                              #if DEBUG
+                              for(int i = 0; i < 4; i++) {
+                                  UriOutput += (char)pfrag[i];
+                                  TemplateOutput += (char)ptempl[i];
+                              }
+                              #endif
+                              nextSize -= 4;
+                              if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
+                                  break;
+                              }
+                              pfrag += 4;
+                              ptempl += 4;
+                              #if DEBUG
+                              UriOutput += "' ";
+                              TemplateOutput += "' ";
+                              #endif
+                              if (Sub30.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                 return true;
+                              break;
+                        }
+                        break;
+                     case (byte)'o':
+                         pfrag++;
+                         nextSize--;
+                     #if DEBUG
+                     TemplateOutput += "{o} ";
+                     UriOutput += "{o} ";
+                     #endif
+                        ptempl = ((byte*)PointerVerificationBytes + Sub33VerificationOffset + 6);
+                        #if DEBUG
+                        UriOutput += "'";
+                        TemplateOutput += "'";
+                        #endif
+                        #if DEBUG
+                        for(int i = 0; i < 2; i++) {
+                            UriOutput += (char)pfrag[i];
+                            TemplateOutput += (char)ptempl[i];
+                        }
+                        #endif
+                        nextSize -= 2;
+                        if (nextSize<0 || (*(UInt16*)pfrag) != (*(UInt16*)ptempl) ) {
+                            handler = null;
+                            resource = null;
+                            return false;
+                        }
+                        pfrag += 2;
+                        ptempl += 2;
+                        #if DEBUG
+                        UriOutput += "' ";
+                        TemplateOutput += "' ";
+                        #endif
+                        switch (*pfrag) {
+                           case (byte)'i':
+                               pfrag++;
+                               nextSize--;
+                           #if DEBUG
+                           TemplateOutput += "{i} ";
+                           UriOutput += "{i} ";
+                           #endif
+                              ptempl = ((byte*)PointerVerificationBytes + Sub33VerificationOffset + 9);
+                              #if DEBUG
+                              UriOutput += "'";
+                              TemplateOutput += "'";
+                              #endif
+                              #if DEBUG
+                              for(int i = 0; i < 4; i++) {
+                                  UriOutput += (char)pfrag[i];
+                                  TemplateOutput += (char)ptempl[i];
+                              }
+                              #endif
+                              nextSize -= 4;
+                              if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
+                                  break;
+                              }
+                              pfrag += 4;
+                              ptempl += 4;
+                              #if DEBUG
+                              UriOutput += "' ";
+                              TemplateOutput += "' ";
+                              #endif
+                              if (Sub33.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                 return true;
+                              break;
+                           case (byte)'A':
+                               pfrag++;
+                               nextSize--;
+                           #if DEBUG
+                           TemplateOutput += "{A} ";
+                           UriOutput += "{A} ";
+                           #endif
+                              ptempl = ((byte*)PointerVerificationBytes + Sub34VerificationOffset + 9);
+                              #if DEBUG
+                              UriOutput += "'";
+                              TemplateOutput += "'";
+                              #endif
+                              #if DEBUG
+                              for(int i = 0; i < 4; i++) {
+                                  UriOutput += (char)pfrag[i];
+                                  TemplateOutput += (char)ptempl[i];
+                              }
+                              #endif
+                              nextSize -= 4;
+                              if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
+                                  break;
+                              }
+                              pfrag += 4;
+                              ptempl += 4;
+                              #if DEBUG
+                              UriOutput += "' ";
+                              TemplateOutput += "' ";
+                              #endif
+                              if (Sub34.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                 return true;
+                              break;
+                        }
+                        break;
+                     case (byte)'t':
+                         pfrag++;
+                         nextSize--;
+                     #if DEBUG
+                     TemplateOutput += "{t} ";
+                     UriOutput += "{t} ";
+                     #endif
+                        ptempl = ((byte*)PointerVerificationBytes + Sub35VerificationOffset + 6);
+                        #if DEBUG
+                        UriOutput += "'";
+                        TemplateOutput += "'";
+                        #endif
+                        #if DEBUG
+                        for(int i = 0; i < 4; i++) {
+                            UriOutput += (char)pfrag[i];
+                            TemplateOutput += (char)ptempl[i];
+                        }
+                        #endif
+                        nextSize -= 4;
+                        if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
+                            handler = null;
+                            resource = null;
+                            return false;
+                        }
+                        pfrag += 4;
+                        ptempl += 4;
+                        #if DEBUG
+                        UriOutput += "' ";
+                        TemplateOutput += "' ";
+                        #endif
+                        switch (*pfrag) {
+                           case (byte)'d':
+                               pfrag++;
+                               nextSize--;
+                           #if DEBUG
+                           TemplateOutput += "{d} ";
+                           UriOutput += "{d} ";
+                           #endif
+                              switch (*pfrag) {
+                                 case (byte)'e':
+                                     pfrag++;
+                                     nextSize--;
+                                 #if DEBUG
+                                 TemplateOutput += "{e} ";
+                                 UriOutput += "{e} ";
+                                 #endif
+                                    ptempl = ((byte*)PointerVerificationBytes + Sub35VerificationOffset + 12);
                                     #if DEBUG
                                     UriOutput += "'";
                                     TemplateOutput += "'";
@@ -889,38 +834,117 @@ namespace __urimatcher__ {
                                     UriOutput += "' ";
                                     TemplateOutput += "' ";
                                     #endif
-                                    if (Sub23.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                    if (Sub35.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                        return true;
                                     break;
-                                 case (byte)'a':
-                                    ptempl = ((byte*)PointerVerificationBytes + Sub24VerificationOffset + 11);
+                                 case (byte)'o':
+                                     pfrag++;
+                                     nextSize--;
+                                 #if DEBUG
+                                 TemplateOutput += "{o} ";
+                                 UriOutput += "{o} ";
+                                 #endif
+                                    ptempl = ((byte*)PointerVerificationBytes + Sub37VerificationOffset + 12);
                                     #if DEBUG
                                     UriOutput += "'";
                                     TemplateOutput += "'";
                                     #endif
                                     #if DEBUG
-                                    for(int i = 0; i < 8; i++) {
+                                    for(int i = 0; i < 4; i++) {
                                         UriOutput += (char)pfrag[i];
                                         TemplateOutput += (char)ptempl[i];
                                     }
                                     #endif
-                                    nextSize -= 8;
-                                    if (nextSize<0 || (*(UInt64*)pfrag) != (*(UInt64*)ptempl) ) {
+                                    nextSize -= 4;
+                                    if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
                                         break;
                                     }
-                                    pfrag += 8;
-                                    ptempl += 8;
+                                    pfrag += 4;
+                                    ptempl += 4;
+                                    #if DEBUG
+                                    for(int i = 0; i < 1; i++) {
+                                        UriOutput += (char)pfrag[i];
+                                        TemplateOutput += (char)ptempl[i];
+                                    }
+                                    #endif
+                                    nextSize --;
+                                    if (nextSize<0 || (*pfrag) != (*ptempl) ) {
+                                        break;
+                                    }
+                                    pfrag ++;
+                                    ptempl ++;
                                     #if DEBUG
                                     UriOutput += "' ";
                                     TemplateOutput += "' ";
                                     #endif
-                                    if (Sub24.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                    if (Sub37.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                       return true;
+                                    break;
+                                 case (byte)'a':
+                                     pfrag++;
+                                     nextSize--;
+                                 #if DEBUG
+                                 TemplateOutput += "{a} ";
+                                 UriOutput += "{a} ";
+                                 #endif
+                                    ptempl = ((byte*)PointerVerificationBytes + Sub39VerificationOffset + 12);
+                                    #if DEBUG
+                                    UriOutput += "'";
+                                    TemplateOutput += "'";
+                                    #endif
+                                    #if DEBUG
+                                    for(int i = 0; i < 4; i++) {
+                                        UriOutput += (char)pfrag[i];
+                                        TemplateOutput += (char)ptempl[i];
+                                    }
+                                    #endif
+                                    nextSize -= 4;
+                                    if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
+                                        break;
+                                    }
+                                    pfrag += 4;
+                                    ptempl += 4;
+                                    #if DEBUG
+                                    for(int i = 0; i < 2; i++) {
+                                        UriOutput += (char)pfrag[i];
+                                        TemplateOutput += (char)ptempl[i];
+                                    }
+                                    #endif
+                                    nextSize -= 2;
+                                    if (nextSize<0 || (*(UInt16*)pfrag) != (*(UInt16*)ptempl) ) {
+                                        break;
+                                    }
+                                    pfrag += 2;
+                                    ptempl += 2;
+                                    #if DEBUG
+                                    for(int i = 0; i < 1; i++) {
+                                        UriOutput += (char)pfrag[i];
+                                        TemplateOutput += (char)ptempl[i];
+                                    }
+                                    #endif
+                                    nextSize --;
+                                    if (nextSize<0 || (*pfrag) != (*ptempl) ) {
+                                        break;
+                                    }
+                                    pfrag ++;
+                                    ptempl ++;
+                                    #if DEBUG
+                                    UriOutput += "' ";
+                                    TemplateOutput += "' ";
+                                    #endif
+                                    if (Sub39.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                        return true;
                                     break;
                               }
                               break;
                            case (byte)'b':
-                              ptempl = ((byte*)PointerVerificationBytes + Sub25VerificationOffset + 10);
+                               pfrag++;
+                               nextSize--;
+                           #if DEBUG
+                           TemplateOutput += "{b} ";
+                           UriOutput += "{b} ";
+                           #endif
+                              ptempl = ((byte*)PointerVerificationBytes + Sub41VerificationOffset + 11);
                               #if DEBUG
                               UriOutput += "'";
                               TemplateOutput += "'";
@@ -938,22 +962,10 @@ namespace __urimatcher__ {
                               pfrag += 4;
                               ptempl += 4;
                               #if DEBUG
-                              for(int i = 0; i < 1; i++) {
-                                  UriOutput += (char)pfrag[i];
-                                  TemplateOutput += (char)ptempl[i];
-                              }
-                              #endif
-                              nextSize --;
-                              if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                                  break;
-                              }
-                              pfrag ++;
-                              ptempl ++;
-                              #if DEBUG
                               UriOutput += "' ";
                               TemplateOutput += "' ";
                               #endif
-                              if (Sub25.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                              if (Sub41.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
                               break;
                         }
@@ -961,32 +973,21 @@ namespace __urimatcher__ {
                   }
                   break;
                case (byte)'P':
-                  ptempl = ((byte*)PointerVerificationBytes + Sub26VerificationOffset + 0);
-                  #if DEBUG
-                  UriOutput += "'";
-                  TemplateOutput += "'";
-                  #endif
-                  #if DEBUG
-                  for(int i = 0; i < 1; i++) {
-                      UriOutput += (char)pfrag[i];
-                      TemplateOutput += (char)ptempl[i];
-                  }
-                  #endif
-                  nextSize --;
-                  if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                      handler = null;
-                      resource = null;
-                      return false;
-                  }
-                  pfrag ++;
-                  ptempl ++;
-                  #if DEBUG
-                  UriOutput += "' ";
-                  TemplateOutput += "' ";
-                  #endif
+                   pfrag++;
+                   nextSize--;
+               #if DEBUG
+               TemplateOutput += "{P} ";
+               UriOutput += "{P} ";
+               #endif
                   switch (*pfrag) {
                      case (byte)'U':
-                        ptempl = ((byte*)PointerVerificationBytes + Sub26VerificationOffset + 1);
+                         pfrag++;
+                         nextSize--;
+                     #if DEBUG
+                     TemplateOutput += "{U} ";
+                     UriOutput += "{U} ";
+                     #endif
+                        ptempl = ((byte*)PointerVerificationBytes + Sub43VerificationOffset + 2);
                         #if DEBUG
                         UriOutput += "'";
                         TemplateOutput += "'";
@@ -1004,26 +1005,44 @@ namespace __urimatcher__ {
                         pfrag += 8;
                         ptempl += 8;
                         #if DEBUG
-                        for(int i = 0; i < 4; i++) {
+                        for(int i = 0; i < 2; i++) {
                             UriOutput += (char)pfrag[i];
                             TemplateOutput += (char)ptempl[i];
                         }
                         #endif
-                        nextSize -= 4;
-                        if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
+                        nextSize -= 2;
+                        if (nextSize<0 || (*(UInt16*)pfrag) != (*(UInt16*)ptempl) ) {
                             break;
                         }
-                        pfrag += 4;
-                        ptempl += 4;
+                        pfrag += 2;
+                        ptempl += 2;
+                        #if DEBUG
+                        for(int i = 0; i < 1; i++) {
+                            UriOutput += (char)pfrag[i];
+                            TemplateOutput += (char)ptempl[i];
+                        }
+                        #endif
+                        nextSize --;
+                        if (nextSize<0 || (*pfrag) != (*ptempl) ) {
+                            break;
+                        }
+                        pfrag ++;
+                        ptempl ++;
                         #if DEBUG
                         UriOutput += "' ";
                         TemplateOutput += "' ";
                         #endif
-                        if (Sub26.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        if (Sub43.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                            return true;
                         break;
                      case (byte)'O':
-                        ptempl = ((byte*)PointerVerificationBytes + Sub27VerificationOffset + 1);
+                         pfrag++;
+                         nextSize--;
+                     #if DEBUG
+                     TemplateOutput += "{O} ";
+                     UriOutput += "{O} ";
+                     #endif
+                        ptempl = ((byte*)PointerVerificationBytes + Sub45VerificationOffset + 2);
                         #if DEBUG
                         UriOutput += "'";
                         TemplateOutput += "'";
@@ -1043,26 +1062,18 @@ namespace __urimatcher__ {
                         pfrag += 4;
                         ptempl += 4;
                         #if DEBUG
-                        for(int i = 0; i < 1; i++) {
-                            UriOutput += (char)pfrag[i];
-                            TemplateOutput += (char)ptempl[i];
-                        }
-                        #endif
-                        nextSize --;
-                        if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                            handler = null;
-                            resource = null;
-                            return false;
-                        }
-                        pfrag ++;
-                        ptempl ++;
-                        #if DEBUG
                         UriOutput += "' ";
                         TemplateOutput += "' ";
                         #endif
                         switch (*pfrag) {
                            case (byte)'t':
-                              ptempl = ((byte*)PointerVerificationBytes + Sub27VerificationOffset + 6);
+                               pfrag++;
+                               nextSize--;
+                           #if DEBUG
+                           TemplateOutput += "{t} ";
+                           UriOutput += "{t} ";
+                           #endif
+                              ptempl = ((byte*)PointerVerificationBytes + Sub45VerificationOffset + 7);
                               #if DEBUG
                               UriOutput += "'";
                               TemplateOutput += "'";
@@ -1080,79 +1091,24 @@ namespace __urimatcher__ {
                               pfrag += 8;
                               ptempl += 8;
                               #if DEBUG
-                              for(int i = 0; i < 1; i++) {
-                                  UriOutput += (char)pfrag[i];
-                                  TemplateOutput += (char)ptempl[i];
-                              }
-                              #endif
-                              nextSize --;
-                              if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                                  break;
-                              }
-                              pfrag ++;
-                              ptempl ++;
-                              #if DEBUG
                               UriOutput += "' ";
                               TemplateOutput += "' ";
                               #endif
-                              if (Sub27.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                              if (Sub45.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
                               break;
                            case (byte)'d':
-                              ptempl = ((byte*)PointerVerificationBytes + Sub28VerificationOffset + 6);
+                               pfrag++;
+                               nextSize--;
+                           #if DEBUG
+                           TemplateOutput += "{d} ";
+                           UriOutput += "{d} ";
+                           #endif
+                              ptempl = ((byte*)PointerVerificationBytes + Sub47VerificationOffset + 7);
                               #if DEBUG
                               UriOutput += "'";
                               TemplateOutput += "'";
                               #endif
-                              #if DEBUG
-                              for(int i = 0; i < 8; i++) {
-                                  UriOutput += (char)pfrag[i];
-                                  TemplateOutput += (char)ptempl[i];
-                              }
-                              #endif
-                              nextSize -= 8;
-                              if (nextSize<0 || (*(UInt64*)pfrag) != (*(UInt64*)ptempl) ) {
-                                  break;
-                              }
-                              pfrag += 8;
-                              ptempl += 8;
-                              #if DEBUG
-                              UriOutput += "' ";
-                              TemplateOutput += "' ";
-                              #endif
-                              if (Sub28.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                 return true;
-                              break;
-                           case (byte)'f':
-                              ptempl = ((byte*)PointerVerificationBytes + Sub29VerificationOffset + 6);
-                              #if DEBUG
-                              UriOutput += "'";
-                              TemplateOutput += "'";
-                              #endif
-                              #if DEBUG
-                              for(int i = 0; i < 8; i++) {
-                                  UriOutput += (char)pfrag[i];
-                                  TemplateOutput += (char)ptempl[i];
-                              }
-                              #endif
-                              nextSize -= 8;
-                              if (nextSize<0 || (*(UInt64*)pfrag) != (*(UInt64*)ptempl) ) {
-                                  break;
-                              }
-                              pfrag += 8;
-                              ptempl += 8;
-                              #if DEBUG
-                              for(int i = 0; i < 8; i++) {
-                                  UriOutput += (char)pfrag[i];
-                                  TemplateOutput += (char)ptempl[i];
-                              }
-                              #endif
-                              nextSize -= 8;
-                              if (nextSize<0 || (*(UInt64*)pfrag) != (*(UInt64*)ptempl) ) {
-                                  break;
-                              }
-                              pfrag += 8;
-                              ptempl += 8;
                               #if DEBUG
                               for(int i = 0; i < 4; i++) {
                                   UriOutput += (char)pfrag[i];
@@ -1178,10 +1134,89 @@ namespace __urimatcher__ {
                               pfrag += 2;
                               ptempl += 2;
                               #if DEBUG
+                              for(int i = 0; i < 1; i++) {
+                                  UriOutput += (char)pfrag[i];
+                                  TemplateOutput += (char)ptempl[i];
+                              }
+                              #endif
+                              nextSize --;
+                              if (nextSize<0 || (*pfrag) != (*ptempl) ) {
+                                  break;
+                              }
+                              pfrag ++;
+                              ptempl ++;
+                              #if DEBUG
                               UriOutput += "' ";
                               TemplateOutput += "' ";
                               #endif
-                              if (Sub29.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                              if (Sub47.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                 return true;
+                              break;
+                           case (byte)'f':
+                               pfrag++;
+                               nextSize--;
+                           #if DEBUG
+                           TemplateOutput += "{f} ";
+                           UriOutput += "{f} ";
+                           #endif
+                              ptempl = ((byte*)PointerVerificationBytes + Sub49VerificationOffset + 7);
+                              #if DEBUG
+                              UriOutput += "'";
+                              TemplateOutput += "'";
+                              #endif
+                              #if DEBUG
+                              for(int i = 0; i < 8; i++) {
+                                  UriOutput += (char)pfrag[i];
+                                  TemplateOutput += (char)ptempl[i];
+                              }
+                              #endif
+                              nextSize -= 8;
+                              if (nextSize<0 || (*(UInt64*)pfrag) != (*(UInt64*)ptempl) ) {
+                                  break;
+                              }
+                              pfrag += 8;
+                              ptempl += 8;
+                              #if DEBUG
+                              for(int i = 0; i < 8; i++) {
+                                  UriOutput += (char)pfrag[i];
+                                  TemplateOutput += (char)ptempl[i];
+                              }
+                              #endif
+                              nextSize -= 8;
+                              if (nextSize<0 || (*(UInt64*)pfrag) != (*(UInt64*)ptempl) ) {
+                                  break;
+                              }
+                              pfrag += 8;
+                              ptempl += 8;
+                              #if DEBUG
+                              for(int i = 0; i < 4; i++) {
+                                  UriOutput += (char)pfrag[i];
+                                  TemplateOutput += (char)ptempl[i];
+                              }
+                              #endif
+                              nextSize -= 4;
+                              if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
+                                  break;
+                              }
+                              pfrag += 4;
+                              ptempl += 4;
+                              #if DEBUG
+                              for(int i = 0; i < 1; i++) {
+                                  UriOutput += (char)pfrag[i];
+                                  TemplateOutput += (char)ptempl[i];
+                              }
+                              #endif
+                              nextSize --;
+                              if (nextSize<0 || (*pfrag) != (*ptempl) ) {
+                                  break;
+                              }
+                              pfrag ++;
+                              ptempl ++;
+                              #if DEBUG
+                              UriOutput += "' ";
+                              TemplateOutput += "' ";
+                              #endif
+                              if (Sub49.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
                               break;
                         }
@@ -1189,7 +1224,13 @@ namespace __urimatcher__ {
                   }
                   break;
                case (byte)'D':
-                  ptempl = ((byte*)PointerVerificationBytes + Sub32VerificationOffset + 0);
+                   pfrag++;
+                   nextSize--;
+               #if DEBUG
+               TemplateOutput += "{D} ";
+               UriOutput += "{D} ";
+               #endif
+                  ptempl = ((byte*)PointerVerificationBytes + Sub53VerificationOffset + 1);
                   #if DEBUG
                   UriOutput += "'";
                   TemplateOutput += "'";
@@ -1219,22 +1260,10 @@ namespace __urimatcher__ {
                   pfrag += 2;
                   ptempl += 2;
                   #if DEBUG
-                  for(int i = 0; i < 1; i++) {
-                      UriOutput += (char)pfrag[i];
-                      TemplateOutput += (char)ptempl[i];
-                  }
-                  #endif
-                  nextSize --;
-                  if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                      break;
-                  }
-                  pfrag ++;
-                  ptempl ++;
-                  #if DEBUG
                   UriOutput += "' ";
                   TemplateOutput += "' ";
                   #endif
-                  if (Sub32.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                  if (Sub53.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                      return true;
                   break;
             }
@@ -1279,121 +1308,25 @@ namespace __urimatcher__ {
 
          public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             int val;
+            int valueSize;
             #if DEBUG
             UriOutput += "'parse:int' ";
             TemplateOutput += "'parse:int' ";
             #endif
-            if (ParseUriInt(fragment, size, out val)) {
-               handler = this;
-               if (!invoke)
-                  resource = null;
-               else
-                  resource = Code.Invoke(request, val);
-               return true;
-            }
-            handler = null;
-            resource = null;
-            return false;
-         }
-      }
-
-      public class Sub3Processor : SingleRequestProcessor<String,HttpRequest> {
-
-         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            string val;
-            #if DEBUG
-            UriOutput += "'parse:string' ";
-            TemplateOutput += "'parse:string' ";
-            #endif
-            if (ParseUriString(fragment, size, out val)) {
-               handler = this;
-               if (!invoke)
-                  resource = null;
-               else
-                  resource = Code.Invoke(val, request);
-               return true;
-            }
-            handler = null;
-            resource = null;
-            return false;
-         }
-      }
-
-      public class Sub4Processor : SingleRequestProcessor<Int32,HttpRequest> {
-
-         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            int val;
-            #if DEBUG
-            UriOutput += "'parse:int' ";
-            TemplateOutput += "'parse:int' ";
-            #endif
-            if (ParseUriInt(fragment, size, out val)) {
-               handler = this;
-               if (!invoke)
-                  resource = null;
-               else
-                  resource = Code.Invoke(val, request);
-               return true;
-            }
-            handler = null;
-            resource = null;
-            return false;
-         }
-      }
-
-      public class Sub5Processor : RequestProcessor {
-
-         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            string val;
-            #if DEBUG
-            UriOutput += "'parse:string' ";
-            TemplateOutput += "'parse:string' ";
-            #endif
-            int vsize = SizeToDelimiterOrEnd(fragment, size, '/');
-            if (ParseUriString(fragment, vsize, out val)) {
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
-                  nextSize -= vsize;
+                  nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
                       resource = null;
                       return false;
                   }
-                  pfrag += vsize;
-                     switch (*pfrag) {
-                        case (byte)' ':
-                        case (byte)'\r':
-                           if (Sub6.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                              return true;
-                           break;
-                        case (byte)'/':
-                           ptempl = ((byte*)PointerVerificationBytes + Sub7VerificationOffset + 13);
-                           #if DEBUG
-                           UriOutput += "'";
-                           TemplateOutput += "'";
-                           #endif
-                           #if DEBUG
-                           for(int i = 0; i < 1; i++) {
-                               UriOutput += (char)pfrag[i];
-                               TemplateOutput += (char)ptempl[i];
-                           }
-                           #endif
-                           nextSize --;
-                           if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                               break;
-                           }
-                           pfrag ++;
-                           ptempl ++;
-                           #if DEBUG
-                           UriOutput += "' ";
-                           TemplateOutput += "' ";
-                           #endif
-                           if (Sub7.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                              return true;
-                           break;
-                     }
+                  pfrag += valueSize;
+                     if (Sub3.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        return true;
                }
             }
             handler = null;
@@ -1402,7 +1335,50 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub6Processor : SingleRequestProcessor<String,HttpRequest> {
+      public class Sub3Processor : SingleRequestProcessor<HttpRequest,Int32> {
+
+         public bool SubProcess(int val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke(request, val1);
+            return true;
+         }
+      }
+
+      public class Sub4Processor : SingleRequestProcessor<String,HttpRequest> {
+
+         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            string val;
+            int valueSize;
+            #if DEBUG
+            UriOutput += "'parse:string' ";
+            TemplateOutput += "'parse:string' ";
+            #endif
+            if (ParseUriString(fragment, size, out val, out valueSize)) {
+               unsafe {
+                  byte* pfrag = (byte*)fragment;
+                  byte* ptempl = (byte*)PointerVerificationBytes;
+                  int nextSize = size;
+                  nextSize -= valueSize;
+                  if (nextSize < 0) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += valueSize;
+                     if (Sub5.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        return true;
+               }
+            }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
+
+      public class Sub5Processor : SingleRequestProcessor<String,HttpRequest> {
 
          public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
@@ -1414,43 +1390,30 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub7Processor : SingleRequestProcessor<String,Int32,HttpRequest> {
-
-         public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            int val;
-            #if DEBUG
-            UriOutput += "'parse:int' ";
-            TemplateOutput += "'parse:int' ";
-            #endif
-            if (ParseUriInt(fragment, size, out val)) {
-               handler = this;
-               if (!invoke)
-                  resource = null;
-               else
-                  resource = Code.Invoke(val1, val, request);
-               return true;
-            }
-            handler = null;
-            resource = null;
-            return false;
-         }
-      }
-
-      public class Sub8Processor : SingleRequestProcessor<Int32> {
+      public class Sub6Processor : SingleRequestProcessor<Int32,HttpRequest> {
 
          public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             int val;
+            int valueSize;
             #if DEBUG
             UriOutput += "'parse:int' ";
             TemplateOutput += "'parse:int' ";
             #endif
-            if (ParseUriInt(fragment, size, out val)) {
-               handler = this;
-               if (!invoke)
-                  resource = null;
-               else
-                  resource = Code.Invoke(val);
-               return true;
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
+               unsafe {
+                  byte* pfrag = (byte*)fragment;
+                  byte* ptempl = (byte*)PointerVerificationBytes;
+                  int nextSize = size;
+                  nextSize -= valueSize;
+                  if (nextSize < 0) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += valueSize;
+                     if (Sub7.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        return true;
+               }
             }
             handler = null;
             resource = null;
@@ -1458,7 +1421,206 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub9Processor : SingleRequestProcessor {
+      public class Sub7Processor : SingleRequestProcessor<Int32,HttpRequest> {
+
+         public bool SubProcess(int val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke(val1, request);
+            return true;
+         }
+      }
+
+      public class Sub8Processor : RequestProcessor {
+
+         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            string val;
+            int valueSize;
+            #if DEBUG
+            UriOutput += "'parse:string' ";
+            TemplateOutput += "'parse:string' ";
+            #endif
+            if (ParseUriString(fragment, size, out val, out valueSize)) {
+               unsafe {
+                  byte* pfrag = (byte*)fragment;
+                  byte* ptempl = (byte*)PointerVerificationBytes;
+                  int nextSize = size;
+                  nextSize -= valueSize;
+                  if (nextSize < 0) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += valueSize;
+                     switch (*pfrag) {
+                        case (byte)' ':
+                        case (byte)'\r':
+                            pfrag++;
+                            nextSize--;
+                        #if DEBUG
+                        TemplateOutput += "{ } ";
+                        UriOutput += "{ } ";
+                        #endif
+                           if (Sub9.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                              return true;
+                           break;
+                        case (byte)'/':
+                            pfrag++;
+                            nextSize--;
+                        #if DEBUG
+                        TemplateOutput += "{/} ";
+                        UriOutput += "{/} ";
+                        #endif
+                           if (Sub10.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                              return true;
+                           break;
+                     }
+               }
+            }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
+
+      public class Sub9Processor : SingleRequestProcessor<String,HttpRequest> {
+
+         public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke(val1, request);
+            return true;
+         }
+      }
+
+      public class Sub10Processor : SingleRequestProcessor<String,Int32,HttpRequest> {
+
+         public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            int val;
+            int valueSize;
+            #if DEBUG
+            UriOutput += "'parse:int' ";
+            TemplateOutput += "'parse:int' ";
+            #endif
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
+               unsafe {
+                  byte* pfrag = (byte*)fragment;
+                  byte* ptempl = (byte*)PointerVerificationBytes;
+                  int nextSize = size;
+                  nextSize -= valueSize;
+                  if (nextSize < 0) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += valueSize;
+                     if (Sub11.SubProcess(val1, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        return true;
+               }
+            }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
+
+      public class Sub11Processor : SingleRequestProcessor<String,Int32,HttpRequest> {
+
+         public bool SubProcess(string val1, int val2, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke(val1, val2, request);
+            return true;
+         }
+      }
+
+      public class Sub12Processor : SingleRequestProcessor<Int32> {
+
+         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            int val;
+            int valueSize;
+            #if DEBUG
+            UriOutput += "'parse:int' ";
+            TemplateOutput += "'parse:int' ";
+            #endif
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
+               unsafe {
+                  byte* pfrag = (byte*)fragment;
+                  byte* ptempl = (byte*)PointerVerificationBytes;
+                  int nextSize = size;
+                  nextSize -= valueSize;
+                  if (nextSize < 0) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += valueSize;
+                     ptempl = ((byte*)PointerVerificationBytes + Sub13VerificationOffset + 13);
+                     #if DEBUG
+                     UriOutput += "'";
+                     TemplateOutput += "'";
+                     #endif
+                     #if DEBUG
+                     for(int i = 0; i < 4; i++) {
+                         UriOutput += (char)pfrag[i];
+                         TemplateOutput += (char)ptempl[i];
+                     }
+                     #endif
+                     nextSize -= 4;
+                     if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
+                         handler = null;
+                         resource = null;
+                         return false;
+                     }
+                     pfrag += 4;
+                     ptempl += 4;
+                     #if DEBUG
+                     for(int i = 0; i < 1; i++) {
+                         UriOutput += (char)pfrag[i];
+                         TemplateOutput += (char)ptempl[i];
+                     }
+                     #endif
+                     nextSize --;
+                     if (nextSize<0 || (*pfrag) != (*ptempl) ) {
+                         handler = null;
+                         resource = null;
+                         return false;
+                     }
+                     pfrag ++;
+                     ptempl ++;
+                     #if DEBUG
+                     UriOutput += "' ";
+                     TemplateOutput += "' ";
+                     #endif
+                     if (Sub13.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        return true;
+               }
+            }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
+
+      public class Sub13Processor : SingleRequestProcessor<Int32> {
+
+         public bool SubProcess(int val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke(val1);
+            return true;
+         }
+      }
+
+      public class Sub14Processor : SingleRequestProcessor {
 
          public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
@@ -1470,94 +1632,225 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub10Processor : SingleRequestProcessor<Int32> {
+      public class Sub15Processor : RequestProcessor {
 
          public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             int val;
+            int valueSize;
             #if DEBUG
             UriOutput += "'parse:int' ";
             TemplateOutput += "'parse:int' ";
             #endif
-            if (ParseUriInt(fragment, size, out val)) {
-               handler = this;
-               if (!invoke)
-                  resource = null;
-               else
-                  resource = Code.Invoke(val);
-               return true;
-            }
-            handler = null;
-            resource = null;
-            return false;
-         }
-      }
-
-      public class Sub11Processor : SingleRequestProcessor<String> {
-
-         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            string val;
-            #if DEBUG
-            UriOutput += "'parse:string' ";
-            TemplateOutput += "'parse:string' ";
-            #endif
-            if (ParseUriString(fragment, size, out val)) {
-               handler = this;
-               if (!invoke)
-                  resource = null;
-               else
-                  resource = Code.Invoke(val);
-               return true;
-            }
-            handler = null;
-            resource = null;
-            return false;
-         }
-      }
-
-      public class Sub12Processor : SingleRequestProcessor<Int32> {
-
-         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            int val;
-            #if DEBUG
-            UriOutput += "'parse:int' ";
-            TemplateOutput += "'parse:int' ";
-            #endif
-            if (ParseUriInt(fragment, size, out val)) {
-               handler = this;
-               if (!invoke)
-                  resource = null;
-               else
-                  resource = Code.Invoke(val);
-               return true;
-            }
-            handler = null;
-            resource = null;
-            return false;
-         }
-      }
-
-      public class Sub13Processor : RequestProcessor {
-
-         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            string val;
-            #if DEBUG
-            UriOutput += "'parse:string' ";
-            TemplateOutput += "'parse:string' ";
-            #endif
-            int vsize = SizeToDelimiterOrEnd(fragment, size, '/');
-            if (ParseUriString(fragment, vsize, out val)) {
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
-                  nextSize -= vsize;
+                  nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
                       resource = null;
                       return false;
                   }
-                  pfrag += vsize;
-                     ptempl = ((byte*)PointerVerificationBytes + Sub14VerificationOffset + 16);
+                  pfrag += valueSize;
+                     ptempl = ((byte*)PointerVerificationBytes + Sub16VerificationOffset + 15);
+                     #if DEBUG
+                     UriOutput += "'";
+                     TemplateOutput += "'";
+                     #endif
+                     #if DEBUG
+                     for(int i = 0; i < 4; i++) {
+                         UriOutput += (char)pfrag[i];
+                         TemplateOutput += (char)ptempl[i];
+                     }
+                     #endif
+                     nextSize -= 4;
+                     if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
+                         handler = null;
+                         resource = null;
+                         return false;
+                     }
+                     pfrag += 4;
+                     ptempl += 4;
+                     #if DEBUG
+                     for(int i = 0; i < 1; i++) {
+                         UriOutput += (char)pfrag[i];
+                         TemplateOutput += (char)ptempl[i];
+                     }
+                     #endif
+                     nextSize --;
+                     if (nextSize<0 || (*pfrag) != (*ptempl) ) {
+                         handler = null;
+                         resource = null;
+                         return false;
+                     }
+                     pfrag ++;
+                     ptempl ++;
+                     #if DEBUG
+                     UriOutput += "' ";
+                     TemplateOutput += "' ";
+                     #endif
+                     if (Sub16.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        return true;
+               }
+            }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
+
+      public class Sub16Processor : SingleRequestProcessor<Int32,String> {
+
+         public bool SubProcess(int val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            string val;
+            int valueSize;
+            #if DEBUG
+            UriOutput += "'parse:string' ";
+            TemplateOutput += "'parse:string' ";
+            #endif
+            if (ParseUriString(fragment, size, out val, out valueSize)) {
+               unsafe {
+                  byte* pfrag = (byte*)fragment;
+                  byte* ptempl = (byte*)PointerVerificationBytes;
+                  int nextSize = size;
+                  nextSize -= valueSize;
+                  if (nextSize < 0) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += valueSize;
+                     if (Sub17.SubProcess(val1, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        return true;
+               }
+            }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
+
+      public class Sub17Processor : SingleRequestProcessor<Int32,String> {
+
+         public bool SubProcess(int val1, string val2, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke(val1, val2);
+            return true;
+         }
+      }
+
+      public class Sub18Processor : SingleRequestProcessor<String> {
+
+         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            string val;
+            int valueSize;
+            #if DEBUG
+            UriOutput += "'parse:string' ";
+            TemplateOutput += "'parse:string' ";
+            #endif
+            if (ParseUriString(fragment, size, out val, out valueSize)) {
+               unsafe {
+                  byte* pfrag = (byte*)fragment;
+                  byte* ptempl = (byte*)PointerVerificationBytes;
+                  int nextSize = size;
+                  nextSize -= valueSize;
+                  if (nextSize < 0) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += valueSize;
+                     if (Sub19.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        return true;
+               }
+            }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
+
+      public class Sub19Processor : SingleRequestProcessor<String> {
+
+         public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke(val1);
+            return true;
+         }
+      }
+
+      public class Sub20Processor : SingleRequestProcessor<Int32> {
+
+         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            int val;
+            int valueSize;
+            #if DEBUG
+            UriOutput += "'parse:int' ";
+            TemplateOutput += "'parse:int' ";
+            #endif
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
+               unsafe {
+                  byte* pfrag = (byte*)fragment;
+                  byte* ptempl = (byte*)PointerVerificationBytes;
+                  int nextSize = size;
+                  nextSize -= valueSize;
+                  if (nextSize < 0) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += valueSize;
+                     if (Sub21.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        return true;
+               }
+            }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
+
+      public class Sub21Processor : SingleRequestProcessor<Int32> {
+
+         public bool SubProcess(int val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke(val1);
+            return true;
+         }
+      }
+
+      public class Sub22Processor : RequestProcessor {
+
+         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            string val;
+            int valueSize;
+            #if DEBUG
+            UriOutput += "'parse:string' ";
+            TemplateOutput += "'parse:string' ";
+            #endif
+            if (ParseUriString(fragment, size, out val, out valueSize)) {
+               unsafe {
+                  byte* pfrag = (byte*)fragment;
+                  byte* ptempl = (byte*)PointerVerificationBytes;
+                  int nextSize = size;
+                  nextSize -= valueSize;
+                  if (nextSize < 0) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += valueSize;
+                     ptempl = ((byte*)PointerVerificationBytes + Sub23VerificationOffset + 16);
                      #if DEBUG
                      UriOutput += "'";
                      TemplateOutput += "'";
@@ -1582,7 +1875,13 @@ namespace __urimatcher__ {
                      #endif
                      switch (*pfrag) {
                         case (byte)'m':
-                           ptempl = ((byte*)PointerVerificationBytes + Sub14VerificationOffset + 17);
+                            pfrag++;
+                            nextSize--;
+                        #if DEBUG
+                        TemplateOutput += "{m} ";
+                        UriOutput += "{m} ";
+                        #endif
+                           ptempl = ((byte*)PointerVerificationBytes + Sub23VerificationOffset + 18);
                            #if DEBUG
                            UriOutput += "'";
                            TemplateOutput += "'";
@@ -1600,6 +1899,25 @@ namespace __urimatcher__ {
                            pfrag += 4;
                            ptempl += 4;
                            #if DEBUG
+                           UriOutput += "' ";
+                           TemplateOutput += "' ";
+                           #endif
+                           if (Sub23.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                              return true;
+                           break;
+                        case (byte)'x':
+                            pfrag++;
+                            nextSize--;
+                        #if DEBUG
+                        TemplateOutput += "{x} ";
+                        UriOutput += "{x} ";
+                        #endif
+                           ptempl = ((byte*)PointerVerificationBytes + Sub26VerificationOffset + 18);
+                           #if DEBUG
+                           UriOutput += "'";
+                           TemplateOutput += "'";
+                           #endif
+                           #if DEBUG
                            for(int i = 0; i < 1; i++) {
                                UriOutput += (char)pfrag[i];
                                TemplateOutput += (char)ptempl[i];
@@ -1607,7 +1925,9 @@ namespace __urimatcher__ {
                            #endif
                            nextSize --;
                            if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                               break;
+                               handler = null;
+                               resource = null;
+                               return false;
                            }
                            pfrag ++;
                            ptempl ++;
@@ -1615,36 +1935,15 @@ namespace __urimatcher__ {
                            UriOutput += "' ";
                            TemplateOutput += "' ";
                            #endif
-                           if (Sub14.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                              return true;
-                           break;
-                        case (byte)'x':
-                           ptempl = ((byte*)PointerVerificationBytes + Sub16VerificationOffset + 17);
-                           #if DEBUG
-                           UriOutput += "'";
-                           TemplateOutput += "'";
-                           #endif
-                           #if DEBUG
-                           for(int i = 0; i < 2; i++) {
-                               UriOutput += (char)pfrag[i];
-                               TemplateOutput += (char)ptempl[i];
-                           }
-                           #endif
-                           nextSize -= 2;
-                           if (nextSize<0 || (*(UInt16*)pfrag) != (*(UInt16*)ptempl) ) {
-                               handler = null;
-                               resource = null;
-                               return false;
-                           }
-                           pfrag += 2;
-                           ptempl += 2;
-                           #if DEBUG
-                           UriOutput += "' ";
-                           TemplateOutput += "' ";
-                           #endif
                            switch (*pfrag) {
                               case (byte)'Y':
-                                 ptempl = ((byte*)PointerVerificationBytes + Sub16VerificationOffset + 19);
+                                  pfrag++;
+                                  nextSize--;
+                              #if DEBUG
+                              TemplateOutput += "{Y} ";
+                              UriOutput += "{Y} ";
+                              #endif
+                                 ptempl = ((byte*)PointerVerificationBytes + Sub26VerificationOffset + 20);
                                  #if DEBUG
                                  UriOutput += "'";
                                  TemplateOutput += "'";
@@ -1662,26 +1961,20 @@ namespace __urimatcher__ {
                                  pfrag += 2;
                                  ptempl += 2;
                                  #if DEBUG
-                                 for(int i = 0; i < 1; i++) {
-                                     UriOutput += (char)pfrag[i];
-                                     TemplateOutput += (char)ptempl[i];
-                                 }
-                                 #endif
-                                 nextSize --;
-                                 if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                                     break;
-                                 }
-                                 pfrag ++;
-                                 ptempl ++;
-                                 #if DEBUG
                                  UriOutput += "' ";
                                  TemplateOutput += "' ";
                                  #endif
-                                 if (Sub16.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                 if (Sub26.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                     return true;
                                  break;
                               case (byte)'Z':
-                                 ptempl = ((byte*)PointerVerificationBytes + Sub17VerificationOffset + 19);
+                                  pfrag++;
+                                  nextSize--;
+                              #if DEBUG
+                              TemplateOutput += "{Z} ";
+                              UriOutput += "{Z} ";
+                              #endif
+                                 ptempl = ((byte*)PointerVerificationBytes + Sub28VerificationOffset + 20);
                                  #if DEBUG
                                  UriOutput += "'";
                                  TemplateOutput += "'";
@@ -1699,22 +1992,10 @@ namespace __urimatcher__ {
                                  pfrag += 2;
                                  ptempl += 2;
                                  #if DEBUG
-                                 for(int i = 0; i < 1; i++) {
-                                     UriOutput += (char)pfrag[i];
-                                     TemplateOutput += (char)ptempl[i];
-                                 }
-                                 #endif
-                                 nextSize --;
-                                 if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                                     break;
-                                 }
-                                 pfrag ++;
-                                 ptempl ++;
-                                 #if DEBUG
                                  UriOutput += "' ";
                                  TemplateOutput += "' ";
                                  #endif
-                                 if (Sub17.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                 if (Sub28.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                     return true;
                                  break;
                            }
@@ -1728,28 +2009,28 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub14Processor : RequestProcessor {
+      public class Sub23Processor : RequestProcessor {
 
          public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             int val;
+            int valueSize;
             #if DEBUG
             UriOutput += "'parse:int' ";
             TemplateOutput += "'parse:int' ";
             #endif
-            int vsize = SizeToDelimiterOrEnd(fragment, size, '/');
-            if (ParseUriInt(fragment, vsize, out val)) {
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
-                  nextSize -= vsize;
+                  nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
                       resource = null;
                       return false;
                   }
-                  pfrag += vsize;
-                     ptempl = ((byte*)PointerVerificationBytes + Sub15VerificationOffset + 24);
+                  pfrag += valueSize;
+                     ptempl = ((byte*)PointerVerificationBytes + Sub24VerificationOffset + 24);
                      #if DEBUG
                      UriOutput += "'";
                      TemplateOutput += "'";
@@ -1772,7 +2053,7 @@ namespace __urimatcher__ {
                      UriOutput += "' ";
                      TemplateOutput += "' ";
                      #endif
-                     if (Sub15.SubProcess(val1, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                     if (Sub24.SubProcess(val1, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                         return true;
                }
             }
@@ -1782,94 +2063,157 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub15Processor : SingleRequestProcessor<String,Int32,String> {
+      public class Sub24Processor : SingleRequestProcessor<String,Int32,String> {
 
          public bool SubProcess(string val1, int val2, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             string val;
+            int valueSize;
             #if DEBUG
             UriOutput += "'parse:string' ";
             TemplateOutput += "'parse:string' ";
             #endif
-            if (ParseUriString(fragment, size, out val)) {
-               handler = this;
-               if (!invoke)
-                  resource = null;
-               else
-                  resource = Code.Invoke(val1, val2, val);
-               return true;
-            }
-            handler = null;
-            resource = null;
-            return false;
-         }
-      }
-
-      public class Sub16Processor : SingleRequestProcessor<String,Int32> {
-
-         public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            int val;
-            #if DEBUG
-            UriOutput += "'parse:int' ";
-            TemplateOutput += "'parse:int' ";
-            #endif
-            if (ParseUriInt(fragment, size, out val)) {
-               handler = this;
-               if (!invoke)
-                  resource = null;
-               else
-                  resource = Code.Invoke(val1, val);
-               return true;
-            }
-            handler = null;
-            resource = null;
-            return false;
-         }
-      }
-
-      public class Sub17Processor : SingleRequestProcessor<String,Int32> {
-
-         public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            int val;
-            #if DEBUG
-            UriOutput += "'parse:int' ";
-            TemplateOutput += "'parse:int' ";
-            #endif
-            if (ParseUriInt(fragment, size, out val)) {
-               handler = this;
-               if (!invoke)
-                  resource = null;
-               else
-                  resource = Code.Invoke(val1, val);
-               return true;
-            }
-            handler = null;
-            resource = null;
-            return false;
-         }
-      }
-
-      public class Sub18Processor : RequestProcessor {
-
-         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            string val;
-            #if DEBUG
-            UriOutput += "'parse:string' ";
-            TemplateOutput += "'parse:string' ";
-            #endif
-            int vsize = SizeToDelimiterOrEnd(fragment, size, '/');
-            if (ParseUriString(fragment, vsize, out val)) {
+            if (ParseUriString(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
-                  nextSize -= vsize;
+                  nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
                       resource = null;
                       return false;
                   }
-                  pfrag += vsize;
-                     ptempl = ((byte*)PointerVerificationBytes + Sub19VerificationOffset + 16);
+                  pfrag += valueSize;
+                     if (Sub25.SubProcess(val1, val2, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        return true;
+               }
+            }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
+
+      public class Sub25Processor : SingleRequestProcessor<String,Int32,String> {
+
+         public bool SubProcess(string val1, int val2, string val3, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke(val1, val2, val3);
+            return true;
+         }
+      }
+
+      public class Sub26Processor : SingleRequestProcessor<String,Int32> {
+
+         public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            int val;
+            int valueSize;
+            #if DEBUG
+            UriOutput += "'parse:int' ";
+            TemplateOutput += "'parse:int' ";
+            #endif
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
+               unsafe {
+                  byte* pfrag = (byte*)fragment;
+                  byte* ptempl = (byte*)PointerVerificationBytes;
+                  int nextSize = size;
+                  nextSize -= valueSize;
+                  if (nextSize < 0) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += valueSize;
+                     if (Sub27.SubProcess(val1, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        return true;
+               }
+            }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
+
+      public class Sub27Processor : SingleRequestProcessor<String,Int32> {
+
+         public bool SubProcess(string val1, int val2, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke(val1, val2);
+            return true;
+         }
+      }
+
+      public class Sub28Processor : SingleRequestProcessor<String,Int32> {
+
+         public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            int val;
+            int valueSize;
+            #if DEBUG
+            UriOutput += "'parse:int' ";
+            TemplateOutput += "'parse:int' ";
+            #endif
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
+               unsafe {
+                  byte* pfrag = (byte*)fragment;
+                  byte* ptempl = (byte*)PointerVerificationBytes;
+                  int nextSize = size;
+                  nextSize -= valueSize;
+                  if (nextSize < 0) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += valueSize;
+                     if (Sub29.SubProcess(val1, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        return true;
+               }
+            }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
+
+      public class Sub29Processor : SingleRequestProcessor<String,Int32> {
+
+         public bool SubProcess(string val1, int val2, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke(val1, val2);
+            return true;
+         }
+      }
+
+      public class Sub30Processor : RequestProcessor {
+
+         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            string val;
+            int valueSize;
+            #if DEBUG
+            UriOutput += "'parse:string' ";
+            TemplateOutput += "'parse:string' ";
+            #endif
+            if (ParseUriString(fragment, size, out val, out valueSize)) {
+               unsafe {
+                  byte* pfrag = (byte*)fragment;
+                  byte* ptempl = (byte*)PointerVerificationBytes;
+                  int nextSize = size;
+                  nextSize -= valueSize;
+                  if (nextSize < 0) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += valueSize;
+                     ptempl = ((byte*)PointerVerificationBytes + Sub31VerificationOffset + 16);
                      #if DEBUG
                      UriOutput += "'";
                      TemplateOutput += "'";
@@ -1906,7 +2250,7 @@ namespace __urimatcher__ {
                      UriOutput += "' ";
                      TemplateOutput += "' ";
                      #endif
-                     if (Sub19.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                     if (Sub31.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                         return true;
                }
             }
@@ -1916,228 +2260,396 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub19Processor : SingleRequestProcessor<String,Int32> {
+      public class Sub31Processor : SingleRequestProcessor<String,Int32> {
 
          public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             int val;
+            int valueSize;
             #if DEBUG
             UriOutput += "'parse:int' ";
             TemplateOutput += "'parse:int' ";
             #endif
-            if (ParseUriInt(fragment, size, out val)) {
-               handler = this;
-               if (!invoke)
-                  resource = null;
-               else
-                  resource = Code.Invoke(val1, val);
-               return true;
-            }
-            handler = null;
-            resource = null;
-            return false;
-         }
-      }
-
-      public class Sub20Processor : SingleRequestProcessor {
-
-         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            handler = this;
-            if (!invoke)
-               resource = null;
-            else
-               resource = Code.Invoke();
-            return true;
-         }
-      }
-
-      public class Sub21Processor : SingleRequestProcessor {
-
-         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            handler = this;
-            if (!invoke)
-               resource = null;
-            else
-               resource = Code.Invoke();
-            return true;
-         }
-      }
-
-      public class Sub22Processor : SingleRequestProcessor<Decimal> {
-
-         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            decimal val;
-            #if DEBUG
-            UriOutput += "'parse:decimal' ";
-            TemplateOutput += "'parse:decimal' ";
-            #endif
-            if (ParseUriDecimal(fragment, size, out val)) {
-               handler = this;
-               if (!invoke)
-                  resource = null;
-               else
-                  resource = Code.Invoke(val);
-               return true;
-            }
-            handler = null;
-            resource = null;
-            return false;
-         }
-      }
-
-      public class Sub23Processor : SingleRequestProcessor<Double> {
-
-         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            double val;
-            #if DEBUG
-            UriOutput += "'parse:double' ";
-            TemplateOutput += "'parse:double' ";
-            #endif
-            if (ParseUriDouble(fragment, size, out val)) {
-               handler = this;
-               if (!invoke)
-                  resource = null;
-               else
-                  resource = Code.Invoke(val);
-               return true;
-            }
-            handler = null;
-            resource = null;
-            return false;
-         }
-      }
-
-      public class Sub24Processor : SingleRequestProcessor<DateTime> {
-
-         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            DateTime val;
-            #if DEBUG
-            UriOutput += "'parse:DateTime' ";
-            TemplateOutput += "'parse:DateTime' ";
-            #endif
-            if (ParseUriDateTime(fragment, size, out val)) {
-               handler = this;
-               if (!invoke)
-                  resource = null;
-               else
-                  resource = Code.Invoke(val);
-               return true;
-            }
-            handler = null;
-            resource = null;
-            return false;
-         }
-      }
-
-      public class Sub25Processor : SingleRequestProcessor<Boolean> {
-
-         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            bool val;
-            #if DEBUG
-            UriOutput += "'parse:bool' ";
-            TemplateOutput += "'parse:bool' ";
-            #endif
-            if (ParseUriBoolean(fragment, size, out val)) {
-               handler = this;
-               if (!invoke)
-                  resource = null;
-               else
-                  resource = Code.Invoke(val);
-               return true;
-            }
-            handler = null;
-            resource = null;
-            return false;
-         }
-      }
-
-      public class Sub26Processor : SingleRequestProcessor<Int32> {
-
-         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            int val;
-            #if DEBUG
-            UriOutput += "'parse:int' ";
-            TemplateOutput += "'parse:int' ";
-            #endif
-            if (ParseUriInt(fragment, size, out val)) {
-               handler = this;
-               if (!invoke)
-                  resource = null;
-               else
-                  resource = Code.Invoke(val);
-               return true;
-            }
-            handler = null;
-            resource = null;
-            return false;
-         }
-      }
-
-      public class Sub27Processor : SingleRequestProcessor<Int32> {
-
-         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            int val;
-            #if DEBUG
-            UriOutput += "'parse:int' ";
-            TemplateOutput += "'parse:int' ";
-            #endif
-            if (ParseUriInt(fragment, size, out val)) {
-               handler = this;
-               if (!invoke)
-                  resource = null;
-               else
-                  resource = Code.Invoke(val);
-               return true;
-            }
-            handler = null;
-            resource = null;
-            return false;
-         }
-      }
-
-      public class Sub28Processor : SingleRequestProcessor<Int32> {
-
-         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            int val;
-            #if DEBUG
-            UriOutput += "'parse:int' ";
-            TemplateOutput += "'parse:int' ";
-            #endif
-            if (ParseUriInt(fragment, size, out val)) {
-               handler = this;
-               if (!invoke)
-                  resource = null;
-               else
-                  resource = Code.Invoke(val);
-               return true;
-            }
-            handler = null;
-            resource = null;
-            return false;
-         }
-      }
-
-      public class Sub29Processor : RequestProcessor {
-
-         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            string val;
-            #if DEBUG
-            UriOutput += "'parse:string' ";
-            TemplateOutput += "'parse:string' ";
-            #endif
-            int vsize = SizeToDelimiterOrEnd(fragment, size, '/');
-            if (ParseUriString(fragment, vsize, out val)) {
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
-                  nextSize -= vsize;
+                  nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
                       resource = null;
                       return false;
                   }
-                  pfrag += vsize;
-                     ptempl = ((byte*)PointerVerificationBytes + Sub30VerificationOffset + 30);
+                  pfrag += valueSize;
+                     if (Sub32.SubProcess(val1, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        return true;
+               }
+            }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
+
+      public class Sub32Processor : SingleRequestProcessor<String,Int32> {
+
+         public bool SubProcess(string val1, int val2, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke(val1, val2);
+            return true;
+         }
+      }
+
+      public class Sub33Processor : SingleRequestProcessor {
+
+         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke();
+            return true;
+         }
+      }
+
+      public class Sub34Processor : SingleRequestProcessor {
+
+         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke();
+            return true;
+         }
+      }
+
+      public class Sub35Processor : SingleRequestProcessor<Decimal> {
+
+         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            decimal val;
+            int valueSize;
+            #if DEBUG
+            UriOutput += "'parse:decimal' ";
+            TemplateOutput += "'parse:decimal' ";
+            #endif
+            if (ParseUriDecimal(fragment, size, out val, out valueSize)) {
+               unsafe {
+                  byte* pfrag = (byte*)fragment;
+                  byte* ptempl = (byte*)PointerVerificationBytes;
+                  int nextSize = size;
+                  nextSize -= valueSize;
+                  if (nextSize < 0) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += valueSize;
+                     if (Sub36.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        return true;
+               }
+            }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
+
+      public class Sub36Processor : SingleRequestProcessor<Decimal> {
+
+         public bool SubProcess(decimal val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke(val1);
+            return true;
+         }
+      }
+
+      public class Sub37Processor : SingleRequestProcessor<Double> {
+
+         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            double val;
+            int valueSize;
+            #if DEBUG
+            UriOutput += "'parse:double' ";
+            TemplateOutput += "'parse:double' ";
+            #endif
+            if (ParseUriDouble(fragment, size, out val, out valueSize)) {
+               unsafe {
+                  byte* pfrag = (byte*)fragment;
+                  byte* ptempl = (byte*)PointerVerificationBytes;
+                  int nextSize = size;
+                  nextSize -= valueSize;
+                  if (nextSize < 0) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += valueSize;
+                     if (Sub38.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        return true;
+               }
+            }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
+
+      public class Sub38Processor : SingleRequestProcessor<Double> {
+
+         public bool SubProcess(double val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke(val1);
+            return true;
+         }
+      }
+
+      public class Sub39Processor : SingleRequestProcessor<DateTime> {
+
+         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            DateTime val;
+            int valueSize;
+            #if DEBUG
+            UriOutput += "'parse:DateTime' ";
+            TemplateOutput += "'parse:DateTime' ";
+            #endif
+            if (ParseUriDateTime(fragment, size, out val, out valueSize)) {
+               unsafe {
+                  byte* pfrag = (byte*)fragment;
+                  byte* ptempl = (byte*)PointerVerificationBytes;
+                  int nextSize = size;
+                  nextSize -= valueSize;
+                  if (nextSize < 0) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += valueSize;
+                     if (Sub40.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        return true;
+               }
+            }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
+
+      public class Sub40Processor : SingleRequestProcessor<DateTime> {
+
+         public bool SubProcess(DateTime val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke(val1);
+            return true;
+         }
+      }
+
+      public class Sub41Processor : SingleRequestProcessor<Boolean> {
+
+         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            bool val;
+            int valueSize;
+            #if DEBUG
+            UriOutput += "'parse:bool' ";
+            TemplateOutput += "'parse:bool' ";
+            #endif
+            if (ParseUriBoolean(fragment, size, out val, out valueSize)) {
+               unsafe {
+                  byte* pfrag = (byte*)fragment;
+                  byte* ptempl = (byte*)PointerVerificationBytes;
+                  int nextSize = size;
+                  nextSize -= valueSize;
+                  if (nextSize < 0) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += valueSize;
+                     if (Sub42.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        return true;
+               }
+            }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
+
+      public class Sub42Processor : SingleRequestProcessor<Boolean> {
+
+         public bool SubProcess(bool val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke(val1);
+            return true;
+         }
+      }
+
+      public class Sub43Processor : SingleRequestProcessor<Int32> {
+
+         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            int val;
+            int valueSize;
+            #if DEBUG
+            UriOutput += "'parse:int' ";
+            TemplateOutput += "'parse:int' ";
+            #endif
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
+               unsafe {
+                  byte* pfrag = (byte*)fragment;
+                  byte* ptempl = (byte*)PointerVerificationBytes;
+                  int nextSize = size;
+                  nextSize -= valueSize;
+                  if (nextSize < 0) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += valueSize;
+                     if (Sub44.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        return true;
+               }
+            }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
+
+      public class Sub44Processor : SingleRequestProcessor<Int32> {
+
+         public bool SubProcess(int val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke(val1);
+            return true;
+         }
+      }
+
+      public class Sub45Processor : SingleRequestProcessor<Int32> {
+
+         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            int val;
+            int valueSize;
+            #if DEBUG
+            UriOutput += "'parse:int' ";
+            TemplateOutput += "'parse:int' ";
+            #endif
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
+               unsafe {
+                  byte* pfrag = (byte*)fragment;
+                  byte* ptempl = (byte*)PointerVerificationBytes;
+                  int nextSize = size;
+                  nextSize -= valueSize;
+                  if (nextSize < 0) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += valueSize;
+                     if (Sub46.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        return true;
+               }
+            }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
+
+      public class Sub46Processor : SingleRequestProcessor<Int32> {
+
+         public bool SubProcess(int val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke(val1);
+            return true;
+         }
+      }
+
+      public class Sub47Processor : SingleRequestProcessor<Int32> {
+
+         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            int val;
+            int valueSize;
+            #if DEBUG
+            UriOutput += "'parse:int' ";
+            TemplateOutput += "'parse:int' ";
+            #endif
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
+               unsafe {
+                  byte* pfrag = (byte*)fragment;
+                  byte* ptempl = (byte*)PointerVerificationBytes;
+                  int nextSize = size;
+                  nextSize -= valueSize;
+                  if (nextSize < 0) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += valueSize;
+                     if (Sub48.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        return true;
+               }
+            }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
+
+      public class Sub48Processor : SingleRequestProcessor<Int32> {
+
+         public bool SubProcess(int val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke(val1);
+            return true;
+         }
+      }
+
+      public class Sub49Processor : RequestProcessor {
+
+         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            string val;
+            int valueSize;
+            #if DEBUG
+            UriOutput += "'parse:string' ";
+            TemplateOutput += "'parse:string' ";
+            #endif
+            if (ParseUriString(fragment, size, out val, out valueSize)) {
+               unsafe {
+                  byte* pfrag = (byte*)fragment;
+                  byte* ptempl = (byte*)PointerVerificationBytes;
+                  int nextSize = size;
+                  nextSize -= valueSize;
+                  if (nextSize < 0) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += valueSize;
+                     ptempl = ((byte*)PointerVerificationBytes + Sub50VerificationOffset + 30);
                      #if DEBUG
                      UriOutput += "'";
                      TemplateOutput += "'";
@@ -2174,7 +2686,7 @@ namespace __urimatcher__ {
                      UriOutput += "' ";
                      TemplateOutput += "' ";
                      #endif
-                     if (Sub30.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                     if (Sub50.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                         return true;
                }
             }
@@ -2184,28 +2696,28 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub30Processor : RequestProcessor {
+      public class Sub50Processor : RequestProcessor {
 
          public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             string val;
+            int valueSize;
             #if DEBUG
             UriOutput += "'parse:string' ";
             TemplateOutput += "'parse:string' ";
             #endif
-            int vsize = SizeToDelimiterOrEnd(fragment, size, '/');
-            if (ParseUriString(fragment, vsize, out val)) {
+            if (ParseUriString(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
-                  nextSize -= vsize;
+                  nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
                       resource = null;
                       return false;
                   }
-                  pfrag += vsize;
-                     ptempl = ((byte*)PointerVerificationBytes + Sub31VerificationOffset + 42);
+                  pfrag += valueSize;
+                     ptempl = ((byte*)PointerVerificationBytes + Sub51VerificationOffset + 42);
                      #if DEBUG
                      UriOutput += "'";
                      TemplateOutput += "'";
@@ -2242,7 +2754,7 @@ namespace __urimatcher__ {
                      UriOutput += "' ";
                      TemplateOutput += "' ";
                      #endif
-                     if (Sub31.SubProcess(val1, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                     if (Sub51.SubProcess(val1, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                         return true;
                }
             }
@@ -2252,21 +2764,30 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub31Processor : SingleRequestProcessor<String,String,Int32> {
+      public class Sub51Processor : SingleRequestProcessor<String,String,Int32> {
 
          public bool SubProcess(string val1, string val2, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             int val;
+            int valueSize;
             #if DEBUG
             UriOutput += "'parse:int' ";
             TemplateOutput += "'parse:int' ";
             #endif
-            if (ParseUriInt(fragment, size, out val)) {
-               handler = this;
-               if (!invoke)
-                  resource = null;
-               else
-                  resource = Code.Invoke(val1, val2, val);
-               return true;
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
+               unsafe {
+                  byte* pfrag = (byte*)fragment;
+                  byte* ptempl = (byte*)PointerVerificationBytes;
+                  int nextSize = size;
+                  nextSize -= valueSize;
+                  if (nextSize < 0) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += valueSize;
+                     if (Sub52.SubProcess(val1, val2, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        return true;
+               }
             }
             handler = null;
             resource = null;
@@ -2274,7 +2795,19 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub32Processor : SingleRequestProcessor {
+      public class Sub52Processor : SingleRequestProcessor<String,String,Int32> {
+
+         public bool SubProcess(string val1, string val2, int val3, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke(val1, val2, val3);
+            return true;
+         }
+      }
+
+      public class Sub53Processor : SingleRequestProcessor {
 
          public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
