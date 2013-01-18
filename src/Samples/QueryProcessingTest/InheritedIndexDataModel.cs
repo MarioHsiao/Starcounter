@@ -3,41 +3,42 @@ using Starcounter;
 
 namespace QueryProcessingTest {
     public class Person : Entity {
-        String Name;
-        DateTime Birthday;
-        Int64 Gender; // 0 - man, 1 -female (standard)
+        public String Name;
+        public DateTime Birthday;
+        public Int64 Gender; // 0 - man, 1 -female (standard)
     }
 
     public class Student : Person {
-        University Place;
-        String Program;
-        Int64 StartYear;
+        public University Place;
+        public String Program;
+        public Int64 StartYear;
     }
 
     public class Employee : Person {
-        Employer Company;
-        Manager Boss;
-        DateTime StartDate;
-        Decimal Salary;
+        public Employer Company;
+        public Manager Boss;
+        public DateTime StartDate;
+        public Decimal Salary;
     }
 
     public class Manager : Employee {
-
+        public Decimal Bonus;
     }
 
     public class Teacher : Employee {
+        public String Qualification;
     }
 
     public class Professor : Teacher {
-        String Subject;
+        public String Subject;
     }
 
     public class Employer : Entity {
-        Employer Director;
-        String Address;
+        public Employer Director;
+        public String Address;
     }
 
     public class University : Employer {
-
+        public String License;
     }
 }
