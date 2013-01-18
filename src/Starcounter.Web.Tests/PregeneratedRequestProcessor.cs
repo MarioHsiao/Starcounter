@@ -37,40 +37,41 @@ namespace __urimatcher__ {
       public static int Sub18VerificationOffset = 297;
       public static int Sub19VerificationOffset = 313;
       public static int Sub20VerificationOffset = 329;
-      public static int Sub21VerificationOffset = 347;
-      public static int Sub22VerificationOffset = 365;
-      public static int Sub23VerificationOffset = 365;
-      public static int Sub24VerificationOffset = 365;
-      public static int Sub25VerificationOffset = 393;
-      public static int Sub26VerificationOffset = 421;
-      public static int Sub27VerificationOffset = 446;
-      public static int Sub28VerificationOffset = 471;
-      public static int Sub29VerificationOffset = 496;
-      public static int Sub30VerificationOffset = 521;
-      public static int Sub31VerificationOffset = 521;
-      public static int Sub32VerificationOffset = 546;
-      public static int Sub33VerificationOffset = 571;
-      public static int Sub34VerificationOffset = 585;
-      public static int Sub35VerificationOffset = 599;
-      public static int Sub36VerificationOffset = 620;
-      public static int Sub37VerificationOffset = 641;
-      public static int Sub38VerificationOffset = 661;
-      public static int Sub39VerificationOffset = 681;
-      public static int Sub40VerificationOffset = 703;
-      public static int Sub41VerificationOffset = 725;
-      public static int Sub42VerificationOffset = 743;
-      public static int Sub43VerificationOffset = 761;
+      public static int Sub21VerificationOffset = 345;
+      public static int Sub22VerificationOffset = 363;
+      public static int Sub23VerificationOffset = 381;
+      public static int Sub24VerificationOffset = 381;
+      public static int Sub25VerificationOffset = 381;
+      public static int Sub26VerificationOffset = 409;
+      public static int Sub27VerificationOffset = 437;
+      public static int Sub28VerificationOffset = 462;
+      public static int Sub29VerificationOffset = 487;
+      public static int Sub30VerificationOffset = 512;
+      public static int Sub31VerificationOffset = 537;
+      public static int Sub32VerificationOffset = 537;
+      public static int Sub33VerificationOffset = 562;
+      public static int Sub34VerificationOffset = 587;
+      public static int Sub35VerificationOffset = 601;
+      public static int Sub36VerificationOffset = 615;
+      public static int Sub37VerificationOffset = 636;
+      public static int Sub38VerificationOffset = 657;
+      public static int Sub39VerificationOffset = 677;
+      public static int Sub40VerificationOffset = 697;
+      public static int Sub41VerificationOffset = 719;
+      public static int Sub42VerificationOffset = 741;
+      public static int Sub43VerificationOffset = 759;
       public static int Sub44VerificationOffset = 777;
       public static int Sub45VerificationOffset = 793;
-      public static int Sub46VerificationOffset = 811;
-      public static int Sub47VerificationOffset = 829;
-      public static int Sub48VerificationOffset = 846;
-      public static int Sub49VerificationOffset = 863;
-      public static int Sub50VerificationOffset = 863;
-      public static int Sub51VerificationOffset = 863;
-      public static int Sub52VerificationOffset = 913;
-      public static int Sub53VerificationOffset = 963;
-      public static byte[] VerificationBytes = new byte[] {(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'a',(byte)'p',(byte)'a',(byte)'p',(byte)'a',(byte)'p',(byte)'a',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'a',(byte)'p',(byte)'a',(byte)'p',(byte)'a',(byte)'p',(byte)'a',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'a',(byte)'a',(byte)'a',(byte)'a',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'b',(byte)'b',(byte)'b',(byte)'b',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'a',(byte)'a',(byte)'a',(byte)'a',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'b',(byte)'b',(byte)'b',(byte)'b',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'a',(byte)'b',(byte)'c',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'a',(byte)'b',(byte)'c',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'?',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'?',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'d',(byte)'a',(byte)'s',(byte)'h',(byte)'b',(byte)'o',(byte)'a',(byte)'r',(byte)'d',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'d',(byte)'a',(byte)'s',(byte)'h',(byte)'b',(byte)'o',(byte)'a',(byte)'r',(byte)'d',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'m',(byte)'o',(byte)'r',(byte)'e',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'m',(byte)'o',(byte)'r',(byte)'e',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Y',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Y',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Z',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Z',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'m',(byte)'o',(byte)'r',(byte)'e',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Z',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'m',(byte)'o',(byte)'r',(byte)'e',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Z',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'o',(byte)'r',(byte)'d',(byte)'i',(byte)'n',(byte)'a',(byte)'r',(byte)'y',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'o',(byte)'r',(byte)'d',(byte)'A',(byte)'n',(byte)'a',(byte)'r',(byte)'y',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'e',(byte)'c',(byte)'i',(byte)'m',(byte)'a',(byte)'l',(byte)'/',(byte)'@',(byte)'m',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'e',(byte)'c',(byte)'i',(byte)'m',(byte)'a',(byte)'l',(byte)'/',(byte)'@',(byte)'m',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'o',(byte)'u',(byte)'b',(byte)'l',(byte)'e',(byte)'/',(byte)'@',(byte)'d',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'o',(byte)'u',(byte)'b',(byte)'l',(byte)'e',(byte)'/',(byte)'@',(byte)'d',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'a',(byte)'t',(byte)'e',(byte)'t',(byte)'i',(byte)'m',(byte)'e',(byte)'/',(byte)'@',(byte)'t',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'a',(byte)'t',(byte)'e',(byte)'t',(byte)'i',(byte)'m',(byte)'e',(byte)'/',(byte)'@',(byte)'t',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'b',(byte)'o',(byte)'o',(byte)'l',(byte)'/',(byte)'@',(byte)'b',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'b',(byte)'o',(byte)'o',(byte)'l',(byte)'/',(byte)'@',(byte)'b',(byte)' ',(byte)'P',(byte)'U',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'U',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'r',(byte)'a',(byte)'n',(byte)'s',(byte)'f',(byte)'e',(byte)'r',(byte)'?',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'r',(byte)'a',(byte)'n',(byte)'s',(byte)'f',(byte)'e',(byte)'r',(byte)'?',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'d',(byte)'e',(byte)'p',(byte)'o',(byte)'s',(byte)'i',(byte)'t',(byte)'?',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'d',(byte)'e',(byte)'p',(byte)'o',(byte)'s',(byte)'i',(byte)'t',(byte)'?',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'f',(byte)'i',(byte)'n',(byte)'d',(byte)'-',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'?',(byte)'f',(byte)'i',(byte)'r',(byte)'s',(byte)'t',(byte)'n',(byte)'a',(byte)'m',(byte)'e',(byte)'=',(byte)'@',(byte)'s',(byte)'&',(byte)'l',(byte)'a',(byte)'s',(byte)'t',(byte)'n',(byte)'a',(byte)'m',(byte)'e',(byte)'=',(byte)'@',(byte)'s',(byte)'&',(byte)'a',(byte)'g',(byte)'e',(byte)'=',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'f',(byte)'i',(byte)'n',(byte)'d',(byte)'-',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'?',(byte)'f',(byte)'i',(byte)'r',(byte)'s',(byte)'t',(byte)'n',(byte)'a',(byte)'m',(byte)'e',(byte)'=',(byte)'@',(byte)'s',(byte)'&',(byte)'l',(byte)'a',(byte)'s',(byte)'t',(byte)'n',(byte)'a',(byte)'m',(byte)'e',(byte)'=',(byte)'@',(byte)'s',(byte)'&',(byte)'a',(byte)'g',(byte)'e',(byte)'=',(byte)'@',(byte)'i',(byte)' ',(byte)'D',(byte)'E',(byte)'L',(byte)'E',(byte)'T',(byte)'E',(byte)' ',(byte)'/',(byte)'a',(byte)'l',(byte)'l',(byte)' '};
+      public static int Sub46VerificationOffset = 809;
+      public static int Sub47VerificationOffset = 827;
+      public static int Sub48VerificationOffset = 845;
+      public static int Sub49VerificationOffset = 862;
+      public static int Sub50VerificationOffset = 879;
+      public static int Sub51VerificationOffset = 879;
+      public static int Sub52VerificationOffset = 879;
+      public static int Sub53VerificationOffset = 929;
+      public static int Sub54VerificationOffset = 979;
+      public static byte[] VerificationBytes = new byte[] {(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'a',(byte)'p',(byte)'a',(byte)'p',(byte)'a',(byte)'p',(byte)'a',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'a',(byte)'p',(byte)'a',(byte)'p',(byte)'a',(byte)'p',(byte)'a',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'a',(byte)'a',(byte)'a',(byte)'a',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'b',(byte)'b',(byte)'b',(byte)'b',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'a',(byte)'a',(byte)'a',(byte)'a',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'b',(byte)'b',(byte)'b',(byte)'b',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'a',(byte)'b',(byte)'c',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'a',(byte)'b',(byte)'c',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'?',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'?',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'d',(byte)'a',(byte)'s',(byte)'h',(byte)'b',(byte)'o',(byte)'a',(byte)'r',(byte)'d',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'d',(byte)'a',(byte)'s',(byte)'h',(byte)'b',(byte)'o',(byte)'a',(byte)'r',(byte)'d',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'m',(byte)'o',(byte)'r',(byte)'e',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'m',(byte)'o',(byte)'r',(byte)'e',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Y',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Y',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Z',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Z',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'m',(byte)'o',(byte)'r',(byte)'e',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Z',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'m',(byte)'o',(byte)'r',(byte)'e',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Z',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'o',(byte)'r',(byte)'d',(byte)'i',(byte)'n',(byte)'a',(byte)'r',(byte)'y',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'o',(byte)'r',(byte)'d',(byte)'A',(byte)'n',(byte)'a',(byte)'r',(byte)'y',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'e',(byte)'c',(byte)'i',(byte)'m',(byte)'a',(byte)'l',(byte)'/',(byte)'@',(byte)'m',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'e',(byte)'c',(byte)'i',(byte)'m',(byte)'a',(byte)'l',(byte)'/',(byte)'@',(byte)'m',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'o',(byte)'u',(byte)'b',(byte)'l',(byte)'e',(byte)'/',(byte)'@',(byte)'d',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'o',(byte)'u',(byte)'b',(byte)'l',(byte)'e',(byte)'/',(byte)'@',(byte)'d',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'a',(byte)'t',(byte)'e',(byte)'t',(byte)'i',(byte)'m',(byte)'e',(byte)'/',(byte)'@',(byte)'t',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'a',(byte)'t',(byte)'e',(byte)'t',(byte)'i',(byte)'m',(byte)'e',(byte)'/',(byte)'@',(byte)'t',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'b',(byte)'o',(byte)'o',(byte)'l',(byte)'/',(byte)'@',(byte)'b',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'b',(byte)'o',(byte)'o',(byte)'l',(byte)'/',(byte)'@',(byte)'b',(byte)' ',(byte)'P',(byte)'U',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'U',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'r',(byte)'a',(byte)'n',(byte)'s',(byte)'f',(byte)'e',(byte)'r',(byte)'?',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'r',(byte)'a',(byte)'n',(byte)'s',(byte)'f',(byte)'e',(byte)'r',(byte)'?',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'d',(byte)'e',(byte)'p',(byte)'o',(byte)'s',(byte)'i',(byte)'t',(byte)'?',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'d',(byte)'e',(byte)'p',(byte)'o',(byte)'s',(byte)'i',(byte)'t',(byte)'?',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'f',(byte)'i',(byte)'n',(byte)'d',(byte)'-',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'?',(byte)'f',(byte)'i',(byte)'r',(byte)'s',(byte)'t',(byte)'n',(byte)'a',(byte)'m',(byte)'e',(byte)'=',(byte)'@',(byte)'s',(byte)'&',(byte)'l',(byte)'a',(byte)'s',(byte)'t',(byte)'n',(byte)'a',(byte)'m',(byte)'e',(byte)'=',(byte)'@',(byte)'s',(byte)'&',(byte)'a',(byte)'g',(byte)'e',(byte)'=',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'f',(byte)'i',(byte)'n',(byte)'d',(byte)'-',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'?',(byte)'f',(byte)'i',(byte)'r',(byte)'s',(byte)'t',(byte)'n',(byte)'a',(byte)'m',(byte)'e',(byte)'=',(byte)'@',(byte)'s',(byte)'&',(byte)'l',(byte)'a',(byte)'s',(byte)'t',(byte)'n',(byte)'a',(byte)'m',(byte)'e',(byte)'=',(byte)'@',(byte)'s',(byte)'&',(byte)'a',(byte)'g',(byte)'e',(byte)'=',(byte)'@',(byte)'i',(byte)' ',(byte)'D',(byte)'E',(byte)'L',(byte)'E',(byte)'T',(byte)'E',(byte)' ',(byte)'/',(byte)'a',(byte)'l',(byte)'l',(byte)' '};
       public static IntPtr PointerVerificationBytes;
 
       public static Sub0Processor Sub0 = new Sub0Processor();
@@ -127,6 +128,7 @@ namespace __urimatcher__ {
       public static Sub51Processor Sub51 = new Sub51Processor();
       public static Sub52Processor Sub52 = new Sub52Processor();
       public static Sub53Processor Sub53 = new Sub53Processor();
+      public static Sub54Processor Sub54 = new Sub54Processor();
 
       public GeneratedRequestProcessor() {
           Registrations["GET / "] = Sub0;
@@ -138,24 +140,25 @@ namespace __urimatcher__ {
           Registrations["GET /admin/@s/@i "] = Sub11;
           Registrations["GET /players "] = Sub14;
           Registrations["GET /players/@i/abc/@s "] = Sub17;
-          Registrations["GET /dashboard/@i "] = Sub21;
-          Registrations["GET /players?@s "] = Sub19;
-          Registrations["GET /whatever/@s/more/@i/@s "] = Sub25;
-          Registrations["GET /ordinary "] = Sub33;
-          Registrations["GET /ordAnary "] = Sub34;
+          Registrations["GET /dashboard/@i "] = Sub22;
+          Registrations["GET /players/@i "] = Sub18;
+          Registrations["GET /players?@s "] = Sub20;
+          Registrations["GET /whatever/@s/more/@i/@s "] = Sub26;
+          Registrations["GET /ordinary "] = Sub34;
+          Registrations["GET /ordAnary "] = Sub35;
           Registrations["GET /aaaaa/@i/bbbb "] = Sub13;
-          Registrations["GET /whatever/@s/xxYx/@i "] = Sub27;
-          Registrations["GET /whatever/@s/xxZx/@i "] = Sub29;
-          Registrations["GET /whatmore/@s/xxZx/@i "] = Sub32;
-          Registrations["GET /test-decimal/@m "] = Sub36;
-          Registrations["GET /test-double/@d "] = Sub38;
-          Registrations["GET /test-bool/@b "] = Sub42;
-          Registrations["GET /test-datetime/@t "] = Sub40;
-          Registrations["PUT /players/@i "] = Sub44;
-          Registrations["POST /transfer?@i "] = Sub46;
-          Registrations["POST /deposit?@i "] = Sub48;
-          Registrations["POST /find-player?firstname=@s&lastname=@s&age=@i "] = Sub52;
-          Registrations["DELETE /all "] = Sub53;
+          Registrations["GET /whatever/@s/xxYx/@i "] = Sub28;
+          Registrations["GET /whatever/@s/xxZx/@i "] = Sub30;
+          Registrations["GET /whatmore/@s/xxZx/@i "] = Sub33;
+          Registrations["GET /test-decimal/@m "] = Sub37;
+          Registrations["GET /test-double/@d "] = Sub39;
+          Registrations["GET /test-bool/@b "] = Sub43;
+          Registrations["GET /test-datetime/@t "] = Sub41;
+          Registrations["PUT /players/@i "] = Sub45;
+          Registrations["POST /transfer?@i "] = Sub47;
+          Registrations["POST /deposit?@i "] = Sub49;
+          Registrations["POST /find-player?firstname=@s&lastname=@s&age=@i "] = Sub53;
+          Registrations["DELETE /all "] = Sub54;
           PointerVerificationBytes = BitsAndBytes.Alloc(VerificationBytes.Length); // TODO. Free when program exists
           BitsAndBytes.SlowMemCopy( PointerVerificationBytes, VerificationBytes, (uint)VerificationBytes.Length);
       }
@@ -503,7 +506,7 @@ namespace __urimatcher__ {
                            TemplateOutput += "{?} ";
                            UriOutput += "{?} ";
                            #endif
-                              if (Sub18.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                              if (Sub19.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
                               break;
                         }
@@ -515,7 +518,7 @@ namespace __urimatcher__ {
                      TemplateOutput += "{d} ";
                      UriOutput += "{d} ";
                      #endif
-                        ptempl = ((byte*)PointerVerificationBytes + Sub20VerificationOffset + 6);
+                        ptempl = ((byte*)PointerVerificationBytes + Sub21VerificationOffset + 6);
                         #if DEBUG
                         UriOutput += "'";
                         TemplateOutput += "'";
@@ -548,7 +551,7 @@ namespace __urimatcher__ {
                         UriOutput += "' ";
                         TemplateOutput += "' ";
                         #endif
-                        if (Sub20.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        if (Sub21.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                            return true;
                         break;
                      case (byte)'w':
@@ -558,7 +561,7 @@ namespace __urimatcher__ {
                      TemplateOutput += "{w} ";
                      UriOutput += "{w} ";
                      #endif
-                        ptempl = ((byte*)PointerVerificationBytes + Sub22VerificationOffset + 6);
+                        ptempl = ((byte*)PointerVerificationBytes + Sub23VerificationOffset + 6);
                         #if DEBUG
                         UriOutput += "'";
                         TemplateOutput += "'";
@@ -603,7 +606,7 @@ namespace __urimatcher__ {
                            TemplateOutput += "{e} ";
                            UriOutput += "{e} ";
                            #endif
-                              ptempl = ((byte*)PointerVerificationBytes + Sub22VerificationOffset + 10);
+                              ptempl = ((byte*)PointerVerificationBytes + Sub23VerificationOffset + 10);
                               #if DEBUG
                               UriOutput += "'";
                               TemplateOutput += "'";
@@ -624,7 +627,7 @@ namespace __urimatcher__ {
                               UriOutput += "' ";
                               TemplateOutput += "' ";
                               #endif
-                              if (Sub22.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                              if (Sub23.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
                               break;
                            case (byte)'m':
@@ -634,7 +637,7 @@ namespace __urimatcher__ {
                            TemplateOutput += "{m} ";
                            UriOutput += "{m} ";
                            #endif
-                              ptempl = ((byte*)PointerVerificationBytes + Sub30VerificationOffset + 10);
+                              ptempl = ((byte*)PointerVerificationBytes + Sub31VerificationOffset + 10);
                               #if DEBUG
                               UriOutput += "'";
                               TemplateOutput += "'";
@@ -655,7 +658,7 @@ namespace __urimatcher__ {
                               UriOutput += "' ";
                               TemplateOutput += "' ";
                               #endif
-                              if (Sub30.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                              if (Sub31.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
                               break;
                         }
@@ -667,7 +670,7 @@ namespace __urimatcher__ {
                      TemplateOutput += "{o} ";
                      UriOutput += "{o} ";
                      #endif
-                        ptempl = ((byte*)PointerVerificationBytes + Sub33VerificationOffset + 6);
+                        ptempl = ((byte*)PointerVerificationBytes + Sub34VerificationOffset + 6);
                         #if DEBUG
                         UriOutput += "'";
                         TemplateOutput += "'";
@@ -698,37 +701,6 @@ namespace __urimatcher__ {
                            TemplateOutput += "{i} ";
                            UriOutput += "{i} ";
                            #endif
-                              ptempl = ((byte*)PointerVerificationBytes + Sub33VerificationOffset + 9);
-                              #if DEBUG
-                              UriOutput += "'";
-                              TemplateOutput += "'";
-                              #endif
-                              #if DEBUG
-                              for(int i = 0; i < 4; i++) {
-                                  UriOutput += (char)pfrag[i];
-                                  TemplateOutput += (char)ptempl[i];
-                              }
-                              #endif
-                              nextSize -= 4;
-                              if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
-                                  break;
-                              }
-                              pfrag += 4;
-                              ptempl += 4;
-                              #if DEBUG
-                              UriOutput += "' ";
-                              TemplateOutput += "' ";
-                              #endif
-                              if (Sub33.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                                 return true;
-                              break;
-                           case (byte)'A':
-                               pfrag++;
-                               nextSize--;
-                           #if DEBUG
-                           TemplateOutput += "{A} ";
-                           UriOutput += "{A} ";
-                           #endif
                               ptempl = ((byte*)PointerVerificationBytes + Sub34VerificationOffset + 9);
                               #if DEBUG
                               UriOutput += "'";
@@ -753,6 +725,37 @@ namespace __urimatcher__ {
                               if (Sub34.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
                               break;
+                           case (byte)'A':
+                               pfrag++;
+                               nextSize--;
+                           #if DEBUG
+                           TemplateOutput += "{A} ";
+                           UriOutput += "{A} ";
+                           #endif
+                              ptempl = ((byte*)PointerVerificationBytes + Sub35VerificationOffset + 9);
+                              #if DEBUG
+                              UriOutput += "'";
+                              TemplateOutput += "'";
+                              #endif
+                              #if DEBUG
+                              for(int i = 0; i < 4; i++) {
+                                  UriOutput += (char)pfrag[i];
+                                  TemplateOutput += (char)ptempl[i];
+                              }
+                              #endif
+                              nextSize -= 4;
+                              if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
+                                  break;
+                              }
+                              pfrag += 4;
+                              ptempl += 4;
+                              #if DEBUG
+                              UriOutput += "' ";
+                              TemplateOutput += "' ";
+                              #endif
+                              if (Sub35.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                 return true;
+                              break;
                         }
                         break;
                      case (byte)'t':
@@ -762,7 +765,7 @@ namespace __urimatcher__ {
                      TemplateOutput += "{t} ";
                      UriOutput += "{t} ";
                      #endif
-                        ptempl = ((byte*)PointerVerificationBytes + Sub35VerificationOffset + 6);
+                        ptempl = ((byte*)PointerVerificationBytes + Sub36VerificationOffset + 6);
                         #if DEBUG
                         UriOutput += "'";
                         TemplateOutput += "'";
@@ -801,7 +804,7 @@ namespace __urimatcher__ {
                                  TemplateOutput += "{e} ";
                                  UriOutput += "{e} ";
                                  #endif
-                                    ptempl = ((byte*)PointerVerificationBytes + Sub35VerificationOffset + 12);
+                                    ptempl = ((byte*)PointerVerificationBytes + Sub36VerificationOffset + 12);
                                     #if DEBUG
                                     UriOutput += "'";
                                     TemplateOutput += "'";
@@ -834,7 +837,7 @@ namespace __urimatcher__ {
                                     UriOutput += "' ";
                                     TemplateOutput += "' ";
                                     #endif
-                                    if (Sub35.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                    if (Sub36.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                        return true;
                                     break;
                                  case (byte)'o':
@@ -844,7 +847,7 @@ namespace __urimatcher__ {
                                  TemplateOutput += "{o} ";
                                  UriOutput += "{o} ";
                                  #endif
-                                    ptempl = ((byte*)PointerVerificationBytes + Sub37VerificationOffset + 12);
+                                    ptempl = ((byte*)PointerVerificationBytes + Sub38VerificationOffset + 12);
                                     #if DEBUG
                                     UriOutput += "'";
                                     TemplateOutput += "'";
@@ -877,7 +880,7 @@ namespace __urimatcher__ {
                                     UriOutput += "' ";
                                     TemplateOutput += "' ";
                                     #endif
-                                    if (Sub37.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                    if (Sub38.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                        return true;
                                     break;
                                  case (byte)'a':
@@ -887,7 +890,7 @@ namespace __urimatcher__ {
                                  TemplateOutput += "{a} ";
                                  UriOutput += "{a} ";
                                  #endif
-                                    ptempl = ((byte*)PointerVerificationBytes + Sub39VerificationOffset + 12);
+                                    ptempl = ((byte*)PointerVerificationBytes + Sub40VerificationOffset + 12);
                                     #if DEBUG
                                     UriOutput += "'";
                                     TemplateOutput += "'";
@@ -932,7 +935,7 @@ namespace __urimatcher__ {
                                     UriOutput += "' ";
                                     TemplateOutput += "' ";
                                     #endif
-                                    if (Sub39.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                    if (Sub40.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                        return true;
                                     break;
                               }
@@ -944,7 +947,7 @@ namespace __urimatcher__ {
                            TemplateOutput += "{b} ";
                            UriOutput += "{b} ";
                            #endif
-                              ptempl = ((byte*)PointerVerificationBytes + Sub41VerificationOffset + 11);
+                              ptempl = ((byte*)PointerVerificationBytes + Sub42VerificationOffset + 11);
                               #if DEBUG
                               UriOutput += "'";
                               TemplateOutput += "'";
@@ -965,7 +968,7 @@ namespace __urimatcher__ {
                               UriOutput += "' ";
                               TemplateOutput += "' ";
                               #endif
-                              if (Sub41.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                              if (Sub42.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
                               break;
                         }
@@ -987,7 +990,7 @@ namespace __urimatcher__ {
                      TemplateOutput += "{U} ";
                      UriOutput += "{U} ";
                      #endif
-                        ptempl = ((byte*)PointerVerificationBytes + Sub43VerificationOffset + 2);
+                        ptempl = ((byte*)PointerVerificationBytes + Sub44VerificationOffset + 2);
                         #if DEBUG
                         UriOutput += "'";
                         TemplateOutput += "'";
@@ -1032,7 +1035,7 @@ namespace __urimatcher__ {
                         UriOutput += "' ";
                         TemplateOutput += "' ";
                         #endif
-                        if (Sub43.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        if (Sub44.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                            return true;
                         break;
                      case (byte)'O':
@@ -1042,7 +1045,7 @@ namespace __urimatcher__ {
                      TemplateOutput += "{O} ";
                      UriOutput += "{O} ";
                      #endif
-                        ptempl = ((byte*)PointerVerificationBytes + Sub45VerificationOffset + 2);
+                        ptempl = ((byte*)PointerVerificationBytes + Sub46VerificationOffset + 2);
                         #if DEBUG
                         UriOutput += "'";
                         TemplateOutput += "'";
@@ -1073,7 +1076,7 @@ namespace __urimatcher__ {
                            TemplateOutput += "{t} ";
                            UriOutput += "{t} ";
                            #endif
-                              ptempl = ((byte*)PointerVerificationBytes + Sub45VerificationOffset + 7);
+                              ptempl = ((byte*)PointerVerificationBytes + Sub46VerificationOffset + 7);
                               #if DEBUG
                               UriOutput += "'";
                               TemplateOutput += "'";
@@ -1094,7 +1097,7 @@ namespace __urimatcher__ {
                               UriOutput += "' ";
                               TemplateOutput += "' ";
                               #endif
-                              if (Sub45.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                              if (Sub46.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
                               break;
                            case (byte)'d':
@@ -1104,7 +1107,7 @@ namespace __urimatcher__ {
                            TemplateOutput += "{d} ";
                            UriOutput += "{d} ";
                            #endif
-                              ptempl = ((byte*)PointerVerificationBytes + Sub47VerificationOffset + 7);
+                              ptempl = ((byte*)PointerVerificationBytes + Sub48VerificationOffset + 7);
                               #if DEBUG
                               UriOutput += "'";
                               TemplateOutput += "'";
@@ -1149,7 +1152,7 @@ namespace __urimatcher__ {
                               UriOutput += "' ";
                               TemplateOutput += "' ";
                               #endif
-                              if (Sub47.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                              if (Sub48.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
                               break;
                            case (byte)'f':
@@ -1159,7 +1162,7 @@ namespace __urimatcher__ {
                            TemplateOutput += "{f} ";
                            UriOutput += "{f} ";
                            #endif
-                              ptempl = ((byte*)PointerVerificationBytes + Sub49VerificationOffset + 7);
+                              ptempl = ((byte*)PointerVerificationBytes + Sub50VerificationOffset + 7);
                               #if DEBUG
                               UriOutput += "'";
                               TemplateOutput += "'";
@@ -1216,7 +1219,7 @@ namespace __urimatcher__ {
                               UriOutput += "' ";
                               TemplateOutput += "' ";
                               #endif
-                              if (Sub49.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                              if (Sub50.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
                               break;
                         }
@@ -1230,7 +1233,7 @@ namespace __urimatcher__ {
                TemplateOutput += "{D} ";
                UriOutput += "{D} ";
                #endif
-                  ptempl = ((byte*)PointerVerificationBytes + Sub53VerificationOffset + 1);
+                  ptempl = ((byte*)PointerVerificationBytes + Sub54VerificationOffset + 1);
                   #if DEBUG
                   UriOutput += "'";
                   TemplateOutput += "'";
@@ -1263,7 +1266,7 @@ namespace __urimatcher__ {
                   UriOutput += "' ";
                   TemplateOutput += "' ";
                   #endif
-                  if (Sub53.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                  if (Sub54.SubProcess(uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                      return true;
                   break;
             }
@@ -1653,45 +1656,50 @@ namespace __urimatcher__ {
                       return false;
                   }
                   pfrag += valueSize;
-                     ptempl = ((byte*)PointerVerificationBytes + Sub16VerificationOffset + 15);
-                     #if DEBUG
-                     UriOutput += "'";
-                     TemplateOutput += "'";
-                     #endif
-                     #if DEBUG
-                     for(int i = 0; i < 4; i++) {
-                         UriOutput += (char)pfrag[i];
-                         TemplateOutput += (char)ptempl[i];
+                     switch (*pfrag) {
+                        case (byte)'/':
+                            pfrag++;
+                            nextSize--;
+                        #if DEBUG
+                        TemplateOutput += "{/} ";
+                        UriOutput += "{/} ";
+                        #endif
+                           ptempl = ((byte*)PointerVerificationBytes + Sub16VerificationOffset + 16);
+                           #if DEBUG
+                           UriOutput += "'";
+                           TemplateOutput += "'";
+                           #endif
+                           #if DEBUG
+                           for(int i = 0; i < 4; i++) {
+                               UriOutput += (char)pfrag[i];
+                               TemplateOutput += (char)ptempl[i];
+                           }
+                           #endif
+                           nextSize -= 4;
+                           if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
+                               break;
+                           }
+                           pfrag += 4;
+                           ptempl += 4;
+                           #if DEBUG
+                           UriOutput += "' ";
+                           TemplateOutput += "' ";
+                           #endif
+                           if (Sub16.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                              return true;
+                           break;
+                        case (byte)' ':
+                        case (byte)'\r':
+                            pfrag++;
+                            nextSize--;
+                        #if DEBUG
+                        TemplateOutput += "{ } ";
+                        UriOutput += "{ } ";
+                        #endif
+                           if (Sub18.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                              return true;
+                           break;
                      }
-                     #endif
-                     nextSize -= 4;
-                     if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
-                         handler = null;
-                         resource = null;
-                         return false;
-                     }
-                     pfrag += 4;
-                     ptempl += 4;
-                     #if DEBUG
-                     for(int i = 0; i < 1; i++) {
-                         UriOutput += (char)pfrag[i];
-                         TemplateOutput += (char)ptempl[i];
-                     }
-                     #endif
-                     nextSize --;
-                     if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                         handler = null;
-                         resource = null;
-                         return false;
-                     }
-                     pfrag ++;
-                     ptempl ++;
-                     #if DEBUG
-                     UriOutput += "' ";
-                     TemplateOutput += "' ";
-                     #endif
-                     if (Sub16.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                        return true;
                }
             }
             handler = null;
@@ -1743,7 +1751,19 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub18Processor : SingleRequestProcessor<String> {
+      public class Sub18Processor : SingleRequestProcessor<Int32> {
+
+         public bool SubProcess(int val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke(val1);
+            return true;
+         }
+      }
+
+      public class Sub19Processor : SingleRequestProcessor<String> {
 
          public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             string val;
@@ -1764,7 +1784,7 @@ namespace __urimatcher__ {
                       return false;
                   }
                   pfrag += valueSize;
-                     if (Sub19.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                     if (Sub20.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                         return true;
                }
             }
@@ -1774,7 +1794,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub19Processor : SingleRequestProcessor<String> {
+      public class Sub20Processor : SingleRequestProcessor<String> {
 
          public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
@@ -1786,7 +1806,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub20Processor : SingleRequestProcessor<Int32> {
+      public class Sub21Processor : SingleRequestProcessor<Int32> {
 
          public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             int val;
@@ -1807,7 +1827,7 @@ namespace __urimatcher__ {
                       return false;
                   }
                   pfrag += valueSize;
-                     if (Sub21.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                     if (Sub22.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                         return true;
                }
             }
@@ -1817,7 +1837,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub21Processor : SingleRequestProcessor<Int32> {
+      public class Sub22Processor : SingleRequestProcessor<Int32> {
 
          public bool SubProcess(int val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
@@ -1829,7 +1849,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub22Processor : RequestProcessor {
+      public class Sub23Processor : RequestProcessor {
 
          public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             string val;
@@ -1850,7 +1870,7 @@ namespace __urimatcher__ {
                       return false;
                   }
                   pfrag += valueSize;
-                     ptempl = ((byte*)PointerVerificationBytes + Sub23VerificationOffset + 16);
+                     ptempl = ((byte*)PointerVerificationBytes + Sub24VerificationOffset + 16);
                      #if DEBUG
                      UriOutput += "'";
                      TemplateOutput += "'";
@@ -1881,7 +1901,7 @@ namespace __urimatcher__ {
                         TemplateOutput += "{m} ";
                         UriOutput += "{m} ";
                         #endif
-                           ptempl = ((byte*)PointerVerificationBytes + Sub23VerificationOffset + 18);
+                           ptempl = ((byte*)PointerVerificationBytes + Sub24VerificationOffset + 18);
                            #if DEBUG
                            UriOutput += "'";
                            TemplateOutput += "'";
@@ -1902,7 +1922,7 @@ namespace __urimatcher__ {
                            UriOutput += "' ";
                            TemplateOutput += "' ";
                            #endif
-                           if (Sub23.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                           if (Sub24.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                               return true;
                            break;
                         case (byte)'x':
@@ -1912,7 +1932,7 @@ namespace __urimatcher__ {
                         TemplateOutput += "{x} ";
                         UriOutput += "{x} ";
                         #endif
-                           ptempl = ((byte*)PointerVerificationBytes + Sub26VerificationOffset + 18);
+                           ptempl = ((byte*)PointerVerificationBytes + Sub27VerificationOffset + 18);
                            #if DEBUG
                            UriOutput += "'";
                            TemplateOutput += "'";
@@ -1943,7 +1963,7 @@ namespace __urimatcher__ {
                               TemplateOutput += "{Y} ";
                               UriOutput += "{Y} ";
                               #endif
-                                 ptempl = ((byte*)PointerVerificationBytes + Sub26VerificationOffset + 20);
+                                 ptempl = ((byte*)PointerVerificationBytes + Sub27VerificationOffset + 20);
                                  #if DEBUG
                                  UriOutput += "'";
                                  TemplateOutput += "'";
@@ -1964,7 +1984,7 @@ namespace __urimatcher__ {
                                  UriOutput += "' ";
                                  TemplateOutput += "' ";
                                  #endif
-                                 if (Sub26.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                 if (Sub27.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                     return true;
                                  break;
                               case (byte)'Z':
@@ -1974,7 +1994,7 @@ namespace __urimatcher__ {
                               TemplateOutput += "{Z} ";
                               UriOutput += "{Z} ";
                               #endif
-                                 ptempl = ((byte*)PointerVerificationBytes + Sub28VerificationOffset + 20);
+                                 ptempl = ((byte*)PointerVerificationBytes + Sub29VerificationOffset + 20);
                                  #if DEBUG
                                  UriOutput += "'";
                                  TemplateOutput += "'";
@@ -1995,7 +2015,7 @@ namespace __urimatcher__ {
                                  UriOutput += "' ";
                                  TemplateOutput += "' ";
                                  #endif
-                                 if (Sub28.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                                 if (Sub29.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                     return true;
                                  break;
                            }
@@ -2009,7 +2029,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub23Processor : RequestProcessor {
+      public class Sub24Processor : RequestProcessor {
 
          public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             int val;
@@ -2030,7 +2050,7 @@ namespace __urimatcher__ {
                       return false;
                   }
                   pfrag += valueSize;
-                     ptempl = ((byte*)PointerVerificationBytes + Sub24VerificationOffset + 24);
+                     ptempl = ((byte*)PointerVerificationBytes + Sub25VerificationOffset + 24);
                      #if DEBUG
                      UriOutput += "'";
                      TemplateOutput += "'";
@@ -2053,7 +2073,7 @@ namespace __urimatcher__ {
                      UriOutput += "' ";
                      TemplateOutput += "' ";
                      #endif
-                     if (Sub24.SubProcess(val1, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                     if (Sub25.SubProcess(val1, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                         return true;
                }
             }
@@ -2063,7 +2083,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub24Processor : SingleRequestProcessor<String,Int32,String> {
+      public class Sub25Processor : SingleRequestProcessor<String,Int32,String> {
 
          public bool SubProcess(string val1, int val2, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             string val;
@@ -2084,7 +2104,7 @@ namespace __urimatcher__ {
                       return false;
                   }
                   pfrag += valueSize;
-                     if (Sub25.SubProcess(val1, val2, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                     if (Sub26.SubProcess(val1, val2, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                         return true;
                }
             }
@@ -2094,7 +2114,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub25Processor : SingleRequestProcessor<String,Int32,String> {
+      public class Sub26Processor : SingleRequestProcessor<String,Int32,String> {
 
          public bool SubProcess(string val1, int val2, string val3, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
@@ -2106,7 +2126,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub26Processor : SingleRequestProcessor<String,Int32> {
+      public class Sub27Processor : SingleRequestProcessor<String,Int32> {
 
          public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             int val;
@@ -2127,30 +2147,30 @@ namespace __urimatcher__ {
                       return false;
                   }
                   pfrag += valueSize;
-                     if (Sub27.SubProcess(val1, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                     if (Sub28.SubProcess(val1, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                         return true;
                }
             }
             handler = null;
             resource = null;
             return false;
-         }
-      }
-
-      public class Sub27Processor : SingleRequestProcessor<String,Int32> {
-
-         public bool SubProcess(string val1, int val2, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            handler = this;
-            if (!invoke)
-               resource = null;
-            else
-               resource = Code.Invoke(val1, val2);
-            return true;
          }
       }
 
       public class Sub28Processor : SingleRequestProcessor<String,Int32> {
 
+         public bool SubProcess(string val1, int val2, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke(val1, val2);
+            return true;
+         }
+      }
+
+      public class Sub29Processor : SingleRequestProcessor<String,Int32> {
+
          public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             int val;
             int valueSize;
@@ -2170,7 +2190,7 @@ namespace __urimatcher__ {
                       return false;
                   }
                   pfrag += valueSize;
-                     if (Sub29.SubProcess(val1, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                     if (Sub30.SubProcess(val1, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                         return true;
                }
             }
@@ -2180,7 +2200,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub29Processor : SingleRequestProcessor<String,Int32> {
+      public class Sub30Processor : SingleRequestProcessor<String,Int32> {
 
          public bool SubProcess(string val1, int val2, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
@@ -2192,7 +2212,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub30Processor : RequestProcessor {
+      public class Sub31Processor : RequestProcessor {
 
          public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             string val;
@@ -2213,7 +2233,7 @@ namespace __urimatcher__ {
                       return false;
                   }
                   pfrag += valueSize;
-                     ptempl = ((byte*)PointerVerificationBytes + Sub31VerificationOffset + 16);
+                     ptempl = ((byte*)PointerVerificationBytes + Sub32VerificationOffset + 16);
                      #if DEBUG
                      UriOutput += "'";
                      TemplateOutput += "'";
@@ -2250,7 +2270,7 @@ namespace __urimatcher__ {
                      UriOutput += "' ";
                      TemplateOutput += "' ";
                      #endif
-                     if (Sub31.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                     if (Sub32.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                         return true;
                }
             }
@@ -2260,7 +2280,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub31Processor : SingleRequestProcessor<String,Int32> {
+      public class Sub32Processor : SingleRequestProcessor<String,Int32> {
 
          public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             int val;
@@ -2281,7 +2301,7 @@ namespace __urimatcher__ {
                       return false;
                   }
                   pfrag += valueSize;
-                     if (Sub32.SubProcess(val1, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                     if (Sub33.SubProcess(val1, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                         return true;
                }
             }
@@ -2291,7 +2311,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub32Processor : SingleRequestProcessor<String,Int32> {
+      public class Sub33Processor : SingleRequestProcessor<String,Int32> {
 
          public bool SubProcess(string val1, int val2, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
@@ -2299,18 +2319,6 @@ namespace __urimatcher__ {
                resource = null;
             else
                resource = Code.Invoke(val1, val2);
-            return true;
-         }
-      }
-
-      public class Sub33Processor : SingleRequestProcessor {
-
-         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            handler = this;
-            if (!invoke)
-               resource = null;
-            else
-               resource = Code.Invoke();
             return true;
          }
       }
@@ -2327,7 +2335,19 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub35Processor : SingleRequestProcessor<Decimal> {
+      public class Sub35Processor : SingleRequestProcessor {
+
+         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke();
+            return true;
+         }
+      }
+
+      public class Sub36Processor : SingleRequestProcessor<Decimal> {
 
          public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             decimal val;
@@ -2348,7 +2368,7 @@ namespace __urimatcher__ {
                       return false;
                   }
                   pfrag += valueSize;
-                     if (Sub36.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                     if (Sub37.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                         return true;
                }
             }
@@ -2358,7 +2378,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub36Processor : SingleRequestProcessor<Decimal> {
+      public class Sub37Processor : SingleRequestProcessor<Decimal> {
 
          public bool SubProcess(decimal val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
@@ -2370,7 +2390,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub37Processor : SingleRequestProcessor<Double> {
+      public class Sub38Processor : SingleRequestProcessor<Double> {
 
          public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             double val;
@@ -2391,7 +2411,7 @@ namespace __urimatcher__ {
                       return false;
                   }
                   pfrag += valueSize;
-                     if (Sub38.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                     if (Sub39.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                         return true;
                }
             }
@@ -2401,7 +2421,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub38Processor : SingleRequestProcessor<Double> {
+      public class Sub39Processor : SingleRequestProcessor<Double> {
 
          public bool SubProcess(double val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
@@ -2413,7 +2433,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub39Processor : SingleRequestProcessor<DateTime> {
+      public class Sub40Processor : SingleRequestProcessor<DateTime> {
 
          public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             DateTime val;
@@ -2434,7 +2454,7 @@ namespace __urimatcher__ {
                       return false;
                   }
                   pfrag += valueSize;
-                     if (Sub40.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                     if (Sub41.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                         return true;
                }
             }
@@ -2444,7 +2464,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub40Processor : SingleRequestProcessor<DateTime> {
+      public class Sub41Processor : SingleRequestProcessor<DateTime> {
 
          public bool SubProcess(DateTime val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
@@ -2456,7 +2476,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub41Processor : SingleRequestProcessor<Boolean> {
+      public class Sub42Processor : SingleRequestProcessor<Boolean> {
 
          public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             bool val;
@@ -2477,7 +2497,7 @@ namespace __urimatcher__ {
                       return false;
                   }
                   pfrag += valueSize;
-                     if (Sub42.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                     if (Sub43.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                         return true;
                }
             }
@@ -2487,7 +2507,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub42Processor : SingleRequestProcessor<Boolean> {
+      public class Sub43Processor : SingleRequestProcessor<Boolean> {
 
          public bool SubProcess(bool val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
@@ -2499,7 +2519,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub43Processor : SingleRequestProcessor<Int32> {
+      public class Sub44Processor : SingleRequestProcessor<Int32> {
 
          public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             int val;
@@ -2520,61 +2540,61 @@ namespace __urimatcher__ {
                       return false;
                   }
                   pfrag += valueSize;
-                     if (Sub44.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                     if (Sub45.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                         return true;
                }
             }
             handler = null;
             resource = null;
             return false;
-         }
-      }
-
-      public class Sub44Processor : SingleRequestProcessor<Int32> {
-
-         public bool SubProcess(int val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            handler = this;
-            if (!invoke)
-               resource = null;
-            else
-               resource = Code.Invoke(val1);
-            return true;
          }
       }
 
       public class Sub45Processor : SingleRequestProcessor<Int32> {
 
-         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
-            int val;
-            int valueSize;
-            #if DEBUG
-            UriOutput += "'parse:int' ";
-            TemplateOutput += "'parse:int' ";
-            #endif
-            if (ParseUriInt(fragment, size, out val, out valueSize)) {
-               unsafe {
-                  byte* pfrag = (byte*)fragment;
-                  byte* ptempl = (byte*)PointerVerificationBytes;
-                  int nextSize = size;
-                  nextSize -= valueSize;
-                  if (nextSize < 0) {
-                      handler = null;
-                      resource = null;
-                      return false;
-                  }
-                  pfrag += valueSize;
-                     if (Sub46.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
-                        return true;
-               }
-            }
-            handler = null;
-            resource = null;
-            return false;
+         public bool SubProcess(int val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            handler = this;
+            if (!invoke)
+               resource = null;
+            else
+               resource = Code.Invoke(val1);
+            return true;
          }
       }
 
       public class Sub46Processor : SingleRequestProcessor<Int32> {
 
+         public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+            int val;
+            int valueSize;
+            #if DEBUG
+            UriOutput += "'parse:int' ";
+            TemplateOutput += "'parse:int' ";
+            #endif
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
+               unsafe {
+                  byte* pfrag = (byte*)fragment;
+                  byte* ptempl = (byte*)PointerVerificationBytes;
+                  int nextSize = size;
+                  nextSize -= valueSize;
+                  if (nextSize < 0) {
+                      handler = null;
+                      resource = null;
+                      return false;
+                  }
+                  pfrag += valueSize;
+                     if (Sub47.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                        return true;
+               }
+            }
+            handler = null;
+            resource = null;
+            return false;
+         }
+      }
+
+      public class Sub47Processor : SingleRequestProcessor<Int32> {
+
          public bool SubProcess(int val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
@@ -2585,7 +2605,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub47Processor : SingleRequestProcessor<Int32> {
+      public class Sub48Processor : SingleRequestProcessor<Int32> {
 
          public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             int val;
@@ -2606,7 +2626,7 @@ namespace __urimatcher__ {
                       return false;
                   }
                   pfrag += valueSize;
-                     if (Sub48.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                     if (Sub49.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                         return true;
                }
             }
@@ -2616,7 +2636,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub48Processor : SingleRequestProcessor<Int32> {
+      public class Sub49Processor : SingleRequestProcessor<Int32> {
 
          public bool SubProcess(int val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
@@ -2628,7 +2648,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub49Processor : RequestProcessor {
+      public class Sub50Processor : RequestProcessor {
 
          public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             string val;
@@ -2649,7 +2669,7 @@ namespace __urimatcher__ {
                       return false;
                   }
                   pfrag += valueSize;
-                     ptempl = ((byte*)PointerVerificationBytes + Sub50VerificationOffset + 30);
+                     ptempl = ((byte*)PointerVerificationBytes + Sub51VerificationOffset + 30);
                      #if DEBUG
                      UriOutput += "'";
                      TemplateOutput += "'";
@@ -2686,7 +2706,7 @@ namespace __urimatcher__ {
                      UriOutput += "' ";
                      TemplateOutput += "' ";
                      #endif
-                     if (Sub50.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                     if (Sub51.SubProcess(val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                         return true;
                }
             }
@@ -2696,7 +2716,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub50Processor : RequestProcessor {
+      public class Sub51Processor : RequestProcessor {
 
          public bool SubProcess(string val1, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             string val;
@@ -2717,7 +2737,7 @@ namespace __urimatcher__ {
                       return false;
                   }
                   pfrag += valueSize;
-                     ptempl = ((byte*)PointerVerificationBytes + Sub51VerificationOffset + 42);
+                     ptempl = ((byte*)PointerVerificationBytes + Sub52VerificationOffset + 42);
                      #if DEBUG
                      UriOutput += "'";
                      TemplateOutput += "'";
@@ -2754,7 +2774,7 @@ namespace __urimatcher__ {
                      UriOutput += "' ";
                      TemplateOutput += "' ";
                      #endif
-                     if (Sub51.SubProcess(val1, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                     if (Sub52.SubProcess(val1, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                         return true;
                }
             }
@@ -2764,7 +2784,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub51Processor : SingleRequestProcessor<String,String,Int32> {
+      public class Sub52Processor : SingleRequestProcessor<String,String,Int32> {
 
          public bool SubProcess(string val1, string val2, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             int val;
@@ -2785,7 +2805,7 @@ namespace __urimatcher__ {
                       return false;
                   }
                   pfrag += valueSize;
-                     if (Sub52.SubProcess(val1, val2, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
+                     if (Sub53.SubProcess(val1, val2, val, uri, uriSize, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                         return true;
                }
             }
@@ -2795,7 +2815,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub52Processor : SingleRequestProcessor<String,String,Int32> {
+      public class Sub53Processor : SingleRequestProcessor<String,String,Int32> {
 
          public bool SubProcess(string val1, string val2, int val3, IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
@@ -2807,7 +2827,7 @@ namespace __urimatcher__ {
          }
       }
 
-      public class Sub53Processor : SingleRequestProcessor {
+      public class Sub54Processor : SingleRequestProcessor {
 
          public bool SubProcess(IntPtr uri, int uriSize, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
