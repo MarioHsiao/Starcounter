@@ -742,12 +742,13 @@ internal interface IComparison : ILogicalExpression
     }
 
     /// <summary>
-    /// Gets a path that eventually (if there is a corresponding index) can be used for
-    /// an index scan for the extent with the input extent number, if there is such a path.
+    /// Gets a path to the given extent.
+    /// The path is used for an index scan for the extent with the input extent number, 
+    /// if there is such a path and if there is a corresponding index.
     /// </summary>
     /// <param name="extentNumber">An extent number.</param>
     /// <returns>A path, if an appropriate one is found, otherwise null.</returns>
-    IPath GetIndexPath(Int32 extentNumber);
+    IPath GetPathTo(Int32 extentNumber);
 
     RangePoint CreateRangePoint(Int32 extentNumber, String strPath);
 }
