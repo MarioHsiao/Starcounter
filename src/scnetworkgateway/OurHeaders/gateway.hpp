@@ -1702,18 +1702,24 @@ public:
     }
 
     // Number of tracked echoes to master.
-    int32_t get_setting_num_echoes_to_master()
+    int32_t setting_num_echoes_to_master()
     {
         return setting_num_echoes_to_master_;
     }
 
     // Registering confirmed HTTP echo.
-    void ConfirmEcho(int64_t index)
+    void ConfirmEcho(int64_t echo_num)
     {
-        GW_ASSERT(false == confirmed_echoes_shared_[index]);
+        GW_ASSERT(echo_num < setting_num_echoes_to_master_);
 
-        confirmed_echoes_shared_[index] = true;
-        //GW_COUT << "Confirmed: " << index << GW_ENDL;
+        if (false != confirmed_echoes_shared_[echo_num])
+        {
+            GW_COUT << "Echo index occupied: " << echo_num << GW_ENDL;
+            GW_ASSERT(false);
+        }
+
+        confirmed_echoes_shared_[echo_num] = true;
+        //GW_COUT << "Confirmed: " << echo_num << GW_ENDL;
 
         InterlockedIncrement64(&num_confirmed_echoes_unsafe_);
     }
@@ -1762,7 +1768,7 @@ public:
     // Checks if all echoes have been sent already.
     bool AllEchoesSent()
     {
-        return current_echo_number_unsafe_ == (setting_num_echoes_to_master_ - 1);
+        return current_echo_number_unsafe_ >= (setting_num_echoes_to_master_ - 1);
     }
 
     // Gateway operational mode.

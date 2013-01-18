@@ -1346,7 +1346,7 @@ uint32_t GatewayWorker::WorkerRoutine()
                     // Unknown operation.
                     default:
                     {
-                        GW_ASSERT(1 == 0);
+                        GW_ASSERT(false);
                     }
                 }
 
@@ -1676,7 +1676,7 @@ bool GatewayWorker::ProcessEmulatedNetworkOperations(
             // DISCONNECT finished.
             case DISCONNECT_SOCKET_OPER:
             {
-                GW_ASSERT(1 == 0);
+                GW_ASSERT(false);
                 break;
             }
 
@@ -1722,6 +1722,10 @@ bool GatewayWorker::ProcessEmulatedNetworkOperations(
 
 #ifdef GW_LIMITED_ECHO_TEST
                     new_echo_num = g_gateway.GetNextEchoNumber();
+
+                    // Checking if we are getting overflowed echo number.
+                    if (new_echo_num >= g_gateway.setting_num_echoes_to_master())
+                        goto RELEASE_CHUNK;
 #endif
 
 #ifdef GW_ECHO_STATISTICS
@@ -1739,31 +1743,30 @@ bool GatewayWorker::ProcessEmulatedNetworkOperations(
 
                     // Assigning number of processed bytes.
                     fetched_ovls[num_processed].dwNumberOfBytesTransferred = num_request_bytes;
+
+                    break;
                 }
-                else
-                {
-                    // Returning this chunk to database.
-                    WorkerDbInterface *db = GetWorkerDb(sd->get_db_index());
-                    GW_ASSERT(db != NULL);
+
+RELEASE_CHUNK:
+                // Returning this chunk to database.
+                WorkerDbInterface *db = GetWorkerDb(sd->get_db_index());
+                GW_ASSERT(db != NULL);
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
-                    sd->set_socket_diag_active_conn_flag(false);
+                sd->set_socket_diag_active_conn_flag(false);
 #endif
 
-                    // Returning chunks to pool.
-                    db->ReturnSocketDataChunksToPool(this, sd);
+                // Returning chunks to pool.
+                db->ReturnSocketDataChunksToPool(this, sd);
 
-                    // Just jumping to next processing.
-                    continue;
-                }
-
-                break;
+                // Just jumping to next processing.
+                continue;
             }
 
             // Unknown operation.
             default:
             {
-                GW_ASSERT(1 == 0);
+                GW_ASSERT(false);
             }
         }
 
