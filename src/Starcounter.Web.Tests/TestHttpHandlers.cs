@@ -101,6 +101,11 @@ namespace Starcounter.Internal.Test {
                 return null;
             });
 
+            GET("/players/{?}", (int id) => {
+                Assert.AreEqual(123, id);
+                return null;
+            });
+
             GET("/players?{?}", (string fullName) => {
                 Assert.AreEqual("KalleKula", fullName);
                 Console.WriteLine("f=" + fullName);
