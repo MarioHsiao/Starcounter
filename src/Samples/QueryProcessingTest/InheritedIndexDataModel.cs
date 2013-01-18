@@ -2,6 +2,15 @@
 using Starcounter;
 
 namespace QueryProcessingTest {
+    public class Employer : Entity {
+        //public Manager Director;
+        public String Address;
+    }
+
+    public class University : Employer {
+        public String License;
+    }
+    
     public class Person : Entity {
         public String Name;
         public DateTime Birthday;
@@ -33,12 +42,4 @@ namespace QueryProcessingTest {
         public String Subject;
     }
 
-    public class Employer : Entity {
-        public Employer Director;
-        public String Address;
-    }
-
-    public class University : Employer {
-        public String License;
-    }
 }
