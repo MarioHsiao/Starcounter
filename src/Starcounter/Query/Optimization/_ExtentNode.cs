@@ -208,7 +208,7 @@ internal class ExtentNode : IOptimizationNode
         for (Int32 j = 0; j < conditionList.Count; j++)
         {
             if (conditionList[j] is IComparison &&
-                (conditionList[j] as IComparison).GetIndexPath(extentNumber) != null &&
+                (conditionList[j] as IComparison).GetPathTo(extentNumber) != null &&
                 Optimizer.RangeOperator((conditionList[j] as IComparison).Operator))
             {
                 comparisonList.Add(conditionList[j] as IComparison);
@@ -264,7 +264,7 @@ internal class ExtentNode : IOptimizationNode
         for (Int32 i = 0; i < comparisonList.Count; i++)
         {
             value = value * 2;
-            if (comparisonList[i].GetIndexPath(extentNumber).FullName == path)
+            if (comparisonList[i].GetPathTo(extentNumber).FullName == path)
             {
                 value++;
                 if (compOperator != ComparisonOperator.Equal)
