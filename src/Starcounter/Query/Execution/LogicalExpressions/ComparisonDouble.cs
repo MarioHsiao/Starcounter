@@ -198,12 +198,13 @@ internal class ComparisonDouble : CodeGenFilterNode, IComparison
     }
 
     /// <summary>
-    /// Gets a path that eventually (if there is a corresponding index) can be used for
-    /// an index scan for the extent with the input extent number, if there is such a path.
+    /// Gets a path to the given extent.
+    /// The path is used for an index scan for the extent with the input extent number, 
+    /// if there is such a path and if there is a corresponding index.
     /// </summary>
     /// <param name="extentNum">Input extent number.</param>
     /// <returns>A path, if an appropriate path is found, otherwise null.</returns>
-    public IPath GetIndexPath(Int32 extentNum)
+    public IPath GetPathTo(Int32 extentNum)
     {
         // Control if the comparison operator allows an eventual path to be used in an index scan.
         if (!Optimizer.RangeOperator(compOperator))
