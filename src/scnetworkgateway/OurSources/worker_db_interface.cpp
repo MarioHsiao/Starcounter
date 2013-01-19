@@ -110,7 +110,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
 
             // Checking for socket data correctness.
             GW_ASSERT((sd->get_db_index() >= 0) && (sd->get_db_index() < MAX_ACTIVE_DATABASES));
-            GW_ASSERT(sd->get_socket() < MAX_SOCKET_HANDLE);
+            GW_ASSERT(sd->get_socket() < g_gateway.setting_max_connections());
 
             // Setting chunk index because of possible cloned chunks.
             sd->set_chunk_index(cur_chunk_index);
@@ -660,18 +660,11 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 uint16_t port = resp_chunk->read_uint16();
 
 #ifdef GW_TESTING_MODE
-
-                // Switching the port if gateway client.
-                if (!g_gateway.setting_is_master())
-                    port++;
-
-                // Checking if Apps tries to register "echo" when it should not.
-                if (g_gateway.setting_mode() != GatewayTestingMode::MODE_APPS_PING)
+                if ((g_gateway.setting_mode() != GatewayTestingMode::MODE_GATEWAY_SMC_RAW) &&
+                    (g_gateway.setting_mode() != GatewayTestingMode::MODE_GATEWAY_SMC_APPS_RAW))
                 {
-                    GW_PRINT_WORKER << "Ignoring Apps port handler '" << port << "' since Gateway is in different mode." << handler_id << GW_ENDL;
-                    break;
+                    GW_ASSERT(false);
                 }
-
 #endif
 
                 GW_PRINT_WORKER << "New port " << port << " user handler registration with handler id: " << handler_id << GW_ENDL;
@@ -701,14 +694,6 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
 
                 // Reading port number.
                 uint16_t port = resp_chunk->read_uint16();
-
-#ifdef GW_TESTING_MODE
-
-                // Switching the port if gateway client.
-                if (!g_gateway.setting_is_master())
-                    port++;
-
-#endif
 
                 // Reading subport.
                 bmx::BMX_SUBPORT_TYPE subport = resp_chunk->read_uint32();
@@ -751,18 +736,11 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 bmx::HTTP_METHODS http_method = (bmx::HTTP_METHODS)resp_chunk->read_uint8();
 
 #ifdef GW_TESTING_MODE
-
-                // Switching the port if gateway client.
-                if (!g_gateway.setting_is_master())
-                    port++;
-
-                // Checking if Apps tries to register "echo" when it should not.
-                if (g_gateway.setting_mode() != GatewayTestingMode::MODE_APPS_HTTP)
+                if ((g_gateway.setting_mode() != GatewayTestingMode::MODE_GATEWAY_SMC_HTTP) &&
+                    (g_gateway.setting_mode() != GatewayTestingMode::MODE_GATEWAY_SMC_APPS_HTTP))
                 {
-                    GW_PRINT_WORKER << "Ignoring Apps URI '" << uri << "' since Gateway is in ECHO mode." << handler_id << GW_ENDL;
-                    break;
+                    GW_ASSERT(false);
                 }
-                
 #endif
 
                 GW_PRINT_WORKER << "New URI handler \"" << uri << "\" on port " << port << " registration with handler id: " << handler_id << GW_ENDL;

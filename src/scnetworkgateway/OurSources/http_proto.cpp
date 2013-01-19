@@ -377,7 +377,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
 #ifdef GW_TESTING_MODE
 
     // Checking if we are in gateway HTTP mode.
-    if (g_gateway.setting_mode() == GatewayTestingMode::MODE_GATEWAY_HTTP)
+    if (MODE_GATEWAY_HTTP == g_gateway.setting_mode())
         return GatewayHttpWsProcessEcho(gw, sd, handler_index, is_handled);
 
 #endif
@@ -987,35 +987,31 @@ ALL_DATA_ACCUMULATED:
             g_gateway.IncrementNumProcessedHttpRequests();
 #endif
 
-            // Checking if we are in Gateway HTTP mode.
-            if (g_gateway.setting_mode() == MODE_GATEWAY_HTTP)
-            {
-                // Translating HTTP body.
-                GW_ASSERT(http_request_.body_len_bytes_ == kHttpEchoBodyLength);
+            // Translating HTTP body.
+            GW_ASSERT(http_request_.body_len_bytes_ == kHttpEchoBodyLength);
 
-                // Converting the string to number.
-                //echo_id_type echo_id = hex_string_to_uint64((char*)sd + http_request_.body_offset_, kHttpGatewayEchoRequestBodyLength);
+            // Converting the string to number.
+            //echo_id_type echo_id = hex_string_to_uint64((char*)sd + http_request_.body_offset_, kHttpGatewayEchoRequestBodyLength);
 
-                // Saving echo string into temporary buffer.
-                char copied_echo_string[kHttpEchoBodyLength];
-                memcpy(copied_echo_string, (char*)sd + http_request_.body_offset_, kHttpEchoBodyLength);
+            // Saving echo string into temporary buffer.
+            char copied_echo_string[kHttpEchoBodyLength];
+            memcpy(copied_echo_string, (char*)sd + http_request_.body_offset_, kHttpEchoBodyLength);
 
-                // Coping echo HTTP response.
-                memcpy(sd->get_data_blob(), kHttpEchoResponse, kHttpEchoResponseLength);
+            // Coping echo HTTP response.
+            memcpy(sd->get_data_blob(), kHttpEchoResponse, kHttpEchoResponseLength);
 
-                // Inserting echo id into HTTP response.
-                memcpy(sd->get_data_blob() + kHttpEchoResponseInsertPoint, copied_echo_string, kHttpEchoBodyLength);
+            // Inserting echo id into HTTP response.
+            memcpy(sd->get_data_blob() + kHttpEchoResponseInsertPoint, copied_echo_string, kHttpEchoBodyLength);
 
-                // Sending echo response.
-                err_code = gw->SendPredefinedMessage(sd, NULL, kHttpEchoResponseLength);
-                if (err_code)
-                    return err_code;
+            // Sending echo response.
+            err_code = gw->SendPredefinedMessage(sd, NULL, kHttpEchoResponseLength);
+            if (err_code)
+                return err_code;
 
-                // Handled successfully.
-                *is_handled = true;
+            // Handled successfully.
+            *is_handled = true;
 
-                return 0;
-            }
+            return 0;
         }
     }
     else
@@ -1028,7 +1024,7 @@ ALL_DATA_ACCUMULATED:
         echo_id_type echo_id = hex_string_to_uint64((char*)sd->get_data_blob() + kHttpEchoResponseInsertPoint, kHttpEchoBodyLength);
 
 #ifdef GW_ECHO_STATISTICS
-        GW_PRINT_WORKER << "Received echo: " << echo_id << GW_ENDL;
+        GW_COUT << "Received echo: " << echo_id << GW_ENDL;
 #endif
 
 #ifdef GW_LIMITED_ECHO_TEST
@@ -1040,21 +1036,9 @@ ALL_DATA_ACCUMULATED:
         *is_handled = true;
 
         // Checking if all echo responses are returned.
-        if (g_gateway.CheckConfirmedEchoResponses())
+        if (g_gateway.CheckConfirmedEchoResponses(gw))
         {
-            // Gracefully finishing the test.
-            g_gateway.ShutdownTest(true);
-
-            // Returning this chunk to database.
-            WorkerDbInterface *db = gw->GetWorkerDb(sd->get_db_index());
-            GW_ASSERT(db != NULL);
-
-#ifdef GW_COLLECT_SOCKET_STATISTICS
-            sd->set_socket_diag_active_conn_flag(false);
-#endif
-
-            // Returning chunks to pool.
-            return db->ReturnSocketDataChunksToPool(gw, sd);
+            return SCERRGWTESTFINISHED;
                         
             /*
             EnterGlobalLock();
