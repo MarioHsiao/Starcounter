@@ -103,7 +103,7 @@ PROCESS_SERVER_PORT:
 
         // On the test client we immediately creating all needed connections.
         if (!g_gateway.setting_is_master())
-            how_many = g_gateway.setting_num_connections_to_master();
+            how_many = g_gateway.setting_num_connections_to_master_per_worker();
 
 #endif
 
@@ -216,7 +216,7 @@ PROCESS_SERVER_PORT:
 
         // On the test client we immediately creating all needed connections.
         if (!g_gateway.setting_is_master())
-            how_many = g_gateway.setting_num_connections_to_master();
+            how_many = g_gateway.setting_num_connections_to_master_per_worker();
 
 #endif
 
@@ -332,7 +332,7 @@ PROCESS_SERVER_PORT:
 
         // On the test client we immediately creating all needed connections.
         if (!g_gateway.setting_is_master())
-            how_many = g_gateway.setting_num_connections_to_master();
+            how_many = g_gateway.setting_num_connections_to_master_per_worker();
 
 #endif
 
@@ -502,28 +502,18 @@ uint32_t GatewayPortProcessEcho(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HA
         echo_id_type echo_id = *(int32_t*)(sd->get_data_blob() + 8);
 
 #ifdef GW_ECHO_STATISTICS
-        GW_PRINT_WORKER << "Received echo: " << echo_id << GW_ENDL;
+        GW_COUT << "Received echo: " << echo_id << GW_ENDL;
 #endif
 
+#ifdef GW_LIMITED_ECHO_TEST
         // Confirming received echo.
         g_gateway.ConfirmEcho(echo_id);
-
-        // Checking if all echo responses are returned.
-        if (g_gateway.CheckConfirmedEchoResponses())
-        {
-            // Gracefully finishing the test.
-            g_gateway.ShutdownTest(true);
-
-            // Returning this chunk to database.
-            WorkerDbInterface *db = gw->GetWorkerDb(sd->get_db_index());
-            GW_ASSERT(db != NULL);
-
-#ifdef GW_COLLECT_SOCKET_STATISTICS
-            sd->set_socket_diag_active_conn_flag(false);
 #endif
 
-            // Returning chunks to pool.
-            return db->ReturnSocketDataChunksToPool(gw, sd);
+        // Checking if all echo responses are returned.
+        if (g_gateway.CheckConfirmedEchoResponses(gw))
+        {
+            return SCERRGWTESTFINISHED;
                         
             /*
             EnterGlobalLock();
@@ -542,8 +532,15 @@ SEND_RAW_ECHO_TO_MASTER:
         // Checking that not all echoes are sent.
         if (!g_gateway.AllEchoesSent())
         {
+            // Generating echo number.
+            echo_id_type new_echo_num = 0;
+
+#ifdef GW_LIMITED_ECHO_TEST
+            new_echo_num = g_gateway.GetNextEchoNumber();
+#endif
+
             // Sending echo request to server.
-            err_code = gw->SendRawEcho(sd, g_gateway.GetNextEchoNumber());
+            err_code = gw->SendRawEcho(sd, new_echo_num);
             if (err_code)
                 return err_code;
         }

@@ -354,7 +354,7 @@ CORRECT_STATISTICS_AND_RELEASE_CHUNK:
     default:
         {
             // NOTE: This situation should never happen.
-            GW_ASSERT(1 == 0);
+            GW_ASSERT(false);
         }
     }
 
@@ -366,9 +366,17 @@ CORRECT_STATISTICS_AND_RELEASE_CHUNK:
 #ifdef GW_LOOPED_TEST_MODE
 
 // Pushing given sd to network emulation queue.
-void SocketDataChunk::PushToNetworkEmulationQueue(GatewayWorker* gw)
+// NOTE: Passing socket data as a pointer, not reference,
+// since there is no need to pass a reference here
+// (if something sd is converted to null outside this function).
+void SocketDataChunk::PushToMeasuredNetworkEmulationQueue(GatewayWorker* gw)
 {
-    gw->PushToNetworkEmulationQueue(this);
+    gw->PushToMeasuredNetworkEmulationQueue(this);
+}
+
+void SocketDataChunk::PushToPreparationNetworkEmulationQueue(GatewayWorker* gw)
+{
+    gw->PushToPreparationNetworkEmulationQueue(this);
 }
 
 #endif

@@ -71,13 +71,13 @@
       <HintPath>..\packages\Roslyn.Compilers.CSharp.1.2.20906.2\lib\net45\Roslyn.Compilers.CSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Web" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Http\HttpRequestNext.cs" />
     <Compile Include="RequestHandler\AstTree\AstElseIfList.cs" />
     <Compile Include="RequestHandler\AstTree\AstIfCallSub.cs" />
     <Compile Include="RequestHandler\AstTree\AstCodeStatement.cs" />
-    <Compile Include="RequestHandler\AstTree\AstJump.cs" />
     <Compile Include="RequestHandler\AstTree\AstNamespace.cs" />
     <Compile Include="RequestHandler\AstTree\AstParseCode.cs" />
     <Compile Include="RequestHandler\AstTree\AstProcessFail.cs" />
@@ -88,9 +88,10 @@
     <Compile Include="RequestHandler\AstTree\AstTreeGenerator.cs" />
     <Compile Include="RequestHandler\AstTree\AstCase.cs" />
     <Compile Include="RequestHandler\AstTree\AstInvoke.cs" />
+    <Compile Include="RequestHandler\AstTree\AstTreeHelper.cs" />
     <Compile Include="RequestHandler\AstTree\AstUnsafe.cs" />
+    <Compile Include="RequestHandler\AstTree\AstValueJump.cs" />
     <Compile Include="RequestHandler\AstTree\AstVerifier.cs" />
-    <Compile Include="RequestHandler\AstTree\AstVerifyFunction.cs" />
     <Compile Include="RequestHandler\ParseTree\ParseTreeGenerator.cs" />
     <Compile Include="RequestHandler\ParseTree\ParseNode.PrettyPrint.cs" />
     <Compile Include="RequestHandler\PreprocessUriTemplate.cs" />

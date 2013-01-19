@@ -81,8 +81,6 @@ typedef uint64_t log_handle_type;
 #define GW_ASSERT_DEBUG _SC_ASSERT_DEBUG
 #endif
 
-// Mode macros.
-#define GW_PROXY_MODE
 //#define GW_PONG_MODE
 //#define GW_TESTING_MODE
 //#define GW_LOOPED_TEST_MODE
@@ -91,9 +89,12 @@ typedef uint64_t log_handle_type;
 
 // Checking that macro definitions are correct.
 #ifdef GW_LOOPED_TEST_MODE
-#ifndef GW_TESTING_MODE
-#error GW_LOOPED_TEST_MODE requires defining GW_TESTING_MODE
+#define GW_TESTING_MODE
 #endif
+
+#ifndef GW_TESTING_MODE
+// Enabling proxy if we are not in testing mode.
+#define GW_PROXY_MODE
 #endif
 
 // TODO: Move error codes to errors XML!
@@ -156,6 +157,9 @@ typedef uint64_t log_handle_type;
 #define SCERRGWGATEWAYLOGGINGTHREADISDEAD 12401
 #define SCERRGWSOMETHREADDIED 12402
 #define SCERRGWOPERATIONONWRONGSOCKET 12403
+#define SCERRGWTESTTIMEOUT 12404
+#define SCERRGWTESTFAILED 12405
+#define SCERRGWTESTFINISHED 12406
 
 // Maximum number of ports the gateway operates with.
 const int32_t MAX_PORTS_NUM = 16;
@@ -264,7 +268,10 @@ const int32_t MAX_ACTIVE_SERVER_PORTS = 32;
 const int32_t MAX_SOCKET_HANDLE = 10000000;
 
 // Maximum number of test echoes.
-const int32_t MAX_TEST_ECHOES = 10000000;
+const int32_t MAX_TEST_ECHOES = 50000000;
+
+// Number of seconds monitor thread sleeps between checks.
+const int32_t GW_MONITOR_THREAD_TIMEOUT_SECONDS = 5;
 
 // Maximum reusable connect sockets per worker.
 const int32_t MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER = 10000;
@@ -273,7 +280,7 @@ const int32_t MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER = 10000;
 const int32_t MAX_BLACK_LIST_IPS_PER_WORKER = 10000;
 
 // Hard-coded gateway test port number on server.
-const int32_t GATEWAY_TEST_PORT_NUMBER_SERVER = 80;
+const int32_t GATEWAY_TEST_PORT_NUMBER_SERVER = 123;
 
 // Session life time multiplier.
 const int32_t SESSION_LIFETIME_MULTIPLIER = 3;
@@ -287,11 +294,55 @@ const int32_t MAX_STATS_LENGTH = 8192;
 // Gateway mode.
 enum GatewayTestingMode
 {
-    MODE_GATEWAY_PING = 1,
-    MODE_GATEWAY_HTTP = 2,
-    MODE_APPS_PING = 3,
-    MODE_APPS_HTTP = 4
+    // NOTE: HTTP echo requests should come first!
+    // They serve as direct array indexes.
+    MODE_GATEWAY_HTTP = 0,
+    MODE_GATEWAY_SMC_HTTP = 1,
+    MODE_GATEWAY_SMC_APPS_HTTP = 2,
+
+    MODE_GATEWAY_RAW = 3,
+    MODE_GATEWAY_SMC_RAW = 4,
+    MODE_GATEWAY_SMC_APPS_RAW = 5,
+
+    MODE_GATEWAY_UNKNOWN = 6
 };
+
+const int32_t NumGatewayModes = 7;
+const char* const GatewayTestingModeStrings[NumGatewayModes] = 
+{
+    "MODE_GATEWAY_HTTP",
+    "MODE_GATEWAY_SMC_HTTP",
+    "MODE_GATEWAY_SMC_APPS_HTTP",
+
+    "MODE_GATEWAY_RAW",
+    "MODE_GATEWAY_SMC_RAW",
+    "MODE_GATEWAY_SMC_APPS_RAW",
+
+    "MODE_GATEWAY_UNKNOWN"
+};
+
+inline GatewayTestingMode GetGatewayTestingMode(std::string modeString)
+{
+    for (int32_t i = 0; i < NumGatewayModes; i++)
+    {
+        if (modeString == GatewayTestingModeStrings[i])
+            return (GatewayTestingMode)i;
+    }
+    return GatewayTestingMode::MODE_GATEWAY_UNKNOWN;
+}
+
+struct TestHttpEchoRequest
+{
+    const char* const uri;
+    int32_t uri_len;
+
+    const char* const http_request_str;
+    int32_t http_request_len;
+
+    int32_t http_request_insert_point;
+};
+
+const int32_t kNumTestHttpEchoRequests = 3;
 
 // User data offset in blobs for different protocols.
 const int32_t HTTP_BLOB_USER_DATA_OFFSET = 0;
@@ -883,9 +934,11 @@ _declspec(align(64)) struct ScSessionStructPlus
     // Unique number for socket.
     session_salt_type unique_socket_id_;
 
+    // Active socket flag.
+    uint64_t active_socket_flag_;
+
     // Padding to cache size (64 bytes).
-    uint64_t pad1;
-    uint64_t pad2;
+    uint64_t pad;
 };
 
 // Represents an active database.
@@ -1291,6 +1344,19 @@ class Gateway
     // Gateway operational mode.
     GatewayTestingMode setting_mode_;
 
+    // Maximum running time for tests.
+    int32_t setting_max_test_time_seconds_;
+
+    // Name of the statistics.
+    std::string setting_stats_name_;
+
+    int32_t cmd_setting_num_workers_;
+    GatewayTestingMode cmd_setting_mode_;
+    int32_t cmd_setting_num_connections_to_master_;
+    int32_t cmd_setting_num_echoes_to_master_;
+    int32_t cmd_setting_max_test_time_seconds_;
+    std::string cmd_setting_stats_name_;
+
 #endif
 
     ////////////////////////
@@ -1341,9 +1407,6 @@ class Gateway
     // All sessions information.
     ScSessionStructPlus* all_sessions_unsafe_;
 
-    // Represents delete state for all sockets.
-    std::bitset<MAX_SOCKET_HANDLE> deleted_sockets_bitset_;
-
     // Free session indexes.
     session_index_type* free_session_indexes_unsafe_;
 
@@ -1389,7 +1452,13 @@ class Gateway
 #ifdef GW_TESTING_MODE
 
     // Confirmed HTTP requests map.
-    std::bitset<MAX_TEST_ECHOES> confirmed_echoes_;
+    bool confirmed_echoes_shared_[MAX_TEST_ECHOES];
+
+    // Starts measured test.
+    bool started_measured_test_;
+
+    // Time when test started.
+    uint64_t test_begin_time_;
 
     // Number of confirmed echoes.
     volatile int64_t num_confirmed_echoes_unsafe_;
@@ -1398,10 +1467,13 @@ class Gateway
     volatile int64_t current_echo_number_unsafe_;
 
     // Number of operations per second.
-    int64_t num_ops_per_second_;
+    int64_t num_gateway_ops_per_second_;
 
     // Number of measures.
     int64_t num_ops_measures_;
+
+    // Predefined HTTP requests for tests.
+    TestHttpEchoRequest* test_http_echo_requests_;
 
 #ifdef GW_LOOPED_TEST_MODE
 
@@ -1495,7 +1567,7 @@ public:
     }
 
     // Checks that all Gateway threads are alive.
-    uint32_t AllThreadsMonitor();
+    uint32_t GatewayMonitor();
 
     // Getting Gateway log writer.
     GatewayLogWriter* get_gw_log_writer()
@@ -1630,17 +1702,25 @@ public:
     }
 
     // Number of tracked echoes to master.
-    int32_t get_setting_num_echoes_to_master()
+    int32_t setting_num_echoes_to_master()
     {
         return setting_num_echoes_to_master_;
     }
 
     // Registering confirmed HTTP echo.
-    void ConfirmEcho(int64_t index)
+    void ConfirmEcho(int64_t echo_num)
     {
-        GW_ASSERT(confirmed_echoes_[index] == false);
+        GW_ASSERT(echo_num < setting_num_echoes_to_master_);
 
-        confirmed_echoes_[index] = true;
+        if (false != confirmed_echoes_shared_[echo_num])
+        {
+            GW_COUT << "Echo index occupied: " << echo_num << GW_ENDL;
+            GW_ASSERT(false);
+        }
+
+        confirmed_echoes_shared_[echo_num] = true;
+        //GW_COUT << "Confirmed: " << echo_num << GW_ENDL;
+
         InterlockedIncrement64(&num_confirmed_echoes_unsafe_);
     }
 
@@ -1651,28 +1731,20 @@ public:
     }
 
     // Checks that echo responses are correct.
-    bool CheckConfirmedEchoResponses()
+    bool CheckConfirmedEchoResponses(GatewayWorker* gw);
+
+    // Starts measured test.
+    bool get_started_measured_test()
     {
-        // First checking if we have confirmed all echoes.
-        if (num_confirmed_echoes_unsafe_ == setting_num_echoes_to_master_)
-        {
-            // Running through all echoes.
-            for (int32_t i = 0; i < setting_num_echoes_to_master_; i++)
-            {
-                // Checking that each echo is confirmed.
-                if (confirmed_echoes_[i] != true)
-                {
-                    // Failing test if echo is not confirmed.
-                    ShutdownTest(false);
+        return started_measured_test_;
+    }
 
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        return false;
+    // Starts measured test.
+    void StartMeasuredTest()
+    {
+        num_confirmed_echoes_unsafe_ = 0;
+        started_measured_test_ = true;
+        test_begin_time_ = timeGetTime();
     }
 
     // Resetting echo tests.
@@ -1680,9 +1752,11 @@ public:
     {
         num_confirmed_echoes_unsafe_ = 0;
         current_echo_number_unsafe_ = -1;
+        started_measured_test_ = false;
+        test_begin_time_ = 0;
 
         for (int32_t i = 0; i < setting_num_echoes_to_master_; i++)
-            confirmed_echoes_[i] = false;
+            confirmed_echoes_shared_[i] = false;
     }
 
     // Incrementing and getting next echo number.
@@ -1694,7 +1768,7 @@ public:
     // Checks if all echoes have been sent already.
     bool AllEchoesSent()
     {
-        return current_echo_number_unsafe_ == (setting_num_echoes_to_master_ - 1);
+        return current_echo_number_unsafe_ >= (setting_num_echoes_to_master_ - 1);
     }
 
     // Gateway operational mode.
@@ -1718,12 +1792,42 @@ public:
     // Getting average number of measured operations.
     int64_t GetAverageOpsPerSecond()
     {
-        int64_t aver_num_ops = num_ops_per_second_ / num_ops_measures_;
+        GW_ASSERT(0 != num_ops_measures_);
 
-        num_ops_per_second_ = 0;
+        int64_t aver_num_ops = num_gateway_ops_per_second_ / num_ops_measures_;
+
+        num_gateway_ops_per_second_ = 0;
         num_ops_measures_ = 0;
 
         return aver_num_ops;
+    }
+
+    // Calculates number of created connections for all workers.
+    int64_t GetNumberOfCreatedConnectionsAllWorkers();
+
+    // Getting number of preparation network events.
+    int64_t GetNumberOfPreparationNetworkEventsAllWorkers();
+
+    void InitTestHttpEchoRequests();
+
+    TestHttpEchoRequest GetTestHttpEchoRequest()
+    {
+        return test_http_echo_requests_[setting_mode_];
+    }
+
+    // Generates test HTTP request.
+    uint32_t GenerateHttpRequest(char* buf, echo_id_type echo_id)
+    {
+        // Getting current test HTTP request type.
+        TestHttpEchoRequest r = GetTestHttpEchoRequest();
+
+        // Copying HTTP response.
+        memcpy(buf, r.http_request_str, r.http_request_len);
+
+        // Inserting number into HTTP ping request.
+        uint64_to_hex_string(echo_id, buf + r.http_request_insert_point, 8, false);
+
+        return r.http_request_len;
     }
 
 #ifdef GW_LOOPED_TEST_MODE
@@ -1737,6 +1841,7 @@ public:
     {
         return looped_echo_request_creator_;
     }
+
 #endif
 
 #endif
@@ -1809,21 +1914,27 @@ public:
     }
 
     // Getting state of the socket.
-    bool ShouldSocketBeDeleted(SOCKET sock)
+    bool ShouldSocketBeDeleted(SOCKET s)
     {
-        return deleted_sockets_bitset_[sock];
+        GW_ASSERT(s < setting_max_connections_);
+
+        return !all_sessions_unsafe_[s].active_socket_flag_;
     }
 
     // Deletes specific socket.
-    void MarkSocketDelete(SOCKET sock)
+    void MarkSocketDelete(SOCKET s)
     {
-        deleted_sockets_bitset_[sock] = true;
+        GW_ASSERT(s < setting_max_connections_);
+
+        all_sessions_unsafe_[s].active_socket_flag_ = false;
     }
 
     // Makes specific socket available.
-    void MarkSocketAlive(SOCKET sock)
+    void MarkSocketAlive(SOCKET s)
     {
-        deleted_sockets_bitset_[sock] = false;
+        GW_ASSERT(s < setting_max_connections_);
+
+        all_sessions_unsafe_[s].active_socket_flag_ = true;
     }
 
     // Getting gateway handlers.
@@ -2020,6 +2131,9 @@ public:
     // Print statistics.
     uint32_t StatisticsAndMonitoringRoutine();
 
+    // Safely shutdowns the gateway.
+    void ShutdownGateway(GatewayWorker* gw, int32_t exit_code);
+
     // Creates socket and binds it to server port.
     uint32_t CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t port_num, SOCKET& sock);
 
@@ -2040,6 +2154,9 @@ public:
 
     // Main function to start network gateway.
     int32_t StartGateway();
+
+    // Destructor.
+    ~Gateway();
 
     // Opens Starcounter log for writing.
     uint32_t OpenStarcounterLog();
@@ -2169,7 +2286,7 @@ public:
 
 #ifdef GW_TESTING_MODE
     // Gracefully shutdowns all needed processes after test is finished.
-    uint32_t ShutdownTest(bool success);
+    uint32_t ShutdownTest(GatewayWorker* gw, bool success);
 #endif
 };
 
