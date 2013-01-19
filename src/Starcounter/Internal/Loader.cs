@@ -92,7 +92,7 @@ namespace Starcounter.Internal
             databaseSchema.AfterDeserialization();
 
             var databaseClasses = new List<DatabaseEntityClass>();
-            databaseSchema.PopulateDatabaseEntityClasses(databaseClasses);
+            databaseSchema.PopulateOrderedDatabaseEntityClasses2(databaseClasses);
             
             var databaseClassCount = databaseClasses.Count;
             for (int i = 0; i < databaseClassCount; i++)
