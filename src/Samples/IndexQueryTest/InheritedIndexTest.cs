@@ -52,11 +52,26 @@ namespace IndexQueryTest.InheritedIndex {
         }
 
         internal static void UnitTests() {
+            TestGetAllIndexInfos();
         }
 
         internal static void TestGetAllIndexInfos() {
-            IndexInfo[] indexes = Bindings.GetTypeBinding("Professor").GetAllInheritedIndexInfos();
+            IndexInfo[] indexes = Bindings.GetTypeBindingInsensitive("Professor").GetAllInheritedIndexInfos();
             Trace.Assert(indexes.Length == 10);
+            // Type Professor
+            Trace.Assert(indexes[0].Name == "auto");
+            Trace.Assert(indexes[1].Name == "professorCompany");
+            // Type Teacher
+            Trace.Assert(indexes[2].Name == "auto");
+            Trace.Assert(indexes[3].Name == "teacherName");
+            // Type Employee
+            Trace.Assert(indexes[4].Name == "auto");
+            Trace.Assert(indexes[5].Name == "employeeBoss");
+            Trace.Assert(indexes[6].Name == "employeeCompany");
+            // Type Person
+            Trace.Assert(indexes[7].Name == "auto");
+            Trace.Assert(indexes[8].Name == "personBirthdayGender");
+            Trace.Assert(indexes[9].Name == "personName");
         }
     }
 }
