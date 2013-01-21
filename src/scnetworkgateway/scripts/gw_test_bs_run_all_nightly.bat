@@ -1,7 +1,13 @@
 :: gw_test_bs.bat 1_NUM_WORKERS 2_MODE 3_NUM_CONNS 4_NUM_ECHOES 5_MAX_TIME_SEC 6_STATS_NAME 7_SCHED_NUM 8_APPS_MODE 9_APPS_PORT_NUM 10_NUM_CHUNKS 11_DB_OPTIONS
 :: gw_test_bs.bat "1 MODE_GATEWAY_SMC_RAW 1000 10000000 100 BSStatsBlaBla" 1 MODE_GATEWAY_SMC_RAW 81 131072 --FLAG:NoDb
 
-IF "%SC_RUNNING_ON_BUILD_SERVER%"=="" GOTO TESTFAILED
+IF "%SC_RUN_PERFORMANCE_TESTS%"=="" GOTO :EOF
+
+:: Building special version of Level1 solution.
+
+"C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe" "..\..\src\Level1.sln" /p:Configuration=BuildServerTest;Platform=x64 /maxcpucount
+IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
+CMD /C "timeout 2" 2>NUL
 
 :: HTTP Tests
 
