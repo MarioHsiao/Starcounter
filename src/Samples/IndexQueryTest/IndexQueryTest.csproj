@@ -42,6 +42,8 @@
   <ItemGroup>
     <Compile Include="AccountTestModel.cs" />
     <Compile Include="HelpMethods.cs" />
+    <Compile Include="InheritedIndexDataModel.cs" />
+    <Compile Include="InheritedIndexTest.cs" />
     <Compile Include="ParallelTests.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
