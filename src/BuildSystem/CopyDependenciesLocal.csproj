@@ -26,14 +26,7 @@
     <LocalBlueBinariesDir>..\..\..\Level0\src\x64\$(Configuration)</LocalBlueBinariesDir>
   </PropertyGroup>
   <ItemGroup>
-    <LocalGatewayTestFiles Include="..\scnetworkgateway\scripts\gw_test_client_run.bat" />
-    <LocalGatewayTestFiles Include="..\scnetworkgateway\scripts\gw_test_pair_run.bat" />
-    <LocalGatewayTestFiles Include="..\scnetworkgateway\scripts\gw_test_server_run.bat" />
-    <LocalGatewayTestFiles Include="..\scnetworkgateway\scripts\gw_test_bs.bat" />
-    <LocalGatewayTestFiles Include="..\scnetworkgateway\scripts\gw_test_bs_run_all_nightly.bat" />
-    <LocalGatewayTestFiles Include="..\scnetworkgateway\scripts\gw_test_bs_run_all_daily.bat" />
-    <LocalGatewayTestFiles Include="..\scnetworkgateway\scripts\gw_test_pair_client.xml" />
-    <LocalGatewayTestFiles Include="..\scnetworkgateway\scripts\gw_test_pair_server.xml" />
+    <LocalGatewayTestFiles Include="..\scnetworkgateway\scripts\gw_test_*" />
   </ItemGroup>
   <Target Name="CopyLocalFiles">
     <!-- Building Blue solution if any. -->
