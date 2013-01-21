@@ -235,6 +235,18 @@ public class DatabaseSchema
     }
 
     /// <summary>
+    /// </summary>
+    public void PopulateOrderedDatabaseEntityClasses2(IList<DatabaseEntityClass> list) {
+        Dictionary<DatabaseEntityClass, object> index = new Dictionary<DatabaseEntityClass, object>(this.databaseClassesByName.Count);
+        foreach (DatabaseEntityClass databaseClass in this.databaseClassesByName.Values) {
+            DatabaseEntityClass entityClass = databaseClass as DatabaseEntityClass;
+            if (entityClass != null && entityClass.Name != rootClassName) {
+                RecursivePopulateOrderedEntityClasses(entityClass, list, index);
+            }
+        }
+    }
+
+    /// <summary>
     /// Formats the current assembly and all its members to a writer.
     /// </summary>
     /// <param name="writer">The writer to which the object should be formatted.</param>
@@ -290,6 +302,20 @@ public class DatabaseSchema
             if (databaseClass.BaseClass != null)
             {
                 RecursivePopulateOrderedClasses(databaseClass.BaseClass, orderedClasses, index);
+            }
+            orderedClasses.Add(databaseClass);
+            index.Add(databaseClass, null);
+        }
+    }
+
+    private static void RecursivePopulateOrderedEntityClasses(
+        DatabaseEntityClass databaseClass,
+        IList<DatabaseEntityClass> orderedClasses,
+        Dictionary<DatabaseEntityClass, object> index) {
+        if (!index.ContainsKey(databaseClass)) {
+            DatabaseEntityClass databaseClassBase = databaseClass.BaseClass as DatabaseEntityClass;
+            if (databaseClassBase != null && databaseClassBase.Name != rootClassName) {
+                RecursivePopulateOrderedEntityClasses(databaseClassBase, orderedClasses, index);
             }
             orderedClasses.Add(databaseClass);
             index.Add(databaseClass, null);

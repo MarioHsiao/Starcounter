@@ -663,7 +663,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 if ((g_gateway.setting_mode() != GatewayTestingMode::MODE_GATEWAY_SMC_RAW) &&
                     (g_gateway.setting_mode() != GatewayTestingMode::MODE_GATEWAY_SMC_APPS_RAW))
                 {
-                    GW_ASSERT(1 == 0);
+                    GW_ASSERT(false);
                 }
 #endif
 
@@ -739,7 +739,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 if ((g_gateway.setting_mode() != GatewayTestingMode::MODE_GATEWAY_SMC_HTTP) &&
                     (g_gateway.setting_mode() != GatewayTestingMode::MODE_GATEWAY_SMC_APPS_HTTP))
                 {
-                    GW_ASSERT(1 == 0);
+                    GW_ASSERT(false);
                 }
 #endif
 
