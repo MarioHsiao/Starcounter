@@ -63,7 +63,7 @@ namespace IndexQueryTest.InheritedIndex {
             Trace.Assert(indexes[1].Name == "professorCompany");
             // Type Teacher
             Trace.Assert(indexes[2].Name == "auto");
-            Trace.Assert(indexes[3].Name != "teacherName");
+            Trace.Assert(indexes[3].Name == "teacherName");
             // Type Employee
             Trace.Assert(indexes[4].Name == "auto");
             Trace.Assert(indexes[5].Name == "employeeBoss");
