@@ -11,6 +11,7 @@
 
 #include <cstddef>
 #include <climits>
+#include <xmmintrin.h>
 #include <boost/cstdint.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
@@ -117,10 +118,6 @@ class server_port {
 	
 	owner_id& get_owner_id() {
 		return this_scheduler_interface_->get_owner_id();
-	}
-
-	int64_t& stat_0() {
-		return this_scheduler_interface_->stat_0();
 	}
 
 public:
@@ -514,8 +511,6 @@ channels_mask; channels_mask &= channels_mask -1) {
 
 unsigned long server_port::get_next_signal_or_task(unsigned int timeout_milliseconds,
 sc_io_event& the_io_event) try {
-	if ((++stat_0() & 131071) == 0) std::cout << "stat_0: " << stat_0() << "\n";
-
 	// The scheduler works with a chunk via the_chunk_index. Of course we may
 	// work with any number of chunks at the same time, but here we only work
 	// with one chunk at any given time.
@@ -527,7 +522,7 @@ sc_io_event& the_io_event) try {
 	// chunks to be processed.
 #if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL) // Using the new linked list queue overflow() in the channel.
 	// This is done below where the IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL macro is
-	// defined, when checking the next channels in circular buffer. The
+	// defined, when checking the next channels [in] circular buffer. The
 	// difference is that the old obsolete overflow buffer was per scheduler and
 	// might contain items targeted for any channel in the set of channels the
 	// given scheduler manages. Now instead there is an overflow queue per
@@ -675,6 +670,20 @@ check_next_channel:
 					
 					// Check if there is a message and process it.
 					if (the_channel.in.try_pop_back(&the_chunk_index) == true) {
+						// Prefetching selected cache-lines of the chunk.
+						// How many cache-lines to prefetch in the beginning of
+						// the chunk is unclear. TODO: Testing needed!
+						char* chunk_addr = (char*) &chunk(the_chunk_index);
+						_mm_prefetch(chunk_addr +CACHE_LINE_SIZE * 0, _MM_HINT_T0);
+						_mm_prefetch(chunk_addr +CACHE_LINE_SIZE * 1, _MM_HINT_T0);
+						_mm_prefetch(chunk_addr +CACHE_LINE_SIZE * 2, _MM_HINT_T0);
+						_mm_prefetch(chunk_addr +CACHE_LINE_SIZE * 3, _MM_HINT_T0);
+						
+						// The last cache-line contains the link fields, which is
+						// currently always checked. However, maybe checking the
+						// link fields is not always necessary. TODO: Consider this optimization.
+						_mm_prefetch(chunk_addr +chunk_size -CACHE_LINE_SIZE, _MM_HINT_T0);
+
 						// Notify the client that the in queue is not full.
 						the_channel.client()->notify();
 						
@@ -683,6 +692,8 @@ check_next_channel:
 						the_channel.add_server_ref();
 						the_io_event.channel_index_ = this_channel;
 						the_io_event.chunk_index_ = the_chunk_index;
+
+						// Successfully fetched a message from the given channel.
 						return 0;
 					}
 				}
@@ -706,7 +717,7 @@ check_next_channel:
 			
 			// A 64-bit mask word have been scanned, therefore add mask size 64.
 			next_channel_ += 64;
-
+			
 			// Keep the mask word counter value (bit 7:6), and clear all other bits.
 			next_channel_ &= 192; // ...011000000
 		}
@@ -797,7 +808,38 @@ chunk_index the_chunk_index) {
 	// reference used as shorthand
 	channel_type& the_channel = channel_[the_channel_index];
 	
-#if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL) /// PROBLEM?
+#if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
+#if 0
+	std::cout << "--------------------------------------------------------------------------------\n";
+	std::cout << "Pushing:\n";
+	std::cout << "Before pushing: front = " << the_channel.overflow().front() << ", "
+	<< "back = " << the_channel.overflow().back() << "\n";
+	for (uint32_t lnk = 0; lnk < 3; ++lnk) {
+		the_channel.overflow().push(1000 +lnk);
+		uint32_t front = the_channel.overflow().front();
+		uint32_t back = the_channel.overflow().back();
+		uint32_t next = the_channel.overflow().chunk(back).get_next();
+		
+		std::cout << "After pushing(" << 1000 +lnk << "): "
+		"front = " << front << ", "
+		"back = " << back << ", "
+		"next link of back[" << back << "] = " << next << "\n";
+	}
+	std::cout << "Popping:\n";
+	for (uint32_t lnk = 0; lnk < 3; ++lnk) {
+		the_channel.overflow().pop();
+		uint32_t front = the_channel.overflow().front();
+		uint32_t back = the_channel.overflow().back();
+		uint32_t next = the_channel.overflow().chunk(back).get_next();
+		
+		std::cout << "After popping(): "
+		"front = " << front << ", "
+		"back = " << back << ", "
+		"next link of back[" << back << "] = " << next << "\n";
+	}
+	Sleep(2000);
+#endif
+	
 	// If the channels overflow queue is empty (assumed), then try to push to
 	// the out queue. If that succeeds (assumed), return. If it fails, the
 	// item is pushed to the overflow queue.

@@ -250,11 +250,12 @@ public:
 			if (not_empty()) {
 				chunk(back()).set_next(n);
 				back_ = n;
+				chunk(back()).set_next(link_terminator);
 			}
 			else {
 				front_ = n;
 				back_ = n;
-				//chunk(back()).set_next(link_terminator); // the caller should do this.
+				chunk(back()).set_next(link_terminator); // the caller should do this.
 			}
 		}
 
@@ -275,26 +276,13 @@ public:
 			// The queue is empty, nothing to pop.
 		}
 
-		/// print() show the list as a tree. This is only used for debug.
-		/// However, when using this, synchronization is needed so that
-		/// scheduler's are not modifying the queue while it is printed.
-		void print() const {
-			for (link_type next = front_; next != link_terminator; next = chunk(back()).extended()) {
-				std::cout << "(";
-				for (link_type extended = front_; extended != link_terminator; extended = chunk(back()).extended()) {
-					std::cout << i << ", ";
-				}
-				std::cout << "),\n";
-			}
-		}
-
-	private:
 		// Returns a reference to chunk[n] relative to the scheduler process
 		// address space, so only the scheduler process that manages this
 		// channel can use it.
 		chunk_type& chunk(chunk_index n) {
 			return chunk_[n];
 		}
+	private:
 
 		link_type front_;
 		link_type back_;
@@ -319,7 +307,7 @@ public:
 		overflow().set_chunk_ptr(p);
 	}
 #endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
-
+	
 private:
 	// Here we are already aligned on a cache-line. The owner_id,
 	// client_interface_ and scheduler_interface_ are written only when
