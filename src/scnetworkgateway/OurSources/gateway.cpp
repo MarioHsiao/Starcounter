@@ -1745,7 +1745,7 @@ uint32_t __stdcall MonitorDatabases(LPVOID params)
     while (GetFileAttributes(active_databases_dir_full) == INVALID_FILE_ATTRIBUTES)
     {
         GW_PRINT_GLOBAL << "Please start the IPC monitor process first!" << GW_ENDL;
-        Sleep(500);
+        Sleep(100);
     }
 
     // Creating path to active databases file.
@@ -1762,6 +1762,7 @@ uint32_t __stdcall MonitorDatabases(LPVOID params)
         return SCERRGWACTIVEDBLISTENPROBLEM;
     }
 
+    GW_PRINT_GLOBAL << "Waiting for databases..." << GW_ENDL;
     while (1)
     {
         // Waiting infinitely on directory changes.
