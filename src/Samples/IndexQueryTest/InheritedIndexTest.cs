@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using Starcounter;
 
 namespace IndexQueryTest.InheritedIndex {
@@ -37,6 +38,14 @@ namespace IndexQueryTest.InheritedIndex {
         }
 
         internal static void TestInheritedIndexes() {
+            PrintQueryPlan("select p from IndexQueryTest.InheritedIndex.Person p where name = ?");
+            PrintQueryPlan("select e from Employee e where company = ?");
+            PrintQueryPlan("select e from teacher e where company = ?");
+            PrintQueryPlan("select e from professor e where company = ?");
+        }
+
+        internal static void PrintQueryPlan(String query) {
+            Console.WriteLine(((IEnumerator)Db.SQL(query,null).GetEnumerator()).ToString());
         }
     }
 }
