@@ -354,7 +354,7 @@ CORRECT_STATISTICS_AND_RELEASE_CHUNK:
     default:
         {
             // NOTE: This situation should never happen.
-            GW_ASSERT(1 == 0);
+            GW_ASSERT(false);
         }
     }
 
