@@ -1,9 +1,9 @@
 ﻿using System;
 using Starcounter;
 
-namespace QueryProcessingTest {
+namespace IndexQueryTest.InheritedIndex {
     public class Employer : Entity {
-        //public Manager Director;
+        public Manager Director;
         public String Address;
     }
 
@@ -23,15 +23,15 @@ namespace QueryProcessingTest {
         public Int64 StartYear;
     }
 
+    public class Manager : Employee {
+        public Decimal Bonus;
+    }
+
     public class Employee : Person {
         public Employer Company;
         public Manager Boss;
         public DateTime StartDate;
         public Decimal Salary;
-    }
-
-    public class Manager : Employee {
-        public Decimal Bonus;
     }
 
     public class Teacher : Employee {
