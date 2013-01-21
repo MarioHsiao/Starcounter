@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections;
+using System.Diagnostics;
 using Starcounter;
+using Starcounter.Binding;
 
 namespace IndexQueryTest.InheritedIndex {
     static public class InheritedIndexTest {
         public static void RunInheritedIndexTest() {
             DropIndexes();
             CreateIndexes();
+            UnitTests();
             TestInheritedIndexes();
         }
 
@@ -46,6 +49,14 @@ namespace IndexQueryTest.InheritedIndex {
 
         internal static void PrintQueryPlan(String query) {
             Console.WriteLine(((IEnumerator)Db.SQL(query,null).GetEnumerator()).ToString());
+        }
+
+        internal static void UnitTests() {
+        }
+
+        internal static void TestGetAllIndexInfos() {
+            IndexInfo[] indexes = Bindings.GetTypeBinding("Professor").GetAllInheritedIndexInfos();
+            Trace.Assert(indexes.Length == 10);
         }
     }
 }
