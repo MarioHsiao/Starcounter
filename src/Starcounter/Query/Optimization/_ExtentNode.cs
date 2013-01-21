@@ -243,9 +243,10 @@ internal class ExtentNode : IOptimizationNode
         Int32 value = 0;
         ComparisonOperator compOperator = ComparisonOperator.Equal;
         usedArity = 0;
+        // Looping over columns of compound index
         while (usedArity < indexInfo.AttributeCount && compOperator == ComparisonOperator.Equal)
         {
-            value += EvaluateIndexPath(indexInfo.GetPathName(usedArity), comparisonList, out compOperator);
+            value += EvaluateIndexPath(indexInfo.GetColumnName(usedArity), comparisonList, out compOperator);
             usedArity++;
         }
         if (compOperator == ComparisonOperator.NotEqual)
@@ -363,7 +364,7 @@ internal class ExtentNode : IOptimizationNode
         // Creating dynamic range lists.
         for (Int32 i = 0; i < indexInfo.AttributeCount; i++)
         {
-            strPath = indexInfo.GetPathName(i);
+            strPath = indexInfo.GetColumnName(i);
             strPathList.Add(strPath);
             switch (indexInfo.GetTypeCode(i))
             {
