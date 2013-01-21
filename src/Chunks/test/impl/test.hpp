@@ -26,7 +26,7 @@ active_schedulers_(0) {
 	/// > cd %UserProfile%\code\Level1\bin\Release
 	///
 	/// The first argument is the name of the database, for example:
-	/// >sc_ipc_test.exe MYDB
+	/// >sc_ipc_test.exe MYDB_SERVER
 	///=========================================================================
 	
 	if (argc > 1) {
@@ -292,6 +292,7 @@ void test::print_rate(double rate) {
 
 void test::show_statistics(uint32_t interval_time_milliseconds, uint32_t
 duration_time_milliseconds) {
+	system("cls");
 	boost::timer t;
 	
     // stat[0] contains the most recently collected statistics, and

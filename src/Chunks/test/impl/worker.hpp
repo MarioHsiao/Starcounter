@@ -265,6 +265,7 @@ acquire_chunk_from_private_chunk_pool:
 					std::cout << "worker[" << worker_id_ << "] error: "
 					"handle_responses() failed with the error code "
 					<< error_code << std::endl;
+					Sleep(1000);
 				}
 				
 				// Release the chunk.
