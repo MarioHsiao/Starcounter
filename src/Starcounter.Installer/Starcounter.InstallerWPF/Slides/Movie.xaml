@@ -1,0 +1,29 @@
+﻿<Grid x:Class="Starcounter.InstallerWPF.Slides.Movie"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                >
+
+    <Grid >
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+
+        <Grid>
+
+            
+            <Image x:Name="nomovieimage" Visibility="Collapsed" Source="..\resources\logo1.png" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            <MediaElement  LoadedBehavior="Manual"  Width="566" Height="404"  Stretch="Fill" x:Name="mediaElement" />
+
+            <!--<Border CornerRadius="5" Padding="5,2,5,2" Background="#30000000">
+                <TextBlock Grid.Row="1" Text="Slide 1 of 2" Style="{DynamicResource SlidePage}"  />
+            </Border>-->
+
+        </Grid>
+
+
+    </Grid>
+
+</Grid>

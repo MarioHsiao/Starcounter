@@ -48,6 +48,17 @@ namespace Starcounter.Internal
             /// ScSql
             /// </summary>
             public const string ScSqlParser = "scsqlparser";
+
+            /// <summary>
+            /// Just represents the product name.
+            /// </summary>
+            public const string ProductName = "Starcounter";
+
+            /// <summary>
+            /// Holds a constant read-only value representing the name
+            /// of the Starcounter GUI administrator program.
+            /// </summary>
+            public const string Administrator = "StarcounterAdministrator.exe";
         }
 
         /// <summary>

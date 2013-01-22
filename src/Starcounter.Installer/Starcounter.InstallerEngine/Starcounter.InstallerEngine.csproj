@@ -1,0 +1,131 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SignAssembly>false</SignAssembly>
+    <ProjectGuid>{210AC05E-453F-4AB0-ABFF-10D3804A9596}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Starcounter.InstallerEngine</RootNamespace>
+    <AssemblyName>Starcounter.InstallerEngine</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation />
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <OutputPath>..\..\..\bin\Debug\</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+  </PropertyGroup>
+  <!-- Including standard .NET references (note that default target framework is used). -->
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="System.DirectoryServices.AccountManagement">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Management" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Configuration.Install" />
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.DirectoryServices" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="WindowsBase">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Components\VS2012Integration.cs" />
+    <Compile Include="Components\VSIntegration.cs" />
+    <Compile Include="GAC.cs" />
+    <Compile Include="SystemServerAccount.cs" />
+    <Compile Include="SystemServerService.cs" />
+    <Compile Include="VsSetup\DevEnv.cs" />
+    <Compile Include="VsSetup\VSInstaller.cs" />
+    <Compile Include="VsSetup\VisualStudioEdition.cs" />
+    <Compile Include="VsSetup\VisualStudioVersion.cs" />
+    <Compile Include="VsSetup\VSIXPackageInfo.cs" />
+    <Compile Include="Win32Error.cs" />
+    <Compile Include="Win32Kernel.cs" />
+    <Compile Include="Win32Security.cs" />
+    <Compile Include="Win32Service.cs" />
+    <EmbeddedResource Include="VersionInfo.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <None Include="SetupSettings.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <Compile Include="Components\ActivityMonitor.cs" />
+    <Compile Include="Components\Administrator.cs" />
+    <Compile Include="Components\ComponentBase.cs" />
+    <Compile Include="Components\InstallationBase.cs" />
+    <Compile Include="Components\PersonalServer.cs" />
+    <Compile Include="Components\SamplesDemos.cs" />
+    <Compile Include="Components\SystemServer.cs" />
+    <Compile Include="Components\VS2010Integration.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Utilities.cs" />
+    <Compile Include="DependenciesCheck.cs" />
+    <Compile Include="ComponentsCheck.cs" />
+    <Compile Include="ConstantsBank.cs" />
+    <Compile Include="INILoader.cs" />
+    <Compile Include="InstallerMain.cs" />
+    <Compile Include="SetupException.cs" />
+    <Compile Include="UninstallEngine.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Server\Starcounter.Server\Starcounter.Server.csproj">
+      <Project>{28e1d438-7dc4-4bf7-a486-0598c78dbbe9}</Project>
+      <Name>Starcounter.Server</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Starcounter.Internal\Starcounter.Internal.csproj">
+      <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
+      <Name>Starcounter.Internal</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Starcounter\Starcounter.csproj">
+      <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
+      <Name>Starcounter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Controls.WpfMessageBox\Starcounter.Controls.WpfMessageBox.csproj">
+      <Project>{74cb7aab-3bb6-4107-a149-254840cdf558}</Project>
+      <Name>Starcounter.Controls.WpfMessageBox</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>

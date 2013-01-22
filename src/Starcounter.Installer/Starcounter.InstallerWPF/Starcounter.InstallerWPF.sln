@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.InstallerWPF2", "Starcounter.InstallerWPF2.csproj", "{13523D29-3DFD-48BC-B8C4-4C7806320B13}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Controls.FlashSlideShow", "..\..\AdministratorWPF\Starcounter.Controls.FlashSlideShow\Starcounter.Controls.FlashSlideShow.csproj", "{2DD3FB15-04A1-4172-8229-212223E18BF9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Controls.WPFFlashPlayer", "..\..\AdministratorWPF\Starcounter.Controls.WPFFlashPlayer\Starcounter.Controls.WPFFlashPlayer.csproj", "{B58122DF-CB8E-41AF-B5B1-B5E0DB334FE9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{13523D29-3DFD-48BC-B8C4-4C7806320B13}.Debug|Win32.ActiveCfg = Debug|Win32
+		{13523D29-3DFD-48BC-B8C4-4C7806320B13}.Debug|Win32.Build.0 = Debug|Win32
+		{13523D29-3DFD-48BC-B8C4-4C7806320B13}.Debug|x64.ActiveCfg = Debug|x64
+		{13523D29-3DFD-48BC-B8C4-4C7806320B13}.Debug|x64.Build.0 = Debug|x64
+		{13523D29-3DFD-48BC-B8C4-4C7806320B13}.Release|Win32.ActiveCfg = Release|Win32
+		{13523D29-3DFD-48BC-B8C4-4C7806320B13}.Release|Win32.Build.0 = Release|Win32
+		{13523D29-3DFD-48BC-B8C4-4C7806320B13}.Release|x64.ActiveCfg = Release|x64
+		{13523D29-3DFD-48BC-B8C4-4C7806320B13}.Release|x64.Build.0 = Release|x64
+		{2DD3FB15-04A1-4172-8229-212223E18BF9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2DD3FB15-04A1-4172-8229-212223E18BF9}.Debug|Win32.Build.0 = Debug|Win32
+		{2DD3FB15-04A1-4172-8229-212223E18BF9}.Debug|x64.ActiveCfg = Debug|x64
+		{2DD3FB15-04A1-4172-8229-212223E18BF9}.Debug|x64.Build.0 = Debug|x64
+		{2DD3FB15-04A1-4172-8229-212223E18BF9}.Release|Win32.ActiveCfg = Release|Win32
+		{2DD3FB15-04A1-4172-8229-212223E18BF9}.Release|Win32.Build.0 = Release|Win32
+		{2DD3FB15-04A1-4172-8229-212223E18BF9}.Release|x64.ActiveCfg = Release|x64
+		{2DD3FB15-04A1-4172-8229-212223E18BF9}.Release|x64.Build.0 = Release|x64
+		{B58122DF-CB8E-41AF-B5B1-B5E0DB334FE9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B58122DF-CB8E-41AF-B5B1-B5E0DB334FE9}.Debug|Win32.Build.0 = Debug|Win32
+		{B58122DF-CB8E-41AF-B5B1-B5E0DB334FE9}.Debug|x64.ActiveCfg = Debug|x64
+		{B58122DF-CB8E-41AF-B5B1-B5E0DB334FE9}.Debug|x64.Build.0 = Debug|x64
+		{B58122DF-CB8E-41AF-B5B1-B5E0DB334FE9}.Release|Win32.ActiveCfg = Release|Win32
+		{B58122DF-CB8E-41AF-B5B1-B5E0DB334FE9}.Release|Win32.Build.0 = Release|Win32
+		{B58122DF-CB8E-41AF-B5B1-B5E0DB334FE9}.Release|x64.ActiveCfg = Release|x64
+		{B58122DF-CB8E-41AF-B5B1-B5E0DB334FE9}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
