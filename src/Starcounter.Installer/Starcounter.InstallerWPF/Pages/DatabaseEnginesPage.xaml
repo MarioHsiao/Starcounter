@@ -1,0 +1,248 @@
+﻿<pages:BasePage x:Class="Starcounter.InstallerWPF.Pages.DatabaseEnginesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:pages="clr-namespace:Starcounter.InstallerWPF.Pages"
+    xmlns:rules="clr-namespace:Starcounter.InstallerWPF.Rules"
+    xmlns:converters="clr-namespace:Starcounter.InstallerWPF.Converters"
+    xmlns:main="clr-namespace:Starcounter.InstallerWPF"
+    DisplayName="Database Engine"
+>
+
+
+
+    <pages:BasePage.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter"/>
+        <converters:CommandToVisibilityConverter x:Key="commandToVisibilityConverter"/>
+        <converters:CommandToBackgroundConverter x:Key="commandToBackgroundConverter" />
+        <converters:IsCheckedConverter x:Key="isCheckedConverter"/>
+        <converters:ScrollBarVisibilityToPadding x:Key="scrollBarVisibilityToPadding" />
+    </pages:BasePage.Resources>
+
+
+    <pages:BasePage.Content>
+
+
+
+
+        <Grid Style="{DynamicResource PagePanel_Style}">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header + Content -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="{Binding RelativeSource={RelativeSource self}, Path=ComputedVerticalScrollBarVisibility, Converter={StaticResource scrollBarVisibilityToPadding}}">
+
+                <Grid >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!--<MediaElement Name="VideoControl"     Source="c:\tmp\Samples\Modern times.mp4" />-->
+
+                    <!-- Header -->
+                    <GroupBox Style="{DynamicResource PageHeaderGroupBoxStyle}">
+                        <GroupBox.Header>
+                            <TextBlock  Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type pages:BasePage}},Path=DisplayName}" Style="{DynamicResource PageHeaderTitleStyle}"/>
+                        </GroupBox.Header>
+
+                        <Grid>
+
+                            <!-- Add Components header text -->
+                            <TextBlock Text="Select the components you want to install" Visibility="{Binding Path=MainWindow.SetupOptions, Source={x:Static Application.Current}, Converter={StaticResource commandToVisibilityConverter}, ConverterParameter=ADDCOMPONENTS}" Style="{DynamicResource PageHeaderDescriptionStyle}"/>
+
+                            <!-- Remove Components header text -->
+                            <TextBlock Text="Select the components you want to uninstall" Visibility="{Binding Path=MainWindow.SetupOptions, Source={x:Static Application.Current}, Converter={StaticResource commandToVisibilityConverter}, ConverterParameter=REMOVECOMPONENTS}" Style="{DynamicResource PageHeaderDescriptionStyle}"/>
+
+                        </Grid>
+
+                    </GroupBox>
+
+                    <!-- Content -->
+                    <Grid Grid.Row="1" Style="{DynamicResource Page_Content_Panel_Style}">
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Personal Server -->
+                        <StackPanel Margin="0,7.5,0,7.5" Grid.Row="0" Grid.IsSharedSizeScope="True" DataContext="{Binding Components[PersonalServer]}">
+
+                            <CheckBox IsEnabled="{Binding IsExecuteCommandEnabled}" Background="{Binding Path=Command, Converter={StaticResource commandToBackgroundConverter}}" Style="{DynamicResource BigCheckBoxStyle}">
+
+                                <CheckBox.IsChecked>
+                                    <MultiBinding Converter="{StaticResource isCheckedConverter}">
+                                        <Binding  Path="IsExecuteCommandEnabled" Mode="OneWay"/>
+                                        <Binding  Path="ExecuteCommand" Mode="TwoWay"/>
+                                    </MultiBinding>
+                                </CheckBox.IsChecked>
+
+                                <StackPanel Orientation="Horizontal">
+
+                                    <Label Padding="0" Margin="0" Content="_Personal Server" />
+                                    <TextBlock  Margin="7.5,0,0,0" Text="{Binding Comment}" />
+
+                                </StackPanel>
+                            </CheckBox>
+
+
+                            <Grid >
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="Box" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,0">
+
+                                    <!-- Header Description -->
+                                    <TextBlock Style="{DynamicResource ComponentDescription}">
+                        The personal server is designed with the developer in focus. It is a lightweight server installation with a minimum impact on the target computer. It will typically run as a standard Windows process under the credentials of the currently logged in user.
+                        <Hyperlink CommandParameter="http://www.starcounter.com/wiki/Server" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>
+                                    </TextBlock>
+
+                                    <!-- Properties -->
+                                    <StackPanel Margin="0,5,0,2.5" Visibility="{Binding Path=ShowProperties, Converter={StaticResource booleanToVisibilityConverter}}" >
+
+                                        <Label Padding="0" Target="{Binding ElementName=tb_PersonalServerPath}" Margin="0,0,0,5"  Content="_Personal Server (personal databases repository) path"   />
+
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+
+                                            <TextBox x:Name="tb_PersonalServerPath" Margin="0"  Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError" VerticalAlignment="Top">
+                                                <TextBox.Text>
+                                                    <Binding Path="Path" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged" >
+                                                        <Binding.ValidationRules>
+                                                            <rules:DirectoryContainsFilesRule UseWarning="True" CheckEmptyString="true"  ValidatesOnTargetUpdated="True"/>
+                                                        </Binding.ValidationRules>
+                                                    </Binding>
+                                                </TextBox.Text>
+                                            </TextBox>
+
+                                            <Button MinWidth="0"  Grid.Column="1" Margin="5,0,0,0"  Command="ApplicationCommands.Open" CommandParameter="Please select a directory where the Personal Server repository will be installed" CommandTarget="{Binding ElementName=tb_PersonalServerPath}"  >
+                                                <Image Stretch="None" Source="..\resources\16x16\Folder.png"/>
+                                            </Button>
+
+
+                                        </Grid>
+                                    </StackPanel>
+
+                                </StackPanel>
+
+                            </Grid>
+
+                        </StackPanel>
+
+                        <!-- Devider -->
+                        <Border Margin="0,7.5,0,7.5" Grid.Row="1" Height="2" Background="#15ffffff" BorderBrush="#50000000" BorderThickness="1,1,0,0" />
+
+                        <!-- System Server -->
+                        <StackPanel Margin="0,7.5,0,7.5" Grid.Row="2" Grid.IsSharedSizeScope="True" DataContext="{Binding Components[SystemServer]}">
+
+
+                            <CheckBox  IsEnabled="{Binding IsExecuteCommandEnabled}" Background="{Binding Path=Command, Converter={StaticResource commandToBackgroundConverter}}" Style="{DynamicResource BigCheckBoxStyle}">
+
+                                <CheckBox.IsChecked>
+                                    <MultiBinding Converter="{StaticResource isCheckedConverter}">
+                                        <Binding  Path="IsExecuteCommandEnabled" Mode="OneWay"/>
+                                        <Binding  Path="ExecuteCommand" Mode="TwoWay"/>
+                                    </MultiBinding>
+                                </CheckBox.IsChecked>
+
+                                <StackPanel Orientation="Horizontal">
+
+                                    <Label Padding="0" Margin="0" Content="_System Server (for in-production use only)" />
+                                    <TextBlock  Margin="7.5,0,0,0" Text="{Binding Comment}" />
+
+                                </StackPanel>
+
+                            </CheckBox>
+
+                            <Grid >
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="Box" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,0">
+
+                                    <!-- Header Description -->
+                                    <TextBlock Style="{DynamicResource ComponentDescription}">
+                                  The system server is the server you typically will want to use in a production environment. It will install as a Windows service and as such, it's lifetime is managed by, and configured in, the underlying operating system.
+                                  <Hyperlink CommandParameter="http://www.starcounter.com/wiki/Server" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>
+                                    </TextBlock>
+
+                                    <!-- Properties -->
+                                    <StackPanel Margin="0,5,0,2.5" Visibility="{Binding Path=ShowProperties, Converter={StaticResource booleanToVisibilityConverter}}" >
+
+                                        <Label Padding="0" Target="{Binding ElementName=tb_SystemServerPath}" Margin="0,0,0,5"  Content="_Server (system databases repository) path"   />
+
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBox x:Name="tb_SystemServerPath" Margin="0" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError" VerticalAlignment="Top">
+                                                <TextBox.Text>
+                                                    <Binding Path="Path" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged" >
+                                                        <Binding.ValidationRules>
+                                                            <rules:DirectoryContainsFilesRule UseWarning="True" CheckEmptyString="true"  ValidatesOnTargetUpdated="True"/>
+                                                        </Binding.ValidationRules>
+                                                    </Binding>
+                                                </TextBox.Text>
+                                            </TextBox>
+
+                                            <Button MinWidth="0"  Grid.Column="1" Margin="5,0,0,0" Command="ApplicationCommands.Open" CommandParameter="Please select a directory where the system server repository will be installed"  CommandTarget="{Binding ElementName=tb_SystemServerPath}"  >
+                                                <Image Stretch="None" Source="..\resources\16x16\Folder.png"/>
+                                            </Button>
+
+
+                                        </Grid>
+                                    </StackPanel>
+
+                                </StackPanel>
+
+                            </Grid>
+
+                        </StackPanel>
+
+
+                    </Grid>
+
+
+                </Grid>
+
+
+            </ScrollViewer>
+
+            <!-- Button Bar -->
+            <Grid Grid.Row="1"  >
+
+                <GroupBox Style="{DynamicResource PageButtonBar}">
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Margin="2.5,0,2.5,0" Command="NavigationCommands.PreviousPage" Content="_Back" />
+                        <Button Margin="2.5,0,0,0" Command="NavigationCommands.NextPage"  IsDefault="True"  Content="_Next" Background="{DynamicResource GreenButtonBackground}"/>
+                    </StackPanel>
+
+                </GroupBox>
+
+            </Grid>
+
+        </Grid>
+
+
+    </pages:BasePage.Content>
+
+
+</pages:BasePage>

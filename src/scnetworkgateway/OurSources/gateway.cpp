@@ -2542,7 +2542,7 @@ bool Gateway::CheckConfirmedEchoResponses(GatewayWorker* gw)
 uint32_t Gateway::ShutdownTest(GatewayWorker* gw, bool success)
 {
     // Checking if we are on the build server.
-    bool is_on_build_server = (NULL != std::getenv("SC_RUNNING_ON_BUILD_SERVER"));
+    bool is_on_build_server = (std::string("True") == std::getenv("SC_RUNNING_ON_BUILD_SERVER"));
 
     if (success)
     {
