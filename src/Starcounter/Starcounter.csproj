@@ -166,7 +166,7 @@
     <Compile Include="Query\Execution\Comparers\UIntegerComparer.cs" />
     <Compile Include="Query\Execution\Comparers\UIntegerPathComparer.cs" />
     <Compile Include="Query\Execution\Enumerators\GenericEnumerator.cs" />
-    <Compile Include="Query\Execution\LogicalExpressions\TypeOfPredicate.cs" />
+    <Compile Include="Query\Execution\LogicalExpressions\IsTypePredicate.cs" />
     <Compile Include="Query\Execution\Row\RowMetaObject.cs" />
     <Compile Include="Query\Execution\Row\Row.cs" />
     <Compile Include="Query\Execution\Row\RowTypeBinding.cs" />
