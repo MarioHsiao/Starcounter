@@ -164,7 +164,7 @@ internal class StringOperation : IStringExpression, IOperation
         return new StringOperation(strOperator, expr1.Instantiate(obj));
     }
 
-    public ITypeExpression Clone(VariableArray varArray)
+    public IValueExpression Clone(VariableArray varArray)
     {
         return CloneToString(varArray);
     }
@@ -217,7 +217,7 @@ internal class StringOperation : IStringExpression, IOperation
 
 #if DEBUG
     private bool AssertEqualsVisited = false;
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         StringOperation otherNode = other as StringOperation;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);

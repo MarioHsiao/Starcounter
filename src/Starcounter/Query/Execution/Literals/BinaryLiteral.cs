@@ -92,7 +92,7 @@ internal class BinaryLiteral : Literal, ILiteral, IBinaryPathItem
         return new BinaryLiteral(value);
     }
 
-    public ITypeExpression Clone(VariableArray varArray)
+    public IValueExpression Clone(VariableArray varArray)
     {
         return this;
     }
@@ -142,7 +142,7 @@ internal class BinaryLiteral : Literal, ILiteral, IBinaryPathItem
     }
 
 #if DEBUG
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         BinaryLiteral otherNode = other as BinaryLiteral;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);

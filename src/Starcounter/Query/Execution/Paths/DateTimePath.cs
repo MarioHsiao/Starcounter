@@ -194,7 +194,7 @@ internal class DateTimePath : Path, IDateTimeExpression, IPath
         return new DateTimePath(extentNumber, instPathList, member.Instantiate(obj) as IDateTimePathItem);
     }
 
-    public override ITypeExpression Clone(VariableArray varArray)
+    public override IValueExpression Clone(VariableArray varArray)
     {
         return CloneToDateTime(varArray);
     }
@@ -235,7 +235,7 @@ internal class DateTimePath : Path, IDateTimeExpression, IPath
 
 #if DEBUG
     private bool AssertEqualsVisited = false;
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         DateTimePath otherNode = other as DateTimePath;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);

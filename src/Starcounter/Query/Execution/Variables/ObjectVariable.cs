@@ -257,7 +257,7 @@ internal class ObjectVariable : Variable, IVariable, IObjectExpression
 
 #if DEBUG
     private bool AssertEqualsVisited = false;
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         ObjectVariable otherNode = other as ObjectVariable;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);

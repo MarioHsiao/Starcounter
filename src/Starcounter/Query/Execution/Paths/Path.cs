@@ -47,7 +47,7 @@ internal abstract class Path : CodeGenFilterNode
     /// </summary>
     /// <param name="varArray">Variables array.</param>
     /// <returns>Clone of the expression.</returns>
-    public abstract ITypeExpression Clone(VariableArray varArray);
+    public abstract IValueExpression Clone(VariableArray varArray);
 
 #if DEBUG
     private bool AssertEqualsVisited = false;

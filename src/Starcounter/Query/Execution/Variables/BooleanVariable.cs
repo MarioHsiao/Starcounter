@@ -137,7 +137,7 @@ internal class BooleanVariable : Variable, IVariable, IBooleanExpression
         return this;
     }
 
-    public override ITypeExpression Clone(VariableArray varArray)
+    public override IValueExpression Clone(VariableArray varArray)
     {
         return CloneToBoolean(varArray);
     }
@@ -236,7 +236,7 @@ internal class BooleanVariable : Variable, IVariable, IBooleanExpression
     }
 
 #if DEBUG
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         BooleanVariable otherNode = other as BooleanVariable;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);

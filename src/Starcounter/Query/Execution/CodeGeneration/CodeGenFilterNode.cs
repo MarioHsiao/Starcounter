@@ -217,8 +217,8 @@ namespace Starcounter.Query.Execution
         /// <param name="expr2">Right branch of the expression.</param>
         /// <param name="nodeTypeList">Node type list.</param>
         protected void AddNodeCompTypeToList(ComparisonOperator compOperator,
-                                             ITypeExpression expr1,
-                                             ITypeExpression expr2,
+                                             IValueExpression expr1,
+                                             IValueExpression expr2,
                                              List<ConditionNodeType> nodeTypeList)
         {
             // Checking sub-nodes if they are supported.
