@@ -564,7 +564,7 @@ internal class NumericalOperation : INumericalExpression, INumericalOperation
         return new NumericalOperation(numOperator, instExpr1);
     }
 
-    public ITypeExpression Clone(VariableArray varArray)
+    public IValueExpression Clone(VariableArray varArray)
     {
         return CloneToNumerical(varArray);
     }
@@ -617,7 +617,7 @@ internal class NumericalOperation : INumericalExpression, INumericalOperation
 
 #if DEBUG
     private bool AssertEqualsVisited = false;
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         NumericalOperation otherNode = other as NumericalOperation;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);

@@ -193,7 +193,7 @@ internal class BinaryPath : Path, IBinaryExpression, IPath
         return new BinaryPath(extentNumber, instPathList, member.Instantiate(obj) as IBinaryPathItem);
     }
 
-    public override ITypeExpression Clone(VariableArray varArray)
+    public override IValueExpression Clone(VariableArray varArray)
     {
         return CloneToBinary(varArray);
     }
@@ -234,7 +234,7 @@ internal class BinaryPath : Path, IBinaryExpression, IPath
 
 #if DEBUG
     private bool AssertEqualsVisited = false;
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         BinaryPath otherNode = other as BinaryPath;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);

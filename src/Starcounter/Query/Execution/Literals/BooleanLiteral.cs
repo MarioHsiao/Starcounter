@@ -91,7 +91,7 @@ internal class BooleanLiteral : Literal, ILiteral, IBooleanPathItem
         return new BooleanLiteral(value);
     }
 
-    public ITypeExpression Clone(VariableArray varArray)
+    public IValueExpression Clone(VariableArray varArray)
     {
         return this;
     }
@@ -141,7 +141,7 @@ internal class BooleanLiteral : Literal, ILiteral, IBooleanPathItem
     }
 
 #if DEBUG
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         BooleanLiteral otherNode = other as BooleanLiteral;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);

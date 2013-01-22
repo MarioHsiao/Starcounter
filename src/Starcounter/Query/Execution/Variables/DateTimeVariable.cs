@@ -231,7 +231,7 @@ internal class DateTimeVariable : Variable, IVariable, IDateTimeExpression
     }
 
 #if DEBUG
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         DateTimeVariable otherNode = other as DateTimeVariable;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);

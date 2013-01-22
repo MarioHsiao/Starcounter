@@ -269,7 +269,7 @@ internal class StringVariable : Variable, IVariable, IStringExpression
     }
 
 #if DEBUG
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         StringVariable otherNode = other as StringVariable;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);

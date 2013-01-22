@@ -261,7 +261,7 @@ internal class UIntegerProperty : Property, IUIntegerPathItem
         return new UIntegerProperty(extentNumber, typeBinding, propBinding);
     }
 
-    public override ITypeExpression Clone(VariableArray varArray)
+    public override IValueExpression Clone(VariableArray varArray)
     {
         return CloneToUInteger(varArray);
     }

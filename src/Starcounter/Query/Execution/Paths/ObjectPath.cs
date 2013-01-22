@@ -205,7 +205,7 @@ internal class ObjectPath : Path, IObjectExpression, IPath
         return new ObjectPath(extentNumber, instPathList, member.Instantiate(obj) as IObjectPathItem);
     }
 
-    public override ITypeExpression Clone(VariableArray varArray)
+    public override IValueExpression Clone(VariableArray varArray)
     {
         return CloneToObject(varArray);
     }
@@ -246,7 +246,7 @@ internal class ObjectPath : Path, IObjectExpression, IPath
 
 #if DEBUG
     private bool AssertEqualsVisited = false;
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         ObjectPath otherNode = other as ObjectPath;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);
