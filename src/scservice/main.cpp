@@ -161,7 +161,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     swprintf(gateway_cmd, str_num_chars, str_template, name_upr, server_logs_dir);
 
 	// Creating Admin exepath
-	str_template = L"applications\\Starcounter.Administrator\\Administrator.exe";
+	str_template = L"scadmin\\Administrator.exe";
     str_num_chars = 
 		wcslen(str_template) + 
 		1;
@@ -173,7 +173,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 
 
 	// Creating Admin working dir (.srv\\Personal\\Apps\\Administrator)
-    str_template = L"applications\\Starcounter.Administrator";
+    str_template = L"scadmin";
     str_num_chars = 
 		wcslen(str_template) + 
 		1;
