@@ -1366,7 +1366,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:int' ";
             TemplateOutput += "'parse:int' ";
             #endif
-            if (ParseInt(fragment, size, out val, out valueSize)) {
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -1409,7 +1409,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:string' ";
             TemplateOutput += "'parse:string' ";
             #endif
-            if (ParseString(fragment, size, out val, out valueSize)) {
+            if (ParseUriString(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -1452,7 +1452,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:int' ";
             TemplateOutput += "'parse:int' ";
             #endif
-            if (ParseInt(fragment, size, out val, out valueSize)) {
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -1495,7 +1495,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:string' ";
             TemplateOutput += "'parse:string' ";
             #endif
-            if (ParseString(fragment, size, out val, out valueSize)) {
+            if (ParseUriString(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -1559,7 +1559,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:int' ";
             TemplateOutput += "'parse:int' ";
             #endif
-            if (ParseInt(fragment, size, out val, out valueSize)) {
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -1602,7 +1602,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:int' ";
             TemplateOutput += "'parse:int' ";
             #endif
-            if (ParseInt(fragment, size, out val, out valueSize)) {
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -1694,7 +1694,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:int' ";
             TemplateOutput += "'parse:int' ";
             #endif
-            if (ParseInt(fragment, size, out val, out valueSize)) {
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -1767,7 +1767,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:string' ";
             TemplateOutput += "'parse:string' ";
             #endif
-            if (ParseString(fragment, size, out val, out valueSize)) {
+            if (ParseUriString(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -1822,7 +1822,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:string' ";
             TemplateOutput += "'parse:string' ";
             #endif
-            if (ParseString(fragment, size, out val, out valueSize)) {
+            if (ParseUriString(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -1865,7 +1865,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:int' ";
             TemplateOutput += "'parse:int' ";
             #endif
-            if (ParseInt(fragment, size, out val, out valueSize)) {
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -1908,7 +1908,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:string' ";
             TemplateOutput += "'parse:string' ";
             #endif
-            if (ParseString(fragment, size, out val, out valueSize)) {
+            if (ParseUriString(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -2088,7 +2088,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:int' ";
             TemplateOutput += "'parse:int' ";
             #endif
-            if (ParseInt(fragment, size, out val, out valueSize)) {
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -2142,7 +2142,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:string' ";
             TemplateOutput += "'parse:string' ";
             #endif
-            if (ParseString(fragment, size, out val, out valueSize)) {
+            if (ParseUriString(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -2185,7 +2185,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:int' ";
             TemplateOutput += "'parse:int' ";
             #endif
-            if (ParseInt(fragment, size, out val, out valueSize)) {
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -2228,7 +2228,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:int' ";
             TemplateOutput += "'parse:int' ";
             #endif
-            if (ParseInt(fragment, size, out val, out valueSize)) {
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -2271,7 +2271,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:string' ";
             TemplateOutput += "'parse:string' ";
             #endif
-            if (ParseString(fragment, size, out val, out valueSize)) {
+            if (ParseUriString(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -2339,7 +2339,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:int' ";
             TemplateOutput += "'parse:int' ";
             #endif
-            if (ParseInt(fragment, size, out val, out valueSize)) {
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -2406,7 +2406,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:decimal' ";
             TemplateOutput += "'parse:decimal' ";
             #endif
-            if (ParseDecimal(fragment, size, out val, out valueSize)) {
+            if (ParseUriDecimal(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -2449,7 +2449,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:double' ";
             TemplateOutput += "'parse:double' ";
             #endif
-            if (ParseDouble(fragment, size, out val, out valueSize)) {
+            if (ParseUriDouble(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -2492,7 +2492,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:DateTime' ";
             TemplateOutput += "'parse:DateTime' ";
             #endif
-            if (ParseDateTime(fragment, size, out val, out valueSize)) {
+            if (ParseUriDateTime(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -2535,7 +2535,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:bool' ";
             TemplateOutput += "'parse:bool' ";
             #endif
-            if (ParseBoolean(fragment, size, out val, out valueSize)) {
+            if (ParseUriBoolean(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -2578,7 +2578,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:string' ";
             TemplateOutput += "'parse:string' ";
             #endif
-            if (ParseString(fragment, size, out val, out valueSize)) {
+            if (ParseUriString(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -2632,7 +2632,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:string' ";
             TemplateOutput += "'parse:string' ";
             #endif
-            if (ParseString(fragment, size, out val, out valueSize)) {
+            if (ParseUriString(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -2675,7 +2675,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:int' ";
             TemplateOutput += "'parse:int' ";
             #endif
-            if (ParseInt(fragment, size, out val, out valueSize)) {
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -2718,7 +2718,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:int' ";
             TemplateOutput += "'parse:int' ";
             #endif
-            if (ParseInt(fragment, size, out val, out valueSize)) {
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -2761,7 +2761,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:int' ";
             TemplateOutput += "'parse:int' ";
             #endif
-            if (ParseInt(fragment, size, out val, out valueSize)) {
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -2804,7 +2804,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:string' ";
             TemplateOutput += "'parse:string' ";
             #endif
-            if (ParseString(fragment, size, out val, out valueSize)) {
+            if (ParseUriString(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -2872,7 +2872,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:string' ";
             TemplateOutput += "'parse:string' ";
             #endif
-            if (ParseString(fragment, size, out val, out valueSize)) {
+            if (ParseUriString(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
@@ -2940,7 +2940,7 @@ namespace __urimatcher__ {
             UriOutput += "'parse:int' ";
             TemplateOutput += "'parse:int' ";
             #endif
-            if (ParseInt(fragment, size, out val, out valueSize)) {
+            if (ParseUriInt(fragment, size, out val, out valueSize)) {
                unsafe {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
