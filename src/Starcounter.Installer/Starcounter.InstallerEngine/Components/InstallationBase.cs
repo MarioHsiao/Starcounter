@@ -449,17 +449,13 @@ public class CInstallationBase : CComponentBase
         Boolean installSystemServerSetting = InstallerMain.SystemServerComponent.ShouldBeInstalled();
         Boolean installVs2010IntegrationSetting = InstallerMain.VS2010IntegrationComponent.ShouldBeInstalled();
         Boolean installVs2012IntegrationSetting = InstallerMain.VS2012IntegrationComponent.ShouldBeInstalled();
-        Boolean installAdministratorSetting = InstallerMain.AdministratorComponent.ShouldBeInstalled();
-        Boolean installActivityMonitorSetting = InstallerMain.ActivityMonitorComponent.ShouldBeInstalled();
 
         // Depending on the list of installing components
         // we determine if installation base is needed.
         if (installPersonalServerSetting        ||
             installSystemServerSetting          ||
             installVs2010IntegrationSetting     ||
-            installVs2012IntegrationSetting     ||
-            installAdministratorSetting         ||
-            installActivityMonitorSetting)
+            installVs2012IntegrationSetting)
             return true;
 
         return false;

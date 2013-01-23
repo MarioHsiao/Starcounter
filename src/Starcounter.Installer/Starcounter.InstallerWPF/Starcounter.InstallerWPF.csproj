@@ -324,7 +324,6 @@
     <Compile Include="Components\PersonalServer.cs" />
     <Compile Include="Components\Samples.cs" />
     <Compile Include="Components\InstallationBase.cs" />
-    <Compile Include="Components\StarcounterAdministrator.cs" />
     <Compile Include="Components\SystemServer.cs" />
     <Compile Include="Components\VisualStudio2010.cs" />
     <Compile Include="Components\VisualStudio2010Integration.cs" />

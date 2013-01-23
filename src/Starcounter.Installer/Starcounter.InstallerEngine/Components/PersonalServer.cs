@@ -60,7 +60,7 @@ public class CPersonalServer : CComponentBase
         if (InstallerMain.PersonalServerComponent.ShouldBeInstalled() ||
             InstallerMain.SystemServerComponent.ShouldBeInstalled())
         {
-            Process[] procs = Process.GetProcessesByName(ConstantsBank.SCServerProcess);
+            Process[] procs = Process.GetProcessesByName(StarcounterConstants.ProgramNames.ScService);
             foreach (Process proc in procs)
             {
                 // Checking if its not a service.
@@ -76,6 +76,73 @@ public class CPersonalServer : CComponentBase
                 }
             }
         }
+    }
+
+    // Desktop shortcut.
+    readonly String PersonalServerDesktopShortcutPath =
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+                     ConstantsBank.SCProductName + ".lnk");
+
+    // Start Menu shortcut.
+    readonly String PersonalServerStartMenuPath =
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.StartMenu),
+                     "Programs\\" + ConstantsBank.SCProductName + "\\" + ConstantsBank.SCProductName + ".lnk");
+
+    /// <summary>
+    /// Creates a Desktop and Menu shortcuts for personal server.
+    /// </summary>
+    void CreatePersonalServerShortcuts()
+    {
+        // Checking if shortcuts should be installed.
+        Boolean createShortcuts = InstallerMain.InstallSettingCompare(ConstantsBank.Setting_CreatePersonalServerShortcuts, ConstantsBank.Setting_True);
+
+        // Checking if user wants to create desktop shortcuts.
+        if (!createShortcuts)
+            return;
+
+        // Logging event.
+        Utilities.ReportSetupEvent("Creating Personal Server shortcuts...");
+
+        // Shortcut to installation directory.
+        String installPath = InstallerMain.InstallationBaseComponent.ComponentPath;
+
+        // Checking if we need to disable the activity monitor.
+        String args = " ";
+
+        // Calling external tool to create shortcut.
+        Utilities.CreateShortcut(
+            Path.Combine(installPath, ConstantsBank.SCPersonalServerExeName),
+            PersonalServerDesktopShortcutPath,
+            args,
+            installPath,
+            "Starts Starcounter Personal Server.");
+
+        // Obtaining path to Start Menu for a current user.
+        String startMenuDir = Path.GetDirectoryName(PersonalServerStartMenuPath);
+
+        // Creating Start Menu directory if needed.
+        if (!Directory.Exists(startMenuDir))
+            Directory.CreateDirectory(startMenuDir);
+
+        // Calling external tool to create shortcut.
+        Utilities.CreateShortcut(
+            Path.Combine(installPath, ConstantsBank.SCPersonalServerExeName),
+            PersonalServerStartMenuPath,
+            args,
+            installPath,
+            "Starts Starcounter Personal Server.");
+
+        // Updating progress.
+        InstallerMain.ProgressIncrement();
+    }
+
+    /// <summary>
+    /// Starts personal server if demanded.
+    /// </summary>
+    void StartPersonalServer()
+    {
+        // Adding process to post-setup start.
+        InstallerMain.AddProcessToPostStart(Path.Combine(InstallerMain.InstallationBaseComponent.ComponentPath, ConstantsBank.SCPersonalServerExeName), "");
     }
 
     /// <summary>
@@ -117,31 +184,26 @@ public class CPersonalServer : CComponentBase
         // Logging event.
         Utilities.ReportSetupEvent("Creating structure for personal database engine...");
 
-        //a_m//
-        /*
-        // Creating personal server with specified path.
-        RepositorySetup personalRepSetup = RepositorySetup.NewDefault(
-            InstallerMain.InstallationBaseComponent.ComponentPath,
-            serverPath,
-            StarcounterEnvironment.DefaultPorts.ServerPortRangeSize);
-
-        // Changing the name of the server explicitly.
-        personalRepSetup.Structure.Name = StarcounterEnvironment.ServerNames.PersonalUser;
-
-        UserServerSetup userServerSetup = new UserServerSetup(personalRepSetup);
-        userServerSetup.Execute();
-        */
+        // Creating the repository using server functionality.
+        var setup = RepositorySetup.NewDefault(serverPath, StarcounterEnvironment.ServerNames.PersonalUser);
+        setup.Execute();
 
         // Killing server process (in order to later start it with normal privileges).
         KillServersButNotService();
 
         // Updating progress.
         InstallerMain.ProgressIncrement();
+
+        // Creating shortcuts.
+        CreatePersonalServerShortcuts();
+
+        // Starts personal server if demanded.
+        StartPersonalServer();
     }
 
     // Path to personal server configuration file.
     internal static readonly String PersonalServerConfigPath =
-        Path.Combine(StarcounterEnvironment.Directories.UserAppDataDirectory, "PersonalAndRemoteServers.config");
+        Path.Combine(InstallerMain.InstallationDir, "Personal.xml");
 
     /// <summary>
     /// Removes component.
@@ -205,6 +267,14 @@ public class CPersonalServer : CComponentBase
         // Deleting the config file.
         if (File.Exists(PersonalServerConfigPath))
             File.Delete(PersonalServerConfigPath);
+
+        // Removing desktop shortcut.
+        if (File.Exists(PersonalServerDesktopShortcutPath))
+            File.Delete(PersonalServerDesktopShortcutPath);
+
+        // Removing Start Menu shortcut.
+        if (File.Exists(PersonalServerStartMenuPath))
+            File.Delete(PersonalServerStartMenuPath);
 
         // Updating progress.
         InstallerMain.ProgressIncrement();

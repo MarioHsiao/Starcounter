@@ -159,14 +159,16 @@ namespace Starcounter.Internal
             /// <summary>
             /// Full path to USER application data directory.
             /// </summary>
-            public static readonly String UserAppDataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    StarcounterConstants.ProgramNames.ProductName);
+            public static readonly String UserAppDataDirectory = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                StarcounterConstants.ProgramNames.ProductName);
 
             /// <summary>
             /// Full path to SYSTEM application data directory.
             /// </summary>
-            public static readonly String SystemAppDataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-                    StarcounterConstants.ProgramNames.ProductName);
+            public static readonly String SystemAppDataDirectory = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                StarcounterConstants.ProgramNames.ProductName);
         }
 
         /// <summary>

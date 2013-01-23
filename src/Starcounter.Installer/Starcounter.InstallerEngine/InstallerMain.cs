@@ -230,11 +230,12 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// Post-processes the startup setup file.
         /// </summary>
-        public static void FilterStartupFile(Boolean startAdmin,
+        public static void FilterStartupFile(
+            Boolean startPersonalServer,
             Boolean startScDemo)
         {
             // Checking if all need to be started - then just not doing anything.
-            if (startAdmin && startScDemo)
+            if (startPersonalServer && startScDemo)
                 return;
 
             // Checking if post-setup file does exist.
@@ -248,7 +249,7 @@ namespace Starcounter.InstallerEngine
                 foreach (String procInfo in procInfos)
                 {
                     // Ignoring certain application.
-                    if ((!startAdmin) && (procInfo.Contains(ConstantsBank.SCAdministratorName)))
+                    if ((!startPersonalServer) && (procInfo.Contains(ConstantsBank.SCPersonalServerExeName)))
                         continue;
 
                     // Ignoring certain application.
@@ -278,32 +279,6 @@ namespace Starcounter.InstallerEngine
             scInstDir = Environment.GetEnvironmentVariable(ConstantsBank.SCEnvVariableName,
                                                            EnvironmentVariableTarget.Machine);
             return scInstDir;
-        }
-
-        /// <summary>
-        /// Kills all Starcounter server processes (except Starcounter service).
-        /// </summary>
-        static void KillServersButNotService()
-        {
-            if (InstallerMain.PersonalServerComponent.ShouldBeInstalled() ||
-                InstallerMain.SystemServerComponent.ShouldBeInstalled())
-            {
-                Process[] procs = Process.GetProcessesByName(ConstantsBank.SCServerProcess);
-                foreach (Process proc in procs)
-                {
-                    // Checking if its not a service.
-                    if (proc.SessionId != 0)
-                    {
-                        try
-                        {
-                            proc.Kill();
-                            proc.WaitForExit(30000);
-                        }
-                        catch { }
-                        finally { proc.Close(); }
-                    }
-                }
-            }
         }
 
         // Publicly accessible Starcounter version.
@@ -392,15 +367,15 @@ namespace Starcounter.InstallerEngine
         // List of processes to be killed.
         internal static String[] ScProcessesList = new String[]
         {
-            ConstantsBank.SCConnMonProcess,
-            ConstantsBank.SCAdminProcess,
-            "ActivityMonitorServer",
-            ConstantsBank.SCServerProcess,
+            StarcounterConstants.ProgramNames.ScService,
+            StarcounterConstants.ProgramNames.ScCode,
+            StarcounterConstants.ProgramNames.ScData,
+            StarcounterConstants.ProgramNames.ScIpcMonitor,
+            StarcounterConstants.ProgramNames.ScNetworkGateway,
+            StarcounterConstants.ProgramNames.ScWeaver,
+            StarcounterConstants.ProgramNames.ScSqlParser,
+            StarcounterConstants.ProgramNames.ScReferenceServer,
             "ServerLogTail",
-            "Scdbsw",
-            "Scdbs",
-            "Scpmm",
-            "StarcounterSQL",
             "x86_64-w64-mingw32-gcc"
         };
 
@@ -455,8 +430,6 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// All components are declared here.
         /// </summary>
-        public static CAdministrator AdministratorComponent = new CAdministrator();
-        public static CActivityMonitor ActivityMonitorComponent = new CActivityMonitor();
         public static CSamplesDemos SamplesDemosComponent = new CSamplesDemos();
         public static CInstallationBase InstallationBaseComponent = new CInstallationBase();
         public static CPersonalServer PersonalServerComponent = new CPersonalServer();
@@ -469,8 +442,6 @@ namespace Starcounter.InstallerEngine
         /// </summary>
         public static CComponentBase[] AllComponentsToUninstall =
         {
-            AdministratorComponent,
-            ActivityMonitorComponent,
             PersonalServerComponent,
             SystemServerComponent,
             VS2010IntegrationComponent,
@@ -489,9 +460,7 @@ namespace Starcounter.InstallerEngine
             SystemServerComponent,
             SamplesDemosComponent,
             VS2010IntegrationComponent,
-            VS2012IntegrationComponent,
-            AdministratorComponent,
-            ActivityMonitorComponent
+            VS2012IntegrationComponent
         };
 
         /// <summary>
@@ -724,16 +693,15 @@ namespace Starcounter.InstallerEngine
                     if (SystemServerComponent.ShouldBeInstalled()) AddComponentToProgress();
                     if (VS2010IntegrationComponent.ShouldBeInstalled()) AddComponentToProgress();
                     if (VS2012IntegrationComponent.ShouldBeInstalled()) AddComponentToProgress();
-                    if (AdministratorComponent.ShouldBeInstalled())
+                    if (PersonalServerComponent.ShouldBeInstalled())
                     {
                         AddComponentToProgress();
 
                         // Checking if shortcuts should be installed.
-                        Boolean createShortcuts = InstallerMain.InstallSettingCompare(ConstantsBank.Setting_CreateAdministratorShortcuts, ConstantsBank.Setting_True);
+                        Boolean createShortcuts = InstallerMain.InstallSettingCompare(ConstantsBank.Setting_CreatePersonalServerShortcuts, ConstantsBank.Setting_True);
                         if (createShortcuts)
                             AddComponentToProgress();
                     }
-                    if (ActivityMonitorComponent.ShouldBeInstalled()) AddComponentToProgress();
                     if (SamplesDemosComponent.ShouldBeInstalled()) AddComponentToProgress();
                     if (InstallationBaseComponent.ShouldBeInstalled()) AddComponentToProgress();
 

@@ -15,6 +15,8 @@ using System.Collections;
 using System.Configuration.Install;
 using System.Security;
 using Starcounter.Internal;
+using System.Runtime.InteropServices;
+using System.ComponentModel;
 
 namespace Starcounter.InstallerEngine
 {
@@ -268,6 +270,55 @@ public static class SystemServerAccount
             // by used by local administrators only.
             StoreAccountInformation(name, password);
             return false;
+        }
+    }
+
+    // Creates command line for service executable.
+    private static string MakeCommandLine(String binPath)
+    {
+        StringBuilder commandLine;
+        string executable;
+        string arguments;
+        commandLine = new StringBuilder();
+        executable = StarcounterConstants.ProgramNames.ScService + ".exe";
+        arguments = " /service";
+        commandLine = new StringBuilder(binPath.Length + executable.Length + arguments.Length + 128);
+
+        commandLine.Append("\"" + Path.Combine(binPath, executable) + "\"");
+        commandLine.Append(" ");
+        commandLine.Append(arguments);
+
+        return commandLine.ToString();
+    }
+
+    // Should be called after assure account.
+    public static void CreateService(String binariesPath, String serviceName, String user, String password)
+    {
+        IntPtr serviceManagerHandle = Win32Service.OpenSCManager(null, null, (uint)Win32Service.SERVICE_ACCESS.SERVICE_CHANGE_CONFIG);
+        if (serviceManagerHandle == IntPtr.Zero)
+        {
+            throw new Win32Exception(Marshal.GetLastWin32Error());
+        }
+
+        try
+        {
+            // Creating service command line in specified binaries folder.
+            String commandLine = MakeCommandLine(binariesPath);
+
+            SystemServerService.Create(
+                serviceManagerHandle,
+                "Starcounter Service",
+                serviceName,
+                "Starcounter Service",
+                StartupType.Automatic,
+                commandLine,
+                user,
+                password
+                );
+        }
+        finally
+        {
+            Win32Service.CloseServiceHandle(serviceManagerHandle);
         }
     }
 

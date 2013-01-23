@@ -8,6 +8,10 @@ using System.Threading;
 using System.Windows.Forms;
 using Starcounter;
 using System.Diagnostics;
+using Starcounter.Configuration;
+using Starcounter.Server;
+using Starcounter.Server.PublicModel;
+using Starcounter.Server.PublicModel.Commands;
 
 namespace Starcounter.InstallerEngine
 {
@@ -72,15 +76,29 @@ public class CSamplesDemos : CComponentBase
     }
 
     // Creates database synchronously without creating separated thread.
-    //a_m//
-    /*void CreateDatabaseSynchronous(
-        Server server,
-        String databaseName,
-        Int64 imageSize,
-        String clientLibraryPath)
+    void CreateDatabaseSynchronous(
+        String serverName,
+        String serverPath,
+        String databaseName)
     {
-        Utilities.ReportSetupEvent("Creating database '" + databaseName + "' on server '" + server.DisplayName + "'...");
+        Utilities.ReportSetupEvent("Creating database '" + databaseName + "' on server '" + serverName + "'...");
 
+        // Creating server engine instance.
+        String serverConfigPath = serverPath + "\\" + serverName + "\\" + serverName + ServerConfiguration.FileExtension;
+        ServerEngine serverEngine = new ServerEngine(serverConfigPath);
+        serverEngine.Setup();
+
+        IServerRuntime IServerRuntime = serverEngine.Start();
+
+        // Sending create database command.
+        CreateDatabaseCommand createDbCmd = new CreateDatabaseCommand(serverEngine, databaseName);
+        CommandInfo cmdInfo = IServerRuntime.Execute(createDbCmd);
+
+        // Waiting for the finish.
+        IServerRuntime.Wait(cmdInfo);
+        serverEngine.Stop();
+
+        /*
         // Uploading client library.
         ServerFile uploadedLibrary = server.UploadFile(clientLibraryPath);
 
@@ -105,8 +123,8 @@ public class CSamplesDemos : CComponentBase
                 message += errorInfo.ToErrorMessage().ToString() + Environment.NewLine;
             }
             throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, message);
-        }
-    }*/
+        }*/
+    }
 
     /// <summary>
     /// Initializes samples directories and copies files.
@@ -186,7 +204,6 @@ public class CSamplesDemos : CComponentBase
 
         // By default we are installing sample database with default image size.
         String[] sampleDbNames = { /*"MyMusic"*/ };
-        Int64[] sampleDbSizes = { /*256*/ };
 
         // Checking installation of Visual Studio plugin.
         if ((!InstallerMain.VS2010IntegrationComponent.ShouldBeInstalled()) &&
@@ -196,18 +213,16 @@ public class CSamplesDemos : CComponentBase
             (!Utilities.RunningOnBuildServer()))
         {
             sampleDbNames = new String[] { ConstantsBank.SCDemoDbName };
-            sampleDbSizes = new Int64[] { 256 };
         }
 
-        // Calculating amount of servers to expect.
-        int numServersToExpect = 0;
-        if (InstallerMain.PersonalServerComponent.ShouldBeInstalled())
-            numServersToExpect++;
+        // Checking what server type is installed.
+        String serverPath = null;
         if (InstallerMain.SystemServerComponent.ShouldBeInstalled())
-            numServersToExpect++;
+            serverPath = InstallerMain.SystemServerComponent.ComponentPath;
+        else if (InstallerMain.PersonalServerComponent.ShouldBeInstalled())
+            serverPath = InstallerMain.PersonalServerComponent.ComponentPath;
 
-        // Not installing samples when there are no servers.
-        if (numServersToExpect <= 0)
+        if (serverPath == null)
             return;
 
         //a_m//

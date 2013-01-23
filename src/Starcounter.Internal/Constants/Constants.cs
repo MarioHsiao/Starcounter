@@ -15,6 +15,11 @@ namespace Starcounter.Internal
         public static class ProgramNames
         {
             /// <summary>
+            /// ScService
+            /// </summary>
+            public const string ScService = "scservice";
+
+            /// <summary>
             /// ScCode
             /// </summary>
             public const string ScCode = "sccode";
@@ -53,12 +58,6 @@ namespace Starcounter.Internal
             /// Just represents the product name.
             /// </summary>
             public const string ProductName = "Starcounter";
-
-            /// <summary>
-            /// Holds a constant read-only value representing the name
-            /// of the Starcounter GUI administrator program.
-            /// </summary>
-            public const string Administrator = "StarcounterAdministrator.exe";
         }
 
         /// <summary>
