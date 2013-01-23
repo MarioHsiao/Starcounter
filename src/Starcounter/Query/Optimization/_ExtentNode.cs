@@ -215,7 +215,7 @@ internal class ExtentNode : IOptimizationNode
             }
         }
         // Get all index infos for the current type.
-        IndexInfo[] indexInfoArr = (rowTypeBind.GetTypeBinding(extentNumber) as TypeBinding).GetAllIndexInfos();
+        IndexInfo[] indexInfoArr = (rowTypeBind.GetTypeBinding(extentNumber) as TypeBinding).GetAllInheritedIndexInfos();
 
         // Select an index determined by the order the conditions occur in the query.
         Int32 bestValue = 0;
@@ -234,7 +234,7 @@ internal class ExtentNode : IOptimizationNode
         // Save an index to be used for an extent scan (index scan over the whole extent).
         if (indexInfoArr.Length > 0)
         {
-            extentIndexInfo = indexInfoArr[0];
+            extentIndexInfo = indexInfoArr[0]; // Currently, it is always auto-generated index
         }
     }
 
@@ -256,7 +256,7 @@ internal class ExtentNode : IOptimizationNode
         return value;
     }
 
-    // A value "NotEqual" on output comparison operator (compOperator) indicates no match has been found.
+    // A value "NotEqual" on output comparison operator (compOperator) indicates no match has been found or will not be used.
     // A match on an earlier comparison gives a higher return value than a match on a later comparison.
     private Int32 EvaluateIndexPath(String path, List<IComparison> comparisonList, out ComparisonOperator compOperator)
     {
