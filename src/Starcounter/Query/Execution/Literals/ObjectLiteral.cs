@@ -164,7 +164,7 @@ internal class ObjectLiteral : Literal, ILiteral, IObjectPathItem
         return new ObjectLiteral(typeBinding);
     }
 
-    public ITypeExpression Clone(VariableArray varArray)
+    public IValueExpression Clone(VariableArray varArray)
     {
         return this;
     }
@@ -215,7 +215,7 @@ internal class ObjectLiteral : Literal, ILiteral, IObjectPathItem
 
 #if DEBUG
     private bool AssertEqualsVisited = false;
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         ObjectLiteral otherNode = other as ObjectLiteral;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);

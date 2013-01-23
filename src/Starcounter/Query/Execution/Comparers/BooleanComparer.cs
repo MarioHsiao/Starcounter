@@ -47,7 +47,7 @@ internal class BooleanComparer : ISingleComparer
         }
     }
 
-    public ITypeExpression Expression
+    public IValueExpression Expression
     {
         get
         {

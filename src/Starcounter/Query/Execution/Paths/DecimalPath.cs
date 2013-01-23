@@ -343,7 +343,7 @@ internal class DecimalPath : Path, IDecimalExpression, IPath
         return new DecimalPath(extentNumber, instPathList, member.Instantiate(obj) as IDecimalPathItem);
     }
 
-    public override ITypeExpression Clone(VariableArray varArray)
+    public override IValueExpression Clone(VariableArray varArray)
     {
         return CloneToDecimal(varArray);
     }
@@ -394,7 +394,7 @@ internal class DecimalPath : Path, IDecimalExpression, IPath
 
 #if DEBUG
     private bool AssertEqualsVisited = false;
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         DecimalPath otherNode = other as DecimalPath;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);

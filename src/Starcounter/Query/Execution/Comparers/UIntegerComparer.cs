@@ -35,7 +35,7 @@ internal class UIntegerComparer : ISingleComparer
         }
     }
 
-    public ITypeExpression Expression
+    public IValueExpression Expression
     {
         get
         {

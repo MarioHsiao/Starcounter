@@ -185,7 +185,7 @@ internal class IntegerLiteral : Literal, ILiteral, IIntegerPathItem
         return new IntegerLiteral(value);
     }
 
-    public ITypeExpression Clone(VariableArray varArray)
+    public IValueExpression Clone(VariableArray varArray)
     {
         return this;
     }
@@ -240,7 +240,7 @@ internal class IntegerLiteral : Literal, ILiteral, IIntegerPathItem
     }
 
 #if DEBUG
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         IntegerLiteral otherNode = other as IntegerLiteral;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);
