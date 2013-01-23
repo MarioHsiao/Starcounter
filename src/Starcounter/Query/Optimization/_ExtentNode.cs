@@ -406,6 +406,11 @@ internal class ExtentNode : IOptimizationNode
             {
                 dynamicRange.CreateRangePointList(conditionList, extentNumber, strPath);
             }
+            // Check if index belongs to the same table as extent, if not IsTypePredicate should be added
+            TypeBinding thisTypeBinding = rowTypeBind.GetTypeBinding(extentNumber) as TypeBinding;
+            if (thisTypeBinding != null)
+                if (thisTypeBinding.GetIndexInfo(indexInfo.Name) == null)
+                    conditionList.Add(new IsTypePredicate(ComparisonOperator.IS, new ObjectThis(extentNumber, thisTypeBinding), thisTypeBinding));
             dynamicRangeList.Add(dynamicRange);
         }
 
