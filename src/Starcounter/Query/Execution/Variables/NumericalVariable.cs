@@ -951,7 +951,7 @@ internal class NumericalVariable : Variable, IVariable, INumericalExpression
 
 #if DEBUG
     private bool AssertEqualsVisited = false;
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         NumericalVariable otherNode = other as NumericalVariable;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);

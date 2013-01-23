@@ -41,7 +41,7 @@ internal class RowTypeBinding : ITypeBinding
         rowTypeBind.extentOrder = this.extentOrder;
         rowTypeBind.propertyListArr = this.propertyListArr;
 
-        ITypeExpression expressionClone = null;
+        IValueExpression expressionClone = null;
         for (Int32 i = 0; i < this.propertyList.Count; i++)
         {
             expressionClone = this.propertyList[i].Expression.Clone(varArray);
@@ -178,7 +178,7 @@ internal class RowTypeBinding : ITypeBinding
         }
     }
 
-    internal void AddPropertyMapping(String name, ITypeExpression expr)
+    internal void AddPropertyMapping(String name, IValueExpression expr)
     {
         Int32 index = propertyList.Count;
         PropertyMapping propMap = new PropertyMapping(name, index, expr);

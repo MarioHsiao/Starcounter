@@ -128,7 +128,7 @@ internal abstract class Variable : CodeGenFilterNode
     /// </summary>
     /// <param name="varArray">Variables array.</param>
     /// <returns>Clone of the expression.</returns>
-    public virtual ITypeExpression Clone(VariableArray varArray)
+    public virtual IValueExpression Clone(VariableArray varArray)
     {
         throw ErrorCode.ToException(Error.SCERRNOTSUPPORTED);
     }

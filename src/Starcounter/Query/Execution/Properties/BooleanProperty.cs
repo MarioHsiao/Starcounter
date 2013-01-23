@@ -163,7 +163,7 @@ internal class BooleanProperty : Property, IBooleanPathItem
         return new BooleanProperty(extentNumber, typeBinding, propBinding);
     }
 
-    public override ITypeExpression Clone(VariableArray varArray)
+    public override IValueExpression Clone(VariableArray varArray)
     {
         return CloneToBoolean(varArray);
     }

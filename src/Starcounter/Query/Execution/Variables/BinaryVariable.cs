@@ -131,7 +131,7 @@ internal class BinaryVariable : Variable, IVariable, IBinaryExpression
         return this;
     }
 
-    public override ITypeExpression Clone(VariableArray varArray)
+    public override IValueExpression Clone(VariableArray varArray)
     {
         return CloneToBinary(varArray);
     }
@@ -241,7 +241,7 @@ internal class BinaryVariable : Variable, IVariable, IBinaryExpression
     }
 
 #if DEBUG
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         BinaryVariable otherNode = other as BinaryVariable;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);
