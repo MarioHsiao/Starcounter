@@ -77,8 +77,6 @@
     <None Include="SetupSettings.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Compile Include="Components\ActivityMonitor.cs" />
-    <Compile Include="Components\Administrator.cs" />
     <Compile Include="Components\ComponentBase.cs" />
     <Compile Include="Components\InstallationBase.cs" />
     <Compile Include="Components\PersonalServer.cs" />

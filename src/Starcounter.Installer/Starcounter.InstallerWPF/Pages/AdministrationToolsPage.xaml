@@ -100,7 +100,7 @@
 
                                         <!--<CheckBox  Content="Start when installed" IsChecked="{Binding StartWhenInstalled}" />-->
 
-                                        <CheckBox  Content="Create Shortcuts" IsChecked="{Binding CreateAdministratorShortcuts}" />
+                                        <CheckBox  Content="Create Shortcuts" IsChecked="{Binding CreatePersonalServerShortcuts}" />
 
                                     </StackPanel>
 

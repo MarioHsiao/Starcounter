@@ -43,7 +43,6 @@ namespace Starcounter.InstallerEngine
         public enum Components
         {
             InstallationBase,
-            Administrator,
             PersonalServer,
             SystemServer,
             VS2010Integration,
@@ -82,9 +81,6 @@ namespace Starcounter.InstallerEngine
             if (InstallerMain.InstallationBaseComponent.IsInstalled())
                 cachedInstalledComponents[(Int32)Components.InstallationBase] = true;
 
-            if (InstallerMain.AdministratorComponent.IsInstalled())
-                cachedInstalledComponents[(Int32)Components.Administrator] = true;
-
             if (InstallerMain.PersonalServerComponent.IsInstalled())
                 cachedInstalledComponents[(Int32)Components.PersonalServer] = true;
 
@@ -114,7 +110,6 @@ namespace Starcounter.InstallerEngine
             Boolean[] installedComponents = ComponentsCheck.GetListOfInstalledComponents();
 
             // Remember that installation base is not considered as an individual component.
-            if (installedComponents[(Int32)ComponentsCheck.Components.Administrator]) return true;
             if (installedComponents[(Int32)ComponentsCheck.Components.PersonalServer]) return true;
             if (installedComponents[(Int32)ComponentsCheck.Components.SystemServer]) return true;
             if (installedComponents[(Int32)ComponentsCheck.Components.VS2010Integration]) return true;

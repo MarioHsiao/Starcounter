@@ -13,6 +13,7 @@ using Starcounter;
 using Starcounter.Management.Win32;
 using Starcounter.Configuration;
 using Starcounter.Internal;
+using Starcounter.Server.Setup;
 
 namespace Starcounter.InstallerEngine
 {
@@ -151,30 +152,28 @@ public class CSystemServer : CComponentBase
         // Logging event.
         Utilities.ReportSetupEvent("Installing system server and service...");
 
-        //a_m//
-        /*
         String serviceAccountName, serviceAccountPassword,
                systemServerPath = ComponentPath,
                installPath = InstallerMain.InstallationBaseComponent.ComponentPath;
 
-        RepositorySetup systemRepSetup = RepositorySetup.NewDefault(installPath, systemServerPath, 0);
-
-        // Changing the name of the server explicitly.
-        systemRepSetup.Structure.Name = StarcounterEnvironment.ServerNames.System;
+        // Creating the repository using server functionality.
+        var setup = RepositorySetup.NewDefault(systemServerPath, StarcounterEnvironment.ServerNames.System);
+        setup.Execute();
 
         // Testing if service account exists or creating a new one.
         SystemServerAccount.ChangeInstallationPlatform(true);
-        SystemServerAccount.AssureAccount(installPath,
+        SystemServerAccount.AssureAccount(
+            installPath,
             systemServerPath,
             out serviceAccountName,
             out serviceAccountPassword);
 
         // Creating system database server in default path.
-        SystemServerSetup systemServerSetup = new SystemServerSetup(systemRepSetup);
-        systemServerSetup.DoExecute(installPath,
+        SystemServerAccount.CreateService(
+            installPath,
             StarcounterEnvironment.ServerNames.SystemServerServiceName,
-            serviceAccountName, serviceAccountPassword);
-        */
+            serviceAccountName,
+            serviceAccountPassword);
 
         // Starting the service.
         StartStarcounterServices();

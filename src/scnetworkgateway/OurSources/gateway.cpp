@@ -2546,12 +2546,12 @@ uint32_t Gateway::ShutdownTest(GatewayWorker* gw, bool success)
 
     if (success)
     {
+        GW_COUT << "Echo test finished successfully!" << GW_ENDL;
+
         int64_t test_finish_time = timeGetTime();
 
         // Test finished successfully, printing the results.
         int64_t ops_per_second = GetAverageOpsPerSecond();
-
-        GW_COUT << "Echo test finished successfully!" << GW_ENDL;
 
         GW_COUT << "Average number of ops per second: " << ops_per_second <<
             ". Took " << test_finish_time - test_begin_time_ << " ms." << GW_ENDL;

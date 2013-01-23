@@ -66,9 +66,6 @@ namespace Starcounter.InstallerEngine
             Boolean[] remainingComponents = new Boolean[ComponentsCheck.NumComponents];
 
             // Marking installed components.
-            if (installedComponents[(Int32)ComponentsCheck.Components.Administrator])
-                remainingComponents[(Int32)ComponentsCheck.Components.Administrator] = true;
-
             if (installedComponents[(Int32) ComponentsCheck.Components.PersonalServer])
                 remainingComponents[(Int32)ComponentsCheck.Components.PersonalServer] = true;
 
@@ -83,9 +80,6 @@ namespace Starcounter.InstallerEngine
 
             try
             {
-                if (InstallerMain.AdministratorComponent.ShouldBeRemoved())
-                    remainingComponents[(Int32)ComponentsCheck.Components.Administrator] = false;
-
                 if (InstallerMain.PersonalServerComponent.ShouldBeRemoved())
                     remainingComponents[(Int32)ComponentsCheck.Components.PersonalServer] = false;
 
@@ -187,7 +181,6 @@ namespace Starcounter.InstallerEngine
             InstallerMain.ResetProgressStep();
 
             // Looking for components that were tried to be installed.
-            if (InstallerMain.AdministratorComponent.ShouldBeInstalled()) InstallerMain.AddComponentToProgress();
             if (InstallerMain.PersonalServerComponent.ShouldBeInstalled()) InstallerMain.AddComponentToProgress();
             if (InstallerMain.SystemServerComponent.ShouldBeInstalled()) InstallerMain.AddComponentToProgress();
             if (InstallerMain.VS2010IntegrationComponent.ShouldBeInstalled()) InstallerMain.AddComponentToProgress();
@@ -280,7 +273,6 @@ namespace Starcounter.InstallerEngine
                 InstallerMain.ResetProgressStep();
 
                 // Loading settings.
-                if (InstallerMain.AdministratorComponent.ShouldBeRemoved()) InstallerMain.AddComponentToProgress();
                 if (InstallerMain.PersonalServerComponent.ShouldBeRemoved()) InstallerMain.AddComponentToProgress();
                 if (InstallerMain.SystemServerComponent.ShouldBeRemoved()) InstallerMain.AddComponentToProgress();
                 if (InstallerMain.VS2010IntegrationComponent.ShouldBeRemoved()) InstallerMain.AddComponentToProgress();

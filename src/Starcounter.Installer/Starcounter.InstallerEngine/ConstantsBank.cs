@@ -20,10 +20,7 @@ namespace Starcounter.InstallerEngine
         public const String Setting_InstallVS2010Integration = "InstallVS2010Integration";
         public const String Setting_InstallVS2012Integration = "InstallVS2012Integration";
 
-        public const String Setting_InstallAdministrator = "InstallAdministrator";
-        public const String Setting_InstallActivityMonitor = "InstallActivityMonitor";
-
-        public const String Setting_CreateAdministratorShortcuts = "CreateAdministratorShortcuts";
+        public const String Setting_CreatePersonalServerShortcuts = "CreatePersonalServerShortcuts";
         public const String Setting_AddStarcounterToStartMenu = "AddStarcounterToStartMenu";
 
         public const String Setting_PersonalServerPath = "PersonalServerPath";
@@ -37,7 +34,6 @@ namespace Starcounter.InstallerEngine
         public const String Setting_RemoveSystemServer = "RemoveSystemServer";
         public const String Setting_RemoveVS2010Integration = "RemoveVS2010Integration";
         public const String Setting_RemoveVS2012Integration = "RemoveVS2012Integration";
-        public const String Setting_RemoveAdministrator = "RemoveAdministrator";
 
         // Other constants.
         internal const String SCIconFilename = "Sc-Icon.ico";
@@ -58,12 +54,10 @@ namespace Starcounter.InstallerEngine
         internal const String SCUninstallParam = "uninstall";
         internal const String SCCleanupParam = "cleanup";
         internal const String SCVSSafeImportsKey = "Starcounter.MsBuild";
-        internal const String SCNoActMonFlag = "-FLAG:NoActMon";
         internal const string ScExceptionAssistantContentFileName = "StarcounterExceptionAssistantContent.xml";
 
         // Constants defined in and fetched from the shared framework assembly
-        internal static String SCAdministratorName { get { return StarcounterConstants.ProgramNames.Administrator; } }
-        internal static String SCRemovedAdminName = "Removed." + SCAdministratorName;
+        internal static String SCPersonalServerExeName { get { return StarcounterConstants.ProgramNames.ScService + ".exe"; } }
         public static String SCEnvVariableName { get { return StarcounterEnvironment.VariableNames.InstallationDirectory; } }
         public static String SCEnvVariableDefaultServer { get { return StarcounterEnvironment.VariableNames.DefaultServer; } }
         public static String SCPersonalDatabasesName { get { return StarcounterEnvironment.ServerNames.PersonalUser; } }
@@ -71,10 +65,6 @@ namespace Starcounter.InstallerEngine
 
         public const String SCInstallerGUI = "Starcounter-Setup";
         public const String SCInstallerEngine = "InstallerEngine";
-        internal const String SCServerProcess = "StarcounterServer";
-        internal const String SCConnMonProcess = "ScConnMonitor";
-        internal const String SCAdminProcess = "StarcounterAdministrator";
-        internal const String SCPersonalServerConfig = "PersonalAndRemoteServers.config";
         public const String SCProductName = StarcounterConstants.ProgramNames.ProductName;
 
         internal const String Registry32BitUninstallPath = @"SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall";

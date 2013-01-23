@@ -281,14 +281,6 @@ namespace Starcounter.InstallerWPF
                 // Samples
                 Samples samples = this.GetComponent(Samples.Identifier) as Samples;
 
-                // InstallActivityMonitor
-                iniFileHandler.IniWriteValue(installSection, ConstantsBank.Setting_InstallActivityMonitor, "False");
-
-                // StarcounterAdministrator
-                StarcounterAdministrator starcounterAdministrator = this.GetComponent(StarcounterAdministrator.Identifier) as StarcounterAdministrator;
-                iniFileHandler.IniWriteValue(installSection, ConstantsBank.Setting_InstallAdministrator, starcounterAdministrator.ExecuteCommand.ToString());
-                iniFileHandler.IniWriteValue(installSection, ConstantsBank.Setting_CreateAdministratorShortcuts, starcounterAdministrator.CreateAdministratorShortcuts.ToString());
-
                 // We need to update servers installation paths in SetupSettings.ini in order to be able to fetch this later.
                 IniFileHandler origIniFile = new IniFileHandler(Path.Combine(installationPath, ConstantsBank.ScGlobalSettingsIniName));
 
@@ -323,10 +315,6 @@ namespace Starcounter.InstallerWPF
                 // VisualStudio2012Integration
                 VisualStudio2012Integration visualStudio2012Integration = this.GetComponent(VisualStudio2012Integration.Identifier) as VisualStudio2012Integration;
                 iniFileHandler.IniWriteValue(uninstallSection, ConstantsBank.Setting_RemoveVS2012Integration, visualStudio2012Integration.ExecuteCommand.ToString());
-
-                // StarcounterAdministrator
-                StarcounterAdministrator starcounterAdministrator = this.GetComponent(StarcounterAdministrator.Identifier) as StarcounterAdministrator;
-                iniFileHandler.IniWriteValue(uninstallSection, ConstantsBank.Setting_RemoveAdministrator, starcounterAdministrator.ExecuteCommand.ToString());
             }
         }
 

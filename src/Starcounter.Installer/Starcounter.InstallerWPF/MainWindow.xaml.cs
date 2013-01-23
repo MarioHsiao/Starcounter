@@ -245,14 +245,6 @@ namespace Starcounter.InstallerWPF
         {
             e.Handled = true;
 
-            bool bStartStarcounterAdministratorComponent = false;
-
-            StarcounterAdministrator starcounterAdministratorComponent = this.Configuration.Components[StarcounterAdministrator.Identifier] as StarcounterAdministrator;
-            if (starcounterAdministratorComponent != null && starcounterAdministratorComponent.StartWhenInstalled)
-            {
-                bStartStarcounterAdministratorComponent = true;
-            }
-
             bool bStartDemoComponent = false;
             Demo demoComponent = this.Configuration.Components[Demo.Identifier] as Demo;
             if (demoComponent != null && demoComponent.StartWhenInstalled && demoComponent.ExecuteCommand == true)
@@ -264,7 +256,7 @@ namespace Starcounter.InstallerWPF
             this.GenerateArgumentFileForDemoSequence(bStartDemoComponent);
 
             // Filtering post-start applications.
-            InstallerMain.FilterStartupFile(bStartStarcounterAdministratorComponent, bStartDemoComponent);
+            InstallerMain.FilterStartupFile(true, bStartDemoComponent);
 
             this.Close();   // Close Installer program and lets the waiting parent process continue
         }
@@ -653,11 +645,6 @@ namespace Starcounter.InstallerWPF
             PersonalServer personalServer = new PersonalServer(this._InternalComponents);
             this._InternalComponents.Add(personalServer);
 
-            // Starcounter Administrator
-
-            StarcounterAdministrator starcounterAdministrator = new StarcounterAdministrator(this._InternalComponents);
-            this._InternalComponents.Add(starcounterAdministrator);
-
             // Commandline Tools
 
             //CommandlineTools commandlineTools = new CommandlineTools(this._InternalComponents);
@@ -742,8 +729,6 @@ namespace Starcounter.InstallerWPF
             return null;
         }
 
-
-
         /// <summary>
         /// Updates the components command.
         /// </summary>
@@ -806,9 +791,6 @@ namespace Starcounter.InstallerWPF
 
                     if (InstalledComponents[(int)ComponentsCheck.Components.VS2012Integration])
                         foundComponents += " - Visual Studio 2012 Integration.";
-
-                    if (InstalledComponents[(int)ComponentsCheck.Components.Administrator])
-                        foundComponents += " - Starcounter Administrator.";
 
                     WpfMessageBoxResult result = WpfMessageBox.Show("Starcounter installation seems corrupted." + Environment.NewLine + "Footprints of the following components are found:" + Environment.NewLine +
                         foundComponents +
