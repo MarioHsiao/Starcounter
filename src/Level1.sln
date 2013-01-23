@@ -271,6 +271,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "16. Administrator", "16. Administrator", "{4A6B2101-EC24-491E-A575-1044FDCDA105}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Administrator", "Starcounter.Administrator\Starcounter.Administrator.csproj", "{6388EE07-A8C2-4A1A-8CDC-513A2C093BC3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B1EC8976-B515-4308-89C3-319543A0C7A9} = {B1EC8976-B515-4308-89C3-319543A0C7A9}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
