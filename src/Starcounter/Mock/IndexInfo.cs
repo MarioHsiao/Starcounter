@@ -71,7 +71,7 @@ namespace Starcounter.Binding
         /// </summary>
         /// <param name="index">An index number within the combined index.</param>
         /// <returns>The name of the path with the input index number.</returns>
-        public String GetPathName(Int32 index)
+        public String GetColumnName(Int32 index)
         {
             return _columnDefs[index].Name;
         }

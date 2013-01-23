@@ -1,0 +1,41 @@
+﻿<!doctype html>
+
+<head>
+    <title>Starcounter</title>
+
+    <link rel="stylesheet" href="/css/bootstrap-2.2.1.css">
+
+    <script src="/sys/angular-1.0.2.js"></script>
+    <script src="/sys/angular-patch.js"></script>
+    <!--<script src="/sys/bootstrap-2.2.1.js"></script>-->
+
+
+</head>
+
+
+
+<body ng-remoteapp mockup-data="databaseapp.json" class="container">
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <a class="brand" href="/">Starcounter</a>
+        <ul class="nav">
+          <li><a href="/server">Server</a></li>
+          <li class="active"><a href="/databases">Databases</a></li>
+          <li><a href="/query">Query</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <h1>Database: {{DatabaseName}}</h1>
+
+    <dl class="dl-horizontal">
+      <dt>Uri</dt>
+      <dd>{{Uri}}</dd>
+      <dt>Status</dt>
+      <dd>{{Status}}</dd>
+    </dl>
+
+    <button class="btn" ui-click="Start$">Start</button>
+
+</body>

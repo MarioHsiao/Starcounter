@@ -194,7 +194,7 @@ internal class BooleanPath : Path, IBooleanExpression, IPath
         return new BooleanPath(extentNumber, instPathList, member.Instantiate(obj) as IBooleanPathItem);
     }
 
-    public override ITypeExpression Clone(VariableArray varArray)
+    public override IValueExpression Clone(VariableArray varArray)
     {
         return CloneToBoolean(varArray);
     }
@@ -235,7 +235,7 @@ internal class BooleanPath : Path, IBooleanExpression, IPath
 
 #if DEBUG
     private bool AssertEqualsVisited = false;
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         BooleanPath otherNode = other as BooleanPath;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);

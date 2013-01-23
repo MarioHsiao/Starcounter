@@ -291,7 +291,7 @@ internal class IntegerPath : Path, IIntegerExpression, IPath
         return new IntegerPath(extentNumber, instPathList, member.Instantiate(obj) as IIntegerPathItem);
     }
 
-    public override ITypeExpression Clone(VariableArray varArray)
+    public override IValueExpression Clone(VariableArray varArray)
     {
         return CloneToInteger(varArray);
     }
@@ -342,7 +342,7 @@ internal class IntegerPath : Path, IIntegerExpression, IPath
 
 #if DEBUG
     private bool AssertEqualsVisited = false;
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         IntegerPath otherNode = other as IntegerPath;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);

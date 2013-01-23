@@ -49,7 +49,7 @@ internal abstract class Property : CodeGenFilterNode, IProperty
     /// </summary>
     /// <param name="varArray">Variables array.</param>
     /// <returns>Clone of the expression.</returns>
-    public abstract ITypeExpression Clone(VariableArray varArray);
+    public abstract IValueExpression Clone(VariableArray varArray);
 
     // Append this node to filter instructions and leaves.
     // Called statically so no need to worry about performance.
@@ -184,7 +184,7 @@ internal abstract class Property : CodeGenFilterNode, IProperty
     }
 
 #if DEBUG
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         Property otherNode = other as Property;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);

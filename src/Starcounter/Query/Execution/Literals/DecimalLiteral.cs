@@ -235,7 +235,7 @@ internal class DecimalLiteral : Literal, ILiteral, IDecimalPathItem
         return new DecimalLiteral(value);
     }
 
-    public ITypeExpression Clone(VariableArray varArray)
+    public IValueExpression Clone(VariableArray varArray)
     {
         return this;
     }
@@ -290,7 +290,7 @@ internal class DecimalLiteral : Literal, ILiteral, IDecimalPathItem
     }
 
 #if DEBUG
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         DecimalLiteral otherNode = other as DecimalLiteral;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);
