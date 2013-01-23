@@ -19,9 +19,9 @@ internal class PropertyMapping : IPropertyBinding
 
     String refName; // Unique name within the type.
     Int32 propIndex;
-    ITypeExpression expression;
+    IValueExpression expression;
 
-    internal PropertyMapping(String name, Int32 index, ITypeExpression expr)
+    internal PropertyMapping(String name, Int32 index, IValueExpression expr)
     : base()
     {
         if (name == null)
@@ -45,7 +45,7 @@ internal class PropertyMapping : IPropertyBinding
         }
     }
 
-    internal ITypeExpression Expression
+    internal IValueExpression Expression
     {
         get
         {

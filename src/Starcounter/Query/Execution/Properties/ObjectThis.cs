@@ -161,7 +161,7 @@ internal class ObjectThis : CodeGenFilterNode, IObjectExpression, IProperty
         return new ObjectThis(extentNumber, typeBinding);
     }
 
-    public ITypeExpression Clone(VariableArray varArray)
+    public IValueExpression Clone(VariableArray varArray)
     {
         return CloneToObject(varArray);
     }
@@ -301,7 +301,7 @@ internal class ObjectThis : CodeGenFilterNode, IObjectExpression, IProperty
     }
 
 #if DEBUG
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         ObjectThis otherNode = other as ObjectThis;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);

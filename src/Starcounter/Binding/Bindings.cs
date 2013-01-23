@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("QueryProcessingTest")]
+[assembly: InternalsVisibleTo("IndexQueryTest")]
 
 namespace Starcounter.Binding
 {

@@ -581,7 +581,7 @@ internal static class SqlProcessor
         return false;
     }
 
-    internal static Boolean IntegerType(ITypeExpression expr)
+    internal static Boolean IntegerType(IValueExpression expr)
     {
         if (expr.DbTypeCode == DbTypeCode.Int64 || expr.DbTypeCode == DbTypeCode.Int32 ||
             expr.DbTypeCode == DbTypeCode.Int16 || expr.DbTypeCode == DbTypeCode.SByte)
@@ -591,7 +591,7 @@ internal static class SqlProcessor
         return false;
     }
 
-    internal static Boolean UIntegerType(ITypeExpression expr)
+    internal static Boolean UIntegerType(IValueExpression expr)
     {
         if (expr.DbTypeCode == DbTypeCode.UInt64 || expr.DbTypeCode == DbTypeCode.UInt32 ||
             expr.DbTypeCode == DbTypeCode.UInt16 || expr.DbTypeCode == DbTypeCode.Byte)
@@ -601,7 +601,7 @@ internal static class SqlProcessor
         return false;
     }
 
-    internal static Boolean DoubleType(ITypeExpression expr)
+    internal static Boolean DoubleType(IValueExpression expr)
     {
         if (expr.DbTypeCode == DbTypeCode.Double || expr.DbTypeCode == DbTypeCode.Single)
         {

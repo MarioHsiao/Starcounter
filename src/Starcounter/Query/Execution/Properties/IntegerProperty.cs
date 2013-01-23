@@ -261,7 +261,7 @@ internal class IntegerProperty : Property, IIntegerPathItem
         return new IntegerProperty(extentNumber, typeBinding, propBinding);
     }
 
-    public override ITypeExpression Clone(VariableArray varArray)
+    public override IValueExpression Clone(VariableArray varArray)
     {
         return CloneToInteger(varArray);
     }

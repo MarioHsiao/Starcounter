@@ -194,7 +194,7 @@ internal class StringPath : Path, IStringExpression, IPath
         return new StringPath(extentNumber, instPathList, member.Instantiate(obj) as IStringPathItem);
     }
 
-    public override ITypeExpression Clone(VariableArray varArray)
+    public override IValueExpression Clone(VariableArray varArray)
     {
         return CloneToString(varArray);
     }
@@ -235,7 +235,7 @@ internal class StringPath : Path, IStringExpression, IPath
 
 #if DEBUG
     private bool AssertEqualsVisited = false;
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         StringPath otherNode = other as StringPath;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);
