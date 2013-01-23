@@ -329,7 +329,7 @@ namespace Starcounter.Binding
                         break;
                 }
             }
-            return new IndexInfo(pii->handle, name, columnDefs, sortOrderings, this);
+            return new IndexInfo(pii->handle, name, columnDefs, sortOrderings);
         }
     }
 }

@@ -18,9 +18,8 @@ namespace Starcounter.Binding
         private String _name;
         private ColumnDef[] _columnDefs;
         private SortOrder[] _sortOrderings;
-        TableDef _tableDefRef;
 
-        internal IndexInfo(UInt64 handle, String name, ColumnDef[] columnDefs, SortOrder[] sortOrderings, TableDef tableDef)
+        internal IndexInfo(UInt64 handle, String name, ColumnDef[] columnDefs, SortOrder[] sortOrderings)
         {
 #if false
             if (columnDefs.Length != sortOrderings.Length)
@@ -32,7 +31,6 @@ namespace Starcounter.Binding
             _name = name;
             _columnDefs = columnDefs;
             _sortOrderings = sortOrderings;
-            _tableDefRef = tableDef;
         }
 
         /// <summary>
@@ -68,9 +66,7 @@ namespace Starcounter.Binding
             }
         }
 
-        public TableDef TableDefRef { get { return _tableDefRef; } }
-
-            /// <summary>
+        /// <summary>
         /// Returns the name of the path with the specified index number within the combined index.
         /// </summary>
         /// <param name="index">An index number within the combined index.</param>
