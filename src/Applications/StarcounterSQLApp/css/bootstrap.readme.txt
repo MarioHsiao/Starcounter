@@ -1,0 +1,26 @@
+============================================
+How to generate the custom Bootstrap.min.css
+============================================
+
+Go to http://twitter.github.com/bootstrap/customize.html
+
+Unselect all checkboxes and then select these options:
+
+Scaffolding
+	*	Normalize and reset
+	*	Body type and links
+	*	Grid system
+	*	Layouts
+	
+Base CSS
+	*	Headings, body, etc
+	*	Buttons
+	
+Components
+	*	Button groups and dropdowns
+	
+
+	
+At the bottom of the page click "Customize and Download"
+
+/Good luck
