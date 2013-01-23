@@ -70,6 +70,7 @@ namespace StarcounterInternal.Bootstrap {
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.SQLProcessPort, "Specifies TCP/IP port to be used by " + StarcounterConstants.ProgramNames.ScSqlParser + ".exe.");
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.SchedulerCount, "Specifies the number of schedulers.");
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.UserArguments, "User command line arguments.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.WorkingDir, "Working directory for applet.");
 
             commandDefinition.DefineFlag(StarcounterConstants.BootstrapOptionNames.NoDb, "Instructs the program not to connect to the database nor use the SQL engine.");
             commandDefinition.DefineFlag(StarcounterConstants.BootstrapOptionNames.NoNetworkGateway, "Indicates that the host does not need to utilize with network gateway.");
