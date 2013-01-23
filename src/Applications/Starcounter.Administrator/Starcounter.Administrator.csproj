@@ -1,0 +1,177 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.20706</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectTypeGuids>{C86118D7-451E-4933-BFEE-A1EFDB162FD7};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <ProjectGuid>{6388EE07-A8C2-4A1A-8CDC-513A2C093BC3}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Administrator</RootNamespace>
+    <AssemblyName>Administrator</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\bin\Debug\applications\Starcounter.Administrator\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\bin\Release\applications\Starcounter.Administrator\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Starcounter.Bootstrap">
+      <HintPath>$(StarcounterBin)\Starcounter.Bootstrap.dll</HintPath>
+    </Reference>
+    <Reference Include="Starcounter.Internal">
+      <HintPath>..\..\..\bin\Debug\Starcounter.Internal.dll</HintPath>
+    </Reference>
+    <Reference Include="Starcounter.Server">
+      <HintPath>$(StarcounterBin)\Starcounter.Server.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Starcounter">
+      <HintPath>$(StarcounterBin)\Starcounter.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Starcounter.Apps">
+      <HintPath>$(StarcounterBin)\Starcounter.Apps.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Starcounter.Apps.Interfaces">
+      <HintPath>$(StarcounterBin)\Starcounter.Apps.Interfaces.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Starcounter.Apps.JsonPatch">
+      <HintPath>$(StarcounterBin)\Starcounter.Apps.JsonPatch.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Starcounter.HyperMedia">
+      <HintPath>$(StarcounterBin)\Starcounter.HyperMedia.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Starcounter.REST">
+      <HintPath>$(StarcounterBin)\Starcounter.REST.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AppApp.json.cs">
+      <DependentUpon>AppApp.json</DependentUpon>
+    </Compile>
+    <Compile Include="DatabaseApp.json.cs">
+      <DependentUpon>DatabaseApp.json</DependentUpon>
+    </Compile>
+    <Compile Include="DatabaseAppsApp.json.cs">
+      <DependentUpon>DatabaseAppsApp.json</DependentUpon>
+    </Compile>
+    <Compile Include="DatabasesApp.json.cs">
+      <DependentUpon>DatabasesApp.json</DependentUpon>
+    </Compile>
+    <Compile Include="Model.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Master.json.cs">
+      <DependentUpon>Master.json</DependentUpon>
+    </Compile>
+    <Compile Include="ServerApp.json.cs">
+      <DependentUpon>ServerApp.json</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <App Include="Master.json">
+      <Generator>MSBuild:Compile</Generator>
+    </App>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="app.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="apps.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="css\bootstrap-2.2.1.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="database.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="databases.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="index.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="server.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="sql.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="sys\angular-1.0.2.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="sys\angular-patch.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="sys\bootstrap-2.2.1.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="test.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <App Include="ServerApp.json">
+      <Generator>MSBuild:Compile</Generator>
+    </App>
+  </ItemGroup>
+  <ItemGroup>
+    <App Include="DatabaseApp.json">
+      <Generator>MSBuild:Compile</Generator>
+    </App>
+  </ItemGroup>
+  <ItemGroup>
+    <App Include="DatabasesApp.json">
+      <Generator>MSBuild:Compile</Generator>
+    </App>
+  </ItemGroup>
+  <ItemGroup>
+    <App Include="DatabaseAppsApp.json">
+      <Generator>MSBuild:Compile</Generator>
+    </App>
+  </ItemGroup>
+  <ItemGroup>
+    <App Include="AppApp.json">
+      <Generator>MSBuild:Compile</Generator>
+    </App>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(StarcounterBin)\Starcounter.MsBuild.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
