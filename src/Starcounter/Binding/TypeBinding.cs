@@ -247,6 +247,20 @@ namespace Starcounter.Binding
         }
 
         /// <summary>
+        /// Gets the index info for the given index in this type or its supertypes.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns>IndexInfo.</returns>
+        internal IndexInfo GetInheritedIndexInfo(string name) {
+            IndexInfo indx = TypeDef.TableDef.GetIndexInfo(name);
+            if (indx != null)
+                return indx;
+            if (TypeDef.BaseName == null)
+                return null;
+            return Bindings.GetTypeBinding(TypeDef.BaseName).GetInheritedIndexInfo(name);
+        }
+
+        /// <summary>
         /// Sets the property bindings.
         /// </summary>
         /// <param name="propertyBindings">The property bindings.</param>
