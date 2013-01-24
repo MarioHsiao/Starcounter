@@ -84,7 +84,7 @@ namespace StarcounterApps3 {
 
                 databaseList.View = "databases.html";
                 foreach (var database in databases) {
-                    DatabaseApp databaseApp = new DatabaseApp() { DatabaseName = database.Name, Uri = database.Uri };
+                    DatabaseApp databaseApp = new DatabaseApp() { DatabaseName = database.Name, Uri = Uri.EscapeDataString(database.Uri) };
                     databaseList.DatabaseList.Add(databaseApp);
                 }
 

@@ -307,7 +307,7 @@ namespace SQLTest
             if (_runningOnBuildServer != null)
                 return _runningOnBuildServer.Value;
 
-            if (Environment.GetEnvironmentVariable("SC_RUNNING_ON_BUILD_SERVER") != null)
+            if (Environment.GetEnvironmentVariable("SC_RUNNING_ON_BUILD_SERVER") == "True")
             {
                 _runningOnBuildServer = true;
                 return true;

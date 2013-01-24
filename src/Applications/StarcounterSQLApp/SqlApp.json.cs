@@ -14,7 +14,7 @@ namespace StarcounterSQLApp {
 
     partial class SqlApp : App {
         static void Main(string[] args) {
-            AppsBootstrapper.Bootstrap(8080);
+            AppsBootstrapper.Bootstrap(8081);
             AssureMuchoData();
 
             GET("/query", () => new SqlApp() { View = "sql.html" });
