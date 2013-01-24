@@ -4,16 +4,23 @@
 :: Killing all processes.
 CMD /C "kill_all.bat" 2>NUL
 
-:: Checking if everything is pre-created.
-IF NOT EXIST .db ( MKDIR .db )
-IF NOT EXIST .db.output ( MKDIR .db.output )
-CMD /C "timeout 1" 2>NUL
+:: Some predefined constants.
+SET DB_DIR=.db
+SET DB_OUT_DIR=.db.output
+SET DB_NAME=MYDB
+
+:: Checking if directories exist.
+IF NOT EXIST %DB_DIR% EXIT 1
+IF NOT EXIST %DB_OUT_DIR% EXIT 1
 
 :: Starting IPC monitor first.
-START CMD /C "scipcmonitor.exe PERSONAL .db.output"
+START CMD /C "scipcmonitor.exe PERSONAL %DB_OUT_DIR%"
+
+:: Starting database memory management process.
+START CMD /C "scdata.exe %DB_NAME% %DB_NAME% %DB_OUT_DIR%"
 
 :: Starting database with some delay.
-START CMD /C "timeout 2 && sccode.exe MYDB_SERVER --DatabaseDir=.db --OutputDir=.db.output --TempDir=.db.output --CompilerPath=MinGW\bin\x86_64-w64-mingw32-gcc.exe --AutoStartExePath=NetworkIoTest\NetworkIoTest.exe %6 --SchedulerCount=%2 --ChunksNumber=%5 --UserArguments="DbNumber=0 PortNumber=%4 TestType=%3""
+START CMD /C "timeout 2 && sccode.exe %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --CompilerPath=MinGW\bin\x86_64-w64-mingw32-gcc.exe --AutoStartExePath=NetworkIoTest\NetworkIoTest.exe %6 --SchedulerCount=%2 --ChunksNumber=%5 --UserArguments="DbNumber=0 PortNumber=%4 TestType=%3""
 
 :: Starting network gateway.
-scnetworkgatewayloopedtest.exe personal scnetworkgateway.xml .db.output "%1"
+scnetworkgatewayloopedtest.exe personal scnetworkgateway.xml %DB_OUT_DIR% "%1"

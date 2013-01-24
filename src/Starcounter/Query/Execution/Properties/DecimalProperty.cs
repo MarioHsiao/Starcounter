@@ -313,7 +313,7 @@ internal class DecimalProperty : Property, IDecimalPathItem
         return new DecimalProperty(extentNumber, typeBinding, propBinding);
     }
 
-    public override ITypeExpression Clone(VariableArray varArray)
+    public override IValueExpression Clone(VariableArray varArray)
     {
         return CloneToDecimal(varArray);
     }

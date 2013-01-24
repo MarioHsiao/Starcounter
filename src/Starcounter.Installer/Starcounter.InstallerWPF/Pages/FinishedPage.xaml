@@ -1,0 +1,277 @@
+﻿<pages:BasePage x:Class="Starcounter.InstallerWPF.Pages.FinishedPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:pages="clr-namespace:Starcounter.InstallerWPF.Pages"
+    xmlns:slides="clr-namespace:Starcounter.InstallerWPF.Slides"
+    xmlns:local="clr-namespace:Starcounter.InstallerWPF"
+    xmlns:converters="clr-namespace:Starcounter.InstallerWPF.Converters"
+    DisplayName="Finished"
+   >
+
+    <pages:BasePage.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter" />
+        <converters:CommandToVisibilityConverter x:Key="commandToVisibilityConverter"/>
+        <converters:CommandToBackgroundConverter x:Key="commandToBackgroundConverter" />
+        <pages:IsCheckedStartDemoConverter x:Key="isCheckedStartDemoConverter"/>
+        <pages:IsStartDemoConverterToVisibility x:Key="isStartDemoConverterToVisibility"/>
+        <converters:ScrollBarVisibilityToPadding x:Key="scrollBarVisibilityToPadding" />
+    </pages:BasePage.Resources>
+
+    <pages:BasePage.Content>
+
+
+        <Grid Style="{DynamicResource PagePanel_Style}">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header + Content -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="{Binding RelativeSource={RelativeSource self}, Path=ComputedVerticalScrollBarVisibility, Converter={StaticResource scrollBarVisibilityToPadding}}">
+
+                <Grid >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+
+                    <!-- Header -->
+                    <GroupBox Style="{DynamicResource PageHeaderGroupBoxStyle}">
+                        <GroupBox.Header>
+                            <TextBlock  Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type pages:BasePage}},Path=DisplayName}" Style="{DynamicResource PageHeaderTitleStyle}"/>
+                        </GroupBox.Header>
+                        <TextBlock Text="Starcounter were successfully installed." Style="{DynamicResource PageHeaderDescriptionStyle}"/>
+                    </GroupBox>
+
+                    <!-- Content -->
+                    <Grid Grid.Row="1" Style="{DynamicResource Page_Content_Panel_Style}">
+
+                        <StackPanel  >
+
+                            <!-- Start Demo (Runtime Version) -->
+                            <Grid Margin="0,7.5,0,7.5"  Grid.IsSharedSizeScope="True" DataContext="{Binding Components}">
+
+                                <Grid.Visibility>
+                                    <MultiBinding Converter="{StaticResource isStartDemoConverterToVisibility}" ConverterParameter="Runtime">
+                                        <Binding Path="[VisualStudio2010Integration].IsAvailable" Mode="OneWay"/>
+                                        <Binding Path="[VisualStudio2012Integration].IsAvailable" Mode="OneWay"/>
+                                        <Binding Path="[PersonalServer].IsAvailable" Mode="OneWay"/>
+                                        <Binding Path="[SystemServer].IsAvailable" Mode="OneWay"/>
+                                    </MultiBinding>
+                                </Grid.Visibility>
+
+                                <Grid DataContext="{Binding [Demo]}">
+
+                                    <StackPanel>
+
+                                        <CheckBox  IsEnabled="{Binding IsExecuteCommandEnabled}" >
+                                            <CheckBox.IsChecked>
+                                                <MultiBinding Converter="{StaticResource isCheckedStartDemoConverter}">
+                                                    <Binding  Path="IsExecuteCommandEnabled" Mode="OneWay"/>
+                                                    <Binding  Path="ExecuteCommand" Mode="OneWay"/>
+                                                    <Binding  Path="StartWhenInstalled" Mode="TwoWay"/>
+                                                </MultiBinding>
+                                            </CheckBox.IsChecked>
+
+                                            <StackPanel Orientation="Horizontal" >
+                                                <Label  Padding="0" Margin="0" Content="Start Starcounter _Demo" />
+                                                <TextBlock  Margin="7.5,0,0,0" Text="(Runtime)" />
+                                            </StackPanel>
+
+                                        </CheckBox>
+
+                                        <Grid >
+
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" SharedSizeGroup="Box" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Grid.Row="1" Grid.Column="1" Margin="24,0,0,0">
+
+                                                <!-- Header Description -->
+                                                <TextBlock Style="{DynamicResource ComponentDescription}">
+                                                    Starts demo application that runs exactly the same benchmark for Starcounter and MS SQL server.
+                                                </TextBlock>
+
+                                                <!-- Header Description -->
+                                                <TextBlock Style="{DynamicResource ComponentDescription}">
+                                                    Starcounter demo is a simple database application that simulates bank account transactions and is used to demonstrate difference in performance between Entity Framework on top of MS SQL Server Express and Starcounter.
+                                                    <Hyperlink CommandParameter="http://www.starcounter.com/wiki/Simple_WPF_Benchmark_demo" Command="NavigationCommands.GoToPage"  >Read more about Starcounter Demo...</Hyperlink>
+                                                </TextBlock>
+
+                                            </StackPanel>
+
+                                        </Grid>
+
+                                    </StackPanel>
+                                </Grid>
+
+                            </Grid>
+
+                            <!-- Start Demo (Visual studio version)= -->
+                            <Grid Margin="0,7.5,0,7.5" Grid.IsSharedSizeScope="True" DataContext="{Binding Components}">
+
+                                <Grid.Visibility>
+                                    <MultiBinding Converter="{StaticResource isStartDemoConverterToVisibility}" ConverterParameter="VS">
+                                        <Binding Path="[VisualStudio2010Integration].IsAvailable" Mode="OneWay"/>
+                                        <Binding Path="[VisualStudio2012Integration].IsAvailable" Mode="OneWay"/>
+                                        <Binding Path="[PersonalServer].IsAvailable" Mode="OneWay"/>
+                                        <Binding Path="[SystemServer].IsAvailable" Mode="OneWay"/>
+                                    </MultiBinding>
+                                </Grid.Visibility>
+
+                                <Grid DataContext="{Binding [Demo]}">
+
+                                    <StackPanel>
+
+                                        <CheckBox  IsEnabled="{Binding IsExecuteCommandEnabled}" >
+                                            <CheckBox.IsChecked>
+                                                <MultiBinding Converter="{StaticResource isCheckedStartDemoConverter}">
+                                                    <Binding  Path="IsExecuteCommandEnabled" Mode="OneWay"/>
+                                                    <Binding  Path="ExecuteCommand" Mode="OneWay"/>
+                                                    <Binding  Path="StartWhenInstalled" Mode="TwoWay"/>
+                                                </MultiBinding>
+                                            </CheckBox.IsChecked>
+
+                                            <StackPanel Orientation="Horizontal" >
+                                                <Label  Padding="0" Margin="0" Content="Start Starcounter _Demo" />
+                                                <TextBlock  Margin="7.5,0,0,0" Text="(Visual Studio)" />
+                                            </StackPanel>
+
+                                        </CheckBox>
+
+                                        <Grid >
+
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" SharedSizeGroup="Box" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Grid.Row="1" Grid.Column="1" Margin="24,0,0,0">
+
+                                                <!-- Header Description -->
+                                                <TextBlock Style="{DynamicResource ComponentDescription}">
+                                                    Starts Starcounter demo project in Microsoft Visual Studio. Just hit F5 to build and run it!
+                                                </TextBlock>
+
+                                                <!-- Header Description -->
+                                                <TextBlock Style="{DynamicResource ComponentDescription}">
+                                                    Starcounter demo is a simple database application that simulates bank account transactions and is used to demonstrate difference in performance between Entity Framework on top of MS SQL Server Express and Starcounter.
+                                                    <Hyperlink CommandParameter="http://www.starcounter.com/wiki/Simple_WPF_Benchmark_demo" Command="NavigationCommands.GoToPage"  >Read more about Starcounter Demo...</Hyperlink>
+                                                </TextBlock>
+
+                                            </StackPanel>
+
+                                        </Grid>
+                                    </StackPanel>
+
+
+                                </Grid>
+
+                            </Grid>
+
+                            <!-- Demo not available -->
+                            <Grid Margin="0,7.5,0,7.5" Grid.IsSharedSizeScope="True" DataContext="{Binding Components}">
+
+                                <Grid.Visibility>
+                                    <MultiBinding Converter="{StaticResource isStartDemoConverterToVisibility}" >
+                                        <Binding Path="[VisualStudio2010Integration].IsAvailable" Mode="OneWay"/>
+                                        <Binding Path="[VisualStudio2012Integration].IsAvailable" Mode="OneWay"/>
+                                        <Binding Path="[PersonalServer].IsAvailable" Mode="OneWay"/>
+                                        <Binding Path="[SystemServer].IsAvailable" Mode="OneWay"/>
+                                    </MultiBinding>
+                                </Grid.Visibility>
+
+                                <Grid DataContext="{Binding [Demo]}">
+                                    <StackPanel>
+
+                                        <CheckBox  IsEnabled="{Binding IsExecuteCommandEnabled}" >
+                                            <CheckBox.IsChecked>
+                                                <MultiBinding Converter="{StaticResource isCheckedStartDemoConverter}">
+                                                    <Binding  Path="IsExecuteCommandEnabled" Mode="OneWay"/>
+                                                    <Binding  Path="ExecuteCommand" Mode="OneWay"/>
+                                                    <Binding  Path="StartWhenInstalled" Mode="TwoWay"/>
+                                                </MultiBinding>
+                                            </CheckBox.IsChecked>
+
+                                            <StackPanel Orientation="Horizontal" >
+                                                <Label  Padding="0" Margin="0" Content="Start Starcounter _Demo" />
+                                                <TextBlock  Margin="7.5,0,0,0" Text="(System or Personal server is needed)" />
+                                            </StackPanel>
+
+                                        </CheckBox>
+
+                                        <Grid >
+
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" SharedSizeGroup="Box" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Grid.Row="1" Grid.Column="1" Margin="24,0,0,0">
+
+                                                <!-- Header Description -->
+                                                <TextBlock Style="{DynamicResource ComponentDescription}">
+                                                    To be able to run the demo you need to install either Personal or System Starcounter server.
+                                                </TextBlock>
+
+                                                <!-- Header Description -->
+                                                <TextBlock Style="{DynamicResource ComponentDescription}">
+                                                    Starcounter demo is a simple database application that simulates bank account transactions and is used to demonstrate difference in performance between Entity Framework on top of MS SQL Server Express and Starcounter.
+                                                    <Hyperlink CommandParameter="http://www.starcounter.com/wiki/Simple_WPF_Benchmark_demo" Command="NavigationCommands.GoToPage"  >Read more about Starcounter Demo...</Hyperlink>
+                                                </TextBlock>
+
+                                            </StackPanel>
+
+                                        </Grid>
+                                    </StackPanel>
+
+                                </Grid>
+
+                            </Grid>
+
+                            <!-- Start Administrator -->
+                            <!--<Grid Visibility="{Binding Converter={StaticResource booleanToVisibilityConverter}, Path=ExecuteCommand}"  DataContext="{Binding Components[StarcounterAdministrator]}">
+                                        <CheckBox IsEnabled="{Binding IsExecuteCommandEnabled}" Content="_Start Starcounter Administrator" IsChecked="{Binding StartWhenInstalled}" />
+                                    </Grid>-->
+
+
+                        </StackPanel>
+
+                    </Grid>
+
+
+                </Grid>
+
+
+            </ScrollViewer>
+
+            <!-- Button Bar -->
+            <Grid Grid.Row="1"  >
+
+                <GroupBox Style="{DynamicResource PageButtonBar}">
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Margin="2.5,0,2.5,0" Command="NavigationCommands.PreviousPage" Content="_Back" />
+                        <!--<Button Margin="2.5,0,2.5,0" Command="ApplicationCommands.Close" Content="_Finish (close)"  Background="{DynamicResource GreenButtonBackground}"/>-->
+                        <Button Margin="2.5,0,2.5,0" Command="{x:Static local:MainWindow.StartRoutedCommand}" IsDefault="True"  Content="_Finish"  Background="{DynamicResource GreenButtonBackground}"/>
+                    </StackPanel>
+
+                </GroupBox>
+
+            </Grid>
+
+        </Grid>
+
+
+
+    </pages:BasePage.Content>
+
+
+
+
+
+</pages:BasePage>

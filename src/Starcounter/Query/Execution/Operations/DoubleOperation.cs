@@ -342,7 +342,7 @@ internal class DoubleOperation : IDoubleExpression, INumericalOperation
         return new DoubleOperation(numOperator, instExpr1);
     }
 
-    public ITypeExpression Clone(VariableArray varArray)
+    public IValueExpression Clone(VariableArray varArray)
     {
         return CloneToDouble(varArray);
     }
@@ -404,7 +404,7 @@ internal class DoubleOperation : IDoubleExpression, INumericalOperation
 
 #if DEBUG
     private bool AssertEqualsVisited = false;
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         DoubleOperation otherNode = other as DoubleOperation;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);
