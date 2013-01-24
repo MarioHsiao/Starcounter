@@ -2542,16 +2542,23 @@ bool Gateway::CheckConfirmedEchoResponses(GatewayWorker* gw)
 uint32_t Gateway::ShutdownTest(GatewayWorker* gw, bool success)
 {
     // Checking if we are on the build server.
-    bool is_on_build_server = (NULL != std::getenv("SC_RUNNING_ON_BUILD_SERVER"));
+    char* envvar_str = std::getenv("SC_RUNNING_ON_BUILD_SERVER");
+    bool is_on_build_server = false;
+    if (envvar_str)
+    {
+        // Checking for exactly True value.
+        if (0 == strcmp(envvar_str, "True"))
+            is_on_build_server = true;
+    }
 
     if (success)
     {
+        GW_COUT << "Echo test finished successfully!" << GW_ENDL;
+
         int64_t test_finish_time = timeGetTime();
 
         // Test finished successfully, printing the results.
         int64_t ops_per_second = GetAverageOpsPerSecond();
-
-        GW_COUT << "Echo test finished successfully!" << GW_ENDL;
 
         GW_COUT << "Average number of ops per second: " << ops_per_second <<
             ". Took " << test_finish_time - test_begin_time_ << " ms." << GW_ENDL;

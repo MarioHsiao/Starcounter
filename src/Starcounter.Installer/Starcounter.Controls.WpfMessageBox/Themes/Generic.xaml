@@ -1,0 +1,68 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:Starcounter.Controls">
+
+
+
+    <Style TargetType="{x:Type local:WpfMessageBox}">
+        <!--<Setter Property="MaxWidth" Value="480" />  DO NOT USE MaxWidthproperty-->
+        <Setter Property="Foreground" Value="Black" />
+        <Setter Property="Background" Value="White" />
+        <Setter Property="Title" Value="{Binding Path=Caption, RelativeSource={RelativeSource self}}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:WpfMessageBox}">
+
+                    <ControlTemplate.Resources>
+
+                        <!--<local:MessageBoxContentSelector x:Key="myMessageBoxContentSelector" />-->
+                        <local:IsDefaultConverter x:Key="myIsDefaultConverter"/>
+                        <local:IsCancelConverter x:Key="myIsCancelConverter"/>
+                        <BooleanToVisibilityConverter x:Key="myBooleanToVisibilityConverter" />
+
+                    </ControlTemplate.Resources>
+
+                    <Border x:Name="PART_MainContent" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+
+
+                        <Grid  DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:WpfMessageBox}}}" >
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Grid >
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Image x:Name="PART_Image" Margin="25,20,0,0" Grid.Column="0" VerticalAlignment="Top"  Stretch="None"  Grid.Row="1" Source="{Binding Image}" />
+
+                                <ContentPresenter x:Name="PART_Content"  Grid.Column="1" Content="{Binding Document}" Margin="10,25,10,25" />
+
+                            </Grid>
+
+                            <!-- Buttons -->
+                            <Border  Grid.ColumnSpan="2" Grid.Row="2" Background="#10000000">
+
+                                <StackPanel  Margin="30,10,7.5,10" x:Name="PART_Buttons" Orientation="Horizontal" HorizontalAlignment="Right" >
+                                    <Button Margin="2.5" MinWidth="90" Command="{x:Static local:WpfMessageBox.Command_Ok}" Content="_OK" IsDefault="{Binding Path=DefaultResult, Converter={StaticResource myIsDefaultConverter}, ConverterParameter=OK}" IsCancel="{Binding Path=Button, Converter={StaticResource myIsCancelConverter}, ConverterParameter=OK}" Visibility="{Binding RelativeSource={RelativeSource self}, Path=IsEnabled, Converter={StaticResource myBooleanToVisibilityConverter}}"   />
+                                    <Button Margin="2.5"  MinWidth="90" Command="{x:Static local:WpfMessageBox.Command_Yes}" Content="_Yes" IsDefault="{Binding Path=DefaultResult, Converter={StaticResource myIsDefaultConverter}, ConverterParameter=YES}" IsCancel="{Binding Path=Button, Converter={StaticResource myIsCancelConverter}, ConverterParameter=YES}" Visibility="{Binding RelativeSource={RelativeSource self}, Path=IsEnabled, Converter={StaticResource myBooleanToVisibilityConverter}}"   />
+                                    <Button Margin="2.5"  MinWidth="90" Command="{x:Static local:WpfMessageBox.Command_No}" Content="_No" IsDefault="{Binding Path=DefaultResult, Converter={StaticResource myIsDefaultConverter}, ConverterParameter=NO}" IsCancel="{Binding Path=Button, Converter={StaticResource myIsCancelConverter}, ConverterParameter=NO}" Visibility="{Binding RelativeSource={RelativeSource self}, Path=IsEnabled, Converter={StaticResource myBooleanToVisibilityConverter}}"   />
+                                    <Button Margin="2.5" MinWidth="90" Command="{x:Static local:WpfMessageBox.Command_Cancel}" Content="_Cancel" IsDefault="{Binding Path=DefaultResult, Converter={StaticResource myIsDefaultConverter}, ConverterParameter=CANCEL}" IsCancel="{Binding Path=Button, Converter={StaticResource myIsCancelConverter}, ConverterParameter=CANCEL}" Visibility="{Binding RelativeSource={RelativeSource self}, Path=IsEnabled, Converter={StaticResource myBooleanToVisibilityConverter}}"   />
+                                </StackPanel>
+
+                            </Border>
+
+
+                        </Grid>
+
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>
