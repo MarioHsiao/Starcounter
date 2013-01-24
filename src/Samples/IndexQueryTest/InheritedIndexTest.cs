@@ -85,6 +85,11 @@ namespace IndexQueryTest.InheritedIndex {
             foreach (Employee e in Db.SQL("select e from teacher e OPTION INDEX (e employeeCompany)"))
                 nrObjects++;
             Trace.Assert(nrObjects == TotalTeachers);
+            nrObjects = 0;
+            PrintQueryPlan("select e from employee e OPTION INDEX (e employeeCompany)"); // use index
+            foreach (Employee e in Db.SQL("select e from employee e OPTION INDEX (e employeeCompany)"))
+                nrObjects++;
+            Trace.Assert(nrObjects == TotalEmployees);
         }
 
         internal static void PrintQueryPlan(String query) {

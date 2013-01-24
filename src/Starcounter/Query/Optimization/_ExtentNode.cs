@@ -441,7 +441,7 @@ internal class ExtentNode : IOptimizationNode
 
     internal IndexInfo GetIndexInfo(String indexName)
     {
-        return (rowTypeBind.GetTypeBinding(extentNumber) as TypeBinding).GetIndexInfo(indexName);
+        return (rowTypeBind.GetTypeBinding(extentNumber) as TypeBinding).GetInheritedIndexInfo(indexName);
     }
 
 #if DEBUG
