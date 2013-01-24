@@ -75,6 +75,16 @@ namespace IndexQueryTest.InheritedIndex {
             foreach (Employee e in Db.SQL("select e from professor e where company = ?", company))
                 nrObjects++;
             Trace.Assert(nrObjects == nrProfessors);
+            nrObjects = 0;
+            PrintQueryPlan("select e from teacher e ORDER BY company"); // use inherited index
+            foreach (Employee e in Db.SQL("select e from teacher e ORDER BY company"))
+                nrObjects++;
+            Trace.Assert(nrObjects == TotalTeachers);
+            nrObjects = 0;
+            PrintQueryPlan("select e from teacher e OPTION INDEX (e employeeCompany)"); // use inherited index
+            foreach (Employee e in Db.SQL("select e from teacher e OPTION INDEX (e employeeCompany)"))
+                nrObjects++;
+            Trace.Assert(nrObjects == TotalTeachers);
         }
 
         internal static void PrintQueryPlan(String query) {
@@ -83,6 +93,7 @@ namespace IndexQueryTest.InheritedIndex {
 
         internal static void UnitTests() {
             TestGetAllIndexInfos();
+            TestGetInheritedIndexInfo();
         }
 
         internal static void TestGetAllIndexInfos() {
@@ -102,6 +113,17 @@ namespace IndexQueryTest.InheritedIndex {
             Trace.Assert(indexes[7].Name == "auto");
             Trace.Assert(indexes[8].Name == "personBirthdayGender");
             Trace.Assert(indexes[9].Name == "personName");
+        }
+
+        internal static void TestGetInheritedIndexInfo() {
+            IndexInfo indx = Bindings.GetTypeBindingInsensitive("Professor").GetInheritedIndexInfo("professorCompany");
+            Trace.Assert(indx != null);
+            indx = Bindings.GetTypeBindingInsensitive("Professor").GetInheritedIndexInfo("employeeCompany");
+            Trace.Assert(indx != null);
+            indx = Bindings.GetTypeBindingInsensitive("Teacher").GetInheritedIndexInfo("employeeCompany");
+            Trace.Assert(indx != null);
+            indx = Bindings.GetTypeBindingInsensitive("Teacher").GetInheritedIndexInfo("professorCompany");
+            Trace.Assert(indx == null);
         }
 
         internal static void Populate() {
