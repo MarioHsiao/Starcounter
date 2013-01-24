@@ -14,7 +14,12 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
 
         internal override void GenerateCsCodeForNode() {
             Template template = (Template)ParseNode.Handler.Code;
-            Prefix.Add("app." + template.PropertyName + " = val" + ParseNode.HandlerIndex + ";");
+
+            if (template is ListingProperty) {
+                Prefix.Add("app." + template.PropertyName + ".Add(val" + ParseNode.HandlerIndex + ");");
+            } else {
+                Prefix.Add("app." + template.PropertyName + " = val" + ParseNode.HandlerIndex + ";");
+            }
         }
     }
 }

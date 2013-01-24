@@ -56,14 +56,17 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                 Prefix.Add(sb.ToString());
 
                 if (ParseNode.Match == (byte)' ') {
-                    Prefix.Add("case (byte)'\\r':");
+                    Prefix.Add("case (byte)'\"':");
                 }
 
                 // Skip the character we switched on.
                 Prefix.Add("    pfrag++;");
                 Prefix.Add("    nextSize--;");
             }
-            Suffix.Add("   break;");
+
+            // AstFail throws exception so we cannot add a break if the child is a fail.
+            if (!(this.Children.Count == 1 && this.Children[0] is AstProcessFail))
+                Suffix.Add("   break;");
         }
     }
 }

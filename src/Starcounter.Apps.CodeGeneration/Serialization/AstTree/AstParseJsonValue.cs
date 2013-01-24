@@ -32,16 +32,29 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         /// Generates C# source code for this abstract syntax tree (AST) node
         /// </summary>
         internal override void GenerateCsCodeForNode() {
+            string appClassName;
+            string fullAppClassName;
             Template template = (Template)ParseNode.Handler.Code;
-            Type valueType = template.InstanceType;
-            string valueName = " val" + ParseNode.HandlerIndex;
+            string valueName = " val" + ParseNode.HandlerIndex;;
             
-            Prefix.Add(valueType.Name + valueName  + ";");
-            Prefix.Add("if (JsonHelper." + GetParseFunctionName(valueType) + "((IntPtr)pfrag, nextSize, out" + valueName + ", out valueSize)) {");
-
-            Suffix.Add("} else {");
-            Suffix.Add("    throw new Exception(\"Unable to deserialize App. Content not compatible.\");"); // TODO: pinpoint error in deserializer.
-            Suffix.Add("}");
+            if (template is AppTemplate) {
+                appClassName = AstTreeHelper.GetAppClassName((AppTemplate)template);
+                fullAppClassName = AstTreeHelper.GetFullAppClassName((AppTemplate)template);
+                Prefix.Add(fullAppClassName + valueName + ";");
+                Prefix.Add(valueName + " = " + appClassName + "JsonSerializer.Deserialize((IntPtr)pfrag, nextSize, out valueSize);");
+            } else if (template is ListingProperty) {
+                ListingProperty lp = (ListingProperty)template;
+                appClassName = AstTreeHelper.GetAppClassName((AppTemplate)lp.App);
+                fullAppClassName = AstTreeHelper.GetFullAppClassName((AppTemplate)lp.App);
+                Prefix.Add(fullAppClassName + valueName + ";");
+                Prefix.Add(valueName + " = " + appClassName + "JsonSerializer.Deserialize((IntPtr)pfrag, nextSize, out valueSize);");
+            } else {
+                Prefix.Add(template.InstanceType.Name + valueName + ";");
+                Prefix.Add("if (JsonHelper." + GetParseFunctionName(template.InstanceType) + "((IntPtr)pfrag, nextSize, out" + valueName + ", out valueSize)) {");
+                Suffix.Add("} else {");
+                Suffix.Add("    throw new Exception(\"Unable to deserialize App. Content not compatible.\");"); // TODO: pinpoint error in deserializer.
+                Suffix.Add("}");
+            }
         }
 
         private string GetParseFunctionName(Type valueType) {
@@ -68,7 +81,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                     parseFunction = "ParseDateTime";
                     break;
                 case TypeCode.Object:
-                    parseFunction = "// TODO: ParseApp<" + valueType.Name + ">(...)";
+                    parseFunction = "ParseApp<" + valueType.Name + ">(...)";
                     break;
                 default:
                     throw new NotSupportedException("TODO! Add more types here");

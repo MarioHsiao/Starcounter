@@ -21,7 +21,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <returns></returns>
         public string GetSerializerClassCode() {
             AstNode astTree = AstTreeGenerator.BuildAstTree(NAppClass.Template);
-            astTree.Indentation = 4;
+            //astTree.Indentation = 4;
             return astTree.GenerateCsSourceCode();
         }
     }

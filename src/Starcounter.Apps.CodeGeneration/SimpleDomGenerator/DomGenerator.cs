@@ -73,7 +73,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             };
 
             new NAppSerializerClass() {
-                Parent = root,
+                Parent = acn,
                 NAppClass = acn
             };
 
@@ -119,7 +119,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
 
             ConnectCodeBehindClasses(root, metadata);
             GenerateInputBindings((NAppTemplateClass)acn.NTemplateClass, metadata);
-            MoveSerializersToRootAndBottom(root, acn);
+            MoveSerializersToBottom(acn);
             return root;
         }
 
@@ -350,17 +350,15 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// classes in the end of the file.
         /// </summary>
         /// <param name="node">The node containing the children to rearrange</param>
-        /// <param name="root">The root node to add the serializers</param>
-        private void MoveSerializersToRootAndBottom(NBase node, NBase root) {
+        private void MoveSerializersToBottom(NBase node) {
             var move = new List<NBase>();
             foreach (var kid in node.Children) {
                 if (kid is NAppSerializerClass) {
                     move.Add(kid);
                 }
-                MoveSerializersToRootAndBottom(kid, root);
             }
             foreach (var kid in move) {
-                kid.Parent = root;
+                kid.Parent = node;
             }
         }
 
@@ -474,7 +472,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 racn.NTemplateClass = tcn;
 
                 new NAppSerializerClass() {
-                    Parent = appClassParent,
+                    Parent = FindRootNAppClass(appClassParent),
                     NAppClass = racn
                 };
 
@@ -499,6 +497,13 @@ namespace Starcounter.Internal.Application.CodeGeneration
 
             if (at.Parent is AppTemplate)
                 GenerateProperty(at, appClassParent, templParent, metaParent);
+        }
+
+        private NBase FindRootNAppClass(NAppClass appClassParent) {
+            NBase next = appClassParent;
+            while (!(next.Parent is NRoot))
+                next = next.Parent;
+            return next;
         }
 
         /// <summary>

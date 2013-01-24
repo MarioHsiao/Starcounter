@@ -12,23 +12,24 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
     /// Class AstProcessFail
     /// </summary>
     internal class AstProcessFail : AstNode {
+        internal String Message { get; set; }
 
-        /// <summary>
-        /// Gets the debug string.
-        /// </summary>
-        /// <value>The debug string.</value>
         internal override string DebugString {
             get {
-                return "fail";
+                if (Message != null)
+                    return "Fail: " + Message;
+                return "Fail";
             }
         }
-
 
         /// <summary>
         /// Generates C# source code for this abstract syntax tree (AST) node
         /// </summary>
         internal override void GenerateCsCodeForNode() {
-            Suffix.Add("throw new Exception(\"Deserialization of App failed.\");");
+            if (Message != null)
+                Prefix.Add("throw new Exception(\"" + Message + "\");");
+            else
+                Prefix.Add("throw new Exception(\"Deserialization of App failed.\");");
         }
 
     }

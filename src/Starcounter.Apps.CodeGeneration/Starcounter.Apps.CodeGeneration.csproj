@@ -94,6 +94,7 @@
     <Compile Include="Serialization\AstTree\AstSetValue.cs" />
     <Compile Include="Serialization\AstTree\AstSwitch.cs" />
     <Compile Include="Serialization\AstTree\AstTreeGenerator.cs" />
+    <Compile Include="Serialization\AstTree\AstTreeHelper.cs" />
     <Compile Include="Serialization\AstTree\AstUnsafe.cs" />
     <Compile Include="Serialization\AstTree\AstValueJump.cs" />
     <Compile Include="Serialization\AstTree\AstVerifier.cs" />

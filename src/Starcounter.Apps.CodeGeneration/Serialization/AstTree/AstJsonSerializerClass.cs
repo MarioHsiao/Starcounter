@@ -48,11 +48,8 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         /// </summary>
         internal override void GenerateCsCodeForNode() {
             var sb = new StringBuilder();
-
-            Prefix.Add("");
             Prefix.Add("public static class " + ClassName + "{");
             Suffix.Add("}");
-            Suffix.Add("");
         }
 
         /// <summary>
@@ -65,25 +62,23 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         internal string AppClassName {
             get {
-                ListingProperty listing;
-                string name;
                 AppTemplate at = (AppTemplate)((Template)ParseNode.AllHandlers[0].Code).Parent;
+                return AstTreeHelper.GetAppClassName(at);
+            }
+        }
 
-                name = at.ClassName;
-                if (name == null) {
-                    name = at.Name;
-                    if (name == null) {
-                        listing = at.Parent as ListingProperty;
-                        if (listing != null)
-                            name = listing.Name;
-                        else
-                            throw new Exception("Anonymous appclasses not supported for deserialization.");
-                    }
-                    name += "App";
-                }
-                return name;
+        /// <summary>
+        /// 
+        /// </summary>
+        internal string FullAppClassName {
+            get {
+                AppTemplate at = (AppTemplate)((Template)ParseNode.AllHandlers[0].Code).Parent;
+                return AstTreeHelper.GetFullAppClassName(at);
             }
         }
     }
