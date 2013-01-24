@@ -5,8 +5,29 @@
   
     "Child": {
         "ChildName":"",
-        "Button": null
+        "Button": null,
+        "ASubApp":{ "IsInnerApp": true },
+        "ASubApp2": { 
+            "IsInnerApp": false,
+            "ASubList": [
+                { "Huh": "Va?" }
+            ]
+        }
     },
+    "AList": [
+        { 
+            "AValue": "abc",
+            "ANumber": 666
+        },
+        { 
+            "AValue": "qwerty",
+            "ANumber": 7249014
+        },
+        { 
+            "AValue": "redrum",
+            "ANumber": 1337
+        }
+    ],
     "UserLink": "/users/admin",
     "User": null
 }
