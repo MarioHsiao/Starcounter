@@ -1,0 +1,12 @@
+﻿{
+    "UserId$":    23,
+    "Username":   "admin", 
+    "Password":   "apapapa",
+  
+    "Child": {
+        "ChildName":"",
+        "Button": null
+    },
+    "UserLink": "/users/admin",
+    "User": null
+}
