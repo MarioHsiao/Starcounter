@@ -72,6 +72,11 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 _Inherits = "AppMetadata"
             };
 
+            new NAppSerializerClass() {
+                Parent = root,
+                NAppClass = acn
+            };
+
 //            acn.NTemplateClass.Temp               NTemplateClass = NTemplateClass.Classes[at],
             tcn.NMetadataClass = mcn;
 
@@ -114,6 +119,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
 
             ConnectCodeBehindClasses(root, metadata);
             GenerateInputBindings((NAppTemplateClass)acn.NTemplateClass, metadata);
+            MoveSerializersToRootAndBottom(root, acn);
             return root;
         }
 
@@ -340,6 +346,25 @@ namespace Starcounter.Internal.Application.CodeGeneration
         }
 
         /// <summary>
+        /// Provide a nicer default order of the generated. Puts all serializer 
+        /// classes in the end of the file.
+        /// </summary>
+        /// <param name="node">The node containing the children to rearrange</param>
+        /// <param name="root">The root node to add the serializers</param>
+        private void MoveSerializersToRootAndBottom(NBase node, NBase root) {
+            var move = new List<NBase>();
+            foreach (var kid in node.Children) {
+                if (kid is NAppSerializerClass) {
+                    move.Add(kid);
+                }
+                MoveSerializersToRootAndBottom(kid, root);
+            }
+            foreach (var kid in move) {
+                kid.Parent = root;
+            }
+        }
+
+        /// <summary>
         /// Generates the kids.
         /// </summary>
         /// <param name="appClassParent">The app class parent.</param>
@@ -447,6 +472,12 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 };
                 tcn.NMetadataClass = mcn;
                 racn.NTemplateClass = tcn;
+
+                new NAppSerializerClass() {
+                    Parent = appClassParent,
+                    NAppClass = racn
+                };
+
                 GenerateKids(acn as NAppClass, 
                              tcn as NAppTemplateClass, 
                              mcn as NAppMetadata, 
