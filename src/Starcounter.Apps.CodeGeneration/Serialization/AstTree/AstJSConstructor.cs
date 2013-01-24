@@ -42,15 +42,16 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
             AstJsonSerializerClass jsClass = (AstJsonSerializerClass)Parent;
 
             sb = new StringBuilder();
-            sb.Append("public static byte[] VerificationBytes = new byte[] {");
+            sb.Append("private static byte[] VerificationBytes = new byte[] {");
 
             Prefix.Add("");
             comma = false;
             t = 0;
-            
+
+            Prefix.Add("#pragma warning disable 0414");
             for(int h = 0; h < ParseNode.AllHandlers.Count; h++){
                 md = ParseNode.AllHandlers[h];
-                Prefix.Add("public static int VerificationOffset" + h + " = " + t + "; // " + md.UnpreparedVerbAndUri);
+                Prefix.Add("private static int VerificationOffset" + h + " = " + t + "; // " + md.UnpreparedVerbAndUri);
                 
                 char c;
                 string pvu = md.PreparedVerbAndUri;
@@ -66,10 +67,11 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                     comma = true;
                 }
             }
+            Prefix.Add("#pragma warning restore 0414");
 
             sb.Append("};");
             Prefix.Add(sb.ToString());
-            Prefix.Add("public static IntPtr PointerVerificationBytes;");
+            Prefix.Add("private static IntPtr PointerVerificationBytes;");
             Prefix.Add(""); 
 
             Prefix.Add("static " + jsClass.ClassName + "() {");

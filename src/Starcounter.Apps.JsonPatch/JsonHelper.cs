@@ -9,14 +9,23 @@ namespace Starcounter.Internal.JsonPatch {
     /// 
     /// </summary>
     public static class JsonHelper {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="pfrag"></param>
-        /// <param name="fragmentSize"></param>
-        /// <param name="needsUrlDecoding"></param>
-        /// <returns></returns>
-        private static unsafe int SizeToDelimiterOrEnd(byte* pfrag, int fragmentSize, out bool needsUrlDecoding) {
+        private static unsafe int SizeToDelimiterOrEnd(byte* pfrag, int fragmentSize) {
+            byte current;
+            int index = 0;
+
+            while (index < fragmentSize) {
+                current = pfrag[index];
+
+                if (current == ',' || current == ' '
+                    || current == '}' || current == '\n'
+                    || current == '\r')
+                    break;
+                index++;
+            }
+            return index;
+        }
+
+        private static unsafe int SizeToDelimiterOrEndString(byte* pfrag, int fragmentSize, out bool needsUrlDecoding) {
             byte current;
             int index = 0;
 
@@ -29,7 +38,7 @@ namespace Starcounter.Internal.JsonPatch {
                 //    continue;
                 //}
 
-                if (pfrag[index] == ',' || pfrag[index] == '"')
+                if (pfrag[index] == '"')
                     break;
                 index++;
             }
@@ -54,12 +63,10 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="valueSize">The size of the unparsed value in bytes</param>
         /// <returns><c>true</c> if value was succesfully parsed, <c>false</c> otherwise</returns>
         public static bool ParseInt(IntPtr ptr, int size, out int value, out int valueSize) {
-            bool dummy;
             ulong result;
 
             unsafe {
-
-                valueSize = SizeToDelimiterOrEnd((byte*)ptr, size, out dummy);
+                valueSize = SizeToDelimiterOrEnd((byte*)ptr, size);
             }
 
             if (Utf8Helper.IntFastParseFromAscii(ptr, valueSize, out result)) {
@@ -135,7 +142,7 @@ namespace Starcounter.Internal.JsonPatch {
 
                     switch (*p) {
                         case (byte)'t':
-                            if (size != 4)
+                            if (size < 4)
                                 break;
 
                             if (p[1] == 'r' && p[2] == 'u' && p[3] == 'e') {
@@ -145,11 +152,13 @@ namespace Starcounter.Internal.JsonPatch {
                             }
                             break;
                         case (byte)'f':
-                            if (size != 5)
-                                if (p[1] == 'a' && p[2] == 'l' && p[3] == 's' && p[4] == 'e') {
-                                    valueSize = 5;
-                                    success = true;
-                                }
+                            if (size < 5)
+                                break;
+
+                            if (p[1] == 'a' && p[2] == 'l' && p[3] == 's' && p[4] == 'e') {
+                                valueSize = 5;
+                                success = true;
+                            }
                             break;
                     }
                 }
@@ -192,13 +201,24 @@ namespace Starcounter.Internal.JsonPatch {
         public static bool ParseString(IntPtr ptr, int size, out string value, out int valueSize) {
             bool needsDecoding;
             byte[] buffer;
+            int extraSize = 0;
 
             unsafe {
                 byte* pfrag = (byte*)ptr;
-                valueSize = SizeToDelimiterOrEnd(pfrag, size, out needsDecoding);
+
+                if (*pfrag == '"') { // Value is enclosed in start and stop quote, "value".
+                    pfrag++;
+                    size--;
+                    extraSize = 2;
+                    valueSize = SizeToDelimiterOrEndString(pfrag, size, out needsDecoding);
+                } else {
+                    needsDecoding = false;
+                    valueSize = SizeToDelimiterOrEnd(pfrag, size);
+                }
+
                 buffer = new byte[valueSize];
                 fixed (byte* pbuf = buffer) {
-                    Intrinsics.MemCpy((void*)pbuf, (void*)ptr, (uint)valueSize);
+                    Intrinsics.MemCpy((void*)pbuf, (void*)pfrag, (uint)valueSize);
                 }
             }
 
@@ -208,6 +228,7 @@ namespace Starcounter.Internal.JsonPatch {
                 value = Encoding.UTF8.GetString(buffer, 0, valueSize);
             }
 
+            valueSize += extraSize;
             return true;
         }
     }

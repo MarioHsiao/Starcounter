@@ -46,12 +46,6 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                 if (child is ActionProperty)
                     continue;
 
-                if (child is AppTemplate) // TODO: Support in codegeneration.
-                    continue;
-
-                if (child is ListingProperty) // TODO: Support in codegeneration.
-                    continue;
-
                 RequestProcessorMetaData rp = new RequestProcessorMetaData();
                 rp.UnpreparedVerbAndUri = child.Name;
                 rp.Code = child;
@@ -119,6 +113,19 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                 CreateCodeNode(cand, nextParent);
             }
 
+            if (nextParent is AstSwitch) {
+                // Add a default case for unknown properties.
+                var dc = new AstCase() {
+                    IsDefault = true,
+                    ParseNode = null,
+                    Parent = nextParent
+                };
+                var fnFail = new AstProcessFail() {
+                    Message = "Property not belonging to this app found in content.",
+                    Parent = dc
+                };
+            }
+
             if (input.HandlerIndex == -1 || input.IsParseTypeNode) {
                 var fnFail = new AstProcessFail() {
                     Parent = df
@@ -154,6 +161,20 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                     foreach (var cand in pn.Candidates) {
                         CreateCodeNode(cand, nextParent);
                     }
+
+                    if (nextParent is AstSwitch) {
+                        // Add a default case for unknown properties.
+                        var dc = new AstCase() {
+                            IsDefault = true,
+                            ParseNode = null,
+                            Parent = nextParent
+                        };
+                        var fnFail = new AstProcessFail() {
+                            Message = "Property not belonging to this app found in content.",
+                            Parent = dc
+                        };
+                    }
+
                     break;
                 case NodeType.Heureka:
                     nextParent = new AstElseIfList(){
@@ -164,6 +185,16 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                     new AstGotoValue() {
                         Parent = nextParent
                     };
+
+                    bool addGotoValue = false;
+                    if (pn.Handler.Code is ListingProperty) {
+                        // If the value to parse is a list we need to add some additional 
+                        // code for looping and checking end of array.
+                        nextParent = new AstWhile() {
+                            Parent = nextParent
+                        };
+                        addGotoValue = true;
+                    } 
 
                     var pj = new AstParseJsonValue() {
                         ParseNode = pn,
@@ -177,6 +208,13 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                         ParseNode = pn,
                         Parent = pj
                     };
+
+                    if (addGotoValue) {
+                        new AstGotoValue() {
+                            Parent = pj,
+                            IsValueArrayObject = true
+                        };
+                    }
 
                     break;
                 case NodeType.TestAllCandidatesNode: 

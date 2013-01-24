@@ -38,7 +38,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         /// <value>The debug string.</value>
         internal override string DebugString {
             get {
-                return GetRPClass().AppClassName + " Deserialize()";
+                return GetRPClass().FullAppClassName + " Deserialize()";
             }
         }
 
@@ -46,7 +46,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         /// Generates C# source code for this abstract syntax tree (AST) node
         /// </summary>
         internal override void GenerateCsCodeForNode() {
-            string appClassName = GetRPClass().AppClassName;
+            string appClassName = GetRPClass().FullAppClassName;
             Prefix.Add("public static " + appClassName + " Deserialize(IntPtr buffer, int bufferSize, out int usedSize) {");
             Prefix.Add("    int valueSize;");
             Prefix.Add("    " + appClassName + " app = new " + appClassName + "();");
