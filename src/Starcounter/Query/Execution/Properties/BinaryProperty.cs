@@ -163,7 +163,7 @@ internal class BinaryProperty : Property, IBinaryPathItem
         return new BinaryProperty(extentNumber, typeBinding, propBinding);
     }
 
-    public override ITypeExpression Clone(VariableArray varArray)
+    public override IValueExpression Clone(VariableArray varArray)
     {
         return CloneToBinary(varArray);
     }

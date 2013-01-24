@@ -179,7 +179,7 @@ internal class ObjectProperty : Property, IObjectPathItem
         return new ObjectProperty(extentNumber, typeBinding, propBinding);
     }
 
-    public override ITypeExpression Clone(VariableArray varArray)
+    public override IValueExpression Clone(VariableArray varArray)
     {
         return CloneToObject(varArray);
     }

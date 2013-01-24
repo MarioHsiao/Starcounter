@@ -16,7 +16,6 @@ using Starcounter.Hosting;
 using Starcounter.Internal; // TODO:
 using Starcounter.Logging;
 using StarcounterInternal.Hosting;
-using Error = Starcounter.Internal.Error;
 using HttpStructs;
 
 namespace StarcounterInternal.Bootstrap
@@ -261,13 +260,13 @@ namespace StarcounterInternal.Bootstrap
                 // Trying to get user arguments if any.
                 String userArgs = null;
                 String[] userArgsArray = null;
-                configuration.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.UserArguments, out userArgs);
+                configuration.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.UserArguments, out userArgs);
                 if (userArgs != null)
                     userArgsArray = userArgs.Split((String[])null, StringSplitOptions.RemoveEmptyEntries);
 
                 // Trying to get explicit working directory.
                 String workingDir = null;
-                configuration.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.WorkingDir, out workingDir);
+                configuration.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.WorkingDir, out workingDir);
 
                 // Loading the given application.
                 Loader.ExecApp(hsched_, configuration.AutoStartExePath, workingDir, userArgsArray);
@@ -333,7 +332,7 @@ namespace StarcounterInternal.Bootstrap
                 // if the event exists and we can access it.
             }
 
-            throw ErrorCode.ToException(Error.SCERRAPPALREADYSTARTED);
+            throw ErrorCode.ToException(Starcounter.Error.SCERRAPPALREADYSTARTED);
         }
 
         /// <summary>
@@ -370,7 +369,7 @@ namespace StarcounterInternal.Bootstrap
             uint slabs = (0xFFFFF000 - 4096) / 4096;  // 4 GB - 4 KB
             ulong hmenv = sccorelib.mh4_menv_create(mem128, slabs);
             if (hmenv != 0) return hmenv;
-            throw ErrorCode.ToException(Error.SCERROUTOFMEMORY);
+            throw ErrorCode.ToException(Starcounter.Error.SCERROUTOFMEMORY);
         }
 
         /// <summary>

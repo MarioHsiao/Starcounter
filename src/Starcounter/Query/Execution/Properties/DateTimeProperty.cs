@@ -163,7 +163,7 @@ internal class DateTimeProperty : Property, IDateTimePathItem
         return new DateTimeProperty(extentNumber, typeBinding, propBinding);
     }
 
-    public override ITypeExpression Clone(VariableArray varArray)
+    public override IValueExpression Clone(VariableArray varArray)
     {
         return CloneToDateTime(varArray);
     }

@@ -150,7 +150,7 @@ internal interface IConditionTreeNode : IQueryObject
 /// Interface for all types of expressions that have a return value of a value type or
 /// an object reference, which includes: literals, properties, paths and operations.
 /// </summary>
-internal interface ITypeExpression : IConditionTreeNode
+internal interface IValueExpression : IConditionTreeNode
 {
     /// <summary>
     /// The DbTypeCode of the value of the expression or the property.
@@ -173,24 +173,24 @@ internal interface ITypeExpression : IConditionTreeNode
     /// </summary>
     /// <param name="varArray">Variables array.</param>
     /// <returns>Clone of the expression.</returns>
-    ITypeExpression Clone(VariableArray varArray);
+    IValueExpression Clone(VariableArray varArray);
 
 #if DEBUG
-    bool AssertEquals(ITypeExpression other);
+    bool AssertEquals(IValueExpression other);
 #endif
 }
 
 /// <summary>
 /// Interface for literals of all data types.
 /// </summary>
-internal interface ILiteral : ITypeExpression
+internal interface ILiteral : IValueExpression
 {
 }
 
 /// <summary>
 /// Interface for variables of all data types.
 /// </summary>
-internal interface IVariable : ITypeExpression
+internal interface IVariable : IValueExpression
 {
     Int32 Number
     {
@@ -237,7 +237,7 @@ internal interface IVariable : ITypeExpression
 /// <summary>
 /// Interface for path expressions of all data types.
 /// </summary>
-internal interface IPath : ITypeExpression
+internal interface IPath : IValueExpression
 {
     /// <summary>
     /// The extent number of the extent to which this path belongs.
@@ -289,7 +289,7 @@ internal interface IMethod : IMember
 /// Interface for numerical expressions which are all expressions of a numerical type
 /// (Decimal, Double, Int64, UInt64).
 /// </summary>
-internal interface INumericalExpression : ITypeExpression
+internal interface INumericalExpression : IValueExpression
 {
     /// <summary>
     /// Calculates the value as a nullable Decimal of the expression when evaluated on an input object.
@@ -402,7 +402,7 @@ internal interface IUIntegerExpression : INumericalExpression
 /// <summary>
 /// Interface for Binary expressions which are all expressions of type Binary.
 /// </summary>
-internal interface IBinaryExpression : ITypeExpression
+internal interface IBinaryExpression : IValueExpression
 {
     /// <summary>
     /// Calculates the value of the expression when evaluated on an input object.
@@ -427,7 +427,7 @@ internal interface IBinaryExpression : ITypeExpression
 /// <summary>
 /// Interface for Boolean expressions which are all expressions of type Boolean.
 /// </summary>
-internal interface IBooleanExpression : ITypeExpression
+internal interface IBooleanExpression : IValueExpression
 {
     /// <summary>
     /// Calculates the value of the expression when evaluated on an input object.
@@ -452,7 +452,7 @@ internal interface IBooleanExpression : ITypeExpression
 /// <summary>
 /// Interface for DateTime expressions which are all expressions of type DateTime.
 /// </summary>
-internal interface IDateTimeExpression : ITypeExpression
+internal interface IDateTimeExpression : IValueExpression
 {
     /// <summary>
     /// Calculates the value of the expression when evaluated on an input object.
@@ -477,7 +477,7 @@ internal interface IDateTimeExpression : ITypeExpression
 /// <summary>
 /// Interface for object expressions which are all expressions of type Object (reference).
 /// </summary>
-internal interface IObjectExpression : ITypeExpression
+internal interface IObjectExpression : IValueExpression
 {
     ITypeBinding TypeBinding
     {
@@ -507,7 +507,7 @@ internal interface IObjectExpression : ITypeExpression
 /// <summary>
 /// Interface for String expressions which are all expressions of type String.
 /// </summary>
-internal interface IStringExpression : ITypeExpression
+internal interface IStringExpression : IValueExpression
 {
     /// <summary>
     /// Calculates the value of the expression when evaluated on an input object.
@@ -675,7 +675,7 @@ internal interface IUIntegerPathItem : IUIntegerExpression
 /// <summary>
 /// Interface for operations of all data types.
 /// </summary>
-internal interface IOperation : ITypeExpression
+internal interface IOperation : IValueExpression
 {
 }
 
@@ -801,7 +801,7 @@ internal interface ISingleComparer : IQueryComparer
     /// <summary>
     /// The expression used for the comparison.
     /// </summary>
-    ITypeExpression Expression
+    IValueExpression Expression
     {
         get;
     }

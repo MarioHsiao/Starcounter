@@ -1,0 +1,6 @@
+﻿{
+	"ServerName": "some Name",
+	"DatabaseDirectory" :"some DatabaseDirectory",
+	"LogDirectory": "some LogDirectory",
+	"TempDirectory": "some TempDirectory"
+}

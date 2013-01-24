@@ -220,6 +220,23 @@ namespace Starcounter.Binding
         }
 
         /// <summary>
+        /// Gets all index infos including base classes.
+        /// </summary>
+        /// <returns>Array of index infos.</returns>
+        internal IndexInfo[] GetAllInheritedIndexInfos() {
+            IndexInfo[] thisInfos = TypeDef.TableDef.GetAllIndexInfos();
+            // Get parent indexes
+            if (TypeDef.BaseName == null)
+                return thisInfos;
+            IndexInfo[] parentInfos = Bindings.GetTypeBinding(TypeDef.BaseName).GetAllInheritedIndexInfos();
+            // Merge into one array
+            IndexInfo[] resultInfos = new IndexInfo[thisInfos.Length + parentInfos.Length];
+            thisInfos.CopyTo(resultInfos, 0);
+            parentInfos.CopyTo(resultInfos, thisInfos.Length);
+            return resultInfos;
+        }
+
+        /// <summary>
         /// Gets the index info.
         /// </summary>
         /// <param name="name">The name.</param>
@@ -227,6 +244,20 @@ namespace Starcounter.Binding
         internal IndexInfo GetIndexInfo(string name)
         {
             return TypeDef.TableDef.GetIndexInfo(name);
+        }
+
+        /// <summary>
+        /// Gets the index info for the given index in this type or its supertypes.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns>IndexInfo.</returns>
+        internal IndexInfo GetInheritedIndexInfo(string name) {
+            IndexInfo indx = TypeDef.TableDef.GetIndexInfo(name);
+            if (indx != null)
+                return indx;
+            if (TypeDef.BaseName == null)
+                return null;
+            return Bindings.GetTypeBinding(TypeDef.BaseName).GetInheritedIndexInfo(name);
         }
 
         /// <summary>
