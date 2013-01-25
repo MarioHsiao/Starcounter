@@ -570,11 +570,11 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     xml_node<> *rootElem = doc.first_node("NetworkGateway");
 
     // Getting local interfaces.
-    xml_node<> *localIpElem = rootElem->first_node("LocalIP");
+    xml_node<> *localIpElem = rootElem->first_node("BindingIP");
     while(localIpElem)
     {
         setting_local_interfaces_.push_back(localIpElem->value());
-        localIpElem = localIpElem->next_sibling("LocalIP");
+        localIpElem = localIpElem->next_sibling("BindingIP");
     }
 
     // Getting workers number.
@@ -830,8 +830,13 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
     sockaddr_in binding_addr;
     memset(&binding_addr, 0, sizeof(sockaddr_in));
     binding_addr.sin_family = AF_INET;
-    binding_addr.sin_addr.s_addr = INADDR_ANY;
     binding_addr.sin_port = htons(port_num);
+
+    // Checking if we have local interfaces to bind.
+    if (g_gateway.setting_local_interfaces().size() > 0)
+        binding_addr.sin_addr.s_addr = inet_addr(g_gateway.setting_local_interfaces().at(0).c_str());
+    else
+        binding_addr.sin_addr.s_addr = INADDR_ANY;
 
     // Binding socket to certain interface and port.
     if (bind(sock, (SOCKADDR*) &binding_addr, sizeof(binding_addr)))
