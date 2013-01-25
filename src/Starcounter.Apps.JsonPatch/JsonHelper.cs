@@ -289,6 +289,47 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="ptr"></param>
         /// <param name="size"></param>
         /// <param name="value"></param>
+        /// <param name="tmpArr"></param>
+        /// <returns></returns>
+        public static int WriteDouble(IntPtr ptr, int size, double value, byte[] tmpArr) {
+            unsafe {
+                byte* pfrag = (byte*)ptr;
+                return WriteStringNoQuotations(pfrag, size, value.ToString(CultureInfo.InvariantCulture), tmpArr);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ptr"></param>
+        /// <param name="size"></param>
+        /// <param name="value"></param>
+        /// <param name="tmpArr"></param>
+        /// <returns></returns>
+        public static int WriteDecimal(IntPtr ptr, int size, decimal value, byte[] tmpArr) {
+            unsafe {
+                byte* pfrag = (byte*)ptr;
+                return WriteStringNoQuotations(pfrag, size, value.ToString(CultureInfo.InvariantCulture), tmpArr);
+            }
+        }
+
+        private unsafe static int WriteStringNoQuotations(byte* pfrag, int size, string valueAsStr, byte[] tmpArr) {
+            int valSize = Encoding.UTF8.GetBytes(valueAsStr, 0, valueAsStr.Length, tmpArr, 0);
+            if (size < valSize)
+                return -1;
+            fixed (byte* src = tmpArr) {
+                BitsAndBytes.MemCpy(pfrag, src, (uint)valSize);
+            }
+            pfrag += valSize;
+            return valSize;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ptr"></param>
+        /// <param name="size"></param>
+        /// <param name="value"></param>
         /// <returns></returns>
         public static int WriteInt(IntPtr ptr, int size, int value) {
             unsafe {
