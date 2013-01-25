@@ -21,6 +21,8 @@ public partial class TestMessage {
     public String Password { get { return GetValue(Template.Password); } set { SetValue(Template.Password, value); } }
     public TestMessage.ChildApp Child { get { return GetValue<TestMessage.ChildApp>(Template.Child); } set { SetValue(Template.Child, value); } }
     public Listing<TestMessage.AListApp> AList { get { return GetValue<TestMessage.AListApp>(Template.AList); } set { SetValue<TestMessage.AListApp>(Template.AList, value); } }
+    public Decimal ADecimal { get { return GetValue(Template.ADecimal); } set { SetValue(Template.ADecimal, value); } }
+    public Double ADouble { get { return GetValue(Template.ADouble); } set { SetValue(Template.ADouble, value); } }
     public String UserLink { get { return GetValue(Template.UserLink); } set { SetValue(Template.UserLink, value); } }
     public Action User { get { return GetValue(Template.User); } set { SetValue(Template.User, value); } }
     public class ChildApp : App {
@@ -190,6 +192,8 @@ public partial class TestMessage {
             Child = Register<TestMessage.ChildApp.ChildAppTemplate>("Child", "Child");
             AList = Register<ListingProperty<TestMessage.AListApp, TestMessage.AListApp.AListAppTemplate>>("AList", "AList");
             AList.App = TestMessage.AListApp.DefaultTemplate;
+            ADecimal = Register<DecimalProperty>("ADecimal", "ADecimal");
+            ADouble = Register<DoubleProperty>("ADouble", "ADouble");
             UserLink = Register<StringProperty>("UserLink", "UserLink");
             User = Register<ActionProperty>("User", "User");
         }
@@ -199,6 +203,8 @@ public partial class TestMessage {
         public StringProperty Password;
         public TestMessage.ChildApp.ChildAppTemplate Child;
         public ListingProperty<TestMessage.AListApp, TestMessage.AListApp.AListAppTemplate> AList;
+        public DecimalProperty ADecimal;
+        public DoubleProperty ADouble;
         public StringProperty UserLink;
         public ActionProperty User;
     }
@@ -216,6 +222,10 @@ public partial class TestMessage {
         private TestMessage.ChildApp.ChildAppMetadata __p_Child;
         public ListingMetadata<TestMessage.AListApp, TestMessage.AListApp.AListAppTemplate> AList { get { return __p_AList ?? (__p_AList = new ListingMetadata<TestMessage.AListApp, TestMessage.AListApp.AListAppTemplate>(App, App.Template.AList)); } }
         private ListingMetadata<TestMessage.AListApp, TestMessage.AListApp.AListAppTemplate> __p_AList;
+        public DecimalMetadata ADecimal { get { return __p_ADecimal ?? (__p_ADecimal = new DecimalMetadata(App, App.Template.ADecimal)); } }
+        private DecimalMetadata __p_ADecimal;
+        public DoubleMetadata ADouble { get { return __p_ADouble ?? (__p_ADouble = new DoubleMetadata(App, App.Template.ADouble)); } }
+        private DoubleMetadata __p_ADouble;
         public StringMetadata UserLink { get { return __p_UserLink ?? (__p_UserLink = new StringMetadata(App, App.Template.UserLink)); } }
         private StringMetadata __p_UserLink;
         public ActionMetadata User { get { return __p_User ?? (__p_User = new ActionMetadata(App, App.Template.User)); } }
@@ -264,6 +274,10 @@ public partial class TestMessage {
             public class ANumber : Input<TestMessage.AListApp, IntProperty, int> {
             }
         }
+        public class ADecimal : Input<TestMessage, DecimalProperty, Decimal> {
+        }
+        public class ADouble : Input<TestMessage, DoubleProperty, Double> {
+        }
         public class UserLink : Input<TestMessage, StringProperty, String> {
         }
         public class User : Input<TestMessage, ActionProperty, Action> {
@@ -277,9 +291,12 @@ public partial class TestMessage {
     private static int VerificationOffset2 = 17; // Password
     private static int VerificationOffset3 = 26; // Child
     private static int VerificationOffset4 = 32; // AList
-    private static int VerificationOffset5 = 38; // UserLink
+    private static int VerificationOffset5 = 38; // ADecimal
+    private static int VerificationOffset6 = 47; // ADouble
+    private static int VerificationOffset7 = 55; // UserLink
+    private static int VerificationOffset8 = 64; // User
     #pragma warning restore 0414
-    private static byte[] VerificationBytes = new byte[] {(byte)'U',(byte)'s',(byte)'e',(byte)'r',(byte)'I',(byte)'d',(byte)'$',(byte)' ',(byte)'U',(byte)'s',(byte)'e',(byte)'r',(byte)'n',(byte)'a',(byte)'m',(byte)'e',(byte)' ',(byte)'P',(byte)'a',(byte)'s',(byte)'s',(byte)'w',(byte)'o',(byte)'r',(byte)'d',(byte)' ',(byte)'C',(byte)'h',(byte)'i',(byte)'l',(byte)'d',(byte)' ',(byte)'A',(byte)'L',(byte)'i',(byte)'s',(byte)'t',(byte)' ',(byte)'U',(byte)'s',(byte)'e',(byte)'r',(byte)'L',(byte)'i',(byte)'n',(byte)'k',(byte)' '};
+    private static byte[] VerificationBytes = new byte[] {(byte)'U',(byte)'s',(byte)'e',(byte)'r',(byte)'I',(byte)'d',(byte)'$',(byte)' ',(byte)'U',(byte)'s',(byte)'e',(byte)'r',(byte)'n',(byte)'a',(byte)'m',(byte)'e',(byte)' ',(byte)'P',(byte)'a',(byte)'s',(byte)'s',(byte)'w',(byte)'o',(byte)'r',(byte)'d',(byte)' ',(byte)'C',(byte)'h',(byte)'i',(byte)'l',(byte)'d',(byte)' ',(byte)'A',(byte)'L',(byte)'i',(byte)'s',(byte)'t',(byte)' ',(byte)'A',(byte)'D',(byte)'e',(byte)'c',(byte)'i',(byte)'m',(byte)'a',(byte)'l',(byte)' ',(byte)'A',(byte)'D',(byte)'o',(byte)'u',(byte)'b',(byte)'l',(byte)'e',(byte)' ',(byte)'U',(byte)'s',(byte)'e',(byte)'r',(byte)'L',(byte)'i',(byte)'n',(byte)'k',(byte)' ',(byte)'U',(byte)'s',(byte)'e',(byte)'r',(byte)' '};
     private static IntPtr PointerVerificationBytes;
 
     static TestMessageJsonSerializer() {
@@ -287,15 +304,199 @@ public partial class TestMessage {
         BitsAndBytes.SlowMemCopy( PointerVerificationBytes, VerificationBytes, (uint)VerificationBytes.Length);
     }
 
-    public static bool Serialize(IntPtr fragment, int size) {
-        return false;
+    public static int Serialize(IntPtr buffer, int bufferSize, TestMessage app) {
+        byte[] tmpArr = new byte[1024];
+        int valSize;
+        unsafe {
+            byte* pfrag = (byte*)buffer;
+            byte* pver = null;
+            int nextSize = bufferSize;
+            if ((nextSize - 2) < 0)
+                throw new Exception("Buffer too small.");
+            nextSize -= 2;
+            *pfrag++ = (byte)'{';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, "UserId$", tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)':';
+            valSize = JsonHelper.WriteInt((IntPtr)pfrag, nextSize, app.UserId);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)',';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, "Username", tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)':';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, app.Username, tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)',';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, "Password", tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)':';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, app.Password, tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)',';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, "Child", tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)':';
+            valSize = ChildAppJsonSerializer.Serialize((IntPtr)pfrag, nextSize, app.Child);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)',';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, "AList", tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)':';
+            if ((nextSize - 2) < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)'[';
+            nextSize -= 2;
+            for(int i = 0; i < app.AList.Count; i++) {
+                var listApp = app.AList[i];
+                valSize = AListAppJsonSerializer.Serialize((IntPtr)pfrag, nextSize, listApp);
+                if (valSize == -1)
+                    throw new Exception("Buffer too small.");
+                nextSize -= valSize;
+                pfrag += valSize;
+                if ((i+1) < app.AList.Count) {
+                    nextSize--;
+                    if (nextSize < 0)
+                        throw new Exception("Buffer too small.");
+                    *pfrag++ = (byte)',';
+                }
+            }
+            *pfrag++ = (byte)']';
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)',';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, "ADecimal", tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)':';
+            valSize = JsonHelper.WriteDecimal((IntPtr)pfrag, nextSize, app.ADecimal, tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)',';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, "ADouble", tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)':';
+            valSize = JsonHelper.WriteDouble((IntPtr)pfrag, nextSize, app.ADouble, tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)',';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, "UserLink", tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)':';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, app.UserLink, tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)',';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, "User", tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)':';
+            valSize = JsonHelper.WriteNull((IntPtr)pfrag, nextSize);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            *pfrag++ = (byte)'}';
+            return (bufferSize - nextSize);
+        }
     }
     public static TestMessage Deserialize(IntPtr buffer, int bufferSize, out int usedSize) {
         int valueSize;
         TestMessage app = new TestMessage();
         unsafe {
             byte* pfrag = (byte*)buffer;
-            byte* pver;
+            byte* pver = null;
             int nextSize = bufferSize;
             while (nextSize > 0) {
                 // Skip until start of next property or end of current object.
@@ -422,7 +623,7 @@ public partial class TestMessage {
                             case (byte)'L':
                                 pfrag++;
                                 nextSize--;
-                                pver = ((byte*)PointerVerificationBytes + VerificationOffset5 + 5);
+                                pver = ((byte*)PointerVerificationBytes + VerificationOffset7 + 5);
                                 nextSize -= 2;
                                 if (nextSize<0 || (*(UInt16*)pfrag) != (*(UInt16*)pver) ) {
                                     throw new Exception("Deserialization failed. Verification failed.");
@@ -452,9 +653,40 @@ public partial class TestMessage {
                                     if (nextSize < 0)
                                          throw new Exception("Deserialization failed.");
                                 }
-                                String val5;
-                                if (JsonHelper.ParseString((IntPtr)pfrag, nextSize, out val5, out valueSize)) {
-                                    app.UserLink = val5;
+                                String val7;
+                                if (JsonHelper.ParseString((IntPtr)pfrag, nextSize, out val7, out valueSize)) {
+                                    app.UserLink = val7;
+                                    nextSize -= valueSize;
+                                    if (nextSize < 0) {
+                                        throw new Exception("Unable to deserialize App. Unexpected end of content");
+                                    }
+                                    pfrag += valueSize;
+                                } else {
+                                    throw new Exception("Unable to deserialize App. Content not compatible.");
+                                }
+                               break;
+                            case (byte)' ':
+                            case (byte)'"':
+                                pfrag++;
+                                nextSize--;
+                                // Skip until start of value to parse.
+                                while (*pfrag != ':') {
+                                    pfrag++;
+                                    nextSize--;
+                                    if (nextSize < 0)
+                                         throw new Exception("Deserialization failed.");
+                                }
+                                pfrag++; // Skip ':' or ','
+                                nextSize--;
+                                if (nextSize < 0)
+                                    throw new Exception("Deserialization failed.");
+                                while (*pfrag == ' ' || *pfrag == '\n' || *pfrag == '\r') {
+                                    pfrag++;
+                                    nextSize--;
+                                    if (nextSize < 0)
+                                         throw new Exception("Deserialization failed.");
+                                }
+                                if (JsonHelper.IsNullValue((IntPtr)pfrag, nextSize, out valueSize)) {
                                     nextSize -= valueSize;
                                     if (nextSize < 0) {
                                         throw new Exception("Unable to deserialize App. Unexpected end of content");
@@ -546,8 +778,7 @@ public partial class TestMessage {
                             if (nextSize < 0)
                                  throw new Exception("Deserialization failed.");
                         }
-                        ChildApp val3;
-                         val3 = ChildAppJsonSerializer.Deserialize((IntPtr)pfrag, nextSize, out valueSize);
+                        var val3 = ChildAppJsonSerializer.Deserialize((IntPtr)pfrag, nextSize, out valueSize);
                             app.Child = val3;
                             nextSize -= valueSize;
                             if (nextSize < 0) {
@@ -558,50 +789,30 @@ public partial class TestMessage {
                     case (byte)'A':
                         pfrag++;
                         nextSize--;
-                        pver = ((byte*)PointerVerificationBytes + VerificationOffset4 + 1);
-                        nextSize -= 4;
-                        if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)pver) ) {
-                            throw new Exception("Deserialization failed. Verification failed.");
-                        }
-                        pfrag += 4;
-                        pver += 4;
-                        // Skip until start of value to parse.
-                        while (*pfrag != ':') {
-                            pfrag++;
-                            nextSize--;
-                            if (nextSize < 0)
-                                 throw new Exception("Deserialization failed.");
-                        }
-                        pfrag++; // Skip ':' or ','
-                        nextSize--;
-                        if (nextSize < 0)
-                            throw new Exception("Deserialization failed.");
-                        while (*pfrag == ' ' || *pfrag == '\n' || *pfrag == '\r') {
-                            pfrag++;
-                            nextSize--;
-                            if (nextSize < 0)
-                                 throw new Exception("Deserialization failed.");
-                        }
-                        while (nextSize > 0) {
-                            AListApp val4;
-                             val4 = AListAppJsonSerializer.Deserialize((IntPtr)pfrag, nextSize, out valueSize);
-                                app.AList.Add(val4);
-                                nextSize -= valueSize;
-                                if (nextSize < 0) {
-                                    throw new Exception("Unable to deserialize App. Unexpected end of content");
+                        switch (*pfrag) {
+                            case (byte)'L':
+                                pfrag++;
+                                nextSize--;
+                                pver = ((byte*)PointerVerificationBytes + VerificationOffset4 + 2);
+                                nextSize -= 2;
+                                if (nextSize<0 || (*(UInt16*)pfrag) != (*(UInt16*)pver) ) {
+                                    throw new Exception("Deserialization failed. Verification failed.");
                                 }
-                                pfrag += valueSize;
+                                pfrag += 2;
+                                pver += 2;
+                                nextSize --;
+                                if (nextSize<0 || (*pfrag) != (*pver) ) {
+                                    throw new Exception("Deserialization failed. Verification failed.");
+                                }
+                                pfrag++;
+                                pver++;
                                 // Skip until start of value to parse.
-                                while (*pfrag != ',') {
-                                    if (*pfrag == ']')
-                                        break;
+                                while (*pfrag != ':') {
                                     pfrag++;
                                     nextSize--;
                                     if (nextSize < 0)
                                          throw new Exception("Deserialization failed.");
                                 }
-                                if (*pfrag == ']')
-                                    break;
                                 pfrag++; // Skip ':' or ','
                                 nextSize--;
                                 if (nextSize < 0)
@@ -612,6 +823,141 @@ public partial class TestMessage {
                                     if (nextSize < 0)
                                          throw new Exception("Deserialization failed.");
                                 }
+                                if (*pfrag++ == '[') {
+                                    nextSize--;
+                                    while (*pfrag != '{' && *pfrag != ']') { // find first object or end of array
+                                        pfrag++;
+                                        nextSize--;
+                                    }
+                                    if (*pfrag != ']') {
+                                    while (nextSize > 0) {
+                                        var val4 = AListAppJsonSerializer.Deserialize((IntPtr)pfrag, nextSize, out valueSize);
+                                            app.AList.Add(val4);
+                                            nextSize -= valueSize;
+                                            if (nextSize < 0) {
+                                                throw new Exception("Unable to deserialize App. Unexpected end of content");
+                                            }
+                                            pfrag += valueSize;
+                                            // Skip until start of value to parse.
+                                            while (*pfrag != ',') {
+                                                if (*pfrag == ']')
+                                                    break;
+                                                pfrag++;
+                                                nextSize--;
+                                                if (nextSize < 0)
+                                                     throw new Exception("Deserialization failed.");
+                                            }
+                                            if (*pfrag == ']')
+                                                break;
+                                            pfrag++; // Skip ':' or ','
+                                            nextSize--;
+                                            if (nextSize < 0)
+                                                throw new Exception("Deserialization failed.");
+                                            while (*pfrag == ' ' || *pfrag == '\n' || *pfrag == '\r') {
+                                                pfrag++;
+                                                nextSize--;
+                                                if (nextSize < 0)
+                                                     throw new Exception("Deserialization failed.");
+                                            }
+                                    }
+                                    }
+                                } else
+                                    throw new Exception("Invalid array value");
+                               break;
+                            case (byte)'D':
+                                pfrag++;
+                                nextSize--;
+                                switch (*pfrag) {
+                                    case (byte)'e':
+                                        pfrag++;
+                                        nextSize--;
+                                        pver = ((byte*)PointerVerificationBytes + VerificationOffset5 + 3);
+                                        nextSize -= 4;
+                                        if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)pver) ) {
+                                            throw new Exception("Deserialization failed. Verification failed.");
+                                        }
+                                        pfrag += 4;
+                                        pver += 4;
+                                        nextSize --;
+                                        if (nextSize<0 || (*pfrag) != (*pver) ) {
+                                            throw new Exception("Deserialization failed. Verification failed.");
+                                        }
+                                        pfrag++;
+                                        pver++;
+                                        // Skip until start of value to parse.
+                                        while (*pfrag != ':') {
+                                            pfrag++;
+                                            nextSize--;
+                                            if (nextSize < 0)
+                                                 throw new Exception("Deserialization failed.");
+                                        }
+                                        pfrag++; // Skip ':' or ','
+                                        nextSize--;
+                                        if (nextSize < 0)
+                                            throw new Exception("Deserialization failed.");
+                                        while (*pfrag == ' ' || *pfrag == '\n' || *pfrag == '\r') {
+                                            pfrag++;
+                                            nextSize--;
+                                            if (nextSize < 0)
+                                                 throw new Exception("Deserialization failed.");
+                                        }
+                                        Decimal val5;
+                                        if (JsonHelper.ParseDecimal((IntPtr)pfrag, nextSize, out val5, out valueSize)) {
+                                            app.ADecimal = val5;
+                                            nextSize -= valueSize;
+                                            if (nextSize < 0) {
+                                                throw new Exception("Unable to deserialize App. Unexpected end of content");
+                                            }
+                                            pfrag += valueSize;
+                                        } else {
+                                            throw new Exception("Unable to deserialize App. Content not compatible.");
+                                        }
+                                       break;
+                                    case (byte)'o':
+                                        pfrag++;
+                                        nextSize--;
+                                        pver = ((byte*)PointerVerificationBytes + VerificationOffset6 + 3);
+                                        nextSize -= 4;
+                                        if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)pver) ) {
+                                            throw new Exception("Deserialization failed. Verification failed.");
+                                        }
+                                        pfrag += 4;
+                                        pver += 4;
+                                        // Skip until start of value to parse.
+                                        while (*pfrag != ':') {
+                                            pfrag++;
+                                            nextSize--;
+                                            if (nextSize < 0)
+                                                 throw new Exception("Deserialization failed.");
+                                        }
+                                        pfrag++; // Skip ':' or ','
+                                        nextSize--;
+                                        if (nextSize < 0)
+                                            throw new Exception("Deserialization failed.");
+                                        while (*pfrag == ' ' || *pfrag == '\n' || *pfrag == '\r') {
+                                            pfrag++;
+                                            nextSize--;
+                                            if (nextSize < 0)
+                                                 throw new Exception("Deserialization failed.");
+                                        }
+                                        Double val6;
+                                        if (JsonHelper.ParseDouble((IntPtr)pfrag, nextSize, out val6, out valueSize)) {
+                                            app.ADouble = val6;
+                                            nextSize -= valueSize;
+                                            if (nextSize < 0) {
+                                                throw new Exception("Unable to deserialize App. Unexpected end of content");
+                                            }
+                                            pfrag += valueSize;
+                                        } else {
+                                            throw new Exception("Unable to deserialize App. Content not compatible.");
+                                        }
+                                       break;
+                                    default:
+                                        throw new Exception("Property not belonging to this app found in content.");
+                                }
+                               break;
+                            default:
+                                throw new Exception("Property not belonging to this app found in content.");
                         }
                        break;
                     default:
@@ -627,10 +973,11 @@ public partial class TestMessage {
 
     #pragma warning disable 0414
     private static int VerificationOffset0 = 0; // ChildName
-    private static int VerificationOffset1 = 10; // ASubApp
-    private static int VerificationOffset2 = 18; // ASubApp2
+    private static int VerificationOffset1 = 10; // Button
+    private static int VerificationOffset2 = 17; // ASubApp
+    private static int VerificationOffset3 = 25; // ASubApp2
     #pragma warning restore 0414
-    private static byte[] VerificationBytes = new byte[] {(byte)'C',(byte)'h',(byte)'i',(byte)'l',(byte)'d',(byte)'N',(byte)'a',(byte)'m',(byte)'e',(byte)' ',(byte)'A',(byte)'S',(byte)'u',(byte)'b',(byte)'A',(byte)'p',(byte)'p',(byte)' ',(byte)'A',(byte)'S',(byte)'u',(byte)'b',(byte)'A',(byte)'p',(byte)'p',(byte)'2',(byte)' '};
+    private static byte[] VerificationBytes = new byte[] {(byte)'C',(byte)'h',(byte)'i',(byte)'l',(byte)'d',(byte)'N',(byte)'a',(byte)'m',(byte)'e',(byte)' ',(byte)'B',(byte)'u',(byte)'t',(byte)'t',(byte)'o',(byte)'n',(byte)' ',(byte)'A',(byte)'S',(byte)'u',(byte)'b',(byte)'A',(byte)'p',(byte)'p',(byte)' ',(byte)'A',(byte)'S',(byte)'u',(byte)'b',(byte)'A',(byte)'p',(byte)'p',(byte)'2',(byte)' '};
     private static IntPtr PointerVerificationBytes;
 
     static ChildAppJsonSerializer() {
@@ -638,15 +985,95 @@ public partial class TestMessage {
         BitsAndBytes.SlowMemCopy( PointerVerificationBytes, VerificationBytes, (uint)VerificationBytes.Length);
     }
 
-    public static bool Serialize(IntPtr fragment, int size) {
-        return false;
+    public static int Serialize(IntPtr buffer, int bufferSize, ChildApp app) {
+        byte[] tmpArr = new byte[1024];
+        int valSize;
+        unsafe {
+            byte* pfrag = (byte*)buffer;
+            byte* pver = null;
+            int nextSize = bufferSize;
+            if ((nextSize - 2) < 0)
+                throw new Exception("Buffer too small.");
+            nextSize -= 2;
+            *pfrag++ = (byte)'{';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, "ChildName", tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)':';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, app.ChildName, tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)',';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, "Button", tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)':';
+            valSize = JsonHelper.WriteNull((IntPtr)pfrag, nextSize);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)',';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, "ASubApp", tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)':';
+            valSize = ASubAppAppJsonSerializer.Serialize((IntPtr)pfrag, nextSize, app.ASubApp);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)',';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, "ASubApp2", tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)':';
+            valSize = ASubApp2AppJsonSerializer.Serialize((IntPtr)pfrag, nextSize, app.ASubApp2);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            *pfrag++ = (byte)'}';
+            return (bufferSize - nextSize);
+        }
     }
     public static ChildApp Deserialize(IntPtr buffer, int bufferSize, out int usedSize) {
         int valueSize;
         ChildApp app = new ChildApp();
         unsafe {
             byte* pfrag = (byte*)buffer;
-            byte* pver;
+            byte* pver = null;
             int nextSize = bufferSize;
             while (nextSize > 0) {
                 // Skip until start of next property or end of current object.
@@ -708,10 +1135,53 @@ public partial class TestMessage {
                             throw new Exception("Unable to deserialize App. Content not compatible.");
                         }
                        break;
-                    case (byte)'A':
+                    case (byte)'B':
                         pfrag++;
                         nextSize--;
                         pver = ((byte*)PointerVerificationBytes + VerificationOffset1 + 1);
+                        nextSize -= 4;
+                        if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)pver) ) {
+                            throw new Exception("Deserialization failed. Verification failed.");
+                        }
+                        pfrag += 4;
+                        pver += 4;
+                        nextSize --;
+                        if (nextSize<0 || (*pfrag) != (*pver) ) {
+                            throw new Exception("Deserialization failed. Verification failed.");
+                        }
+                        pfrag++;
+                        pver++;
+                        // Skip until start of value to parse.
+                        while (*pfrag != ':') {
+                            pfrag++;
+                            nextSize--;
+                            if (nextSize < 0)
+                                 throw new Exception("Deserialization failed.");
+                        }
+                        pfrag++; // Skip ':' or ','
+                        nextSize--;
+                        if (nextSize < 0)
+                            throw new Exception("Deserialization failed.");
+                        while (*pfrag == ' ' || *pfrag == '\n' || *pfrag == '\r') {
+                            pfrag++;
+                            nextSize--;
+                            if (nextSize < 0)
+                                 throw new Exception("Deserialization failed.");
+                        }
+                        if (JsonHelper.IsNullValue((IntPtr)pfrag, nextSize, out valueSize)) {
+                            nextSize -= valueSize;
+                            if (nextSize < 0) {
+                                throw new Exception("Unable to deserialize App. Unexpected end of content");
+                            }
+                            pfrag += valueSize;
+                        } else {
+                            throw new Exception("Unable to deserialize App. Content not compatible.");
+                        }
+                       break;
+                    case (byte)'A':
+                        pfrag++;
+                        nextSize--;
+                        pver = ((byte*)PointerVerificationBytes + VerificationOffset2 + 1);
                         nextSize -= 4;
                         if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)pver) ) {
                             throw new Exception("Deserialization failed. Verification failed.");
@@ -726,7 +1196,7 @@ public partial class TestMessage {
                         pver += 2;
                         switch (*pfrag) {
                             case (byte)' ':
-                            case (byte)'\r':
+                            case (byte)'"':
                                 pfrag++;
                                 nextSize--;
                                 // Skip until start of value to parse.
@@ -746,9 +1216,8 @@ public partial class TestMessage {
                                     if (nextSize < 0)
                                          throw new Exception("Deserialization failed.");
                                 }
-                                ChildApp.ASubAppApp val1;
-                                 val1 = ASubAppAppJsonSerializer.Deserialize((IntPtr)pfrag, nextSize, out valueSize);
-                                    app.ASubApp = val1;
+                                var val2 = ASubAppAppJsonSerializer.Deserialize((IntPtr)pfrag, nextSize, out valueSize);
+                                    app.ASubApp = val2;
                                     nextSize -= valueSize;
                                     if (nextSize < 0) {
                                         throw new Exception("Unable to deserialize App. Unexpected end of content");
@@ -775,9 +1244,8 @@ public partial class TestMessage {
                                     if (nextSize < 0)
                                          throw new Exception("Deserialization failed.");
                                 }
-                                ChildApp.ASubApp2App val2;
-                                 val2 = ASubApp2AppJsonSerializer.Deserialize((IntPtr)pfrag, nextSize, out valueSize);
-                                    app.ASubApp2 = val2;
+                                var val3 = ASubApp2AppJsonSerializer.Deserialize((IntPtr)pfrag, nextSize, out valueSize);
+                                    app.ASubApp2 = val3;
                                     nextSize -= valueSize;
                                     if (nextSize < 0) {
                                         throw new Exception("Unable to deserialize App. Unexpected end of content");
@@ -810,15 +1278,41 @@ public partial class TestMessage {
         BitsAndBytes.SlowMemCopy( PointerVerificationBytes, VerificationBytes, (uint)VerificationBytes.Length);
     }
 
-    public static bool Serialize(IntPtr fragment, int size) {
-        return false;
+    public static int Serialize(IntPtr buffer, int bufferSize, ChildApp.ASubAppApp app) {
+        byte[] tmpArr = new byte[1024];
+        int valSize;
+        unsafe {
+            byte* pfrag = (byte*)buffer;
+            byte* pver = null;
+            int nextSize = bufferSize;
+            if ((nextSize - 2) < 0)
+                throw new Exception("Buffer too small.");
+            nextSize -= 2;
+            *pfrag++ = (byte)'{';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, "IsInnerApp", tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)':';
+            valSize = JsonHelper.WriteBool((IntPtr)pfrag, nextSize, app.IsInnerApp);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            *pfrag++ = (byte)'}';
+            return (bufferSize - nextSize);
+        }
     }
     public static ChildApp.ASubAppApp Deserialize(IntPtr buffer, int bufferSize, out int usedSize) {
         int valueSize;
         ChildApp.ASubAppApp app = new ChildApp.ASubAppApp();
         unsafe {
             byte* pfrag = (byte*)buffer;
-            byte* pver;
+            byte* pver = null;
             int nextSize = bufferSize;
             while (nextSize > 0) {
                 // Skip until start of next property or end of current object.
@@ -901,15 +1395,73 @@ public partial class TestMessage {
         BitsAndBytes.SlowMemCopy( PointerVerificationBytes, VerificationBytes, (uint)VerificationBytes.Length);
     }
 
-    public static bool Serialize(IntPtr fragment, int size) {
-        return false;
+    public static int Serialize(IntPtr buffer, int bufferSize, ChildApp.ASubApp2App app) {
+        byte[] tmpArr = new byte[1024];
+        int valSize;
+        unsafe {
+            byte* pfrag = (byte*)buffer;
+            byte* pver = null;
+            int nextSize = bufferSize;
+            if ((nextSize - 2) < 0)
+                throw new Exception("Buffer too small.");
+            nextSize -= 2;
+            *pfrag++ = (byte)'{';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, "IsInnerApp", tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)':';
+            valSize = JsonHelper.WriteBool((IntPtr)pfrag, nextSize, app.IsInnerApp);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)',';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, "ASubList", tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)':';
+            if ((nextSize - 2) < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)'[';
+            nextSize -= 2;
+            for(int i = 0; i < app.ASubList.Count; i++) {
+                var listApp = app.ASubList[i];
+                valSize = ASubListAppJsonSerializer.Serialize((IntPtr)pfrag, nextSize, listApp);
+                if (valSize == -1)
+                    throw new Exception("Buffer too small.");
+                nextSize -= valSize;
+                pfrag += valSize;
+                if ((i+1) < app.ASubList.Count) {
+                    nextSize--;
+                    if (nextSize < 0)
+                        throw new Exception("Buffer too small.");
+                    *pfrag++ = (byte)',';
+                }
+            }
+            *pfrag++ = (byte)']';
+            *pfrag++ = (byte)'}';
+            return (bufferSize - nextSize);
+        }
     }
     public static ChildApp.ASubApp2App Deserialize(IntPtr buffer, int bufferSize, out int usedSize) {
         int valueSize;
         ChildApp.ASubApp2App app = new ChildApp.ASubApp2App();
         unsafe {
             byte* pfrag = (byte*)buffer;
-            byte* pver;
+            byte* pver = null;
             int nextSize = bufferSize;
             while (nextSize > 0) {
                 // Skip until start of next property or end of current object.
@@ -1016,37 +1568,46 @@ public partial class TestMessage {
                             if (nextSize < 0)
                                  throw new Exception("Deserialization failed.");
                         }
-                        while (nextSize > 0) {
-                            ChildApp.ASubApp2App.ASubListApp val1;
-                             val1 = ASubListAppJsonSerializer.Deserialize((IntPtr)pfrag, nextSize, out valueSize);
-                                app.ASubList.Add(val1);
-                                nextSize -= valueSize;
-                                if (nextSize < 0) {
-                                    throw new Exception("Unable to deserialize App. Unexpected end of content");
-                                }
-                                pfrag += valueSize;
-                                // Skip until start of value to parse.
-                                while (*pfrag != ',') {
+                        if (*pfrag++ == '[') {
+                            nextSize--;
+                            while (*pfrag != '{' && *pfrag != ']') { // find first object or end of array
+                                pfrag++;
+                                nextSize--;
+                            }
+                            if (*pfrag != ']') {
+                            while (nextSize > 0) {
+                                var val1 = ASubListAppJsonSerializer.Deserialize((IntPtr)pfrag, nextSize, out valueSize);
+                                    app.ASubList.Add(val1);
+                                    nextSize -= valueSize;
+                                    if (nextSize < 0) {
+                                        throw new Exception("Unable to deserialize App. Unexpected end of content");
+                                    }
+                                    pfrag += valueSize;
+                                    // Skip until start of value to parse.
+                                    while (*pfrag != ',') {
+                                        if (*pfrag == ']')
+                                            break;
+                                        pfrag++;
+                                        nextSize--;
+                                        if (nextSize < 0)
+                                             throw new Exception("Deserialization failed.");
+                                    }
                                     if (*pfrag == ']')
                                         break;
-                                    pfrag++;
+                                    pfrag++; // Skip ':' or ','
                                     nextSize--;
                                     if (nextSize < 0)
-                                         throw new Exception("Deserialization failed.");
-                                }
-                                if (*pfrag == ']')
-                                    break;
-                                pfrag++; // Skip ':' or ','
-                                nextSize--;
-                                if (nextSize < 0)
-                                    throw new Exception("Deserialization failed.");
-                                while (*pfrag == ' ' || *pfrag == '\n' || *pfrag == '\r') {
-                                    pfrag++;
-                                    nextSize--;
-                                    if (nextSize < 0)
-                                         throw new Exception("Deserialization failed.");
-                                }
-                        }
+                                        throw new Exception("Deserialization failed.");
+                                    while (*pfrag == ' ' || *pfrag == '\n' || *pfrag == '\r') {
+                                        pfrag++;
+                                        nextSize--;
+                                        if (nextSize < 0)
+                                             throw new Exception("Deserialization failed.");
+                                    }
+                            }
+                            }
+                        } else
+                            throw new Exception("Invalid array value");
                        break;
                     default:
                         throw new Exception("Property not belonging to this app found in content.");
@@ -1070,15 +1631,41 @@ public partial class TestMessage {
         BitsAndBytes.SlowMemCopy( PointerVerificationBytes, VerificationBytes, (uint)VerificationBytes.Length);
     }
 
-    public static bool Serialize(IntPtr fragment, int size) {
-        return false;
+    public static int Serialize(IntPtr buffer, int bufferSize, ChildApp.ASubApp2App.ASubListApp app) {
+        byte[] tmpArr = new byte[1024];
+        int valSize;
+        unsafe {
+            byte* pfrag = (byte*)buffer;
+            byte* pver = null;
+            int nextSize = bufferSize;
+            if ((nextSize - 2) < 0)
+                throw new Exception("Buffer too small.");
+            nextSize -= 2;
+            *pfrag++ = (byte)'{';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, "Huh", tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)':';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, app.Huh, tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            *pfrag++ = (byte)'}';
+            return (bufferSize - nextSize);
+        }
     }
     public static ChildApp.ASubApp2App.ASubListApp Deserialize(IntPtr buffer, int bufferSize, out int usedSize) {
         int valueSize;
         ChildApp.ASubApp2App.ASubListApp app = new ChildApp.ASubApp2App.ASubListApp();
         unsafe {
             byte* pfrag = (byte*)buffer;
-            byte* pver;
+            byte* pver = null;
             int nextSize = bufferSize;
             while (nextSize > 0) {
                 // Skip until start of next property or end of current object.
@@ -1161,15 +1748,59 @@ public partial class TestMessage {
         BitsAndBytes.SlowMemCopy( PointerVerificationBytes, VerificationBytes, (uint)VerificationBytes.Length);
     }
 
-    public static bool Serialize(IntPtr fragment, int size) {
-        return false;
+    public static int Serialize(IntPtr buffer, int bufferSize, AListApp app) {
+        byte[] tmpArr = new byte[1024];
+        int valSize;
+        unsafe {
+            byte* pfrag = (byte*)buffer;
+            byte* pver = null;
+            int nextSize = bufferSize;
+            if ((nextSize - 2) < 0)
+                throw new Exception("Buffer too small.");
+            nextSize -= 2;
+            *pfrag++ = (byte)'{';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, "AValue", tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)':';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, app.AValue, tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)',';
+            valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, "ANumber", tmpArr);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            nextSize--;
+            if (nextSize < 0)
+                throw new Exception("Buffer too small.");
+            *pfrag++ = (byte)':';
+            valSize = JsonHelper.WriteInt((IntPtr)pfrag, nextSize, app.ANumber);
+            if (valSize == -1)
+                throw new Exception("Buffer too small.");
+            nextSize -= valSize;
+            pfrag += valSize;
+            *pfrag++ = (byte)'}';
+            return (bufferSize - nextSize);
+        }
     }
     public static AListApp Deserialize(IntPtr buffer, int bufferSize, out int usedSize) {
         int valueSize;
         AListApp app = new AListApp();
         unsafe {
             byte* pfrag = (byte*)buffer;
-            byte* pver;
+            byte* pver = null;
             int nextSize = bufferSize;
             while (nextSize > 0) {
                 // Skip until start of next property or end of current object.

@@ -4,7 +4,7 @@
     "Password":   "apapapa",
   
     "Child": {
-        "ChildName":"",
+        "ChildName":"Nisse",
         "Button": null,
         "ASubApp":{ "IsInnerApp": true },
         "ASubApp2": { 
@@ -28,6 +28,8 @@
             "ANumber": 1337
         }
     ],
+    "ADecimal": 23.90,
+    "ADouble": 2e4,
     "UserLink": "/users/admin",
     "User": null
 }
