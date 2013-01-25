@@ -570,11 +570,11 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     xml_node<> *rootElem = doc.first_node("NetworkGateway");
 
     // Getting local interfaces.
-    xml_node<> *localIpElem = rootElem->first_node("LocalIP");
+    xml_node<> *localIpElem = rootElem->first_node("BindingIP");
     while(localIpElem)
     {
         setting_local_interfaces_.push_back(localIpElem->value());
-        localIpElem = localIpElem->next_sibling("LocalIP");
+        localIpElem = localIpElem->next_sibling("BindingIP");
     }
 
     // Getting workers number.
@@ -830,8 +830,13 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
     sockaddr_in binding_addr;
     memset(&binding_addr, 0, sizeof(sockaddr_in));
     binding_addr.sin_family = AF_INET;
-    binding_addr.sin_addr.s_addr = INADDR_ANY;
     binding_addr.sin_port = htons(port_num);
+
+    // Checking if we have local interfaces to bind.
+    if (g_gateway.setting_local_interfaces().size() > 0)
+        binding_addr.sin_addr.s_addr = inet_addr(g_gateway.setting_local_interfaces().at(0).c_str());
+    else
+        binding_addr.sin_addr.s_addr = INADDR_ANY;
 
     // Binding socket to certain interface and port.
     if (bind(sock, (SOCKADDR*) &binding_addr, sizeof(binding_addr)))
@@ -2542,16 +2547,23 @@ bool Gateway::CheckConfirmedEchoResponses(GatewayWorker* gw)
 uint32_t Gateway::ShutdownTest(GatewayWorker* gw, bool success)
 {
     // Checking if we are on the build server.
-    bool is_on_build_server = (NULL != std::getenv("SC_RUNNING_ON_BUILD_SERVER"));
+    char* envvar_str = std::getenv("SC_RUNNING_ON_BUILD_SERVER");
+    bool is_on_build_server = false;
+    if (envvar_str)
+    {
+        // Checking for exactly True value.
+        if (0 == strcmp(envvar_str, "True"))
+            is_on_build_server = true;
+    }
 
     if (success)
     {
+        GW_COUT << "Echo test finished successfully!" << GW_ENDL;
+
         int64_t test_finish_time = timeGetTime();
 
         // Test finished successfully, printing the results.
         int64_t ops_per_second = GetAverageOpsPerSecond();
-
-        GW_COUT << "Echo test finished successfully!" << GW_ENDL;
 
         GW_COUT << "Average number of ops per second: " << ops_per_second <<
             ". Took " << test_finish_time - test_begin_time_ << " ms." << GW_ENDL;

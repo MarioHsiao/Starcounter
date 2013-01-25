@@ -1,0 +1,183 @@
+﻿<pages:BasePage x:Class="Starcounter.InstallerWPF.Pages.DeveloperToolsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:pages="clr-namespace:Starcounter.InstallerWPF.Pages"
+    xmlns:rules="clr-namespace:Starcounter.InstallerWPF.Rules"
+    xmlns:converters="clr-namespace:Starcounter.InstallerWPF.Converters"
+    DisplayName="Developer Tools"
+>
+
+
+
+    <pages:BasePage.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter"/>
+        <converters:CommandToVisibilityConverter x:Key="commandToVisibilityConverter"/>
+        <converters:CommandToBackgroundConverter x:Key="commandToBackgroundConverter" />
+        <converters:IsCheckedConverter x:Key="isCheckedConverter"/>
+        <converters:ScrollBarVisibilityToPadding x:Key="scrollBarVisibilityToPadding" />
+    </pages:BasePage.Resources>
+
+
+
+    <pages:BasePage.Content>
+
+
+
+        <Grid Style="{DynamicResource PagePanel_Style}">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header + Content -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="{Binding RelativeSource={RelativeSource self}, Path=ComputedVerticalScrollBarVisibility, Converter={StaticResource scrollBarVisibilityToPadding}}">
+
+                <Grid >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <GroupBox Style="{DynamicResource PageHeaderGroupBoxStyle}">
+                        <GroupBox.Header>
+                            <TextBlock  Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type pages:BasePage}},Path=DisplayName}" Style="{DynamicResource PageHeaderTitleStyle}"/>
+                        </GroupBox.Header>
+
+                        <Grid>
+
+                            <!-- Add Components header text -->
+                            <TextBlock Text="Select the components you want to install" Visibility="{Binding Path=MainWindow.SetupOptions, Source={x:Static Application.Current}, Converter={StaticResource commandToVisibilityConverter}, ConverterParameter=ADDCOMPONENTS}" Style="{DynamicResource PageHeaderDescriptionStyle}"/>
+
+                            <!-- Remove Components header text -->
+                            <TextBlock Text="Select the components you want to uninstall" Visibility="{Binding Path=MainWindow.SetupOptions, Source={x:Static Application.Current}, Converter={StaticResource commandToVisibilityConverter}, ConverterParameter=REMOVECOMPONENTS}" Style="{DynamicResource PageHeaderDescriptionStyle}"/>
+
+                        </Grid>
+
+                    </GroupBox>
+
+                    <!-- Content -->
+                    <Grid Grid.Row="1" Style="{DynamicResource Page_Content_Panel_Style}">
+
+                        <!-- VisualStudio 2010 Extension -->
+                        <StackPanel Margin="0,7.5,0,7.5"  Grid.IsSharedSizeScope="True" DataContext="{Binding Components[VisualStudio2010Integration]}">
+
+                            <!--<CheckBox IsChecked="{Binding ExecuteCommand}" IsEnabled="{Binding IsExecuteCommandEnabled}" Background="{Binding Path=Command, Converter={StaticResource commandToBackgroundConverter}}" Style="{DynamicResource BigCheckBoxStyle}">-->
+
+                            <CheckBox IsEnabled="{Binding IsExecuteCommandEnabled}" Background="{Binding Path=Command, Converter={StaticResource commandToBackgroundConverter}}" Style="{DynamicResource BigCheckBoxStyle}">
+
+                                <CheckBox.IsChecked>
+                                    <MultiBinding Converter="{StaticResource isCheckedConverter}">
+                                        <Binding  Path="IsExecuteCommandEnabled" Mode="OneWay"/>
+                                        <Binding  Path="ExecuteCommand" Mode="TwoWay"/>
+                                    </MultiBinding>
+                                </CheckBox.IsChecked>
+
+                                <StackPanel Orientation="Horizontal" >
+                                    <Label  Padding="0" Margin="0" Content="_VisualStudio 2010 Extension" />
+                                    <Image  Margin="8,1,0,0"  HorizontalAlignment="Left" Width="20" Height="20" Source="..\resources\16x16\VisualStudio2010.png" VerticalAlignment="Top"/>
+
+                                    <TextBlock  Margin="7.5,0,0,0" Text="{Binding Comment}" />
+                                </StackPanel>
+
+                            </CheckBox>
+
+                            <Grid >
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="Box" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,0">
+
+                                    <!-- Header Description -->
+                                    <TextBlock Style="{DynamicResource ComponentDescription}">
+                                                Starcounter for Visual Studio 2010 is a Visual Studio extension designed to make it easy to develop Starcounter applications from within Visual Studio.
+                                                <Hyperlink CommandParameter="http://www.starcounter.com/wiki/Starcounter_Visual_Studio_extension" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>
+                                    </TextBlock>
+
+                                </StackPanel>
+
+                            </Grid>
+
+                        </StackPanel>
+
+                        <!-- VisualStudio 2012 Extension -->
+                        <StackPanel Margin="0,100,0,7.5"  Grid.IsSharedSizeScope="True" DataContext="{Binding Components[VisualStudio2012Integration]}">
+
+                            <!--<CheckBox IsChecked="{Binding ExecuteCommand}" IsEnabled="{Binding IsExecuteCommandEnabled}" Background="{Binding Path=Command, Converter={StaticResource commandToBackgroundConverter}}" Style="{DynamicResource BigCheckBoxStyle}">-->
+
+                            <CheckBox IsEnabled="{Binding IsExecuteCommandEnabled}" Background="{Binding Path=Command, Converter={StaticResource commandToBackgroundConverter}}" Style="{DynamicResource BigCheckBoxStyle}">
+
+                                <CheckBox.IsChecked>
+                                    <MultiBinding Converter="{StaticResource isCheckedConverter}">
+                                        <Binding  Path="IsExecuteCommandEnabled" Mode="OneWay"/>
+                                        <Binding  Path="ExecuteCommand" Mode="TwoWay"/>
+                                    </MultiBinding>
+                                </CheckBox.IsChecked>
+
+                                <StackPanel Orientation="Horizontal" >
+                                    <Label  Padding="0" Margin="0" Content="_VisualStudio 2012 Extension" />
+                                    <Image  Margin="8,1,0,0"  HorizontalAlignment="Left" Width="20" Height="20" Source="..\resources\16x16\VisualStudio2012.png" VerticalAlignment="Top"/>
+
+                                    <TextBlock  Margin="7.5,0,0,0" Text="{Binding Comment}" />
+                                </StackPanel>
+
+                            </CheckBox>
+
+                            <Grid >
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="Box" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,0">
+
+                                    <!-- Header Description -->
+                                    <TextBlock Style="{DynamicResource ComponentDescription}">
+                                                Starcounter for Visual Studio 2012 is a Visual Studio extension designed to make it easy to develop Starcounter applications from within Visual Studio.
+                                                <Hyperlink CommandParameter="http://www.starcounter.com/wiki/Starcounter_Visual_Studio_extension2012" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>
+                                    </TextBlock>
+
+                                </StackPanel>
+
+                            </Grid>
+
+                        </StackPanel>
+
+
+
+
+                    </Grid>
+
+
+                </Grid>
+
+
+            </ScrollViewer>
+
+            <!-- Button Bar -->
+            <Grid Grid.Row="1"  >
+
+                <GroupBox Style="{DynamicResource PageButtonBar}">
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Margin="2.5,0,2.5,0" Command="NavigationCommands.PreviousPage" Content="_Back" />
+                        <Button Margin="2.5,0,0,0" Command="NavigationCommands.NextPage" IsDefault="True" Content="_Install" Visibility="{Binding Path=MainWindow.SetupOptions, Source={x:Static Application.Current},  Mode=OneWay, Converter={StaticResource commandToVisibilityConverter}, ConverterParameter=ADDCOMPONENTS}" Background="{DynamicResource GreenButtonBackground}"/>
+                        <Button Margin="2.5,0,0,0" Command="NavigationCommands.NextPage" IsDefault="True" Content="_Uninstall" Visibility="{Binding Path=MainWindow.SetupOptions, Source={x:Static Application.Current},  Mode=OneWay, Converter={StaticResource commandToVisibilityConverter}, ConverterParameter=REMOVECOMPONENTS}" Background="{DynamicResource GreenButtonBackground}"/>
+                    </StackPanel>
+
+                </GroupBox>
+
+            </Grid>
+
+        </Grid>
+
+
+    </pages:BasePage.Content>
+
+
+</pages:BasePage>

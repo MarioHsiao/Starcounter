@@ -15,6 +15,11 @@ namespace Starcounter.Internal
         public static class ProgramNames
         {
             /// <summary>
+            /// ScService
+            /// </summary>
+            public const string ScService = "scservice";
+
+            /// <summary>
             /// ScCode
             /// </summary>
             public const string ScCode = "sccode";
@@ -48,6 +53,11 @@ namespace Starcounter.Internal
             /// ScSql
             /// </summary>
             public const string ScSqlParser = "scsqlparser";
+
+            /// <summary>
+            /// Just represents the product name.
+            /// </summary>
+            public const string ProductName = "Starcounter";
         }
 
         /// <summary>
