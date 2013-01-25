@@ -184,6 +184,8 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     WriteAppTemplateMemberPrefix(node as NProperty);
                 else if (node.Parent is NAppMetadata)
                     WriteAppMetadataMemberPrefix(node as NProperty);
+            } else if (node is NAppSerializerClass) {
+                WriteSerializerPrefix(node as NAppSerializerClass);
             }
             foreach (var kid in node.Children) {
                 ProcessNode(kid);
@@ -684,6 +686,9 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
              */
         }
 
+        private static void WriteSerializerPrefix(NAppSerializerClass nas) {
+            nas.Prefix.Add(nas.GetSerializerClassCode());
+        }
 
         /// <summary>
         /// Writes the header of the CSharp file, including using directives.
@@ -702,6 +707,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             h.Append("using System.Collections.Generic;\n");
             h.Append("using Starcounter;\n");
             h.Append("using Starcounter.Internal;\n");
+            h.Append("using Starcounter.Internal.JsonPatch;\n");
             h.Append("using Starcounter.Templates;\n");
             h.Append('\n');
         }
