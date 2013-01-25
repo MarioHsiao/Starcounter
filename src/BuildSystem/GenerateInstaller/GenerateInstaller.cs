@@ -227,7 +227,7 @@ namespace GenerateInstaller
                 }
 
                 // Compiling second time with archive.
-                msbuildInfo.Arguments = Path.Combine(installerWpfFolder, installerWpfProjectName) + " /property:Configuration=" + configuration + ";Platform=" + platform + ";STANDALONE_SETUP=true /target:Build";
+                msbuildInfo.Arguments = Path.Combine(installerWpfFolder, installerWpfProjectName) + " /property:Configuration=" + configuration + ";Platform=" + platform + ";SC_CREATE_STANDALONE_SETUP=True /target:Build";
                 msbuildProcess = Process.Start(msbuildInfo);
                 msbuildProcess.WaitForExit();
                 if (msbuildProcess.ExitCode != 0)

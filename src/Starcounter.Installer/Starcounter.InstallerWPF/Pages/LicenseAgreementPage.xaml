@@ -1,0 +1,80 @@
+﻿<pages:BasePage x:Class="Starcounter.InstallerWPF.Pages.LicenseAgreementPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:main="clr-namespace:Starcounter.InstallerWPF"
+    xmlns:converters="clr-namespace:Starcounter.InstallerWPF.Converters"
+    xmlns:pages="clr-namespace:Starcounter.InstallerWPF.Pages"
+                
+    DisplayName="License Agreement"
+>
+
+    <pages:BasePage.Resources>
+
+        <converters:ScrollBarVisibilityToPadding x:Key="scrollBarVisibilityToPadding" />
+
+    </pages:BasePage.Resources>
+
+
+    <pages:BasePage.CommandBindings>
+        <CommandBinding Command="ApplicationCommands.Print" CanExecute="CanExecute_Print_Command" Executed="Executed_Print_Command"  />
+    </pages:BasePage.CommandBindings>
+
+    <pages:BasePage.Content>
+
+
+        <Grid Style="{DynamicResource PagePanel_Style}">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header + Content -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="{Binding RelativeSource={RelativeSource self}, Path=ComputedVerticalScrollBarVisibility, Converter={StaticResource scrollBarVisibilityToPadding}}">
+
+                <Grid >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <GroupBox Style="{DynamicResource PageHeaderGroupBoxStyle}">
+                        <GroupBox.Header>
+                            <TextBlock  Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type pages:BasePage}},Path=DisplayName}" Style="{DynamicResource PageHeaderTitleStyle}"/>
+                        </GroupBox.Header>
+                        <TextBlock Text="Starcounter Software License Agreement." Style="{DynamicResource PageHeaderDescriptionStyle}"/>
+                    </GroupBox>
+
+                    <!-- Content -->
+                    <Grid Grid.Row="1" Margin="0,7.5,0,7.5">
+                        <Grid  Style="{DynamicResource Page_Content_Panel_Style}" Background="#fff8f8f8">
+                            <FlowDocumentScrollViewer Padding="0"  IsHitTestVisible="False" Foreground="Black" ScrollViewer.VerticalScrollBarVisibility="Hidden"  Zoom="1" x:Name="documentholder" />
+                        </Grid>
+                    </Grid>
+                </Grid>
+
+
+            </ScrollViewer>
+
+            <!-- Button Bar -->
+            <Grid Grid.Row="1"  >
+
+                <GroupBox Style="{DynamicResource PageButtonBar}">
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Margin="2.5,0,2.5,0" Command="ApplicationCommands.Print" Content="_Print"/>
+                        <Button Margin="2.5,0,2.5,0" Command="ApplicationCommands.Close" IsCancel="True" Content="_Reject" Background="{DynamicResource RedButtonBackground}"/>
+                        <Button Margin="2.5,0,2.5,0" Command="NavigationCommands.PreviousPage" Content="_Back" />
+                        <Button Margin="2.5,0,0,0" Command="NavigationCommands.NextPage"  IsDefault="True"  Content="_Accept" Background="{DynamicResource GreenButtonBackground}"/>
+                    </StackPanel>
+
+                </GroupBox>
+
+            </Grid>
+
+        </Grid>
+
+    </pages:BasePage.Content>
+
+</pages:BasePage>
