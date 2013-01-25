@@ -20,7 +20,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         internal override void GenerateCsCodeForNode() {
             Prefix.Add("unsafe {");
             Prefix.Add("    byte* pfrag = (byte*)buffer;");
-            Prefix.Add("    byte* pver;"); // = (byte*)PointerVerificationBytes;");
+            Prefix.Add("    byte* pver = null;");
             Prefix.Add("    int nextSize = bufferSize;");
             Suffix.Add("}");
         }

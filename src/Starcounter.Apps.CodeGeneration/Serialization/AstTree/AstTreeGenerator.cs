@@ -16,16 +16,6 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
     /// Class AstTreeGenerator
     /// </summary>
     internal static class AstTreeGenerator {
-
-        /// <summary>
-        /// Builds the ast tree.
-        /// </summary>
-        /// <param name="parseTree">The parse tree.</param>
-        /// <returns>AstNamespace.</returns>
-        internal static AstJsonSerializerClass BuildAstTree(ParseNode parseTree) {
-            return CreateJsonSerializer(parseTree);
-        }
-
         /// <summary>
         /// 
         /// </summary>
@@ -43,9 +33,6 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         private static List<RequestProcessorMetaData> RegisterTemplatesForApp(AppTemplate appTemplate) {
             List<RequestProcessorMetaData> handlers = new List<RequestProcessorMetaData>();
             foreach (Template child in appTemplate.Children) {
-                if (child is ActionProperty)
-                    continue;
-
                 RequestProcessorMetaData rp = new RequestProcessorMetaData();
                 rp.UnpreparedVerbAndUri = child.Name;
                 rp.Code = child;
@@ -60,29 +47,99 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         /// <param name="input">The input.</param>
         /// <returns>An AstRequestProcessorClass node.</returns>
         internal static AstJsonSerializerClass CreateJsonSerializer(ParseNode input) {
-            AstJsonSerializerClass jsClass;
-            AstNode nextParent;
-
-            jsClass = new AstJsonSerializerClass();
-            jsClass.ParseNode = input;
+            AstJsonSerializerClass jsClass = new AstJsonSerializerClass() {
+                ParseNode = input
+            };
             
             var cons = new AstJSConstructor() {
                 Parent = jsClass,
                 ParseNode = input
             };
 
+            CreateSerializerFunction(input, jsClass);
+            CreateDeserializerFunction(input, jsClass);
+
+            return jsClass;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="jsClass"></param>
+        private static void CreateSerializerFunction(ParseNode input, AstJsonSerializerClass jsClass) {
+            Template template;
+
             var sf = new AstSerializeFunction() {
                 Parent = jsClass
             };
             jsClass.SerializeFunction = sf;
 
-            new AstCodeStatement() {
-                Statement = "return false;",
+            var astu = new AstUnsafe() {
+                ParseNode = input,
                 Parent = sf
             };
 
-            // TODO:
-            // Create the serialize functionality
+            var astObj = new AstWriteObject() {
+                Parent = astu
+            };
+            
+            for (int i = 0; i < input.AllHandlers.Count; i++) {
+                template = (Template)input.AllHandlers[i].Code;
+                
+                new AstWritePropertyName() {
+                    Template = template,
+                    Parent = astObj
+                };
+
+                new AstWriteDelimiter() {
+                    Delimiter = ':',
+                    Parent = astObj
+                };
+
+                if (template is ListingProperty) {
+                    var astArray = new AstWriteArray() {
+                        Parent = astObj
+                    };
+
+                    var astLoop = new AstForLoop() {
+                        Template = template,
+                        Parent = astArray
+                    };
+
+                    new AstWritePropertyValue() {
+                        Template = ((ListingProperty)template).App,
+                        VariableName = "listApp",
+                        Parent = astLoop
+                    };
+                } else {
+                    new AstWritePropertyValue() {
+                        Template = template,
+                        Parent = astObj
+                    };
+                }
+                
+                if ((i + 1) < input.AllHandlers.Count) {
+                    new AstWriteDelimiter() {
+                        Delimiter = ',',
+                        Parent = astObj
+                    };
+                }
+            }
+
+            new AstCodeStatement() {
+                Statement = "return (bufferSize - nextSize);",
+                Parent = astu
+            };
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="jsClass"></param>
+        private static void CreateDeserializerFunction(ParseNode input, AstJsonSerializerClass jsClass) {
+            AstNode nextParent;
 
             var df = new AstDeserializeFunction() {
                 Parent = jsClass
@@ -131,8 +188,6 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                     Parent = df
                 };
             }
-
-            return jsClass;
         }
 
         /// <summary>
@@ -190,8 +245,13 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                     if (pn.Handler.Code is ListingProperty) {
                         // If the value to parse is a list we need to add some additional 
                         // code for looping and checking end of array.
-                        nextParent = new AstWhile() {
+                        nextParent = new AstParseJsonObjectArray() {
                             Parent = nextParent
+                        };
+
+                        nextParent = new AstWhile() {
+                            Parent = nextParent,
+                            Indentation = 8
                         };
                         addGotoValue = true;
                     } 
@@ -200,10 +260,14 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                         ParseNode = pn,
                         Parent = nextParent
                     };
-                    new AstSetValue() {
-                        ParseNode = pn,
-                        Parent = pj
-                    };
+
+                    if (!(pn.Handler.Code is ActionProperty)) {
+                        new AstSetValue() {
+                            ParseNode = pn,
+                            Parent = pj
+                        };
+                    }
+
                     new AstValueJump() {
                         ParseNode = pn,
                         Parent = pj
@@ -217,29 +281,6 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                     }
 
                     break;
-                case NodeType.TestAllCandidatesNode: 
-                    if (parent is AstSwitch) {
-                        // If we are inside a switch-stmt, we make a default case label
-                        // without any jump instead of an elseif (with jump)
-                        parent = new AstCase() {
-                            Parent = parent,
-                            IsDefault = true
-                        };
-                    } else {
-                        parent = new AstElseIfList() {
-                            Parent = parent,
-                            ParseNode = pn
-                        };
-                    }
-
-                    foreach (var kid in pn.Candidates) {
-                        CreateCodeNode(kid, parent);
-                    }
-                    break;
-                case NodeType.RequestProcessorNode:
-                    throw new NotImplementedException("TODO! RequestProcessorNode");
-                    //CreateCallProcessorAndSubRpClass(pn, parent);
-                    //break;
                 default:
                     new AstError() {
                         Parent = parent,

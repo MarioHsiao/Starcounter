@@ -9,26 +9,20 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
-    /// <summary>
-    /// Class AstProcessFunction
-    /// </summary>
     internal class AstSerializeFunction : AstNode {
-        /// <summary>
-        /// Gets the debug string.
-        /// </summary>
-        /// <value>The debug string.</value>
         internal override string DebugString {
             get {
-                return "bool Serialize()";
+                return "bool Serialize(" + AstTreeHelper.GetSerializerClass(this).FullAppClassName + ")";
             }
         }
 
-        /// <summary>
-        /// Generates C# source code for this abstract syntax tree (AST) node
-        /// </summary>
         internal override void GenerateCsCodeForNode() {
+            string fullClassName = AstTreeHelper.GetSerializerClass(this).FullAppClassName;
+
             Prefix.Add("");
-            Prefix.Add("public static bool Serialize(IntPtr fragment, int size) {");
+            Prefix.Add("public static int Serialize(IntPtr buffer, int bufferSize, " + fullClassName + " app) {");
+            Prefix.Add("    byte[] tmpArr = new byte[1024];");
+            Prefix.Add("    int valSize;");
             Suffix.Add("}");
         }
     }

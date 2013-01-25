@@ -14,31 +14,12 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
     /// </summary>
     internal class AstDeserializeFunction : AstNode {
         /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        private AstJsonSerializerClass GetRPClass(){
-            AstNode node;
-            AstJsonSerializerClass rpclass;
-
-            node = Parent;
-            rpclass = null;
-            while (node != null) {
-                rpclass = node as AstJsonSerializerClass;
-                if (rpclass != null)
-                    break;
-                node = node.Parent;
-            }
-            return rpclass;
-        }
-
-        /// <summary>
         /// Gets the debug string.
         /// </summary>
         /// <value>The debug string.</value>
         internal override string DebugString {
             get {
-                return GetRPClass().FullAppClassName + " Deserialize()";
+                return AstTreeHelper.GetSerializerClass(this).FullAppClassName + " Deserialize()";
             }
         }
 
@@ -46,7 +27,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         /// Generates C# source code for this abstract syntax tree (AST) node
         /// </summary>
         internal override void GenerateCsCodeForNode() {
-            string appClassName = GetRPClass().FullAppClassName;
+            string appClassName = AstTreeHelper.GetSerializerClass(this).FullAppClassName;
             Prefix.Add("public static " + appClassName + " Deserialize(IntPtr buffer, int bufferSize, out int usedSize) {");
             Prefix.Add("    int valueSize;");
             Prefix.Add("    " + appClassName + " app = new " + appClassName + "();");

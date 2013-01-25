@@ -100,6 +100,13 @@
     <Compile Include="Serialization\AstTree\AstVerifier.cs" />
     <Compile Include="Serialization\AstTree\AstDeserializeFunction.cs" />
     <Compile Include="Serialization\AstTree\AstWhile.cs" />
+    <Compile Include="Serialization\AstTree\AstWritePropertyName.cs" />
+    <Compile Include="Serialization\AstTree\AstWritePropertyValue.cs" />
+    <Compile Include="Serialization\AstTree\AstWriteDelimiter.cs" />
+    <Compile Include="Serialization\AstTree\AstWriteObject.cs" />
+    <Compile Include="Serialization\AstTree\AstWriteArray.cs" />
+    <Compile Include="Serialization\AstTree\AstForLoop.cs" />
+    <Compile Include="Serialization\AstTree\AstParseJsonObjectArray.cs" />
     <Compile Include="SimpleCodeDom\Core\NConstructor.cs" />
     <Compile Include="SimpleCodeDom\Core\NInputBinding.cs" />
     <Compile Include="SimpleCodeDom\Core\NMetadataClass.cs" />
