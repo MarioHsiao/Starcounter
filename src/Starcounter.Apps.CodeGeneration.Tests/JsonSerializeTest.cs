@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using NUnit.Framework;
+using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Internal.Application.JsonReader;
 using Starcounter.Internal.Uri;
 using Starcounter.Templates;
+using Starcounter.Templates.Interfaces;
 using CodeGen = Starcounter.Internal.Application.CodeGeneration.Serialization;
 
 namespace Starcounter.Apps.CodeGeneration.Tests {
@@ -11,14 +13,34 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
     /// 
     /// </summary>
     public class JsonSerializeTest {
+        [Test]
+        public static void DebugPregeneratedSerializationCode() {
+            //String className = "TestMessage";
+            //CodeBehindMetadata metadata = CodeBehindAnalyzer.Analyze(className, className + ".json.cs");
+
+            //AppTemplate actual = TemplateFromJs.ReadFile(className + ".json");
+            //Assert.IsInstanceOf(typeof(AppTemplate), actual);
+
+            //actual.Namespace = metadata.RootNamespace;
+            //Assert.IsNotNullOrEmpty(actual.Namespace);
+
+
+
+            //CodeGenerationModule codegenmodule = new CodeGenerationModule();
+            //ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator("C#", actual, metadata);
+
+            string generatedCode = System.IO.File.ReadAllText("TestMessage.g.cs");
+            string codebehindCode = System.IO.File.ReadAllText("TestMessage.json.cs");
+            GenereratedJsonCodeCompiler.CompileCode(generatedCode, codebehindCode, "MySampleNamespace.TestMessage");
+        }
+
+
         /// <summary>
         /// Generates the parse tree overview.
         /// </summary>
         [Test]
-        public static void GenerateParseTreeOverview() {
-            AppTemplate template = TemplateFromJs.ReadFile("MySampleApp.json");
-            template.ClassName = "PlayerApp";
-            List<RequestProcessorMetaData> handlers = RegisterTemplatesForApp(template);
+        public static void GenerateSerializationParseTreeOverview() {
+            List<RequestProcessorMetaData> handlers = RegisterTemplatesForApp(CreateAppTemplate());
             Console.WriteLine(ParseTreeGenerator.BuildParseTree(handlers).ToString(false));
         }
 
@@ -26,10 +48,8 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
         /// Generates the parse tree details.
         /// </summary>
         [Test]
-        public static void GenerateParseTreeDetails() {
-            AppTemplate template = TemplateFromJs.ReadFile("simple.json");
-            template.ClassName = "PlayerApp";
-            List<RequestProcessorMetaData> handlers = RegisterTemplatesForApp(template);
+        public static void GenerateSerializationParseTreeDetails() {
+            List<RequestProcessorMetaData> handlers = RegisterTemplatesForApp(CreateAppTemplate());
             Console.WriteLine(ParseTreeGenerator.BuildParseTree(handlers).ToString(true));
         }
 
@@ -37,10 +57,8 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
         /// 
         /// </summary>
         [Test]
-        public static void GenerateAstTreeOverview() {
-            AppTemplate template = TemplateFromJs.ReadFile("simple.json");
-            template.ClassName = "PlayerApp";
-            CodeGen.AstNode astTree = CodeGen.AstTreeGenerator.BuildAstTree(template);
+        public static void GenerateSerializationAstTreeOverview() {
+            CodeGen.AstNode astTree = CodeGen.AstTreeGenerator.BuildAstTree(CreateAppTemplate());
             Console.WriteLine(astTree.ToString());
         }
 
@@ -48,45 +66,20 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
         /// 
         /// </summary>
         [Test]
-        public static void GenerateDeserializationCode() {
-            AppTemplate template = TemplateFromJs.ReadFile("simple.json");
-            template.ClassName = "PlayerApp";
-            CodeGen.AstNode astTree = CodeGen.AstTreeGenerator.BuildAstTree(template);
+        public static void GenerateSerializationCode() {
+            CodeGen.AstNode astTree = CodeGen.AstTreeGenerator.BuildAstTree(CreateAppTemplate());
             Console.WriteLine(astTree.GenerateCsSourceCode());
         }
 
-        /// <summary>
-        /// Creates the sample app.
-        /// </summary>
-        /// <returns>AppAndTemplate.</returns>
-        private static AppAndTemplate CreateSampleApp() {
-            dynamic template = TemplateFromJs.ReadFile("simple.json");
-            dynamic app = new App() { Template = template };
-
-            app.FirstName = "Cliff";
-            app.LastName = "Barnes";
-
-            var itemApp = app.Items.Add();
-            itemApp.Description = "Take a nap!";
-            itemApp.IsDone = false;
-
-            itemApp = app.Items.Add();
-            itemApp.Description = "Fix Apps!";
-            itemApp.IsDone = true;
-
-            return new AppAndTemplate(app, template);
+        private static AppTemplate CreateAppTemplate() {
+            AppTemplate template = TemplateFromJs.ReadFile("TestMessage.json");
+            template.ClassName = "TestMessage";
+            return template;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="appTemplate"></param>
         private static List<RequestProcessorMetaData> RegisterTemplatesForApp(AppTemplate appTemplate) {
             List<RequestProcessorMetaData> handlers = new List<RequestProcessorMetaData>();
             foreach (Template child in appTemplate.Children) {
-                if (child is ActionProperty)
-                    continue;
-
                 RequestProcessorMetaData rp = new RequestProcessorMetaData();
                 rp.UnpreparedVerbAndUri = child.Name;
                 rp.Code = child;
@@ -94,6 +87,28 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
             }
             return handlers;
         }
+
+        ///// <summary>
+        ///// Creates the sample app.
+        ///// </summary>
+        ///// <returns>AppAndTemplate.</returns>
+        //private static AppAndTemplate CreateSampleApp() {
+        //    dynamic template = TemplateFromJs.ReadFile("TestMessage.json");
+        //    dynamic app = new App() { Template = template };
+
+        //    app.FirstName = "Cliff";
+        //    app.LastName = "Barnes";
+
+        //    var itemApp = app.Items.Add();
+        //    itemApp.Description = "Take a nap!";
+        //    itemApp.IsDone = false;
+
+        //    itemApp = app.Items.Add();
+        //    itemApp.Description = "Fix Apps!";
+        //    itemApp.IsDone = true;
+
+        //    return new AppAndTemplate(app, template);
+        //}
     }
 
     /// <summary>
