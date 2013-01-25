@@ -9,6 +9,8 @@ namespace Starcounter.Internal.JsonPatch {
     /// 
     /// </summary>
     public static class JsonHelper {
+        private static byte[] null_value = { (byte)'n', (byte)'u', (byte)'l', (byte)'l' };
+
         private static unsafe int SizeToDelimiterOrEnd(byte* pfrag, int fragmentSize) {
             byte current;
             int index = 0;
@@ -66,7 +68,12 @@ namespace Starcounter.Internal.JsonPatch {
             ulong result;
 
             unsafe {
-                valueSize = SizeToDelimiterOrEnd((byte*)ptr, size);
+                byte* pfrag = (byte*)ptr;
+                valueSize = SizeToDelimiterOrEnd(pfrag, size);
+                if (IsNullValue(pfrag, valueSize)) {
+                    value = 0;
+                    return true;
+                }
             }
 
             if (Utf8Helper.IntFastParseFromAscii(ptr, valueSize, out result)) {
@@ -160,6 +167,14 @@ namespace Starcounter.Internal.JsonPatch {
                                 success = true;
                             }
                             break;
+                        case (byte)'n':
+                            if (size < 4)
+                                break;
+                            if (p[1] == 'u' && p[2] == 'l' && p[3] == 'l') {
+                                valueSize = 4;
+                                success = true;
+                            }
+                            break;
                     }
                 }
             }
@@ -214,6 +229,10 @@ namespace Starcounter.Internal.JsonPatch {
                 } else {
                     needsDecoding = false;
                     valueSize = SizeToDelimiterOrEnd(pfrag, size);
+                    if (IsNullValue(pfrag, valueSize)) {
+                        value = null;
+                        return true;
+                    }
                 }
 
                 buffer = new byte[valueSize];
@@ -230,6 +249,130 @@ namespace Starcounter.Internal.JsonPatch {
 
             valueSize += extraSize;
             return true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ptr"></param>
+        /// <param name="size"></param>
+        /// <param name="value"></param>
+        /// <param name="tmpArr"></param>
+        /// <returns></returns>
+        public static int WriteString(IntPtr ptr, int size, string value, byte[] tmpArr) {
+            int valSize;
+
+            unsafe {
+                byte* pfrag = (byte*)ptr;
+
+                if (value != null) {
+                    valSize = Encoding.UTF8.GetBytes(value, 0, value.Length, tmpArr, 0);
+                    if (size < (valSize + 2))
+                        return -1;
+
+                    *pfrag++ = (byte)'"';
+                    fixed (byte* src = tmpArr) {
+                        BitsAndBytes.MemCpy(pfrag, src, (uint)valSize);
+                    }
+                    pfrag += valSize;
+                    *pfrag = (byte)'"';
+                    return valSize + 2;
+                } else {
+                    return WriteNull(pfrag, size);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ptr"></param>
+        /// <param name="size"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static int WriteInt(IntPtr ptr, int size, int value) {
+            unsafe {
+                byte* p = (byte*)ptr;
+                return (int)Utf8Helper.WriteUIntAsUtf8(p, (uint)value);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ptr"></param>
+        /// <param name="size"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static int WriteBool(IntPtr ptr, int size, bool value) {
+            unsafe {
+                byte* p = (byte*)ptr;
+
+                if (value) {
+                    if (size < 4)
+                        return -1;
+                    *p++ = (byte)'t';
+                    *p++ = (byte)'r';
+                    *p++ = (byte)'u';
+                    *p = (byte)'e';
+                    return 4;
+                } else {
+                    if (size < 5)
+                        return -1;
+                    *p++ = (byte)'f';
+                    *p++ = (byte)'a';
+                    *p++ = (byte)'l';
+                    *p++ = (byte)'s';
+                    *p = (byte)'e';
+                    return 5;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ptr"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
+        public static int WriteNull(IntPtr ptr, int size) {
+            if (size < 4)
+                return -1;
+            unsafe {
+                return WriteNull((byte*)ptr, size);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ptr"></param>
+        /// <param name="size"></param>
+        /// <param name="valueSize"></param>
+        /// <returns></returns>
+        public static bool IsNullValue(IntPtr ptr, int size, out int valueSize) {
+            unsafe {
+                byte* pfrag = (byte*)ptr;
+                valueSize = SizeToDelimiterOrEnd(pfrag, size);
+                return IsNullValue(pfrag, valueSize);
+            }
+        }
+
+        private unsafe static bool IsNullValue(byte* pfrag, int valueSize) {
+            if (valueSize == 4 && pfrag[0] == 'n') {
+                if (pfrag[1] == 'u' && pfrag[2] == 'l' && pfrag[3] == 'l') {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static unsafe int WriteNull(byte* pfrag, int size) {
+            *pfrag++ = (byte)'n';
+            *pfrag++ = (byte)'u';
+            *pfrag++ = (byte)'l';
+            *pfrag++ = (byte)'l';
+            return 4;
         }
     }
 }

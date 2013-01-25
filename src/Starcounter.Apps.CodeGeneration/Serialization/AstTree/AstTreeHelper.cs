@@ -55,5 +55,20 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                 return fullName + '.' + GetAppClassName(template);
             return GetAppClassName(template);
         }
+
+        internal static AstJsonSerializerClass GetSerializerClass(AstNode child) {
+            AstNode node;
+            AstJsonSerializerClass jsClass;
+
+            node = child.Parent;
+            jsClass = null;
+            while (node != null) {
+                jsClass = node as AstJsonSerializerClass;
+                if (jsClass != null)
+                    break;
+                node = node.Parent;
+            }
+            return jsClass;
+        }
     }
 }
