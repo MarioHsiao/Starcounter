@@ -323,6 +323,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 " DefaultTemplate = new " +
                 a.NTemplateClass.ClassName +
                 "();");
+            AddFromJsonFunction(a);
             /*            var sb = new StringBuilder();
 
                         sb.Append("    public ");
@@ -366,6 +367,18 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     parentClass +
                     ")base.Parent; } set { base.Parent = value; } }");
             }
+        }
+
+        private void AddFromJsonFunction(NAppClass a) {
+            a.Prefix.Add("    public static " + a.ClassName + " FromJson(HttpRequest request) {");
+            a.Prefix.Add("        IntPtr contentPtr;");
+            a.Prefix.Add("        uint contentLength;");
+            a.Prefix.Add("        int usedSize;");
+            a.Prefix.Add("        request.GetBodyRaw(out contentPtr, out contentLength);");
+            a.Prefix.Add("        if (contentLength > 0)");
+            a.Prefix.Add("            return " + a.ClassName + "JsonSerializer.Deserialize(contentPtr, (int)contentLength, out usedSize);");
+            a.Prefix.Add("        return null;");
+            a.Prefix.Add("    }");
         }
 
         private NClass GetParentPropertyType(Template a) {
@@ -705,6 +718,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             h.Append("using System;\n");
             h.Append("using System.Collections;\n");
             h.Append("using System.Collections.Generic;\n");
+            h.Append("using HttpStructs;\n");
             h.Append("using Starcounter;\n");
             h.Append("using Starcounter.Internal;\n");
             h.Append("using Starcounter.Internal.JsonPatch;\n");
