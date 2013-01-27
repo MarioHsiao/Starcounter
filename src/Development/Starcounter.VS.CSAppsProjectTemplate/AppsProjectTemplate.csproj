@@ -93,6 +93,10 @@
       <HintPath>$(StarcounterBin)\Starcounter.REST.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="HttpStructs">
+      <HintPath>$(StarcounterBin)\HttpStructs.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Model.cs" />
