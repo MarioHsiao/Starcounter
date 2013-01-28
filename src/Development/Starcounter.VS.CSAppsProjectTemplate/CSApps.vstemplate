@@ -21,6 +21,11 @@
       <ProjectItem ReplaceParameters="true" OpenInEditor="true">Master.json.cs</ProjectItem>
       <ProjectItem ReplaceParameters="false" OpenInEditor="true">Master.json</ProjectItem>
       <ProjectItem ReplaceParameters="true" OpenInEditor="true">Model.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" OpenInEditor="false">Master.html</ProjectItem>
+      <ProjectItem ReplaceParameters="false" OpenInEditor="false">css\bootstrap-2.2.1.css</ProjectItem>
+      <ProjectItem ReplaceParameters="false" OpenInEditor="false">sys\angular-1.0.2.js</ProjectItem>
+      <ProjectItem ReplaceParameters="false" OpenInEditor="false">sys\angular-patch.js</ProjectItem>
+      <ProjectItem ReplaceParameters="false" OpenInEditor="false">sys\bootstrap-2.2.1.js</ProjectItem>
     </Project>
   </TemplateContent>
 </VSTemplate>
