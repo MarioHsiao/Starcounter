@@ -1,0 +1,106 @@
+﻿<pages:BasePage x:Class="Starcounter.InstallerWPF.Pages.InstallationPathPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:pages="clr-namespace:Starcounter.InstallerWPF.Pages"
+    xmlns:rules="clr-namespace:Starcounter.InstallerWPF.Rules"
+    xmlns:converters="clr-namespace:Starcounter.InstallerWPF.Converters"
+    xmlns:main="clr-namespace:Starcounter.InstallerWPF"
+    DisplayName="Installation Path"
+>
+
+    <pages:BasePage.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter"/>
+        <converters:CommandToVisibilityConverter x:Key="commandToVisibilityConverter"/>
+        <converters:CommandToBackgroundConverter x:Key="commandToBackgroundConverter" />
+        <converters:ScrollBarVisibilityToPadding x:Key="scrollBarVisibilityToPadding" />
+    </pages:BasePage.Resources>
+
+    <pages:BasePage.Content>
+
+        <Grid Style="{DynamicResource PagePanel_Style}">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header + Content -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="{Binding RelativeSource={RelativeSource self}, Path=ComputedVerticalScrollBarVisibility, Converter={StaticResource scrollBarVisibilityToPadding}}">
+
+                <Grid >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <GroupBox Style="{DynamicResource PageHeaderGroupBoxStyle}">
+                        <GroupBox.Header>
+                            <TextBlock  Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type pages:BasePage}},Path=DisplayName}" Style="{DynamicResource PageHeaderTitleStyle}"/>
+                        </GroupBox.Header>
+                        <TextBlock Text="Choose a directory to install in." Style="{DynamicResource PageHeaderDescriptionStyle}"/>
+                    </GroupBox>
+
+                    <!-- Content -->
+                    <Grid Grid.Row="1" Style="{DynamicResource Page_Content_Panel_Style}">
+
+
+                        <!-- MainInstallationPath -->
+                        <Grid Grid.IsSharedSizeScope="True" DataContext="{Binding Components[StarcounterInstallation]}">
+
+                            <StackPanel  Margin="0,7.5,0,7.5" Grid.Row="1" Grid.Column="1"  Visibility="{Binding Path=ShowProperties, Converter={StaticResource booleanToVisibilityConverter}}" >
+
+                                <Label Padding="0" Target="{Binding ElementName=tb_MainInstallationPath}" Margin="0,0,0,5"  Content="_Installation path"   />
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBox x:Name="tb_MainInstallationPath" Margin="0" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent"  Validation.Error="Validation_OnError" VerticalAlignment="Top">
+                                        <TextBox.Text>
+                                            <Binding Path="Path" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged" >
+                                                <Binding.ValidationRules>
+                                                    <rules:DirectoryContainsFilesRule UseWarning="True" CheckEmptyString="true"  ValidatesOnTargetUpdated="True"/>
+                                                </Binding.ValidationRules>
+                                            </Binding>
+                                        </TextBox.Text>
+                                    </TextBox>
+
+                                    <Button MinWidth="0"  Grid.Column="1" Margin="5,0,0,0" Command="ApplicationCommands.Open" CommandParameter="Please select a directory where Starcounter will be installed" CommandTarget="{Binding ElementName=tb_MainInstallationPath}"  >
+                                        <Image Stretch="None" Source="..\resources\16x16\Folder.png"/>
+                                    </Button>
+
+                                </Grid>
+
+                            </StackPanel>
+
+                        </Grid>
+
+                    </Grid>
+                </Grid>
+
+
+            </ScrollViewer>
+
+            <!-- Button Bar -->
+            <Grid Grid.Row="1"  >
+
+                <GroupBox Style="{DynamicResource PageButtonBar}">
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Margin="2.5,0,2.5,0" Command="NavigationCommands.PreviousPage" Content="_Back" />
+                        <Button Margin="2.5,0,0,0" Command="NavigationCommands.NextPage"  IsDefault="True"  Content="_Next" Background="{DynamicResource GreenButtonBackground}"/>
+                    </StackPanel>
+
+                </GroupBox>
+
+            </Grid>
+
+
+        </Grid>
+
+    </pages:BasePage.Content>
+
+</pages:BasePage>

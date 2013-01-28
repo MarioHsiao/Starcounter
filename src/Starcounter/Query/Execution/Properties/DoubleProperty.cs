@@ -335,7 +335,7 @@ internal class DoubleProperty : Property, IDoublePathItem
         return new DoubleProperty(extentNumber, typeBinding, propBinding);
     }
 
-    public override ITypeExpression Clone(VariableArray varArray)
+    public override IValueExpression Clone(VariableArray varArray)
     {
         return CloneToDouble(varArray);
     }

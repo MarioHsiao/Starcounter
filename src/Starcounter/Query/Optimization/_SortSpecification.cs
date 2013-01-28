@@ -286,7 +286,7 @@ internal class SortSpecification
         String key = typeBind.Name;
         for (Int32 i = 0; i < usedArity; i++)
         {
-            key += "-" + indexInfo.GetPathName(i) + ":" + Reverse(indexInfo.GetSortOrdering(i)).ToString();
+            key += "-" + indexInfo.GetColumnName(i) + ":" + Reverse(indexInfo.GetSortOrdering(i)).ToString();
         }
         return key;
     }

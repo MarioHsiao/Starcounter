@@ -35,7 +35,7 @@ internal class BinaryComparer : ISingleComparer
         }
     }
 
-    public ITypeExpression Expression
+    public IValueExpression Expression
     {
         get
         {

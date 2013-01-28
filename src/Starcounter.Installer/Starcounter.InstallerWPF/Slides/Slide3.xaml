@@ -1,0 +1,69 @@
+﻿<Grid x:Class="Starcounter.InstallerWPF.Slides.Slide3"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                >
+
+    <Grid >
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+    <StackPanel >
+
+        <!--<Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="Join the community" Style="{DynamicResource SlideHeader}" />
+            <TextBlock Grid.Column="1" Text="Slide 3 of 4" Style="{DynamicResource SlidePage}" />
+        </Grid>-->
+        <StackPanel >
+
+            <!-- If you get stuck, post on www.starcounter.com/forum -->
+            <BulletDecorator  Style="{DynamicResource SlideLevelBulletDecorator1}">
+                <BulletDecorator.Bullet>
+                    <Ellipse Style="{DynamicResource SlideLevelEllipse1}"  />
+                </BulletDecorator.Bullet>
+
+
+                <TextBlock  Style="{DynamicResource SlideLevel1}" >
+               If you get stuck, post on
+               <Hyperlink CommandParameter="http://www.starcounter.com/forum" Command="NavigationCommands.GoToPage">www.starcounter.com/forum</Hyperlink>
+                </TextBlock>
+
+
+            </BulletDecorator>
+
+
+            <!-- News and blogs at www.starcounter/community -->
+            <BulletDecorator  Style="{DynamicResource SlideLevelBulletDecorator1}">
+                <BulletDecorator.Bullet>
+                    <Ellipse Style="{DynamicResource SlideLevelEllipse1}"  />
+                </BulletDecorator.Bullet>
+
+
+                <TextBlock  Style="{DynamicResource SlideLevel1}">
+               News and blogs at
+               <Hyperlink CommandParameter="http://www.starcounter.com/community" Command="NavigationCommands.GoToPage" >www.starcounter/community</Hyperlink>
+                </TextBlock>
+
+
+            </BulletDecorator>
+
+
+            <TextBlock Margin="0,2.5,0,0" Style="{DynamicResource SlideLevel2}">
+  Apart from a few PhDs and mathematicians, a chessplayer and a big jump snowboarder, you are amongst the very first to download Starcounter. Join the early community. We are all eager to help.
+            </TextBlock>
+        </StackPanel>
+
+
+    </StackPanel>
+
+        <TextBlock Grid.Row="1" Text="Slide 3 of 4" Style="{DynamicResource SlidePage}" HorizontalAlignment="Right" />
+
+    </Grid>
+
+</Grid>

@@ -7,10 +7,10 @@
 
 namespace se.sics.prologbeans
 {
-using Starcounter;
-using Starcounter.Logging;
-
-using System;
+    using Starcounter;
+    using Starcounter.Internal;
+    using Starcounter.Logging;
+    using System;
 #if JAVAXCONTEXT
 using Context = javax.naming.Context;
 using InitialContext = javax.naming.InitialContext;

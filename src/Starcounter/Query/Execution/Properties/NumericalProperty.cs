@@ -922,7 +922,7 @@ namespace Starcounter.Query.Execution
             return new NumericalProperty(extentNumber, typeBinding, propBinding);
         }
 
-        public override ITypeExpression Clone(VariableArray varArray)
+        public override IValueExpression Clone(VariableArray varArray)
         {
             return CloneToNumerical(varArray);
         }

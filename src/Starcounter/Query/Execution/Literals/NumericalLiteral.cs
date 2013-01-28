@@ -638,7 +638,7 @@ internal class NumericalLiteral : Literal, ILiteral, INumericalExpression
         return this;
     }
 
-    public ITypeExpression Clone(VariableArray varArray)
+    public IValueExpression Clone(VariableArray varArray)
     {
         return this;
     }
@@ -807,7 +807,7 @@ internal class NumericalLiteral : Literal, ILiteral, INumericalExpression
     }
 
 #if DEBUG
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         NumericalLiteral otherNode = other as NumericalLiteral;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);

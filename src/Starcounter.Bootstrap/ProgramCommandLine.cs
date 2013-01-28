@@ -21,99 +21,6 @@ namespace StarcounterInternal.Bootstrap {
     /// program.
     /// </summary>
     public static class ProgramCommandLine {
-
-        /// <summary>
-        /// Defines the commands this program accepts.
-        /// </summary>
-        public static class CommandNames {
-            /// <summary>
-            /// Defines the name of the Start command.
-            /// </summary>
-            /// <remarks>
-            /// The Start command is the default command and can hence
-            /// be omitted on the command line.
-            /// </remarks>
-            public const string Start = "Start";
-        }
-
-        /// <summary>
-        /// Defines the options the "Start" command accepts.
-        /// </summary>
-        public static class OptionNames {
-            /// <summary>
-            /// Specifies the database directory to use.
-            /// </summary>
-            public const string DatabaseDir = "DatabaseDir";
-
-            /// <summary>
-            /// Specifies the output directory to use.
-            /// </summary>
-            public const string OutputDir = "OutputDir";
-
-            /// <summary>
-            /// Specifies the temporary directory to use.
-            /// </summary>
-            public const string TempDir = "TempDir";
-
-            /// <summary>
-            /// Specifies the path to the compiler to use when generating code.
-            /// </summary>
-            public const string CompilerPath = "CompilerPath";
-
-            /// <summary>
-            /// Specifies the name of Starcounter server which started the database.
-            /// </summary>
-            public const string ServerName = "ServerName";
-
-            /// <summary>
-            /// Specifies the total number of chunks used for shared memory communication.
-            /// </summary>
-            public const string ChunksNumber = "ChunksNumber";
-
-            /// <summary>
-            /// Specifies TCP/IP port to be used by SQL parser.
-            /// </summary>
-            public const string SQLProcessPort = "SQLProcessPort";
-
-            /// <summary>
-            /// Specifies the number of schedulers.
-            /// </summary>
-            public const string SchedulerCount = "SchedulerCount";
-
-            /// <summary>
-            /// Gets the string to use to apply the switch that tells the host process
-            /// not to connect to the database nor utilize the SQL engine.
-            /// </summary>
-            public const string NoDb = "NoDb";
-
-            /// <summary>
-            /// Indicates if this host Apps is not utilizing the network gateway.
-            /// </summary>
-            public const string NoNetworkGateway = "NoNetworkGateway";
-
-            /// <summary>
-            /// Gets the string we support as a flag on the command-line to allow
-            /// the host process to accept management input on standard streams/console
-            /// rather than named pipes (with named pipes being the default).
-            /// </summary>
-            public const string UseConsole = "UseConsole";
-
-            /// <summary>
-            /// Specifies the path to executable that should be run on startup.
-            /// </summary>
-            public const string AutoStartExePath = "AutoStartExePath";
-
-            /// <summary>
-            /// User command line arguments.
-            /// </summary>
-            public const string UserArguments = "UserArguments";
-
-            /// <summary>
-            /// Explicit working directory.
-            /// </summary>
-            public const string WorkingDir = "WorkingDir";
-        }
-
         /// <summary>
         /// Tries the get program arguments.
         /// </summary>
@@ -131,7 +38,7 @@ namespace StarcounterInternal.Bootstrap {
 
             syntaxDefinition = new ApplicationSyntaxDefinition();
             syntaxDefinition.ProgramDescription = "Runs the database user code worker process";
-            syntaxDefinition.DefaultCommand = CommandNames.Start;
+            syntaxDefinition.DefaultCommand = StarcounterConstants.BootstrapCommandNames.Start;
 
             // Define the global flag allowing a debugger to be attached
             // to the process when starting. Undocumented, internal flag.
@@ -146,27 +53,28 @@ namespace StarcounterInternal.Bootstrap {
             // > prog.exe mydatabase
             // (where we have omitted Start, since its the default).
 
-            commandDefinition = syntaxDefinition.DefineCommand(CommandNames.Start, "Starts the named database", 1);
+            commandDefinition = syntaxDefinition.DefineCommand(StarcounterConstants.BootstrapCommandNames.Start, "Starts the named database", 1);
 
             // Specifies the property set we accept.
             // A full command line could look like
             // > prog.exe mydatabase --DatabaseDir "C:\MyDatabase" --OutputDir "C:\Out" --TempDir "C:\Temp" --CompilerPath "C:\bin\x86_64-w64-mingw32-gcc.exe"
             // --AutoStartExePath "c:\github\Orange\bin\Debug\NetworkIoTest\NetworkIoTest.exe" --ServerName PERSONAL --ChunksNumber 1024
 
-            commandDefinition.DefineProperty(OptionNames.DatabaseDir, "Specifies the database directory to use.");
-            commandDefinition.DefineProperty(OptionNames.OutputDir, "Specifies the output directory to use.");
-            commandDefinition.DefineProperty(OptionNames.TempDir, "Specifies the temporary directory to use.");
-            commandDefinition.DefineProperty(OptionNames.CompilerPath, "Specifies the path to the compiler to use when generating code.");
-            commandDefinition.DefineProperty(OptionNames.ServerName, "Specifies the name of Starcounter server which started the database.");
-            commandDefinition.DefineProperty(OptionNames.ChunksNumber, "Specifies the total number of chunks used for shared memory communication.");
-            commandDefinition.DefineProperty(OptionNames.AutoStartExePath, "Specifies the path to executable that should be run on startup.");
-            commandDefinition.DefineProperty(OptionNames.SQLProcessPort, "Specifies TCP/IP port to be used by " + StarcounterConstants.ProgramNames.ScSqlParser + ".exe.");
-            commandDefinition.DefineProperty(OptionNames.SchedulerCount, "Specifies the number of schedulers.");
-            commandDefinition.DefineProperty(OptionNames.UserArguments, "User command line arguments.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.DatabaseDir, "Specifies the database directory to use.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.OutputDir, "Specifies the output directory to use.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.TempDir, "Specifies the temporary directory to use.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.CompilerPath, "Specifies the path to the compiler to use when generating code.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.ServerName, "Specifies the name of Starcounter server which started the database.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.ChunksNumber, "Specifies the total number of chunks used for shared memory communication.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.AutoStartExePath, "Specifies the path to executable that should be run on startup.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.SQLProcessPort, "Specifies TCP/IP port to be used by " + StarcounterConstants.ProgramNames.ScSqlParser + ".exe.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.SchedulerCount, "Specifies the number of schedulers.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.UserArguments, "User command line arguments.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.WorkingDir, "Working directory for applet.");
 
-            commandDefinition.DefineFlag(OptionNames.NoDb, "Instructs the program not to connect to the database nor use the SQL engine.");
-            commandDefinition.DefineFlag(OptionNames.NoNetworkGateway, "Indicates that the host does not need to utilize with network gateway.");
-            commandDefinition.DefineFlag(OptionNames.UseConsole, "Instructs the host to use the console to expose management features, like booting executables.");
+            commandDefinition.DefineFlag(StarcounterConstants.BootstrapOptionNames.NoDb, "Instructs the program not to connect to the database nor use the SQL engine.");
+            commandDefinition.DefineFlag(StarcounterConstants.BootstrapOptionNames.NoNetworkGateway, "Indicates that the host does not need to utilize with network gateway.");
+            commandDefinition.DefineFlag(StarcounterConstants.BootstrapOptionNames.UseConsole, "Instructs the host to use the console to expose management features, like booting executables.");
 
             // Create the syntax, validating it
             syntax = syntaxDefinition.CreateSyntax();

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Diagnostics;
+using Starcounter.Binding;
 
 namespace Starcounter.Query.Execution
 {
@@ -123,12 +124,20 @@ internal abstract class Variable : CodeGenFilterNode
         throw ErrorCode.ToException(Error.SCERRBADARGUMENTS);
     }
 
+    public virtual void SetValue(Type newValue) {
+        throw ErrorCode.ToException(Error.SCERRBADARGUMENTS);
+    }
+
+    public virtual void SetValue(ITypeBinding newValue) {
+        throw ErrorCode.ToException(Error.SCERRBADARGUMENTS);
+    }
+
     /// <summary>
     /// Generic clone for ITypeExpression types.
     /// </summary>
     /// <param name="varArray">Variables array.</param>
     /// <returns>Clone of the expression.</returns>
-    public virtual ITypeExpression Clone(VariableArray varArray)
+    public virtual IValueExpression Clone(VariableArray varArray)
     {
         throw ErrorCode.ToException(Error.SCERRNOTSUPPORTED);
     }
