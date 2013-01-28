@@ -16,7 +16,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
-	<OutputPath>..\..\bin\Debug\scadmin</OutputPath>
+    <OutputPath>..\..\bin\Debug\scadmin</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugType>full</DebugType>
@@ -24,10 +24,11 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <DefineConstants>TRACE</DefineConstants>
-	<OutputPath>..\..\bin\Release\scadmin</OutputPath>
+    <OutputPath>..\..\bin\Release\scadmin</OutputPath>
     <Optimize>true</Optimize>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugType>pdbonly</DebugType>
@@ -35,6 +36,7 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -109,6 +111,10 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\HTTP\HttpStructs\HttpStructs.csproj">
+      <Project>{90d57166-b42e-4bbe-b9ec-cfb33e551b77}</Project>
+      <Name>HttpStructs</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Server\Starcounter.Server\Starcounter.Server.csproj">
       <Project>{28e1d438-7dc4-4bf7-a486-0598c78dbbe9}</Project>
       <Name>Starcounter.Server</Name>
@@ -124,6 +130,10 @@
     <ProjectReference Include="..\Starcounter.Apps\Starcounter.Apps.csproj">
       <Project>{bbaad98c-2661-42dc-85e4-3f2d11bbe010}</Project>
       <Name>Starcounter.Apps</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.BitsAndBytes.Unsafe\BitsAndBytes.Unsafe.csproj">
+      <Project>{885eb31b-cf41-4c6c-a7be-53b32a0c8b82}</Project>
+      <Name>BitsAndBytes.Unsafe</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.Bootstrap\Starcounter.Bootstrap.csproj">
       <Project>{8278b17c-e0e9-49b7-8bda-f15282445d45}</Project>
