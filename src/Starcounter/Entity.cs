@@ -99,12 +99,12 @@ namespace Starcounter
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="typeAddr"></param>
+        /// <param name="tableId"></param>
         /// <param name="typeBinding"></param>
         /// <param name="u"></param>
-        public Entity(ulong typeAddr, TypeBinding typeBinding, Uninitialized u)
+        public Entity(ushort tableId, TypeBinding typeBinding, Uninitialized u)
         {
-            DbState.Insert(this, typeAddr, typeBinding);
+            DbState.Insert(this, tableId, typeBinding);
         }
 
         /// <summary>
