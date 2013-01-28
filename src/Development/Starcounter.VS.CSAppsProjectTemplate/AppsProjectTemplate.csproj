@@ -24,6 +24,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -33,7 +35,26 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+  <ItemGroup>
+    <Content Include="css\bootstrap-2.2.1.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="sys\angular-1.0.2.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="sys\angular-patch.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="sys\bootstrap-2.2.1.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Master.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -56,12 +77,24 @@
       <HintPath>$(StarcounterBin)\Starcounter.Apps.JsonPatch.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Starcounter.Bootstrap.dll">
+      <HintPath>$(StarcounterBin)\Starcounter.Bootstrap.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Starcounter.BitsAndBytes.Native">
+      <HintPath>$(StarcounterBin)\Starcounter.BitsAndBytes.Native.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Starcounter.HyperMedia">
       <HintPath>$(StarcounterBin)\Starcounter.HyperMedia.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Starcounter.REST">
       <HintPath>$(StarcounterBin)\Starcounter.REST.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="HttpStructs">
+      <HintPath>$(StarcounterBin)\HttpStructs.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
