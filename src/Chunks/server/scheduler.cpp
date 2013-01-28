@@ -809,57 +809,26 @@ chunk_index the_chunk_index) {
 	channel_type& the_channel = channel_[the_channel_index];
 	
 #if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
-#if 0
-	std::cout << "--------------------------------------------------------------------------------\n";
-	std::cout << "Pushing:\n";
-	std::cout << "Before pushing: front = " << the_channel.overflow().front() << ", "
-	<< "back = " << the_channel.overflow().back() << "\n";
-	for (uint32_t lnk = 0; lnk < 3; ++lnk) {
-		the_channel.overflow().push(1000 +lnk);
-		uint32_t front = the_channel.overflow().front();
-		uint32_t back = the_channel.overflow().back();
-		uint32_t next = the_channel.overflow().chunk(back).get_next();
-		
-		std::cout << "After pushing(" << 1000 +lnk << "): "
-		"front = " << front << ", "
-		"back = " << back << ", "
-		"next link of back[" << back << "] = " << next << "\n";
-	}
-	std::cout << "Popping:\n";
-	for (uint32_t lnk = 0; lnk < 3; ++lnk) {
-		the_channel.overflow().pop();
-		uint32_t front = the_channel.overflow().front();
-		uint32_t back = the_channel.overflow().back();
-		uint32_t next = the_channel.overflow().chunk(back).get_next();
-		
-		std::cout << "After popping(): "
-		"front = " << front << ", "
-		"back = " << back << ", "
-		"next link of back[" << back << "] = " << next << "\n";
-	}
-	Sleep(2000);
-#endif
-	
 	// If the channels overflow queue is empty (assumed), then try to push to
 	// the out queue. If that succeeds (assumed), return. If it fails, the
 	// item is pushed to the overflow queue.
-	// If the overflow queue is not empty, the item is pushed to the overflow
+	// If the overflow queue is not empty (assumed), the item is pushed to the overflow
 	// queue and then try to move the whole overflow queue to the out queue.
+	// If the overflow queue is empty (assumed), the item is pushed to the overflow
 
+	//	If out is full, the client may be dead - check if marked for clean-up?
+	//	With the new infinite overflow queue per channel, I decide not to care about checking this.
+	
 	if (the_channel.overflow().empty()) {
 		if (the_channel.out.try_push_front(the_chunk_index)) {
 			// Successfully pushed the response message to the channel.
 			return;
 		}
-		else if (!the_channel.client()->get_owner_id().get_clean_up()) {
-			// The message is pushed to this channels overflow queue.
+		else {
+			// The channels out buffer is full. The message is pushed to this channels overflow queue instead.
 			the_channel.overflow().push(the_chunk_index);
+			return;
 		}
-
-		// The channel have been marked for clean up. Therefore the
-		// chunk_index is thrown away. The chunk will later be released via the
-		// client_interface resource map.
-		return;
 	}
 	else {
 		// The overflow queue is not empty so the message is first pushed to
@@ -870,10 +839,9 @@ chunk_index the_chunk_index) {
 		while (!the_channel.overflow().empty()) {
 			if (!the_channel.out.try_push_front(the_channel
 			.overflow().front())) {
-				
 				// Failed to push the item. Not removing it from
 				// the overflow queue.
-				break;
+				return;
 			}
 
 			// The item was successfully pushed to the out buffer.
@@ -884,15 +852,7 @@ chunk_index the_chunk_index) {
 			the_channel.client()->notify();
 		}
 
-		// Failed to push the response message to the channel, which is full.
-		if (!the_channel.client()->get_owner_id().get_clean_up()) {
-			// The message is pushed to this channels overflow queue.
-			the_channel.overflow().push(the_chunk_index);
-		}
-
-		// Otherwise the channel have been marked for clean up. Therefore the
-		// chunk_index is thrown away. The chunk will later be released via the
-		// client_interface resource map.
+		// Dont check if (!the_channel.client()->get_owner_id().get_clean_up()) {}
 		return;
 	}
 	
@@ -901,7 +861,6 @@ chunk_index the_chunk_index) {
 	if (this_scheduler_interface_->overflow_pool().empty() &&
         the_channel.out.try_push_front(the_chunk_index)) {
 		// Successfully pushed the response message to the channel.
-
 		return;
 	}
 	else {
@@ -1124,7 +1083,6 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 			/// client_interface, making them available for anyone to allocate.
 			///=================================================================
 
-#if 1
 			bool release_chunk_result = release_clients_chunks
 			(client_interface_ptr, 10000 /* milliseconds */);
 			
@@ -1136,8 +1094,6 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 			client_interface_ptr);
 			
 			common_client_interface_->decrement_client_interfaces_to_clean_up();
-
-#endif
 
 #else // !defined (IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP)
 			///=================================================================

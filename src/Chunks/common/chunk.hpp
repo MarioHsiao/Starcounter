@@ -169,18 +169,23 @@ public:
 		link_size = 2 * sizeof(link_type),
 		bmx_handler_size = sizeof(bmx_protocol_type),
 
-		// The last chunk in the chain of 1..N chunks is terminated by setting
-		// the link to link_terminator.
+		// The last chunk in a stream (chain) of 1..N chunks is terminated by setting
+		// the stream_link to link_terminator. Likewise, to terminate the "overflow"
+		// linked list the next_link is set to link_terminator.
 		link_terminator = -1
 	};
 
 	enum {
-		owner_id_begin = 0,
+		// The owner_id is not stored in the chunk and byte 0-7 is not used for anything.
+		// TODO: Move everything 8 bytes closer to the beginning of the chunk.
+		// user_data_begin should be 0, bmx_protocol_begin should be 8, etc.
+		// Just make sure that all code use these constants.
+		//owner_id_begin = 0,
 		user_data_begin = 8,
 		bmx_protocol_begin = 16,
 		request_size_begin = bmx_protocol_begin +bmx_handler_size,
-		stream_link_begin = static_size -link_size,
-		next_link_begin = static_size -(2 * link_size)
+		stream_link_begin = static_size -(1 * sizeof(link_type)),
+		next_link_begin = static_size -(2 * sizeof(link_type))
 	};
 
 	// header size is constant
@@ -324,7 +329,7 @@ public:
 	
 	/// is_terminated() test if the link is terminated.
 	/**
-	 * @return true if the link value of the chunk is LINK_TERMINATOR, false
+	 * @return true if the link value of the chunk is link_terminator, false
 	 *		otherwise.
 	 */
 	bool is_terminated() const {
@@ -344,8 +349,8 @@ public:
 		*((chunk_index*)(elems +next_link_begin)) = next;
 		return *this;
 	}
-	
-	/// get_next_link() returns the next_link value of the chunk.
+
+	/// get_next() returns the next_link value of the chunk.
 	/**
 	 * @return The link value of the chunk.
 	 */
