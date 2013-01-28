@@ -166,7 +166,7 @@ is_system, uint32_t chunks_total_number) try {
 	sizeof(shared_chunk_pool_type));
 
 	shared_chunk_pool_type* shared_chunk_pool = new(p) shared_chunk_pool_type
-	(chunks_total_number, shared_chunk_pool_alloc_inst);
+	(segment_name, chunks_total_number, shared_chunk_pool_alloc_inst);
 	
 	// Initialize the shared_chunk_pool by pushing in chunk_indexes.
 	// These chunk_indexes represents free chunks.
