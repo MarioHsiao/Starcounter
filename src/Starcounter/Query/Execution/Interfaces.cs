@@ -222,6 +222,8 @@ internal interface IVariable : IValueExpression
     void SetValue(UInt16 newValue);
     void SetValue(Byte newValue);
     void SetValue(Object newValue);
+    void SetValue(ITypeBinding newValue);
+    void SetValue(Type newValue);
 
     // Sets value to variable in another enumerator.
     void ProlongValue(IExecutionEnumerator destEnum);
