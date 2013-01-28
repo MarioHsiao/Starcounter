@@ -16,9 +16,74 @@ namespace starcounter {
 namespace core {
 
 template<class T, class Alloc>
-inline shared_chunk_pool<T, Alloc>::shared_chunk_pool(size_type buffer_capacity,
-const allocator_type& alloc)
-: container_(buffer_capacity, alloc), unread_(0) {}
+inline shared_chunk_pool<T, Alloc>::shared_chunk_pool(const char* segment_name,
+size_type buffer_capacity, const allocator_type& alloc)
+: container_(buffer_capacity, alloc), unread_(0) {
+    if (segment_name != 0) {
+		char notify_name[segment_and_notify_name_size +128];
+		std::size_t length;
+
+		// Create the not_empty_notify_name_ and the not_empty_ event.
+		
+		// Format: "Local\<segment_name>_shared_chunk_pool_not_empty".
+		if ((length = _snprintf_s(notify_name, _countof(notify_name),
+		segment_and_notify_name_size -1 /* null */, "Local\\%s_"
+		"shared_chunk_pool_not_empty", segment_name)) < 0) {
+			return; // Throw exception error_code.
+		}
+		notify_name[length] = '\0';
+		std::cout << "notify_name: " << notify_name << "\n";
+
+		/// TODO: Fix insecure
+		if ((length = mbstowcs(not_empty_notify_name_, notify_name,
+		segment_name_size)) < 0) {
+			// Failed to convert notify_name to multi-byte string.
+			return; // Throw exception error_code.
+		}
+		not_empty_notify_name_[length] = L'\0';
+
+#if 0 /// NOT YET
+		if ((not_empty_ = ::CreateEvent(NULL, TRUE, FALSE,
+		not_empty_notify_name_)) == NULL) {
+			// Failed to create event.
+			return; // Throw exception error_code.
+		}
+#endif /// NOT YET
+
+		// Create the not_full_notify_name_ and the not_full_ event.
+		
+		// Format: "Local\<segment_name>_shared_chunk_pool_not_full".
+		if ((length = _snprintf_s(notify_name, _countof(notify_name),
+		segment_and_notify_name_size -1 /* null */, "Local\\%s_"
+		"shared_chunk_pool_not_full", segment_name)) < 0) {
+			return; // Throw exception error_code.
+		}
+		notify_name[length] = '\0';
+		std::cout << "notify_name: " << notify_name << "\n";
+
+		/// TODO: Fix insecure
+		if ((length = mbstowcs(not_full_notify_name_, notify_name,
+		segment_name_size)) < 0) {
+			// Failed to convert notify_name to multi-byte string.
+			return; // Throw exception error_code.
+		}
+		not_full_notify_name_[length] = L'\0';
+		
+#if 0 /// NOT YET
+		if ((not_full_ = ::CreateEvent(NULL, TRUE, FALSE,
+		not_full_notify_name_)) == NULL) {
+			// Failed to create event.
+			return; // Throw exception error_code.
+		}
+#endif /// NOT YET
+		
+		std::wcout << L"not_empty_notify_name: " << not_empty_notify_name() << L"\n";
+		std::wcout << L"not_full_notify_name: " << not_full_notify_name() << L"\n";
+	}
+	else {
+		// Error: No segment name. Throw exception error_code.
+	}
+}
 
 template<class T, class Alloc>
 inline typename shared_chunk_pool<T, Alloc>::size_type

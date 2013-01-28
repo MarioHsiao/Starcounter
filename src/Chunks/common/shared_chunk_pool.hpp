@@ -20,6 +20,7 @@
 #include <ios> /// For debug - remove.
 #include <iomanip> /// For debug - remove.
 #include <boost/circular_buffer.hpp>
+#include "spinlock.hpp"
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
 #include <boost/interprocess/sync/interprocess_condition.hpp>
@@ -107,8 +108,8 @@ public:
 	 * @par Complexity
 	 *		Constant.
 	 */
-	explicit shared_chunk_pool(size_type buffer_capacity, const allocator_type&
-	alloc = allocator_type());
+	explicit shared_chunk_pool(const char* segment_name, size_type buffer_capacity,
+	const allocator_type& alloc = allocator_type());
 	
 	// Size and capacity
 	
@@ -414,6 +415,39 @@ public:
 		return unread_;
 	}
 	
+	/// Get reference to the spinlock.
+	smp::spinlock& spinlock() {
+		return spinlock_;
+	}
+
+	/// Get the not_empty_notify_name, used to open the event. In order to
+	/// reduce the time taken to open the not_empty_notify_name event the name
+	/// is cached. Otherwise the not_empty_notify_name have to be formated
+	/// before opening it.
+	/**
+	 * @return A const wchar_t pointer to the not_empty_notify_name string in the
+	 *		format: L"Local\<segment_name>_shared_chunk_pool_not_empty".
+	 *		For example:
+	 *		L"Local\starcounter_PERSONAL_MYDB_64_shared_chunk_pool_not_empty".
+	 */
+	const wchar_t* not_empty_notify_name() const {
+		return not_empty_notify_name_;
+	}
+	
+	/// Get the not_full_notify_name, used to open the event. In order to
+	/// reduce the time taken to open the not_full_notify_name event the name
+	/// is cached. Otherwise the not_full_notify_name have to be formated
+	/// before opening it.
+	/**
+	 * @return A const wchar_t pointer to the not_full_notify_name string in the
+	 *		format: L"Local\<segment_name>_shared_chunk_pool_not_full".
+	 *		For example:
+	 *		L"Local\starcounter_PERSONAL_MYDB_64_shared_chunk_pool_not_full".
+	 */
+	const wchar_t* not_full_notify_name() const {
+		return not_full_notify_name_;
+	}
+
 private:
 	shared_chunk_pool(const shared_chunk_pool&);
 	shared_chunk_pool& operator=(const shared_chunk_pool&);
@@ -424,6 +458,35 @@ private:
 	size_type unread_;
 	container_type container_;
 	
+#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+	// IPC synchronization:
+	
+	// SMP spinlock to protect access to the queue.
+	smp::spinlock spinlock_;
+	
+	// Event used by the scheduler to wait when the queue is not empty.
+	// Client's have to open the event and pass it in as an argument.
+	//HANDLE not_empty_;
+	
+	// Event used by the scheduler to wait when the queue is not full.
+	// Client's have to open the event and pass it in as an argument.
+	//HANDLE not_full_;
+
+	// In order to reduce the time taken to open the not_empty_ and not_full_
+	// events the names are cached. Otherwise the names have to be formated
+	// before opening them.
+	wchar_t not_empty_notify_name_[segment_and_notify_name_size];
+	wchar_t not_full_notify_name_[segment_and_notify_name_size];
+
+	boost::interprocess::interprocess_mutex mutex_; // Get it to compile.
+
+	// Condition to wait when the queue is not empty
+	boost::interprocess::interprocess_condition not_empty_;
+	
+	// Condition to wait when the queue is not full
+	boost::interprocess::interprocess_condition not_full_;
+	
+#else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	// Process-shared anonymous synchronization:
 	
 	// Mutex to protect access to the queue
@@ -437,6 +500,7 @@ private:
 	// Condition to wait when the queue is not full
 	//boost::condition not_full_;
 	boost::interprocess::interprocess_condition not_full_;
+#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 };
 
 typedef simple_shared_memory_allocator<chunk_index>
