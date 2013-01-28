@@ -250,15 +250,15 @@ public:
 			if (not_empty()) {
 				chunk(back()).set_next(n);
 				back_ = n;
-				chunk(back()).set_next(link_terminator);
+				chunk(n).set_next(link_terminator);
 			}
 			else {
 				front_ = n;
 				back_ = n;
-				chunk(back()).set_next(link_terminator); // the caller should do this.
+				chunk(n).set_next(link_terminator);
 			}
 		}
-
+		
 		/// pop_front() will pop chunk(n) at the front of the queue.
 		/**
 		 * @param n A reference to the link that will point to the popped chunk
@@ -272,7 +272,6 @@ public:
 				chunk(front()).terminate_next();
 				front_ = temp_front;
 			}
-
 			// The queue is empty, nothing to pop.
 		}
 
