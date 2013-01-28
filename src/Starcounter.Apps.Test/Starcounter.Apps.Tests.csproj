@@ -50,6 +50,7 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <DocumentationFile>bin\Debug\Starcounter.Apps.Tests.XML</DocumentationFile>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>bin\Release\</OutputPath>
@@ -90,7 +91,6 @@
     <None Include="SampleApp.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Starcounter.Application.Test.ncrunchproject" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HTTP\HttpStructs\HttpStructs.csproj">

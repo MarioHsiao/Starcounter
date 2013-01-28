@@ -17,7 +17,7 @@ namespace Starcounter.Query.Execution
 internal class DecimalSetFunction : SetFunction, ISetFunction
 {
     INumericalExpression numExpr;
-    ITypeExpression valueExpr;
+    IValueExpression valueExpr;
     Nullable<Decimal> result;
     Decimal sum;
     Decimal count;
@@ -41,7 +41,7 @@ internal class DecimalSetFunction : SetFunction, ISetFunction
         count = 0;
     }
 
-    internal DecimalSetFunction(ITypeExpression expr)
+    internal DecimalSetFunction(IValueExpression expr)
     {
         if (expr == null)
         {

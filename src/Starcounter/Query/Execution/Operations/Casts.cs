@@ -195,7 +195,7 @@ internal class ObjectCast : IObjectPathItem, IPath
         return new ObjectCast(typeBinding, expression.Instantiate(obj));
     }
 
-    public ITypeExpression Clone(VariableArray varArray)
+    public IValueExpression Clone(VariableArray varArray)
     {
         return CloneToObject(varArray);
     }
@@ -234,7 +234,7 @@ internal class ObjectCast : IObjectPathItem, IPath
 
 #if DEBUG
     private bool AssertEqualsVisited = false;
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         ObjectCast otherNode = other as ObjectCast;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);

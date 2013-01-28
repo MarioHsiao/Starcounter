@@ -35,7 +35,7 @@ internal class DecimalComparer : ISingleComparer
         }
     }
 
-    public ITypeExpression Expression
+    public IValueExpression Expression
     {
         get
         {

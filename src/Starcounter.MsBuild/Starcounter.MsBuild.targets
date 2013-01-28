@@ -7,7 +7,7 @@
   </ItemGroup>
      
   <!-- TODO: Temporary path. Use installation directory for starcounter later when Apps is integrated into main Starcounter -->
- <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToCsMsBuildTask" AssemblyFile="Starcounter.MsBuild.dll" />
+ <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToCsMsBuildTask" AssemblyFile="$(StarcounterBin)\Starcounter.MsBuild.dll" />
 
   <Target Name="GenerateAppCode" Inputs="@(App)" Outputs="@(App->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
     <JsonToCsMsBuildTask

@@ -91,7 +91,7 @@ internal class DateTimeLiteral : Literal, ILiteral, IDateTimePathItem
         return new DateTimeLiteral(value);
     }
 
-    public ITypeExpression Clone(VariableArray varArray)
+    public IValueExpression Clone(VariableArray varArray)
     {
         return this;
     }
@@ -141,7 +141,7 @@ internal class DateTimeLiteral : Literal, ILiteral, IDateTimePathItem
     }
 
 #if DEBUG
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         DateTimeLiteral otherNode = other as DateTimeLiteral;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);

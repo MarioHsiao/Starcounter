@@ -208,7 +208,7 @@ internal class BooleanMethod : IBooleanPathItem, IMethod
         }
     }
 
-    public ITypeExpression Clone(VariableArray varArray)
+    public IValueExpression Clone(VariableArray varArray)
     {
         return CloneToBoolean(varArray);
     }
@@ -249,7 +249,7 @@ internal class BooleanMethod : IBooleanPathItem, IMethod
 
 #if DEBUG
     private bool AssertEqualsVisited = false;
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         BooleanMethod otherNode = other as BooleanMethod;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);
