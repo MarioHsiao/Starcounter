@@ -233,7 +233,7 @@ acquire_chunk_from_private_chunk_pool:
 		/// messages and process them.
 		///=====================================================================
 
-		if ((++scan_out_buffers & 127) == 0) { // Slow down scanning of out buffers
+		//if ((++scan_out_buffers & 127) == 0) { // Slow down scanning of out buffers
 			for (std::size_t n = 0; n < num_channels_; ++n) {
 				channel_type& the_channel = shared().channel(channel_[n]);
 				// Check if there is a message and process it.
@@ -291,7 +291,7 @@ acquire_chunk_from_private_chunk_pool:
 					}
 				}
 			}
-		} // Slow down scanning of out buffers
+		//} // Slow down scanning of out buffers
 		
 		// Check if this worker wait for work. Assuming not.
 		if (worked) {
