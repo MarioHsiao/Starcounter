@@ -24,18 +24,18 @@ namespace Starcounter.Internal
         /// assumed to match the type; if it's not, the behaviour is undefined.
         /// </summary>
         /// <param name="proxy">Managed instance of the type we are about to instantiate.</param>
-        /// <param name="typeAddr">The address of the type.</param>
+        /// <param name="tableId">Id of the table the type represents.</param>
         /// <param name="typeBinding">The <see cref="TypeBinding" /> representing the
         /// type to the engine.</param>
         /// <remarks>This method is used by the Starcounter database engine and is
         /// not intended for developers.</remarks>
-        public static void Insert(Entity proxy, ulong typeAddr, TypeBinding typeBinding) {
+        public static void Insert(Entity proxy, ushort tableId, TypeBinding typeBinding) {
             uint dr;
             ulong oid;
             ulong addr;
 
             unsafe {
-                dr = sccoredb.sccoredb_insert(typeAddr, &oid, &addr);
+                dr = sccoredb.sccoredb_insert(tableId, &oid, &addr);
             }
             if (dr == 0) {
                 proxy.Attach(addr, oid, typeBinding);

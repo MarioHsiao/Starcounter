@@ -31,8 +31,8 @@ namespace Starcounter.LucentObjects
             TypeBinding tb = Bindings.GetTypeBinding(type.FullName);
 
             FieldInfo field;
-            field = clientAssemblyTypeInitializer.GetField(typeName + "__typeAddress", BindingFlags.Static | BindingFlags.NonPublic);
-            field.SetValue(null, tb.DefHandle);
+            field = clientAssemblyTypeInitializer.GetField(typeName + "__typeTableId", BindingFlags.Static | BindingFlags.NonPublic);
+            field.SetValue(null, tb.TableId);
             field = clientAssemblyTypeInitializer.GetField(typeName + "__typeBinding", BindingFlags.Static | BindingFlags.NonPublic);
             field.SetValue(null, tb);
 
