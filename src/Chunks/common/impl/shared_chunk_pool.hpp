@@ -20,7 +20,7 @@ inline shared_chunk_pool<T, Alloc>::shared_chunk_pool(const char* segment_name,
 size_type buffer_capacity, const allocator_type& alloc)
 : container_(buffer_capacity, alloc), unread_(0) {
     if (segment_name != 0) {
-		char notify_name[segment_and_notify_name_size +128];
+		char notify_name[segment_and_notify_name_size];
 		std::size_t length;
 
 		// Create the not_empty_notify_name_ and the not_empty_ event.
@@ -32,11 +32,10 @@ size_type buffer_capacity, const allocator_type& alloc)
 			return; // Throw exception error_code.
 		}
 		notify_name[length] = '\0';
-		std::cout << "notify_name: " << notify_name << "\n";
 
 		/// TODO: Fix insecure
 		if ((length = mbstowcs(not_empty_notify_name_, notify_name,
-		segment_name_size)) < 0) {
+		segment_and_notify_name_size)) < 0) {
 			// Failed to convert notify_name to multi-byte string.
 			return; // Throw exception error_code.
 		}
@@ -49,7 +48,7 @@ size_type buffer_capacity, const allocator_type& alloc)
 			return; // Throw exception error_code.
 		}
 #endif /// NOT YET
-
+		
 		// Create the not_full_notify_name_ and the not_full_ event.
 		
 		// Format: "Local\<segment_name>_shared_chunk_pool_not_full".
@@ -59,11 +58,10 @@ size_type buffer_capacity, const allocator_type& alloc)
 			return; // Throw exception error_code.
 		}
 		notify_name[length] = '\0';
-		std::cout << "notify_name: " << notify_name << "\n";
 
 		/// TODO: Fix insecure
 		if ((length = mbstowcs(not_full_notify_name_, notify_name,
-		segment_name_size)) < 0) {
+		segment_and_notify_name_size)) < 0) {
 			// Failed to convert notify_name to multi-byte string.
 			return; // Throw exception error_code.
 		}
@@ -76,9 +74,6 @@ size_type buffer_capacity, const allocator_type& alloc)
 			return; // Throw exception error_code.
 		}
 #endif /// NOT YET
-		
-		std::wcout << L"not_empty_notify_name: " << not_empty_notify_name() << L"\n";
-		std::wcout << L"not_full_notify_name: " << not_full_notify_name() << L"\n";
 	}
 	else {
 		// Error: No segment name. Throw exception error_code.
