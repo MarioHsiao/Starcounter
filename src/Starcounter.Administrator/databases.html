@@ -31,7 +31,7 @@
         <thead>
             <tr>
                 <th>Name</th>
-                <th>Uri</th>
+                <th>HostProcessId</th>
             </tr>
         </thead>
 
@@ -41,8 +41,7 @@
                     <a href="/databases/{{database.Uri}}">{{database.DatabaseName}}</a>
                 </td>
                 <td>
-                    <a href="/databases/{{database.Uri}}">{{database.Uri}}</a>
-                    
+                    {{database.HostProcessId}}
                 </td>
             </tr>
         </tbody>
