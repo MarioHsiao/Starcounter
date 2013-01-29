@@ -15,7 +15,7 @@
     <WarningLevel>4</WarningLevel>
     <ApplicationManifest>Starcounter.InstallerWPF.manifest</ApplicationManifest>
     <IsWebBootstrapper>false</IsWebBootstrapper>
-    <ApplicationIcon>Sc-icon.ico</ApplicationIcon>
+    <ApplicationIcon>resources\Sc-icon.ico</ApplicationIcon>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -139,6 +139,7 @@
     <Compile Include="Pages\SlidesPage.xaml.cs">
       <DependentUpon>SlidesPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Rules\PortRule.cs" />
     <Compile Include="Slides\ISlide.cs" />
     <Compile Include="Slides\Movie.xaml.cs">
       <DependentUpon>Movie.xaml</DependentUpon>
@@ -490,9 +491,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="resources\LicenseAgreement.html" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Sc-icon.ico" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="resources\SplashScreen.png" />
