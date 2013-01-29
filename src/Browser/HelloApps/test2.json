@@ -1,0 +1,4 @@
+﻿[
+   { "op":"replace", path:"/Items/0/FirstName", value:"Jocke2" },
+   { "op":"replace", path:"/Items/0/FirstName", value:"Marcin" }
+]
