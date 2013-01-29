@@ -550,6 +550,7 @@ namespace StarcounterInternal.Hosting
 
                 if (lr == sccorelib.CM5_LOWMEM_REASON_PHYSICAL_MEMORY)
                 {
+                    sccorelib.mh4_menv_alert_lowmem(hmenv_);
                     sccorelib.mh4_menv_trim_cache(hmenv_, 0);
                 }
             }
