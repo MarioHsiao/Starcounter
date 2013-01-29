@@ -153,7 +153,7 @@ is_system, uint32_t chunks_total_number) try {
 	for (std::size_t i = 0; i < chunks_total_number; ++i) {
 		new(chunk +i) chunk_type;
 	}
-	
+
 	//--------------------------------------------------------------------------
 	// Construct the shared_chunk_pool in shared memory.
 	
@@ -166,12 +166,12 @@ is_system, uint32_t chunks_total_number) try {
 	sizeof(shared_chunk_pool_type));
 
 	shared_chunk_pool_type* shared_chunk_pool = new(p) shared_chunk_pool_type
-	(chunks_total_number, shared_chunk_pool_alloc_inst /*, segment_name*/);
+	(chunks_total_number, shared_chunk_pool_alloc_inst);
 	
 	// Initialize the shared_chunk_pool by pushing in chunk_indexes.
 	// These chunk_indexes represents free chunks.
 
-	// Chunks from 0..chunks -1 are put in the shared_chunk_pool.
+	// Chunks from 0 to chunks_total_number -1 are put in the shared_chunk_pool.
 	for (chunk_index i = 0; i < chunks_total_number; ++i) {
 		shared_chunk_pool->push_front(i);
 	}
@@ -298,6 +298,9 @@ is_system, uint32_t chunks_total_number) try {
 	channel_type* channel = (channel_type*) p;
 	for (std::size_t i = 0; i < channels; ++i) {
 		new(channel +i) channel_type(channel_capacity, channels_alloc_inst);
+#if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
+		channel[i].overflow().set_chunk_ptr(chunk);
+#endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
 	}
 	
 	// Initialize shared memory STL-compatible allocator.

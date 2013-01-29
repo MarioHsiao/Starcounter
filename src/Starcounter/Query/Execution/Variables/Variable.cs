@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Diagnostics;
+using Starcounter.Binding;
 
 namespace Starcounter.Query.Execution
 {
@@ -120,6 +121,14 @@ internal abstract class Variable : CodeGenFilterNode
 
     public virtual void SetValue(Byte newValue)
     {
+        throw ErrorCode.ToException(Error.SCERRBADARGUMENTS);
+    }
+
+    public virtual void SetValue(Type newValue) {
+        throw ErrorCode.ToException(Error.SCERRBADARGUMENTS);
+    }
+
+    public virtual void SetValue(ITypeBinding newValue) {
         throw ErrorCode.ToException(Error.SCERRBADARGUMENTS);
     }
 

@@ -81,7 +81,7 @@ namespace Starcounter.Binding
             // We do the inheriting tables first so that only the records of
             // current table remains when we scan the,
 
-            TableDef[] directlyInheritedTableDefs = GetDirectlyInheritedTableDefs(oldTableDef_.DefinitionAddr);
+            TableDef[] directlyInheritedTableDefs = GetDirectlyInheritedTableDefs(oldTableDef_.TableId);
             for (int i = 0; i < directlyInheritedTableDefs.Length; i++)
             {
                 UpgradeInheritingTable(directlyInheritedTableDefs[i]);
@@ -120,7 +120,7 @@ namespace Starcounter.Binding
                 // table but will instead inherit the new table.
 
                 TableDef[] directlyInheritedTableDefs;
-                directlyInheritedTableDefs = GetDirectlyInheritedTableDefs(oldTableDef_.DefinitionAddr);
+                directlyInheritedTableDefs = GetDirectlyInheritedTableDefs(oldTableDef_.TableId);
                 for (int i = 0; i < directlyInheritedTableDefs.Length; i++)
                 {
                     ContinueUpgradeInheritingTable(directlyInheritedTableDefs[i]);
@@ -136,7 +136,7 @@ namespace Starcounter.Binding
                 // inherited table is dropped then all upgrades on table
                 // inherting this table will have been completed.
 
-                directlyInheritedTableDefs = GetDirectlyInheritedTableDefs(newTableDef_.DefinitionAddr);
+                directlyInheritedTableDefs = GetDirectlyInheritedTableDefs(newTableDef_.TableId);
                 for (int i = 0; i < directlyInheritedTableDefs.Length; i++)
                 {
                     var directlyInheritedTableDef = directlyInheritedTableDefs[i];
@@ -326,34 +326,30 @@ namespace Starcounter.Binding
         }
 
         /// <summary>
-        /// Gets the directly inherited table defs.
         /// </summary>
-        /// <param name="baseDefinitionAddr">The base definition addr.</param>
-        /// <returns>TableDef[][].</returns>
-        private unsafe TableDef[] GetDirectlyInheritedTableDefs(ulong baseDefinitionAddr)
+        private unsafe TableDef[] GetDirectlyInheritedTableDefs(ushort baseTableId)
         {
             TableDef[] output = null;
 
             Db.Transaction(() =>
             {
-                sccoredb.Mdb_DefinitionInfo definitionInfo;
-                sccoredb.Mdb_DefinitionToDefinitionInfo(baseDefinitionAddr, out definitionInfo);
+                sccoredb.SCCOREDB_TABLE_INFO tableInfo;
+                sccoredb.sccoredb_get_table_info(baseTableId, out tableInfo);
 
-                ulong[] definitionAddrs = new ulong[definitionInfo.inheriting_definition_count];
-                for (int i = 0; i < definitionAddrs.Length; i++)
+                var tableIds = new ushort[tableInfo.inheriting_table_count];
+                for (var i = 0; i < tableIds.Length; i++)
                 {
-                    definitionAddrs[i] = definitionInfo.inheriting_definition_addrs[i];
+                    tableIds[i] = tableInfo.inheriting_table_ids[i];
                 }
 
-                List<TableDef> tableDefs = new List<TableDef>((int)definitionInfo.inheriting_definition_count);
-
-                for (int i = 0; i < definitionAddrs.Length; i++)
+                var tableDefs = new List<TableDef>((int)tableInfo.inheriting_table_count);
+                for (var i = 0; i < tableIds.Length; i++)
                 {
-                    var definitionAddr = definitionAddrs[i];
-                    sccoredb.Mdb_DefinitionToDefinitionInfo(definitionAddr, out definitionInfo);
-                    if (definitionInfo.inherited_definition_addr == baseDefinitionAddr)
+                    var tableId = tableIds[i];
+                    sccoredb.sccoredb_get_table_info(tableId, out tableInfo);
+                    if (tableInfo.inherited_table_id == baseTableId)
                     {
-                        tableDefs.Add(TableDef.ConstructTableDef(definitionAddr, definitionInfo));
+                        tableDefs.Add(TableDef.ConstructTableDef(tableInfo));
                     }
                 }
 
@@ -395,7 +391,7 @@ namespace Starcounter.Binding
             uint e;
             unsafe
             {
-                e = sccoredb.sccoredb_replace(source.ObjectID, source.ETI, newTableDef_.DefinitionAddr);
+                e = sccoredb.sccoredb_replace(source.ObjectID, source.ETI, newTableDef_.TableId);
             }
             if (e == 0)
             {

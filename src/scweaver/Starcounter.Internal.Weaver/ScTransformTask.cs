@@ -108,9 +108,8 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         private ITypeSignature _typeBindingType;
         /// <summary>
-        /// The _ulong type
         /// </summary>
-        private ITypeSignature _ulongType;
+        private ITypeSignature _ushortType;
         /// <summary>
         /// The _object view type
         /// </summary>
@@ -522,7 +521,7 @@ namespace Starcounter.Internal.Weaver {
                 );
 
             _typeBindingType = _module.Cache.GetType(typeof(Starcounter.Binding.TypeBinding));
-            _ulongType = _module.Cache.GetIntrinsic(IntrinsicType.UInt64);
+            _ushortType = _module.Cache.GetIntrinsic(IntrinsicType.UInt16);
 
             _objectViewType = _module.FindType(typeof(IObjectView), BindingOptions.Default);
             _objectConstructor = _module.FindMethod(typeof(Object).GetConstructor(Type.EmptyTypes),
@@ -947,14 +946,14 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         /// <param name="typeDef">The type to decorate.</param>
         private void AddTypeReferenceFields(TypeDefDeclaration typeDef) {
-            FieldDefDeclaration typeAddress;
+            FieldDefDeclaration typeTableId;
             FieldDefDeclaration typeBinding;
             FieldDefDeclaration typeReference;
 
-            typeAddress = new FieldDefDeclaration {
-                Name = WeaverNamingConventions.GetTypeAddressFieldName(typeDef),
+            typeTableId = new FieldDefDeclaration {
+                Name = WeaverNamingConventions.GetTypeTableIdFieldName(typeDef),
                 Attributes = (FieldAttributes.Assembly | FieldAttributes.Static),
-                FieldType = _ulongType
+                FieldType = _ushortType
             };
 
             typeBinding = new FieldDefDeclaration {
@@ -974,7 +973,7 @@ namespace Starcounter.Internal.Weaver {
                 FieldType = typeDef
             };
 
-            _starcounterImplementationTypeDef.Fields.Add(typeAddress);
+            _starcounterImplementationTypeDef.Fields.Add(typeTableId);
             _starcounterImplementationTypeDef.Fields.Add(typeBinding);
             _starcounterImplementationTypeDef.Fields.Add(typeReference);
         }
@@ -1337,7 +1336,7 @@ namespace Starcounter.Internal.Weaver {
             ParameterDeclaration paramDecl;
             EntityConstructorCallAdvice advice;
             TypeDefDeclaration parentTypeDef;
-            FieldDefDeclaration typeAddressField;
+            FieldDefDeclaration typeTableIdField;
             FieldDefDeclaration typeBindingField;
 
             // Skip if the type has already been processed.
@@ -1369,8 +1368,8 @@ namespace Starcounter.Internal.Weaver {
 
             // Get infrastucture type reference fields.
 
-            typeAddressField = _starcounterImplementationTypeDef.Fields.GetByName(
-                WeaverNamingConventions.GetTypeAddressFieldName(typeDef));
+            typeTableIdField = _starcounterImplementationTypeDef.Fields.GetByName(
+                WeaverNamingConventions.GetTypeTableIdFieldName(typeDef));
             typeBindingField = _starcounterImplementationTypeDef.Fields.GetByName(
                 WeaverNamingConventions.GetTypeBindingFieldName(typeDef));
 
@@ -1492,7 +1491,7 @@ namespace Starcounter.Internal.Weaver {
 
                     // Add the infrastructure parameters to the constructor.
 
-                    signature.ParameterTypes.Add(_ulongType);
+                    signature.ParameterTypes.Add(_ushortType);
                     signature.ParameterTypes.Add(_typeBindingType);
                     signature.ParameterTypes.Add(_module.Cache.GetType(typeof(Uninitialized)));
 
@@ -1547,8 +1546,8 @@ namespace Starcounter.Internal.Weaver {
 
                 paramDecl = new ParameterDeclaration(
                     enhancedConstructor.Parameters.Count,
-                    "typeAddress",
-                    _ulongType
+                    "tableId",
+                    _ushortType
                     );
                 enhancedConstructor.Parameters.Add(paramDecl);
 
@@ -1590,7 +1589,7 @@ namespace Starcounter.Internal.Weaver {
                     _writer.EmitInstructionParameter(OpCodeNumber.Ldarg, parameter);
                 }
 
-                _writer.EmitInstructionField(OpCodeNumber.Ldsfld, typeAddressField);
+                _writer.EmitInstructionField(OpCodeNumber.Ldsfld, typeTableIdField);
                 _writer.EmitInstructionField(OpCodeNumber.Ldsfld, typeBindingField);
                 _writer.EmitInstruction(OpCodeNumber.Ldnull);
                 _writer.EmitInstructionMethod(OpCodeNumber.Call, enhancedConstructor);
