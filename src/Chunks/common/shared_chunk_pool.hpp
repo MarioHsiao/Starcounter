@@ -463,14 +463,17 @@ private:
 	
 	// SMP spinlock to protect access to the queue.
 	smp::spinlock spinlock_;
-	
+	char cache_line_pad_0_[CACHE_LINE_SIZE -sizeof(smp::spinlock)];
+
 	// Event used by the scheduler to wait when the queue is not empty.
 	// Client's have to open the event and pass it in as an argument.
-	//HANDLE not_empty_;
+	HANDLE not_empty_;
+	char cache_line_pad_1_[CACHE_LINE_SIZE -sizeof(HANDLE)];
 	
 	// Event used by the scheduler to wait when the queue is not full.
 	// Client's have to open the event and pass it in as an argument.
-	//HANDLE not_full_;
+	HANDLE not_full_;
+	char cache_line_pad_2_[CACHE_LINE_SIZE -sizeof(HANDLE)];
 
 	// In order to reduce the time taken to open the not_empty_ and not_full_
 	// events the names are cached. Otherwise the names have to be formated
@@ -481,25 +484,22 @@ private:
 	boost::interprocess::interprocess_mutex mutex_; // Get it to compile.
 
 	// Condition to wait when the queue is not empty
-	boost::interprocess::interprocess_condition not_empty_;
+	boost::interprocess::interprocess_condition not_empty_condition_;
 	
 	// Condition to wait when the queue is not full
-	boost::interprocess::interprocess_condition not_full_;
+	boost::interprocess::interprocess_condition not_full_condition_;
 	
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	// Process-shared anonymous synchronization:
 	
 	// Mutex to protect access to the queue
-	//boost::mutex mutex_;
 	boost::interprocess::interprocess_mutex mutex_;
 	
 	// Condition to wait when the queue is not empty
-	//boost::condition not_empty_;
-	boost::interprocess::interprocess_condition not_empty_;
+	boost::interprocess::interprocess_condition not_empty_condition_;
 	
 	// Condition to wait when the queue is not full
-	//boost::condition not_full_;
-	boost::interprocess::interprocess_condition not_full_;
+	boost::interprocess::interprocess_condition not_full_condition_;
 #endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 };
 

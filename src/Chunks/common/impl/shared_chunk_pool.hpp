@@ -41,13 +41,11 @@ size_type buffer_capacity, const allocator_type& alloc)
 		}
 		not_empty_notify_name_[length] = L'\0';
 
-#if 0 /// NOT YET
 		if ((not_empty_ = ::CreateEvent(NULL, TRUE, FALSE,
 		not_empty_notify_name_)) == NULL) {
 			// Failed to create event.
 			return; // Throw exception error_code.
 		}
-#endif /// NOT YET
 		
 		// Create the not_full_notify_name_ and the not_full_ event.
 		
@@ -67,13 +65,11 @@ size_type buffer_capacity, const allocator_type& alloc)
 		}
 		not_full_notify_name_[length] = L'\0';
 		
-#if 0 /// NOT YET
 		if ((not_full_ = ::CreateEvent(NULL, TRUE, FALSE,
 		not_full_notify_name_)) == NULL) {
 			// Failed to create event.
 			return; // Throw exception error_code.
 		}
-#endif /// NOT YET
 	}
 	else {
 		// Error: No segment name. Throw exception error_code.
@@ -150,7 +146,7 @@ inline bool shared_chunk_pool<T, Alloc>::full() const {
 																						// Terminate the last chunk.
 																						chunk_base[current].terminate_link();
 																						lock.unlock();
-																						not_full_.notify_one();
+																						not_full_condition_.notify_one();
 																						// Successfully acquired the chunks and linked them.
 																						return true;
 																					}
@@ -200,7 +196,7 @@ inline bool shared_chunk_pool<T, Alloc>::full() const {
 																					
 																					head = current;
 																					lock.unlock();
-																					not_empty_.notify_one();
+																					not_empty_condition_.notify_one();
 																					
 																					// Successfully released all linked chunks.
 																					return true;
@@ -264,7 +260,7 @@ client_interface_ptr, uint32_t timeout_milliseconds) {
 		
 		// Notify that the queue is not full.
 		lock.unlock();
-		not_full_.notify_one();
+		not_full_condition_.notify_one();
 		
 		// Successfully acquired the chunks and linked them.
 		return true;
@@ -328,7 +324,7 @@ client_interface_ptr, uint32_t timeout_milliseconds) {
 		
 		// Notify that the queue is not full.
 		lock.unlock();
-		not_full_.notify_one();
+		not_full_condition_.notify_one();
 		
 		// Successfully acquired the chunks and linked them.
 		return true;
@@ -379,7 +375,7 @@ timeout_milliseconds) {
 	
 	head = current;
 	lock.unlock();
-	not_empty_.notify_one();
+	not_empty_condition_.notify_one();
 	
 	// Successfully released all linked chunks.
 	return true;
@@ -437,7 +433,7 @@ client_interface_ptr, uint32_t timeout_milliseconds) {
 				lock.unlock();
 				
 				if (acquired != 0) {
-					not_full_.notify_one();
+					not_full_condition_.notify_one();
 				}
 				
 				return acquired;
@@ -453,7 +449,7 @@ client_interface_ptr, uint32_t timeout_milliseconds) {
 	lock.unlock();
 	
 	if (acquired != 0) {
-		not_full_.notify_one();
+		not_full_condition_.notify_one();
 	}
 	
 	return acquired;
@@ -502,7 +498,7 @@ client_interface_ptr, uint32_t timeout_milliseconds) {
 	lock.unlock();
 	
 	if (released != 0) {
-		not_empty_.notify_one();
+		not_empty_condition_.notify_one();
 	}
 
 	return released;
@@ -557,7 +553,7 @@ timeout_milliseconds) {
 				lock.unlock();
 				
 				if (acquired != 0) {
-					not_full_.notify_one();
+					not_full_condition_.notify_one();
 				}
 				
 				return acquired;
@@ -573,7 +569,7 @@ timeout_milliseconds) {
 	lock.unlock();
 	
 	if (acquired != 0) {
-		not_full_.notify_one();
+		not_full_condition_.notify_one();
 	}
 	
 	return acquired;
@@ -621,7 +617,7 @@ timeout_milliseconds) {
 	lock.unlock();
 	
 	if (released != 0) {
-		not_empty_.notify_one();
+		not_empty_condition_.notify_one();
 	}
 
 	return released;
@@ -672,7 +668,7 @@ client_interface_ptr, uint32_t timeout_milliseconds) {
 	client_interface_ptr->get_resource_map().clear();
 	
 	if (released != 0) {
-		not_empty_.notify_one();
+		not_empty_condition_.notify_one();
 	}
 
 	// Successfully released all chunks.
@@ -738,14 +734,14 @@ spin_count, uint32_t timeout_milliseconds) {
 		}
 		
 		// Wait until the queue is not full, or timeout occurs.
-		if (not_full_.timed_wait(lock, timeout,
+		if (not_full_condition_.timed_wait(lock, timeout,
 		boost::bind(&shared_chunk_pool<value_type, allocator_type>::is_not_full,
 		this)) == true) {
 			// The queue is not full so the item can be pushed.
 			container_.push_front(item);
 			++unread_;
 			lock.unlock();
-			not_empty_.notify_one();
+			not_empty_condition_.notify_one();
 			// Successfully popped the item.
 			return true;
 		}
@@ -788,13 +784,13 @@ spin_count, uint32_t timeout_milliseconds) {
 		}
 		
 		// Wait until the queue is not empty, or timeout occurs.
-		if (not_empty_.timed_wait(lock, timeout,
+		if (not_empty_condition_.timed_wait(lock, timeout,
 		boost::bind(&shared_chunk_pool<value_type, allocator_type>::is_not_empty,
 		this)) == true) {
 			// The queue is not empty so the item can be popped.
 			*item = container_[--unread_];
 			lock.unlock();
-			not_full_.notify_one();
+			not_full_condition_.notify_one();
 			// Successfully popped the item.
 			return true;
 		}
@@ -823,7 +819,7 @@ inline bool shared_chunk_pool<T, Alloc>::try_push_front(param_type item) {
 		container_.push_front(item);
 		++unread_;
 		lock.unlock();
-		not_empty_.notify_one();
+		not_empty_condition_.notify_one();
 		// The item was pushed.
 		return true;
 	}
@@ -846,7 +842,7 @@ inline bool shared_chunk_pool<T, Alloc>::try_pop_back(value_type* item) {
 
 		*item = container_[--unread_];
 		lock.unlock();
-		not_full_.notify_one();
+		not_full_condition_.notify_one();
 		// The item was popped.
 		return true;
 	}
