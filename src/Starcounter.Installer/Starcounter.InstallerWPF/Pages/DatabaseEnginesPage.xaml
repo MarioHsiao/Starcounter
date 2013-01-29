@@ -133,6 +133,18 @@
 
 
                                         </Grid>
+
+                                        <Label Padding="0" Target="{Binding ElementName=cb_PersonalServerPort}" Margin="0,5,0,5"  Content="_Portnumber"   />
+
+                                        <ComboBox x:Name="cb_PersonalServerPort" IsEditable="True" SelectedIndex="0" MaxWidth="150" HorizontalAlignment="Left">
+                                            <ComboBoxItem>
+                                                <TextBlock>80</TextBlock>
+                                            </ComboBoxItem>
+                                            <ComboBoxItem>
+                                                <TextBlock>8080</TextBlock>
+                                            </ComboBoxItem>
+                                        </ComboBox>
+                                        
                                     </StackPanel>
 
                                 </StackPanel>
@@ -208,6 +220,18 @@
 
 
                                         </Grid>
+
+                                        <Label Padding="0" Target="{Binding ElementName=cb_SystemServerPort}" Margin="0,5,0,5"  Content="_Portnumber"   />
+
+                                        <ComboBox x:Name="cb_SystemServerPort" IsEditable="True" SelectedIndex="0" MaxWidth="150" HorizontalAlignment="Left">
+                                            <ComboBoxItem>
+                                                <TextBlock>80</TextBlock>
+                                            </ComboBoxItem>
+                                            <ComboBoxItem>
+                                                <TextBlock>8080</TextBlock>
+                                            </ComboBoxItem>
+                                        </ComboBox>
+
                                     </StackPanel>
 
                                 </StackPanel>
