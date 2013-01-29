@@ -2,6 +2,7 @@
 using Starcounter;
 using Starcounter.ABCIPC;
 using Starcounter.ABCIPC.Internal;
+using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,7 +38,7 @@ namespace sccli {
 
             pipeName = Environment.GetEnvironmentVariable("sccli_servername");
             if (string.IsNullOrEmpty(pipeName)) {
-                pipeName = "personal";
+                pipeName = StarcounterEnvironment.ServerNames.PersonalServer.ToLower();
             }
             pipeName = ScUriExtensions.MakeLocalServerPipeString(pipeName);
             

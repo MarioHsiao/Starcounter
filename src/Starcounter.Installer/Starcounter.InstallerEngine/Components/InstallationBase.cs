@@ -42,7 +42,7 @@ public class CInstallationBase : CComponentBase
     }
 
     /// <summary>
-    /// Provides name of the component setting in INI file.
+    /// Provides name of the component setting.
     /// </summary>
     public override String SettingName
     {
@@ -183,6 +183,11 @@ public class CInstallationBase : CComponentBase
         string[] filesToInstall;
 
         gacFilePath = Path.Combine(InstallerMain.InstallationDir, "GACAssembliesInstall.txt");
+
+        // TODO!
+        if (!File.Exists(gacFilePath))
+            return;
+
         filesToInstall = File.ReadAllLines(gacFilePath);
 
         foreach (string fileName in filesToInstall)
@@ -198,6 +203,11 @@ public class CInstallationBase : CComponentBase
         string[] assembliesToInstall;
 
         gacFilePath = Path.Combine(InstallerMain.InstallationDir, "GACAssembliesUninstall.txt");
+
+        // TODO!
+        if (!File.Exists(gacFilePath))
+            return;
+
         assembliesToInstall = File.ReadAllLines(gacFilePath);
 
         foreach (string assemblyName in assembliesToInstall)
