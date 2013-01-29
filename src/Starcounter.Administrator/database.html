@@ -17,25 +17,62 @@
 <body ng-remoteapp mockup-data="databaseapp.json" class="container">
 
     <div class="navbar">
-      <div class="navbar-inner">
-        <a class="brand" href="/">Starcounter</a>
-        <ul class="nav">
-          <li><a href="/server">Server</a></li>
-          <li class="active"><a href="/databases">Databases</a></li>
-          <li><a href="/query">Query</a></li>
-        </ul>
-      </div>
+        <div class="navbar-inner">
+            <a class="brand" href="/">Starcounter</a>
+            <ul class="nav">
+                <li><a href="/server">Server</a></li>
+                <li class="active"><a href="/databases">Databases</a></li>
+                <li><a href="/query">Query</a></li>
+            </ul>
+        </div>
     </div>
 
     <h1>Database: {{DatabaseName}}</h1>
 
     <dl class="dl-horizontal">
-      <dt>Uri</dt>
-      <dd>{{Uri}}</dd>
-      <dt>Status</dt>
-      <dd>{{Status}}</dd>
+<!--
+        <dt>Uri</dt>
+        <dd>{{Uri}}</dd>
+-->
+        <dt>HostProcessId</dt>
+        <dd>{{HostProcessId}}</dd>
+        <dt>MaxImageSize</dt>
+        <dd>{{MaxImageSize}}</dd>
+        <dt>TransactionLogSize</dt>
+        <dd>{{TransactionLogSize}}</dd>
+        <dt>CollationFile</dt>
+        <dd>{{CollationFile}}</dd>
+        <dt>SupportReplication</dt>
+        <dd>{{SupportReplication}}</dd>
     </dl>
 
-    <button class="btn" ui-click="Start$">Start</button>
+
+
+    <table class="table">
+
+        <thead>
+            <tr>
+                <th>ExecutablePath</th>
+                <th>WorkingDirectory</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr ng-repeat="app in Apps">
+                <td>{{app.ExecutablePath}}</td>
+                <td>{{app.WorkingDirectory}}</td>
+            </tr>
+        </tbody>
+
+    </table>
+
+
+
+
+
+    <div class="btn-group">
+        <button class="btn" ui-click="Start$">Start</button>
+        <button class="btn" ui-click="Stop$">Stop</button>
+    </div>
 
 </body>

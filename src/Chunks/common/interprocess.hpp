@@ -1,7 +1,6 @@
 
 #pragma once
 
-
 #include <xmemory>
 #include <stdint.h>
 #if defined(_MSC_VER)
@@ -288,22 +287,28 @@ class simple_shared_memory_manager
 {
 
 public:
+	enum {
+		// Set align to 4096 for vm page align, or 64 for cache-line align.
+		// It could be a template parameter.
+		align = 64
+	};
+
 	inline uint32_t get_size() const
 	{
-		return size_ * 64;
+		return size_ * align;
 	}
 
 	void reset(uint32_t size)
 	{
-		size /= 64;
+		size /= align;
 		size_ = size;
-		next_ = sizeof(simple_shared_memory_manager) / 64;
+		next_ = sizeof(simple_shared_memory_manager) / align;
 		named_block_count_ = 0;
 	}
 
 	void *allocate(size_t size)
 	{
-		size = (size + 63) / 64;
+		size = (size + (align -1)) / align;
 
 		size_t pos = next_;
 		size_t new_pos = pos + size;
@@ -311,7 +316,7 @@ public:
 		if (new_pos <= size_)
 		{
 			next_ = (uint32_t)new_pos;
-			return ((char *)this + (pos * 64));
+			return ((char *)this + (pos * align));
 		}
 
 		out_of_memory_exception e;

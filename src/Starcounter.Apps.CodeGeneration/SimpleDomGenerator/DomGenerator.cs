@@ -72,6 +72,11 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 _Inherits = "AppMetadata"
             };
 
+            new NAppSerializerClass() {
+                Parent = acn,
+                NAppClass = acn
+            };
+
 //            acn.NTemplateClass.Temp               NTemplateClass = NTemplateClass.Classes[at],
             tcn.NMetadataClass = mcn;
 
@@ -114,6 +119,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
 
             ConnectCodeBehindClasses(root, metadata);
             GenerateInputBindings((NAppTemplateClass)acn.NTemplateClass, metadata);
+            MoveSerializersToBottom(acn);
             return root;
         }
 
@@ -340,6 +346,23 @@ namespace Starcounter.Internal.Application.CodeGeneration
         }
 
         /// <summary>
+        /// Provide a nicer default order of the generated. Puts all serializer 
+        /// classes in the end of the file.
+        /// </summary>
+        /// <param name="node">The node containing the children to rearrange</param>
+        private void MoveSerializersToBottom(NBase node) {
+            var move = new List<NBase>();
+            foreach (var kid in node.Children) {
+                if (kid is NAppSerializerClass) {
+                    move.Add(kid);
+                }
+            }
+            foreach (var kid in move) {
+                kid.Parent = node;
+            }
+        }
+
+        /// <summary>
         /// Generates the kids.
         /// </summary>
         /// <param name="appClassParent">The app class parent.</param>
@@ -447,6 +470,12 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 };
                 tcn.NMetadataClass = mcn;
                 racn.NTemplateClass = tcn;
+
+                new NAppSerializerClass() {
+                    Parent = FindRootNAppClass(appClassParent),
+                    NAppClass = racn
+                };
+
                 GenerateKids(acn as NAppClass, 
                              tcn as NAppTemplateClass, 
                              mcn as NAppMetadata, 
@@ -468,6 +497,13 @@ namespace Starcounter.Internal.Application.CodeGeneration
 
             if (at.Parent is AppTemplate)
                 GenerateProperty(at, appClassParent, templParent, metaParent);
+        }
+
+        private NBase FindRootNAppClass(NAppClass appClassParent) {
+            NBase next = appClassParent;
+            while (!(next.Parent is NRoot))
+                next = next.Parent;
+            return next;
         }
 
         /// <summary>
