@@ -11,6 +11,7 @@
 
 #include <cstddef>
 #include <climits>
+#include <xmmintrin.h>
 #include <boost/cstdint.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
@@ -519,7 +520,16 @@ sc_io_event& the_io_event) try {
 	// push all chunks currently in the overflow buffer first, because it is
 	// more important to send back processed chunks before attempting to receive
 	// chunks to be processed.
-
+#if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL) // Using the new linked list queue overflow() in the channel.
+	// This is done below where the IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL macro is
+	// defined, when checking the next channels [in] circular buffer. The
+	// difference is that the old obsolete overflow buffer was per scheduler and
+	// might contain items targeted for any channel in the set of channels the
+	// given scheduler manages. Now instead there is an overflow queue per
+	// channel based on a linked list within the chunks. In IPC version 2.0 the
+	// links will be separated from the chunks themselves.
+	
+#else // !defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL) // Using the old obsolete overflow buffer
 	if (this_scheduler_interface_->overflow_pool().empty()) {
 		goto main_processing_loop;
 	}
@@ -554,18 +564,12 @@ sc_io_event& the_io_event) try {
 	}
 	
 main_processing_loop:
+#endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
 	while (true) {
-		// TODO: 1/32 of the times passing here, checking the channels is forced by
-		// not checking the signal- or task-channels, etc. Experiment needed.
-		//if (STRONGLY_TAKEN((++signal_and_task_queues_check_counter & 31) != 0)) {
 		if (this_scheduler_signal_channel_->in.try_pop_back(&the_chunk_index) == true)
 		{
 			the_io_event.channel_index_ = invalid_channel_number;
 			the_io_event.chunk_index_ = the_chunk_index;
-			
-			/// TODO: If this path is often taken, then channel[s] where client(s) push
-			/// chunks are rarely checked instead. A counter can be used to sometimes
-			/// bypass checking this_scheduler_signal_channel_.
 			return 0;
 		}
 
@@ -575,13 +579,8 @@ main_processing_loop:
 			// Got an internal message from some scheduler.
 			the_io_event.channel_index_ = invalid_channel_number;
 			the_io_event.chunk_index_ = the_chunk_index;
-
-			/// TODO: If this path is often taken, then channel[s] where client(s) push
-			/// chunks are rarely checked instead. A counter can be used to sometimes
-			/// bypass checking this_scheduler_task_channel_.
 			return 0;
 		}
-		//}
 
 		if (!common_client_interface().client_interfaces_to_clean_up()) {
 			// No clean up to do.
@@ -643,8 +642,48 @@ check_next_channel:
 				
 				// Check if the channel is marked for release, assuming not.
 				if (!the_channel.is_to_be_released()) {
+#if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
+					// An attempt to improve the flow of messages circulating in
+					// the system is that the scheduler shall attempts to move
+					// all items (if any) from the overflow queue in the given
+					// channel to the out queue - before trying to get a new
+					// task from the in queue. The question is if this improves
+					// or degrades the performance. Cancel out this code to see
+					// if there is a difference. I'm not sure the quality of the
+					// implemention is good enough either.
+					while (!the_channel.overflow().empty()) {
+						if (!the_channel.out.try_push_front(the_channel
+						.overflow().front())) {
+							// Failed to push the item. Not removing it from
+							// the overflow queue.
+							break;
+						}
+
+						// The item was successfully pushed to the out buffer.
+						// Removing the item from the overflow queue.
+						the_channel.overflow().pop();
+
+						// Notify that the out queue is not empty, here?
+						the_channel.client()->notify();
+					}
+#endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
+					
 					// Check if there is a message and process it.
 					if (the_channel.in.try_pop_back(&the_chunk_index) == true) {
+						// Prefetching selected cache-lines of the chunk.
+						// How many cache-lines to prefetch in the beginning of
+						// the chunk is unclear. TODO: Testing needed!
+						char* chunk_addr = (char*) &chunk(the_chunk_index);
+						_mm_prefetch(chunk_addr +CACHE_LINE_SIZE * 0, _MM_HINT_T0);
+						_mm_prefetch(chunk_addr +CACHE_LINE_SIZE * 1, _MM_HINT_T0);
+						_mm_prefetch(chunk_addr +CACHE_LINE_SIZE * 2, _MM_HINT_T0);
+						_mm_prefetch(chunk_addr +CACHE_LINE_SIZE * 3, _MM_HINT_T0);
+						
+						// The last cache-line contains the link fields, which is
+						// currently always checked. However, maybe checking the
+						// link fields is not always necessary. TODO: Consider this optimization.
+						_mm_prefetch(chunk_addr +chunk_size -CACHE_LINE_SIZE, _MM_HINT_T0);
+
 						// Notify the client that the in queue is not full.
 						the_channel.client()->notify();
 						
@@ -653,6 +692,8 @@ check_next_channel:
 						the_channel.add_server_ref();
 						the_io_event.channel_index_ = this_channel;
 						the_io_event.chunk_index_ = the_chunk_index;
+
+						// Successfully fetched a message from the given channel.
 						return 0;
 					}
 				}
@@ -676,7 +717,7 @@ check_next_channel:
 			
 			// A 64-bit mask word have been scanned, therefore add mask size 64.
 			next_channel_ += 64;
-
+			
 			// Keep the mask word counter value (bit 7:6), and clear all other bits.
 			next_channel_ &= 192; // ...011000000
 		}
@@ -767,11 +808,59 @@ chunk_index the_chunk_index) {
 	// reference used as shorthand
 	channel_type& the_channel = channel_[the_channel_index];
 	
+#if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
+	// If the channels overflow queue is empty (assumed), then try to push to
+	// the out queue. If that succeeds (assumed), return. If it fails, the
+	// item is pushed to the overflow queue.
+	// If the overflow queue is not empty (assumed), the item is pushed to the overflow
+	// queue and then try to move the whole overflow queue to the out queue.
+	// If the overflow queue is empty (assumed), the item is pushed to the overflow
+
+	//	If out is full, the client may be dead - check if marked for clean-up?
+	//	With the new infinite overflow queue per channel, I decide not to care about checking this.
+	
+	if (the_channel.overflow().empty()) {
+		if (the_channel.out.try_push_front(the_chunk_index)) {
+			// Successfully pushed the response message to the channel.
+			return;
+		}
+		else {
+			// The channels out buffer is full. The message is pushed to this channels overflow queue instead.
+			the_channel.overflow().push(the_chunk_index);
+			return;
+		}
+	}
+	else {
+		// The overflow queue is not empty so the message is first pushed to
+		// the overflow queue, to preserve the order of production.
+		the_channel.overflow().push(the_chunk_index);
+
+		// Try to move all items from the overflow queue to the out buffer.
+		while (!the_channel.overflow().empty()) {
+			if (!the_channel.out.try_push_front(the_channel
+			.overflow().front())) {
+				// Failed to push the item. Not removing it from
+				// the overflow queue.
+				return;
+			}
+
+			// The item was successfully pushed to the out buffer.
+			// Removing the item from the overflow queue.
+			the_channel.overflow().pop();
+
+			// Notify that the out queue is not empty, here?
+			the_channel.client()->notify();
+		}
+
+		// Dont check if (!the_channel.client()->get_owner_id().get_clean_up()) {}
+		return;
+	}
+	
+#else // !defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
     // Checking if overflow pool is empty otherwise put into it.
 	if (this_scheduler_interface_->overflow_pool().empty() &&
         the_channel.out.try_push_front(the_chunk_index)) {
 		// Successfully pushed the response message to the channel.
-
 		return;
 	}
 	else {
@@ -797,7 +886,8 @@ chunk_index the_chunk_index) {
 		
 		return;
 	}
-	
+#endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
+		
 	// call client_interface[the_channel.client_number()].notify();
 }
 
@@ -924,10 +1014,15 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 		}
 	}
 	
-	///=========================================================================
-	/// Remove chunk indices from the overflow_pool targeted for this channel.
-	///=========================================================================
-	
+#if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
+	// Remove chunk indices from the overflow queue in this channel.
+	while (!channel.overflow().empty()) {
+		// Removing the item from the overflow queue.
+		channel.overflow().pop();
+	}
+
+#else // !defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
+	// Remove chunk indices from the overflow_pool targeted for this channel.
 	if (!this_scheduler_interface_->overflow_pool().empty()) {
 		// This type must be uint32_t.
 		uint32_t chunk_index_and_channel;
@@ -946,6 +1041,7 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 			}
 		}
 	}
+#endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
 	
 	///=========================================================================
 	/// Releases the channel making it available for any client to allocate.
@@ -986,9 +1082,7 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 			/// Notify the IPC monitor to repush_front_channel_numberlease all chunks in this
 			/// client_interface, making them available for anyone to allocate.
 			///=================================================================
-			//std::cout << "TODO: Notify the IPC monitor to release all chunks in this client_interface." << std::endl;
 
-#if 1
 			bool release_chunk_result = release_clients_chunks
 			(client_interface_ptr, 10000 /* milliseconds */);
 			
@@ -1000,8 +1094,6 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 			client_interface_ptr);
 			
 			common_client_interface_->decrement_client_interfaces_to_clean_up();
-
-#endif
 
 #else // !defined (IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP)
 			///=================================================================
@@ -1096,7 +1188,14 @@ void server_port::release_channel_marked_for_release(channel_number the_channel_
 	///=========================================================================
 	/// Remove chunk indices from the overflow_pool targeted for this channel.
 	///=========================================================================
+#if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
+	// Remove chunk indices from the overflow queue in this channel.
+	while (!channel.overflow().empty()) {
+		// Removing the item from the overflow queue.
+		channel.overflow().pop();
+	}
 
+#else // !defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
 	if (!this_scheduler_interface_->overflow_pool().empty()) {
 		// This type must be uint32_t.
 		uint32_t chunk_index_and_channel;
@@ -1127,6 +1226,7 @@ void server_port::release_channel_marked_for_release(channel_number the_channel_
 			}
 		}
 	}
+#endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
 	
 	/// TODO: If the in queue was not empty at the moment this function was
 	/// called, this is a bug because the scheduler have popped a message since
@@ -1217,7 +1317,7 @@ unsigned long server_port::acquire_linked_chunk_indexes(unsigned long channel_nu
 {
 	channel_type& the_channel = channel_[channel_number];
 	//uint64_t the_owner_id = the_channel.get_owner_id().get_owner_id();
-	lldiv_t div_value = div((int64_t)needed_size, (int64_t)chunk_type::STATIC_DATA_SIZE);
+	lldiv_t div_value = div((int64_t)needed_size, (int64_t)chunk_type::static_data_size);
 	uint32_t needed_chunks = div_value.quot;
 	if (div_value.rem != 0) needed_chunks++;
 
