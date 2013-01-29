@@ -53,14 +53,14 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="port">Listens for http traffic on the given port. </param>
         /// <param name="resourceResolvePath">Adds a directory path to the list of paths used when resolving a request for a static REST (web) resource</param>
-        public static void Bootstrap(UInt16 port = 0xFFFF, string resourceResolvePath = null) {
+        public static void Bootstrap(int port = -1, string resourceResolvePath = null) {
             if (resourceResolvePath != null)
                 AddFileServingDirectory(resourceResolvePath);
 
             // Let the Network Gateway now when the user adds a handler (like GET("/")).
 
             // Checking for the port.
-            if (port == 0xFFFF)
+            if (port == -1)
                 port = defaultPort_;
 
             // TODO: 
