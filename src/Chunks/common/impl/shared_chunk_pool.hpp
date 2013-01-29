@@ -19,6 +19,7 @@ template<class T, class Alloc>
 inline shared_chunk_pool<T, Alloc>::shared_chunk_pool(const char* segment_name,
 size_type buffer_capacity, const allocator_type& alloc)
 : container_(buffer_capacity, alloc), unread_(0) {
+#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
     if (segment_name != 0) {
 		char notify_name[segment_and_notify_name_size];
 		std::size_t length;
@@ -74,6 +75,7 @@ size_type buffer_capacity, const allocator_type& alloc)
 	else {
 		// Error: No segment name. Throw exception error_code.
 	}
+#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 }
 
 template<class T, class Alloc>
@@ -107,8 +109,8 @@ inline bool shared_chunk_pool<T, Alloc>::full() const {
 																				template<class T, class Alloc>
 																				inline bool shared_chunk_pool<T, Alloc>::acquire_linked_chunks(chunk_type*
 																				chunk_base, chunk_index& head, std::size_t size, uint32_t timeout_milliseconds /*, owner_id oid*/ ) {
-																					std::size_t chunks_to_acquire = (size +chunk_type::STATIC_DATA_SIZE -1)
-																					/ chunk_type::STATIC_DATA_SIZE;
+																					std::size_t chunks_to_acquire = (size +chunk_type::static_data_size -1)
+																					/ chunk_type::static_data_size;
 																					
 																					// The timeout is used multiple times below, while time passes, so all
 																					// synchronization must be completed before the timeout_milliseconds
@@ -192,7 +194,7 @@ inline bool shared_chunk_pool<T, Alloc>::full() const {
 																						}
 																						
 																						current = this_chunks_link;
-																					} while (this_chunks_link != chunk_type::LINK_TERMINATOR);
+																					} while (this_chunks_link != chunk_type::link_terminator);
 																					
 																					head = current;
 																					lock.unlock();
@@ -208,19 +210,15 @@ inline bool shared_chunk_pool<T, Alloc>::full() const {
 template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::acquire_linked_chunks(chunk_type*
 chunk_base, chunk_index& head, std::size_t size, client_interface_type*
-client_interface_ptr, uint32_t timeout_milliseconds) {
-	std::size_t chunks_to_acquire = (size +chunk_type::STATIC_DATA_SIZE -1)
-	/ chunk_type::STATIC_DATA_SIZE;
+client_interface_ptr, smp::spinlock::milliseconds timeout) {
+	std::cout << "<A> acquire_linked_chunks()\n";
+	std::size_t chunks_to_acquire = (size +chunk_type::static_data_size -1)
+	/ chunk_type::static_data_size;
 	
-	// The timeout is used multiple times below, while time passes, so all
-	// synchronization must be completed before the timeout_milliseconds
-	// time period has elapsed.
-	const boost::system_time timeout = boost::posix_time::microsec_clock
-	::universal_time() +boost::posix_time::milliseconds(timeout_milliseconds);
-	
-	boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex>
-	lock(mutex_, timeout);
-	
+	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
+	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
+	timeout -timeout.tick_count());
+
 	if (!lock.owns()) {
 		// The timeout_milliseconds time period has elapsed. Failed to acquire
 		// linked chunks.
@@ -235,14 +233,11 @@ client_interface_ptr, uint32_t timeout_milliseconds) {
 		current = container_[--unread_];
 		_mm_mfence(); // TODO: Figure if _mm_sfence() is enough.
 		client_interface_ptr->set_chunk_flag(current);
-		
-		///Not chunk_base[head].set_link(current); which was a bug.
 		head = current;
 		
 		for (std::size_t i = 1; i < chunks_to_acquire; ++i) {
 			prev = current;
 			current = container_[--unread_];
-			
 			_mm_mfence(); // TODO: Figure if _mm_mfence() is enough/required.
 			
 			// This must never occur before the pop_back() above, because if
@@ -277,8 +272,8 @@ template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::acquire_linked_chunks(chunk_type*
 chunk_base, chunk_index& head, std::size_t size, client_interface_type*
 client_interface_ptr, uint32_t timeout_milliseconds) {
-	std::size_t chunks_to_acquire = (size +chunk_type::STATIC_DATA_SIZE -1)
-	/ chunk_type::STATIC_DATA_SIZE;
+	std::size_t chunks_to_acquire = (size +chunk_type::static_data_size -1)
+	/ chunk_type::static_data_size;
 	
 	// The timeout is used multiple times below, while time passes, so all
 	// synchronization must be completed before the timeout_milliseconds
@@ -346,15 +341,12 @@ client_interface_ptr, uint32_t timeout_milliseconds) {
 template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::acquire_linked_chunks_counted(chunk_type*
 chunk_base, chunk_index& head, std::size_t num_chunks_to_acquire, client_interface_type*
-client_interface_ptr, uint32_t timeout_milliseconds) {
-	// The timeout is used multiple times below, while time passes, so all
-	// synchronization must be completed before the timeout_milliseconds
-	// time period has elapsed.
-	const boost::system_time timeout = boost::posix_time::microsec_clock
-	::universal_time() +boost::posix_time::milliseconds(timeout_milliseconds);
+client_interface_ptr, smp::spinlock::milliseconds timeout) {
+	std::cout << "<B> acquire_linked_chunks_counted()\n";
 	
-	boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex>
-	lock(mutex_, timeout);
+	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
+	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
+	timeout -timeout.tick_count());
 	
 	if (!lock.owns()) {
 		// The timeout_milliseconds time period has elapsed. Failed to acquire
@@ -477,16 +469,13 @@ client_interface_ptr, uint32_t timeout_milliseconds) {
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::release_linked_chunks(chunk_type*
-chunk_, chunk_index& head, client_interface_type* client_interface_ptr, uint32_t
-timeout_milliseconds) {
-	// The timeout is used multiple times below, while time passes, so all
-	// synchronization must be completed before the timeout_milliseconds
-	// time period has elapsed.
-	const boost::system_time timeout = boost::posix_time::microsec_clock
-	::universal_time() +boost::posix_time::milliseconds(timeout_milliseconds);
-	
-	boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex>
-	lock(mutex_, timeout);
+chunk_, chunk_index& head, client_interface_type* client_interface_ptr,
+smp::spinlock::milliseconds timeout) {
+	std::cout << "<C> release_linked_chunks()\n";
+
+	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
+	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
+	timeout -timeout.tick_count());
 	
 	if (!lock.owns()) {
 		// The timeout_milliseconds time period has elapsed. Failed to release
@@ -511,7 +500,7 @@ timeout_milliseconds) {
 		}
 		
 		current = this_chunks_link;
-	} while (this_chunks_link != chunk_type::LINK_TERMINATOR);
+	} while (this_chunks_link != chunk_type::link_terminator);
 	
 	head = current;
 	lock.unlock();
@@ -558,7 +547,7 @@ timeout_milliseconds) {
 		}
 		
 		current = this_chunks_link;
-	} while (this_chunks_link != chunk_type::LINK_TERMINATOR);
+	} while (this_chunks_link != chunk_type::link_terminator);
 	
 	head = current;
 	lock.unlock();
@@ -578,15 +567,13 @@ template<class T, class Alloc>
 template<typename U>
 inline std::size_t shared_chunk_pool<T, Alloc>::acquire_to_chunk_pool(U&
 private_chunk_pool, std::size_t chunks_to_acquire, client_interface_type*
-client_interface_ptr, uint32_t timeout_milliseconds) {
-	const boost::system_time timeout = boost::posix_time::microsec_clock
-	::universal_time() +boost::posix_time::milliseconds(timeout_milliseconds);
+client_interface_ptr, smp::spinlock::milliseconds timeout) {
+	std::cout << "<D> acquire_to_chunk_pool()\n";
 	
-	// The lock must be acquired before the timeout_milliseconds time period has
-	// elapsed.
-	boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex>
-	lock(mutex_, timeout);
-	
+	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
+	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
+	timeout -timeout.tick_count());
+
 	if (!lock.owns()) {
 		// The timeout_milliseconds time period has elapsed. Failed to acquire
 		// the lock, therefore no chunks could be acquired.
@@ -724,14 +711,12 @@ template<class T, class Alloc>
 template<typename U>
 std::size_t shared_chunk_pool<T, Alloc>::release_from_chunk_pool(U&
 private_chunk_pool, std::size_t chunks_to_release, client_interface_type*
-client_interface_ptr, uint32_t timeout_milliseconds) {
-	const boost::system_time timeout = boost::posix_time::microsec_clock
-	::universal_time() +boost::posix_time::milliseconds(timeout_milliseconds);
-	
-	// The lock must be acquired before the timeout_milliseconds time period has
-	// elapsed.
-	boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex>
-	lock(mutex_, timeout);
+client_interface_ptr, smp::spinlock::milliseconds timeout) {
+	std::cout << "<E> release_from_chunk_pool()\n";
+
+	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
+	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
+	timeout -timeout.tick_count());
 	
 	if (!lock.owns()) {
 		// The timeout_milliseconds time period has elapsed. Failed to acquire
@@ -828,15 +813,13 @@ client_interface_ptr, uint32_t timeout_milliseconds) {
 template<class T, class Alloc>
 template<typename U>
 inline std::size_t shared_chunk_pool<T, Alloc>::acquire_to_chunk_pool(U&
-private_chunk_pool, std::size_t chunks_to_acquire, uint32_t
-timeout_milliseconds) {
-	const boost::system_time timeout = boost::posix_time::microsec_clock
-	::universal_time() +boost::posix_time::milliseconds(timeout_milliseconds);
-	
-	// The lock must be acquired before the timeout_milliseconds time period has
-	// elapsed.
-	boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex>
-	lock(mutex_, timeout);
+private_chunk_pool, std::size_t chunks_to_acquire,
+smp::spinlock::milliseconds timeout) {
+	std::cout << "<F> acquire_to_chunk_pool()\n";
+
+	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
+	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
+	timeout -timeout.tick_count());
 	
 	if (!lock.owns()) {
 		// The timeout_milliseconds time period has elapsed. Failed to acquire
@@ -968,15 +951,13 @@ timeout_milliseconds) {
 template<class T, class Alloc>
 template<typename U>
 std::size_t shared_chunk_pool<T, Alloc>::release_from_chunk_pool(U&
-private_chunk_pool, std::size_t chunks_to_release, uint32_t
-timeout_milliseconds) {
-	const boost::system_time timeout = boost::posix_time::microsec_clock
-	::universal_time() +boost::posix_time::milliseconds(timeout_milliseconds);
-	
-	// The lock must be acquired before the timeout_milliseconds time period has
-	// elapsed.
-	boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex>
-	lock(mutex_, timeout);
+private_chunk_pool, std::size_t chunks_to_release,
+smp::spinlock::milliseconds timeout) {
+	std::cout << "<G> release_from_chunk_pool()\n";
+
+	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
+	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
+	timeout -timeout.tick_count());
 	
 	if (!lock.owns()) {
 		// The timeout_milliseconds time period has elapsed. Failed to acquire
@@ -1071,14 +1052,12 @@ timeout_milliseconds) {
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 template<class T, class Alloc>
 bool shared_chunk_pool<T, Alloc>::release_clients_chunks(client_interface_type*
-client_interface_ptr, uint32_t timeout_milliseconds) {
-	const boost::system_time timeout = boost::posix_time::microsec_clock
-	::universal_time() +boost::posix_time::milliseconds(timeout_milliseconds);
-	
-	// The lock must be acquired before the timeout_milliseconds time period has
-	// elapsed.
-	boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex>
-	lock(mutex_, timeout);
+client_interface_ptr, smp::spinlock::milliseconds timeout) {
+	std::cout << "<H> release_clients_chunks()\n";
+
+	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
+	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
+	timeout -timeout.tick_count());
 	
 	if (!lock.owns()) {
 		// The timeout_milliseconds time period has elapsed. Failed to acquire
@@ -1174,22 +1153,21 @@ client_interface_ptr, uint32_t timeout_milliseconds) {
 template<class T, class Alloc>
 void shared_chunk_pool<T, Alloc>::show_linked_chunks(chunk_type* chunk_,
 chunk_index head) {
-	// The timeout is used multiple times below, while time passes, so all
-	// synchronization must be completed before the timeout_milliseconds
-	// time period has elapsed.
-	const boost::system_time timeout = boost::posix_time::microsec_clock
-	::universal_time() +boost::posix_time::milliseconds(1000);
+	std::cout << "<I> show_linked_chunks()\n";
 	
-	boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex>
-	lock(mutex_, timeout);
-	
+	smp::spinlock::milliseconds timeout(1000);
+
+	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
+	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
+	timeout -timeout.tick_count());
+
 	if (!lock.owns()) {
 		// The timeout_milliseconds time period has elapsed. Failed to acquire
 		// linked chunks.
 		return;
 	}
 	
-	for (chunk_index current = head; current != chunk_type::LINK_TERMINATOR;
+	for (chunk_index current = head; current != chunk_type::link_terminator;
 	current = chunk_[current].get_link()) {
 		chunk_index next = chunk_[current].get_link();
 		std::cout << "chunk[" << current << "] links to chunk[" << next << "]" << std::endl;
@@ -1216,7 +1194,7 @@ chunk_index head) {
 		return;
 	}
 	
-	for (chunk_index current = head; current != chunk_type::LINK_TERMINATOR;
+	for (chunk_index current = head; current != chunk_type::link_terminator;
 	current = chunk_[current].get_link()) {
 		chunk_index next = chunk_[current].get_link();
 		std::cout << "chunk[" << current << "] links to chunk[" << next << "]" << std::endl;
@@ -1229,7 +1207,8 @@ chunk_index head) {
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::push_front(param_type item, uint32_t
-spin_count, uint32_t timeout_milliseconds) {
+spin_count, smp::spinlock::milliseconds timeout) {
+	//std::cout << "<J> push_front()\n";
 	// Spin at most spin_count number of times, and try to push the item...
 	for (std::size_t s = 0; s < spin_count; ++s) {
 		if (try_push_front(item)) {
@@ -1242,21 +1221,19 @@ spin_count, uint32_t timeout_milliseconds) {
 	// when trying again now, the thread waits until the queue is not full.
 	{
 		// The timeout is used multiple times below, while time passes, so all
-		// synchronization must be completed before the timeout_milliseconds
-		// time period has elapsed.
-		const boost::system_time timeout = boost::posix_time::microsec_clock
-		::universal_time() +boost::posix_time::milliseconds
-		(timeout_milliseconds);
-		
-		boost::interprocess::scoped_lock
-		<boost::interprocess::interprocess_mutex> lock(mutex_, timeout);
+		// synchronization must be completed before the timeout time period has
+		// elapsed.
+
+		// Using the anonumous id 1. No recovery is done in IPC version 1.0.
+		smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
+		timeout -timeout.tick_count());
 		
 		if (!lock.owns()) {
-			// The timeout_milliseconds time period has elapsed. Failed to push
-			// the item.
+			// The timeout time period has elapsed. Failed to push the item.
 			return false;
 		}
 		
+#if 0 /// REPLACE THIS WITH WINDOWS EVENTS
 		// Wait until the queue is not full, or timeout occurs.
 		if (not_full_condition_.timed_wait(lock, timeout,
 		boost::bind(&shared_chunk_pool<value_type, allocator_type>::is_not_full,
@@ -1270,10 +1247,11 @@ spin_count, uint32_t timeout_milliseconds) {
 			return true;
 		}
 		else {
-			// The timeout_milliseconds time period has elapsed. Failed to push
-			// the item.
+			// The timeout time period has elapsed. Failed to push the item.
 			return false;
 		}
+#endif /// REPLACE THIS WITH WINDOWS EVENTS
+		return false; /// REPLACE THIS WITH WINDOWS EVENTS
 	}
 }
 
@@ -1333,7 +1311,8 @@ spin_count, uint32_t timeout_milliseconds) {
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::pop_back(value_type* item, uint32_t
-spin_count, uint32_t timeout_milliseconds) {
+spin_count, smp::spinlock::milliseconds timeout) {
+	std::cout << "<K> pop_back()\n";
 	// Spin at most spin_count number of times, and try to pop the item...
 	for (std::size_t s = 0; s < spin_count; ++s) {
 		if (try_pop_back(item)) {
@@ -1348,12 +1327,10 @@ spin_count, uint32_t timeout_milliseconds) {
 		// The timeout is used multiple times below, while time passes, so all
 		// synchronization must be completed before the timeout_milliseconds
 		// time period has elapsed.
-		const boost::system_time timeout = boost::posix_time::microsec_clock
-		::universal_time() +boost::posix_time::milliseconds
-		(timeout_milliseconds);
 
-		boost::interprocess::scoped_lock
-		<boost::interprocess::interprocess_mutex> lock(mutex_, timeout);
+		// Using the anonumous id 1. No recovery is done in IPC version 1.0.
+		smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
+		timeout -timeout.tick_count());
 		
 		if (!lock.owns()) {
 			// The timeout_milliseconds time period has elapsed. Failed to pop
@@ -1361,6 +1338,7 @@ spin_count, uint32_t timeout_milliseconds) {
 			return false;
 		}
 		
+#if 0 /// REPLACE THIS WITH WINDOWS EVENTS
 		// Wait until the queue is not empty, or timeout occurs.
 		if (not_empty_condition_.timed_wait(lock, timeout,
 		boost::bind(&shared_chunk_pool<value_type, allocator_type>::is_not_empty,
@@ -1377,6 +1355,8 @@ spin_count, uint32_t timeout_milliseconds) {
 			// the item.
 			return false;
 		}
+#endif /// REPLACE THIS WITH WINDOWS EVENTS
+		return false; /// REPLACE THIS WITH WINDOWS EVENTS
 	}
 }
 
@@ -1435,8 +1415,10 @@ spin_count, uint32_t timeout_milliseconds) {
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::try_push_front(param_type item) {
-	boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex>
-	lock(mutex_, boost::interprocess::try_to_lock);
+	//std::cout << "<L> try_push_front()\n";
+
+	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
+	smp::spinlock::scoped_lock::try_to_lock_type());
 	
 	if (lock.owns()) {
 		// If the buffer is full, we shall not block.
@@ -1487,8 +1469,10 @@ inline bool shared_chunk_pool<T, Alloc>::try_push_front(param_type item) {
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::try_pop_back(value_type* item) {
-	boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex>
-	lock(mutex_, boost::interprocess::try_to_lock);
+	std::cout << "<M> try_pop_back()\n";
+
+	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
+	smp::spinlock::scoped_lock::try_to_lock_type());
 
 	if (lock.owns()) {
 		// If the buffer is empty, we shall not block.
@@ -1544,6 +1528,32 @@ inline bool shared_chunk_pool<T, Alloc>::is_not_full() const {
 }
 
 //------------------------------------------------------------------------------
+#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+template<class T, class Alloc>
+inline const wchar_t* shared_chunk_pool<T, Alloc>::not_empty_notify_name() const {
+	return not_empty_notify_name_;
+}
+
+template<class T, class Alloc>
+inline const wchar_t* shared_chunk_pool<T, Alloc>::not_full_notify_name() const {
+	return not_full_notify_name_;
+}
+
+template<class T, class Alloc>
+inline bool shared_chunk_pool<T, Alloc>::if_locked_with_id_recover_and_unlock
+(smp::spinlock::locker_id_type id) {
+	std::cout << "<N> if_locked_with_id_recover_and_unlock()\n";
+	if (spinlock().is_locked_with_id(id)) {
+		// Recover...NOT! We accept a resource leak in IPC version 1.0.
+		// TODO: Fix recovery of chunks in IPC version 2.0.
+		spinlock().unlock();
+		return true;
+	}
+
+	// The shared_chunk_pool was not locked with id. No recovery to be done here.
+	return false;
+}
+#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 
 } // namespace core
 } // namespace starcounter

@@ -192,13 +192,13 @@ public:
 																				/**
 																				 * @param chunk_base Points to the first element of the array of chunks.
 																				 * @param head The head of the linked chunks, will upon return contain
-																				 *		chunk_type::LINK_TERMINATOR if successfully released all linked
+																				 *		chunk_type::link_terminator if successfully released all linked
 																				 *		chunks, otherwise it contains the chunk_index pointing to the head
 																				 *		of the linked chunks that are left.
 																				 * @param timeout_milliseconds The number of milliseconds to wait before a
 																				 *		timeout may occur.
 																				 * @return true if successfully released all linked chunks in which case
-																				 *		head is set to chunk_type::LINK_TERMINATOR, otherwise returns false
+																				 *		head is set to chunk_type::link_terminator, otherwise returns false
 																				 *		if failed to release all linked chunks, or the time period has
 																				 *		elapsed.
 																				 */
@@ -216,17 +216,23 @@ public:
 	 *		account.
 	 * @param client_interface_ptr A pointer to the client_interface where the
 	 *		chunk will be marked as owned by the client.
-	 * @param timeout_milliseconds The number of milliseconds to wait before a
+	 * @param timeout The number of milliseconds to wait before a
 	 *		timeout may occur.
 	 * @return true if successfully acquired the linked chunks with the
 	 *		requested amount of memory before the time period specified by
-	 *		timeout_milliseconds has elapsed, otherwise false if not enough
+	 *		timeout has elapsed, otherwise false if not enough
 	 *		space or the time period has elapsed.
 	 */
+#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool acquire_linked_chunks(chunk_type* chunk_base, chunk_index& head,
-	std::size_t size, client_interface_type* client_interface_ptr, uint32_t
-	timeout_milliseconds = 10000);
-
+	std::size_t size, client_interface_type* client_interface_ptr,
+	smp::spinlock::milliseconds timeout = 10000);
+#else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+	bool acquire_linked_chunks(chunk_type* chunk_base, chunk_index& head,
+	std::size_t size, client_interface_type* client_interface_ptr,
+	uint32_t timeout_milliseconds = 10000);
+#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+	
 	/// Acquire linked chunks that fit the requested size - for schedulers and
 	/// clients.
 	/**
@@ -236,16 +242,22 @@ public:
 	 * @param num_chunks_to_acquire The number of chunks to allocate.
 	 * @param client_interface_ptr A pointer to the client_interface where the
 	 *		chunk will be marked as owned by the client.
-	 * @param timeout_milliseconds The number of milliseconds to wait before a
+	 * @param timeout The number of milliseconds to wait before a
 	 *		timeout may occur.
 	 * @return true if successfully acquired the linked chunks with the
 	 *		requested amount of memory before the time period specified by
-	 *		timeout_milliseconds has elapsed, otherwise false if not enough
+	 *		timeout has elapsed, otherwise false if not enough
 	 *		space or the time period has elapsed.
 	 */
+#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool acquire_linked_chunks_counted(chunk_type* chunk_base, chunk_index& head,
-	std::size_t num_chunks_to_acquire, client_interface_type* client_interface_ptr, uint32_t
-	timeout_milliseconds = 10000);
+	std::size_t num_chunks_to_acquire, client_interface_type* client_interface_ptr,
+	smp::spinlock::milliseconds timeout = 10000);
+#else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+	bool acquire_linked_chunks_counted(chunk_type* chunk_base, chunk_index& head,
+	std::size_t num_chunks_to_acquire, client_interface_type* client_interface_ptr,
+	uint32_t timeout_milliseconds = 10000);
+#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	
 	/// Release linked chunks - for schedulers and clients.
 	/// NOTE: After calling this, the message data in the linked chunks may be
@@ -255,7 +267,7 @@ public:
 	/**
 	 * @param chunk_base Points to the first element of the array of chunks.
 	 * @param head The head of the linked chunks, will upon return contain
-	 *		chunk_type::LINK_TERMINATOR if successfully released all linked
+	 *		chunk_type::link_terminator if successfully released all linked
 	 *		chunks, otherwise it contains the chunk_index pointing to the head
 	 *		of the linked chunks that are left.
 	 * @param client_interface_ptr A pointer to the client_interface where the
@@ -263,13 +275,19 @@ public:
 	 * @param timeout_milliseconds The number of milliseconds to wait before a
 	 *		timeout may occur.
 	 * @return true if successfully released all linked chunks in which case
-	 *		head is set to chunk_type::LINK_TERMINATOR, otherwise returns false
+	 *		head is set to chunk_type::link_terminator, otherwise returns false
 	 *		if failed to release all linked chunks, or the time period has
 	 *		elapsed.
 	 */
+#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool release_linked_chunks(chunk_type* chunk_base, chunk_index& head,
-	client_interface_type* client_interface_ptr, uint32_t timeout_milliseconds
-	= 10000);
+	client_interface_type* client_interface_ptr,
+	smp::spinlock::milliseconds timeout = 10000);
+#else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+	bool release_linked_chunks(chunk_type* chunk_base, chunk_index& head,
+	client_interface_type* client_interface_ptr,
+	uint32_t timeout_milliseconds = 10000);
+#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	
 	//--------------------------------------------------------------------------
 	/// Clients acquire chunks to a private chunk_pool, by moving chunks from
@@ -281,16 +299,24 @@ public:
 	 * @param chunks_to_acquire The number of chunks to acquire.
 	 * @param client_interface_ptr A pointer to the client_interface where the
 	 *		chunk(s) will be marked as owned by the client.
-	 * @param timeout_milliseconds The number of milliseconds to wait before a
+	 * @param timeout The number of milliseconds to wait before a
 	 *		timeout may occur while trying to lock the shared_chunk_pool.
 	 * @return The number of acquired chunks. If the private_chunk_pool is full
 	 *		or becomes full when acquiring chunks, the acquirement process is
 	 *		stopped. This means that less than chunks_to_acquire was acquired.
 	 */
+#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+	template<typename U>
+	std::size_t acquire_to_chunk_pool(U& private_chunk_pool, std::size_t
+	chunks_to_acquire, client_interface_type* client_interface_ptr,
+	smp::spinlock::milliseconds timeout = 10000);
+
+#else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	template<typename U>
 	std::size_t acquire_to_chunk_pool(U& private_chunk_pool, std::size_t
 	chunks_to_acquire, client_interface_type* client_interface_ptr, uint32_t
 	timeout_milliseconds = 10000);
+#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	
 	/// Clients release chunks from a private_chunk_pool, by moving chunks from
 	/// the private_chunk_pool to the shared_chunk_pool. The chunks are marked
@@ -302,14 +328,21 @@ public:
 	 * @param chunks_to_release The number of chunks to release.
 	 * @param client_interface_ptr A pointer to the client_interface where the
 	 *		chunk(s) will be marked as not owned by the client.
-	 * @param timeout_milliseconds The number of milliseconds to wait before a
+	 * @param timeout The number of milliseconds to wait before a
 	 *		timeout may occur while trying to lock the shared_chunk_pool.
 	 * @return The number of released chunks.
 	 */
+#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+	template<typename U>
+	std::size_t release_from_chunk_pool(U& private_chunk_pool, std::size_t
+	chunks_to_release, client_interface_type* client_interface_ptr,
+	smp::spinlock::milliseconds timeout = 10000);
+#else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	template<typename U>
 	std::size_t release_from_chunk_pool(U& private_chunk_pool, std::size_t
 	chunks_to_release, client_interface_type* client_interface_ptr, uint32_t
 	timeout_milliseconds = 10000);
+#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	
 	//--------------------------------------------------------------------------
 	/// Schedulers acquire chunks to a private chunk_pool, by moving chunks from
@@ -318,15 +351,21 @@ public:
 	 * @param private_chunk_pool Reference to the chunk_pool to which chunks are
 	 *		allocated.
 	 * @param chunks_to_acquire The number of chunks to acquire.
-	 * @param timeout_milliseconds The number of milliseconds to wait before a
+	 * @param timeout The number of milliseconds to wait before a
 	 *		timeout may occur while trying to lock the shared_chunk_pool.
 	 * @return The number of acquired chunks. If the private_chunk_pool is full
 	 *		or becomes full when acquiring chunks, the acquirement process is
 	 *		stopped. This means that less than chunks_to_acquire was acquired.
 	 */
+#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+	template<typename U>
+	std::size_t acquire_to_chunk_pool(U& private_chunk_pool, std::size_t
+	chunks_to_acquire, smp::spinlock::milliseconds timeout = 10000);
+#else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	template<typename U>
 	std::size_t acquire_to_chunk_pool(U& private_chunk_pool, std::size_t
 	chunks_to_acquire, uint32_t timeout_milliseconds = 10000);
+#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	
 	/// Schedulers release chunks from a private_chunk_pool, by moving chunks
 	/// from the private_chunk_pool to the shared_chunk_pool.
@@ -334,13 +373,19 @@ public:
 	 * @param private_chunk_pool Reference to the private chunk_pool from which
 	 *		chunks are released.
 	 * @param chunks_to_release The number of chunks to release.
-	 * @param timeout_milliseconds The number of milliseconds to wait before a
+	 * @param timeout The number of milliseconds to wait before a
 	 *		timeout may occur while trying to lock the shared_chunk_pool.
 	 * @return The number of released chunks.
 	 */
+#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+	template<typename U>
+	std::size_t release_from_chunk_pool(U& private_chunk_pool, std::size_t
+	chunks_to_release, smp::spinlock::milliseconds timeout = 10000);
+#else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	template<typename U>
 	std::size_t release_from_chunk_pool(U& private_chunk_pool, std::size_t
 	chunks_to_release, uint32_t timeout_milliseconds = 10000);
+#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	
 	//--------------------------------------------------------------------------
 	/// client_release_linked_chunks() is used by the scheduler to do the clean
@@ -350,13 +395,18 @@ public:
 	/**
 	 * @param client_interface_ptr A pointer to the client_interface where the
 	 *		chunk is marked as owned.
-	 * @param timeout_milliseconds The number of milliseconds to wait before a
-	 *		timeout may occur. TODO: implement timeout_milliseconds!?
+	 * @param timeout The number of milliseconds to wait before a
+	 *		timeout may occur. TODO: implement timeout!?
 	 * @return false if failing to release the chunk_index. It can happen if the
 	 *		lock of the queue was not obtained.
 	 */
+#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+	bool release_clients_chunks(client_interface_type* client_interface_ptr,
+	smp::spinlock::milliseconds timeout = 10000);
+#else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool release_clients_chunks(client_interface_type* client_interface_ptr,
 	uint32_t timeout_milliseconds = 10000);
+#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	
 	//--------------------------------------------------------------------------
 	// For debug
@@ -376,13 +426,18 @@ public:
 	 * @param spin_count The number of times to try locking (without blocking)
 	 *		before waiting for the acquisition of the lock. It is affected by
 	 *		the type of processor and the clock rate, etc.
-	 * @param timeout_milliseconds The number of milliseconds to wait before a
+	 * @param timeout The number of milliseconds to wait before a
 	 *		timeout may occur.
 	 * @return false if failing to push the item before the time period
-	 *		specified by timeout_milliseconds has elapsed, true otherwise.
+	 *		specified by timeout has elapsed, true otherwise.
 	 */
+#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+	bool push_front(param_type item, uint32_t spin_count = 1000000,
+	smp::spinlock::milliseconds timeout = 10000);
+#else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool push_front(param_type item, uint32_t spin_count = 1000000, uint32_t
 	timeout_milliseconds = 10000);
+#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	
 	/// Pop item from the back of the queue.
 	/**
@@ -390,13 +445,18 @@ public:
 	 * @param spin_count The number of times to try locking (without blocking)
 	 *		before waiting for the acquisition of the lock. It is affected by
 	 *		the type of processor and the clock rate, etc.
-	 * @param timeout_milliseconds The number of milliseconds to wait before a
+	 * @param timeout The number of milliseconds to wait before a
 	 *		timeout may occur.
 	 * @return false if failing to pop the item before the time period specified
-	 *		by timeout_milliseconds has elapsed, true otherwise.
+	 *		by timeout has elapsed, true otherwise.
 	 */
+#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+	bool pop_back(value_type* item, uint32_t spin_count = 1000000,
+	smp::spinlock::milliseconds timeout = 10000);
+#else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool pop_back(value_type* item, uint32_t spin_count = 1000000, uint32_t
 	timeout_milliseconds = 10000);
+#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	
 	//--------------------------------------------------------------------------
 	// IMPORTANT NOTE: Only a scheduler may use try_push_front() and
@@ -420,6 +480,12 @@ public:
 		return spinlock_;
 	}
 
+#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+	/// if_locked_with_id_recover_and_unlock() is only used by the IPC monitor during recovery.
+	// The spinlock must be in the locked state while doing this.
+	bool if_locked_with_id_recover_and_unlock(smp::spinlock::locker_id_type id);
+#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+	
 	/// Get the not_empty_notify_name, used to open the event. In order to
 	/// reduce the time taken to open the not_empty_notify_name event the name
 	/// is cached. Otherwise the not_empty_notify_name have to be formated
@@ -430,9 +496,7 @@ public:
 	 *		For example:
 	 *		L"Local\starcounter_PERSONAL_MYDB_64_shared_chunk_pool_not_empty".
 	 */
-	const wchar_t* not_empty_notify_name() const {
-		return not_empty_notify_name_;
-	}
+	const wchar_t* not_empty_notify_name() const;
 	
 	/// Get the not_full_notify_name, used to open the event. In order to
 	/// reduce the time taken to open the not_full_notify_name event the name
@@ -444,9 +508,7 @@ public:
 	 *		For example:
 	 *		L"Local\starcounter_PERSONAL_MYDB_64_shared_chunk_pool_not_full".
 	 */
-	const wchar_t* not_full_notify_name() const {
-		return not_full_notify_name_;
-	}
+	const wchar_t* not_full_notify_name() const;
 
 private:
 	shared_chunk_pool(const shared_chunk_pool&);
@@ -480,8 +542,6 @@ private:
 	// before opening them.
 	wchar_t not_empty_notify_name_[segment_and_notify_name_size];
 	wchar_t not_full_notify_name_[segment_and_notify_name_size];
-
-	boost::interprocess::interprocess_mutex mutex_; // Get it to compile.
 
 	// Condition to wait when the queue is not empty
 	boost::interprocess::interprocess_condition not_empty_condition_;
