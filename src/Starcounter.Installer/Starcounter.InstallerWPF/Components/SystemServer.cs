@@ -65,6 +65,24 @@ namespace Starcounter.InstallerWPF.Components
             }
         }
 
+        private UInt16 _DefaultAppsTcpPort;
+        public UInt16 DefaultAppsTcpPort
+        {
+            get
+            {
+                return _DefaultAppsTcpPort;
+            }
+
+            set
+            {
+                if (_DefaultAppsTcpPort == value)
+                    return;
+
+                this._DefaultAppsTcpPort = value;
+                this.OnPropertyChanged("DefaultAppsTcpPort");
+            }
+        }
+
         /// <summary>
         /// Gets a value indicating whether this instance can be installed by starcounter installer.
         /// </summary>
@@ -86,6 +104,8 @@ namespace Starcounter.InstallerWPF.Components
 
             this.Path = System.IO.Path.Combine(Environment.GetEnvironmentVariable("SystemDrive") + "\\" +
                                                Configuration.StarcounterCommonPath , ConstantsBank.SCSystemDatabasesName);
+
+            this.DefaultAppsTcpPort = 80;
 
             switch (this.Command)
             {

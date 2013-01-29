@@ -337,8 +337,9 @@ public class CInstallationBase : CComponentBase
         // integration with the exception assistant functions properly even w/o
         // any extensions and provides such added value that we will always want
         // to install it.
-        Utilities.ReportSetupEvent("Installing Starcounter VS exception assistant content...");
-        InstallExceptionAssistantContent();
+        // TODO: Ask Per!
+        //Utilities.ReportSetupEvent("Installing Starcounter VS exception assistant content...");
+        //InstallExceptionAssistantContent();
 
         // Updating progress.
         InstallerMain.ProgressIncrement();
@@ -408,8 +409,9 @@ public class CInstallationBase : CComponentBase
         catch { Utilities.ReportSetupEvent("Warning: problem running GAC assemblies removal..."); }
 
         // Uninstalling Starcounter VS exception assistant content
-        Utilities.ReportSetupEvent("Uninstalling Starcounter VS exception assistant content...");
-        UninstallExceptionAssistantContent();
+        // TODO: Ask Per!
+        //Utilities.ReportSetupEvent("Uninstalling Starcounter VS exception assistant content...");
+        //UninstallExceptionAssistantContent();
     }
 
     /// <summary>
