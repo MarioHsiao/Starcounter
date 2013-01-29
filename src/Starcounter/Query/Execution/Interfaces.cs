@@ -222,6 +222,8 @@ internal interface IVariable : IValueExpression
     void SetValue(UInt16 newValue);
     void SetValue(Byte newValue);
     void SetValue(Object newValue);
+    void SetValue(ITypeBinding newValue);
+    void SetValue(Type newValue);
 
     // Sets value to variable in another enumerator.
     void ProlongValue(IExecutionEnumerator destEnum);
@@ -530,6 +532,30 @@ internal interface IStringExpression : IValueExpression
 }
 
 /// <summary>
+/// Interface for type expressions which are all expressions of type Type (object type).
+/// </summary>
+internal interface ITypeExpression : IValueExpression {
+    /// <summary>
+    /// Calculates the value of the expression when evaluated on an input object.
+    /// All properties in the expression are evaluated on the input object.
+    /// </summary>
+    /// <param name="obj">The object on which to evaluate the expression.</param>
+    /// <returns>The value of the expression when evaluated on the input object.</returns>
+    ITypeBinding EvaluateToType(IObjectView obj);
+
+    /// <summary>
+    /// Creates an more instantiated copy of the expression by evaluating it on a Row.
+    /// Properties, with extent numbers for which there exist objects attached to the Row,
+    /// are evaluated and instantiated to literals, other properties are not changed.
+    /// </summary>
+    /// <param name="obj">The Row on which to evaluate the expression.</param>
+    /// <returns>A more instantiated expression.</returns>
+    ITypeExpression Instantiate(Row obj);
+
+    ITypeExpression CloneToType(VariableArray varArray);
+}
+
+/// <summary>
 /// Interface for path items of datatype Binary.
 /// </summary>
 internal interface IBinaryPathItem : IBinaryExpression
@@ -745,6 +771,7 @@ internal interface IComparison : ILogicalExpression
     /// Gets a path to the given extent.
     /// The path is used for an index scan for the extent with the input extent number, 
     /// if there is such a path and if there is a corresponding index.
+    /// This method is used to select a scan alternative. It is not used in join optimization.
     /// </summary>
     /// <param name="extentNumber">An extent number.</param>
     /// <returns>A path, if an appropriate one is found, otherwise null.</returns>

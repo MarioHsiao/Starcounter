@@ -47,6 +47,12 @@ namespace StarcounterApps3 {
             // Start Engine services
             StartListeningService();
 
+            RegisterGETS();
+
+
+        }
+
+        static void RegisterGETS() {
             GET("/", () => {
                 return new Master() { View = "index.html" };
             });
@@ -82,8 +88,11 @@ namespace StarcounterApps3 {
 
                 databaseList.View = "databases.html";
                 foreach (var database in databases) {
-                    DatabaseApp databaseApp = new DatabaseApp() { DatabaseName = database.Name, Uri = Uri.EscapeDataString(database.Uri) };
+                    DatabaseApp databaseApp = new DatabaseApp();
+                    databaseApp.SetDatabaseInfo(database);
+
                     databaseList.DatabaseList.Add(databaseApp);
+
                 }
 
                 return databaseList;
@@ -114,8 +123,8 @@ namespace StarcounterApps3 {
 
                 DatabaseApp databaseApp = new DatabaseApp();
                 databaseApp.View = "database.html";
-                databaseApp.DatabaseName = database.Name;
-                databaseApp.Uri = database.Uri;
+
+                databaseApp.SetDatabaseInfo(database);
 
                 return databaseApp;
             });
@@ -127,18 +136,12 @@ namespace StarcounterApps3 {
             //GET("/empty", () => {
             //    return "empty";
             //});
-
         }
 
-        static void OnIPCServerReceivedRequest(object sender, string e) {
-              ToConsoleWithColor(string.Format("Request: {0}", e), ConsoleColor.Yellow);
-        }
-
+        #region ServerServices
 
         static void StartListeningService() {
-
             System.Threading.ThreadPool.QueueUserWorkItem(ServerServicesThread);
-
         }
 
         static private void ServerServicesThread(object state) {
@@ -156,10 +159,15 @@ namespace StarcounterApps3 {
 
         }
 
+        static void OnIPCServerReceivedRequest(object sender, string e) {
+            ToConsoleWithColor(string.Format("Request: {0}", e), ConsoleColor.Yellow);
+        }
+
+        #endregion
+
         void Handle(Input.TheButton input) {
             this.Message = "I clicked the button!";
         }
-
 
         static void ToConsoleWithColor(string text, ConsoleColor color) {
             try {

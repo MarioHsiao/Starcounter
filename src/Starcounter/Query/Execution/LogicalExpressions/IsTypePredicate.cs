@@ -91,12 +91,7 @@ namespace Starcounter.Query.Execution {
         /// <param name="extentNum">Input extent number.</param>
         /// <returns>A path, if an appropriate path is found, otherwise null.</returns>
         public IPath GetPathTo(Int32 extentNum) {
-            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
-            //if (!Optimizer.RangeOperator(CompOperator)) {
-            //    return null;
-            //}
-            //if (Expr1 is IPath && (Expr1 as IPath).ExtentNumber == extentNum)
-            //    return (Expr1 as IPath);
+            return null;
         }
 
         public RangePoint CreateRangePoint(Int32 extentNumber, String strPath) {

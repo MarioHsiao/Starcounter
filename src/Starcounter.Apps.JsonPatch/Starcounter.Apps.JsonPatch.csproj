@@ -41,6 +41,7 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <DocumentationFile>..\..\bin\Debug\Starcounter.Apps.JsonPatch.XML</DocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>..\..\bin\Release\</OutputPath>
@@ -51,6 +52,7 @@
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -61,11 +63,16 @@
     <Compile Include="AppServer.cs" />
     <Compile Include="HttpPatchBuilder.cs" />
     <Compile Include="InternalHandlers.cs" />
+    <Compile Include="JsonHelper.cs" />
     <Compile Include="JsonPatch.cs" />
     <Compile Include="JsonPointer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\FasterThanJson\FasterThanJson.csproj">
+      <Project>{dd181012-dd9c-410f-ad8e-01d062cac820}</Project>
+      <Name>FasterThanJson</Name>
+    </ProjectReference>
     <ProjectReference Include="..\HTTP\HttpStructs\HttpStructs.csproj">
       <Project>{90d57166-b42e-4bbe-b9ec-cfb33e551b77}</Project>
       <Name>HttpStructs</Name>

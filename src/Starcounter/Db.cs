@@ -25,26 +25,13 @@ namespace Starcounter
         {
             unsafe
             {
-                int b;
-                ulong definitionAddr;
-
-                b = sccoredb.Mdb_DefinitionFromCodeClassString(name, out definitionAddr);
-                if (b != 0)
+                sccoredb.SCCOREDB_TABLE_INFO tableInfo;
+                var r = sccoredb.sccoredb_get_table_info_by_name(name, out tableInfo);
+                if (r == 0)
                 {
-                    if (definitionAddr != sccoredb.INVALID_DEFINITION_ADDR)
-                    {
-                        sccoredb.Mdb_DefinitionInfo definitionInfo;
-                        b = sccoredb.Mdb_DefinitionToDefinitionInfo(definitionAddr, out definitionInfo);
-                        if (b != 0)
-                        {
-                            return TableDef.ConstructTableDef(definitionAddr, definitionInfo);
-                        }
-                    }
-                    else
-                    {
-                        return null;
-                    }
+                    return TableDef.ConstructTableDef(tableInfo);
                 }
+                if (r == Error.SCERRTABLENOTFOUND) return null;
                 throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
             }
         }
@@ -68,7 +55,7 @@ namespace Starcounter
             unsafe
             {
                 int inheritedColumnCount = 0;
-                ulong inheritedDefinitionAddr = sccoredb.INVALID_DEFINITION_ADDR;
+                ushort inheritedTableId = UInt16.MaxValue;
                 if (inheritedTableDef != null)
                 {
                     // TODO:
@@ -77,7 +64,7 @@ namespace Starcounter
                     // definition and the inherited table definition matches.
                     
                     inheritedColumnCount = inheritedTableDef.ColumnDefs.Length;
-                    inheritedDefinitionAddr = inheritedTableDef.DefinitionAddr;
+                    inheritedTableId = inheritedTableDef.TableId;
                 }
                 ColumnDef[] columns = tableDef.ColumnDefs;
                 sccoredb.SC_COLUMN_DEFINITION[] column_definitions = new sccoredb.SC_COLUMN_DEFINITION[columns.Length - inheritedColumnCount + 1];
@@ -93,7 +80,7 @@ namespace Starcounter
                     name = (char*)Marshal.StringToCoTaskMemUni(tableDef.Name);
                     fixed (sccoredb.SC_COLUMN_DEFINITION* fixed_column_definitions = column_definitions)
                     {
-                        uint e = sccoredb.sccoredb_create_table(name, inheritedDefinitionAddr, fixed_column_definitions);
+                        uint e = sccoredb.sccoredb_create_table(name, inheritedTableId, fixed_column_definitions);
                         if (e != 0) throw ErrorCode.ToException(e);
                     }
                 }
@@ -130,25 +117,6 @@ namespace Starcounter
             uint e = sccoredb.sccoredb_drop_table(name);
             if (e == 0) return;
             throw ErrorCode.ToException(e);
-        }
-
-        /// <summary>
-        /// Creates the index.
-        /// </summary>
-        /// <param name="definitionAddr">The definition addr.</param>
-        /// <param name="name">The name.</param>
-        /// <param name="columnIndex">Index of the column.</param>
-        public static void CreateIndex(ulong definitionAddr, string name, short columnIndex) // TODO:
-        {
-            unsafe
-            {
-                short* column_indexes = stackalloc short[2];
-                column_indexes[0] = columnIndex;
-                column_indexes[1] = -1;
-                uint e = sccoredb.sccoredb_create_index(definitionAddr, name, 0, column_indexes, 0);
-                if (e == 0) return;
-                throw ErrorCode.ToException(e);
-            }
         }
 
         /// <summary>
