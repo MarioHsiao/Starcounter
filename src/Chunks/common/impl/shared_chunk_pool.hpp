@@ -18,7 +18,8 @@ namespace core {
 template<class T, class Alloc>
 inline shared_chunk_pool<T, Alloc>::shared_chunk_pool(const char* segment_name,
 size_type buffer_capacity, const allocator_type& alloc)
-: container_(buffer_capacity, alloc), unread_(0) {
+: container_(buffer_capacity, alloc), unread_(0),
+not_empty_(0), not_full_(0) {
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
     if (segment_name != 0) {
 		char notify_name[segment_and_notify_name_size];
@@ -77,6 +78,22 @@ size_type buffer_capacity, const allocator_type& alloc)
 	}
 #endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 }
+
+#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+template<class T, class Alloc>
+inline shared_chunk_pool<T, Alloc>::~shared_chunk_pool() {
+	if (not_empty_ != 0) {
+		::CloseHandle(not_empty_);
+		not_empty_ = 0;
+	}
+
+	if (not_full_ != 0) {
+		::CloseHandle(not_full_);
+		not_full_ = 0;
+	}
+}
+
+#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 
 template<class T, class Alloc>
 inline typename shared_chunk_pool<T, Alloc>::size_type
@@ -470,7 +487,7 @@ client_interface_ptr, uint32_t timeout_milliseconds) {
 template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::release_linked_chunks(chunk_type*
 chunk_, chunk_index& head, client_interface_type* client_interface_ptr,
-smp::spinlock::milliseconds timeout) {
+smp::spinlock::milliseconds timeout) { /// "C"
 	std::cout << "<C> release_linked_chunks()\n";
 
 	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
@@ -567,7 +584,7 @@ template<class T, class Alloc>
 template<typename U>
 inline std::size_t shared_chunk_pool<T, Alloc>::acquire_to_chunk_pool(U&
 private_chunk_pool, std::size_t chunks_to_acquire, client_interface_type*
-client_interface_ptr, smp::spinlock::milliseconds timeout) {
+client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "D"
 	std::cout << "<D> acquire_to_chunk_pool()\n";
 	
 	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
@@ -610,9 +627,19 @@ client_interface_ptr, smp::spinlock::milliseconds timeout) {
 				lock.unlock();
 				
 				if (acquired != 0) {
-					not_full_condition_.notify_one();
+					// Notify that the buffer is not full.
+					if (::SetEvent(not_full_)) {
+						// Successfully notified.
+						std::cout << "<D1>::acquire_to_chunk_pool(): Successfully notified.\n";
+						return acquired;
+					}
+					else {
+						// Error. Failed to notify.
+						std::cout << "<D1>::acquire_to_chunk_pool(): Failed to notify.\n";
+						return acquired;
+					}
 				}
-				
+
 				return acquired;
 			}
 		}
@@ -626,7 +653,17 @@ client_interface_ptr, smp::spinlock::milliseconds timeout) {
 	lock.unlock();
 	
 	if (acquired != 0) {
-		not_full_condition_.notify_one();
+		// Notify that the buffer is not full.
+		if (::SetEvent(not_full_)) {
+			// Successfully notified.
+			std::cout << "<D2>::acquire_to_chunk_pool(): Successfully notified.\n";
+			return acquired;
+		}
+		else {
+			// Error. Failed to notify.
+			std::cout << "<D2>::acquire_to_chunk_pool(): Failed to notify.\n";
+			return acquired;
+		}
 	}
 	
 	return acquired;
@@ -711,7 +748,7 @@ template<class T, class Alloc>
 template<typename U>
 std::size_t shared_chunk_pool<T, Alloc>::release_from_chunk_pool(U&
 private_chunk_pool, std::size_t chunks_to_release, client_interface_type*
-client_interface_ptr, smp::spinlock::milliseconds timeout) {
+client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "E"
 	std::cout << "<E> release_from_chunk_pool()\n";
 
 	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
@@ -748,7 +785,17 @@ client_interface_ptr, smp::spinlock::milliseconds timeout) {
 	lock.unlock();
 	
 	if (released != 0) {
-		not_empty_condition_.notify_one();
+		// Notify that the buffer is not empty.
+		if (::SetEvent(not_empty_)) {
+			// Successfully notified.
+			std::cout << "<E>::release_from_chunk_pool(): Successfully notified.\n";
+			return released;
+		}
+		else {
+			// Error. Failed to notify.
+			std::cout << "<E>::release_from_chunk_pool(): Failed to notify.\n";
+			return released;
+		}
 	}
 
 	return released;
@@ -814,7 +861,7 @@ template<class T, class Alloc>
 template<typename U>
 inline std::size_t shared_chunk_pool<T, Alloc>::acquire_to_chunk_pool(U&
 private_chunk_pool, std::size_t chunks_to_acquire,
-smp::spinlock::milliseconds timeout) {
+smp::spinlock::milliseconds timeout) { /// "F"
 	std::cout << "<F> acquire_to_chunk_pool()\n";
 
 	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
@@ -854,9 +901,19 @@ smp::spinlock::milliseconds timeout) {
 				lock.unlock();
 				
 				if (acquired != 0) {
-					not_full_condition_.notify_one();
+					// Notify that the buffer is not full.
+					if (::SetEvent(not_full_)) {
+						// Successfully notified.
+						std::cout << "<F1>::acquire_to_chunk_pool(): Successfully notified.\n";
+						return acquired;
+					}
+					else {
+						// Error. Failed to notify.
+						std::cout << "<F1>::acquire_to_chunk_pool(): Failed to notify.\n";
+						return acquired;
+					}
 				}
-				
+
 				return acquired;
 			}
 		}
@@ -870,7 +927,17 @@ smp::spinlock::milliseconds timeout) {
 	lock.unlock();
 	
 	if (acquired != 0) {
-		not_full_condition_.notify_one();
+		// Notify that the buffer is not full.
+		if (::SetEvent(not_full_)) {
+			// Successfully notified.
+			std::cout << "<F2>::acquire_to_chunk_pool(): Successfully notified.\n";
+			return acquired;
+		}
+		else {
+			// Error. Failed to notify.
+			std::cout << "<F2>::acquire_to_chunk_pool(): Failed to notify.\n";
+			return acquired;
+		}
 	}
 	
 	return acquired;
@@ -988,7 +1055,17 @@ smp::spinlock::milliseconds timeout) {
 	lock.unlock();
 	
 	if (released != 0) {
-		not_empty_condition_.notify_one();
+		// Notify that the buffer is not empty.
+		if (::SetEvent(not_empty_)) {
+			// Successfully notified.
+			std::cout << "<G>::release_from_chunk_pool(): Successfully notified.\n";
+			return released;
+		}
+		else {
+			// Error. Failed to notify.
+			std::cout << "<G>::release_from_chunk_pool(): Failed to notify.\n";
+			return released;
+		}
 	}
 
 	return released;
@@ -1052,7 +1129,7 @@ timeout_milliseconds) {
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 template<class T, class Alloc>
 bool shared_chunk_pool<T, Alloc>::release_clients_chunks(client_interface_type*
-client_interface_ptr, smp::spinlock::milliseconds timeout) {
+client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "H"
 	std::cout << "<H> release_clients_chunks()\n";
 
 	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
@@ -1090,7 +1167,17 @@ client_interface_ptr, smp::spinlock::milliseconds timeout) {
 	client_interface_ptr->get_resource_map().clear();
 	
 	if (released != 0) {
-		not_empty_condition_.notify_one();
+		// Notify that the buffer is not empty.
+		if (::SetEvent(not_empty_)) {
+			// Successfully notified.
+			std::cout << "<H>::release_clients_chunks(): Successfully notified.\n";
+			return true;
+		}
+		else {
+			// Error. Failed to notify.
+			std::cout << "<H>::release_clients_chunks(): Failed to notify.\n";
+			return true;
+		}
 	}
 
 	// Successfully released all chunks.
@@ -1207,7 +1294,7 @@ chunk_index head) {
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::push_front(param_type item, uint32_t
-spin_count, smp::spinlock::milliseconds timeout) {
+spin_count, smp::spinlock::milliseconds timeout) { /// "J"
 	//std::cout << "<J> push_front()\n";
 	// Spin at most spin_count number of times, and try to push the item...
 	for (std::size_t s = 0; s < spin_count; ++s) {
@@ -1251,8 +1338,27 @@ spin_count, smp::spinlock::milliseconds timeout) {
 			return false;
 		}
 #endif /// REPLACE THIS WITH WINDOWS EVENTS
+		///----------------------------------------------------------------
+		switch (::WaitForSingleObject(not_full_, timeout -timeout.tick_count())) {
+		case WAIT_OBJECT_0:
+			// Notify that the buffer is not full.
+			if (::ResetEvent(not_full_)) {
+				return true;
+			}
+			else {
+				return true; // Anyway.
+			}
+			return true;
+		case WAIT_TIMEOUT:
+			return false;
+		case WAIT_FAILED:
+			return false;
+		}
+		return false;
+		///----------------------------------------------------------------
 		return false; /// REPLACE THIS WITH WINDOWS EVENTS
 	}
+	/// To be continued. . .
 }
 
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
