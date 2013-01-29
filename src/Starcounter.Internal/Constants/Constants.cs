@@ -116,6 +116,11 @@ namespace Starcounter.Internal
             public const string SQLProcessPort = "SQLProcessPort";
 
             /// <summary>
+            /// Default TCP port for Apps.
+            /// </summary>
+            public const string DefaultAppsPort = "DefaultAppsPort";
+
+            /// <summary>
             /// Specifies the number of schedulers.
             /// </summary>
             public const string SchedulerCount = "SchedulerCount";

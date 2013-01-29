@@ -23,7 +23,35 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 {
     uint32_t r;
 
-    const wchar_t *name = L"PERSONAL";
+    wchar_t *srv_name = L"PERSONAL";
+
+    if (argc > 1)
+    {
+        // Reading the server name if specified.
+        srv_name = argv[1];
+    }
+
+    // Getting executable directory.
+    wchar_t exe_dir[1024];
+    r = GetModuleFileName(NULL, exe_dir, 1024);
+    if ((r == 0) || (r >= 1024))
+        goto end;
+
+    // Getting directory name from executable path.
+    int32_t c = r;
+    while (c > 0)
+    {
+        c--;
+
+        if (exe_dir[c] == L'\\')
+            break;
+    }
+    exe_dir[c] = L'\0';
+
+    // Setting executable directory as current.
+    if (!SetCurrentDirectory(exe_dir))
+        goto end;
+    
     const wchar_t *admin_dbname = L"administrator";	
 	const wchar_t *mingw = L"MinGW\\bin\\x86_64-w64-mingw32-gcc.exe";
 
@@ -33,10 +61,10 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 
     // Read server configuration.
     wchar_t *server_dir;
-    r = _read_service_config(name, &server_dir);
+    r = _read_service_config(srv_name, &server_dir);
     if (r) goto end;
 
-    wchar_t *name_upr;
+    wchar_t *srv_name_upr;
     wchar_t *admin_dbname_upr;
     const wchar_t *str_template;
     size_t str_num_chars, str_size_bytes;
@@ -51,14 +79,14 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     wchar_t *database_cfg_path;
     wchar_t *server_cfg_path;
 
-    str_num_chars = wcslen(name) + 1;
+    str_num_chars = wcslen(srv_name) + 1;
     str_size_bytes = str_num_chars * sizeof(wchar_t);
 
-    name_upr = (wchar_t *)malloc(str_size_bytes);
-    if (!name_upr) goto err_nomem;
+    srv_name_upr = (wchar_t *)malloc(str_size_bytes);
+    if (!srv_name_upr) goto err_nomem;
 
-    wcscpy_s(name_upr, str_num_chars, name);
-    _wcsupr_s(name_upr, str_num_chars);
+    wcscpy_s(srv_name_upr, str_num_chars, srv_name);
+    _wcsupr_s(srv_name_upr, str_num_chars);
 
 	// Database uppercase
     str_num_chars = wcslen(admin_dbname) + 1;
@@ -70,12 +98,10 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     wcscpy_s(admin_dbname_upr, str_num_chars, admin_dbname);
     _wcsupr_s(admin_dbname_upr, str_num_chars);
 
-
-
     str_template = L"SCSERVICE_%s";
     str_num_chars = 
         wcslen(str_template) +
-        wcslen(name_upr) +
+        wcslen(srv_name_upr) +
         1;
 
     str_size_bytes = str_num_chars * sizeof(wchar_t);
@@ -83,28 +109,34 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     event_name = (wchar_t *)malloc(str_size_bytes);
     if (!event_name) goto err_nomem;
 
-    swprintf(event_name, str_num_chars, str_template, name_upr);
+    swprintf(event_name, str_num_chars, str_template, srv_name_upr);
 
     // Creating path to server configuration file.
-    str_template = L"%s\\%s\\%s.server.config";
+    str_template = L"%s\\%s.server.config";
     str_num_chars =
         wcslen(str_template) +
         wcslen(server_dir) +
-        wcslen(name_upr) +
-        wcslen(name_upr) +
+        wcslen(srv_name_upr) +
         1;
 
     str_size_bytes = str_num_chars * sizeof(wchar_t);
     server_cfg_path = (wchar_t *)malloc(str_size_bytes);
     if (!server_cfg_path) goto err_nomem;
 
-    swprintf(server_cfg_path, str_num_chars, str_template, server_dir, name_upr, name_upr);
+    swprintf(server_cfg_path, str_num_chars, str_template, server_dir, srv_name_upr);
 
     // Reading server logs directory.
     wchar_t *server_logs_dir;
     wchar_t *server_temp_dir;
     wchar_t *server_database_dir;
-    r = _read_server_config(server_cfg_path, &server_logs_dir, &server_temp_dir, &server_database_dir);
+    wchar_t *default_apps_port;
+    r = _read_server_config(
+        server_cfg_path,
+        &server_logs_dir,
+        &server_temp_dir,
+        &server_database_dir,
+        &default_apps_port);
+
     if (r) goto end;
 
 	// Creating path to the database configuration file.
@@ -133,7 +165,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     str_template = L"scipcmonitor.exe \"%s\" \"%s\"";
     str_num_chars =
         wcslen(str_template) +
-        wcslen(name_upr) +
+        wcslen(srv_name_upr) +
         wcslen(server_logs_dir) +
         1;
 
@@ -141,7 +173,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     monitor_cmd = (wchar_t *)malloc(str_size_bytes);
     if (!monitor_cmd) goto err_nomem;
 
-    swprintf(monitor_cmd, str_num_chars, str_template, name_upr, server_logs_dir);
+    swprintf(monitor_cmd, str_num_chars, str_template, srv_name_upr, server_logs_dir);
 
     // TODO:
     // Gateway configuration directory where? Currently set to installation
@@ -150,7 +182,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     str_template = L"scnetworkgateway.exe \"%s\" \"scnetworkgateway.xml\" \"%s\"";
     str_num_chars =
         wcslen(str_template) +
-        wcslen(name_upr) +
+        wcslen(srv_name_upr) +
         wcslen(server_logs_dir) +
         1;
 
@@ -158,7 +190,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     gateway_cmd = (wchar_t *)malloc(str_size_bytes);
     if (!gateway_cmd) goto err_nomem;
 
-    swprintf(gateway_cmd, str_num_chars, str_template, name_upr, server_logs_dir);
+    swprintf(gateway_cmd, str_num_chars, str_template, srv_name_upr, server_logs_dir);
 
 	// Creating Admin exepath
 	str_template = L"scadmin\\Administrator.exe";
@@ -172,7 +204,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	swprintf(admin_exe_path, str_num_chars, str_template);
 
 
-	// Creating Admin working dir (.srv\\Personal\\Apps\\Administrator)
+	// Creating Admin working dir.
     str_template = L"scadmin";
     str_num_chars = 
 		wcslen(str_template) + 
@@ -188,7 +220,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     str_num_chars = 
 		wcslen(str_template) + 
 		wcslen(admin_dbname_upr) +	// database name uppercase
-		wcslen(admin_dbname) +		// databse uri
+		wcslen(admin_dbname) +		// database uri
 		wcslen(server_logs_dir) + 
 		1;
 
@@ -199,37 +231,40 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	swprintf(scdata_cmd, str_num_chars, str_template, admin_dbname_upr, admin_dbname, server_logs_dir);
 
 	// Creating sccode command
-	str_num_chars = 0;	
+	str_num_chars = 0;
 
-	if( wcslen( database_scheduler_count ) > 0 ) {
-		str_template = L"sccode.exe %s --DatabaseDir=\"%s\" --OutputDir=\"%s\" --TempDir=\"%s\" --CompilerPath=\"%s\" --AutoStartExePath=\"%s\" --UserArguments=\"%s\" --WorkingDir=\"%s\" --SchedulerCount=%s";
-		str_num_chars+= wcslen(database_scheduler_count);
-	}	
-	else
-	{
-		str_template = L"sccode.exe %s --DatabaseDir=\"%s\" --OutputDir=\"%s\" --TempDir=\"%s\" --CompilerPath=\"%s\" --AutoStartExePath=\"%s\" --UserArguments=\"%s\" --WorkingDir=\"%s\"";
-	}
+    // TODO: Provide port to Administrator in a proper way.
+    wchar_t* admin_port_str = L"8081";
+    if (srv_name_upr[0] == L'S')
+        admin_port_str = L"81";
 
-    str_num_chars += wcslen(str_template) + 
+    // Checking if number of schedulers is defined.
+	str_template = L"sccode.exe %s --ServerName=%s --DatabaseDir=\"%s\" --OutputDir=\"%s\" --TempDir=\"%s\" --CompilerPath=\"%s\" --AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\" %s\" --WorkingDir=\"%s\" --DefaultAppsPort=%s --SchedulerCount=%s";
+
+    // TODO: Remove the scheduler count at all?
+    database_scheduler_count = L"1";
+
+    str_num_chars +=
+        wcslen(str_template) + 
 		wcslen(admin_dbname_upr) + 
+        wcslen(srv_name_upr) + 
 		wcslen(database_image_dir) + 
-		wcslen(database_logs_dir) + 
+		wcslen(server_logs_dir) + 
 		wcslen(database_temp_dir) +
 		wcslen(mingw) + 
 		wcslen(admin_exe_path) +
 		wcslen(server_cfg_path) +
-		wcslen(admin_working_dir) + 1;
+        wcslen(admin_port_str) +
+		wcslen(admin_working_dir) +
+        wcslen(default_apps_port) +
+        wcslen(database_scheduler_count) +
+        1;
 
     str_size_bytes = str_num_chars * sizeof(wchar_t);
     sccode_cmd = (wchar_t *)malloc(str_size_bytes);
     if (!sccode_cmd) goto err_nomem;
 
-	if( wcslen( database_scheduler_count ) > 0 ) {
-		swprintf(sccode_cmd, str_num_chars, str_template, admin_dbname_upr, database_image_dir, database_logs_dir, database_temp_dir, mingw, admin_exe_path, server_cfg_path, admin_working_dir, database_scheduler_count);
-	}
-	else {
-	    swprintf(sccode_cmd, str_num_chars, str_template, admin_dbname_upr, database_image_dir, database_logs_dir, database_temp_dir, mingw, admin_exe_path, server_cfg_path, admin_working_dir);
-	}
+	swprintf(sccode_cmd, str_num_chars, str_template, admin_dbname_upr, srv_name_upr, database_image_dir, server_logs_dir, database_temp_dir, mingw, admin_exe_path, server_cfg_path, admin_port_str, admin_working_dir, default_apps_port, database_scheduler_count);
 
     // Create shutdown event. Will fail if event already exists and so also
     // confirm that no server with the specific name already is running.

@@ -15,6 +15,16 @@ namespace Starcounter.Internal {
     public static class AppsBootstrapper {
         private static HttpAppServer appServer;
         private static StaticWebServer fileServer;
+        private static UInt16 defaultPort_ = 8080;
+
+        /// <summary>
+        /// Initializes AppsBootstrapper.
+        /// </summary>
+        /// <param name="defaultPort"></param>
+        public static void InitAppsBootstrapper(UInt16 defaultPort)
+        {
+            defaultPort_ = defaultPort;
+        }
         
         /// <summary>
         /// 
@@ -43,23 +53,23 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="port">Listens for http traffic on the given port. </param>
         /// <param name="resourceResolvePath">Adds a directory path to the list of paths used when resolving a request for a static REST (web) resource</param>
-        public static void Bootstrap(int port = -1, string resourceResolvePath = null) {
+        public static void Bootstrap(UInt16 port = 0xFFFF, string resourceResolvePath = null) {
             if (resourceResolvePath != null)
                 AddFileServingDirectory(resourceResolvePath);
 
             // Let the Network Gateway now when the user adds a handler (like GET("/")).
 
+            // Checking for the port.
+            if (port == 0xFFFF)
+                port = defaultPort_;
+
             // TODO: 
             // The registration to the gateway should only be called once per port, not 
             // once for each registered handler.
-            if (port != -1) {
-                App.UriMatcherBuilder.RegistrationListeners.Add((string verbAndUri) => {
-                    UInt16 handlerId;
-
-                    // TODO! Alexey. Please allow to register to Gateway with only port (i.e without Verb and URI)
-                    GatewayHandlers.RegisterUriHandler((ushort)port, "/", OnHttpMessageRoot, out handlerId);
-                });
-            }
+            App.UriMatcherBuilder.RegistrationListeners.Add((string verbAndUri) => {
+                UInt16 handlerId;
+                GatewayHandlers.RegisterUriHandler((ushort)port, "/", OnHttpMessageRoot, out handlerId);
+            });
         }
 
         /// <summary>
