@@ -53,6 +53,11 @@ inline shared_interface::~shared_interface() {
 	for (std::size_t i = 0; i < max_number_of_schedulers; ++i) {
 		close_scheduler_work_event(i);
 	}
+	
+#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+	close_shared_chunk_pool_not_full_event();
+	close_shared_chunk_pool_not_empty_event();
+#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 }
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 
@@ -97,6 +102,11 @@ monitor_interface_name, pid_type pid, owner_id oid) {
 		}
 	}
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
+
+#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+	open_shared_chunk_pool_not_full_event();
+	open_shared_chunk_pool_not_empty_event();
+#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 }
 
 inline std::string shared_interface::get_segment_name() const {

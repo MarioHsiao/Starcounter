@@ -410,6 +410,8 @@ public:
 	 *		the type of processor and the clock rate, etc.
 	 * @param timeout The number of milliseconds to wait before a
 	 *		timeout may occur.
+	 * @param not_full The not_full event need to be passed in by any process
+	 *		except the database.
 	 * @param not_empty The not_empty event need to be passed in by any process
 	 *		except the database.
 	 * @return false if failing to push the item before the time period
@@ -417,7 +419,7 @@ public:
 	 */
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool push_front(param_type item, uint32_t spin_count,
-	smp::spinlock::milliseconds timeout, HANDLE not_empty = NULL); /// "I"
+	smp::spinlock::milliseconds timeout, HANDLE not_full = NULL, HANDLE not_empty = NULL); /// "I"
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool push_front(param_type item, uint32_t spin_count = 1000000, uint32_t
 	timeout_milliseconds = 10000);
