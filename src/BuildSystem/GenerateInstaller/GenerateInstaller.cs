@@ -75,7 +75,7 @@ namespace GenerateInstaller
                 }
 
                 // Getting current build platform.
-                String platform = Environment.GetEnvironmentVariable("Platform");
+                String platform = "x64"; //Environment.GetEnvironmentVariable("Platform");
                 if (platform == null)
                 {
                     throw new Exception("Environment variable 'Platform' does not exist.");
