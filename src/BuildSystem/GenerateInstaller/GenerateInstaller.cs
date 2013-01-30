@@ -29,7 +29,6 @@ namespace GenerateInstaller
         // ('StableBuilds' or 'NightlyBuilds' without version part).
         static int Main(string[] args)
         {
-            TextWriter errorOut = Console.Error;
             String licenseFilePath = null,
                licensePatternContents = null,
                installerWpfFolder = null;
@@ -46,7 +45,7 @@ namespace GenerateInstaller
                 // Checking if its a personal build.
                 if (Environment.GetEnvironmentVariable(BuildSystem.GenerateInstallerEnvVar) != "True")
                 {
-                    errorOut.WriteLine("Skipping generation of a installer...");
+                    Console.WriteLine("Skipping generation of a installer...");
                     return 0;
                 }
 
@@ -56,7 +55,7 @@ namespace GenerateInstaller
                     // Seems that specific pool folder is an argument.
                     buildsFTPPoolDir = arg;
 
-                    errorOut.WriteLine("Changed FTP mapped sub-folder to " + buildsFTPPoolDir);
+                    Console.WriteLine("Changed FTP mapped sub-folder to " + buildsFTPPoolDir);
                     Thread.Sleep(1000);
                 }
 
@@ -65,7 +64,7 @@ namespace GenerateInstaller
                 ////////////////////////////////////////////
                 // Getting values for environment variables.
                 ////////////////////////////////////////////
-                errorOut.WriteLine("Obtaining needed environment variables...");
+                Console.WriteLine("Obtaining needed environment variables...");
 
                 // Getting current build configuration.
                 String configuration = Environment.GetEnvironmentVariable("Configuration");
@@ -75,7 +74,7 @@ namespace GenerateInstaller
                 }
 
                 // Getting current build platform.
-                String platform = "x64"; //Environment.GetEnvironmentVariable("Platform");
+                String platform = "x64"; // Environment.GetEnvironmentVariable("Platform");
                 if (platform == null)
                 {
                     throw new Exception("Environment variable 'Platform' does not exist.");
@@ -143,13 +142,13 @@ namespace GenerateInstaller
                 //////////////////////////////////////////////////////////
                 // Packaging consolidated folder, updating resources, etc.
                 //////////////////////////////////////////////////////////
-                errorOut.WriteLine("Updating resources and building empty installer...");
+                Console.WriteLine("Updating resources and building empty installer...");
 
                 // Checking if setup file already exists.
                 String setupFileName = "Starcounter-" + version + "-Setup.exe";
                 String setupFilePath = Path.Combine(outputFolder, setupFileName);
 
-                errorOut.WriteLine("Removing old setup file...");
+                Console.WriteLine("Removing old setup file...");
                 BuildSystem.DirectoryContainsFilesRegex(outputFolder, new String[] { @"Starcounter.+Setup\.exe" }, true);
 
                 // Looking for an Installer WPF resources folder.
@@ -209,7 +208,7 @@ namespace GenerateInstaller
                 }
 
                 // Now packing everything into one big ZIP archive.
-                errorOut.WriteLine("Packaging consolidated folder and building complete installer...");
+                Console.WriteLine("Packaging consolidated folder and building complete installer...");
 
                 String archivePath = Path.Combine(installerWpfFolder, "Resources\\Archive.zip");
                 if (File.Exists(archivePath))
@@ -252,7 +251,7 @@ namespace GenerateInstaller
 
                     // Creating this build version folder if needed.
                     buildsFTPPoolDir = buildsFTPPoolDir + "/" + version;
-                    errorOut.WriteLine("Uploading everything to FTP server mapped folder: " + buildsFTPPoolDir);
+                    Console.WriteLine("Uploading everything to FTP server mapped folder: " + buildsFTPPoolDir);
 
                     // Updating the random history file.
                     String existingRandHistory = BuildSystem.GetFTPFileAllText(BuildSystem.StarcounterFtpConfigName, randHistoryFileName);
@@ -265,11 +264,11 @@ namespace GenerateInstaller
                     // Saving the new build version information as a last step.
                     BuildSystem.UploadFileTextToFTP(BuildSystem.StarcounterFtpConfigName, versionFileContents, buildsFTPPoolDir + "/" + "VersionInfo_" + previousRandomNumCount + ".xml");
 
-                    errorOut.WriteLine("Done uploading to FTP server...");
+                    Console.WriteLine("Done uploading to FTP server...");
                 }
 
-                errorOut.WriteLine("Succeeded generating unique installer with download id: " + downloadID.IDFullBase32);
-                errorOut.WriteLine("---------------------------------------------------------------");
+                Console.WriteLine("Succeeded generating unique installer with download id: " + downloadID.IDFullBase32);
+                Console.WriteLine("---------------------------------------------------------------");
 
                 return 0;
             }

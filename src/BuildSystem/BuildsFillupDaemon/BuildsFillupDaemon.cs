@@ -72,7 +72,7 @@ namespace BuildsFillupDaemon
 
                 // Setting all needed build environment variables.
                 Environment.SetEnvironmentVariable("Configuration", configuration);
-                Environment.SetEnvironmentVariable("Platform", platform);
+                //Environment.SetEnvironmentVariable("Platform", platform);
                 Environment.SetEnvironmentVariable(BuildSystem.BuildNumberEnvVar, version);
                 Environment.SetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar, sourcesDir);
                 Environment.SetEnvironmentVariable(BuildSystem.BuildOutputEnvVar, Path.Combine(sourcesDir, BuildSystem.CommonDefaultBuildOutputPath));
@@ -86,13 +86,16 @@ namespace BuildsFillupDaemon
                 Environment.SetEnvironmentVariable("DONT_COPY_EXTERNAL_FILES", "True");
 
                 // Checking that all needed variables are defined.
-                if (!BuildSystem.AllEnvVariablesExist(new String[] { "Configuration",
-                                                                     "Platform",
-                                                                     BuildSystem.BuildNumberEnvVar,
-                                                                     BuildSystem.CheckOutDirEnvVar,
-                                                                     BuildSystem.BuildOutputEnvVar,
-                                                                     "SC_BUILD_SOURCES_PATH",
-                                                                     "SC_BUILD_PRECOMPILED_BIN_PATH" }))
+                if (!BuildSystem.AllEnvVariablesExist(new String[]
+                {
+                    "Configuration",
+                    //"Platform",
+                    BuildSystem.BuildNumberEnvVar,
+                    BuildSystem.CheckOutDirEnvVar,
+                    BuildSystem.BuildOutputEnvVar,
+                    "SC_BUILD_SOURCES_PATH",
+                    "SC_BUILD_PRECOMPILED_BIN_PATH"
+                }))
                 {
                     throw new Exception("Not all environment variables exist.");
                 }
