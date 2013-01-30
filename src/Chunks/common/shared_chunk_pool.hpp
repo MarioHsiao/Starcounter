@@ -20,6 +20,11 @@
 #include <ios> /// For debug - remove.
 #include <iomanip> /// For debug - remove.
 #include <boost/circular_buffer.hpp>
+#if defined(_MSC_VER) // Windows
+# include <windows.h>
+#else
+# error Compiler not supported.
+#endif // (_MSC_VER)
 #include "spinlock.hpp"
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
@@ -35,6 +40,7 @@
 #include "../common/chunk.hpp"
 #include "../common/chunk_pool.hpp"
 #include "../common/client_interface.hpp"
+#include "../common/macro_definitions.hpp"
 
 namespace starcounter {
 namespace core {
@@ -166,50 +172,6 @@ public:
 	 */
 	//bool full() const;
 	
-	//--------------------------------------------------------------------------
-																				/// THIS NEED TO BE REWRITTEN TO FIT THE SCHEDULER. OWNER_ID IS NOT NEEDED.
-																				/// Acquire linked chunks that fit the requested size - for schedulers.
-																				/**
-																				 * @param chunk_base Points to the first element of the array of chunks.
-																				 * @param head Will upon return contain the head of a linked chain of chunks
-																				 *		if successfuly acquired the requested size.
-																				 * @param size The number of bytes to allocate as 1..N linked chunks. The
-																				 *		chunks require some space for header data and this is taken into
-																				 *		account.
-																				 * @param timeout_milliseconds The number of milliseconds to wait before a
-																				 *		timeout may occur.
-																				 * @param oid The owner_id of the caller. A database can use the default
-																				 *		value owner_id::none, because they don't need clean-up.
-																				 * @return true if successfully acquired the linked chunks with the
-																				 *		requested amount of memory before the time period specified by
-																				 *		timeout_milliseconds has elapsed, otherwise false if not enough
-																				 *		space or the time period has elapsed.
-																				 */
-																				//bool acquire_linked_chunks(chunk_type* chunk_base, chunk_index& head,
-																				//std::size_t size, uint32_t timeout_milliseconds /*, owner_id oid = owner_id::none */ );
-																				
-																				/// THIS NEED TO BE REWRITTEN TO FIT THE SCHEDULER. OWNER_ID IS NOT NEEDED.
-																				/// Release linked chunks.
-																				/// NOTE: After calling this, the message data in the linked chunks may be
-																				/// unreadable even if unsuccessfull when trying to release the linked
-																				/// chunks, because some chunks may have been released and thus the message
-																				/// data may be cut.
-																				/**
-																				 * @param chunk_base Points to the first element of the array of chunks.
-																				 * @param head The head of the linked chunks, will upon return contain
-																				 *		chunk_type::link_terminator if successfully released all linked
-																				 *		chunks, otherwise it contains the chunk_index pointing to the head
-																				 *		of the linked chunks that are left.
-																				 * @param timeout_milliseconds The number of milliseconds to wait before a
-																				 *		timeout may occur.
-																				 * @return true if successfully released all linked chunks in which case
-																				 *		head is set to chunk_type::link_terminator, otherwise returns false
-																				 *		if failed to release all linked chunks, or the time period has
-																				 *		elapsed.
-																				 */
-																				//bool release_linked_chunks(chunk_type* chunk_base, chunk_index& head, uint32_t timeout_milliseconds);
-																				
-	//--------------------------------------------------------------------------
 	/// Acquire linked chunks that fit the requested size - for schedulers and
 	/// clients.
 	/**
@@ -223,6 +185,8 @@ public:
 	 *		chunk will be marked as owned by the client.
 	 * @param timeout The number of milliseconds to wait before a
 	 *		timeout may occur.
+	 * @param not_full The not_full event need to be passed in by any process
+	 *		except the database.
 	 * @return true if successfully acquired the linked chunks with the
 	 *		requested amount of memory before the time period specified by
 	 *		timeout has elapsed, otherwise false if not enough
@@ -231,7 +195,7 @@ public:
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool acquire_linked_chunks(chunk_type* chunk_base, chunk_index& head,
 	std::size_t size, client_interface_type* client_interface_ptr,
-	smp::spinlock::milliseconds timeout = 10000);
+	smp::spinlock::milliseconds timeout, HANDLE not_full = NULL); /// "A"
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool acquire_linked_chunks(chunk_type* chunk_base, chunk_index& head,
 	std::size_t size, client_interface_type* client_interface_ptr,
@@ -249,6 +213,8 @@ public:
 	 *		chunk will be marked as owned by the client.
 	 * @param timeout The number of milliseconds to wait before a
 	 *		timeout may occur.
+	 * @param not_full The not_full event need to be passed in by any process
+	 *		except the database.
 	 * @return true if successfully acquired the linked chunks with the
 	 *		requested amount of memory before the time period specified by
 	 *		timeout has elapsed, otherwise false if not enough
@@ -257,7 +223,7 @@ public:
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool acquire_linked_chunks_counted(chunk_type* chunk_base, chunk_index& head,
 	std::size_t num_chunks_to_acquire, client_interface_type* client_interface_ptr,
-	smp::spinlock::milliseconds timeout = 10000);
+	smp::spinlock::milliseconds timeout, HANDLE not_full = NULL); /// "B"
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool acquire_linked_chunks_counted(chunk_type* chunk_base, chunk_index& head,
 	std::size_t num_chunks_to_acquire, client_interface_type* client_interface_ptr,
@@ -279,6 +245,8 @@ public:
 	 *		chunk will be marked as not owned by any client.
 	 * @param timeout_milliseconds The number of milliseconds to wait before a
 	 *		timeout may occur.
+	 * @param not_empty The not_empty event need to be passed in by any process
+	 *		except the database.
 	 * @return true if successfully released all linked chunks in which case
 	 *		head is set to chunk_type::link_terminator, otherwise returns false
 	 *		if failed to release all linked chunks, or the time period has
@@ -287,7 +255,7 @@ public:
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool release_linked_chunks(chunk_type* chunk_base, chunk_index& head,
 	client_interface_type* client_interface_ptr,
-	smp::spinlock::milliseconds timeout = 10000); /// "C"
+	smp::spinlock::milliseconds timeout, HANDLE not_empty = NULL); /// "C"
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool release_linked_chunks(chunk_type* chunk_base, chunk_index& head,
 	client_interface_type* client_interface_ptr,
@@ -306,6 +274,8 @@ public:
 	 *		chunk(s) will be marked as owned by the client.
 	 * @param timeout The number of milliseconds to wait before a
 	 *		timeout may occur while trying to lock the shared_chunk_pool.
+	 * @param not_full The not_full event need to be passed in by any process
+	 *		except the database.
 	 * @return The number of acquired chunks. If the private_chunk_pool is full
 	 *		or becomes full when acquiring chunks, the acquirement process is
 	 *		stopped. This means that less than chunks_to_acquire was acquired.
@@ -314,8 +284,7 @@ public:
 	template<typename U>
 	std::size_t acquire_to_chunk_pool(U& private_chunk_pool, std::size_t
 	chunks_to_acquire, client_interface_type* client_interface_ptr,
-	smp::spinlock::milliseconds timeout = 10000); /// "D"
-
+	smp::spinlock::milliseconds timeout, HANDLE not_full = NULL); /// "D"
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	template<typename U>
 	std::size_t acquire_to_chunk_pool(U& private_chunk_pool, std::size_t
@@ -335,13 +304,15 @@ public:
 	 *		chunk(s) will be marked as not owned by the client.
 	 * @param timeout The number of milliseconds to wait before a
 	 *		timeout may occur while trying to lock the shared_chunk_pool.
+	 * @param not_empty The not_empty event need to be passed in by any process
+	 *		except the database.
 	 * @return The number of released chunks.
 	 */
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	template<typename U>
 	std::size_t release_from_chunk_pool(U& private_chunk_pool, std::size_t
 	chunks_to_release, client_interface_type* client_interface_ptr,
-	smp::spinlock::milliseconds timeout = 10000); /// "E"
+	smp::spinlock::milliseconds timeout, HANDLE not_empty = NULL); /// "E"
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	template<typename U>
 	std::size_t release_from_chunk_pool(U& private_chunk_pool, std::size_t
@@ -358,6 +329,8 @@ public:
 	 * @param chunks_to_acquire The number of chunks to acquire.
 	 * @param timeout The number of milliseconds to wait before a
 	 *		timeout may occur while trying to lock the shared_chunk_pool.
+	 * @param not_full The not_full event need to be passed in by any process
+	 *		except the database.
 	 * @return The number of acquired chunks. If the private_chunk_pool is full
 	 *		or becomes full when acquiring chunks, the acquirement process is
 	 *		stopped. This means that less than chunks_to_acquire was acquired.
@@ -365,7 +338,7 @@ public:
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	template<typename U>
 	std::size_t acquire_to_chunk_pool(U& private_chunk_pool, std::size_t
-	chunks_to_acquire, smp::spinlock::milliseconds timeout = 10000); /// "F"
+	chunks_to_acquire, smp::spinlock::milliseconds timeout, HANDLE not_full = NULL); /// "F"
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	template<typename U>
 	std::size_t acquire_to_chunk_pool(U& private_chunk_pool, std::size_t
@@ -380,12 +353,14 @@ public:
 	 * @param chunks_to_release The number of chunks to release.
 	 * @param timeout The number of milliseconds to wait before a
 	 *		timeout may occur while trying to lock the shared_chunk_pool.
+	 * @param not_empty The not_empty event need to be passed in by any process
+	 *		except the database.
 	 * @return The number of released chunks.
 	 */
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	template<typename U>
 	std::size_t release_from_chunk_pool(U& private_chunk_pool, std::size_t
-	chunks_to_release, smp::spinlock::milliseconds timeout = 10000); /// "G"
+	chunks_to_release, smp::spinlock::milliseconds timeout, HANDLE not_empty = NULL); /// "G"
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	template<typename U>
 	std::size_t release_from_chunk_pool(U& private_chunk_pool, std::size_t
@@ -402,12 +377,14 @@ public:
 	 *		chunk is marked as owned.
 	 * @param timeout The number of milliseconds to wait before a
 	 *		timeout may occur. TODO: implement timeout!?
+	 * @param not_empty The not_empty event need to be passed in by any process
+	 *		except the database.
 	 * @return false if failing to release the chunk_index. It can happen if the
 	 *		lock of the queue was not obtained.
 	 */
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool release_clients_chunks(client_interface_type* client_interface_ptr,
-	smp::spinlock::milliseconds timeout = 10000); /// "H"
+	smp::spinlock::milliseconds timeout, HANDLE not_empty = NULL); /// "H"
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool release_clients_chunks(client_interface_type* client_interface_ptr,
 	uint32_t timeout_milliseconds = 10000);
@@ -433,12 +410,14 @@ public:
 	 *		the type of processor and the clock rate, etc.
 	 * @param timeout The number of milliseconds to wait before a
 	 *		timeout may occur.
+	 * @param not_empty The not_empty event need to be passed in by any process
+	 *		except the database.
 	 * @return false if failing to push the item before the time period
 	 *		specified by timeout has elapsed, true otherwise.
 	 */
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-	bool push_front(param_type item, uint32_t spin_count = 1000000,
-	smp::spinlock::milliseconds timeout = 10000); /// "J"
+	bool push_front(param_type item, uint32_t spin_count,
+	smp::spinlock::milliseconds timeout, HANDLE not_empty = NULL); /// "I"
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool push_front(param_type item, uint32_t spin_count = 1000000, uint32_t
 	timeout_milliseconds = 10000);
@@ -456,8 +435,7 @@ public:
 	 *		by timeout has elapsed, true otherwise.
 	 */
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-	bool pop_back(value_type* item, uint32_t spin_count = 1000000,
-	smp::spinlock::milliseconds timeout = 10000);
+	/// "L"
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool pop_back(value_type* item, uint32_t spin_count = 1000000, uint32_t
 	timeout_milliseconds = 10000);
@@ -470,8 +448,17 @@ public:
 	// chunks as owned. Some other API functions in this class are allowed to
 	// use them.
 
+#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+	bool try_push_front(param_type item, HANDLE not_empty); /// "K"
+#else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool try_push_front(param_type item);
+#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+	
+#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+	//bool try_pop_back(value_type* item); /// "L"
+#else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool try_pop_back(value_type* item);
+#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	
 	//--------------------------------------------------------------------------
 	
@@ -535,24 +522,20 @@ private:
 	// Event used by the scheduler to wait when the queue is not empty.
 	// Client's have to open the event and pass it in as an argument.
 	HANDLE not_empty_;
-	char cache_line_pad_1_[CACHE_LINE_SIZE -sizeof(HANDLE)];
 	
 	// Event used by the scheduler to wait when the queue is not full.
 	// Client's have to open the event and pass it in as an argument.
 	HANDLE not_full_;
-	char cache_line_pad_2_[CACHE_LINE_SIZE -sizeof(HANDLE)];
+
+	char cache_line_pad_1_[CACHE_LINE_SIZE
+	-sizeof(HANDLE) // not_empty_
+	-sizeof(HANDLE)]; // not_full_
 
 	// In order to reduce the time taken to open the not_empty_ and not_full_
 	// events the names are cached. Otherwise the names have to be formated
 	// before opening them.
 	wchar_t not_empty_notify_name_[segment_and_notify_name_size];
 	wchar_t not_full_notify_name_[segment_and_notify_name_size];
-
-	// Condition to wait when the queue is not empty
-	boost::interprocess::interprocess_condition not_empty_condition_;
-	
-	// Condition to wait when the queue is not full
-	boost::interprocess::interprocess_condition not_full_condition_;
 	
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	// Process-shared anonymous synchronization:

@@ -173,7 +173,8 @@ is_system, uint32_t chunks_total_number) try {
 
 	// Chunks from 0 to chunks_total_number -1 are put in the shared_chunk_pool.
 	for (chunk_index i = 0; i < chunks_total_number; ++i) {
-		shared_chunk_pool->push_front(i);
+		shared_chunk_pool->push_front(i, 1000000 /* spin count */,
+		10000 /* timeout ms */);
 	}
 	
 	const shm_alloc_for_the_common_scheduler_interface2
