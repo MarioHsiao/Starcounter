@@ -71,17 +71,12 @@ namespace BuildSystemHelper
         /// <summary>
         /// Common path to default build output.
         /// </summary>
-        public const String CommonDefaultBuildOutputPath = @"Yellow\Src\YellowBuildOutput";
+        public const String CommonDefaultBuildOutputPath = @"Level1\Src\..\Bin";
 
         /// <summary>
         /// Path to MsBuild tool.
         /// </summary>
         public const String MsBuildExePath = @"C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe";
-
-        /// <summary>
-        /// Path to consolidated output.
-        /// </summary>
-        public const String ConsolidOutputEnvVar = "SC_BIN_CONSOLIDATED_FOLDER";
 
         /// <summary>
         /// Flag to upload to external FTP.
@@ -661,7 +656,7 @@ namespace BuildSystemHelper
 
             // Calling sign utility...
             ProcessStartInfo signToolInfo = new ProcessStartInfo();
-            signToolInfo.FileName = @"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\SignTool.exe";
+            signToolInfo.FileName = @"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Bin\SignTool.exe";
             signToolInfo.RedirectStandardError = true;
             signToolInfo.UseShellExecute = false;
 

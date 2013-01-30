@@ -5,11 +5,11 @@ using System.Text;
 using System.IO;
 using System.Security.Cryptography;
 using System.Web;
-using Ionic.Zip;
 using System.Diagnostics;
 using BuildSystemHelper;
 using System.Threading;
 using System.Reflection;
+using System.IO.Compression;
 
 namespace GenerateInstaller
 {
@@ -23,7 +23,7 @@ namespace GenerateInstaller
 
         const String companyName = "Starcounter AB";
         const String productName = "Starcounter Components";
-        public static readonly String certificateFile = BuildSystem.LocalToolsFolder + "\\MSCV-VSClass3.cer";
+        public static readonly String certificateFile = BuildSystem.LocalToolsFolder + "\\starcounter-2014.cer";
 
         // Accepts builds pool FTP mapped directory as a path
         // ('StableBuilds' or 'NightlyBuilds' without version part).
@@ -44,10 +44,9 @@ namespace GenerateInstaller
                     return 0;
 
                 // Checking if its a personal build.
-                if ((BuildSystem.IsPersonalBuild()) &&
-                    (Environment.GetEnvironmentVariable(BuildSystem.GenerateInstallerEnvVar) == null))
+                if (Environment.GetEnvironmentVariable(BuildSystem.GenerateInstallerEnvVar) != "True")
                 {
-                    errorOut.WriteLine("Skipping generation of a Installer since its a Personal build...");
+                    errorOut.WriteLine("Skipping generation of a installer...");
                     return 0;
                 }
 
@@ -67,15 +66,6 @@ namespace GenerateInstaller
                 // Getting values for environment variables.
                 ////////////////////////////////////////////
                 errorOut.WriteLine("Obtaining needed environment variables...");
-
-                // Getting the path to current build consolidated folder.
-                String outputFolder = Environment.GetEnvironmentVariable(BuildSystem.ConsolidOutputEnvVar);
-                if (outputFolder == null)
-                {
-                    throw new Exception("Environment variable " + BuildSystem.ConsolidOutputEnvVar + " does not exist.");
-                }
-                if (!Directory.Exists(outputFolder))
-                    Directory.CreateDirectory(outputFolder);
 
                 // Getting current build configuration.
                 String configuration = Environment.GetEnvironmentVariable("Configuration");
@@ -104,11 +94,16 @@ namespace GenerateInstaller
                 {
                     throw new Exception("Environment variable 'WORKSPACE' does not exist.");
                 }
+                
+                // Getting the path to current build consolidated folder.
+                String outputFolder = Path.Combine(sourcesDir, "Level1\\Bin\\" + configuration);
+
+                if (!Directory.Exists(outputFolder))
+                    Directory.CreateDirectory(outputFolder);
 
                 //////////////////////////////////////////////////////////
                 // Empirically generating new random download identifier.
                 //////////////////////////////////////////////////////////
-                UInt32 previousRandomNumCount = downloadID.Generate(BuildSystem.StarcounterFtpConfigName, DownloadKeyLengthBytes, randHistoryFileName);
 
                 // Adding the XML header.
                 String versionFileContents = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" + Environment.NewLine;
@@ -139,8 +134,7 @@ namespace GenerateInstaller
                 versionFileContents += "</VersionInfo>" + Environment.NewLine;
 
                 // Updating installer engine resources.
-                //String installerEngineFolder = Path.Combine(sourcesDir, @"Yellow\Src\CoreComponents.Net\Starcounter.InstallerWPF\Resources");
-                String installerEngineFolder = Path.Combine(sourcesDir, @"Yellow\Src\CoreComponents.Net\InstallerEngine");
+                String installerEngineFolder = Path.Combine(sourcesDir, @"Level1\src\Starcounter.Installer\Starcounter.InstallerEngine");
 
                 BuildSystem.SetNormalDirectoryAttributes(new DirectoryInfo(installerEngineFolder));
                 // Updating the version information.
@@ -160,9 +154,7 @@ namespace GenerateInstaller
 
                 // Looking for an Installer WPF resources folder.
                 //String installerWpfProjectName = "Starcounter.InstallerWPF.csproj";
-                //installerWpfFolder = Path.Combine(sourcesDir, @"Yellow\Src\CoreComponents.Net\Starcounter.InstallerWPF");
-                String installerWpfProjectName = "Starcounter.InstallerWPF2.csproj";
-                installerWpfFolder = Path.Combine(sourcesDir, @"Yellow\Src\CoreComponents.Net\Starcounter.InstallerWPF2");
+                installerWpfFolder = Path.Combine(sourcesDir, @"Level1\src\Starcounter.Installer\Starcounter.InstallerWPF");
 
                 BuildSystem.SetNormalDirectoryAttributes(new DirectoryInfo(installerWpfFolder));
 
@@ -183,7 +175,8 @@ namespace GenerateInstaller
                 // Now compiling the Installer WPF project.
                 ProcessStartInfo msbuildInfo = new ProcessStartInfo();
                 msbuildInfo.FileName = BuildSystem.MsBuildExePath;
-                msbuildInfo.Arguments = "\"" + Path.Combine(installerWpfFolder, installerWpfProjectName) + "\"" + " /property:Configuration=" + configuration + ";Platform=" + platform + " /target:Build";
+                String msbuildArgs = "\"" + Path.Combine(sourcesDir, @"Level1\src\Level1.sln") + "\""/*Path.Combine(installerWpfFolder, installerWpfProjectName)*/ + " /maxcpucount /NodeReuse:false /target:Build /property:Configuration=" + configuration + ";Platform=" + platform;
+                msbuildInfo.Arguments = msbuildArgs;
                 msbuildInfo.WorkingDirectory = outputFolder;
                 msbuildInfo.UseShellExecute = false;
 
@@ -217,17 +210,16 @@ namespace GenerateInstaller
 
                 // Now packing everything into one big ZIP archive.
                 errorOut.WriteLine("Packaging consolidated folder and building complete installer...");
-                using (ZipFile zip = new ZipFile())
-                {
-                    zip.ParallelDeflateThreshold = -1; // Zip.Save hanging bug fix.
-                    zip.AddDirectory(outputFolder); // Adding whole consolidated directory.
-                    String archivePath = Path.Combine(installerWpfFolder, "Resources\\Archive.zip");
-                    if (File.Exists(archivePath)) File.Delete(archivePath);
-                    zip.Save(archivePath);
-                }
+
+                String archivePath = Path.Combine(installerWpfFolder, "Resources\\Archive.zip");
+                if (File.Exists(archivePath))
+                    File.Delete(archivePath);
+
+                // Zipping whole consolidated directory.
+                ZipFile.CreateFromDirectory(outputFolder, archivePath, CompressionLevel.Optimal, false);
 
                 // Compiling second time with archive.
-                msbuildInfo.Arguments = Path.Combine(installerWpfFolder, installerWpfProjectName) + " /property:Configuration=" + configuration + ";Platform=" + platform + ";SC_CREATE_STANDALONE_SETUP=True /target:Build";
+                msbuildInfo.Arguments = msbuildArgs + ";SC_CREATE_STANDALONE_SETUP=True";
                 msbuildProcess = Process.Start(msbuildInfo);
                 msbuildProcess.WaitForExit();
                 if (msbuildProcess.ExitCode != 0)
@@ -256,6 +248,8 @@ namespace GenerateInstaller
                 if ((Environment.GetEnvironmentVariable(BuildSystem.UploadToUsFtp) != null) &&
                     (BuildSystem.IsReleasingBuild()))
                 {
+                    UInt32 previousRandomNumCount = downloadID.Generate(BuildSystem.StarcounterFtpConfigName, DownloadKeyLengthBytes, randHistoryFileName);
+
                     // Creating this build version folder if needed.
                     buildsFTPPoolDir = buildsFTPPoolDir + "/" + version;
                     errorOut.WriteLine("Uploading everything to FTP server mapped folder: " + buildsFTPPoolDir);
