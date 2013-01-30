@@ -190,10 +190,23 @@ public class CSystemServer : CComponentBase
         }
 
         // Creating new server repository.
-        var setup = RepositorySetup.NewDefault(Path.Combine(serverDir, ".."), StarcounterEnvironment.ServerNames.SystemServer);
+        var setup = RepositorySetup.NewDefault(
+            Path.Combine(serverDir, ".."),
+            StarcounterEnvironment.ServerNames.SystemServer);
+
         setup.Execute();
 
 SKIP_SERVER_CREATION:
+
+        // Replacing default server parameters.
+        if (!Utilities.ReplaceXMLParameterInFile(
+            Path.Combine(serverDir, StarcounterEnvironment.ServerNames.SystemServer + ServerConfiguration.FileExtension),
+            StarcounterConstants.BootstrapOptionNames.DefaultAppsPort,
+            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_SystemServerDefaultPort)))
+        {
+            throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM,
+                "Can't replace default Apps port for " + StarcounterEnvironment.ServerNames.SystemServer + " server.");
+        }
 
         // Creating server config.
         InstallerMain.CreateServerConfig(
@@ -217,7 +230,7 @@ SKIP_SERVER_CREATION:
             serviceAccountPassword);
 
         // Copying gateway configuration.
-        InstallerMain.CopyGatewayConfig(serverDir, "1234");
+        InstallerMain.CopyGatewayConfig(serverDir, StarcounterConstants.NetworkPorts.DefaultSystemServerGwStatsPort.ToString());
 
         // Creating Administrator database.
         InstallerMain.CreateDatabaseSynchronous(
@@ -231,7 +244,8 @@ SKIP_SERVER_CREATION:
             SystemServerAdminDesktopShortcutPath,
             "",
             installPath,
-            "Starts " + ConstantsBank.SCProductName + " " + StarcounterEnvironment.ServerNames.SystemServer + " Administrator.");
+            "Starts " + ConstantsBank.SCProductName + " " + StarcounterEnvironment.ServerNames.SystemServer + " Administrator.",
+            Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCIconFilename));
 
         // Starting the service.
         StartStarcounterServices();

@@ -8,6 +8,7 @@ using System.Diagnostics;
 using Starcounter.Internal;
 using Starcounter.Server.Setup;
 using System.Xml;
+using Starcounter.Configuration;
 
 namespace Starcounter.InstallerEngine
 {
@@ -119,15 +120,17 @@ public class CPersonalServer : CComponentBase
             PersonalServerDesktopShortcutPath,
             StarcounterEnvironment.ServerNames.PersonalServer,
             installPath,
-            "Starts " + ConstantsBank.SCProductName  + " Personal Server.");
+            "Starts " + ConstantsBank.SCProductName  + " Personal Server.",
+            Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCIconFilename));
 
         // Calling external tool to create Administrator shortcut.
         Utilities.CreateShortcut(
-            "http://localhost:8081",
+            "http://localhost:8181",
             PersonalServerAdminDesktopShortcutPath,
             "",
             installPath,
-            "Starts " + ConstantsBank.SCProductName + " Personal Administrator.");
+            "Starts " + ConstantsBank.SCProductName + " Personal Administrator.",
+            Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCIconFilename));
 
         // Obtaining path to Start Menu for a current user.
         String startMenuDir = Path.GetDirectoryName(PersonalServerStartMenuPath);
@@ -142,7 +145,8 @@ public class CPersonalServer : CComponentBase
             PersonalServerStartMenuPath,
             StarcounterEnvironment.ServerNames.PersonalServer,
             installPath,
-            "Starts " + ConstantsBank.SCProductName + " " + StarcounterEnvironment.ServerNames.PersonalServer + " Administrator.");
+            "Starts " + ConstantsBank.SCProductName + " " + StarcounterEnvironment.ServerNames.PersonalServer + " Administrator.",
+            Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCIconFilename));
 
         // Updating progress.
         InstallerMain.ProgressIncrement();
@@ -212,10 +216,23 @@ public class CPersonalServer : CComponentBase
         }
 
         // Creating new server repository.
-        var setup = RepositorySetup.NewDefault(Path.Combine(serverDir, ".."), StarcounterEnvironment.ServerNames.PersonalServer);
+        var setup = RepositorySetup.NewDefault(
+            Path.Combine(serverDir, ".."),
+            StarcounterEnvironment.ServerNames.PersonalServer);
+
         setup.Execute();
 
 SKIP_SERVER_CREATION:
+
+        // Replacing default server parameters.
+        if (!Utilities.ReplaceXMLParameterInFile(
+            Path.Combine(serverDir, StarcounterEnvironment.ServerNames.PersonalServer + ServerConfiguration.FileExtension),
+            StarcounterConstants.BootstrapOptionNames.DefaultAppsPort,
+            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_PersonalServerDefaultPort)))
+        {
+            throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM,
+                "Can't replace default Apps port for " + StarcounterEnvironment.ServerNames.PersonalServer + " server.");
+        }
 
         // Creating server config.
         InstallerMain.CreateServerConfig(
@@ -224,7 +241,9 @@ SKIP_SERVER_CREATION:
             PersonalServerConfigPath);
 
         // Copying gateway configuration.
-        InstallerMain.CopyGatewayConfig(serverDir, "12345");
+        InstallerMain.CopyGatewayConfig(
+            serverDir,
+            StarcounterConstants.NetworkPorts.DefaultPersonalServerGwStatsPort.ToString());
 
         // Killing server process (in order to later start it with normal privileges).
         KillServersButNotService();

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Configuration.Install;
 using Starcounter.Tools;
 using Starcounter;
+using Starcounter.Internal;
 
 namespace Starcounter.InstallerEngine
 {
@@ -92,18 +93,18 @@ public class CInstallationBase : CComponentBase
     }
 
     // Adds firewall exceptions to certain executables.
-    static String[] FirewallExceptionPrograms = { "32BitComponents\\StarcounterSQL"/*,
-                                                  "StarcounterServer",
-                                                  "StarcounterAdministrator",
-                                                  "Scdbs",
-                                                  "Scdbsw"*/ };
+    static String[] FirewallExceptionPrograms = 
+    {
+        "32BitComponents\\" + StarcounterConstants.ProgramNames.ScSqlParser,
+        StarcounterConstants.ProgramNames.ScNetworkGateway
+    };
 
     // Special firewall rules for each program.
-    static String[] FirewallSpecialParams = { "remoteip=127.0.0.1"/*,
-                                              "",
-                                              "",
-                                              "",
-                                              ""*/ };
+    static String[] FirewallSpecialParams =
+    {
+        "remoteip=127.0.0.1",
+        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultPersonalServerGwStatsPort
+    };
 
     /// <summary>
     /// Adds/Removes Windows firewall exceptions.
@@ -298,9 +299,10 @@ public class CInstallationBase : CComponentBase
         Utilities.CreateShortcut(
             Path.Combine(ComponentPath, ConstantsBank.SCInstallerGUI + ".exe"),
             Path.Combine(startMenuDir, "Add or Remove Starcounter Components.lnk"),
-            " ",
+            "",
             ComponentPath,
-            "Used to add and remove components or uninstall Starcounter completely.");
+            "Used to add and remove components or uninstall Starcounter completely.",
+            Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCIconFilename));
 
         // Logging event.
         Utilities.ReportSetupEvent("Adding Starcounter to the 'Add/Remove Programs' list...");

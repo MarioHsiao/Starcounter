@@ -15,7 +15,7 @@
     <WarningLevel>4</WarningLevel>
     <ApplicationManifest>Starcounter.InstallerWPF.manifest</ApplicationManifest>
     <IsWebBootstrapper>false</IsWebBootstrapper>
-    <ApplicationIcon>resources\Sc-icon.ico</ApplicationIcon>
+    <ApplicationIcon>sc.ico</ApplicationIcon>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -449,9 +449,6 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="resources\Sc-icon.ico" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="resources\16x16\Folder.png" />
   </ItemGroup>
   <ItemGroup>
@@ -535,6 +532,11 @@
       <Project>{210ac05e-453f-4ab0-abff-10d3804a9596}</Project>
       <Name>Starcounter.InstallerEngine</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="sc.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

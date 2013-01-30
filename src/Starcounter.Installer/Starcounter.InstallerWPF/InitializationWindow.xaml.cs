@@ -688,6 +688,8 @@ namespace Starcounter.InstallerWPF
             InstallerMain.StartPostSetupProcesses(true);
 
             // Get the Mainthread
+            // TODO: Re-enable the demo sequence when it exists.
+            /*
             if (Application.Current != null)
             {
                 Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(delegate
@@ -695,7 +697,7 @@ namespace Starcounter.InstallerWPF
                     this.StartDemoSequence();
                 }));
             }
-            return;
+            */
        }
 
         private void StartDemoSequence()

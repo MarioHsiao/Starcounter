@@ -513,12 +513,18 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// Creates shortcut using external utility.
         /// </summary>
-        public static void CreateShortcut(String pathToOrigin, String pathToLnk, String args, String workingDir, String description)
+        public static void CreateShortcut(
+            String pathToOrigin,
+            String pathToLnk,
+            String args,
+            String workingDir,
+            String description,
+            String iconPath)
         {
             // Creating shortcut using our utility.
             ProcessStartInfo shortcutInfo = new ProcessStartInfo();
             shortcutInfo.FileName = "\"" + InstallerMain.InstallationDir + "\\CreateShortcut\"";
-            shortcutInfo.Arguments = "\"" + pathToOrigin + "\" \"" + pathToLnk + "\" \"" + args + "\" \"" + workingDir + "\" \"" + description + "\"";
+            shortcutInfo.Arguments = "\"" + pathToOrigin + "\" \"" + pathToLnk + "\" \"" + args + "\" \"" + workingDir + "\" \"" + description + "\" \"" + iconPath + "\"";
             shortcutInfo.UseShellExecute = false;
             shortcutInfo.CreateNoWindow = true;
 
