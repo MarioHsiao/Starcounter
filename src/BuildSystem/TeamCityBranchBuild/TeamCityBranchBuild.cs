@@ -148,11 +148,6 @@ namespace TeamCityBranchBuild
                     Path.Combine(targetBuildDir, "BuildSystemHelper.pdb"),
                     true);
 
-                // Copying ZIP handling library.
-                File.Copy(Path.Combine(buildToolsBinDir, "Ionic.Zip.dll"),
-                    Path.Combine(targetBuildDir, "Ionic.Zip.dll"),
-                    true);
-
                 // Creating version info file.
                 String versionFileContents = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" + Environment.NewLine;
 
