@@ -674,15 +674,22 @@ namespace Starcounter.InstallerWPF
         {
             // Setting Starcounter variables for current process (so that subsequently
             // started processes can find the installation path).
-            Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName,
+            Environment.SetEnvironmentVariable(
+                ConstantsBank.SCEnvVariableName,
                 CInstallationBase.GetEnvVarMachineUser(ConstantsBank.SCEnvVariableName),
                 EnvironmentVariableTarget.Process);
 
-            Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableDefaultServer,
+            Environment.SetEnvironmentVariable(
+                ConstantsBank.SCEnvVariableDefaultServer,
                 CInstallationBase.GetEnvVarMachineUser(ConstantsBank.SCEnvVariableDefaultServer),
                 EnvironmentVariableTarget.Process);
 
+            // Calling post-setup processes function.
+            InstallerMain.StartPostSetupProcesses(true);
+
             // Get the Mainthread
+            // TODO: Re-enable the demo sequence when it exists.
+            /*
             if (Application.Current != null)
             {
                 Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(delegate
@@ -690,11 +697,8 @@ namespace Starcounter.InstallerWPF
                     this.StartDemoSequence();
                 }));
             }
-            return;
-
-            // Calling post-setup processes function.
-            //            InstallerEngine.InstallerMain.StartPostSetupProcesses(true);
-        }
+            */
+       }
 
         private void StartDemoSequence()
         {

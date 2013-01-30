@@ -46,7 +46,7 @@
                     </GroupBox>
 
                     <!-- Content -->
-                    <Grid Grid.Row="1" Style="{DynamicResource Page_Content_Panel_Style}">
+                    <Grid Grid.Row="1" Style="{DynamicResource Page_Content_Panel_Style}" Visibility="Collapsed">
 
                         <StackPanel  >
 
