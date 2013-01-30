@@ -18,7 +18,7 @@ public abstract class CComponentBase
     }
 
     /// <summary>
-    /// Provides name of the component setting in INI file.
+    /// Provides name of the component setting.
     /// </summary>
     public abstract String SettingName
     {

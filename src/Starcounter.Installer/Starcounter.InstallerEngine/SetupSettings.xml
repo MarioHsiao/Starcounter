@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<StarcounterSetupSettings>
+
+    <!-- This file contains settings obtained from Starcounter Installer GUI. -->
+    <StarcounterInstallationSettings>
+        <!-- NOTE: Starcounter installation directory is the same from which you
+        start the installer engine (in GUI you specify the target installation
+        directory where Starcounter files will be copied).
+        The uninstall process will never delete your databases.
+        However, you still can remove them manually by deleting server
+        directories described below. -->
+
+        <!-- Determines what type(s) of installation should be performed. -->
+
+        <!-- Personal (for the Current User) Starcounter server installation with
+        private database server folder. -->
+        <InstallPersonalServer>True</InstallPersonalServer>
+
+        <!-- System type of Starcounter server installation, i.e. machine wide, where
+        Starcounter server is started upon system startup
+        as Microsoft Windows service. -->
+        <InstallSystemServer>True</InstallSystemServer>
+
+        <!-- Specifies the database server path for each installed Starcounter server
+        (only selected types of installation will use the corresponding values). -->
+        <PersonalServerPath>C:\Starcounter\2.0.0.0\Personal</PersonalServerPath>
+        <SystemServerPath>C:\Starcounter\2.0.0.0\System</SystemServerPath>
+
+        <!-- True if Starcounter Visual Studio 2010 developer integration should be installed. -->
+        <InstallVS2010Integration>False</InstallVS2010Integration>
+        <StartVS2010Sample>False</StartVS2010Sample>
+
+        <!-- True if Starcounter Visual Studio 2012 developer integration should be installed. -->
+        <InstallVS2012Integration>False</InstallVS2012Integration>
+
+        <!-- Indicates if sample database 'MyMusic' should be installed. -->
+        <InstallSampleDatabase>False</InstallSampleDatabase>
+
+        <!-- The following options are most likely will always be 'True': -->
+
+        <!-- True if Starcounter Administrator shortcuts should be created (Desktop and Start Menu). -->
+        <CreatePersonalServerShortcuts>True</CreatePersonalServerShortcuts>
+
+        <!-- True if Starcounter shortcuts should be added to Start Menu. -->
+        <AddStarcounterToStartMenu>True</AddStarcounterToStartMenu>
+        
+    </StarcounterInstallationSettings>
+
+    <StarcounterUninstallationSettings>
+
+        <!-- True if Starcounter Personal Server for current user should be uninstalled. -->
+        <RemovePersonalServer>True</RemovePersonalServer>
+
+        <!-- True if Starcounter System Server should be uninstalled. -->
+        <RemoveSystemServer>True</RemoveSystemServer>
+
+        <!-- True if Starcounter Visual Studio 2010 integration should be removed. -->
+        <RemoveVS2010Integration>True</RemoveVS2010Integration>
+
+        <!-- True if Starcounter Visual Studio 2012 integration should be removed. -->
+        <RemoveVS2012Integration>True</RemoveVS2012Integration>
+
+        <!-- True if Starcounter Administrator should be removed. -->
+        <RemoveAdministrator>True</RemoveAdministrator>
+
+    </StarcounterUninstallationSettings>
+    
+</StarcounterSetupSettings>
