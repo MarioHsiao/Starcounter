@@ -656,7 +656,7 @@ namespace BuildSystemHelper
 
             // Calling sign utility...
             ProcessStartInfo signToolInfo = new ProcessStartInfo();
-            signToolInfo.FileName = @"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Bin\SignTool.exe";
+            signToolInfo.FileName = @"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\SignTool.exe";
             signToolInfo.RedirectStandardError = true;
             signToolInfo.UseShellExecute = false;
 
