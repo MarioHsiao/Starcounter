@@ -830,7 +830,6 @@ smp::spinlock::milliseconds timeout, HANDLE not_full) { /// "F"
 			
 			if (private_chunk_pool.push_front(current)) {
 				// Havning reached this point the chunk can be recovered.
-				
 				_mm_mfence(); // Remove if uneccessary.
 			}
 			else {
@@ -1187,8 +1186,6 @@ client_interface_ptr, uint32_t timeout_milliseconds) {
 template<class T, class Alloc>
 void shared_chunk_pool<T, Alloc>::show_linked_chunks(chunk_type* chunk_,
 chunk_index head) {
-	//std::cout << "<I> show_linked_chunks()\n";
-	
 	smp::spinlock::milliseconds timeout(1000);
 
 	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
@@ -1241,7 +1238,7 @@ chunk_index head) {
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::push_front(param_type item, uint32_t
-spin_count, smp::spinlock::milliseconds timeout, HANDLE not_empty) { /// "I"
+spin_count, smp::spinlock::milliseconds timeout, HANDLE not_full, HANDLE not_empty) { /// "I"
 	//std::cout << "<I> push_front()\n";
 	// Spin at most spin_count number of times, and try to push the item...
 	for (std::size_t s = 0; s < spin_count; ++s) {
@@ -1267,45 +1264,52 @@ spin_count, smp::spinlock::milliseconds timeout, HANDLE not_empty) { /// "I"
 			return false;
 		}
 		
-#if 0 /// REPLACE THIS WITH WINDOWS EVENTS
-		// Wait until the queue is not full, or timeout occurs.
-		if (not_full_condition_.timed_wait(lock, timeout,
-		boost::bind(&shared_chunk_pool<value_type, allocator_type>::is_not_full,
-		this)) == true) {
-			// The queue is not full so the item can be pushed.
-			container_.push_front(item);
-			++unread_;
-			lock.unlock();
-			not_empty_condition_.notify_one();
-			// Successfully popped the item.
-			return true;
+		// The queue is not full because it has enough capacity to hold all
+		// items, so the item can be pushed.
+		container_.push_front(item);
+		++unread_;
+		lock.unlock();
+		not_empty = (not_empty == NULL) ? not_empty_ : not_empty; /// TODO: Optimize.
+
+		if (::SetEvent(not_empty)) {
+			// Successfully notified.
+			//std::cout << "<I>::push_front(): Successfully notified.\n";
 		}
 		else {
-			// The timeout time period has elapsed. Failed to push the item.
-			return false;
+			// Error. Failed to notify.
+			//std::cout << "<I>::push_front(): Failed to notify.\n";
 		}
-#endif /// REPLACE THIS WITH WINDOWS EVENTS
+
+		// Successfully pushed the item.
+		return true;
 		///----------------------------------------------------------------
-		switch (::WaitForSingleObject(not_full_, timeout -timeout.tick_count())) {
+#if 0 /// Wrong
+		not_full = (not_full == NULL) ? not_full_ : not_full; /// TODO: Optimize.
+
+		switch (::WaitForSingleObject(not_full, timeout -timeout.tick_count())) {
 		case WAIT_OBJECT_0:
 			// Notify that the buffer is not full.
-			if (::ResetEvent(not_full_)) {
+
+			if (::ResetEvent(not_full)) {
+				//std::cout << "<I>::push_front(): Successfully ::ResetEvent()\n";
 				return true;
 			}
 			else {
+				//std::cout << "<I>::push_front(): Failed to ::ResetEvent()\n";
 				return true; // Anyway.
 			}
 			return true;
 		case WAIT_TIMEOUT:
+			//std::cout << "<I>::push_front(): WAIT_TIMEOUT\n";
 			return false;
 		case WAIT_FAILED:
+			//std::cout << "<I>::push_front(): WAIT_FAILED\n";
 			return false;
 		}
 		return false;
-		///----------------------------------------------------------------
-		return false; /// REPLACE THIS WITH WINDOWS EVENTS
+#endif /// Wrong
 	}
-	/// To be continued. . .
+	return false;
 }
 
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
@@ -1362,6 +1366,7 @@ spin_count, uint32_t timeout_milliseconds) {
 
 //------------------------------------------------------------------------------
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+// No pop_back()
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::pop_back(value_type* item, uint32_t
@@ -1532,7 +1537,7 @@ inline const wchar_t* shared_chunk_pool<T, Alloc>::not_full_notify_name() const 
 template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::if_locked_with_id_recover_and_unlock
 (smp::spinlock::locker_id_type id) {
-	//std::cout << "<N> if_locked_with_id_recover_and_unlock()\n";
+	std::cout << "<N> if_locked_with_id_recover_and_unlock()\n";
 	if (spinlock().is_locked_with_id(id)) {
 		// Recover...NOT! We accept a resource leak in IPC version 1.0.
 		// TODO: Fix recovery of chunks in IPC version 2.0.
