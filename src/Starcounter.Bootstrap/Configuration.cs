@@ -230,7 +230,7 @@ namespace StarcounterInternal.Bootstrap
         {
             get
             {
-                UInt16 v = 80;
+                UInt16 v = StarcounterConstants.NetworkPorts.DefaultPersonalServerAppsPort;
                 string str;
                 if (this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.DefaultAppsPort, out str))
                 {

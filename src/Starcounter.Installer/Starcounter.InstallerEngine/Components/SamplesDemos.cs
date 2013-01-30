@@ -307,7 +307,8 @@ public class CSamplesDemos : CComponentBase
             shortcutPath,
             " ",
             installPath,
-            "Launches Starcounter Demo.");
+            "Launches Starcounter Demo.",
+            Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCIconFilename));
     }
 
     /// <summary>

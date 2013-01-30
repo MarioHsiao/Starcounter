@@ -61,6 +61,43 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
+        /// Defines the well known network ports.
+        /// </summary>
+        public static class NetworkPorts
+        {
+            /// <summary>
+            /// Default Apps port for Personal server
+            /// </summary>
+            public const UInt16 DefaultPersonalServerAppsPort = 8080;
+
+            /// <summary>
+            /// Default Apps port for System server
+            /// </summary>
+            public const UInt16 DefaultSystemServerAppsPort = 80;
+
+            /// <summary>
+            /// Default port for Personal server Administrator
+            /// </summary>
+            public const UInt16 DefaultPersonalServerAdminPort = 8181;
+
+            /// <summary>
+            /// Default port for System server Administrator
+            /// </summary>
+            public const UInt16 DefaultSystemServerAdminPort = 81;
+
+            /// <summary>
+            /// Default port for Personal server Gateway statistics
+            /// </summary>
+            public const UInt16 DefaultPersonalServerGwStatsPort = 12346;
+
+            /// <summary>
+            /// Default port for System server Gateway statistics
+            /// </summary>
+            public const UInt16 DefaultSystemServerGwStatsPort = 12345;
+
+        }
+
+        /// <summary>
         /// Defines the commands this program accepts.
         /// </summary>
         public static class BootstrapCommandNames

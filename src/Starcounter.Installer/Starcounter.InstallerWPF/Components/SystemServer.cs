@@ -5,6 +5,7 @@ using System.Text;
 using System.Collections.ObjectModel;
 using Starcounter.InstallerEngine;
 using System.Collections;
+using Starcounter.Internal;
 
 namespace Starcounter.InstallerWPF.Components
 {
@@ -105,7 +106,7 @@ namespace Starcounter.InstallerWPF.Components
             this.Path = System.IO.Path.Combine(Environment.GetEnvironmentVariable("SystemDrive") + "\\" +
                                                Configuration.StarcounterCommonPath , ConstantsBank.SCSystemDatabasesName);
 
-            this.DefaultAppsTcpPort = 80;
+            this.DefaultAppsTcpPort = StarcounterConstants.NetworkPorts.DefaultSystemServerAppsPort;
 
             switch (this.Command)
             {

@@ -43,7 +43,7 @@ namespace Starcounter.InstallerEngine
         public const String Setting_RemoveVS2012Integration = "RemoveVS2012Integration";
 
         // Other constants.
-        internal const String SCIconFilename = "Sc-Icon.ico";
+        internal const String SCIconFilename = "sc.ico";
 
         public const String ScGlobalSettingsIniName = "SetupSettings.xml";
         public const String ScGUISetupIniName = "GUISetupSettings.xml";

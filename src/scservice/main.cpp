@@ -203,7 +203,6 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     if (!admin_exe_path) goto err_nomem;
 	swprintf(admin_exe_path, str_num_chars, str_template);
 
-
 	// Creating Admin working dir.
     str_template = L"scadmin";
     str_num_chars = 
@@ -234,7 +233,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	str_num_chars = 0;
 
     // TODO: Provide port to Administrator in a proper way.
-    wchar_t* admin_port_str = L"8081";
+    wchar_t* admin_port_str = L"8181";
     if (srv_name_upr[0] == L'S')
         admin_port_str = L"81";
 
@@ -328,8 +327,11 @@ err_nomem:
 
 end:
     // Terminating.
-	if(r) {
-	 printf( "Exited with error code:%d\n", r );	// TODO: Make "Starcounter error text" (FormatStarcounterErrorMessage?)
+	if (r)
+    {
+        wchar_t* error_msg_buf = new wchar_t[4096];
+        FormatStarcounterErrorMessage(r, error_msg_buf, 4096);
+        wprintf(L"Exited with error code: %s\n", error_msg_buf);
 	}
 	
     if (handles[4]) _kill_and_cleanup(handles[4]);	// SCDODE

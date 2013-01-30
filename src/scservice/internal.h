@@ -3,6 +3,7 @@
 
 
 #include "../Starcounter.ErrorCodes/scerrres/scerrres.h"
+#include "../Starcounter.ErrorCodes/scerrres/format.h"
 
 
 #include <stdint.h>

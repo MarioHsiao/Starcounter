@@ -30,7 +30,7 @@ namespace StarcounterApps3 {
             }
 
             // Administrator port.
-            UInt16 adminPort = 81;
+            UInt16 adminPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerAdminPort;
             if (UInt16.TryParse(args[1], out adminPort) == false) {
                 Console.WriteLine("Starcounter Administrator: Invalid port number {0}", args[1]);
                 return;

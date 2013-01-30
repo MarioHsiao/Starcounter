@@ -5,6 +5,7 @@ using System.Text;
 using System.Collections.ObjectModel;
 using Starcounter.InstallerEngine;
 using System.Collections;
+using Starcounter.Internal;
 
 namespace Starcounter.InstallerWPF.Components
 {
@@ -48,7 +49,7 @@ namespace Starcounter.InstallerWPF.Components
                                                      Configuration.StarcounterCommonPath );
 
             this.Path = System.IO.Path.Combine(basePath, ConstantsBank.SCPersonalDatabasesName);
-            this.DefaultAppsTcpPort = 8080;
+            this.DefaultAppsTcpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerAppsPort;
 
             switch (this.Command)
             {
