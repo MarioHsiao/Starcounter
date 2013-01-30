@@ -96,14 +96,36 @@ public class CInstallationBase : CComponentBase
     static String[] FirewallExceptionPrograms = 
     {
         "32BitComponents\\" + StarcounterConstants.ProgramNames.ScSqlParser,
-        StarcounterConstants.ProgramNames.ScNetworkGateway
+        StarcounterConstants.ProgramNames.ScNetworkGateway,
+        StarcounterConstants.ProgramNames.ScNetworkGateway,
+        StarcounterConstants.ProgramNames.ScCode,
+        StarcounterConstants.ProgramNames.ScCode,
+        StarcounterConstants.ProgramNames.ScCode,
+        StarcounterConstants.ProgramNames.ScCode
+    };
+
+    // Firewall exceptions names.
+    static String[] FirewallExceptionNames = 
+    {
+        StarcounterConstants.ProgramNames.ScSqlParser,
+        StarcounterConstants.ProgramNames.ScNetworkGateway + "DefaultPersonalServerGwStatsPort",
+        StarcounterConstants.ProgramNames.ScNetworkGateway + "DefaultSystemServerGwStatsPort",
+        StarcounterConstants.ProgramNames.ScCode + "DefaultPersonalServerAdminPort",
+        StarcounterConstants.ProgramNames.ScCode + "DefaultSystemServerAdminPort",
+        StarcounterConstants.ProgramNames.ScCode + "DefaultPersonalServerAppsPort",
+        StarcounterConstants.ProgramNames.ScCode + "DefaultSystemServerAppsPort"
     };
 
     // Special firewall rules for each program.
     static String[] FirewallSpecialParams =
     {
         "remoteip=127.0.0.1",
-        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultPersonalServerGwStatsPort
+        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultPersonalServerGwStatsPort,
+        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultSystemServerGwStatsPort,
+        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultPersonalServerAdminPort,
+        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultSystemServerAdminPort,
+        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultPersonalServerAppsPort,
+        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultSystemServerAppsPort
     };
 
     /// <summary>
@@ -134,13 +156,13 @@ public class CInstallationBase : CComponentBase
                 if (isAdding)
                 {
                     // Creating rule from executable name without path!
-                    netshTool.StartInfo.Arguments = "advfirewall firewall add rule name=\"Allow " + FirewallExceptionPrograms[i] + "\" " +
+                    netshTool.StartInfo.Arguments = "advfirewall firewall add rule name=\"Allow " + FirewallExceptionNames[i] + "\" " +
                                                     "description=\"Allow inbound traffic for one of the Starcounter components.\" " +
                                                     FirewallSpecialParams[i] + " dir=in program=\"" + exeFullPath + "\" action=allow";
                 }
                 else // Removing program from the firewall.
                 {
-                    netshTool.StartInfo.Arguments = "advfirewall firewall delete rule name=\"Allow " + FirewallExceptionPrograms[i] + "\"";
+                    netshTool.StartInfo.Arguments = "advfirewall firewall delete rule name=\"Allow " + FirewallExceptionNames[i] + "\"";
                 }
 
                 netshTool.Start();
