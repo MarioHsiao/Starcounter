@@ -37,9 +37,15 @@ namespace Starcounter {
     /// that are sent as requests or responses to and from a Starcounter REST endpoint (handler).
     /// </summary>
     /// <remarks>
+    /// Although made up only after the acronym Xson was chosen, the acronym stands for "eXchangeable Serialized Object Nodes".
+    /// 
     /// The current implementation has a few shortcommings. Currently Xson only supports arrays of objects.
     /// Also, all objects in the array must use the same template. Support for arrays of value types (primitives) will
     /// be supported in the future. Mixed type arrays are currently not planned.
+    /// 
+    /// In the release version of Starcounter, Xson objects trees will be optimized for storage in "blobs" rather than on
+    /// the garbage collected heap. This is such that stateful sessions can employ them without causing unnecessary system
+    /// stress.
     /// </remarks>
     public class Xson {
     }
