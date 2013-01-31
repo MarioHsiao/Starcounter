@@ -3,7 +3,7 @@ using System;
 namespace Starcounter.Internal {
     public class Utf8Helper {
 
-        public static unsafe uint WriteUIntAsUtf8(byte* buf, uint value) {
+        public static unsafe uint WriteUIntAsUtf8(byte* buf, UInt64 value) {
             uint numBytes = 0;
 
             // Checking for zero value.

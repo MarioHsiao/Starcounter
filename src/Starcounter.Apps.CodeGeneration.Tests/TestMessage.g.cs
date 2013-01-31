@@ -16,7 +16,7 @@ public partial class TestMessage {
     public TestMessage(TestMessageTemplate template) { Template = template; }
     public new TestMessageTemplate Template { get { return (TestMessageTemplate)base.Template; } set { base.Template = value; } }
     public new TestMessageMetadata Metadata { get { return (TestMessageMetadata)base.Metadata; } }
-    public int UserId { get { return GetValue(Template.UserId); } set { SetValue(Template.UserId, value); } }
+    public long UserId { get { return GetValue(Template.UserId); } set { SetValue(Template.UserId, value); } }
     public String Username { get { return GetValue(Template.Username); } set { SetValue(Template.Username, value); } }
     public String Password { get { return GetValue(Template.Password); } set { SetValue(Template.Password, value); } }
     public TestMessage.ChildApp Child { get { return GetValue<TestMessage.ChildApp>(Template.Child); } set { SetValue(Template.Child, value); } }
@@ -158,7 +158,7 @@ public partial class TestMessage {
         public new AListAppMetadata Metadata { get { return (AListAppMetadata)base.Metadata; } }
         public new Listing<TestMessage.AListApp> Parent { get { return (Listing<TestMessage.AListApp>)base.Parent; } set { base.Parent = value; } }
         public String AValue { get { return GetValue(Template.AValue); } set { SetValue(Template.AValue, value); } }
-        public int ANumber { get { return GetValue(Template.ANumber); } set { SetValue(Template.ANumber, value); } }
+        public long ANumber { get { return GetValue(Template.ANumber); } set { SetValue(Template.ANumber, value); } }
         public class AListAppTemplate : AppTemplate {
             public AListAppTemplate()
                 : base() {
