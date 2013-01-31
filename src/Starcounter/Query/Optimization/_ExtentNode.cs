@@ -237,6 +237,7 @@ internal class ExtentNode : IOptimizationNode
                                 break;
                             case IsTypeCompare.FALSE:
                                 // It is not expected that object will be of the type. Run filter at runtime
+                                // Empty enumerator flag
                                 break;
                         }
                     }
