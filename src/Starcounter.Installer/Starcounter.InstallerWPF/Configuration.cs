@@ -389,11 +389,14 @@ namespace Starcounter.InstallerWPF
                     try
                     {
                         // Extracting all files to installation directory, and overwriting old files.
-                        ZipArchive zipArchive = new ZipArchive(ArchiveZipStream, ZipArchiveMode.Read);
-                        using (zipArchive)
+                        using (ZipArchive zipArchive = new ZipArchive(ArchiveZipStream, ZipArchiveMode.Read))
                         {
                             zipArchive.ExtractToDirectory(installationPath);
-                        }
+                            /*foreach (ZipArchiveEntry entry in zipArchive.Entries)
+                            {
+                                entry.ExtractToFile(Path.Combine(installationPath, entry.FullName), true);
+                            }*/
+                        } 
                     }
                     catch (Exception exc)
                     {
