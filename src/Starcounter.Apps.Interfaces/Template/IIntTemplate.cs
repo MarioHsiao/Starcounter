@@ -14,6 +14,6 @@ namespace Starcounter.Templates.Interfaces {
         /// Gets or sets the default value.
         /// </summary>
         /// <value>The default value.</value>
-        int DefaultValue { get; set; }
+        long DefaultValue { get; set; }
     }
 }

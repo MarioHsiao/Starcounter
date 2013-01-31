@@ -331,10 +331,10 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="size"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static int WriteInt(IntPtr ptr, int size, int value) {
+        public static int WriteInt(IntPtr ptr, int size, long value) {
             unsafe {
                 byte* p = (byte*)ptr;
-                return (int)Utf8Helper.WriteUIntAsUtf8(p, (uint)value);
+                return (int)Utf8Helper.WriteUIntAsUtf8(p, (UInt64)value);
             }
         }
 
