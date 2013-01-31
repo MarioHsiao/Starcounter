@@ -107,7 +107,7 @@ namespace Starcounter.Configuration {
                 OnPropertyChanged(StarcounterConstants.BootstrapOptionNames.DefaultAppsPort);
             }
         }
-        private UInt16 _DefaultAppsPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerAppsPort;
+        private UInt16 _DefaultAppsPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerAppsTcpPort;
 
         /// <summary>
         /// Support of aggregations in SQL queries, for which current implementation is very slow.

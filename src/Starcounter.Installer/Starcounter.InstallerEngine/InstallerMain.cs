@@ -130,7 +130,7 @@ namespace Starcounter.InstallerEngine
             // Overwriting server config values.
             if (!Utilities.ReplaceXMLParameterInFile(
                 Path.Combine(serverDir, ConstantsBank.ScGatewayConfigName),
-                ConstantsBank.Setting_GatewayStatisticsPort,
+                ConstantsBank.GatewayXmlStatisticsPort,
                 gatewayStatsPort))
             {
                 throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM, "Can't replace gateway statistics port.");

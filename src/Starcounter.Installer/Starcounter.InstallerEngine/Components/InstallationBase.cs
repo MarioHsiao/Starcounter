@@ -98,34 +98,28 @@ public class CInstallationBase : CComponentBase
         "32BitComponents\\" + StarcounterConstants.ProgramNames.ScSqlParser,
         StarcounterConstants.ProgramNames.ScNetworkGateway,
         StarcounterConstants.ProgramNames.ScNetworkGateway,
-        StarcounterConstants.ProgramNames.ScCode,
-        StarcounterConstants.ProgramNames.ScCode,
-        StarcounterConstants.ProgramNames.ScCode,
-        StarcounterConstants.ProgramNames.ScCode
+        StarcounterConstants.ProgramNames.ScNetworkGateway,
+        StarcounterConstants.ProgramNames.ScNetworkGateway
     };
 
     // Firewall exceptions names.
     static String[] FirewallExceptionNames = 
     {
         StarcounterConstants.ProgramNames.ScSqlParser,
-        StarcounterConstants.ProgramNames.ScNetworkGateway + "DefaultPersonalServerGwStatsPort",
-        StarcounterConstants.ProgramNames.ScNetworkGateway + "DefaultSystemServerGwStatsPort",
-        StarcounterConstants.ProgramNames.ScCode + "DefaultPersonalServerAdminPort",
-        StarcounterConstants.ProgramNames.ScCode + "DefaultSystemServerAdminPort",
-        StarcounterConstants.ProgramNames.ScCode + "DefaultPersonalServerAppsPort",
-        StarcounterConstants.ProgramNames.ScCode + "DefaultSystemServerAppsPort"
+        StarcounterConstants.ProgramNames.ScNetworkGateway + "DefaultPersonalServerAdminTcpPort",
+        StarcounterConstants.ProgramNames.ScNetworkGateway + "DefaultSystemServerAdminTcpPort",
+        StarcounterConstants.ProgramNames.ScNetworkGateway + "DefaultPersonalServerAppsTcpPort",
+        StarcounterConstants.ProgramNames.ScNetworkGateway + "DefaultSystemServerAppsTcpPort"
     };
 
     // Special firewall rules for each program.
     static String[] FirewallSpecialParams =
     {
         "remoteip=127.0.0.1",
-        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultPersonalServerGwStatsPort,
-        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultSystemServerGwStatsPort,
-        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultPersonalServerAdminPort,
-        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultSystemServerAdminPort,
-        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultPersonalServerAppsPort,
-        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultSystemServerAppsPort
+        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultPersonalServerAdminTcpPort,
+        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultSystemServerAdminTcpPort,
+        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultPersonalServerAppsTcpPort,
+        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultSystemServerAppsTcpPort
     };
 
     /// <summary>

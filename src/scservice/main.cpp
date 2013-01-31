@@ -129,12 +129,14 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     wchar_t *server_logs_dir;
     wchar_t *server_temp_dir;
     wchar_t *server_database_dir;
+    wchar_t *admin_tcp_port;
     wchar_t *default_apps_port;
     r = _read_server_config(
         server_cfg_path,
         &server_logs_dir,
         &server_temp_dir,
         &server_database_dir,
+        &admin_tcp_port,
         &default_apps_port);
 
     if (r) goto end;
@@ -232,11 +234,6 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	// Creating sccode command
 	str_num_chars = 0;
 
-    // TODO: Provide port to Administrator in a proper way.
-    wchar_t* admin_port_str = L"8181";
-    if (srv_name_upr[0] == L'S')
-        admin_port_str = L"81";
-
     // Checking if number of schedulers is defined.
 	str_template = L"sccode.exe %s --ServerName=%s --DatabaseDir=\"%s\" --OutputDir=\"%s\" --TempDir=\"%s\" --CompilerPath=\"%s\" --AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\" %s\" --WorkingDir=\"%s\" --DefaultAppsPort=%s --SchedulerCount=%s";
 
@@ -253,7 +250,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		wcslen(mingw) + 
 		wcslen(admin_exe_path) +
 		wcslen(server_cfg_path) +
-        wcslen(admin_port_str) +
+        wcslen(admin_tcp_port) +
 		wcslen(admin_working_dir) +
         wcslen(default_apps_port) +
         wcslen(database_scheduler_count) +
@@ -263,7 +260,22 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     sccode_cmd = (wchar_t *)malloc(str_size_bytes);
     if (!sccode_cmd) goto err_nomem;
 
-	swprintf(sccode_cmd, str_num_chars, str_template, admin_dbname_upr, srv_name_upr, database_image_dir, server_logs_dir, database_temp_dir, mingw, admin_exe_path, server_cfg_path, admin_port_str, admin_working_dir, default_apps_port, database_scheduler_count);
+	swprintf(
+        sccode_cmd,
+        str_num_chars,
+        str_template,
+        admin_dbname_upr,
+        srv_name_upr,
+        database_image_dir,
+        server_logs_dir,
+        database_temp_dir,
+        mingw,
+        admin_exe_path,
+        server_cfg_path,
+        admin_tcp_port,
+        admin_working_dir,
+        default_apps_port,
+        database_scheduler_count);
 
     // Create shutdown event. Will fail if event already exists and so also
     // confirm that no server with the specific name already is running.

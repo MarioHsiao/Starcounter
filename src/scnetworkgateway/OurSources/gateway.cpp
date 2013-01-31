@@ -1144,7 +1144,7 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
                 &gw_workers_[0],
                 gw_handlers_,
                 setting_gw_stats_port_,
-                "/",
+                "/gwstats",
                 1,
                 bmx::HTTP_METHODS::OTHER_METHOD,
                 bmx::INVALID_HANDLER_ID,

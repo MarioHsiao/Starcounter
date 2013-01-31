@@ -68,33 +68,22 @@ namespace Starcounter.Internal
             /// <summary>
             /// Default Apps port for Personal server
             /// </summary>
-            public const UInt16 DefaultPersonalServerAppsPort = 8080;
+            public const UInt16 DefaultPersonalServerAppsTcpPort = 8080;
 
             /// <summary>
             /// Default Apps port for System server
             /// </summary>
-            public const UInt16 DefaultSystemServerAppsPort = 80;
+            public const UInt16 DefaultSystemServerAppsTcpPort = 80;
 
             /// <summary>
             /// Default port for Personal server Administrator
             /// </summary>
-            public const UInt16 DefaultPersonalServerAdminPort = 8181;
+            public const UInt16 DefaultPersonalServerAdminTcpPort = 8181;
 
             /// <summary>
             /// Default port for System server Administrator
             /// </summary>
-            public const UInt16 DefaultSystemServerAdminPort = 81;
-
-            /// <summary>
-            /// Default port for Personal server Gateway statistics
-            /// </summary>
-            public const UInt16 DefaultPersonalServerGwStatsPort = 12346;
-
-            /// <summary>
-            /// Default port for System server Gateway statistics
-            /// </summary>
-            public const UInt16 DefaultSystemServerGwStatsPort = 12345;
-
+            public const UInt16 DefaultSystemServerAdminTcpPort = 81;
         }
 
         /// <summary>

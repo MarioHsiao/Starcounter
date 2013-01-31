@@ -142,6 +142,7 @@ namespace Starcounter.Server.Setup {
                 TempDirectory = structure.TempDirectory,
                 LogDirectory = structure.LogDirectory,
                 EnginesDirectory = structure.RepositoryDirectory,
+                AdminTcpPort = structure.AdminTcpPort,
                 DefaultDatabaseStorageConfiguration = databaseStorageConfig,
                 DefaultDatabaseConfiguration = databaseConfiguration
             };
