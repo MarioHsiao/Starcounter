@@ -329,7 +329,7 @@ namespace Starcounter.InstallerEngine
 
             // Creating server engine instance.
             String serverConfigPath = serverPath + "\\" + serverName + ServerConfiguration.FileExtension;
-            ServerEngine serverEngine = new ServerEngine(serverConfigPath);
+            ServerEngine serverEngine = new ServerEngine(serverConfigPath, InstallationDir);
             serverEngine.Setup();
 
             IServerRuntime iServerRuntime = serverEngine.Start();
