@@ -119,7 +119,7 @@ namespace Starcounter.Apps.Bootstrap {
             string responseMessage = string.Empty;
             bool result;
 
-            serverName = ScUriExtensions.MakeLocalServerPipeString("personal");
+            serverName = ScUriExtensions.MakeLocalServerPipeString(StarcounterEnvironment.ServerNames.PersonalServer.ToLower());
 
             var client = ClientServerFactory.CreateClientUsingNamedPipes(serverName);
             try {

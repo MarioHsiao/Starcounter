@@ -36,6 +36,19 @@ namespace Starcounter.InstallerWPF.Components
             }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether this instance can be installed by starcounter installer.
+        /// </summary>
+        /// <value>
+        /// 	<c>true</c> if this instance can be installed; otherwise, <c>false</c>.
+        /// </value>
+        public override bool CanBeInstalled
+        {
+            get
+            {
+                return false;
+            }
+        }
 
         protected override void SetDefaultValues()
         {
@@ -46,7 +59,7 @@ namespace Starcounter.InstallerWPF.Components
             switch (this.Command)
             {
                 case ComponentCommand.Install:
-                    this.ExecuteCommand = (!this.IsInstalled) && (DependenciesCheck.VStudio2010Installed());
+                    this.ExecuteCommand = false; //(!this.IsInstalled) && (DependenciesCheck.VStudio2010Installed());
                     break;
                 case ComponentCommand.None:
                     this.ExecuteCommand = false;

@@ -65,7 +65,8 @@ namespace Starcounter.InstallerEngine
 
             // Running Visual Studio setup (which includes installation of templates).
             VSInstaller.InstallVs2012(installPath.TrimEnd(new char[] { '\\' }));
-            devEnv.InstallTemplates(false);
+            // TODO: Check with Per!
+            //devEnv.InstallTemplates(false);
 
             // Checking that Visual Studio has stopped working.
             WaitVStudioToFinish();
@@ -114,7 +115,8 @@ namespace Starcounter.InstallerEngine
             {
                 // Running Visual Studio setup (which includes uninstallation of templates).
                 VSInstaller.UninstallVs2012(InstallerMain.InstallationDir.TrimEnd(new char[] { '\\' }));
-                devEnv.InstallTemplates(false);
+                // TODO: Check with Per!
+                //devEnv.InstallTemplates(false);
             }
             catch (Exception ex)
             {
@@ -193,7 +195,7 @@ namespace Starcounter.InstallerEngine
         /// <returns>True if component should be installed.</returns>
         public override Boolean ShouldBeInstalled()
         {
-            return InstallerMain.InstallSettingCompare(ConstantsBank.Setting_InstallVS2012Integration, ConstantsBank.Setting_True);
+            return InstallerMain.InstallationSettingCompare(ConstantsBank.Setting_InstallVS2012Integration, ConstantsBank.Setting_True);
         }
 
         /// <summary>
@@ -203,7 +205,7 @@ namespace Starcounter.InstallerEngine
         /// <returns>True if component should be uninstalled.</returns>
         public override Boolean ShouldBeRemoved()
         {
-            return UninstallEngine.UninstallSettingCompare(ConstantsBank.Setting_RemoveVS2012Integration, ConstantsBank.Setting_True);
+            return UninstallEngine.UninstallationSettingCompare(ConstantsBank.Setting_RemoveVS2012Integration, ConstantsBank.Setting_True);
         }
     }
 }
