@@ -67,6 +67,15 @@ namespace Starcounter.Query.Execution
         UNKNOWN, FALSE, TRUE
     }
 
+    internal enum IsTypeCompare {
+        EQUAL, // Object has the same type as the type (TRUE)
+        SUPERTYPE, // Object is supertype to the type (can be FALSE or TRUE)
+        SUBTYPE, // Object is subtype of the type (TRUE)
+        TRUE, // It is known to be true, e.g., object is evaluated and IS evaluated to TRUE
+        FALSE, // Tt is known to be false, e.g., object is evaluated and IS evaluated to FALSE, or extent type binding is neither super or sub type to the type binding.
+        UNKNOWN // Cannot be evaluated
+    }
+
     /// <summary>
     /// Join types used in the query execution.
     /// Cross joins are a special case of inner joins.

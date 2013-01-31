@@ -77,6 +77,11 @@ internal class ExtentNode : IOptimizationNode
     /// </summary>
     IndexInfo extentIndexInfo;
 
+    /// <summary>
+    /// List of conditions, where scan can/should be done on type of IsTypePredicate.
+    /// </summary>
+    List<IsTypePredicate> supertypeConditions;
+
     VariableArray variableArr;
     String query;
 
@@ -182,6 +187,7 @@ internal class ExtentNode : IOptimizationNode
 
     internal void EvaluateScanAlternatives()
     {
+        List<IsTypePredicate> typeConditions = new List<IsTypePredicate>();
         // If there is a hinted index then it should be used.
         if (hintedIndexInfo != null)
         {
@@ -205,15 +211,38 @@ internal class ExtentNode : IOptimizationNode
         // Try to find an appropriate index for an index scan.
         // Collect all comparisons with paths that might be used for index scans.
         List<IComparison> comparisonList = new List<IComparison>();
-        for (Int32 j = 0; j < conditionList.Count; j++)
-        {
-            if (conditionList[j] is IComparison &&
-                (conditionList[j] as IComparison).GetPathTo(extentNumber) != null &&
-                Optimizer.RangeOperator((conditionList[j] as IComparison).Operator))
-            {
-                comparisonList.Add(conditionList[j] as IComparison);
-            }
+        for (Int32 j = 0; j < conditionList.Count; j++) {
+            if (conditionList[j] is IComparison)
+                if ((conditionList[j] as IComparison).GetPathTo(extentNumber) != null &&
+                Optimizer.RangeOperator((conditionList[j] as IComparison).Operator)) {
+                    comparisonList.Add(conditionList[j] as IComparison);
+                } else
+                    if (conditionList[j] is IsTypePredicate) {
+                        // notice or decide strategy
+                        IsTypeCompare res = ((IsTypePredicate)conditionList[j]).EvaluateAtCompile();
+                        switch (res) {
+                            case IsTypeCompare.TRUE:
+                            case IsTypeCompare.EQUAL:
+                            case IsTypeCompare.SUBTYPE:
+                                // It is known that the condition will be always true, thus the condition can be removed
+                                conditionList.RemoveAt(j);
+                                j--;
+                                break;
+                            case IsTypeCompare.SUPERTYPE:
+                                // The actual object might be subtype.
+                                typeConditions.Add((IsTypePredicate)conditionList[j]);
+                                break;
+                            case IsTypeCompare.UNKNOWN:
+                                // Will be knwokn at run time. Do nothing here. Run filter at runtime
+                                break;
+                            case IsTypeCompare.FALSE:
+                                // It is not expected that object will be of the type. Run filter at runtime
+                                break;
+                        }
+                    }
         }
+        if (typeConditions.Count > 0)
+            supertypeConditions = typeConditions;
         // Get all index infos for the current type.
         IndexInfo[] indexInfoArr = (rowTypeBind.GetTypeBinding(extentNumber) as TypeBinding).GetAllInheritedIndexInfos();
 
@@ -231,6 +260,8 @@ internal class ExtentNode : IOptimizationNode
                 bestValue = currentValue;
             }
         }
+        // If index access is found then do nothing about IS type predicate, just keep all filters
+        // If full scan is going to be used then do full scan on type of IS predicate, which is more specific.
         // Save an index to be used for an extent scan (index scan over the whole extent).
         if (indexInfoArr.Length > 0)
         {
