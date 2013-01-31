@@ -570,15 +570,48 @@ namespace Starcounter.InstallerEngine
                 throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
                     "During installation current user must have administrative rights on the local computer and Starcounter installer must be run with administrative rights.");
             }
+        }
 
+        /// <summary>
+        /// Checks if another version of Starcounter is installed.
+        /// </summary>
+        /// <returns></returns>
+        public static Boolean IsAnotherVersionInstalled()
+        {
             // Compares installation versions.
-            String anotherVersion = InstallerMain.CompareScVersions();
-            if (anotherVersion != null)
+            String previousVersion = InstallerMain.CompareScVersions();
+            if (previousVersion != null)
             {
-                throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
-                    "Different version of Starcounter is already installed (" + anotherVersion + "). " +
-                    "You should first uninstall previous version before running this installation.");
+                if (Utilities.AskUserForDecision(
+                    "Would you like to uninstall previous(" + previousVersion + ") version of Starcounter now?",
+                    "Starcounter is already installed..."))
+                {
+                    // Asking to launch previous version uninstaller.
+                    String installDir = CInstallationBase.GetInstalledDirFromEnv();
+                    String prevSetupExePath = Path.Combine(installDir, ConstantsBank.SCInstallerGUI + ".exe");
+                    if (!File.Exists(prevSetupExePath))
+                    {
+                        throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
+                            "Can't find " + ConstantsBank.SCInstallerGUI + ".exe for Starcounter " + previousVersion +
+                            " in '" + installDir + "'. Please uninstall previous version of Starcounter manually.");
+                    }
+
+                    Process prevSetupProcess = new Process();
+                    prevSetupProcess.StartInfo.FileName = prevSetupExePath;
+                    prevSetupProcess.StartInfo.Arguments = ConstantsBank.DontCheckOtherInstancesArg;
+                    prevSetupProcess.Start();
+                }
+                else
+                {
+                    Utilities.MessageBoxInfo(
+                        "Please manually uninstall previous(" + previousVersion + ") version of Starcounter before installing this one.",
+                        "Starcounter is already installed...");
+                }
+
+                return true;
             }
+
+            return false;
         }
 
         // Currently logged in user name.
@@ -972,7 +1005,13 @@ namespace Starcounter.InstallerEngine
             if (InstallerMain.GuiMessageboxCallback != null)
             {
                 // Calling installer GUI message box.
-                MessageBoxEventArgs messageBoxEventArgs = new MessageBoxEventArgs(question, title, WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Exclamation, WpfMessageBoxResult.No);
+                MessageBoxEventArgs messageBoxEventArgs = new MessageBoxEventArgs(
+                    question,
+                    title,
+                    WpfMessageBoxButton.YesNo,
+                    WpfMessageBoxImage.Exclamation,
+                    WpfMessageBoxResult.No);
+
                 InstallerMain.GuiMessageboxCallback(null, messageBoxEventArgs);
 
                 // Checking user's choice.
@@ -985,11 +1024,12 @@ namespace Starcounter.InstallerEngine
             else
             {
                 // Calling standard message box.
-                DialogResult userChoice = MessageBox.Show(question,
-                                                          title,
-                                                          MessageBoxButtons.YesNo,
-                                                          MessageBoxIcon.Question,
-                                                          MessageBoxDefaultButton.Button2);
+                DialogResult userChoice = MessageBox.Show(
+                    question,
+                    title,
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question,
+                    MessageBoxDefaultButton.Button2);
 
                 if (userChoice != DialogResult.Yes)
                     return false;

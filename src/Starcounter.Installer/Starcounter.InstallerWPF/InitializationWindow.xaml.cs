@@ -293,6 +293,22 @@ namespace Starcounter.InstallerWPF
         // First installer function that needs to be called.
         void InitInstaller()
         {
+            // Setting the nice WPF message box.
+            InstallerMain.SetNiceWpfMessageBoxDelegate(
+                delegate(object sender, Utilities.MessageBoxEventArgs msgBoxArgs)
+                {
+                    this._dispatcher.Invoke(new Action(() =>
+                    {
+                        msgBoxArgs.MessageBoxResult = WpfMessageBox.Show(
+                            msgBoxArgs.MessageBoxText,
+                            msgBoxArgs.Caption,
+                            msgBoxArgs.Button,
+                            msgBoxArgs.Icon,
+                            msgBoxArgs.DefaultResult);
+                    }));
+
+                });
+
             // Attaching the console.
             AttachConsole(-1);
 
@@ -302,6 +318,9 @@ namespace Starcounter.InstallerWPF
             // Flag stating if direct internal setup should be launched.
             Boolean internalMode = false;
 
+            // Don't check for other setups running.
+            Boolean dontCheckOtherInstances = false;
+
             // Checking command line parameters.
             String[] args = Environment.GetCommandLineArgs();
 
@@ -310,6 +329,8 @@ namespace Starcounter.InstallerWPF
             {
                 if (param.EndsWith(SilentArg, StringComparison.InvariantCultureIgnoreCase))
                     silentMode = true;
+                else if (param.EndsWith(ConstantsBank.DontCheckOtherInstancesArg, StringComparison.InvariantCultureIgnoreCase))
+                    dontCheckOtherInstances = true;
             }
 
             // Checking if we are started from parent process.
@@ -326,7 +347,7 @@ namespace Starcounter.InstallerWPF
             }
 
             // Checking if any setup instances are running.
-            if (AnotherSetupRunning())
+            if ((!dontCheckOtherInstances) && AnotherSetupRunning())
             {
                 String errMsg = "Please finish working with the previous instance before running this setup.";
 
@@ -555,6 +576,13 @@ namespace Starcounter.InstallerWPF
         void CheckInstallationRequirements()
         {
             Utilities.CheckInstallationRequirements();
+
+            if (Utilities.IsAnotherVersionInstalled())
+            {
+                // Have to throw general exception because of problems resolving Starcounter.Framework library.
+                throw new Exception("Starting previous uninstaller.",
+                    new InstallerException("Starting previous uninstaller.", InstallerErrorCode.QuietExit));
+            }
         }
 
         // Callback that is used to help resolving archived libraries.

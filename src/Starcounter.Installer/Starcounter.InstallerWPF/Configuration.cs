@@ -352,8 +352,9 @@ namespace Starcounter.InstallerWPF
         /// <summary>
         /// Calls installer engine for core installation functionality.
         /// </summary>
-        public void RunInstallerEngine(EventHandler<Utilities.InstallerProgressEventArgs> progressCallback,
-                                       EventHandler<Utilities.MessageBoxEventArgs> messageboxCallback)
+        public void RunInstallerEngine(
+            EventHandler<Utilities.InstallerProgressEventArgs> progressCallback,
+            EventHandler<Utilities.MessageBoxEventArgs> messageboxCallback)
         {
             bool installingOrAdding = InstallingOrAddingComponents();
             String[] args = null;
@@ -448,8 +449,9 @@ namespace Starcounter.InstallerWPF
         /// Executes the settings.
         /// Note, This is not done in the Main thread!
         /// </summary>
-        public void ExecuteSettings(EventHandler<Utilities.InstallerProgressEventArgs> progressCallback,
-                                    EventHandler<Utilities.MessageBoxEventArgs> messageboxCallback)
+        public void ExecuteSettings(
+            EventHandler<Utilities.InstallerProgressEventArgs> progressCallback,
+            EventHandler<Utilities.MessageBoxEventArgs> messageboxCallback)
         {
             Utilities.InstallerProgressEventArgs args = new Utilities.InstallerProgressEventArgs();
             try
