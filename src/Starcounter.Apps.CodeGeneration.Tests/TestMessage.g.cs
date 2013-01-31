@@ -563,7 +563,7 @@ public partial class TestMessage {
                                     if (nextSize < 0)
                                          throw new Exception("Deserialization failed.");
                                 }
-                                Int32 val0;
+                                Int64 val0;
                                 if (JsonHelper.ParseInt((IntPtr)pfrag, nextSize, out val0, out valueSize)) {
                                     app.UserId = val0;
                                     nextSize -= valueSize;
@@ -1902,7 +1902,7 @@ public partial class TestMessage {
                             if (nextSize < 0)
                                  throw new Exception("Deserialization failed.");
                         }
-                        Int32 val1;
+                        Int64 val1;
                         if (JsonHelper.ParseInt((IntPtr)pfrag, nextSize, out val1, out valueSize)) {
                             app.ANumber = val1;
                             nextSize -= valueSize;
