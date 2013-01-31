@@ -15,7 +15,7 @@ namespace Starcounter.Internal {
     public static class AppsBootstrapper {
         private static HttpAppServer appServer;
         private static StaticWebServer fileServer;
-        private static UInt16 defaultPort_ = StarcounterConstants.NetworkPorts.DefaultPersonalServerAppsPort;
+        private static UInt16 defaultPort_ = StarcounterConstants.NetworkPorts.DefaultPersonalServerAppsTcpPort;
 
         /// <summary>
         /// Initializes AppsBootstrapper.

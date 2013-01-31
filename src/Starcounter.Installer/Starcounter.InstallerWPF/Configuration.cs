@@ -217,8 +217,12 @@ namespace Starcounter.InstallerWPF
                 elem.InnerText = personalServer.Path;
                 subRootElem.AppendChild(elem);
 
-                elem = xmlDoc.CreateElement(ConstantsBank.Setting_PersonalServerDefaultPort);
+                elem = xmlDoc.CreateElement(ConstantsBank.Setting_PersonalServerDefaultAppsTcpPort);
                 elem.InnerText = personalServer.DefaultAppsTcpPort.ToString();
+                subRootElem.AppendChild(elem);
+
+                elem = xmlDoc.CreateElement(ConstantsBank.Setting_PersonalServerAdminTcpPort);
+                elem.InnerText = StarcounterConstants.NetworkPorts.DefaultPersonalServerAdminTcpPort.ToString();
                 subRootElem.AppendChild(elem);
 
                 // Personal server Desktop shortcuts.
@@ -236,8 +240,12 @@ namespace Starcounter.InstallerWPF
                 elem.InnerText = systemServer.Path;
                 subRootElem.AppendChild(elem);
 
-                elem = xmlDoc.CreateElement(ConstantsBank.Setting_SystemServerDefaultPort);
+                elem = xmlDoc.CreateElement(ConstantsBank.Setting_SystemServerDefaultAppsTcpPort);
                 elem.InnerText = systemServer.DefaultAppsTcpPort.ToString();
+                subRootElem.AppendChild(elem);
+
+                elem = xmlDoc.CreateElement(ConstantsBank.Setting_SystemServerAdminTcpPort);
+                elem.InnerText = StarcounterConstants.NetworkPorts.DefaultSystemServerAdminTcpPort.ToString();
                 subRootElem.AppendChild(elem);
 
                 // VisualStudio2010

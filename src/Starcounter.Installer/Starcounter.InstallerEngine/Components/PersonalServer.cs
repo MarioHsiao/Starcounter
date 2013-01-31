@@ -125,7 +125,7 @@ public class CPersonalServer : CComponentBase
 
         // Calling external tool to create Administrator shortcut.
         Utilities.CreateShortcut(
-            "http://localhost:8181",
+            "http://localhost:" + InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_PersonalServerAdminTcpPort),
             PersonalServerAdminDesktopShortcutPath,
             "",
             installPath,
@@ -228,10 +228,20 @@ SKIP_SERVER_CREATION:
         if (!Utilities.ReplaceXMLParameterInFile(
             Path.Combine(serverDir, StarcounterEnvironment.ServerNames.PersonalServer + ServerConfiguration.FileExtension),
             StarcounterConstants.BootstrapOptionNames.DefaultAppsPort,
-            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_PersonalServerDefaultPort)))
+            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_PersonalServerDefaultAppsTcpPort)))
         {
             throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM,
-                "Can't replace default Apps port for " + StarcounterEnvironment.ServerNames.PersonalServer + " server.");
+                "Can't replace default Apps TCP port for " + StarcounterEnvironment.ServerNames.PersonalServer + " server.");
+        }
+
+        // Replacing default server parameters.
+        if (!Utilities.ReplaceXMLParameterInFile(
+            Path.Combine(serverDir, StarcounterEnvironment.ServerNames.PersonalServer + ServerConfiguration.FileExtension),
+            ServerConfiguration.AdminTcpPortString,
+            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_PersonalServerAdminTcpPort)))
+        {
+            throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM,
+                "Can't replace Administrator TCP port for " + StarcounterEnvironment.ServerNames.PersonalServer + " server.");
         }
 
         // Creating server config.
@@ -243,7 +253,7 @@ SKIP_SERVER_CREATION:
         // Copying gateway configuration.
         InstallerMain.CopyGatewayConfig(
             serverDir,
-            StarcounterConstants.NetworkPorts.DefaultPersonalServerGwStatsPort.ToString());
+            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_PersonalServerAdminTcpPort));
 
         // Killing server process (in order to later start it with normal privileges).
         KillServersButNotService();

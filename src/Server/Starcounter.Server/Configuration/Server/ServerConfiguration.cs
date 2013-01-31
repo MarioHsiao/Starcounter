@@ -79,6 +79,24 @@ namespace Starcounter.Configuration {
         }
 
         /// <summary>
+        /// Tcp port number for Administrator.
+        /// </summary>
+        [XmlElement(IsNullable = false)]
+        public UInt16 AdminTcpPort
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// String representation of AdminTcpPort.
+        /// </summary>
+        public static String AdminTcpPortString
+        {
+            get { return "AdminTcpPort"; }
+        }
+
+        /// <summary>
         /// Gets or sets the default database storage properties
         /// for the server to use when creating new databases and
         /// no values are explicitly given.

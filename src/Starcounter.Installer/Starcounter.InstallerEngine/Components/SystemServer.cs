@@ -202,10 +202,20 @@ SKIP_SERVER_CREATION:
         if (!Utilities.ReplaceXMLParameterInFile(
             Path.Combine(serverDir, StarcounterEnvironment.ServerNames.SystemServer + ServerConfiguration.FileExtension),
             StarcounterConstants.BootstrapOptionNames.DefaultAppsPort,
-            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_SystemServerDefaultPort)))
+            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_SystemServerDefaultAppsTcpPort)))
         {
             throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM,
                 "Can't replace default Apps port for " + StarcounterEnvironment.ServerNames.SystemServer + " server.");
+        }
+
+        // Replacing default server parameters.
+        if (!Utilities.ReplaceXMLParameterInFile(
+            Path.Combine(serverDir, StarcounterEnvironment.ServerNames.SystemServer + ServerConfiguration.FileExtension),
+            ServerConfiguration.AdminTcpPortString,
+            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_SystemServerAdminTcpPort)))
+        {
+            throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM,
+                "Can't replace Administrator TCP port for " + StarcounterEnvironment.ServerNames.SystemServer + " server.");
         }
 
         // Creating server config.
@@ -230,7 +240,9 @@ SKIP_SERVER_CREATION:
             serviceAccountPassword);
 
         // Copying gateway configuration.
-        InstallerMain.CopyGatewayConfig(serverDir, StarcounterConstants.NetworkPorts.DefaultSystemServerGwStatsPort.ToString());
+        InstallerMain.CopyGatewayConfig(
+            serverDir,
+            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_SystemServerAdminTcpPort));
 
         // Creating Administrator database.
         InstallerMain.CreateDatabaseSynchronous(
@@ -240,7 +252,7 @@ SKIP_SERVER_CREATION:
 
         // Calling external tool to create Administrator shortcut.
         Utilities.CreateShortcut(
-            "http://localhost:81",
+            "http://localhost:" + InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_SystemServerAdminTcpPort),
             SystemServerAdminDesktopShortcutPath,
             "",
             installPath,

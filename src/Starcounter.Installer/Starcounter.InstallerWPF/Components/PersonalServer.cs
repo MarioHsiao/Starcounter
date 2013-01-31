@@ -49,7 +49,7 @@ namespace Starcounter.InstallerWPF.Components
                                                      Configuration.StarcounterCommonPath );
 
             this.Path = System.IO.Path.Combine(basePath, ConstantsBank.SCPersonalDatabasesName);
-            this.DefaultAppsTcpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerAppsPort;
+            this.DefaultAppsTcpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerAppsTcpPort;
 
             switch (this.Command)
             {
