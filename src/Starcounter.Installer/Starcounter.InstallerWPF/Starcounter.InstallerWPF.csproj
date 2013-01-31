@@ -15,7 +15,7 @@
     <WarningLevel>4</WarningLevel>
     <ApplicationManifest>Starcounter.InstallerWPF.manifest</ApplicationManifest>
     <IsWebBootstrapper>false</IsWebBootstrapper>
-    <ApplicationIcon>Sc-icon.ico</ApplicationIcon>
+    <ApplicationIcon>sc.ico</ApplicationIcon>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -45,6 +45,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <UseVSHostingProcess>false</UseVSHostingProcess>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -54,6 +55,31 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <UseVSHostingProcess>false</UseVSHostingProcess>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\..\bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>..\..\..\bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -113,6 +139,7 @@
     <Compile Include="Pages\SlidesPage.xaml.cs">
       <DependentUpon>SlidesPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Rules\PortRule.cs" />
     <Compile Include="Slides\ISlide.cs" />
     <Compile Include="Slides\Movie.xaml.cs">
       <DependentUpon>Movie.xaml</DependentUpon>
@@ -422,9 +449,6 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="resources\Sc-icon.ico" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="resources\16x16\Folder.png" />
   </ItemGroup>
   <ItemGroup>
@@ -464,9 +488,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="resources\LicenseAgreement.html" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Sc-icon.ico" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="resources\SplashScreen.png" />
@@ -511,6 +532,11 @@
       <Project>{210ac05e-453f-4ab0-abff-10d3804a9596}</Project>
       <Name>Starcounter.InstallerEngine</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="sc.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -189,9 +189,8 @@ public:
 	// server_port, rename this to:
 	// acquire_linked_chunks_from_shared_chunk_pool().
 	bool client_acquire_linked_chunks(chunk_index& head, std::size_t size,
-	uint32_t timeout_milliseconds = 10000);
+	uint32_t timeout_milliseconds); /// "A"
 
-    ///--------------------------------------------------------------------------
 	/// Allocate linked chunks from the shared_chunk_pool. It is a "timed"
 	/// function that can fail.
 	/**
@@ -209,7 +208,7 @@ public:
 	// server_port, rename this to:
 	// acquire_linked_chunks_from_shared_chunk_pool().
 	bool client_acquire_linked_chunks_counted(chunk_index& head, std::size_t num_chunks,
-	uint32_t timeout_milliseconds = 10000);
+	uint32_t timeout_milliseconds = 10000); /// "B"
 	
 	/// Release linked chunks to the shared_chunk_pool. It is a "timed" function
 	/// that can fail. NOTE: It may be the case that not all chunks were
@@ -230,7 +229,7 @@ public:
 	// server_port, rename this to:
 	// release_linked_chunks_to_shared_chunk_pool().
 	bool client_release_linked_chunks(chunk_index& head, uint32_t
-	timeout_milliseconds = 10000);
+	timeout_milliseconds = 10000); /// "C"
 	
 	//--------------------------------------------------------------------------
 	/// Acquire N (unlinked) chunks from the shared_chunk_pool to a private
@@ -463,32 +462,32 @@ public:
 	const HANDLE& scheduler_work_event(std::size_t i) const;
 
 #if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-	/// Open open_scheduler_number_pool_not_empty event (i) and return a reference to it.
+	/// Open scheduler_number_pool_not_empty event (i) and return a reference to it.
 	/// NOTE: Before attempting to open the event, sets the event to 0
 	/// regardless of if the event is already open or not.
 	/**
 	 * @param i The scheduler's number, related to scheduler number i.
-	 * @return A reference to open_scheduler_number_pool_not_empty event (i). NULL if failed to open.
+	 * @return A reference to scheduler_number_pool_not_empty event (i). NULL if failed to open.
 	 */ 
 	HANDLE& open_scheduler_number_pool_not_empty_event(std::size_t i);
 
-	/// Close open_scheduler_number_pool_not_empty event (i). It does not actually close the event,
+	/// Close scheduler_number_pool_not_empty event (i). It does not actually close the event,
 	/// the database do that before terminating, instead it sets the event to 0.
 	/**
 	 * @param i The scheduler's number, related to scheduler number i.
 	 */ 
 	void close_scheduler_number_pool_not_empty_event(std::size_t i);
 
-	/// Open open_scheduler_number_pool_not_full event (i) and return a reference to it.
+	/// Open scheduler_number_pool_not_full event (i) and return a reference to it.
 	/// NOTE: Before attempting to open the event, sets the event to 0
 	/// regardless of if the event is already open or not.
 	/**
 	 * @param i The scheduler's number, related to scheduler number i.
-	 * @return A reference to open_scheduler_number_pool_not_full event (i). NULL if failed to open.
+	 * @return A reference to scheduler_number_pool_not_full event (i). NULL if failed to open.
 	 */ 
 	HANDLE& open_scheduler_number_pool_not_full_event(std::size_t i);
 
-	/// Close open_scheduler_number_pool_not_full event (i). It does not actually close the event,
+	/// Close scheduler_number_pool_not_full event (i). It does not actually close the event,
 	/// the database do that before terminating, instead it sets the event to 0.
 	/**
 	 * @param i The scheduler's number, related to scheduler number i.
@@ -530,6 +529,56 @@ public:
 
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
+#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+	/// Open shared_chunk_pool_not_full event and return a reference to it.
+	/// NOTE: Before attempting to open the event, sets the event to 0
+	/// regardless of if the event is already open or not.
+	/**
+	 * @return A reference to shared_chunk_pool_not_full event. NULL if failed to open.
+	 */ 
+	HANDLE& open_shared_chunk_pool_not_full_event();
+	
+	/// Close shared_chunk_pool_not_full event. It does not actually close the event,
+	/// the database do that before terminating, instead it sets the event to 0.
+	void close_shared_chunk_pool_not_full_event();
+
+	/// Open shared_chunk_pool_not_empty event and return a reference to it.
+	/// NOTE: Before attempting to open the event, sets the event to 0
+	/// regardless of if the event is already open or not.
+	/**
+	 * @return A reference to shared_chunk_pool_not_empty event. NULL if failed to open.
+	 */ 
+	HANDLE& open_shared_chunk_pool_not_empty_event();
+
+	/// Close shared_chunk_pool_not_empty event. It does not actually close the event,
+	/// the database do that before terminating, instead it sets the event to 0.
+	void close_shared_chunk_pool_not_empty_event();
+
+	/// Get a reference to shared_chunk_pool_not_full event.
+	/**
+	 * @return A reference to shared_chunk_pool_not_full event.
+	 */ 
+	HANDLE& shared_chunk_pool_not_full_event();
+	
+	/// Get a const reference to shared_chunk_pool_not_full event.
+	/**
+	 * @param A const reference to shared_chunk_pool_not_full event.
+	 */ 
+	const HANDLE& shared_chunk_pool_not_full_event() const;
+
+	/// Get a reference to shared_chunk_pool_not_empty event.
+	/**
+	 * @return A reference to shared_chunk_pool_not_empty event.
+	 */ 
+	HANDLE& shared_chunk_pool_not_empty_event();
+	
+	/// Get a const reference to shared_chunk_pool_not_empty event.
+	/**
+	 * @param A const reference to shared_chunk_pool_not_empty event.
+	 */ 
+	const HANDLE& shared_chunk_pool_not_empty_event() const;
+#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+
 private:
 	// Specify what it throws.
 	void init();
@@ -574,6 +623,16 @@ private:
 #endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
+	
+#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+	// Event used by the scheduler to wait when the queue is not full.
+	// Client's have to open the event and pass it in as an argument.
+	HANDLE shared_chunk_pool_not_full_;
+	
+	// Event used by the scheduler to wait when the queue is not empty.
+	// Client's have to open the event and pass it in as an argument.
+	HANDLE shared_chunk_pool_not_empty_;
+#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	
 protected:
 	/// TODO: Replace direct accesses to client_number_ with get_client_number()
