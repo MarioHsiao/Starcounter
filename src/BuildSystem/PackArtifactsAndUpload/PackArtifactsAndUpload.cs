@@ -19,8 +19,7 @@ namespace PackArtifactsAndUpload
                 BuildSystem.PrintToolWelcome("Pack artifacts and upload them to FTP");
 
                 // Checking if its a nightly or a special build.
-                if ((!BuildSystem.IsNightlyBuild()) &&
-                    (Environment.GetEnvironmentVariable(BuildSystem.GenerateInstallerEnvVar) == null))
+                if ((!BuildSystem.IsNightlyBuild()) && (Environment.GetEnvironmentVariable(BuildSystem.GenerateInstallerEnvVar) != "True"))
                 {
                     Console.WriteLine("Skipping generation of packed artifacts since its a standard or personal build...");
                     return 0;
