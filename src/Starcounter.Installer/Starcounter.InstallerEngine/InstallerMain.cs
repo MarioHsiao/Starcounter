@@ -626,6 +626,15 @@ namespace Starcounter.InstallerEngine
         internal static EventHandler<Utilities.MessageBoxEventArgs> GuiMessageboxCallback = null;
 
         /// <summary>
+        /// Sets a nice WPF message box instead of standard one.
+        /// </summary>
+        /// <param name="guiMessageboxCallback"></param>
+        public static void SetNiceWpfMessageBoxDelegate(EventHandler<Utilities.MessageBoxEventArgs> guiMessageboxCallback)
+        {
+            GuiMessageboxCallback = guiMessageboxCallback;
+        }
+
+        /// <summary>
         /// This is the main environment setup function
         /// which is exposed to be called from outside.
         /// </summary>

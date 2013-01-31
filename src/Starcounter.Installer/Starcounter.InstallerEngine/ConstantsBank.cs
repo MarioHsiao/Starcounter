@@ -45,7 +45,8 @@ namespace Starcounter.InstallerEngine
         public const String Setting_RemoveVS2012Integration = "RemoveVS2012Integration";
 
         // Other constants.
-        internal const String SCIconFilename = "sc.ico";
+        public const String SCIconFilename = "sc.ico";
+        public const String DontCheckOtherInstancesArg = "DontCheckOtherInstances";
 
         public const String ScGlobalSettingsIniName = "SetupSettings.xml";
         public const String ScGUISetupIniName = "GUISetupSettings.xml";
@@ -65,7 +66,7 @@ namespace Starcounter.InstallerEngine
         internal const String SCUninstallParam = "uninstall";
         internal const String SCCleanupParam = "cleanup";
         internal const String SCVSSafeImportsKey = "Starcounter.MsBuild";
-        internal const string ScExceptionAssistantContentFileName = "StarcounterExceptionAssistantContent.xml";
+        internal const String ScExceptionAssistantContentFileName = "StarcounterExceptionAssistantContent.xml";
 
         // Constants defined in and fetched from the shared framework assembly
         internal static String SCServiceExeName { get { return StarcounterConstants.ProgramNames.ScService + ".exe"; } }
