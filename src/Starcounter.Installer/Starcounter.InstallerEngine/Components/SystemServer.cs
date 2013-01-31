@@ -44,12 +44,12 @@ public class CSystemServer : CComponentBase
     {
         get
         {
-            return InstallerMain.GetInstallSettingValue(ConstantsBank.Setting_SystemServerPath);
+            return InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_SystemServerPath);
         }
     }
 
     /// <summary>
-    /// Provides name of the component setting in INI file.
+    /// Provides name of the component setting.
     /// </summary>
     public override String SettingName
     {
@@ -123,6 +123,28 @@ public class CSystemServer : CComponentBase
         }
     }
 
+    // Path to server configuration file.
+    String systemServerConfigPath_ = null;
+    String SystemServerConfigPath
+    {
+        get
+        {
+            if (systemServerConfigPath_ != null)
+                return systemServerConfigPath_;
+
+            if (InstallerMain.InstallationDir == null)
+                return null;
+
+            systemServerConfigPath_ = Path.Combine(InstallerMain.InstallationDir, StarcounterEnvironment.ServerNames.SystemServer + ".xml");
+
+            return systemServerConfigPath_;
+        }
+    }
+
+    readonly String SystemServerAdminDesktopShortcutPath =
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+                     ConstantsBank.SCProductName + " " + StarcounterEnvironment.ServerNames.SystemServer + " Administrator.lnk");
+
     /// <summary>
     /// Installs component.
     /// </summary>
@@ -153,18 +175,50 @@ public class CSystemServer : CComponentBase
         Utilities.ReportSetupEvent("Installing system server and service...");
 
         String serviceAccountName, serviceAccountPassword,
-               systemServerPath = ComponentPath,
+               serverDir = ComponentPath,
                installPath = InstallerMain.InstallationBaseComponent.ComponentPath;
 
         // Creating the repository using server functionality.
-        var setup = RepositorySetup.NewDefault(systemServerPath, StarcounterEnvironment.ServerNames.System);
+        if (Directory.Exists(serverDir))
+        {
+            if (!Utilities.AskUserForDecision("Server directory already exists: " + serverDir + Environment.NewLine +
+                            "Would you like to override it?",
+                            "Server directory already exists..."))
+            {
+                goto SKIP_SERVER_CREATION;
+            }
+        }
+
+        // Creating new server repository.
+        var setup = RepositorySetup.NewDefault(
+            Path.Combine(serverDir, ".."),
+            StarcounterEnvironment.ServerNames.SystemServer);
+
         setup.Execute();
+
+SKIP_SERVER_CREATION:
+
+        // Replacing default server parameters.
+        if (!Utilities.ReplaceXMLParameterInFile(
+            Path.Combine(serverDir, StarcounterEnvironment.ServerNames.SystemServer + ServerConfiguration.FileExtension),
+            StarcounterConstants.BootstrapOptionNames.DefaultAppsPort,
+            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_SystemServerDefaultPort)))
+        {
+            throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM,
+                "Can't replace default Apps port for " + StarcounterEnvironment.ServerNames.SystemServer + " server.");
+        }
+
+        // Creating server config.
+        InstallerMain.CreateServerConfig(
+            StarcounterEnvironment.ServerNames.SystemServer,
+            ComponentPath,
+            SystemServerConfigPath);
 
         // Testing if service account exists or creating a new one.
         SystemServerAccount.ChangeInstallationPlatform(true);
         SystemServerAccount.AssureAccount(
             installPath,
-            systemServerPath,
+            serverDir,
             out serviceAccountName,
             out serviceAccountPassword);
 
@@ -174,6 +228,24 @@ public class CSystemServer : CComponentBase
             StarcounterEnvironment.ServerNames.SystemServerServiceName,
             serviceAccountName,
             serviceAccountPassword);
+
+        // Copying gateway configuration.
+        InstallerMain.CopyGatewayConfig(serverDir, StarcounterConstants.NetworkPorts.DefaultSystemServerGwStatsPort.ToString());
+
+        // Creating Administrator database.
+        InstallerMain.CreateDatabaseSynchronous(
+            StarcounterEnvironment.ServerNames.SystemServer,
+            ComponentPath,
+            ConstantsBank.SCAdminDatabaseName);
+
+        // Calling external tool to create Administrator shortcut.
+        Utilities.CreateShortcut(
+            "http://localhost:81",
+            SystemServerAdminDesktopShortcutPath,
+            "",
+            installPath,
+            "Starts " + ConstantsBank.SCProductName + " " + StarcounterEnvironment.ServerNames.SystemServer + " Administrator.",
+            Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCIconFilename));
 
         // Starting the service.
         StartStarcounterServices();
@@ -229,7 +301,7 @@ public class CSystemServer : CComponentBase
             catch { }
 
             // Deleting Starcounter user folder.
-            String pathToUserDirs = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"..\Users");
+            String pathToUserDirs = Path.Combine(ConstantsBank.ProgramFilesPath, @"..\Users");
             String[] allUserDirs = Directory.GetDirectories(pathToUserDirs);
             foreach (String userDirPath in allUserDirs)
             {
@@ -375,6 +447,10 @@ public class CSystemServer : CComponentBase
         }
         catch { }
 
+        // Deleting the config file.
+        if (File.Exists(SystemServerConfigPath))
+            File.Delete(SystemServerConfigPath);
+
         // Updating progress.
         InstallerMain.ProgressIncrement();
     }
@@ -417,6 +493,11 @@ public class CSystemServer : CComponentBase
                 return true;
         }
 
+        // Checking for Starcounter server configuration file.
+        String serverDir = InstallerMain.ReadServerInstallationPath(SystemServerConfigPath);
+        if (Directory.Exists(serverDir))
+            return true;
+
         // Didn't find any component footprints.
         return false;
     }
@@ -446,7 +527,7 @@ public class CSystemServer : CComponentBase
     /// <returns>True if component should be installed.</returns>
     public override Boolean ShouldBeInstalled()
     {
-        return InstallerMain.InstallSettingCompare(ConstantsBank.Setting_InstallSystemServer, ConstantsBank.Setting_True);
+        return InstallerMain.InstallationSettingCompare(ConstantsBank.Setting_InstallSystemServer, ConstantsBank.Setting_True);
     }
 
     /// <summary>
@@ -456,7 +537,7 @@ public class CSystemServer : CComponentBase
     /// <returns>True if component should be uninstalled.</returns>
     public override Boolean ShouldBeRemoved()
     {
-        return UninstallEngine.UninstallSettingCompare(ConstantsBank.Setting_RemoveSystemServer, ConstantsBank.Setting_True);
+        return UninstallEngine.UninstallationSettingCompare(ConstantsBank.Setting_RemoveSystemServer, ConstantsBank.Setting_True);
     }
 }
 }

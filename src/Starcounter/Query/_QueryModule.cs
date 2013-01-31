@@ -21,10 +21,13 @@ namespace Starcounter.Query
     public static class QueryModule
     {
         // Configuration of query module.
+        //static String processFolder = StarcounterEnvironment.SystemDirectory + "\\32BitComponents\\";
         internal static String ProcessFolder = AppDomain.CurrentDomain.BaseDirectory + "32BitComponents\\";
         internal const String ProcessFileName = StarcounterConstants.ProgramNames.ScSqlParser + ".exe";
-        internal const String ProcessVersion = "130129";
+        internal const String ProcessVersion = "121129";
         internal static Int32 ProcessPort = 0;
+        //static readonly String schemaFilePath = AppDomain.CurrentDomain.BaseDirectory + "\\schema.pl";
+        //internal static String SchemaFolder = AppDomain.CurrentDomain.BaseDirectory + "32BitComponents\\";
         internal const Int32 MaxQueryLength = 3000;
         internal const Int32 MaxQueryRetries = 10;
         internal const Int32 MaxVerifyRetries = 100;

@@ -43,7 +43,7 @@ namespace Starcounter.VisualStudio.Projects {
             // We use the built-in ABCIPC core services of the server to execute
             // assemblies.
 
-            var pipeName = ScUriExtensions.MakeLocalServerPipeString("personal");
+            var pipeName = ScUriExtensions.MakeLocalServerPipeString(StarcounterEnvironment.ServerNames.PersonalServer.ToLower());
             var client = ClientServerFactory.CreateClientUsingNamedPipes(pipeName);
 
             properties.Add("AssemblyPath", debugConfiguration.AssemblyPath);

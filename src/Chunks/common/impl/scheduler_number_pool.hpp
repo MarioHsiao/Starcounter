@@ -42,7 +42,7 @@ inline scheduler_number_pool<T, N>::scheduler_number_pool
 
 		/// TODO: Fix insecure
 		if ((length = mbstowcs(not_empty_notify_name_, notify_name,
-		segment_name_size)) < 0) {
+		segment_and_notify_name_size)) < 0) {
 			// Failed to convert notify_name to multi-byte string.
 			return; // Throw exception error_code.
 		}
@@ -66,7 +66,7 @@ inline scheduler_number_pool<T, N>::scheduler_number_pool
 
 		/// TODO: Fix insecure
 		if ((length = mbstowcs(not_full_notify_name_, notify_name,
-		segment_name_size)) < 0) {
+		segment_and_notify_name_size)) < 0) {
 			// Failed to convert notify_name to multi-byte string.
 			return; // Throw exception error_code.
 		}
