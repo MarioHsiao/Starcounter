@@ -25,6 +25,29 @@ namespace GenerateInstaller
         const String productName = "Starcounter Components";
         public static readonly String certificateFile = BuildSystem.LocalToolsFolder + "\\starcounter-2014.cer";
 
+        // Uploads build on FTP.
+        static void UploadBuildToFtp(
+            String buildType,
+            String versionNumber,
+            String fileName,
+            String fileLocalPath)
+        {
+            if ((buildType != BuildSystem.TestBetaName) &&
+                (buildType != BuildSystem.StableBuildsName) &&
+                (buildType != BuildSystem.NightlyBuildsName) &&
+                (buildType != BuildSystem.CustomBuildsName))
+            {
+                throw new Exception("Wrong argument: " + buildType + ".");
+            }
+
+            String relativeFilePathWithSlashes = Path.Combine(Path.Combine(buildType, versionNumber), fileName).Replace("\\", "/");
+
+            BuildSystem.UploadFileToFTP(
+                BuildSystem.StarcounterFtpConfigName,
+                fileLocalPath,
+                relativeFilePathWithSlashes);
+        }
+
         // Accepts builds pool FTP mapped directory as a path
         // ('StableBuilds' or 'NightlyBuilds' without version part).
         static int Main(string[] args)
@@ -244,27 +267,34 @@ namespace GenerateInstaller
                 }
 
                 // Uploading changes to FTP server (only if its not a personal build).
-                if ((Environment.GetEnvironmentVariable(BuildSystem.UploadToUsFtp) != null) &&
-                    (BuildSystem.IsReleasingBuild()))
+                if (Environment.GetEnvironmentVariable(BuildSystem.UploadToUsFtp) == "True")
                 {
-                    UInt32 previousRandomNumCount = downloadID.Generate(BuildSystem.StarcounterFtpConfigName, DownloadKeyLengthBytes, randHistoryFileName);
+                    // Checking if its a releasing build.
+                    if (BuildSystem.IsReleasingBuild())
+                    {
+                        UInt32 previousRandomNumCount = downloadID.Generate(BuildSystem.StarcounterFtpConfigName, DownloadKeyLengthBytes, randHistoryFileName);
 
-                    // Creating this build version folder if needed.
-                    buildsFTPPoolDir = buildsFTPPoolDir + "/" + version;
-                    Console.WriteLine("Uploading everything to FTP server mapped folder: " + buildsFTPPoolDir);
+                        // Creating this build version folder if needed.
+                        buildsFTPPoolDir = buildsFTPPoolDir + "/" + version;
+                        Console.WriteLine("Uploading everything to FTP server mapped folder: " + buildsFTPPoolDir);
 
-                    // Updating the random history file.
-                    String existingRandHistory = BuildSystem.GetFTPFileAllText(BuildSystem.StarcounterFtpConfigName, randHistoryFileName);
-                    BuildSystem.UploadFileTextToFTP(BuildSystem.StarcounterFtpConfigName, existingRandHistory + Environment.NewLine + downloadID.IDFullBase32, randHistoryFileName);
+                        // Updating the random history file.
+                        String existingRandHistory = BuildSystem.GetFTPFileAllText(BuildSystem.StarcounterFtpConfigName, randHistoryFileName);
+                        BuildSystem.UploadFileTextToFTP(BuildSystem.StarcounterFtpConfigName, existingRandHistory + Environment.NewLine + downloadID.IDFullBase32, randHistoryFileName);
 
-                    // Copying file to destination directory.
-                    String targetBase64Dir = buildsFTPPoolDir + "/" + downloadID.IDTailBase64;
-                    BuildSystem.UploadFileToFTP(BuildSystem.StarcounterFtpConfigName, setupFilePath, targetBase64Dir + "/" + setupFileName);
+                        // Copying file to destination directory.
+                        String targetBase64Dir = buildsFTPPoolDir + "/" + downloadID.IDTailBase64;
+                        BuildSystem.UploadFileToFTP(BuildSystem.StarcounterFtpConfigName, setupFilePath, targetBase64Dir + "/" + setupFileName);
 
-                    // Saving the new build version information as a last step.
-                    BuildSystem.UploadFileTextToFTP(BuildSystem.StarcounterFtpConfigName, versionFileContents, buildsFTPPoolDir + "/" + "VersionInfo_" + previousRandomNumCount + ".xml");
+                        // Saving the new build version information as a last step.
+                        BuildSystem.UploadFileTextToFTP(BuildSystem.StarcounterFtpConfigName, versionFileContents, buildsFTPPoolDir + "/" + "VersionInfo_" + previousRandomNumCount + ".xml");
 
-                    Console.WriteLine("Done uploading to FTP server...");
+                        Console.WriteLine("Done uploading to FTP server...");
+                    }
+
+                    // Uploading standalone setup to FTP.
+                    if (args.Length > 0)
+                        UploadBuildToFtp(args[0], version, setupFileName, setupFilePath);
                 }
 
                 Console.WriteLine("Succeeded generating unique installer with download id: " + downloadID.IDFullBase32);
