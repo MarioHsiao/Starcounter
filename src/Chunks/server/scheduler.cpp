@@ -968,7 +968,7 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 	// must be done by the database process. There are no more references to
 	// the channel on the server so it is safe to release the channel.
 	// But first the in and out queues must be emptied and any chunk in them
-	// must first be released. Default chunks are not released of course.
+	// must first be released.
 	client_interface_type* client_interface_ptr = channel.client();
 	client_number the_client_number = channel.get_client_number();
 	
@@ -1139,7 +1139,7 @@ void server_port::release_channel_marked_for_release(channel_number the_channel_
 	// must be done by the database process. There are no more references to
 	// the channel on the server so it is safe to release the channel.
 	// But first the in and out queues must be emptied and any chunk in them
-	// must first be released. Default chunks are not released of course.
+	// must first be released.
 	client_interface_type* client_interface_ptr = channel.client();
 	client_number the_client_number = channel.get_client_number();
 	
@@ -1219,10 +1219,9 @@ void server_port::release_channel_marked_for_release(channel_number the_channel_
 				// Clear channel_number (31:24) to get only the chunk_index.
 				the_channel_index &= (1 << 24) -1;
 
-				// Free this chunk if not a default chunk_index.
-				if (the_channel_index >= channels) {
-					shared_chunk_pool_->push_front(the_channel_index);
-				}
+				// Free this chunk.
+				shared_chunk_pool_->push_front(the_channel_index,
+				1000000 /* spin count */, 10000 /* timeout ms */);
 			}
 		}
 	}
@@ -1352,7 +1351,8 @@ try_to_acquire_from_private_chunk_pool:
 				}
 				
 				shared_chunk_pool_->acquire_to_chunk_pool
-				(this_scheduler_interface_->chunk_pool(), chunks_to_move);
+				(this_scheduler_interface_->chunk_pool(), chunks_to_move,
+				10000 /* timeout ms */);
 			}
 			
 			// Successfully moved enough chunks to the private chunk_pool.
@@ -1364,7 +1364,7 @@ try_to_acquire_from_private_chunk_pool:
 		// Try to acquire the linked chunks from the shared_chunk_pool.
 		
 		while (!shared_chunk_pool_->acquire_linked_chunks(&chunk(0), head,
-		needed_size, the_channel.client())) {
+		needed_size, the_channel.client(), 10000 /* timeout ms */)) {
 
             // NOTE: Returning error immediately if chunks can't be obtained.
             return SCERRACQUIRELINKEDCHUNKS;
@@ -1401,7 +1401,8 @@ try_to_acquire_from_private_chunk_pool:
         // Try to move some chunks from the shared_chunk_pool to the private
         // chunk_pool.
         shared_chunk_pool_->acquire_to_chunk_pool(
-            this_scheduler_interface_->chunk_pool(), a_bunch_of_chunks);
+            this_scheduler_interface_->chunk_pool(), a_bunch_of_chunks,
+			10000 /* timeout ms */);
 
         // Successfully moved enough chunks to the private chunk_pool.
         // Retry acquire the linked chunks from there.
@@ -1442,7 +1443,8 @@ try_to_acquire_from_private_chunk_pool:
 				}
 				
 				shared_chunk_pool_->acquire_to_chunk_pool
-				(this_scheduler_interface_->chunk_pool(), chunks_to_move);
+				(this_scheduler_interface_->chunk_pool(), chunks_to_move,
+				10000 /* timeout ms */);
 			}
 			
 			// Successfully moved enough chunks to the private chunk_pool.
@@ -1454,7 +1456,7 @@ try_to_acquire_from_private_chunk_pool:
 		// Try to acquire the linked chunks from the shared_chunk_pool.
 		
 		while (!shared_chunk_pool_->acquire_linked_chunks_counted(&chunk(0), head,
-		num_chunks, the_channel.client())) {
+		num_chunks, the_channel.client(), 10000 /* timeout ms */)) {
 
             // NOTE: Returning error immediately if chunks can't be obtained.
             return SCERRACQUIRELINKEDCHUNKS;
