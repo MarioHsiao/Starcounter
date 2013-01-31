@@ -54,6 +54,9 @@ namespace Starcounter.Query.Execution {
                     if (compOperator == ComparisonOperator.IS)
                         return TruthValue.TRUE;
                     else return TruthValue.FALSE;
+                else if (compOperator == ComparisonOperator.IS)
+                    return TruthValue.FALSE;
+                else return TruthValue.TRUE;
 
             return TruthValue.UNKNOWN; // Same as in cast
         }
@@ -66,6 +69,35 @@ namespace Starcounter.Query.Execution {
         /// <returns>The Boolean value of this operation when evaluated on the input object.</returns>
         public Boolean Filtrate(IObjectView obj) {
             return Evaluate(obj) == TruthValue.TRUE;
+        }
+
+        /// <summary>
+        /// Compares object expression and type expression if possible.
+        /// It tries to evaluate object expression, if not it uses typebinding from the object expression.
+        /// If type binding of object is used, then the result might be not valid at running time.
+        /// This method can be called only during optimization time, before constructing enumerator.
+        /// </summary>
+        /// <returns>Result of comparison</returns>
+        public IsTypeCompare EvaluateAtCompile() {
+            IObjectView obj = Expr1.EvaluateToObject(null);
+            if (obj != null) {
+                TruthValue res = Evaluate(obj);
+                if (res == TruthValue.TRUE)
+                    return IsTypeCompare.TRUE;
+                if (res == TruthValue.FALSE)
+                    return IsTypeCompare.FALSE;
+            }
+            // Object is null or result is unknown
+            ITypeBinding objType = obj == null ? Expr1.TypeBinding : obj.TypeBinding; // Object type cannot be null
+            if (objType == typeBinding)
+                return IsTypeCompare.EQUAL;
+            if (objType is TypeBinding && typeBinding is TypeBinding)
+                if (((TypeBinding)objType).SubTypeOf((TypeBinding)typeBinding))
+                    return IsTypeCompare.SUBTYPE;
+                else if (((TypeBinding)typeBinding).SubTypeOf((TypeBinding)objType))
+                    return IsTypeCompare.SUPERTYPE;
+                else return IsTypeCompare.FALSE;
+            return IsTypeCompare.UNKNOWN;
         }
 
         /// <summary>
