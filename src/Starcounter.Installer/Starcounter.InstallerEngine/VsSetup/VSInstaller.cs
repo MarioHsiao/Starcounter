@@ -171,7 +171,7 @@ namespace Starcounter.InstallerEngine.VsSetup
             }
 
             // Example command-line:
-            // VSIXInstaller.exe /quiet /skuName:Pro /skuVersion:11.0 /uninstall:Starcounter.VS11.DCCF9B11-E0CD-4D4F-BCE6-55EEA5AA1325
+            // VSIXInstaller.exe /quiet /skuName:Pro /skuVersion:11.0 /uninstall:Starcounter.VS11.Extension.c3ff293a-4564-4f91-8fb8-635a64f6b310
 
             arguments = string.Format(
                 "/quiet /skuName:{0} /skuVersion:{1} /uninstall:{2}",

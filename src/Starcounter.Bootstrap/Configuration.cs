@@ -168,7 +168,7 @@ namespace StarcounterInternal.Bootstrap
                 string serverName;
 
                 if (!this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.ServerName, out serverName))
-                    serverName = StarcounterEnvironment.ServerNames.PersonalServer.ToUpper();
+                    serverName = "PERSONAL";
 
                 // Making server name upper case.
                 serverName = serverName.ToUpper();
@@ -208,33 +208,15 @@ namespace StarcounterInternal.Bootstrap
         /// Gets the SQL process port.
         /// </summary>
         /// <value>The SQL process port.</value>
-        public UInt16 SQLProcessPort
+        public int SQLProcessPort
         {
             get
             {
-                UInt16 v = 0;
+                int v = 0;
                 string str;
                 if (this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.SQLProcessPort, out str))
                 {
-                    v = UInt16.Parse(str);
-                }
-                return v;
-            }
-        }
-
-        /// <summary>
-        /// Gets the default Apps TCP port.
-        /// </summary>
-        /// <value>The default Apps TCP port.</value>
-        public UInt16 DefaultAppsPort
-        {
-            get
-            {
-                UInt16 v = StarcounterConstants.NetworkPorts.DefaultPersonalServerAppsPort;
-                string str;
-                if (this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.DefaultAppsPort, out str))
-                {
-                    v = UInt16.Parse(str);
+                    v = int.Parse(str);
                 }
                 return v;
             }

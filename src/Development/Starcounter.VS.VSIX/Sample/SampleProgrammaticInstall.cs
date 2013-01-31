@@ -41,14 +41,14 @@ namespace Starcounter.VS11.Extension.Sample
         /// this project, i.e. the useful artifact we'll use (as compared to this
         /// sample code, that is just that - a (runnable) sample).
         /// </summary>
-        const string VSIXPackageFile = "Starcounter.VS11.vsix";
+        const string VSIXPackageFile = "Starcounter.VisualStudio.11.0.vsix";
 
         /// <summary>
         /// The unique ID we use for our extension. Used when uninstalling. The
         /// main definition of this ID is the .vsixmanifest file part of this
         /// project. Make sure they are in-sync.
         /// </summary>
-        const string VSIXExtensionID = "Starcounter.VS11.DCCF9B11-E0CD-4D4F-BCE6-55EEA5AA1325";
+        const string VSIXExtensionID = "Starcounter.VS.VSIX.DCCF9B11-E0CD-4D4F-BCE6-55EEA5AA1325";
 
         /// <summary>
         /// Visual Studio versions we support installing into. That is, even if
@@ -116,10 +116,10 @@ namespace Starcounter.VS11.Extension.Sample
                 );
 
             // Example command-line:
-            // VSIXInstaller.exe /quiet /skuName:Pro /skuVersion:11.0 /uninstall:Starcounter.VS11.DCCF9B11-E0CD-4D4F-BCE6-55EEA5AA1325
+            // VSIXInstaller.exe /quiet /skuName:Pro /skuVersion:11.0 /uninstall:Starcounter.VS11.Extension.DCCF9B11-E0CD-4D4F-BCE6-55EEA5AA1325
             //
             // Explanation:
-            // Uninstall the extension with ID "Starcounter.VS11.DCCF9B11-E0CD-4D4F-BCE6-55EEA5AA1325" from
+            // Uninstall the extension with ID "Starcounter.VS11.Extension.DCCF9B11-E0CD-4D4F-BCE6-55EEA5AA1325" from
             // Visual Studio 11 Professional.
 
             Process.Start(installer, arguments).WaitForExit();

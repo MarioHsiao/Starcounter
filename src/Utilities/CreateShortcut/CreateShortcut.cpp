@@ -10,13 +10,7 @@
 // CreateLink - Uses the Shell's IShellLink and IPersistFile interfaces 
 // to create and store a shortcut to the specified object. 
 // Returns the result of calling the member functions of the interfaces. 
-HRESULT CreateLink(
-    LPCWSTR lpszPathOrigin,
-    LPCWSTR lpszPathToLnk,
-    LPCWSTR lpszArgs,
-    LPCWSTR lpszWorkingDir,
-    LPCWSTR lpszDesc,
-    LPCWSTR lpszIconPath) 
+HRESULT CreateLink(LPCWSTR lpszPathOrigin, LPCWSTR lpszPathToLnk, LPCWSTR lpszArgs, LPCWSTR lpszWorkingDir, LPCWSTR lpszDesc) 
 { 
     HRESULT hres; 
     IShellLink* psl; 
@@ -33,7 +27,6 @@ HRESULT CreateLink(
         psl->SetDescription(lpszDesc);
         psl->SetArguments(lpszArgs);
         psl->SetWorkingDirectory(lpszWorkingDir);
-        psl->SetIconLocation(lpszIconPath, 0);
 
         // Query IShellLink for the IPersistFile interface, used for saving the 
         // shortcut in persistent storage. 
@@ -57,7 +50,7 @@ int _tmain(int argc, _TCHAR* argv[])
         return 1;
 
     CoInitialize(NULL);
-    HRESULT hres = CreateLink(argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
+    HRESULT hres = CreateLink(argv[1], argv[2], argv[3], argv[4], argv[5]);
     CoUninitialize();
 	return hres;
 }

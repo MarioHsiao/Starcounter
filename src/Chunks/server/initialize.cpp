@@ -166,15 +166,14 @@ is_system, uint32_t chunks_total_number) try {
 	sizeof(shared_chunk_pool_type));
 
 	shared_chunk_pool_type* shared_chunk_pool = new(p) shared_chunk_pool_type
-	(segment_name, chunks_total_number, shared_chunk_pool_alloc_inst);
+	(chunks_total_number, shared_chunk_pool_alloc_inst);
 	
 	// Initialize the shared_chunk_pool by pushing in chunk_indexes.
 	// These chunk_indexes represents free chunks.
 
 	// Chunks from 0 to chunks_total_number -1 are put in the shared_chunk_pool.
 	for (chunk_index i = 0; i < chunks_total_number; ++i) {
-		shared_chunk_pool->push_front(i, 1000000 /* spin count */,
-		10000 /* timeout ms */);
+		shared_chunk_pool->push_front(i);
 	}
 	
 	const shm_alloc_for_the_common_scheduler_interface2

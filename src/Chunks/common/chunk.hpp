@@ -92,12 +92,12 @@ byte 20 +request_size..23 +request_size
 
 byte 4088..4091:
 +----------------------------------------------------------------------+
-| 32-bit chunk_index next_link (-1 = link_terminator)                  |
+| 32-bit chunk_index next_link (-1 = LINK_TERMINATOR)                  |
 +----------------------------------------------------------------------+
 
 byte 4092..4095:
 +----------------------------------------------------------------------+
-| 32-bit chunk_index link (-1 = link_terminator)                       |
+| 32-bit chunk_index link (-1 = LINK_TERMINATOR)                       |
 +----------------------------------------------------------------------+
 
 #endif // current chunk layout
@@ -131,12 +131,12 @@ if response(s):
 
 byte 4088..4091:
 +----------------------------------------------------------------------+
-| 32-bit chunk_index next_link (-1 = link_terminator)                  |
+| 32-bit chunk_index next_link (-1 = LINK_TERMINATOR)                  |
 +----------------------------------------------------------------------+
 
 byte 4092..4095:
 +----------------------------------------------------------------------+
-| 32-bit chunk_index link (-1 = link_terminator)                       |
+| 32-bit chunk_index link (-1 = LINK_TERMINATOR)                       |
 +----------------------------------------------------------------------+
 
 #endif // new chunk layout - not implemented yet

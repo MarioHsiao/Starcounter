@@ -229,7 +229,7 @@ namespace Starcounter.Internal
             /// Custom servers created manually are not allowed to use this
             /// name.
             /// </remarks>
-            public const string SystemServer = "System";
+            public const string System = "System";
 
             /// <summary>
             /// Default name postfix for the system server
@@ -252,7 +252,7 @@ namespace Starcounter.Internal
             /// Custom servers created manually are not allowed to use this
             /// name.
             /// </remarks>
-            public const string PersonalServer = "Personal";
+            public const string PersonalUser = "Personal";
 
             /// <summary>
             /// Investigates if the given server name is recognized as one of the
@@ -270,8 +270,8 @@ namespace Starcounter.Internal
 
                 comparisonMethod = StringComparison.InvariantCultureIgnoreCase;
                 return
-                    serverName.Equals(ServerNames.SystemServer, comparisonMethod) ||
-                    serverName.Equals(ServerNames.PersonalServer, comparisonMethod);
+                    serverName.Equals(ServerNames.System, comparisonMethod) ||
+                    serverName.Equals(ServerNames.PersonalUser, comparisonMethod);
             }
         }
 

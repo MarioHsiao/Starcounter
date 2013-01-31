@@ -17,8 +17,6 @@ using Starcounter.Internal; // TODO:
 using Starcounter.Logging;
 using StarcounterInternal.Hosting;
 using HttpStructs;
-using System.Text.RegularExpressions;
-using System.IO;
 
 namespace StarcounterInternal.Bootstrap
 {
@@ -132,12 +130,6 @@ namespace StarcounterInternal.Bootstrap
                 OnBmxManagerInitialized();
             }
 
-            // Initializing REST.
-            RequestHandler.InitREST(configuration.TempDirectory);
-
-            // Initializing AppsBootstrapper.
-            AppsBootstrapper.InitAppsBootstrapper(configuration.DefaultAppsPort);
-
             ulong hlogs = ConfigureLogging(configuration, hmenv);
             OnLoggingConfigured();
 
@@ -159,10 +151,7 @@ namespace StarcounterInternal.Bootstrap
             Scheduler.Setup((byte)schedulerCount);
             if (withdb_)
             {
-                Starcounter.Query.QueryModule.Initiate(
-                    configuration.SQLProcessPort,
-                    Path.Combine(configuration.TempDirectory, "sqlschemas"));
-
+                Starcounter.Query.QueryModule.Initiate(configuration.SQLProcessPort);
                 OnQueryModuleInitiated();
             }
 
@@ -273,19 +262,7 @@ namespace StarcounterInternal.Bootstrap
                 String[] userArgsArray = null;
                 configuration.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.UserArguments, out userArgs);
                 if (userArgs != null)
-                {
-                    MatchCollection matches = Regex.Matches(userArgs, @"((""((?<token>.*?)(?<!\\)"")|(?<token>[\w]+))(\s)*)");
-
-                    List<String> userArgsList = new List<String>();
-                    foreach (Match match in matches)
-                    {
-                        userArgsList.Add(match.Groups["token"].Value);
-                    }
-
-                    // Checking if any parameters determined.
-                    if (userArgsList.Count > 0)
-                        userArgsArray = userArgsList.ToArray();
-                }
+                    userArgsArray = userArgs.Split((String[])null, StringSplitOptions.RemoveEmptyEntries);
 
                 // Trying to get explicit working directory.
                 String workingDir = null;

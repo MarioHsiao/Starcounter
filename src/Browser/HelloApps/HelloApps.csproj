@@ -82,48 +82,7 @@
     </App>
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="Angular\angular-remote.ts" />
-    <Content Include="angularjs.js" />
-    <Content Include="Angular\angular-remote.js">
-      <DependentUpon>angular-remote.ts</DependentUpon>
-    </Content>
-    <TypeScriptCompile Include="Angular\mockup.ts" />
-    <Content Include="Angular\mockup.js">
-      <DependentUpon>mockup.ts</DependentUpon>
-    </Content>
-    <Content Include="Angular\ngInclude.js" />
-    <TypeScriptCompile Include="Angular\Parser.ts" />
-    <Content Include="Angular\Parser.js">
-      <DependentUpon>Parser.ts</DependentUpon>
-    </Content>
-    <TypeScriptCompile Include="json-patch\json-pointer.ts" />
-    <Content Include="default.htm" />
-    <Content Include="json-patch\json-pointer.js">
-      <DependentUpon>json-pointer.ts</DependentUpon>
-    </Content>
-    <TypeScriptCompile Include="json-patch\observe.ts" />
-    <Content Include="json-patch\observe.js">
-      <DependentUpon>observe.ts</DependentUpon>
-    </Content>
-    <TypeScriptCompile Include="json-patch\patch-processor.ts" />
-    <Content Include="json-patch\patch-processor.js">
-      <DependentUpon>patch-processor.ts</DependentUpon>
-    </Content>
     <Content Include="master.html" />
-    <TypeScriptCompile Include="object-observe\object-observe.ts" />
-    <Content Include="object-observe\object-observe.js">
-      <DependentUpon>object-observe.ts</DependentUpon>
-    </Content>
-    <TypeScriptCompile Include="object-observe\Proxy.ts" />
-    <Content Include="object-observe\Proxy.js">
-      <DependentUpon>Proxy.ts</DependentUpon>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="test2.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="test.json" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(StarcounterBin)\Starcounter.MsBuild.targets" />
@@ -134,20 +93,4 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <ItemGroup>
-    <AvailableItemName Include="TypeScriptCompile" />
-  </ItemGroup>
-  <ItemGroup>
-    <TypeScriptCompile Include="C:\sc\Level1\src\Browser\HelloApps\\Angular\angular-remote.ts" />
-    <TypeScriptCompile Include="C:\sc\Level1\src\Browser\HelloApps\\Angular\mockup.ts" />
-    <TypeScriptCompile Include="C:\sc\Level1\src\Browser\HelloApps\\Angular\Parser.ts" />
-    <TypeScriptCompile Include="C:\sc\Level1\src\Browser\HelloApps\\json-patch\json-pointer.ts" />
-    <TypeScriptCompile Include="C:\sc\Level1\src\Browser\HelloApps\\json-patch\observe.ts" />
-    <TypeScriptCompile Include="C:\sc\Level1\src\Browser\HelloApps\\json-patch\patch-processor.ts" />
-    <TypeScriptCompile Include="C:\sc\Level1\src\Browser\HelloApps\\object-observe\object-observe.ts" />
-    <TypeScriptCompile Include="C:\sc\Level1\src\Browser\HelloApps\\object-observe\Proxy.ts" />
-  </ItemGroup>
-  <Target Name="BeforeBuild">
-    <Exec Command="&quot;$(PROGRAMFILES)\Microsoft SDKs\TypeScript\0.8.1.1\tsc&quot; -target ES5 @(TypeScriptCompile ->'&quot;%(fullpath)&quot;', ' ')" IgnoreExitCode="true" />
-  </Target>
 </Project>

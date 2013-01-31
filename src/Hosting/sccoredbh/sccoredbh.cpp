@@ -98,7 +98,6 @@ extern "C" void __stdcall sccoredbh_alert_lowmem(void* hsched, void* p, uint32_t
 
             if (lr == CM5_LOWMEM_REASON_PHYSICAL_MEMORY)
             {
-				mh4_menv_alert_lowmem(__hmenv);
                 mh4_menv_trim_cache(__hmenv, 0);
             }
         }
