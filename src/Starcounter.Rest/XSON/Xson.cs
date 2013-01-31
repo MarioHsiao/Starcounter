@@ -2,11 +2,10 @@
 namespace Starcounter {
 
     /// <summary>
-    /// Base class for Starcounter Applets and Starcounter Messages.
+    /// Xson is a Json inspired implementation of Object trees supporting arrays and basic
+    /// value types.
     /// 
-    /// XSON stands for "eXchangeable Serializable Object Nodes".
-    /// 
-    /// XSON is an implementation of Object trees supporting arrays and basic value types.
+    /// Xson is the base class for Starcounter Applets and Starcounter Messages.
     /// 
     /// Each object points to a Template that describes its schema (properties). 
     /// 
