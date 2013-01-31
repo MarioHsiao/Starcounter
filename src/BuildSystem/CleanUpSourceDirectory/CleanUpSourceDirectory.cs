@@ -73,6 +73,7 @@ namespace CleanUpSourceDirectory
             // Definitions of files that are skipped from evaluation.
             String[] fileExceptions = { "Starcounter.VisualStudio.2010.dll",
                                         "Starcounter.VisualStudio.2010.pdb",
+                                        "Ionic.Zip.dll",
                                         "Microsoft.mshtml.dll",
 
                                         // The following exceptions are for Flash player.

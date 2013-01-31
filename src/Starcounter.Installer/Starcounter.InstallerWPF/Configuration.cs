@@ -18,7 +18,6 @@ using Starcounter.Controls;
 using Starcounter.InstallerEngine;
 using Starcounter.Internal;
 using System.IO.Compression;
-using System.Xml;
 
 namespace Starcounter.InstallerWPF
 {
@@ -134,6 +133,63 @@ namespace Starcounter.InstallerWPF
         }
 
         /// <summary>
+        /// Generates the INI file.
+        /// </summary>
+        private void GenerateIniFile()
+        {
+            string iniFilename = @"C:\test.ini";   // TODO: Path!
+
+            if (File.Exists(iniFilename))
+            {
+                File.Delete(iniFilename);
+            }
+
+            var iniFileHandler = new IniFileHandler(iniFilename);
+
+
+            // Loop through all items of a Hashtable
+            IDictionaryEnumerator item = this.Components.GetEnumerator();
+            while (item.MoveNext())
+            {
+                BaseComponent component = item.Value as BaseComponent;
+
+                if (component.Command == ComponentCommand.None || component.Command == ComponentCommand.Update)
+                {
+                    // TODO: We do not support "Updates" yet.
+                    continue;
+                }
+
+                if (component.ExecuteCommand == false)
+                {
+                    // Ignore commands that is not to be "Executed"
+                    continue;
+                }
+
+                iniFileHandler.IniWriteValue(component.ComponentIdentifier, component.Command.ToString(), component.ExecuteCommand.ToString());
+
+                // Get Properties
+                IList<DictionaryEntry> properties = component.GetProperties();
+                if (properties != null)
+                {
+                    foreach (DictionaryEntry property in properties)
+                    {
+                        string valueStr;
+                        if (property.Value == null)
+                        {
+                            valueStr = string.Empty;
+                        }
+                        else
+                        {
+                            valueStr = property.Value.ToString();
+                        }
+
+                        iniFileHandler.IniWriteValue(component.ComponentIdentifier, property.Key.ToString(), valueStr);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Checking if we are either installing first time or
         /// adding new components to existing installation.
         /// </summary>
@@ -189,71 +245,43 @@ namespace Starcounter.InstallerWPF
 
             // Getting installation path.
             String installationPath = installationBase.Path;
-            String configPath = Path.Combine(installationPath, ConstantsBank.ScGUISetupIniName);
+            String iniFilename = Path.Combine(installationPath, ConstantsBank.ScGUISetupIniName);
 
             // Checking if previous installation GUI settings file exists.
-            if (File.Exists(configPath))
-                File.Delete(configPath);
+            if (File.Exists(iniFilename))
+                File.Delete(iniFilename);
 
-            XmlDocument xmlDoc = new XmlDocument();
-            XmlElement rootElem = xmlDoc.CreateElement(ConstantsBank.SettingsSection_Root);
+            IniFileHandler iniFileHandler = new IniFileHandler(iniFilename);
 
             if (installingOrAdding)
             {
-                XmlElement subRootElem = xmlDoc.CreateElement(ConstantsBank.SettingsSection_Install);
-                rootElem.AppendChild(subRootElem);
+                const string installSection = "Starcounter Installation Settings";
 
-                XmlElement elem = xmlDoc.CreateElement(ConstantsBank.Setting_AddStarcounterToStartMenu);
-                elem.InnerText = installationBase.AddToStartMenu.ToString();
-                subRootElem.AppendChild(elem);
+                // InstallationBase
+                iniFileHandler.IniWriteValue(installSection, ConstantsBank.Setting_AddStarcounterToStartMenu, installationBase.AddToStartMenu.ToString());
 
                 // PersonalServer
                 PersonalServer personalServer = this.GetComponent(PersonalServer.Identifier) as PersonalServer;
-                elem = xmlDoc.CreateElement(ConstantsBank.Setting_InstallPersonalServer);
-                elem.InnerText = personalServer.ExecuteCommand.ToString();
-                subRootElem.AppendChild(elem);
-
-                elem = xmlDoc.CreateElement(ConstantsBank.Setting_PersonalServerPath);
-                elem.InnerText = personalServer.Path;
-                subRootElem.AppendChild(elem);
-
-                elem = xmlDoc.CreateElement(ConstantsBank.Setting_PersonalServerDefaultPort);
-                elem.InnerText = personalServer.DefaultAppsTcpPort.ToString();
-                subRootElem.AppendChild(elem);
-
-                // Personal server Desktop shortcuts.
-                elem = xmlDoc.CreateElement(ConstantsBank.Setting_CreatePersonalServerShortcuts);
-                elem.InnerText = "True";
-                subRootElem.AppendChild(elem);
+                iniFileHandler.IniWriteValue(installSection, ConstantsBank.Setting_InstallPersonalServer, personalServer.ExecuteCommand.ToString());
+                iniFileHandler.IniWriteValue(installSection, ConstantsBank.Setting_PersonalServerPath, personalServer.Path);
 
                 // SystemServer
                 SystemServer systemServer = this.GetComponent(SystemServer.Identifier) as SystemServer;
-                elem = xmlDoc.CreateElement(ConstantsBank.Setting_InstallSystemServer);
-                elem.InnerText = systemServer.ExecuteCommand.ToString();
-                subRootElem.AppendChild(elem);
+                iniFileHandler.IniWriteValue(installSection, ConstantsBank.Setting_InstallSystemServer, systemServer.ExecuteCommand.ToString());
+                iniFileHandler.IniWriteValue(installSection, ConstantsBank.Setting_SystemServerPath, systemServer.Path);
 
-                elem = xmlDoc.CreateElement(ConstantsBank.Setting_SystemServerPath);
-                elem.InnerText = systemServer.Path;
-                subRootElem.AppendChild(elem);
-
-                elem = xmlDoc.CreateElement(ConstantsBank.Setting_SystemServerDefaultPort);
-                elem.InnerText = systemServer.DefaultAppsTcpPort.ToString();
-                subRootElem.AppendChild(elem);
-
-                // VisualStudio2010
+                // VisualStudio2010Integration
                 VisualStudio2010Integration visualStudio2010Integration = this.GetComponent(VisualStudio2010Integration.Identifier) as VisualStudio2010Integration;
-                elem = xmlDoc.CreateElement(ConstantsBank.Setting_InstallVS2010Integration);
-                elem.InnerText = visualStudio2010Integration.ExecuteCommand.ToString();
-                subRootElem.AppendChild(elem);
+                iniFileHandler.IniWriteValue(installSection, ConstantsBank.Setting_InstallVS2010Integration, visualStudio2010Integration.ExecuteCommand.ToString());
 
-                // VisualStudio2012
+                // VisualStudio2012Integration
                 VisualStudio2012Integration visualStudio2012Integration = this.GetComponent(VisualStudio2012Integration.Identifier) as VisualStudio2012Integration;
-                elem = xmlDoc.CreateElement(ConstantsBank.Setting_InstallVS2012Integration);
-                elem.InnerText = visualStudio2012Integration.ExecuteCommand.ToString();
-                subRootElem.AppendChild(elem);
+                iniFileHandler.IniWriteValue(installSection, ConstantsBank.Setting_InstallVS2012Integration, visualStudio2012Integration.ExecuteCommand.ToString());
 
-                /*
-                // We need to update servers installation paths in SetupSettings.xml in order to be able to fetch this later.
+                // Samples
+                Samples samples = this.GetComponent(Samples.Identifier) as Samples;
+
+                // We need to update servers installation paths in SetupSettings.ini in order to be able to fetch this later.
                 IniFileHandler origIniFile = new IniFileHandler(Path.Combine(installationPath, ConstantsBank.ScGlobalSettingsIniName));
 
                 if ((personalServer.Command == ComponentCommand.Install) || personalServer.ExecuteCommand)
@@ -266,42 +294,28 @@ namespace Starcounter.InstallerWPF
                 {
                     origIniFile.IniWriteValue(installSection, ConstantsBank.Setting_InstallSystemServer, systemServer.ExecuteCommand.ToString());
                     origIniFile.IniWriteValue(installSection, ConstantsBank.Setting_SystemServerPath, systemServer.Path);
-                }*/
+                }
             }
             else
             {
-                XmlElement subRootElem = xmlDoc.CreateElement(ConstantsBank.SettingsSection_Uninstall);
-                rootElem.AppendChild(subRootElem);
+                const string uninstallSection = "Starcounter Uninstall Settings";
 
                 // PersonalServer
                 PersonalServer personalServer = this.GetComponent(PersonalServer.Identifier) as PersonalServer;
-                XmlElement elem = xmlDoc.CreateElement(ConstantsBank.Setting_RemovePersonalServer);
-                elem.InnerText = personalServer.ExecuteCommand.ToString();
-                subRootElem.AppendChild(elem);
+                iniFileHandler.IniWriteValue(uninstallSection, ConstantsBank.Setting_RemovePersonalServer, personalServer.ExecuteCommand.ToString());
 
                 // SystemServer
                 SystemServer systemServer = this.GetComponent(SystemServer.Identifier) as SystemServer;
-                elem = xmlDoc.CreateElement(ConstantsBank.Setting_RemoveSystemServer);
-                elem.InnerText = systemServer.ExecuteCommand.ToString();
-                subRootElem.AppendChild(elem);
+                iniFileHandler.IniWriteValue(uninstallSection, ConstantsBank.Setting_RemoveSystemServer, systemServer.ExecuteCommand.ToString());
 
                 // VisualStudio2010Integration
                 VisualStudio2010Integration visualStudio2010Integration = this.GetComponent(VisualStudio2010Integration.Identifier) as VisualStudio2010Integration;
-                elem = xmlDoc.CreateElement(ConstantsBank.Setting_RemoveVS2010Integration);
-                elem.InnerText = visualStudio2010Integration.ExecuteCommand.ToString();
-                subRootElem.AppendChild(elem);
+                iniFileHandler.IniWriteValue(uninstallSection, ConstantsBank.Setting_RemoveVS2010Integration, visualStudio2010Integration.ExecuteCommand.ToString());
 
                 // VisualStudio2012Integration
                 VisualStudio2012Integration visualStudio2012Integration = this.GetComponent(VisualStudio2012Integration.Identifier) as VisualStudio2012Integration;
-                elem = xmlDoc.CreateElement(ConstantsBank.Setting_RemoveVS2012Integration);
-                elem.InnerText = visualStudio2012Integration.ExecuteCommand.ToString();
-                subRootElem.AppendChild(elem);
+                iniFileHandler.IniWriteValue(uninstallSection, ConstantsBank.Setting_RemoveVS2012Integration, visualStudio2012Integration.ExecuteCommand.ToString());
             }
-
-            // Saving setup setting to file.
-            xmlDoc.AppendChild(xmlDoc.CreateXmlDeclaration("1.0", "UTF-8", null));
-            xmlDoc.AppendChild(rootElem);
-            xmlDoc.Save(configPath);
         }
 
         private BaseComponent GetComponent(string identifier)
@@ -389,14 +403,11 @@ namespace Starcounter.InstallerWPF
                     try
                     {
                         // Extracting all files to installation directory, and overwriting old files.
-                        using (ZipArchive zipArchive = new ZipArchive(ArchiveZipStream, ZipArchiveMode.Read))
+                        ZipArchive zipArchive = new ZipArchive(ArchiveZipStream, ZipArchiveMode.Read);
+                        using (zipArchive)
                         {
                             zipArchive.ExtractToDirectory(installationPath);
-                            /*foreach (ZipArchiveEntry entry in zipArchive.Entries)
-                            {
-                                entry.ExtractToFile(Path.Combine(installationPath, entry.FullName), true);
-                            }*/
-                        } 
+                        }
                     }
                     catch (Exception exc)
                     {
@@ -519,6 +530,38 @@ namespace Starcounter.InstallerWPF
 
         #endregion
 
+    }
+
+    /// <summary>
+    /// INI files native helper.
+    /// </summary>
+    class IniFileHandler
+    {
+        // WritePrivateProfileStringW (Unicode) and WritePrivateProfileStringA (ANSI)
+        private readonly string _iniFile;
+
+        [DllImport("kernel32")]
+        private static extern long WritePrivateProfileString(string section, string key, string val, string filePath);
+
+        [DllImport("kernel32")]
+        private static extern int GetPrivateProfileString(string section, string key, string def, StringBuilder retVal, int size, string filePath);
+
+        public IniFileHandler(string file)
+        {
+            _iniFile = file;
+        }
+
+        public void IniWriteValue(string section, string key, string value)
+        {
+            WritePrivateProfileString(section, key, value, _iniFile);
+        }
+
+        public string IniReadValue(string section, string key)
+        {
+            StringBuilder temp = new StringBuilder(255);
+            int i = GetPrivateProfileString(section, key, "", temp, 255, _iniFile);
+            return temp.ToString();
+        }
     }
 
     /// <summary>

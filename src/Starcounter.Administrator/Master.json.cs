@@ -19,26 +19,27 @@ namespace StarcounterApps3 {
         // Argument <path to server configuraton file> <portnumber>
         static void Main(string[] args) {
 
+            int port = 8080; // TODO: Read from some configuration?
+
             if (args == null || args.Length < 1) {
                 Console.WriteLine("Starcounter Administrator: Invalid arguments: Usage <path to server configuraton file>");
                 return;
             }
 
-            // Server configuration file.
+            // Server configuration file
             if (string.IsNullOrEmpty(args[0]) || !File.Exists(args[0])) {
                 Console.WriteLine("Starcounter Administrator: Missing server configuration file {0}", args[0]);
             }
 
-            // Administrator port.
-            UInt16 adminPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerAdminPort;
-            if (UInt16.TryParse(args[1], out adminPort) == false) {
-                Console.WriteLine("Starcounter Administrator: Invalid port number {0}", args[1]);
-                return;
-            };
+            // Port number
+            //if (int.TryParse(args[1], out port) == false) {
+            //    Console.WriteLine("Starcounter Administrator: Invalid port number {0}", args[1]);
+            //    return;
+            //};
 
-            Console.WriteLine("Starcounter Administrator started on port: " + adminPort);
+            Console.WriteLine("Starcounter Administrator started on port {0}.", port);
 
-            AppsBootstrapper.Bootstrap(adminPort);
+            AppsBootstrapper.Bootstrap(port);
 
             Master.ServerEngine = new ServerEngine(args[0]);      // .srv\Personal\Personal.server.config
             Master.ServerEngine.Setup();

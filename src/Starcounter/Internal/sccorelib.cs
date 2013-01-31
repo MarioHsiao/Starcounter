@@ -446,11 +446,6 @@ namespace Starcounter.Internal
         public static extern unsafe ulong mh4_menv_create(void* mem128, uint slabs);
 
         /// <summary>
-        /// </summary>
-        [DllImport("sunflower.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern void mh4_menv_alert_lowmem(ulong hmenv);
-
-        /// <summary>
         /// Mh4_menv_trim_caches the specified hmenv.
         /// </summary>
         /// <param name="hmenv">The hmenv.</param>

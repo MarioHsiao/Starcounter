@@ -186,7 +186,7 @@ public:
 	 * @return A const wchar_t pointer to the not_empty_notify_name string in the
 	 *		format: L"Local\<segment_name>_scheduler_number_pool_<scheduler_num>_not_empty".
 	 *		For example:
-	 *		L"Local\starcounter_PERSONAL_MYDB_64_scheduler_number_pool_9_not_empty".
+	 *		L"Local\starcounter_PERSONAL_MYDB_64_scheduler_number_pool_9__not_empty".
 	 */
 	const wchar_t* not_empty_notify_name() const {
 		return not_empty_notify_name_;
@@ -200,7 +200,7 @@ public:
 	 * @return A const wchar_t pointer to the not_full_notify_name string in the
 	 *		format: L"Local\<segment_name>_scheduler_number_pool_<scheduler_num>_not_full".
 	 *		For example:
-	 *		L"Local\starcounter_PERSONAL_MYDB_64_scheduler_number_pool_9_not_full".
+	 *		L"Local\starcounter_PERSONAL_MYDB_64_scheduler_number_pool_9__not_full".
 	 */
 	const wchar_t* not_full_notify_name() const {
 		return not_full_notify_name_;

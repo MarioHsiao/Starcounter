@@ -14,12 +14,12 @@ namespace Starcounter.InstallerEngine.VsSetup
         /// <summary>
         /// Gets the extension metadata for the VS 2010 package file.
         /// </summary>
-        internal static readonly VSIXPackageInfo VS2010 = new VSIXPackageInfo("Starcounter.VS10.vsix", "C8636CE1-46B5-4E7C-A558-4925EA1ED3AC");
+        internal static readonly VSIXPackageInfo VS2010 = new VSIXPackageInfo("Starcounter.VisualStudio.10.0.vsix", "c8636ce1-46b5-4e7c-a558-4925ea1ed3ac");
 
         /// <summary>
         /// Gets the extension metadata for the VS 2012 package file.
         /// </summary>
-        internal static readonly VSIXPackageInfo VS2012 = new VSIXPackageInfo("Starcounter.VS11.vsix", "Starcounter.VS11.DCCF9B11-E0CD-4D4F-BCE6-55EEA5AA1325");
+        internal static readonly VSIXPackageInfo VS2012 = new VSIXPackageInfo("Starcounter.VisualStudio.11.0.vsix", "Starcounter.VS11.Extension.c3ff293a-4564-4f91-8fb8-635a64f6b310");
 
         /// <summary>
         /// Private constructor initializing a <see cref="VSIXPackageInfo"/>.

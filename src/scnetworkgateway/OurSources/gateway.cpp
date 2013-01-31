@@ -2274,8 +2274,7 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         // Printing handlers information for each attached database and gateway.
         for (int32_t p = 0; p < num_server_ports_unsafe_; p++)
         {
-            // Checking if port is alive.
-            if (!server_ports_[p].IsEmpty())
+            if (!server_ports_->IsEmpty())
             {
                 global_statistics_stream_ << "Port " << server_ports_[p].get_port_number() <<
 

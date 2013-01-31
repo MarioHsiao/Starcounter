@@ -100,9 +100,7 @@ namespace Starcounter.InstallerWPF.Components
             this.Path = CInstallationBase.GetInstalledDirFromEnv();
             if (string.IsNullOrEmpty(this.Path))
             {
-                String programFilesPath = ConstantsBank.ProgramFilesPath;
-
-                this.Path = System.IO.Path.Combine(programFilesPath, Configuration.StarcounterCommonPath);
+                this.Path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), Configuration.StarcounterCommonPath);
             }
 
             switch (this.Command)

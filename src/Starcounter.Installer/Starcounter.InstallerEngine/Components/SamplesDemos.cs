@@ -25,7 +25,7 @@ public class CSamplesDemos : CComponentBase
     }
 
     /// <summary>
-    /// Provides name of the component setting.
+    /// Provides name of the component setting in INI file.
     /// </summary>
     public override String SettingName
     {
@@ -75,32 +75,81 @@ public class CSamplesDemos : CComponentBase
         vsSamplesPathDest_ = Path.Combine(InstallerMain.PersonalServerComponent.ComponentPath, ConstantsBank.ScSamplesDemosDirName);
     }
 
+    // Creates database synchronously without creating separated thread.
+    void CreateDatabaseSynchronous(
+        String serverName,
+        String serverPath,
+        String databaseName)
+    {
+        Utilities.ReportSetupEvent("Creating database '" + databaseName + "' on server '" + serverName + "'...");
+
+        // Creating server engine instance.
+        String serverConfigPath = serverPath + "\\" + serverName + "\\" + serverName + ServerConfiguration.FileExtension;
+        ServerEngine serverEngine = new ServerEngine(serverConfigPath);
+        serverEngine.Setup();
+
+        IServerRuntime IServerRuntime = serverEngine.Start();
+
+        // Sending create database command.
+        CreateDatabaseCommand createDbCmd = new CreateDatabaseCommand(serverEngine, databaseName);
+        CommandInfo cmdInfo = IServerRuntime.Execute(createDbCmd);
+
+        // Waiting for the finish.
+        IServerRuntime.Wait(cmdInfo);
+        serverEngine.Stop();
+
+        /*
+        // Uploading client library.
+        ServerFile uploadedLibrary = server.UploadFile(clientLibraryPath);
+
+        // Database creation arguments.
+        DatabaseCreationArguments dbCreationArguments = new DatabaseCreationArguments()
+        {
+            MaxImageSize = imageSize,
+            TransactionLogSize = 256,
+            EnableReplication = false,
+            Collation = StarcounterEnvironment.NewDatabaseDefaults.CollationLibrary
+        };
+
+        // Waiting indefinitely until database creation has finished.
+        ServerActivity activity = server.CreateDatabase(databaseName, uploadedLibrary, dbCreationArguments).WaitOne();
+
+        // Throwing an exception if error occurred.
+        if (activity.Command.HasError)
+        {
+            String message = String.Empty;
+            foreach (ErrorInfo errorInfo in activity.Command.Errors)
+            {
+                message += errorInfo.ToErrorMessage().ToString() + Environment.NewLine;
+            }
+            throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, message);
+        }*/
+    }
+
     /// <summary>
     /// Initializes samples directories and copies files.
     /// </summary>
-    Boolean CopySamplesAndDemos()
+    void CopySamplesAndDemos()
     {
-        // Checking if source directory exists.
-        if (!Directory.Exists(vsSamplesPathOrig_))
-            return false;
-
         // Checking if samples present in destination folder.
+        Boolean copySamples = true;
         if (Utilities.DirectoryIsNotEmpty(new DirectoryInfo(vsSamplesPathDest_)))
         {
             if (InstallerMain.SilentFlag || (!Utilities.AskUserForDecision("Starcounter samples seem already installed to: " + vsSamplesPathDest_ + Environment.NewLine + "Do you want to overwrite them?",
                 "Starcounter samples found...")))
             {
-                return false;
+                copySamples = false;
             }
         }
 
         // Copying files only when directories exist.
-        Utilities.ReportSetupEvent("Copying Visual Studio samples and demos...");
-        Utilities.SetNormalDirectoryAttributes(new DirectoryInfo(vsSamplesPathDest_));
-        Utilities.CopyFilesRecursively(new DirectoryInfo(vsSamplesPathOrig_), new DirectoryInfo(vsSamplesPathDest_));
-        Utilities.RemoveZoneIdentifier(vsSamplesPathDest_, new String[] { @".+\.sln$", @".+\.csproj$", @".+\.cs$" });
-
-        return true;
+        if (copySamples)
+        {
+            Utilities.ReportSetupEvent("Copying Visual Studio samples and demos...");
+            Utilities.SetNormalDirectoryAttributes(new DirectoryInfo(vsSamplesPathDest_));
+            Utilities.CopyFilesRecursively(new DirectoryInfo(vsSamplesPathOrig_), new DirectoryInfo(vsSamplesPathDest_));
+            Utilities.RemoveZoneIdentifier(vsSamplesPathDest_, new String[] { @".+\.sln$", @".+\.csproj$", @".+\.cs$" });
+        }
     }
 
     // Starts any database previously created.
@@ -145,11 +194,7 @@ public class CSamplesDemos : CComponentBase
             return;
 
         // Copying samples if needed.
-        if (!CopySamplesAndDemos())
-        {
-            InstallerMain.ProgressIncrement();
-            return;
-        }
+        CopySamplesAndDemos();
 
         // Adding demo to post-start.
         StartDemoPreBuilt();
@@ -307,8 +352,7 @@ public class CSamplesDemos : CComponentBase
             shortcutPath,
             " ",
             installPath,
-            "Launches Starcounter Demo.",
-            Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCIconFilename));
+            "Launches Starcounter Demo.");
     }
 
     /// <summary>
@@ -351,7 +395,7 @@ public class CSamplesDemos : CComponentBase
         }
 
         // Path to Visual Studio IDE executable.
-        String devenvPath = Path.Combine(ConstantsBank.ProgramFilesPath,
+        String devenvPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
             @"..\Program Files (x86)\Microsoft Visual Studio " + vsNumberVersion + @"\Common7\IDE\devenv.exe");
 
         //String slnPath = Path.Combine(InstallerMain.SamplesDemosComponent.VsSamplesPathDest, "VsSamples\\Vs" + vsYearVersion + @"\HelloWorld\HelloWorld.sln");

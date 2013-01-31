@@ -3489,7 +3489,7 @@
       <code hex="0005" severity="Error" name="ScErrInstallerDxDiagProblem">
           <message>DirectX diagnostic utility has exited with the error code.</message>
       </code>
-      <code hex="0006" severity="Error" name="ScErrInstallerCorruptedSetupFile">
+      <code hex="0006" severity="Error" name="ScErrInstallerCorruptedIniFile">
           <message>Can't read keys from INI settings file.</message>
       </code>
       <code hex="0007" severity="Error" name="ScErrInstallerCantReadSettingValue">

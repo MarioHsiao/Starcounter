@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Vsix xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="1.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2010">
-  <Identifier Id="Starcounter.VS11.DCCF9B11-E0CD-4D4F-BCE6-55EEA5AA1325">
+  <Identifier Id="Starcounter.VS.VSIX.DCCF9B11-E0CD-4D4F-BCE6-55EEA5AA1325">
     <Name>Starcounter VS2012</Name>
     <Author>Starcounter</Author>
     <Version>1.0</Version>

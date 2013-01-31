@@ -13,14 +13,14 @@ namespace Starcounter.InstallerEngine
         static Dictionary<String, String> uninstallSettings;
 
         /// <summary>
-        /// Loads uninstallation settings.
+        /// Specific wrapper around LoadINIFile.
         /// </summary>
-        /// <param name="configPath">Path to settings file.</param>
-        internal static void LoadUninstallationSettings(String configPath)
+        /// <param name="iniPath">Path to settings INI file.</param>
+        internal static void LoadUninstallINIFile(String iniPath)
         {
             // Overwriting settings if already been loaded.
             uninstallSettings = new Dictionary<String, String>();
-            SettingsLoader.LoadConfigFile(configPath, ConstantsBank.SettingsSection_Uninstall, uninstallSettings);
+            INILoader.LoadINIFile(iniPath, ConstantsBank.SettingsSection_Uninstall, uninstallSettings);
         }
 
         /// <summary>
@@ -29,9 +29,9 @@ namespace Starcounter.InstallerEngine
         /// <param name="settingName">Name of the setting.</param>
         /// <param name="compareWith">String to compare with.</param>
         /// <returns>True if values are the same.</returns>
-        internal static Boolean UninstallationSettingCompare(String settingName, String compareWith)
+        internal static Boolean UninstallSettingCompare(String settingName, String compareWith)
         {
-            String setting = SettingsLoader.GetSettingValue(settingName, uninstallSettings);
+            String setting = INILoader.GetSettingValue(settingName, uninstallSettings);
 
             return setting.Equals(compareWith, StringComparison.CurrentCultureIgnoreCase);
         }
@@ -247,11 +247,12 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// Entry function for uninstalling Starcounter (which calls the core function).
         /// </summary>
+        /// <param name="uninstallIniPath">Path to uninstall settings file.</param>
         internal static void UninstallStarcounter(Boolean cleanup)
         {
             completeCleanupSetting = false;
 
-            // Installation part of the settings file should already be loaded.
+            // Installation part of the INI file should already be loaded.
             if (cleanup)
             {
                 // We are in cleanup mode.

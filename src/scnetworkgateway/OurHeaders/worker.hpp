@@ -195,6 +195,8 @@ public:
     // Getting number of active connections per port.
     int64_t NumberOfActiveConnectionsPerPortPerWorker(int32_t port_index)
     {
+        GW_ASSERT((port_index >= 0) && (port_index < MAX_PORTS_NUM));
+
         return port_num_active_conns_[port_index];
     }
 

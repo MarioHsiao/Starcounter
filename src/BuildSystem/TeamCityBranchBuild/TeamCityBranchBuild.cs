@@ -65,13 +65,10 @@ namespace TeamCityBranchBuild
                 }
 
                 // Checking that all needed variables are defined.
-                if (!BuildSystem.AllEnvVariablesExist(new String[] 
-                {
-                    "Configuration",
-                    // "Platform",
-                    BuildSystem.BuildNumberEnvVar,
-                    BuildSystem.CheckOutDirEnvVar
-                }))
+                if (!BuildSystem.AllEnvVariablesExist(new String[] { "Configuration",
+                "Platform",
+                BuildSystem.BuildNumberEnvVar,
+                BuildSystem.CheckOutDirEnvVar }))
                 {
                     throw new Exception("Some needed environment variables do not exist...");
                 }
@@ -149,6 +146,11 @@ namespace TeamCityBranchBuild
 
                 File.Copy(Path.Combine(buildToolsBinDir, "BuildSystemHelper.pdb"),
                     Path.Combine(targetBuildDir, "BuildSystemHelper.pdb"),
+                    true);
+
+                // Copying ZIP handling library.
+                File.Copy(Path.Combine(buildToolsBinDir, "Ionic.Zip.dll"),
+                    Path.Combine(targetBuildDir, "Ionic.Zip.dll"),
                     true);
 
                 // Creating version info file.

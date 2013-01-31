@@ -127,8 +127,7 @@ namespace Starcounter.Server.Setup {
                 ImageDirectory = Path.Combine(structure.DataDirectory, "[DatabaseName]"),
                 TransactionLogDirectory = Path.Combine(structure.DataDirectory, "[DatabaseName]"),
                 TempDirectory = Path.Combine(structure.TempDirectory, "[DatabaseName]"),
-                SQLProcessPort = (UInt16)(8066 + serverPortRange),
-                DefaultAppsPort = 80,
+                SQLProcessPort = 8066 + serverPortRange,
                 ChunksNumber = 4096,
             };
 

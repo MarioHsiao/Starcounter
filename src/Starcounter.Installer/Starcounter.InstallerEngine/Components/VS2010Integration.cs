@@ -35,7 +35,7 @@ public class CVS2010Integration : VSIntegration
     }
 
     /// <summary>
-    /// Provides name of the component setting.
+    /// Provides name of the component setting in INI file.
     /// </summary>
     public override String SettingName
     {
@@ -199,7 +199,7 @@ public class CVS2010Integration : VSIntegration
     /// <returns>True if component should be installed.</returns>
     public override Boolean ShouldBeInstalled()
     {
-        return InstallerMain.InstallationSettingCompare(ConstantsBank.Setting_InstallVS2010Integration, ConstantsBank.Setting_True);
+        return InstallerMain.InstallSettingCompare(ConstantsBank.Setting_InstallVS2010Integration, ConstantsBank.Setting_True);
     }
 
     /// <summary>
@@ -209,7 +209,7 @@ public class CVS2010Integration : VSIntegration
     /// <returns>True if component should be uninstalled.</returns>
     public override Boolean ShouldBeRemoved()
     {
-        return UninstallEngine.UninstallationSettingCompare(ConstantsBank.Setting_RemoveVS2010Integration, ConstantsBank.Setting_True);
+        return UninstallEngine.UninstallSettingCompare(ConstantsBank.Setting_RemoveVS2010Integration, ConstantsBank.Setting_True);
     }
 }
 }

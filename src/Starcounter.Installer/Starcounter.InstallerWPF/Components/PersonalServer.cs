@@ -5,7 +5,6 @@ using System.Text;
 using System.Collections.ObjectModel;
 using Starcounter.InstallerEngine;
 using System.Collections;
-using Starcounter.Internal;
 
 namespace Starcounter.InstallerWPF.Components
 {
@@ -49,7 +48,6 @@ namespace Starcounter.InstallerWPF.Components
                                                      Configuration.StarcounterCommonPath );
 
             this.Path = System.IO.Path.Combine(basePath, ConstantsBank.SCPersonalDatabasesName);
-            this.DefaultAppsTcpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerAppsPort;
 
             switch (this.Command)
             {
@@ -91,23 +89,6 @@ namespace Starcounter.InstallerWPF.Components
             }
         }
 
-        private UInt16 _DefaultAppsTcpPort;
-        public UInt16 DefaultAppsTcpPort
-        {
-            get
-            {
-                return _DefaultAppsTcpPort;
-            }
-
-            set
-            {
-                if (_DefaultAppsTcpPort == value)
-                    return;
-
-                this._DefaultAppsTcpPort = value;
-                this.OnPropertyChanged("DefaultAppsTcpPort");
-            }
-        }
 
         public PersonalServer(ObservableCollection<BaseComponent> components)
             : base(components)
