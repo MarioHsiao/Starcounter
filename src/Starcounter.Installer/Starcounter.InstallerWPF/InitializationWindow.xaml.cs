@@ -252,12 +252,12 @@ namespace Starcounter.InstallerWPF
         // This thread in turn links to the MS bug thread.
         static String[] staticInstallerDependencies =
         { 
-            "Starcounter.Internal.dll"
+            //"Starcounter.Internal.dll"
         };
 
         static String[] TempExtractedFiles =
         {
-            "Starcounter.Internal.dll"
+            //"Starcounter.Internal.dll"
         };
 
         // Tries to remove temporary extracted files.
@@ -335,6 +335,7 @@ namespace Starcounter.InstallerWPF
             }
 
             // Try extracting static installer dependencies (only parent process does this).
+            // TODO: Check if needed at all.
             if (!startedByParent)
                 ExtractInstallerDependencies();
 
@@ -541,7 +542,7 @@ namespace Starcounter.InstallerWPF
                         // Checking if file name is the same.
                         if (0 == String.Compare(entry.Name, dependentBinary, true))
                         {
-                            entry.ExtractToFile(targetDirectory, true);
+                            entry.ExtractToFile(System.IO.Path.Combine(targetDirectory, entry.FullName), true);
                             break;
                         }
                     }
@@ -561,6 +562,7 @@ namespace Starcounter.InstallerWPF
         {
             // Name of the library that should be resolved.
             AssemblyName asmName = new AssemblyName(args.Name);
+            //MessageBox.Show(asmName.Name);
 
             if (asmName.Name.EndsWith(".resources"))
             {
@@ -580,9 +582,7 @@ namespace Starcounter.InstallerWPF
             // we expect to be statically linked; if it is, we don't try to resolve
             // it because it will break something else
 
-            bool shouldBeStaticallyResolved;
-
-            shouldBeStaticallyResolved = staticInstallerDependencies.Any<string>(delegate(string candidate)
+            bool shouldBeStaticallyResolved = staticInstallerDependencies.Any<string>(delegate(string candidate)
             {
                 return candidate.Equals(asmName.Name, StringComparison.InvariantCultureIgnoreCase);
             });
@@ -595,26 +595,20 @@ namespace Starcounter.InstallerWPF
                 ZipArchive zipArchive = new ZipArchive(Configuration.ArchiveZipStream, ZipArchiveMode.Read);
                 using (zipArchive)
                 {
-                    Stream memStream = null;
-
                     // Searching for the needed entry.
                     foreach (ZipArchiveEntry entry in zipArchive.Entries)
                     {
                         // Checking if file name is the same.
                         if (0 == String.Compare(entry.Name, asmName.Name, true))
                         {
-                            memStream = entry.Open();
+                            using (Stream memStream = entry.Open())
+                            {
+                                // Reading from stream into byte array.
+                                assemblyData = new Byte[entry.Length];
+                                memStream.Read(assemblyData, 0, assemblyData.Length);
+                            }
                             break;
                         }
-                    }
-
-                    // Extracting the entry into byte array.
-                    using (memStream)
-                    {
-                        // Reading from stream into byte array.
-                        assemblyData = new Byte[memStream.Length];
-                        memStream.Seek(0, SeekOrigin.Begin);
-                        memStream.Read(assemblyData, 0, assemblyData.Length);
                     }
                 }
             }
@@ -635,7 +629,10 @@ namespace Starcounter.InstallerWPF
             }
 
             // Finally loading assembly from byte array.
-            return Assembly.Load(assemblyData);
+            if (assemblyData != null)
+                return Assembly.Load(assemblyData);
+
+            return null;
         }
 
         void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
@@ -674,15 +671,22 @@ namespace Starcounter.InstallerWPF
         {
             // Setting Starcounter variables for current process (so that subsequently
             // started processes can find the installation path).
-            Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName,
+            Environment.SetEnvironmentVariable(
+                ConstantsBank.SCEnvVariableName,
                 CInstallationBase.GetEnvVarMachineUser(ConstantsBank.SCEnvVariableName),
                 EnvironmentVariableTarget.Process);
 
-            Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableDefaultServer,
+            Environment.SetEnvironmentVariable(
+                ConstantsBank.SCEnvVariableDefaultServer,
                 CInstallationBase.GetEnvVarMachineUser(ConstantsBank.SCEnvVariableDefaultServer),
                 EnvironmentVariableTarget.Process);
 
+            // Calling post-setup processes function.
+            InstallerMain.StartPostSetupProcesses(true);
+
             // Get the Mainthread
+            // TODO: Re-enable the demo sequence when it exists.
+            /*
             if (Application.Current != null)
             {
                 Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(delegate
@@ -690,11 +694,8 @@ namespace Starcounter.InstallerWPF
                     this.StartDemoSequence();
                 }));
             }
-            return;
-
-            // Calling post-setup processes function.
-            //            InstallerEngine.InstallerMain.StartPostSetupProcesses(true);
-        }
+            */
+       }
 
         private void StartDemoSequence()
         {

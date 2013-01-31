@@ -133,6 +133,27 @@
 
 
                                         </Grid>
+
+                                        <Label Padding="0" Target="{Binding ElementName=cb_PersonalServerDefaultTcpPort}" Margin="0,5,0,5"  Content="Default TCP port for _Apps"   />
+
+                                        <ComboBox x:Name="cb_PersonalServerDefaultTcpPort" IsEditable="True" SelectedIndex="0" MaxWidth="150" HorizontalAlignment="Left" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError">
+
+                                            <ComboBox.Text>
+                                                <Binding Path="DefaultAppsTcpPort" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged">
+                                                    <Binding.ValidationRules>
+                                                        <rules:PortRule ValidatesOnTargetUpdated="True"/>
+                                                    </Binding.ValidationRules>
+                                                </Binding>
+                                            </ComboBox.Text>
+
+                                            <ComboBoxItem>
+                                                <TextBlock>8080</TextBlock>
+                                            </ComboBoxItem>
+                                            <ComboBoxItem>
+                                                <TextBlock>9090</TextBlock>
+                                            </ComboBoxItem>
+                                        </ComboBox>
+                                        
                                     </StackPanel>
 
                                 </StackPanel>
@@ -208,6 +229,26 @@
 
 
                                         </Grid>
+
+                                        <Label Padding="0" Target="{Binding ElementName=cb_SystemServerDefaultTcpPort}" Margin="0,5,0,5"  Content="Default TCP port for _Apps" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError" />
+
+                                        <ComboBox x:Name="cb_SystemServerDefaultTcpPort" IsEditable="True" SelectedIndex="0" MaxWidth="150" HorizontalAlignment="Left">
+                                            <ComboBox.Text>
+                                                <Binding Path="DefaultAppsTcpPort" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged">
+                                                    <Binding.ValidationRules>
+                                                        <rules:PortRule ValidatesOnTargetUpdated="True"/>
+                                                    </Binding.ValidationRules>
+                                                </Binding>
+                                            </ComboBox.Text>
+
+                                            <ComboBoxItem>
+                                                <TextBlock>80</TextBlock>
+                                            </ComboBoxItem>
+                                            <ComboBoxItem>
+                                                <TextBlock>90</TextBlock>
+                                            </ComboBoxItem>
+                                        </ComboBox>
+
                                     </StackPanel>
 
                                 </StackPanel>
