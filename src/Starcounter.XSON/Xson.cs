@@ -1,10 +1,17 @@
 ﻿
-namespace Starcounter {
+namespace Starcounter.Advanced {
 
     /// <summary>
-    /// Xson is a Json inspired implementation of Object trees supporting arrays and basic
-    /// value types.
+    /// An Xson object is a basic data object inspired by Json.  
+    /// Xson objects can form trees using arrays and basic
+    /// value types as well as nested objects.
     /// 
+    /// While Json is a text based notation format, Xson is a materialized
+    /// tree of objects than can be serialized and deserialized from Json.
+    /// 
+    /// The difference from the Json induced object tree in Javascript is
+    /// foremost that Xson supports multiple numeric types, time and higher precision numerics.
+    ///
     /// Xson is the base class for Starcounter Applets and Starcounter Messages.
     /// 
     /// Each object points to a Template that describes its schema (properties). 
@@ -12,8 +19,6 @@ namespace Starcounter {
     /// The datatypes are a merge of what is available in most common high abstraction application languages such as Javascript,
     /// C#, Ruby and Java. This means that it is in part a superset and in part a subset.
     /// 
-    /// The difference from the close relative the Json induced object tree in Javascript is
-    /// foremost that Xson supports multiple numeric types, time and higher precision numerics.
     ///
     /// The types supported are:
     ///

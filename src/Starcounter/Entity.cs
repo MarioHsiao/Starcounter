@@ -4,6 +4,7 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.Advanced;
 using Starcounter.Binding;
 using Starcounter.Internal;
 using System;
@@ -22,7 +23,7 @@ namespace Starcounter
     /// <summary>
     /// Class Entity
     /// </summary>
-    public abstract class Entity : IObjectView
+    public abstract class Entity : IObjectView, IBindable
     {
 
         /// <summary>

@@ -36,9 +36,9 @@ namespace Starcounter.Internal.Application.CodeGeneration
                     return "Action";
 
                 var type = NTemplateClass.Template.InstanceType;
-                if (type == typeof(Int32))
+                if (type == typeof(Int64))
                 {
-                    return "int";
+                    return "long";
                 }
                 else if (type == typeof(Boolean))
                 {
