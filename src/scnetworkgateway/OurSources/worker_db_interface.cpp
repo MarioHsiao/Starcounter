@@ -57,7 +57,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
         chunk_popped = false;
 
         // Running through all channels.
-        for (int32_t i = 0; i < g_gateway.get_num_schedulers(); i++)
+        for (int32_t i = 0; i < num_schedulers_; i++)
         {
             // Obtaining the channel.
             core::channel_type& the_channel = shared_int_.channel(channels_[i]);
@@ -403,11 +403,11 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(GatewayWorker* gw, SocketDataChun
     smc->set_request_size(4);
 
     // Obtaining the current scheduler id.
-    int16_t sched_id = g_gateway.GetGlobalSessionSchedulerId(sd->get_session_index());
+    uint32_t sched_id = g_gateway.GetGlobalSessionSchedulerId(sd->get_session_index());
 
     // Checking scheduler id validity.
     if (INVALID_SCHEDULER_ID == sched_id)
-        sched_id = gw->GetSchedulerId();
+        sched_id = GetSchedulerId();
 
     // Setting scheduler id to session.
     sd->set_scheduler_id(sched_id);
@@ -505,36 +505,41 @@ uint32_t WorkerDbInterface::RequestRegisteredHandlers(int32_t sched_num)
     return 0;
 }
 
-// Initializes shared memory interface.
-uint32_t WorkerDbInterface::Init(
+// Allocates different channels and pools.
+WorkerDbInterface::WorkerDbInterface(
     const int32_t new_slot_index,
-    const core::shared_interface& workerSharedInt,
-    GatewayWorker *gw)
+    const core::shared_interface& shared_int,
+    const int32_t worker_id)
 {
+    Reset();
+
+    // Allocating channels.
+    num_schedulers_ = shared_int.common_scheduler_interface().number_of_active_schedulers();
+    channels_ = new core::channel_number[num_schedulers_];
+
+    // Setting private/overflow chunk pool capacity.
+    private_chunk_pool_.set_capacity(core::chunks_total_number_max);
+    private_overflow_pool_.set_capacity(core::chunks_total_number_max);
+
     db_index_ = new_slot_index;
-    worker_id_ = gw->get_worker_id();
-    shared_int_ = workerSharedInt;
+    worker_id_ = worker_id;
+    shared_int_ = shared_int;
 
     // Getting unique client interface for this worker.
-    if (!shared_int_.acquire_client_number())
-    {
-#ifdef GW_ERRORS_DIAG
-        GW_PRINT_WORKER << "Can't acquire client interface." << GW_ENDL;
-#endif
-        return SCERRGWCANTACQUIRECLIENTINTERFACE;
-    }
+    bool shared_int_acquired = shared_int_.acquire_client_number();
+    GW_ASSERT(true == shared_int_acquired);
 
 #ifdef GW_DATABASES_DIAG
     // Diagnostics.
     GW_PRINT_WORKER << "Database \"" << g_gateway.GetDatabase(db_index_)->get_db_name() <<
-        "\" acquired client interface " << shared_int_.get_client_number() << " and " << g_gateway.get_num_schedulers() << " channel(s): ";
+        "\" acquired client interface " << shared_int_.get_client_number() << " and " << num_schedulers_ << " channel(s): ";
 #endif
 
     // Acquiring unique channel for each scheduler.
-    for (std::size_t i = 0; i < g_gateway.get_num_schedulers(); ++i)
+    for (std::size_t i = 0; i < num_schedulers_; ++i)
     {
-        if (!shared_int_.acquire_channel(&channels_[i], i))
-            return SCERRGWCANTACQUIRECHANNEL;
+        bool channel_acquired = shared_int_.acquire_channel(&channels_[i], i);
+        GW_ASSERT(true == channel_acquired);
 
 #ifdef GW_DATABASES_DIAG
         GW_COUT << channels_[i] << ", ";
@@ -545,7 +550,6 @@ uint32_t WorkerDbInterface::Init(
     GW_COUT << GW_ENDL;
 #endif
 
-    return 0;
 }
 
 // Registers push channels on all schedulers.
@@ -554,7 +558,7 @@ uint32_t WorkerDbInterface::RegisterAllPushChannels()
     uint32_t err_code;
 
     // Sending push channel on each scheduler.
-    for (int32_t i = 0; i < g_gateway.get_num_schedulers(); ++i)
+    for (int32_t i = 0; i < num_schedulers_; ++i)
     {
         // Pushing registration chunk.
         err_code = RegisterPushChannel(i);
@@ -637,7 +641,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 g_gateway.GetDatabase(db_index_)->ReceivedPushChannelConfirmation();
 
                 // Checking if we have all push channels confirmed from database.
-                if (g_gateway.GetDatabase(db_index_)->IsAllPushChannelsConfirmed())
+                if (num_schedulers_ == g_gateway.GetDatabase(db_index_)->get_num_confirmed_push_channels())
                 {
                     GW_PRINT_WORKER << "All push channels confirmed!" << GW_ENDL;
 

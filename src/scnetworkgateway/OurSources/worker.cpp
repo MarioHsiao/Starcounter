@@ -31,7 +31,6 @@ int32_t GatewayWorker::Init(int32_t new_worker_id)
     worker_stats_bytes_sent_ = 0;
     worker_stats_sent_num_ = 0;
     worker_stats_recv_num_ = 0;
-    cur_scheduler_id_ = 0;
 
 #ifdef GW_TESTING_MODE
     num_created_conns_worker_ = 0;
@@ -1516,10 +1515,7 @@ uint32_t GatewayWorker::AddNewDatabase(
     int32_t db_index,
     const core::shared_interface& worker_shared_int)
 {
-    worker_dbs_[db_index] = new WorkerDbInterface();
-    uint32_t errCode = worker_dbs_[db_index]->Init(db_index, worker_shared_int, this);
-    GW_ERR_CHECK(errCode);
-
+    worker_dbs_[db_index] = new WorkerDbInterface(db_index, worker_shared_int, worker_id_);
     return 0;
 }
 
