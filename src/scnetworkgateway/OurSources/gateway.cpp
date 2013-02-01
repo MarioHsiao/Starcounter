@@ -1360,12 +1360,20 @@ uint32_t Gateway::Init()
 #endif
 
         // Going throw all needed ports.
-        for(int32_t p = 0; p < num_server_ports_unsafe_; p++)
+        for (int32_t p = 0; p < num_server_ports_unsafe_; p++)
         {
+            // Skipping empty port.
+            if (server_ports_[p].IsEmpty())
+                continue;
+
             SOCKET server_socket = INVALID_SOCKET;
 
             // Creating socket and binding to port (only on the first worker).
-            uint32_t errCode = CreateListeningSocketAndBindToPort(&gw_workers_[0], server_ports_[p].get_port_number(), server_socket);
+            uint32_t errCode = CreateListeningSocketAndBindToPort(
+                &gw_workers_[0],
+                server_ports_[p].get_port_number(),
+                server_socket);
+
             GW_ERR_CHECK(errCode);
         }
 
@@ -1561,12 +1569,16 @@ uint32_t Gateway::DeletePortsForDb(int32_t db_index)
     // Going through all ports.
     for (int32_t i = 0; i < num_server_ports_unsafe_; i++)
     {
-        // Deleting port handlers if any.
-        server_ports_[i].EraseDb(db_index);
+        // Checking that port is not empty.
+        if (!server_ports_[i].IsEmpty())
+        {
+            // Deleting port handlers if any.
+            server_ports_[i].EraseDb(db_index);
 
-        // Checking if port is not used anywhere.
-        if (server_ports_[i].IsEmpty())
-            server_ports_[i].Erase();
+            // Checking if port is not used anywhere.
+            if (server_ports_[i].IsEmpty())
+                server_ports_[i].Erase();
+        }
     }
 
     // Removing deleted trailing server ports.
