@@ -33,7 +33,8 @@ namespace Starcounter.VisualStudio.Projects {
             Dictionary<string, string> properties = new Dictionary<string, string>();
             CommandInfo command = null;
             DateTime start = DateTime.Now;
-            
+            bool result;
+
             var debugConfiguration = new AssemblyDebugConfiguration(this);
             if (!debugConfiguration.IsStartProject) {
                 throw new NotSupportedException("Only 'Project' start action is currently supported.");
@@ -83,10 +84,19 @@ namespace Starcounter.VisualStudio.Projects {
                 properties.Add("PrepareOnly", bool.TrueString);
             }
 
-            client.Send("ExecApp", properties, (Reply reply) => {
-                if (!reply.IsSuccess) throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, reply.ToString());
-                command = ServerUtility.DeserializeCarry<CommandInfo>(reply);
+            result = client.Send("ExecApp", properties, (Reply reply) => {
+                if (!reply.IsSuccess) {
+                    // Handle failure preparing/executing the app. Deserialize the
+                    // reply (as a CommandInfo) if possible, and return false.
+                    ReportServerCommandReturningFailure(Error.SCERRDEBUGFAILEDSERVERERRORSTARTING, null, reply);
+                } else {
+                    command = ServerUtility.DeserializeCarry<CommandInfo>(reply);
+                }
             });
+
+
+            if (result == false)
+                return result;
 
 #if false
             // Wait for the completion of the command by polling the server
@@ -144,6 +154,24 @@ namespace Starcounter.VisualStudio.Projects {
             return true;
         }
 
+        void ReportServerCommandReturningFailure(uint errorCode, string postfix, Reply reply) {
+            CommandInfo command;
+            ErrorMessage primaryServerError;
+            string clientError;
+
+            try {
+                command = ServerUtility.DeserializeCarry<CommandInfo>(reply);
+            } catch {
+                command = null;
+            }
+            
+            primaryServerError = command == null ? null : command.Errors[0].ToErrorMessage();
+            var serverError = primaryServerError == null ? "Server error N/A" : primaryServerError.ToString();
+            clientError = ErrorCode.ToMessage(errorCode, postfix).ToString();
+            
+            ReportError("{0}. (Server error message: {1})", clientError, serverError);
+        }
+
         void ExecuteAppEntrypointWithDebuggerAttached(Client client, Dictionary<string, string> properties) {
             // Currently, we don't bother waiting here since waiting will mean
             // we are waiting for the entire entrypoint to be exeuced. We just
@@ -151,7 +179,9 @@ namespace Starcounter.VisualStudio.Projects {
             // for synchronous invocation is removed (if ever specified).
             properties.Remove("@@Synchronous");
             client.Send("ExecApp", properties, (Reply reply) => {
-                if (!reply.IsSuccess) throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, reply.ToString());
+                if (!reply.IsSuccess) {
+                    ReportServerCommandReturningFailure(Error.SCERRUNSPECIFIED, "Failed invoking entrypoint", reply);
+                }
             });
         }
 

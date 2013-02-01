@@ -234,6 +234,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	// Creating sccode command
 	str_num_chars = 0;
 
+#if 0
     // Checking if number of schedulers is defined.
 	str_template = L"sccode.exe %s --ServerName=%s --DatabaseDir=\"%s\" --OutputDir=\"%s\" --TempDir=\"%s\" --CompilerPath=\"%s\" --AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\" %s\" --WorkingDir=\"%s\" --DefaultUserHttpPort=%s --SchedulerCount=%s";
 
@@ -255,6 +256,27 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
         wcslen(default_user_http_port) +
         wcslen(database_scheduler_count) +
         1;
+#endif
+
+#if 1
+    // Checking if number of schedulers is defined.
+	str_template = L"sccode.exe %s --ServerName=%s --DatabaseDir=\"%s\" --OutputDir=\"%s\" --TempDir=\"%s\" --CompilerPath=\"%s\" --AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\" %s\" --WorkingDir=\"%s\" --DefaultAppsPort=%s";
+
+    str_num_chars +=
+        wcslen(str_template) + 
+		wcslen(admin_dbname_upr) + 
+        wcslen(srv_name_upr) + 
+		wcslen(database_image_dir) + 
+		wcslen(server_logs_dir) + 
+		wcslen(database_temp_dir) +
+		wcslen(mingw) + 
+		wcslen(admin_exe_path) +
+		wcslen(server_cfg_path) +
+        wcslen(admin_tcp_port) +
+		wcslen(admin_working_dir) +
+        wcslen(default_apps_port) +
+        1;
+#endif
 
     str_size_bytes = str_num_chars * sizeof(wchar_t);
     sccode_cmd = (wchar_t *)malloc(str_size_bytes);
