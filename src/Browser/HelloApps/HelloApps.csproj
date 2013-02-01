@@ -72,6 +72,9 @@
     <Reference Include="Starcounter.Bootstrap">
       <HintPath>..\..\..\bin\Debug\Starcounter.Bootstrap.dll</HintPath>
     </Reference>
+    <Reference Include="Starcounter.Internal">
+      <HintPath>..\..\..\bin\Debug\Starcounter.Internal.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
