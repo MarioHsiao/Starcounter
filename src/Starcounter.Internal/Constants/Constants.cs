@@ -61,6 +61,32 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
+        /// Defines the well known network ports.
+        /// </summary>
+        public static class NetworkPorts
+        {
+            /// <summary>
+            /// Default Apps port for Personal server
+            /// </summary>
+            public const UInt16 DefaultPersonalServerAppsTcpPort = 8080;
+
+            /// <summary>
+            /// Default Apps port for System server
+            /// </summary>
+            public const UInt16 DefaultSystemServerAppsTcpPort = 80;
+
+            /// <summary>
+            /// Default port for Personal server Administrator
+            /// </summary>
+            public const UInt16 DefaultPersonalServerAdminTcpPort = 8181;
+
+            /// <summary>
+            /// Default port for System server Administrator
+            /// </summary>
+            public const UInt16 DefaultSystemServerAdminTcpPort = 81;
+        }
+
+        /// <summary>
         /// Defines the commands this program accepts.
         /// </summary>
         public static class BootstrapCommandNames
@@ -114,6 +140,11 @@ namespace Starcounter.Internal
             /// Specifies TCP/IP port to be used by SQL parser.
             /// </summary>
             public const string SQLProcessPort = "SQLProcessPort";
+
+            /// <summary>
+            /// Default TCP port for Apps.
+            /// </summary>
+            public const string DefaultAppsPort = "DefaultAppsPort";
 
             /// <summary>
             /// Specifies the number of schedulers.

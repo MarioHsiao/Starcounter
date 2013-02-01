@@ -91,7 +91,13 @@ end:
     return r;
 }
 
-uint32_t _read_server_config(const wchar_t *server_config_path, wchar_t **pserver_logs_dir, wchar_t **pserver_temp_dir,  wchar_t **pserver_database_dir)
+uint32_t _read_server_config(
+    const wchar_t *server_config_path,
+    wchar_t **pserver_logs_dir,
+    wchar_t **pserver_temp_dir,
+    wchar_t **pserver_database_dir,
+    wchar_t **padmin_tcp_port,
+    wchar_t **pdefault_apps_port)
 {
     using namespace rapidxml;
 
@@ -180,6 +186,32 @@ uint32_t _read_server_config(const wchar_t *server_config_path, wchar_t **pserve
 
     // Converting server directory from UTF-8 to wchar_t.
     num_chars_converted = MultiByteToWideChar(CP_UTF8, 0, server_databases_dir_elem->value(), -1, *pserver_database_dir, (int)str_num_chars);
+    if (0 == num_chars_converted) goto end;
+
+    // Read Administrator port.
+    xml_node<> *admin_port_dir_elem = root_elem->first_node("AdminTcpPort");
+    if (!admin_port_dir_elem) goto end;
+
+    str_num_chars = admin_port_dir_elem->value_size() + 1;
+    str_size_bytes = str_num_chars * sizeof(wchar_t);
+    *padmin_tcp_port = (wchar_t *)malloc(str_size_bytes);
+    if (!*padmin_tcp_port) goto end;
+
+    // Converting server directory from UTF-8 to wchar_t.
+    num_chars_converted = MultiByteToWideChar(CP_UTF8, 0, admin_port_dir_elem->value(), -1, *padmin_tcp_port, (int)str_num_chars);
+    if (0 == num_chars_converted) goto end;
+
+    // Read default Apps port.
+    xml_node<> *default_apps_port_elem = root_elem->first_node("DefaultDatabaseConfiguration")->first_node("Runtime")->first_node("DefaultAppsPort");
+    if (!default_apps_port_elem) goto end;
+
+    str_num_chars = default_apps_port_elem->value_size() + 1;
+    str_size_bytes = str_num_chars * sizeof(wchar_t);
+    *pdefault_apps_port = (wchar_t *)malloc(str_size_bytes);
+    if (!*pdefault_apps_port) goto end;
+
+    // Converting default apps port from UTF-8 to wchar_t.
+    num_chars_converted = MultiByteToWideChar(CP_UTF8, 0, default_apps_port_elem->value(), -1, *pdefault_apps_port, (int)str_num_chars);
     if (0 == num_chars_converted) goto end;
 
     r = 0;

@@ -31,7 +31,7 @@ namespace BuildsFillupDaemon
                 if (BuildSystem.IsSameExecutableRunning())
                     return 0;
 
-                // Current directory must contain sub-directory 'Yellow\Src\...'
+                // Current directory must contain sub-directory 'Level1\Src\...'
                 String sourcesDir = BuildSystem.GetAssemblyDir();
 
                 String configuration = null,
@@ -72,13 +72,12 @@ namespace BuildsFillupDaemon
 
                 // Setting all needed build environment variables.
                 Environment.SetEnvironmentVariable("Configuration", configuration);
-                Environment.SetEnvironmentVariable("Platform", platform);
+                //Environment.SetEnvironmentVariable("Platform", platform);
                 Environment.SetEnvironmentVariable(BuildSystem.BuildNumberEnvVar, version);
                 Environment.SetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar, sourcesDir);
                 Environment.SetEnvironmentVariable(BuildSystem.BuildOutputEnvVar, Path.Combine(sourcesDir, BuildSystem.CommonDefaultBuildOutputPath));
-                Environment.SetEnvironmentVariable("SC_BUILD_SOURCES_PATH", Path.Combine(sourcesDir, @"Yellow\Src"));
-                Environment.SetEnvironmentVariable("SC_BUILD_PRECOMPILED_BIN_PATH", Path.Combine(sourcesDir, @"Yellow\Src\Redistributables"));
-                Environment.SetEnvironmentVariable(BuildSystem.ConsolidOutputEnvVar, Path.Combine(sourcesDir, BuildSystem.CommonDefaultBuildOutputPath + @"\BinConsolidated-" + configuration + "-" + platform));
+                Environment.SetEnvironmentVariable("SC_BUILD_SOURCES_PATH", Path.Combine(sourcesDir, @"Level1\Src"));
+                Environment.SetEnvironmentVariable("SC_BUILD_PRECOMPILED_BIN_PATH", Path.Combine(sourcesDir, @"Level1\Src\Redistributables"));
 
                 // Indicating that we need to upload to US FTP.
                 Environment.SetEnvironmentVariable(BuildSystem.UploadToUsFtp, "True");
@@ -87,14 +86,16 @@ namespace BuildsFillupDaemon
                 Environment.SetEnvironmentVariable("DONT_COPY_EXTERNAL_FILES", "True");
 
                 // Checking that all needed variables are defined.
-                if (!BuildSystem.AllEnvVariablesExist(new String[] { "Configuration",
-                                                                     "Platform",
-                                                                     BuildSystem.BuildNumberEnvVar,
-                                                                     BuildSystem.CheckOutDirEnvVar,
-                                                                     BuildSystem.BuildOutputEnvVar,
-                                                                     "SC_BUILD_SOURCES_PATH",
-                                                                     "SC_BUILD_PRECOMPILED_BIN_PATH",
-                                                                     BuildSystem.ConsolidOutputEnvVar }))
+                if (!BuildSystem.AllEnvVariablesExist(new String[]
+                {
+                    "Configuration",
+                    //"Platform",
+                    BuildSystem.BuildNumberEnvVar,
+                    BuildSystem.CheckOutDirEnvVar,
+                    BuildSystem.BuildOutputEnvVar,
+                    "SC_BUILD_SOURCES_PATH",
+                    "SC_BUILD_PRECOMPILED_BIN_PATH"
+                }))
                 {
                     throw new Exception("Not all environment variables exist.");
                 }

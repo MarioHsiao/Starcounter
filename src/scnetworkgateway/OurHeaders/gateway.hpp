@@ -1968,7 +1968,7 @@ public:
     }
 
     // Adds new server port.
-    int32_t AddServerPort(uint16_t port_num, SOCKET listening_sock, int32_t blob_user_data_offset)
+    ServerPort* AddServerPort(uint16_t port_num, SOCKET listening_sock, int32_t blob_user_data_offset)
     {
         // Looking for an empty server port slot.
         int32_t empty_slot = 0;
@@ -1985,7 +1985,7 @@ public:
         if (empty_slot >= num_server_ports_unsafe_)
             num_server_ports_unsafe_++;
 
-        return empty_slot;
+        return server_ports_ + empty_slot;
     }
 
     // Runs all port handlers.
@@ -1997,6 +1997,9 @@ public:
     // Get active server ports.
     ServerPort* get_server_port(int32_t port_index)
     {
+        // TODO: Port should not be empty.
+        //GW_ASSERT(!server_ports_[port_index].IsEmpty());
+
         return server_ports_ + port_index;
     }
 

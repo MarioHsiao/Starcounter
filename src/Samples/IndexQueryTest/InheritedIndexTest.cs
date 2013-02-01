@@ -30,18 +30,20 @@ namespace IndexQueryTest.InheritedIndex {
             Db.SlowSQL("CREATE unique INDEX personName ON Person (Name)");
             Db.SlowSQL("CREATE INDEX teacherName ON IndexQueryTest.InheritedIndex.Teacher (Name)");
             Db.SlowSQL("CREATE INDEX personBirthdayGender ON Person (Birthday, Gender)");
-            Db.SlowSQL("CREATE INDEX employeeCompany ON Employee (Company)");
-            Db.SlowSQL("CREATE INDEX professorCompany On Professor (Company)");
+            Db.SlowSQL("CREATE INDEX companyIndx ON Employee (Company)");
+            Db.SlowSQL("CREATE INDEX companyIndx On Professor (Company)");
             Db.SlowSQL("CREATE INDEX employeeBoss ON Employee (Boss)");
+            Db.SlowSQL("create index professorBoss ON Professor (Boss)");
         }
 
         internal static void DropIndexes() {
             CallDropIndex("DROP INDEX personName ON Person");
             CallDropIndex("DROP INDEX teacherName ON IndexQueryTest.InheritedIndex.Teacher");
             CallDropIndex("DROP INDEX personBirthdayGender ON Person");
-            CallDropIndex("DROP INDEX employeeCompany ON Employee");
-            CallDropIndex("DROP INDEX professorCompany On Professor");
+            CallDropIndex("DROP INDEX companyIndx ON Employee");
+            CallDropIndex("DROP INDEX companyIndx On Professor");
             CallDropIndex("DROP INDEX employeeBoss ON Employee");
+            CallDropIndex("DROP index professorBoss ON Professor");
         }
 
         internal static void CallDropIndex(String statement) {
@@ -81,13 +83,13 @@ namespace IndexQueryTest.InheritedIndex {
                 nrObjects++;
             Trace.Assert(nrObjects == TotalTeachers);
             nrObjects = 0;
-            PrintQueryPlan("select e from teacher e OPTION INDEX (e employeeCompany)"); // use inherited index
-            foreach (Employee e in Db.SQL("select e from teacher e OPTION INDEX (e employeeCompany)"))
+            PrintQueryPlan("select e from teacher e OPTION INDEX (e companyIndx)"); // use inherited index
+            foreach (Employee e in Db.SQL("select e from teacher e OPTION INDEX (e companyIndx)"))
                 nrObjects++;
             Trace.Assert(nrObjects == TotalTeachers);
             nrObjects = 0;
-            PrintQueryPlan("select e from employee e OPTION INDEX (e employeeCompany)"); // use index
-            foreach (Employee e in Db.SQL("select e from employee e OPTION INDEX (e employeeCompany)"))
+            PrintQueryPlan("select e from employee e OPTION INDEX (e companyIndx)"); // use index
+            foreach (Employee e in Db.SQL("select e from employee e OPTION INDEX (e companyIndx)"))
                 nrObjects++;
             Trace.Assert(nrObjects == TotalEmployees);
         }
@@ -103,31 +105,32 @@ namespace IndexQueryTest.InheritedIndex {
 
         internal static void TestGetAllIndexInfos() {
             IndexInfo[] indexes = Bindings.GetTypeBindingInsensitive("Professor").GetAllInheritedIndexInfos();
-            Trace.Assert(indexes.Length == 10);
+            Trace.Assert(indexes.Length == 11);
             // Type Professor
             Trace.Assert(indexes[0].Name == "auto");
-            Trace.Assert(indexes[1].Name == "professorCompany");
+            Trace.Assert(indexes[1].Name == "companyIndx");
+            Trace.Assert(indexes[2].Name == "professorBoss");
             // Type Teacher
-            Trace.Assert(indexes[2].Name == "auto");
-            Trace.Assert(indexes[3].Name == "teacherName");
+            Trace.Assert(indexes[3].Name == "auto");
+            Trace.Assert(indexes[4].Name == "teacherName");
             // Type Employee
-            Trace.Assert(indexes[4].Name == "auto");
-            Trace.Assert(indexes[5].Name == "employeeBoss");
-            Trace.Assert(indexes[6].Name == "employeeCompany");
+            Trace.Assert(indexes[5].Name == "auto");
+            Trace.Assert(indexes[6].Name == "companyIndx");
+            Trace.Assert(indexes[7].Name == "employeeBoss");
             // Type Person
-            Trace.Assert(indexes[7].Name == "auto");
-            Trace.Assert(indexes[8].Name == "personBirthdayGender");
-            Trace.Assert(indexes[9].Name == "personName");
+            Trace.Assert(indexes[8].Name == "auto");
+            Trace.Assert(indexes[9].Name == "personBirthdayGender");
+            Trace.Assert(indexes[10].Name == "personName");
         }
 
         internal static void TestGetInheritedIndexInfo() {
-            IndexInfo indx = Bindings.GetTypeBindingInsensitive("Professor").GetInheritedIndexInfo("professorCompany");
+            IndexInfo indx = Bindings.GetTypeBindingInsensitive("Professor").GetInheritedIndexInfo("companyIndx");
             Trace.Assert(indx != null);
-            indx = Bindings.GetTypeBindingInsensitive("Professor").GetInheritedIndexInfo("employeeCompany");
+            indx = Bindings.GetTypeBindingInsensitive("Professor").GetInheritedIndexInfo("companyIndx");
             Trace.Assert(indx != null);
-            indx = Bindings.GetTypeBindingInsensitive("Teacher").GetInheritedIndexInfo("employeeCompany");
+            indx = Bindings.GetTypeBindingInsensitive("Teacher").GetInheritedIndexInfo("companyIndx");
             Trace.Assert(indx != null);
-            indx = Bindings.GetTypeBindingInsensitive("Teacher").GetInheritedIndexInfo("professorCompany");
+            indx = Bindings.GetTypeBindingInsensitive("Teacher").GetInheritedIndexInfo("professorBoss");
             Trace.Assert(indx == null);
         }
 

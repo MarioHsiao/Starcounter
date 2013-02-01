@@ -3,6 +3,7 @@
 
 
 #include "../Starcounter.ErrorCodes/scerrres/scerrres.h"
+#include "../Starcounter.ErrorCodes/scerrres/format.h"
 
 
 #include <stdint.h>
@@ -18,7 +19,22 @@ extern uint32_t _exec(wchar_t *command_line, int32_t inherit_console, void **pha
 extern uint32_t _wait(void **handles, uint32_t count, uint32_t *psignaled_index);
 extern void _kill_and_cleanup(void *handle);
 
-extern uint32_t _read_service_config(const wchar_t *name, wchar_t **pserver_dir);
-extern uint32_t _read_server_config(const wchar_t *server_config_path, wchar_t **pserver_logs_dir, wchar_t **pserver_temp_dir, wchar_t **pserver_database_dir);
-extern uint32_t _read_database_config(const wchar_t *database_config_path,  wchar_t **pdatabase_logs_dir,  wchar_t **pdatabase_temp_dir, wchar_t **pdatabase_image_dir, wchar_t **pdatabase_scheduler_count);
+extern uint32_t _read_service_config(
+    const wchar_t *name,
+    wchar_t **pserver_dir);
+
+extern uint32_t _read_server_config(
+    const wchar_t *server_config_path,
+    wchar_t **pserver_logs_dir,
+    wchar_t **pserver_temp_dir,
+    wchar_t **pserver_database_dir,
+    wchar_t **padmin_tcp_port,
+    wchar_t **pdefault_apps_port);
+
+extern uint32_t _read_database_config(
+    const wchar_t *database_config_path,
+    wchar_t **pdatabase_logs_dir,
+    wchar_t **pdatabase_temp_dir,
+    wchar_t **pdatabase_image_dir,
+    wchar_t **pdatabase_scheduler_count);
 
