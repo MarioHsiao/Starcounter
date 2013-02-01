@@ -28,8 +28,8 @@ extern uint32_t _read_server_config(
     wchar_t **pserver_logs_dir,
     wchar_t **pserver_temp_dir,
     wchar_t **pserver_database_dir,
-    wchar_t **padmin_tcp_port,
-    wchar_t **pdefault_apps_port);
+    wchar_t **psystem_http_port,
+    wchar_t **pdefault_user_http_port);
 
 extern uint32_t _read_database_config(
     const wchar_t *database_config_path,

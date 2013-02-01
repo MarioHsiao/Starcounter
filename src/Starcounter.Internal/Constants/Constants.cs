@@ -63,27 +63,47 @@ namespace Starcounter.Internal
         /// <summary>
         /// Defines the well known network ports.
         /// </summary>
-        public static class NetworkPorts
+        public class NetworkPorts
         {
             /// <summary>
-            /// Default Apps port for Personal server
+            /// Default user port for Personal server.
             /// </summary>
-            public const UInt16 DefaultPersonalServerAppsTcpPort = 8080;
+            public const UInt16 DefaultPersonalServerUserHttpPort = 8080;
 
             /// <summary>
-            /// Default Apps port for System server
+            /// Default user port for Personal server.
             /// </summary>
-            public const UInt16 DefaultSystemServerAppsTcpPort = 80;
+            public const String DefaultPersonalServerUserHttpPort_String = "DefaultPersonalServerUserHttpPort";
 
             /// <summary>
-            /// Default port for Personal server Administrator
+            /// Default user port for System server.
             /// </summary>
-            public const UInt16 DefaultPersonalServerAdminTcpPort = 8181;
+            public const UInt16 DefaultSystemServerUserHttpPort = 80;
 
             /// <summary>
-            /// Default port for System server Administrator
+            /// Default user port for System server.
             /// </summary>
-            public const UInt16 DefaultSystemServerAdminTcpPort = 81;
+            public const String DefaultSystemServerUserHttpPort_String = "DefaultSystemServerUserHttpPort";
+
+            /// <summary>
+            /// Default user port for Personal server.
+            /// </summary>
+            public const UInt16 DefaultPersonalServerSystemHttpPort = 8181;
+
+            /// <summary>
+            /// Default user port for Personal server.
+            /// </summary>
+            public const String DefaultPersonalServerSystemHttpPort_String = "DefaultPersonalServerSystemHttpPort";
+
+            /// <summary>
+            /// Default system port for System server.
+            /// </summary>
+            public const UInt16 DefaultSystemServerSystemHttpPort = 81;
+
+            /// <summary>
+            /// Default system port for System server.
+            /// </summary>
+            public const String DefaultSystemServerSystemHttpPort_String = "DefaultSystemServerSystemHttpPort";
         }
 
         /// <summary>
@@ -142,9 +162,9 @@ namespace Starcounter.Internal
             public const string SQLProcessPort = "SQLProcessPort";
 
             /// <summary>
-            /// Default TCP port for Apps.
+            /// Default HTTP port for user code.
             /// </summary>
-            public const string DefaultAppsPort = "DefaultAppsPort";
+            public const string DefaultUserHttpPort = "DefaultUserHttpPort";
 
             /// <summary>
             /// Specifies the number of schedulers.
