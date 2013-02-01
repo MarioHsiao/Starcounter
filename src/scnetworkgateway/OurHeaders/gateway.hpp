@@ -1997,8 +1997,8 @@ public:
     // Get active server ports.
     ServerPort* get_server_port(int32_t port_index)
     {
-        // Port should not be empty.
-        GW_ASSERT(!server_ports_[port_index].IsEmpty());
+        // TODO: Port should not be empty.
+        //GW_ASSERT(!server_ports_[port_index].IsEmpty());
 
         return server_ports_ + port_index;
     }
