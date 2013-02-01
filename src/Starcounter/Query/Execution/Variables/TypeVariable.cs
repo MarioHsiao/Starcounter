@@ -2,9 +2,7 @@
 using System.Diagnostics;
 using Starcounter.Binding;
 
-//namespace Starcounter.Query.Execution.Variables
-namespace Starcounter.Query.Execution
-{
+namespace Starcounter.Query.Execution.Variables {
     /// <summary>
     /// Class that holds information about a variable of type Type.
     /// </summary>
@@ -159,7 +157,7 @@ namespace Starcounter.Query.Execution
             if (newValue == null)
                 this.value = null;
             else {
-                this.value = Bindings.GetTypeBinding(newValue.Name);
+                this.value = Bindings.GetTypeBinding(value.Name);
                 if (this.value == null)
                     throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect value.");
             }
@@ -193,7 +191,6 @@ namespace Starcounter.Query.Execution
             Debug.Assert(otherNode != null);
             return this.AssertEquals(otherNode);
         }
-
         internal bool AssertEquals(TypeVariable other) {
             Debug.Assert(other != null);
             if (other == null)

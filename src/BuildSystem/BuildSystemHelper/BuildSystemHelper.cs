@@ -71,17 +71,12 @@ namespace BuildSystemHelper
         /// <summary>
         /// Common path to default build output.
         /// </summary>
-        public const String CommonDefaultBuildOutputPath = @"Yellow\Src\YellowBuildOutput";
+        public const String CommonDefaultBuildOutputPath = @"Level1\Src\..\Bin";
 
         /// <summary>
         /// Path to MsBuild tool.
         /// </summary>
         public const String MsBuildExePath = @"C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe";
-
-        /// <summary>
-        /// Path to consolidated output.
-        /// </summary>
-        public const String ConsolidOutputEnvVar = "SC_BIN_CONSOLIDATED_FOLDER";
 
         /// <summary>
         /// Flag to upload to external FTP.

@@ -64,7 +64,7 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="value">The parsed value.</param>
         /// <param name="valueSize">The size of the unparsed value in bytes</param>
         /// <returns><c>true</c> if value was succesfully parsed, <c>false</c> otherwise</returns>
-        public static bool ParseInt(IntPtr ptr, int size, out int value, out int valueSize) {
+        public static bool ParseInt(IntPtr ptr, int size, out long value, out int valueSize) {
             ulong result;
 
             unsafe {
@@ -77,7 +77,7 @@ namespace Starcounter.Internal.JsonPatch {
             }
 
             if (Utf8Helper.IntFastParseFromAscii(ptr, valueSize, out result)) {
-                value = (int)result;
+                value = (long)result;
                 return true;
             }
             value = -1;
@@ -331,10 +331,10 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="size"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static int WriteInt(IntPtr ptr, int size, int value) {
+        public static int WriteInt(IntPtr ptr, int size, long value) {
             unsafe {
                 byte* p = (byte*)ptr;
-                return (int)Utf8Helper.WriteUIntAsUtf8(p, (uint)value);
+                return (int)Utf8Helper.WriteUIntAsUtf8(p, (UInt64)value);
             }
         }
 

@@ -331,7 +331,7 @@ namespace Starcounter {
         /// <returns>System.Int32.</returns>
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public int GetValue(IntProperty property) {
+        public long GetValue(IntProperty property) {
             if (property.Bound)
                 return property.GetBoundValue(this);
 

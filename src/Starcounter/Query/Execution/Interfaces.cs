@@ -771,6 +771,7 @@ internal interface IComparison : ILogicalExpression
     /// Gets a path to the given extent.
     /// The path is used for an index scan for the extent with the input extent number, 
     /// if there is such a path and if there is a corresponding index.
+    /// This method is used to select a scan alternative. It is not used in join optimization.
     /// </summary>
     /// <param name="extentNumber">An extent number.</param>
     /// <returns>A path, if an appropriate one is found, otherwise null.</returns>

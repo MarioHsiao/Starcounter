@@ -13,8 +13,13 @@
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 ///********************************************************************************************
-/// Defining IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL
+/// Define IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL
+/// to synchronize access to the shared_chunk_pool using a spinlock and Windows Events.
+#define IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL
+
+/// Define IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL
 /// to activate the use of one overflow queue per channel, based on linked lists.
+/// Warning: There is a bug causing access violation if this macro is defined.
 //#define IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL
 
 /// Define CONNECTIVITY_MONITOR_SHOW_ACTIVITY in order for the connectivity monitor

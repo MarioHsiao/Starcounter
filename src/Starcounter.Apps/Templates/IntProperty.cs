@@ -16,7 +16,7 @@ namespace Starcounter.Templates {
     /// <summary>
     /// Class IntProperty
     /// </summary>
-    public class IntProperty : Property<int>
+    public class IntProperty : Property<long>
 #if IAPP
         , IIntTemplate
 #endif
@@ -25,7 +25,7 @@ namespace Starcounter.Templates {
         /// <summary>
         /// The _ default value
         /// </summary>
-        private int _DefaultValue = 0;
+        private long _DefaultValue = 0;
 
         /// <summary>
         /// Processes the input.
@@ -34,7 +34,7 @@ namespace Starcounter.Templates {
         /// <param name="rawValue">The raw value.</param>
         public override void ProcessInput(App app, byte[] rawValue)
         {
-            int v = (int)Utf8Helper.IntFastParseFromAscii(rawValue, 0, (uint)rawValue.Length);
+            long v = (long)Utf8Helper.IntFastParseFromAscii(rawValue, 0, (uint)rawValue.Length);
             ProcessInput(app, v);
         }
 
@@ -42,7 +42,7 @@ namespace Starcounter.Templates {
         /// Gets or sets the default value.
         /// </summary>
         /// <value>The default value.</value>
-        public int DefaultValue {
+        public long DefaultValue {
             get { return _DefaultValue; }
             set { _DefaultValue = value; }
         }
@@ -57,7 +57,7 @@ namespace Starcounter.Templates {
                 return DefaultValue;
             }
             set {
-                DefaultValue = (int)value;
+                DefaultValue = (long)value;
             }
         }
         /// <summary>
@@ -65,7 +65,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <value>The type of the instance.</value>
         public override Type InstanceType {
-            get { return typeof(int); }
+            get { return typeof(long); }
         }
     }
 }

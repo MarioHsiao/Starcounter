@@ -15,6 +15,16 @@ namespace Starcounter.Internal {
     public static class AppsBootstrapper {
         private static HttpAppServer appServer;
         private static StaticWebServer fileServer;
+        private static UInt16 defaultPort_ = StarcounterConstants.NetworkPorts.DefaultPersonalServerAppsTcpPort;
+
+        /// <summary>
+        /// Initializes AppsBootstrapper.
+        /// </summary>
+        /// <param name="defaultPort"></param>
+        public static void InitAppsBootstrapper(UInt16 defaultPort)
+        {
+            defaultPort_ = defaultPort;
+        }
         
         /// <summary>
         /// 
@@ -49,17 +59,17 @@ namespace Starcounter.Internal {
 
             // Let the Network Gateway now when the user adds a handler (like GET("/")).
 
+            // Checking for the port.
+            if (port == -1)
+                port = defaultPort_;
+
             // TODO: 
             // The registration to the gateway should only be called once per port, not 
             // once for each registered handler.
-            if (port != -1) {
-                App.UriMatcherBuilder.RegistrationListeners.Add((string verbAndUri) => {
-                    UInt16 handlerId;
-
-                    // TODO! Alexey. Please allow to register to Gateway with only port (i.e without Verb and URI)
-                    GatewayHandlers.RegisterUriHandler((ushort)port, "/", OnHttpMessageRoot, out handlerId);
-                });
-            }
+            App.UriMatcherBuilder.RegistrationListeners.Add((string verbAndUri) => {
+                UInt16 handlerId;
+                GatewayHandlers.RegisterUriHandler((ushort)port, "/", OnHttpMessageRoot, out handlerId);
+            });
         }
 
         /// <summary>

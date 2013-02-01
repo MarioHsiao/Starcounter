@@ -678,8 +678,6 @@ namespace Starcounter.InstallerWPF
 
             Demo demo = new Demo(this._InternalComponents);
             this._InternalComponents.Add(demo);
-
-
         }
 
         /// <summary>
@@ -861,7 +859,7 @@ namespace Starcounter.InstallerWPF
             this.RegisterPage(new LicenseAgreementPage());
             this.RegisterPage(new InstallationPathPage());
             this.RegisterPage(new DatabaseEnginesPage());
-            this.RegisterPage(new AdministrationToolsPage());
+            //this.RegisterPage(new AdministrationToolsPage());
             //this.RegisterPage(new ConnectivityPage());
             this.RegisterPage(new DeveloperToolsPage());
             this.RegisterPage(new ProgressPage());
@@ -886,7 +884,7 @@ namespace Starcounter.InstallerWPF
         private void RegisterRemoveComponentsPages()
         {
             this.RegisterPage(new DatabaseEnginesPage());
-            this.RegisterPage(new AdministrationToolsPage());
+            //this.RegisterPage(new AdministrationToolsPage());
             //this.RegisterPage(new ConnectivityPage());
             this.RegisterPage(new DeveloperToolsPage());
 
@@ -901,7 +899,7 @@ namespace Starcounter.InstallerWPF
         {
             this.RegisterPage(new LicenseAgreementPage());
             this.RegisterPage(new DatabaseEnginesPage());
-            this.RegisterPage(new AdministrationToolsPage());
+            //this.RegisterPage(new AdministrationToolsPage());
             //this.RegisterPage(new ConnectivityPage());
             this.RegisterPage(new DeveloperToolsPage());
 

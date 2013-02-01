@@ -22,6 +22,10 @@ using System.Reflection;
 using System.Globalization;
 using Starcounter;
 using Starcounter.Internal;
+using Starcounter.Server;
+using Starcounter.Configuration;
+using Starcounter.Server.PublicModel;
+using Starcounter.Server.PublicModel.Commands;
 
 namespace Starcounter.InstallerEngine
 {
@@ -33,12 +37,12 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// Loads installer settings.
         /// </summary>
-        /// <param name="iniPath">Path to settings INI file.</param>
-        internal static void LoadInstallerINIFile(String iniPath)
+        /// <param name="iniPath">Path to settings XML file.</param>
+        internal static void LoadInstallationSettings(String configPath)
         {
             // Overwriting settings if already been loaded.
             installSettings = new Dictionary<String, String>();
-            INILoader.LoadINIFile(iniPath, ConstantsBank.SettingsSection_Install, installSettings);
+            SettingsLoader.LoadConfigFile(configPath, ConstantsBank.SettingsSection_Install, installSettings);
         }
 
         /// <summary>
@@ -47,9 +51,9 @@ namespace Starcounter.InstallerEngine
         /// <param name="settingName">Name of the setting.</param>
         /// <param name="compareTo">String to compare with.</param>
         /// <returns>True if values are the same.</returns>
-        internal static Boolean InstallSettingCompare(String settingName, String compareWith)
+        internal static Boolean InstallationSettingCompare(String settingName, String compareWith)
         {
-            String setting = INILoader.GetSettingValue(settingName, installSettings);
+            String setting = SettingsLoader.GetSettingValue(settingName, installSettings);
 
             return setting.Equals(compareWith, StringComparison.CurrentCultureIgnoreCase);
         }
@@ -59,9 +63,9 @@ namespace Starcounter.InstallerEngine
         /// </summary>
         /// <param name="settingName">Name of the setting.</param>
         /// <returns>Setting value.</returns>
-        internal static String GetInstallSettingValue(String settingName)
+        internal static String GetInstallationSettingValue(String settingName)
         {
-            return INILoader.GetSettingValue(settingName, installSettings);
+            return SettingsLoader.GetSettingValue(settingName, installSettings);
         }
 
         /// <summary>
@@ -91,6 +95,57 @@ namespace Starcounter.InstallerEngine
             textStreamReader.Close();
 
             return ScEmbVersionInfo;
+        }
+
+        // Creates server config XML.
+        public static void CreateServerConfig(
+            String serverName,
+            String pathToServerDir,
+            String whereToSaveConfig)
+        {
+            XmlDocument xmlDoc = new XmlDocument();
+            XmlElement rootElem = xmlDoc.CreateElement("service");
+
+            XmlElement elem = xmlDoc.CreateElement("server-dir");
+            elem.InnerText = pathToServerDir;
+            rootElem.AppendChild(elem);
+
+            // Saving setup setting to file.
+            xmlDoc.AppendChild(xmlDoc.CreateXmlDeclaration("1.0", "UTF-8", null));
+            xmlDoc.AppendChild(rootElem);
+            xmlDoc.Save(whereToSaveConfig);
+        }
+
+        // Copy gateway config XML.
+        public static void CopyGatewayConfig(
+            String serverDir,
+            String gatewayStatsPort)
+        {
+            // Copying gateway configuration.
+            File.Copy(
+                Path.Combine(InstallerMain.InstallationDir, ConstantsBank.ScGatewayConfigName),
+                Path.Combine(serverDir, ConstantsBank.ScGatewayConfigName),
+                true);
+
+            // Overwriting server config values.
+            if (!Utilities.ReplaceXMLParameterInFile(
+                Path.Combine(serverDir, ConstantsBank.ScGatewayConfigName),
+                ConstantsBank.GatewayXmlStatisticsPort,
+                gatewayStatsPort))
+            {
+                throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM, "Can't replace gateway statistics port.");
+            }
+        }
+
+        // Reads server installation path from configuration file.
+        public static String ReadServerInstallationPath(String PersonalServerConfigPath)
+        {
+            if (!File.Exists(PersonalServerConfigPath))
+                return null;
+
+            XmlDocument serverXML = new XmlDocument();
+            serverXML.Load(PersonalServerConfigPath);
+            return (serverXML.GetElementsByTagName("server-dir"))[0].InnerText;
         }
 
         /// <summary>
@@ -249,7 +304,7 @@ namespace Starcounter.InstallerEngine
                 foreach (String procInfo in procInfos)
                 {
                     // Ignoring certain application.
-                    if ((!startPersonalServer) && (procInfo.Contains(ConstantsBank.SCPersonalServerExeName)))
+                    if ((!startPersonalServer) && (procInfo.Contains(ConstantsBank.SCServiceExeName)))
                         continue;
 
                     // Ignoring certain application.
@@ -262,6 +317,71 @@ namespace Starcounter.InstallerEngine
                 // Writing filtered contents to file.
                 File.WriteAllText(ConstantsBank.ScPostSetupFilePath, processedPostStartFile);
             }
+        }
+
+        // Creates database synchronously without creating separated thread.
+        public static void CreateDatabaseSynchronous(
+            String serverName,
+            String serverPath,
+            String databaseName)
+        {
+            Utilities.ReportSetupEvent("Creating database '" + databaseName + "' on server '" + serverName + "'...");
+
+            // Creating server engine instance.
+            String serverConfigPath = serverPath + "\\" + serverName + ServerConfiguration.FileExtension;
+            ServerEngine serverEngine = new ServerEngine(serverConfigPath, InstallationDir);
+            serverEngine.Setup();
+
+            IServerRuntime iServerRuntime = serverEngine.Start();
+            DatabaseInfo[] existingDbs = iServerRuntime.GetDatabases();
+            foreach (DatabaseInfo dbInfo in existingDbs)
+            {
+                if (String.Compare(dbInfo.Name, databaseName, true) == 0)
+                {
+                    // Same database already exists!
+                    if (!Utilities.AskUserForDecision("Database '" + databaseName + "' already exists on server '" + serverName+ "'." +
+                        "Would you like to recreate/vanish it?",
+                        "Database already exists..."))
+                    {
+                        return;
+                    }
+                }
+            }
+
+            // Sending create database command.
+            CreateDatabaseCommand createDbCmd = new CreateDatabaseCommand(serverEngine, databaseName);
+            CommandInfo cmdInfo = iServerRuntime.Execute(createDbCmd);
+
+            // Waiting for the finish.
+            iServerRuntime.Wait(cmdInfo);
+            serverEngine.Stop();
+
+            /*
+            // Uploading client library.
+            ServerFile uploadedLibrary = server.UploadFile(clientLibraryPath);
+
+            // Database creation arguments.
+            DatabaseCreationArguments dbCreationArguments = new DatabaseCreationArguments()
+            {
+                MaxImageSize = imageSize,
+                TransactionLogSize = 256,
+                EnableReplication = false,
+                Collation = StarcounterEnvironment.NewDatabaseDefaults.CollationLibrary
+            };
+
+            // Waiting indefinitely until database creation has finished.
+            ServerActivity activity = server.CreateDatabase(databaseName, uploadedLibrary, dbCreationArguments).WaitOne();
+
+            // Throwing an exception if error occurred.
+            if (activity.Command.HasError)
+            {
+                String message = String.Empty;
+                foreach (ErrorInfo errorInfo in activity.Command.Errors)
+                {
+                    message += errorInfo.ToErrorMessage().ToString() + Environment.NewLine;
+                }
+                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, message);
+            }*/
         }
 
         /// <summary>
@@ -317,6 +437,9 @@ namespace Starcounter.InstallerEngine
         {
             get
             {
+                if (installationDir == null)
+                    installationDir = CInstallationBase.GetInstalledDirFromEnv();  
+
                 return installationDir;
             }
         }
@@ -503,13 +626,22 @@ namespace Starcounter.InstallerEngine
         internal static EventHandler<Utilities.MessageBoxEventArgs> GuiMessageboxCallback = null;
 
         /// <summary>
+        /// Sets a nice WPF message box instead of standard one.
+        /// </summary>
+        /// <param name="guiMessageboxCallback"></param>
+        public static void SetNiceWpfMessageBoxDelegate(EventHandler<Utilities.MessageBoxEventArgs> guiMessageboxCallback)
+        {
+            GuiMessageboxCallback = guiMessageboxCallback;
+        }
+
+        /// <summary>
         /// This is the main environment setup function
         /// which is exposed to be called from outside.
         /// </summary>
         public static void StarcounterSetup(
             String[] args,
             String binariesPath,
-            String setupINIFile,
+            String setupConfigFile,
             EventHandler<Utilities.InstallerProgressEventArgs> progressCallback,
             EventHandler<Utilities.MessageBoxEventArgs> messageboxCallback)
         {
@@ -586,7 +718,7 @@ namespace Starcounter.InstallerEngine
                     installationDir = binariesPath;
 
                     // Checking for installed Starcounter binaries folder.
-                    String installedBinariesPath = CInstallationBase.GetInstalledDirFromEnv();
+                    String installedBinariesPath = CInstallationBase.GetInstalledDirFromEnv();  
                     if (installedBinariesPath != null)
                         installationDir = installedBinariesPath;
 
@@ -601,23 +733,23 @@ namespace Starcounter.InstallerEngine
                         installationDir = Application.StartupPath;
 
                     // Trying to load configuration settings.
-                    if (setupINIFile == null)
-                        setupINIFile = Path.Combine(installationDir, ConstantsBank.ScGlobalSettingsIniName);
+                    if (setupConfigFile == null)
+                        setupConfigFile = Path.Combine(installationDir, ConstantsBank.ScGlobalSettingsIniName);
 
                     if (!cleanupFlag)
                     {
                         if (uninstallFlag)
                         {
                             // Loading uninstallation settings from setup settings file.
-                            UninstallEngine.LoadUninstallINIFile(Path.Combine(installationDir, setupINIFile));
+                            UninstallEngine.LoadUninstallationSettings(Path.Combine(installationDir, setupConfigFile));
 
                             // Loading installation settings in order to get server paths, etc.
-                            InstallerMain.LoadInstallerINIFile(Path.Combine(installationDir, ConstantsBank.ScGlobalSettingsIniName));
+                            InstallerMain.LoadInstallationSettings(Path.Combine(installationDir, ConstantsBank.ScGlobalSettingsIniName));
                         }
                         else
                         {
                             // Loading installation settings.
-                            LoadInstallerINIFile(Path.Combine(installationDir, setupINIFile));
+                            LoadInstallationSettings(Path.Combine(installationDir, setupConfigFile));
                         }
                     }
                     else
@@ -625,7 +757,7 @@ namespace Starcounter.InstallerEngine
                         // Trying to load settings files - if it fails, it fails..
 
                         // Loading installation settings in order to get server paths, etc.
-                        try { InstallerMain.LoadInstallerINIFile(Path.Combine(installationDir, ConstantsBank.ScGlobalSettingsIniName)); }
+                        try { InstallerMain.LoadInstallationSettings(Path.Combine(installationDir, ConstantsBank.ScGlobalSettingsIniName)); }
                         catch { }
                     }
                 }
@@ -698,7 +830,7 @@ namespace Starcounter.InstallerEngine
                         AddComponentToProgress();
 
                         // Checking if shortcuts should be installed.
-                        Boolean createShortcuts = InstallerMain.InstallSettingCompare(ConstantsBank.Setting_CreatePersonalServerShortcuts, ConstantsBank.Setting_True);
+                        Boolean createShortcuts = InstallerMain.InstallationSettingCompare(ConstantsBank.Setting_CreatePersonalServerShortcuts, ConstantsBank.Setting_True);
                         if (createShortcuts)
                             AddComponentToProgress();
                     }

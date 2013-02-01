@@ -35,9 +35,45 @@
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="HttpStructs">
+      <HintPath>..\..\..\bin\Debug\HttpStructs.dll</HintPath>
+    </Reference>
+    <Reference Include="Starcounter.BitsAndBytes">
+      <HintPath>..\..\..\bin\Debug\Starcounter.BitsAndBytes.dll</HintPath>
+    </Reference>
+    <Reference Include="Starcounter.BitsAndBytes.Native">
+      <HintPath>..\..\..\bin\Debug\Starcounter.BitsAndBytes.Native.dll</HintPath>
+    </Reference>
     <Reference Include="Starcounter.Bootstrap">
       <HintPath>..\..\..\bin\Debug\Starcounter.Bootstrap.dll</HintPath>
+    </Reference>
+    <Reference Include="Starcounter.Internal">
+      <HintPath>..\..\..\bin\Debug\Starcounter.Internal.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">

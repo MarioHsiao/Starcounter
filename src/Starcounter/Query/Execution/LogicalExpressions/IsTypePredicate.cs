@@ -8,48 +8,22 @@ using Starcounter.Query.Optimization;
 namespace Starcounter.Query.Execution {
     internal class IsTypePredicate : IComparison {
         ComparisonOperator compOperator;
-        IObjectExpression objExpr;
-        ITypeExpression typeExpr;
+        IObjectExpression Expr1;
         ITypeBinding typeBinding;
 
-        internal IsTypePredicate(ComparisonOperator compOp, IObjectExpression expr1, ITypeExpression expr2)
-        {
-            if (compOp != ComparisonOperator.IS && compOp != ComparisonOperator.ISNOT)
-            {
+        internal IsTypePredicate(ComparisonOperator compOp, IObjectExpression expr1, ITypeBinding value2) {
+            if (compOp != ComparisonOperator.IS && compOp != ComparisonOperator.ISNOT) {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect compOp.");
             }
-            if (expr1 == null)
-            {
+            if (expr1 == null) {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect expr1.");
             }
-            if (expr2 == null)
-            {
+            if (value2 == null) {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect expr2.");
             }
             compOperator = compOp;
-            objExpr = expr1;
-            typeExpr = expr2;
-            typeBinding = null;
-        }
-
-        internal IsTypePredicate(ComparisonOperator compOp, IObjectExpression expr, ITypeBinding value)
-        {
-            if (compOp != ComparisonOperator.IS && compOp != ComparisonOperator.ISNOT)
-            {
-                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect compOp.");
-            }
-            if (expr == null)
-            {
-                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect expr.");
-            }
-            if (value == null)
-            {
-                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect value.");
-            }
-            compOperator = compOp;
-            objExpr = expr;
-            typeExpr = null;
-            typeBinding = value;
+            Expr1 = expr1;
+            typeBinding = value2;
         }
 
         public ComparisonOperator Operator {
@@ -59,7 +33,7 @@ namespace Starcounter.Query.Execution {
         }
 
         public Boolean InvolvesCodeExecution() {
-            return objExpr.InvolvesCodeExecution();
+            return Expr1.InvolvesCodeExecution();
         }
 
         /// <summary>
@@ -72,31 +46,15 @@ namespace Starcounter.Query.Execution {
             Debug.Assert(compOperator == ComparisonOperator.IS || compOperator == ComparisonOperator.ISNOT,
                 "Comparison operator of IsTypePredicate should be either IS or ISNOT.");
 
-            // If there is a typeExpr then create a typeBinding from that.
-            if (typeExpr != null)
-                typeBinding = typeExpr.EvaluateToType(obj);
+            IObjectView value1 = Expr1.EvaluateToObject(obj);
+            if (typeBinding == null || value1 == null) return TruthValue.UNKNOWN;
+            ITypeBinding tval1 = value1.TypeBinding;
+            if (tval1 is TypeBinding && typeBinding is TypeBinding)
+                if (((TypeBinding)tval1).SubTypeOf((TypeBinding)typeBinding))
+                    if (compOperator == ComparisonOperator.IS)
+                        return TruthValue.TRUE;
+                    else return TruthValue.FALSE;
 
-            IObjectView objValue = objExpr.EvaluateToObject(obj);
-            if (typeBinding == null || objValue == null) 
-                return TruthValue.UNKNOWN;
-            ITypeBinding objTypeBind = objValue.TypeBinding;
-            if (objTypeBind is TypeBinding && typeBinding is TypeBinding)
-            {
-                if (((TypeBinding)objTypeBind).SubTypeOf((TypeBinding)typeBinding))
-                {
-                    if (compOperator == ComparisonOperator.IS)
-                        return TruthValue.TRUE;
-                    else
-                        return TruthValue.FALSE;
-                }
-                else
-                {
-                    if (compOperator == ComparisonOperator.IS)
-                        return TruthValue.FALSE;
-                    else
-                        return TruthValue.TRUE;
-                }
-            }
             return TruthValue.UNKNOWN; // Same as in cast
         }
     
@@ -147,14 +105,11 @@ namespace Starcounter.Query.Execution {
         /// <param name="obj">The Row on which to evaluate the expression.</param>
         /// <returns>A more instantiated expression.</returns>
         public ILogicalExpression Instantiate(Row obj) {
-            if (typeExpr != null)
-                return new IsTypePredicate(compOperator, objExpr.Instantiate(obj), typeExpr);
-            //else
-            return new IsTypePredicate(compOperator, objExpr.Instantiate(obj), typeBinding);
+            return new IsTypePredicate(compOperator, Expr1.Instantiate(obj), typeBinding);
         }
 
         public void InstantiateExtentSet(ExtentSet extentSet) {
-            objExpr.InstantiateExtentSet(extentSet);
+            Expr1.InstantiateExtentSet(extentSet);
         }
 
         /// <summary>
@@ -173,16 +128,13 @@ namespace Starcounter.Query.Execution {
         }
         
         public ILogicalExpression Clone(VariableArray varArray) {
-            if (typeExpr != null)
-                return new IsTypePredicate(compOperator, objExpr.CloneToObject(varArray), typeExpr);
-            // else
-            return new IsTypePredicate(compOperator, objExpr.CloneToObject(varArray), typeBinding);
+            return new IsTypePredicate(compOperator, Expr1.CloneToObject(varArray), typeBinding);
         }
 
         public void BuildString(MyStringBuilder stringBuilder, Int32 tabs) {
             stringBuilder.AppendLine(tabs, "IsTypePredicate(");
             stringBuilder.AppendLine(tabs + 1, compOperator.ToString());
-            objExpr.BuildString(stringBuilder, tabs + 1);
+            Expr1.BuildString(stringBuilder, tabs + 1);
             stringBuilder.AppendLine(tabs + 1, typeBinding.Name);
             stringBuilder.AppendLine(tabs, ")");
         }
@@ -230,11 +182,11 @@ namespace Starcounter.Query.Execution {
             // Check references. This should be checked if there is cyclic reference.
             AssertEqualsVisited = true;
             bool areEquals = true;
-            if (this.objExpr == null) {
-                Debug.Assert(other.objExpr == null);
-                areEquals = other.objExpr == null;
+            if (this.Expr1 == null) {
+                Debug.Assert(other.Expr1 == null);
+                areEquals = other.Expr1 == null;
             } else
-                areEquals = this.objExpr.AssertEquals(other.objExpr);
+                areEquals = this.Expr1.AssertEquals(other.Expr1);
             AssertEqualsVisited = false;
             return areEquals;
         }

@@ -281,7 +281,7 @@ public static class SystemServerAccount
         string arguments;
         commandLine = new StringBuilder();
         executable = StarcounterConstants.ProgramNames.ScService + ".exe";
-        arguments = " /service";
+        arguments = " System";
         commandLine = new StringBuilder(binPath.Length + executable.Length + arguments.Length + 128);
 
         commandLine.Append("\"" + Path.Combine(binPath, executable) + "\"");
