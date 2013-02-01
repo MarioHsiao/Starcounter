@@ -95,19 +95,19 @@ namespace Starcounter.Configuration {
         /// Gets the default Apps TCP port.
         /// </summary>
         /// <value>The default Apps TCP port.</value>
-        public UInt16 DefaultAppsPort
+        public UInt16 DefaultUserHttpPort
         {
             get
             {
-                return _DefaultAppsPort;
+                return _DefaultUserHttpPort;
             }
             set
             {
-                _DefaultAppsPort = value;
-                OnPropertyChanged(StarcounterConstants.BootstrapOptionNames.DefaultAppsPort);
+                _DefaultUserHttpPort = value;
+                OnPropertyChanged(StarcounterConstants.BootstrapOptionNames.DefaultUserHttpPort);
             }
         }
-        private UInt16 _DefaultAppsPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerAppsTcpPort;
+        private UInt16 _DefaultUserHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
 
         /// <summary>
         /// Support of aggregations in SQL queries, for which current implementation is very slow.

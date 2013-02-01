@@ -125,7 +125,7 @@ public class CPersonalServer : CComponentBase
 
         // Calling external tool to create Administrator shortcut.
         Utilities.CreateShortcut(
-            "http://localhost:" + InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_PersonalServerAdminTcpPort),
+            "http://localhost:" + InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultPersonalServerSystemHttpPort),
             PersonalServerAdminDesktopShortcutPath,
             "",
             installPath,
@@ -227,8 +227,8 @@ SKIP_SERVER_CREATION:
         // Replacing default server parameters.
         if (!Utilities.ReplaceXMLParameterInFile(
             Path.Combine(serverDir, StarcounterEnvironment.ServerNames.PersonalServer + ServerConfiguration.FileExtension),
-            StarcounterConstants.BootstrapOptionNames.DefaultAppsPort,
-            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_PersonalServerDefaultAppsTcpPort)))
+            StarcounterConstants.BootstrapOptionNames.DefaultUserHttpPort,
+            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultPersonalServerUserHttpPort)))
         {
             throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM,
                 "Can't replace default Apps TCP port for " + StarcounterEnvironment.ServerNames.PersonalServer + " server.");
@@ -237,8 +237,8 @@ SKIP_SERVER_CREATION:
         // Replacing default server parameters.
         if (!Utilities.ReplaceXMLParameterInFile(
             Path.Combine(serverDir, StarcounterEnvironment.ServerNames.PersonalServer + ServerConfiguration.FileExtension),
-            ServerConfiguration.AdminTcpPortString,
-            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_PersonalServerAdminTcpPort)))
+            ServerConfiguration.SystemHttpPortString,
+            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultPersonalServerSystemHttpPort)))
         {
             throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM,
                 "Can't replace Administrator TCP port for " + StarcounterEnvironment.ServerNames.PersonalServer + " server.");
@@ -253,7 +253,7 @@ SKIP_SERVER_CREATION:
         // Copying gateway configuration.
         InstallerMain.CopyGatewayConfig(
             serverDir,
-            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_PersonalServerAdminTcpPort));
+            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultPersonalServerSystemHttpPort));
 
         // Killing server process (in order to later start it with normal privileges).
         KillServersButNotService();

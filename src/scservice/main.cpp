@@ -129,15 +129,15 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     wchar_t *server_logs_dir;
     wchar_t *server_temp_dir;
     wchar_t *server_database_dir;
-    wchar_t *admin_tcp_port;
-    wchar_t *default_apps_port;
+    wchar_t *system_http_port;
+    wchar_t *default_user_http_port;
     r = _read_server_config(
         server_cfg_path,
         &server_logs_dir,
         &server_temp_dir,
         &server_database_dir,
-        &admin_tcp_port,
-        &default_apps_port);
+        &system_http_port,
+        &default_user_http_port);
 
     if (r) goto end;
 
@@ -235,7 +235,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	str_num_chars = 0;
 
     // Checking if number of schedulers is defined.
-	str_template = L"sccode.exe %s --ServerName=%s --DatabaseDir=\"%s\" --OutputDir=\"%s\" --TempDir=\"%s\" --CompilerPath=\"%s\" --AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\" %s\" --WorkingDir=\"%s\" --DefaultAppsPort=%s --SchedulerCount=%s";
+	str_template = L"sccode.exe %s --ServerName=%s --DatabaseDir=\"%s\" --OutputDir=\"%s\" --TempDir=\"%s\" --CompilerPath=\"%s\" --AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\" %s\" --WorkingDir=\"%s\" --DefaultUserHttpPort=%s --SchedulerCount=%s";
 
     // TODO: Remove the scheduler count at all?
     database_scheduler_count = L"1";
@@ -250,9 +250,9 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		wcslen(mingw) + 
 		wcslen(admin_exe_path) +
 		wcslen(server_cfg_path) +
-        wcslen(admin_tcp_port) +
+        wcslen(system_http_port) +
 		wcslen(admin_working_dir) +
-        wcslen(default_apps_port) +
+        wcslen(default_user_http_port) +
         wcslen(database_scheduler_count) +
         1;
 
@@ -272,9 +272,9 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
         mingw,
         admin_exe_path,
         server_cfg_path,
-        admin_tcp_port,
+        system_http_port,
         admin_working_dir,
-        default_apps_port,
+        default_user_http_port,
         database_scheduler_count);
 
     // Create shutdown event. Will fail if event already exists and so also

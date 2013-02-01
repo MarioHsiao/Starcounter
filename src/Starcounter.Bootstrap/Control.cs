@@ -136,7 +136,7 @@ namespace StarcounterInternal.Bootstrap
             RequestHandler.InitREST(configuration.TempDirectory);
 
             // Initializing AppsBootstrapper.
-            AppsBootstrapper.InitAppsBootstrapper(configuration.DefaultAppsPort);
+            AppsBootstrapper.InitAppsBootstrapper(configuration.DefaultUserHttpPort);
 
             ulong hlogs = ConfigureLogging(configuration, hmenv);
             OnLoggingConfigured();
