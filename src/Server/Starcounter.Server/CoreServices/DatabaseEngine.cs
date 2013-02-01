@@ -322,10 +322,19 @@ namespace Starcounter.Server {
         }
 
         string GetDatabaseControlEventName(Database database) {
+#if false
             ScUri uri = ScUri.FromString(database.Uri);
             string processControlEventName = string.Format(
                 "SCDATA_EXE_{0}_{1}",
                 uri.ServerName.ToUpperInvariant(),
+                uri.DatabaseName.ToUpperInvariant()
+                );
+            return processControlEventName;
+#endif
+
+            ScUri uri = ScUri.FromString(database.Uri);
+            string processControlEventName = string.Format(
+                "SCDATA_EXE_{0}",
                 uri.DatabaseName.ToUpperInvariant()
                 );
             return processControlEventName;
