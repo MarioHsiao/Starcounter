@@ -36,6 +36,8 @@ namespace StarcounterInternal.Bootstrap
         {
             try
             {
+                //System.Diagnostics.Debugger.Break();
+
                 Control c = new Control();
                 c.OnProcessInitialized();
                 bool b = c.Setup(args);
