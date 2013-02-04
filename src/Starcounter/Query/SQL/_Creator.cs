@@ -153,7 +153,7 @@ namespace Starcounter.Query.Sql
                 fetchNumExpr = null;
             else
             {
-                IValueExpression expr1 = CreateTypeExpression(rowTypeBind, argument1, varArray);
+                IValueExpression expr1 = CreateValueExpression(rowTypeBind, argument1, varArray);
                 if (expr1 is INumericalExpression)
                     fetchNumExpr = expr1 as INumericalExpression;
                 else
@@ -169,7 +169,7 @@ namespace Starcounter.Query.Sql
                 fetchOffsetKeyExpr = null;
             else
             {
-                IValueExpression expr2 = CreateTypeExpression(rowTypeBind, argument2, varArray);
+                IValueExpression expr2 = CreateValueExpression(rowTypeBind, argument2, varArray);
                 if (expr2 is IBinaryExpression)
                     fetchOffsetKeyExpr = expr2 as IBinaryExpression;
                 else
@@ -483,7 +483,7 @@ namespace Starcounter.Query.Sql
                     throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect mapTerm: " + mapTerm);
                 }
                 String propName = nameTerm.Name;
-                IValueExpression propExpr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+                IValueExpression propExpr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
                 rowTypeBind.AddPropertyMapping(propName, propExpr);
                 cursorTerm = cursorTerm.getArgument(2);
             }
@@ -728,8 +728,8 @@ namespace Starcounter.Query.Sql
                 }
                 Term opTerm = pointTerm.getArgument(1);
                 Term exprTerm = pointTerm.getArgument(2);
-                ComparisonOperator op = CreateComparisonOperator(opTerm, varArray);
-                IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+                ComparisonOperator op = CreateComparisonOperator(opTerm);
+                IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
                 if (expr is IStringExpression)
                 {
                     StringRangePoint rangePoint = new StringRangePoint(op, expr as IStringExpression);
@@ -757,8 +757,8 @@ namespace Starcounter.Query.Sql
                 }
                 Term opTerm = pointTerm.getArgument(1);
                 Term exprTerm = pointTerm.getArgument(2);
-                ComparisonOperator op = CreateComparisonOperator(opTerm, varArray);
-                IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+                ComparisonOperator op = CreateComparisonOperator(opTerm);
+                IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
                 if (expr is IObjectExpression)
                 {
                     ObjectRangePoint rangePoint = new ObjectRangePoint(op, expr as IObjectExpression);
@@ -786,8 +786,8 @@ namespace Starcounter.Query.Sql
                 }
                 Term opTerm = pointTerm.getArgument(1);
                 Term exprTerm = pointTerm.getArgument(2);
-                ComparisonOperator op = CreateComparisonOperator(opTerm, varArray);
-                IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+                ComparisonOperator op = CreateComparisonOperator(opTerm);
+                IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
                 if (expr is INumericalExpression)
                 {
                     NumericalRangePoint rangePoint = new NumericalRangePoint(op, expr as INumericalExpression);
@@ -815,8 +815,8 @@ namespace Starcounter.Query.Sql
                 }
                 Term opTerm = pointTerm.getArgument(1);
                 Term exprTerm = pointTerm.getArgument(2);
-                ComparisonOperator op = CreateComparisonOperator(opTerm, varArray);
-                IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+                ComparisonOperator op = CreateComparisonOperator(opTerm);
+                IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
                 if (expr is INumericalExpression)
                 {
                     NumericalRangePoint rangePoint = new NumericalRangePoint(op, expr as INumericalExpression);
@@ -844,8 +844,8 @@ namespace Starcounter.Query.Sql
                 }
                 Term opTerm = pointTerm.getArgument(1);
                 Term exprTerm = pointTerm.getArgument(2);
-                ComparisonOperator op = CreateComparisonOperator(opTerm, varArray);
-                IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+                ComparisonOperator op = CreateComparisonOperator(opTerm);
+                IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
                 if (expr is IDateTimeExpression)
                 {
                     DateTimeRangePoint rangePoint = new DateTimeRangePoint(op, expr as IDateTimeExpression);
@@ -873,8 +873,8 @@ namespace Starcounter.Query.Sql
                 }
                 Term opTerm = pointTerm.getArgument(1);
                 Term exprTerm = pointTerm.getArgument(2);
-                ComparisonOperator op = CreateComparisonOperator(opTerm, varArray);
-                IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+                ComparisonOperator op = CreateComparisonOperator(opTerm);
+                IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
                 if (expr is IBinaryExpression)
                 {
                     BinaryRangePoint rangePoint = new BinaryRangePoint(op, expr as IBinaryExpression);
@@ -902,8 +902,8 @@ namespace Starcounter.Query.Sql
                 }
                 Term opTerm = pointTerm.getArgument(1);
                 Term exprTerm = pointTerm.getArgument(2);
-                ComparisonOperator op = CreateComparisonOperator(opTerm, varArray);
-                IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+                ComparisonOperator op = CreateComparisonOperator(opTerm);
+                IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
                 if (expr is IBooleanExpression)
                 {
                     BooleanRangePoint rangePoint = new BooleanRangePoint(op, expr as IBooleanExpression);
@@ -984,12 +984,12 @@ namespace Starcounter.Query.Sql
         //    return new ReferenceLookup(rowTypeBind, extNum, objExpr, cond, varArray, query);
         //}
 
-        private static Sort CreateSort(RowTypeBinding rowTypeBind, Term enumTerm, Term compListTerm, VariableArray varArray, String query)
-        {
-            IExecutionEnumerator inEnum = CreateEnumerator(rowTypeBind, enumTerm, varArray, query);
-            IQueryComparer comparer = CreateComparer(rowTypeBind, compListTerm, varArray);
-            return new Sort(rowTypeBind, inEnum, comparer, varArray, query);
-        }
+        //private static Sort CreateSort(RowTypeBinding rowTypeBind, Term enumTerm, Term compListTerm, VariableArray varArray, String query)
+        //{
+        //    IExecutionEnumerator inEnum = CreateEnumerator(rowTypeBind, enumTerm, varArray, query);
+        //    IQueryComparer comparer = CreateComparer(rowTypeBind, compListTerm, varArray);
+        //    return new Sort(rowTypeBind, inEnum, comparer, varArray, query);
+        //}
 
         private static Aggregation CreateAggregation(RowTypeBinding rowTypeBind, Term extNumTerm, Term enumTerm, Term compListTerm,
             Term setFuncListTerm, Term condTerm, VariableArray varArray, String query)
@@ -1032,10 +1032,32 @@ namespace Starcounter.Query.Sql
             }
             // else
             if (term.Name == "comparison" && term.Arity == 5)
+            {
                 return CreateComparison(rowTypeBind, term.getArgument(1), term.getArgument(2), term.getArgument(3), term.getArgument(4),
                                         term.getArgument(5), varArray);
+            }
+            // else
+            if (term.Name == "isTypePredicate" && term.Arity == 3)
+            {
+                return CreateIsTypePredicate(rowTypeBind, term.getArgument(1), term.getArgument(2), term.getArgument(3), varArray);
+            }
             // else
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect term: " + term);
+        }
+
+        private static ILogicalExpression CreateIsTypePredicate(RowTypeBinding rowTypeBind, Term opTerm, Term exprTerm1, Term exprTerm2, VariableArray varArray)
+        {
+            ComparisonOperator compOp = CreateComparisonOperator(opTerm);
+
+            IValueExpression expr1 = CreateValueExpression(rowTypeBind, exprTerm1, varArray);
+            if ((expr1 is IObjectExpression) == false)
+                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect expr1: " + expr1);
+
+            IValueExpression expr2 = CreateValueExpression(rowTypeBind, exprTerm2, varArray);
+            if ((expr2 is ITypeExpression) == false)
+                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect expr2: " + expr2);
+
+            return new IsTypePredicate(compOp, expr1 as IObjectExpression, expr2 as ITypeExpression);
         }
 
         private static ILogicalExpression CreateComparison(RowTypeBinding rowTypeBind, Term typeTerm, Term opTerm, Term exprTerm1,
@@ -1134,9 +1156,9 @@ namespace Starcounter.Query.Sql
         private static ComparisonBinary CreateComparisonBinary(RowTypeBinding rowTypeBind, Term opTerm, Term exprTerm1, Term exprTerm2,
                                                                VariableArray varArray)
         {
-            ComparisonOperator op = CreateComparisonOperator(opTerm, varArray);
-            IValueExpression expr1 = CreateTypeExpression(rowTypeBind, exprTerm1, varArray);
-            IValueExpression expr2 = CreateTypeExpression(rowTypeBind, exprTerm2, varArray);
+            ComparisonOperator op = CreateComparisonOperator(opTerm);
+            IValueExpression expr1 = CreateValueExpression(rowTypeBind, exprTerm1, varArray);
+            IValueExpression expr2 = CreateValueExpression(rowTypeBind, exprTerm2, varArray);
             if (expr1 is IBinaryExpression && expr2 is IBinaryExpression)
             {
                 return new ComparisonBinary(op, expr1 as IBinaryExpression, expr2 as IBinaryExpression);
@@ -1148,9 +1170,9 @@ namespace Starcounter.Query.Sql
         private static ComparisonBoolean CreateComparisonBoolean(RowTypeBinding rowTypeBind, Term opTerm, Term exprTerm1, Term exprTerm2,
                                                                  VariableArray varArray)
         {
-            ComparisonOperator op = CreateComparisonOperator(opTerm, varArray);
-            IValueExpression expr1 = CreateTypeExpression(rowTypeBind, exprTerm1, varArray);
-            IValueExpression expr2 = CreateTypeExpression(rowTypeBind, exprTerm2, varArray);
+            ComparisonOperator op = CreateComparisonOperator(opTerm);
+            IValueExpression expr1 = CreateValueExpression(rowTypeBind, exprTerm1, varArray);
+            IValueExpression expr2 = CreateValueExpression(rowTypeBind, exprTerm2, varArray);
             if (expr1 is IBooleanExpression && expr2 is IBooleanExpression)
             {
                 return new ComparisonBoolean(op, expr1 as IBooleanExpression, expr2 as IBooleanExpression);
@@ -1162,9 +1184,9 @@ namespace Starcounter.Query.Sql
         private static ComparisonDateTime CreateComparisonDateTime(RowTypeBinding rowTypeBind, Term opTerm, Term exprTerm1, Term exprTerm2,
                                                                    VariableArray varArray)
         {
-            ComparisonOperator op = CreateComparisonOperator(opTerm, varArray);
-            IValueExpression expr1 = CreateTypeExpression(rowTypeBind, exprTerm1, varArray);
-            IValueExpression expr2 = CreateTypeExpression(rowTypeBind, exprTerm2, varArray);
+            ComparisonOperator op = CreateComparisonOperator(opTerm);
+            IValueExpression expr1 = CreateValueExpression(rowTypeBind, exprTerm1, varArray);
+            IValueExpression expr2 = CreateValueExpression(rowTypeBind, exprTerm2, varArray);
             if (expr1 is IDateTimeExpression && expr2 is IDateTimeExpression)
             {
                 return new ComparisonDateTime(op, expr1 as IDateTimeExpression, expr2 as IDateTimeExpression);
@@ -1176,9 +1198,9 @@ namespace Starcounter.Query.Sql
         private static ComparisonDecimal CreateComparisonDecimal(RowTypeBinding rowTypeBind, Term opTerm, Term exprTerm1, Term exprTerm2,
                                                                  VariableArray varArray)
         {
-            ComparisonOperator op = CreateComparisonOperator(opTerm, varArray);
-            IValueExpression expr1 = CreateTypeExpression(rowTypeBind, exprTerm1, varArray);
-            IValueExpression expr2 = CreateTypeExpression(rowTypeBind, exprTerm2, varArray);
+            ComparisonOperator op = CreateComparisonOperator(opTerm);
+            IValueExpression expr1 = CreateValueExpression(rowTypeBind, exprTerm1, varArray);
+            IValueExpression expr2 = CreateValueExpression(rowTypeBind, exprTerm2, varArray);
             if (expr1 is IDecimalExpression && expr2 is IDecimalExpression)
             {
                 return new ComparisonDecimal(op, expr1 as IDecimalExpression, expr2 as IDecimalExpression);
@@ -1213,9 +1235,9 @@ namespace Starcounter.Query.Sql
         private static ComparisonDouble CreateComparisonDouble(RowTypeBinding rowTypeBind, Term opTerm, Term exprTerm1, Term exprTerm2,
                                                                VariableArray varArray)
         {
-            ComparisonOperator op = CreateComparisonOperator(opTerm, varArray);
-            IValueExpression expr1 = CreateTypeExpression(rowTypeBind, exprTerm1, varArray);
-            IValueExpression expr2 = CreateTypeExpression(rowTypeBind, exprTerm2, varArray);
+            ComparisonOperator op = CreateComparisonOperator(opTerm);
+            IValueExpression expr1 = CreateValueExpression(rowTypeBind, exprTerm1, varArray);
+            IValueExpression expr2 = CreateValueExpression(rowTypeBind, exprTerm2, varArray);
             if (expr1 is IDoubleExpression && expr2 is IDoubleExpression)
             {
                 return new ComparisonDouble(op, expr1 as IDoubleExpression, expr2 as IDoubleExpression);
@@ -1250,9 +1272,9 @@ namespace Starcounter.Query.Sql
         private static ComparisonInteger CreateComparisonInteger(RowTypeBinding rowTypeBind, Term opTerm, Term exprTerm1, Term exprTerm2,
                                                                  VariableArray varArray)
         {
-            ComparisonOperator op = CreateComparisonOperator(opTerm, varArray);
-            IValueExpression expr1 = CreateTypeExpression(rowTypeBind, exprTerm1, varArray);
-            IValueExpression expr2 = CreateTypeExpression(rowTypeBind, exprTerm2, varArray);
+            ComparisonOperator op = CreateComparisonOperator(opTerm);
+            IValueExpression expr1 = CreateValueExpression(rowTypeBind, exprTerm1, varArray);
+            IValueExpression expr2 = CreateValueExpression(rowTypeBind, exprTerm2, varArray);
             if (expr1 is IIntegerExpression && expr2 is IIntegerExpression)
             {
                 return new ComparisonInteger(op, expr1 as IIntegerExpression, expr2 as IIntegerExpression);
@@ -1263,9 +1285,9 @@ namespace Starcounter.Query.Sql
         private static ComparisonNumerical CreateComparisonNumerical(RowTypeBinding rowTypeBind, Term opTerm, Term exprTerm1, Term exprTerm2,
                 VariableArray varArray)
         {
-            ComparisonOperator op = CreateComparisonOperator(opTerm, varArray);
-            IValueExpression expr1 = CreateTypeExpression(rowTypeBind, exprTerm1, varArray);
-            IValueExpression expr2 = CreateTypeExpression(rowTypeBind, exprTerm2, varArray);
+            ComparisonOperator op = CreateComparisonOperator(opTerm);
+            IValueExpression expr1 = CreateValueExpression(rowTypeBind, exprTerm1, varArray);
+            IValueExpression expr2 = CreateValueExpression(rowTypeBind, exprTerm2, varArray);
             if (expr1 is INumericalExpression && expr2 is INumericalExpression)
             {
                 return new ComparisonNumerical(op, expr1 as INumericalExpression, expr2 as INumericalExpression);
@@ -1276,9 +1298,9 @@ namespace Starcounter.Query.Sql
         private static ComparisonObject CreateComparisonObject(RowTypeBinding rowTypeBind, Term opTerm, Term exprTerm1, Term exprTerm2,
                                                                VariableArray varArray)
         {
-            ComparisonOperator op = CreateComparisonOperator(opTerm, varArray);
-            IValueExpression expr1 = CreateTypeExpression(rowTypeBind, exprTerm1, varArray);
-            IValueExpression expr2 = CreateTypeExpression(rowTypeBind, exprTerm2, varArray);
+            ComparisonOperator op = CreateComparisonOperator(opTerm);
+            IValueExpression expr1 = CreateValueExpression(rowTypeBind, exprTerm1, varArray);
+            IValueExpression expr2 = CreateValueExpression(rowTypeBind, exprTerm2, varArray);
             if (expr1 is IObjectExpression && expr2 is IObjectExpression)
             {
                 return new ComparisonObject(op, expr1 as IObjectExpression, expr2 as IObjectExpression);
@@ -1289,9 +1311,9 @@ namespace Starcounter.Query.Sql
         private static ComparisonString CreateComparisonString(RowTypeBinding rowTypeBind, Term opTerm, Term exprTerm1, Term exprTerm2,
                                                                VariableArray varArray)
         {
-            ComparisonOperator op = CreateComparisonOperator(opTerm, varArray);
-            IValueExpression expr1 = CreateTypeExpression(rowTypeBind, exprTerm1, varArray);
-            IValueExpression expr2 = CreateTypeExpression(rowTypeBind, exprTerm2, varArray);
+            ComparisonOperator op = CreateComparisonOperator(opTerm);
+            IValueExpression expr1 = CreateValueExpression(rowTypeBind, exprTerm1, varArray);
+            IValueExpression expr2 = CreateValueExpression(rowTypeBind, exprTerm2, varArray);
 
             //if (op == ComparisonOperator.LIKEdynamic)
             //{
@@ -1322,12 +1344,12 @@ namespace Starcounter.Query.Sql
         private static ComparisonString CreateComparisonString(RowTypeBinding rowTypeBind, Term opTerm, Term exprTerm1, Term exprTerm2,
                                                                Term exprTerm3, VariableArray varArray)
         {
-            ComparisonOperator op = CreateComparisonOperator(opTerm, varArray);
-            IValueExpression expr1 = CreateTypeExpression(rowTypeBind, exprTerm1, varArray);
-            IValueExpression expr2 = CreateTypeExpression(rowTypeBind, exprTerm2, varArray);
+            ComparisonOperator op = CreateComparisonOperator(opTerm);
+            IValueExpression expr1 = CreateValueExpression(rowTypeBind, exprTerm1, varArray);
+            IValueExpression expr2 = CreateValueExpression(rowTypeBind, exprTerm2, varArray);
             // TODO: Replace this temporary fix for QueryFlag with something better.
             QueryFlags flags = varArray.QueryFlags;
-            IValueExpression expr3 = CreateTypeExpression(rowTypeBind, exprTerm3, varArray);
+            IValueExpression expr3 = CreateValueExpression(rowTypeBind, exprTerm3, varArray);
             varArray.QueryFlags = flags;
 
             if (op == ComparisonOperator.LIKEdynamic)
@@ -1350,9 +1372,9 @@ namespace Starcounter.Query.Sql
         private static ComparisonUInteger CreateComparisonUInteger(RowTypeBinding rowTypeBind, Term opTerm, Term exprTerm1, Term exprTerm2,
                                                                    VariableArray varArray)
         {
-            ComparisonOperator op = CreateComparisonOperator(opTerm, varArray);
-            IValueExpression expr1 = CreateTypeExpression(rowTypeBind, exprTerm1, varArray);
-            IValueExpression expr2 = CreateTypeExpression(rowTypeBind, exprTerm2, varArray);
+            ComparisonOperator op = CreateComparisonOperator(opTerm);
+            IValueExpression expr1 = CreateValueExpression(rowTypeBind, exprTerm1, varArray);
+            IValueExpression expr2 = CreateValueExpression(rowTypeBind, exprTerm2, varArray);
             if (expr1 is IUIntegerExpression && expr2 is IUIntegerExpression)
             {
                 return new ComparisonUInteger(op, expr1 as IUIntegerExpression, expr2 as IUIntegerExpression);
@@ -1381,7 +1403,7 @@ namespace Starcounter.Query.Sql
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect term: " + term);
         }
 
-        private static ComparisonOperator CreateComparisonOperator(Term term, VariableArray varArray)
+        private static ComparisonOperator CreateComparisonOperator(Term term)
         {
             if (term.Name == "equal")
             {
@@ -1508,7 +1530,7 @@ namespace Starcounter.Query.Sql
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect quantTerm: " + quantTerm);
             }
-            IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
             if (expr is IBinaryExpression)
             {
                 return new BinarySetFunction(setFuncType, expr as IBinaryExpression);
@@ -1524,7 +1546,7 @@ namespace Starcounter.Query.Sql
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect quantTerm: " + quantTerm);
             }
-            IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
             if (expr is IBooleanExpression)
             {
                 return new BooleanSetFunction(setFuncType, expr as IBooleanExpression);
@@ -1540,7 +1562,7 @@ namespace Starcounter.Query.Sql
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect quantTerm: " + quantTerm);
             }
-            IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
             if (expr is IDateTimeExpression)
             {
                 return new DateTimeSetFunction(setFuncType, expr as IDateTimeExpression);
@@ -1556,7 +1578,7 @@ namespace Starcounter.Query.Sql
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect quantTerm: " + quantTerm);
             }
-            IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
             if (setFuncType == SetFunctionType.COUNT)
             {
                 return new DecimalSetFunction(expr);
@@ -1584,7 +1606,7 @@ namespace Starcounter.Query.Sql
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect quantTerm: " + quantTerm);
             }
-            IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
             if (expr is IDoubleExpression)
             {
                 return new DoubleSetFunction(setFuncType, expr as IDoubleExpression);
@@ -1600,7 +1622,7 @@ namespace Starcounter.Query.Sql
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect quantTerm: " + quantTerm);
             }
-            IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
             if (expr is IIntegerExpression)
             {
                 return new IntegerSetFunction(setFuncType, expr as IIntegerExpression);
@@ -1616,7 +1638,7 @@ namespace Starcounter.Query.Sql
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect quantTerm: " + quantTerm);
             }
-            IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
             if (expr is INumericalExpression)
             {
                 return new NumericalSetFunction(setFuncType, expr as INumericalExpression);
@@ -1632,7 +1654,7 @@ namespace Starcounter.Query.Sql
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect quantTerm: " + quantTerm);
             }
-            IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
             if (expr is IObjectExpression)
             {
                 return new ObjectSetFunction(setFuncType, expr as IObjectExpression);
@@ -1649,7 +1671,7 @@ namespace Starcounter.Query.Sql
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect quantTerm: " + quantTerm);
             }
-            IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
             if (expr is IStringExpression)
             {
                 return new StringSetFunction(setFuncType, expr as IStringExpression);
@@ -1666,7 +1688,7 @@ namespace Starcounter.Query.Sql
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect quantTerm: " + quantTerm);
             }
-            IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
             if (expr is IUIntegerExpression)
             {
                 return new UIntegerSetFunction(setFuncType, expr as IUIntegerExpression);
@@ -1823,7 +1845,7 @@ namespace Starcounter.Query.Sql
         private static BinaryComparer CreateBinaryComparer(RowTypeBinding rowTypeBind, Term exprTerm, Term sortOrdTerm, VariableArray varArray)
         {
             SortOrder sortOrd = CreateSortOrdering(sortOrdTerm);
-            IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
             if (expr is BinaryProperty)
             {
                 return new BinaryPathComparer(expr as BinaryProperty, sortOrd);
@@ -1842,7 +1864,7 @@ namespace Starcounter.Query.Sql
         private static BooleanComparer CreateBooleanComparer(RowTypeBinding rowTypeBind, Term exprTerm, Term sortOrdTerm, VariableArray varArray)
         {
             SortOrder sortOrd = CreateSortOrdering(sortOrdTerm);
-            IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
             if (expr is BooleanProperty)
             {
                 return new BooleanPathComparer(expr as BooleanProperty, sortOrd);
@@ -1861,7 +1883,7 @@ namespace Starcounter.Query.Sql
         private static DateTimeComparer CreateDateTimeComparer(RowTypeBinding rowTypeBind, Term exprTerm, Term sortOrdTerm, VariableArray varArray)
         {
             SortOrder sortOrd = CreateSortOrdering(sortOrdTerm);
-            IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
             if (expr is DateTimeProperty)
             {
                 return new DateTimePathComparer(expr as DateTimeProperty, sortOrd);
@@ -1880,7 +1902,7 @@ namespace Starcounter.Query.Sql
         private static DecimalComparer CreateDecimalComparer(RowTypeBinding rowTypeBind, Term exprTerm, Term sortOrdTerm, VariableArray varArray)
         {
             SortOrder sortOrd = CreateSortOrdering(sortOrdTerm);
-            IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
             if (expr is DecimalProperty)
             {
                 return new DecimalPathComparer(expr as DecimalProperty, sortOrd);
@@ -1899,7 +1921,7 @@ namespace Starcounter.Query.Sql
         private static DoubleComparer CreateDoubleComparer(RowTypeBinding rowTypeBind, Term exprTerm, Term sortOrdTerm, VariableArray varArray)
         {
             SortOrder sortOrd = CreateSortOrdering(sortOrdTerm);
-            IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
             if (expr is DoubleProperty)
             {
                 return new DoublePathComparer(expr as DoubleProperty, sortOrd);
@@ -1918,7 +1940,7 @@ namespace Starcounter.Query.Sql
         private static IntegerComparer CreateIntegerComparer(RowTypeBinding rowTypeBind, Term exprTerm, Term sortOrdTerm, VariableArray varArray)
         {
             SortOrder sortOrd = CreateSortOrdering(sortOrdTerm);
-            IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
             if (expr is IntegerProperty)
             {
                 return new IntegerPathComparer(expr as IntegerProperty, sortOrd);
@@ -1937,7 +1959,7 @@ namespace Starcounter.Query.Sql
         private static ObjectComparer CreateObjectComparer(RowTypeBinding rowTypeBind, Term exprTerm, Term sortOrdTerm, VariableArray varArray)
         {
             SortOrder sortOrd = CreateSortOrdering(sortOrdTerm);
-            IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
             if (expr is ObjectProperty)
             {
                 return new ObjectPathComparer(expr as ObjectProperty, sortOrd);
@@ -1957,7 +1979,7 @@ namespace Starcounter.Query.Sql
                 Term sortOrdTerm, VariableArray varArray)
         {
             SortOrder sortOrd = CreateSortOrdering(sortOrdTerm);
-            IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
             if (expr is StringProperty)
             {
                 return new StringPathComparer(expr as StringProperty, sortOrd);
@@ -1976,7 +1998,7 @@ namespace Starcounter.Query.Sql
         private static UIntegerComparer CreateUIntegerComparer(RowTypeBinding rowTypeBind, Term exprTerm, Term sortOrdTerm, VariableArray varArray)
         {
             SortOrder sortOrd = CreateSortOrdering(sortOrdTerm);
-            IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
             if (expr is UIntegerProperty)
             {
                 return new UIntegerPathComparer(expr as UIntegerProperty, sortOrd);
@@ -2007,7 +2029,7 @@ namespace Starcounter.Query.Sql
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect sortOrdTerm: " + sortOrdTerm);
         }
 
-        private static IValueExpression CreateTypeExpression(RowTypeBinding rowTypeBind, Term exprTerm, VariableArray varArray)
+        private static IValueExpression CreateValueExpression(RowTypeBinding rowTypeBind, Term exprTerm, VariableArray varArray)
         {
             // variable(Type,Number)
             if (exprTerm.Name == "variable" && exprTerm.Arity == 2)
@@ -2018,7 +2040,7 @@ namespace Starcounter.Query.Sql
             if (exprTerm.Name == "literal" && exprTerm.Arity == 2)
             {
                 ILiteral literal = CreateLiteral(exprTerm.getArgument(1), exprTerm.getArgument(2));
-                if (!literal.EvaluatesToNull(null))
+                if (!literal.EvaluatesToNull(null) && !(literal is TypeLiteral))
                     varArray.QueryFlags = varArray.QueryFlags | QueryFlags.IncludesLiteral;
                 return literal;
             }
@@ -2074,6 +2096,10 @@ namespace Starcounter.Query.Sql
             if (typeTerm.Name == "string")
             {
                 return CreateStringVariable(number, varArray);
+            }
+            if (typeTerm.Name == "type")
+            {
+                return CreateTypeVariable(number, varArray);
             }
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect typeTerm: " + typeTerm);
         }
@@ -2175,6 +2201,22 @@ namespace Starcounter.Query.Sql
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Conflicting variables.");
         }
 
+        private static TypeVariable CreateTypeVariable(Int32 number, VariableArray varArray)
+        {
+            IVariable variable = varArray.GetElement(number);
+            if (variable == null)
+            {
+                TypeVariable typeVariable = new TypeVariable(number);
+                varArray.SetElement(number, typeVariable);
+                return typeVariable;
+            }
+            if (variable is TypeVariable)
+            {
+                return variable as TypeVariable;
+            }
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Conflicting variables.");
+        }
+
         private static ILiteral CreateLiteral(Term typeTerm, Term nameTerm)
         {
             if (typeTerm.Name == "binary")
@@ -2216,6 +2258,10 @@ namespace Starcounter.Query.Sql
             if (typeTerm.Name == "numerical") // Numerical null literal.
             {
                 return CreateIntegerLiteral(nameTerm);
+            }
+            if (typeTerm.Name == "type")
+            {
+                return CreateTypeLiteral(nameTerm);
             }
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect typeTerm: " + typeTerm);
         }
@@ -2364,7 +2410,6 @@ namespace Starcounter.Query.Sql
             {
                 return new ObjectLiteral(UIntegerParse(literalTerm.Name)); // ObjectID
             }
-            //PI110503 return new ObjectLiteral(TypeRepository.GetTypeBindingByUpperCaseName(typeTerm.Name.ToUpper()));
             return new ObjectLiteral(TypeRepository.GetTypeBinding(typeTerm.Name));
         }
 
@@ -2400,6 +2445,16 @@ namespace Starcounter.Query.Sql
                 value = UIntegerParse(literalTerm.Name);
             }
             return new UIntegerLiteral(value);
+        }
+
+        private static TypeLiteral CreateTypeLiteral(Term literalTerm)
+        {
+            ITypeBinding value = null;
+            if (literalTerm.Name != "null")
+            {
+                value = Starcounter.Binding.Bindings.GetTypeBinding(literalTerm.Name);
+            }
+            return new TypeLiteral(value);
         }
 
         private static IPath CreatePath(RowTypeBinding rowTypeBind, Term pathTerm, VariableArray varArray)
@@ -2958,7 +3013,7 @@ namespace Starcounter.Query.Sql
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect argListTerm: " + argListTerm);
             }
             Term argTerm = argListTerm.getArgument(1);
-            IValueExpression expr = CreateTypeExpression(rowTypeBind, argTerm, varArray);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, argTerm, varArray);
             if (expr is IObjectExpression)
             {
                 return new BooleanMethod(extNum, typeBind, expr as IObjectExpression);
@@ -3051,8 +3106,8 @@ namespace Starcounter.Query.Sql
                                                                    VariableArray varArray)
         {
             NumericalOperator op = CreateNumericalOperator(opTerm);
-            IValueExpression expr1 = CreateTypeExpression(rowTypeBind, exprTerm1, varArray);
-            IValueExpression expr2 = CreateTypeExpression(rowTypeBind, exprTerm2, varArray);
+            IValueExpression expr1 = CreateValueExpression(rowTypeBind, exprTerm1, varArray);
+            IValueExpression expr2 = CreateValueExpression(rowTypeBind, exprTerm2, varArray);
             if (!(expr1 is INumericalExpression))
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect type of operand: " + expr1.DbTypeCode);
@@ -3068,7 +3123,7 @@ namespace Starcounter.Query.Sql
                                                                    VariableArray varArray)
         {
             NumericalOperator op = CreateNumericalOperator(opTerm);
-            IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
             if (!(expr is INumericalExpression))
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect type of operand: " + expr.DbTypeCode);
@@ -3080,8 +3135,8 @@ namespace Starcounter.Query.Sql
                                                                VariableArray varArray)
         {
             NumericalOperator op = CreateNumericalOperator(opTerm);
-            IValueExpression expr1 = CreateTypeExpression(rowTypeBind, exprTerm1, varArray);
-            IValueExpression expr2 = CreateTypeExpression(rowTypeBind, exprTerm2, varArray);
+            IValueExpression expr1 = CreateValueExpression(rowTypeBind, exprTerm1, varArray);
+            IValueExpression expr2 = CreateValueExpression(rowTypeBind, exprTerm2, varArray);
             if (!(expr1 is INumericalExpression))
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect type of operand: " + expr1.DbTypeCode);
@@ -3097,7 +3152,7 @@ namespace Starcounter.Query.Sql
                                                                VariableArray varArray)
         {
             NumericalOperator op = CreateNumericalOperator(opTerm);
-            IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
             if (!(expr is INumericalExpression))
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect type of operand: " + expr.DbTypeCode);
@@ -3109,8 +3164,8 @@ namespace Starcounter.Query.Sql
                                                              VariableArray varArray)
         {
             NumericalOperator op = CreateNumericalOperator(opTerm);
-            IValueExpression expr1 = CreateTypeExpression(rowTypeBind, exprTerm1, varArray);
-            IValueExpression expr2 = CreateTypeExpression(rowTypeBind, exprTerm2, varArray);
+            IValueExpression expr1 = CreateValueExpression(rowTypeBind, exprTerm1, varArray);
+            IValueExpression expr2 = CreateValueExpression(rowTypeBind, exprTerm2, varArray);
             if (!(expr1 is INumericalExpression))
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect type of operand: " + expr1.DbTypeCode);
@@ -3126,7 +3181,7 @@ namespace Starcounter.Query.Sql
                                                              VariableArray varArray)
         {
             NumericalOperator op = CreateNumericalOperator(opTerm);
-            IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
             if (!(expr is INumericalExpression))
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect type of operand: " + expr.DbTypeCode);
@@ -3138,8 +3193,8 @@ namespace Starcounter.Query.Sql
                                                              VariableArray varArray)
         {
             StringOperator op = CreateStringOperator(opTerm);
-            IValueExpression expr1 = CreateTypeExpression(rowTypeBind, exprTerm1, varArray);
-            IValueExpression expr2 = CreateTypeExpression(rowTypeBind, exprTerm2, varArray);
+            IValueExpression expr1 = CreateValueExpression(rowTypeBind, exprTerm1, varArray);
+            IValueExpression expr2 = CreateValueExpression(rowTypeBind, exprTerm2, varArray);
             if (expr1 is IStringExpression && expr2 is IStringExpression)
             {
                 return new StringOperation(op, expr1 as IStringExpression, expr2 as IStringExpression);
@@ -3151,7 +3206,7 @@ namespace Starcounter.Query.Sql
         private static StringOperation CreateStringOperation(RowTypeBinding rowTypeBind, Term opTerm, Term exprTerm, VariableArray varArray)
         {
             StringOperator op = CreateStringOperator(opTerm);
-            IValueExpression expr = CreateTypeExpression(rowTypeBind, exprTerm, varArray);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
             if (expr is IStringExpression)
             {
                 return new StringOperation(op, expr as IStringExpression);
