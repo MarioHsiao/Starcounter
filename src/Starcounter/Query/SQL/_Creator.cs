@@ -984,12 +984,12 @@ namespace Starcounter.Query.Sql
         //    return new ReferenceLookup(rowTypeBind, extNum, objExpr, cond, varArray, query);
         //}
 
-        private static Sort CreateSort(RowTypeBinding rowTypeBind, Term enumTerm, Term compListTerm, VariableArray varArray, String query)
-        {
-            IExecutionEnumerator inEnum = CreateEnumerator(rowTypeBind, enumTerm, varArray, query);
-            IQueryComparer comparer = CreateComparer(rowTypeBind, compListTerm, varArray);
-            return new Sort(rowTypeBind, inEnum, comparer, varArray, query);
-        }
+        //private static Sort CreateSort(RowTypeBinding rowTypeBind, Term enumTerm, Term compListTerm, VariableArray varArray, String query)
+        //{
+        //    IExecutionEnumerator inEnum = CreateEnumerator(rowTypeBind, enumTerm, varArray, query);
+        //    IQueryComparer comparer = CreateComparer(rowTypeBind, compListTerm, varArray);
+        //    return new Sort(rowTypeBind, inEnum, comparer, varArray, query);
+        //}
 
         private static Aggregation CreateAggregation(RowTypeBinding rowTypeBind, Term extNumTerm, Term enumTerm, Term compListTerm,
             Term setFuncListTerm, Term condTerm, VariableArray varArray, String query)
