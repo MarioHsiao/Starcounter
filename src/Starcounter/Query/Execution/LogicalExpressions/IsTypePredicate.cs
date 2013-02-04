@@ -94,6 +94,10 @@ namespace Starcounter.Query.Execution {
                 else if (((TypeBinding)typeBinding).SubTypeOf((TypeBinding)objType))
                     return IsTypeCompare.SUPERTYPE;
                 else return IsTypeCompare.FALSE;
+            if (objType is TypeBinding)
+                return IsTypeCompare.UNKNOWNTYPE;
+            if (typeBinding is TypeBinding)
+                return IsTypeCompare.UNKNOWNOBJECT;
             return IsTypeCompare.UNKNOWN;
         }
 

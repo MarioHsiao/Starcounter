@@ -73,7 +73,9 @@ namespace Starcounter.Query.Execution
         SUBTYPE, // Object is subtype of the type (TRUE)
         TRUE, // It is known to be true, e.g., object is evaluated and IS evaluated to TRUE
         FALSE, // Tt is known to be false, e.g., object is evaluated and IS evaluated to FALSE, or extent type binding is neither super or sub type to the type binding.
-        UNKNOWN // Cannot be evaluated
+        UNKNOWNTYPE, // Type is unknown (i.e., comes through variable), while object or object type is known
+        UNKNOWNOBJECT, // Object type is unknown (i.e., comes through variable), while type is known
+        UNKNOWN // Neither type nor Object type are unknown
     }
 
     /// <summary>

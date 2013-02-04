@@ -232,12 +232,19 @@ internal class ExtentNode : IOptimizationNode
                                 // The actual object might be subtype.
                                 typeConditions.Add((IsTypePredicate)conditionList[j]);
                                 break;
+                            case IsTypeCompare.UNKNOWNTYPE:
+                                // Generate few plans to guess possible way
+                                break;
+                            case IsTypeCompare.UNKNOWNOBJECT:
+                                // If type is subtype to current extent, then use index on the type
+                                break;
                             case IsTypeCompare.UNKNOWN:
                                 // Will be knwokn at run time. Do nothing here. Run filter at runtime
                                 break;
                             case IsTypeCompare.FALSE:
                                 // It is not expected that object will be of the type. Run filter at runtime
                                 // Empty enumerator flag
+                                // Return an empty extent
                                 break;
                         }
                     }
