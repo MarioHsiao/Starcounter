@@ -10,5 +10,6 @@ namespace QueryProcessingTest {
         public Int64 AccountId;
         public User Client;
         public Decimal Amount;
+        public DateTime Updated;
     }
 }
