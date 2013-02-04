@@ -201,8 +201,8 @@ SKIP_SERVER_CREATION:
         // Replacing default server parameters.
         if (!Utilities.ReplaceXMLParameterInFile(
             Path.Combine(serverDir, StarcounterEnvironment.ServerNames.SystemServer + ServerConfiguration.FileExtension),
-            StarcounterConstants.BootstrapOptionNames.DefaultAppsPort,
-            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_SystemServerDefaultAppsTcpPort)))
+            StarcounterConstants.BootstrapOptionNames.DefaultUserHttpPort,
+            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerUserHttpPort)))
         {
             throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM,
                 "Can't replace default Apps port for " + StarcounterEnvironment.ServerNames.SystemServer + " server.");
@@ -211,8 +211,8 @@ SKIP_SERVER_CREATION:
         // Replacing default server parameters.
         if (!Utilities.ReplaceXMLParameterInFile(
             Path.Combine(serverDir, StarcounterEnvironment.ServerNames.SystemServer + ServerConfiguration.FileExtension),
-            ServerConfiguration.AdminTcpPortString,
-            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_SystemServerAdminTcpPort)))
+            ServerConfiguration.SystemHttpPortString,
+            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerSystemHttpPort)))
         {
             throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM,
                 "Can't replace Administrator TCP port for " + StarcounterEnvironment.ServerNames.SystemServer + " server.");
@@ -242,7 +242,7 @@ SKIP_SERVER_CREATION:
         // Copying gateway configuration.
         InstallerMain.CopyGatewayConfig(
             serverDir,
-            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_SystemServerAdminTcpPort));
+            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerSystemHttpPort));
 
         // Creating Administrator database.
         InstallerMain.CreateDatabaseSynchronous(
@@ -252,7 +252,7 @@ SKIP_SERVER_CREATION:
 
         // Calling external tool to create Administrator shortcut.
         Utilities.CreateShortcut(
-            "http://localhost:" + InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_SystemServerAdminTcpPort),
+            "http://localhost:" + InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerSystemHttpPort),
             SystemServerAdminDesktopShortcutPath,
             "",
             installPath,

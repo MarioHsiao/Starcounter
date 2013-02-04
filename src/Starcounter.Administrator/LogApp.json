@@ -1,0 +1,20 @@
+﻿{
+	"LogEntries": [
+					{
+						"ActivityID" : 0,
+						"Category" : "Category",
+						"_DateTime" : "DateTime",
+						"DateTimeStr" : "DateTime",
+						"MachineName" : "MachineName",
+						"Message" : "Message",
+						"SeqNumber" : 0,
+						"ServerName" : "ServerName",
+						"Source" : "Source",
+						"_Type" : "Type",
+						"TypeStr" : "Type",
+						"UserName" : "UserName"
+					}
+	],
+	"RefreshList$" : null,
+	"ClearList$" : null
+}

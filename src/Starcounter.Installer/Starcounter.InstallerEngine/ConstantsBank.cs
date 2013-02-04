@@ -26,12 +26,12 @@ namespace Starcounter.InstallerEngine
         public const String Setting_AddStarcounterToStartMenu = "AddStarcounterToStartMenu";
 
         public const String Setting_PersonalServerPath = "PersonalServerPath";
-        public const String Setting_PersonalServerDefaultAppsTcpPort = "PersonalServerDefaultAppsTcpPort";
-        public const String Setting_PersonalServerAdminTcpPort = "PersonalServerAdminTcpPort";
+        public const String Setting_DefaultPersonalServerUserHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort_String;
+        public const String Setting_DefaultPersonalServerSystemHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort_String;
 
         public const String Setting_SystemServerPath = "SystemServerPath";
-        public const String Setting_SystemServerDefaultAppsTcpPort = "SystemServerDefaultAppsTcpPort";
-        public const String Setting_SystemServerAdminTcpPort = "SystemServerAdminTcpPort";
+        public const  String Setting_DefaultSystemServerUserHttpPort = StarcounterConstants.NetworkPorts.DefaultSystemServerUserHttpPort_String;
+        public const String Setting_DefaultSystemServerSystemHttpPort = StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort_String;
 
         public const String GatewayXmlStatisticsPort = "GatewayStatisticsPort";
 

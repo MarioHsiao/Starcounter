@@ -34,9 +34,6 @@ class GatewayWorker
     // Worker suspend state.
     volatile bool worker_suspended_unsafe_;
 
-    // Round-robin global scheduler number.
-    int16_t cur_scheduler_id_;
-
     // Some worker temporary data.
     char uri_lower_case_[bmx::MAX_URI_STRING_LEN];
 
@@ -49,6 +46,7 @@ class GatewayWorker
     // List of reusable connect sockets.
     LinearStack<SOCKET, MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER> reusable_connect_sockets_;
 
+    // Number of created connections calculated for worker.
     int32_t num_created_conns_worker_;
 
 #ifdef GW_LOOPED_TEST_MODE
@@ -134,16 +132,6 @@ public:
     bool GetSocketState(int32_t db_index, SOCKET s)
     {
         return worker_dbs_[db_index]->GetSocketState(s);
-    }
-
-    // Round-robin scheduler number.
-    int16_t GetSchedulerId()
-    {
-        cur_scheduler_id_++;
-        if (cur_scheduler_id_ >= g_gateway.get_num_schedulers())
-            cur_scheduler_id_ = 0;
-
-        return cur_scheduler_id_;
     }
 
     // Clone made during last iteration.

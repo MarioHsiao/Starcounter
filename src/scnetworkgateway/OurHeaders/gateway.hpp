@@ -979,6 +979,12 @@ class ActiveDatabase
 
 public:
 
+    // Number of confirmed register push channels.
+    int32_t get_num_confirmed_push_channels()
+    {
+        return num_confirmed_push_channels_;
+    }
+
     // Sets value for Apps specific session.
     void SetAppsSessionValue(
         session_index_type session_index,
@@ -1024,9 +1030,6 @@ public:
         TerminateThread(channels_events_thread_handle_, 0);
         channels_events_thread_handle_ = NULL;
     }
-
-    // Checks if its enough confirmed push channels.
-    bool IsAllPushChannelsConfirmed();
 
     // Received confirmation push channel.
     void ReceivedPushChannelConfirmation()
@@ -1077,7 +1080,7 @@ public:
     }
 
     // Initializes this active database slot.
-    void Init(std::string new_name, uint64_t new_unique_num, int32_t db_index);
+    void Init(std::string db_name, uint64_t unique_num, int32_t db_index);
 };
 
 
@@ -1504,9 +1507,6 @@ class Gateway
     // List of proxied servers.
     ReverseProxyInfo reverse_proxies_[MAX_PROXIED_URIS];
     int32_t num_reversed_proxies_;
-
-    // Number of active schedulers.
-    uint32_t num_schedulers_;
 
     // Black list with malicious IP-addresses.
     LinearList<uint32_t, MAX_BLACK_LIST_IPS_PER_WORKER> black_list_ips_unsafe_;
@@ -2076,12 +2076,6 @@ public:
     // Reading command line arguments.
     uint32_t ProcessArgumentsAndInitLog(int argc, wchar_t* argv[]);
 
-    // Get number of active schedulers.
-    uint32_t get_num_schedulers()
-    {
-        return num_schedulers_;
-    }
-
     // Get number of workers.
     int32_t setting_num_workers()
     {
@@ -2125,7 +2119,8 @@ public:
     uint32_t Init();
 
     // Initializes shared memory.
-    uint32_t InitSharedMemory(std::string setting_databaseName,
+    uint32_t InitSharedMemory(
+        std::string setting_databaseName,
         core::shared_interface* sharedInt_readOnly);
 
     // Checking for database changes.
