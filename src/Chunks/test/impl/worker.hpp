@@ -224,7 +224,6 @@ acquire_chunk_from_private_chunk_pool:
 		/// Round-robin check all channels and see if there are any response
 		/// messages and process them.
 		///=====================================================================
-<<<<<<< HEAD
 
 		//if ((++scan_out_buffers & 127) == 0) { // Slow down scanning of out buffers
 			for (std::size_t n = 0; n < num_channels_; ++n) {
@@ -234,23 +233,17 @@ acquire_chunk_from_private_chunk_pool:
 					// A message on channel ch was received. Notify the database
 					// that the out queue in this channel is not full.
 					worked = true;
-	#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 					/// No reason, nobody waits!
 					//the_channel.scheduler()->notify(shared().scheduler_work_event
 					//(the_channel.get_scheduler_number()));
-	#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-					//the_channel.scheduler()->notify();
-	#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 					
 					///=============================================================
 					/// Handle all responses in this chunk.
 					///=============================================================
-					//shared().chunk(response_chunk_index).set_next(0); /// DEBUG: Set next link to 0.
 
 					shared_memory_chunk* smc = (shared_memory_chunk*) &(shared()
 					.chunk(response_chunk_index));
-=======
-		
+				
 		for (std::size_t n = 0; n < num_channels_; ++n) {
 			channel_type& the_channel = shared().channel(channel_[n]);
 			// Check if there is a message and process it.
@@ -292,7 +285,6 @@ acquire_chunk_from_private_chunk_pool:
 					// The chunk_pool_ has more chunks than allowed, time to
 					// release some chunks.
 					std::size_t chunks_to_move = chunk_pool_.size() -max_chunks;
->>>>>>> f956df79ffb538ec00929d98215e77ccbac13745
 					
 					uint64_t ping_data;
 					uint32_t error_code = sc_bmx_parse_pong(smc, &ping_data);
