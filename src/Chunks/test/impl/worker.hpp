@@ -137,9 +137,13 @@ try {
 						// Successfully pushed the chunk_index. Notify the
 						// scheduler.
 						worked = true;
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 						the_channel.scheduler()->notify(shared()
 						.scheduler_work_event(the_channel
 						.get_scheduler_number()));
+#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
+						the_channel.scheduler()->notify();
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 					}
 					else {
 						// Could not push the request message to the channels in
@@ -176,8 +180,12 @@ acquire_chunk_from_private_chunk_pool:
 					// Successfully pushed the chunk_index. Notify the
 					// scheduler.
 					worked = true;
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 					the_channel.scheduler()->notify(shared()
 					.scheduler_work_event(the_channel.get_scheduler_number()));
+#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
+					the_channel.scheduler()->notify();
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 				}
 				else {
 					// Could not push the request to the channels in
@@ -233,58 +241,21 @@ acquire_chunk_from_private_chunk_pool:
 					// A message on channel ch was received. Notify the database
 					// that the out queue in this channel is not full.
 					worked = true;
+	#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 					/// No reason, nobody waits!
 					//the_channel.scheduler()->notify(shared().scheduler_work_event
 					//(the_channel.get_scheduler_number()));
+	#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
+					//the_channel.scheduler()->notify();
+	#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 					
 					///=============================================================
 					/// Handle all responses in this chunk.
 					///=============================================================
+					//shared().chunk(response_chunk_index).set_next(0); /// DEBUG: Set next link to 0.
 
 					shared_memory_chunk* smc = (shared_memory_chunk*) &(shared()
 					.chunk(response_chunk_index));
-				
-		for (std::size_t n = 0; n < num_channels_; ++n) {
-			channel_type& the_channel = shared().channel(channel_[n]);
-			// Check if there is a message and process it.
-			if (the_channel.out.try_pop_back(&response_chunk_index) == true) {
-				// A message on channel ch was received. Notify the database
-				// that the out queue in this channel is not full.
-				worked = true;
-				/// No reason, nobody waits!
-				//the_channel.scheduler()->notify(shared().scheduler_work_event
-				//(the_channel.get_scheduler_number()));
-				
-				///=============================================================
-				/// Handle all responses in this chunk.
-				///=============================================================
-				
-				shared_memory_chunk* smc = (shared_memory_chunk*) &(shared()
-				.chunk(response_chunk_index));
-				
-				uint64_t ping_data;
-				uint32_t error_code = sc_bmx_parse_pong(smc, &ping_data);
-				
-				if (error_code == 0) {
-					// Successfully processed the response.
-				}
-				else {
-					// An error occurred.
-					std::cout << "worker[" << worker_id_ << "] error: "
-					"handle_responses() failed with the error code "
-					<< error_code << std::endl;
-				}
-				
-				// Release the chunk.
-				chunk_pool_.release_linked_chunks(&shared().chunk(0),
-				response_chunk_index);
-				if (chunk_pool_.size() <= max_chunks) {
-					continue;
-				}
-				else {
-					// The chunk_pool_ has more chunks than allowed, time to
-					// release some chunks.
-					std::size_t chunks_to_move = chunk_pool_.size() -max_chunks;
 					
 					uint64_t ping_data;
 					uint32_t error_code = sc_bmx_parse_pong(smc, &ping_data);
@@ -350,6 +321,7 @@ acquire_chunk_from_private_chunk_pool:
 				// Nothing was pushed or popped for scan_count_reset number of
 				// iterations. This thread will now wait for any scheduler to
 				// push or pop on any of this worker's channels.
+#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 				if (shared().client_interface().wait_for_work
 				(shared().client_work_event(), wait_for_work_milli_seconds)
 				== true) {
@@ -362,6 +334,19 @@ acquire_chunk_from_private_chunk_pool:
 					shared().client_interface().set_notify_flag(false);
 					scan_counter = scan_counter_preset; // or 1?
 				}
+#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
+				if (shared().client_interface().wait_for_work
+				(wait_for_work_milli_seconds) == true) {
+					// This worker was notified there is work to do.
+					shared().client_interface().set_notify_flag(false);
+					scan_counter = scan_counter_preset;
+				}
+				else {
+					// A timeout occurred.
+					shared().client_interface().set_notify_flag(false);
+					scan_counter = scan_counter_preset; // or 1?
+				}
+#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 			}
 		}
 	}
