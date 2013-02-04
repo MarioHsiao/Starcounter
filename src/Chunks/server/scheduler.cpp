@@ -1080,9 +1080,6 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 			/// Notify the IPC monitor to repush_front_channel_numberlease all chunks in this
 			/// client_interface, making them available for anyone to allocate.
 			///=================================================================
-<<<<<<< HEAD
-
-=======
 			//std::cout << "TODO: Notify the IPC monitor to release all chunks in this client_interface." << std::endl;
 			int32_t database_cleanup_index = client_interface_ptr
 			->database_cleanup_index();
@@ -1103,7 +1100,6 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 				std::cout << "error: no database_cleanup_index set." << std::endl;
 			}
 			
->>>>>>> f956df79ffb538ec00929d98215e77ccbac13745
 			bool release_chunk_result = release_clients_chunks
 			(client_interface_ptr, 10000 /* milliseconds */);
 			
