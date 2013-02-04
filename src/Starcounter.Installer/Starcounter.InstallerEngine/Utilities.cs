@@ -74,6 +74,41 @@ namespace Starcounter.InstallerEngine
         }
 
         /// <summary>
+        /// Replaces certain parameter in XML file.
+        /// </summary>
+        /// <param name="pathToXml"></param>
+        /// <param name="paramName"></param>
+        /// <param name="paramNewValue"></param>
+        /// <returns></returns>
+        public static bool ReplaceXMLParameterInFile(
+            String pathToXml,
+            String paramName,
+            String paramNewValue)
+        {
+            if (!File.Exists(pathToXml))
+                return false;
+
+            String fileContents = File.ReadAllText(pathToXml);
+
+            // Searching for the first entry.
+            Int32 startIndex = fileContents.IndexOf(paramName);
+            if (startIndex <= 0)
+                return false;
+
+            // Searching the end of the parameter value.
+            Int32 endIndex = fileContents.IndexOf('<', startIndex);
+            String strToReplace = fileContents.Substring(startIndex, endIndex - startIndex);
+
+            // Replacing with new parameter value.
+            fileContents = fileContents.Replace(strToReplace, paramName + ">" + paramNewValue);
+
+            // Saving modified XML file contents.
+            File.WriteAllText(pathToXml, fileContents);
+
+            return true;
+        }
+
+        /// <summary>
         /// Helping function to copy folders recursively.
         /// </summary>
         /// <param name="source">Source folder.</param>
@@ -478,12 +513,18 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// Creates shortcut using external utility.
         /// </summary>
-        public static void CreateShortcut(String pathToOrigin, String pathToLnk, String args, String workingDir, String description)
+        public static void CreateShortcut(
+            String pathToOrigin,
+            String pathToLnk,
+            String args,
+            String workingDir,
+            String description,
+            String iconPath)
         {
             // Creating shortcut using our utility.
             ProcessStartInfo shortcutInfo = new ProcessStartInfo();
             shortcutInfo.FileName = "\"" + InstallerMain.InstallationDir + "\\CreateShortcut\"";
-            shortcutInfo.Arguments = "\"" + pathToOrigin + "\" \"" + pathToLnk + "\" \"" + args + "\" \"" + workingDir + "\" \"" + description + "\"";
+            shortcutInfo.Arguments = "\"" + pathToOrigin + "\" \"" + pathToLnk + "\" \"" + args + "\" \"" + workingDir + "\" \"" + description + "\" \"" + iconPath + "\"";
             shortcutInfo.UseShellExecute = false;
             shortcutInfo.CreateNoWindow = true;
 
@@ -529,15 +570,48 @@ namespace Starcounter.InstallerEngine
                 throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
                     "During installation current user must have administrative rights on the local computer and Starcounter installer must be run with administrative rights.");
             }
+        }
 
+        /// <summary>
+        /// Checks if another version of Starcounter is installed.
+        /// </summary>
+        /// <returns></returns>
+        public static Boolean IsAnotherVersionInstalled()
+        {
             // Compares installation versions.
-            String anotherVersion = InstallerMain.CompareScVersions();
-            if (anotherVersion != null)
+            String previousVersion = InstallerMain.CompareScVersions();
+            if (previousVersion != null)
             {
-                throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
-                    "Different version of Starcounter is already installed (" + anotherVersion + "). " +
-                    "You should first uninstall previous version before running this installation.");
+                if (Utilities.AskUserForDecision(
+                    "Would you like to uninstall previous(" + previousVersion + ") version of Starcounter now?",
+                    "Starcounter is already installed..."))
+                {
+                    // Asking to launch previous version uninstaller.
+                    String installDir = CInstallationBase.GetInstalledDirFromEnv();
+                    String prevSetupExePath = Path.Combine(installDir, ConstantsBank.SCInstallerGUI + ".exe");
+                    if (!File.Exists(prevSetupExePath))
+                    {
+                        throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
+                            "Can't find " + ConstantsBank.SCInstallerGUI + ".exe for Starcounter " + previousVersion +
+                            " in '" + installDir + "'. Please uninstall previous version of Starcounter manually.");
+                    }
+
+                    Process prevSetupProcess = new Process();
+                    prevSetupProcess.StartInfo.FileName = prevSetupExePath;
+                    prevSetupProcess.StartInfo.Arguments = ConstantsBank.DontCheckOtherInstancesArg;
+                    prevSetupProcess.Start();
+                }
+                else
+                {
+                    Utilities.MessageBoxInfo(
+                        "Please manually uninstall previous(" + previousVersion + ") version of Starcounter before installing this one.",
+                        "Starcounter is already installed...");
+                }
+
+                return true;
             }
+
+            return false;
         }
 
         // Currently logged in user name.
@@ -931,7 +1005,13 @@ namespace Starcounter.InstallerEngine
             if (InstallerMain.GuiMessageboxCallback != null)
             {
                 // Calling installer GUI message box.
-                MessageBoxEventArgs messageBoxEventArgs = new MessageBoxEventArgs(question, title, WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Exclamation, WpfMessageBoxResult.No);
+                MessageBoxEventArgs messageBoxEventArgs = new MessageBoxEventArgs(
+                    question,
+                    title,
+                    WpfMessageBoxButton.YesNo,
+                    WpfMessageBoxImage.Exclamation,
+                    WpfMessageBoxResult.No);
+
                 InstallerMain.GuiMessageboxCallback(null, messageBoxEventArgs);
 
                 // Checking user's choice.
@@ -944,11 +1024,12 @@ namespace Starcounter.InstallerEngine
             else
             {
                 // Calling standard message box.
-                DialogResult userChoice = MessageBox.Show(question,
-                                                          title,
-                                                          MessageBoxButtons.YesNo,
-                                                          MessageBoxIcon.Question,
-                                                          MessageBoxDefaultButton.Button2);
+                DialogResult userChoice = MessageBox.Show(
+                    question,
+                    title,
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question,
+                    MessageBoxDefaultButton.Button2);
 
                 if (userChoice != DialogResult.Yes)
                     return false;

@@ -1,0 +1,76 @@
+﻿<!doctype html>
+
+
+<head>
+    <title>Starcounter</title>
+
+    <link rel="stylesheet" href="/css/bootstrap-2.2.1.css">
+
+    <script src="/sys/angular-1.0.2.js"></script>
+    <script src="/sys/angular-patch.js"></script>
+    <!--<script src="/sys/bootstrap-2.2.1.js"></script>-->
+
+    <link rel="stylesheet" href="/css/master.css">
+
+</head>
+
+
+<body ng-remoteapp class="container">
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <a class="brand" href="/">Starcounter</a>
+        <ul class="nav">
+          <li><a href="/server">Server</a></li>
+          <li><a href="/databases">Databases</a></li>
+          <li><a href="/query">Query</a></li>
+          <li class="active"><a href="/log">Log</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <h1>LOG</h1>
+
+    <table class="table table-condensed">
+
+        <thead>
+            <tr>
+                <!--<th>ActivityID</th>-->
+                <!--<th>Category</th>-->
+                <th>Date</th>
+                <th>Type</th>
+                <th>Message</th>
+                <th>Machine Name</th>
+                <!--<th>SeqNumber</th>-->
+                <th>Server Name</th>
+                <th>Source</th>
+                <!--<th>UserName</th>-->
+            </tr>
+
+        </thead>
+
+        <tbody>
+            <tr ng-class="entry.TypeStr" ng-repeat="entry in LogEntries">
+                <!--<td>{{entry.ActivityID}}</td>-->
+                <!--<td>{{entry.Category}}</td>-->
+                <td>{{entry.DateTimeStr}}</td>
+                <td>{{entry.TypeStr}}</td>
+                <td>{{entry.Message}}</td>
+                <td>{{entry.MachineName}}</td>
+                <!--<td>{{entry.SeqNumber}}</td>-->
+                <td>{{entry.ServerName}}</td>
+                <td>{{entry.Source}}</td>
+                <!--<td>{{entry.UserName}}</td>-->
+               
+            </tr>
+        </tbody>
+
+    </table>
+
+    <div class="btn-group">
+        <button class="btn" ui-click="RefreshList$">Refresh</button>
+        <button class="btn" ui-click="ClearList$">Clear</button>
+    </div>
+
+
+</body>

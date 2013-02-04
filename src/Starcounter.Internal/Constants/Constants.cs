@@ -61,6 +61,52 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
+        /// Defines the well known network ports.
+        /// </summary>
+        public class NetworkPorts
+        {
+            /// <summary>
+            /// Default user port for Personal server.
+            /// </summary>
+            public const UInt16 DefaultPersonalServerUserHttpPort = 8080;
+
+            /// <summary>
+            /// Default user port for Personal server.
+            /// </summary>
+            public const String DefaultPersonalServerUserHttpPort_String = "DefaultPersonalServerUserHttpPort";
+
+            /// <summary>
+            /// Default user port for System server.
+            /// </summary>
+            public const UInt16 DefaultSystemServerUserHttpPort = 80;
+
+            /// <summary>
+            /// Default user port for System server.
+            /// </summary>
+            public const String DefaultSystemServerUserHttpPort_String = "DefaultSystemServerUserHttpPort";
+
+            /// <summary>
+            /// Default user port for Personal server.
+            /// </summary>
+            public const UInt16 DefaultPersonalServerSystemHttpPort = 8181;
+
+            /// <summary>
+            /// Default user port for Personal server.
+            /// </summary>
+            public const String DefaultPersonalServerSystemHttpPort_String = "DefaultPersonalServerSystemHttpPort";
+
+            /// <summary>
+            /// Default system port for System server.
+            /// </summary>
+            public const UInt16 DefaultSystemServerSystemHttpPort = 81;
+
+            /// <summary>
+            /// Default system port for System server.
+            /// </summary>
+            public const String DefaultSystemServerSystemHttpPort_String = "DefaultSystemServerSystemHttpPort";
+        }
+
+        /// <summary>
         /// Defines the commands this program accepts.
         /// </summary>
         public static class BootstrapCommandNames
@@ -114,6 +160,11 @@ namespace Starcounter.Internal
             /// Specifies TCP/IP port to be used by SQL parser.
             /// </summary>
             public const string SQLProcessPort = "SQLProcessPort";
+
+            /// <summary>
+            /// Default HTTP port for user code.
+            /// </summary>
+            public const string DefaultUserHttpPort = "DefaultUserHttpPort";
 
             /// <summary>
             /// Specifies the number of schedulers.

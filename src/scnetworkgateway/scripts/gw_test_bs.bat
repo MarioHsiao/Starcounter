@@ -3,6 +3,7 @@
 
 :: Killing all processes.
 CMD /C "kill_all.bat" 2>NUL
+CMD /C "timeout 2" 2>NUL
 
 :: Some predefined constants.
 SET DB_DIR=.db

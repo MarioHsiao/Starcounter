@@ -240,9 +240,6 @@ Gateway::Gateway()
     // Init unique sequence number.
     db_seq_num_ = 0;
 
-    // Initializing scheduler information.
-    num_schedulers_ = 0;
-
     // No reverse proxies by default.
     num_reversed_proxies_ = 0;
 
@@ -1020,7 +1017,11 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
             }
 
             // Filling necessary fields.
-            active_databases_[empty_db_index].Init(current_db_name, ++db_seq_num_, empty_db_index);
+            active_databases_[empty_db_index].Init(
+                current_db_name,
+                ++db_seq_num_,
+                empty_db_index);
+
             db_did_go_down_[empty_db_index] = false;
 
             // Increasing number of active databases.
@@ -1144,7 +1145,7 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
                 &gw_workers_[0],
                 gw_handlers_,
                 setting_gw_stats_port_,
-                "/",
+                "/gwstats",
                 1,
                 bmx::HTTP_METHODS::OTHER_METHOD,
                 bmx::INVALID_HANDLER_ID,
@@ -1208,7 +1209,10 @@ ActiveDatabase::ActiveDatabase()
 }
 
 // Initializes this active database slot.
-void ActiveDatabase::Init(std::string db_name, uint64_t unique_num, int32_t db_index)
+void ActiveDatabase::Init(
+    std::string db_name,
+    uint64_t unique_num,
+    int32_t db_index)
 {
     // Creating new Apps sessions up to maximum number of connections.
     if (!apps_unique_session_numbers_unsafe_)
@@ -1234,12 +1238,6 @@ void ActiveDatabase::Init(std::string db_name, uint64_t unique_num, int32_t db_i
 
     num_confirmed_push_channels_ = 0;
     is_empty_ = false;
-}
-
-// Checks if its enough confirmed push channels.
-bool ActiveDatabase::IsAllPushChannelsConfirmed()
-{
-    return (num_confirmed_push_channels_ >= g_gateway.get_num_schedulers());
 }
 
 // Checks if this database slot empty.
@@ -1360,12 +1358,20 @@ uint32_t Gateway::Init()
 #endif
 
         // Going throw all needed ports.
-        for(int32_t p = 0; p < num_server_ports_unsafe_; p++)
+        for (int32_t p = 0; p < num_server_ports_unsafe_; p++)
         {
+            // Skipping empty port.
+            if (server_ports_[p].IsEmpty())
+                continue;
+
             SOCKET server_socket = INVALID_SOCKET;
 
             // Creating socket and binding to port (only on the first worker).
-            uint32_t errCode = CreateListeningSocketAndBindToPort(&gw_workers_[0], server_ports_[p].get_port_number(), server_socket);
+            uint32_t errCode = CreateListeningSocketAndBindToPort(
+                &gw_workers_[0],
+                server_ports_[p].get_port_number(),
+                server_socket);
+
             GW_ERR_CHECK(errCode);
         }
 
@@ -1438,8 +1444,9 @@ uint32_t Gateway::Init()
 }
 
 // Initializes everything related to shared memory.
-uint32_t Gateway::InitSharedMemory(std::string setting_databaseName,
-    core::shared_interface* sharedInt)
+uint32_t Gateway::InitSharedMemory(
+    std::string setting_databaseName,
+    core::shared_interface* shared_int)
 {
     using namespace core;
 
@@ -1494,14 +1501,7 @@ uint32_t Gateway::InitSharedMemory(std::string setting_databaseName,
     // Construct a shared_interface.
     for (int32_t i = 0; i < setting_num_workers_; i++)
     {
-        sharedInt[i].init(shm_seg_name.c_str(), mon_int_name.c_str(), pid, the_owner_id);
-    }
-
-    // Obtaining number of active schedulers.
-    if (num_schedulers_ == 0)
-    {
-        num_schedulers_ = sharedInt[0].common_scheduler_interface().number_of_active_schedulers();
-        GW_PRINT_GLOBAL << "Number of active schedulers: " << num_schedulers_ << GW_ENDL;
+        shared_int[i].init(shm_seg_name.c_str(), mon_int_name.c_str(), pid, the_owner_id);
     }
 
     return 0;
@@ -1561,12 +1561,16 @@ uint32_t Gateway::DeletePortsForDb(int32_t db_index)
     // Going through all ports.
     for (int32_t i = 0; i < num_server_ports_unsafe_; i++)
     {
-        // Deleting port handlers if any.
-        server_ports_[i].EraseDb(db_index);
+        // Checking that port is not empty.
+        if (!server_ports_[i].IsEmpty())
+        {
+            // Deleting port handlers if any.
+            server_ports_[i].EraseDb(db_index);
 
-        // Checking if port is not used anywhere.
-        if (server_ports_[i].IsEmpty())
-            server_ports_[i].Erase();
+            // Checking if port is not used anywhere.
+            if (server_ports_[i].IsEmpty())
+                server_ports_[i].Erase();
+        }
     }
 
     // Removing deleted trailing server ports.
@@ -2274,7 +2278,8 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         // Printing handlers information for each attached database and gateway.
         for (int32_t p = 0; p < num_server_ports_unsafe_; p++)
         {
-            if (!server_ports_->IsEmpty())
+            // Checking if port is alive.
+            if (!server_ports_[p].IsEmpty())
             {
                 global_statistics_stream_ << "Port " << server_ports_[p].get_port_number() <<
 

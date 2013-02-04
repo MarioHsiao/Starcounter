@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.CompilerServices;
+using Sc.Tools.Logging;
 using Starcounter;
 using Starcounter.ABCIPC.Internal;
 using Starcounter.Internal;
@@ -19,27 +20,26 @@ namespace StarcounterApps3 {
         // Argument <path to server configuraton file> <portnumber>
         static void Main(string[] args) {
 
-            int port = 8080; // TODO: Read from some configuration?
-
             if (args == null || args.Length < 1) {
                 Console.WriteLine("Starcounter Administrator: Invalid arguments: Usage <path to server configuraton file>");
                 return;
             }
 
-            // Server configuration file
+            // Server configuration file.
             if (string.IsNullOrEmpty(args[0]) || !File.Exists(args[0])) {
                 Console.WriteLine("Starcounter Administrator: Missing server configuration file {0}", args[0]);
             }
 
-            // Port number
-            //if (int.TryParse(args[1], out port) == false) {
-            //    Console.WriteLine("Starcounter Administrator: Invalid port number {0}", args[1]);
-            //    return;
-            //};
+            // Administrator port.
+            UInt16 adminPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;
+            if (UInt16.TryParse(args[1], out adminPort) == false) {
+                Console.WriteLine("Starcounter Administrator: Invalid port number {0}", args[1]);
+                return;
+            };
 
-            Console.WriteLine("Starcounter Administrator started on port {0}.", port);
+            Console.WriteLine("Starcounter Administrator started on port: " + adminPort);
 
-            AppsBootstrapper.Bootstrap(port);
+            AppsBootstrapper.Bootstrap(adminPort);
 
             Master.ServerEngine = new ServerEngine(args[0]);      // .srv\Personal\Personal.server.config
             Master.ServerEngine.Setup();
@@ -48,12 +48,15 @@ namespace StarcounterApps3 {
             // Start Engine services
             StartListeningService();
 
+            // Start listening on log-events
+            ServerInfo serverInfo = Master.ServerInterface.GetServerInfo();
+            SetupLogListener(serverInfo.Configuration.LogDirectory); 
+
             RegisterGETS();
-
-
         }
 
         static void RegisterGETS() {
+
             GET("/", () => {
                 return new Master() { View = "index.html" };
             });
@@ -137,6 +140,14 @@ namespace StarcounterApps3 {
             //GET("/empty", () => {
             //    return "empty";
             //});
+
+
+            GET("/log", () => {
+                LogApp logApp = new LogApp();
+                logApp.View = "log.html";
+                logApp.UpdateResult();
+                return logApp;
+            });
         }
 
         #region ServerServices
@@ -169,6 +180,111 @@ namespace StarcounterApps3 {
         void Handle(Input.TheButton input) {
             this.Message = "I clicked the button!";
         }
+
+        #region LogHandling
+
+        static void SetupLogListener(string directory) {
+
+
+            // Clear old log entries
+            Db.Transaction(() => {
+
+                try {
+                    Db.SlowSQL("DELETE from LogItem");
+                } catch (Exception e) {
+                    Console.WriteLine(e.ToString());
+                }
+            });
+
+
+            //Db.Transaction(() => {
+
+            //    try {
+            //        Db.SlowSQL("CREATE INDEX seq ON LogItem (SeqNumber DESC)");
+            //    } catch (Exception e) {
+            //        Console.WriteLine(e.ToString());
+            //    }
+
+            //});
+
+            //Db.Transaction(() => {
+
+            //    try {
+            //        Db.SlowSQL("DROP INDEX seq ON SeqNumber");
+            //    } catch (DbException e) {
+            //        if (e.ErrorCode != Starcounter.Error.SCERRINDEXNOTFOUND) {
+            //            Console.WriteLine(e.ToString());
+            //            //throw e;
+            //        }
+            //    }
+            //});
+
+
+
+            //// Add some test data
+            //Db.Transaction(() => {
+            //    LogItem m;
+            //    if (Db.SQL("SELECT m FROM LogItem m").First == null) {
+            //        for (Int32 i = 1; i < 5; i++) {
+            //            m = new LogItem() { Type = "SomeType" + i, Message = "SomeMessage" + i };
+            //        }
+            //    }
+            //});
+
+
+            LogFilter lf;
+            LogReader lr;
+
+            if (!Directory.Exists(directory)) {
+                Console.WriteLine("Specified directory does not exist.");
+                return;
+            }
+
+            lf = null;
+            lr = new LogReader(directory, lf, (4096 * 256));
+            lr.Open();
+
+            DbSession d = new DbSession();
+            d.RunAsync(() => {
+
+                LogEntry le;
+                for (; ; ) {
+                    le = lr.Read(true);
+                    if (le == null) {
+                        break;
+                    }
+
+                    Db.Transaction(() => {
+
+                        try {
+
+
+                            new LogItem() {
+                                ActivityID = le.ActivityID,
+                                Category = le.Category ?? "NULL",
+                                DateTime = le.DateTime,
+                                MachineName = le.MachineName ?? "NULL",
+                                Message = le.Message ?? "NULL",
+                                SeqNumber = (long)le.Number,   // TODO: Number is a ulong
+                                ServerName = le.ServerName ?? "NULL",
+                                Source = le.Source ?? "NULL",
+                                Type = le.Type,
+                                UserName = le.UserName ?? "NULL"
+                            };
+
+                        } catch (Exception) {
+                           // Console.WriteLine(e.ToString());
+                        }
+
+
+                    });
+                }
+            });
+
+        }
+
+        #endregion
+
 
         static void ToConsoleWithColor(string text, ConsoleColor color) {
             try {

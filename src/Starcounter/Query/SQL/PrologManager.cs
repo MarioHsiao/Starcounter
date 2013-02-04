@@ -31,13 +31,13 @@ namespace Starcounter.Query.Sql
         static String schemaFolderExternal;
 
         // Is called during start-up.
-        internal static void Initiate()
+        internal static void Initiate(String schemaFolder)
         {
             logSource = LogSources.Sql;
             startProcessLock = new Object();
 
             //schemaFolderExternal = schemaFolder.Replace("\\", "/").Replace(' ', '?'); // TODO: Use some appropriate standard encoding?
-            schemaFolderExternal = QueryModule.SchemaFolder.Replace("\\", "/");
+            schemaFolderExternal = schemaFolder.Replace("\\", "/");
             
             // Establish an SQL process without any schema information.
             EstablishSqlProcess(0);
@@ -87,7 +87,7 @@ namespace Starcounter.Query.Sql
             // managed by the same scheduler, this method must be called within
             // the scope of a yield block. 
 
-            String schemaFilePath = schemaFolderExternal + "schema" + DateTime.Now.ToString("yyMMddHHmmssfff") + ".pl";
+            String schemaFilePath = schemaFolderExternal + "/schema" + DateTime.Now.ToString("yyMMddHHmmssfff") + ".pl";
             try
             {
                 WriteSchemaInfoToFile(schemaFilePath, typeDefArray);

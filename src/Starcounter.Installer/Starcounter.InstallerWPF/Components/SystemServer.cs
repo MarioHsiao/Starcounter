@@ -5,6 +5,7 @@ using System.Text;
 using System.Collections.ObjectModel;
 using Starcounter.InstallerEngine;
 using System.Collections;
+using Starcounter.Internal;
 
 namespace Starcounter.InstallerWPF.Components
 {
@@ -65,6 +66,55 @@ namespace Starcounter.InstallerWPF.Components
             }
         }
 
+        private UInt16 _DefaultUserHttpPort;
+        public UInt16 DefaultUserHttpPort
+        {
+            get
+            {
+                return _DefaultUserHttpPort;
+            }
+
+            set
+            {
+                if (_DefaultUserHttpPort == value)
+                    return;
+
+                this._DefaultUserHttpPort = value;
+                this.OnPropertyChanged("DefaultUserHttpPort");
+            }
+        }
+
+        private UInt16 _DefaultSystemHttpPort;
+        public UInt16 DefaultSystemHttpPort
+        {
+            get
+            {
+                return _DefaultSystemHttpPort;
+            }
+
+            set
+            {
+                if (_DefaultSystemHttpPort == value)
+                    return;
+
+                this._DefaultSystemHttpPort = value;
+                this.OnPropertyChanged("DefaultSystemHttpPort");
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance can be installed by starcounter installer.
+        /// </summary>
+        /// <value>
+        /// 	<c>true</c> if this instance can be installed; otherwise, <c>false</c>.
+        /// </value>
+        public override bool CanBeInstalled {
+            get {
+                return false;
+            }
+        }
+
+
         protected override void SetDefaultValues()
         {
             base.SetDefaultValues();
@@ -73,6 +123,8 @@ namespace Starcounter.InstallerWPF.Components
 
             this.Path = System.IO.Path.Combine(Environment.GetEnvironmentVariable("SystemDrive") + "\\" +
                                                Configuration.StarcounterCommonPath , ConstantsBank.SCSystemDatabasesName);
+
+            this.DefaultUserHttpPort = StarcounterConstants.NetworkPorts.DefaultSystemServerUserHttpPort;
 
             switch (this.Command)
             {

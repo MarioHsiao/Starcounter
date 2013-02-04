@@ -35,6 +35,30 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\..\bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>..\..\..\bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <!-- Including standard .NET references (note that default target framework is used). -->
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -60,6 +84,7 @@
     <Compile Include="Components\VS2012Integration.cs" />
     <Compile Include="Components\VSIntegration.cs" />
     <Compile Include="GAC.cs" />
+    <Compile Include="SettingsLoader.cs" />
     <Compile Include="SystemServerAccount.cs" />
     <Compile Include="SystemServerService.cs" />
     <Compile Include="VsSetup\DevEnv.cs" />
@@ -74,9 +99,6 @@
     <EmbeddedResource Include="VersionInfo.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
-    <None Include="SetupSettings.ini">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <Compile Include="Components\ComponentBase.cs" />
     <Compile Include="Components\InstallationBase.cs" />
     <Compile Include="Components\PersonalServer.cs" />
@@ -92,7 +114,6 @@
     <Compile Include="DependenciesCheck.cs" />
     <Compile Include="ComponentsCheck.cs" />
     <Compile Include="ConstantsBank.cs" />
-    <Compile Include="INILoader.cs" />
     <Compile Include="InstallerMain.cs" />
     <Compile Include="SetupException.cs" />
     <Compile Include="UninstallEngine.cs" />
@@ -124,6 +145,11 @@
       <Project>{74cb7aab-3bb6-4107-a149-254840cdf558}</Project>
       <Name>Starcounter.Controls.WpfMessageBox</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="SetupSettings.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

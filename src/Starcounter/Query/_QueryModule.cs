@@ -11,6 +11,7 @@ using Starcounter.Query.Execution;
 using System;
 using System.Diagnostics;
 using Starcounter.Internal;
+using System.IO;
 
 namespace Starcounter.Query
 {
@@ -26,7 +27,7 @@ namespace Starcounter.Query
         internal const String ProcessVersion = "121129";
         internal static Int32 ProcessPort = 0;
         //static readonly String schemaFilePath = AppDomain.CurrentDomain.BaseDirectory + "\\schema.pl";
-        internal static String SchemaFolder = AppDomain.CurrentDomain.BaseDirectory + "32BitComponents\\";
+        //internal static String SchemaFolder = AppDomain.CurrentDomain.BaseDirectory + "32BitComponents\\";
         internal const Int32 MaxQueryLength = 3000;
         internal const Int32 MaxQueryRetries = 10;
         internal const Int32 MaxVerifyRetries = 100;
@@ -36,7 +37,8 @@ namespace Starcounter.Query
         /// Initiates query module. Called during start-up.
         /// </summary>
         /// <param name="processPort">External SQL process port. If 0 then default should be used.</param>
-        public static void Initiate(Int32 processPort)
+        /// <param name="schemaFolder">Path to a folder where schema files will be saved.</param>
+        public static void Initiate(Int32 processPort, String schemaFolder)
         {
 #if false
             // Connect managed and native Sql functions.
@@ -52,7 +54,11 @@ namespace Starcounter.Query
             if (ProcessPort == 0)
                 ProcessPort = StarcounterEnvironment.DefaultPorts.SQLProlog;
             Int32 tickCount = Environment.TickCount;
-            PrologManager.Initiate();
+
+            if (!Directory.Exists(schemaFolder))
+                Directory.CreateDirectory(schemaFolder);
+
+            PrologManager.Initiate(schemaFolder);
             tickCount = Environment.TickCount - tickCount;
         }
 

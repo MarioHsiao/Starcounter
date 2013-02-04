@@ -623,33 +623,30 @@ namespace Starcounter
             // in theory is that scerrres.dll will have an additional reference,
             // but since we never explicitly free it, that really doesn't matter.
 
-            result = true;
+            result = false;
             try
             {
                 FormatStarcounterErrorMessage(errorCode, buffer, (uint)buffer.Capacity);
+                result = true;
             }
             catch (BadImageFormatException)
             {
-                if (TriedResolvingBadImageFormatException == false)
-                {
+                if (TriedResolvingBadImageFormatException == false) {
                     TriedResolvingBadImageFormatException = true;
 
                     result = TryExplicitlyLoadingResourceBinary();
-                    if (result)
-                    {
+                    if (result) {
                         result = TryFormatMessageFromResourceStream(errorCode, buffer);
                     }
                 }
             }
             catch (DllNotFoundException)
             {
-                if (TriedResolvingFileNotFoundException == false)
-                {
+                if (TriedResolvingFileNotFoundException == false) {
                     TriedResolvingFileNotFoundException = true;
 
                     result = TryExplicitlyLoadingResourceBinary();
-                    if (result)
-                    {
+                    if (result) {
                         result = TryFormatMessageFromResourceStream(errorCode, buffer);
                     }
                 }

@@ -27,11 +27,10 @@ namespace Starcounter.Internal.Weaver {
         /// The attribute index variable suffix
         /// </summary>
         public const string AttributeIndexVariableSuffix = "000";
-
         /// <summary>
         /// The static type address field name
         /// </summary>
-        public const string StaticTypeAddressFieldName = "__typeAddress";
+        public const string StaticTypeTableIdFieldName = "__typeTableId";
         /// <summary>
         /// The static type binding field name
         /// </summary>
@@ -46,10 +45,10 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         /// <param name="typeDef">The type def.</param>
         /// <returns>System.String.</returns>
-        public static string GetTypeAddressFieldName(TypeDefDeclaration typeDef) {
+        public static string GetTypeTableIdFieldName(TypeDefDeclaration typeDef) {
             StringBuilder builder = new StringBuilder();
             typeDef.WriteReflectionName(builder, ReflectionNameOptions.None);
-            builder.Append(StaticTypeAddressFieldName);
+            builder.Append(StaticTypeTableIdFieldName);
             return builder.ToString();
         }
 
@@ -58,8 +57,8 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         /// <param name="type">The type.</param>
         /// <returns>System.String.</returns>
-        public static string GetTypeAddressFieldName(Type type) {
-            return type.ToString() + StaticTypeAddressFieldName;
+        public static string GetTypeTableIdFieldName(Type type) {
+            return type.ToString() + StaticTypeTableIdFieldName;
         }
 
         /// <summary>
