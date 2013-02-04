@@ -46,7 +46,6 @@ pid_(pid) {
 	init(segment_name, monitor_interface_name, pid, oid);
 }
 
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 inline shared_interface::~shared_interface() {
 	close_client_work_event();
 
@@ -54,7 +53,6 @@ inline shared_interface::~shared_interface() {
 		close_scheduler_work_event(i);
 	}
 }
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 
 inline void shared_interface::init(std::string segment_name, std::string
 monitor_interface_name, pid_type pid, owner_id oid) {
@@ -80,7 +78,6 @@ monitor_interface_name, pid_type pid, owner_id oid) {
 		throw shared_interface_exception(999L); /// TODO: return a suitable error code
 	}
 
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	client_work_event() = 0;
 
 	for (std::size_t i = 0; i < max_number_of_schedulers; ++i) {
@@ -96,7 +93,6 @@ monitor_interface_name, pid_type pid, owner_id oid) {
 			}
 		}
 	}
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 }
 
 inline std::string shared_interface::get_segment_name() const {
@@ -115,20 +111,16 @@ uint32_t timeout_milliseconds) {
 	
 	client_number_ = v;
 
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	if (get_client_number() != no_client_number) {
 		open_client_work_event(get_client_number());
 	}
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 	return have_client_number;
 }
 
 inline bool shared_interface::release_client_number(uint32_t spin_count,
 uint32_t timeout_milliseconds) {
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	close_client_work_event();
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 	if ((common_client_interface_->release_client_number(client_number_,
 	client_interface_, spin_count, timeout_milliseconds)) == true) {
@@ -218,12 +210,8 @@ inline void shared_interface::release_channel(channel_number the_channel_number)
 	/// because it notifies an existing scheduler. Once a valid pointer to a
 	/// scheduler have been obtained, it can always be used since a scheduler
 	/// can not quit.
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	the_channel.scheduler()->notify(scheduler_work_event(the_channel
 	.get_scheduler_number()));
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-	the_scheduler->notify();
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 }
 
 //------------------------------------------------------------------------------
@@ -404,7 +392,6 @@ inline client_number shared_interface::get_client_number() const {
 	return client_number_;
 }
 
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 inline HANDLE& shared_interface::open_client_work_event(std::size_t i) {
 	// Not checking if the event is already open.
 	if ((client_work_event() = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
@@ -500,8 +487,6 @@ inline HANDLE& shared_interface::open_scheduler_number_pool_not_full_event(std::
 	if ((scheduler_number_pool_not_full_event(i) = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
 	FALSE, scheduler_interface(i).channel_number_queue().not_full_notify_name())) == NULL) {
 		// Failed to open the event.
-		std::cout << "shared_interface::open_scheduler_number_pool_not_full_event(" << i
-		<< "): Failed to open event. OS error: " << GetLastError() << "\n"; /// DEBUG
 		return scheduler_number_pool_not_full_event(i) = 0; // throw exception
 	}
 	return scheduler_number_pool_not_full_event(i);
@@ -521,8 +506,6 @@ inline const HANDLE& shared_interface::scheduler_number_pool_not_full_event
 }
 #endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-
 inline uint32_t shared_interface::send_to_server_and_wait_response(uint32_t ch,
 uint32_t request, uint32_t& response, uint32_t spin, uint32_t timeout) {
 	// Get a reference to the channel.
@@ -536,12 +519,8 @@ push_request_message_with_spin: /// The notify flag could be true...
 		// Push the message to the channels in queue, retry spin_count times.
 		if (the_channel.in.push_front(request, spin) == true) {
 			// Successfully pushed the chunk_index. Notify the scheduler.
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 			the_channel.scheduler()->notify(scheduler_work_event(the_channel
 			.get_scheduler_number()));
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-			the_channel.scheduler()->notify();
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 		}
 		else {
 			// Could not push the request message to the channels in queue while
@@ -557,12 +536,8 @@ push_request_message_with_spin: /// The notify flag could be true...
 				case common_client_interface_type::normal:
 					// The server state is normal. Wait until the request
 					// message can be pushed. . .the in queue is full.
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 					if (this_client_interface.wait_for_work(client_work_event(),
 					timeout)) {
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-					if (this_client_interface.wait_for_work(timeout)) {
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 						// The scheduler or monitor notified the client.
 						///this_client_interface.set_notify_flag(false);
 						goto push_request_message_with_spin;
@@ -592,12 +567,8 @@ pop_response_message_with_spin: /// The notify flag could be true
 		// times.
 		if (the_channel.out.pop_back(&response, spin) == true) {
 			// Successfully popped response. Notify the scheduler.
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 			the_channel.scheduler()->notify(scheduler_work_event(the_channel
 			.get_scheduler_number()));
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-			the_channel.scheduler()->notify();
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 		}
 		else {
 			client_interface_type& this_client_interface
@@ -613,12 +584,8 @@ pop_response_message_with_spin: /// The notify flag could be true
 				case common_client_interface_type::normal:
 					// The server state is normal. Wait until a response message
 					// can be popped. . .the out queue is empty.
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 					if (this_client_interface.wait_for_work(client_work_event(),
 					timeout)) {
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-					if (this_client_interface.wait_for_work(timeout)) {
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 						// The scheduler or monitor notified the client.
 						///this_client_interface.set_notify_flag(false); /// was commented
 						goto pop_response_message_with_spin;

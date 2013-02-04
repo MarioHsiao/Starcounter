@@ -84,10 +84,8 @@ public:
 	monitor_interface_name, pid_type pid, owner_id oid = owner_id
 	(owner_id::none));
 	
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	/// Destructor.
 	~shared_interface();
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 	/// Initialize.
 	/**
@@ -399,7 +397,6 @@ public:
 	/// Get the client_number.
 	client_number get_client_number() const;
 	
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	//--------------------------------------------------------------------------
 	/// Only clients: Open client work event and return a reference to it.
 	/// NOTE: Get a client_number first, because this function will use what
@@ -527,8 +524,6 @@ public:
 	 */ 
 	const HANDLE& scheduler_number_pool_not_full_event(std::size_t i) const;
 #endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 private:
 	// Specify what it throws.
@@ -555,7 +550,6 @@ private:
 	shared_memory_object segment_;
 	mapped_region mapped_region_;
 	
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	// Each client need to have all events (HANDLEs) already opened and ready to be used.
 	HANDLE client_work_;
 
@@ -572,8 +566,6 @@ private:
 	// only those that correspond to an active scheduler will be opened/closed.
 	HANDLE scheduler_number_pool_not_full_[max_number_of_schedulers];
 #endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 protected:
 	/// TODO: Replace direct accesses to client_number_ with get_client_number()
