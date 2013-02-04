@@ -196,9 +196,23 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
         {
             CreateEnumerator();
         }
-        if (enumerator.MoveNext())
-            return true;
+        if (counter == 0 && fetchNumberExpr != null) {
+            if (fetchNumberExpr.EvaluateToInteger(null) != null)
+                fetchNumber = fetchNumberExpr.EvaluateToInteger(null).Value;
+            else
+                fetchNumber = 0;
+        }
 
+        if (counter >= fetchNumber) {
+            //currentObject = null;
+            enumerator.Dispose();
+            enumerator = null;
+            return false;
+        }
+        if (enumerator.MoveNext()) {
+            counter++;
+            return true;
+        }
         enumerator.Dispose();
         enumerator = null;
         return false;
