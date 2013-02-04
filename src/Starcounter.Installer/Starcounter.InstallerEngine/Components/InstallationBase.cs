@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Configuration.Install;
 using Starcounter.Tools;
 using Starcounter;
+using Starcounter.Internal;
 
 namespace Starcounter.InstallerEngine
 {
@@ -42,7 +43,7 @@ public class CInstallationBase : CComponentBase
     }
 
     /// <summary>
-    /// Provides name of the component setting in INI file.
+    /// Provides name of the component setting.
     /// </summary>
     public override String SettingName
     {
@@ -92,18 +93,34 @@ public class CInstallationBase : CComponentBase
     }
 
     // Adds firewall exceptions to certain executables.
-    static String[] FirewallExceptionPrograms = { "32BitComponents\\StarcounterSQL"/*,
-                                                  "StarcounterServer",
-                                                  "StarcounterAdministrator",
-                                                  "Scdbs",
-                                                  "Scdbsw"*/ };
+    static String[] FirewallExceptionPrograms = 
+    {
+        "32BitComponents\\" + StarcounterConstants.ProgramNames.ScSqlParser,
+        StarcounterConstants.ProgramNames.ScNetworkGateway,
+        StarcounterConstants.ProgramNames.ScNetworkGateway,
+        StarcounterConstants.ProgramNames.ScNetworkGateway,
+        StarcounterConstants.ProgramNames.ScNetworkGateway
+    };
+
+    // Firewall exceptions names.
+    static String[] FirewallExceptionNames = 
+    {
+        StarcounterConstants.ProgramNames.ScSqlParser,
+        StarcounterConstants.ProgramNames.ScNetworkGateway + StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort_String,
+        StarcounterConstants.ProgramNames.ScNetworkGateway + StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort_String,
+        StarcounterConstants.ProgramNames.ScNetworkGateway + StarcounterConstants.NetworkPorts.DefaultSystemServerUserHttpPort_String,
+        StarcounterConstants.ProgramNames.ScNetworkGateway + StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort_String
+    };
 
     // Special firewall rules for each program.
-    static String[] FirewallSpecialParams = { "remoteip=127.0.0.1"/*,
-                                              "",
-                                              "",
-                                              "",
-                                              ""*/ };
+    static String[] FirewallSpecialParams =
+    {
+        "remoteip=127.0.0.1",
+        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort,
+        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort,
+        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultSystemServerUserHttpPort,
+        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort
+    };
 
     /// <summary>
     /// Adds/Removes Windows firewall exceptions.
@@ -133,13 +150,13 @@ public class CInstallationBase : CComponentBase
                 if (isAdding)
                 {
                     // Creating rule from executable name without path!
-                    netshTool.StartInfo.Arguments = "advfirewall firewall add rule name=\"Allow " + FirewallExceptionPrograms[i] + "\" " +
+                    netshTool.StartInfo.Arguments = "advfirewall firewall add rule name=\"Allow " + FirewallExceptionNames[i] + "\" " +
                                                     "description=\"Allow inbound traffic for one of the Starcounter components.\" " +
                                                     FirewallSpecialParams[i] + " dir=in program=\"" + exeFullPath + "\" action=allow";
                 }
                 else // Removing program from the firewall.
                 {
-                    netshTool.StartInfo.Arguments = "advfirewall firewall delete rule name=\"Allow " + FirewallExceptionPrograms[i] + "\"";
+                    netshTool.StartInfo.Arguments = "advfirewall firewall delete rule name=\"Allow " + FirewallExceptionNames[i] + "\"";
                 }
 
                 netshTool.Start();
@@ -183,6 +200,11 @@ public class CInstallationBase : CComponentBase
         string[] filesToInstall;
 
         gacFilePath = Path.Combine(InstallerMain.InstallationDir, "GACAssembliesInstall.txt");
+
+        // TODO!
+        if (!File.Exists(gacFilePath))
+            return;
+
         filesToInstall = File.ReadAllLines(gacFilePath);
 
         foreach (string fileName in filesToInstall)
@@ -198,6 +220,11 @@ public class CInstallationBase : CComponentBase
         string[] assembliesToInstall;
 
         gacFilePath = Path.Combine(InstallerMain.InstallationDir, "GACAssembliesUninstall.txt");
+
+        // TODO!
+        if (!File.Exists(gacFilePath))
+            return;
+
         assembliesToInstall = File.ReadAllLines(gacFilePath);
 
         foreach (string assemblyName in assembliesToInstall)
@@ -288,9 +315,10 @@ public class CInstallationBase : CComponentBase
         Utilities.CreateShortcut(
             Path.Combine(ComponentPath, ConstantsBank.SCInstallerGUI + ".exe"),
             Path.Combine(startMenuDir, "Add or Remove Starcounter Components.lnk"),
-            " ",
+            "",
             ComponentPath,
-            "Used to add and remove components or uninstall Starcounter completely.");
+            "Used to add and remove components or uninstall Starcounter completely.",
+            Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCIconFilename));
 
         // Logging event.
         Utilities.ReportSetupEvent("Adding Starcounter to the 'Add/Remove Programs' list...");
@@ -327,8 +355,9 @@ public class CInstallationBase : CComponentBase
         // integration with the exception assistant functions properly even w/o
         // any extensions and provides such added value that we will always want
         // to install it.
-        Utilities.ReportSetupEvent("Installing Starcounter VS exception assistant content...");
-        InstallExceptionAssistantContent();
+        // TODO: Ask Per!
+        //Utilities.ReportSetupEvent("Installing Starcounter VS exception assistant content...");
+        //InstallExceptionAssistantContent();
 
         // Updating progress.
         InstallerMain.ProgressIncrement();
@@ -398,8 +427,9 @@ public class CInstallationBase : CComponentBase
         catch { Utilities.ReportSetupEvent("Warning: problem running GAC assemblies removal..."); }
 
         // Uninstalling Starcounter VS exception assistant content
-        Utilities.ReportSetupEvent("Uninstalling Starcounter VS exception assistant content...");
-        UninstallExceptionAssistantContent();
+        // TODO: Ask Per!
+        //Utilities.ReportSetupEvent("Uninstalling Starcounter VS exception assistant content...");
+        //UninstallExceptionAssistantContent();
     }
 
     /// <summary>

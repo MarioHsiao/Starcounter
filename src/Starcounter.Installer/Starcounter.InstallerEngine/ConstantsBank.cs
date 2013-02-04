@@ -10,8 +10,10 @@ namespace Starcounter.InstallerEngine
 {
     public static class ConstantsBank
     {
+        public const String SettingsSection_Root = "StarcounterSetupSettings";
+
         // Sections in settings file.
-        internal const String SettingsSection_Install = "Starcounter Installation Settings";
+        public const String SettingsSection_Install = "StarcounterInstallationSettings";
 
         // Setup settings constants.
         public const String Setting_InstallPersonalServer = "InstallPersonalServer";
@@ -24,28 +26,38 @@ namespace Starcounter.InstallerEngine
         public const String Setting_AddStarcounterToStartMenu = "AddStarcounterToStartMenu";
 
         public const String Setting_PersonalServerPath = "PersonalServerPath";
+        public const String Setting_DefaultPersonalServerUserHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort_String;
+        public const String Setting_DefaultPersonalServerSystemHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort_String;
+
         public const String Setting_SystemServerPath = "SystemServerPath";
+        public const  String Setting_DefaultSystemServerUserHttpPort = StarcounterConstants.NetworkPorts.DefaultSystemServerUserHttpPort_String;
+        public const String Setting_DefaultSystemServerSystemHttpPort = StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort_String;
+
+        public const String GatewayXmlStatisticsPort = "GatewayStatisticsPort";
 
         public const String Setting_True = "True";
 
         // Uninstall settings constants.
-        public const String SettingsSection_Uninstall = "Starcounter Uninstall Settings";
+        public const String SettingsSection_Uninstall = "StarcounterUninstallationSettings";
         public const String Setting_RemovePersonalServer = "RemovePersonalServer";
         public const String Setting_RemoveSystemServer = "RemoveSystemServer";
         public const String Setting_RemoveVS2010Integration = "RemoveVS2010Integration";
         public const String Setting_RemoveVS2012Integration = "RemoveVS2012Integration";
 
         // Other constants.
-        internal const String SCIconFilename = "Sc-Icon.ico";
+        public const String SCIconFilename = "sc.ico";
+        public const String DontCheckOtherInstancesArg = "DontCheckOtherInstances";
 
-        public const String ScGlobalSettingsIniName = "SetupSettings.ini";
-        public const String ScGUISetupIniName = "GUISetupSettings.ini";
+        public const String ScGlobalSettingsIniName = "SetupSettings.xml";
+        public const String ScGUISetupIniName = "GUISetupSettings.xml";
+        public const String ScGatewayConfigName = "scnetworkgateway.xml";
 
         public static String ScPostSetupFilePath = Path.Combine(Environment.GetEnvironmentVariable("TEMP", EnvironmentVariableTarget.User), "ScPostSetupTemp.txt");
         public static String ScStartDemosTemp = Path.Combine(Environment.GetEnvironmentVariable("TEMP", EnvironmentVariableTarget.User), "ScStartDemosTemp.txt");
         public const String ScPostSetupFileArgsSeparator = "###";
 
         internal const String SCDemoName = "SimpleBenchmark";
+        internal const String SCAdminDatabaseName = "Administrator";
         internal const String SCDemoDbName = "StarcounterBenchmarkDemoDb";
         internal const String ScSamplesDemosDirName = "SamplesAndDemos";
         internal const String ScLogFileName = "ScSetup.log";
@@ -54,18 +66,20 @@ namespace Starcounter.InstallerEngine
         internal const String SCUninstallParam = "uninstall";
         internal const String SCCleanupParam = "cleanup";
         internal const String SCVSSafeImportsKey = "Starcounter.MsBuild";
-        internal const string ScExceptionAssistantContentFileName = "StarcounterExceptionAssistantContent.xml";
+        internal const String ScExceptionAssistantContentFileName = "StarcounterExceptionAssistantContent.xml";
 
         // Constants defined in and fetched from the shared framework assembly
-        internal static String SCPersonalServerExeName { get { return StarcounterConstants.ProgramNames.ScService + ".exe"; } }
+        internal static String SCServiceExeName { get { return StarcounterConstants.ProgramNames.ScService + ".exe"; } }
         public static String SCEnvVariableName { get { return StarcounterEnvironment.VariableNames.InstallationDirectory; } }
         public static String SCEnvVariableDefaultServer { get { return StarcounterEnvironment.VariableNames.DefaultServer; } }
-        public static String SCPersonalDatabasesName { get { return StarcounterEnvironment.ServerNames.PersonalUser; } }
-        public static String SCSystemDatabasesName { get { return StarcounterEnvironment.ServerNames.System; } }
+        public static String SCPersonalDatabasesName { get { return StarcounterEnvironment.ServerNames.PersonalServer; } }
+        public static String SCSystemDatabasesName { get { return StarcounterEnvironment.ServerNames.SystemServer; } }
 
         public const String SCInstallerGUI = "Starcounter-Setup";
-        public const String SCInstallerEngine = "InstallerEngine";
+        public const String SCInstallerEngine = "Starcounter.InstallerEngine";
         public const String SCProductName = StarcounterConstants.ProgramNames.ProductName;
+
+        public static readonly String ProgramFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles); //Environment.GetEnvironmentVariable("ProgramW6432");
 
         internal const String Registry32BitUninstallPath = @"SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
         internal const String Registry64BitUninstallPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
@@ -146,7 +160,7 @@ namespace Starcounter.InstallerEngine
         static string GetVisualStudioInstallationDirectory(string version)
         {
             return
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                Path.Combine(ConstantsBank.ProgramFilesPath,
                 string.Format(@"..\Program Files (x86)\Microsoft Visual Studio {0}", version)
                 );
         }

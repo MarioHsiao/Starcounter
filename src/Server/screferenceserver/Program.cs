@@ -7,6 +7,7 @@ using System;
 using System.Diagnostics;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
+using Starcounter.Internal;
 
 namespace Starcounter.Server {
 
@@ -41,7 +42,7 @@ namespace Starcounter.Server {
                     string serverName;
 
                     if (!arguments.TryGetProperty("name", out serverName)) {
-                        serverName = "Personal";
+                        serverName = StarcounterEnvironment.ServerNames.PersonalServer;
                     }
 
                     var setup = RepositorySetup.NewDefault(repositoryPath, serverName);

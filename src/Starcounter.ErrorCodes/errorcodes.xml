@@ -3489,7 +3489,7 @@
       <code hex="0005" severity="Error" name="ScErrInstallerDxDiagProblem">
           <message>DirectX diagnostic utility has exited with the error code.</message>
       </code>
-      <code hex="0006" severity="Error" name="ScErrInstallerCorruptedIniFile">
+      <code hex="0006" severity="Error" name="ScErrInstallerCorruptedSetupFile">
           <message>Can't read keys from INI settings file.</message>
       </code>
       <code hex="0007" severity="Error" name="ScErrInstallerCantReadSettingValue">
@@ -3684,6 +3684,32 @@
     <code hex="0009" severity="Error" name="ScErrWeaverFileNotSupported">
       <message>
         The specified files extension is not supported.
+      </message>
+    </code>
+    <!-- 
+    Occurs when the Visual Studio extension runs the debugging sequence, in
+    order to debug a Starcounter module, and the server (i.e. Starcounter Administrator)
+    does not answer to the request being sent over the pipe. Usually indicates
+    that the server is not running.
+    -->
+    <code hex="000A" severity="Error" name="ScErrDebugFailedConnectToServer">
+      <message>
+        Debugging the executable failed because Visual Studio was unable to connect to the
+        server (a.k.a Starcounter Administrator). Usually indicates that the server is not
+        running.
+      </message>
+    </code>
+    <!-- 
+    Occurs when the Visual Studio extension runs the debugging sequence, in
+    order to debug a Starcounter module, and the server (i.e. Starcounter Administrator)
+    reports an error in response to the request to weave and host the module inside
+    the user code process.
+    -->
+    <code hex="000B" severity="Error" name="ScErrDebugFailedServerErrorStarting">
+      <message>
+        Debugging the executable failed because the server (a.k.a Starcounter Administrator)
+        returned an error when trying to run the code. Consult the server log for more
+        detailed information.
       </message>
     </code>
   </facility>

@@ -337,7 +337,7 @@ namespace Starcounter {
         /// by <paramref name="connectionString"/>.
         /// </returns>
         public static ScUri FromDbConnectionString(string connectionString) {
-            return FromDbConnectionString(connectionString, "Personal");
+            return FromDbConnectionString(connectionString, StarcounterEnvironment.ServerNames.PersonalServer);
         }
 
         /// <summary>
@@ -360,8 +360,8 @@ namespace Starcounter {
 
                 comparisonMethod = StringComparison.InvariantCultureIgnoreCase;
                 return
-                    serverName.Equals("System", comparisonMethod) ||
-                    serverName.Equals("Personal", comparisonMethod);
+                    serverName.Equals(StarcounterEnvironment.ServerNames.SystemServer, comparisonMethod) ||
+                    serverName.Equals(StarcounterEnvironment.ServerNames.PersonalServer, comparisonMethod);
             });
         }
 
@@ -492,7 +492,7 @@ namespace Starcounter {
             pathEntries = uri.AbsolutePath.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
 
             if (pathEntries.Length == 1) {
-                serverName = "Personal";
+                serverName = StarcounterEnvironment.ServerNames.PersonalServer;
                 databaseName = pathEntries[0];
             } else if (pathEntries.Length == 2) {
                 serverName = pathEntries[0];

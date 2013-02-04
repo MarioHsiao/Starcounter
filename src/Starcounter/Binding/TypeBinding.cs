@@ -172,12 +172,6 @@ namespace Starcounter.Binding
         }
 
         /// <summary>
-        /// Gets the def handle.
-        /// </summary>
-        /// <value>The def handle.</value>
-        internal ulong DefHandle { get { return TypeDef.TableDef.DefinitionAddr; } }
-
-        /// <summary>
         /// Gets the property binding.
         /// </summary>
         /// <param name="index">The index.</param>

@@ -63,6 +63,7 @@
     <Compile Include="ErrorHandling\FactoryErrorMessage.cs" />
     <Compile Include="ErrorHandling\FileLocation.cs" />
     <Compile Include="ErrorHandling\ParsedErrorMessage.cs" />
+    <Compile Include="IBindable.cs" />
     <Compile Include="KeyValueBinary.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="sccorelog.cs" />
