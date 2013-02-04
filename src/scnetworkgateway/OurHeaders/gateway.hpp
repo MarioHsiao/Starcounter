@@ -25,7 +25,7 @@
 #include "common/name_definitions.hpp"
 
 // Level0 includes.
-#include "../../../../Level0/src/include/sccorelog.h"
+#include <sccorelog.h>
 
 // HTTP related stuff.
 #include "../../HTTP/HttpParser/OurHeaders/http_request.hpp"
@@ -195,10 +195,10 @@ const int32_t MAX_PROXIED_URIS = 32;
 const int32_t ACCEPT_ROOF_STEP_SIZE = 1;
 
 // Offset of data blob in socket data.
-const int32_t SOCKET_DATA_BLOB_OFFSET_BYTES = 704;
+const int32_t SOCKET_DATA_BLOB_OFFSET_BYTES = bmx::SOCKET_DATA_OFFSET_BLOB;
 
 // Length of blob data in bytes.
-const int32_t SOCKET_DATA_BLOB_SIZE_BYTES = bmx::MAX_DATA_BYTES_IN_CHUNK - bmx::BMX_HEADER_MAX_SIZE_BYTES - SOCKET_DATA_BLOB_OFFSET_BYTES;
+const int32_t SOCKET_DATA_BLOB_SIZE_BYTES = bmx::CHUNK_MAX_DATA_BYTES - bmx::BMX_HEADER_MAX_SIZE_BYTES - SOCKET_DATA_BLOB_OFFSET_BYTES;
 
 // Size of OVERLAPPED structure.
 const int32_t OVERLAPPED_SIZE = sizeof(OVERLAPPED);

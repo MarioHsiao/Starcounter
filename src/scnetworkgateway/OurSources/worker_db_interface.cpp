@@ -124,7 +124,13 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
             if (!smc->is_terminated())
             {
                 // Creating special chunk for keeping WSA buffers information there.
-                sd->CreateWSABuffers(this, smc, 0, 0, sd->get_user_data_written_bytes());
+                sd->CreateWSABuffers(
+                    this,
+                    smc,
+                    bmx::BMX_HEADER_MAX_SIZE_BYTES + sd->get_user_data_offset(),
+                    bmx::SOCKET_DATA_MAX_SIZE - sd->get_user_data_offset(),
+                    sd->get_user_data_written_bytes());
+
                 GW_ASSERT(sd->get_num_chunks() > 2);
 
                 // NOTE: One chunk for WSA buffers will already be counted.
@@ -137,6 +143,10 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
 #ifdef GW_CHUNKS_DIAG
             GW_PRINT_WORKER << "Popping chunk: socket " << sd->sock() << ":" << sd->get_chunk_index() << GW_ENDL;
 #endif
+
+            // Checking if this socket data is for send only.
+            if (sd->get_socket_just_send_flag())
+                goto JUST_SEND_SOCKET_DATA;
 
             session_index_type gw_session_index = sd->get_session_index();
             session_salt_type gw_session_salt = sd->get_session_salt();
@@ -229,6 +239,8 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
                     }
                 }
             }
+
+JUST_SEND_SOCKET_DATA:
 
             // Resetting the data buffer.
             sd->get_accum_buf()->Init(SOCKET_DATA_BLOB_SIZE_BYTES, sd->get_data_blob(), true);
