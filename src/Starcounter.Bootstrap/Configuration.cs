@@ -226,13 +226,13 @@ namespace StarcounterInternal.Bootstrap
         /// Gets the default Apps TCP port.
         /// </summary>
         /// <value>The default Apps TCP port.</value>
-        public UInt16 DefaultAppsPort
+        public UInt16 DefaultUserHttpPort
         {
             get
             {
-                UInt16 v = StarcounterConstants.NetworkPorts.DefaultPersonalServerAppsTcpPort;
+                UInt16 v = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
                 string str;
-                if (this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.DefaultAppsPort, out str))
+                if (this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.DefaultUserHttpPort, out str))
                 {
                     v = UInt16.Parse(str);
                 }

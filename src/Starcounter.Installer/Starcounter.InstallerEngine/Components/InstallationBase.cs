@@ -106,20 +106,20 @@ public class CInstallationBase : CComponentBase
     static String[] FirewallExceptionNames = 
     {
         StarcounterConstants.ProgramNames.ScSqlParser,
-        StarcounterConstants.ProgramNames.ScNetworkGateway + "DefaultPersonalServerAdminTcpPort",
-        StarcounterConstants.ProgramNames.ScNetworkGateway + "DefaultSystemServerAdminTcpPort",
-        StarcounterConstants.ProgramNames.ScNetworkGateway + "DefaultPersonalServerAppsTcpPort",
-        StarcounterConstants.ProgramNames.ScNetworkGateway + "DefaultSystemServerAppsTcpPort"
+        StarcounterConstants.ProgramNames.ScNetworkGateway + StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort_String,
+        StarcounterConstants.ProgramNames.ScNetworkGateway + StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort_String,
+        StarcounterConstants.ProgramNames.ScNetworkGateway + StarcounterConstants.NetworkPorts.DefaultSystemServerUserHttpPort_String,
+        StarcounterConstants.ProgramNames.ScNetworkGateway + StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort_String
     };
 
     // Special firewall rules for each program.
     static String[] FirewallSpecialParams =
     {
         "remoteip=127.0.0.1",
-        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultPersonalServerAdminTcpPort,
-        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultSystemServerAdminTcpPort,
-        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultPersonalServerAppsTcpPort,
-        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultSystemServerAppsTcpPort
+        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort,
+        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort,
+        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultSystemServerUserHttpPort,
+        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort
     };
 
     /// <summary>

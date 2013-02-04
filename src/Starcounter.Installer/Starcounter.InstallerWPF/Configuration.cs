@@ -217,12 +217,12 @@ namespace Starcounter.InstallerWPF
                 elem.InnerText = personalServer.Path;
                 subRootElem.AppendChild(elem);
 
-                elem = xmlDoc.CreateElement(ConstantsBank.Setting_PersonalServerDefaultAppsTcpPort);
-                elem.InnerText = personalServer.DefaultAppsTcpPort.ToString();
+                elem = xmlDoc.CreateElement(ConstantsBank.Setting_DefaultPersonalServerUserHttpPort);
+                elem.InnerText = personalServer.DefaultUserHttpPort.ToString();
                 subRootElem.AppendChild(elem);
 
-                elem = xmlDoc.CreateElement(ConstantsBank.Setting_PersonalServerAdminTcpPort);
-                elem.InnerText = StarcounterConstants.NetworkPorts.DefaultPersonalServerAdminTcpPort.ToString();
+                elem = xmlDoc.CreateElement(ConstantsBank.Setting_DefaultPersonalServerSystemHttpPort);
+                elem.InnerText = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort.ToString();
                 subRootElem.AppendChild(elem);
 
                 // Personal server Desktop shortcuts.
@@ -240,12 +240,12 @@ namespace Starcounter.InstallerWPF
                 elem.InnerText = systemServer.Path;
                 subRootElem.AppendChild(elem);
 
-                elem = xmlDoc.CreateElement(ConstantsBank.Setting_SystemServerDefaultAppsTcpPort);
-                elem.InnerText = systemServer.DefaultAppsTcpPort.ToString();
+                elem = xmlDoc.CreateElement(ConstantsBank.Setting_DefaultSystemServerUserHttpPort);
+                elem.InnerText = systemServer.DefaultUserHttpPort.ToString();
                 subRootElem.AppendChild(elem);
 
-                elem = xmlDoc.CreateElement(ConstantsBank.Setting_SystemServerAdminTcpPort);
-                elem.InnerText = StarcounterConstants.NetworkPorts.DefaultSystemServerAdminTcpPort.ToString();
+                elem = xmlDoc.CreateElement(ConstantsBank.Setting_DefaultSystemServerSystemHttpPort);
+                elem.InnerText = StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort.ToString();
                 subRootElem.AppendChild(elem);
 
                 // VisualStudio2010
