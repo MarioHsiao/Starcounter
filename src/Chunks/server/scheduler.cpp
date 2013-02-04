@@ -46,6 +46,7 @@
 #include "../common/config_param.hpp"
 #include "../common/bit_operations.hpp"
 #include "../common/owner_id_value_type.h"
+#include "../common/monitor_interface.hpp"
 
 #include <scerrres.h>
 
@@ -162,6 +163,14 @@ public:
 
 	std::size_t number_of_active_schedulers();
 	
+	//--------------------------------------------------------------------------
+	/// open_ipc_monitor_cleanup_event() is called by the constructor.
+	HANDLE& open_ipc_monitor_cleanup_event();
+
+	/// Get a reference to the ipc_monitor_cleanup_event. It is opened by the
+	/// constructor and closed by the destructor.
+	HANDLE& ipc_monitor_cleanup_event();
+
 	//--------------------------------------------------------------------------
 	// This function is obsolete and shall be replaced with
 	// acquire_linked_chunks() and release_linked_chunks().
@@ -895,19 +904,14 @@ unsigned long server_port::send_task_to_scheduler(unsigned long port_number,
 chunk_index the_chunk_index) {
 	scheduler_channel_type& the_channel = scheduler_task_channel_[port_number];
 	if (the_channel.in.try_push_front(the_chunk_index)) {
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 		// Get the work HANDLE...
 		HANDLE work = 0; /// TEST COMPILE
 		scheduler_interface_[port_number].notify(work);
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-		scheduler_interface_[port_number].notify();
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 		return 0;
 	}
 	return _E_INPUT_QUEUE_FULL;
 }
 
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 unsigned long server_port::send_signal_to_scheduler(unsigned long port_number,
 chunk_index the_chunk_index) {
 	scheduler_channel_type& the_channel = scheduler_signal_channel_[port_number];
@@ -918,17 +922,6 @@ chunk_index the_chunk_index) {
 	}
 	return _E_INPUT_QUEUE_FULL;
 }
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-unsigned long server_port::send_signal_to_scheduler(unsigned long port_number,
-chunk_index the_chunk_index) {
-	scheduler_channel_type& the_channel = scheduler_signal_channel_[port_number];
-	if (the_channel.in.try_push_front(the_chunk_index)) {
-		scheduler_interface_[port_number].notify();
-		return 0;
-	}
-	return _E_INPUT_QUEUE_FULL;
-}
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 
 void server_port::add_ref_to_channel(unsigned long the_channel_index)
 {
@@ -1074,6 +1067,11 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 	uint32_t channels_left
 	= client_interface_ptr->decrement_number_of_allocated_channels();
 	
+	/// Test if open monitor_interface is easy..
+	// Get monitor_interface_ptr for monitor_interface_name.
+	//monitor_interface_ptr the_monitor_interface(monitor_interface_name);
+	///
+
 	if (channels_left == 0) {
 		if (client_interface_ptr->get_owner_id().get_clean_up()) {
 			// Is the client_interface marked for clean up?
@@ -1082,16 +1080,45 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 			/// Notify the IPC monitor to repush_front_channel_numberlease all chunks in this
 			/// client_interface, making them available for anyone to allocate.
 			///=================================================================
+<<<<<<< HEAD
 
+=======
+			//std::cout << "TODO: Notify the IPC monitor to release all chunks in this client_interface." << std::endl;
+			int32_t database_cleanup_index = client_interface_ptr
+			->database_cleanup_index();
+
+			if (database_cleanup_index != -1) {
+				try {
+					// Get monitor_interface_ptr for monitor_interface_name.
+					monitor_interface_ptr the_monitor_interface
+					(common_scheduler_interface_->monitor_interface_name());
+
+					the_monitor_interface->set_cleanup_flag(database_cleanup_index);
+				}
+				catch (...) {
+					
+				}
+			}
+			else {
+				std::cout << "error: no database_cleanup_index set." << std::endl;
+			}
+			
+>>>>>>> f956df79ffb538ec00929d98215e77ccbac13745
 			bool release_chunk_result = release_clients_chunks
 			(client_interface_ptr, 10000 /* milliseconds */);
 			
 			// Release the client_interface[the_client_number].
 			client_interface_ptr->set_owner_id(owner_id::none);
 			
+#if defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+			bool release_client_number_res =
+			common_client_interface_->release_client_number(the_client_number,
+			client_interface_ptr, get_owner_id());
+#else // !defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 			bool release_client_number_res =
 			common_client_interface_->release_client_number(the_client_number,
 			client_interface_ptr);
+#endif // defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 			
 			common_client_interface_->decrement_client_interfaces_to_clean_up();
 
@@ -1119,9 +1146,15 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 			// Release the client_interface[the_client_number].
 			client_interface_ptr->set_owner_id(owner_id::none);
 			
+#if defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+			bool release_client_number_res =
+			common_client_interface_->release_client_number(the_client_number,
+			client_interface_ptr, get_owner_id());
+#else // !defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 			bool release_client_number_res =
 			common_client_interface_->release_client_number(the_client_number,
 			client_interface_ptr);
+#endif // defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 			
 			common_client_interface_->decrement_client_interfaces_to_clean_up();
 			// Clean up done for client_interface[the_client_number].
@@ -1266,6 +1299,25 @@ void server_port::release_channel_marked_for_release(channel_number the_channel_
 
 std::size_t server_port::number_of_active_schedulers() {
 	return common_scheduler_interface_->number_of_active_schedulers();
+}
+
+//------------------------------------------------------------------------------
+inline HANDLE& server_port::open_ipc_monitor_cleanup_event() {
+#if 0
+	// Not checking if the event is already open.
+	if ((ipc_monitor_cleanup_event() = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
+	FALSE, common_scheduler_interface->ipc_monitor_cleanup_event_name())) == NULL) {
+		// Failed to open the event.
+		std::cout << "server_port::open_scheduler_number_pool_not_full_event(): "
+		"Failed to open event. OS error: " << GetLastError() << "\n"; /// DEBUG
+		return ipc_monitor_cleanup_event() = 0; // throw exception
+	}
+#endif
+	return ipc_monitor_cleanup_event();
+}
+
+inline HANDLE& server_port::ipc_monitor_cleanup_event() {
+	return this_scheduler_interface_->ipc_monitor_cleanup_event();
 }
 
 //------------------------------------------------------------------------------
