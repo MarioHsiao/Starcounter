@@ -217,7 +217,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         }
         else
         {
-            enumerator = new Sort(subEnumerator.RowTypeBinding, subEnumerator, comparer, variableArray, query);
+            enumerator = new Sort(subEnumerator.RowTypeBinding, subEnumerator, comparer, variableArray, query, fetchNumberExpr, fetchOffsetKeyExpr);
         }
     }
 
