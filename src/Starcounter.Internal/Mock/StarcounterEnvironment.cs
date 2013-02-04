@@ -415,12 +415,16 @@ namespace Starcounter.Internal
 
             try
             {
-                // Path to version file.
-                String versionFilePath = Path.Combine(StarcounterEnvironment.SystemDirectory, StarcounterEnvironment.FileNames.Version);
+                // Checking if system directory is initialized.
+                if (!String.IsNullOrEmpty(StarcounterEnvironment.SystemDirectory))
+                {
+                    // Getting version file from system directory.
+                    String versionFilePath = Path.Combine(StarcounterEnvironment.SystemDirectory, StarcounterEnvironment.FileNames.Version);
 
-                // Checking that version file exists.
-                if ((!String.IsNullOrEmpty(StarcounterEnvironment.SystemDirectory)) && (File.Exists(versionFilePath)))
-                    ScVersionInfo = GetVersionInfo(null, versionFilePath);
+                    // Checking that version file exists.
+                    if (File.Exists(versionFilePath))
+                        ScVersionInfo = GetVersionInfo(null, versionFilePath);
+                }
             }
             catch { }
 
