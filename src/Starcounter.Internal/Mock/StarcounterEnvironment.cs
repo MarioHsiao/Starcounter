@@ -169,6 +169,11 @@ namespace Starcounter.Internal
             public static readonly String SystemAppDataDirectory = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 StarcounterConstants.ProgramNames.ProductName);
+
+            /// <summary>
+            /// Weaver temp sub directory.
+            /// </summary>
+            public const String WeaverTempSubDirectory = "weaver";
         }
 
         /// <summary>
