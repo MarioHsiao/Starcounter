@@ -74,17 +74,19 @@ class WorkerDbInterface
         int32_t num_acquired_chunks = shared_int_.acquire_from_shared_to_private(
             private_chunk_pool_, num_chunks, &shared_int_.client_interface(), 1000);
 
-		if (num_acquired_chunks == -1) {
 #ifdef GW_ERRORS_DIAG
-            GW_COUT << "acquire_from_shared_to_private() returned -1. Failed to acquire the lock!" << GW_ENDL;
-#endif
-		}
-		if (num_acquired_chunks == 0) {
-#ifdef GW_ERRORS_DIAG
+		switch (num_acquired_chunks) {
+		case 0:
             GW_COUT << "acquire_from_shared_to_private() returned 0. The pool is empty!" << GW_ENDL;
-#endif
+			break;
+		case -1:
+            GW_COUT << "acquire_from_shared_to_private() returned -1. Failed to acquire the lock, but the pool is not empty." << GW_ENDL;
+			break;
+		case -2:
+            GW_COUT << "acquire_from_shared_to_private() returned -2. Failed to acquire the lock, and the pool is empty." << GW_ENDL;
+			break;
 		}
-
+#endif
         // Checking that number of acquired chunks is correct.
         if (num_acquired_chunks != num_chunks)
         {

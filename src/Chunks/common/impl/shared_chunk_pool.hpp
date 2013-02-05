@@ -411,7 +411,14 @@ client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "D"
 	if (!lock.owns()) {
 		// The timeout_milliseconds time period has elapsed. Failed to acquire
 		// the lock, therefore no chunks could be acquired.
-		return -1; /// DEBUG TEST: Shall be 0.
+		if (is_not_empty()) {
+			return -1;
+		}
+		else {
+			return -2;
+		}
+
+		return 0; /// This is normally returned.
 	}
 	
 	chunk_index current;
