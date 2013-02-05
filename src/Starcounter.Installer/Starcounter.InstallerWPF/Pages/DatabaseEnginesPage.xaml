@@ -134,7 +134,7 @@
 
                                         </Grid>
 
-                                        <Label Padding="0" Target="{Binding ElementName=cb_PersonalServerDefaultUserHttpPort}" Margin="0,5,0,5"  Content="Default _HTTP user port"   />
+                                        <Label Padding="0" Target="{Binding ElementName=cb_PersonalServerDefaultUserHttpPort}" Margin="0,5,0,5"  Content="Default HTTP _user port"   />
 
                                         <ComboBox x:Name="cb_PersonalServerDefaultUserHttpPort" IsEditable="True" SelectedIndex="0" MaxWidth="150" HorizontalAlignment="Left" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError">
 
@@ -153,7 +153,27 @@
                                                 <TextBlock>9090</TextBlock>
                                             </ComboBoxItem>
                                         </ComboBox>
-                                        
+
+                                        <Label Padding="0" Target="{Binding ElementName=cb_PersonalServerDefaultSystemHttpPort}" Margin="0,5,0,5"  Content="Default HTTP _system port"   />
+
+                                        <ComboBox x:Name="cb_PersonalServerDefaultSystemHttpPort" IsEditable="True" SelectedIndex="0" MaxWidth="150" HorizontalAlignment="Left" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError">
+
+                                            <ComboBox.Text>
+                                                <Binding Path="DefaultSystemHttpPort" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged">
+                                                    <Binding.ValidationRules>
+                                                        <rules:PortRule ValidatesOnTargetUpdated="True"/>
+                                                    </Binding.ValidationRules>
+                                                </Binding>
+                                            </ComboBox.Text>
+
+                                            <ComboBoxItem>
+                                                <TextBlock>8181</TextBlock>
+                                            </ComboBoxItem>
+                                            <ComboBoxItem>
+                                                <TextBlock>9191</TextBlock>
+                                            </ComboBoxItem>
+                                        </ComboBox>
+
                                     </StackPanel>
 
                                 </StackPanel>
@@ -246,6 +266,25 @@
                                             </ComboBoxItem>
                                             <ComboBoxItem>
                                                 <TextBlock>90</TextBlock>
+                                            </ComboBoxItem>
+                                        </ComboBox>
+
+                                        <Label Padding="0" Target="{Binding ElementName=cb_SystemServerDefaultSystemHttpPort}" Margin="0,5,0,5"  Content="Default _HTTP system port" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError" />
+
+                                        <ComboBox x:Name="cb_SystemServerDefaultSystemHttpPort" IsEditable="True" SelectedIndex="0" MaxWidth="150" HorizontalAlignment="Left">
+                                            <ComboBox.Text>
+                                                <Binding Path="DefaultSystemHttpPort" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged">
+                                                    <Binding.ValidationRules>
+                                                        <rules:PortRule ValidatesOnTargetUpdated="True"/>
+                                                    </Binding.ValidationRules>
+                                                </Binding>
+                                            </ComboBox.Text>
+
+                                            <ComboBoxItem>
+                                                <TextBlock>81</TextBlock>
+                                            </ComboBoxItem>
+                                            <ComboBoxItem>
+                                                <TextBlock>91</TextBlock>
                                             </ComboBoxItem>
                                         </ComboBox>
 
