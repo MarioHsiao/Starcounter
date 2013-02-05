@@ -55,8 +55,8 @@ client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "A"
 	std::size_t chunks_to_acquire = (size +chunk_type::static_data_size -1)
 	/ chunk_type::static_data_size;
 	
-	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
-	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
+	// Using the anonymous id 1. No recovery is done in IPC version 1.0.
+	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonymous id */,
 	timeout -timeout.tick_count());
 
 	if (!lock.owns()) {
@@ -183,8 +183,8 @@ chunk_base, chunk_index& head, std::size_t num_chunks_to_acquire, client_interfa
 client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "B"
 	//std::cout << "<B> acquire_linked_chunks_counted()\n";
 	
-	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
-	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
+	// Using the anonymous id 1. No recovery is done in IPC version 1.0.
+	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonymous id */,
 	timeout -timeout.tick_count());
 	
 	if (!lock.owns()) {
@@ -309,8 +309,8 @@ chunk_, chunk_index& head, client_interface_type* client_interface_ptr,
 smp::spinlock::milliseconds timeout) { /// "C"
 	//std::cout << "<C> release_linked_chunks()\n";
 
-	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
-	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
+	// Using the anonymous id 1. No recovery is done in IPC version 1.0.
+	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonymous id */,
 	timeout -timeout.tick_count());
 	
 	if (!lock.owns()) {
@@ -404,15 +404,14 @@ inline std::size_t shared_chunk_pool<T, Alloc>::acquire_to_chunk_pool(U&
 private_chunk_pool, std::size_t chunks_to_acquire, client_interface_type*
 client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "D"
 	//std::cout << "<D> acquire_to_chunk_pool()\n";
-	timeout = 10000; /// DEBUG: OVERIDE PARAM VALUE
-	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
-	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
+	// Using the anonymous id 1. No recovery is done in IPC version 1.0.
+	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonymous id */,
 	timeout -timeout.tick_count());
 
 	if (!lock.owns()) {
 		// The timeout_milliseconds time period has elapsed. Failed to acquire
 		// the lock, therefore no chunks could be acquired.
-		return 0;
+		return -1; /// DEBUG TEST: Shall be 0.
 	}
 	
 	chunk_index current;
@@ -539,8 +538,8 @@ private_chunk_pool, std::size_t chunks_to_release, client_interface_type*
 client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "E"
 	//std::cout << "<E> release_from_chunk_pool()\n";
 
-	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
-	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
+	// Using the anonymous id 1. No recovery is done in IPC version 1.0.
+	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonymous id */,
 	timeout -timeout.tick_count());
 	
 	if (!lock.owns()) {
@@ -637,8 +636,8 @@ private_chunk_pool, std::size_t chunks_to_acquire,
 smp::spinlock::milliseconds timeout) { /// "F"
 	//std::cout << "<F> acquire_to_chunk_pool()\n";
 
-	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
-	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
+	// Using the anonymous id 1. No recovery is done in IPC version 1.0.
+	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonymous id */,
 	timeout -timeout.tick_count());
 	
 	if (!lock.owns()) {
@@ -764,8 +763,8 @@ private_chunk_pool, std::size_t chunks_to_release,
 smp::spinlock::milliseconds timeout) { /// "G"
 	//std::cout << "<G> release_from_chunk_pool()\n";
 
-	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
-	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
+	// Using the anonymous id 1. No recovery is done in IPC version 1.0.
+	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonymous id */,
 	timeout -timeout.tick_count());
 	
 	if (!lock.owns()) {
@@ -859,8 +858,8 @@ bool shared_chunk_pool<T, Alloc>::release_clients_chunks(client_interface_type*
 client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "H"
 	//std::cout << "<H> release_clients_chunks()\n";
 
-	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
-	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
+	// Using the anonymous id 1. No recovery is done in IPC version 1.0.
+	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonymous id */,
 	timeout -timeout.tick_count());
 	
 	if (!lock.owns()) {
@@ -955,8 +954,8 @@ void shared_chunk_pool<T, Alloc>::show_linked_chunks(chunk_type* chunk_,
 chunk_index head) {
 	smp::spinlock::milliseconds timeout(1000);
 
-	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
-	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
+	// Using the anonymous id 1. No recovery is done in IPC version 1.0.
+	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonymous id */,
 	timeout -timeout.tick_count());
 
 	if (!lock.owns()) {
@@ -1022,8 +1021,8 @@ spin_count, smp::spinlock::milliseconds timeout) { /// "I"
 		// synchronization must be completed before the timeout time period has
 		// elapsed.
 
-		// Using the anonumous id 1. No recovery is done in IPC version 1.0.
-		smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
+		// Using the anonymous id 1. No recovery is done in IPC version 1.0.
+		smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonymous id */,
 		timeout -timeout.tick_count());
 		
 		if (!lock.owns()) {
@@ -1155,7 +1154,7 @@ template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::try_push_front(param_type item) { /// "K"
 	//std::cout << "<K> try_push_front()\n";
 
-	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
+	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonymous id */,
 	smp::spinlock::scoped_lock::try_to_lock_type());
 	
 	if (lock.owns()) {
