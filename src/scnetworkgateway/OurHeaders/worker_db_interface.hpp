@@ -74,6 +74,12 @@ class WorkerDbInterface
         int32_t num_acquired_chunks = shared_int_.acquire_from_shared_to_private(
             private_chunk_pool_, num_chunks, &shared_int_.client_interface(), 1000);
 
+		if (num_acquired_chunks == -1) {
+#ifdef GW_ERRORS_DIAG
+            GW_COUT << "acquire_from_shared_to_private() returned -1. Not good, not good." << GW_ENDL;
+#endif
+		}
+
         // Checking that number of acquired chunks is correct.
         if (num_acquired_chunks != num_chunks)
         {
