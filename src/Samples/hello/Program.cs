@@ -5,6 +5,7 @@
 
 using Starcounter;
 using Starcounter.Logging;
+using Starcounter.Metadata;
 using System;
 
 #if MYMUSIC_MODEL
@@ -101,7 +102,14 @@ namespace hello
 
 //            Starcounter.Internal.sccoredb.sccoredb_drop_index("MyMusic.Artist", "auto");
 
-#if true
+            foreach (SysTable t in Db.SQL("SELECT t FROM SysTable t")) {
+                logSource.LogNotice(String.Format("SysTable: Name={0}", t.Name));
+            }
+            foreach (SysColumn c in Db.SQL("SELECT c FROM SysColumn c")) {
+                logSource.LogNotice(String.Format("SysColumn: TableId={0}, Index={1}, Name={2}", c.TableId, c.Index, c.Name));
+            }
+
+#if false
 #if false
             Db.Transaction(() =>
             {
