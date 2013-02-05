@@ -96,8 +96,8 @@ uint32_t _read_server_config(
     wchar_t **pserver_logs_dir,
     wchar_t **pserver_temp_dir,
     wchar_t **pserver_database_dir,
-    wchar_t **padmin_tcp_port,
-    wchar_t **pdefault_apps_port)
+    wchar_t **psystem_http_port,
+    wchar_t **pdefault_user_http_port)
 {
     using namespace rapidxml;
 
@@ -189,29 +189,29 @@ uint32_t _read_server_config(
     if (0 == num_chars_converted) goto end;
 
     // Read Administrator port.
-    xml_node<> *admin_port_dir_elem = root_elem->first_node("AdminTcpPort");
+    xml_node<> *admin_port_dir_elem = root_elem->first_node("SystemHttpPort");
     if (!admin_port_dir_elem) goto end;
 
     str_num_chars = admin_port_dir_elem->value_size() + 1;
     str_size_bytes = str_num_chars * sizeof(wchar_t);
-    *padmin_tcp_port = (wchar_t *)malloc(str_size_bytes);
-    if (!*padmin_tcp_port) goto end;
+    *psystem_http_port = (wchar_t *)malloc(str_size_bytes);
+    if (!*psystem_http_port) goto end;
 
     // Converting server directory from UTF-8 to wchar_t.
-    num_chars_converted = MultiByteToWideChar(CP_UTF8, 0, admin_port_dir_elem->value(), -1, *padmin_tcp_port, (int)str_num_chars);
+    num_chars_converted = MultiByteToWideChar(CP_UTF8, 0, admin_port_dir_elem->value(), -1, *psystem_http_port, (int)str_num_chars);
     if (0 == num_chars_converted) goto end;
 
     // Read default Apps port.
-    xml_node<> *default_apps_port_elem = root_elem->first_node("DefaultDatabaseConfiguration")->first_node("Runtime")->first_node("DefaultAppsPort");
+    xml_node<> *default_apps_port_elem = root_elem->first_node("DefaultDatabaseConfiguration")->first_node("Runtime")->first_node("DefaultUserHttpPort");
     if (!default_apps_port_elem) goto end;
 
     str_num_chars = default_apps_port_elem->value_size() + 1;
     str_size_bytes = str_num_chars * sizeof(wchar_t);
-    *pdefault_apps_port = (wchar_t *)malloc(str_size_bytes);
-    if (!*pdefault_apps_port) goto end;
+    *pdefault_user_http_port = (wchar_t *)malloc(str_size_bytes);
+    if (!*pdefault_user_http_port) goto end;
 
     // Converting default apps port from UTF-8 to wchar_t.
-    num_chars_converted = MultiByteToWideChar(CP_UTF8, 0, default_apps_port_elem->value(), -1, *pdefault_apps_port, (int)str_num_chars);
+    num_chars_converted = MultiByteToWideChar(CP_UTF8, 0, default_apps_port_elem->value(), -1, *pdefault_user_http_port, (int)str_num_chars);
     if (0 == num_chars_converted) goto end;
 
     r = 0;

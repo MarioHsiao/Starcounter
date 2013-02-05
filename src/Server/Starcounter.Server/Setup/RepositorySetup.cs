@@ -128,7 +128,7 @@ namespace Starcounter.Server.Setup {
                 TransactionLogDirectory = Path.Combine(structure.DataDirectory, "[DatabaseName]"),
                 TempDirectory = Path.Combine(structure.TempDirectory, "[DatabaseName]"),
                 SQLProcessPort = (UInt16)(8066 + serverPortRange),
-                DefaultAppsPort = 80,
+                DefaultUserHttpPort = 80,
                 ChunksNumber = 4096,
             };
 
@@ -142,7 +142,7 @@ namespace Starcounter.Server.Setup {
                 TempDirectory = structure.TempDirectory,
                 LogDirectory = structure.LogDirectory,
                 EnginesDirectory = structure.RepositoryDirectory,
-                AdminTcpPort = structure.AdminTcpPort,
+                SystemHttpPort = structure.SystemHttpPort,
                 DefaultDatabaseStorageConfiguration = databaseStorageConfig,
                 DefaultDatabaseConfiguration = databaseConfiguration
             };

@@ -64,7 +64,7 @@ namespace Starcounter.Server.Setup {
         /// <summary>
         /// Gets or sets the Administrator Tcp port.
         /// </summary>
-        public UInt16 AdminTcpPort {
+        public UInt16 SystemHttpPort {
             get;
             set;
         }
@@ -121,8 +121,8 @@ namespace Starcounter.Server.Setup {
             repositoryDirectory = Path.GetFullPath(repositoryDirectory);
             this.RepositoryDirectory = repositoryDirectory;
 
-            // Setting to default Administrator port.
-            this.AdminTcpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerAdminTcpPort;
+            // Setting to default system port.
+            this.SystemHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;
 
             UseDirectoryPathOrCreateDefault(
                 ref databaseDirectory, Path.Combine, repositoryDirectory, "Databases");

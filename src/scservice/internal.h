@@ -5,6 +5,10 @@
 #include "../Starcounter.ErrorCodes/scerrres/scerrres.h"
 #include "../Starcounter.ErrorCodes/scerrres/format.h"
 
+// Level0 includes.
+#include <sccorelog.h>
+#include <sccoredbg.h>
+#include <sccorelib.h>
 
 #include <stdint.h>
 
@@ -28,8 +32,8 @@ extern uint32_t _read_server_config(
     wchar_t **pserver_logs_dir,
     wchar_t **pserver_temp_dir,
     wchar_t **pserver_database_dir,
-    wchar_t **padmin_tcp_port,
-    wchar_t **pdefault_apps_port);
+    wchar_t **psystem_http_port,
+    wchar_t **pdefault_user_http_port);
 
 extern uint32_t _read_database_config(
     const wchar_t *database_config_path,
@@ -38,3 +42,14 @@ extern uint32_t _read_database_config(
     wchar_t **pdatabase_image_dir,
     wchar_t **pdatabase_scheduler_count);
 
+// Opens Starcounter log for writing.
+uint32_t OpenStarcounterLog(wchar_t* server_log_dir);
+
+// Closes Starcounter log.
+void CloseStarcounterLog();
+
+// Write critical into log.
+void LogWriteCritical(const wchar_t* msg);
+
+// Write error into log.
+void LogWriteError(const wchar_t* msg);
