@@ -103,10 +103,13 @@ namespace hello
 //            Starcounter.Internal.sccoredb.sccoredb_drop_index("MyMusic.Artist", "auto");
 
             foreach (SysTable t in Db.SQL("SELECT t FROM SysTable t")) {
-                logSource.LogNotice(String.Format("SysTable: Name={0}", t.Name));
+                logSource.LogNotice(String.Format("SysTable: TableId={0}, Name={1}", t.TableId, t.Name));
             }
             foreach (SysColumn c in Db.SQL("SELECT c FROM SysColumn c")) {
                 logSource.LogNotice(String.Format("SysColumn: TableId={0}, Index={1}, Name={2}", c.TableId, c.Index, c.Name));
+            }
+            foreach (SysIndex i in Db.SQL("SELECT i FROM SysIndex i")) {
+                logSource.LogNotice(String.Format("SysIndex: TableId={0}, Name={1}", i.TableId, i.Name));
             }
 
 #if false
