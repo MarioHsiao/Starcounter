@@ -76,7 +76,12 @@ class WorkerDbInterface
 
 		if (num_acquired_chunks == -1) {
 #ifdef GW_ERRORS_DIAG
-            GW_COUT << "acquire_from_shared_to_private() returned -1. Not good, not good." << GW_ENDL;
+            GW_COUT << "acquire_from_shared_to_private() returned -1. Failed to acquire the lock!" << GW_ENDL;
+#endif
+		}
+		if (num_acquired_chunks == 0) {
+#ifdef GW_ERRORS_DIAG
+            GW_COUT << "acquire_from_shared_to_private() returned 0. The pool is empty!" << GW_ENDL;
 #endif
 		}
 
