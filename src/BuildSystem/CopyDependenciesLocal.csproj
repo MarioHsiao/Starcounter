@@ -7,6 +7,9 @@
     <OutputPath>..\..\bin\Debug\</OutputPath>
   </PropertyGroup>
   <PropertyGroup>
+	<OutputPath32>$(OutputPath)\32BitComponents</OutputPath32>
+  </PropertyGroup>
+  <PropertyGroup>
     <ProjectGuid>{8B599BFF-B414-41A3-A270-96CDA0C522AF}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -24,6 +27,11 @@
         ..\Starcounter.ErrorCodes\scerrres\x64\$(Configuration)\scerrres.pdb;
         ..\Starcounter.ErrorCodes\scerrres\x64\$(Configuration)\scerrres.lib
     </ScerrresDll>
+	<ScerrresDll32>
+        ..\Starcounter.ErrorCodes\scerrres\Win32\$(Configuration)\scerrres.dll;
+        ..\Starcounter.ErrorCodes\scerrres\Win32\$(Configuration)\scerrres.pdb;
+        ..\Starcounter.ErrorCodes\scerrres\Win32\$(Configuration)\scerrres.lib
+    </ScerrresDll32>
   </PropertyGroup>
   <PropertyGroup>
     <LocalBlueBinariesDir>..\..\..\Level0\src\x64\$(Configuration)</LocalBlueBinariesDir>
@@ -45,6 +53,7 @@
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalGatewayXML)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalGatewayTestFiles)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(ScerrresDll)" DestinationFolder="$(OutputPath)" />
+	<Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(ScerrresDll32)" DestinationFolder="$(OutputPath32)" />
   </Target>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" DependsOnTargets="CopyLocalFiles" />
