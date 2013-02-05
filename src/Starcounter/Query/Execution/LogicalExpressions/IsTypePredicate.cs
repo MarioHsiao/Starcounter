@@ -118,7 +118,7 @@ namespace Starcounter.Query.Execution {
         /// </summary>
         /// <returns>Result of comparison</returns>
         public IsTypeCompare EvaluateAtCompile() {
-            IObjectView obj = Expr1.EvaluateToObject(null);
+            IObjectView obj = objExpr.EvaluateToObject(null);
             if (obj != null) {
                 TruthValue res = Evaluate(obj);
                 if (res == TruthValue.TRUE)
@@ -127,7 +127,7 @@ namespace Starcounter.Query.Execution {
                     return IsTypeCompare.FALSE;
             }
             // Object is null or result is unknown
-            ITypeBinding objType = obj == null ? Expr1.TypeBinding : obj.TypeBinding; // Object type cannot be null
+            ITypeBinding objType = obj == null ? objExpr.TypeBinding : obj.TypeBinding; // Object type cannot be null
             if (objType == typeBinding)
                 return IsTypeCompare.EQUAL;
             if (objType is TypeBinding && typeBinding is TypeBinding)
