@@ -21,7 +21,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hello", "Samples\hello\hell
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkIoTest", "Samples\NetworkIoTest\NetworkIoTest.csproj", "{1606D39A-79E6-468E-828A-42526C06A197}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "18. BuildSystem", "18. BuildSystem", "{E64C1F28-D2C1-47D2-A62B-151A6968D158}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "19. BuildSystem", "19. BuildSystem", "{E64C1F28-D2C1-47D2-A62B-151A6968D158}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CopyDependenciesLocal", "BuildSystem\CopyDependenciesLocal.csproj", "{8B599BFF-B414-41A3-A270-96CDA0C522AF}"
 	ProjectSection(ProjectDependencies) = postProject
