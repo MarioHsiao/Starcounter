@@ -117,11 +117,13 @@ public:
 	explicit shared_chunk_pool(const char* segment_name, size_type buffer_capacity,
 	const allocator_type& alloc = allocator_type());
 	
+#if 0 /// REMOVE
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	/// Destructor.
 	~shared_chunk_pool();
 #endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-	
+#endif /// REMOVE
+		
 	// Size and capacity
 	
 	/// Get the number of elements currently stored in the shared_chunk_pool.
@@ -195,7 +197,7 @@ public:
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool acquire_linked_chunks(chunk_type* chunk_base, chunk_index& head,
 	std::size_t size, client_interface_type* client_interface_ptr,
-	smp::spinlock::milliseconds timeout, HANDLE not_full = NULL); /// "A"
+	smp::spinlock::milliseconds timeout /*, HANDLE not_full = NULL*/); /// "A"
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool acquire_linked_chunks(chunk_type* chunk_base, chunk_index& head,
 	std::size_t size, client_interface_type* client_interface_ptr,
@@ -223,7 +225,7 @@ public:
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool acquire_linked_chunks_counted(chunk_type* chunk_base, chunk_index& head,
 	std::size_t num_chunks_to_acquire, client_interface_type* client_interface_ptr,
-	smp::spinlock::milliseconds timeout, HANDLE not_full = NULL); /// "B"
+	smp::spinlock::milliseconds timeout /*, HANDLE not_full = NULL*/); /// "B"
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool acquire_linked_chunks_counted(chunk_type* chunk_base, chunk_index& head,
 	std::size_t num_chunks_to_acquire, client_interface_type* client_interface_ptr,
@@ -255,7 +257,7 @@ public:
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool release_linked_chunks(chunk_type* chunk_base, chunk_index& head,
 	client_interface_type* client_interface_ptr,
-	smp::spinlock::milliseconds timeout, HANDLE not_empty = NULL); /// "C"
+	smp::spinlock::milliseconds timeout /*, HANDLE not_empty = NULL*/); /// "C"
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool release_linked_chunks(chunk_type* chunk_base, chunk_index& head,
 	client_interface_type* client_interface_ptr,
@@ -284,7 +286,7 @@ public:
 	template<typename U>
 	std::size_t acquire_to_chunk_pool(U& private_chunk_pool, std::size_t
 	chunks_to_acquire, client_interface_type* client_interface_ptr,
-	smp::spinlock::milliseconds timeout, HANDLE not_full = NULL); /// "D"
+	smp::spinlock::milliseconds timeout /*, HANDLE not_full = NULL*/); /// "D"
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	template<typename U>
 	std::size_t acquire_to_chunk_pool(U& private_chunk_pool, std::size_t
@@ -312,7 +314,7 @@ public:
 	template<typename U>
 	std::size_t release_from_chunk_pool(U& private_chunk_pool, std::size_t
 	chunks_to_release, client_interface_type* client_interface_ptr,
-	smp::spinlock::milliseconds timeout, HANDLE not_empty = NULL); /// "E"
+	smp::spinlock::milliseconds timeout /*, HANDLE not_empty = NULL*/); /// "E"
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	template<typename U>
 	std::size_t release_from_chunk_pool(U& private_chunk_pool, std::size_t
@@ -338,7 +340,7 @@ public:
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	template<typename U>
 	std::size_t acquire_to_chunk_pool(U& private_chunk_pool, std::size_t
-	chunks_to_acquire, smp::spinlock::milliseconds timeout, HANDLE not_full = NULL); /// "F"
+	chunks_to_acquire, smp::spinlock::milliseconds timeout /*, HANDLE not_full = NULL*/); /// "F"
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	template<typename U>
 	std::size_t acquire_to_chunk_pool(U& private_chunk_pool, std::size_t
@@ -360,7 +362,7 @@ public:
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	template<typename U>
 	std::size_t release_from_chunk_pool(U& private_chunk_pool, std::size_t
-	chunks_to_release, smp::spinlock::milliseconds timeout, HANDLE not_empty = NULL); /// "G"
+	chunks_to_release, smp::spinlock::milliseconds timeout /*, HANDLE not_empty = NULL*/); /// "G"
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	template<typename U>
 	std::size_t release_from_chunk_pool(U& private_chunk_pool, std::size_t
@@ -384,7 +386,7 @@ public:
 	 */
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool release_clients_chunks(client_interface_type* client_interface_ptr,
-	smp::spinlock::milliseconds timeout, HANDLE not_empty = NULL); /// "H"
+	smp::spinlock::milliseconds timeout /*, HANDLE not_empty = NULL*/); /// "H"
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool release_clients_chunks(client_interface_type* client_interface_ptr,
 	uint32_t timeout_milliseconds = 10000);
@@ -419,7 +421,7 @@ public:
 	 */
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool push_front(param_type item, uint32_t spin_count,
-	smp::spinlock::milliseconds timeout, HANDLE not_full = NULL, HANDLE not_empty = NULL); /// "I"
+	smp::spinlock::milliseconds timeout /*, HANDLE not_full = NULL, HANDLE not_empty = NULL*/); /// "I"
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool push_front(param_type item, uint32_t spin_count = 1000000, uint32_t
 	timeout_milliseconds = 10000);
@@ -451,7 +453,7 @@ public:
 	// use them.
 
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-	bool try_push_front(param_type item, HANDLE not_empty); /// "K"
+	bool try_push_front(param_type item /*, HANDLE not_empty*/); /// "K"
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	bool try_push_front(param_type item);
 #endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)

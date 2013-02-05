@@ -54,10 +54,12 @@ inline shared_interface::~shared_interface() {
 		close_scheduler_work_event(i);
 	}
 	
+#if 0 /// REMOVE
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	close_shared_chunk_pool_not_full_event();
 	close_shared_chunk_pool_not_empty_event();
 #endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+#endif /// REMOVE
 }
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 
@@ -103,10 +105,12 @@ monitor_interface_name, pid_type pid, owner_id oid) {
 	}
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 
+#if 0 /// REMOVE
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	open_shared_chunk_pool_not_full_event();
 	open_shared_chunk_pool_not_empty_event();
 #endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+#endif /// REMOVE
 }
 
 inline std::string shared_interface::get_segment_name() const {
@@ -242,9 +246,11 @@ inline bool shared_interface::client_acquire_linked_chunks(chunk_index& head,
 std::size_t size, uint32_t timeout_milliseconds) { /// "A"
 	return shared_chunk_pool_->acquire_linked_chunks(chunk_, head, size,
 	client_interface_, timeout_milliseconds
+#if 0 /// REMOVE
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	, shared_chunk_pool_not_full_event()
 #endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+#endif /// REMOVE
 	);
 }
 
@@ -252,9 +258,11 @@ inline bool shared_interface::client_acquire_linked_chunks_counted(chunk_index&
 head, std::size_t size, uint32_t timeout_milliseconds) { /// "B"
 	return shared_chunk_pool_->acquire_linked_chunks_counted(chunk_, head, size,
 	client_interface_, timeout_milliseconds
+#if 0 /// REMOVE
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	, shared_chunk_pool_not_full_event()
 #endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+#endif /// REMOVE
 	);
 }
 
@@ -263,9 +271,11 @@ inline bool shared_interface::client_release_linked_chunks(chunk_index& head,
 uint32_t timeout_milliseconds) { /// "C"
 	return shared_chunk_pool_->release_linked_chunks(chunk_, head,
 	client_interface_, timeout_milliseconds
+#if 0 /// REMOVE
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	, shared_chunk_pool_not_empty_event()
 #endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+#endif /// REMOVE
 	);
 }
 
@@ -276,9 +286,11 @@ private_chunk_pool, std::size_t chunks_to_acquire, client_interface_type*
 client_interface_ptr, uint32_t timeout_milliseconds) {
 	return shared_chunk_pool_->acquire_to_chunk_pool(private_chunk_pool,
 	chunks_to_acquire, client_interface_ptr, timeout_milliseconds
+#if 0 /// REMOVE
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	, shared_chunk_pool_not_full_event()
 #endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+#endif /// REMOVE
 	);
 }
 
@@ -288,9 +300,11 @@ private_chunk_pool, std::size_t chunks_to_release, client_interface_type*
 client_interface_ptr, uint32_t timeout_milliseconds) {
 	return shared_chunk_pool_->release_from_chunk_pool(private_chunk_pool,
 	chunks_to_release, client_interface_ptr, timeout_milliseconds
+#if 0 /// REMOVE
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	, shared_chunk_pool_not_empty_event()
 #endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+#endif /// REMOVE
 	);
 }
 
@@ -553,6 +567,7 @@ inline const HANDLE& shared_interface::scheduler_number_pool_not_full_event
 
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 
+#if 0 /// REMOVE
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 inline HANDLE& shared_interface::open_shared_chunk_pool_not_full_event() {
 	// Not checking if the event is already open.
@@ -603,6 +618,7 @@ inline const HANDLE& shared_interface::shared_chunk_pool_not_empty_event() const
 	return shared_chunk_pool_not_empty_;
 }
 #endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+#endif // REMOVE
 
 inline uint32_t shared_interface::send_to_server_and_wait_response(uint32_t ch,
 uint32_t request, uint32_t& response, uint32_t spin, uint32_t timeout) {

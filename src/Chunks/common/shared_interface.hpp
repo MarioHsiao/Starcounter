@@ -528,7 +528,8 @@ public:
 #endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-	
+
+#if 0 /// REMOVE
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	/// Open shared_chunk_pool_not_full event and return a reference to it.
 	/// NOTE: Before attempting to open the event, sets the event to 0
@@ -578,7 +579,7 @@ public:
 	 */ 
 	const HANDLE& shared_chunk_pool_not_empty_event() const;
 #endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-
+#endif /// REMOVE
 private:
 	// Specify what it throws.
 	void init();
@@ -623,7 +624,8 @@ private:
 #endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-	
+
+#if 0 /// REMOVE
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 	// Event used by the scheduler to wait when the queue is not full.
 	// Client's have to open the event and pass it in as an argument.
@@ -633,6 +635,7 @@ private:
 	// Client's have to open the event and pass it in as an argument.
 	HANDLE shared_chunk_pool_not_empty_;
 #endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
+#endif /// REMOVE
 	
 protected:
 	/// TODO: Replace direct accesses to client_number_ with get_client_number()
