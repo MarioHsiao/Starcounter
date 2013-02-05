@@ -18,91 +18,8 @@ namespace core {
 template<class T, class Alloc>
 inline shared_chunk_pool<T, Alloc>::shared_chunk_pool(const char* segment_name,
 size_type buffer_capacity, const allocator_type& alloc)
-: container_(buffer_capacity, alloc), unread_(0)
-#if 0 /// REMOVE
-#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-, not_empty_(NULL), not_full_(NULL)
-#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-#endif /// REMOVE
-{
-#if 0 /// REMOVE
-#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-    if (segment_name != 0) {
-		char notify_name[segment_and_notify_name_size];
-		std::size_t length;
-
-		// Create the not_empty_notify_name_ and the not_empty_ event.
-		
-		// Format: "Local\<segment_name>_shared_chunk_pool_not_empty".
-		if ((length = _snprintf_s(notify_name, _countof(notify_name),
-		segment_and_notify_name_size -1 /* null */, "Local\\%s_"
-		"shared_chunk_pool_not_empty", segment_name)) < 0) {
-			return; // Throw exception error_code.
-		}
-		notify_name[length] = '\0';
-
-		/// TODO: Fix insecure
-		if ((length = mbstowcs(not_empty_notify_name_, notify_name,
-		segment_and_notify_name_size)) < 0) {
-			// Failed to convert notify_name to multi-byte string.
-			return; // Throw exception error_code.
-		}
-		not_empty_notify_name_[length] = L'\0';
-
-		if ((not_empty_ = ::CreateEvent(NULL, TRUE, FALSE,
-		not_empty_notify_name_)) == NULL) {
-			// Failed to create event.
-			return; // Throw exception error_code.
-		}
-		
-		// Create the not_full_notify_name_ and the not_full_ event.
-		
-		// Format: "Local\<segment_name>_shared_chunk_pool_not_full".
-		if ((length = _snprintf_s(notify_name, _countof(notify_name),
-		segment_and_notify_name_size -1 /* null */, "Local\\%s_"
-		"shared_chunk_pool_not_full", segment_name)) < 0) {
-			return; // Throw exception error_code.
-		}
-		notify_name[length] = '\0';
-
-		/// TODO: Fix insecure
-		if ((length = mbstowcs(not_full_notify_name_, notify_name,
-		segment_and_notify_name_size)) < 0) {
-			// Failed to convert notify_name to multi-byte string.
-			return; // Throw exception error_code.
-		}
-		not_full_notify_name_[length] = L'\0';
-		
-		if ((not_full_ = ::CreateEvent(NULL, TRUE, FALSE,
-		not_full_notify_name_)) == NULL) {
-			// Failed to create event.
-			return; // Throw exception error_code.
-		}
-	}
-	else {
-		// Error: No segment name. Throw exception error_code.
-	}
-#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-#endif /// REMOVE
+: container_(buffer_capacity, alloc), unread_(0) {
 }
-
-#if 0 /// REMOVE
-#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-template<class T, class Alloc>
-inline shared_chunk_pool<T, Alloc>::~shared_chunk_pool() {
-	if (not_empty_ != 0) {
-		::CloseHandle(not_empty_);
-		not_empty_ = 0;
-	}
-
-	if (not_full_ != 0) {
-		::CloseHandle(not_full_);
-		not_full_ = 0;
-	}
-}
-
-#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-#endif /// REMOVE
 
 template<class T, class Alloc>
 inline typename shared_chunk_pool<T, Alloc>::size_type
@@ -133,11 +50,7 @@ inline bool shared_chunk_pool<T, Alloc>::full() const {
 template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::acquire_linked_chunks(chunk_type*
 chunk_base, chunk_index& head, std::size_t size, client_interface_type*
-client_interface_ptr, smp::spinlock::milliseconds timeout
-#if 0 /// REMOVE
-, HANDLE not_full
-#endif /// REMOVE
-) { /// "A"
+client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "A"
 	//std::cout << "<A> acquire_linked_chunks()\n";
 	std::size_t chunks_to_acquire = (size +chunk_type::static_data_size -1)
 	/ chunk_type::static_data_size;
@@ -184,20 +97,6 @@ client_interface_ptr, smp::spinlock::milliseconds timeout
 		// Notify that the queue is not full.
 		lock.unlock();
 
-#if 0 /// REMOVE
-		not_full = (not_full == NULL) ? not_full_ : not_full; /// TODO: Optimize.
-
-		// Notify that the buffer is not full.
-		if (::SetEvent(not_full)) {
-			// Successfully notified.
-			//std::cout << "<A>::acquire_linked_chunks(): Successfully notified.\n";
-		}
-		else {
-			// Error. Failed to notify.
-			//std::cout << "<A>::acquire_linked_chunks(): Failed to notify.\n";
-		}
-#endif /// REMOVE
-		
 		// Successfully acquired the chunks and linked them.
 		return true;
     }
@@ -281,11 +180,7 @@ client_interface_ptr, uint32_t timeout_milliseconds) {
 template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::acquire_linked_chunks_counted(chunk_type*
 chunk_base, chunk_index& head, std::size_t num_chunks_to_acquire, client_interface_type*
-client_interface_ptr, smp::spinlock::milliseconds timeout
-#if 0 /// REMOVE
-, HANDLE not_full
-#endif /// REMOVE
-) { /// "B"
+client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "B"
 	//std::cout << "<B> acquire_linked_chunks_counted()\n";
 	
 	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
@@ -329,24 +224,8 @@ client_interface_ptr, smp::spinlock::milliseconds timeout
 		
 		// Terminate the last chunk.
 		chunk_base[current].terminate_link();
-		
-		// Notify that the queue is not full.
 		lock.unlock();
 
-#if 0 /// REMOVE
-		// Notify that the buffer is not full.
-		not_full = (not_full == NULL) ? not_full_ : not_full; /// TODO: Optimize.
-
-		if (::SetEvent(not_full)) {
-			// Successfully notified.
-			//std::cout << "<B>::acquire_linked_chunks_counted(): Successfully notified.\n";
-		}
-		else {
-			// Error. Failed to notify.
-			//std::cout << "<B>::acquire_linked_chunks_counted(): Failed to notify.\n";
-		}
-#endif /// REMOVE
-		
 		// Successfully acquired the chunks and linked them.
 		return true;
     }
@@ -427,11 +306,7 @@ client_interface_ptr, uint32_t timeout_milliseconds) {
 template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::release_linked_chunks(chunk_type*
 chunk_, chunk_index& head, client_interface_type* client_interface_ptr,
-smp::spinlock::milliseconds timeout
-#if 0 /// REMOVE
-, HANDLE not_empty
-#endif /// REMOVE
-) { /// "C"
+smp::spinlock::milliseconds timeout) { /// "C"
 	//std::cout << "<C> release_linked_chunks()\n";
 
 	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
@@ -466,20 +341,6 @@ smp::spinlock::milliseconds timeout
 	head = current;
 	lock.unlock();
 
-#if 0 /// REMOVE
-	// Notify that the buffer is not empty.
-	not_empty = (not_empty == NULL) ? not_empty_ : not_empty; /// TODO: Optimize.
-
-	if (::SetEvent(not_empty)) {
-		// Successfully notified.
-		//std::cout << "<C>::release_linked_chunks(): Successfully notified.\n";
-	}
-	else {
-		// Error. Failed to notify.
-		//std::cout << "<C>::release_linked_chunks(): Failed to notify.\n";
-	}
-#endif /// REMOVE
-	
 	// Successfully released all linked chunks.
 	return true;
 }
@@ -541,13 +402,9 @@ template<class T, class Alloc>
 template<typename U>
 inline std::size_t shared_chunk_pool<T, Alloc>::acquire_to_chunk_pool(U&
 private_chunk_pool, std::size_t chunks_to_acquire, client_interface_type*
-client_interface_ptr, smp::spinlock::milliseconds timeout
-#if 0 /// REMOVE
-, HANDLE not_full
-#endif /// REMOVE
-) { /// "D"
+client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "D"
 	//std::cout << "<D> acquire_to_chunk_pool()\n";
-	
+	timeout = 10000; /// DEBUG: OVERIDE PARAM VALUE
 	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
 	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
 	timeout -timeout.tick_count());
@@ -586,25 +443,6 @@ client_interface_ptr, smp::spinlock::milliseconds timeout
 				// back.
 				container_[unread_++] = current;
 				lock.unlock();
-				
-#if 0 /// REMOVE
-				if (acquired != 0) {
-					// Notify that the buffer is not full.
-					not_full = (not_full == NULL) ? not_full_ : not_full; /// TODO: Optimize.
-
-					if (::SetEvent(not_full)) {
-						// Successfully notified.
-						//std::cout << "<D1>::acquire_to_chunk_pool(): Successfully notified.\n";
-						return acquired;
-					}
-					else {
-						// Error. Failed to notify.
-						//std::cout << "<D1>::acquire_to_chunk_pool(): Failed to notify.\n";
-						return acquired;
-					}
-				}
-#endif /// REMOVE
-
 				return acquired;
 			}
 		}
@@ -616,25 +454,6 @@ client_interface_ptr, smp::spinlock::milliseconds timeout
 	
 	// Successfully acquired chunks_to_acquire number of chunks.
 	lock.unlock();
-	
-#if 0 /// REMOVE
-	if (acquired != 0) {
-		// Notify that the buffer is not full.
-		not_full = (not_full == NULL) ? not_full_ : not_full; /// TODO: Optimize.
-
-		if (::SetEvent(not_full)) {
-			// Successfully notified.
-			//std::cout << "<D2>::acquire_to_chunk_pool(): Successfully notified.\n";
-			return acquired;
-		}
-		else {
-			// Error. Failed to notify.
-			//std::cout << "<D2>::acquire_to_chunk_pool(): Failed to notify.\n";
-			return acquired;
-		}
-	}
-#endif /// REMOVE
-	
 	return acquired;
 }
 
@@ -717,11 +536,7 @@ template<class T, class Alloc>
 template<typename U>
 std::size_t shared_chunk_pool<T, Alloc>::release_from_chunk_pool(U&
 private_chunk_pool, std::size_t chunks_to_release, client_interface_type*
-client_interface_ptr, smp::spinlock::milliseconds timeout
-#if 0 /// REMOVE
-, HANDLE not_empty
-#endif /// REMOVE
-) { /// "E"
+client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "E"
 	//std::cout << "<E> release_from_chunk_pool()\n";
 
 	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
@@ -756,25 +571,6 @@ client_interface_ptr, smp::spinlock::milliseconds timeout
 	}
 	
 	lock.unlock();
-	
-#if 0 /// REMOVE
-	if (released != 0) {
-		// Notify that the buffer is not empty.
-		not_empty = (not_empty == NULL) ? not_empty_ : not_empty; /// TODO: Optimize.
-
-		if (::SetEvent(not_empty)) {
-			// Successfully notified.
-			//std::cout << "<E>::release_from_chunk_pool(): Successfully notified.\n";
-			return released;
-		}
-		else {
-			// Error. Failed to notify.
-			//std::cout << "<E>::release_from_chunk_pool(): Failed to notify.\n";
-			return released;
-		}
-	}
-#endif /// REMOVE
-
 	return released;
 }
 
@@ -838,11 +634,7 @@ template<class T, class Alloc>
 template<typename U>
 inline std::size_t shared_chunk_pool<T, Alloc>::acquire_to_chunk_pool(U&
 private_chunk_pool, std::size_t chunks_to_acquire,
-smp::spinlock::milliseconds timeout
-#if 0 /// REMOVE
-, HANDLE not_full
-#endif /// REMOVE
-) { /// "F"
+smp::spinlock::milliseconds timeout) { /// "F"
 	//std::cout << "<F> acquire_to_chunk_pool()\n";
 
 	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
@@ -879,25 +671,6 @@ smp::spinlock::milliseconds timeout
 				// back.
 				container_[unread_++] = current;
 				lock.unlock();
-				
-#if 0 /// REMOVE
-				if (acquired != 0) {
-					// Notify that the buffer is not full.
-					not_full = (not_full == NULL) ? not_full_ : not_full; /// TODO: Optimize.
-
-					if (::SetEvent(not_full)) {
-						// Successfully notified.
-						//std::cout << "<F1>::acquire_to_chunk_pool(): Successfully notified.\n";
-						return acquired;
-					}
-					else {
-						// Error. Failed to notify.
-						//std::cout << "<F1>::acquire_to_chunk_pool(): Failed to notify.\n";
-						return acquired;
-					}
-				}
-#endif /// REMOVE
-
 				return acquired;
 			}
 		}
@@ -909,25 +682,6 @@ smp::spinlock::milliseconds timeout
 	
 	// Successfully acquired chunks_to_acquire number of chunks.
 	lock.unlock();
-	
-#if 0 /// REMOVE
-	if (acquired != 0) {
-		// Notify that the buffer is not full.
-		not_full = (not_full == NULL) ? not_full_ : not_full; /// TODO: Optimize.
-
-		if (::SetEvent(not_full)) {
-			// Successfully notified.
-			//std::cout << "<F2>::acquire_to_chunk_pool(): Successfully notified.\n";
-			return acquired;
-		}
-		else {
-			// Error. Failed to notify.
-			//std::cout << "<F2>::acquire_to_chunk_pool(): Failed to notify.\n";
-			return acquired;
-		}
-	}
-#endif /// REMOVE
-	
 	return acquired;
 }
 
@@ -1007,11 +761,7 @@ template<class T, class Alloc>
 template<typename U>
 std::size_t shared_chunk_pool<T, Alloc>::release_from_chunk_pool(U&
 private_chunk_pool, std::size_t chunks_to_release,
-smp::spinlock::milliseconds timeout
-#if 0 /// REMOVE
-, HANDLE not_empty
-#endif /// REMOVE
-) { /// "G"
+smp::spinlock::milliseconds timeout) { /// "G"
 	//std::cout << "<G> release_from_chunk_pool()\n";
 
 	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
@@ -1045,25 +795,6 @@ smp::spinlock::milliseconds timeout
 	}
 	
 	lock.unlock();
-	
-#if 0 /// REMOVE
-	if (released != 0) {
-		// Notify that the buffer is not empty.
-		not_empty = (not_empty == NULL) ? not_empty_ : not_empty; /// TODO: Optimize.
-
-		if (::SetEvent(not_empty)) {
-			// Successfully notified.
-			//std::cout << "<G>::release_from_chunk_pool(): Successfully notified.\n";
-			return released;
-		}
-		else {
-			// Error. Failed to notify.
-			//std::cout << "<G>::release_from_chunk_pool(): Failed to notify.\n";
-			return released;
-		}
-	}
-#endif /// REMOVE
-
 	return released;
 }
 
@@ -1125,11 +856,7 @@ timeout_milliseconds) {
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 template<class T, class Alloc>
 bool shared_chunk_pool<T, Alloc>::release_clients_chunks(client_interface_type*
-client_interface_ptr, smp::spinlock::milliseconds timeout
-#if 0 /// REMOVE
-, HANDLE not_empty
-#endif /// REMOVE
-) { /// "H"
+client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "H"
 	//std::cout << "<H> release_clients_chunks()\n";
 
 	// Using the anonumous id 1. No recovery is done in IPC version 1.0.
@@ -1166,24 +893,6 @@ client_interface_ptr, smp::spinlock::milliseconds timeout
 	// releasing resources.
 	client_interface_ptr->get_resource_map().clear();
 	
-#if 0 /// REMOVE
-	if (released != 0) {
-		// Notify that the buffer is not empty.
-		not_empty = (not_empty == NULL) ? not_empty_ : not_empty; /// TODO: Optimize.
-
-		if (::SetEvent(not_empty)) {
-			// Successfully notified.
-			//std::cout << "<H>::release_clients_chunks(): Successfully notified.\n";
-			return true;
-		}
-		else {
-			// Error. Failed to notify.
-			//std::cout << "<H>::release_clients_chunks(): Failed to notify.\n";
-			return true;
-		}
-	}
-#endif /// REMOVE
-
 	// Successfully released all chunks.
 	return true;
 }
@@ -1296,15 +1005,11 @@ chunk_index head) {
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::push_front(param_type item, uint32_t
-spin_count, smp::spinlock::milliseconds timeout
-#if 0 /// REMOVE
-, HANDLE not_full, HANDLE not_empty
-#endif /// REMOVE
-) { /// "I"
+spin_count, smp::spinlock::milliseconds timeout) { /// "I"
 	//std::cout << "<I> push_front()\n";
 	// Spin at most spin_count number of times, and try to push the item...
 	for (std::size_t s = 0; s < spin_count; ++s) {
-		if (try_push_front(item /* REMOVE , not_empty*/)) {
+		if (try_push_front(item)) {
 			// The item was successfully pushed.
 			return true;
 		}
@@ -1331,18 +1036,6 @@ spin_count, smp::spinlock::milliseconds timeout
 		container_.push_front(item);
 		++unread_;
 		lock.unlock();
-#if 0 /// REMOVE
-		not_empty = (not_empty == NULL) ? not_empty_ : not_empty; /// TODO: Optimize.
-
-		if (::SetEvent(not_empty)) {
-			// Successfully notified.
-			//std::cout << "<I>::push_front(): Successfully notified.\n";
-		}
-		else {
-			// Error. Failed to notify.
-			//std::cout << "<I>::push_front(): Failed to notify.\n";
-		}
-#endif /// REMOVE
 
 		// Successfully pushed the item.
 		return true;
@@ -1459,11 +1152,7 @@ spin_count, uint32_t timeout_milliseconds) {
 //------------------------------------------------------------------------------
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 template<class T, class Alloc>
-inline bool shared_chunk_pool<T, Alloc>::try_push_front(param_type item
-#if 0 /// REMOVE
-, HANDLE not_empty
-#endif /// REMOVE
-) { /// "K"
+inline bool shared_chunk_pool<T, Alloc>::try_push_front(param_type item) { /// "K"
 	//std::cout << "<K> try_push_front()\n";
 
 	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonumous id */,
@@ -1481,20 +1170,6 @@ inline bool shared_chunk_pool<T, Alloc>::try_push_front(param_type item
 		++unread_;
 		lock.unlock();
 		
-#if 0 /// REMOVE
-		// Notify that the buffer is not empty.
-		not_empty = (not_empty == NULL) ? not_empty_ : not_empty; /// TODO: Optimize.
-
-		if (::SetEvent(not_empty)) {
-			// Successfully notified.
-			//std::cout << "<K>::try_push_front(): Successfully notified.\n";
-		}
-		else {
-			// Error. Failed to notify.
-			//std::cout << "<K>::try_push_front(): Failed to notify.\n";
-		}
-#endif /// REMOVE
-
 		// The item was pushed.
 		return true;
 	}
