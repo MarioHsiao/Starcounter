@@ -49,6 +49,22 @@ class WorkerDbInterface
     // Number of used chunks.
     int64_t num_used_chunks_;
 
+    // Number of active schedulers.
+    uint32_t num_schedulers_;
+
+    // Current scheduler id.
+    uint32_t cur_scheduler_id_;
+
+    // Round-robin scheduler number.
+    uint32_t GetSchedulerId()
+    {
+        cur_scheduler_id_++;
+        if (cur_scheduler_id_ >= num_schedulers_)
+            cur_scheduler_id_ = 0;
+
+        return cur_scheduler_id_;
+    }
+
     // Acquires needed amount of chunks from shared pool.
     uint32_t AcquireChunksFromSharedPool(int32_t num_chunks)
     {
@@ -149,12 +165,6 @@ public:
     // Request registered user handlers.
     uint32_t RequestRegisteredHandlers();
 
-    // Initializes shared memory interface.
-    uint32_t Init(
-        const int32_t new_slot_index,
-        const core::shared_interface& workerSharedInt,
-        GatewayWorker *gw);
-
     // Resets the existing interface.
     void Reset()
     {
@@ -162,6 +172,8 @@ public:
         worker_id_ = INVALID_WORKER_INDEX;
         num_used_sockets_ = 0;
         num_used_chunks_ = 0;
+        num_schedulers_ = 0;
+        cur_scheduler_id_ = 0;
 
         if (channels_)
         {
@@ -175,24 +187,16 @@ public:
     }
 
     // Allocates different channels and pools.
-    WorkerDbInterface()
-    {
-        channels_ = NULL;
-        Reset();
-
-        // Allocating channels.
-        channels_ = new core::channel_number[g_gateway.get_num_schedulers()];
-
-        // Setting private/overflow chunk pool capacity.
-        private_chunk_pool_.set_capacity(core::chunks_total_number_max);
-        private_overflow_pool_.set_capacity(core::chunks_total_number_max);
-    }
+    WorkerDbInterface(
+        const int32_t new_slot_index,
+        const core::shared_interface& workerSharedInt,
+        const int32_t worker_id);
 
     // Deallocates active database.
     ~WorkerDbInterface()
     {
         // Freeing all occupied channels.
-        for (std::size_t i = 0; i < g_gateway.get_num_schedulers(); i++)
+        for (std::size_t i = 0; i < num_schedulers_; i++)
         {
             core::channel_type& the_channel = shared_int_.channel(channels_[i]);
             the_channel.set_to_be_released();

@@ -66,21 +66,39 @@ namespace Starcounter.InstallerWPF.Components
             }
         }
 
-        private UInt16 _DefaultAppsTcpPort;
-        public UInt16 DefaultAppsTcpPort
+        private UInt16 _DefaultUserHttpPort;
+        public UInt16 DefaultUserHttpPort
         {
             get
             {
-                return _DefaultAppsTcpPort;
+                return _DefaultUserHttpPort;
             }
 
             set
             {
-                if (_DefaultAppsTcpPort == value)
+                if (_DefaultUserHttpPort == value)
                     return;
 
-                this._DefaultAppsTcpPort = value;
-                this.OnPropertyChanged("DefaultAppsTcpPort");
+                this._DefaultUserHttpPort = value;
+                this.OnPropertyChanged("DefaultUserHttpPort");
+            }
+        }
+
+        private UInt16 _DefaultSystemHttpPort;
+        public UInt16 DefaultSystemHttpPort
+        {
+            get
+            {
+                return _DefaultSystemHttpPort;
+            }
+
+            set
+            {
+                if (_DefaultSystemHttpPort == value)
+                    return;
+
+                this._DefaultSystemHttpPort = value;
+                this.OnPropertyChanged("DefaultSystemHttpPort");
             }
         }
 
@@ -106,7 +124,7 @@ namespace Starcounter.InstallerWPF.Components
             this.Path = System.IO.Path.Combine(Environment.GetEnvironmentVariable("SystemDrive") + "\\" +
                                                Configuration.StarcounterCommonPath , ConstantsBank.SCSystemDatabasesName);
 
-            this.DefaultAppsTcpPort = StarcounterConstants.NetworkPorts.DefaultSystemServerAppsTcpPort;
+            this.DefaultUserHttpPort = StarcounterConstants.NetworkPorts.DefaultSystemServerUserHttpPort;
 
             switch (this.Command)
             {

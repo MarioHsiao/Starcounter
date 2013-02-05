@@ -82,18 +82,18 @@ namespace Starcounter.Configuration {
         /// Tcp port number for Administrator.
         /// </summary>
         [XmlElement(IsNullable = false)]
-        public UInt16 AdminTcpPort
+        public UInt16 SystemHttpPort
         {
             get;
             set;
         }
 
         /// <summary>
-        /// String representation of AdminTcpPort.
+        /// String representation.
         /// </summary>
-        public static String AdminTcpPortString
+        public static String SystemHttpPortString
         {
-            get { return "AdminTcpPort"; }
+            get { return "SystemHttpPort"; }
         }
 
         /// <summary>

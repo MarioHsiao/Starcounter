@@ -706,7 +706,9 @@ Global
 		{4ADDEF44-7AC7-44C3-9DC2-6301ECE9CBF6}.Release|x64.Build.0 = Release|Win32
 		{3EC74B8E-3599-41FD-B336-384861C8971A}.BuildServerTest|x64.ActiveCfg = Release|Any CPU
 		{3EC74B8E-3599-41FD-B336-384861C8971A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3EC74B8E-3599-41FD-B336-384861C8971A}.Debug|x64.Build.0 = Debug|Any CPU
 		{3EC74B8E-3599-41FD-B336-384861C8971A}.Release|x64.ActiveCfg = Release|Any CPU
+		{3EC74B8E-3599-41FD-B336-384861C8971A}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

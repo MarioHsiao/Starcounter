@@ -36,6 +36,8 @@ namespace StarcounterInternal.Bootstrap
         {
             try
             {
+                //System.Diagnostics.Debugger.Break();
+
                 Control c = new Control();
                 c.OnProcessInitialized();
                 bool b = c.Setup(args);
@@ -136,7 +138,7 @@ namespace StarcounterInternal.Bootstrap
             RequestHandler.InitREST(configuration.TempDirectory);
 
             // Initializing AppsBootstrapper.
-            AppsBootstrapper.InitAppsBootstrapper(configuration.DefaultAppsPort);
+            AppsBootstrapper.InitAppsBootstrapper(configuration.DefaultUserHttpPort);
 
             ulong hlogs = ConfigureLogging(configuration, hmenv);
             OnLoggingConfigured();
@@ -259,6 +261,29 @@ namespace StarcounterInternal.Bootstrap
         }
 
         /// <summary>
+        /// Simple parser for user arguments.
+        /// </summary>
+        String[] ParseUserArguments(String userArgs)
+        {
+            char[] parmChars = userArgs.ToCharArray();
+            bool inQuote = false;
+
+            for (int i = 0; i < parmChars.Length; i++)
+            {
+                if (parmChars[i] == '"')
+                {
+                    parmChars[i] = '\n';
+                    inQuote = !inQuote;
+                }
+
+                if (!inQuote && parmChars[i] == ' ')
+                    parmChars[i] = '\n';
+            }
+
+            return (new string(parmChars)).Split(new Char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        }
+
+        /// <summary>
         /// Runs this instance.
         /// </summary>
         private unsafe void Run()
@@ -274,17 +299,12 @@ namespace StarcounterInternal.Bootstrap
                 configuration.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.UserArguments, out userArgs);
                 if (userArgs != null)
                 {
-                    MatchCollection matches = Regex.Matches(userArgs, @"((""((?<token>.*?)(?<!\\)"")|(?<token>[\w]+))(\s)*)");
-
-                    List<String> userArgsList = new List<String>();
-                    foreach (Match match in matches)
-                    {
-                        userArgsList.Add(match.Groups["token"].Value);
-                    }
+                    // Parsing user arguments.
+                    String[] parsedUserArgs = ParseUserArguments(userArgs);
 
                     // Checking if any parameters determined.
-                    if (userArgsList.Count > 0)
-                        userArgsArray = userArgsList.ToArray();
+                    if (parsedUserArgs.Length > 0)
+                        userArgsArray = parsedUserArgs;
                 }
 
                 // Trying to get explicit working directory.
