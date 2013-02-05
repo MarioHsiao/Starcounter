@@ -156,6 +156,29 @@ namespace StarcounterInternal.Hosting
                 );
 
             systemTableDef = new TableDef(
+                "sys_column",
+                new ColumnDef[]
+                {
+                    new ColumnDef("table_id", DbTypeCode.UInt64, false, false),
+                    new ColumnDef("index", DbTypeCode.UInt64, false, false),
+                    new ColumnDef("name", DbTypeCode.String, true, false),
+                }
+                );
+
+            TypeDef sysColumnTypeDef = new TypeDef(
+                "Starcounter.Metadata.SysColumn",
+                null,
+                new PropertyDef[]
+                {
+                    new PropertyDef("TableId", DbTypeCode.UInt64, false) { ColumnName = "table_id" },
+                    new PropertyDef("Index", DbTypeCode.UInt64, false) { ColumnName = "index" },
+                    new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
+                },
+                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.SysColumn"),
+                systemTableDef
+                );
+
+            systemTableDef = new TableDef(
                 "sys_index",
                 new ColumnDef[]
                 {
@@ -182,7 +205,11 @@ namespace StarcounterInternal.Hosting
                 systemTableDef
                 );
 
-            Package package = new Package(new TypeDef[] { sysTableTypeDef, sysIndexTypeDef }, null, stopwatch_);
+            Package package = new Package(
+                new TypeDef[] { sysTableTypeDef, sysColumnTypeDef, sysIndexTypeDef },
+                null,
+                stopwatch_
+                );
             IntPtr hPackage = (IntPtr)GCHandle.Alloc(package, GCHandleType.Normal);
 
             OnPackageCreated();
