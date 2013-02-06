@@ -79,6 +79,8 @@ internal class ObjectDynamicRange : DynamicRange, IDynamicRange
             {
                 continue;
             }
+            if (conditionList[i] is IsTypePredicate)
+                continue;
             rangePoint = (conditionList[i] as IComparison).CreateRangePoint(extentNumber, strPath);
             if (rangePoint == null)
             {
