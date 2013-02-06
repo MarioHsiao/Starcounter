@@ -251,19 +251,37 @@ namespace Starcounter.Internal.Test {
         }
 
         /// <summary>
-        /// Generates the request processor.
+        /// Generates the request processor in the C# language.
         /// </summary>
         [Test]
-        public void GenerateRequestProcessor() {
+        public void GenerateCSharpRequestProcessor() {
             Main(); // Register some handlers
             var umb = RequestHandler.UriMatcherBuilder;
 
             var ast = umb.CreateAstTree();
             ast.Namespace = "__urimatcher__";
             var compiler = umb.CreateCompiler();
-            var str = compiler.GenerateRequestProcessorSourceCode( ast );
+            var str = compiler.GenerateRequestProcessorCSharpSourceCode( ast );
 
             Console.WriteLine( str );
+
+        }
+
+
+        /// <summary>
+        /// Generates the request processor in the C++ language.
+        /// </summary>
+        [Test]
+        public void GenerateCppRequestProcessor() {
+            Main(); // Register some handlers
+            var umb = RequestHandler.UriMatcherBuilder;
+
+            var ast = umb.CreateAstTree();
+            ast.Namespace = "__urimatcher__";
+            var compiler = umb.CreateCompiler();
+            var str = compiler.GenerateRequestProcessorCppSourceCode(ast);
+
+            Console.WriteLine(str);
 
         }
 
@@ -383,7 +401,7 @@ namespace Starcounter.Internal.Test {
             var pt = umb.CreateParseTree();
             var ast = umb.CreateAstTree();
             var compiler = umb.CreateCompiler();
-            var str = compiler.GenerateRequestProcessorSourceCode(ast);
+            var str = compiler.GenerateRequestProcessorCSharpSourceCode(ast);
 
             Console.WriteLine(pt.ToString(false));
 //            Console.WriteLine(pt.ToString(true));

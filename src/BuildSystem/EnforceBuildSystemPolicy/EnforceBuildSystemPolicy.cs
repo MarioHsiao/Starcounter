@@ -290,7 +290,7 @@ namespace CheckBuildSystem
 
                 RequiredPatterns = new String[] { @"\<TreatWarningAsError\>true\<\/TreatWarningAsError\>" },
 
-                FileExceptions = new String[] { "scerrres.vcxproj" },
+                FileExceptions = new String[] { "scerrres.vcxproj", "scerrres32.vcxproj" },
 
                 PolicyDescription = "All native projects must treat Warnings As Errors."
             },
