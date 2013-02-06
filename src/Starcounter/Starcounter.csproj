@@ -39,6 +39,7 @@
     <NoWarn>
     </NoWarn>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DocumentationFile>..\..\bin\Release\Starcounter.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>false</SignAssembly>
