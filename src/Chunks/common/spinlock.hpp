@@ -444,7 +444,9 @@ public:
 		/// Destructor releases the lock using spinlock::unlock() when the
 		/// object goes out of scope.
 		ALWAYS_INLINE ~scoped_lock() {
-			unlock();
+			if (owns()) { /// DEBUG: CHECKING IF THIS HELPS.
+				unlock();
+			}
 		}
 
 		/// try_lock() tries to acquire the lock without spinning. If the lock
