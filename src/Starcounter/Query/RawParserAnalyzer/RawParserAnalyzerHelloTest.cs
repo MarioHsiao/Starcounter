@@ -210,7 +210,7 @@ namespace Starcounter.Query.RawParserAnalyzer
             TypeBinding extType = GetTypeBindingFor(extent);
             typeBindings.AddTypeBinding(extType);
             // Add projection to typebinding
-            ITypeExpression propExpr = new ObjectThis(extNum, extType);
+            IValueExpression propExpr = new ObjectThis(extNum, extType);
             typeBindings.AddPropertyMapping(extNum.ToString(), propExpr);
             VarArray = new VariableArray(0);
             if ((typeBindings.PropertyCount == 1) && (typeBindings.GetPropertyBinding(0).TypeCode == DbTypeCode.Object))
