@@ -63,6 +63,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <DocumentationFile>..\..\bin\Release\Starcounter.REST.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Roslyn.Compilers">

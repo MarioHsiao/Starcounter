@@ -434,7 +434,7 @@ public static class Win32Service
     }
 
     /// <summary>
-    /// Currently, the only valid value for the <paramref name="infoLevel"/>
+    /// Currently, the only valid value for the "infoLevel"
     /// parameter of <see cref="QueryServiceStatusEx"/>.
     /// </summary>
     public const int SC_STATUS_PROCESS_INFO = 0x00;

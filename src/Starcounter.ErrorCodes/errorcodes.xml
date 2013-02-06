@@ -3466,6 +3466,17 @@
         {0} failed due to an unexpected problem.
       </message>
     </code>
+    <code hex="0011" severity="Error" name="ScErrCodeHostProcessRefusedStop">
+      <message>
+        When asked to shut down, the user code process actively refused it.
+      </message>
+    </code>
+    <code hex="0012" severity="Error" name="ScErrCodeHostProcessNotExited">
+      <message>
+        When asked to shut down, the user code process agreed to shut down,
+        but the process didn't exit gracefully in time.
+      </message>
+    </code>
   </facility>
 
   <!-- Error codes related to setup installer -->
