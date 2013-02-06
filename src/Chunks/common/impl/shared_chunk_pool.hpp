@@ -56,7 +56,7 @@ client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "A"
 	/ chunk_type::static_data_size;
 	
 	// Using the anonymous id 1. No recovery is done in IPC version 1.0.
-	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonymous id */,
+	smp::spinlock::scoped_lock lock(spinlock(), 2 /* anonymous id */,
 	timeout -timeout.tick_count());
 
 	if (!lock.owns()) {
@@ -184,7 +184,7 @@ client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "B"
 	//std::cout << "<B> acquire_linked_chunks_counted()\n";
 	
 	// Using the anonymous id 1. No recovery is done in IPC version 1.0.
-	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonymous id */,
+	smp::spinlock::scoped_lock lock(spinlock(), 2 /* anonymous id */,
 	timeout -timeout.tick_count());
 	
 	if (!lock.owns()) {
@@ -310,7 +310,7 @@ smp::spinlock::milliseconds timeout) { /// "C"
 	//std::cout << "<C> release_linked_chunks()\n";
 
 	// Using the anonymous id 1. No recovery is done in IPC version 1.0.
-	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonymous id */,
+	smp::spinlock::scoped_lock lock(spinlock(), 2 /* anonymous id */,
 	timeout -timeout.tick_count());
 	
 	if (!lock.owns()) {
@@ -405,7 +405,7 @@ private_chunk_pool, std::size_t chunks_to_acquire, client_interface_type*
 client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "D"
 	//std::cout << "<D> acquire_to_chunk_pool()\n";
 	// Using the anonymous id 1. No recovery is done in IPC version 1.0.
-	smp::spinlock::scoped_lock lock(spinlock(), 2 /* not an anonymous id */,
+	smp::spinlock::scoped_lock lock(spinlock(), 2 /* anonymous id */,
 	timeout -timeout.tick_count());
 
 	if (!lock.owns()) {
@@ -546,7 +546,7 @@ client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "E"
 	//std::cout << "<E> release_from_chunk_pool()\n";
 
 	// Using the anonymous id 1. No recovery is done in IPC version 1.0.
-	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonymous id */,
+	smp::spinlock::scoped_lock lock(spinlock(), 2 /* anonymous id */,
 	timeout -timeout.tick_count());
 	
 	if (!lock.owns()) {
@@ -644,7 +644,7 @@ smp::spinlock::milliseconds timeout) { /// "F"
 	//std::cout << "<F> acquire_to_chunk_pool()\n";
 
 	// Using the anonymous id 1. No recovery is done in IPC version 1.0.
-	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonymous id */,
+	smp::spinlock::scoped_lock lock(spinlock(), 2 /* anonymous id */,
 	timeout -timeout.tick_count());
 	
 	if (!lock.owns()) {
@@ -771,7 +771,7 @@ smp::spinlock::milliseconds timeout) { /// "G"
 	//std::cout << "<G> release_from_chunk_pool()\n";
 
 	// Using the anonymous id 1. No recovery is done in IPC version 1.0.
-	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonymous id */,
+	smp::spinlock::scoped_lock lock(spinlock(), 2 /* anonymous id */,
 	timeout -timeout.tick_count());
 	
 	if (!lock.owns()) {
@@ -866,7 +866,7 @@ client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "H"
 	//std::cout << "<H> release_clients_chunks()\n";
 
 	// Using the anonymous id 1. No recovery is done in IPC version 1.0.
-	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonymous id */,
+	smp::spinlock::scoped_lock lock(spinlock(), 2 /* anonymous id */,
 	timeout -timeout.tick_count());
 	
 	if (!lock.owns()) {
@@ -962,7 +962,7 @@ chunk_index head) {
 	smp::spinlock::milliseconds timeout(1000);
 
 	// Using the anonymous id 1. No recovery is done in IPC version 1.0.
-	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonymous id */,
+	smp::spinlock::scoped_lock lock(spinlock(), 2 /* anonymous id */,
 	timeout -timeout.tick_count());
 
 	if (!lock.owns()) {
@@ -1029,7 +1029,7 @@ spin_count, smp::spinlock::milliseconds timeout) { /// "I"
 		// elapsed.
 
 		// Using the anonymous id 1. No recovery is done in IPC version 1.0.
-		smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonymous id */,
+		smp::spinlock::scoped_lock lock(spinlock(), 2 /* anonymous id */,
 		timeout -timeout.tick_count());
 		
 		if (!lock.owns()) {
@@ -1161,7 +1161,7 @@ template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::try_push_front(param_type item) { /// "K"
 	//std::cout << "<K> try_push_front()\n";
 
-	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonymous id */,
+	smp::spinlock::scoped_lock lock(spinlock(), 2 /* anonymous id */,
 	smp::spinlock::scoped_lock::try_to_lock_type());
 	
 	if (lock.owns()) {
