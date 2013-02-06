@@ -1,4 +1,3 @@
-
 #include "internal.h"
 #include <windows.h>
 #include <stdlib.h>
@@ -8,19 +7,33 @@
 
 #define MONITOR_INHERIT_CONSOLE 0
 #define GATEWAY_INHERIT_CONSOLE 0
-#define SCDATA_INHERIT_CONSOLE 1
+#define SCDATA_INHERIT_CONSOLE 0
 #define SCCODE_INHERIT_CONSOLE 1
 
-
 static void *hcontrol_event;
+
+// Global handle to server log.
+uint64_t g_sc_log_handle_;
 
 static void __shutdown_event_handler()
 {
     _set_event(hcontrol_event);
 }
 
+// Is called when scservice crashes.
+VOID SCAPI LogGatewayCrash(VOID *pc, LPCWSTR str)
+{
+    LogWriteCritical(str);
+}
+
 int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 {
+    // Catching all unhandled exceptions in this thread.
+    _SC_BEGIN_FUNC
+
+    // Setting the critical log handler.
+    _SetCriticalLogHandler(LogGatewayCrash, NULL);
+
     uint32_t r;
 
     wchar_t *srv_name = L"PERSONAL";
@@ -138,6 +151,9 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
         &server_database_dir,
         &system_http_port,
         &default_user_http_port);
+
+    // Registering the logger.
+    OpenStarcounterLog(server_logs_dir);
 
     if (r) goto end;
 
@@ -343,6 +359,9 @@ end:
     {
         wchar_t* error_msg_buf = new wchar_t[4096];
         FormatStarcounterErrorMessage(r, error_msg_buf, 4096);
+
+        // Logging this error.
+        LogWriteError(error_msg_buf);
         wprintf(L"Exited with error code: %s\n", error_msg_buf);
 	}
 	
@@ -353,4 +372,7 @@ end:
     if (handles[0]) _destroy_event(handles[0]);
 
     return (int32_t)r;
+
+    // Catching all unhandled exceptions in this thread.
+    _SC_END_FUNC
 }

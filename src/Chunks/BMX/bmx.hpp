@@ -58,29 +58,39 @@ namespace bmx
     const uint32_t SCHEDULER_SPIN_COUNT = 1000000;
 
     // Constants needed for chunks processing.
-    const uint32_t MAX_DATA_BYTES_IN_CHUNK = starcounter::core::chunk_size - shared_memory_chunk::LINK_SIZE;
-    const uint32_t MAX_NUM_LINKED_WSABUFS = MAX_DATA_BYTES_IN_CHUNK / sizeof(WSABUF);
-    const uint32_t MAX_BYTES_LINKED_CHUNKS = MAX_NUM_LINKED_WSABUFS * MAX_DATA_BYTES_IN_CHUNK;
+    const uint32_t CHUNK_MAX_DATA_BYTES = starcounter::core::chunk_size - shared_memory_chunk::LINK_SIZE;
+
+    // NOTE: Excluding original chunk since its for extra linked.
+    const uint32_t MAX_EXTRA_LINKED_WSABUFS = CHUNK_MAX_DATA_BYTES / sizeof(WSABUF) - 1;
+    const uint32_t MAX_BYTES_EXTRA_LINKED_WSABUFS = MAX_EXTRA_LINKED_WSABUFS * CHUNK_MAX_DATA_BYTES;
 
     const uint32_t BMX_HANDLER_SIZE = 2;
     const uint32_t BMX_PROTOCOL_BEGIN_OFFSET = 16;
     const uint32_t REQUEST_SIZE_BEGIN = BMX_PROTOCOL_BEGIN_OFFSET + BMX_HANDLER_SIZE;
     const uint32_t BMX_HEADER_MAX_SIZE_BYTES = 24;
-    const uint32_t GATEWAY_DATA_BEGIN_OFFSET = BMX_HEADER_MAX_SIZE_BYTES + 32;
+
+    // Some socket data constants.
+    const uint32_t  SOCKET_DATA_FLAGS_JUST_SEND = 64;
 
     // WARNING: Change corresponding managed code variables
     // that have exactly the same names!
     const uint32_t SESSION_STRUCT_SIZE = 32;
-    const uint32_t SOCKET_DATA_NUM_CHUNKS_OFFSET = 84;
-    const uint32_t SOCKET_DATA_NUM_CLONE_BYTES = 144;
-    const uint32_t SOCKET_DATA_HTTP_REQUEST_OFFSET = 224;
+    const uint32_t OVERLAPPED_STRUCT_SIZE = 32;
 
-    const uint32_t USER_DATA_OFFSET = GATEWAY_DATA_BEGIN_OFFSET + SESSION_STRUCT_SIZE;
-    const uint32_t MAX_USER_DATA_BYTES_OFFSET = USER_DATA_OFFSET + 4;
-    const uint32_t USER_DATA_WRITTEN_BYTES_OFFSET = MAX_USER_DATA_BYTES_OFFSET + 4;
+    const uint32_t SOCKET_DATA_OFFSET_NUM_CHUNKS = 84;
+    const uint32_t SOCKET_DATA_NUM_CLONE_BYTES = 144;
+    const uint32_t SOCKET_DATA_OFFSET_HTTP_REQUEST = 224;
+
+    // Offset of data blob in socket data.
+    const int32_t SOCKET_DATA_OFFSET_BLOB = 704;
+
+    const uint32_t CHUNK_OFFSET_USER_DATA = BMX_HEADER_MAX_SIZE_BYTES + OVERLAPPED_STRUCT_SIZE + SESSION_STRUCT_SIZE;
+    const uint32_t CHUNK_OFFSET_MAX_USER_DATA_BYTES = CHUNK_OFFSET_USER_DATA + 4;
+    const uint32_t CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES = CHUNK_OFFSET_MAX_USER_DATA_BYTES + 4;
+    const uint32_t CHUNK_OFFSET_SOCKET_FLAGS = BMX_HEADER_MAX_SIZE_BYTES + 112;
     const uint32_t BMX_NUM_CLONE_BYTES = BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_NUM_CLONE_BYTES;
-    const uint32_t BMX_HTTP_REQUEST_OFFSET = BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_HTTP_REQUEST_OFFSET;
-    const uint32_t GATEWAY_ORIG_CHUNK_DATA_SIZE = starcounter::core::chunk_size - BMX_HEADER_MAX_SIZE_BYTES - shared_memory_chunk::LINK_SIZE;
+    const uint32_t CHUNK_OFFSET_BMX_HTTP_REQUEST = BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_OFFSET_HTTP_REQUEST;
+    const uint32_t SOCKET_DATA_MAX_SIZE = starcounter::core::chunk_size - BMX_HEADER_MAX_SIZE_BYTES - shared_memory_chunk::LINK_SIZE;
 
     // Predefined BMX management handler.
     const BMX_HANDLER_TYPE BMX_MANAGEMENT_HANDLER = 0;
