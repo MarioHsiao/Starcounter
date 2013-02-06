@@ -126,8 +126,14 @@ namespace Starcounter.Server {
         /// </summary>
         /// <param name="serverConfigurationPath">Path to the server configuration
         /// file in the root of the server repository the engine will run.</param>
-        public ServerEngine(string serverConfigurationPath) {
-            this.InstallationDirectory = Path.GetDirectoryName(typeof(ServerEngine).Assembly.Location);
+        /// <param name="installDir">Path to the installation directory.</param>
+        public ServerEngine(string serverConfigurationPath, String installDir = null) {
+            // TODO: Talk to Per!
+            if (installDir == null)
+                this.InstallationDirectory = Path.GetDirectoryName(typeof(ServerEngine).Assembly.Location);
+            else
+                this.InstallationDirectory = installDir;
+
             this.Configuration = ServerConfiguration.Load(Path.GetFullPath(serverConfigurationPath));
             this.DatabaseDefaultValues = new DatabaseDefaults();
             this.Name = this.Configuration.Name;

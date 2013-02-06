@@ -5,6 +5,7 @@
     <ClCompile Include="win32.cpp" />
     <ClCompile Include="config.cpp" />
     <ClCompile Include="win32_acl.cpp" />
+    <ClCompile Include="logging.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="internal.h" />
@@ -12,12 +13,12 @@
   </ItemGroup>
   <ItemGroup>
     <Filter Include="config">
-      <UniqueIdentifier>{91c8e221-48cb-4e57-9cae-68d86256284f}</UniqueIdentifier>
+      <UniqueIdentifier>{28e659f1-b849-4eae-996b-c99302a6c83e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="config\personal.xml">
+    <None Include="config\personal.xml">
       <Filter>config</Filter>
-    </Xml>
+    </None>
   </ItemGroup>
 </Project>

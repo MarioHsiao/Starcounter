@@ -273,7 +273,7 @@ internal class IntegerOperation : IIntegerExpression, INumericalOperation
         return new IntegerOperation(numOperator, (IIntegerExpression)expr1.Instantiate(obj));
     }
 
-    public ITypeExpression Clone(VariableArray varArray)
+    public IValueExpression Clone(VariableArray varArray)
     {
         return CloneToInteger(varArray);
     }
@@ -331,7 +331,7 @@ internal class IntegerOperation : IIntegerExpression, INumericalOperation
 
 #if DEBUG
     private bool AssertEqualsVisited = false;
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         IntegerOperation otherNode = other as IntegerOperation;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);

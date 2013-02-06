@@ -111,7 +111,7 @@ uint32_t SocketDataChunk::ContinueAccumulation(GatewayWorker* gw, bool* is_accum
             cur_smc->set_link(extra_chunk_index_);
 
             // Setting new chunk as a new buffer.
-            accum_buf_.Init(bmx::MAX_DATA_BYTES_IN_CHUNK, (uint8_t*)new_smc, false);
+            accum_buf_.Init(bmx::CHUNK_MAX_DATA_BYTES, (uint8_t*)new_smc, false);
         }
         else
         {
@@ -186,8 +186,8 @@ uint32_t SocketDataChunk::CreateWSABuffers(
     // Looping through all chunks and creating corresponding
     // WSA buffers in the first chunk data blob.
     uint32_t cur_chunk_data_size = bytes_left;
-    if (cur_chunk_data_size > starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK)
-        cur_chunk_data_size = starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK;
+    if (cur_chunk_data_size > starcounter::bmx::CHUNK_MAX_DATA_BYTES)
+        cur_chunk_data_size = starcounter::bmx::CHUNK_MAX_DATA_BYTES;
 
     // Getting shared interface pointer.
     core::shared_interface* shared_int = worker_db->get_shared_int();
@@ -202,25 +202,18 @@ uint32_t SocketDataChunk::CreateWSABuffers(
 
     // Checking if we need to obtain an extra chunk.
     GW_ASSERT(INVALID_CHUNK_INDEX == extra_chunk_index_);
-    if (INVALID_CHUNK_INDEX == extra_chunk_index_)
-    {
-        // Getting new chunk from pool.
-        err_code = worker_db->GetOneChunkFromPrivatePool(&extra_chunk_index_, &wsa_bufs_smc);
-        if (err_code)
-            return err_code;
 
-        // Increasing number of chunks by one.
-        num_chunks_++;
+    // Getting new chunk from pool.
+    err_code = worker_db->GetOneChunkFromPrivatePool(&extra_chunk_index_, &wsa_bufs_smc);
+    if (err_code)
+        return err_code;
 
-        // Inserting extra chunk in linked chunks.
-        head_smc->set_link(extra_chunk_index_);
-        wsa_bufs_smc->set_link(cur_chunk_index);
-    }
-    else
-    {
-        // Obtaining data address for existing extra chunk.
-        wsa_bufs_smc = (shared_memory_chunk *)(&(shared_int->chunk(extra_chunk_index_)));
-    }
+    // Increasing number of chunks by one.
+    num_chunks_++;
+
+    // Inserting extra chunk in linked chunks.
+    head_smc->set_link(extra_chunk_index_);
+    wsa_bufs_smc->set_link(cur_chunk_index);
 
     // Checking if head chunk is involved.
     if (head_chunk_offset_bytes)
@@ -230,6 +223,11 @@ uint32_t SocketDataChunk::CreateWSABuffers(
         wsa_buf->len = head_chunk_num_bytes;
         wsa_buf->buf = (char *)head_smc + head_chunk_offset_bytes;
         cur_wsa_buf_offset += sizeof(WSABUF);
+
+        // Decreasing number of bytes left to be processed.
+        bytes_left -= head_chunk_num_bytes;
+        if (bytes_left < starcounter::bmx::CHUNK_MAX_DATA_BYTES)
+            cur_chunk_data_size = bytes_left;
     }
 
     // Until we get the last chunk in chain.
@@ -246,7 +244,7 @@ uint32_t SocketDataChunk::CreateWSABuffers(
 
         // Decreasing number of bytes left to be processed.
         bytes_left -= cur_chunk_data_size;
-        if (bytes_left < starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK)
+        if (bytes_left < starcounter::bmx::CHUNK_MAX_DATA_BYTES)
             cur_chunk_data_size = bytes_left;
 
         // Getting next chunk in chain.
@@ -257,8 +255,8 @@ uint32_t SocketDataChunk::CreateWSABuffers(
     }
 
     // Checking that maximum number of WSABUFs in chunk is correct.
-    // NOTE: Skipping initial chunk and extra chunk in check.
-    GW_ASSERT((num_chunks_ - 2) <= starcounter::bmx::MAX_NUM_LINKED_WSABUFS);
+    // NOTE: Skipping extra and original chunk in check.
+    GW_ASSERT((num_chunks_ - 2) <= starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS);
 
     return 0;
 }
@@ -354,7 +352,7 @@ CORRECT_STATISTICS_AND_RELEASE_CHUNK:
     default:
         {
             // NOTE: This situation should never happen.
-            GW_ASSERT(1 == 0);
+            GW_ASSERT(false);
         }
     }
 

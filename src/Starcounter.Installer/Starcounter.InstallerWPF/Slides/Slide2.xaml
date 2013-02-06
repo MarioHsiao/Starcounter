@@ -1,0 +1,179 @@
+﻿<Grid x:Class="Starcounter.InstallerWPF.Slides.Slide2"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                >
+
+    <Grid >
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>    
+    
+    <StackPanel >
+
+
+        <!--<Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="Get Started" Style="{DynamicResource SlideHeader}" />
+            <TextBlock Grid.Column="1" Text="Slide 2 of 4" Style="{DynamicResource SlidePage}" />
+        </Grid>-->
+
+        <StackPanel >
+
+            <!-- Create a Starcounter project -->
+            <BulletDecorator  Style="{DynamicResource SlideLevelBulletDecorator1}">
+                <BulletDecorator.Bullet>
+                    <TextBlock Margin="0,2,8,0" Text="1." Style="{DynamicResource SlideLevel1}"/>
+                </BulletDecorator.Bullet>
+
+                <TextBlock  Text="Create a Starcounter project" Style="{DynamicResource SlideLevel1}" />
+
+            </BulletDecorator>
+
+            <!-- Use the template in Visual Studio -->
+            <BulletDecorator Style="{DynamicResource SlideLevelBulletDecorator2}" >
+                <BulletDecorator.Bullet>
+                    <Rectangle Style="{DynamicResource SlideLevel2Rectangle}"/>
+                </BulletDecorator.Bullet>
+
+                <TextBlock Style="{DynamicResource SlideLevel2}" >
+             Use the template in
+             <Bold><Run Text="Visual Studio" /></Bold>
+                </TextBlock>
+
+            </BulletDecorator>
+
+
+
+            <!-- Create a database -->
+            <BulletDecorator  Style="{DynamicResource SlideLevelBulletDecorator1}">
+                <BulletDecorator.Bullet>
+                    <TextBlock Text="2." Margin="0,2,8,0" Style="{DynamicResource SlideLevel1}"/>
+                </BulletDecorator.Bullet>
+
+                <TextBlock Text="Create a database" Style="{DynamicResource SlideLevel1}"/>
+
+            </BulletDecorator>
+
+            <!-- Use the administrator or hit run (F5) -->
+            <BulletDecorator Style="{DynamicResource SlideLevelBulletDecorator2}" >
+                <BulletDecorator.Bullet>
+                    <Rectangle Style="{DynamicResource SlideLevel2Rectangle}"/>
+                </BulletDecorator.Bullet>
+
+                <TextBlock  Style="{DynamicResource SlideLevel2}">
+             Use the administrator or hit run (F5)
+                </TextBlock>
+
+            </BulletDecorator>
+
+
+
+
+            <!-- Use the Administrator -->
+            <BulletDecorator  Style="{DynamicResource SlideLevelBulletDecorator1}">
+                <BulletDecorator.Bullet>
+                    <TextBlock Text="3." Margin="0,2,8,0" Style="{DynamicResource SlideLevel1}"/>
+                </BulletDecorator.Bullet>
+
+                <TextBlock Text="Use the Administrator" Style="{DynamicResource SlideLevel1}"/>
+
+            </BulletDecorator>
+
+            <!-- Start and stop the database -->
+            <BulletDecorator Style="{DynamicResource SlideLevelBulletDecorator2}" >
+                <BulletDecorator.Bullet>
+                    <Rectangle Style="{DynamicResource SlideLevel2Rectangle}"/>
+                </BulletDecorator.Bullet>
+
+                <TextBlock  Style="{DynamicResource SlideLevel2}">
+             Start and stop the database
+                </TextBlock>
+
+            </BulletDecorator>
+
+
+            <!-- Start and stop the database -->
+            <BulletDecorator Style="{DynamicResource SlideLevelBulletDecorator2}" >
+                <BulletDecorator.Bullet>
+                    <Rectangle Style="{DynamicResource SlideLevel2Rectangle}"/>
+                </BulletDecorator.Bullet>
+
+                <TextBlock  Style="{DynamicResource SlideLevel2}">
+             Run queries or call your server code
+                </TextBlock>
+
+            </BulletDecorator>
+
+
+
+
+
+            <!-- Integrate with other tech -->
+            <BulletDecorator  Style="{DynamicResource SlideLevelBulletDecorator1}">
+                <BulletDecorator.Bullet>
+                    <TextBlock Text="4." Margin="0,2,8,0" Style="{DynamicResource SlideLevel1}"/>
+                </BulletDecorator.Bullet>
+
+                <TextBlock Text="Integrate with other tech" Style="{DynamicResource SlideLevel1}"/>
+
+            </BulletDecorator>
+
+            <!-- Use LiveObjects from C# or VB or use SQL from anywhere -->
+            <BulletDecorator Style="{DynamicResource SlideLevelBulletDecorator2}" >
+                <BulletDecorator.Bullet>
+                    <Rectangle Style="{DynamicResource SlideLevel2Rectangle}"/>
+                </BulletDecorator.Bullet>
+
+                <TextBlock Style="{DynamicResource SlideLevel2}">
+             Use 
+             <Bold><Run Text="LiveObjects" /></Bold>
+             from
+             <Bold><Run Text="C#" /></Bold>
+             or
+             <Bold><Run Text="VB" /></Bold>
+             or use
+             <Bold><Run Text="SQL" /></Bold>
+             from anywhere
+                </TextBlock>
+            </BulletDecorator>
+
+
+            <!-- Look at our samples using ASP.NET, php, Winforms, WPF, WCF and Java -->
+            <BulletDecorator Style="{DynamicResource SlideLevelBulletDecorator2}" >
+                <BulletDecorator.Bullet>
+                    <Rectangle Style="{DynamicResource SlideLevel2Rectangle}"/>
+                </BulletDecorator.Bullet>
+
+                <TextBlock  Style="{DynamicResource SlideLevel2}">
+             Look at our samples using 
+             <Bold><Run Text="ASP.NET" /></Bold>,
+             <Bold><Run Text="php" /></Bold>,
+             <Bold><Run Text="Winforms" /></Bold>,
+             <Bold><Run Text="WPF" /></Bold>,
+             <Bold><Run Text="WCF" /></Bold>
+             and
+             <Bold><Run Text="Java" /></Bold>
+
+                </TextBlock>
+            </BulletDecorator>
+
+
+        </StackPanel>
+
+
+
+
+    </StackPanel>
+
+        <TextBlock Grid.Row="1" Text="Slide 2 of 4" Style="{DynamicResource SlidePage}" HorizontalAlignment="Right" />
+
+    </Grid>
+
+
+</Grid>

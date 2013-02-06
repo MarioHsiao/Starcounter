@@ -1,0 +1,32 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <CoreCompileDependsOn>$(CoreCompileDependsOn);GenerateAppCode</CoreCompileDependsOn>
+  </PropertyGroup>
+  <ItemGroup>
+    <AvailableItemName Include="App"/>
+  </ItemGroup>
+     
+  <!-- TODO: Temporary path. Use installation directory for starcounter later when Apps is integrated into main Starcounter -->
+ <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToCsMsBuildTaskNoLocking" AssemblyFile="..\..\bin\$(Configuration)\Starcounter.MsBuild.dll" />
+
+  <Target Name="GenerateAppCode" Inputs="@(App)" Outputs="@(App->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
+    <JsonToCsMsBuildTaskNoLocking
+       InputFiles="@(App)"
+       OutputFiles="@(App->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
+       <Output TaskParameter="OutputFiles" ItemName="gFiles" /> 
+    </JsonToCsMsBuildTaskNoLocking>
+	<ItemGroup>
+      <Compile Include="@(gFiles)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="AfterBuild">
+    <Exec Command="&quot;..\..\bin\$(Configuration)\scweaver.exe&quot; Weave --outdir=&quot;$(TargetPath)\..\weaved&quot; --cachedir=&quot;$(TargetPath)\..\cache&quot; &quot;$(TargetPath)&quot;"/>
+    <ItemGroup>
+      <AdminWeavedFiles Include="$(TargetPath)\..\weaved\$(AssemblyName).*" />
+    </ItemGroup>
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(AdminWeavedFiles)" DestinationFolder="$(TargetPath)\.." />
+  </Target>
+</Project>
+
+

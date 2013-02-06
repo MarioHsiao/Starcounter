@@ -31,7 +31,6 @@ int32_t GatewayWorker::Init(int32_t new_worker_id)
     worker_stats_bytes_sent_ = 0;
     worker_stats_sent_num_ = 0;
     worker_stats_recv_num_ = 0;
-    cur_scheduler_id_ = 0;
 
 #ifdef GW_TESTING_MODE
     num_created_conns_worker_ = 0;
@@ -1346,7 +1345,7 @@ uint32_t GatewayWorker::WorkerRoutine()
                     // Unknown operation.
                     default:
                     {
-                        GW_ASSERT(1 == 0);
+                        GW_ASSERT(false);
                     }
                 }
 
@@ -1516,10 +1515,7 @@ uint32_t GatewayWorker::AddNewDatabase(
     int32_t db_index,
     const core::shared_interface& worker_shared_int)
 {
-    worker_dbs_[db_index] = new WorkerDbInterface();
-    uint32_t errCode = worker_dbs_[db_index]->Init(db_index, worker_shared_int, this);
-    GW_ERR_CHECK(errCode);
-
+    worker_dbs_[db_index] = new WorkerDbInterface(db_index, worker_shared_int, worker_id_);
     return 0;
 }
 
@@ -1676,7 +1672,7 @@ bool GatewayWorker::ProcessEmulatedNetworkOperations(
             // DISCONNECT finished.
             case DISCONNECT_SOCKET_OPER:
             {
-                GW_ASSERT(1 == 0);
+                GW_ASSERT(false);
                 break;
             }
 
@@ -1722,6 +1718,10 @@ bool GatewayWorker::ProcessEmulatedNetworkOperations(
 
 #ifdef GW_LIMITED_ECHO_TEST
                     new_echo_num = g_gateway.GetNextEchoNumber();
+
+                    // Checking if we are getting overflowed echo number.
+                    if (new_echo_num >= g_gateway.setting_num_echoes_to_master())
+                        goto RELEASE_CHUNK;
 #endif
 
 #ifdef GW_ECHO_STATISTICS
@@ -1739,31 +1739,30 @@ bool GatewayWorker::ProcessEmulatedNetworkOperations(
 
                     // Assigning number of processed bytes.
                     fetched_ovls[num_processed].dwNumberOfBytesTransferred = num_request_bytes;
+
+                    break;
                 }
-                else
-                {
-                    // Returning this chunk to database.
-                    WorkerDbInterface *db = GetWorkerDb(sd->get_db_index());
-                    GW_ASSERT(db != NULL);
+
+RELEASE_CHUNK:
+                // Returning this chunk to database.
+                WorkerDbInterface *db = GetWorkerDb(sd->get_db_index());
+                GW_ASSERT(db != NULL);
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
-                    sd->set_socket_diag_active_conn_flag(false);
+                sd->set_socket_diag_active_conn_flag(false);
 #endif
 
-                    // Returning chunks to pool.
-                    db->ReturnSocketDataChunksToPool(this, sd);
+                // Returning chunks to pool.
+                db->ReturnSocketDataChunksToPool(this, sd);
 
-                    // Just jumping to next processing.
-                    continue;
-                }
-
-                break;
+                // Just jumping to next processing.
+                continue;
             }
 
             // Unknown operation.
             default:
             {
-                GW_ASSERT(1 == 0);
+                GW_ASSERT(false);
             }
         }
 

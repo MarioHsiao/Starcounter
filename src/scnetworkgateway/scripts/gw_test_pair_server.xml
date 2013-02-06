@@ -3,6 +3,19 @@
   <!-- IP address of the master node -->
   <MasterIP></MasterIP>
 
+  <!--
+  List of local interfaces to bind to.
+  Declare them when you expect the number of outgoing
+  connections(e.g. due to proxying) to be more than 64K.
+  -->
+  <!--
+  <BindingIP>10.0.0.1</BindingIP>
+  <BindingIP>10.0.0.2</BindingIP>
+  <BindingIP>10.0.0.3</BindingIP>
+  <BindingIP>10.0.0.4</BindingIP>
+  <BindingIP>10.0.0.5</BindingIP>
+  -->
+
   <!-- Standard services ports -->
   <HttpPort>0</HttpPort>
   <HttpsPort>0</HttpsPort>
@@ -29,35 +42,25 @@
     <ReverseProxy>
       <ServerIP>69.16.244.74</ServerIP>
       <ServerPort>80</ServerPort>
-      <URI>/forum</URI>
+      <GatewayProxyPort>80</GatewayProxyPort>
+      <ServiceUri>/forum</ServiceUri>
     </ReverseProxy>
 
     <ReverseProxy>
       <ServerIP>69.16.244.74</ServerIP>
       <ServerPort>80</ServerPort>
-      <URI>/wiki</URI>
+      <GatewayProxyPort>80</GatewayProxyPort>
+      <ServiceUri>/wiki</ServiceUri>
     </ReverseProxy>
     
     <ReverseProxy>
       <ServerIP>69.16.244.74</ServerIP>
       <ServerPort>80</ServerPort>
-      <URI>/queue-signup.php</URI>
+      <GatewayProxyPort>80</GatewayProxyPort>
+      <ServiceUri>/queue-signup.php</ServiceUri>
     </ReverseProxy>
       
   </ReverseProxies>
-  -->
-
-  <!--
-  List of local interfaces to bind to.
-  Declare them when you expect the number of outgoing
-  connections(e.g. due to proxying) to be more than 64K.
-  -->
-  <!--
-  <LocalIP>10.0.0.1</LocalIP>
-  <LocalIP>10.0.0.2</LocalIP>
-  <LocalIP>10.0.0.3</LocalIP>
-  <LocalIP>10.0.0.4</LocalIP>
-  <LocalIP>10.0.0.5</LocalIP>
   -->
 
   <!-- In which test mode Gateway operates. -->

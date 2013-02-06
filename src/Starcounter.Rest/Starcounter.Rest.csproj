@@ -50,7 +50,8 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <DocumentationFile>..\..\bin\Debug\Starcounter.REST.XML</DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>..\..\bin\Release\</OutputPath>
@@ -62,6 +63,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <DocumentationFile>..\..\bin\Release\Starcounter.REST.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Roslyn.Compilers">
@@ -71,6 +73,7 @@
       <HintPath>..\packages\Roslyn.Compilers.CSharp.1.2.20906.2\lib\net45\Roslyn.Compilers.CSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Web" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Http\HttpRequestNext.cs" />
@@ -91,6 +94,7 @@
     <Compile Include="RequestHandler\AstTree\AstUnsafe.cs" />
     <Compile Include="RequestHandler\AstTree\AstValueJump.cs" />
     <Compile Include="RequestHandler\AstTree\AstVerifier.cs" />
+    <Compile Include="RequestHandler\AstTree\AstDeserializeMessage.cs" />
     <Compile Include="RequestHandler\ParseTree\ParseTreeGenerator.cs" />
     <Compile Include="RequestHandler\ParseTree\ParseNode.PrettyPrint.cs" />
     <Compile Include="RequestHandler\PreprocessUriTemplate.cs" />
@@ -134,6 +138,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

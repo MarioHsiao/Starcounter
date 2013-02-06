@@ -150,7 +150,7 @@ internal interface IConditionTreeNode : IQueryObject
 /// Interface for all types of expressions that have a return value of a value type or
 /// an object reference, which includes: literals, properties, paths and operations.
 /// </summary>
-internal interface ITypeExpression : IConditionTreeNode
+internal interface IValueExpression : IConditionTreeNode
 {
     /// <summary>
     /// The DbTypeCode of the value of the expression or the property.
@@ -173,24 +173,24 @@ internal interface ITypeExpression : IConditionTreeNode
     /// </summary>
     /// <param name="varArray">Variables array.</param>
     /// <returns>Clone of the expression.</returns>
-    ITypeExpression Clone(VariableArray varArray);
+    IValueExpression Clone(VariableArray varArray);
 
 #if DEBUG
-    bool AssertEquals(ITypeExpression other);
+    bool AssertEquals(IValueExpression other);
 #endif
 }
 
 /// <summary>
 /// Interface for literals of all data types.
 /// </summary>
-internal interface ILiteral : ITypeExpression
+internal interface ILiteral : IValueExpression
 {
 }
 
 /// <summary>
 /// Interface for variables of all data types.
 /// </summary>
-internal interface IVariable : ITypeExpression
+internal interface IVariable : IValueExpression
 {
     Int32 Number
     {
@@ -222,6 +222,8 @@ internal interface IVariable : ITypeExpression
     void SetValue(UInt16 newValue);
     void SetValue(Byte newValue);
     void SetValue(Object newValue);
+    void SetValue(ITypeBinding newValue);
+    void SetValue(Type newValue);
 
     // Sets value to variable in another enumerator.
     void ProlongValue(IExecutionEnumerator destEnum);
@@ -237,7 +239,7 @@ internal interface IVariable : ITypeExpression
 /// <summary>
 /// Interface for path expressions of all data types.
 /// </summary>
-internal interface IPath : ITypeExpression
+internal interface IPath : IValueExpression
 {
     /// <summary>
     /// The extent number of the extent to which this path belongs.
@@ -289,7 +291,7 @@ internal interface IMethod : IMember
 /// Interface for numerical expressions which are all expressions of a numerical type
 /// (Decimal, Double, Int64, UInt64).
 /// </summary>
-internal interface INumericalExpression : ITypeExpression
+internal interface INumericalExpression : IValueExpression
 {
     /// <summary>
     /// Calculates the value as a nullable Decimal of the expression when evaluated on an input object.
@@ -402,7 +404,7 @@ internal interface IUIntegerExpression : INumericalExpression
 /// <summary>
 /// Interface for Binary expressions which are all expressions of type Binary.
 /// </summary>
-internal interface IBinaryExpression : ITypeExpression
+internal interface IBinaryExpression : IValueExpression
 {
     /// <summary>
     /// Calculates the value of the expression when evaluated on an input object.
@@ -427,7 +429,7 @@ internal interface IBinaryExpression : ITypeExpression
 /// <summary>
 /// Interface for Boolean expressions which are all expressions of type Boolean.
 /// </summary>
-internal interface IBooleanExpression : ITypeExpression
+internal interface IBooleanExpression : IValueExpression
 {
     /// <summary>
     /// Calculates the value of the expression when evaluated on an input object.
@@ -452,7 +454,7 @@ internal interface IBooleanExpression : ITypeExpression
 /// <summary>
 /// Interface for DateTime expressions which are all expressions of type DateTime.
 /// </summary>
-internal interface IDateTimeExpression : ITypeExpression
+internal interface IDateTimeExpression : IValueExpression
 {
     /// <summary>
     /// Calculates the value of the expression when evaluated on an input object.
@@ -477,7 +479,7 @@ internal interface IDateTimeExpression : ITypeExpression
 /// <summary>
 /// Interface for object expressions which are all expressions of type Object (reference).
 /// </summary>
-internal interface IObjectExpression : ITypeExpression
+internal interface IObjectExpression : IValueExpression
 {
     ITypeBinding TypeBinding
     {
@@ -507,7 +509,7 @@ internal interface IObjectExpression : ITypeExpression
 /// <summary>
 /// Interface for String expressions which are all expressions of type String.
 /// </summary>
-internal interface IStringExpression : ITypeExpression
+internal interface IStringExpression : IValueExpression
 {
     /// <summary>
     /// Calculates the value of the expression when evaluated on an input object.
@@ -527,6 +529,30 @@ internal interface IStringExpression : ITypeExpression
     IStringExpression Instantiate(Row obj);
 
     IStringExpression CloneToString(VariableArray varArray);
+}
+
+/// <summary>
+/// Interface for type expressions which are all expressions of type Type (object type).
+/// </summary>
+internal interface ITypeExpression : IValueExpression {
+    /// <summary>
+    /// Calculates the value of the expression when evaluated on an input object.
+    /// All properties in the expression are evaluated on the input object.
+    /// </summary>
+    /// <param name="obj">The object on which to evaluate the expression.</param>
+    /// <returns>The value of the expression when evaluated on the input object.</returns>
+    ITypeBinding EvaluateToType(IObjectView obj);
+
+    /// <summary>
+    /// Creates an more instantiated copy of the expression by evaluating it on a Row.
+    /// Properties, with extent numbers for which there exist objects attached to the Row,
+    /// are evaluated and instantiated to literals, other properties are not changed.
+    /// </summary>
+    /// <param name="obj">The Row on which to evaluate the expression.</param>
+    /// <returns>A more instantiated expression.</returns>
+    ITypeExpression Instantiate(Row obj);
+
+    ITypeExpression CloneToType(VariableArray varArray);
 }
 
 /// <summary>
@@ -675,7 +701,7 @@ internal interface IUIntegerPathItem : IUIntegerExpression
 /// <summary>
 /// Interface for operations of all data types.
 /// </summary>
-internal interface IOperation : ITypeExpression
+internal interface IOperation : IValueExpression
 {
 }
 
@@ -742,12 +768,14 @@ internal interface IComparison : ILogicalExpression
     }
 
     /// <summary>
-    /// Gets a path that eventually (if there is a corresponding index) can be used for
-    /// an index scan for the extent with the input extent number, if there is such a path.
+    /// Gets a path to the given extent.
+    /// The path is used for an index scan for the extent with the input extent number, 
+    /// if there is such a path and if there is a corresponding index.
+    /// This method is used to select a scan alternative. It is not used in join optimization.
     /// </summary>
     /// <param name="extentNumber">An extent number.</param>
     /// <returns>A path, if an appropriate one is found, otherwise null.</returns>
-    IPath GetIndexPath(Int32 extentNumber);
+    IPath GetPathTo(Int32 extentNumber);
 
     RangePoint CreateRangePoint(Int32 extentNumber, String strPath);
 }
@@ -800,7 +828,7 @@ internal interface ISingleComparer : IQueryComparer
     /// <summary>
     /// The expression used for the comparison.
     /// </summary>
-    ITypeExpression Expression
+    IValueExpression Expression
     {
         get;
     }

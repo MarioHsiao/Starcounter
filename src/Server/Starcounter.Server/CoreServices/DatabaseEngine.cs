@@ -15,7 +15,6 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
-using StarcounterInternal.Bootstrap;
 using Starcounter.Internal;
 
 namespace Starcounter.Server {
@@ -252,11 +251,34 @@ namespace Starcounter.Server {
 
             var client = this.Server.DatabaseHostService.GetHostingInterface(database);
             if (!client.SendShutdown()) {
-                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Shutdown request to worker process unsuccessfull.");
+                // If the host actively refused to shut down, we never try to
+                // kill it by force. Instead, we raise an exception that will later
+                // be logged, describing this scenario.
+                throw ErrorCode.ToException(
+                    Error.SCERRCODEHOSTPROCESSREFUSEDSTOP, FormatWorkerProcessInfoString(database, process));
             }
 
-            process.WaitForExit();
-            process.Close();
+            // Wait for the user code process to exit. First wait for a short while,
+            // them write out a warning that it takes longer than expected. Then wait
+            // a little longer, and finally emit an error in the log, before we
+            // finally kill the process.
+            if (!process.WaitForExit(1000 * 5)) {
+                var log = ServerLogSources.Default;
+                var infoString = FormatWorkerProcessInfoString(database, process);
+                log.LogWarning("User code process takes longer than expected to exit. ({0})", infoString);
+                if (!process.WaitForExit(1000 * 15)) {
+                    // Emit the error and kill it.
+                    // Suffix the message with the information that we killed it, and
+                    // append the info about the database/process.
+                    log.LogError(ErrorCode.ToMessage(
+                        Error.SCERRCODEHOSTPROCESSNOTEXITED,
+                        string.Format("{0}. ({1})", "Killing it.", infoString)).ToString());
+                    process.Kill();
+                }
+            }
+            try {
+                process.Close();
+            } catch { }
 
             database.WorkerProcess = null;
             database.Apps.Clear();
@@ -298,18 +320,18 @@ namespace Starcounter.Server {
             args = new StringBuilder();
             // args.Append("--FLAG:attachdebugger ");  // Apply to attach a debugger to the boot sequence.
             args.Append(database.Name.ToUpper());
-            args.AppendFormat(" --" + ProgramCommandLine.OptionNames.DatabaseDir + " \"{0}\"", database.Configuration.Runtime.ImageDirectory);
-            args.AppendFormat(" --" + ProgramCommandLine.OptionNames.OutputDir + " \"{0}\"", database.Server.Configuration.LogDirectory);
-            args.AppendFormat(" --" + ProgramCommandLine.OptionNames.TempDir + " \"{0}\"", database.Configuration.Runtime.TempDirectory);
-            args.AppendFormat(" --" + ProgramCommandLine.OptionNames.CompilerPath + " \"{0}\"", this.MinGWCompilerPath);
+            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.DatabaseDir + " \"{0}\"", database.Configuration.Runtime.ImageDirectory);
+            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.OutputDir + " \"{0}\"", database.Server.Configuration.LogDirectory);
+            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.TempDir + " \"{0}\"", database.Configuration.Runtime.TempDirectory);
+            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.CompilerPath + " \"{0}\"", this.MinGWCompilerPath);
             
             if (startWithNoDb) {
-                args.Append(" --FLAG:" + ProgramCommandLine.OptionNames.NoDb);
+                args.Append(" --FLAG:" + StarcounterConstants.BootstrapOptionNames.NoDb);
             }
             // args.Append(" --FLAG:" + ProgramCommandLine.OptionNames.NoNetworkGateway);
 
             if (database.Configuration.Runtime.SchedulerCount.HasValue) {
-                args.AppendFormat(" --" + ProgramCommandLine.OptionNames.SchedulerCount + " {0}", database.Configuration.Runtime.SchedulerCount.Value);
+                args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.SchedulerCount + " {0}", database.Configuration.Runtime.SchedulerCount.Value);
             }
             
             processStart = new ProcessStartInfo(this.WorkerProcessExePath, args.ToString().Trim());
@@ -323,6 +345,7 @@ namespace Starcounter.Server {
         }
 
         string GetDatabaseControlEventName(Database database) {
+#if false
             ScUri uri = ScUri.FromString(database.Uri);
             string processControlEventName = string.Format(
                 "SCDATA_EXE_{0}_{1}",
@@ -330,6 +353,26 @@ namespace Starcounter.Server {
                 uri.DatabaseName.ToUpperInvariant()
                 );
             return processControlEventName;
+#endif
+
+            ScUri uri = ScUri.FromString(database.Uri);
+            string processControlEventName = string.Format(
+                "SCDATA_EXE_{0}",
+                uri.DatabaseName.ToUpperInvariant()
+                );
+            return processControlEventName;
+        }
+
+        string FormatWorkerProcessInfoString(Database database, Process process) {
+            string pid;
+            try {
+                pid = process.Id.ToString();
+            } catch {
+                pid = "N/A";
+            }
+
+            // Example: ScCode.exe, PID=123, Database=Foo
+            return string.Format("{0}, PID={1}, Database={2}", DatabaseEngine.WorkerProcessExeFileName, pid, database.Name);
         }
     }
 }

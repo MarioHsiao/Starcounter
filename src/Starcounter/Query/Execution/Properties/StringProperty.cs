@@ -163,7 +163,7 @@ internal class StringProperty : Property, IStringPathItem
         return new StringProperty(extentNumber, typeBinding, propBinding);
     }
 
-    public override ITypeExpression Clone(VariableArray varArray)
+    public override IValueExpression Clone(VariableArray varArray)
     {
         return CloneToString(varArray);
     }

@@ -15,11 +15,12 @@ namespace Starcounter.Binding
     internal class IndexInfo : Object
     {
         private UInt64 _handle;
+        private UInt64 _tableId;
         private String _name;
         private ColumnDef[] _columnDefs;
         private SortOrder[] _sortOrderings;
 
-        internal IndexInfo(UInt64 handle, String name, ColumnDef[] columnDefs, SortOrder[] sortOrderings)
+        internal IndexInfo(UInt64 handle, UInt64 tableid, String name, ColumnDef[] columnDefs, SortOrder[] sortOrderings)
         {
 #if false
             if (columnDefs.Length != sortOrderings.Length)
@@ -28,6 +29,7 @@ namespace Starcounter.Binding
             }
 #endif
             _handle = handle;
+            _tableId = tableid;
             _name = name;
             _columnDefs = columnDefs;
             _sortOrderings = sortOrderings;
@@ -41,6 +43,15 @@ namespace Starcounter.Binding
             get
             {
                 return _handle;
+            }
+        }
+
+        /// <summary>
+        /// Table Id for which index is defined.
+        /// </summary>
+        public UInt64 TableId {
+            get {
+                return _tableId;
             }
         }
 
@@ -71,7 +82,7 @@ namespace Starcounter.Binding
         /// </summary>
         /// <param name="index">An index number within the combined index.</param>
         /// <returns>The name of the path with the input index number.</returns>
-        public String GetPathName(Int32 index)
+        public String GetColumnName(Int32 index)
         {
             return _columnDefs[index].Name;
         }

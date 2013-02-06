@@ -1,0 +1,548 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{13523D29-3DFD-48BC-B8C4-4C7806320B13}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Starcounter.InstallerWPF</RootNamespace>
+    <AssemblyName Condition=" '$(SC_CREATE_STANDALONE_SETUP)' == '' ">Starcounter-Setup</AssemblyName>
+    <AssemblyName Condition=" '$(SC_CREATE_STANDALONE_SETUP)' != '' ">Starcounter-$(BUILD_NUMBER)-Setup</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <ApplicationManifest>Starcounter.InstallerWPF.manifest</ApplicationManifest>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <ApplicationIcon>sc.ico</ApplicationIcon>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation />
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <OutputPath>..\..\..\bin\Debug\</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\..\bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>..\..\..\bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="UIAutomationProvider">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="PresentationCore">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="PresentationFramework">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Compile Include="Components\Demo.cs" />
+    <Compile Include="Components\VisualStudio2012.cs" />
+    <Compile Include="Components\VisualStudio2012Integration.cs" />
+    <Compile Include="Converters\IsCheckedConverter.cs" />
+    <Compile Include="Converters\ScrollBarVisibilityToPadding.cs" />
+    <Compile Include="DemoSequence\BaseDemoControl.cs" />
+    <Compile Include="DemoSequence\demos\BenchmarkDemoControl.cs" />
+    <Compile Include="DemoSequence\DemoSequenceWindow.xaml.cs">
+      <DependentUpon>DemoSequenceWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DemoSequence\ProcessStarter.cs" />
+    <Compile Include="DemoSequence\Utils.cs" />
+    <Compile Include="DemoSequence\VisualStudioProjectListener.cs" />
+    <Compile Include="DemoSequence\demos\WebApplicationDemoControl.cs" />
+    <Compile Include="InitializationWindow.xaml.cs">
+      <DependentUpon>InitializationWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\SlidesPage.xaml.cs">
+      <DependentUpon>SlidesPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Rules\PortRule.cs" />
+    <Compile Include="Slides\ISlide.cs" />
+    <Compile Include="Slides\Movie.xaml.cs">
+      <DependentUpon>Movie.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Slides\Slide1.xaml.cs">
+      <DependentUpon>Slide1.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Slides\Slide2.xaml.cs">
+      <DependentUpon>Slide2.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Slides\Slide3.xaml.cs">
+      <DependentUpon>Slide3.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Slides\Slide4.xaml.cs">
+      <DependentUpon>Slide4.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Slides\Slide5.xaml.cs">
+      <DependentUpon>Slide5.xaml</DependentUpon>
+    </Compile>
+    <Page Include="colors.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="DemoSequence\DemoSequenceWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="InitializationWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\AddComponentsFinishedPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\AddComponentsProgressPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\AdministrationToolsPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\ConnectivityPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\DatabaseEnginesPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\DeveloperToolsPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\ErrorPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\InstallationPathPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\LicenseAgreementPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\ProgressPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\FinishedPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\RemoveComponentsFinishedPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\RemoveComponentsProgressPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\SamplesPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\SlidesPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\UninstallFinishedPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\UninstallPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\UninstallProgressPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\AddRemoveUninstallQuestionPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\VisualStudioPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\WelcomePage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Slides\Movie.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Slides\Slide1.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Slides\Slide2.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Slides\Slide3.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Slides\Slide4.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Slides\Slide5.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="styles.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Components\ADONETDriver.cs" />
+    <Compile Include="Components\BaseComponent.cs" />
+    <Compile Include="Components\CommandlineTools.cs" />
+    <Compile Include="Components\LiveObjects.cs" />
+    <Compile Include="Components\ODBCDriver.cs" />
+    <Compile Include="Components\PersonalServer.cs" />
+    <Compile Include="Components\Samples.cs" />
+    <Compile Include="Components\InstallationBase.cs" />
+    <Compile Include="Components\SystemServer.cs" />
+    <Compile Include="Components\VisualStudio2010.cs" />
+    <Compile Include="Components\VisualStudio2010Integration.cs" />
+    <Compile Include="Configuration.cs" />
+    <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
+    <Compile Include="Converters\EnabledToString.cs" />
+    <Compile Include="Converters\HtmlToXamlConverter.cs" />
+    <Compile Include="Pages\AddComponentsFinishedPage.xaml.cs">
+      <DependentUpon>AddComponentsFinishedPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\AddComponentsProgressPage.xaml.cs">
+      <DependentUpon>AddComponentsProgressPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\AdministrationToolsPage.xaml.cs">
+      <DependentUpon>AdministrationToolsPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\BasePage.cs" />
+    <Compile Include="Converters\BoolToEnabledConverter.cs" />
+    <Compile Include="Pages\ConnectivityPage.xaml.cs">
+      <DependentUpon>ConnectivityPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\DatabaseEnginesPage.xaml.cs">
+      <DependentUpon>DatabaseEnginesPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\DeveloperToolsPage.xaml.cs">
+      <DependentUpon>DeveloperToolsPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\ErrorPage.xaml.cs">
+      <DependentUpon>ErrorPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\IFinishedPage.cs" />
+    <Compile Include="Pages\InstallationPathPage.xaml.cs">
+      <DependentUpon>InstallationPathPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\LicenseAgreementPage.xaml.cs">
+      <DependentUpon>LicenseAgreementPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\ProgressPage.xaml.cs">
+      <DependentUpon>ProgressPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\FinishedPage.xaml.cs">
+      <DependentUpon>FinishedPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\RemoveComponentsFinishedPage.xaml.cs">
+      <DependentUpon>RemoveComponentsFinishedPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\RemoveComponentsProgressPage.xaml.cs">
+      <DependentUpon>RemoveComponentsProgressPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\SamplesPage.xaml.cs">
+      <DependentUpon>SamplesPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\UninstallFinishedPage.xaml.cs">
+      <DependentUpon>UninstallFinishedPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\UninstallPage.xaml.cs">
+      <DependentUpon>UninstallPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\UninstallProgressPage.xaml.cs">
+      <DependentUpon>UninstallProgressPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\AddRemoveUninstallQuestionPage.xaml.cs">
+      <DependentUpon>AddRemoveUninstallQuestionPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\VisualStudioPage.xaml.cs">
+      <DependentUpon>VisualStudioPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\WelcomePage.xaml.cs">
+      <DependentUpon>WelcomePage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="Rules\DirectoryContainsFilesRule.cs" />
+    <Compile Include="Rules\StringRule.cs" />
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <EmbeddedResource Include="resources\Archive.zip" />
+    <AppDesigner Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="resources\16x16\Folder.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="resources\StarcounterLogo.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 2.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="resources\LicenseAgreement.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="resources\SplashScreen.png" />
+    <Resource Include="resources\carbon_wallpaper.jpg" />
+    <Resource Include="resources\16x16\VisualStudio2008.png" />
+    <Resource Include="resources\16x16\VisualStudio2010.png" />
+    <Resource Include="resources\16x16\VisualStudio2012.png" />
+    <Resource Include="resources\FullStory.wmv" />
+    <Resource Include="resources\logo1.png" />
+    <Resource Include="resources\SC_200.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Resource Include="DemoSequence\images\stop_32x32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="DemoSequence\images\document_64x64.png" />
+    <Resource Include="DemoSequence\images\icon_blog.png" />
+    <Resource Include="DemoSequence\images\icon_contact.png" />
+    <Resource Include="DemoSequence\images\icon_forum.png" />
+    <Resource Include="DemoSequence\images\icon_wiki.png" />
+    <Resource Include="DemoSequence\images\starcounter_60x60.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="DemoSequence\images\chartdocument_128x128.png" />
+    <Resource Include="DemoSequence\images\internetdocument_128x128.png" />
+    <Resource Include="DemoSequence\images\skipp_32x32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="DemoSequence\images\starcounter_26x26.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Starcounter.Internal\Starcounter.Internal.csproj">
+      <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
+      <Name>Starcounter.Internal</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Controls.WpfMessageBox\Starcounter.Controls.WpfMessageBox.csproj">
+      <Project>{74cb7aab-3bb6-4107-a149-254840cdf558}</Project>
+      <Name>Starcounter.Controls.WpfMessageBox</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.InstallerEngine\Starcounter.InstallerEngine.csproj">
+      <Project>{210ac05e-453f-4ab0-abff-10d3804a9596}</Project>
+      <Name>Starcounter.InstallerEngine</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="sc.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

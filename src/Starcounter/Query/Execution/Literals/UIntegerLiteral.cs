@@ -185,7 +185,7 @@ internal class UIntegerLiteral : Literal, ILiteral, IUIntegerPathItem
         return new UIntegerLiteral(value);
     }
 
-    public ITypeExpression Clone(VariableArray varArray)
+    public IValueExpression Clone(VariableArray varArray)
     {
         return this;
     }
@@ -240,7 +240,7 @@ internal class UIntegerLiteral : Literal, ILiteral, IUIntegerPathItem
     }
 
 #if DEBUG
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         UIntegerLiteral otherNode = other as UIntegerLiteral;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);

@@ -4,6 +4,7 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.Internal;
 using System;
 using System.ComponentModel;
 using System.IO;
@@ -79,16 +80,34 @@ namespace Starcounter.Configuration {
         /// <summary>
         /// SQL Prolog process listening port number.
         /// </summary>
-        public int SQLProcessPort {
+        public UInt16 SQLProcessPort {
             get {
                 return _SQLProcessPort;
             }
             set {
                 _SQLProcessPort = value;
-                OnPropertyChanged("SQLProcessPort");
+                OnPropertyChanged(StarcounterConstants.BootstrapOptionNames.SQLProcessPort);
             }
         }
-        private int _SQLProcessPort;
+        private UInt16 _SQLProcessPort;
+
+        /// <summary>
+        /// Gets the default Apps TCP port.
+        /// </summary>
+        /// <value>The default Apps TCP port.</value>
+        public UInt16 DefaultUserHttpPort
+        {
+            get
+            {
+                return _DefaultUserHttpPort;
+            }
+            set
+            {
+                _DefaultUserHttpPort = value;
+                OnPropertyChanged(StarcounterConstants.BootstrapOptionNames.DefaultUserHttpPort);
+            }
+        }
+        private UInt16 _DefaultUserHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
 
         /// <summary>
         /// Support of aggregations in SQL queries, for which current implementation is very slow.
@@ -114,7 +133,7 @@ namespace Starcounter.Configuration {
             }
             set {
                 _chunksNumber = value;
-                OnPropertyChanged("ChunksNumber");
+                OnPropertyChanged(StarcounterConstants.BootstrapOptionNames.ChunksNumber);
             }
         }
         private int _chunksNumber;

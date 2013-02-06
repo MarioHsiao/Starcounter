@@ -7,6 +7,7 @@
 using System;
 using System.IO;
 using Starcounter.Configuration;
+using Starcounter.Internal;
 
 namespace Starcounter.Server.Setup {
 
@@ -56,6 +57,14 @@ namespace Starcounter.Server.Setup {
         /// Gets or sets the log directory.
         /// </summary>
         public string LogDirectory {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Gets or sets the Administrator Tcp port.
+        /// </summary>
+        public UInt16 SystemHttpPort {
             get;
             set;
         }
@@ -111,6 +120,9 @@ namespace Starcounter.Server.Setup {
 
             repositoryDirectory = Path.GetFullPath(repositoryDirectory);
             this.RepositoryDirectory = repositoryDirectory;
+
+            // Setting to default system port.
+            this.SystemHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;
 
             UseDirectoryPathOrCreateDefault(
                 ref databaseDirectory, Path.Combine, repositoryDirectory, "Databases");

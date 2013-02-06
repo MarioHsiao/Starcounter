@@ -89,8 +89,7 @@ PROCESS_SERVER_PORT:
         GW_ERR_CHECK(err_code);
 
         // Adding new server port.
-        int32_t port_index = g_gateway.AddServerPort(port_num, listening_sock, RAW_BLOB_USER_DATA_OFFSET);
-        server_port = g_gateway.get_server_port(port_index);
+        server_port = g_gateway.AddServerPort(port_num, listening_sock, RAW_BLOB_USER_DATA_OFFSET);
     }
 
     // Checking if port contains handlers from this database.
@@ -202,8 +201,7 @@ PROCESS_SERVER_PORT:
         GW_ERR_CHECK(err_code);
 
         // Adding new server port.
-        int32_t port_index = g_gateway.AddServerPort(port_num, listening_sock, SUBPORT_BLOB_USER_DATA_OFFSET);
-        server_port = g_gateway.get_server_port(port_index);
+        server_port = g_gateway.AddServerPort(port_num, listening_sock, SUBPORT_BLOB_USER_DATA_OFFSET);
     }
 
     // Checking if port contains handlers from this database.
@@ -318,8 +316,7 @@ PROCESS_SERVER_PORT:
         GW_ERR_CHECK(err_code);
 
         // Adding new server port.
-        int32_t port_index = g_gateway.AddServerPort(port_num, listening_sock, HTTP_BLOB_USER_DATA_OFFSET);
-        server_port = g_gateway.get_server_port(port_index);
+        server_port = g_gateway.AddServerPort(port_num, listening_sock, HTTP_BLOB_USER_DATA_OFFSET);
     }
 
     // Checking if port contains handlers from this database.

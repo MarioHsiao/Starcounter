@@ -7,9 +7,54 @@ using Starcounter;
 using System.Diagnostics;
 using System.Collections.Generic;
 using Starcounter.Internal;
+using Starcounter.Internal.Web;
 
 namespace NetworkIoTestApp
 {
+    /// <summary>
+    /// Some Apps handlers.
+    /// </summary>
+    public class AppsClass : App
+    {
+        /// <summary>
+        /// Initializes some Apps handlers.
+        /// </summary>
+        public static void InitAppHandlers()
+        {
+            GET("/first", () =>
+            {
+                return "first";
+            });
+
+            GET("/{?}", (string str) =>
+            {
+                return "str_parameter=" + str;
+            });
+
+            /*
+            GET("/{?}", (int num) =>
+            {
+                return "int_parameter=" + num;
+            });
+
+            GET("/second", () =>
+            {
+                return "second";
+            });
+
+            GET("/{?}/{?}", (string str1, string str2) =>
+            {
+                return "str_concat=" + str1 + str2;
+            });
+
+            GET("/{?}", (string str) =>
+            {
+                return "str_parameter=" + str;
+            });
+            */
+        }
+    }
+
     public class NetworkIoTestApp
     {
         const String kHttpServiceUnavailableString =
@@ -24,12 +69,14 @@ namespace NetworkIoTestApp
         enum TestTypes
         {
             MODE_GATEWAY_HTTP,
+            MODE_GATEWAY_RAW,
             MODE_GATEWAY_SMC_HTTP,
             MODE_GATEWAY_SMC_APPS_HTTP,
             MODE_GATEWAY_SMC_RAW,
             MODE_WEBSOCKETS_PORT,
             MODE_STANDARD_BROWSER,
-            MODE_US_WEBSITE
+            MODE_US_WEBSITE,
+            MODE_APPS_URIS
         }
 
         // Performance related counters.
@@ -191,9 +238,18 @@ namespace NetworkIoTestApp
                 }
 
                 case TestTypes.MODE_GATEWAY_HTTP:
+                case TestTypes.MODE_GATEWAY_RAW:
                 {
                     // Do nothing since its purely a gateway test.
                     Console.WriteLine("Not registering anything, since gateway mode only!");
+
+                    break;
+                }
+
+                case TestTypes.MODE_APPS_URIS:
+                {
+                    AppsBootstrapper.Bootstrap();
+                    AppsClass.InitAppHandlers();
 
                     break;
                 }
