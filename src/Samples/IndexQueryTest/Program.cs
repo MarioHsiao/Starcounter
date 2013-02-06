@@ -30,6 +30,7 @@ namespace IndexQueryTest
             TestAggregate();
 
             InheritedIndex.InheritedIndexTest.RunInheritedIndexTest();
+            IsTypePredicateTest.RunIsTypePredicateTest();
             //CreateDropIndexParallelTest();
 #endif
 #if ACCOUNTTEST_MODEL_NO
