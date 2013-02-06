@@ -405,7 +405,7 @@ private_chunk_pool, std::size_t chunks_to_acquire, client_interface_type*
 client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "D"
 	//std::cout << "<D> acquire_to_chunk_pool()\n";
 	// Using the anonymous id 1. No recovery is done in IPC version 1.0.
-	smp::spinlock::scoped_lock lock(spinlock(), 1 /* anonymous id */,
+	smp::spinlock::scoped_lock lock(spinlock(), 2 /* not an anonymous id */,
 	timeout -timeout.tick_count());
 
 	if (!lock.owns()) {
