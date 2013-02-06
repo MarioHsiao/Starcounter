@@ -74,7 +74,8 @@ public static class SystemServerAccount
     /// Recursively adds specified access rights to a directory.
     /// </summary>
     /// <param name="fsi">Current file system information (directory or file)</param>
-    /// <param name="accessRule">Security access rule.</param>
+    /// <param name="directoryAccessRule"></param>
+    /// <param name="fileAccessRule"></param>
     public static void AddDirectoryAccessRights(FileSystemInfo fsi,
                                                 FileSystemAccessRule directoryAccessRule,
                                                 FileSystemAccessRule fileAccessRule)
@@ -172,6 +173,8 @@ public static class SystemServerAccount
     /// Password for the Starcounter system server account.</param>
     /// <returns>True if the information returned was retrieved from a previously
     /// created account. False if the account was created.</returns>
+    /// <param name="binariesPath"></param>
+    /// <param name="systemServerPath"></param>
     public static bool AssureAccount(String binariesPath, String systemServerPath, out string name, out string password)
     {
         PrincipalContext context;
