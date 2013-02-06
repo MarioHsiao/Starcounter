@@ -761,7 +761,11 @@ ALL_DATA_ACCUMULATED:
         {
             // New session cookie was created so searching for it.
             char* session_cookie = strstr((char*)sd->get_data_blob(), kScFullSessionIdString);
-            GW_ASSERT(NULL != session_cookie);
+            if (NULL == session_cookie)
+            {
+                // Destroying the socket data since session cookie is not embedded.
+                return SCERRGWHTTPCOOKIEISMISSING;
+            }
 
             // Skipping cookie header and equality symbol.
             session_cookie += kScSessionIdStringPlusEqualsLength;

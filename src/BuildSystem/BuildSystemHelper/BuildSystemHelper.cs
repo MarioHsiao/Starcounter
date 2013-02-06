@@ -261,7 +261,7 @@ namespace BuildSystemHelper
                         proc.Kill();
                         proc.WaitForExit();
 
-                        Console.Error.WriteLine("Process " + proc.ProcessName + " has been killed.");
+                        Console.WriteLine("Process " + proc.ProcessName + " has been killed.");
                     }
                 }
             }
@@ -652,7 +652,7 @@ namespace BuildSystemHelper
         /// </summary>
         public static String SignFiles(String[] allFilesToSign, String companyName, String productName, String pathToCertificate)
         {
-            Console.Error.WriteLine("Signing files...");
+            Console.WriteLine("Signing files...");
 
             // Calling sign utility...
             ProcessStartInfo signToolInfo = new ProcessStartInfo();
@@ -670,7 +670,7 @@ namespace BuildSystemHelper
             signToolInfo.Arguments = "sign /s MY /n \"" + companyName + "\" /d \"" + productName + "\" /v /ac \"" + pathToCertificate +
                                      "\" /t http://timestamp.verisign.com/scripts/timstamp.dll " + allFilesSpaced;
 
-            Console.Error.WriteLine("Sign arguments: " + signToolInfo.Arguments);
+            Console.WriteLine("Sign arguments: " + signToolInfo.Arguments);
 
             // Launch signing for this individual file.
             Process signProcess = Process.Start(signToolInfo);
@@ -686,7 +686,7 @@ namespace BuildSystemHelper
 
             signProcess.Close();
 
-            Console.Error.WriteLine("Successfully signed files...");
+            Console.WriteLine("Successfully signed files...");
             return null;
         }
     }

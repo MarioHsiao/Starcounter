@@ -187,7 +187,10 @@ namespace Starcounter.Query.Execution {
             stringBuilder.AppendLine(tabs, "IsTypePredicate(");
             stringBuilder.AppendLine(tabs + 1, compOperator.ToString());
             objExpr.BuildString(stringBuilder, tabs + 1);
-            stringBuilder.AppendLine(tabs + 1, typeBinding.Name);
+            if (typeBinding == null)
+                typeExpr.BuildString(stringBuilder, tabs + 1);
+            else
+                stringBuilder.AppendLine(tabs + 1, typeBinding.Name);
             stringBuilder.AppendLine(tabs, ")");
         }
         
@@ -228,9 +231,15 @@ namespace Starcounter.Query.Execution {
             Debug.Assert(this.compOperator == other.compOperator);
             if (this.compOperator != other.compOperator)
                 return false;
-            Debug.Assert(this.typeBinding.Name == other.typeBinding.Name);
-            if (this.typeBinding.Name != other.typeBinding.Name)
-                return false;
+            if (this.typeBinding == null) {
+                Debug.Assert(other.typeBinding == null);
+                if (other.typeBinding != null)
+                    return false;
+            } else {
+                Debug.Assert(this.typeBinding.Name == other.typeBinding.Name);
+                if (this.typeBinding.Name != other.typeBinding.Name)
+                    return false;
+            }
             // Check references. This should be checked if there is cyclic reference.
             AssertEqualsVisited = true;
             bool areEquals = true;
@@ -239,6 +248,12 @@ namespace Starcounter.Query.Execution {
                 areEquals = other.objExpr == null;
             } else
                 areEquals = this.objExpr.AssertEquals(other.objExpr);
+            if (areEquals)
+                if (this.typeExpr == null) {
+                    Debug.Assert(other.typeExpr == null);
+                    areEquals = other.typeExpr == null;
+                } else
+                    areEquals = this.typeExpr.AssertEquals(other.typeExpr);
             AssertEqualsVisited = false;
             return areEquals;
         }
