@@ -92,7 +92,7 @@
     <Compile Include="RequestHandler\AstTree\Nodes\AstCase.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstInvoke.cs" />
     <Compile Include="RequestHandler\AstTree\AstTreeHelper.cs" />
-    <Compile Include="RequestHandler\AstTree\Nodes\AstInline.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstTrigger.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstUnsafe.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstValueJump.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstVerifier.cs" />
