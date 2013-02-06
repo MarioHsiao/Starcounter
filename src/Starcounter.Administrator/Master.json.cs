@@ -39,7 +39,7 @@ namespace StarcounterApps3 {
 
             Console.WriteLine("Starcounter Administrator started on port: " + adminPort);
 
-            AppsBootstrapper.Bootstrap(adminPort);
+            AppsBootstrapper.Bootstrap(adminPort, "scadmin");
 
             Master.ServerEngine = new ServerEngine(args[0]);      // .srv\Personal\Personal.server.config
             Master.ServerEngine.Setup();

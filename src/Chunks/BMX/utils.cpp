@@ -54,8 +54,8 @@ EXTERN_C uint32_t __stdcall sc_bmx_plain_copy_and_release_chunks(
         smc = (shared_memory_chunk*) chunk_mem;
 
         // Copying the whole chunk data.
-        memcpy(buffer + cur_offset, chunk_mem, starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK);
-        cur_offset += starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK;
+        memcpy(buffer + cur_offset, chunk_mem, starcounter::bmx::CHUNK_MAX_DATA_BYTES);
+        cur_offset += starcounter::bmx::CHUNK_MAX_DATA_BYTES;
 
         // Getting next chunk.
         cur_chunk_index = smc->get_link();
@@ -88,7 +88,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_copy_all_chunks(
     int32_t dest_offset = 0;
 
     // Copying first chunk data.
-    int32_t cur_chunk_data_size = starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK - first_chunk_offset;
+    int32_t cur_chunk_data_size = starcounter::bmx::CHUNK_MAX_DATA_BYTES - first_chunk_offset;
     memcpy(dest_buffer, first_smc + first_chunk_offset, cur_chunk_data_size);
     dest_offset += cur_chunk_data_size;
 
@@ -97,8 +97,8 @@ EXTERN_C uint32_t __stdcall sc_bmx_copy_all_chunks(
 
     // Next chunk copy size.
     cur_chunk_data_size = bytes_left;
-    if (cur_chunk_data_size > starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK)
-        cur_chunk_data_size = starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK;
+    if (cur_chunk_data_size > starcounter::bmx::CHUNK_MAX_DATA_BYTES)
+        cur_chunk_data_size = starcounter::bmx::CHUNK_MAX_DATA_BYTES;
 
     uint8_t* chunk_mem;
     shared_memory_chunk* smc = (shared_memory_chunk*) first_smc;
@@ -119,7 +119,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_copy_all_chunks(
 
         // Decreasing number of bytes left to be processed.
         bytes_left -= cur_chunk_data_size;
-        if (bytes_left < starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK)
+        if (bytes_left < starcounter::bmx::CHUNK_MAX_DATA_BYTES)
             cur_chunk_data_size = bytes_left;
 
         // Getting next chunk in chain.
@@ -166,27 +166,31 @@ __forceinline uint32_t __stdcall sc_bmx_write_to_chunks(
     uint8_t* buf,
     uint32_t buf_len_bytes,
     starcounter::core::chunk_index cur_chunk_index,
-    uint32_t* actual_written_bytes
+    uint32_t* actual_written_bytes,
+    uint32_t first_chunk_offset,
+    bool just_sending_flag
     )
 {
     // Maximum number of bytes that will be written in this call.
     uint32_t num_bytes_to_write = buf_len_bytes;
+    uint32_t num_bytes_first_chunk = starcounter::bmx::CHUNK_MAX_DATA_BYTES - first_chunk_offset;
     
     // Number of chunks to use.
-    uint32_t num_chunks_to_use = (buf_len_bytes / starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK) + 1;
+    uint32_t num_extra_chunks_to_use = ((buf_len_bytes - num_bytes_first_chunk) / starcounter::bmx::CHUNK_MAX_DATA_BYTES) + 1;
+    assert(num_extra_chunks_to_use > 0);
 
     // Checking if more than maximum chunks we can take at once.
-    if (num_chunks_to_use > starcounter::bmx::MAX_NUM_LINKED_WSABUFS)
+    if (num_extra_chunks_to_use > starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS)
     {
-        num_chunks_to_use = starcounter::bmx::MAX_NUM_LINKED_WSABUFS;
-        num_bytes_to_write = starcounter::bmx::MAX_BYTES_LINKED_CHUNKS;
+        num_extra_chunks_to_use = starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS;
+        num_bytes_to_write = starcounter::bmx::MAX_BYTES_EXTRA_LINKED_WSABUFS + num_bytes_first_chunk;
     }
 
     // Acquiring linked chunks.
-    uint32_t err_code = cm_acquire_linked_shared_memory_chunks_counted(cur_chunk_index, num_chunks_to_use);
+    uint32_t err_code = cm_acquire_linked_shared_memory_chunks_counted(cur_chunk_index, num_extra_chunks_to_use);
     if (err_code)
     {
-        // Releasing the cloned chunk.
+        // Releasing the original chunk.
         uint32_t err_code2 = cm_release_linked_shared_memory_chunks(cur_chunk_index);
         assert(err_code2 == 0);
 
@@ -198,35 +202,59 @@ __forceinline uint32_t __stdcall sc_bmx_write_to_chunks(
     err_code = cm_get_shared_memory_chunk(cur_chunk_index, &cur_chunk_buf);
     assert(err_code == 0);
 
+    // Checking if we should just send the chunks.
+    if (just_sending_flag)
+        *(cur_chunk_buf + starcounter::bmx::CHUNK_OFFSET_SOCKET_FLAGS) |= starcounter::bmx::SOCKET_DATA_FLAGS_JUST_SEND;
+
     // Setting the number of written bytes.
-    *(uint32_t*)(cur_chunk_buf + starcounter::bmx::USER_DATA_WRITTEN_BYTES_OFFSET) = num_bytes_to_write;
+    *(uint32_t*)(cur_chunk_buf + starcounter::bmx::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = num_bytes_to_write;
 
     // Going through each linked chunk and write data there.
     uint32_t left_bytes_to_write = num_bytes_to_write;
-    uint32_t num_bytes_to_write_in_chunk = left_bytes_to_write;
-    if (num_bytes_to_write_in_chunk > starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK)
-        num_bytes_to_write_in_chunk = starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK;
+    uint32_t num_bytes_to_write_in_chunk = starcounter::bmx::CHUNK_MAX_DATA_BYTES;
+    
+    // Writing to first chunk.
+    memcpy(cur_chunk_buf + first_chunk_offset, buf, num_bytes_first_chunk);
+    left_bytes_to_write -= num_bytes_first_chunk;
 
-    // Getting index of the first data chunk in chain.
-    cur_chunk_index = ((shared_memory_chunk*)cur_chunk_buf)->get_link();
+    // Checking how many bytes to write next time.
+    if (left_bytes_to_write < starcounter::bmx::CHUNK_MAX_DATA_BYTES)
+    {
+        // Checking if we copied everything.
+        if (left_bytes_to_write <= 0)
+        {
+            // Setting number of total written bytes.
+            *actual_written_bytes = num_bytes_to_write;
+
+            return 0;
+        }
+
+        num_bytes_to_write_in_chunk = left_bytes_to_write;
+    }
 
     // Processing until have some bytes to write.
-    while(left_bytes_to_write > 0)
+    while (true)
     {
+        // Getting next chunk in chain.
+        cur_chunk_index = ((shared_memory_chunk*)cur_chunk_buf)->get_link();
+
         // Getting chunk memory address.
         err_code = cm_get_shared_memory_chunk(cur_chunk_index, &cur_chunk_buf);
         assert(err_code == 0);
-        
+
         // Copying memory.
         memcpy(cur_chunk_buf, buf + num_bytes_to_write - left_bytes_to_write, num_bytes_to_write_in_chunk);
         left_bytes_to_write -= num_bytes_to_write_in_chunk;
 
         // Checking how many bytes to write next time.
-        if (left_bytes_to_write < starcounter::bmx::MAX_DATA_BYTES_IN_CHUNK)
-            num_bytes_to_write_in_chunk = left_bytes_to_write;
+        if (left_bytes_to_write < starcounter::bmx::CHUNK_MAX_DATA_BYTES)
+        {
+            // Checking if we copied everything.
+            if (left_bytes_to_write <= 0)
+                break;
 
-        // Getting next chunk in chain.
-        cur_chunk_index = ((shared_memory_chunk*)cur_chunk_buf)->get_link();
+            num_bytes_to_write_in_chunk = left_bytes_to_write;
+        }
     }
 
     // Setting number of total written bytes.
@@ -239,16 +267,16 @@ __forceinline uint32_t __stdcall sc_bmx_write_to_chunks(
 __forceinline uint32_t __stdcall sc_bmx_send_small_buffer(
     uint8_t* buf,
     uint32_t buf_len_bytes,
-    uint32_t user_data_offset,
+    uint32_t chunk_user_data_offset,
     starcounter::core::chunk_index src_chunk_index,
     uint8_t* src_chunk_buf
     )
 {
     // Setting number of actual user bytes written.
-    *(uint32_t*)(src_chunk_buf + starcounter::bmx::USER_DATA_WRITTEN_BYTES_OFFSET) = buf_len_bytes;
+    *(uint32_t*)(src_chunk_buf + starcounter::bmx::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = buf_len_bytes;
 
     // Copying buffer into chunk.
-    memcpy(src_chunk_buf + starcounter::bmx::BMX_HEADER_MAX_SIZE_BYTES + user_data_offset, buf, buf_len_bytes);
+    memcpy(src_chunk_buf + chunk_user_data_offset, buf, buf_len_bytes);
 
     // Sending linked chunks to client.
     return cm_send_to_client(src_chunk_index);
@@ -258,43 +286,64 @@ __forceinline uint32_t __stdcall sc_bmx_send_small_buffer(
 __forceinline uint32_t __stdcall sc_bmx_send_big_buffer(
     uint8_t* buf,
     uint32_t buf_len_bytes,
-    starcounter::core::chunk_index src_chunk_index
+    starcounter::core::chunk_index src_chunk_index,
+    uint32_t first_chunk_offset
     )
 {
+    starcounter::core::chunk_index new_chunk_index;
     uint32_t last_written_bytes;
     uint32_t err_code;
-    starcounter::core::chunk_index new_chunk_index;
+
+    uint32_t total_processed_bytes = 0;
+    bool just_sending_flag = false;
 
     // Looping until all user bytes are sent.
-    uint32_t total_sent_bytes = 0;
-    while (total_sent_bytes < buf_len_bytes)
+    while (true)
     {
-        // Obtaining a new chunk and copying the original chunk header there.
-        err_code = sc_bmx_clone_chunk(src_chunk_index, 0, starcounter::bmx::BMX_NUM_CLONE_BYTES, &new_chunk_index);
-        if (err_code)
-            return err_code;
-
         // Copying user data to multiple chunks.
         err_code = sc_bmx_write_to_chunks(
-            buf + total_sent_bytes,
-            buf_len_bytes - total_sent_bytes,
-            new_chunk_index,
-            &last_written_bytes
+            buf + total_processed_bytes,
+            buf_len_bytes - total_processed_bytes,
+            src_chunk_index,
+            &last_written_bytes,
+            first_chunk_offset,
+            just_sending_flag
             );
 
         if (err_code)
             return err_code;
 
         // Increasing total sent bytes.
-        total_sent_bytes += last_written_bytes;
+        total_processed_bytes += last_written_bytes;
 
-        // Sending linked chunks to client.
-        err_code = cm_send_to_client(new_chunk_index);
-        assert(err_code == 0);
+        // Checking if we have processed everything.
+        if (total_processed_bytes < buf_len_bytes)
+        {
+            // Obtaining a new chunk and copying the original chunk header there.
+            err_code = sc_bmx_clone_chunk(src_chunk_index, 0, starcounter::bmx::BMX_NUM_CLONE_BYTES, &new_chunk_index);
+            if (err_code)
+                return err_code;
 
-        // NOTE: If not asserting then we need to release new_chunk_index linked chunks.
+            // Sending linked chunks to client.
+            err_code = cm_send_to_client(src_chunk_index);
+            assert(err_code == 0);
+            //std::cout << "Sent bytes: " << total_sent_bytes << std::endl;
 
-        //std::cout << "Sent bytes: " << total_sent_bytes << std::endl;
+            // Switching to next cloned chunk.
+            src_chunk_index = new_chunk_index;
+
+            // The rest of the data is just for sending.
+            just_sending_flag = true;
+        }
+        else
+        {
+            // Sending linked chunks to client.
+            err_code = cm_send_to_client(src_chunk_index);
+            assert(err_code == 0);
+            //std::cout << "Sent bytes: " << total_sent_bytes << std::endl;
+
+            break;
+        }
     }
 
     return 0;
@@ -309,7 +358,8 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
     )
 {
     // Points to user data offset in chunk.
-    uint32_t user_data_offset = *(uint32_t*)(src_chunk_buf + starcounter::bmx::USER_DATA_OFFSET);
+    uint32_t chunk_user_data_offset = *(uint32_t*)(src_chunk_buf + starcounter::bmx::CHUNK_OFFSET_USER_DATA) + starcounter::bmx::BMX_HEADER_MAX_SIZE_BYTES;
+    uint32_t remaining_bytes_in_orig_chunk = (starcounter::bmx::CHUNK_MAX_DATA_BYTES - chunk_user_data_offset);
 
     // Setting non-bmx-management chunk type.
     (*(int16_t*)(src_chunk_buf + starcounter::bmx::BMX_PROTOCOL_BEGIN_OFFSET)) = 0x7FFF;
@@ -320,36 +370,22 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
     uint32_t err_code;
 
     // Checking if user data fits inside the request chunk.
-    if (buf_len_bytes < (starcounter::bmx::GATEWAY_ORIG_CHUNK_DATA_SIZE - user_data_offset))
+    if (buf_len_bytes < remaining_bytes_in_orig_chunk)
     {
         // Sending using the same request chunk.
-        err_code = sc_bmx_send_small_buffer(buf, buf_len_bytes, user_data_offset, *src_chunk_index, src_chunk_buf);
+        err_code = sc_bmx_send_small_buffer(buf, buf_len_bytes, chunk_user_data_offset, *src_chunk_index, src_chunk_buf);
         assert(err_code == 0);
-
-        // Chunk becomes unusable.
-        *src_chunk_index = shared_memory_chunk::LINK_TERMINATOR;
-
-        return err_code;
     }
     else
     {
         // Sending using multiple linked chunks.
-        err_code = sc_bmx_send_big_buffer(buf, buf_len_bytes, *src_chunk_index);
-        if (err_code)
-        {
-            // When there is an error initial chunk can still be used to send error response etc.
-            return err_code;
-        }
-
-        // Releasing source chunk back to pool.
-        err_code = cm_release_linked_shared_memory_chunks(*src_chunk_index);
-        assert(err_code == 0);
-
-        // Chunk can't be used anymore.
-        *src_chunk_index = shared_memory_chunk::LINK_TERMINATOR;
-
-        return 0;
+        err_code = sc_bmx_send_big_buffer(buf, buf_len_bytes, *src_chunk_index, chunk_user_data_offset);
     }
+
+    // Chunk becomes unusable.
+    *src_chunk_index = shared_memory_chunk::LINK_TERMINATOR;
+
+    return err_code;
 }
 
 // Releases given linked chunks.

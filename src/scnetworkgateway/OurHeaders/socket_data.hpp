@@ -16,10 +16,11 @@ enum SOCKET_DATA_FLAGS
     SOCKET_DATA_FLAGS_ACCUMULATING_STATE = 8,
     SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND = 16,
     SOCKET_DATA_FLAGS_ACTIVE_CONN = 32,
-    HTTP_WS_FLAGS_UPGRADE = 64,
-    HTTP_WS_FLAGS_COMPLETE_HEADER = 128,
-    HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 256,
-    HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 512,
+    SOCKET_DATA_FLAGS_JUST_SEND = 64,
+    HTTP_WS_FLAGS_UPGRADE = 128,
+    HTTP_WS_FLAGS_COMPLETE_HEADER = 256,
+    HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 512,
+    HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 1024
 };
 
 // Socket data chunk.
@@ -112,17 +113,21 @@ public:
     {
         uint8_t* sd = (uint8_t*) this;
 
+        GW_ASSERT(SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_JUST_SEND == starcounter::bmx::SOCKET_DATA_FLAGS_JUST_SEND);
+
         GW_ASSERT((data_blob_ - sd) == SOCKET_DATA_BLOB_OFFSET_BYTES);
 
-        GW_ASSERT(((uint8_t*)http_ws_proto_.get_http_request() - sd) == bmx::SOCKET_DATA_HTTP_REQUEST_OFFSET);
+        GW_ASSERT(((uint8_t*)&flags_ - sd) == (bmx::CHUNK_OFFSET_SOCKET_FLAGS - bmx::BMX_HEADER_MAX_SIZE_BYTES));
+
+        GW_ASSERT(((uint8_t*)http_ws_proto_.get_http_request() - sd) == bmx::SOCKET_DATA_OFFSET_HTTP_REQUEST);
 
         GW_ASSERT(((uint8_t*)(&accum_buf_) - sd) == bmx::SOCKET_DATA_NUM_CLONE_BYTES);
 
-        GW_ASSERT(((uint8_t*)&num_chunks_ - sd) == bmx::SOCKET_DATA_NUM_CHUNKS_OFFSET);
+        GW_ASSERT(((uint8_t*)&num_chunks_ - sd) == bmx::SOCKET_DATA_OFFSET_NUM_CHUNKS);
 
-        GW_ASSERT(((uint8_t*)&max_user_data_bytes_ - sd) == (bmx::MAX_USER_DATA_BYTES_OFFSET - bmx::BMX_HEADER_MAX_SIZE_BYTES));
+        GW_ASSERT(((uint8_t*)&max_user_data_bytes_ - sd) == (bmx::CHUNK_OFFSET_MAX_USER_DATA_BYTES - bmx::BMX_HEADER_MAX_SIZE_BYTES));
 
-        GW_ASSERT(((uint8_t*)&user_data_written_bytes_ - sd) == (bmx::USER_DATA_WRITTEN_BYTES_OFFSET - bmx::BMX_HEADER_MAX_SIZE_BYTES));
+        GW_ASSERT(((uint8_t*)&user_data_written_bytes_ - sd) == (bmx::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES - bmx::BMX_HEADER_MAX_SIZE_BYTES));
 
         return 0;
     }
@@ -159,18 +164,6 @@ public:
     // Continues fill up if needed.
     uint32_t ContinueAccumulation(GatewayWorker* gw, bool* is_accumulated);
 
-    // Get socket data flags.
-    uint32_t get_flags()
-    {
-        return flags_;
-    }
-
-    // Set socket data flags.
-    void set_flags(uint32_t flags)
-    {
-        flags_ = flags;
-    }
-
     // Getting to database direction flag.
     bool get_to_database_direction_flag()
     {
@@ -186,13 +179,28 @@ public:
             flags_ &= ~SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION;
     }
 
+    // Getting socket just send flag.
+    bool get_socket_just_send_flag()
+    {
+        return flags_ & SOCKET_DATA_FLAGS_JUST_SEND;
+    }
+
+    // Setting socket just send flag.
+    void set_socket_just_send_flag(bool value)
+    {
+        if (value)
+            flags_ |= SOCKET_DATA_FLAGS_JUST_SEND;
+        else
+            flags_ &= ~SOCKET_DATA_FLAGS_JUST_SEND;
+    }
+
     // Getting socket representer flag.
     bool get_socket_representer_flag()
     {
         return flags_ & SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
     }
 
-    // setting socket representer flag.
+    // Setting socket representer flag.
     void set_socket_representer_flag(bool value)
     {
         if (value)
@@ -497,6 +505,13 @@ public:
         user_data_offset_ = user_data_offset;
     }
 
+    // Offset in bytes from the beginning of the chunk to place
+    // where user data should be written.
+    uint32_t get_user_data_offset()
+    {
+        return user_data_offset_;
+    }
+
     // Setting maximum user data size.
     void set_max_user_data_bytes(uint32_t max_user_data_bytes)
     {
@@ -623,7 +638,7 @@ public:
 #endif
 
         // NOTE: Need to subtract two chunks from being included in receive.
-        return WSARecv(sock_, (WSABUF*)&(shared_int->chunk(extra_chunk_index_)), num_chunks_ - 2, (LPDWORD)num_bytes, (LPDWORD)&recv_flags_, &ovl_, NULL);
+        return WSARecv(sock_, (WSABUF*)&(shared_int->chunk(extra_chunk_index_)), num_chunks_ - 1, (LPDWORD)num_bytes, (LPDWORD)&recv_flags_, &ovl_, NULL);
     }
 
     // Start sending on socket.
@@ -651,8 +666,8 @@ public:
         return WSA_IO_PENDING;
 #endif
 
-        // NOTE: Need to subtract two chunks from being included in send.
-        return WSASend(sock_, (WSABUF*)&(shared_int->chunk(extra_chunk_index_)), num_chunks_ - 2, (LPDWORD)numBytes, 0, &ovl_, NULL);
+        // NOTE: Need to subtract one chunks from being included in send.
+        return WSASend(sock_, (WSABUF*)&(shared_int->chunk(extra_chunk_index_)), num_chunks_ - 1, (LPDWORD)numBytes, 0, &ovl_, NULL);
     }
 
     // Start accepting on socket.

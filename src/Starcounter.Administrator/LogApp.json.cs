@@ -39,12 +39,12 @@ namespace StarcounterApps3 {
         }
 
         public void UpdateResult() {
-            int count = 4;
-            // TODO: ORDER BY dosent work
+            int count = 100;
+            // TODO: ORDER BY doesn't work
             //logApp.LogEntries = Db.SQL("SELECT o FROM LogItem o ORDER BY o.SeqNumber FETCH ?", count);
 
             try {
-                this.LogEntries = Db.SQL("SELECT o FROM LogItem o ORDER BY o.SeqNumber ASC FETCH ?", count);
+                this.LogEntries = Db.SQL("SELECT o FROM LogItem o ORDER BY o.SeqNumber DESC FETCH ?", count);
             } catch (Exception e) {
                 Console.WriteLine(e.ToString());
             }
