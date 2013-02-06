@@ -202,9 +202,15 @@ namespace Starcounter.Query.Execution
             if (!base.AssertEquals(other))
                 return false;
             // Check basic types
-            Debug.Assert(this.value == other.value);
-            if (this.value != other.value)
-                return false;
+            if (this.value == null) {
+                Debug.Assert(other.value == null);
+                if (other.value != null)
+                    return false;
+            } else {
+                Debug.Assert(this.value.Name == other.value.Name);
+                if (this.value != other.value)
+                    return false;
+            }
             return true;
         }
 #endif
