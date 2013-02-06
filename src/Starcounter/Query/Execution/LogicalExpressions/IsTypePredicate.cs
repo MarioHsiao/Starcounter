@@ -118,27 +118,20 @@ namespace Starcounter.Query.Execution {
         /// </summary>
         /// <returns>Result of comparison</returns>
         public IsTypeCompare EvaluateAtCompile() {
-            IObjectView obj = objExpr.EvaluateToObject(null);
-            if (obj != null) {
-                TruthValue res = Evaluate(obj);
-                if (res == TruthValue.TRUE)
-                    return IsTypeCompare.TRUE;
-                if (res == TruthValue.FALSE)
-                    return IsTypeCompare.FALSE;
-            }
             // Object is null or result is unknown
-            ITypeBinding objType = obj == null ? objExpr.TypeBinding : obj.TypeBinding; // Object type cannot be null
-            if (objType == typeBinding)
-                return IsTypeCompare.EQUAL;
-            if (objType is TypeBinding && typeBinding is TypeBinding)
-                if (((TypeBinding)objType).SubTypeOf((TypeBinding)typeBinding))
+            ITypeBinding objType = objExpr.TypeBinding; // Object type cannot be null
+            ITypeBinding typeType = typeBinding == null ? typeExpr.EvaluateToType(null) : typeBinding;
+            if (objType is TypeBinding && typeType is TypeBinding)
+                if (objType == typeType)
+                    return IsTypeCompare.EQUAL;
+                else if (((TypeBinding)objType).SubTypeOf((TypeBinding)typeType))
                     return IsTypeCompare.SUBTYPE;
-                else if (((TypeBinding)typeBinding).SubTypeOf((TypeBinding)objType))
+                else if (((TypeBinding)typeType).SubTypeOf((TypeBinding)objType))
                     return IsTypeCompare.SUPERTYPE;
                 else return IsTypeCompare.FALSE;
             if (objType is TypeBinding)
                 return IsTypeCompare.UNKNOWNTYPE;
-            if (typeBinding is TypeBinding)
+            if (typeType is TypeBinding)
                 return IsTypeCompare.UNKNOWNOBJECT;
             return IsTypeCompare.UNKNOWN;
         }
