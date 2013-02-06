@@ -51,6 +51,8 @@
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <OutputPath>..\..\..\bin\Release\</OutputPath>
+    <NoWarn>1591</NoWarn>
+    <DocumentationFile>..\..\..\bin\Release\Starcounter.VisualStudio.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <!-- Modify settings in this group to finetune what to output -->
