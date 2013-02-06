@@ -144,10 +144,26 @@ internal class TypeLiteral : Literal, ILiteral, ITypeExpression
     }
 
 #if DEBUG
-    // TODO: I leave this for Ruslan to implement (PI130128).
-    public bool AssertEquals(IValueExpression other)
-    {
-        throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
+    public bool AssertEquals(IValueExpression other) {
+        TypeLiteral otherNode = other as TypeLiteral;
+        Debug.Assert(otherNode != null);
+        return this.AssertEquals(otherNode);
+    }
+    internal bool AssertEquals(TypeLiteral other) {
+        Debug.Assert(other != null);
+        if (other == null)
+            return false;
+        // Check basic types
+        if (this.value == null) {
+            Debug.Assert(other.value == null);
+            if (other.value != null)
+                return false;
+        } else {
+            Debug.Assert(this.value.Name == other.value.Name);
+            if (this.value.Name != other.value.Name)
+                return false;
+        }
+        return true;
     }
 #endif
 }
