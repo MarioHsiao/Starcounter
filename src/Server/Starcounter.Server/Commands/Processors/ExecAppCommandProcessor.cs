@@ -100,10 +100,12 @@ namespace Starcounter.Server.Commands {
             OnWorkerProcessStarted();
 
             // The application doesn't run inside the database, or the database
-            // doesn't exist. Process furhter: weaving first.
+            // doesn't exist. Process further: weaving first.
             // (Make sure we respect the (temporary) NoDb switch if applied).
 
-            appRuntimeDirectory = GetAppRuntimeDirectory(this.Engine.Configuration.TempDirectory, command.AssemblyPath);
+            appRuntimeDirectory = GetAppRuntimeDirectory(
+                Path.Combine(database.Configuration.Runtime.TempDirectory, StarcounterEnvironment.Directories.WeaverTempSubDirectory),
+                command.AssemblyPath);
 
             if (command.NoDb)
             {
