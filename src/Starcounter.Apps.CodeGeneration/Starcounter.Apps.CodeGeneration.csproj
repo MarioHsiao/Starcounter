@@ -45,7 +45,8 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <DocumentationFile>..\..\bin\Debug\Starcounter.Apps.CodeGeneration.XML</DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>..\..\bin\Release\</OutputPath>
@@ -56,6 +57,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <DocumentationFile>..\..\bin\Release\Starcounter.Apps.CodeGeneration.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Roslyn.Compilers">
@@ -79,11 +81,40 @@
     <Compile Include="CodeBehindAnalyser\CodeBehindMetadata.cs" />
     <Compile Include="CodeBehindAnalyser\JsonMapInfo.cs" />
     <Compile Include="CSharpGenerator\CSharpGenerator.cs" />
+    <Compile Include="Serialization\AstTree\AstCase.cs" />
+    <Compile Include="Serialization\AstTree\AstCodeStatement.cs" />
+    <Compile Include="Serialization\AstTree\AstElseIfList.cs" />
+    <Compile Include="Serialization\AstTree\AstGotoProperty.cs" />
+    <Compile Include="Serialization\AstTree\AstGotoValue.cs" />
+    <Compile Include="Serialization\AstTree\AstNamespace.cs" />
+    <Compile Include="Serialization\AstTree\AstNode.cs" />
+    <Compile Include="Serialization\AstTree\AstParseJsonValue.cs" />
+    <Compile Include="Serialization\AstTree\AstFail.cs" />
+    <Compile Include="Serialization\AstTree\AstSerializeFunction.cs" />
+    <Compile Include="Serialization\AstTree\AstJsonSerializerClass.cs" />
+    <Compile Include="Serialization\AstTree\AstJSConstructor.cs" />
+    <Compile Include="Serialization\AstTree\AstSetValue.cs" />
+    <Compile Include="Serialization\AstTree\AstSwitch.cs" />
+    <Compile Include="Serialization\AstTree\AstTreeGenerator.cs" />
+    <Compile Include="Serialization\AstTree\AstTreeHelper.cs" />
+    <Compile Include="Serialization\AstTree\AstUnsafe.cs" />
+    <Compile Include="Serialization\AstTree\AstValueJump.cs" />
+    <Compile Include="Serialization\AstTree\AstVerifier.cs" />
+    <Compile Include="Serialization\AstTree\AstDeserializeFunction.cs" />
+    <Compile Include="Serialization\AstTree\AstWhile.cs" />
+    <Compile Include="Serialization\AstTree\AstWritePropertyName.cs" />
+    <Compile Include="Serialization\AstTree\AstWritePropertyValue.cs" />
+    <Compile Include="Serialization\AstTree\AstWriteDelimiter.cs" />
+    <Compile Include="Serialization\AstTree\AstWriteObject.cs" />
+    <Compile Include="Serialization\AstTree\AstWriteArray.cs" />
+    <Compile Include="Serialization\AstTree\AstForLoop.cs" />
+    <Compile Include="Serialization\AstTree\AstParseJsonObjectArray.cs" />
     <Compile Include="SimpleCodeDom\Core\NConstructor.cs" />
     <Compile Include="SimpleCodeDom\Core\NInputBinding.cs" />
     <Compile Include="SimpleCodeDom\Core\NMetadataClass.cs" />
     <Compile Include="SimpleCodeDom\Core\NValueClass.cs" />
     <Compile Include="SimpleCodeDom\NAppMetadata.cs" />
+    <Compile Include="SimpleCodeDom\NAppSerializerClass.cs" />
     <Compile Include="SimpleCodeDom\NPredefinedClass.cs" />
     <Compile Include="SimpleCodeDom\NEventClass.cs" />
     <Compile Include="SimpleCodeDom\NListing.cs" />

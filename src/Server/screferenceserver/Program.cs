@@ -5,6 +5,9 @@ using Starcounter.CommandLine.Syntax;
 using Starcounter.Server.Setup;
 using System;
 using System.Diagnostics;
+using Starcounter.Server.PublicModel;
+using Starcounter.Server.PublicModel.Commands;
+using Starcounter.Internal;
 
 namespace Starcounter.Server {
 
@@ -39,13 +42,33 @@ namespace Starcounter.Server {
                     string serverName;
 
                     if (!arguments.TryGetProperty("name", out serverName)) {
-                        serverName = "Personal";
+                        serverName = StarcounterEnvironment.ServerNames.PersonalServer;
                     }
 
                     var setup = RepositorySetup.NewDefault(repositoryPath, serverName);
                     setup.Execute();
                     return;
                 }
+
+
+                if (arguments.Command.Equals("CreateDb", StringComparison.InvariantCultureIgnoreCase)) {
+
+                    string databasename = arguments.CommandParameters[0]; //  "administrator";
+                    string serverConfig = arguments.CommandParameters[1]; //  @".srv\Personal\Personal.server.config";
+                    ServerEngine serverEngine = new ServerEngine(serverConfig);
+                    serverEngine.Setup();
+
+                    IServerRuntime IServerRuntime = serverEngine.Start();
+                    CreateDatabaseCommand createDbCmd = new CreateDatabaseCommand(serverEngine, databasename);
+                    CommandInfo cmdInfo = IServerRuntime.Execute(createDbCmd);
+
+                    IServerRuntime.Wait(cmdInfo);
+
+                    serverEngine.Stop();
+
+                    return;
+                }
+
 
                 // Start is utilized. Bootstrap the server.
 
@@ -119,6 +142,11 @@ namespace Starcounter.Server {
             // Optional property specifying the name of the server. If not given,
             // the default ("Personal") is used.
             commandDefinition.DefineProperty("name", "Specifies the name of the server.");
+
+
+            commandDefinition = syntaxDefinition.DefineCommand("CreateDb", "Creates database",2);
+            commandDefinition.DefineProperty("databasename", "Specifies the database name.");
+            commandDefinition.DefineProperty("serverconfig", "Specifies the path to the server configuration file.");
 
             // Create the syntax, validating it
             syntax = syntaxDefinition.CreateSyntax();

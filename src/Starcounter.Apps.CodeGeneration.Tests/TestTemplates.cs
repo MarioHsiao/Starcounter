@@ -62,15 +62,27 @@ namespace Test {
            Assert.AreEqual(facit, code);
         }
 
-        /// <summary>
-        /// Generates the cs with code behind.
-        /// </summary>
+        [Test]
+        public static void GenerateCsFromTestMessage() {
+            String className = "TestMessage";
+            CodeBehindMetadata metadata = CodeBehindAnalyzer.Analyze(className, className + ".json.cs");
+
+            AppTemplate actual = TemplateFromJs.ReadFile(className + ".json");
+            Assert.IsInstanceOf(typeof(AppTemplate), actual);
+
+            actual.Namespace = metadata.RootNamespace;
+            Assert.IsNotNullOrEmpty(actual.Namespace);
+
+            CodeGenerationModule codegenmodule = new CodeGenerationModule();
+            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator("C#", actual, metadata);
+            Console.WriteLine(codegen.GenerateCode());
+        }
+
         [Test]
         public static void GenerateCsWithCodeBehind()
         {
             String className = "MySampleApp";
-            CodeBehindMetadata metadata = CodeBehindAnalyzer.Analyze(className,
-                                                                                   className + ".json.cs");
+            CodeBehindMetadata metadata = CodeBehindAnalyzer.Analyze(className, className + ".json.cs");
             
             AppTemplate actual = TemplateFromJs.ReadFile(className + ".json");
             Assert.IsInstanceOf(typeof(AppTemplate), actual);

@@ -4,6 +4,11 @@
 // </copyright>
 // ***********************************************************************
 
+// TODO!
+// - Get rid of references to Transaction, SQL and Entity
+
+
+
 using System;
 using Starcounter.Templates.Interfaces;
 using System.ComponentModel;
@@ -11,6 +16,7 @@ using Starcounter.Templates;
 using Starcounter.Internal.REST;
 using Starcounter.Internal;
 using Starcounter.Apps;
+using Starcounter.Advanced;
 
 #if CLIENT
 using Starcounter.Client.Template;
@@ -53,7 +59,7 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        private Entity _Data;
+        private IBindable _Data;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="App" /> class.
@@ -119,7 +125,7 @@ namespace Starcounter {
         /// <value>The data.</value>
         public Entity Data {
             get {
-                return _Data;
+                return (Entity)_Data;
             }
             set {
                 if (Transaction == null) {

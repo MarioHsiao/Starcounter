@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Project = EnvDTE.Project;
+using Starcounter.Internal;
 
 namespace Starcounter.VisualStudio.Projects {
     internal abstract class StarcounterProjectConfiguration :
@@ -252,6 +253,9 @@ namespace Starcounter.VisualStudio.Projects {
 
             try {
                 launchResult = BeginDebug((__VSDBGLAUNCHFLAGS)grfLaunch);
+            }catch (TimeoutException) {
+                this.ReportError(ErrorCode.ToMessage(Error.SCERRDEBUGFAILEDCONNECTTOSERVER));
+                launchResult = false;
             } catch (Exception unexpectedException) {
                 // Don't let exceptions slip throuh to the IDE and make
                 // sure we restore the debug launch pending control flag.

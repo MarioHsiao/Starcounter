@@ -35,7 +35,7 @@ internal class DateTimeComparer : ISingleComparer
         }
     }
 
-    public ITypeExpression Expression
+    public IValueExpression Expression
     {
         get
         {

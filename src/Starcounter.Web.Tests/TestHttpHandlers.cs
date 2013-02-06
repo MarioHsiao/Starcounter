@@ -89,7 +89,7 @@ namespace Starcounter.Internal.Test {
                 return null;
             });
 
-            GET("/players/{?}", (int playerId) => {
+            GET("/players/{?}/abc/{?}", (int playerId, string a) => {
                 Assert.AreEqual(123, playerId);
                 Console.WriteLine("playerId=" + playerId);
                 return null;
@@ -98,6 +98,11 @@ namespace Starcounter.Internal.Test {
             GET("/dashboard/{?}", (int playerId) => {
                 Assert.AreEqual(123, playerId);
                 Console.WriteLine("playerId=" + playerId);
+                return null;
+            });
+
+            GET("/players/{?}", (int id) => {
+                Assert.AreEqual(123, id);
                 return null;
             });
 
@@ -164,6 +169,13 @@ namespace Starcounter.Internal.Test {
                 DateTime expected;
                 DateTime.TryParse("2013-01-17", out expected);
                 Assert.AreEqual(expected, val);
+                return null;
+            });
+
+            GET("/static{?}/{?}", (string part, string last, HttpRequest request) => {
+                Assert.AreEqual("marknad", part);
+                Assert.AreEqual("nyhetsbrev", last);
+                Assert.IsNotNull(request);
                 return null;
             });
 
@@ -239,19 +251,37 @@ namespace Starcounter.Internal.Test {
         }
 
         /// <summary>
-        /// Generates the request processor.
+        /// Generates the request processor in the C# language.
         /// </summary>
         [Test]
-        public void GenerateRequestProcessor() {
+        public void GenerateCSharpRequestProcessor() {
             Main(); // Register some handlers
             var umb = RequestHandler.UriMatcherBuilder;
 
             var ast = umb.CreateAstTree();
             ast.Namespace = "__urimatcher__";
             var compiler = umb.CreateCompiler();
-            var str = compiler.GenerateRequestProcessorSourceCode( ast );
+            var str = compiler.GenerateRequestProcessorCSharpSourceCode( ast );
 
             Console.WriteLine( str );
+
+        }
+
+
+        /// <summary>
+        /// Generates the request processor in the C++ language.
+        /// </summary>
+        [Test]
+        public void GenerateCppRequestProcessor() {
+            Main(); // Register some handlers
+            var umb = RequestHandler.UriMatcherBuilder;
+
+            var ast = umb.CreateAstTree();
+            ast.Namespace = "__urimatcher__";
+            var compiler = umb.CreateCompiler();
+            var str = compiler.GenerateRequestProcessorCppSourceCode(ast);
+
+            Console.WriteLine(str);
 
         }
 
@@ -262,11 +292,7 @@ namespace Starcounter.Internal.Test {
         public void DebugPregeneratedRequestProcessor() {
             var um = new __urimatcher__.GeneratedRequestProcessor();
 
-            // Test failed parsing of numbers.
-            // Test multiple queryparameters
-
             // URI's that should succeed
-            byte[] h1 = Encoding.UTF8.GetBytes("GET /players/123\r\n\r\n");
             byte[] h2 = Encoding.UTF8.GetBytes("GET /dashboard/123\r\n\r\n");
             byte[] h3 = Encoding.UTF8.GetBytes("GET /players?KalleKula\r\n\r\n");
             byte[] h4 = Encoding.UTF8.GetBytes("PUT /players/123\r\n\r\n");
@@ -276,7 +302,7 @@ namespace Starcounter.Internal.Test {
             byte[] h8 = Encoding.UTF8.GetBytes("GET /players\r\n\r\n");
             byte[] h9 = Encoding.UTF8.GetBytes("GET /\r\n\r\n");
             byte[] h10 = Encoding.UTF8.GetBytes("GET /uri-with-req\r\n\r\n");
-            byte[] h11 = Encoding.UTF8.GetBytes("GET /uri-with-req/123\r\n\r\n");         
+            byte[] h11 = Encoding.UTF8.GetBytes("GET /uri-with-req/123\r\n\r\n");
             byte[] h12 = Encoding.UTF8.GetBytes("GET /uri-with-req/KalleKula\r\n\r\n");
             byte[] h13 = Encoding.UTF8.GetBytes("GET /admin/KalleKula\r\n\r\n");
             byte[] h14 = Encoding.UTF8.GetBytes("GET /admin/KalleKula/123\r\n\r\n");
@@ -289,11 +315,11 @@ namespace Starcounter.Internal.Test {
             byte[] h21 = Encoding.UTF8.GetBytes("GET /whatever/apapapa/more/5547/KalleKula\r\n\r\n");
             byte[] h22 = Encoding.UTF8.GetBytes("POST /find-player?firstname=Kalle&lastname=Kula&age=19\r\n\r\n");
             byte[] h23 = Encoding.UTF8.GetBytes("GET /aaaaa/90510/bbbb\r\n\r\n");
-
             byte[] h24 = Encoding.UTF8.GetBytes("GET /test-decimal/99.123\r\n\r\n");
             byte[] h25 = Encoding.UTF8.GetBytes("GET /test-double/99.123\r\n\r\n");
             byte[] h26 = Encoding.UTF8.GetBytes("GET /test-bool/true\r\n\r\n");
             byte[] h27 = Encoding.UTF8.GetBytes("GET /test-datetime/2013-01-17\r\n\r\n");
+            byte[] h28 = Encoding.UTF8.GetBytes("GET /staticmarknad/nyhetsbrev\r\n\r\n");
             
             // URI's that should fail due to verification or parse error.
             byte[] h501 = Encoding.UTF8.GetBytes("GET /whatever/abrakadabra/xaYx/911\r\n\r\n");     // xaYx -> xxYx
@@ -306,7 +332,6 @@ namespace Starcounter.Internal.Test {
 
             Main();
 
-
             foreach (var x in RequestHandler.RequestProcessor.Registrations) {
                 um.Register(x.Key, x.Value.CodeAsObj );
             }
@@ -314,7 +339,6 @@ namespace Starcounter.Internal.Test {
             object resource;
 
             // Test succesful URI's
-            Assert.True(um.Invoke(new HttpRequest(h1), out resource));
             Assert.True(um.Invoke(new HttpRequest(h2), out resource));
             Assert.True(um.Invoke(new HttpRequest(h3), out resource));
             Assert.True(um.Invoke(new HttpRequest(h4), out resource));
@@ -325,12 +349,7 @@ namespace Starcounter.Internal.Test {
             Assert.True(um.Invoke(new HttpRequest(h9), out resource));
             Assert.True(um.Invoke(new HttpRequest(h10), out resource));
             Assert.True(um.Invoke(new HttpRequest(h11), out resource));
-
-            // TODO:
-            // The ParseInt function does not verify that the specified string
-            // is numbers or not, needs to be fixed.
-//            Assert.True(um.Invoke(new HttpRequest(h12), out resource));
-
+            Assert.True(um.Invoke(new HttpRequest(h12), out resource));
             Assert.True(um.Invoke(new HttpRequest(h13), out resource));
             Assert.True(um.Invoke(new HttpRequest(h14), out resource));
             Assert.True(um.Invoke(new HttpRequest(h15), out resource));
@@ -340,21 +359,18 @@ namespace Starcounter.Internal.Test {
             Assert.True(um.Invoke(new HttpRequest(h19), out resource));
             Assert.True(um.Invoke(new HttpRequest(h20), out resource));
             Assert.True(um.Invoke(new HttpRequest(h21), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h21), out resource));
             Assert.True(um.Invoke(new HttpRequest(h22), out resource));
-//            Assert.True(um.Invoke(new HttpRequest(h23), out resource)); // Value is wrong due to verification needed after parsing.
+            Assert.True(um.Invoke(new HttpRequest(h23), out resource));
             Assert.True(um.Invoke(new HttpRequest(h24), out resource));
             Assert.True(um.Invoke(new HttpRequest(h25), out resource));
             Assert.True(um.Invoke(new HttpRequest(h26), out resource));
             Assert.True(um.Invoke(new HttpRequest(h27), out resource));
-
-            // TODO: 
-            // Add more failing uri's
+            Assert.True(um.Invoke(new HttpRequest(h28), out resource));
 
             // Test URI's that should fail.
             Assert.False(um.Invoke(new HttpRequest(h501), out resource));
             Assert.False(um.Invoke(new HttpRequest(h502), out resource));
-//            Assert.False(um.Invoke(new HttpRequest(h503), out resource)); // Handler called even though not correct uri -> verification after parse needed.
+            Assert.False(um.Invoke(new HttpRequest(h503), out resource));
             Assert.False(um.Invoke(new HttpRequest(h504), out resource));
             Assert.False(um.Invoke(new HttpRequest(h505), out resource));
             Assert.False(um.Invoke(new HttpRequest(h506), out resource));
@@ -385,7 +401,7 @@ namespace Starcounter.Internal.Test {
             var pt = umb.CreateParseTree();
             var ast = umb.CreateAstTree();
             var compiler = umb.CreateCompiler();
-            var str = compiler.GenerateRequestProcessorSourceCode(ast);
+            var str = compiler.GenerateRequestProcessorCSharpSourceCode(ast);
 
             Console.WriteLine(pt.ToString(false));
 //            Console.WriteLine(pt.ToString(true));

@@ -344,7 +344,7 @@ internal class DoublePath : Path, IDoubleExpression, IPath
         return new DoublePath(extentNumber, instPathList, member.Instantiate(obj) as IDoublePathItem);
     }
 
-    public override ITypeExpression Clone(VariableArray varArray)
+    public override IValueExpression Clone(VariableArray varArray)
     {
         return CloneToDouble(varArray);
     }
@@ -395,7 +395,7 @@ internal class DoublePath : Path, IDoubleExpression, IPath
 
 #if DEBUG
     private bool AssertEqualsVisited = false;
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         DoublePath otherNode = other as DoublePath;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);

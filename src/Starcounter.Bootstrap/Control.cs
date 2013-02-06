@@ -16,8 +16,9 @@ using Starcounter.Hosting;
 using Starcounter.Internal; // TODO:
 using Starcounter.Logging;
 using StarcounterInternal.Hosting;
-using Error = Starcounter.Internal.Error;
 using HttpStructs;
+using System.Text.RegularExpressions;
+using System.IO;
 
 namespace StarcounterInternal.Bootstrap
 {
@@ -35,6 +36,8 @@ namespace StarcounterInternal.Bootstrap
         {
             try
             {
+                //System.Diagnostics.Debugger.Break();
+
                 Control c = new Control();
                 c.OnProcessInitialized();
                 bool b = c.Setup(args);
@@ -131,6 +134,12 @@ namespace StarcounterInternal.Bootstrap
                 OnBmxManagerInitialized();
             }
 
+            // Initializing REST.
+            RequestHandler.InitREST(configuration.TempDirectory);
+
+            // Initializing AppsBootstrapper.
+            AppsBootstrapper.InitAppsBootstrapper(configuration.DefaultUserHttpPort);
+
             ulong hlogs = ConfigureLogging(configuration, hmenv);
             OnLoggingConfigured();
 
@@ -152,7 +161,10 @@ namespace StarcounterInternal.Bootstrap
             Scheduler.Setup((byte)schedulerCount);
             if (withdb_)
             {
-                Starcounter.Query.QueryModule.Initiate(configuration.SQLProcessPort);
+                Starcounter.Query.QueryModule.Initiate(
+                    configuration.SQLProcessPort,
+                    Path.Combine(configuration.TempDirectory, "sqlschemas"));
+
                 OnQueryModuleInitiated();
             }
 
@@ -249,6 +261,29 @@ namespace StarcounterInternal.Bootstrap
         }
 
         /// <summary>
+        /// Simple parser for user arguments.
+        /// </summary>
+        String[] ParseUserArguments(String userArgs)
+        {
+            char[] parmChars = userArgs.ToCharArray();
+            bool inQuote = false;
+
+            for (int i = 0; i < parmChars.Length; i++)
+            {
+                if (parmChars[i] == '"')
+                {
+                    parmChars[i] = '\n';
+                    inQuote = !inQuote;
+                }
+
+                if (!inQuote && parmChars[i] == ' ')
+                    parmChars[i] = '\n';
+            }
+
+            return (new string(parmChars)).Split(new Char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        }
+
+        /// <summary>
         /// Runs this instance.
         /// </summary>
         private unsafe void Run()
@@ -261,13 +296,20 @@ namespace StarcounterInternal.Bootstrap
                 // Trying to get user arguments if any.
                 String userArgs = null;
                 String[] userArgsArray = null;
-                configuration.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.UserArguments, out userArgs);
+                configuration.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.UserArguments, out userArgs);
                 if (userArgs != null)
-                    userArgsArray = userArgs.Split((String[])null, StringSplitOptions.RemoveEmptyEntries);
+                {
+                    // Parsing user arguments.
+                    String[] parsedUserArgs = ParseUserArguments(userArgs);
+
+                    // Checking if any parameters determined.
+                    if (parsedUserArgs.Length > 0)
+                        userArgsArray = parsedUserArgs;
+                }
 
                 // Trying to get explicit working directory.
                 String workingDir = null;
-                configuration.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.WorkingDir, out workingDir);
+                configuration.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.WorkingDir, out workingDir);
 
                 // Loading the given application.
                 Loader.ExecApp(hsched_, configuration.AutoStartExePath, workingDir, userArgsArray);
@@ -333,7 +375,7 @@ namespace StarcounterInternal.Bootstrap
                 // if the event exists and we can access it.
             }
 
-            throw ErrorCode.ToException(Error.SCERRAPPALREADYSTARTED);
+            throw ErrorCode.ToException(Starcounter.Error.SCERRAPPALREADYSTARTED);
         }
 
         /// <summary>
@@ -370,7 +412,7 @@ namespace StarcounterInternal.Bootstrap
             uint slabs = (0xFFFFF000 - 4096) / 4096;  // 4 GB - 4 KB
             ulong hmenv = sccorelib.mh4_menv_create(mem128, slabs);
             if (hmenv != 0) return hmenv;
-            throw ErrorCode.ToException(Error.SCERROUTOFMEMORY);
+            throw ErrorCode.ToException(Starcounter.Error.SCERROUTOFMEMORY);
         }
 
         /// <summary>

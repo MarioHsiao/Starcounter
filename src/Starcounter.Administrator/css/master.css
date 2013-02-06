@@ -1,0 +1,35 @@
+﻿
+    .Debug
+    {
+        background-color:rgba(0, 0, 0, 0.00);
+    }
+
+    .SuccessAudit
+    {
+        background-color:rgba(0, 0, 0, 0.00);
+    }
+
+    .FailureAudit
+    {
+        background-color:#ff0000;
+    }
+
+    .Notice
+    {
+        background-color:rgba(128, 128, 128, 0.00);
+    }
+
+    .Warning
+    {
+        background-color:#ffd800;
+    }
+    
+    .Error
+    {
+        background-color:#ff0000;
+    }
+
+    .Critical
+    {
+        background-color:#ff0000;
+    }

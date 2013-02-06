@@ -120,7 +120,7 @@ class ExtentSet
     /// <param name="expression">The expression to be investigated.</param>
     /// <param name="extentNum">The extent number to be looked for.</param>
     /// <returns>True, if a reference to the extent was found, otherwise false.</returns>
-    internal static Boolean IncludesExtentReference(ITypeExpression expression, Int32 extentNum)
+    internal static Boolean IncludesExtentReference(IValueExpression expression, Int32 extentNum)
     {
         if (expression == null)
         {
@@ -136,7 +136,7 @@ class ExtentSet
     /// </summary>
     /// <param name="expression">The expression to be investigated.</param>
     /// <returns>True, if no reference to any extent was found, otherwise false.</returns>
-    internal static Boolean IncludesNoExtentReference(ITypeExpression expression)
+    internal static Boolean IncludesNoExtentReference(IValueExpression expression)
     {
         if (expression == null)
         {

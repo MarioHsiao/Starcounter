@@ -40,7 +40,8 @@ inline chunk_index client_port::wait_for_response(uint32_t the_channel_index) {
 inline chunk_index client_port::acquire_chunk() {
 	chunk_index index;
 	/// TODO: Handle timeout and errors.
-	while (!shared_interface::client_acquire_linked_chunks(index, 1)) { // New API
+	while (!shared_interface::client_acquire_linked_chunks(index, 1,
+	10000 /* timeout ms */)) { // New API
 		// until a chunk_index is acquired...
 	}
 

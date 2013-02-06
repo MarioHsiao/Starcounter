@@ -339,7 +339,7 @@ internal class DecimalOperation : IDecimalExpression, INumericalOperation
         return new DecimalOperation(numOperator, instExpr1);
     }
 
-    public ITypeExpression Clone(VariableArray varArray)
+    public IValueExpression Clone(VariableArray varArray)
     {
         return CloneToDecimal(varArray);
     }
@@ -401,7 +401,7 @@ internal class DecimalOperation : IDecimalExpression, INumericalOperation
 
 #if DEBUG
     private bool AssertEqualsVisited = false;
-    public bool AssertEquals(ITypeExpression other) {
+    public bool AssertEquals(IValueExpression other) {
         DecimalOperation otherNode = other as DecimalOperation;
         Debug.Assert(otherNode != null);
         return this.AssertEquals(otherNode);

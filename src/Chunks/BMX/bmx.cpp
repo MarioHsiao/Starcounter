@@ -549,7 +549,7 @@ try_receive:
 finish:
 
     // Resetting current transaction.
-    sccoredb_set_current_transaction(0, 0, 0);
+    sccoredb_set_current_transaction(0, 0, 0); // You may comment this line to avoid throwing an exception when using NODB.
     if (task_info.session_id.low != 0)
     {
         sccorensm_leave_session(task_info.session_id.high);

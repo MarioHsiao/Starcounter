@@ -6,6 +6,7 @@
 
 using Starcounter;
 using Starcounter.CommandLine;
+using Starcounter.Internal;
 using System;
 
 namespace StarcounterInternal.Bootstrap
@@ -46,7 +47,7 @@ namespace StarcounterInternal.Bootstrap
             ProgramArguments = programArguments;
 
             string prop;
-            if (ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.SchedulerCount, out prop))
+            if (ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.SchedulerCount, out prop))
             {
                 try
                 {
@@ -54,7 +55,7 @@ namespace StarcounterInternal.Bootstrap
                 }
                 catch (Exception e)
                 {
-                    throw ErrorCode.ToException(Error.SCERRBADSCHEDCOUNTCONFIG, e);
+                    throw ErrorCode.ToException(Starcounter.Error.SCERRBADSCHEDCOUNTCONFIG, e);
                 }
             }
             else
@@ -84,7 +85,7 @@ namespace StarcounterInternal.Bootstrap
             get {
                 string prop;
 
-                if (!this.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.CompilerPath, out prop))
+                if (!this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.CompilerPath, out prop))
                     prop = @"C:/Test/MinGW/bin/x86_64-w64-mingw32-gcc.exe";
 
                 return prop;
@@ -100,7 +101,7 @@ namespace StarcounterInternal.Bootstrap
             get {
                 string prop;
 
-                if (!this.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.DatabaseDir, out prop))
+                if (!this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.DatabaseDir, out prop))
                     prop = @"C:/Test";
 
                 return prop;
@@ -116,7 +117,7 @@ namespace StarcounterInternal.Bootstrap
             get {
                 string prop;
 
-                if (!this.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.OutputDir, out prop))
+                if (!this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.OutputDir, out prop))
                     prop = @"C:/Test";
 
                 return prop;
@@ -132,7 +133,7 @@ namespace StarcounterInternal.Bootstrap
             get {
                 string prop;
 
-                if (!this.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.TempDir, out prop))
+                if (!this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.TempDir, out prop))
                     prop = @"C:/Test/Temp";
 
                 return prop;
@@ -149,7 +150,7 @@ namespace StarcounterInternal.Bootstrap
             {
                 string autoStartExePath;
 
-                if (!this.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.AutoStartExePath, out autoStartExePath))
+                if (!this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.AutoStartExePath, out autoStartExePath))
                     autoStartExePath = null;
 
                 return autoStartExePath;
@@ -166,8 +167,8 @@ namespace StarcounterInternal.Bootstrap
             {
                 string serverName;
 
-                if (!this.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.ServerName, out serverName))
-                    serverName = "PERSONAL";
+                if (!this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.ServerName, out serverName))
+                    serverName = StarcounterEnvironment.ServerNames.PersonalServer.ToUpper();
 
                 // Making server name upper case.
                 serverName = serverName.ToUpper();
@@ -188,14 +189,14 @@ namespace StarcounterInternal.Bootstrap
                 uint chunksNumber = 1 << 14; // 16K chunks.
 
                 string chunksNumberStr;
-                if (this.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.ChunksNumber, out chunksNumberStr))
+                if (this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.ChunksNumber, out chunksNumberStr))
                 {
                     chunksNumber = uint.Parse(chunksNumberStr);
 
                     // Checking if number of chunks is correct.
                     if ((chunksNumber < 128) || (chunksNumber > 4096 * 128))
                     {
-                        throw ErrorCode.ToException(Error.SCERRBADCHUNKSNUMBERCONFIG);
+                        throw ErrorCode.ToException(Starcounter.Error.SCERRBADCHUNKSNUMBERCONFIG);
                     }
                 }
 
@@ -207,15 +208,33 @@ namespace StarcounterInternal.Bootstrap
         /// Gets the SQL process port.
         /// </summary>
         /// <value>The SQL process port.</value>
-        public int SQLProcessPort
+        public UInt16 SQLProcessPort
         {
             get
             {
-                int v = 0;
+                UInt16 v = 0;
                 string str;
-                if (this.ProgramArguments.TryGetProperty(ProgramCommandLine.OptionNames.SQLProcessPort, out str))
+                if (this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.SQLProcessPort, out str))
                 {
-                    v = int.Parse(str);
+                    v = UInt16.Parse(str);
+                }
+                return v;
+            }
+        }
+
+        /// <summary>
+        /// Gets the default Apps TCP port.
+        /// </summary>
+        /// <value>The default Apps TCP port.</value>
+        public UInt16 DefaultUserHttpPort
+        {
+            get
+            {
+                UInt16 v = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
+                string str;
+                if (this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.DefaultUserHttpPort, out str))
+                {
+                    v = UInt16.Parse(str);
                 }
                 return v;
             }
@@ -229,7 +248,7 @@ namespace StarcounterInternal.Bootstrap
         {
             get
             {
-                return this.ProgramArguments.ContainsFlag(ProgramCommandLine.OptionNames.NoDb);
+                return this.ProgramArguments.ContainsFlag(StarcounterConstants.BootstrapOptionNames.NoDb);
             }
         }
 
@@ -241,7 +260,7 @@ namespace StarcounterInternal.Bootstrap
         {
             get
             {
-                return this.ProgramArguments.ContainsFlag(ProgramCommandLine.OptionNames.NoNetworkGateway);
+                return this.ProgramArguments.ContainsFlag(StarcounterConstants.BootstrapOptionNames.NoNetworkGateway);
             }
         }
 
@@ -250,15 +269,11 @@ namespace StarcounterInternal.Bootstrap
         /// streams / the console to accept local management requests,
         /// like the booting of executables.
         /// </summary>
-        /// <remarks>
-        /// Corresponds to the <see cref="ProgramCommandLine.OptionNames.UseConsole"/>
-        /// flag.
-        /// </remarks>
         /// <value><c>true</c> if standard streams should be used; otherwise,
         /// <c>false</c>.</value>
         public bool UseConsole {
             get {
-                return this.ProgramArguments.ContainsFlag(ProgramCommandLine.OptionNames.UseConsole);
+                return this.ProgramArguments.ContainsFlag(StarcounterConstants.BootstrapOptionNames.UseConsole);
             }
         }
     }

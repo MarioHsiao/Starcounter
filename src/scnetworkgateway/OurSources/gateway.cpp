@@ -240,9 +240,6 @@ Gateway::Gateway()
     // Init unique sequence number.
     db_seq_num_ = 0;
 
-    // Initializing scheduler information.
-    num_schedulers_ = 0;
-
     // No reverse proxies by default.
     num_reversed_proxies_ = 0;
 
@@ -570,11 +567,11 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     xml_node<> *rootElem = doc.first_node("NetworkGateway");
 
     // Getting local interfaces.
-    xml_node<> *localIpElem = rootElem->first_node("LocalIP");
+    xml_node<> *localIpElem = rootElem->first_node("BindingIP");
     while(localIpElem)
     {
         setting_local_interfaces_.push_back(localIpElem->value());
-        localIpElem = localIpElem->next_sibling("LocalIP");
+        localIpElem = localIpElem->next_sibling("BindingIP");
     }
 
     // Getting workers number.
@@ -685,17 +682,18 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         while (proxy_node)
         {
             // Filling reverse proxy information.
-            reverse_proxies_[n].ip_ = proxy_node->first_node("ServerIP")->value();
-            reverse_proxies_[n].port_ = atoi(proxy_node->first_node("ServerPort")->value());
-            reverse_proxies_[n].uri_ = proxy_node->first_node("URI")->value();
-            reverse_proxies_[n].uri_len_ = reverse_proxies_[n].uri_.length();
+            reverse_proxies_[n].server_ip_ = proxy_node->first_node("ServerIP")->value();
+            reverse_proxies_[n].server_port_ = atoi(proxy_node->first_node("ServerPort")->value());
+            reverse_proxies_[n].gw_proxy_port_ = atoi(proxy_node->first_node("GatewayProxyPort")->value());
+            reverse_proxies_[n].service_uri_ = proxy_node->first_node("ServiceUri")->value();
+            reverse_proxies_[n].service_uri_len_ = reverse_proxies_[n].service_uri_.length();
 
             // Loading proxied servers.
             sockaddr_in* server_addr = &reverse_proxies_[n].addr_;
             memset(server_addr, 0, sizeof(sockaddr_in));
             server_addr->sin_family = AF_INET;
-            server_addr->sin_addr.s_addr = inet_addr(reverse_proxies_[n].ip_.c_str());
-            server_addr->sin_port = htons(reverse_proxies_[n].port_);
+            server_addr->sin_addr.s_addr = inet_addr(reverse_proxies_[n].server_ip_.c_str());
+            server_addr->sin_port = htons(reverse_proxies_[n].server_port_);
 
             // Getting next reverse proxy information.
             proxy_node = proxy_node->next_sibling("ReverseProxy");
@@ -830,8 +828,13 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
     sockaddr_in binding_addr;
     memset(&binding_addr, 0, sizeof(sockaddr_in));
     binding_addr.sin_family = AF_INET;
-    binding_addr.sin_addr.s_addr = INADDR_ANY;
     binding_addr.sin_port = htons(port_num);
+
+    // Checking if we have local interfaces to bind.
+    if (g_gateway.setting_local_interfaces().size() > 0)
+        binding_addr.sin_addr.s_addr = inet_addr(g_gateway.setting_local_interfaces().at(0).c_str());
+    else
+        binding_addr.sin_addr.s_addr = INADDR_ANY;
 
     // Binding socket to certain interface and port.
     if (bind(sock, (SOCKADDR*) &binding_addr, sizeof(binding_addr)))
@@ -1015,7 +1018,11 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
             }
 
             // Filling necessary fields.
-            active_databases_[empty_db_index].Init(current_db_name, ++db_seq_num_, empty_db_index);
+            active_databases_[empty_db_index].Init(
+                current_db_name,
+                ++db_seq_num_,
+                empty_db_index);
+
             db_did_go_down_[empty_db_index] = false;
 
             // Increasing number of active databases.
@@ -1113,9 +1120,9 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
                 err_code = AddUriHandler(
                     &gw_workers_[0],
                     gw_handlers_,
-                    GATEWAY_TEST_PORT_NUMBER_SERVER,
-                    reverse_proxies_[i].uri_.c_str(),
-                    reverse_proxies_[i].uri_len_,
+                    reverse_proxies_[i].gw_proxy_port_,
+                    reverse_proxies_[i].service_uri_.c_str(),
+                    reverse_proxies_[i].service_uri_len_,
                     bmx::HTTP_METHODS::OTHER_METHOD,
                     bmx::INVALID_HANDLER_ID,
                     empty_db_index,
@@ -1139,7 +1146,7 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
                 &gw_workers_[0],
                 gw_handlers_,
                 setting_gw_stats_port_,
-                "/",
+                "/gwstats",
                 1,
                 bmx::HTTP_METHODS::OTHER_METHOD,
                 bmx::INVALID_HANDLER_ID,
@@ -1203,7 +1210,10 @@ ActiveDatabase::ActiveDatabase()
 }
 
 // Initializes this active database slot.
-void ActiveDatabase::Init(std::string db_name, uint64_t unique_num, int32_t db_index)
+void ActiveDatabase::Init(
+    std::string db_name,
+    uint64_t unique_num,
+    int32_t db_index)
 {
     // Creating new Apps sessions up to maximum number of connections.
     if (!apps_unique_session_numbers_unsafe_)
@@ -1229,12 +1239,6 @@ void ActiveDatabase::Init(std::string db_name, uint64_t unique_num, int32_t db_i
 
     num_confirmed_push_channels_ = 0;
     is_empty_ = false;
-}
-
-// Checks if its enough confirmed push channels.
-bool ActiveDatabase::IsAllPushChannelsConfirmed()
-{
-    return (num_confirmed_push_channels_ >= g_gateway.get_num_schedulers());
 }
 
 // Checks if this database slot empty.
@@ -1355,12 +1359,20 @@ uint32_t Gateway::Init()
 #endif
 
         // Going throw all needed ports.
-        for(int32_t p = 0; p < num_server_ports_unsafe_; p++)
+        for (int32_t p = 0; p < num_server_ports_unsafe_; p++)
         {
+            // Skipping empty port.
+            if (server_ports_[p].IsEmpty())
+                continue;
+
             SOCKET server_socket = INVALID_SOCKET;
 
             // Creating socket and binding to port (only on the first worker).
-            uint32_t errCode = CreateListeningSocketAndBindToPort(&gw_workers_[0], server_ports_[p].get_port_number(), server_socket);
+            uint32_t errCode = CreateListeningSocketAndBindToPort(
+                &gw_workers_[0],
+                server_ports_[p].get_port_number(),
+                server_socket);
+
             GW_ERR_CHECK(errCode);
         }
 
@@ -1433,8 +1445,9 @@ uint32_t Gateway::Init()
 }
 
 // Initializes everything related to shared memory.
-uint32_t Gateway::InitSharedMemory(std::string setting_databaseName,
-    core::shared_interface* sharedInt)
+uint32_t Gateway::InitSharedMemory(
+    std::string setting_databaseName,
+    core::shared_interface* shared_int)
 {
     using namespace core;
 
@@ -1489,14 +1502,7 @@ uint32_t Gateway::InitSharedMemory(std::string setting_databaseName,
     // Construct a shared_interface.
     for (int32_t i = 0; i < setting_num_workers_; i++)
     {
-        sharedInt[i].init(shm_seg_name.c_str(), mon_int_name.c_str(), pid, the_owner_id);
-    }
-
-    // Obtaining number of active schedulers.
-    if (num_schedulers_ == 0)
-    {
-        num_schedulers_ = sharedInt[0].common_scheduler_interface().number_of_active_schedulers();
-        GW_PRINT_GLOBAL << "Number of active schedulers: " << num_schedulers_ << GW_ENDL;
+        shared_int[i].init(shm_seg_name.c_str(), mon_int_name.c_str(), pid, the_owner_id);
     }
 
     return 0;
@@ -1556,12 +1562,16 @@ uint32_t Gateway::DeletePortsForDb(int32_t db_index)
     // Going through all ports.
     for (int32_t i = 0; i < num_server_ports_unsafe_; i++)
     {
-        // Deleting port handlers if any.
-        server_ports_[i].EraseDb(db_index);
+        // Checking that port is not empty.
+        if (!server_ports_[i].IsEmpty())
+        {
+            // Deleting port handlers if any.
+            server_ports_[i].EraseDb(db_index);
 
-        // Checking if port is not used anywhere.
-        if (server_ports_[i].IsEmpty())
-            server_ports_[i].Erase();
+            // Checking if port is not used anywhere.
+            if (server_ports_[i].IsEmpty())
+                server_ports_[i].Erase();
+        }
     }
 
     // Removing deleted trailing server ports.
@@ -1745,7 +1755,7 @@ uint32_t __stdcall MonitorDatabases(LPVOID params)
     while (GetFileAttributes(active_databases_dir_full) == INVALID_FILE_ATTRIBUTES)
     {
         GW_PRINT_GLOBAL << "Please start the IPC monitor process first!" << GW_ENDL;
-        Sleep(500);
+        Sleep(100);
     }
 
     // Creating path to active databases file.
@@ -1762,6 +1772,7 @@ uint32_t __stdcall MonitorDatabases(LPVOID params)
         return SCERRGWACTIVEDBLISTENPROBLEM;
     }
 
+    GW_PRINT_GLOBAL << "Waiting for databases..." << GW_ENDL;
     while (1)
     {
         // Waiting infinitely on directory changes.
@@ -2268,7 +2279,8 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         // Printing handlers information for each attached database and gateway.
         for (int32_t p = 0; p < num_server_ports_unsafe_; p++)
         {
-            if (!server_ports_->IsEmpty())
+            // Checking if port is alive.
+            if (!server_ports_[p].IsEmpty())
             {
                 global_statistics_stream_ << "Port " << server_ports_[p].get_port_number() <<
 
@@ -2294,6 +2306,12 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
             ", sent_times " << diffSentNumAllWorkers <<
             ", send_bandwidth " << send_bandwidth_mbit_total << " mbit/sec" <<
             "<br>" << GW_ENDL;
+
+#ifdef GW_TESTING_MODE
+        global_statistics_stream_ << "Perf Test Info: num confirmed echoes " << num_confirmed_echoes_unsafe_ <<
+            "(" << setting_num_echoes_to_master_ << "), num sent echoes " << (current_echo_number_unsafe_ + 1) <<
+            "(" << setting_num_echoes_to_master_ << ")" << "<br>" << GW_ENDL;
+#endif
 
         LeaveCriticalSection(&cs_statistics_);
 
@@ -2516,6 +2534,8 @@ bool Gateway::CheckConfirmedEchoResponses(GatewayWorker* gw)
         // Checking that each echo is confirmed.
         if (confirmed_echoes_shared_[i] != true)
         {
+            GW_COUT << "Incorrect echo: " << i << GW_ENDL;
+
             // Failing test if echo is not confirmed.
             ShutdownTest(gw, false);
 
@@ -2533,16 +2553,23 @@ bool Gateway::CheckConfirmedEchoResponses(GatewayWorker* gw)
 uint32_t Gateway::ShutdownTest(GatewayWorker* gw, bool success)
 {
     // Checking if we are on the build server.
-    bool is_on_build_server = (NULL != std::getenv("SC_RUNNING_ON_BUILD_SERVER"));
+    char* envvar_str = std::getenv("SC_RUNNING_ON_BUILD_SERVER");
+    bool is_on_build_server = false;
+    if (envvar_str)
+    {
+        // Checking for exactly True value.
+        if (0 == strcmp(envvar_str, "True"))
+            is_on_build_server = true;
+    }
 
     if (success)
     {
+        GW_COUT << "Echo test finished successfully!" << GW_ENDL;
+
         int64_t test_finish_time = timeGetTime();
 
         // Test finished successfully, printing the results.
         int64_t ops_per_second = GetAverageOpsPerSecond();
-
-        GW_COUT << "Echo test finished successfully!" << GW_ENDL;
 
         GW_COUT << "Average number of ops per second: " << ops_per_second <<
             ". Took " << test_finish_time - test_begin_time_ << " ms." << GW_ENDL;
