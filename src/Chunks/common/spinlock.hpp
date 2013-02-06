@@ -439,14 +439,12 @@ public:
         ALWAYS_INLINE explicit scoped_lock(spinlock& spinlock, locker_id_type
 		locker_id, milliseconds abs_timeout)
         : spinlock_(spinlock), locked_(spinlock_.timed_lock(locker_id,
-		abs_timeout)) {}
+		abs_timeout)) {} /// "F"
 
 		/// Destructor releases the lock using spinlock::unlock() when the
 		/// object goes out of scope.
 		ALWAYS_INLINE ~scoped_lock() {
-			if (owns()) { /// DEBUG: CHECKING IF THIS HELPS.
-				unlock();
-			}
+			unlock();
 		}
 
 		/// try_lock() tries to acquire the lock without spinning. If the lock
