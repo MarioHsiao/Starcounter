@@ -91,6 +91,7 @@
     <Compile Include="RequestHandler\AstTree\AstCase.cs" />
     <Compile Include="RequestHandler\AstTree\AstInvoke.cs" />
     <Compile Include="RequestHandler\AstTree\AstTreeHelper.cs" />
+    <Compile Include="RequestHandler\AstTree\AstInline.cs" />
     <Compile Include="RequestHandler\AstTree\AstUnsafe.cs" />
     <Compile Include="RequestHandler\AstTree\AstValueJump.cs" />
     <Compile Include="RequestHandler\AstTree\AstVerifier.cs" />
