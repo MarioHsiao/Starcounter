@@ -294,6 +294,19 @@ namespace CheckBuildSystem
 
                 PolicyDescription = "All native projects must treat Warnings As Errors."
             },
+
+            new BuildSystemPolicy
+            {
+                FileTypes = new String[] { "*.csproj" },
+
+                IncorrectPatterns = null,
+
+                RequiredPatterns = new String[] { @"<DocumentationFile>.*\.XML</DocumentationFile>" },
+
+                FileExceptions = new String[] {  },
+
+                PolicyDescription = "All managed projects must have an XML documentation file."
+            },
         };
 
         static int Main(string[] args)
