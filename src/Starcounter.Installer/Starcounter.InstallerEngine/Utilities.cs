@@ -676,6 +676,7 @@ namespace Starcounter.InstallerEngine
         /// </summary>
         /// <param name="procNames">Names of processes.</param>
         /// Returns true if processes were killed.
+        /// <param name="silentKill"></param>
         public static Boolean KillDisturbingProcesses(String[] procNames, Boolean silentKill)
         {
             foreach (String procName in procNames)
