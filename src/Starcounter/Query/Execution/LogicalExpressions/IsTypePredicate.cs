@@ -166,7 +166,7 @@ namespace Starcounter.Query.Execution {
         }
 
         public RangePoint CreateRangePoint(Int32 extentNumber, String strPath) {
-            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
+            return null;
         }
         
         public ILogicalExpression Clone(VariableArray varArray) {
