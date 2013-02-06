@@ -78,6 +78,7 @@
   <ItemGroup>
     <Compile Include="Http\HttpRequestNext.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstElseIfList.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstError.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstIfCallSub.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstCodeStatement.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstNamespace.cs" />
