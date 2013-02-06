@@ -32,6 +32,19 @@ namespace Starcounter.Internal.Test {
     /// </summary>
     [TestFixture]
     class TestRoutes : RequestHandler {
+
+        public static void RegisterSimpleHandlers() {
+            Reset();
+            GET("/", () => {
+                Console.WriteLine("Root called");
+                return null;
+            });
+            GET("/{?}", (int x) => {
+                Console.WriteLine("Root int called with x " + x );
+                return null;
+            });
+        }
+
         public static void Main() {
             Reset();
 
@@ -280,6 +293,42 @@ namespace Starcounter.Internal.Test {
             ast.Namespace = "__urimatcher__";
             var compiler = umb.CreateCompiler();
             var str = compiler.GenerateRequestProcessorCppSourceCode(ast);
+
+            Console.WriteLine(str);
+
+        }
+
+
+        /// <summary>
+        /// Generates the request processor in the C++ language.
+        /// </summary>
+        [Test]
+        public void GenerateSimpleCppRequestProcessor() {
+            RegisterSimpleHandlers(); // Register some handlers
+            var umb = RequestHandler.UriMatcherBuilder;
+
+            var ast = umb.CreateAstTree();
+            ast.Namespace = "__urimatcher__";
+            var compiler = umb.CreateCompiler();
+            var str = compiler.GenerateRequestProcessorCppSourceCode(ast);
+
+            Console.WriteLine(str);
+
+        }
+
+
+        /// <summary>
+        /// Generates the request processor in the C++ language.
+        /// </summary>
+        [Test]
+        public void GenerateSimpleCsRequestProcessor() {
+            RegisterSimpleHandlers(); // Register some handlers
+            var umb = RequestHandler.UriMatcherBuilder;
+
+            var ast = umb.CreateAstTree();
+            ast.Namespace = "__urimatcher__";
+            var compiler = umb.CreateCompiler();
+            var str = compiler.GenerateRequestProcessorCSharpSourceCode(ast);
 
             Console.WriteLine(str);
 
