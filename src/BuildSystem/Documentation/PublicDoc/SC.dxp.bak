@@ -35,7 +35,6 @@
     <ContentFile FileName="Starcounter.MsBuild.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.MsBuild.dll" DocType="DX.NET" />
     <ContentFile FileName="Starcounter.REST.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.REST.dll" DocType="DX.NET" />
     <ContentFile FileName="Starcounter.Server.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.Server.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.VisualStudio.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.VisualStudio.dll" DocType="DX.NET" />
     <ContentFile FileName="Starcounter.XSON.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.XSON.dll" DocType="DX.NET" />
   </ContentFiles>
   <AutoDocFiles />
@@ -724,7 +723,6 @@
     <Assembly FileName="..\..\..\..\bin\Release\Starcounter.MsBuild.dll" RootTypeName="" />
     <Assembly FileName="..\..\..\..\bin\Release\Starcounter.REST.dll" RootTypeName="" />
     <Assembly FileName="..\..\..\..\bin\Release\Starcounter.Server.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.VisualStudio.dll" RootTypeName="" />
     <Assembly FileName="..\..\..\..\bin\Release\Starcounter.XSON.dll" RootTypeName="" />
   </DotNetAssemblies>
   <DatabaseProjectPlugin>
@@ -761,8 +759,20 @@
       <Name />
       <Description />
       <RootNodes>
-        <TocNode Name="" Id="9e30d2df-f8ca-4428-9e95-2fc355cac7dd" IconIndex="-1" IsNew="false" Target="" DependsOnItemTypeFilter="" DependsOnMinimumCount="0" DependsOnStillProcessChildNodes="false" BuildFlags="" DependsOnItemTypeName="" NodeType="ALLTEMPLATETOCS">
-          <ChildNodes />
+        <TocNode Name="" Id="15d61202-1278-48ce-b3e5-856cbea37258" IconIndex="-1" IsNew="false" Target="" DependsOnItemTypeName="" DependsOnItemTypeFilter="" DependsOnMinimumCount="0" DependsOnStillProcessChildNodes="false" BuildFlags="" NodeType="PROJECTITEM">
+          <CaptionTemplate />
+          <ChildNodes>
+            <TocNode Name="" Id="07ff2bc0-b1c1-4785-89c8-fa0f580f3bfb" IconIndex="-1" IsNew="false" Target="" DependsOnItemTypeName="" DependsOnItemTypeFilter="" DependsOnMinimumCount="0" DependsOnStillProcessChildNodes="false" BuildFlags="" NodeType="NOLINK">
+              <CaptionTemplate m="2013-02-07T15:33:27.2753089Z">Starcounter Framework</CaptionTemplate>
+              <ChildNodes>
+                <TocNode Name="" Id="9e30d2df-f8ca-4428-9e95-2fc355cac7dd" IconIndex="-1" IsNew="false" Target="" DependsOnItemTypeFilter="" DependsOnMinimumCount="0" DependsOnStillProcessChildNodes="false" BuildFlags="" DependsOnItemTypeName="" NodeType="ALLTEMPLATETOCS">
+                  <ChildNodes />
+                </TocNode>
+              </ChildNodes>
+            </TocNode>
+          </ChildNodes>
+          <TargetItemId>3e7b96c4-da04-4700-a606-e6c62af98062</TargetItemId>
+          <TargetItemBookmark></TargetItemBookmark>
         </TocNode>
       </RootNodes>
     </TocLayout>
@@ -774,6 +784,57 @@
         <ChildTopicCategories />
         <Topics />
       </TopicCategory>
+      <TopicCategory Id="8083d77f-709c-437c-b2fb-436f42d5ffb8" AutoIndex="false">
+        <Caption m="2013-02-06T15:45:51.5331677Z">General</Caption>
+        <ChildTopicCategories />
+        <Topics>
+          <Topic Id="3e7b96c4-da04-4700-a606-e6c62af98062" Status="New Topic" CreatedOn="2013-02-06T15:45:55.227483Z" ModifiedOn="2013-02-06T15:54:55.4701463Z" PageTypeName="" AutoIndex="true" HelpContextIds="" Name="Starcounter Public Documentation" BuildFlags="">
+            <Title />
+            <ContentsTitle />
+            <Notes></Notes>
+            <TopicSections>
+              <TopicSection Name="BodyText">
+                <Content m="2013-02-06T15:54:55.4701463Z">&lt;P&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;IMG border=0 alt="" src="images/acid_logo2.jpg"&gt;&lt;/P&gt;
+&lt;P&gt;&lt;/P&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;
+&lt;P&gt;&lt;/P&gt;
+&lt;H1&gt;Try the Starcounter 2.0 public beta&lt;/H1&gt;
+&lt;P&gt;&lt;/P&gt;
+&lt;P&gt;&lt;/P&gt;
+&lt;P&gt;&lt;/P&gt;
+&lt;UL&gt;
+&lt;LI&gt;&lt;IMG alt=check src="http://www.starcounter.com/Multimedia/Default/Images/check.png"&gt;&amp;nbsp;The world's fastest consistent database 
+&lt;LI&gt;&lt;IMG alt=check src="http://www.starcounter.com/Multimedia/Default/Images/check.png"&gt; A code-first approach: write less, achieve more 
+&lt;LI&gt;&lt;IMG alt=check src="http://www.starcounter.com/Multimedia/Default/Images/check.png"&gt; No O/R mapping needed 
+&lt;LI&gt;&lt;IMG alt=check src="http://www.starcounter.com/Multimedia/Default/Images/check.png"&gt; Give your server the power of a large data center&lt;/LI&gt;&lt;/UL&gt;
+&lt;P&gt;&lt;/P&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;
+&lt;P&gt;&lt;/P&gt;
+&lt;H2&gt;3,000,000 transactions per second on a standard server&lt;/H2&gt;
+&lt;P&gt;&lt;/P&gt;
+&lt;P&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;IMG alt=servers src="http://www.starcounter.com/Global/1/index_servers.png" width=339 height=95&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;/P&gt;
+&lt;P&gt;&lt;/P&gt;
+&lt;P&gt;Today the world's largest online stores depend on enormous server infrastructures.&lt;/P&gt;
+&lt;P&gt;&lt;/P&gt;
+&lt;P&gt;With Starcounter, a single server could be enough!!&lt;/P&gt;
+&lt;P&gt;&lt;/P&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;
+&lt;P&gt;&lt;/P&gt;&lt;?xml:namespace prefix = "innovasys" ns = "http://www.innovasys.com/widgets" /&gt;&lt;innovasys:widget type="Language Filtered Code Box (Tab Style)" layout="block"&gt;&lt;innovasys:widgetproperty layout="inline" name="Title"&gt;Title Text&lt;/innovasys:widgetproperty&gt; &lt;innovasys:widgetproperty layout="inline" name="LanguageName"&gt;CS&lt;/innovasys:widgetproperty&gt; &lt;innovasys:widgetproperty layout="block" name="Content"&gt;internal Process GetRunningWorkerProcess() {&lt;BR&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;var p = WorkerProcess;&lt;BR&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;if (p != null) {&lt;BR&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;p.Refresh();&lt;BR&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;p = p.HasExited ? null : p;&lt;BR&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;}&lt;BR&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;return p;&lt;BR&gt;}&lt;/innovasys:widgetproperty&gt;&lt;/innovasys:widget&gt;
+&lt;P&gt;&lt;/P&gt;&lt;innovasys:widget type="Note Box" layout="block"&gt;&lt;innovasys:widgetproperty layout="block" name="Content"&gt;Type your Note Box content here.&lt;/innovasys:widgetproperty&gt;&lt;/innovasys:widget&gt;
+&lt;P&gt;&lt;/P&gt;&lt;innovasys:widget type="Tip Box" layout="block"&gt;&lt;innovasys:widgetproperty layout="block" name="Content"&gt;Type your Tip Box content here.&lt;/innovasys:widgetproperty&gt;&lt;/innovasys:widget&gt;
+&lt;P&gt;&lt;/P&gt;&lt;innovasys:widget type="Caution Box" layout="block"&gt;&lt;innovasys:widgetproperty layout="block" name="Content"&gt;Type your Caution Box content here.&lt;/innovasys:widgetproperty&gt;&lt;/innovasys:widget&gt;
+&lt;P&gt;&lt;/P&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;&lt;innovasys:widget Content="Type your Expandable text content here." Heading="Heading Text" type="Expandable text" layout="inline"&gt;&lt;/innovasys:widget&gt;
+&lt;P&gt;&lt;/P&gt;
+&lt;P&gt;&lt;/P&gt;</Content>
+              </TopicSection>
+            </TopicSections>
+            <TopicLinks />
+            <TopicKeywords />
+            <PropertyDefinitionValues />
+          </Topic>
+        </Topics>
+      </TopicCategory>
     </TopicCategories>
     <CustomTopicPropertyDefinitions />
     <PropertyDefinitionValues />
@@ -782,6 +843,9 @@
     <AutoNameEnabled>false</AutoNameEnabled>
     <AutoNamePrefix></AutoNamePrefix>
     <IncludeTopicNameInTitle>false</IncludeTopicNameInTitle>
+    <TopicEditorState>
+      <Attributes />
+    </TopicEditorState>
   </TopicsProjectPlugin>
   <WidgetsProjectPlugin>
     <WidgetTypes Version="2011.1" />
