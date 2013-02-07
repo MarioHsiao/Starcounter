@@ -34,7 +34,7 @@
 
   <!-- Gateway global statistics port -->
   <GatewayStatisticsPort>12345</GatewayStatisticsPort>
-  
+
   <!-- Information on reverse proxies if any. -->
   <!--
   <ReverseProxies>
@@ -42,20 +42,23 @@
     <ReverseProxy>
       <ServerIP>69.16.244.74</ServerIP>
       <ServerPort>80</ServerPort>
-      <URI>/forum</URI>
+      <GatewayProxyPort>80</GatewayProxyPort>
+      <ServiceUri>/forum</ServiceUri>
     </ReverseProxy>
 
     <ReverseProxy>
       <ServerIP>69.16.244.74</ServerIP>
       <ServerPort>80</ServerPort>
-      <URI>/wiki</URI>
+      <GatewayProxyPort>80</GatewayProxyPort>
+      <ServiceUri>/wiki</ServiceUri>
     </ReverseProxy>
     
     <ReverseProxy>
       <ServerIP>69.16.244.74</ServerIP>
       <ServerPort>80</ServerPort>
-      <URI>/queue-signup.php</URI>
-    </ReverseProxy> 
+      <GatewayProxyPort>80</GatewayProxyPort>
+      <ServiceUri>/queue-signup.php</ServiceUri>
+    </ReverseProxy>
       
   </ReverseProxies>
   -->
