@@ -682,17 +682,18 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         while (proxy_node)
         {
             // Filling reverse proxy information.
-            reverse_proxies_[n].ip_ = proxy_node->first_node("ServerIP")->value();
-            reverse_proxies_[n].port_ = atoi(proxy_node->first_node("ServerPort")->value());
-            reverse_proxies_[n].uri_ = proxy_node->first_node("URI")->value();
-            reverse_proxies_[n].uri_len_ = reverse_proxies_[n].uri_.length();
+            reverse_proxies_[n].server_ip_ = proxy_node->first_node("ServerIP")->value();
+            reverse_proxies_[n].server_port_ = atoi(proxy_node->first_node("ServerPort")->value());
+            reverse_proxies_[n].gw_proxy_port_ = atoi(proxy_node->first_node("GatewayProxyPort")->value());
+            reverse_proxies_[n].service_uri_ = proxy_node->first_node("ServiceUri")->value();
+            reverse_proxies_[n].service_uri_len_ = reverse_proxies_[n].service_uri_.length();
 
             // Loading proxied servers.
             sockaddr_in* server_addr = &reverse_proxies_[n].addr_;
             memset(server_addr, 0, sizeof(sockaddr_in));
             server_addr->sin_family = AF_INET;
-            server_addr->sin_addr.s_addr = inet_addr(reverse_proxies_[n].ip_.c_str());
-            server_addr->sin_port = htons(reverse_proxies_[n].port_);
+            server_addr->sin_addr.s_addr = inet_addr(reverse_proxies_[n].server_ip_.c_str());
+            server_addr->sin_port = htons(reverse_proxies_[n].server_port_);
 
             // Getting next reverse proxy information.
             proxy_node = proxy_node->next_sibling("ReverseProxy");
@@ -1119,9 +1120,9 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
                 err_code = AddUriHandler(
                     &gw_workers_[0],
                     gw_handlers_,
-                    GATEWAY_TEST_PORT_NUMBER_SERVER,
-                    reverse_proxies_[i].uri_.c_str(),
-                    reverse_proxies_[i].uri_len_,
+                    reverse_proxies_[i].gw_proxy_port_,
+                    reverse_proxies_[i].service_uri_.c_str(),
+                    reverse_proxies_[i].service_uri_len_,
                     bmx::HTTP_METHODS::OTHER_METHOD,
                     bmx::INVALID_HANDLER_ID,
                     empty_db_index,

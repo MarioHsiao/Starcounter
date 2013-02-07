@@ -52,6 +52,7 @@ public static class SystemServerService
     /// <param name="user">The user under which the service should run.</param>
     /// <param name="password">The password to use by the system when logging on
     /// as the given <paramref name="user"/>.</param>
+    /// <param name="serviceName"></param>
     public static void Create(
         IntPtr serviceManagerHandle,
         string displayName,

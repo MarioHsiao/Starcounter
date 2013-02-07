@@ -251,11 +251,34 @@ namespace Starcounter.Server {
 
             var client = this.Server.DatabaseHostService.GetHostingInterface(database);
             if (!client.SendShutdown()) {
-                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Shutdown request to worker process unsuccessfull.");
+                // If the host actively refused to shut down, we never try to
+                // kill it by force. Instead, we raise an exception that will later
+                // be logged, describing this scenario.
+                throw ErrorCode.ToException(
+                    Error.SCERRCODEHOSTPROCESSREFUSEDSTOP, FormatWorkerProcessInfoString(database, process));
             }
 
-            process.WaitForExit();
-            process.Close();
+            // Wait for the user code process to exit. First wait for a short while,
+            // them write out a warning that it takes longer than expected. Then wait
+            // a little longer, and finally emit an error in the log, before we
+            // finally kill the process.
+            if (!process.WaitForExit(1000 * 5)) {
+                var log = ServerLogSources.Default;
+                var infoString = FormatWorkerProcessInfoString(database, process);
+                log.LogWarning("User code process takes longer than expected to exit. ({0})", infoString);
+                if (!process.WaitForExit(1000 * 15)) {
+                    // Emit the error and kill it.
+                    // Suffix the message with the information that we killed it, and
+                    // append the info about the database/process.
+                    log.LogError(ErrorCode.ToMessage(
+                        Error.SCERRCODEHOSTPROCESSNOTEXITED,
+                        string.Format("{0}. ({1})", "Killing it.", infoString)).ToString());
+                    process.Kill();
+                }
+            }
+            try {
+                process.Close();
+            } catch { }
 
             database.WorkerProcess = null;
             database.Apps.Clear();
@@ -338,6 +361,18 @@ namespace Starcounter.Server {
                 uri.DatabaseName.ToUpperInvariant()
                 );
             return processControlEventName;
+        }
+
+        string FormatWorkerProcessInfoString(Database database, Process process) {
+            string pid;
+            try {
+                pid = process.Id.ToString();
+            } catch {
+                pid = "N/A";
+            }
+
+            // Example: ScCode.exe, PID=123, Database=Foo
+            return string.Format("{0}, PID={1}, Database={2}", DatabaseEngine.WorkerProcessExeFileName, pid, database.Name);
         }
     }
 }
