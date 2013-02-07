@@ -32,6 +32,23 @@ namespace Starcounter.Internal.Test {
     /// </summary>
     [TestFixture]
     class TestRoutes : RequestHandler {
+
+        public static void RegisterSimpleHandlers() {
+            Reset();
+            GET("/", () => {
+                Console.WriteLine("Root called");
+                return null;
+            });
+            GET("/{?}", (int x) => {
+                Console.WriteLine("Root int called with x " + x );
+                return null;
+            });
+            GET("/{?}/{?}", (string a, int x) => {
+                Console.WriteLine("Root int called with string " + a + " and int " + x);
+                return null;
+            });
+        }
+
         public static void Main() {
             Reset();
 
@@ -219,7 +236,20 @@ namespace Starcounter.Internal.Test {
 
             Main(); // Register some handlers
             var umb = RequestHandler.UriMatcherBuilder;
-            var tree = umb.CreateAstTree();
+            var tree = umb.CreateAstTree(false);
+            tree.Namespace = "__urimatcher__";
+            Console.WriteLine(tree.ToString());
+        }
+
+
+        [Test]
+        public void GenerateAstTreeOverviewWithInline() {
+
+            Reset();
+
+            Main(); // Register some handlers
+            var umb = RequestHandler.UriMatcherBuilder;
+            var tree = umb.CreateAstTree(true);
             tree.Namespace = "__urimatcher__";
             Console.WriteLine(tree.ToString());
         }
@@ -258,7 +288,7 @@ namespace Starcounter.Internal.Test {
             Main(); // Register some handlers
             var umb = RequestHandler.UriMatcherBuilder;
 
-            var ast = umb.CreateAstTree();
+            var ast = umb.CreateAstTree(false);
             ast.Namespace = "__urimatcher__";
             var compiler = umb.CreateCompiler();
             var str = compiler.GenerateRequestProcessorCSharpSourceCode( ast );
@@ -276,10 +306,46 @@ namespace Starcounter.Internal.Test {
             Main(); // Register some handlers
             var umb = RequestHandler.UriMatcherBuilder;
 
-            var ast = umb.CreateAstTree();
+            var ast = umb.CreateAstTree(true);
             ast.Namespace = "__urimatcher__";
             var compiler = umb.CreateCompiler();
             var str = compiler.GenerateRequestProcessorCppSourceCode(ast);
+
+            Console.WriteLine(str);
+
+        }
+
+
+        /// <summary>
+        /// Generates the request processor in the C++ language.
+        /// </summary>
+        [Test]
+        public void GenerateSimpleCppRequestProcessor() {
+            RegisterSimpleHandlers(); // Register some handlers
+            var umb = RequestHandler.UriMatcherBuilder;
+
+            var ast = umb.CreateAstTree(true);
+            ast.Namespace = "__urimatcher__";
+            var compiler = umb.CreateCompiler();
+            var str = compiler.GenerateRequestProcessorCppSourceCode(ast);
+
+            Console.WriteLine(str);
+
+        }
+
+
+        /// <summary>
+        /// Generates the request processor in the C++ language.
+        /// </summary>
+        [Test]
+        public void GenerateSimpleCsRequestProcessor() {
+            RegisterSimpleHandlers(); // Register some handlers
+            var umb = RequestHandler.UriMatcherBuilder;
+
+            var ast = umb.CreateAstTree(false);
+            ast.Namespace = "__urimatcher__";
+            var compiler = umb.CreateCompiler();
+            var str = compiler.GenerateRequestProcessorCSharpSourceCode(ast);
 
             Console.WriteLine(str);
 
@@ -399,7 +465,7 @@ namespace Starcounter.Internal.Test {
             var umb = RequestHandler.UriMatcherBuilder;
 
             var pt = umb.CreateParseTree();
-            var ast = umb.CreateAstTree();
+            var ast = umb.CreateAstTree(false);
             var compiler = umb.CreateCompiler();
             var str = compiler.GenerateRequestProcessorCSharpSourceCode(ast);
 
