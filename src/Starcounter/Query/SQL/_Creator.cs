@@ -161,13 +161,13 @@ namespace Starcounter.Query.Sql
             Debug.Assert(newAnalyzer.JoinTree.AssertEquals(nodeTree), "Join trees are not the same!");
             Debug.Assert(newAnalyzer.WhereCondition.AssertEquals(conditionDict), "Logical conditions are not the same!");
             if (newAnalyzer.FetchNumExpr == null)
-                Debug.Assert(fetchNumExpr == null, "Fetch limit expression is not expected to be null.");
+                Debug.Assert(fetchNumExpr == null, "Fetch limit expression is expected to be null.");
             else
                 Debug.Assert(newAnalyzer.FetchNumExpr.AssertEquals(fetchNumExpr), "Fetch limit expression is not the same!");
             if (newAnalyzer.FetchOffsetKeyExpr == null)
-                Debug.Assert(fetchOffsetKeyExpr == null, "Fetch offset expression is not expected to be null.");
+                Debug.Assert(fetchOffsetKeyExpr == null, "Fetch offset key expression is expected to be null.");
             else
-                Debug.Assert(newAnalyzer.FetchOffsetKeyExpr.AssertEquals(fetchOffsetKeyExpr), "Fetch offset expression is not the same");
+                Debug.Assert(newAnalyzer.FetchOffsetKeyExpr.AssertEquals(fetchOffsetKeyExpr), "Fetch offset key expression is not the same");
             Debug.Assert(newAnalyzer.HintSpec.AssertEquals(hintSpec), "Hint expressions are not the same");
             prologParsedQueryPlan = Optimizer.Optimize(nodeTree, conditionDict, fetchNumExpr, fetchOffsetKeyExpr, hintSpec);
             newAnalyzer.Optimize();
