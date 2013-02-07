@@ -323,8 +323,9 @@ namespace Starcounter.Query.RawParserAnalyzer
 
         // Proper error should be returned from here.
         internal unsafe void UnknownNode(Node* node) {
-            throw GetSqlException(Error.SCERRSQLNOTIMPLEMENTED, "The statement or clause is not implemented. " + LocationMessageForError(node),
-                UnmanagedParserInterface.Location(node), node->type.ToString());
+            throw new SQLParserAssertException();
+            //throw GetSqlException(Error.SCERRSQLNOTIMPLEMENTED, "The statement or clause is not implemented. " + LocationMessageForError(node),
+            //    UnmanagedParserInterface.Location(node), node->type.ToString());
         }
 
         /// <summary>
