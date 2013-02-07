@@ -35,7 +35,6 @@
     <ContentFile FileName="Starcounter.MsBuild.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.MsBuild.dll" DocType="DX.NET" />
     <ContentFile FileName="Starcounter.REST.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.REST.dll" DocType="DX.NET" />
     <ContentFile FileName="Starcounter.Server.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.Server.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.VisualStudio.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.VisualStudio.dll" DocType="DX.NET" />
     <ContentFile FileName="Starcounter.XSON.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.XSON.dll" DocType="DX.NET" />
   </ContentFiles>
   <AutoDocFiles />
@@ -724,7 +723,6 @@
     <Assembly FileName="..\..\..\..\bin\Release\Starcounter.MsBuild.dll" RootTypeName="" />
     <Assembly FileName="..\..\..\..\bin\Release\Starcounter.REST.dll" RootTypeName="" />
     <Assembly FileName="..\..\..\..\bin\Release\Starcounter.Server.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.VisualStudio.dll" RootTypeName="" />
     <Assembly FileName="..\..\..\..\bin\Release\Starcounter.XSON.dll" RootTypeName="" />
   </DotNetAssemblies>
   <DatabaseProjectPlugin>
@@ -761,8 +759,20 @@
       <Name />
       <Description />
       <RootNodes>
-        <TocNode Name="" Id="9e30d2df-f8ca-4428-9e95-2fc355cac7dd" IconIndex="-1" IsNew="false" Target="" DependsOnItemTypeFilter="" DependsOnMinimumCount="0" DependsOnStillProcessChildNodes="false" BuildFlags="" DependsOnItemTypeName="" NodeType="ALLTEMPLATETOCS">
-          <ChildNodes />
+        <TocNode Name="" Id="15d61202-1278-48ce-b3e5-856cbea37258" IconIndex="-1" IsNew="false" Target="" DependsOnItemTypeName="" DependsOnItemTypeFilter="" DependsOnMinimumCount="0" DependsOnStillProcessChildNodes="false" BuildFlags="" NodeType="PROJECTITEM">
+          <CaptionTemplate />
+          <ChildNodes>
+            <TocNode Name="" Id="07ff2bc0-b1c1-4785-89c8-fa0f580f3bfb" IconIndex="-1" IsNew="false" Target="" DependsOnItemTypeName="" DependsOnItemTypeFilter="" DependsOnMinimumCount="0" DependsOnStillProcessChildNodes="false" BuildFlags="" NodeType="NOLINK">
+              <CaptionTemplate m="2013-02-07T15:33:27.2753089Z">Starcounter Framework</CaptionTemplate>
+              <ChildNodes>
+                <TocNode Name="" Id="9e30d2df-f8ca-4428-9e95-2fc355cac7dd" IconIndex="-1" IsNew="false" Target="" DependsOnItemTypeFilter="" DependsOnMinimumCount="0" DependsOnStillProcessChildNodes="false" BuildFlags="" DependsOnItemTypeName="" NodeType="ALLTEMPLATETOCS">
+                  <ChildNodes />
+                </TocNode>
+              </ChildNodes>
+            </TocNode>
+          </ChildNodes>
+          <TargetItemId>3e7b96c4-da04-4700-a606-e6c62af98062</TargetItemId>
+          <TargetItemBookmark></TargetItemBookmark>
         </TocNode>
       </RootNodes>
     </TocLayout>
