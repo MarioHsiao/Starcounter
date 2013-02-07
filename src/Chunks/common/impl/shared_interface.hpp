@@ -53,11 +53,6 @@ inline shared_interface::~shared_interface() {
 	for (std::size_t i = 0; i < max_number_of_schedulers; ++i) {
 		close_scheduler_work_event(i);
 	}
-	
-#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-	close_shared_chunk_pool_not_full_event();
-	close_shared_chunk_pool_not_empty_event();
-#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 }
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 
@@ -102,11 +97,6 @@ monitor_interface_name, pid_type pid, owner_id oid) {
 		}
 	}
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-
-#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-	open_shared_chunk_pool_not_full_event();
-	open_shared_chunk_pool_not_empty_event();
-#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 }
 
 inline std::string shared_interface::get_segment_name() const {
@@ -241,32 +231,20 @@ inline void shared_interface::release_channel(channel_number the_channel_number)
 inline bool shared_interface::client_acquire_linked_chunks(chunk_index& head,
 std::size_t size, uint32_t timeout_milliseconds) { /// "A"
 	return shared_chunk_pool_->acquire_linked_chunks(chunk_, head, size,
-	client_interface_, timeout_milliseconds
-#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-	, shared_chunk_pool_not_full_event()
-#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-	);
+	client_interface_, timeout_milliseconds);
 }
 
 inline bool shared_interface::client_acquire_linked_chunks_counted(chunk_index&
 head, std::size_t size, uint32_t timeout_milliseconds) { /// "B"
 	return shared_chunk_pool_->acquire_linked_chunks_counted(chunk_, head, size,
-	client_interface_, timeout_milliseconds
-#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-	, shared_chunk_pool_not_full_event()
-#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-	);
+	client_interface_, timeout_milliseconds);
 }
 
 // TODO: Rename to release_linked_chunks()
 inline bool shared_interface::client_release_linked_chunks(chunk_index& head,
 uint32_t timeout_milliseconds) { /// "C"
 	return shared_chunk_pool_->release_linked_chunks(chunk_, head,
-	client_interface_, timeout_milliseconds
-#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-	, shared_chunk_pool_not_empty_event()
-#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-	);
+	client_interface_, timeout_milliseconds);
 }
 
 //------------------------------------------------------------------------------
@@ -275,11 +253,7 @@ inline std::size_t shared_interface::acquire_from_shared_to_private(U&
 private_chunk_pool, std::size_t chunks_to_acquire, client_interface_type*
 client_interface_ptr, uint32_t timeout_milliseconds) {
 	return shared_chunk_pool_->acquire_to_chunk_pool(private_chunk_pool,
-	chunks_to_acquire, client_interface_ptr, timeout_milliseconds
-#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-	, shared_chunk_pool_not_full_event()
-#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-	);
+	chunks_to_acquire, client_interface_ptr, timeout_milliseconds);
 }
 
 template<typename U>
@@ -287,11 +261,7 @@ inline std::size_t shared_interface::release_from_private_to_shared(U&
 private_chunk_pool, std::size_t chunks_to_release, client_interface_type*
 client_interface_ptr, uint32_t timeout_milliseconds) {
 	return shared_chunk_pool_->release_from_chunk_pool(private_chunk_pool,
-	chunks_to_release, client_interface_ptr, timeout_milliseconds
-#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-	, shared_chunk_pool_not_empty_event()
-#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-	);
+	chunks_to_release, client_interface_ptr, timeout_milliseconds);
 }
 
 //------------------------------------------------------------------------------
@@ -552,57 +522,6 @@ inline const HANDLE& shared_interface::scheduler_number_pool_not_full_event
 #endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 
 #endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-
-#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-inline HANDLE& shared_interface::open_shared_chunk_pool_not_full_event() {
-	// Not checking if the event is already open.
-	if ((shared_chunk_pool_not_full_event() = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
-	FALSE, shared_chunk_pool().not_full_notify_name())) == NULL) {
-		// Failed to open the event.
-		std::cout << "shared_interface::open_shared_chunk_pool_not_full_event(): "
-		"Failed to open event. OS error: " << GetLastError() << "\n"; /// DEBUG
-		return shared_chunk_pool_not_full_event() = 0; // throw exception
-	}
-	return shared_chunk_pool_not_full_event();
-}
-	
-inline void shared_interface::close_shared_chunk_pool_not_full_event() {
-	shared_chunk_pool_not_full_event() = 0;
-}
-
-inline HANDLE& shared_interface::open_shared_chunk_pool_not_empty_event() {
-	// Not checking if the event is already open.
-	if ((shared_chunk_pool_not_empty_event() = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
-	FALSE, shared_chunk_pool().not_empty_notify_name())) == NULL) {
-		// Failed to open the event.
-		std::cout << "shared_interface::open_shared_chunk_pool_not_empty_event(): "
-		"Failed to open event. OS error: " << GetLastError() << "\n"; /// DEBUG
-		return shared_chunk_pool_not_empty_event() = 0; // throw exception
-	}
-	return shared_chunk_pool_not_empty_event();
-}
-
-inline void shared_interface::close_shared_chunk_pool_not_empty_event() {
-	shared_chunk_pool_not_empty_event() = 0;
-}
-
-///---
-inline HANDLE& shared_interface::shared_chunk_pool_not_full_event() {
-	return shared_chunk_pool_not_full_;
-}
-
-inline const HANDLE& shared_interface::shared_chunk_pool_not_full_event() const {
-	return shared_chunk_pool_not_full_;
-}
-
-inline HANDLE& shared_interface::shared_chunk_pool_not_empty_event() {
-	return shared_chunk_pool_not_empty_;
-}
-
-inline const HANDLE& shared_interface::shared_chunk_pool_not_empty_event() const {
-	return shared_chunk_pool_not_empty_;
-}
-#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 
 inline uint32_t shared_interface::send_to_server_and_wait_response(uint32_t ch,
 uint32_t request, uint32_t& response, uint32_t spin, uint32_t timeout) {
