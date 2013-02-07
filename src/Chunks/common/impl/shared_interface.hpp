@@ -93,15 +93,6 @@ monitor_interface_name, pid_type pid, owner_id oid) {
 			}
 		}
 	}
-<<<<<<< HEAD
-
-#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-	open_shared_chunk_pool_not_full_event();
-	open_shared_chunk_pool_not_empty_event();
-#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-=======
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
->>>>>>> cd85b514f1db7db8af7de91f4356fc8c66001d71
 }
 
 inline std::string shared_interface::get_segment_name() const {
@@ -515,60 +506,6 @@ inline const HANDLE& shared_interface::scheduler_number_pool_not_full_event
 }
 #endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 
-
-<<<<<<< HEAD
-#if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-inline HANDLE& shared_interface::open_shared_chunk_pool_not_full_event() {
-	// Not checking if the event is already open.
-	if ((shared_chunk_pool_not_full_event() = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
-	FALSE, shared_chunk_pool().not_full_notify_name())) == NULL) {
-		// Failed to open the event.
-		std::cout << "shared_interface::open_shared_chunk_pool_not_full_event(): "
-		"Failed to open event. OS error: " << GetLastError() << "\n"; /// DEBUG
-		return shared_chunk_pool_not_full_event() = 0; // throw exception
-	}
-	return shared_chunk_pool_not_full_event();
-}
-	
-inline void shared_interface::close_shared_chunk_pool_not_full_event() {
-	shared_chunk_pool_not_full_event() = 0;
-}
-
-inline HANDLE& shared_interface::open_shared_chunk_pool_not_empty_event() {
-	// Not checking if the event is already open.
-	if ((shared_chunk_pool_not_empty_event() = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
-	FALSE, shared_chunk_pool().not_empty_notify_name())) == NULL) {
-		// Failed to open the event.
-		std::cout << "shared_interface::open_shared_chunk_pool_not_empty_event(): "
-		"Failed to open event. OS error: " << GetLastError() << "\n"; /// DEBUG
-		return shared_chunk_pool_not_empty_event() = 0; // throw exception
-	}
-	return shared_chunk_pool_not_empty_event();
-}
-
-inline void shared_interface::close_shared_chunk_pool_not_empty_event() {
-	shared_chunk_pool_not_empty_event() = 0;
-}
-
-///---
-inline HANDLE& shared_interface::shared_chunk_pool_not_full_event() {
-	return shared_chunk_pool_not_full_;
-}
-
-inline const HANDLE& shared_interface::shared_chunk_pool_not_full_event() const {
-	return shared_chunk_pool_not_full_;
-}
-
-inline HANDLE& shared_interface::shared_chunk_pool_not_empty_event() {
-	return shared_chunk_pool_not_empty_;
-}
-
-inline const HANDLE& shared_interface::shared_chunk_pool_not_empty_event() const {
-	return shared_chunk_pool_not_empty_;
-}
-#endif // defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-=======
->>>>>>> cd85b514f1db7db8af7de91f4356fc8c66001d71
 inline uint32_t shared_interface::send_to_server_and_wait_response(uint32_t ch,
 uint32_t request, uint32_t& response, uint32_t spin, uint32_t timeout) {
 	// Get a reference to the channel.
