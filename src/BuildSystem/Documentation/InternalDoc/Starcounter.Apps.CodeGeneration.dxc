@@ -1,24 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ContentFile Version="2010" Moniker="..\..\..\..\bin\Debug\Starcounter.Apps.CodeGeneration.dll" DocType="DX.NET" IsLocalizationDisabled="false">
+<ContentFile Version="2010" Moniker="..\..\..\..\bin\Release\Starcounter.Apps.CodeGeneration.dll" DocType="DX.NET" IsLocalizationDisabled="false">
   <RelatedProject>SC.dxp</RelatedProject>
   <State>
     <Attributes />
   </State>
-  <LastSelectedItem></LastSelectedItem>
-  <Filters>
-    <CONTENTSTORECOMMON>
-      <IsIncludedItemsOnly>true</IsIncludedItemsOnly>
-    </CONTENTSTORECOMMON>
-    <CONTENTSTORELOCALIZATION>
-      <IsPrimaryLocaleContentPreviewEnabled>true</IsPrimaryLocaleContentPreviewEnabled>
-    </CONTENTSTORELOCALIZATION>
-    <DX.NETCONTENTSTOREFILTER>
-      <ShowProtectedMembers>true</ShowProtectedMembers>
-      <ShowProtectedFriendMembers>true</ShowProtectedFriendMembers>
-      <ShowFriendMembers>false</ShowFriendMembers>
-      <ShowPrivateMembers>false</ShowPrivateMembers>
-      <ShowInheritedMembers>false</ShowInheritedMembers>
-      <IsSourceCodeContentVisible>true</IsSourceCodeContentVisible>
-    </DX.NETCONTENTSTOREFILTER>
-  </Filters>
+  <LastSelectedItem />
+  <Filters />
 </ContentFile>
