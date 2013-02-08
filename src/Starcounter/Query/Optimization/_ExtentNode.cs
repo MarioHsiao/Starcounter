@@ -202,8 +202,6 @@ internal class ExtentNode : IOptimizationNode
             }
             i++;
         }
-                        // Not possible
-                        // Equivalent to UNKNOWNTYPE
         // Try to find an appropriate index for an index scan.
         // Collect all comparisons with paths that might be used for index scans.
         List<IComparison> comparisonList = new List<IComparison>();
@@ -238,7 +236,6 @@ internal class ExtentNode : IOptimizationNode
         {
             extentIndexInfo = indexInfoArr[0]; // Currently, it is always auto-generated index
         }
-        // Find most subtype type among IS predicates. Might be false result, when predicates conflict with each other
     }
 
     private Int32 EvaluateIndex(IndexInfo indexInfo, List<IComparison> comparisonList, out Int32 usedArity)
