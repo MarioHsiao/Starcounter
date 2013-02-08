@@ -2181,10 +2181,6 @@ namespace Starcounter.Query.Sql
             IVariable variable = varArray.GetElement(number);
             if (variable == null)
             {
-                // TEMP PI130207
-                ITypeBinding temp = TypeRepository.GetTypeBinding("Starcounter.Entity");
-                temp = TypeRepository.GetTypeBinding("Entity");
-
                 ObjectVariable objVariable = new ObjectVariable(number, TypeRepository.GetTypeBinding(typeTerm.Name));
                 varArray.SetElement(number, objVariable);
                 return objVariable;
