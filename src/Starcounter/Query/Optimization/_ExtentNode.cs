@@ -263,15 +263,16 @@ internal class ExtentNode : IOptimizationNode
                 bestValue = currentValue;
             }
         }
-        // If index access is found then do nothing about IS type predicate, just keep all filters
-        // If full scan is going to be used then do full scan on type of IS predicate, which is more specific.
-
         // Save an index to be used for an extent scan (index scan over the whole extent).
         if (indexInfoArr.Length > 0) {
             extentIndexInfo = indexInfoArr[0]; // Currently, it is always auto-generated index
         }
 
         // If the extent type is supertype to type in IS predicate, then try to find index on the type of IS predicate.
+    }
+
+    private Boolean FindSetBestIndex(TypeBinding typeBinding) {
+        return false;
     }
 
     private Int32 EvaluateIndex(IndexInfo indexInfo, List<IComparison> comparisonList, out Int32 usedArity)
