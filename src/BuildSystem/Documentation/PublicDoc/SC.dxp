@@ -883,17 +883,17 @@
         <NoInheritedMemberTopicsExternal>true</NoInheritedMemberTopicsExternal>
         <NoInheritedInLists>false</NoInheritedInLists>
         <ExcludeEditorBrowsable>true</ExcludeEditorBrowsable>
-        <ExcludeBrowsableFalse>false</ExcludeBrowsableFalse>
-        <ExcludeObsolete>false</ExcludeObsolete>
-        <ExcludeCompilerGenerated>false</ExcludeCompilerGenerated>
-        <ExcludeDebuggerNonUserCode>false</ExcludeDebuggerNonUserCode>
+        <ExcludeBrowsableFalse>true</ExcludeBrowsableFalse>
+        <ExcludeObsolete>true</ExcludeObsolete>
+        <ExcludeCompilerGenerated>true</ExcludeCompilerGenerated>
+        <ExcludeDebuggerNonUserCode>true</ExcludeDebuggerNonUserCode>
         <GenerateXmlCommentFile>false</GenerateXmlCommentFile>
         <IncludeBreadcrumbs>true</IncludeBreadcrumbs>
         <IncludeAssemblyBreadcrumb>false</IncludeAssemblyBreadcrumb>
         <IncludePrivateMembers>false</IncludePrivateMembers>
         <IncludeFriendMembers>false</IncludeFriendMembers>
         <IncludeProtectedFriendMembers>false</IncludeProtectedFriendMembers>
-        <IncludeProtectedMembers>true</IncludeProtectedMembers>
+        <IncludeProtectedMembers>false</IncludeProtectedMembers>
         <IncludeAttributes>true</IncludeAttributes>
         <AttributeFilterType>Exclude</AttributeFilterType>
         <AttributeFilter></AttributeFilter>
@@ -927,9 +927,9 @@
         <IncludeConstructorsOnAbstractTypes>false</IncludeConstructorsOnAbstractTypes>
         <TemplateName>2012 Style</TemplateName>
         <ExcludeAllPrivateTypes>true</ExcludeAllPrivateTypes>
-        <ExcludeAllFriendTypes>false</ExcludeAllFriendTypes>
-        <ExcludeAllProtectedTypes>false</ExcludeAllProtectedTypes>
-        <ExcludeAllProtectedFriendTypes>false</ExcludeAllProtectedFriendTypes>
+        <ExcludeAllFriendTypes>true</ExcludeAllFriendTypes>
+        <ExcludeAllProtectedTypes>true</ExcludeAllProtectedTypes>
+        <ExcludeAllProtectedFriendTypes>true</ExcludeAllProtectedFriendTypes>
         <SyntaxSectionStyle>TemplateDefault</SyntaxSectionStyle>
         <IsVbSyntaxMerged>false</IsVbSyntaxMerged>
         <IncludeMemberIndexKeywords>false</IncludeMemberIndexKeywords>
