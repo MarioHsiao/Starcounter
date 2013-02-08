@@ -148,6 +148,11 @@ div.responsive-container
 {
 	margin-left: -10px;
 }
+
+img 
+{
+	max-width: 100%;
+}
 p.hs-toggler
 {
 	margin-top: 2em;

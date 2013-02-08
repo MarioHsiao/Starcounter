@@ -50,7 +50,7 @@ function hsFixUrl(url) {
         }
         else {
             // Relative url in MSHV 2.0
-            originalUrl = url.replace("/", "\\");
+            originalUrl = url.replace(new RegExp("/", "g"), "\\");
         }
         if (originalUrl.indexOf("/help/") != -1) {
             originalUrl = originalUrl.substring(originalUrl.indexOf("/", originalUrl.indexOf("/help/") + 5), originalUrl.length);
