@@ -55,12 +55,12 @@ namespace IndexQueryTest {
             // Several IS type expressions
             nrObjects = 0;
             InheritedIndexTest.PrintQueryPlan("select p from Employee p  where p is ?");
-            foreach (Employee e in Db.SQL("select p from Employee p  where p is ? and p is  ?", typeof(Manager), typeof(Teacher)))
+            foreach (Employee e in Db.SQL("select p from Employee p  where p is ? and p is  ?", typeof(Professor), typeof(Teacher)))
                 nrObjects++;
-            Trace.Assert(nrObjects == InheritedIndexTest.TotalTeachers);
+            Trace.Assert(nrObjects == InheritedIndexTest.nrProfessors);
             nrObjects = 0;
-            InheritedIndexTest.PrintQueryPlan("select p from Employee p  where p is ?");
-            foreach (Employee e in Db.SQL("select p from Employee p  where p is ? and p is  ?", typeof(Manager), typeof(Student)))
+            InheritedIndexTest.PrintQueryPlan("select p from Employee p  where p is ? and p is  ?");
+            foreach (Employee e in Db.SQL("select p from Employee p  where p is ? and p is  ?", typeof(Manager), typeof(Teacher)))
                 nrObjects++;
             Trace.Assert(nrObjects == 0);
             // Join
