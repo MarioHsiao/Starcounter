@@ -37,20 +37,33 @@ namespace IndexQueryTest {
             foreach (Employee e in Db.SQL("select p from Employee p  where p IS Manager"))
                 nrObjects++;
             Trace.Assert(nrObjects == InheritedIndexTest.nrManagers);
-            // Object variable and type identifier
+            // Object expression and type variable
             nrObjects = 0;
-            InheritedIndexTest.PrintQueryPlan("select p from Employee p  where ? is Employer"); // use index
-            foreach (Employee e in Db.SQL("select p from Employee p  where ? is Employer", company))
+            InheritedIndexTest.PrintQueryPlan("select p from Employee p  where p is ?");
+            foreach (Employee e in Db.SQL("select p from Employee p  where p is ?", typeof(Manager)))
                 nrObjects++;
             Trace.Assert(nrObjects == InheritedIndexTest.nrManagers);
-            // Object expression and type variable
-            // Object variable and type variable
+            nrObjects = 0;
+            InheritedIndexTest.PrintQueryPlan("select p from Manager p  where p is ?");
+            foreach (Employee e in Db.SQL("select p from Manager p  where p is ?", typeof(Manager)))
+                nrObjects++;
+            Trace.Assert(nrObjects == InheritedIndexTest.nrManagers);
+            InheritedIndexTest.PrintQueryPlan("select p from Professor p  where p is ?");
+            foreach (Employee e in Db.SQL("select p from Professor p  where p is ?", typeof(Manager)))
+                nrObjects++;
+            Trace.Assert(nrObjects == InheritedIndexTest.nrProfessors);
             // Several IS type expressions
             nrObjects = 0;
-            InheritedIndexTest.PrintQueryPlan("select p from Employee p  where p IS Manager and ? is Employer"); // use index
-            foreach (Employee e in Db.SQL("select p from Employee p  where p IS Manager and ? is Employer", company))
+            InheritedIndexTest.PrintQueryPlan("select p from Employee p  where p is ?");
+            foreach (Employee e in Db.SQL("select p from Employee p  where p is ? and p is  ?", typeof(Manager), typeof(Teacher)))
                 nrObjects++;
-            Trace.Assert(nrObjects == InheritedIndexTest.nrManagers);
+            Trace.Assert(nrObjects == InheritedIndexTest.TotalTeachers);
+            nrObjects = 0;
+            InheritedIndexTest.PrintQueryPlan("select p from Employee p  where p is ?");
+            foreach (Employee e in Db.SQL("select p from Employee p  where p is ? and p is  ?", typeof(Manager), typeof(Student)))
+                nrObjects++;
+            Trace.Assert(nrObjects == 0);
+            // Join
         }
     }
 }
