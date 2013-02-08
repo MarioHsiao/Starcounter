@@ -35,7 +35,6 @@
     <ContentFile FileName="Starcounter.MsBuild.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.MsBuild.dll" DocType="DX.NET" />
     <ContentFile FileName="Starcounter.REST.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.REST.dll" DocType="DX.NET" />
     <ContentFile FileName="Starcounter.Server.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.Server.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.VisualStudio.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.VisualStudio.dll" DocType="DX.NET" />
     <ContentFile FileName="Starcounter.XSON.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.XSON.dll" DocType="DX.NET" />
   </ContentFiles>
   <AutoDocFiles />
@@ -764,7 +763,6 @@
     <Assembly FileName="..\..\..\..\bin\Release\Starcounter.MsBuild.dll" RootTypeName="" />
     <Assembly FileName="..\..\..\..\bin\Release\Starcounter.REST.dll" RootTypeName="" />
     <Assembly FileName="..\..\..\..\bin\Release\Starcounter.Server.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.VisualStudio.dll" RootTypeName="" />
     <Assembly FileName="..\..\..\..\bin\Release\Starcounter.XSON.dll" RootTypeName="" />
   </DotNetAssemblies>
   <DatabaseProjectPlugin>
@@ -1391,17 +1389,17 @@
         <UseExternalXmlCommentFiles>false</UseExternalXmlCommentFiles>
         <NoInheritedMemberTopicsExternal>true</NoInheritedMemberTopicsExternal>
         <NoInheritedInLists>false</NoInheritedInLists>
-        <ExcludeEditorBrowsable>true</ExcludeEditorBrowsable>
+        <ExcludeEditorBrowsable>false</ExcludeEditorBrowsable>
         <ExcludeBrowsableFalse>false</ExcludeBrowsableFalse>
         <ExcludeObsolete>false</ExcludeObsolete>
         <ExcludeCompilerGenerated>false</ExcludeCompilerGenerated>
         <ExcludeDebuggerNonUserCode>false</ExcludeDebuggerNonUserCode>
         <GenerateXmlCommentFile>false</GenerateXmlCommentFile>
         <IncludeBreadcrumbs>true</IncludeBreadcrumbs>
-        <IncludeAssemblyBreadcrumb>false</IncludeAssemblyBreadcrumb>
-        <IncludePrivateMembers>false</IncludePrivateMembers>
-        <IncludeFriendMembers>false</IncludeFriendMembers>
-        <IncludeProtectedFriendMembers>false</IncludeProtectedFriendMembers>
+        <IncludeAssemblyBreadcrumb>true</IncludeAssemblyBreadcrumb>
+        <IncludePrivateMembers>true</IncludePrivateMembers>
+        <IncludeFriendMembers>true</IncludeFriendMembers>
+        <IncludeProtectedFriendMembers>true</IncludeProtectedFriendMembers>
         <IncludeProtectedMembers>true</IncludeProtectedMembers>
         <IncludeAttributes>true</IncludeAttributes>
         <AttributeFilterType>Exclude</AttributeFilterType>
@@ -1433,9 +1431,9 @@
         <LinkOverriddenMembersToBaseImplementation>false</LinkOverriddenMembersToBaseImplementation>
         <GenericIndicator>ArgumentsInBrackets</GenericIndicator>
         <RootAssemblyName></RootAssemblyName>
-        <IncludeConstructorsOnAbstractTypes>false</IncludeConstructorsOnAbstractTypes>
+        <IncludeConstructorsOnAbstractTypes>true</IncludeConstructorsOnAbstractTypes>
         <TemplateName>2012 Style</TemplateName>
-        <ExcludeAllPrivateTypes>true</ExcludeAllPrivateTypes>
+        <ExcludeAllPrivateTypes>false</ExcludeAllPrivateTypes>
         <ExcludeAllFriendTypes>false</ExcludeAllFriendTypes>
         <ExcludeAllProtectedTypes>false</ExcludeAllProtectedTypes>
         <ExcludeAllProtectedFriendTypes>false</ExcludeAllProtectedFriendTypes>
