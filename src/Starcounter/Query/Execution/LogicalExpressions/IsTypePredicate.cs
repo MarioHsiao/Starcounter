@@ -58,6 +58,10 @@ namespace Starcounter.Query.Execution {
             }
         }
 
+        internal ITypeBinding GetTypeBinding() {
+            return typeBinding == null ? typeExpr.EvaluateToType(null) : typeBinding;
+        }
+
         public Boolean InvolvesCodeExecution() {
             return objExpr.InvolvesCodeExecution();
         }
@@ -163,6 +167,20 @@ namespace Starcounter.Query.Execution {
         /// <returns>A path, if an appropriate path is found, otherwise null.</returns>
         public IPath GetPathTo(Int32 extentNum) {
             return null;
+        }
+
+        internal IsTypeCompare CompareTypeTo(IsTypePredicate otherPredicate) {
+            TypeBinding thisType = this.typeExpr.EvaluateToType(null) as TypeBinding;
+            TypeBinding otherType = otherPredicate.GetTypeBinding() as TypeBinding;
+            if (thisType == null || otherType == null)
+                return IsTypeCompare.FALSE;
+            if (thisType.LowerName == otherType.LowerName)
+                return IsTypeCompare.EQUAL;
+            if (thisType.SubTypeOf(otherType))
+                return IsTypeCompare.SUBTYPE;
+            else if (otherType.SubTypeOf(thisType))
+                return IsTypeCompare.SUPERTYPE;
+            else return IsTypeCompare.FALSE;
         }
 
         public RangePoint CreateRangePoint(Int32 extentNumber, String strPath) {
