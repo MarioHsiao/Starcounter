@@ -186,6 +186,10 @@ div#seealsoSectionContent p a:nth-child(odd)
 	margin-bottom: 6px;
 }
 
+img 
+{
+	max-width: 100%;
+}
 div.communityratingcontainer, div#communityFooter, div#communityPhrases
 {
 	display: none;

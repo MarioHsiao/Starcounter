@@ -171,7 +171,7 @@ namespace Starcounter.Query.Execution {
         
         public ILogicalExpression Clone(VariableArray varArray) {
             if (typeExpr != null)
-                return new IsTypePredicate(compOperator, objExpr.CloneToObject(varArray), typeExpr);
+                return new IsTypePredicate(compOperator, objExpr.CloneToObject(varArray), typeExpr.CloneToType(varArray));
             // else
             return new IsTypePredicate(compOperator, objExpr.CloneToObject(varArray), typeBinding);
         }
