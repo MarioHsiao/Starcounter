@@ -37,7 +37,7 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// Loads installer settings.
         /// </summary>
-        /// <param name="iniPath">Path to settings XML file.</param>
+        /// <param name="configPath"></param>
         internal static void LoadInstallationSettings(String configPath)
         {
             // Overwriting settings if already been loaded.
@@ -49,8 +49,8 @@ namespace Starcounter.InstallerEngine
         /// Compares install setting value with provided one.
         /// </summary>
         /// <param name="settingName">Name of the setting.</param>
-        /// <param name="compareTo">String to compare with.</param>
         /// <returns>True if values are the same.</returns>
+        /// <param name="compareWith"></param>
         internal static Boolean InstallationSettingCompare(String settingName, String compareWith)
         {
             String setting = SettingsLoader.GetSettingValue(settingName, installSettings);

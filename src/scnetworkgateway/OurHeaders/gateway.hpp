@@ -1240,14 +1240,17 @@ public:
 struct ReverseProxyInfo
 {
     // Uri that is being proxied.
-    std::string uri_;
-    int32_t uri_len_;
+    std::string service_uri_;
+    int32_t service_uri_len_;
 
     // IP address of the destination server.
-    std::string ip_;
+    std::string server_ip_;
 
     // Port on which proxied service sits on.
-    uint16_t port_;
+    uint16_t server_port_;
+
+    // Source port which to used for redirection to proxied service.
+    uint16_t gw_proxy_port_;
 
     // Proxied service address socket info.
     sockaddr_in addr_;
@@ -1647,10 +1650,10 @@ public:
         for (int32_t i = 0; i < num_reversed_proxies_; i++)
         {
             int32_t k = 0;
-            while (reverse_proxies_[i].uri_[k] == uri[k])
+            while (reverse_proxies_[i].service_uri_[k] == uri[k])
                 k++;
 
-            if (k >= reverse_proxies_[i].uri_len_)
+            if (k >= reverse_proxies_[i].service_uri_len_)
                 return reverse_proxies_ + i;
         }
 

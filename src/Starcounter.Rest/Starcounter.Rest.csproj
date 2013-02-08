@@ -63,6 +63,8 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <DocumentationFile>..\..\bin\Release\Starcounter.REST.XML</DocumentationFile>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Roslyn.Compilers">
@@ -76,24 +78,26 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Http\HttpRequestNext.cs" />
-    <Compile Include="RequestHandler\AstTree\AstElseIfList.cs" />
-    <Compile Include="RequestHandler\AstTree\AstIfCallSub.cs" />
-    <Compile Include="RequestHandler\AstTree\AstCodeStatement.cs" />
-    <Compile Include="RequestHandler\AstTree\AstNamespace.cs" />
-    <Compile Include="RequestHandler\AstTree\AstParseCode.cs" />
-    <Compile Include="RequestHandler\AstTree\AstProcessFail.cs" />
-    <Compile Include="RequestHandler\AstTree\AstProcessFunction.cs" />
-    <Compile Include="RequestHandler\AstTree\AstNode.cs" />
-    <Compile Include="RequestHandler\AstTree\AstRequestProcessorClass.cs" />
-    <Compile Include="RequestHandler\AstTree\AstRpConstructor.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstElseIfList.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstError.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstIfCallSub.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstCodeStatement.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstNamespace.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstParseCode.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstProcessFail.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstProcessFunction.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstNode.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstRequestProcessorClass.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstRpConstructor.cs" />
     <Compile Include="RequestHandler\AstTree\AstTreeGenerator.cs" />
-    <Compile Include="RequestHandler\AstTree\AstCase.cs" />
-    <Compile Include="RequestHandler\AstTree\AstInvoke.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstCase.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstInvoke.cs" />
     <Compile Include="RequestHandler\AstTree\AstTreeHelper.cs" />
-    <Compile Include="RequestHandler\AstTree\AstUnsafe.cs" />
-    <Compile Include="RequestHandler\AstTree\AstValueJump.cs" />
-    <Compile Include="RequestHandler\AstTree\AstVerifier.cs" />
-    <Compile Include="RequestHandler\AstTree\AstDeserializeMessage.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstTrigger.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstUnsafe.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstValueJump.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstVerifier.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstDeserializeMessage.cs" />
     <Compile Include="RequestHandler\ParseTree\ParseTreeGenerator.cs" />
     <Compile Include="RequestHandler\ParseTree\ParseNode.PrettyPrint.cs" />
     <Compile Include="RequestHandler\PreprocessUriTemplate.cs" />
@@ -132,7 +136,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="RequestHandler\AstTree\AstSwitch.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstSwitch.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
