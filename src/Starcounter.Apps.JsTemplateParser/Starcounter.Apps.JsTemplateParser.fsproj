@@ -54,7 +54,7 @@
     <OutputPath>..\..\bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\Starcounter.Internal.JsTemplateParser.XML</DocumentationFile>
+    <DocumentationFile>..\..\bin\Release\Starcounter.Apps.JsTemplateParser.XML</DocumentationFile>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />

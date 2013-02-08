@@ -46,8 +46,8 @@ namespace Starcounter.Internal {
         /// <remarks>
         /// Add nunit tests
         /// </remarks>
-        /// <param name="ptr1">The pointer to the first piece of memory</param>
-        /// <param name="ptr2">The pointer to the second piece of memory</param>
+        /// <param name="array1"></param>
+        /// <param name="array2"></param>
         /// <param name="count">The number of bytes to compare</param>
         /// <returns>True if the memory contains the same byte values</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5        
