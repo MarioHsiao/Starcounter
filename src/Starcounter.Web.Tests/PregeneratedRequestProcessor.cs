@@ -74,7 +74,57 @@ namespace __urimatcher__ {
       public static int Sub55VerificationOffset = 913;
       public static int Sub56VerificationOffset = 963;
       public static int Sub57VerificationOffset = 1013;
-      public static byte[] VerificationBytes = new byte[] {(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'a',(byte)'p',(byte)'a',(byte)'p',(byte)'a',(byte)'p',(byte)'a',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'a',(byte)'p',(byte)'a',(byte)'p',(byte)'a',(byte)'p',(byte)'a',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'a',(byte)'a',(byte)'a',(byte)'a',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'b',(byte)'b',(byte)'b',(byte)'b',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'a',(byte)'a',(byte)'a',(byte)'a',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'b',(byte)'b',(byte)'b',(byte)'b',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'a',(byte)'b',(byte)'c',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'a',(byte)'b',(byte)'c',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'?',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'?',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'d',(byte)'a',(byte)'s',(byte)'h',(byte)'b',(byte)'o',(byte)'a',(byte)'r',(byte)'d',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'d',(byte)'a',(byte)'s',(byte)'h',(byte)'b',(byte)'o',(byte)'a',(byte)'r',(byte)'d',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'m',(byte)'o',(byte)'r',(byte)'e',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'m',(byte)'o',(byte)'r',(byte)'e',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Y',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Y',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Z',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Z',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'m',(byte)'o',(byte)'r',(byte)'e',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Z',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'m',(byte)'o',(byte)'r',(byte)'e',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Z',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'o',(byte)'r',(byte)'d',(byte)'i',(byte)'n',(byte)'a',(byte)'r',(byte)'y',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'o',(byte)'r',(byte)'d',(byte)'A',(byte)'n',(byte)'a',(byte)'r',(byte)'y',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'e',(byte)'c',(byte)'i',(byte)'m',(byte)'a',(byte)'l',(byte)'/',(byte)'@',(byte)'m',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'e',(byte)'c',(byte)'i',(byte)'m',(byte)'a',(byte)'l',(byte)'/',(byte)'@',(byte)'m',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'o',(byte)'u',(byte)'b',(byte)'l',(byte)'e',(byte)'/',(byte)'@',(byte)'d',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'o',(byte)'u',(byte)'b',(byte)'l',(byte)'e',(byte)'/',(byte)'@',(byte)'d',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'a',(byte)'t',(byte)'e',(byte)'t',(byte)'i',(byte)'m',(byte)'e',(byte)'/',(byte)'@',(byte)'t',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'a',(byte)'t',(byte)'e',(byte)'t',(byte)'i',(byte)'m',(byte)'e',(byte)'/',(byte)'@',(byte)'t',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'b',(byte)'o',(byte)'o',(byte)'l',(byte)'/',(byte)'@',(byte)'b',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'b',(byte)'o',(byte)'o',(byte)'l',(byte)'/',(byte)'@',(byte)'b',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'s',(byte)'t',(byte)'a',(byte)'t',(byte)'i',(byte)'c',(byte)'@',(byte)'s',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'s',(byte)'t',(byte)'a',(byte)'t',(byte)'i',(byte)'c',(byte)'@',(byte)'s',(byte)'/',(byte)'@',(byte)'s',(byte)' ',(byte)'P',(byte)'U',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'U',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'r',(byte)'a',(byte)'n',(byte)'s',(byte)'f',(byte)'e',(byte)'r',(byte)'?',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'r',(byte)'a',(byte)'n',(byte)'s',(byte)'f',(byte)'e',(byte)'r',(byte)'?',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'d',(byte)'e',(byte)'p',(byte)'o',(byte)'s',(byte)'i',(byte)'t',(byte)'?',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'d',(byte)'e',(byte)'p',(byte)'o',(byte)'s',(byte)'i',(byte)'t',(byte)'?',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'f',(byte)'i',(byte)'n',(byte)'d',(byte)'-',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'?',(byte)'f',(byte)'i',(byte)'r',(byte)'s',(byte)'t',(byte)'n',(byte)'a',(byte)'m',(byte)'e',(byte)'=',(byte)'@',(byte)'s',(byte)'&',(byte)'l',(byte)'a',(byte)'s',(byte)'t',(byte)'n',(byte)'a',(byte)'m',(byte)'e',(byte)'=',(byte)'@',(byte)'s',(byte)'&',(byte)'a',(byte)'g',(byte)'e',(byte)'=',(byte)'@',(byte)'i',(byte)' ',(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'f',(byte)'i',(byte)'n',(byte)'d',(byte)'-',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'?',(byte)'f',(byte)'i',(byte)'r',(byte)'s',(byte)'t',(byte)'n',(byte)'a',(byte)'m',(byte)'e',(byte)'=',(byte)'@',(byte)'s',(byte)'&',(byte)'l',(byte)'a',(byte)'s',(byte)'t',(byte)'n',(byte)'a',(byte)'m',(byte)'e',(byte)'=',(byte)'@',(byte)'s',(byte)'&',(byte)'a',(byte)'g',(byte)'e',(byte)'=',(byte)'@',(byte)'i',(byte)' ',(byte)'D',(byte)'E',(byte)'L',(byte)'E',(byte)'T',(byte)'E',(byte)' ',(byte)'/',(byte)'a',(byte)'l',(byte)'l',(byte)' '};
+      public static byte[] VerificationBytes = new byte[] {
+/* GET / */ (byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)' '
+/* GET /uri-with-req */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)' '
+/* GET /uri-with-req/@i */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)'/',(byte)'@',(byte)'i',(byte)' '
+/* GET /uri-with-req/@i */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)'/',(byte)'@',(byte)'i',(byte)' '
+/* GET /uri-with-req/@s */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)'/',(byte)'@',(byte)'s',(byte)' '
+/* GET /uri-with-req/@s */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'u',(byte)'r',(byte)'i',(byte)'-',(byte)'w',(byte)'i',(byte)'t',(byte)'h',(byte)'-',(byte)'r',(byte)'e',(byte)'q',(byte)'/',(byte)'@',(byte)'s',(byte)' '
+/* GET /admin/apapapa/@i */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'a',(byte)'p',(byte)'a',(byte)'p',(byte)'a',(byte)'p',(byte)'a',(byte)'/',(byte)'@',(byte)'i',(byte)' '
+/* GET /admin/apapapa/@i */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'a',(byte)'p',(byte)'a',(byte)'p',(byte)'a',(byte)'p',(byte)'a',(byte)'/',(byte)'@',(byte)'i',(byte)' '
+/* GET /admin/@s */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'@',(byte)'s',(byte)' '
+/* GET /admin/@s/@i */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' '
+/* GET /admin/@s/@i */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'d',(byte)'m',(byte)'i',(byte)'n',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' '
+/* GET /aaaaa/@i/bbbb */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'a',(byte)'a',(byte)'a',(byte)'a',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'b',(byte)'b',(byte)'b',(byte)'b',(byte)' '
+/* GET /aaaaa/@i/bbbb */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'a',(byte)'a',(byte)'a',(byte)'a',(byte)'a',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'b',(byte)'b',(byte)'b',(byte)'b',(byte)' '
+/* GET /players */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)' '
+/* GET /players/@i/abc/@s */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'a',(byte)'b',(byte)'c',(byte)'/',(byte)'@',(byte)'s',(byte)' '
+/* GET /players/@i/abc/@s */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'a',(byte)'b',(byte)'c',(byte)'/',(byte)'@',(byte)'s',(byte)' '
+/* GET /players/@i */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' '
+/* GET /players?@s */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'?',(byte)'@',(byte)'s',(byte)' '
+/* GET /players?@s */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'?',(byte)'@',(byte)'s',(byte)' '
+/* GET /dashboard/@i */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'d',(byte)'a',(byte)'s',(byte)'h',(byte)'b',(byte)'o',(byte)'a',(byte)'r',(byte)'d',(byte)'/',(byte)'@',(byte)'i',(byte)' '
+/* GET /dashboard/@i */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'d',(byte)'a',(byte)'s',(byte)'h',(byte)'b',(byte)'o',(byte)'a',(byte)'r',(byte)'d',(byte)'/',(byte)'@',(byte)'i',(byte)' '
+/* GET /whatever/@s/more/@i/@s */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'m',(byte)'o',(byte)'r',(byte)'e',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'@',(byte)'s',(byte)' '
+/* GET /whatever/@s/more/@i/@s */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'m',(byte)'o',(byte)'r',(byte)'e',(byte)'/',(byte)'@',(byte)'i',(byte)'/',(byte)'@',(byte)'s',(byte)' '
+/* GET /whatever/@s/xxYx/@i */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Y',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' '
+/* GET /whatever/@s/xxYx/@i */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Y',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' '
+/* GET /whatever/@s/xxZx/@i */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Z',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' '
+/* GET /whatever/@s/xxZx/@i */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'e',(byte)'v',(byte)'e',(byte)'r',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Z',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' '
+/* GET /whatmore/@s/xxZx/@i */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'m',(byte)'o',(byte)'r',(byte)'e',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Z',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' '
+/* GET /whatmore/@s/xxZx/@i */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'w',(byte)'h',(byte)'a',(byte)'t',(byte)'m',(byte)'o',(byte)'r',(byte)'e',(byte)'/',(byte)'@',(byte)'s',(byte)'/',(byte)'x',(byte)'x',(byte)'Z',(byte)'x',(byte)'/',(byte)'@',(byte)'i',(byte)' '
+/* GET /ordinary */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'o',(byte)'r',(byte)'d',(byte)'i',(byte)'n',(byte)'a',(byte)'r',(byte)'y',(byte)' '
+/* GET /ordAnary */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'o',(byte)'r',(byte)'d',(byte)'A',(byte)'n',(byte)'a',(byte)'r',(byte)'y',(byte)' '
+/* GET /test-decimal/@m */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'e',(byte)'c',(byte)'i',(byte)'m',(byte)'a',(byte)'l',(byte)'/',(byte)'@',(byte)'m',(byte)' '
+/* GET /test-decimal/@m */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'e',(byte)'c',(byte)'i',(byte)'m',(byte)'a',(byte)'l',(byte)'/',(byte)'@',(byte)'m',(byte)' '
+/* GET /test-double/@d */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'o',(byte)'u',(byte)'b',(byte)'l',(byte)'e',(byte)'/',(byte)'@',(byte)'d',(byte)' '
+/* GET /test-double/@d */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'o',(byte)'u',(byte)'b',(byte)'l',(byte)'e',(byte)'/',(byte)'@',(byte)'d',(byte)' '
+/* GET /test-datetime/@t */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'a',(byte)'t',(byte)'e',(byte)'t',(byte)'i',(byte)'m',(byte)'e',(byte)'/',(byte)'@',(byte)'t',(byte)' '
+/* GET /test-datetime/@t */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'d',(byte)'a',(byte)'t',(byte)'e',(byte)'t',(byte)'i',(byte)'m',(byte)'e',(byte)'/',(byte)'@',(byte)'t',(byte)' '
+/* GET /test-bool/@b */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'b',(byte)'o',(byte)'o',(byte)'l',(byte)'/',(byte)'@',(byte)'b',(byte)' '
+/* GET /test-bool/@b */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'e',(byte)'s',(byte)'t',(byte)'-',(byte)'b',(byte)'o',(byte)'o',(byte)'l',(byte)'/',(byte)'@',(byte)'b',(byte)' '
+/* GET /static@s/@s */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'s',(byte)'t',(byte)'a',(byte)'t',(byte)'i',(byte)'c',(byte)'@',(byte)'s',(byte)'/',(byte)'@',(byte)'s',(byte)' '
+/* GET /static@s/@s */ ,(byte)'G',(byte)'E',(byte)'T',(byte)' ',(byte)'/',(byte)'s',(byte)'t',(byte)'a',(byte)'t',(byte)'i',(byte)'c',(byte)'@',(byte)'s',(byte)'/',(byte)'@',(byte)'s',(byte)' '
+/* PUT /players/@i */ ,(byte)'P',(byte)'U',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' '
+/* PUT /players/@i */ ,(byte)'P',(byte)'U',(byte)'T',(byte)' ',(byte)'/',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'s',(byte)'/',(byte)'@',(byte)'i',(byte)' '
+/* POST /transfer?@i */ ,(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'r',(byte)'a',(byte)'n',(byte)'s',(byte)'f',(byte)'e',(byte)'r',(byte)'?',(byte)'@',(byte)'i',(byte)' '
+/* POST /transfer?@i */ ,(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'t',(byte)'r',(byte)'a',(byte)'n',(byte)'s',(byte)'f',(byte)'e',(byte)'r',(byte)'?',(byte)'@',(byte)'i',(byte)' '
+/* POST /deposit?@i */ ,(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'d',(byte)'e',(byte)'p',(byte)'o',(byte)'s',(byte)'i',(byte)'t',(byte)'?',(byte)'@',(byte)'i',(byte)' '
+/* POST /deposit?@i */ ,(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'d',(byte)'e',(byte)'p',(byte)'o',(byte)'s',(byte)'i',(byte)'t',(byte)'?',(byte)'@',(byte)'i',(byte)' '
+/* POST /find-player?firstname=@s&lastname=@s&age=@i */ ,(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'f',(byte)'i',(byte)'n',(byte)'d',(byte)'-',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'?',(byte)'f',(byte)'i',(byte)'r',(byte)'s',(byte)'t',(byte)'n',(byte)'a',(byte)'m',(byte)'e',(byte)'=',(byte)'@',(byte)'s',(byte)'&',(byte)'l',(byte)'a',(byte)'s',(byte)'t',(byte)'n',(byte)'a',(byte)'m',(byte)'e',(byte)'=',(byte)'@',(byte)'s',(byte)'&',(byte)'a',(byte)'g',(byte)'e',(byte)'=',(byte)'@',(byte)'i',(byte)' '
+/* POST /find-player?firstname=@s&lastname=@s&age=@i */ ,(byte)'P',(byte)'O',(byte)'S',(byte)'T',(byte)' ',(byte)'/',(byte)'f',(byte)'i',(byte)'n',(byte)'d',(byte)'-',(byte)'p',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'?',(byte)'f',(byte)'i',(byte)'r',(byte)'s',(byte)'t',(byte)'n',(byte)'a',(byte)'m',(byte)'e',(byte)'=',(byte)'@',(byte)'s',(byte)'&',(byte)'l',(byte)'a',(byte)'s',(byte)'t',(byte)'n',(byte)'a',(byte)'m',(byte)'e',(byte)'=',(byte)'@',(byte)'s',(byte)'&',(byte)'a',(byte)'g',(byte)'e',(byte)'=',(byte)'@',(byte)'i',(byte)' '
+/* DELETE /all */ ,(byte)'D',(byte)'E',(byte)'L',(byte)'E',(byte)'T',(byte)'E',(byte)' ',(byte)'/',(byte)'a',(byte)'l',(byte)'l',(byte)' '};
       public static IntPtr PointerVerificationBytes;
 
       public static Sub0Processor Sub0 = new Sub0Processor();
@@ -220,6 +270,7 @@ namespace __urimatcher__ {
                   switch (*pfrag) {
                      case (byte)' ':
                      case (byte)'\r':
+                     case (byte)'\n':
                          prev_pfrag = pfrag;
                          prev_ptempl = ptempl;
                          prev_nextSize = nextSize;
@@ -231,7 +282,7 @@ namespace __urimatcher__ {
                      #endif
                         if (Sub0.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                            return true;
-                        break;
+                         break;
                      case (byte)'u':
                          prev_pfrag = pfrag;
                          prev_ptempl = ptempl;
@@ -296,6 +347,7 @@ namespace __urimatcher__ {
                         switch (*pfrag) {
                            case (byte)' ':
                            case (byte)'\r':
+                           case (byte)'\n':
                                prev_pfrag = pfrag;
                                prev_ptempl = ptempl;
                                prev_nextSize = nextSize;
@@ -307,7 +359,7 @@ namespace __urimatcher__ {
                            #endif
                               if (Sub1.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
-                              break;
+                               break;
                            case (byte)'/':
                                prev_pfrag = pfrag;
                                prev_ptempl = ptempl;
@@ -322,9 +374,9 @@ namespace __urimatcher__ {
                                  return true;
                               else if (Sub4.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
-                              break;
+                               break;
                         }
-                        break;
+                         break;
                      case (byte)'a':
                          prev_pfrag = pfrag;
                          prev_ptempl = ptempl;
@@ -436,16 +488,16 @@ namespace __urimatcher__ {
                                     #endif
                                     if (Sub6.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                        return true;
-                                    pfrag = prev_pfrag;
-                                    ptempl = prev_ptempl;
-                                    nextSize = prev_nextSize;
-                                    goto default;
+                                     pfrag = prev_pfrag;
+                                     ptempl = prev_ptempl;
+                                     nextSize = prev_nextSize;
+                                     goto default;
                                  default:
                                     if (Sub8.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                        return true;
                                  break;
                               }
-                              break;
+                               break;
                            case (byte)'a':
                                prev_pfrag = pfrag;
                                prev_ptempl = ptempl;
@@ -479,9 +531,9 @@ namespace __urimatcher__ {
                               #endif
                               if (Sub12.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
-                              break;
+                               break;
                         }
-                        break;
+                         break;
                      case (byte)'p':
                          prev_pfrag = pfrag;
                          prev_ptempl = ptempl;
@@ -532,6 +584,7 @@ namespace __urimatcher__ {
                         switch (*pfrag) {
                            case (byte)' ':
                            case (byte)'\r':
+                           case (byte)'\n':
                                prev_pfrag = pfrag;
                                prev_ptempl = ptempl;
                                prev_nextSize = nextSize;
@@ -543,7 +596,7 @@ namespace __urimatcher__ {
                            #endif
                               if (Sub14.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
-                              break;
+                               break;
                            case (byte)'/':
                                prev_pfrag = pfrag;
                                prev_ptempl = ptempl;
@@ -556,7 +609,7 @@ namespace __urimatcher__ {
                            #endif
                               if (Sub15.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
-                              break;
+                               break;
                            case (byte)'?':
                                prev_pfrag = pfrag;
                                prev_ptempl = ptempl;
@@ -569,9 +622,9 @@ namespace __urimatcher__ {
                            #endif
                               if (Sub19.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
-                              break;
+                               break;
                         }
-                        break;
+                         break;
                      case (byte)'d':
                          prev_pfrag = pfrag;
                          prev_ptempl = ptempl;
@@ -617,7 +670,7 @@ namespace __urimatcher__ {
                         #endif
                         if (Sub21.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                            return true;
-                        break;
+                         break;
                      case (byte)'w':
                          prev_pfrag = pfrag;
                          prev_ptempl = ptempl;
@@ -699,7 +752,7 @@ namespace __urimatcher__ {
                               #endif
                               if (Sub23.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
-                              break;
+                               break;
                            case (byte)'m':
                                prev_pfrag = pfrag;
                                prev_ptempl = ptempl;
@@ -733,9 +786,9 @@ namespace __urimatcher__ {
                               #endif
                               if (Sub31.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
-                              break;
+                               break;
                         }
-                        break;
+                         break;
                      case (byte)'o':
                          prev_pfrag = pfrag;
                          prev_ptempl = ptempl;
@@ -803,7 +856,7 @@ namespace __urimatcher__ {
                               #endif
                               if (Sub34.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
-                              break;
+                               break;
                            case (byte)'A':
                                prev_pfrag = pfrag;
                                prev_ptempl = ptempl;
@@ -837,9 +890,9 @@ namespace __urimatcher__ {
                               #endif
                               if (Sub35.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
-                              break;
+                               break;
                         }
-                        break;
+                         break;
                      case (byte)'t':
                          prev_pfrag = pfrag;
                          prev_ptempl = ptempl;
@@ -930,7 +983,7 @@ namespace __urimatcher__ {
                                     #endif
                                     if (Sub36.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                        return true;
-                                    break;
+                                     break;
                                  case (byte)'o':
                                      prev_pfrag = pfrag;
                                      prev_ptempl = ptempl;
@@ -976,7 +1029,7 @@ namespace __urimatcher__ {
                                     #endif
                                     if (Sub38.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                        return true;
-                                    break;
+                                     break;
                                  case (byte)'a':
                                      prev_pfrag = pfrag;
                                      prev_ptempl = ptempl;
@@ -1034,9 +1087,9 @@ namespace __urimatcher__ {
                                     #endif
                                     if (Sub40.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                        return true;
-                                    break;
+                                     break;
                               }
-                              break;
+                               break;
                            case (byte)'b':
                                prev_pfrag = pfrag;
                                prev_ptempl = ptempl;
@@ -1070,9 +1123,9 @@ namespace __urimatcher__ {
                               #endif
                               if (Sub42.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
-                              break;
+                               break;
                         }
-                        break;
+                         break;
                      case (byte)'s':
                          prev_pfrag = pfrag;
                          prev_ptempl = ptempl;
@@ -1118,9 +1171,9 @@ namespace __urimatcher__ {
                         #endif
                         if (Sub44.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                            return true;
-                        break;
+                         break;
                   }
-                  break;
+                   break;
                case (byte)'P':
                    prev_pfrag = pfrag;
                    prev_ptempl = ptempl;
@@ -1189,7 +1242,7 @@ namespace __urimatcher__ {
                         #endif
                         if (Sub47.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                            return true;
-                        break;
+                         break;
                      case (byte)'O':
                          prev_pfrag = pfrag;
                          prev_ptempl = ptempl;
@@ -1257,7 +1310,7 @@ namespace __urimatcher__ {
                               #endif
                               if (Sub49.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
-                              break;
+                               break;
                            case (byte)'d':
                                prev_pfrag = pfrag;
                                prev_ptempl = ptempl;
@@ -1315,7 +1368,7 @@ namespace __urimatcher__ {
                               #endif
                               if (Sub51.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
-                              break;
+                               break;
                            case (byte)'f':
                                prev_pfrag = pfrag;
                                prev_ptempl = ptempl;
@@ -1385,11 +1438,11 @@ namespace __urimatcher__ {
                               #endif
                               if (Sub53.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                  return true;
-                              break;
+                               break;
                         }
-                        break;
+                         break;
                   }
-                  break;
+                   break;
                case (byte)'D':
                    prev_pfrag = pfrag;
                    prev_ptempl = ptempl;
@@ -1435,7 +1488,7 @@ namespace __urimatcher__ {
                   #endif
                   if (Sub57.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                      return true;
-                  break;
+                   break;
             }
          }
          handler = null;
@@ -1639,6 +1692,7 @@ namespace __urimatcher__ {
                      switch (*pfrag) {
                         case (byte)' ':
                         case (byte)'\r':
+                        case (byte)'\n':
                             prev_pfrag = pfrag;
                             prev_ptempl = ptempl;
                             prev_nextSize = nextSize;
@@ -1650,7 +1704,7 @@ namespace __urimatcher__ {
                         #endif
                            if (Sub9.SubProcess(val, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                               return true;
-                           break;
+                            break;
                         case (byte)'/':
                             prev_pfrag = pfrag;
                             prev_ptempl = ptempl;
@@ -1663,7 +1717,7 @@ namespace __urimatcher__ {
                         #endif
                            if (Sub10.SubProcess(val, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                               return true;
-                           break;
+                            break;
                      }
                }
             }
@@ -1884,9 +1938,10 @@ namespace __urimatcher__ {
                            #endif
                            if (Sub16.SubProcess(val, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                               return true;
-                           break;
+                            break;
                         case (byte)' ':
                         case (byte)'\r':
+                        case (byte)'\n':
                             prev_pfrag = pfrag;
                             prev_ptempl = ptempl;
                             prev_nextSize = nextSize;
@@ -1898,7 +1953,7 @@ namespace __urimatcher__ {
                         #endif
                            if (Sub18.SubProcess(val, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                               return true;
-                           break;
+                            break;
                      }
                }
             }
@@ -2139,7 +2194,7 @@ namespace __urimatcher__ {
                            #endif
                            if (Sub24.SubProcess(val, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                               return true;
-                           break;
+                            break;
                         case (byte)'x':
                             prev_pfrag = pfrag;
                             prev_ptempl = ptempl;
@@ -2207,7 +2262,7 @@ namespace __urimatcher__ {
                                  #endif
                                  if (Sub27.SubProcess(val, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                     return true;
-                                 break;
+                                  break;
                               case (byte)'Z':
                                   prev_pfrag = pfrag;
                                   prev_ptempl = ptempl;
@@ -2241,9 +2296,9 @@ namespace __urimatcher__ {
                                  #endif
                                  if (Sub29.SubProcess(val, (IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                     return true;
-                                 break;
+                                  break;
                            }
-                           break;
+                            break;
                      }
                }
             }
