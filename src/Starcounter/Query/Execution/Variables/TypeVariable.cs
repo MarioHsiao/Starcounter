@@ -20,7 +20,7 @@ namespace Starcounter.Query.Execution
             this.number = number;
             if (value == null)
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect value.");
-            this.value = Bindings.GetTypeBinding(value.Name);
+            this.value = Bindings.GetTypeBinding(value.FullName);
             if (this.value == null)
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect value.");
         }
@@ -159,7 +159,7 @@ namespace Starcounter.Query.Execution
             if (newValue == null)
                 this.value = null;
             else {
-                this.value = Bindings.GetTypeBinding(newValue.Name);
+                this.value = Bindings.GetTypeBinding(newValue.FullName);
                 if (this.value == null)
                     throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect value.");
             }
@@ -167,7 +167,7 @@ namespace Starcounter.Query.Execution
 
         // Throws an InvalidCastException if newValue is of an incompatible type.
         public override void SetValue(object newValue) {
-            if (this.value is Type)
+            if (newValue is Type)
                 SetValue((Type)newValue);
             else
                 SetValue((ITypeBinding)newValue);

@@ -12,29 +12,30 @@
   <PropertyDefinitionValues />
   <Title />
   <ContentFiles>
-    <ContentFile FileName="FasterThanJson.dxc" Moniker="..\..\..\..\bin\Debug\FasterThanJson.dll" DocType="DX.NET" />
-    <ContentFile FileName="HttpStructs.dxc" Moniker="..\..\..\..\bin\Debug\HttpStructs.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.Apps.CodeGeneration.dxc" Moniker="..\..\..\..\bin\Debug\Starcounter.Apps.CodeGeneration.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.Apps.CodeGeneration.Tests.dxc" Moniker="..\..\..\Starcounter.Apps.CodeGeneration.Tests\bin\Debug\Starcounter.Apps.CodeGeneration.Tests.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.Apps.dxc" Moniker="..\..\..\..\bin\Debug\Starcounter.Apps.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.Apps.HtmlReader.dxc" Moniker="..\..\..\..\bin\Debug\Starcounter.Apps.HtmlReader.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.Apps.HtmlReader.Tests.dxc" Moniker="..\..\..\Starcounter.Apps.HtmlReader.Tests\bin\Debug\Starcounter.Apps.HtmlReader.Tests.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.Apps.Interfaces.dxc" Moniker="..\..\..\..\bin\Debug\Starcounter.Apps.Interfaces.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.Apps.JsonPatch.dxc" Moniker="..\..\..\..\bin\Debug\Starcounter.Apps.JsonPatch.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.Apps.JsonReader.dxc" Moniker="..\..\..\..\bin\Debug\Starcounter.Apps.JsonReader.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.Apps.JsonReader.Tests.dxc" Moniker="..\..\..\Starcounter.Apps.JsonReader.Tests\bin\Debug\Starcounter.Apps.JsonReader.Tests.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.Apps.Tests.dxc" Moniker="..\..\..\Starcounter.Apps.Test\bin\Debug\Starcounter.Apps.Tests.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.BitsAndBytes.dxc" Moniker="..\..\..\..\bin\Debug\Starcounter.BitsAndBytes.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.Bootstrap.dxc" Moniker="..\..\..\..\bin\Debug\Starcounter.Bootstrap.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.dxc" Moniker="..\..\..\..\bin\Debug\Starcounter.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.Errors.dxc" Moniker="..\..\..\Starcounter.ErrorCodes\Starcounter.Errors\bin\Debug\Starcounter.Errors.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.Hosting.dxc" Moniker="..\..\..\..\bin\Debug\Starcounter.Hosting.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.Hypermedia.dxc" Moniker="..\..\..\..\bin\Debug\Starcounter.Hypermedia.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.Internal.dxc" Moniker="..\..\..\..\bin\Debug\Starcounter.Internal.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.MsBuild.dxc" Moniker="..\..\..\..\bin\Debug\Starcounter.MsBuild.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.REST.dxc" Moniker="..\..\..\..\bin\Debug\Starcounter.REST.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.Server.dxc" Moniker="..\..\..\..\bin\Debug\Starcounter.Server.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.Web.Tests.dxc" Moniker="..\..\..\Starcounter.Web.Tests\bin\Debug\Starcounter.Web.Tests.dll" DocType="DX.NET" />
+    <ContentFile FileName="FasterThanJson.dxc" Moniker="..\..\..\..\bin\Release\FasterThanJson.dll" DocType="DX.NET" />
+    <ContentFile FileName="HttpStructs.dxc" Moniker="..\..\..\..\bin\Release\HttpStructs.dll" DocType="DX.NET" />
+    <ContentFile FileName="Sc.Tools.Logging.dxc" Moniker="..\..\..\..\bin\Release\Sc.Tools.Logging.dll" DocType="DX.NET" />
+    <ContentFile FileName="Starcounter.Apps.CodeGeneration.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.Apps.CodeGeneration.dll" DocType="DX.NET" />
+    <ContentFile FileName="Starcounter.Apps.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.Apps.dll" DocType="DX.NET" />
+    <ContentFile FileName="Starcounter.Apps.HtmlReader.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.Apps.HtmlReader.dll" DocType="DX.NET" />
+    <ContentFile FileName="Starcounter.Apps.Interfaces.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.Apps.Interfaces.dll" DocType="DX.NET" />
+    <ContentFile FileName="Starcounter.Apps.JsonPatch.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.Apps.JsonPatch.dll" DocType="DX.NET" />
+    <ContentFile FileName="Starcounter.Apps.JsonReader.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.Apps.JsonReader.dll" DocType="DX.NET" />
+    <ContentFile FileName="Starcounter.Apps.JsTemplateParser.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.Apps.JsTemplateParser.dll" DocType="DX.NET" />
+    <ContentFile FileName="Starcounter.BitsAndBytes.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.BitsAndBytes.dll" DocType="DX.NET" />
+    <ContentFile FileName="Starcounter.BitsAndBytes.Native.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.BitsAndBytes.Native.dll" DocType="DX.NET" />
+    <ContentFile FileName="Starcounter.Bootstrap.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.Bootstrap.dll" DocType="DX.NET" />
+    <ContentFile FileName="Starcounter.Controls.WpfMessageBox.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.Controls.WpfMessageBox.dll" DocType="DX.NET" />
+    <ContentFile FileName="Starcounter.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.dll" DocType="DX.NET" />
+    <ContentFile FileName="Starcounter.Hosting.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.Hosting.dll" DocType="DX.NET" />
+    <ContentFile FileName="Starcounter.Hypermedia.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.Hypermedia.dll" DocType="DX.NET" />
+    <ContentFile FileName="Starcounter.InstallerEngine.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.InstallerEngine.dll" DocType="DX.NET" />
+    <ContentFile FileName="Starcounter.Internal.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.Internal.dll" DocType="DX.NET" />
+    <ContentFile FileName="Starcounter.Logging.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.Logging.dll" DocType="DX.NET" />
+    <ContentFile FileName="Starcounter.MsBuild.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.MsBuild.dll" DocType="DX.NET" />
+    <ContentFile FileName="Starcounter.REST.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.REST.dll" DocType="DX.NET" />
+    <ContentFile FileName="Starcounter.Server.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.Server.dll" DocType="DX.NET" />
+    <ContentFile FileName="Starcounter.XSON.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.XSON.dll" DocType="DX.NET" />
   </ContentFiles>
   <AutoDocFiles />
   <ContentFromProjectPlugin />
@@ -368,35 +369,401 @@
       <ExcludedItem>Starcounter.Server~Starcounter.Server.Setup.RepositoryStructure</ExcludedItem>
       <ExcludedItem>Starcounter.Web.Tests~Starcounter.Internal.Test_namespace</ExcludedItem>
       <ExcludedItem>Starcounter.Web.Tests~-_namespace</ExcludedItem>
+      <ExcludedItem>HttpStructs~HttpStructs.SchedulerSessions</ExcludedItem>
+      <ExcludedItem>HttpStructs~HttpStructs.AppsSessionInternal</ExcludedItem>
+      <ExcludedItem>Sc.Tools.Logging~Sc.Tools.Logging.LogDirectory</ExcludedItem>
+      <ExcludedItem>Sc.Tools.Logging~Sc.Tools.Logging.LogWatcher</ExcludedItem>
+      <ExcludedItem>Sc.Tools.Logging~Sc.Tools.Logging.FiltersApplied</ExcludedItem>
+      <ExcludedItem>Sc.Tools.Logging~Sc.Tools.Logging.TimeFilterResult</ExcludedItem>
+      <ExcludedItem>Sc.Tools.Logging~Sc.Tools.Logging.ReadLogEntry</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstCase</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstCodeStatement</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstVerifier</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstElseIfList</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstGotoProperty</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstGotoValue</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstParseJsonValue</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstProcessFail</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstSerializeFunction</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstJsonSerializerClass</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstJSConstructor</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstSetValue</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstSwitch</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstTreeGenerator</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstError</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstTreeHelper</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstUnsafe</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstValueJump</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstDeserializeFunction</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstWhile</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstWritePropertyName</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstWritePropertyValue</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstWriteDelimiter</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstWriteObject</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstWriteArray</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstForLoop</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.CodeGeneration~Starcounter.Internal.Application.CodeGeneration.Serialization.AstParseJsonObjectArray</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps~Starcounter.Templates.DataBinding_namespace</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps~Starcounter.Apps.VMID</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Materializer+failedExpectation1@66-2</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Materializer+failedExpectation1@66-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Materializer+failedExpectation@72-2</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Materializer+failedExpectation@72-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Materializer+materializePropertyOfParent@217-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Materializer+materializePropertyOfParent@225-2</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Materializer+blockList@267</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+VariableData</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+State</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+prettyPrint@124-3</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+prettyPrint@124-2</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+invalidNumber@162-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+block@373-3</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+argumentList@395-3</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+binary@420-3</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+binary@420-2</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+unary@427-3</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+unary@427-2</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+simple@434-3</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+simple@434-2</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+simplef@439-3</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+simplef@439-2</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+simplefWithDebug@444-3</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+simplefWithDebug@444-2</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+nullStmt@449-3</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+nullStmt@449-2</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+compoundAssign@454-3</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+compoundAssign@454-2</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+postfixOrPrefix@492-5</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+postfixOrPrefix@492-4</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+postfixOrPrefix@475-7</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+postfixOrPrefix@475-6</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parseCaseBody@609-3</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parseCases@621-3</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+isRegExpModifier@715-3</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+call'@860-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parseForIn@1145-3</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1251-40</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1250-41</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1249-42</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1248-43</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1247-44</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1246-45</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1245-46</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-47</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-48</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-49</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-51</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-50</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-52</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-53</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-54</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1258-55</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-56</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-57</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-58</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-59</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-60</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-61</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-62</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-63</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-64</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1351-65</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-66</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-68</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-67</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-69</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-70</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-71</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-72</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-73</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-74</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-75</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-76</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1234-77</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1363-79</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+parserDefinition@1363-78</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FullParser+BindingPowers</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+replaceVariable@69-3</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+replaceVariable@69-2</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+replaceVariable@68-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+findIndex@73</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+prettyPrint@199-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+prettyPrint@199</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+invalidNumber@272</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+block@483-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+argumentList@505-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+binary@531-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+binary@531</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+unary@538-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+unary@538</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+simple@545-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+simple@545</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+simplef@550-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+simplef@550</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+simplefWithDebug@556-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+simplefWithDebug@556</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+nullStmt@561-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+nullStmt@561</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+compoundAssign@566-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+compoundAssign@566</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+postfixOrPrefix@604-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+postfixOrPrefix@604</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+postfixOrPrefix@587-3</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+postfixOrPrefix@587-2</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parseCaseBody@726-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parseCases@738-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+isRegExpModifier@837-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+call'@992</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parseForIn@1304-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1413</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1412-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1411-2</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1410-3</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1409-4</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1408-5</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1407-6</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-7</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-8</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-9</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-11</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-10</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-12</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-13</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-14</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1420-15</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-16</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-17</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-18</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-19</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-20</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-21</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-22</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-23</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-24</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1513-25</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-26</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-28</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-27</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-29</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-30</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-31</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-32</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-33</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-34</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-35</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-36</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1395-37</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1525-39</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Parser+parserDefinition@1525-38</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.ParserHelper</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Lexer+add@380-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Lexer+readOctalDigit@562-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Lexer+invalidCharInIdentifier@622</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Lexer+reservedKeyword@625</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Lexer+punctuation@784-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Lexer+lexer@969-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Lexer+Input</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Lexer+Char</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Null@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+String@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Integer@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Number@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Double@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Decimal@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Boolean@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Regex@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Object@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Array@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Unary@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Binary@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Assign@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+CompoundAssign@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Ternary@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Comma@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+New@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+With@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Return@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Label@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+For@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+ForIn@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+While@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+DoWhile@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Break@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Continue@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+IfElse@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Switch@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Try@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Catch@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Throw@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Var@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Block@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Eval@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Identifier@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Index@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Property@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Invoke@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Function@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Convert@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Directive@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Tree+Line@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Cases+Case@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Cases+Default@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+ScopeOption+Catch@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+ScopeOption+Function@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Variable+Shared@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Variable+Private@DebugTypeProxy</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Ast+Utils+reduceIndex@390-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+sprintError@68-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+sprintError@68</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+msg@88-2</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+msg@88-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+msg@88</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+msg@93-6</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+msg@93-5</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+msg@93-4</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+msg@93-3</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+msg@98-11</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+msg@98-10</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+msg@98-9</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+msg@98-8</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+msg@98-7</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+missingVariable@124</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+invalidSimplePunctuation@126</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+invalidHexDigit@127</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+invalidOctalDigit@128</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+newlineIn@129</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+unrecognizedInput@131</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+missingLabel@136</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+missingNoConversion@137-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+missingNoConversion@137</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+SourceCodePrinter+text@44-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+SourceCodePrinter+text@44</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+SourceCodePrinter+text@50-4</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+SourceCodePrinter+text@50-3</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+SourceCodePrinter+text@50-2</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+SourceCodePrinter+text@59-6</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.Error+SourceCodePrinter+text@59-5</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FSharp+Reflection+_sndParamsDiff@195</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FSharp+Reflection+_sndParamsDiff@194-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FSharp+Reflection+getMethodArgs@219</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FSharp+Reflection+getMethodArgs@218-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FSharp+Reflection+getMethodArgs@220-2</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FSharp+Reflection+getMethodArgsT@224</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FSharp+Reflection+getMethodT@226</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FSharp+Reflection+methods@242</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FSharp+Reflection+methods@238-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FSharp+Reflection+methods@244-2</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FSharp+Reflection+getMethodGenericT@249</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FSharp+Reflection+getCtor@257</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FSharp+Reflection+getCtor@258-1</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FSharp+Reflection+getCtorT@262</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FSharp+Reflection+getFieldT@281</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FSharp+Reflection+getPropertyT@287</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FSharp+Reflection+getParameters@308</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FSharp+Array+skip@151</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FSharp+Seq+first@58</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FSharp+Utils+print@33</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~Starcounter.Internal.FSharp+Utils+printn@34</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~-StartupCode$Starcounter-Apps-JsTemplateParser-.$Compiler_namespace</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~-StartupCode$Starcounter-Apps-JsTemplateParser-_namespace</ExcludedItem>
+      <ExcludedItem>Starcounter.Apps.JsTemplateParser~-StartupCode$Starcounter-Apps-JsTemplateParser-.$.NETFramework,Version=v4.5_namespace</ExcludedItem>
+      <ExcludedItem>Starcounter.BitsAndBytes.Native~-_namespace</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.XNode</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Task</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.TransactionScrap</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Internal.sccoredb+SCCOREDB_TABLE_INFO</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Internal.sccoredb+SCCOREDB_COLUMN_INFO</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.Execution.TypeLiteral</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IsTypePredicate</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.Execution.RowMetaObject</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.Execution.RowTypeBinding</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.Execution.TypeVariable</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IValueExpression</ExcludedItem>
+      <ExcludedItem>Starcounter.Hosting~Starcounter.Hosting.TaskSchedulerImpl</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.InstallerEngine.SettingsLoader</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.InstallerEngine.InstallerExceptionFactory</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.Tools.GACHelperInternals_namespace</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.InstallerEngine.VsSetup.DevEnv</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.InstallerEngine.VsSetup.VSInstaller</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.InstallerEngine.VsSetup.VSIXPackageInfo</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.Management.Win32.Win32Security+ACL</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.Management.Win32.Win32Security+EXPLICIT_ACCESS</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.Management.Win32.Win32Security+LSA_OBJECT_ATTRIBUTES</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.Management.Win32.Win32Security+LSA_UNICODE_STRING</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.Management.Win32.Win32Security+LUID</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.Management.Win32.Win32Security+LUID_AND_ATTRIBUTES</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.Management.Win32.Win32Security+PRIVILEGE_SET</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.Management.Win32.Win32Security+TOKEN_PRIVILEGES</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.Management.Win32.Win32Security+TRUSTEE</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.Management.Win32.Win32Security+USER_MODALS_INFO_2</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.Management.Win32.Win32Kernel+FormatMessageFlags</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.Management.Win32.Win32Security+ACCESS_MODE</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.Management.Win32.Win32Security+MULTIPLE_TRUSTEE_OPERATION</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.Management.Win32.Win32Security+PRIVILEGE_SET_ATTRIBUTES</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.Management.Win32.Win32Security+PRIVILEGE_SET_CONTROL</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.Management.Win32.Win32Security+SECURITY_IMPERSONATION_LEVEL</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.Management.Win32.Win32Security+SECURITY_INFORMATION</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.Management.Win32.Win32Security+TRUSTEE_FORM</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.Management.Win32.Win32Security+TRUSTEE_TYPE</ExcludedItem>
+      <ExcludedItem>Starcounter.InstallerEngine~Starcounter.Management.Win32.Win32Service+ACCESS_MASK</ExcludedItem>
+      <ExcludedItem>Starcounter.REST~Starcounter.Internal.Uri.AstTreeHelper</ExcludedItem>
+      <ExcludedItem>Starcounter.REST~Starcounter.Internal.Uri.AstTrigger</ExcludedItem>
+      <ExcludedItem>Starcounter.REST~Starcounter.Internal.Uri.AstValueJump</ExcludedItem>
+      <ExcludedItem>Starcounter.REST~Starcounter.Internal.Uri.AstDeserializeMessage</ExcludedItem>
+      <ExcludedItem>Starcounter.REST~Starcounter.Internal.Uri.UriTemplatePreprocessor+ParseState</ExcludedItem>
+      <ExcludedItem>Starcounter.Server~Starcounter.Server.ServerHost</ExcludedItem>
+      <ExcludedItem>Starcounter.VisualStudio~Starcounter.VisualStudio.BaseVsPackage+ActivityLogWriter</ExcludedItem>
+      <ExcludedItem>Starcounter.VisualStudio~Starcounter.VisualStudio.AppsEvents</ExcludedItem>
+      <ExcludedItem>Starcounter.VisualStudio~Starcounter.VisualStudio.StarcounterErrorListProvider</ExcludedItem>
+      <ExcludedItem>Starcounter.VisualStudio~Starcounter.VisualStudio.StarcounterErrorTask</ExcludedItem>
+      <ExcludedItem>Starcounter.VisualStudio~Starcounter.VisualStudio.ServerUtility</ExcludedItem>
+      <ExcludedItem>Starcounter.VisualStudio~Starcounter.VisualStudio.VsPackageConstants</ExcludedItem>
+      <ExcludedItem>Starcounter.VisualStudio~Starcounter.VisualStudio.HWndDispatcher</ExcludedItem>
+      <ExcludedItem>Starcounter.VisualStudio~Starcounter.VisualStudio.HWndDispatcher+AsyncAction</ExcludedItem>
+      <ExcludedItem>Starcounter.VisualStudio~Starcounter.VisualStudio.HWndDispatcher+MSG</ExcludedItem>
+      <ExcludedItem>Starcounter.VisualStudio~Starcounter.VisualStudio.HWndDispatcher+POINT</ExcludedItem>
+      <ExcludedItem>Starcounter.VisualStudio~Starcounter.VisualStudio.ErrorTaskSource</ExcludedItem>
+      <ExcludedItem>Starcounter.VisualStudio~Starcounter.VisualStudio.HWndDispatcher+GetMsgProc</ExcludedItem>
+      <ExcludedItem>Starcounter.VisualStudio~Starcounter.VisualStudio.Projects.StarcounterProject</ExcludedItem>
+      <ExcludedItem>Starcounter.VisualStudio~Starcounter.VisualStudio.Projects.AppExeProject</ExcludedItem>
+      <ExcludedItem>Starcounter.VisualStudio~Starcounter.VisualStudio.Projects.StarcounterProjectConfiguration</ExcludedItem>
+      <ExcludedItem>Starcounter.VisualStudio~Starcounter.VisualStudio.Projects.StarcounterProjectConfiguration+PropertyNames</ExcludedItem>
+      <ExcludedItem>Starcounter.VisualStudio~Starcounter.VisualStudio.Projects.AppExeProjectConfiguration</ExcludedItem>
+      <ExcludedItem>Starcounter.VisualStudio~Starcounter.VisualStudio.Projects.AssemblyDebugConfiguration</ExcludedItem>
+      <ExcludedItem>Starcounter.VisualStudio~Starcounter.VisualStudio.Projects.AssemblyDebugConfiguration+OutputType</ExcludedItem>
+      <ExcludedItem>Starcounter.VisualStudio~Starcounter.VisualStudio.Projects.ProjectPropertySettings</ExcludedItem>
+      <ExcludedItem>Starcounter.VisualStudio~Starcounter.VisualStudio.Projects.ProjectStartAction</ExcludedItem>
     </ExcludedItems>
   </Filters>
   <ComProjectPlugin />
   <AjaxProjectPlugin />
   <JavaProjectPlugin />
   <DotNetAssemblies>
-    <Assembly FileName="..\..\..\..\bin\Debug\FasterThanJson.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\..\bin\Debug\HttpStructs.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\..\bin\Debug\Starcounter.Apps.CodeGeneration.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\Starcounter.Apps.CodeGeneration.Tests\bin\Debug\Starcounter.Apps.CodeGeneration.Tests.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\..\bin\Debug\Starcounter.Apps.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\..\bin\Debug\Starcounter.Apps.HtmlReader.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\Starcounter.Apps.HtmlReader.Tests\bin\Debug\Starcounter.Apps.HtmlReader.Tests.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\..\bin\Debug\Starcounter.Apps.Interfaces.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\..\bin\Debug\Starcounter.Apps.JsonPatch.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\..\bin\Debug\Starcounter.Apps.JsonReader.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\Starcounter.Apps.JsonReader.Tests\bin\Debug\Starcounter.Apps.JsonReader.Tests.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\Starcounter.Apps.Test\bin\Debug\Starcounter.Apps.Tests.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\..\bin\Debug\Starcounter.BitsAndBytes.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\..\bin\Debug\Starcounter.Bootstrap.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\..\bin\Debug\Starcounter.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\Starcounter.ErrorCodes\Starcounter.Errors\bin\Debug\Starcounter.Errors.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\..\bin\Debug\Starcounter.Hosting.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\..\bin\Debug\Starcounter.Hypermedia.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\..\bin\Debug\Starcounter.Internal.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\..\bin\Debug\Starcounter.MsBuild.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\..\bin\Debug\Starcounter.REST.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\..\bin\Debug\Starcounter.Server.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\Starcounter.Web.Tests\bin\Debug\Starcounter.Web.Tests.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\FasterThanJson.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\HttpStructs.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\Sc.Tools.Logging.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.Apps.CodeGeneration.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.Apps.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.Apps.HtmlReader.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.Apps.Interfaces.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.Apps.JsonPatch.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.Apps.JsonReader.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.Apps.JsTemplateParser.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.BitsAndBytes.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.BitsAndBytes.Native.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.Bootstrap.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.Controls.WpfMessageBox.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.Hosting.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.Hypermedia.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.InstallerEngine.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.Internal.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.Logging.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.MsBuild.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.REST.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.Server.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.XSON.dll" RootTypeName="" />
   </DotNetAssemblies>
   <DatabaseProjectPlugin>
     <Databases />
@@ -584,13 +951,13 @@
         <Caption m="2012-10-23T15:39:04.9886171Z">General</Caption>
         <ChildTopicCategories />
         <Topics>
-          <Topic Id="a98020f6-6a02-433a-9cb0-0dbf78dc7725" Status="Complete" CreatedOn="2012-10-23T15:42:49.2149687Z" ModifiedOn="2012-10-24T14:25:16.9392444Z" PageTypeName="" AutoIndex="true" HelpContextIds="" Name="Starcounter Internal Documentation" BuildFlags="">
+          <Topic Id="a98020f6-6a02-433a-9cb0-0dbf78dc7725" Status="Complete" CreatedOn="2012-10-23T15:42:49.2149687Z" ModifiedOn="2012-10-25T15:32:19.9880207Z" PageTypeName="" AutoIndex="true" HelpContextIds="" Name="Starcounter Internal Documentation" BuildFlags="">
             <Title />
             <ContentsTitle m="2012-10-24T14:25:16.9392444Z">Starcounter Internal Documentation</ContentsTitle>
             <Notes></Notes>
             <TopicSections>
               <TopicSection Name="BodyText">
-                <Content m="2012-10-24T08:57:10.6744071Z">&lt;P&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;IMG border=0 alt="" src="images/acid_logo2.jpg"&gt;&lt;/P&gt;
+                <Content m="2012-10-25T15:32:19.984018Z">&lt;P&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;IMG border=0 alt="" src="images/acid_logo2.jpg"&gt;&lt;/P&gt;
 &lt;P&gt;&amp;nbsp;&lt;/P&gt;
 &lt;H1&gt;Try the Starcounter 2.0 public beta&lt;/H1&gt;
 &lt;P&gt;&lt;/P&gt;
@@ -603,7 +970,7 @@
 &lt;H2&gt;3,000,000 transactions per second on a standard server&lt;/H2&gt;
 &lt;P&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;IMG alt=servers src="http://www.starcounter.com/Global/1/index_servers.png" width=339 height=95&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;/P&gt;
 &lt;P&gt;Today the world's largest online stores depend on enormous server infrastructures.&lt;/P&gt;
-&lt;P&gt;With Starcounter, a single server could be enough!&lt;/P&gt;
+&lt;P&gt;With Starcounter, a single server could be enough!!&lt;/P&gt;
 &lt;P&gt;&amp;nbsp;&lt;/P&gt;&lt;?xml:namespace prefix = "innovasys" ns = "http://www.innovasys.com/widgets" /&gt;&lt;innovasys:widget type="Language Filtered Code Box (Tab Style)" layout="block"&gt;&lt;innovasys:widgetproperty layout="inline" name="Title"&gt;Title Text&lt;/innovasys:widgetproperty&gt; &lt;innovasys:widgetproperty layout="inline" name="LanguageName"&gt;CS&lt;/innovasys:widgetproperty&gt; &lt;innovasys:widgetproperty layout="block" name="Content"&gt;internal Process GetRunningWorkerProcess() {&lt;BR&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;var p = WorkerProcess;&lt;BR&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;if (p != null) {&lt;BR&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;p.Refresh();&lt;BR&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;p = p.HasExited ? null : p;&lt;BR&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;}&lt;BR&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;return p;&lt;BR&gt;}&lt;/innovasys:widgetproperty&gt;&lt;/innovasys:widget&gt;&lt;innovasys:widget type="Note Box" layout="block"&gt;&lt;innovasys:widgetproperty layout="block" name="Content"&gt;Type your Note Box content here.&lt;/innovasys:widgetproperty&gt;&lt;/innovasys:widget&gt;&lt;innovasys:widget type="Tip Box" layout="block"&gt;&lt;innovasys:widgetproperty layout="block" name="Content"&gt;Type your Tip Box content here.&lt;/innovasys:widgetproperty&gt;&lt;/innovasys:widget&gt;&lt;innovasys:widget type="Caution Box" layout="block"&gt;&lt;innovasys:widgetproperty layout="block" name="Content"&gt;Type your Caution Box content here.&lt;/innovasys:widgetproperty&gt;&lt;/innovasys:widget&gt;
 &lt;P&gt;&amp;nbsp;&lt;innovasys:widget Content="Type your Expandable text content here." Heading="Heading Text" type="Expandable text" layout="inline"&gt;&lt;/innovasys:widget&gt;&lt;/P&gt;&lt;innovasys:widget type="Movie (Flash)" layout="block"&gt;&lt;innovasys:widgetproperty layout="inline" name="Movieurl"&gt;http://www.innovasys.com/flash/sample.swf&lt;/innovasys:widgetproperty&gt; &lt;innovasys:widgetproperty layout="inline" name="Moviewidth"&gt;200&lt;/innovasys:widgetproperty&gt; &lt;innovasys:widgetproperty layout="inline" name="Movieheight"&gt;200&lt;/innovasys:widgetproperty&gt; &lt;innovasys:widgetproperty layout="inline" name="Backgroundcolor"&gt;#ffffff&lt;/innovasys:widgetproperty&gt;&lt;/innovasys:widget&gt;</Content>
               </TopicSection>
@@ -1022,17 +1389,17 @@
         <UseExternalXmlCommentFiles>false</UseExternalXmlCommentFiles>
         <NoInheritedMemberTopicsExternal>true</NoInheritedMemberTopicsExternal>
         <NoInheritedInLists>false</NoInheritedInLists>
-        <ExcludeEditorBrowsable>true</ExcludeEditorBrowsable>
+        <ExcludeEditorBrowsable>false</ExcludeEditorBrowsable>
         <ExcludeBrowsableFalse>false</ExcludeBrowsableFalse>
         <ExcludeObsolete>false</ExcludeObsolete>
         <ExcludeCompilerGenerated>false</ExcludeCompilerGenerated>
         <ExcludeDebuggerNonUserCode>false</ExcludeDebuggerNonUserCode>
         <GenerateXmlCommentFile>false</GenerateXmlCommentFile>
         <IncludeBreadcrumbs>true</IncludeBreadcrumbs>
-        <IncludeAssemblyBreadcrumb>false</IncludeAssemblyBreadcrumb>
-        <IncludePrivateMembers>false</IncludePrivateMembers>
-        <IncludeFriendMembers>false</IncludeFriendMembers>
-        <IncludeProtectedFriendMembers>false</IncludeProtectedFriendMembers>
+        <IncludeAssemblyBreadcrumb>true</IncludeAssemblyBreadcrumb>
+        <IncludePrivateMembers>true</IncludePrivateMembers>
+        <IncludeFriendMembers>true</IncludeFriendMembers>
+        <IncludeProtectedFriendMembers>true</IncludeProtectedFriendMembers>
         <IncludeProtectedMembers>true</IncludeProtectedMembers>
         <IncludeAttributes>true</IncludeAttributes>
         <AttributeFilterType>Exclude</AttributeFilterType>
@@ -1064,9 +1431,9 @@
         <LinkOverriddenMembersToBaseImplementation>false</LinkOverriddenMembersToBaseImplementation>
         <GenericIndicator>ArgumentsInBrackets</GenericIndicator>
         <RootAssemblyName></RootAssemblyName>
-        <IncludeConstructorsOnAbstractTypes>false</IncludeConstructorsOnAbstractTypes>
+        <IncludeConstructorsOnAbstractTypes>true</IncludeConstructorsOnAbstractTypes>
         <TemplateName>2012 Style</TemplateName>
-        <ExcludeAllPrivateTypes>true</ExcludeAllPrivateTypes>
+        <ExcludeAllPrivateTypes>false</ExcludeAllPrivateTypes>
         <ExcludeAllFriendTypes>false</ExcludeAllFriendTypes>
         <ExcludeAllProtectedTypes>false</ExcludeAllProtectedTypes>
         <ExcludeAllProtectedFriendTypes>false</ExcludeAllProtectedFriendTypes>
