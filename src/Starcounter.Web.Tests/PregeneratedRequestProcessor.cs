@@ -180,8 +180,14 @@ namespace __urimatcher__ {
             byte* pfrag = (byte*)fragment;
             byte* ptempl = (byte*)PointerVerificationBytes;
             int nextSize = size;
+            byte* prev_pfrag = (byte*)fragment;
+            byte* prev_ptempl = (byte*)PointerVerificationBytes;
+            int prev_nextSize = size;
             switch (*pfrag) {
                case (byte)'G':
+                   prev_pfrag = pfrag;
+                   prev_ptempl = ptempl;
+                   prev_nextSize = nextSize;
                    pfrag++;
                    nextSize--;
                #if DEBUG
@@ -214,6 +220,9 @@ namespace __urimatcher__ {
                   switch (*pfrag) {
                      case (byte)' ':
                      case (byte)'\r':
+                         prev_pfrag = pfrag;
+                         prev_ptempl = ptempl;
+                         prev_nextSize = nextSize;
                          pfrag++;
                          nextSize--;
                      #if DEBUG
@@ -224,6 +233,9 @@ namespace __urimatcher__ {
                            return true;
                         break;
                      case (byte)'u':
+                         prev_pfrag = pfrag;
+                         prev_ptempl = ptempl;
+                         prev_nextSize = nextSize;
                          pfrag++;
                          nextSize--;
                      #if DEBUG
@@ -284,6 +296,9 @@ namespace __urimatcher__ {
                         switch (*pfrag) {
                            case (byte)' ':
                            case (byte)'\r':
+                               prev_pfrag = pfrag;
+                               prev_ptempl = ptempl;
+                               prev_nextSize = nextSize;
                                pfrag++;
                                nextSize--;
                            #if DEBUG
@@ -294,6 +309,9 @@ namespace __urimatcher__ {
                                  return true;
                               break;
                            case (byte)'/':
+                               prev_pfrag = pfrag;
+                               prev_ptempl = ptempl;
+                               prev_nextSize = nextSize;
                                pfrag++;
                                nextSize--;
                            #if DEBUG
@@ -308,6 +326,9 @@ namespace __urimatcher__ {
                         }
                         break;
                      case (byte)'a':
+                         prev_pfrag = pfrag;
+                         prev_ptempl = ptempl;
+                         prev_nextSize = nextSize;
                          pfrag++;
                          nextSize--;
                      #if DEBUG
@@ -316,6 +337,9 @@ namespace __urimatcher__ {
                      #endif
                         switch (*pfrag) {
                            case (byte)'d':
+                               prev_pfrag = pfrag;
+                               prev_ptempl = ptempl;
+                               prev_nextSize = nextSize;
                                pfrag++;
                                nextSize--;
                            #if DEBUG
@@ -347,6 +371,9 @@ namespace __urimatcher__ {
                               #endif
                               switch (*pfrag) {
                                  case (byte)'a':
+                                     prev_pfrag = pfrag;
+                                     prev_ptempl = ptempl;
+                                     prev_nextSize = nextSize;
                                      pfrag++;
                                      nextSize--;
                                  #if DEBUG
@@ -366,7 +393,10 @@ namespace __urimatcher__ {
                                     #endif
                                     nextSize -= 4;
                                     if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)ptempl) ) {
-                                        break;
+                                        pfrag = prev_pfrag;
+                                        ptempl = prev_ptempl;
+                                        nextSize = prev_nextSize;
+                                        goto default;
                                     }
                                     pfrag += 4;
                                     ptempl += 4;
@@ -378,7 +408,10 @@ namespace __urimatcher__ {
                                     #endif
                                     nextSize -= 2;
                                     if (nextSize<0 || (*(UInt16*)pfrag) != (*(UInt16*)ptempl) ) {
-                                        break;
+                                        pfrag = prev_pfrag;
+                                        ptempl = prev_ptempl;
+                                        nextSize = prev_nextSize;
+                                        goto default;
                                     }
                                     pfrag += 2;
                                     ptempl += 2;
@@ -390,7 +423,10 @@ namespace __urimatcher__ {
                                     #endif
                                     nextSize --;
                                     if (nextSize<0 || (*pfrag) != (*ptempl) ) {
-                                        break;
+                                        pfrag = prev_pfrag;
+                                        ptempl = prev_ptempl;
+                                        nextSize = prev_nextSize;
+                                        goto default;
                                     }
                                     pfrag ++;
                                     ptempl ++;
@@ -400,14 +436,20 @@ namespace __urimatcher__ {
                                     #endif
                                     if (Sub6.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                        return true;
-                                    break;
+                                    pfrag = prev_pfrag;
+                                    ptempl = prev_ptempl;
+                                    nextSize = prev_nextSize;
+                                    goto default;
                                  default:
                                     if (Sub8.SubProcess((IntPtr)pfrag, nextSize, invoke, request, out handler, out resource))
                                        return true;
-                                    break;
+                                 break;
                               }
                               break;
                            case (byte)'a':
+                               prev_pfrag = pfrag;
+                               prev_ptempl = ptempl;
+                               prev_nextSize = nextSize;
                                pfrag++;
                                nextSize--;
                            #if DEBUG
@@ -441,6 +483,9 @@ namespace __urimatcher__ {
                         }
                         break;
                      case (byte)'p':
+                         prev_pfrag = pfrag;
+                         prev_ptempl = ptempl;
+                         prev_nextSize = nextSize;
                          pfrag++;
                          nextSize--;
                      #if DEBUG
@@ -487,6 +532,9 @@ namespace __urimatcher__ {
                         switch (*pfrag) {
                            case (byte)' ':
                            case (byte)'\r':
+                               prev_pfrag = pfrag;
+                               prev_ptempl = ptempl;
+                               prev_nextSize = nextSize;
                                pfrag++;
                                nextSize--;
                            #if DEBUG
@@ -497,6 +545,9 @@ namespace __urimatcher__ {
                                  return true;
                               break;
                            case (byte)'/':
+                               prev_pfrag = pfrag;
+                               prev_ptempl = ptempl;
+                               prev_nextSize = nextSize;
                                pfrag++;
                                nextSize--;
                            #if DEBUG
@@ -507,6 +558,9 @@ namespace __urimatcher__ {
                                  return true;
                               break;
                            case (byte)'?':
+                               prev_pfrag = pfrag;
+                               prev_ptempl = ptempl;
+                               prev_nextSize = nextSize;
                                pfrag++;
                                nextSize--;
                            #if DEBUG
@@ -519,6 +573,9 @@ namespace __urimatcher__ {
                         }
                         break;
                      case (byte)'d':
+                         prev_pfrag = pfrag;
+                         prev_ptempl = ptempl;
+                         prev_nextSize = nextSize;
                          pfrag++;
                          nextSize--;
                      #if DEBUG
@@ -562,6 +619,9 @@ namespace __urimatcher__ {
                            return true;
                         break;
                      case (byte)'w':
+                         prev_pfrag = pfrag;
+                         prev_ptempl = ptempl;
+                         prev_nextSize = nextSize;
                          pfrag++;
                          nextSize--;
                      #if DEBUG
@@ -607,6 +667,9 @@ namespace __urimatcher__ {
                         #endif
                         switch (*pfrag) {
                            case (byte)'e':
+                               prev_pfrag = pfrag;
+                               prev_ptempl = ptempl;
+                               prev_nextSize = nextSize;
                                pfrag++;
                                nextSize--;
                            #if DEBUG
@@ -638,6 +701,9 @@ namespace __urimatcher__ {
                                  return true;
                               break;
                            case (byte)'m':
+                               prev_pfrag = pfrag;
+                               prev_ptempl = ptempl;
+                               prev_nextSize = nextSize;
                                pfrag++;
                                nextSize--;
                            #if DEBUG
@@ -671,6 +737,9 @@ namespace __urimatcher__ {
                         }
                         break;
                      case (byte)'o':
+                         prev_pfrag = pfrag;
+                         prev_ptempl = ptempl;
+                         prev_nextSize = nextSize;
                          pfrag++;
                          nextSize--;
                      #if DEBUG
@@ -702,6 +771,9 @@ namespace __urimatcher__ {
                         #endif
                         switch (*pfrag) {
                            case (byte)'i':
+                               prev_pfrag = pfrag;
+                               prev_ptempl = ptempl;
+                               prev_nextSize = nextSize;
                                pfrag++;
                                nextSize--;
                            #if DEBUG
@@ -733,6 +805,9 @@ namespace __urimatcher__ {
                                  return true;
                               break;
                            case (byte)'A':
+                               prev_pfrag = pfrag;
+                               prev_ptempl = ptempl;
+                               prev_nextSize = nextSize;
                                pfrag++;
                                nextSize--;
                            #if DEBUG
@@ -766,6 +841,9 @@ namespace __urimatcher__ {
                         }
                         break;
                      case (byte)'t':
+                         prev_pfrag = pfrag;
+                         prev_ptempl = ptempl;
+                         prev_nextSize = nextSize;
                          pfrag++;
                          nextSize--;
                      #if DEBUG
@@ -797,6 +875,9 @@ namespace __urimatcher__ {
                         #endif
                         switch (*pfrag) {
                            case (byte)'d':
+                               prev_pfrag = pfrag;
+                               prev_ptempl = ptempl;
+                               prev_nextSize = nextSize;
                                pfrag++;
                                nextSize--;
                            #if DEBUG
@@ -805,6 +886,9 @@ namespace __urimatcher__ {
                            #endif
                               switch (*pfrag) {
                                  case (byte)'e':
+                                     prev_pfrag = pfrag;
+                                     prev_ptempl = ptempl;
+                                     prev_nextSize = nextSize;
                                      pfrag++;
                                      nextSize--;
                                  #if DEBUG
@@ -848,6 +932,9 @@ namespace __urimatcher__ {
                                        return true;
                                     break;
                                  case (byte)'o':
+                                     prev_pfrag = pfrag;
+                                     prev_ptempl = ptempl;
+                                     prev_nextSize = nextSize;
                                      pfrag++;
                                      nextSize--;
                                  #if DEBUG
@@ -891,6 +978,9 @@ namespace __urimatcher__ {
                                        return true;
                                     break;
                                  case (byte)'a':
+                                     prev_pfrag = pfrag;
+                                     prev_ptempl = ptempl;
+                                     prev_nextSize = nextSize;
                                      pfrag++;
                                      nextSize--;
                                  #if DEBUG
@@ -948,6 +1038,9 @@ namespace __urimatcher__ {
                               }
                               break;
                            case (byte)'b':
+                               prev_pfrag = pfrag;
+                               prev_ptempl = ptempl;
+                               prev_nextSize = nextSize;
                                pfrag++;
                                nextSize--;
                            #if DEBUG
@@ -981,6 +1074,9 @@ namespace __urimatcher__ {
                         }
                         break;
                      case (byte)'s':
+                         prev_pfrag = pfrag;
+                         prev_ptempl = ptempl;
+                         prev_nextSize = nextSize;
                          pfrag++;
                          nextSize--;
                      #if DEBUG
@@ -1026,6 +1122,9 @@ namespace __urimatcher__ {
                   }
                   break;
                case (byte)'P':
+                   prev_pfrag = pfrag;
+                   prev_ptempl = ptempl;
+                   prev_nextSize = nextSize;
                    pfrag++;
                    nextSize--;
                #if DEBUG
@@ -1034,6 +1133,9 @@ namespace __urimatcher__ {
                #endif
                   switch (*pfrag) {
                      case (byte)'U':
+                         prev_pfrag = pfrag;
+                         prev_ptempl = ptempl;
+                         prev_nextSize = nextSize;
                          pfrag++;
                          nextSize--;
                      #if DEBUG
@@ -1089,6 +1191,9 @@ namespace __urimatcher__ {
                            return true;
                         break;
                      case (byte)'O':
+                         prev_pfrag = pfrag;
+                         prev_ptempl = ptempl;
+                         prev_nextSize = nextSize;
                          pfrag++;
                          nextSize--;
                      #if DEBUG
@@ -1120,6 +1225,9 @@ namespace __urimatcher__ {
                         #endif
                         switch (*pfrag) {
                            case (byte)'t':
+                               prev_pfrag = pfrag;
+                               prev_ptempl = ptempl;
+                               prev_nextSize = nextSize;
                                pfrag++;
                                nextSize--;
                            #if DEBUG
@@ -1151,6 +1259,9 @@ namespace __urimatcher__ {
                                  return true;
                               break;
                            case (byte)'d':
+                               prev_pfrag = pfrag;
+                               prev_ptempl = ptempl;
+                               prev_nextSize = nextSize;
                                pfrag++;
                                nextSize--;
                            #if DEBUG
@@ -1206,6 +1317,9 @@ namespace __urimatcher__ {
                                  return true;
                               break;
                            case (byte)'f':
+                               prev_pfrag = pfrag;
+                               prev_ptempl = ptempl;
+                               prev_nextSize = nextSize;
                                pfrag++;
                                nextSize--;
                            #if DEBUG
@@ -1277,6 +1391,9 @@ namespace __urimatcher__ {
                   }
                   break;
                case (byte)'D':
+                   prev_pfrag = pfrag;
+                   prev_ptempl = ptempl;
+                   prev_nextSize = nextSize;
                    pfrag++;
                    nextSize--;
                #if DEBUG
@@ -1338,9 +1455,9 @@ namespace __urimatcher__ {
          public bool SubProcess(IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke();
+                resource = Code.Invoke();
             return true;
          }
       }
@@ -1350,9 +1467,9 @@ namespace __urimatcher__ {
          public bool SubProcess(IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke(request);
+                resource = Code.Invoke(request);
             return true;
          }
       }
@@ -1371,6 +1488,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -1393,9 +1513,9 @@ namespace __urimatcher__ {
          public bool SubProcess(int val1, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke(request, val1);
+                resource = Code.Invoke(request, val1);
             return true;
          }
       }
@@ -1414,6 +1534,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -1436,9 +1559,9 @@ namespace __urimatcher__ {
          public bool SubProcess(string val1, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke(val1, request);
+                resource = Code.Invoke(val1, request);
             return true;
          }
       }
@@ -1457,6 +1580,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -1479,9 +1605,9 @@ namespace __urimatcher__ {
          public bool SubProcess(int val1, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke(val1, request);
+                resource = Code.Invoke(val1, request);
             return true;
          }
       }
@@ -1500,6 +1626,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -1510,6 +1639,9 @@ namespace __urimatcher__ {
                      switch (*pfrag) {
                         case (byte)' ':
                         case (byte)'\r':
+                            prev_pfrag = pfrag;
+                            prev_ptempl = ptempl;
+                            prev_nextSize = nextSize;
                             pfrag++;
                             nextSize--;
                         #if DEBUG
@@ -1520,6 +1652,9 @@ namespace __urimatcher__ {
                               return true;
                            break;
                         case (byte)'/':
+                            prev_pfrag = pfrag;
+                            prev_ptempl = ptempl;
+                            prev_nextSize = nextSize;
                             pfrag++;
                             nextSize--;
                         #if DEBUG
@@ -1543,9 +1678,9 @@ namespace __urimatcher__ {
          public bool SubProcess(string val1, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke(val1, request);
+                resource = Code.Invoke(val1, request);
             return true;
          }
       }
@@ -1564,6 +1699,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -1586,9 +1724,9 @@ namespace __urimatcher__ {
          public bool SubProcess(string val1, int val2, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke(val1, val2, request);
+                resource = Code.Invoke(val1, val2, request);
             return true;
          }
       }
@@ -1607,6 +1745,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -1666,9 +1807,9 @@ namespace __urimatcher__ {
          public bool SubProcess(int val1, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke(val1);
+                resource = Code.Invoke(val1);
             return true;
          }
       }
@@ -1678,9 +1819,9 @@ namespace __urimatcher__ {
          public bool SubProcess(IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke();
+                resource = Code.Invoke();
             return true;
          }
       }
@@ -1699,6 +1840,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -1708,6 +1852,9 @@ namespace __urimatcher__ {
                   pfrag += valueSize;
                      switch (*pfrag) {
                         case (byte)'/':
+                            prev_pfrag = pfrag;
+                            prev_ptempl = ptempl;
+                            prev_nextSize = nextSize;
                             pfrag++;
                             nextSize--;
                         #if DEBUG
@@ -1740,6 +1887,9 @@ namespace __urimatcher__ {
                            break;
                         case (byte)' ':
                         case (byte)'\r':
+                            prev_pfrag = pfrag;
+                            prev_ptempl = ptempl;
+                            prev_nextSize = nextSize;
                             pfrag++;
                             nextSize--;
                         #if DEBUG
@@ -1772,6 +1922,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -1794,9 +1947,9 @@ namespace __urimatcher__ {
          public bool SubProcess(int val1, string val2, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke(val1, val2);
+                resource = Code.Invoke(val1, val2);
             return true;
          }
       }
@@ -1806,9 +1959,9 @@ namespace __urimatcher__ {
          public bool SubProcess(int val1, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke(val1);
+                resource = Code.Invoke(val1);
             return true;
          }
       }
@@ -1827,6 +1980,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -1849,9 +2005,9 @@ namespace __urimatcher__ {
          public bool SubProcess(string val1, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke(val1);
+                resource = Code.Invoke(val1);
             return true;
          }
       }
@@ -1870,6 +2026,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -1892,9 +2051,9 @@ namespace __urimatcher__ {
          public bool SubProcess(int val1, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke(val1);
+                resource = Code.Invoke(val1);
             return true;
          }
       }
@@ -1913,6 +2072,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -1945,6 +2107,9 @@ namespace __urimatcher__ {
                      #endif
                      switch (*pfrag) {
                         case (byte)'m':
+                            prev_pfrag = pfrag;
+                            prev_ptempl = ptempl;
+                            prev_nextSize = nextSize;
                             pfrag++;
                             nextSize--;
                         #if DEBUG
@@ -1976,6 +2141,9 @@ namespace __urimatcher__ {
                               return true;
                            break;
                         case (byte)'x':
+                            prev_pfrag = pfrag;
+                            prev_ptempl = ptempl;
+                            prev_nextSize = nextSize;
                             pfrag++;
                             nextSize--;
                         #if DEBUG
@@ -2007,6 +2175,9 @@ namespace __urimatcher__ {
                            #endif
                            switch (*pfrag) {
                               case (byte)'Y':
+                                  prev_pfrag = pfrag;
+                                  prev_ptempl = ptempl;
+                                  prev_nextSize = nextSize;
                                   pfrag++;
                                   nextSize--;
                               #if DEBUG
@@ -2038,6 +2209,9 @@ namespace __urimatcher__ {
                                     return true;
                                  break;
                               case (byte)'Z':
+                                  prev_pfrag = pfrag;
+                                  prev_ptempl = ptempl;
+                                  prev_nextSize = nextSize;
                                   pfrag++;
                                   nextSize--;
                               #if DEBUG
@@ -2093,6 +2267,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -2147,6 +2324,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -2169,9 +2349,9 @@ namespace __urimatcher__ {
          public bool SubProcess(string val1, int val2, string val3, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke(val1, val2, val3);
+                resource = Code.Invoke(val1, val2, val3);
             return true;
          }
       }
@@ -2190,6 +2370,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -2212,9 +2395,9 @@ namespace __urimatcher__ {
          public bool SubProcess(string val1, int val2, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke(val1, val2);
+                resource = Code.Invoke(val1, val2);
             return true;
          }
       }
@@ -2233,6 +2416,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -2255,9 +2441,9 @@ namespace __urimatcher__ {
          public bool SubProcess(string val1, int val2, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke(val1, val2);
+                resource = Code.Invoke(val1, val2);
             return true;
          }
       }
@@ -2276,6 +2462,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -2344,6 +2533,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -2366,9 +2558,9 @@ namespace __urimatcher__ {
          public bool SubProcess(string val1, int val2, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke(val1, val2);
+                resource = Code.Invoke(val1, val2);
             return true;
          }
       }
@@ -2378,9 +2570,9 @@ namespace __urimatcher__ {
          public bool SubProcess(IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke();
+                resource = Code.Invoke();
             return true;
          }
       }
@@ -2390,9 +2582,9 @@ namespace __urimatcher__ {
          public bool SubProcess(IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke();
+                resource = Code.Invoke();
             return true;
          }
       }
@@ -2411,6 +2603,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -2433,9 +2628,9 @@ namespace __urimatcher__ {
          public bool SubProcess(decimal val1, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke(val1);
+                resource = Code.Invoke(val1);
             return true;
          }
       }
@@ -2454,6 +2649,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -2476,9 +2674,9 @@ namespace __urimatcher__ {
          public bool SubProcess(double val1, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke(val1);
+                resource = Code.Invoke(val1);
             return true;
          }
       }
@@ -2497,6 +2695,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -2519,9 +2720,9 @@ namespace __urimatcher__ {
          public bool SubProcess(DateTime val1, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke(val1);
+                resource = Code.Invoke(val1);
             return true;
          }
       }
@@ -2540,6 +2741,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -2562,9 +2766,9 @@ namespace __urimatcher__ {
          public bool SubProcess(bool val1, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke(val1);
+                resource = Code.Invoke(val1);
             return true;
          }
       }
@@ -2583,6 +2787,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -2637,6 +2844,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -2659,9 +2869,9 @@ namespace __urimatcher__ {
          public bool SubProcess(string val1, string val2, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke(val1, val2, request);
+                resource = Code.Invoke(val1, val2, request);
             return true;
          }
       }
@@ -2680,6 +2890,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -2702,9 +2915,9 @@ namespace __urimatcher__ {
          public bool SubProcess(int val1, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke(val1);
+                resource = Code.Invoke(val1);
             return true;
          }
       }
@@ -2723,6 +2936,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -2745,9 +2961,9 @@ namespace __urimatcher__ {
          public bool SubProcess(int val1, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke(val1);
+                resource = Code.Invoke(val1);
             return true;
          }
       }
@@ -2766,6 +2982,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -2788,9 +3007,9 @@ namespace __urimatcher__ {
          public bool SubProcess(int val1, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke(val1);
+                resource = Code.Invoke(val1);
             return true;
          }
       }
@@ -2809,6 +3028,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -2877,6 +3099,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -2945,6 +3170,9 @@ namespace __urimatcher__ {
                   byte* pfrag = (byte*)fragment;
                   byte* ptempl = (byte*)PointerVerificationBytes;
                   int nextSize = size;
+                  byte* prev_pfrag = (byte*)fragment;
+                  byte* prev_ptempl = (byte*)PointerVerificationBytes;
+                  int prev_nextSize = size;
                   nextSize -= valueSize;
                   if (nextSize < 0) {
                       handler = null;
@@ -2967,9 +3195,9 @@ namespace __urimatcher__ {
          public bool SubProcess(string val1, string val2, int val3, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke(val1, val2, val3);
+                resource = Code.Invoke(val1, val2, val3);
             return true;
          }
       }
@@ -2979,9 +3207,9 @@ namespace __urimatcher__ {
          public bool SubProcess(IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             handler = this;
             if (!invoke)
-               resource = null;
+                resource = null;
             else
-               resource = Code.Invoke();
+                resource = Code.Invoke();
             return true;
          }
       }
