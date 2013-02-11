@@ -24,7 +24,7 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
         IQueryComparer comp,
         VariableArray varArr,
         String query,
-        INumericalExpression fetchNumExpr, IBinaryExpression fetchOffsetKeyExpr)
+        INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr)
         : base(rowTypeBind, varArr)
     {
         if (rowTypeBind == null)
@@ -41,6 +41,7 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
         //rowTypeBinding = subEnumerator.RowTypeBinding;
         enumerator = null;
         this.fetchNumberExpr = fetchNumExpr;
+        this.fetchOffsetExpr = fetchOffsetExpr;
         this.fetchOffsetKeyExpr = fetchOffsetKeyExpr;
 
         this.query = query;
@@ -249,8 +250,13 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
         IBinaryExpression fetchOffsetKeyExprClone = null;
         if (fetchOffsetKeyExpr != null)
             fetchOffsetKeyExprClone = fetchOffsetKeyExpr.CloneToBinary(varArrClone);
+
+        INumericalExpression fetchOffsetExprClone = null;
+        if (fetchOffsetExpr != null)
+            fetchOffsetExprClone = fetchOffsetExpr.CloneToNumerical(varArrClone);
+
         return new Sort(rowTypeBindClone, subEnumerator.Clone(rowTypeBindClone, varArrClone), comparer.Clone(varArrClone), varArrClone, query, 
-            fetchNumberExprClone, fetchOffsetKeyExprClone);
+            fetchNumberExprClone, fetchNumberExprClone, fetchOffsetKeyExprClone);
     }
 
     public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs)

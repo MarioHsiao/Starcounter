@@ -368,16 +368,16 @@ internal class ExtentNode : IOptimizationNode
         return EXTENT_SCAN_COST;
     }
 
-    public IExecutionEnumerator CreateExecutionEnumerator(INumericalExpression fetchNumExpr, IBinaryExpression fetchOffsetKeyExpr)
+    public IExecutionEnumerator CreateExecutionEnumerator(INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr)
     {
         if (hintedIndexInfo != null)
         {
-            return CreateIndexScan(hintedIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetKeyExpr);
+            return CreateIndexScan(hintedIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
         }
 
         if (sortIndexInfo != null)
         {
-            return CreateIndexScan(sortIndexInfo.IndexInfo, sortIndexInfo.SortOrdering, fetchNumExpr, fetchOffsetKeyExpr);
+            return CreateIndexScan(sortIndexInfo.IndexInfo, sortIndexInfo.SortOrdering, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
         }
 
         if (refLookUpExpression != null)
@@ -387,7 +387,7 @@ internal class ExtentNode : IOptimizationNode
 
         if (bestIndexInfo != null)
         {
-            return CreateIndexScan(bestIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetKeyExpr);
+            return CreateIndexScan(bestIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
         }
 
         if (extentIndexInfo != null)
@@ -419,13 +419,13 @@ internal class ExtentNode : IOptimizationNode
             }
 
             // Proceeding with the worst case: full table scan on managed code level.
-            return CreateIndexScan(extentIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetKeyExpr);
+            return CreateIndexScan(extentIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
         }
         ITypeBinding typeBind = rowTypeBind.GetTypeBinding(extentNumber);
         throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "There is no index for type: " + typeBind.Name);
     }
 
-    private IExecutionEnumerator CreateIndexScan(IndexInfo indexInfo, SortOrder sortOrdering, INumericalExpression fetchNumExpr, IBinaryExpression fetchOffsetKeyExpr)
+    private IExecutionEnumerator CreateIndexScan(IndexInfo indexInfo, SortOrder sortOrdering, INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr)
     {
         List<String> strPathList = new List<String>();
         String strPath = null;
@@ -495,7 +495,7 @@ internal class ExtentNode : IOptimizationNode
                              strPathList,
                              dynamicRangeList, GetCondition(),
                              sortOrdering, 
-                             fetchNumExpr, fetchOffsetKeyExpr, 
+                             fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, 
                              InnermostExtent, 
                              variableArr, query);
     }
