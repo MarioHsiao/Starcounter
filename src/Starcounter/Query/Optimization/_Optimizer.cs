@@ -19,11 +19,13 @@ internal static class Optimizer
     /// <param name="nodeTree">An initial node-tree corresponding to the structure of the query.</param>
     /// <param name="conditionDict">A dictionary of conditions present in the query.</param>
     /// <param name="fetchNumExpr">A specification of maximal number of objects/rows to be returned.</param>
-    /// <param name="fetchOffsetKeyExpr">The fetch offset key expr.</param>
+    /// <param name="fetchOffsetExpr">An offset expression.</param>
+    /// <param name="fetchOffsetKeyExpr">An offset-key expression.</param>
     /// <param name="hintSpec">A hint specification given by the user on how to execute the query.</param>
     /// <returns>An execution enumerator corresponding to an optimized query execution plan.</returns>
     internal static IExecutionEnumerator Optimize(IOptimizationNode nodeTree, ConditionDictionary conditionDict,
-        INumericalExpression fetchNumExpr, IBinaryExpression fetchOffsetKeyExpr, HintSpecification hintSpec)
+        INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr, 
+        HintSpecification hintSpec)
     {
         if (nodeTree == null)
         {
@@ -53,7 +55,7 @@ internal static class Optimizer
         }
         FlagInnermostExtent(bestOptimizationTree);
         // Return the corresponding execution enumerator.
-        return bestOptimizationTree.CreateExecutionEnumerator(fetchNumExpr, fetchOffsetKeyExpr);
+        return bestOptimizationTree.CreateExecutionEnumerator(fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
     }
 
     internal static List<OptimizationTree> CreateAllPermutations(IOptimizationNode nodeTree, 

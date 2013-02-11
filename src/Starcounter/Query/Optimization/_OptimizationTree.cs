@@ -150,8 +150,10 @@ internal class OptimizationTree
         }
     }
 
-    internal IExecutionEnumerator CreateExecutionEnumerator(INumericalExpression fetchNumExpr, IBinaryExpression fetchOffsetKeyExpr)
+    internal IExecutionEnumerator CreateExecutionEnumerator(INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr)
     {
+        // TODO: Make use of fetchOffsetExpr.
+
         IExecutionEnumerator enumerator = topNode.CreateExecutionEnumerator(fetchNumExpr, fetchOffsetKeyExpr);
         enumerator.RowTypeBinding.ExtentOrder = extentOrder;
         if (topNode is SortNode)

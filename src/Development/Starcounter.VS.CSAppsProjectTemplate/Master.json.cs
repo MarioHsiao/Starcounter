@@ -5,7 +5,7 @@ using Starcounter.Internal;
 namespace $safeprojectname$ {
     partial class Master : App {
         static void Main(string[] args) {
-            AppsBootstrapper.Bootstrap(8585);
+            AppsBootstrapper.Bootstrap();
             GET("/master", () => {
                 return new Master(){ 
                     View = "Master.html", 

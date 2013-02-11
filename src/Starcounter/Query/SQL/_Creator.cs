@@ -108,12 +108,13 @@ namespace Starcounter.Query.Sql
             conditionDict.AddCondition(whereCond);
             // Create fetch specification (number and offset expressions).
             INumericalExpression fetchNumExpr = null;
+            INumericalExpression fetchOffsetExpr = null;
             IBinaryExpression fetchOffsetKeyExpr = null;
-            CreateFetchSpecification(rowTypeBind, fetchTerm, varArray, out fetchNumExpr, out fetchOffsetKeyExpr);
+            CreateFetchSpecification(rowTypeBind, fetchTerm, varArray, out fetchNumExpr, out fetchOffsetExpr, out fetchOffsetKeyExpr);
             // Create hint specification.
             HintSpecification hintSpec = CreateHintSpecification(rowTypeBind, hintListTerm, varArray);
             // Optimize and create enumerator.
-            return Optimizer.Optimize(nodeTree, conditionDict, fetchNumExpr, fetchOffsetKeyExpr, hintSpec);
+            return Optimizer.Optimize(nodeTree, conditionDict, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, hintSpec);
         }
 
         private static IExecutionEnumerator OptimizeAndCreateEnumerator(RowTypeBinding rowTypeBind, Term nodeTreeTerm, Term whereCondTerm,
@@ -133,17 +134,18 @@ namespace Starcounter.Query.Sql
             conditionDict.AddCondition(whereCond);
             // Create fetch specification (number and offset expressions).
             INumericalExpression fetchNumExpr = null;
+            INumericalExpression fetchOffsetExpr = null;
             IBinaryExpression fetchOffsetKeyExpr = null;
-            CreateFetchSpecification(rowTypeBind, fetchTerm, varArray, out fetchNumExpr, out fetchOffsetKeyExpr);
+            CreateFetchSpecification(rowTypeBind, fetchTerm, varArray, out fetchNumExpr, out fetchOffsetExpr, out fetchOffsetKeyExpr);
             // Create hint specification.
             HintSpecification hintSpec = CreateHintSpecification(rowTypeBind, hintListTerm, varArray);
             // Optimize and create enumerator.
-            return Optimizer.Optimize(nodeTree, conditionDict, fetchNumExpr, fetchOffsetKeyExpr, hintSpec);
+            return Optimizer.Optimize(nodeTree, conditionDict, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, hintSpec);
         }
 
         // Output is returned in arguments fetchNumExpr and fetchOffsetKeyExpr.
         private static void CreateFetchSpecification(RowTypeBinding rowTypeBind, Term fetchTerm, VariableArray varArray,
-            out INumericalExpression fetchNumExpr, out IBinaryExpression fetchOffsetKeyExpr)
+            out INumericalExpression fetchNumExpr, out INumericalExpression fetchOffsetExpr, out IBinaryExpression fetchOffsetKeyExpr)
         {
             if (fetchTerm.Name != "fetch" || fetchTerm.Arity != 2)
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect fetchTerm: " + fetchTerm);
@@ -165,19 +167,25 @@ namespace Starcounter.Query.Sql
             }
 
             Term argument2 = fetchTerm.getArgument(2);
-            if (argument2.Name == "noOffset")
-                fetchOffsetKeyExpr = null;
-            else
+            fetchOffsetExpr = null;
+            fetchOffsetKeyExpr = null;
+            
+            if (argument2.Name != "noOffset")
             {
                 IValueExpression expr2 = CreateValueExpression(rowTypeBind, argument2, varArray);
                 if (expr2 is IBinaryExpression)
+                {
                     fetchOffsetKeyExpr = expr2 as IBinaryExpression;
+
+                    if (expr2 is ILiteral)
+                        varArray.QueryFlags = varArray.QueryFlags | QueryFlags.IncludesOffsetKeyLiteral;
+                    if (expr2 is IVariable)
+                        varArray.QueryFlags = varArray.QueryFlags | QueryFlags.IncludesOffsetKeyVariable;
+                }
+                else if (expr2 is INumericalExpression)
+                    fetchOffsetExpr = expr2 as INumericalExpression;
                 else
                     throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect fetchTerm: " + fetchTerm);
-                if (expr2 is ILiteral)
-                    varArray.QueryFlags = varArray.QueryFlags | QueryFlags.IncludesOffsetKeyLiteral;
-                if (expr2 is IVariable)
-                    varArray.QueryFlags = varArray.QueryFlags | QueryFlags.IncludesOffsetKeyVariable;
             }
         }
 
@@ -2173,7 +2181,6 @@ namespace Starcounter.Query.Sql
             IVariable variable = varArray.GetElement(number);
             if (variable == null)
             {
-                //PI110503 ObjectVariable objVariable = new ObjectVariable(number, TypeRepository.GetTypeBindingByUpperCaseName(typeTerm.Name.ToUpper()));
                 ObjectVariable objVariable = new ObjectVariable(number, TypeRepository.GetTypeBinding(typeTerm.Name));
                 varArray.SetElement(number, objVariable);
                 return objVariable;
