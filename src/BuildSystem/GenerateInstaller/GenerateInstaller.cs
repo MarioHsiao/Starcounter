@@ -121,7 +121,7 @@ namespace GenerateInstaller
                 String outputFolder = Path.Combine(sourcesDir, "Level1\\Bin\\" + configuration);
 
                 if (!Directory.Exists(outputFolder))
-                    Directory.CreateDirectory(outputFolder);
+                    throw new Exception("Consolidated directory is empty or does not exist: " + outputFolder);
 
                 //////////////////////////////////////////////////////////
                 // Empirically generating new random download identifier.

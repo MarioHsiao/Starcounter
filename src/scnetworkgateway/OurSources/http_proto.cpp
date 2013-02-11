@@ -784,7 +784,7 @@ ALL_DATA_ACCUMULATED:
             sd->set_new_session_flag(false);
         }
 
-        // Checking for correct behavior for sessions.
+        // NOTE: Just checking for correct behavior for sessions.
         char* session_cookie = strstr((char*)sd->get_data_blob(), kScFullSessionIdString);
         GW_ASSERT(NULL == session_cookie);
 

@@ -1,35 +1,33 @@
 ﻿
-    .Debug
-    {
-        background-color:rgba(0, 0, 0, 0.00);
-    }
+.Debug {
+}
 
-    .SuccessAudit
-    {
-        background-color:rgba(0, 0, 0, 0.00);
-    }
 
-    .FailureAudit
-    {
-        background-color:#ff0000;
-    }
+.Notice {
+}
 
-    .Notice
-    {
-        background-color:rgba(128, 128, 128, 0.00);
-    }
+.SuccessAudit {
+    color: #00a100;
+}
 
-    .Warning
-    {
-        background-color:#ffd800;
-    }
-    
-    .Error
-    {
-        background-color:#ff0000;
-    }
+.Warning {
+    color: rgb(209, 117, 0);
+}
 
-    .Critical
-    {
-        background-color:#ff0000;
-    }
+.FailureAudit {
+    color: #a10000;
+}
+
+.Error {
+    color: #a10000;
+}
+
+.Critical {
+    color: #a10000;
+}
+
+.log_datetime {
+    max-width: 140px;
+    min-width: 140px;
+}
+
