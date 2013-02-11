@@ -7,60 +7,147 @@ using Sc.Tools.Logging;
 using Starcounter;
 
 namespace StarcounterApps3 {
-//    [Json.LogEntries]
     partial class LogApp : App {
 
+        static List<LogEntry> GlobalLogEntries = new List<LogEntry>();
 
-        //private bool Show_Debug;
-        //private bool Show_SuccessAudit;
-        //private bool Show_FailureAudit;
-        //private bool Show_Notice;
-        //private bool Show_Warning;
-        //private bool Show_Error;
-        //private bool Show_Critical;
-
-        void Handle(Input.RefreshList action) {
-            // TODO: Select from database
-
-            this.UpdateResult();
+        static public void Setup(string directory) {
+            ThreadPool.QueueUserWorkItem(LogListenerThread, directory);
         }
 
-        void Handle(Input.ClearList action) {
+        static private void LogListenerThread(object state) {
 
-            Db.Transaction(() => {
-                Db.SlowSQL("DELETE from LogItem");
-            });
+            String directory = state as String;
 
-            this.UpdateResult();
-        }
+            LogFilter lf;
+            LogReader lr;
 
-        private string GetFilter() {
-            return string.Format("WHERE Type is {0}");
-        }
-
-        public void UpdateResult() {
-            int count = 100;
-            // TODO: ORDER BY doesn't work
-            //logApp.LogEntries = Db.SQL("SELECT o FROM LogItem o ORDER BY o.SeqNumber FETCH ?", count);
+            if (!Directory.Exists(directory)) {
+                Console.WriteLine("Specified directory does not exist.");
+                return;
+            }
 
             try {
-                this.LogEntries = Db.SQL("SELECT o FROM LogItem o ORDER BY o.SeqNumber DESC FETCH ?", count);
-            } catch (Exception e) {
-                Console.WriteLine(e.ToString());
+
+                lf = null;
+                lr = new LogReader(directory, lf, (4096 * 256));
+                lr.Open();
+                //int i = 0;
+                LogEntry le;
+                for (; ; ) {
+                    le = lr.Read(true);
+                    if (le == null) {
+                        break;
+                    }
+
+                    LogApp.GlobalLogEntries.Add(le);
+                }
+                lr.Close();
+            } catch (Exception) {
             }
 
 
-            // Trying to use indexes
-            // Db.SQL("select e from employee e OPTION INDEX (e companyIndx)"))
+        }
 
+        void Handle(Input.RefreshList action) {
+            this.RefreshLogEntriesList();
+        }
+
+        void Handler(Input.FilterNotice action) {
+            this.RefreshLogEntriesList();
+        }
+
+        void Handler(Input.FilterWarning action) {
+            this.RefreshLogEntriesList();
+        }
+
+        void Handler(Input.FilterError action) {
+            this.RefreshLogEntriesList();
+        }
+
+        void Handle(Input.FilterDebug action) {
+            this.RefreshLogEntriesList();
         }
 
 
-        [Json.LogEntries]
-        partial class LogEntryApp : App<LogItem> { }
+        public void RefreshLogEntriesList() {
+
+            this.LogEntries.Clear(); // Clearlist
+
+            this.ResetSummary();
+
+            int limith = 30;   // Limith the result
+
+
+            LogEntryApp logEntryApp;
+            for (int i = (GlobalLogEntries.Count - 1); i > 0; i--) {
+
+                LogEntry le = GlobalLogEntries[i];
+
+                // Summerize
+                if (le.Type == EntryType.Debug) {
+                    this.Summary.Debug++;
+                }
+
+                if (le.Type == EntryType.Notice) {
+                    this.Summary.Notice++;
+                }
+                if (le.Type == EntryType.Warning) {
+                    this.Summary.Warning++;
+                }
+
+                if (le.Type == EntryType.Error || le.Type == EntryType.FailureAudit || le.Type == EntryType.Critical) {
+                    this.Summary.Errors++;
+                }
+
+
+                // Filer out
+                if (this.FilterDebug == false && le.Type == EntryType.Debug) {
+                    continue;
+                }
+
+                if (this.FilterWarning == false && le.Type == EntryType.Warning) {
+                    continue;
+                }
+
+                if (this.FilterNotice == false && (le.Type == EntryType.Notice || le.Type == EntryType.SuccessAudit)) {
+                    continue;
+                }
+
+                if (this.FilterError == false && (le.Type == EntryType.Error || le.Type == EntryType.FailureAudit || le.Type == EntryType.Critical)) {
+                    continue;
+                }
+
+
+                // Create and Add entry
+                if (this.LogEntries.Count < limith) {
+                    logEntryApp = new LogEntryApp() {
+                        ActivityID = le.ActivityID,
+                        Category = le.Category ?? "",
+                        DateTimeStr = le.DateTime.ToString(),
+                        MachineName = le.MachineName ?? "",
+                        Message = le.Message ?? "",
+                        SeqNumber = (long)le.Number,   // TODO: Number is a ulong
+                        ServerName = le.ServerName ?? "",
+                        Source = le.Source ?? "",
+                        TypeStr = le.Type.ToString(),
+                        UserName = le.UserName ?? ""
+                    };
+                    this.LogEntries.Add(logEntryApp);
+                }
+
+            }
+
+        }
+
+        private void ResetSummary() {
+            this.Summary.Debug = 0;
+            this.Summary.Notice = 0;
+            this.Summary.Warning = 0;
+            this.Summary.Errors = 0;
+        }
 
     }
-
 
 
 
