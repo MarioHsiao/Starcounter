@@ -52,13 +52,25 @@ namespace Starcounter.Internal.Test {
         public static void Main() {
             Reset();
 
-/*            GET("/@s/viewmodels/subs/@s", (string app, string vm) => {
+            /*
+            GET("/@s/viewmodels/subs/@s", (string app, string vm) => {
                 return "404 Not Found";
             });
             GET("/@s/viewmodels/@s", (string app, string vm) => {
                 return "404 Not Found";
             });
             */
+
+            /*GET("/{?}", (string anyString) => {
+                Assert.AreEqual("anyString", anyString);
+                return null;
+            });
+
+            GET("/{?}/{?}", (string anyString, int int238) => {
+                Assert.AreEqual("anyString", anyString);
+                Assert.AreEqual(int238, 238);
+                return null;
+            });*/
 
             GET("/", () => {
                 Console.WriteLine("Root called");
@@ -386,11 +398,14 @@ namespace Starcounter.Internal.Test {
             byte[] h26 = Encoding.UTF8.GetBytes("GET /test-bool/true\r\n\r\n");
             byte[] h27 = Encoding.UTF8.GetBytes("GET /test-datetime/2013-01-17\r\n\r\n");
             byte[] h28 = Encoding.UTF8.GetBytes("GET /staticmarknad/nyhetsbrev\r\n\r\n");
+            //byte[] h29 = Encoding.UTF8.GetBytes("GET /anyString\r\n\r\n");
+            //byte[] h30 = Encoding.UTF8.GetBytes("GET /anyString/238\r\n\r\n");
             
             // URI's that should fail due to verification or parse error.
             byte[] h501 = Encoding.UTF8.GetBytes("GET /whatever/abrakadabra/xaYx/911\r\n\r\n");     // xaYx -> xxYx
             byte[] h502 = Encoding.UTF8.GetBytes("PUT /plaiers/123\r\n\r\n");  // plaiers -> players
             byte[] h503 = Encoding.UTF8.GetBytes("GET /aaaaa/90510/DDDD\r\n\r\n"); // DDDD -> bbbb
+            //byte[] h503 = Encoding.UTF8.GetBytes("GET /faaaaa/90.510/DDDD\r\n\r\n"); // decimal
             byte[] h504 = Encoding.UTF8.GetBytes("GET /test-decimal/DDDD\r\n\r\n"); // DDDD -> Not a decimal value
             byte[] h505 = Encoding.UTF8.GetBytes("GET /test-double/DDDD\r\n\r\n"); // DDDD -> Not a double value
             byte[] h506 = Encoding.UTF8.GetBytes("GET /test-datetime/DDDD\r\n\r\n"); // DDDD -> Not a datetime value
@@ -404,7 +419,7 @@ namespace Starcounter.Internal.Test {
 
             object resource;
 
-            // Test succesful URI's
+            // Test successful URI's
             Assert.True(um.Invoke(new HttpRequest(h2), out resource));
             Assert.True(um.Invoke(new HttpRequest(h3), out resource));
             Assert.True(um.Invoke(new HttpRequest(h4), out resource));
@@ -432,6 +447,8 @@ namespace Starcounter.Internal.Test {
             Assert.True(um.Invoke(new HttpRequest(h26), out resource));
             Assert.True(um.Invoke(new HttpRequest(h27), out resource));
             Assert.True(um.Invoke(new HttpRequest(h28), out resource));
+            //Assert.True(um.Invoke(new HttpRequest(h29), out resource));
+            //Assert.True(um.Invoke(new HttpRequest(h30), out resource));
 
             // Test URI's that should fail.
             Assert.False(um.Invoke(new HttpRequest(h501), out resource));

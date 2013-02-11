@@ -1389,17 +1389,17 @@
         <UseExternalXmlCommentFiles>false</UseExternalXmlCommentFiles>
         <NoInheritedMemberTopicsExternal>true</NoInheritedMemberTopicsExternal>
         <NoInheritedInLists>false</NoInheritedInLists>
-        <ExcludeEditorBrowsable>true</ExcludeEditorBrowsable>
+        <ExcludeEditorBrowsable>false</ExcludeEditorBrowsable>
         <ExcludeBrowsableFalse>false</ExcludeBrowsableFalse>
         <ExcludeObsolete>false</ExcludeObsolete>
         <ExcludeCompilerGenerated>false</ExcludeCompilerGenerated>
         <ExcludeDebuggerNonUserCode>false</ExcludeDebuggerNonUserCode>
         <GenerateXmlCommentFile>false</GenerateXmlCommentFile>
         <IncludeBreadcrumbs>true</IncludeBreadcrumbs>
-        <IncludeAssemblyBreadcrumb>false</IncludeAssemblyBreadcrumb>
-        <IncludePrivateMembers>false</IncludePrivateMembers>
-        <IncludeFriendMembers>false</IncludeFriendMembers>
-        <IncludeProtectedFriendMembers>false</IncludeProtectedFriendMembers>
+        <IncludeAssemblyBreadcrumb>true</IncludeAssemblyBreadcrumb>
+        <IncludePrivateMembers>true</IncludePrivateMembers>
+        <IncludeFriendMembers>true</IncludeFriendMembers>
+        <IncludeProtectedFriendMembers>true</IncludeProtectedFriendMembers>
         <IncludeProtectedMembers>true</IncludeProtectedMembers>
         <IncludeAttributes>true</IncludeAttributes>
         <AttributeFilterType>Exclude</AttributeFilterType>
@@ -1431,9 +1431,9 @@
         <LinkOverriddenMembersToBaseImplementation>false</LinkOverriddenMembersToBaseImplementation>
         <GenericIndicator>ArgumentsInBrackets</GenericIndicator>
         <RootAssemblyName></RootAssemblyName>
-        <IncludeConstructorsOnAbstractTypes>false</IncludeConstructorsOnAbstractTypes>
+        <IncludeConstructorsOnAbstractTypes>true</IncludeConstructorsOnAbstractTypes>
         <TemplateName>2012 Style</TemplateName>
-        <ExcludeAllPrivateTypes>true</ExcludeAllPrivateTypes>
+        <ExcludeAllPrivateTypes>false</ExcludeAllPrivateTypes>
         <ExcludeAllFriendTypes>false</ExcludeAllFriendTypes>
         <ExcludeAllProtectedTypes>false</ExcludeAllProtectedTypes>
         <ExcludeAllProtectedFriendTypes>false</ExcludeAllProtectedFriendTypes>

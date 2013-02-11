@@ -50,7 +50,10 @@ namespace StarcounterApps3 {
 
             // Start listening on log-events
             ServerInfo serverInfo = Master.ServerInterface.GetServerInfo();
-            SetupLogListener(serverInfo.Configuration.LogDirectory); 
+
+            //SetupLogListener(serverInfo.Configuration.LogDirectory);
+
+            LogApp.Setup(serverInfo.Configuration.LogDirectory);
 
             RegisterGETS();
         }
@@ -60,15 +63,6 @@ namespace StarcounterApps3 {
             GET("/", () => {
                 return new Master() { View = "index.html" };
             });
-
-            GET("/test", () => {
-                return new Master() {
-                    View = "test.html",
-                    SomeNo = 146,
-                    Message = "Click the button!"
-                };
-            });
-
 
             GET("/server", () => {
 
@@ -103,24 +97,6 @@ namespace StarcounterApps3 {
 
             });
 
-            //            GET("/databases/{?}/apps", (string uri) => {  // THIS DOSENT WORK
-            //GET("/databases/administrator/apps", () => {
-
-            //    //administrator
-            //    DatabaseInfo database = Master.ServerInterface.GetDatabase("sc://headsutv15/personal/administrator");
-
-            //    DatabaseAppsApp appsList = new DatabaseAppsApp();
-            //    appsList.View = "apps.html";
-            //    AppInfo[] apps = database.HostedApps;
-
-            //    foreach (var app in apps) {
-            //        AppApp appApp = new AppApp() { AppName = app.ExecutablePath };
-            //        appsList.AppsList.Add(appApp);
-            //    }
-
-            //    return appsList;
-            //});
-
             GET("/databases/{?}", (string uri) => {
 
                 DatabaseInfo database = Master.ServerInterface.GetDatabase(uri);
@@ -137,17 +113,14 @@ namespace StarcounterApps3 {
             GET("/query", () => {
                 return new Master() { View = "sql.html" };
             });
-            //GET("/empty", () => {
-            //    return "empty";
-            //});
-
 
             GET("/log", () => {
-                LogApp logApp = new LogApp();
+                LogApp logApp = new LogApp() { FilterNotice = true, FilterWarning = true, FilterError = true };
                 logApp.View = "log.html";
-                logApp.UpdateResult();
+                logApp.RefreshLogEntriesList();
                 return logApp;
             });
+
         }
 
         #region ServerServices
@@ -176,115 +149,6 @@ namespace StarcounterApps3 {
         }
 
         #endregion
-
-        void Handle(Input.TheButton input) {
-            this.Message = "I clicked the button!";
-        }
-
-        #region LogHandling
-
-        static void SetupLogListener(string directory) {
-
-
-            // Clear old log entries
-            Db.Transaction(() => {
-
-                try {
-                    Db.SlowSQL("DELETE from LogItem");
-                } catch (Exception e) {
-                    Console.WriteLine(e.ToString());
-                }
-            });
-
-
-            //Db.Transaction(() => {
-
-            //    try {
-            //        Db.SlowSQL("CREATE INDEX seq ON LogItem (SeqNumber DESC)");
-            //    } catch (Exception e) {
-            //        Console.WriteLine(e.ToString());
-            //    }
-
-            //});
-
-            //Db.Transaction(() => {
-
-            //    try {
-            //        Db.SlowSQL("DROP INDEX seq ON SeqNumber");
-            //    } catch (DbException e) {
-            //        if (e.ErrorCode != Starcounter.Error.SCERRINDEXNOTFOUND) {
-            //            Console.WriteLine(e.ToString());
-            //            //throw e;
-            //        }
-            //    }
-            //});
-
-
-
-            //// Add some test data
-            //Db.Transaction(() => {
-            //    LogItem m;
-            //    if (Db.SQL("SELECT m FROM LogItem m").First == null) {
-            //        for (Int32 i = 1; i < 5; i++) {
-            //            m = new LogItem() { Type = "SomeType" + i, Message = "SomeMessage" + i };
-            //        }
-            //    }
-            //});
-
-
-            LogFilter lf;
-            LogReader lr;
-
-            if (!Directory.Exists(directory)) {
-                Console.WriteLine("Specified directory does not exist.");
-                return;
-            }
-
-            lf = null;
-            lr = new LogReader(directory, lf, (4096 * 256));
-            lr.Open();
-
-            DbSession d = new DbSession();
-            d.RunAsync(() => {
-
-                LogEntry le;
-                for (; ; ) {
-                    le = lr.Read(true);
-                    if (le == null) {
-                        break;
-                    }
-
-                    Db.Transaction(() => {
-
-                        try {
-
-
-                            new LogItem() {
-                                ActivityID = le.ActivityID,
-                                Category = le.Category ?? "NULL",
-                                DateTime = le.DateTime,
-                                MachineName = le.MachineName ?? "NULL",
-                                Message = le.Message ?? "NULL",
-                                SeqNumber = (long)le.Number,   // TODO: Number is a ulong
-                                ServerName = le.ServerName ?? "NULL",
-                                Source = le.Source ?? "NULL",
-                                Type = le.Type,
-                                UserName = le.UserName ?? "NULL"
-                            };
-
-                        } catch (Exception) {
-                           // Console.WriteLine(e.ToString());
-                        }
-
-
-                    });
-                }
-            });
-
-        }
-
-        #endregion
-
 
         static void ToConsoleWithColor(string text, ConsoleColor color) {
             try {
