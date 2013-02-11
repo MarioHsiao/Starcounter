@@ -11,6 +11,13 @@ namespace QueryProcessingTest {
             FetchAccounts(8, 5);
             // Test offset with comparison
             OffsetWithCondition(100, 20);
+            // Offset with path expression
+            Db.Transaction(delegate {
+                foreach (User u in Db.SQL<User>("select client from account offset ?", 10)) {
+                    Trace.Assert(u.UserId == DataPopulation.FakeUserId(10/3));
+                    break;
+                }
+            });
         }
 
         internal static void FetchAccounts(int fetchnr) {
