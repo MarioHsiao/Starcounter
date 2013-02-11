@@ -403,6 +403,7 @@ internal class ExtentNode : IOptimizationNode
                         GetCondition(),
                         SortOrder.Ascending,
                         fetchNumExpr, 
+                        fetchOffsetExpr,
                         fetchOffsetKeyExpr,
                         InnermostExtent, 
                         null, variableArr, query);
@@ -500,7 +501,8 @@ internal class ExtentNode : IOptimizationNode
                              variableArr, query);
     }
 
-    private IExecutionEnumerator CreateFullTableScan(IndexInfo indexInfo, IIntegerExpression fetchNumExpr, IBinaryExpression fetchOffsetKeyExpr)
+    private IExecutionEnumerator CreateFullTableScan(IndexInfo indexInfo, IIntegerExpression fetchNumExpr, IIntegerExpression fetchOffsetExpr, 
+        IBinaryExpression fetchOffsetKeyExpr)
     {
         return new FullTableScan(rowTypeBind,
                                  extentNumber,
@@ -508,6 +510,7 @@ internal class ExtentNode : IOptimizationNode
                                  GetCondition(),
                                  SortOrder.Ascending,
                                  fetchNumExpr, 
+                                 fetchOffsetExpr,
                                  fetchOffsetKeyExpr,
                                  InnermostExtent, 
                                  null, variableArr, query);

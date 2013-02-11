@@ -56,6 +56,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         ILogicalExpression queryCond,
         SortOrder sortingType,
         INumericalExpression fetchNumberExpr,
+        INumericalExpression fetchOffsetExpr, 
         IBinaryExpression fetchOffsetKeyExpr,
         Boolean innermostExtent, 
         CodeGenFilterPrivate privFilter,
@@ -77,6 +78,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         descending = (sortingType == SortOrder.Descending);
 
         this.fetchNumberExpr = fetchNumberExpr;
+        this.fetchOffsetExpr = fetchOffsetExpr;
         this.fetchOffsetKeyExpr = fetchOffsetKeyExpr;
 
         this.innermostExtent = innermostExtent;
@@ -500,6 +502,13 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                 return false;
         }
 
+        if (counter == 0 && fetchOffsetExpr != null)
+            if (fetchOffsetExpr.EvaluateToInteger(null) != null) {
+                for (int i = 0; i < fetchOffsetExpr.EvaluateToInteger(null).Value; i++)
+                    if (!enumerator.MoveNext())
+                            return false;
+                counter = 0;
+            }
         if (counter == 0 && fetchNumberExpr != null)
         {
             if (fetchNumberExpr.EvaluateToInteger(null) != null)
@@ -761,6 +770,10 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         if (fetchNumberExpr != null)
             fetchNumberExprClone = fetchNumberExpr.CloneToNumerical(varArrClone);
 
+        INumericalExpression fetchOffsetExprClone = null;
+        if (fetchOffsetExpr != null)
+            fetchOffsetExprClone = fetchOffsetExpr.CloneToNumerical(varArrClone);
+
         IBinaryExpression fetchOffsetKeyExprClone = null;
         if (fetchOffsetKeyExpr != null)
             fetchOffsetKeyExprClone = fetchOffsetKeyExpr.CloneToBinary(varArrClone);
@@ -771,6 +784,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             conditionClone,
             sortOrder,
             fetchNumberExprClone,
+            fetchOffsetExprClone,
             fetchOffsetKeyExprClone,
             innermostExtent, 
             privateFilter.Clone(conditionClone, typeBindingClone),
