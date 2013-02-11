@@ -1228,7 +1228,6 @@ inline const wchar_t* shared_chunk_pool<T, Alloc>::not_full_notify_name() const 
 template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::if_locked_with_id_recover_and_unlock
 (smp::spinlock::locker_id_type id) {
-	std::cout << "<N> if_locked_with_id_recover_and_unlock()\n";
 	if (spinlock().is_locked_with_id(id)) {
 		// Recover...NOT! We accept a resource leak in IPC version 1.0.
 		// TODO: Fix recovery of chunks in IPC version 2.0.

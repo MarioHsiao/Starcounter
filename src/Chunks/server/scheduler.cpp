@@ -1077,12 +1077,14 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 			// Is the client_interface marked for clean up?
 #if defined (IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP)
 			///=================================================================
-			/// Notify the IPC monitor to repush_front_channel_numberlease all chunks in this
+			/// Notify the IPC monitor to release all chunks in this
 			/// client_interface, making them available for anyone to allocate.
 			///=================================================================
-			//std::cout << "TODO: Notify the IPC monitor to release all chunks in this client_interface." << std::endl;
+			std::cout << "TODO: Notify the IPC monitor to release all chunks in this client_interface." << std::endl;
 			int32_t database_cleanup_index = client_interface_ptr
 			->database_cleanup_index();
+
+			std::cout << "database_cleanup_index: " << database_cleanup_index << std::endl;
 
 			if (database_cleanup_index != -1) {
 				try {
@@ -1091,9 +1093,26 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 					(common_scheduler_interface_->monitor_interface_name());
 
 					the_monitor_interface->set_cleanup_flag(database_cleanup_index);
+
+					_mm_mfence(); // Needed!?
+
+					// Notify the IPC monitor to do the rest of the cleanup
+					// (releasing chunks and the client_interface.)
+					if (::SetEvent(ipc_monitor_cleanup_event())) {
+						// Successfully notified the ipc monitor to do cleanup.
+						std::cout << "server_port::do_release_channel(): "
+						"Successfully notified the ipc monitor to do cleanup." << std::endl;
+					}
+					else {
+						// Error. Failed to notify the ipc monitor to do cleanup.
+						std::cout << "server_port::do_release_channel(): "
+						"Failed to notify the ipc monitor to do cleanup." << std::endl;
+					}
 				}
 				catch (...) {
-					
+					// OK, what to do? Failed to open the monitor_interface, chunks will not be
+					// recovered (and leak.)
+					std::cout << "error: failed to open the monitor_interface, chunks will not be recovered (and leak.)" << std::endl;
 				}
 			}
 			else {
@@ -1324,7 +1343,7 @@ timeout_milliseconds) {
 }
 
 inline bool server_port::release_linked_chunks(chunk_index& head,
-client_interface_type* client_interface_ptr,  uint32_t timeout_milliseconds) {
+client_interface_type* client_interface_ptr, uint32_t timeout_milliseconds) {
 	return shared_chunk_pool_->release_linked_chunks(chunk_, head,
 	client_interface_ptr, timeout_milliseconds);
 }

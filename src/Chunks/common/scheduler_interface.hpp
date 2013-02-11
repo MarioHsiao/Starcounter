@@ -172,6 +172,66 @@ public:
 		else {
 			// Error: No segment name. Throw exception error_code.
 		}
+
+		///=====================================================================
+		/// Open the ipc_monitor_cleanup_event.
+		///=====================================================================
+
+		// Number of characters in the multibyte string after being converted.
+		std::size_t length;
+
+		std::cout << "TODO: Pass in server name to scheduler_interface constructor." << std::endl;
+
+		// Construct the ipc_monitor_cleanup_event_name.
+		char ipc_monitor_cleanup_event_name[ipc_monitor_cleanup_event_name_size];
+
+		// Format: "Local\<server_name>_ipc_monitor_cleanup_event".
+		// Example: "Local\PERSONAL_ipc_monitor_cleanup_event"
+		if ((length = _snprintf_s(ipc_monitor_cleanup_event_name, _countof
+		(ipc_monitor_cleanup_event_name), ipc_monitor_cleanup_event_name_size
+		-1 /* null */, "Local\\%s_ipc_monitor_cleanup_event", //server_name_.c_str()
+		"PERSONAL" /// Hardcoded for now - must be fixed before pusing to develop.
+		)) < 0) {
+			return; // Throw exception error_code: "failed to format the ipc_monitor_cleanup_event_name"
+		}
+		ipc_monitor_cleanup_event_name[length] = '\0';
+
+		wchar_t w_ipc_monitor_cleanup_event_name[ipc_monitor_cleanup_event_name_size];
+
+		/// TODO: Fix insecure
+		if ((length = mbstowcs(w_ipc_monitor_cleanup_event_name,
+		ipc_monitor_cleanup_event_name, segment_name_size)) < 0) {
+			// Failed to convert ipc_monitor_cleanup_event_name to multi-byte string.
+			return; // Throw exception error_code: "failed to convert ipc_monitor_cleanup_event_name to multi-byte string"
+		}
+		w_ipc_monitor_cleanup_event_name[length] = L'\0';
+
+		// Open the ipc_monitor_cleanup_event_name.
+		if ((ipc_monitor_cleanup_event() = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
+		FALSE, w_ipc_monitor_cleanup_event_name)) == NULL) {
+			// Failed to open the event.
+			unsigned int err = GetLastError();
+			switch (err) {
+			case 2:
+				std::cout << "scheduler_interface::scheduler_interface(): "
+				"Failed to open ipc_monitor_cleanup event. The system cannot find the file specified. "
+				"OS error: " << err << "\n"; /// DEBUG
+				break;
+			case 6:
+				std::cout << "scheduler_interface::scheduler_interface(): "
+				"Failed to open ipc_monitor_cleanup event. The handle is invalid. "
+				"OS error: " << err << "\n"; /// DEBUG
+				break;
+			
+			default:
+				std::cout << "scheduler_interface::scheduler_interface(): "
+				"Failed to open ipc_monitor_cleanup event. OS error: " << err << "\n"; /// DEBUG
+			}
+			return; // TODO: Should throw an exception.
+		}
+		else {
+			std::cout << "Successfully opened the ipc_monitor_cleanup_event_name." << std::endl;
+		}
 	}
 	
 	~scheduler_interface() {
@@ -339,16 +399,16 @@ public:
 	}
 	
 	//--------------------------------------------------------------------------
-	// The monitor call try_to_notify_scheduler_to_do_clean_up() if a client
+	// The monitor call notify_scheduler_to_do_clean_up() if a client
 	// process has crashed, in order to wake up the scheduler if it is waiting.
 	// A scheduler that is woken up is required to see if the channel is marked
 	// for clean-up. Maybe this is not at all required, it may be irrelevent.
-	/// try_to_notify_scheduler_to_do_clean_up() is used by the monitor only.
+	/// notify_scheduler_to_do_clean_up() is used by the monitor only.
 	/**
 	 * @param work The named event that the monitor have opened.
 	 * @return true if successfully notified, otherwise false.
 	 */
-	bool try_to_notify_scheduler_to_do_clean_up(HANDLE work) {
+	bool notify_scheduler_to_do_clean_up(HANDLE work) {
 		if (::SetEvent(work)) {
 			// Successfully notified the scheduler.
 			return true;
@@ -508,7 +568,7 @@ private:
 	
 	// In order to reduce the time taken to open the ipc_monitor_clean_up_event_
 	// the name is cached. Otherwise the name have to be formated before opening it.
-	wchar_t ipc_monitor_clean_up_event_name_[segment_and_notify_name_size];
+	//wchar_t ipc_monitor_clean_up_event_name_[segment_and_notify_name_size];
 };
 
 typedef starcounter::core::simple_shared_memory_allocator<channel_number>
