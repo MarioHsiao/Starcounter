@@ -121,6 +121,7 @@ owner_id_counter_(1) {
 	char ipc_monitor_cleanup_event_name[ipc_monitor_cleanup_event_name_size];
 
 	// Format: "Local\<server_name>_ipc_monitor_cleanup_event".
+	// Example: "Local\PERSONAL_ipc_monitor_cleanup_event"
 	if ((length = _snprintf_s(ipc_monitor_cleanup_event_name, _countof
 	(ipc_monitor_cleanup_event_name), ipc_monitor_cleanup_event_name_size
 	-1 /* null */, "Local\\%s_ipc_monitor_cleanup_event", server_name_.c_str()))
@@ -146,6 +147,7 @@ owner_id_counter_(1) {
 		// Failed to create event.
 		throw bad_monitor("failed to create the ipc_monitor_cleanup_event");
 	}
+	std::wcout << "w_ipc_monitor_cleanup_event_name = " << w_ipc_monitor_cleanup_event_name << std::endl;
 
 	//--------------------------------------------------------------------------
 	// Check if the monitor_interface with the name
@@ -801,9 +803,9 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 												the_channel.set_to_be_released(); /// (6)
 												++channels_to_recover;
 												
-												// The scheduler may be waiting. Try to notify the scheduler that probes this channel.
+												// The scheduler may be waiting. Notify the scheduler that probes this channel.
 												if (scheduler_interface_ptr) {
-													if ((scheduler_interface_ptr->try_to_notify_scheduler_to_do_clean_up
+													if ((scheduler_interface_ptr->notify_scheduler_to_do_clean_up
 													(notify_scheduler_to_do_clean_up_event)) == true) {
 														// Succeessfully notified the scheduler on this channel.
 													}
@@ -1123,25 +1125,31 @@ void monitor::registrar() {
 void monitor::cleanup() {
 	/// TODO: Shutdown mechanism.
 	while (true) {
-		std::cout << the_monitor_interface_->get_cleanup_flag() << std::endl;
-		Sleep(100);
-		continue;
+		if (the_monitor_interface_->get_cleanup_flag() == 0) {
+			switch (::WaitForSingleObject(ipc_monitor_cleanup_event_, INFINITE)) {
+			case WAIT_OBJECT_0:
+				// The scheduler was notified to recover resources (chunks and
+				// client_interface.). The database is done with recovering the
+				// channels.
+			
+			
+				// If queue is empty, ::ResetEvent(ipc_monitor_clean_up_event);
 
-		switch (::WaitForSingleObject(ipc_monitor_cleanup_event_, INFINITE)) {
-		case WAIT_OBJECT_0:
-			// The scheduler was notified to recover resources,
-			// the database is done with recovering the channels.
-			// If queue is empty, ::ResetEvent(ipc_monitor_clean_up_event);
-			std::cout << "Recovering chunks." << std::endl;
-			break;
-		case WAIT_TIMEOUT:
-			// The IPC monitor was not notified. A timeout occurred.
-			std::cout << "Timeout." << std::endl;
-			break;
-		case WAIT_FAILED:
-			// The IPC monitor was not notified. An error occurred.
-			std::cout << "Wait failed." << std::endl;
-			break;
+				std::cout << "monitor::cleanup(): TODO: Recover chunks." << std::endl;
+				std::cout << "monitor::cleanup(): TODO: Recover client_interface." << std::endl;
+				break;
+			case WAIT_TIMEOUT:
+				// The IPC monitor was not notified. A timeout occurred.
+				std::cout << "monitor::cleanup(): Timeout." << std::endl;
+				break;
+			case WAIT_FAILED:
+				// The IPC monitor was not notified. An error occurred.
+				std::cout << "monitor::cleanup(): Wait failed." << std::endl;
+				break;
+			}
+		}
+		else {
+			
 		}
 	}
 }
