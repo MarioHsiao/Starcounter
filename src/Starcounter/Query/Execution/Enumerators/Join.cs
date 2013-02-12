@@ -253,6 +253,12 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
                 currentObject = null;
                 return false;
             }
+            // Pass offset
+            long tmpCounter = counter;
+            if (fetchOffsetExpr != null)
+                for (int i = 0; i < fetchOffsetExpr.EvaluateToInteger(null).Value; i++)
+                    NextRightAndLeftEnumerators();
+            counter = tmpCounter;
         }
         else if (counter >= fetchNumber)
         {
