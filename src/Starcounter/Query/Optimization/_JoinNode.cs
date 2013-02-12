@@ -111,7 +111,7 @@ internal class JoinNode : IOptimizationNode
     {
         IExecutionEnumerator leftEnumerator = leftNode.CreateExecutionEnumerator(null, null, fetchOffsetKeyExpr);
         IExecutionEnumerator rightEnumerator = rightNode.CreateExecutionEnumerator(null, null, fetchOffsetKeyExpr);
-        return new Join(rowTypeBind, joinType, leftEnumerator, rightEnumerator, fetchNumExpr, varArray, query);
+        return new Join(rowTypeBind, joinType, leftEnumerator, rightEnumerator, fetchNumExpr, fetchOffsetExpr, varArray, query);
     }
 
 #if DEBUG
