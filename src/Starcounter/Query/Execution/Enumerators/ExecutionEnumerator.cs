@@ -432,7 +432,7 @@ internal abstract class ExecutionEnumerator
             {
                 slotsBuf[0] = dbObject.ThisRef.ETI;
                 slotsBuf[1] = dbObject.ThisRef.ObjectID;
-                slotsBuf[2] = dbObject.TableId;
+                slotsBuf[2] = dbObject.TypeBinding.TableId;
             }
             else
             {

@@ -10,16 +10,13 @@ namespace Starcounter.Metadata
 {
 
     /// <summary>
-    /// Class SysTable
     /// </summary>
-    public sealed class SysTable : Entity
+    public sealed class SysColumn : Entity
     {
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SysTable" /> class.
         /// </summary>
-        /// <param name="u">The u.</param>
-        public SysTable(Uninitialized u) : base(u) { }
+        public SysColumn(Uninitialized u) : base(u) { }
 
         /// <summary>
         /// </summary>
@@ -28,20 +25,14 @@ namespace Starcounter.Metadata
         }
 
         /// <summary>
-        /// Gets the name.
         /// </summary>
-        /// <value>The name.</value>
-        public string Name
-        {
-            get { return DbState.ReadString(this, 1); }
+        public ulong Index {
+            get { return DbState.ReadUInt64(this, 1); }
         }
 
         /// <summary>
-        /// Gets the name of the base.
         /// </summary>
-        /// <value>The name of the base.</value>
-        public string BaseName
-        {
+        public string Name {
             get { return DbState.ReadString(this, 2); }
         }
     }
