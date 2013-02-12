@@ -22,6 +22,12 @@ namespace Starcounter.Metadata
         public SysIndex(Uninitialized u) : base(u) { }
 
         /// <summary>
+        /// </summary>
+        public ulong TableId {
+            get { return DbState.ReadUInt64(this, 1); }
+        }
+
+        /// <summary>
         /// Gets the name.
         /// </summary>
         /// <value>The name.</value>
