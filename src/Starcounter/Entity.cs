@@ -251,7 +251,7 @@ namespace Starcounter
             typeBinding_ = typeBinding;
         }
 
-        internal ushort TableId { get { return typeBinding_.TableId; } }
+        internal TypeBinding TypeBinding { get { return typeBinding_; } }
 
         private void InvokeOnDelete()
         {
