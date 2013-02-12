@@ -21,6 +21,9 @@ namespace QueryProcessingTest {
             });
             // Do fetch with offset on join with two join conditions (one non-equal)
             FetchJoinedAccounts(19, 114);
+            // Fetch with offset on sort result
+            FetchSortedAccounts(100, 100m, 10, 34);
+            FetchSortedAccounts(100, 0m, 10, 33);
         }
 
         internal static void FetchAccounts(int fetchnr) {
@@ -69,6 +72,7 @@ namespace QueryProcessingTest {
 
         internal static void FetchJoinedUsers(int fetchnr, int fetchoff) {
             int rows = fetchoff;
+            PrintQueryPlan("select a1.client from account a1, account a2 where a1.client = a2.client and a1.amount > ? and a1.amount >= a2.amount + ? order by a1.client fetch ? offset ?");
             Db.Transaction(delegate {
                 foreach (User u in Db.SQL<User>("select a1.client from account a1, account a2 where a1.client = a2.client and a1.amount > ? and a1.amount >= a2.amount + ? order by a1.client fetch ? offset ?",
                     0, 100, fetchnr, fetchoff)) {
@@ -77,6 +81,17 @@ namespace QueryProcessingTest {
                 }
             });
             Trace.Assert(rows == fetchoff + fetchnr);
+        }
+
+        internal static void FetchSortedAccounts(int maxaccounts, decimal expamount, int fetchnr, int fetchoff) {
+            PrintQueryPlan("select a from account a where accountid < ? order by amount asc fetch ? offset ?");
+            Db.Transaction(delegate {
+                foreach (Account a in Db.SQL<Account>("select a from account a where accountid < ? order by amount asc fetch ? offset ?", 
+                    maxaccounts, fetchnr, fetchoff)) {
+                    Trace.Assert(a.Amount == expamount);
+                    break;
+                }
+            });
         }
 
         internal static void PrintQueryPlan(String query) {
