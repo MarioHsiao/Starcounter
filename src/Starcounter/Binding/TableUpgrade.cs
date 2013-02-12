@@ -99,7 +99,7 @@ namespace Starcounter.Binding
 
             Db.Transaction(() =>
             {
-                newTableDef_ = Db.LookupTable(oldTableDef_.Name);
+                newTableDef_ = Db.LookupTable(tableName_);
             });
 
             return newTableDef_;
@@ -162,7 +162,7 @@ namespace Starcounter.Binding
 
             Db.Transaction(() =>
             {
-                newTableDef_ = Db.LookupTable(oldTableDef_.Name);
+                newTableDef_ = Db.LookupTable(tableName_);
             });
 
             return newTableDef_;
