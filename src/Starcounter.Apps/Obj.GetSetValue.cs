@@ -31,7 +31,7 @@ namespace Starcounter {
         /// <returns>The value of the property</returns>
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public object GetValue(IValueTemplate property) {
+        public object GetValue(Property property) {
             if (property.Bound)
                 return property.GetBoundValueAsObject(this);
 
@@ -51,7 +51,7 @@ namespace Starcounter {
         /// <param name="value">The new value to assign to the property</param>
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(IValueTemplate property, object value) {
+        public void SetValue(Property property, object value) {
             if (property.Bound) {
                 property.SetBoundValueAsObject(this, value);
                 ChangeLog.UpdateValue(this, property);
@@ -85,38 +85,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Reads the boolean value for a given property in this App.
-        /// </summary>
-        /// <param name="property">The template representing the App property</param>
-        /// <returns>The value of the property</returns>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public bool GetValue(IBoolTemplate property) {
-#if QUICKTUPLE
-            return _Values[property.Index];
-#else
-            throw new JockeNotImplementedException();
-#endif
-        }
-
-        /// <summary>
-        /// Sets the value for a given boolean property in this App.
-        /// </summary>
-        /// <param name="property">The template representing the App property</param>
-        /// <param name="value">The new value to assign to the property</param>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(IBoolTemplate property, bool value) {
-#if QUICKTUPLE
-            _Values[property.Index] = value;
-#else
-            throw new JockeNotImplementedException();
-#endif
-
-            ChangeLog.UpdateValue(this, property);
-        }
-
-        /// <summary>
         /// Sets the value for a given boolean property in this App.
         /// </summary>
         /// <param name="property">The template representing the App property</param>
@@ -139,67 +107,6 @@ namespace Starcounter {
             ChangeLog.UpdateValue(this, property);
         }
 
-
-//        /// <summary>
-//        /// Gets an Entity or an App for a given reference property in this App.
-//        /// </summary>
-//        /// <param name="property">The template representing the App property</param>
-//        /// <returns>The value of the property</returns>
-//        [EditorBrowsable(EditorBrowsableState.Never)]
-//        public Entity GetValue(ObjectProperty property) {
-//#if QUICKTUPLE
-//            return _Values[property.Index];
-//#else
-//            throw new JockeNotImplementedException();
-//#endif
-//        }
-
-        /// <summary>
-        /// Gets an Entity or an App for a given reference property in this App.
-        /// </summary>
-        /// <param name="property">The template representing the App property</param>
-        /// <returns>The value of the property</returns>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public IBindable GetValue(IObjectTemplate property) {
-#if QUICKTUPLE
-            return _Values[property.Index];
-#else
-            throw new JockeNotImplementedException();
-#endif
-        }
-
-        /// <summary>
-        /// Sets an Entity or an App for a given reference property in this App.
-        /// </summary>
-        /// <param name="property">The template representing the App property</param>
-        /// <param name="value">The new value to assign to the property</param>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(IObjectTemplate property, IBindable value) {
-#if QUICKTUPLE
-            _Values[property.Index] = value;
-#else
-            throw new JockeNotImplementedException();
-#endif
-
-            ChangeLog.UpdateValue(this, property);
-        }
-
-//        /// <summary>
-//        /// Sets an Entity or an App for a given reference property in this App.
-//        /// </summary>
-//        /// <param name="property">The template representing the App property</param>
-//        /// <param name="value">The new value to assign to the property</param> 
-//        [EditorBrowsable(EditorBrowsableState.Never)]
-//        public void SetValue(ObjectProperty property, Entity value) {
-//#if QUICKTUPLE
-//            _Values[property.Index] = value;
-//#else
-//            throw new JockeNotImplementedException();
-//#endif
-//        }
-
         /// <summary>
         /// Gets the value.
         /// </summary>
@@ -216,37 +123,6 @@ namespace Starcounter {
 #else
             throw new JockeNotImplementedException();
 #endif
-        }
-        /// <summary>
-        /// Gets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <returns>System.Decimal.</returns>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public decimal GetValue(IDecimalTemplate property) {
-#if QUICKTUPLE
-            return _Values[property.Index];
-#else
-            throw new JockeNotImplementedException();
-#endif
-        }
-
-        /// <summary>
-        /// Sets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <param name="value">The value.</param>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(IDecimalTemplate property, decimal value) {
-#if QUICKTUPLE
-            _Values[property.Index] = value;
-#else
-            throw new JockeNotImplementedException();
-#endif
-
-            ChangeLog.UpdateValue(this, property);
         }
 
         /// <summary>
