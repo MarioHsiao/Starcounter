@@ -105,7 +105,7 @@
     <Compile Include="Puppet\ExeModule\ExeModule.cs" />
     <Compile Include="Puppet\ExeModule\TellServerToStartMe.cs" />
     <Compile Include="ValueMetadata\Foundation\AppMetadataBase.cs" />
-    <Compile Include="ValueMetadata\AppMetadata.cs" />
+    <Compile Include="ValueMetadata\ObjMetadata.cs" />
     <Compile Include="ValueMetadata\BoolMetadata.cs" />
     <Compile Include="ValueMetadata\ActionMetadata.cs" />
     <Compile Include="ValueMetadata\Foundation\ValueMetadata.cs" />
