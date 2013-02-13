@@ -16323,6 +16323,8 @@ ExpectedResult:
  | 9 | 
  | 9 | 
 
+=== Fetch ====
+
 <NEXT>
 Description: Fetch on sort result over non-indexed property
 QueryString: select d from Department d order by name fetch ?
