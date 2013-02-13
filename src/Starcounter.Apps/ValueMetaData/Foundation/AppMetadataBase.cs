@@ -1,21 +1,21 @@
 ﻿// ***********************************************************************
-// <copyright file="AppMetadataBase.cs" company="Starcounter AB">
+// <copyright file="ObjMetadataBase.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
 
 namespace Starcounter.Templates {
     /// <summary>
-    /// Class AppMetadataBase
+    /// Class ObjMetadataBase
     /// </summary>
-    public class AppMetadataBase  {
+    public class ObjMetadataBase  {
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AppMetadataBase" /> class.
+        /// Initializes a new instance of the <see cref="ObjMetadataBase" /> class.
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="template">The template.</param>
-        public AppMetadataBase(App app, Template template) {
+        public ObjMetadataBase(App app, Template template) {
             _App = app;
             _Template = template;
         }

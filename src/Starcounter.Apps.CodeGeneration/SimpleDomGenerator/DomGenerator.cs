@@ -65,11 +65,11 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 Template = at,
                 _Inherits = "AppTemplate"
             };
-            var mcn = new NAppMetadata()
+            var mcn = new NObjMetadata()
             {
                 Parent = acn,
                 NTemplateClass = tcn,
-                _Inherits = "AppMetadata"
+                _Inherits = "ObjMetadata"
             };
 
             new NAppSerializerClass() {
@@ -333,7 +333,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             }
             foreach (var kid in node.Children)
             {
-                if (kid is NAppMetadata)
+                if (kid is NObjMetadata)
                 {
                     move.Add(kid);
                 }
@@ -462,11 +462,11 @@ namespace Starcounter.Internal.Application.CodeGeneration
                     NValueClass = racn,
                     _Inherits = "AppTemplate",
                 };
-                mcn = new NAppMetadata()
+                mcn = new NObjMetadata()
                 {
                     Parent = racn,
                     NTemplateClass = tcn,
-                    _Inherits = "AppMetadata"
+                    _Inherits = "ObjMetadata"
                 };
                 tcn.NMetadataClass = mcn;
                 racn.NTemplateClass = tcn;
@@ -478,7 +478,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
 
                 GenerateKids(acn as NAppClass, 
                              tcn as NAppTemplateClass, 
-                             mcn as NAppMetadata, 
+                             mcn as NObjMetadata, 
                              at);
 
                 if (!appClassParent.Children.Remove(acn))

@@ -30,11 +30,11 @@ public partial class Master {
         public AppTemplate Page;
         public StringProperty Test;
     }
-    public class MasterMetadata : AppMetadata {
+    public class MasterMetadata : ObjMetadata {
         public MasterMetadata(App app, AppTemplate template) : base(app, template) { }
         public new Master App { get { return (Master)base.App; } }
         public new Master.MasterTemplate Template { get { return (Master.MasterTemplate)base.Template; } }
-        public AppMetadata Page { get { return __p_Page ?? (__p_Page = new AppMetadata(App, App.Template.Page)); } } private AppMetadata __p_Page;
+        public ObjMetadata Page { get { return __p_Page ?? (__p_Page = new ObjMetadata(App, App.Template.Page)); } } private ObjMetadata __p_Page;
         public StringMetadata Test { get { return __p_Test ?? (__p_Test = new StringMetadata(App, App.Template.Test)); } } private StringMetadata __p_Test;
     }
     public static class Json {
