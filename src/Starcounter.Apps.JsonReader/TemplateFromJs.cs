@@ -40,7 +40,7 @@ namespace Starcounter.Internal.Application.JsonReader
                                                  bool ignoreNonDesignTimeAssigments)
         {
             AppTemplate appTemplate;
-            ITemplateFactory factory = new Internal.AppTemplateFactory();
+            ITemplateFactory factory = new Internal.AppTemplateFactory<AppTemplate>();
             int skip = 0;
             if (!ignoreNonDesignTimeAssigments)
             {
