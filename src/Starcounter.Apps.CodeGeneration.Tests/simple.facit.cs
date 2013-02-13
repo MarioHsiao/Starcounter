@@ -90,7 +90,7 @@ public partial class PlayerApp {
             Page = Register<AppTemplate>("Page", "Page");
             PlayerId = Register<IntProperty>("PlayerId", "PlayerId");
             FullName = Register<StringProperty>("FullName$", "FullName", Editable = true);
-            Accounts = Register<ListingProperty<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate>>("Accounts", "Accounts");
+            Accounts = Register<ArrProperty<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate>>("Accounts", "Accounts");
             Accounts.App = PlayerApp.AccountsApp.DefaultTemplate;
         }
         public override object CreateInstance(AppNode parent) { return new PlayerApp(this) { Parent = parent }; }
@@ -98,7 +98,7 @@ public partial class PlayerApp {
         public AppTemplate Page;
         public IntProperty PlayerId;
         public StringProperty FullName;
-        public ListingProperty<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate> Accounts;
+        public ArrProperty<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate> Accounts;
     }
     public class PlayerAppMetadata : AppMetadata {
         public PlayerAppMetadata(App app, AppTemplate template) : base(app, template) { }
@@ -112,8 +112,8 @@ public partial class PlayerApp {
         private IntMetadata __p_PlayerId;
         public StringMetadata FullName { get { return __p_FullName ?? (__p_FullName = new StringMetadata(App, App.Template.FullName)); } }
         private StringMetadata __p_FullName;
-        public ListingMetadata<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate> Accounts { get { return __p_Accounts ?? (__p_Accounts = new ListingMetadata<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate>(App, App.Template.Accounts)); } }
-        private ListingMetadata<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate> __p_Accounts;
+        public ArrMetadata<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate> Accounts { get { return __p_Accounts ?? (__p_Accounts = new ArrMetadata<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate>(App, App.Template.Accounts)); } }
+        private ArrMetadata<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate> __p_Accounts;
     }
     public static class Json {
         public class Kid : TemplateAttribute {

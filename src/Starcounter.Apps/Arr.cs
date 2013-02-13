@@ -292,7 +292,7 @@ namespace Starcounter {
 #if QUICKTUPLE
             Obj x = (Obj)((ObjArrProperty)this.Template).App.CreateInstance(this);
 
-            //            var x = new App() { Template = ((ListingProperty)this.Template).App };
+            //            var x = new App() { Template = ((ArrProperty)this.Template).App };
             Add(x);
             return x;
 #else

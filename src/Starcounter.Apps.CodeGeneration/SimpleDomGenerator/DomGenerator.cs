@@ -606,14 +606,14 @@ namespace Starcounter.Internal.Application.CodeGeneration
             var vlist = new NListingXXXClass("Listing", NValueClass.Classes[alt.App], null,alt);
             amn.Type = vlist;
 
-            tmn.Type = new NListingXXXClass("ListingProperty", 
+            tmn.Type = new NListingXXXClass("ArrProperty", 
                                             NValueClass.Classes[alt.App], 
                                             NTemplateClass.Classes[alt.App], alt);
-            cstmn.Type = new NListingXXXClass("ListingProperty",
+            cstmn.Type = new NListingXXXClass("ArrProperty",
                                             NValueClass.Classes[alt.App],
                                             NTemplateClass.Classes[alt.App], alt);
 
-            mmn.Type = new NListingXXXClass("ListingMetadata", 
+            mmn.Type = new NListingXXXClass("ArrMetadata", 
                                             NValueClass.Classes[alt.App], 
                                             NTemplateClass.Classes[alt.App], alt);
 
