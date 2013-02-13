@@ -46,7 +46,7 @@ namespace Starcounter {
     /// If your JSON object adds an event (like a command when a button is clicked),
     /// your C# code will be called. If you make a property editable, changes by the user will change App object (and an event will be triggered
     /// in case you which to validate the change).</remarks>
-    public abstract partial class Obj : Container
+    public abstract partial class Obj : AppNode
 #if IAPP
 , IApp
 #endif
@@ -217,7 +217,7 @@ namespace Starcounter {
         /// </summary>
         /// <returns></returns>
         private App GetNearestAppParent() {
-            Container parent = Parent;
+            AppNode parent = Parent;
             while ((parent != null) && (!(parent is App))) {
                 parent = parent.Parent;
             }
