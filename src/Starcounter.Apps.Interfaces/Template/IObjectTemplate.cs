@@ -10,7 +10,7 @@ namespace Starcounter.Templates.Interfaces {
     /// <summary>
     /// Interface IObjectTemplate
     /// </summary>
-    public interface IObjectTemplate : IValueTemplate {
+    public interface OldIObjectTemplate : OldIValueTemplate {
 
         /// <summary>
         /// Gets or sets the default value.

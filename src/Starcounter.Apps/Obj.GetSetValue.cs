@@ -170,41 +170,6 @@ namespace Starcounter {
         /// Gets the value.
         /// </summary>
         /// <param name="property">The property.</param>
-        /// <returns>System.Double.</returns>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public double GetValue(IDoubleTemplate property) {
-#if QUICKTUPLE
-            return _Values[property.Index];
-#else
-            throw new JockeNotImplementedException();
-#endif
-        }
-//        public object SetValue(DoubleTemplate property, double value) {
-//            return _Values[property.Index] = value;
-//        }
-
-        /// <summary>
-        /// Sets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <param name="value">The value.</param>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(IDoubleTemplate property, double value) {
-#if QUICKTUPLE
-            _Values[property.Index] = value;
-#else
-            throw new JockeNotImplementedException();
-#endif
-
-            ChangeLog.UpdateValue(this, property);
-        }
-
-        /// <summary>
-        /// Gets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
         /// <returns>System.Int32.</returns>
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -217,41 +182,6 @@ namespace Starcounter {
 #else
             throw new JockeNotImplementedException();
 #endif
-        }
-
-        /// <summary>
-        /// Gets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <returns>System.Int32.</returns>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public int GetValue(IIntTemplate property) {
-#if QUICKTUPLE
-            return _Values[property.Index];
-#else
-            throw new JockeNotImplementedException();
-#endif
-        }
-//        public object SetValue(IntTemplate property, int value) {
-//            return _Values[property.Index] = value;
-//        }
-
-        /// <summary>
-        /// Sets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <param name="value">The value.</param>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(IIntTemplate property, int value) {
-#if QUICKTUPLE
-            _Values[property.Index] = value;
-#else
-            throw new JockeNotImplementedException();
-#endif
-
-            ChangeLog.UpdateValue(this, property);
         }
 
         /// <summary>
@@ -276,41 +206,6 @@ namespace Starcounter {
         /// Gets the value.
         /// </summary>
         /// <param name="property">The property.</param>
-        /// <returns>System.UInt64.</returns>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public ulong GetValue(IOidTemplate property) {
-#if QUICKTUPLE
-            return _Values[property.Index];
-#else
-            throw new JockeNotImplementedException();
-#endif
-        }
-  //      public object SetValue(OidTemplate property, UInt64 value) {
-  //          return _Values[property.Index] = value;
-  //      }
-
-        /// <summary>
-        /// Sets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <param name="value">The value.</param>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(IOidTemplate property, UInt64 value) {
-#if QUICKTUPLE
-            _Values[property.Index] = value;
-#else
-            throw new JockeNotImplementedException();
-#endif
-
-            ChangeLog.UpdateValue(this, property);
-        }
-
-        /// <summary>
-        /// Gets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
         /// <returns>System.String.</returns>
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -318,21 +213,6 @@ namespace Starcounter {
             if (property.Bound)
                 return property.GetBoundValue(this);
 
-#if QUICKTUPLE
-            return _Values[property.Index];
-#else
-            throw new JockeNotImplementedException();
-#endif
-        }
-
-        /// <summary>
-        /// Gets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <returns>System.String.</returns>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public string GetValue(IStringTemplate property) {
 #if QUICKTUPLE
             return _Values[property.Index];
 #else
@@ -354,23 +234,6 @@ namespace Starcounter {
                 return;
             }
 
-#if QUICKTUPLE
-            _Values[property.Index] = value;
-#else
-            throw new JockeNotImplementedException();
-#endif
-
-            ChangeLog.UpdateValue(this, property);
-        }
-
-        /// <summary>
-        /// Sets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <param name="value">The value.</param>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(IStringTemplate property, string value) {
 #if QUICKTUPLE
             _Values[property.Index] = value;
 #else

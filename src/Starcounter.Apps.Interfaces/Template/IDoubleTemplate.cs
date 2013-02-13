@@ -8,7 +8,7 @@ namespace Starcounter.Templates.Interfaces {
     /// <summary>
     /// Interface IDoubleTemplate
     /// </summary>
-    public interface IDoubleTemplate : IValueTemplate {
+    public interface OldIDoubleTemplate : OldIValueTemplate {
 
         /// <summary>
         /// Gets or sets the default value.

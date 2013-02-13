@@ -8,7 +8,7 @@ namespace Starcounter.Templates.Interfaces {
     /// <summary>
     /// Interface IBoolTemplate
     /// </summary>
-    public interface IBoolTemplate : IValueTemplate {
+    public interface OldIBoolTemplate : OldIValueTemplate {
 
         /// <summary>
         /// Gets or sets a value indicating whether [default value].

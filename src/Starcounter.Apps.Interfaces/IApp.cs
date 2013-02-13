@@ -32,91 +32,91 @@ namespace Starcounter.Templates.Interfaces {
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>System.Object.</returns>
-        object GetValue(IValueTemplate property);
+        object GetValue(OldIValueTemplate property);
         /// <summary>
         /// Sets the value.
         /// </summary>
         /// <param name="property">The property.</param>
         /// <param name="value">The value.</param>
-        void SetValue(IValueTemplate property, object value);
+        void SetValue(OldIValueTemplate property, object value);
 
         /// <summary>
         /// Gets the value.
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
-        bool GetValue( IBoolTemplate property );
+        bool GetValue( OldIBoolTemplate property );
         /// <summary>
         /// Sets the value.
         /// </summary>
         /// <param name="property">The property.</param>
         /// <param name="value">if set to <c>true</c> [value].</param>
-        void SetValue( IBoolTemplate property, bool value );
+        void SetValue( OldIBoolTemplate property, bool value );
 
         /// <summary>
         /// Gets the value.
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>System.Decimal.</returns>
-        decimal GetValue(IDecimalTemplate property);
+        decimal GetValue(OldIDecimalTemplate property);
         /// <summary>
         /// Sets the value.
         /// </summary>
         /// <param name="property">The property.</param>
         /// <param name="value">The value.</param>
-        void SetValue(IDecimalTemplate property, decimal value);
+        void SetValue(OldIDecimalTemplate property, decimal value);
 
         /// <summary>
         /// Gets the value.
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>System.Double.</returns>
-        double GetValue(IDoubleTemplate property);
+        double GetValue(OldIDoubleTemplate property);
         /// <summary>
         /// Sets the value.
         /// </summary>
         /// <param name="property">The property.</param>
         /// <param name="value">The value.</param>
-        void SetValue(IDoubleTemplate property, double value);
+        void SetValue(OldIDoubleTemplate property, double value);
 
         /// <summary>
         /// Gets the value.
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>System.Int32.</returns>
-        int GetValue(IIntTemplate property);
+        int GetValue(OldIIntTemplate property);
         /// <summary>
         /// Sets the value.
         /// </summary>
         /// <param name="property">The property.</param>
         /// <param name="value">The value.</param>
-        void SetValue(IIntTemplate property, int value);
+        void SetValue(OldIIntTemplate property, int value);
 
         /// <summary>
         /// Gets the value.
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>UInt64.</returns>
-        UInt64 GetValue(IOidTemplate property);
+        UInt64 GetValue(OldIOidTemplate property);
         /// <summary>
         /// Sets the value.
         /// </summary>
         /// <param name="property">The property.</param>
         /// <param name="value">The value.</param>
-        void SetValue(IOidTemplate property, UInt64 value);
+        void SetValue(OldIOidTemplate property, UInt64 value);
 
         /// <summary>
         /// Gets the value.
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>System.String.</returns>
-        string GetValue(IStringTemplate property);
+        string GetValue(OldIStringTemplate property);
         /// <summary>
         /// Sets the value.
         /// </summary>
         /// <param name="property">The property.</param>
         /// <param name="value">The value.</param>
-        void SetValue(IStringTemplate property, string value);
+        void SetValue(OldIStringTemplate property, string value);
 
     }
 }
