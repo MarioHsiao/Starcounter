@@ -166,17 +166,23 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Inits this instance.
+        /// </summary>
+        protected virtual void Init() {
+        }
+
+        /// <summary>
         /// Called after the data object is set.
         /// </summary>
         protected virtual void OnData() {
         }
 
-//        /// <summary>
-//        /// Calls the init.
-//        /// </summary>
-//        internal void CallInit() {
-//            Init();
-//        }
+        /// <summary>
+        /// Calls the init.
+        /// </summary>
+        internal void CallInit() {
+            Init();
+        }
 
 //        public void Input( Input input ) {
 //        }

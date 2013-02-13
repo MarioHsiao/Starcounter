@@ -19,9 +19,9 @@ namespace Starcounter {
     /// <summary>
     /// Base class for App and AppList instances.
     /// </summary>
-    public abstract class AppNode // : RequestHandler
+    public abstract class AppNode : RequestHandler
 #if IAPP
-        : IAppNode
+        , IAppNode
 #endif
     {
 
@@ -46,23 +46,14 @@ namespace Starcounter {
 #if QUICKTUPLE
                 _InitializeValues();
 #endif
-       //         if (this is App) {
-       //             ((App)this).CallInit();
-       //         }
-                this.Init();
+                if (this is App) {
+                    ((App)this).CallInit();
+                }
             }
             get {
                 return _Template;
             }
         }
-
-
-        /// <summary>
-        /// Inits this instance.
-        /// </summary>
-        protected virtual void Init() {
-        }
-
 
 #if QUICKTUPLE
         /// <summary>
