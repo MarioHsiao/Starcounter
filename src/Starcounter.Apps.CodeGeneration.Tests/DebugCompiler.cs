@@ -36,7 +36,7 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
                                 new MetadataFileReference(typeof(Entity).Assembly.Location),                    // Starcounter.dll
                                 new MetadataFileReference(typeof(JsonHelper).Assembly.Location),                // Starcounter.JsonPatch.dll
                                 new MetadataFileReference(typeof(Template).Assembly.Location),                  // Starcounter.Apps.dll
-                                new MetadataFileReference(typeof(OldIStatefullTemplate).Assembly.Location),        // Starcounter.Apps.Interfaces.dll
+                                new MetadataFileReference(typeof(ITemplateCodeGenerator).Assembly.Location),        // Starcounter.Apps.Interfaces.dll
                                 new MetadataFileReference(typeof(RequestHandler).Assembly.Location),            // Starcounter.REST.dll
                                 new MetadataFileReference(typeof(IDynamicMetaObjectProvider).Assembly.Location) // System.Core.dll
                           );   
