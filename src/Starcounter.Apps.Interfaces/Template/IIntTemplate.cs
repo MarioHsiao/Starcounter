@@ -8,7 +8,7 @@ namespace Starcounter.Templates.Interfaces {
     /// <summary>
     /// Interface IIntTemplate
     /// </summary>
-    public interface IIntTemplate : IValueTemplate {
+    public interface OldIIntTemplate : OldIValueTemplate {
 
         /// <summary>
         /// Gets or sets the default value.

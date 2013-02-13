@@ -9,7 +9,7 @@ namespace Starcounter.Templates.Interfaces {
     /// <summary>
     /// Interface IOidTemplate
     /// </summary>
-    public interface IOidTemplate : IValueTemplate {
+    public interface OldIOidTemplate : OldIValueTemplate {
 
         /// <summary>
         /// Gets or sets the default value.

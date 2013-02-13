@@ -59,7 +59,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="valueTemplate">The value template.</param>
-        internal static void UpdateValue(Obj app, IValueTemplate valueTemplate) {
+        internal static void UpdateValue(Obj app, Template valueTemplate) {
             ChangeLog log = Log;
             if (log != null && app.IsSerialized) {
                 if (!log._changes.Exists((match) => { return match.IsChangeOf(app, (Template)valueTemplate); })) {
@@ -215,7 +215,7 @@ namespace Starcounter {
         /// <param name="app">The app.</param>
         /// <param name="valueTemplate">The IValueTemplate of the property that was updated.</param>
         /// <returns></returns>
-        internal static Change Update(Obj app, IValueTemplate valueTemplate) {
+        internal static Change Update(Obj app, Template valueTemplate) {
             return new Change(Change.REPLACE, app, (Template)valueTemplate, -1);
         }
     }
