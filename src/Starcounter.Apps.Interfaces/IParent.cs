@@ -6,9 +6,9 @@
 
 namespace Starcounter.Templates.Interfaces {
     /// <summary>
-    /// Interface IAppNode
+    /// Interface IContainer
     /// </summary>
-    public interface IAppNode {
+    public interface IContainer {
 
         /// <summary>
         /// The schema element of this app instance
@@ -19,7 +19,7 @@ namespace Starcounter.Templates.Interfaces {
         /// Gets or sets the parent.
         /// </summary>
         /// <value>The parent.</value>
-        IAppNode Parent { get; set; }
+        IContainer Parent { get; set; }
 
     }
 }

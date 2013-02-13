@@ -9,6 +9,6 @@ namespace Starcounter.Templates.Interfaces {
     /// <summary>
     /// Represents an untyped array
     /// </summary>
-    public interface IArray : IAppNode {
+    public interface IArray : IContainer {
     }
 }

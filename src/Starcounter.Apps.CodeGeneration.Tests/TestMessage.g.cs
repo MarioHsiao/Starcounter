@@ -51,7 +51,7 @@ public partial class TestMessage {
                     ClassName = "ASubAppApp";
                     IsInnerApp = Register<BoolProperty>("IsInnerApp", "IsInnerApp");
                 }
-                public override object CreateInstance(AppNode parent) { return new ASubAppApp(this) { Parent = (TestMessage.ChildApp)parent }; }
+                public override object CreateInstance(Container parent) { return new ASubAppApp(this) { Parent = (TestMessage.ChildApp)parent }; }
                 public BoolProperty IsInnerApp;
             }
             public class ASubAppAppMetadata : AppMetadata {
@@ -86,7 +86,7 @@ public partial class TestMessage {
                         ClassName = "ASubListApp";
                         Huh = Register<StringProperty>("Huh", "Huh");
                     }
-                    public override object CreateInstance(AppNode parent) { return new ASubListApp(this) { Parent = (Listing<TestMessage.ChildApp.ASubApp2App.ASubListApp>)parent }; }
+                    public override object CreateInstance(Container parent) { return new ASubListApp(this) { Parent = (Listing<TestMessage.ChildApp.ASubApp2App.ASubListApp>)parent }; }
                     public StringProperty Huh;
                 }
                 public class ASubListAppMetadata : AppMetadata {
@@ -106,7 +106,7 @@ public partial class TestMessage {
                     ASubList = Register<ArrProperty<TestMessage.ChildApp.ASubApp2App.ASubListApp, TestMessage.ChildApp.ASubApp2App.ASubListApp.ASubListAppTemplate>>("ASubList", "ASubList");
                     ASubList.App = TestMessage.ChildApp.ASubApp2App.ASubListApp.DefaultTemplate;
                 }
-                public override object CreateInstance(AppNode parent) { return new ASubApp2App(this) { Parent = (TestMessage.ChildApp)parent }; }
+                public override object CreateInstance(Container parent) { return new ASubApp2App(this) { Parent = (TestMessage.ChildApp)parent }; }
                 public BoolProperty IsInnerApp;
                 public ArrProperty<TestMessage.ChildApp.ASubApp2App.ASubListApp, TestMessage.ChildApp.ASubApp2App.ASubListApp.ASubListAppTemplate> ASubList;
             }
@@ -130,7 +130,7 @@ public partial class TestMessage {
                 ASubApp = Register<TestMessage.ChildApp.ASubAppApp.ASubAppAppTemplate>("ASubApp", "ASubApp");
                 ASubApp2 = Register<TestMessage.ChildApp.ASubApp2App.ASubApp2AppTemplate>("ASubApp2", "ASubApp2");
             }
-            public override object CreateInstance(AppNode parent) { return new ChildApp(this) { Parent = (TestMessage)parent }; }
+            public override object CreateInstance(Container parent) { return new ChildApp(this) { Parent = (TestMessage)parent }; }
             public StringProperty ChildName;
             public ActionProperty Button;
             public TestMessage.ChildApp.ASubAppApp.ASubAppAppTemplate ASubApp;
@@ -167,7 +167,7 @@ public partial class TestMessage {
                 AValue = Register<StringProperty>("AValue", "AValue");
                 ANumber = Register<IntProperty>("ANumber", "ANumber");
             }
-            public override object CreateInstance(AppNode parent) { return new AListApp(this) { Parent = (Listing<TestMessage.AListApp>)parent }; }
+            public override object CreateInstance(Container parent) { return new AListApp(this) { Parent = (Listing<TestMessage.AListApp>)parent }; }
             public StringProperty AValue;
             public IntProperty ANumber;
         }
@@ -197,7 +197,7 @@ public partial class TestMessage {
             UserLink = Register<StringProperty>("UserLink", "UserLink");
             User = Register<ActionProperty>("User", "User");
         }
-        public override object CreateInstance(AppNode parent) { return new TestMessage(this) { Parent = parent }; }
+        public override object CreateInstance(Container parent) { return new TestMessage(this) { Parent = parent }; }
         public IntProperty UserId;
         public StringProperty Username;
         public StringProperty Password;

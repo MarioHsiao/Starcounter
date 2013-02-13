@@ -428,7 +428,7 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="nearestApp">The nearest app.</param>
         private static void IndexPathToString(StringBuilder sb, Template from, Obj nearestApp) {
             Obj app;
-            AppNode parent;
+            Container parent;
             Boolean nextIndexIsPositionInList;
             Int32[] path;
             Listing list;

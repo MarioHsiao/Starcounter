@@ -34,7 +34,7 @@ public partial class PlayerApp {
                 ClassName = "KidApp";
                 Grandkid = Register<StringProperty>("Grandkid", "Grandkid");
             }
-            public override object CreateInstance(AppNode parent) { return new KidApp(this) { Parent = (PlayerApp)parent }; }
+            public override object CreateInstance(Container parent) { return new KidApp(this) { Parent = (PlayerApp)parent }; }
             public StringProperty Grandkid;
         }
         public class KidAppMetadata : AppMetadata {
@@ -64,7 +64,7 @@ public partial class PlayerApp {
                 AccountType = Register<IntProperty>("AccountType$", "AccountType", Editable = true);
                 Balance = Register<DecimalProperty>("Balance", "Balance");
             }
-            public override object CreateInstance(AppNode parent) { return new AccountsApp(this) { Parent = (Listing<PlayerApp.AccountsApp>)parent }; }
+            public override object CreateInstance(Container parent) { return new AccountsApp(this) { Parent = (Listing<PlayerApp.AccountsApp>)parent }; }
             public IntProperty AccountId;
             public IntProperty AccountType;
             public DecimalProperty Balance;
@@ -93,7 +93,7 @@ public partial class PlayerApp {
             Accounts = Register<ArrProperty<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate>>("Accounts", "Accounts");
             Accounts.App = PlayerApp.AccountsApp.DefaultTemplate;
         }
-        public override object CreateInstance(AppNode parent) { return new PlayerApp(this) { Parent = parent }; }
+        public override object CreateInstance(Container parent) { return new PlayerApp(this) { Parent = parent }; }
         public PlayerApp.KidApp.KidAppTemplate Kid;
         public AppTemplate Page;
         public IntProperty PlayerId;

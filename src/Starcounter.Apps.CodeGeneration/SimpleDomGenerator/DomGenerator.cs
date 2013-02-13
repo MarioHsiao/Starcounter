@@ -99,7 +99,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
 //            mcn.Parent = mcn.Parent;
             MoveNestedClassToBottom(root);
 
-//                AppNode = acn,
+//                Container = acn,
             var json = new NJsonAttributeClass()
             {
                 Parent = acn,

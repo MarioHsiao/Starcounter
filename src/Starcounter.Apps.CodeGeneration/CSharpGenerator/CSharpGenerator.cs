@@ -478,7 +478,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         /// <param name="node"></param>
         private void WriteAppTemplateCreateInstance(NAppTemplateClass node) {
             StringBuilder sb = new StringBuilder();
-            sb.Append("    public override object CreateInstance(AppNode parent) { return new ");
+            sb.Append("    public override object CreateInstance(Container parent) { return new ");
             sb.Append(node.NValueClass.ClassName);
             if (node.Template.Parent != null) {
                 string parentClass = GetParentPropertyType(node.Template).FullClassName;
@@ -666,12 +666,12 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             a.Prefix.Add(sb.ToString());
             /*            sb = new StringBuilder();
                         sb.Append("        InstanceType = typeof(");
-                        sb.Append(a.AppNode.FullClassName);
+                        sb.Append(a.Container.FullClassName);
                         sb.Append(");");
                         a.Prefix.Add(sb.ToString());
                         sb = new StringBuilder();
                         sb.Append("        ClassName = \"");
-                        sb.Append(a.AppNode.ClassName);
+                        sb.Append(a.Container.ClassName);
                         sb.Append("\";");
                         a.Prefix.Add(sb.ToString());
                         foreach (var kid in a.Children) {

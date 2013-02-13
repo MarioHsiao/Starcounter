@@ -105,7 +105,7 @@ namespace Starcounter {
     /// <summary>
     /// 
     /// </summary>
-    public class Listing : AppNode, IList<Obj>
+    public class Listing : Container, IList<Obj>
 #if IAPP
 , IAppArray
 #endif
@@ -304,7 +304,7 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <param name="item"></param>
-        internal override void OnSetParent(AppNode item) {
+        internal override void OnSetParent(Container item) {
             base.OnSetParent(item);
             //            QuickAndDirtyArray.Add((App)item);
         }

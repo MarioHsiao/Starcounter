@@ -21,7 +21,7 @@ namespace Starcounter.Templates.Interfaces {
     /// If your JSON object adds an event (like a command when a button is clicked),
     /// your C# code will be called. If you make a property editable, changes by the user will change App object (and an event will be triggered
     /// in case you which to validate the change).</remarks>
-    public interface IApp : IAppNode {
+    public interface IApp : IContainer {
 
 
 #if !SERVERSIDE
