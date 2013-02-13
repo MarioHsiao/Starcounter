@@ -344,7 +344,7 @@ namespace Starcounter.Internal
         /// <param name="templ">The templ.</param>
         /// <param name="debugInfo">The debug info.</param>
         /// <returns>System.Object.</returns>
-        public object GetMetaTemplate(object templ, DebugInfo debugInfo)
+        object ITemplateFactory.GetMetaTemplate(object templ, DebugInfo debugInfo)
         {
             return new MetaTemplate<OTT>((Template)templ, debugInfo);
         }
@@ -356,7 +356,7 @@ namespace Starcounter.Internal
         /// <param name="name">The name.</param>
         /// <param name="debugInfo">The debug info.</param>
         /// <returns>System.Object.</returns>
-        public object GetMetaTemplateForProperty(object parent, 
+        object ITemplateFactory.GetMetaTemplateForProperty(object parent, 
                                                            string name,
                                                            DebugInfo debugInfo)
         {
@@ -385,7 +385,8 @@ namespace Starcounter.Internal
         /// <param name="value">The value.</param>
         /// <param name="debugInfo">The debug info.</param>
         /// <returns>System.Object.</returns>
-        public object AddStringProperty(object parent,
+        ///
+        object ITemplateFactory.AddStringProperty(object parent,
                                                   string name,
                                                   string dotNetName,
                                                   string value,
@@ -506,7 +507,7 @@ namespace Starcounter.Internal
         /// <param name="value">if set to <c>true</c> [value].</param>
         /// <param name="debugInfo">The debug info.</param>
         /// <returns>System.Object.</returns>
-        public object AddBooleanProperty(object parent,
+        object ITemplateFactory.AddBooleanProperty(object parent,
                                                    string name,
                                                    string dotNetName,
                                                    bool value,
