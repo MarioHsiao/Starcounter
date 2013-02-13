@@ -16420,9 +16420,28 @@ ExpectedResult:
 
 <NEXT>
 Description: Offset in full scan
-QueryString: select e from salaryemployee e where salarydecimal > ? offset ?
-VariableValues: Decimal:10; Int32:10;
+QueryString: select e from salaryemployee e where salarydecimal >= ? offset ?
+VariableValues: Decimal:10; Int32:1;
 ExpectedExceptionMessage: 
 ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.SalaryEmployee
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+FullTableScan(
+	0
+	ComparisonNumerical(
+		GreaterThanOrEqual
+		DecimalProperty(0, SalaryDecimal)
+		NumericalVariable(10)
+	)
+	Ascending
+)
 
 ExpectedResult: 
+ ! Object ! 
+ | 21 | 
+ | 22 | 
