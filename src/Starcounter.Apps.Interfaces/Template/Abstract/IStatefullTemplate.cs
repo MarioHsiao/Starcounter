@@ -27,7 +27,7 @@ namespace Starcounter.Templates.Interfaces {
         /// <param name="parent">The host of the new object. Either a App or a AppList</param>
         /// <returns>The value or object. For instance, if this is a StringTemplate, the default string
         /// for the property to be in the new App object is returned.</returns>
-        object CreateInstance( IAppNode parent );
+        object CreateInstance( IContainer parent );
 
         /// <summary>
         /// The .NET type of the instance represented by this template.

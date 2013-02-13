@@ -12,7 +12,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="parent">The parent for the new app</param>
         /// <returns></returns>
-        public override object CreateInstance(AppNode parent) {
+        public override object CreateInstance(Container parent) {
             return new App() { Template = this, Parent = parent };
         }
     }

@@ -32,7 +32,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>System.Object.</returns>
-        public override object CreateInstance(AppNode parent) {
+        public override object CreateInstance(Container parent) {
             return new Listing<OT>((App)parent, this);
         }
 

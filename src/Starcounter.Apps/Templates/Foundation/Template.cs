@@ -264,7 +264,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>System.Object.</returns>
-        public object GetInstance(AppNode parent) {
+        public object GetInstance(Container parent) {
             return this.CreateInstance(parent);
         }
 
@@ -273,7 +273,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>System.Object.</returns>
-        public virtual object CreateInstance(AppNode parent) {
+        public virtual object CreateInstance(Container parent) {
             return DefaultValueAsObject;
         }
 
@@ -284,8 +284,8 @@ namespace Starcounter.Templates {
         /// <param name="parent">The host of the new object. Either a App or a AppList</param>
         /// <returns>The value or object. For instance, if this is a StringTemplate, the default string
         /// for the property to be in the new App object is returned.</returns>
-        object IStatefullTemplate.CreateInstance(IAppNode parent) {
-            return CreateInstance( (AppNode)parent );
+        object IStatefullTemplate.CreateInstance(IContainer parent) {
+            return CreateInstance( (Container)parent );
         }
 
         /// <summary>
