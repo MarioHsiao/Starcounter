@@ -396,7 +396,7 @@ namespace Starcounter {
         /// <returns>``0.</returns>
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public T GetValue<T>(AppTemplate property) where T : App, new() {
+        public T GetTypedValue<T>(AppTemplate property) where T : App, new() {
 #if QUICKTUPLE
             return (T)(_Values[property.Index]);
 #else

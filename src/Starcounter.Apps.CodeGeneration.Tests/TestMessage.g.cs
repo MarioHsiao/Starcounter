@@ -19,7 +19,7 @@ public partial class TestMessage {
     public long UserId { get { return GetValue(Template.UserId); } set { SetValue(Template.UserId, value); } }
     public String Username { get { return GetValue(Template.Username); } set { SetValue(Template.Username, value); } }
     public String Password { get { return GetValue(Template.Password); } set { SetValue(Template.Password, value); } }
-    public TestMessage.ChildApp Child { get { return GetValue<TestMessage.ChildApp>(Template.Child); } set { SetValue(Template.Child, value); } }
+    public TestMessage.ChildApp Child { get { return GetTypedValue<TestMessage.ChildApp>(Template.Child); } set { SetValue(Template.Child, value); } }
     public Listing<TestMessage.AListApp> AList { get { return GetTypedValue<TestMessage.AListApp>(Template.AList); } set { SetValue<TestMessage.AListApp>(Template.AList, value); } }
     public Decimal ADecimal { get { return GetValue(Template.ADecimal); } set { SetValue(Template.ADecimal, value); } }
     public Double ADouble { get { return GetValue(Template.ADouble); } set { SetValue(Template.ADouble, value); } }
@@ -34,8 +34,8 @@ public partial class TestMessage {
         public new TestMessage Parent { get { return (TestMessage)base.Parent; } set { base.Parent = value; } }
         public String ChildName { get { return GetValue(Template.ChildName); } set { SetValue(Template.ChildName, value); } }
         public Action Button { get { return GetValue(Template.Button); } set { SetValue(Template.Button, value); } }
-        public TestMessage.ChildApp.ASubAppApp ASubApp { get { return GetValue<TestMessage.ChildApp.ASubAppApp>(Template.ASubApp); } set { SetValue(Template.ASubApp, value); } }
-        public TestMessage.ChildApp.ASubApp2App ASubApp2 { get { return GetValue<TestMessage.ChildApp.ASubApp2App>(Template.ASubApp2); } set { SetValue(Template.ASubApp2, value); } }
+        public TestMessage.ChildApp.ASubAppApp ASubApp { get { return GetTypedValue<TestMessage.ChildApp.ASubAppApp>(Template.ASubApp); } set { SetValue(Template.ASubApp, value); } }
+        public TestMessage.ChildApp.ASubApp2App ASubApp2 { get { return GetTypedValue<TestMessage.ChildApp.ASubApp2App>(Template.ASubApp2); } set { SetValue(Template.ASubApp2, value); } }
         public class ASubAppApp : App {
             public static ASubAppAppTemplate DefaultTemplate = new ASubAppAppTemplate();
             public ASubAppApp() { Template = DefaultTemplate; }
