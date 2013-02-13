@@ -24,6 +24,15 @@ namespace QueryProcessingTest {
             // Fetch with offset on sort result
             FetchSortedAccounts(100, 100m, 10, 34);
             FetchSortedAccounts(100, 0m, 10, 33);
+            int rows = 0;
+            PrintQueryPlan("select a from account a where amount > ? fetch ? offset ?");
+            Db.Transaction(delegate {
+                foreach (Account a in Db.SQL<Account>("select a from account a where amount > ? fetch ? offset ?", 100m, 10, 50)) {
+                    Trace.Assert(a.Amount == 200);
+                    rows++;
+                }
+            });
+            Trace.Assert(rows == 10);
         }
 
         internal static void FetchAccounts(int fetchnr) {
