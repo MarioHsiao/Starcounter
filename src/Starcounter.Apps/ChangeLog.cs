@@ -6,9 +6,9 @@
 
 using System;
 using System.Collections.Generic;
-using Starcounter.Apps;
 using Starcounter.Templates;
 using Starcounter.Templates.Interfaces;
+using Starcounter.Apps;
 
 namespace Starcounter {
     /// <summary>
@@ -43,13 +43,13 @@ namespace Starcounter {
         /// <summary>
         /// Adds an valueupdate change.
         /// </summary>
-        /// <param name="app">The app.</param>
+        /// <param name="obj">The Obj.</param>
         /// <param name="property">The property.</param>
-        internal static void UpdateValue(Obj app, Property property) {
+        internal static void UpdateValue(Obj obj, Property property) {
             ChangeLog log = Log;
-            if (log != null && app.IsSerialized) {
-                if (!log._changes.Exists((match) => { return match.IsChangeOf(app, property); })) {
-                    log._changes.Add(Change.Update(app, property));
+            if (log != null && obj.IsSerialized) {
+                if (!log._changes.Exists((match) => { return match.IsChangeOf(obj, property); })) {
+                    log._changes.Add(Change.Update(obj, property));
                 }
             }
         }
@@ -57,13 +57,13 @@ namespace Starcounter {
         /// <summary>
         /// Adds an valueupdate change.
         /// </summary>
-        /// <param name="app">The app.</param>
+        /// <param name="obj">The Obj.</param>
         /// <param name="valueTemplate">The value template.</param>
-        internal static void UpdateValue(Obj app, Template valueTemplate) {
+        internal static void UpdateValue(Obj obj, Template valueTemplate) {
             ChangeLog log = Log;
-            if (log != null && app.IsSerialized) {
-                if (!log._changes.Exists((match) => { return match.IsChangeOf(app, (Template)valueTemplate); })) {
-                    log._changes.Add(Change.Update(app, valueTemplate));
+            if (log != null && obj.IsSerialized) {
+                if (!log._changes.Exists((match) => { return match.IsChangeOf(obj, (Template)valueTemplate); })) {
+                    log._changes.Add(Change.Update(obj, valueTemplate));
                 }
             }
         }
@@ -71,25 +71,25 @@ namespace Starcounter {
         /// <summary>
         /// Adds an add item change.
         /// </summary>
-        /// <param name="app">The app.</param>
+        /// <param name="obj">The Obj.</param>
         /// <param name="list">The property of the list that the item was added to.</param>
         /// <param name="index">The index in the list where the item was added.</param>
-        internal static void AddItemInList(Obj app, ObjArrProperty list, Int32 index) {
+        internal static void AddItemInList(Obj obj, ObjArrProperty list, Int32 index) {
             ChangeLog log = Log;
             if (log != null)
-                log._changes.Add(Change.Add(app, list, index));
+                log._changes.Add(Change.Add(obj, list, index));
         }
 
         /// <summary>
         /// Adds an remove item change.
         /// </summary>
-        /// <param name="app">The app.</param>
+        /// <param name="obj">The app.</param>
         /// <param name="list">The property of the list the item was removed from.</param>
         /// <param name="index">The index in the list of the removed item.</param>
-        internal static void RemoveItemInList(Obj app, ObjArrProperty list, Int32 index) {
+        internal static void RemoveItemInList(Obj obj, ObjArrProperty list, Int32 index) {
             ChangeLog log = Log;
-            if (log != null && app.IsSerialized)
-                log._changes.Add(Change.Remove(app, list, index));
+            if (log != null && obj.IsSerialized)
+                log._changes.Add(Change.Remove(obj, list, index));
         }
 
         /// <summary>

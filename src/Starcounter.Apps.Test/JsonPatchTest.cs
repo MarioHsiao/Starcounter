@@ -235,13 +235,13 @@ namespace Starcounter.Internal.JsonPatch.Test
             AppExeModule.IsRunningTests = true;
 
             AppAndTemplate aat = CreateSampleApp();
-            AppTemplate appt = (AppTemplate)aat.Template;
+            ObjTemplate appt = (AppTemplate)aat.Template;
 
             StringProperty firstName = (StringProperty)appt.Properties[0];
             Int32[] indexPath = aat.App.IndexPathFor(firstName);
             VerifyIndexPath(new Int32[] { 0 }, indexPath);
 
-            AppTemplate anotherAppt = (AppTemplate)appt.Properties[3];
+            ObjTemplate anotherAppt = (AppTemplate)appt.Properties[3];
             Obj nearestApp = aat.App.GetValue(anotherAppt);
 
             StringProperty desc = (StringProperty)anotherAppt.Properties[1];
