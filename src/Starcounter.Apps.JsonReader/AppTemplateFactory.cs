@@ -598,7 +598,7 @@ namespace Starcounter.Internal
             OTT appTemplate;
             Template newTemplate;
 
-            newTemplate = new ListingProperty() { Name = name };
+            newTemplate = new ArrProperty() { Name = name };
             appTemplate = (OTT)parent;
             newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
             SetCompilerOrigin(newTemplate, debugInfo);
@@ -656,7 +656,7 @@ namespace Starcounter.Internal
             var newTemplate = new AppTemplate(); // The type of the type array (an AppTemplate)
             newTemplate.Parent = (ParentTemplate)array;
             //			newTemplate.Name = "__ArrayType__"; // All children needs an id
-            var arr = ((ListingProperty)array);
+            var arr = ((ArrProperty)array);
             arr.App = newTemplate;
             newTemplate.Parent = arr;
             SetCompilerOrigin(newTemplate, debugInfo);

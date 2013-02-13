@@ -178,8 +178,8 @@ namespace Starcounter.Apps {
             foreach (Template child in app.Template.Children) {
                 if (child is AppTemplate) {
                     DisposeAppRecursively(app.GetValue((AppTemplate)child));
-                } else if (child is ListingProperty) {
-                    Listing listing = app.GetValue((ListingProperty)child);
+                } else if (child is ArrProperty) {
+                    Listing listing = app.GetValue((ArrProperty)child);
                     foreach (App listApp in listing) {
                         DisposeAppRecursively(listApp);
                     }

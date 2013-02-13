@@ -295,9 +295,9 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 {
                     appTemplate = (AppTemplate)template;
                 }
-                else if (template is ListingProperty)
+                else if (template is ArrProperty)
                 {
-                    appTemplate = ((ListingProperty)template).App;
+                    appTemplate = ((ArrProperty)template).App;
                 }
                 else
                 {
@@ -390,12 +390,12 @@ namespace Starcounter.Internal.Application.CodeGeneration
                                            metaParent,
                                            template);
                         }
-                        else if (kid is ListingProperty)
+                        else if (kid is ArrProperty)
                         {
 //                            var type = new NListingXXXClass(NValueClass.Classes[kid.InstanceType] ) { Template = kid }; // Orphaned by design as primitive types dont get custom template classes
 //                            NTemplateClass.Classes[kid] = type;
 
-                            GenerateForListing(kid as ListingProperty,
+                            GenerateForListing(kid as ArrProperty,
                                                appClassParent,
                                                templParent,
                                                metaParent,
@@ -568,7 +568,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="templParent">The templ parent.</param>
         /// <param name="metaParent">The meta parent.</param>
         /// <param name="template">The template.</param>
-        private void GenerateForListing(ListingProperty alt, 
+        private void GenerateForListing(ArrProperty alt, 
                                         NAppClass appClassParent, 
                                         NAppTemplateClass templParent, 
                                         NClass metaParent, 
@@ -738,9 +738,9 @@ namespace Starcounter.Internal.Application.CodeGeneration
                                     });
 
                     template = np.Template;
-                    if (template is ListingProperty)
+                    if (template is ArrProperty)
                     {
-                        template = ((ListingProperty)template).App;
+                        template = ((ArrProperty)template).App;
                     }
                     propertyAppClass = (NAppTemplateClass)NAppTemplateClass.Find(template);
                 }
