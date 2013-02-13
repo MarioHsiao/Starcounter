@@ -22,9 +22,6 @@ namespace Starcounter.Templates {
     /// templates defines the schema of an App.
     /// </summary>
     public abstract class Template 
-#if IAPP
-//        : ITemplate, IStatefullTemplate 
-#endif
     {
         /// <summary>
         /// Gets the type of the json.
