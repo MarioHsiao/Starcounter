@@ -54,7 +54,7 @@ namespace Starcounter {
         public void SetValue(Property property, object value) {
             if (property.Bound) {
                 property.SetBoundValueAsObject(this, value);
-                ChangeLog.UpdateValue(this, property);
+                this.HasChanged(property);
                 return;
             }
 
@@ -63,7 +63,7 @@ namespace Starcounter {
 #else
             throw new JockeNotImplementedException();
 #endif
-            ChangeLog.UpdateValue(this, property);
+            this.HasChanged(property);
         }
 
         /// <summary>
@@ -144,8 +144,7 @@ namespace Starcounter {
 #else
             throw new JockeNotImplementedException();
 #endif
-
-            ChangeLog.UpdateValue(this, property);
+            this.HasChanged(property);
         }
 
         /// <summary>
@@ -230,7 +229,7 @@ namespace Starcounter {
         public void SetValue(StringProperty property, string value) {
             if (property.Bound) {
                 property.SetBoundValue(this, value);
-                ChangeLog.UpdateValue(this, property);
+                this.HasChanged(property);
                 return;
             }
 
@@ -239,8 +238,7 @@ namespace Starcounter {
 #else
             throw new JockeNotImplementedException();
 #endif
-
-            ChangeLog.UpdateValue(this, property);
+            this.HasChanged(property);
         }
 
         /// <summary>
@@ -432,8 +430,7 @@ namespace Starcounter {
 #else
             throw new JockeNotImplementedException();
 #endif
-
-            ChangeLog.UpdateValue(this, property);
+            this.HasChanged(property);
         }
 
         /// <summary>
@@ -451,8 +448,7 @@ namespace Starcounter {
 #else
             throw new JockeNotImplementedException();
 #endif
-
-            ChangeLog.UpdateValue(this, property);
+            this.HasChanged(property);
         }
 
         /// <summary>
