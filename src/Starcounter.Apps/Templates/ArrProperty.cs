@@ -23,7 +23,7 @@ namespace Starcounter.Templates {
     /// </summary>
     /// <typeparam name="OT">The type of the app type.</typeparam>
     /// <typeparam name="OTT">The type of the app template type.</typeparam>
-    public class ListingProperty<OT,OTT> : ArrProperty
+    public class ListingProperty<OT,OTT> : ObjArrProperty
         where OT : App, new()
         where OTT : AppTemplate
     {
@@ -93,7 +93,7 @@ namespace Starcounter.Templates {
     /// <summary>
     /// Class ListingProperty
     /// </summary>
-    public abstract class ArrProperty : ListTemplate
+    public abstract class ObjArrProperty : ListTemplate
 #if IAPP
         , IAppListTemplate
 #endif
