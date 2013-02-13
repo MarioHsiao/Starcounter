@@ -20987,6 +20987,8 @@ ExpectedResult:
  | 9 | 
  | 9 | 
 
+=== Fetch ====
+
 <NEXT>
 Description: Fetch on sort result over indexed property
 QueryString: select e from SalaryEmployee e order by SalaryInt16 fetch ?
