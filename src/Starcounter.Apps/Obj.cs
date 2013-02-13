@@ -54,11 +54,6 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        private Transaction _transaction;
-
-        /// <summary>
-        /// 
-        /// </summary>
         private IBindable _Data;
 
         /// <summary>
@@ -128,9 +123,6 @@ namespace Starcounter {
                 return (IBindable)_Data;
             }
             set {
-                if (Transaction == null) {
-                    Transaction = Transaction._current;
-                }
                 InternalSetData(value);
             }
         }
@@ -141,7 +133,8 @@ namespace Starcounter {
         /// public Data-property does.
         /// </summary>
         /// <param name="data"></param>
-        internal void InternalSetData(IBindable data) {
+        internal virtual void InternalSetData(IBindable data) {
+
             _Data = data;
 
             if (Template.Bound) {
@@ -182,64 +175,15 @@ namespace Starcounter {
 //        }
 
         /// <summary>
-        /// Gets the closest transaction for this app looking up in the tree.
-        /// Sets this transaction.
-        /// </summary>
-        public Transaction Transaction {
-            get {
-                if (_transaction != null)
-                    return _transaction;
-
-                App parent = GetNearestAppParent();
-                if (parent != null)
-                    return parent.Transaction;
-
-                return null;
-            }
-            set {
-                if (_transaction != null) {
-                    throw new Exception("An transaction is already set for this App. Changing transaction is not allowed.");
-                }
-                _transaction = value;
-            }
-        }
-
-        /// <summary>
-        /// Returns the transaction that is set on this app. Does NOT
-        /// look in parents.
-        /// </summary>
-        internal Transaction TransactionOnThisApp {
-            get { return _transaction; }
-        }
-
-        /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        private App GetNearestAppParent() {
+        internal App GetNearestAppParent() {
             Container parent = Parent;
             while ((parent != null) && (!(parent is App))) {
                 parent = parent.Parent;
             }
             return (App)parent;
-        }
-
-        /// <summary>
-        /// Commits this instance.
-        /// </summary>
-        public virtual void Commit() {
-            if (_transaction != null) {
-                _transaction.Commit();
-            }
-        }
-
-        /// <summary>
-        /// Aborts this instance.
-        /// </summary>
-        public virtual void Abort() {
-            if (_transaction != null) {
-                _transaction.Rollback();
-            }
         }
 
         /// <summary>

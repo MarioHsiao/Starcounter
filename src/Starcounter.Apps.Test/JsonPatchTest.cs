@@ -10,8 +10,7 @@ using System.Text;
 using NUnit.Framework;
 using Starcounter.Apps;
 using Starcounter.Internal;
-using Starcounter.Internal.Application;
-using Starcounter.Internal.Application.JsonReader;
+using Starcounter.Internal.JsonTemplate;
 using Starcounter.Internal.ExeModule;
 using Starcounter.Templates;
 

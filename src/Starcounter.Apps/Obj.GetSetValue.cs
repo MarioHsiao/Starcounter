@@ -706,7 +706,7 @@ namespace Starcounter {
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(AppTemplate property, IBindable value) {
 #if QUICKTUPLE
-            App app = (App)property.CreateInstance(this);
+            Obj app = (Obj)property.CreateInstance(this);
             app.Data = value;
             _Values[property.Index] = app;
 #else

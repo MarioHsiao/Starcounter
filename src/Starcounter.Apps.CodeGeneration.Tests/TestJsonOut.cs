@@ -8,7 +8,7 @@ using System;
 using NUnit.Framework;
 using Starcounter.Internal.Application;
 using Starcounter.Internal.Application.CodeGeneration;
-using Starcounter.Internal.Application.JsonReader;
+using Starcounter.Internal.JsonTemplate;
 using Starcounter.Internal.ExeModule;
 using Starcounter.Templates;
 using Starcounter.Templates.Interfaces;

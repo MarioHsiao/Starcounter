@@ -2,7 +2,7 @@
 // Copyright (c) Starcounter AB
 
 
-namespace Starcounter.Internal
+namespace Starcounter.Internal.JsonTemplate
 open System;
 
 type ITemplate =

@@ -10,7 +10,7 @@ using System.IO;
 using System.Text;
 using Starcounter.Templates;
 
-namespace Starcounter.Internal.Application.JsonReader
+namespace Starcounter.Internal.JsonTemplate
 {
     /// <summary>
     /// Class TemplateFromJs
@@ -40,7 +40,7 @@ namespace Starcounter.Internal.Application.JsonReader
                                                  bool ignoreNonDesignTimeAssigments)
         {
             AppTemplate appTemplate;
-            ITemplateFactory factory = new Internal.AppTemplateFactory<App,AppTemplate>();
+            ITemplateFactory factory = new Internal.JsonTemplate.AppTemplateFactory<App,AppTemplate>();
             int skip = 0;
             if (!ignoreNonDesignTimeAssigments)
             {
