@@ -136,8 +136,8 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         private void ProcessNode(NBase node) {
             var sb = new StringBuilder();
             if (node is NClass) {
-                if (node is NAppMetadata) {
-                    var n = node as NAppMetadata;
+                if (node is NObjMetadata) {
+                    var n = node as NObjMetadata;
                     sb.Append("public class ");
                     sb.Append(n.ClassName);
                     if (n.Inherits != null) {
@@ -146,8 +146,8 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     }
                     sb.Append(" {");
                     node.Prefix.Add(sb.ToString());
-                    if (node is NAppMetadata) {
-                        WriteAppMetadataClassPrefix(node as NAppMetadata);
+                    if (node is NObjMetadata) {
+                        WriteObjMetadataClassPrefix(node as NObjMetadata);
                     }
                 }
                 else {
@@ -182,8 +182,8 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     WriteAppMemberPrefix(node as NProperty);
                 else if (node.Parent is NAppTemplateClass)
                     WriteAppTemplateMemberPrefix(node as NProperty);
-                else if (node.Parent is NAppMetadata)
-                    WriteAppMetadataMemberPrefix(node as NProperty);
+                else if (node.Parent is NObjMetadata)
+                    WriteObjMetadataMemberPrefix(node as NProperty);
             } else if (node is NAppSerializerClass) {
                 WriteSerializerPrefix(node as NAppSerializerClass);
             }
@@ -448,7 +448,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         /// Writes the app metadata member prefix.
         /// </summary>
         /// <param name="m">The m.</param>
-        private void WriteAppMetadataMemberPrefix(NProperty m) {
+        private void WriteObjMetadataMemberPrefix(NProperty m) {
             var sb = new StringBuilder();
             sb.Append("public ");
             sb.Append(m.Type.FullClassName);
@@ -646,7 +646,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         /// Writes the class declaration and constructor for an AppTemplate class
         /// </summary>
         /// <param name="a">The class declaration syntax node</param>
-        private void WriteAppMetadataClassPrefix(NMetadataClass a) {
+        private void WriteObjMetadataClassPrefix(NMetadataClass a) {
             var sb = new StringBuilder();
             sb.Append("    public ");
             sb.Append(a.ClassName);

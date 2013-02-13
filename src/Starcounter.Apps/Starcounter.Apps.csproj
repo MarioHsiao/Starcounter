@@ -92,7 +92,7 @@
     <Compile Include="Puppet\Session.cs" />
     <Compile Include="Puppet\Temp.cs" />
     <Compile Include="TemplateAttribute.cs" />
-    <Compile Include="Templates\AppTemplate.cs" />
+    <Compile Include="Puppet\AppTemplate.cs" />
     <Compile Include="Templates\ArrProperty.cs" />
     <Compile Include="Templates\Foundation\Property.cs" />
     <Compile Include="Templates\ObjTemplate.cs" />

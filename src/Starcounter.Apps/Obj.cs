@@ -216,7 +216,7 @@ namespace Starcounter {
         /// <summary>
         /// Implementation field used to cache the Properties property.
         /// </summary>
-        private AppMetadata _Metadata = null;
+        private ObjMetadata _Metadata = null;
 
         /// <summary>
         /// Here you can set properties for each property in this App (such as Editable, Visible and Enabled).
@@ -226,7 +226,7 @@ namespace Starcounter {
         /// <value>The metadata.</value>
         /// <remarks>It is much less expensive to set this kind of metadata for the
         /// entire template (for example to mark a property for all App instances as Editable).</remarks>
-        public AppMetadata Metadata {
+        public ObjMetadata Metadata {
             get {
                 return _Metadata;
             }

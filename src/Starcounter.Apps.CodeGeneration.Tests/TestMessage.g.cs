@@ -30,7 +30,7 @@ public partial class TestMessage {
         public ChildApp() { Template = DefaultTemplate; }
         public ChildApp(ChildAppTemplate template) { Template = template; }
         public new ChildAppTemplate Template { get { return (ChildAppTemplate)base.Template; } set { base.Template = value; } }
-        public new ChildAppMetadata Metadata { get { return (ChildAppMetadata)base.Metadata; } }
+        public new ChildObjMetadata Metadata { get { return (ChildObjMetadata)base.Metadata; } }
         public new TestMessage Parent { get { return (TestMessage)base.Parent; } set { base.Parent = value; } }
         public String ChildName { get { return GetValue(Template.ChildName); } set { SetValue(Template.ChildName, value); } }
         public Action Button { get { return GetValue(Template.Button); } set { SetValue(Template.Button, value); } }
@@ -41,7 +41,7 @@ public partial class TestMessage {
             public ASubAppApp() { Template = DefaultTemplate; }
             public ASubAppApp(ASubAppAppTemplate template) { Template = template; }
             public new ASubAppAppTemplate Template { get { return (ASubAppAppTemplate)base.Template; } set { base.Template = value; } }
-            public new ASubAppAppMetadata Metadata { get { return (ASubAppAppMetadata)base.Metadata; } }
+            public new ASubAppObjMetadata Metadata { get { return (ASubAppObjMetadata)base.Metadata; } }
             public new ChildApp Parent { get { return (ChildApp)base.Parent; } set { base.Parent = value; } }
             public bool IsInnerApp { get { return GetValue(Template.IsInnerApp); } set { SetValue(Template.IsInnerApp, value); } }
             public class ASubAppAppTemplate : AppTemplate {
@@ -54,8 +54,8 @@ public partial class TestMessage {
                 public override object CreateInstance(Container parent) { return new ASubAppApp(this) { Parent = (TestMessage.ChildApp)parent }; }
                 public BoolProperty IsInnerApp;
             }
-            public class ASubAppAppMetadata : AppMetadata {
-                public ASubAppAppMetadata(App app, AppTemplate template) : base(app, template) { }
+            public class ASubAppObjMetadata : ObjMetadata {
+                public ASubAppObjMetadata(App app, AppTemplate template) : base(app, template) { }
                 public new TestMessage.ChildApp.ASubAppApp App { get { return (TestMessage.ChildApp.ASubAppApp)base.App; } }
                 public new TestMessage.ChildApp.ASubAppApp.ASubAppAppTemplate Template { get { return (TestMessage.ChildApp.ASubAppApp.ASubAppAppTemplate)base.Template; } }
                 public BoolMetadata IsInnerApp { get { return __p_IsInnerApp ?? (__p_IsInnerApp = new BoolMetadata(App, App.Template.IsInnerApp)); } }
@@ -67,7 +67,7 @@ public partial class TestMessage {
             public ASubApp2App() { Template = DefaultTemplate; }
             public ASubApp2App(ASubApp2AppTemplate template) { Template = template; }
             public new ASubApp2AppTemplate Template { get { return (ASubApp2AppTemplate)base.Template; } set { base.Template = value; } }
-            public new ASubApp2AppMetadata Metadata { get { return (ASubApp2AppMetadata)base.Metadata; } }
+            public new ASubApp2ObjMetadata Metadata { get { return (ASubApp2ObjMetadata)base.Metadata; } }
             public new ChildApp Parent { get { return (ChildApp)base.Parent; } set { base.Parent = value; } }
             public bool IsInnerApp { get { return GetValue(Template.IsInnerApp); } set { SetValue(Template.IsInnerApp, value); } }
             public Listing<TestMessage.ChildApp.ASubApp2App.ASubListApp> ASubList { get { return GetTypedValue<TestMessage.ChildApp.ASubApp2App.ASubListApp>(Template.ASubList); } set { SetValue<TestMessage.ChildApp.ASubApp2App.ASubListApp>(Template.ASubList, value); } }
@@ -76,7 +76,7 @@ public partial class TestMessage {
                 public ASubListApp() { Template = DefaultTemplate; }
                 public ASubListApp(ASubListAppTemplate template) { Template = template; }
                 public new ASubListAppTemplate Template { get { return (ASubListAppTemplate)base.Template; } set { base.Template = value; } }
-                public new ASubListAppMetadata Metadata { get { return (ASubListAppMetadata)base.Metadata; } }
+                public new ASubListObjMetadata Metadata { get { return (ASubListObjMetadata)base.Metadata; } }
                 public new Listing<TestMessage.ChildApp.ASubApp2App.ASubListApp> Parent { get { return (Listing<TestMessage.ChildApp.ASubApp2App.ASubListApp>)base.Parent; } set { base.Parent = value; } }
                 public String Huh { get { return GetValue(Template.Huh); } set { SetValue(Template.Huh, value); } }
                 public class ASubListAppTemplate : AppTemplate {
@@ -89,8 +89,8 @@ public partial class TestMessage {
                     public override object CreateInstance(Container parent) { return new ASubListApp(this) { Parent = (Listing<TestMessage.ChildApp.ASubApp2App.ASubListApp>)parent }; }
                     public StringProperty Huh;
                 }
-                public class ASubListAppMetadata : AppMetadata {
-                    public ASubListAppMetadata(App app, AppTemplate template) : base(app, template) { }
+                public class ASubListObjMetadata : ObjMetadata {
+                    public ASubListObjMetadata(App app, AppTemplate template) : base(app, template) { }
                     public new TestMessage.ChildApp.ASubApp2App.ASubListApp App { get { return (TestMessage.ChildApp.ASubApp2App.ASubListApp)base.App; } }
                     public new TestMessage.ChildApp.ASubApp2App.ASubListApp.ASubListAppTemplate Template { get { return (TestMessage.ChildApp.ASubApp2App.ASubListApp.ASubListAppTemplate)base.Template; } }
                     public StringMetadata Huh { get { return __p_Huh ?? (__p_Huh = new StringMetadata(App, App.Template.Huh)); } }
@@ -110,8 +110,8 @@ public partial class TestMessage {
                 public BoolProperty IsInnerApp;
                 public ArrProperty<TestMessage.ChildApp.ASubApp2App.ASubListApp, TestMessage.ChildApp.ASubApp2App.ASubListApp.ASubListAppTemplate> ASubList;
             }
-            public class ASubApp2AppMetadata : AppMetadata {
-                public ASubApp2AppMetadata(App app, AppTemplate template) : base(app, template) { }
+            public class ASubApp2ObjMetadata : ObjMetadata {
+                public ASubApp2ObjMetadata(App app, AppTemplate template) : base(app, template) { }
                 public new TestMessage.ChildApp.ASubApp2App App { get { return (TestMessage.ChildApp.ASubApp2App)base.App; } }
                 public new TestMessage.ChildApp.ASubApp2App.ASubApp2AppTemplate Template { get { return (TestMessage.ChildApp.ASubApp2App.ASubApp2AppTemplate)base.Template; } }
                 public BoolMetadata IsInnerApp { get { return __p_IsInnerApp ?? (__p_IsInnerApp = new BoolMetadata(App, App.Template.IsInnerApp)); } }
@@ -136,18 +136,18 @@ public partial class TestMessage {
             public TestMessage.ChildApp.ASubAppApp.ASubAppAppTemplate ASubApp;
             public TestMessage.ChildApp.ASubApp2App.ASubApp2AppTemplate ASubApp2;
         }
-        public class ChildAppMetadata : AppMetadata {
-            public ChildAppMetadata(App app, AppTemplate template) : base(app, template) { }
+        public class ChildObjMetadata : ObjMetadata {
+            public ChildObjMetadata(App app, AppTemplate template) : base(app, template) { }
             public new TestMessage.ChildApp App { get { return (TestMessage.ChildApp)base.App; } }
             public new TestMessage.ChildApp.ChildAppTemplate Template { get { return (TestMessage.ChildApp.ChildAppTemplate)base.Template; } }
             public StringMetadata ChildName { get { return __p_ChildName ?? (__p_ChildName = new StringMetadata(App, App.Template.ChildName)); } }
             private StringMetadata __p_ChildName;
             public ActionMetadata Button { get { return __p_Button ?? (__p_Button = new ActionMetadata(App, App.Template.Button)); } }
             private ActionMetadata __p_Button;
-            public TestMessage.ChildApp.ASubAppApp.ASubAppAppMetadata ASubApp { get { return __p_ASubApp ?? (__p_ASubApp = new TestMessage.ChildApp.ASubAppApp.ASubAppAppMetadata(App, App.Template.ASubApp)); } }
-            private TestMessage.ChildApp.ASubAppApp.ASubAppAppMetadata __p_ASubApp;
-            public TestMessage.ChildApp.ASubApp2App.ASubApp2AppMetadata ASubApp2 { get { return __p_ASubApp2 ?? (__p_ASubApp2 = new TestMessage.ChildApp.ASubApp2App.ASubApp2AppMetadata(App, App.Template.ASubApp2)); } }
-            private TestMessage.ChildApp.ASubApp2App.ASubApp2AppMetadata __p_ASubApp2;
+            public TestMessage.ChildApp.ASubAppApp.ASubAppObjMetadata ASubApp { get { return __p_ASubApp ?? (__p_ASubApp = new TestMessage.ChildApp.ASubAppApp.ASubAppObjMetadata(App, App.Template.ASubApp)); } }
+            private TestMessage.ChildApp.ASubAppApp.ASubAppObjMetadata __p_ASubApp;
+            public TestMessage.ChildApp.ASubApp2App.ASubApp2ObjMetadata ASubApp2 { get { return __p_ASubApp2 ?? (__p_ASubApp2 = new TestMessage.ChildApp.ASubApp2App.ASubApp2ObjMetadata(App, App.Template.ASubApp2)); } }
+            private TestMessage.ChildApp.ASubApp2App.ASubApp2ObjMetadata __p_ASubApp2;
         }
     }
     public class AListApp : App {
@@ -155,7 +155,7 @@ public partial class TestMessage {
         public AListApp() { Template = DefaultTemplate; }
         public AListApp(AListAppTemplate template) { Template = template; }
         public new AListAppTemplate Template { get { return (AListAppTemplate)base.Template; } set { base.Template = value; } }
-        public new AListAppMetadata Metadata { get { return (AListAppMetadata)base.Metadata; } }
+        public new AListObjMetadata Metadata { get { return (AListObjMetadata)base.Metadata; } }
         public new Listing<TestMessage.AListApp> Parent { get { return (Listing<TestMessage.AListApp>)base.Parent; } set { base.Parent = value; } }
         public String AValue { get { return GetValue(Template.AValue); } set { SetValue(Template.AValue, value); } }
         public long ANumber { get { return GetValue(Template.ANumber); } set { SetValue(Template.ANumber, value); } }
@@ -171,8 +171,8 @@ public partial class TestMessage {
             public StringProperty AValue;
             public IntProperty ANumber;
         }
-        public class AListAppMetadata : AppMetadata {
-            public AListAppMetadata(App app, AppTemplate template) : base(app, template) { }
+        public class AListObjMetadata : ObjMetadata {
+            public AListObjMetadata(App app, AppTemplate template) : base(app, template) { }
             public new TestMessage.AListApp App { get { return (TestMessage.AListApp)base.App; } }
             public new TestMessage.AListApp.AListAppTemplate Template { get { return (TestMessage.AListApp.AListAppTemplate)base.Template; } }
             public StringMetadata AValue { get { return __p_AValue ?? (__p_AValue = new StringMetadata(App, App.Template.AValue)); } }
@@ -208,7 +208,7 @@ public partial class TestMessage {
         public StringProperty UserLink;
         public ActionProperty User;
     }
-    public class TestMessageMetadata : AppMetadata {
+    public class TestMessageMetadata : ObjMetadata {
         public TestMessageMetadata(App app, AppTemplate template) : base(app, template) { }
         public new TestMessage App { get { return (TestMessage)base.App; } }
         public new TestMessage.TestMessageTemplate Template { get { return (TestMessage.TestMessageTemplate)base.Template; } }
@@ -218,8 +218,8 @@ public partial class TestMessage {
         private StringMetadata __p_Username;
         public StringMetadata Password { get { return __p_Password ?? (__p_Password = new StringMetadata(App, App.Template.Password)); } }
         private StringMetadata __p_Password;
-        public TestMessage.ChildApp.ChildAppMetadata Child { get { return __p_Child ?? (__p_Child = new TestMessage.ChildApp.ChildAppMetadata(App, App.Template.Child)); } }
-        private TestMessage.ChildApp.ChildAppMetadata __p_Child;
+        public TestMessage.ChildApp.ChildObjMetadata Child { get { return __p_Child ?? (__p_Child = new TestMessage.ChildApp.ChildObjMetadata(App, App.Template.Child)); } }
+        private TestMessage.ChildApp.ChildObjMetadata __p_Child;
         public ArrMetadata<TestMessage.AListApp, TestMessage.AListApp.AListAppTemplate> AList { get { return __p_AList ?? (__p_AList = new ArrMetadata<TestMessage.AListApp, TestMessage.AListApp.AListAppTemplate>(App, App.Template.AList)); } }
         private ArrMetadata<TestMessage.AListApp, TestMessage.AListApp.AListAppTemplate> __p_AList;
         public DecimalMetadata ADecimal { get { return __p_ADecimal ?? (__p_ADecimal = new DecimalMetadata(App, App.Template.ADecimal)); } }
