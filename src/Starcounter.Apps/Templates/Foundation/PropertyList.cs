@@ -21,9 +21,6 @@ namespace Starcounter.Templates {
     /// Class PropertyList
     /// </summary>
     public class PropertyList
-#if IAPP
-//        : IPropertyTemplates, 
-#endif
        : IEnumerable<Template>, IList<Template>
     {
         /// <summary>

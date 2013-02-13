@@ -18,9 +18,6 @@ namespace Starcounter.Templates {
     /// Class ParentTemplate
     /// </summary>
     public abstract class ParentTemplate : Property
-#if IAPP
-//        , IParentTemplate 
-#endif
     {
         /// <summary>
         /// The _ sealed

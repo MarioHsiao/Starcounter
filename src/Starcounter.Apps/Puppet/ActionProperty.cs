@@ -17,9 +17,6 @@ namespace Starcounter.Templates {
     /// Class ActionProperty
     /// </summary>
     public class ActionProperty : Property
-#if IAPP
-//        , IActionTemplate
-#endif
     {
         /// <summary>
         /// The custom input event creator
