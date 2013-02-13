@@ -17,7 +17,7 @@ namespace Starcounter {
 
 #if !CLIENT
 
-
+        /*
         /// <summary>
         /// GETs the specified URI.
         /// </summary>
@@ -159,6 +159,7 @@ namespace Starcounter {
             CheckProcess();
             RequestHandler.PATCH(uri, handler);
         }
+         */
 
         /// <summary>
         /// The has started

@@ -45,6 +45,15 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Xson.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Starcounter.Apps.Interfaces\Starcounter.Apps.Interfaces.csproj">
+      <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
+      <Name>Starcounter.Apps.Interfaces</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Templates\Foundation\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
