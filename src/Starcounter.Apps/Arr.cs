@@ -63,7 +63,13 @@ namespace Starcounter {
         /// </summary>
         /// <returns></returns>
         public new T Add() {
-            var app = new T();
+        //    var app = new T();
+        //    Add(app);
+        //    return app;
+            ObjArrProperty template = (ObjArrProperty)Template;
+            var app = (T)template.App.CreateInstance(this);
+
+          //  app.Data = data;
             Add(app);
             return app;
         }

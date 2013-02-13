@@ -223,16 +223,18 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             sb.Append(m.Type.FullClassName);
             sb.Append(' ');
             sb.Append(m.MemberName);
-            sb.Append(" { get { return GetValue");
 //            if (m.Type is NListing) {
 //                sb.Append('<');
 //                sb.Append(((NListing)m.Type).NApp.FullClassName);
 //                sb.Append('>');
 //            }
             if (m.FunctionGeneric != null) {
-                sb.Append('<');
-                sb.Append( m.FunctionGeneric.FullClassName );
+                sb.Append(" { get { return GetTypedValue<");
+                sb.Append(m.FunctionGeneric.FullClassName);
                 sb.Append('>');
+            }
+            else {
+                sb.Append(" { get { return GetValue");
             }
             sb.Append("(Template.");
             sb.Append(m.MemberName);

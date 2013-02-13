@@ -589,7 +589,7 @@ namespace Starcounter {
         /// <returns>Listing{``0}.</returns>
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public Listing<T> GetValue<T>(ObjArrProperty property) where T : Obj, new() {
+        public Listing<T> GetTypedValue<T>(ObjArrProperty property) where T : Obj, new() {
 #if QUICKTUPLE
             return (Listing<T>)(_Values[property.Index]);
 #else
