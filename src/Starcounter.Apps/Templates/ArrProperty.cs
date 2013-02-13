@@ -95,7 +95,7 @@ namespace Starcounter.Templates {
     /// </summary>
     public abstract class ObjArrProperty : ParentTemplate
 #if IAPP
-        , IAppListTemplate
+//        , IAppListTemplate
 #endif
     {
 
@@ -123,14 +123,14 @@ namespace Starcounter.Templates {
         /// Gets or sets the type.
         /// </summary>
         /// <value>The type.</value>
-        IAppTemplate IAppListTemplate.Type {
-            get {
-                return App;
-            }
-            set {
-                App = (AppTemplate)value;
-            }
-        }
+//        IAppTemplate IAppListTemplate.Type {
+//            get {
+//                return App;
+//            }
+//            set {
+//                App = (AppTemplate)value;
+//            }
+//        }
 
         /// <summary>
         /// Gets or sets the type (the template) that should be the template for all elements

@@ -28,18 +28,5 @@ namespace Starcounter.Templates.Interfaces {
         /// </summary>
         bool Bound { get; }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="app"></param>
-        /// <param name="value"></param>
-        void SetBoundValueAsObject(IApp app, object value);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="app"></param>
-        /// <returns></returns>
-        object GetBoundValueAsObject(IApp app);
     }
 }

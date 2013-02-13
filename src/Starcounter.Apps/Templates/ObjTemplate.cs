@@ -21,7 +21,7 @@ namespace Starcounter.Templates {
     /// </summary>
     public abstract class ObjTemplate : ParentTemplate
 #if IAPP
-, IAppTemplate
+//, IAppTemplate
 #endif
  {
         private DataBinding<IBindable> dataBinding;
@@ -148,8 +148,8 @@ namespace Starcounter.Templates {
         /// <param name="name">The name of the new template</param>
         /// <param name="type"></param>
         /// <returns>A new instance of the specified template</returns>
-        public T Add<T>(string name, IAppTemplate type) where T : IAppListTemplate, new() {
-            T t = new T() { Name = name, Type = type };
+        public T Add<T>(string name, ObjTemplate type) where T : ObjArrProperty, new() {
+            T t = new T() { Name = name, App = type };
             Properties.Add(t);
             return t;
         }
@@ -175,9 +175,9 @@ namespace Starcounter.Templates {
         /// <param name="name">The name of the template.</param>
         /// <returns></returns>
         /// <exception cref="System.NotImplementedException"></exception>
-        T IAppTemplate.Add<T>(string name) {
-            throw new NotImplementedException();
-        }
+//        T IAppTemplate.Add<T>(string name) {
+//            throw new NotImplementedException();
+//        }
 
         /// <summary>
         /// Creates a new Template with the specified name.
@@ -187,17 +187,17 @@ namespace Starcounter.Templates {
         /// <param name="type"></param>
         /// <returns></returns>
         /// <exception cref="System.NotImplementedException"></exception>
-        T IAppTemplate.Add<T>(string name, IAppTemplate type) {
-            throw new NotImplementedException();
-        }
+//        T IAppTemplate.Add<T>(string name, IAppTemplate type) {
+//            throw new NotImplementedException();
+//        }
 
         /// <summary>
         /// Gets all templates for this app.
         /// </summary>
         /// <value>The properties.</value>
-        IPropertyTemplates IAppTemplate.Properties {
-            get { return Properties; }
-        }
+//        IPropertyTemplates IAppTemplate.Properties {
+//            get { return Properties; }
+//        }
 
         /// <summary>
         /// Callback from internal functions responsible for handle external inputs.

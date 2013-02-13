@@ -80,7 +80,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="app"></param>
         /// <returns></returns>
-        public override object GetBoundValueAsObject(IApp app) {
+        public override object GetBoundValueAsObject(Obj app) {
             return dataBinding.GetValue((App)app);
         }
 
@@ -89,7 +89,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="value"></param>
-        public override void SetBoundValueAsObject(IApp app, object value) {
+        public override void SetBoundValueAsObject(Obj app, object value) {
             dataBinding.SetValue((App)app, (TValue)value);
         }
 
@@ -134,9 +134,6 @@ namespace Starcounter {
     /// Class Property
     /// </summary>
     public abstract class Property : Template
-#if IAPP
-        , IValueTemplate
-#endif
     {
         /// <summary>
         /// Gets a value indicating whether this instance has instance value on client.

@@ -87,7 +87,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="app"></param>
         /// <returns></returns>
-        public virtual object GetBoundValueAsObject(IApp app) {
+        public virtual object GetBoundValueAsObject(Obj app) {
             return null;
         }
 
@@ -96,7 +96,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="value"></param>
-        public virtual void SetBoundValueAsObject(IApp app, object value) {
+        public virtual void SetBoundValueAsObject(Obj app, object value) {
 
         }
 
