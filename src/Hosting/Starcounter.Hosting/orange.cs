@@ -173,7 +173,6 @@ namespace StarcounterInternal.Hosting
             uint e = sccoredb.SCResetThread();
             if (e == 0)
             {
-                sccorelog.sccorelog_new_activity();
                 return;
             }
             orange_fatal_error(e);
@@ -447,10 +446,7 @@ namespace StarcounterInternal.Hosting
         /// <param name="hsched">The hsched.</param>
         /// <param name="cpun">The cpun.</param>
         /// <param name="p">The p.</param>
-        private static unsafe void orange_thread_reset(void* hsched, byte cpun, void* p)
-        {
-            sccorelog.sccorelog_new_activity();
-        }
+        private static unsafe void orange_thread_reset(void* hsched, byte cpun, void* p) { }
 
         /// <summary>
         /// Orange_thread_yields the specified hsched.
