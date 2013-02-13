@@ -16,18 +16,6 @@ using Starcounter.Templates;
 
 namespace Starcounter.Internal.JsonPatch.Test
 {
-    //internal struct AppAndTemplate
-    //{
-    //    internal readonly dynamic App;
-    //    internal readonly dynamic Template;
-
-    //    internal AppAndTemplate(dynamic app, dynamic template)
-    //    {
-    //        App = app;
-    //        Template = template;
-    //    }
-    //}
-
     /// <summary>
     /// Class JsonPatchTest
     /// </summary>

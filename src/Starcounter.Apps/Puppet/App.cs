@@ -60,6 +60,13 @@ namespace Starcounter {
             return new App<T>() { Media = str };
         }
 
+        /// <summary>
+        /// Logs the change such that it can be mirrored to the client
+        /// </summary>
+        /// <param name="property">The property that changed</param>
+        protected override void HasChanged(Property property) {
+            ChangeLog.UpdateValue(this, property);
+        }
 
         /// <summary>
         /// Commits this instance.

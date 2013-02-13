@@ -181,9 +181,17 @@ namespace Starcounter {
                     this.SetValue(at, v);
             } else {
                 Property p = model as Property;
-                if (p != null)
-                    ChangeLog.UpdateValue(this, p);
+                if (p != null) {
+                    HasChanged(p);
+                }
             }
+        }
+
+        /// <summary>
+        /// Is overridden by Puppet to log changes.
+        /// </summary>
+        /// <param name="property">The property that has changed in this Obj</param>
+        protected virtual void HasChanged( Property property ) {
         }
 
         /// <summary>
