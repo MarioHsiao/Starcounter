@@ -11,10 +11,14 @@ using Starcounter.Templates;
 
 namespace Starcounter.Internal
 {
+    internal abstract class MetaTemplate {
+    }
+
     /// <summary>
     /// Class MetaTemplate
     /// </summary>
-    internal class MetaTemplate
+    internal class MetaTemplate<OTT> : MetaTemplate
+        where OTT : ObjTemplate, new()
     {
         /// <summary>
         /// The _boolean properties
@@ -117,7 +121,7 @@ namespace Starcounter.Internal
         public void Set(string name, string v)
         {
             ActionProperty actionTemplate;
-            AppTemplate appTemplate;
+            OTT appTemplate;
             Property valueTemplate;
             String upperName;
             ReplaceableTemplate rt;
@@ -143,7 +147,7 @@ namespace Starcounter.Internal
             }
             else if (upperName == "CLASS")
             {
-                appTemplate = _template as AppTemplate;
+                appTemplate = _template as OTT;
                 if (appTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
                 ((AppTemplate)_template).ClassName = v;
             }
@@ -178,7 +182,7 @@ namespace Starcounter.Internal
             }
             else if (upperName == "NAMESPACE")
             {
-                appTemplate = _template as AppTemplate;
+                appTemplate = _template as OTT;
                 if (appTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
 
                 appTemplate.Namespace = v;
@@ -247,7 +251,8 @@ namespace Starcounter.Internal
     /// interface used to built Starcounter controller templates.
     /// It is used as a singleton.
     /// </summary>
-    public class AppTemplateFactory : ITemplateFactory
+    public class AppTemplateFactory<OTT> : ITemplateFactory
+        where OTT : ObjTemplate, new() 
     {
         /// <summary>
         /// Checks if the specified name already exists. If the name exists
@@ -262,7 +267,7 @@ namespace Starcounter.Internal
         /// <param name="debugInfo">The debug info.</param>
         /// <returns>Template.</returns>
         private Template CheckAndAddOrReplaceTemplate(Template newTemplate, 
-                                                       AppTemplate parent,
+                                                       OTT parent,
                                                        DebugInfo debugInfo)
         {
             Template existing;
@@ -317,8 +322,8 @@ namespace Starcounter.Internal
             String strVal;
 
             co = rt.CompilerOrigin;
-            MetaTemplate tm 
-                = new MetaTemplate(newTemplate, new DebugInfo(co.LineNo, co.ColNo, co.FileName));
+            MetaTemplate<AppTemplate> tm 
+                = new MetaTemplate<AppTemplate>(newTemplate, new DebugInfo(co.LineNo, co.ColNo, co.FileName));
             foreach (KeyValuePair<String, Object> value in rt.Values)
             {
                 strVal = value.Value as String;
@@ -339,9 +344,9 @@ namespace Starcounter.Internal
         /// <param name="templ">The templ.</param>
         /// <param name="debugInfo">The debug info.</param>
         /// <returns>System.Object.</returns>
-        object ITemplateFactory.GetMetaTemplate(object templ, DebugInfo debugInfo)
+        public object GetMetaTemplate(object templ, DebugInfo debugInfo)
         {
-            return new MetaTemplate((Template)templ, debugInfo);
+            return new MetaTemplate<OTT>((Template)templ, debugInfo);
         }
 
         /// <summary>
@@ -351,11 +356,11 @@ namespace Starcounter.Internal
         /// <param name="name">The name.</param>
         /// <param name="debugInfo">The debug info.</param>
         /// <returns>System.Object.</returns>
-        object ITemplateFactory.GetMetaTemplateForProperty(object parent, 
+        public object GetMetaTemplateForProperty(object parent, 
                                                            string name,
                                                            DebugInfo debugInfo)
         {
-            var appTemplate = (AppTemplate)parent;
+            var appTemplate = (OTT)parent;
             var t = appTemplate.Properties.GetTemplateByName(name);
             if (t == null)
             {
@@ -368,7 +373,7 @@ namespace Starcounter.Internal
                 SetCompilerOrigin(t, debugInfo);
                 appTemplate.Properties.Add(t);
             }
-            return new MetaTemplate(t, debugInfo);
+            return new MetaTemplate<OTT>(t, debugInfo);
         }
 
         /// <summary>
@@ -380,24 +385,24 @@ namespace Starcounter.Internal
         /// <param name="value">The value.</param>
         /// <param name="debugInfo">The debug info.</param>
         /// <returns>System.Object.</returns>
-        object ITemplateFactory.AddStringProperty(object parent,
+        public object AddStringProperty(object parent,
                                                   string name,
                                                   string dotNetName,
                                                   string value,
                                                   DebugInfo debugInfo)
         {
-            AppTemplate appTemplate;
+            OTT appTemplate;
             Template newTemplate;
 
             if (parent is MetaTemplate)
             {
-                ((MetaTemplate)parent).Set(name, value);
+                ((MetaTemplate<OTT>)parent).Set(name, value);
                 return null;
             }
             else
             {
                 newTemplate = new StringProperty() { Name = name };
-                appTemplate = (AppTemplate)parent;
+                appTemplate = (OTT)parent;
 
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
                 SetCompilerOrigin(newTemplate, debugInfo);
@@ -420,13 +425,13 @@ namespace Starcounter.Internal
                                                    int value,
                                                    DebugInfo debugInfo)
         {
-            AppTemplate appTemplate;
+            OTT appTemplate;
             Template newTemplate;
 
-            if (!(parent is MetaTemplate))
+            if (!(parent is MetaTemplate<OTT>))
             {
                 newTemplate = new IntProperty() { Name = name };
-                appTemplate = (AppTemplate)parent;
+                appTemplate = (OTT)parent;
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
                 SetCompilerOrigin(newTemplate, debugInfo);
                 return newTemplate;
@@ -449,13 +454,13 @@ namespace Starcounter.Internal
                                                    decimal value,
                                                    DebugInfo debugInfo)
         {
-            AppTemplate appTemplate;
+            OTT appTemplate;
             Template newTemplate;
 
-            if (!(parent is MetaTemplate))
+            if (!(parent is MetaTemplate<OTT>))
             {
                 newTemplate = new DecimalProperty() { Name = name };
-                appTemplate = (AppTemplate)parent;
+                appTemplate = (OTT)parent;
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
                 SetCompilerOrigin(newTemplate, debugInfo);
                 return newTemplate;
@@ -478,13 +483,13 @@ namespace Starcounter.Internal
                                                   double value,
                                                   DebugInfo debugInfo)
         {
-            AppTemplate appTemplate;
+            OTT appTemplate;
             Template newTemplate;
 
-            if (!(parent is MetaTemplate))
+            if (!(parent is MetaTemplate<OTT>))
             {
                 newTemplate = new DoubleProperty() { Name = name };
-                appTemplate = (AppTemplate)parent;
+                appTemplate = (OTT)parent;
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
                 SetCompilerOrigin(newTemplate, debugInfo);
                 return newTemplate;
@@ -501,24 +506,24 @@ namespace Starcounter.Internal
         /// <param name="value">if set to <c>true</c> [value].</param>
         /// <param name="debugInfo">The debug info.</param>
         /// <returns>System.Object.</returns>
-        object ITemplateFactory.AddBooleanProperty(object parent,
+        public object AddBooleanProperty(object parent,
                                                    string name,
                                                    string dotNetName,
                                                    bool value,
                                                    DebugInfo debugInfo)
         {
-            AppTemplate appTemplate;
+            OTT appTemplate;
             Template newTemplate;
 
-            if (parent is MetaTemplate)
+            if (parent is MetaTemplate<OTT>)
             {
-                ((MetaTemplate)parent).Set(name, value);
+                ((MetaTemplate<OTT>)parent).Set(name, value);
                 return null;
             }
             else
             {
                 newTemplate = new BoolProperty() { Name = name };
-                appTemplate = (AppTemplate)parent;
+                appTemplate = (OTT)parent;
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
                 SetCompilerOrigin(newTemplate, debugInfo);
                 return newTemplate;
@@ -552,7 +557,7 @@ namespace Starcounter.Internal
                                                  string value,
                                                  DebugInfo debugInfo)
         {
-            AppTemplate appTemplate;
+            OTT appTemplate;
             Template newTemplate;
 
             // TODO: 
@@ -571,7 +576,7 @@ namespace Starcounter.Internal
             }
 
             newTemplate = new ActionProperty() { Name = name };
-            appTemplate = (AppTemplate)parent;
+            appTemplate = (OTT)parent;
             newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
             SetCompilerOrigin(newTemplate, debugInfo);
             return newTemplate;
@@ -589,11 +594,11 @@ namespace Starcounter.Internal
                                                  string name, string dotNetName,
                                                  DebugInfo debugInfo)
         {
-            AppTemplate appTemplate;
+            OTT appTemplate;
             Template newTemplate;
 
             newTemplate = new ListingProperty() { Name = name };
-            appTemplate = (AppTemplate)parent;
+            appTemplate = (OTT)parent;
             newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
             SetCompilerOrigin(newTemplate, debugInfo);
             return newTemplate;
@@ -629,11 +634,11 @@ namespace Starcounter.Internal
         {
             Template newTemplate;
 
-            newTemplate = new AppTemplate();
+            newTemplate = new OTT();
             if (parent != null)
             {
                 newTemplate.Name = name;
-                newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, (AppTemplate)parent, debugInfo);
+                newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, (OTT)parent, debugInfo);
             }
             SetCompilerOrigin(newTemplate, debugInfo);
             return newTemplate;
