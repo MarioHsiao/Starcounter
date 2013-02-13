@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Diagnostics;
 using Starcounter;
 
@@ -32,6 +33,8 @@ namespace QueryProcessingTest {
                 nrs++;
             Trace.Assert(nrs == 20);
             TestOffsetkeyWithSorting();
+            // See simple aggregate plan. Try to get aggregate node on top
+            PrintSlowQueryPlan("select sum(amount) from account");
         }
 
         public static void TestOffsetkeyWithSorting() {
@@ -85,6 +88,10 @@ namespace QueryProcessingTest {
                 Trace.Assert(!sqlEnum.MoveNext());
             }
 #endif
+        }
+
+        internal static void PrintSlowQueryPlan(String query) {
+            Console.WriteLine(((IEnumerator)Db.SlowSQL(query, null).GetEnumerator()).ToString());
         }
     }
 }
