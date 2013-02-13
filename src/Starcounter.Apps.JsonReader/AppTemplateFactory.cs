@@ -598,7 +598,7 @@ namespace Starcounter.Internal
             OTT appTemplate;
             Template newTemplate;
 
-            newTemplate = new ArrProperty() { Name = name };
+            newTemplate = new ListingProperty<App,AppTemplate>() { Name = name };
             appTemplate = (OTT)parent;
             newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
             SetCompilerOrigin(newTemplate, debugInfo);

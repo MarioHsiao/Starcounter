@@ -62,7 +62,7 @@ namespace Starcounter.Templates {
     /// <summary>
     /// Class ListingProperty
     /// </summary>
-    public class ArrProperty : ListTemplate
+    public abstract class ArrProperty : ListTemplate
 #if IAPP
         , IAppListTemplate
 #endif
