@@ -14,7 +14,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="template">The template.</param>
-        public ValueMetadata(Obj app, Template template ) : base( app, template ) {
+        public ValueMetadata(App app, Template template ) : base( app, template ) {
         }
 
         /// <summary>

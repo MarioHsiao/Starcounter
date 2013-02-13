@@ -15,7 +15,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="template">The template.</param>
-        public ObjMetadataBase(Obj app, Template template) {
+        public ObjMetadataBase(App app, Template template) {
             _App = app;
             _Template = template;
         }
@@ -23,7 +23,7 @@ namespace Starcounter.Templates {
         /// <summary>
         /// The _ app
         /// </summary>
-        private Obj _App;
+        private App _App;
         /// <summary>
         /// The _ template
         /// </summary>
@@ -33,7 +33,7 @@ namespace Starcounter.Templates {
         /// Gets the app.
         /// </summary>
         /// <value>The app.</value>
-        public Obj App { get { return _App; } }
+        public App App { get { return _App; } }
         /// <summary>
         /// Gets the template.
         /// </summary>
