@@ -21,8 +21,8 @@ namespace Starcounter {
     /// </summary>
     /// <typeparam name="TValue">The primitive system type of this property.</typeparam>
     public abstract class Property<TValue> : Property {
-        internal Func<App, Property<TValue>, TValue, Input<TValue>> CustomInputEventCreator = null;
-        internal List<Action<App,Input<TValue>>> CustomInputHandlers = new List<Action<App,Input<TValue>>>();
+        internal Func<Obj, Property<TValue>, TValue, Input<TValue>> CustomInputEventCreator = null;
+        internal List<Action<Obj,Input<TValue>>> CustomInputHandlers = new List<Action<Obj,Input<TValue>>>();
 
         private DataBinding<TValue> dataBinding;
         
@@ -32,8 +32,8 @@ namespace Starcounter {
         /// <param name="createInputEvent"></param>
         /// <param name="handler"></param>
         public void AddHandler(
-            Func<App, Property<TValue>, TValue, Input<TValue>> createInputEvent = null,
-            Action<App, Input<TValue>> handler = null) {
+            Func<Obj, Property<TValue>, TValue, Input<TValue>> createInputEvent = null,
+            Action<Obj, Input<TValue>> handler = null) {
             this.CustomInputEventCreator = createInputEvent;
             this.CustomInputHandlers.Add(handler);
         }

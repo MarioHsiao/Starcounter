@@ -23,7 +23,9 @@ public partial class Master {
             ClassName = "Master";
             Page = Register<AppTemplate>("Page", "Page");
             Test = Register<StringProperty, string>("Test", "Test", true);
-            Test.AddHandler( (App app, Property<string> prop, string value) => { return (new Input.Test() { App = (Master)app, Template = (StringProperty)prop, Value = value } ) ; }, (App app, Input<string> Input) => ((Master)app).Handle((Input.Test)Input) );
+            Test.AddHandler( 
+                (Obj app, Property<string> prop, string value) => { return (new Input.Test() { App = (Master)app, Template = (StringProperty)prop, Value = value } ) ; },
+                (Obj app, Input<string> Input) => ((Master)app).Handle((Input.Test)Input) );
         }
         public AppTemplate Page;
         public StringProperty Test;

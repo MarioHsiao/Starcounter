@@ -589,7 +589,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             StringBuilder sb = new StringBuilder();
             sb.Append("        ");
             sb.Append(ib.BindsToProperty.Template.PropertyName);       // {0}
-            sb.Append(".AddHandler((App app, Property");
+            sb.Append(".AddHandler((Obj app, Property");
 
             if (hasValue) {
                 sb.Append('<');
@@ -616,7 +616,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 sb.Append(", Value = value");
             }
 
-            sb.Append(" }); }, (App app, Starcounter.Input");
+            sb.Append(" }); }, (Obj app, Starcounter.Input");
 
             if (hasValue) {
                 sb.Append('<');

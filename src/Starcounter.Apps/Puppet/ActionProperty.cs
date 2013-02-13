@@ -68,8 +68,8 @@ namespace Starcounter.Templates {
         /// <param name="createInputEvent">The create input event.</param>
         /// <param name="handler">The handler.</param>
         public void AddHandler(
-            Func<App, Property, Input> createInputEvent = null,
-            Action<App, Input> handler = null) {
+            Func<Obj, Property, Input> createInputEvent = null,
+            Action<Obj, Input> handler = null) {
             this.CustomInputEventCreator = createInputEvent;
             this.CustomInputHandlers.Add(handler);
         }
