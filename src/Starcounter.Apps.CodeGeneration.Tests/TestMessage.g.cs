@@ -20,7 +20,7 @@ public partial class TestMessage {
     public String Username { get { return GetValue(Template.Username); } set { SetValue(Template.Username, value); } }
     public String Password { get { return GetValue(Template.Password); } set { SetValue(Template.Password, value); } }
     public TestMessage.ChildApp Child { get { return GetValue<TestMessage.ChildApp>(Template.Child); } set { SetValue(Template.Child, value); } }
-    public Listing<TestMessage.AListApp> AList { get { return GetValue<TestMessage.AListApp>(Template.AList); } set { SetValue<TestMessage.AListApp>(Template.AList, value); } }
+    public Listing<TestMessage.AListApp> AList { get { return GetTypedValue<TestMessage.AListApp>(Template.AList); } set { SetValue<TestMessage.AListApp>(Template.AList, value); } }
     public Decimal ADecimal { get { return GetValue(Template.ADecimal); } set { SetValue(Template.ADecimal, value); } }
     public Double ADouble { get { return GetValue(Template.ADouble); } set { SetValue(Template.ADouble, value); } }
     public String UserLink { get { return GetValue(Template.UserLink); } set { SetValue(Template.UserLink, value); } }
@@ -70,7 +70,7 @@ public partial class TestMessage {
             public new ASubApp2AppMetadata Metadata { get { return (ASubApp2AppMetadata)base.Metadata; } }
             public new ChildApp Parent { get { return (ChildApp)base.Parent; } set { base.Parent = value; } }
             public bool IsInnerApp { get { return GetValue(Template.IsInnerApp); } set { SetValue(Template.IsInnerApp, value); } }
-            public Listing<TestMessage.ChildApp.ASubApp2App.ASubListApp> ASubList { get { return GetValue<TestMessage.ChildApp.ASubApp2App.ASubListApp>(Template.ASubList); } set { SetValue<TestMessage.ChildApp.ASubApp2App.ASubListApp>(Template.ASubList, value); } }
+            public Listing<TestMessage.ChildApp.ASubApp2App.ASubListApp> ASubList { get { return GetTypedValue<TestMessage.ChildApp.ASubApp2App.ASubListApp>(Template.ASubList); } set { SetValue<TestMessage.ChildApp.ASubApp2App.ASubListApp>(Template.ASubList, value); } }
             public class ASubListApp : App {
                 public static ASubListAppTemplate DefaultTemplate = new ASubListAppTemplate();
                 public ASubListApp() { Template = DefaultTemplate; }
