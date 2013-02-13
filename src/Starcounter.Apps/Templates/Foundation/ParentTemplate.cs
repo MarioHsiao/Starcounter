@@ -19,7 +19,7 @@ namespace Starcounter.Templates {
     /// </summary>
     public abstract class ParentTemplate : Property
 #if IAPP
-        , IParentTemplate 
+//        , IParentTemplate 
 #endif
     {
         /// <summary>

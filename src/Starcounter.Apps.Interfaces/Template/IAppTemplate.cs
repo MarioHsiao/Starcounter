@@ -8,7 +8,7 @@ namespace Starcounter.Templates.Interfaces {
     /// <summary>
     /// Interface IAppTemplate
     /// </summary>
-    public interface IAppTemplate : IParentTemplate {
+    public interface IAppTemplate : OldIParentTemplate {
 
         /// <summary>
         /// Adds the specified name.

@@ -8,6 +8,6 @@ namespace Starcounter.Templates.Interfaces {
     /// <summary>
     /// Interface IListTemplate
     /// </summary>
-    public interface IListTemplate : IParentTemplate {
+    public interface IListTemplate : OldIParentTemplate {
     }
 }

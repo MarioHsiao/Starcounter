@@ -21,7 +21,7 @@ namespace Starcounter {
     /// </summary>
     public abstract class Container // : RequestHandler
 #if IAPP
-        : IContainer
+ //       : IContainer
 #endif
     {
 
@@ -36,7 +36,7 @@ namespace Starcounter {
         /// </summary>
         /// <value>The template.</value>
         /// <exception cref="System.Exception">Template is already set for App. Cannot change template once it is set</exception>
-        public IParentTemplate Template {
+        public ParentTemplate Template {
             set {
                 if (_Template != null) {
                     throw new Exception("Template is already set for App. Cannot change template once it is set");
@@ -106,14 +106,14 @@ namespace Starcounter {
         /// Gets or sets the parent.
         /// </summary>
         /// <value>The parent.</value>
-        IContainer IContainer.Parent {
-            get {
-                return Parent;
-            }
-            set {
-                Parent = (Container)value;
-            }
-        }
+//        IContainer IContainer.Parent {
+//            get {
+//                return Parent;
+//            }
+//            set {
+//                Parent = (Container)value;
+//            }
+//        }
 
         /// <summary>
         /// Contains the depth of this Container. Used when creating the indexpath.

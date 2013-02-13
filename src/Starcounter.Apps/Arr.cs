@@ -113,7 +113,7 @@ namespace Starcounter {
     /// </summary>
     public class Listing : Container, IList<Obj>
 #if IAPP
-, IAppArray
+//, IAppArray
 #endif
  {
         /// <summary>

@@ -22,8 +22,9 @@ namespace Starcounter.Templates {
     /// </summary>
     public class PropertyList
 #if IAPP
-        : IPropertyTemplates, IEnumerable<Template>
+//        : IPropertyTemplates, 
 #endif
+       : IEnumerable<Template>, IList<Template>
     {
         /// <summary>
         /// The _ parent
@@ -106,7 +107,7 @@ namespace Starcounter.Templates {
         /// Childs the name is set.
         /// </summary>
         /// <param name="item">The item.</param>
-        internal void ChildNameIsSet(ITemplate item) {
+        internal void ChildNameIsSet(Template item) {
             _NameLookup[item.Name] = (Template)item;
         }
 
@@ -114,7 +115,7 @@ namespace Starcounter.Templates {
         /// Childs the property name is set.
         /// </summary>
         /// <param name="item">The item.</param>
-        internal void ChildPropertyNameIsSet(ITemplate item) {
+        internal void ChildPropertyNameIsSet(Template item) {
             _PropertyNameLookup[item.PropertyName] = (Template)item;
         }
 
@@ -141,7 +142,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="item">The item.</param>
         /// <returns>System.Int32.</returns>
-        int IList<ITemplate>.IndexOf(ITemplate item) {
+        int IList<Template>.IndexOf(Template item) {
             return _List.IndexOf((Template)item);
         }
 
@@ -151,7 +152,7 @@ namespace Starcounter.Templates {
         /// <param name="index">The index.</param>
         /// <param name="item">The item.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        void IList<ITemplate>.Insert(int index, ITemplate item) {
+        void IList<Template>.Insert(int index, Template item) {
             throw new NotImplementedException();
 //            _List.Insert(index, (Template)item);
         }
@@ -161,7 +162,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="index">The index.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        void IList<ITemplate>.RemoveAt(int index) {
+        void IList<Template>.RemoveAt(int index) {
            throw new NotImplementedException();
 //            _List.RemoveAt(index);
         }
@@ -172,7 +173,7 @@ namespace Starcounter.Templates {
         /// <param name="index">The index.</param>
         /// <returns>ITemplate.</returns>
         /// <exception cref="System.NotImplementedException"></exception>
-        ITemplate IList<ITemplate>.this[int index] {
+        Template IList<Template>.this[int index] {
             get {
                 return _List[index];
             }
@@ -188,7 +189,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="item">The item.</param>
         /// <exception cref="System.Exception">This template is already used by an App. Cannot add more properties.</exception>
-        public void Replace(ITemplate item)
+        public void Replace(Template item)
         {
             Template existing;
             Template newTemplate = (Template)item;
@@ -222,7 +223,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="item">The item.</param>
         /// <exception cref="System.Exception">This template is already used by an App. Cannot add more properties.</exception>
-        public void Add(ITemplate item) {
+        public void Add(Template item) {
             Template t = (Template)item;
             if (_Parent.Sealed)
                 throw new Exception("This template is already used by an App. Cannot add more properties.");
@@ -245,7 +246,7 @@ namespace Starcounter.Templates {
         /// Clears this instance.
         /// </summary>
         /// <exception cref="System.NotImplementedException"></exception>
-        void ICollection<ITemplate>.Clear() {
+        void ICollection<Template>.Clear() {
                        throw new NotImplementedException();
 //            _List.Clear();
         }
@@ -255,7 +256,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="item">The item.</param>
         /// <returns><c>true</c> if [contains] [the specified item]; otherwise, <c>false</c>.</returns>
-        bool ICollection<ITemplate>.Contains(ITemplate item) {
+        bool ICollection<Template>.Contains(Template item) {
             return _List.Contains((Template)item);
         }
 
@@ -264,7 +265,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="array">The array.</param>
         /// <param name="arrayIndex">Index of the array.</param>
-        void ICollection<ITemplate>.CopyTo(ITemplate[] array, int arrayIndex) {
+        void ICollection<Template>.CopyTo(Template[] array, int arrayIndex) {
             _List.CopyTo((Template[])array, arrayIndex);
         }
 
@@ -273,7 +274,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <value>The count.</value>
         /// <returns>The number of elements contained in the <see cref="T:System.Collections.Generic.ICollection`1" />.</returns>
-        int ICollection<ITemplate>.Count {
+        int ICollection<Template>.Count {
             get { return _List.Count; }
         }
 
@@ -282,7 +283,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <value><c>true</c> if this instance is read only; otherwise, <c>false</c>.</value>
         /// <returns>true if the <see cref="T:System.Collections.Generic.ICollection`1" /> is read-only; otherwise, false.</returns>
-        bool ICollection<ITemplate>.IsReadOnly {
+        bool ICollection<Template>.IsReadOnly {
             get { return false; }
         }
 
@@ -292,7 +293,7 @@ namespace Starcounter.Templates {
         /// <param name="item">The item.</param>
         /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         /// <exception cref="System.NotImplementedException"></exception>
-        bool ICollection<ITemplate>.Remove(ITemplate item) {
+        bool ICollection<Template>.Remove(Template item) {
                        throw new NotImplementedException();
 //            return _List.Remove((Template)item);
         }
@@ -301,8 +302,8 @@ namespace Starcounter.Templates {
         /// Gets the enumerator.
         /// </summary>
         /// <returns>IEnumerator{ITemplate}.</returns>
-        IEnumerator<ITemplate> IEnumerable<ITemplate>.GetEnumerator() {
-            return (IEnumerator<ITemplate>)_List.GetEnumerator();
+        IEnumerator<Template> IEnumerable<Template>.GetEnumerator() {
+            return (IEnumerator<Template>)_List.GetEnumerator();
         }
 
         /// <summary>
@@ -314,29 +315,11 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// Gets the enumerator.
-        /// </summary>
-        /// <returns>IEnumerator{Template}.</returns>
-        IEnumerator<Template> IEnumerable<Template>.GetEnumerator() {
-            return (IEnumerator<Template>)(_List.GetEnumerator());
-        }
-
-        /// <summary>
-        /// Gets the <see cref="ITemplate" /> with the specified id.
-        /// </summary>
-        /// <param name="id">The id.</param>
-        /// <returns>ITemplate.</returns>
-        /// <exception cref="System.NotImplementedException"></exception>
-        ITemplate IPropertyTemplates.this[string id] {
-            get { throw new NotImplementedException(); }
-        }
-
-        /// <summary>
         /// Adds the specified item.
         /// </summary>
         /// <param name="item">The item.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        void ICollection<ITemplate>.Add(ITemplate item) {
+        void ICollection<Template>.Add(Template item) {
             throw new NotImplementedException();
         }
     }

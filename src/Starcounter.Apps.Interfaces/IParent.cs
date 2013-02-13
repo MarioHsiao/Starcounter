@@ -14,7 +14,7 @@ namespace Starcounter.Templates.Interfaces {
         /// The schema element of this app instance
         /// </summary>
         /// <value>The template.</value>
-        IParentTemplate Template { get; set; }
+        OldIParentTemplate Template { get; set; }
         /// <summary>
         /// Gets or sets the parent.
         /// </summary>
