@@ -74,7 +74,7 @@ namespace Starcounter {
         /// <param name="app">The app.</param>
         /// <param name="list">The property of the list that the item was added to.</param>
         /// <param name="index">The index in the list where the item was added.</param>
-        internal static void AddItemInList(Obj app, ArrProperty list, Int32 index) {
+        internal static void AddItemInList(Obj app, ObjArrProperty list, Int32 index) {
             ChangeLog log = Log;
             if (log != null)
                 log._changes.Add(Change.Add(app, list, index));
@@ -86,7 +86,7 @@ namespace Starcounter {
         /// <param name="app">The app.</param>
         /// <param name="list">The property of the list the item was removed from.</param>
         /// <param name="index">The index in the list of the removed item.</param>
-        internal static void RemoveItemInList(Obj app, ArrProperty list, Int32 index) {
+        internal static void RemoveItemInList(Obj app, ObjArrProperty list, Int32 index) {
             ChangeLog log = Log;
             if (log != null && app.IsSerialized)
                 log._changes.Add(Change.Remove(app, list, index));
@@ -184,7 +184,7 @@ namespace Starcounter {
         /// <param name="list">The property of the list where an item was added.</param>
         /// <param name="index">The index in the list of the added item.</param>
         /// <returns></returns>
-        internal static Change Add(Obj app, ArrProperty list, Int32 index) {
+        internal static Change Add(Obj app, ObjArrProperty list, Int32 index) {
             return new Change(Change.ADD, app, list, index);
         }
 
@@ -195,7 +195,7 @@ namespace Starcounter {
         /// <param name="list">The property of the list where an item was removed.</param>
         /// <param name="index">The index in the list of the removed item.</param>
         /// <returns></returns>
-        internal static Change Remove(Obj app, ArrProperty list, Int32 index) {
+        internal static Change Remove(Obj app, ObjArrProperty list, Int32 index) {
             return new Change(Change.REMOVE, app, list, index);
         }
 

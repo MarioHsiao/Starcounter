@@ -247,8 +247,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="model">The model.</param>
         public void Refresh(Template model) {
-            if (model is ArrProperty) {
-                ArrProperty apa = (ArrProperty)model;
+            if (model is ObjArrProperty) {
+                ObjArrProperty apa = (ObjArrProperty)model;
                 this.SetValue(apa, apa.GetBoundValue(this));
             } else if (model is AppTemplate) {
                 AppTemplate at = (AppTemplate)model;
