@@ -19,6 +19,7 @@ Uses the data from SqlTest1.
 === Sorting ===
 === Joins ===
 === Ad hoc ===
+=== Fetch ====
 
 
 ====== TODOS ======
@@ -20986,4 +20987,30 @@ ExpectedResult:
  | 9 | 
  | 9 | 
 
+<NEXT>
+Description: Fetch on sort result over indexed property
+QueryString: select e from SalaryEmployee e order by SalaryInt16 fetch ?
+VariableValues: Int32:2;
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.SalaryEmployee
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	SalaryEmployee_SalaryInt16
+	0
+	SalaryInt16
+	IntegerDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
 
+ExpectedResult: 
+ ! Object ! 
+ | 20 | 
+ | 21 | 
