@@ -81,13 +81,6 @@ namespace Starcounter.Internal
         public static extern uint sccorelog_bind_logs_to_dir(ulong hlogs, string directory);
 
         /// <summary>
-        /// SCs the new activity.
-        /// </summary>
-        /// <returns>System.UInt32.</returns>
-        [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint sccorelog_new_activity();
-
-        /// <summary>
         /// SCs the write to logs.
         /// </summary>
         /// <param name="h">The h.</param>
