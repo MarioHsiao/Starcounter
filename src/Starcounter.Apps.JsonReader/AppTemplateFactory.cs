@@ -17,8 +17,9 @@ namespace Starcounter.Internal
     /// <summary>
     /// Class MetaTemplate
     /// </summary>
-    internal class MetaTemplate<OTT> : MetaTemplate
-        where OTT : ObjTemplate, new()
+    internal class MetaTemplate<OT,OTT> : MetaTemplate
+        where OT : Obj, new()
+        where OTT : ObjTemplate, new() 
     {
         /// <summary>
         /// The _boolean properties
@@ -251,7 +252,8 @@ namespace Starcounter.Internal
     /// interface used to built Starcounter controller templates.
     /// It is used as a singleton.
     /// </summary>
-    public class AppTemplateFactory<OTT> : ITemplateFactory
+    public class AppTemplateFactory<OT,OTT> : ITemplateFactory
+        where OT : Obj, new()
         where OTT : ObjTemplate, new() 
     {
         /// <summary>
@@ -322,8 +324,8 @@ namespace Starcounter.Internal
             String strVal;
 
             co = rt.CompilerOrigin;
-            MetaTemplate<AppTemplate> tm 
-                = new MetaTemplate<AppTemplate>(newTemplate, new DebugInfo(co.LineNo, co.ColNo, co.FileName));
+            MetaTemplate<OT,OTT> tm 
+                = new MetaTemplate<OT,OTT>(newTemplate, new DebugInfo(co.LineNo, co.ColNo, co.FileName));
             foreach (KeyValuePair<String, Object> value in rt.Values)
             {
                 strVal = value.Value as String;
@@ -346,7 +348,7 @@ namespace Starcounter.Internal
         /// <returns>System.Object.</returns>
         object ITemplateFactory.GetMetaTemplate(object templ, DebugInfo debugInfo)
         {
-            return new MetaTemplate<OTT>((Template)templ, debugInfo);
+            return new MetaTemplate<OT,OTT>((Template)templ, debugInfo);
         }
 
         /// <summary>
@@ -373,7 +375,7 @@ namespace Starcounter.Internal
                 SetCompilerOrigin(t, debugInfo);
                 appTemplate.Properties.Add(t);
             }
-            return new MetaTemplate<OTT>(t, debugInfo);
+            return new MetaTemplate<OT,OTT>(t, debugInfo);
         }
 
         /// <summary>
@@ -397,7 +399,7 @@ namespace Starcounter.Internal
 
             if (parent is MetaTemplate)
             {
-                ((MetaTemplate<OTT>)parent).Set(name, value);
+                ((MetaTemplate<OT,OTT>)parent).Set(name, value);
                 return null;
             }
             else
@@ -429,7 +431,7 @@ namespace Starcounter.Internal
             OTT appTemplate;
             Template newTemplate;
 
-            if (!(parent is MetaTemplate<OTT>))
+            if (!(parent is MetaTemplate<OT,OTT>))
             {
                 newTemplate = new IntProperty() { Name = name };
                 appTemplate = (OTT)parent;
@@ -458,7 +460,7 @@ namespace Starcounter.Internal
             OTT appTemplate;
             Template newTemplate;
 
-            if (!(parent is MetaTemplate<OTT>))
+            if (!(parent is MetaTemplate<OT,OTT>))
             {
                 newTemplate = new DecimalProperty() { Name = name };
                 appTemplate = (OTT)parent;
@@ -487,7 +489,7 @@ namespace Starcounter.Internal
             OTT appTemplate;
             Template newTemplate;
 
-            if (!(parent is MetaTemplate<OTT>))
+            if (!(parent is MetaTemplate<OT,OTT>))
             {
                 newTemplate = new DoubleProperty() { Name = name };
                 appTemplate = (OTT)parent;
@@ -516,9 +518,9 @@ namespace Starcounter.Internal
             OTT appTemplate;
             Template newTemplate;
 
-            if (parent is MetaTemplate<OTT>)
+            if (parent is MetaTemplate<OT,OTT>)
             {
-                ((MetaTemplate<OTT>)parent).Set(name, value);
+                ((MetaTemplate<OT,OTT>)parent).Set(name, value);
                 return null;
             }
             else
