@@ -19,7 +19,7 @@ namespace Starcounter.Templates.Interfaces {
         /// the parent points to the JSON style array.
         /// </summary>
         /// <value>The parent.</value>
-        IParentTemplate Parent {
+        OldIParentTemplate Parent {
             get;
             set;
         }

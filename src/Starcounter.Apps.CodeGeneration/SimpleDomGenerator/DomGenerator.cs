@@ -813,7 +813,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         private static void FindHandleDeclaringClass(NInputBinding binding, InputBindingInfo info)
         {
             Int32 parentCount = 0;
-            IParentTemplate candidate = binding.PropertyAppClass.Template;
+            ParentTemplate candidate = binding.PropertyAppClass.Template;
             AppTemplate appTemplate;
             NAppClass declaringAppClass = null;
 

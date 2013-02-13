@@ -8,7 +8,7 @@ namespace Starcounter.Templates.Interfaces {
     /// <summary>
     /// Interface IParentTemplate
     /// </summary>
-    public interface IParentTemplate : IStatefullTemplate {
+    public interface OldIParentTemplate : IStatefullTemplate {
 
 
     }

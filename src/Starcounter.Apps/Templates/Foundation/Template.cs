@@ -23,7 +23,7 @@ namespace Starcounter.Templates {
     /// </summary>
     public abstract class Template 
 #if IAPP
-        : ITemplate, IStatefullTemplate 
+//        : ITemplate, IStatefullTemplate 
 #endif
     {
         /// <summary>
@@ -132,7 +132,7 @@ namespace Starcounter.Templates {
         /// in an array (a list), the parent is the AppListTemplate.
         /// </summary>
         /// <value>The parent.</value>
-        public IParentTemplate Parent {
+        public ParentTemplate Parent {
             get {
                 return _Parent;
             }
@@ -284,9 +284,9 @@ namespace Starcounter.Templates {
         /// <param name="parent">The host of the new object. Either a App or a AppList</param>
         /// <returns>The value or object. For instance, if this is a StringTemplate, the default string
         /// for the property to be in the new App object is returned.</returns>
-        object IStatefullTemplate.CreateInstance(IContainer parent) {
-            return CreateInstance( (Container)parent );
-        }
+//        object IStatefullTemplate.CreateInstance(IContainer parent) {
+//            return CreateInstance( (Container)parent );
+//        }
 
         /// <summary>
         /// Copies to.

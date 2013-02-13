@@ -9,7 +9,7 @@ namespace Starcounter.Templates.Interfaces {
     /// <summary>
     /// Interface IAppListTemplate
     /// </summary>
-    public interface IAppListTemplate : IParentTemplate {
+    public interface IAppListTemplate : OldIParentTemplate {
 
         /// <summary>
         /// Gets or sets the type.

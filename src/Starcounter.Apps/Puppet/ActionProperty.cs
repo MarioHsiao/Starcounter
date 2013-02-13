@@ -18,7 +18,7 @@ namespace Starcounter.Templates {
     /// </summary>
     public class ActionProperty : Property
 #if IAPP
-        , IActionTemplate
+//        , IActionTemplate
 #endif
     {
         /// <summary>

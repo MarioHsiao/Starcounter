@@ -134,7 +134,7 @@ namespace Starcounter.Templates {
         /// <typeparam name="T"></typeparam>
         /// <param name="name">The name of the new template</param>
         /// <returns>A new instance of the specified template</returns>
-        public T Add<T>(string name) where T : ITemplate, new() {
+        public T Add<T>(string name) where T : Template, new() {
             T t = new T() { Name = name };
             Properties.Add(t);
             return t;
