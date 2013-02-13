@@ -18,6 +18,7 @@ Does not use any indexes.
 === Sorting ===
 === Joins ===
 === Ad hoc ===
+=== Fetch ====
 
 
 ====== PROBLEMS ======
@@ -16321,3 +16322,41 @@ ExpectedResult:
  | 9 | 
  | 9 | 
  | 9 | 
+
+
+ == Fetch ==
+
+<NEXT>
+Description: Fetch on sorting of non-index property
+QueryString: select d from Department d order by name desc fetch ?
+VariableValues: Int32:2; 
+CompositeResultObjects: False
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+        0 = SQLTest.EmployeeDb.Department
+)
+Projection(
+        0 =
+                ObjectThis(0)
+)
+Sort(
+        IndexScan(
+                auto
+                0
+                Description
+                StringDynamicRange(
+                )
+                LogicalValue(TRUE)
+                Ascending
+        )
+        StringComparer(
+                StringProperty(0, Name)
+                Descending
+        )
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 9 | 
+ | 10 | 
