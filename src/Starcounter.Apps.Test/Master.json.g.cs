@@ -14,7 +14,7 @@ public partial class Master {
     }
     public new MasterTemplate Template { get { return (MasterTemplate)base.Template; } set { base.Template = value; } }
     public new MasterMetadata Metadata { get { return (MasterMetadata)base.Metadata; } }
-    public App Page { get { return GetValue<App>(Template.Page); } set { SetValue(Template.Page, value); } }
+    public App Page { get { return GetTypedValue<App>(Template.Page); } set { SetValue(Template.Page, value); } }
     public String Test { get { return GetValue(Template.Test); } set { SetValue(Template.Test, value); } }
     public class MasterTemplate : AppTemplate {
         public MasterTemplate()
