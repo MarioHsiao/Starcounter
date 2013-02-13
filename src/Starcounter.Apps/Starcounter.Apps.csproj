@@ -82,6 +82,7 @@
     <Compile Include="App.Json.cs" />
     <Compile Include="App.QuickTuple.cs" />
     <Compile Include="App.GetSetValue.cs" />
+    <Compile Include="App.REST.cs" />
     <Compile Include="ChangeLog.cs" />
     <Compile Include="DataBinding.cs" />
     <Compile Include="Input\Input.cs" />
