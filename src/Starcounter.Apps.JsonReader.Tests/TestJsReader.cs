@@ -38,7 +38,7 @@ namespace Starcounter.Internal.Application.JsonReader.Tests {
             Assert.IsInstanceOf<StringProperty>(actual.Properties[0]);
             Assert.IsInstanceOf<StringProperty>(actual.Properties[1]);
             Assert.IsInstanceOf<BoolProperty>(actual.Properties[2]);
-            Assert.IsInstanceOf<ArrProperty>(actual.Properties[3]);
+            Assert.IsInstanceOf<ObjArrProperty>(actual.Properties[3]);
             Console.WriteLine(actual);
         }
 
@@ -91,7 +91,7 @@ namespace Starcounter.Internal.Application.JsonReader.Tests {
          Assert.IsInstanceOf<StringProperty>(actual.Properties[0]);
          Assert.IsInstanceOf<StringProperty>(actual.Properties[1]);
          Assert.IsInstanceOf<BoolProperty>(actual.Properties[2]);
-         Assert.IsInstanceOf<ArrProperty>(actual.Properties[3]);
+         Assert.IsInstanceOf<ObjArrProperty>(actual.Properties[3]);
          Assert.AreEqual(true, ((StringProperty)actual.Properties[0]).Editable);
          Assert.AreEqual(false, ((StringProperty)actual.Properties[1]).Editable);
          Assert.AreEqual(true, ((BoolProperty)actual.Properties[2]).Editable);

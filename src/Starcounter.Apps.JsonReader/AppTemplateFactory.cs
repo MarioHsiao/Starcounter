@@ -658,7 +658,7 @@ namespace Starcounter.Internal
             var newTemplate = new AppTemplate(); // The type of the type array (an AppTemplate)
             newTemplate.Parent = (ParentTemplate)array;
             //			newTemplate.Name = "__ArrayType__"; // All children needs an id
-            var arr = ((ArrProperty)array);
+            var arr = ((ObjArrProperty)array);
             arr.App = newTemplate;
             newTemplate.Parent = arr;
             SetCompilerOrigin(newTemplate, debugInfo);

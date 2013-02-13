@@ -60,8 +60,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                     return Template.ClassName;
                 else if (!IsCustomAppTemplate) {
                     return "App";
-                } else if (Template.Parent is ArrProperty) {
-                    var alt = (ArrProperty)Template.Parent;
+                } else if (Template.Parent is ObjArrProperty) {
+                    var alt = (ObjArrProperty)Template.Parent;
                     return AppifyName(alt.PropertyName); // +"App";
                 } else
                     return AppifyName(Template.PropertyName); // +"App";
@@ -78,8 +78,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             get {
                 if (Template.ClassName != null)
                     return Template.ClassName;
-                else if (Template.Parent is ArrProperty) {
-                    var alt = (ArrProperty)Template.Parent;
+                else if (Template.Parent is ObjArrProperty) {
+                    var alt = (ObjArrProperty)Template.Parent;
                     return alt.PropertyName;
                 } else
                     return Template.PropertyName;

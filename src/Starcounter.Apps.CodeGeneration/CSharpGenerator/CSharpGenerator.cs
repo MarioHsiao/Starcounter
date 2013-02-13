@@ -270,7 +270,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             bindTo = (String.IsNullOrEmpty(m.Template.Bind)) ? m.MemberName : m.Template.Bind;
 
             dataType = null;
-            if (m.Template is ArrProperty) {
+            if (m.Template is ObjArrProperty) {
                 dataType = "SqlResult";
             } else if (m.Template is AppTemplate) {
                 dataType = "Entity";
@@ -404,7 +404,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 sb.Append("private ");
 
                 string dataType = null;
-                if (m.Template is ArrProperty) {
+                if (m.Template is ObjArrProperty) {
                     dataType = "SqlResult";
                 } else if (m.Template is AppTemplate) {
                     dataType = "Entity";//((NAppClass)((NAppTemplateClass)m.Type).NValueClass).GenericTypeArgument;
@@ -544,7 +544,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     }
                     a.Prefix.Add(sb.ToString());
 
-                    if ((mn.Template is ArrProperty) && (!mn.FunctionGeneric.FullClassName.Equals("App"))) {
+                    if ((mn.Template is ObjArrProperty) && (!mn.FunctionGeneric.FullClassName.Equals("App"))) {
                         sb.Clear();
                         sb.Append("        ");
                         sb.Append(mn.MemberName);
