@@ -10,7 +10,7 @@ using NUnit.Framework;
 using Starcounter.Templates;
 using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Templates.Interfaces;
-using Starcounter.Internal.Application.JsonReader;
+using Starcounter.Internal.JsonTemplate;
 using System.IO;
 using System.Collections.Generic;
 

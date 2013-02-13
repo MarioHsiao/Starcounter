@@ -4,7 +4,7 @@
 // Copyright (c) Starcounter AB
 // Copyright (c) Fredrik Holmström
 
-namespace Starcounter.Internal
+namespace Starcounter.Internal.JsonTemplate
 
 open System
 

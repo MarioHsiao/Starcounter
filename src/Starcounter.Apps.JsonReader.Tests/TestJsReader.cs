@@ -7,7 +7,8 @@
 using System;
 using NUnit.Framework;
 using Starcounter.Templates;
-namespace Starcounter.Internal.Application.JsonReader.Tests {
+using Starcounter.Internal.JsonTemplate;
+namespace Starcounter.Internal.JsonTemplate.Tests {
     /// <summary>
     /// Class TestJsReader
     /// </summary>

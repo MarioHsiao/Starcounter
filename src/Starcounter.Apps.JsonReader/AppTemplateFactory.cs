@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using Starcounter;
 using Starcounter.Templates;
 
-namespace Starcounter.Internal
+namespace Starcounter.Internal.JsonTemplate
 {
     internal abstract class MetaTemplate {
     }
