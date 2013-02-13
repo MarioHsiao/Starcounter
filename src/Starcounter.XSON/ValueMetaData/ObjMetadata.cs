@@ -15,7 +15,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="template">The template.</param>
-        public ObjMetadata(Obj app, Template template ) : base (app, template ) {}
+        public ObjMetadata(App app, Template template ) : base (app, template ) {}
 
         /// <summary>
         /// Sets all editable.
