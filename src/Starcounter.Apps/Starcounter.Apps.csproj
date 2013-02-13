@@ -75,6 +75,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="App.cs" />
     <Compile Include="Arr.cs" />
     <Compile Include="ChangeLog.cs" />
     <Compile Include="Container.cs" />
@@ -91,6 +92,7 @@
     <Compile Include="Session.cs" />
     <Compile Include="Temp.cs" />
     <Compile Include="TemplateAttribute.cs" />
+    <Compile Include="Templates\AppTemplate.cs" />
     <Compile Include="Templates\ArrProperty.cs" />
     <Compile Include="Templates\Foundation\ArrTemplate.cs" />
     <Compile Include="Templates\Foundation\Property.cs" />

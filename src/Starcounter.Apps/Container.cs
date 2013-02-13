@@ -19,7 +19,7 @@ namespace Starcounter {
     /// <summary>
     /// Base class for App and AppList instances.
     /// </summary>
-    public abstract class AppNode // : RequestHandler
+    public abstract class Container // : RequestHandler
 #if IAPP
         : IAppNode
 #endif
@@ -76,21 +76,21 @@ namespace Starcounter {
         /// Called when [set parent].
         /// </summary>
         /// <param name="child">The child.</param>
-        internal virtual void OnSetParent(AppNode child) {
+        internal virtual void OnSetParent(Container child) {
             child._parent = this;
         }
 
         /// <summary>
         /// The _parent
         /// </summary>
-        internal AppNode _parent;
+        internal Container _parent;
 
         /// <summary>
         /// Gets or sets the parent.
         /// </summary>
         /// <value>The parent.</value>
         /// <exception cref="System.Exception">Cannot change parent in Apps</exception>
-        public AppNode Parent {
+        public Container Parent {
             get {
                 return _parent;
             }
@@ -111,7 +111,7 @@ namespace Starcounter {
                 return Parent;
             }
             set {
-                Parent = (AppNode)value;
+                Parent = (Container)value;
             }
         }
 
