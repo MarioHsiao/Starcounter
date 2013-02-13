@@ -103,12 +103,12 @@ public partial class TestMessage {
                     InstanceType = typeof(TestMessage.ChildApp.ASubApp2App);
                     ClassName = "ASubApp2App";
                     IsInnerApp = Register<BoolProperty>("IsInnerApp", "IsInnerApp");
-                    ASubList = Register<ListingProperty<TestMessage.ChildApp.ASubApp2App.ASubListApp, TestMessage.ChildApp.ASubApp2App.ASubListApp.ASubListAppTemplate>>("ASubList", "ASubList");
+                    ASubList = Register<ArrProperty<TestMessage.ChildApp.ASubApp2App.ASubListApp, TestMessage.ChildApp.ASubApp2App.ASubListApp.ASubListAppTemplate>>("ASubList", "ASubList");
                     ASubList.App = TestMessage.ChildApp.ASubApp2App.ASubListApp.DefaultTemplate;
                 }
                 public override object CreateInstance(AppNode parent) { return new ASubApp2App(this) { Parent = (TestMessage.ChildApp)parent }; }
                 public BoolProperty IsInnerApp;
-                public ListingProperty<TestMessage.ChildApp.ASubApp2App.ASubListApp, TestMessage.ChildApp.ASubApp2App.ASubListApp.ASubListAppTemplate> ASubList;
+                public ArrProperty<TestMessage.ChildApp.ASubApp2App.ASubListApp, TestMessage.ChildApp.ASubApp2App.ASubListApp.ASubListAppTemplate> ASubList;
             }
             public class ASubApp2AppMetadata : AppMetadata {
                 public ASubApp2AppMetadata(App app, AppTemplate template) : base(app, template) { }
@@ -116,8 +116,8 @@ public partial class TestMessage {
                 public new TestMessage.ChildApp.ASubApp2App.ASubApp2AppTemplate Template { get { return (TestMessage.ChildApp.ASubApp2App.ASubApp2AppTemplate)base.Template; } }
                 public BoolMetadata IsInnerApp { get { return __p_IsInnerApp ?? (__p_IsInnerApp = new BoolMetadata(App, App.Template.IsInnerApp)); } }
                 private BoolMetadata __p_IsInnerApp;
-                public ListingMetadata<TestMessage.ChildApp.ASubApp2App.ASubListApp, TestMessage.ChildApp.ASubApp2App.ASubListApp.ASubListAppTemplate> ASubList { get { return __p_ASubList ?? (__p_ASubList = new ListingMetadata<TestMessage.ChildApp.ASubApp2App.ASubListApp, TestMessage.ChildApp.ASubApp2App.ASubListApp.ASubListAppTemplate>(App, App.Template.ASubList)); } }
-                private ListingMetadata<TestMessage.ChildApp.ASubApp2App.ASubListApp, TestMessage.ChildApp.ASubApp2App.ASubListApp.ASubListAppTemplate> __p_ASubList;
+                public ArrMetadata<TestMessage.ChildApp.ASubApp2App.ASubListApp, TestMessage.ChildApp.ASubApp2App.ASubListApp.ASubListAppTemplate> ASubList { get { return __p_ASubList ?? (__p_ASubList = new ArrMetadata<TestMessage.ChildApp.ASubApp2App.ASubListApp, TestMessage.ChildApp.ASubApp2App.ASubListApp.ASubListAppTemplate>(App, App.Template.ASubList)); } }
+                private ArrMetadata<TestMessage.ChildApp.ASubApp2App.ASubListApp, TestMessage.ChildApp.ASubApp2App.ASubListApp.ASubListAppTemplate> __p_ASubList;
             }
         }
         public class ChildAppTemplate : AppTemplate {
@@ -190,7 +190,7 @@ public partial class TestMessage {
             Username = Register<StringProperty>("Username", "Username");
             Password = Register<StringProperty>("Password", "Password");
             Child = Register<TestMessage.ChildApp.ChildAppTemplate>("Child", "Child");
-            AList = Register<ListingProperty<TestMessage.AListApp, TestMessage.AListApp.AListAppTemplate>>("AList", "AList");
+            AList = Register<ArrProperty<TestMessage.AListApp, TestMessage.AListApp.AListAppTemplate>>("AList", "AList");
             AList.App = TestMessage.AListApp.DefaultTemplate;
             ADecimal = Register<DecimalProperty>("ADecimal", "ADecimal");
             ADouble = Register<DoubleProperty>("ADouble", "ADouble");
@@ -202,7 +202,7 @@ public partial class TestMessage {
         public StringProperty Username;
         public StringProperty Password;
         public TestMessage.ChildApp.ChildAppTemplate Child;
-        public ListingProperty<TestMessage.AListApp, TestMessage.AListApp.AListAppTemplate> AList;
+        public ArrProperty<TestMessage.AListApp, TestMessage.AListApp.AListAppTemplate> AList;
         public DecimalProperty ADecimal;
         public DoubleProperty ADouble;
         public StringProperty UserLink;
@@ -220,8 +220,8 @@ public partial class TestMessage {
         private StringMetadata __p_Password;
         public TestMessage.ChildApp.ChildAppMetadata Child { get { return __p_Child ?? (__p_Child = new TestMessage.ChildApp.ChildAppMetadata(App, App.Template.Child)); } }
         private TestMessage.ChildApp.ChildAppMetadata __p_Child;
-        public ListingMetadata<TestMessage.AListApp, TestMessage.AListApp.AListAppTemplate> AList { get { return __p_AList ?? (__p_AList = new ListingMetadata<TestMessage.AListApp, TestMessage.AListApp.AListAppTemplate>(App, App.Template.AList)); } }
-        private ListingMetadata<TestMessage.AListApp, TestMessage.AListApp.AListAppTemplate> __p_AList;
+        public ArrMetadata<TestMessage.AListApp, TestMessage.AListApp.AListAppTemplate> AList { get { return __p_AList ?? (__p_AList = new ArrMetadata<TestMessage.AListApp, TestMessage.AListApp.AListAppTemplate>(App, App.Template.AList)); } }
+        private ArrMetadata<TestMessage.AListApp, TestMessage.AListApp.AListAppTemplate> __p_AList;
         public DecimalMetadata ADecimal { get { return __p_ADecimal ?? (__p_ADecimal = new DecimalMetadata(App, App.Template.ADecimal)); } }
         private DecimalMetadata __p_ADecimal;
         public DoubleMetadata ADouble { get { return __p_ADouble ?? (__p_ADouble = new DoubleMetadata(App, App.Template.ADouble)); } }

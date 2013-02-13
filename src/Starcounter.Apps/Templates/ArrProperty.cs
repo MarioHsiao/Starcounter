@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="ListingProperty.cs" company="Starcounter AB">
+// <copyright file="ArrProperty.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -19,11 +19,11 @@ namespace Starcounter.Templates {
 //    }
 
     /// <summary>
-    /// Class ListingProperty
+    /// Class ArrProperty
     /// </summary>
     /// <typeparam name="OT">The type of the app type.</typeparam>
     /// <typeparam name="OTT">The type of the app template type.</typeparam>
-    public class ListingProperty<OT,OTT> : ObjArrProperty
+    public class ArrProperty<OT,OTT> : ObjArrProperty
         where OT : App, new()
         where OTT : AppTemplate
     {
@@ -91,7 +91,7 @@ namespace Starcounter.Templates {
     }
 
     /// <summary>
-    /// Class ListingProperty
+    /// Class ArrProperty
     /// </summary>
     public abstract class ObjArrProperty : ListTemplate
 #if IAPP
@@ -133,9 +133,10 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// Gets or sets the app.
+        /// Gets or sets the type (the template) that should be the template for all elements
+        /// in this array.
         /// </summary>
-        /// <value>The app.</value>
+        /// <value>The obj template adhering to each element in this array</value>
         public abstract ObjTemplate App { get; set; }
 
         /// <summary>
