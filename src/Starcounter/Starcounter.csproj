@@ -54,6 +54,7 @@
     <PostSharpRedistributables>$(OutputPath)</PostSharpRedistributables>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Advanced\DbEnvironment.cs" />
     <Compile Include="Apps\App.cs" />
     <Compile Include="Apps\GatewayHandlers.cs" />
     <Compile Include="Apps\Bootstrap\AppProcess.cs" />
