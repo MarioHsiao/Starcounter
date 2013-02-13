@@ -12,7 +12,7 @@ namespace Starcounter.Templates.Interfaces {
     /// elements (properties or array elements) that can be edited or have their state changed. This is
     /// true for all elements exept for Action elements (i.e. the ActionTemplate does not inherit this class).
     /// </summary>
-    public interface OldIStatefullTemplate : ITemplate {
+    public interface OldIStatefullTemplate : OldITemplate {
 
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="IStatefullTemplate" /> is editable.

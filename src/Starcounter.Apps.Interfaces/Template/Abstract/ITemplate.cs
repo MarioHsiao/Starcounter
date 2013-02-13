@@ -11,7 +11,7 @@ namespace Starcounter.Templates.Interfaces {
     /// <summary>
     /// Represents a node in the schema tree.
     /// </summary>
-    public interface ITemplate {
+    public interface OldITemplate {
 
         /// <summary>
         /// The parent of this template, if any. I.e. if this template represents a property in a JSON style object, the parent

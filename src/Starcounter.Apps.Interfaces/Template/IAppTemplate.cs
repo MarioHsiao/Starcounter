@@ -8,7 +8,7 @@ namespace Starcounter.Templates.Interfaces {
     /// <summary>
     /// Interface IAppTemplate
     /// </summary>
-    public interface IAppTemplate : OldIParentTemplate {
+    public interface OldIAppTemplate : OldIParentTemplate {
 
         /// <summary>
         /// Adds the specified name.
@@ -16,7 +16,7 @@ namespace Starcounter.Templates.Interfaces {
         /// <typeparam name="T"></typeparam>
         /// <param name="name">The name.</param>
         /// <returns>``0.</returns>
-        T Add<T>(string name) where T : ITemplate, new();
+        T Add<T>(string name) where T : OldITemplate, new();
         /// <summary>
         /// Adds the specified name.
         /// </summary>
@@ -24,12 +24,12 @@ namespace Starcounter.Templates.Interfaces {
         /// <param name="name">The name.</param>
         /// <param name="type">The type.</param>
         /// <returns>``0.</returns>
-        T Add<T>(string name, IAppTemplate type ) where T : IAppListTemplate, new();
+        T Add<T>(string name, OldIAppTemplate type ) where T : OldIAppListTemplate, new();
 
         /// <summary>
         /// Gets the properties.
         /// </summary>
         /// <value>The properties.</value>
-        IPropertyTemplates Properties { get; }
+        OldIPropertyTemplates Properties { get; }
     }
 }

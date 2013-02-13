@@ -9,14 +9,14 @@ namespace Starcounter.Templates.Interfaces {
     /// <summary>
     /// Interface IPropertyTemplates
     /// </summary>
-    public interface IPropertyTemplates : IList<ITemplate> {
+    public interface OldIPropertyTemplates : IList<OldITemplate> {
 
         /// <summary>
         /// Gets the <see cref="ITemplate" /> with the specified id.
         /// </summary>
         /// <param name="id">The id.</param>
         /// <returns>ITemplate.</returns>
-        ITemplate this[string id] { get; }
+        OldITemplate this[string id] { get; }
 
     }
 }
