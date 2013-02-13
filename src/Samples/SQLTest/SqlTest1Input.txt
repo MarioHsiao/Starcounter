@@ -16417,3 +16417,12 @@ ExpectedResult:
  ! 0:Object ! 1:Decimal ! 
  | <NULL> | 1 | 
  | 2 | 2 | 
+
+<NEXT>
+Description: Offset in full scan
+QueryString: select e from salaryemployee e where salarydecimal > ? offset ?
+VariableValues: Decimal:10; Int32:10;
+ExpectedExceptionMessage: 
+ExpectedExecutionPlan: 
+
+ExpectedResult: 
