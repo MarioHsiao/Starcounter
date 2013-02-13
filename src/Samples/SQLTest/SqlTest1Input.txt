@@ -18,6 +18,7 @@ Does not use any indexes.
 === Sorting ===
 === Joins ===
 === Ad hoc ===
+=== Fetch ====
 
 
 ====== PROBLEMS ======
@@ -16354,3 +16355,8 @@ ExpectedResult:
  ! Object ! 
  | 7 | 
  | 8 | 
+
+ExpectedResult: 
+ ! Object ! 
+ | 9 | 
+ | 10 | 
