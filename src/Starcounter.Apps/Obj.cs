@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="App.cs" company="Starcounter AB">
+// <copyright file="Obj.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -15,7 +15,6 @@ using System.ComponentModel;
 using Starcounter.Templates;
 using Starcounter.Internal.REST;
 using Starcounter.Internal;
-using Starcounter.Apps;
 using Starcounter.Advanced;
 
 #if CLIENT
@@ -36,7 +35,7 @@ namespace Starcounter {
         private IBindable _Data;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="App" /> class.
+        /// Initializes a new instance of the <see cref="Obj" /> class.
         /// </summary>
         public Obj() : base() {
             _cacheIndexInList = -1;
@@ -59,7 +58,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Returns true if this app have been serialed and sent to the client.
+        /// Returns true if this Obj have been serialed and sent to the client.
         /// </summary>
         /// <value>The is serialized.</value>
         public Boolean IsSerialized { get; internal set; }
@@ -70,7 +69,7 @@ namespace Starcounter {
         internal int ViewModelId { get; set; }
 
         /// <summary>
-        /// Cache field of index if this apps parent is a list.
+        /// Cache field of index if the parent of this Obj is a list.
         /// </summary>
         internal Int32 _cacheIndexInList;
 
@@ -117,7 +116,7 @@ namespace Starcounter {
             _Data = data;
 
             if (Template.Bound) {
-                Template.SetBoundValue((App)this.Parent, data);
+                Template.SetBoundValue((Obj)this.Parent, data);
             }
 
             RefreshAllBoundValues();
@@ -125,7 +124,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Refreshes all databound values for this app.
+        /// Refreshes all databound values for this Obj.
         /// </summary>
         private void RefreshAllBoundValues() {
             Template child;
@@ -157,12 +156,12 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <returns></returns>
-        internal App GetNearestAppParent() {
+        internal Obj GetNearestObjParent() {
             Container parent = Parent;
-            while ((parent != null) && (!(parent is App))) {
+            while ((parent != null) && (!(parent is Obj))) {
                 parent = parent.Parent;
             }
-            return (App)parent;
+            return (Obj)parent;
         }
 
         /// <summary>
@@ -173,8 +172,8 @@ namespace Starcounter {
             if (model is ObjArrProperty) {
                 ObjArrProperty apa = (ObjArrProperty)model;
                 this.SetValue(apa, apa.GetBoundValue(this));
-            } else if (model is AppTemplate) {
-                AppTemplate at = (AppTemplate)model;
+            } else if (model is ObjTemplate) {
+                var at = (ObjTemplate)model;
 
                 // TODO:
                 IBindable v = at.GetBoundValue(this);
@@ -188,11 +187,11 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// The template defining the properties of this App.
+        /// The template defining the properties of this Obj.
         /// </summary>
         /// <value>The template.</value>
-        public new AppTemplate Template {
-            get { return (AppTemplate)base.Template; }
+        public new ObjTemplate Template {
+            get { return (ObjTemplate)base.Template; }
             set { base.Template = value; }
         }
 
@@ -202,13 +201,13 @@ namespace Starcounter {
         private ObjMetadata _Metadata = null;
 
         /// <summary>
-        /// Here you can set properties for each property in this App (such as Editable, Visible and Enabled).
+        /// Here you can set properties for each property in this Obj (such as Editable, Visible and Enabled).
         /// The changes only affect this instance.
         /// If you which to change properties for the template, use the Template property instead.
         /// </summary>
         /// <value>The metadata.</value>
         /// <remarks>It is much less expensive to set this kind of metadata for the
-        /// entire template (for example to mark a property for all App instances as Editable).</remarks>
+        /// entire template (for example to mark a property for all Obj instances as Editable).</remarks>
         public ObjMetadata Metadata {
             get {
                 return _Metadata;
@@ -243,7 +242,7 @@ namespace Starcounter {
 
 #if !CLIENT
         /// <summary>
-        /// For convenience, the static SQL function can be called from either the App class,
+        /// For convenience, the static SQL function can be called from either the Obj class,
         /// the Entity class or the Db class. The implementations are identical.
         /// </summary>
         /// <param name="str">The STR.</param>
@@ -290,7 +289,7 @@ namespace Starcounter {
         public void Delete() { }
 
         /// <summary>
-        /// Removes this App from its parent.
+        /// Removes this Obj from its parent.
         /// </summary>
         public void Close() { }
 

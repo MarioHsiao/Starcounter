@@ -102,9 +102,9 @@ namespace Starcounter {
                 if (_transaction != null)
                     return _transaction;
 
-                App parent = GetNearestAppParent();
+                Obj parent = GetNearestObjParent();
                 if (parent != null)
-                    return parent.Transaction;
+                    return ((App)parent).Transaction;
 
                 return null;
             }
