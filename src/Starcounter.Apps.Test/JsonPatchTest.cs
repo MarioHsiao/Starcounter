@@ -249,7 +249,7 @@ namespace Starcounter.Internal.JsonPatch.Test
             indexPath = nearestApp.IndexPathFor(desc);
             VerifyIndexPath(new Int32[] { 3, 1 }, indexPath);
 
-            ListingProperty itemProperty = (ListingProperty)appt.Properties[2];
+            ArrProperty itemProperty = (ArrProperty)appt.Properties[2];
             Listing items = aat.App.GetValue(itemProperty);
 
             nearestApp = items[1];
@@ -295,7 +295,7 @@ namespace Starcounter.Internal.JsonPatch.Test
                 appt = (AppTemplate)aat.Template;
 
                 StringProperty lastName = (StringProperty)appt.Properties[1];
-                ListingProperty items = (ListingProperty)appt.Properties[2];
+                ArrProperty items = (ArrProperty)appt.Properties[2];
 
                 dynamic app = aat.App;
                 app.LastName = "Ewing";

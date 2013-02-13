@@ -97,7 +97,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                     Parent = astObj
                 };
 
-                if (template is ListingProperty) {
+                if (template is ArrProperty) {
                     var astArray = new AstWriteArray() {
                         Parent = astObj
                     };
@@ -108,7 +108,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                     };
 
                     new AstWritePropertyValue() {
-                        Template = ((ListingProperty)template).App,
+                        Template = ((ArrProperty)template).App,
                         VariableName = "listApp",
                         Parent = astLoop
                     };
@@ -242,7 +242,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                     };
 
                     bool addGotoValue = false;
-                    if (pn.Handler.Code is ListingProperty) {
+                    if (pn.Handler.Code is ArrProperty) {
                         // If the value to parse is a list we need to add some additional 
                         // code for looping and checking end of array.
                         nextParent = new AstParseJsonObjectArray() {

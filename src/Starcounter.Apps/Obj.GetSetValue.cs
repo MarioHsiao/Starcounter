@@ -541,7 +541,7 @@ namespace Starcounter {
         /// <returns>Listing.</returns>
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public Listing GetValue(ListingProperty property) {
+        public Listing GetValue(ArrProperty property) {
 #if QUICKTUPLE
             return _Values[property.Index];
 #else
@@ -556,7 +556,7 @@ namespace Starcounter {
         /// <param name="data">The data.</param>
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(ListingProperty property, SqlResult data) {
+        public void SetValue(ArrProperty property, SqlResult data) {
             Listing current = _Values[property.Index];
             if (current != null) {
                 current.Clear();
@@ -572,7 +572,7 @@ namespace Starcounter {
         /// <param name="data">The data.</param>
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(ListingProperty templ, Listing data) {
+        public void SetValue(ArrProperty templ, Listing data) {
             Listing current = _Values[templ.Index];
             if (current != null)
                 current.Clear();
@@ -589,7 +589,7 @@ namespace Starcounter {
         /// <returns>Listing{``0}.</returns>
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public Listing<T> GetValue<T>(ListingProperty property) where T : Obj, new() {
+        public Listing<T> GetValue<T>(ArrProperty property) where T : Obj, new() {
 #if QUICKTUPLE
             return (Listing<T>)(_Values[property.Index]);
 #else
@@ -605,7 +605,7 @@ namespace Starcounter {
         /// <param name="data">The data.</param>
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue<T>(ListingProperty templ, SqlResult data) where T : Obj, new() {
+        public void SetValue<T>(ArrProperty templ, SqlResult data) where T : Obj, new() {
             Listing<T> newList;
             Listing<T> current = _Values[templ.Index];
             if (current != null)
@@ -625,7 +625,7 @@ namespace Starcounter {
         /// <param name="data">The data.</param>
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue<T>(ListingProperty templ, Listing<T> data) where T : App, new() {
+        public void SetValue<T>(ArrProperty templ, Listing<T> data) where T : App, new() {
             Listing<T> current = _Values[templ.Index];
             if (current != null)
                 current.Clear();
