@@ -392,7 +392,7 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="value">The value.</param>
         /// <param name="index">The index.</param>
         /// <returns>String.</returns>
-        public static String BuildJsonPatch(Int32 patchType, App nearestApp, Template from, Object value, Int32 index) {
+        public static String BuildJsonPatch(Int32 patchType, Obj nearestApp, Template from, Object value, Int32 index) {
             List<String> pathList = new List<String>();
             StringBuilder sb = new StringBuilder(40);
 
@@ -426,9 +426,9 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="sb">The sb.</param>
         /// <param name="from">From.</param>
         /// <param name="nearestApp">The nearest app.</param>
-        private static void IndexPathToString(StringBuilder sb, Template from, App nearestApp) {
-            App app;
-            AppNode parent;
+        private static void IndexPathToString(StringBuilder sb, Template from, Obj nearestApp) {
+            Obj app;
+            Container parent;
             Boolean nextIndexIsPositionInList;
             Int32[] path;
             Listing list;
@@ -439,7 +439,7 @@ namespace Starcounter.Internal.JsonPatch {
             parent = nearestApp;
             while (parent.Parent != null)
                 parent = parent.Parent;
-            app = (App)parent;
+            app = (Obj)parent;
 
             nextIndexIsPositionInList = false;
             listProp = null;

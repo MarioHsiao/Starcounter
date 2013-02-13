@@ -28,7 +28,7 @@ namespace Starcounter.Templates {
         /// <summary>
         /// The _ parent
         /// </summary>
-        private AppTemplate _Parent;
+        private ObjTemplate _Parent;
         /// <summary>
         /// The _ name lookup
         /// </summary>
@@ -46,7 +46,7 @@ namespace Starcounter.Templates {
         /// Initializes a new instance of the <see cref="PropertyList" /> class.
         /// </summary>
         /// <param name="parent">The parent.</param>
-        internal PropertyList(AppTemplate parent) {
+        internal PropertyList(ObjTemplate parent) {
             _Parent = parent;
         }
 

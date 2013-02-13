@@ -45,7 +45,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="property">The property.</param>
-        internal static void UpdateValue(App app, Property property) {
+        internal static void UpdateValue(Obj app, Property property) {
             ChangeLog log = Log;
             if (log != null && app.IsSerialized) {
                 if (!log._changes.Exists((match) => { return match.IsChangeOf(app, property); })) {
@@ -59,7 +59,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="valueTemplate">The value template.</param>
-        internal static void UpdateValue(App app, IValueTemplate valueTemplate) {
+        internal static void UpdateValue(Obj app, IValueTemplate valueTemplate) {
             ChangeLog log = Log;
             if (log != null && app.IsSerialized) {
                 if (!log._changes.Exists((match) => { return match.IsChangeOf(app, (Template)valueTemplate); })) {
@@ -74,7 +74,7 @@ namespace Starcounter {
         /// <param name="app">The app.</param>
         /// <param name="list">The property of the list that the item was added to.</param>
         /// <param name="index">The index in the list where the item was added.</param>
-        internal static void AddItemInList(App app, ListingProperty list, Int32 index) {
+        internal static void AddItemInList(Obj app, ListingProperty list, Int32 index) {
             ChangeLog log = Log;
             if (log != null)
                 log._changes.Add(Change.Add(app, list, index));
@@ -86,7 +86,7 @@ namespace Starcounter {
         /// <param name="app">The app.</param>
         /// <param name="list">The property of the list the item was removed from.</param>
         /// <param name="index">The index in the list of the removed item.</param>
-        internal static void RemoveItemInList(App app, ListingProperty list, Int32 index) {
+        internal static void RemoveItemInList(Obj app, ListingProperty list, Int32 index) {
             ChangeLog log = Log;
             if (log != null && app.IsSerialized)
                 log._changes.Add(Change.Remove(app, list, index));
@@ -141,7 +141,7 @@ namespace Starcounter {
         /// <summary>
         /// The app that was changed.
         /// </summary>
-        internal readonly App App;
+        internal readonly Obj App;
 
         /// <summary>
         /// The template of the property that was changed.
@@ -161,7 +161,7 @@ namespace Starcounter {
         /// <param name="app">The app that was changed.</param>
         /// <param name="template">The template of the property that was changed.</param>
         /// <param name="index">The index.</param>
-        private Change(Int32 changeType, App app, Template template, Int32 index) {
+        private Change(Int32 changeType, Obj app, Template template, Int32 index) {
             ChangeType = changeType;
             App = app;
             Template = template;
@@ -173,7 +173,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="template">The template.</param>
-        internal Boolean IsChangeOf(App app, Template template) {
+        internal Boolean IsChangeOf(Obj app, Template template) {
             return (App == app && Template == template);
         }
 
@@ -184,7 +184,7 @@ namespace Starcounter {
         /// <param name="list">The property of the list where an item was added.</param>
         /// <param name="index">The index in the list of the added item.</param>
         /// <returns></returns>
-        internal static Change Add(App app, ListingProperty list, Int32 index) {
+        internal static Change Add(Obj app, ListingProperty list, Int32 index) {
             return new Change(Change.ADD, app, list, index);
         }
 
@@ -195,7 +195,7 @@ namespace Starcounter {
         /// <param name="list">The property of the list where an item was removed.</param>
         /// <param name="index">The index in the list of the removed item.</param>
         /// <returns></returns>
-        internal static Change Remove(App app, ListingProperty list, Int32 index) {
+        internal static Change Remove(Obj app, ListingProperty list, Int32 index) {
             return new Change(Change.REMOVE, app, list, index);
         }
 
@@ -205,7 +205,7 @@ namespace Starcounter {
         /// <param name="app">The app.</param>
         /// <param name="property">The template of the property that was updated.</param>
         /// <returns></returns>
-        internal static Change Update(App app, Property property) {
+        internal static Change Update(Obj app, Property property) {
             return new Change(Change.REPLACE, app, property, -1);
         }
 
@@ -215,7 +215,7 @@ namespace Starcounter {
         /// <param name="app">The app.</param>
         /// <param name="valueTemplate">The IValueTemplate of the property that was updated.</param>
         /// <returns></returns>
-        internal static Change Update(App app, IValueTemplate valueTemplate) {
+        internal static Change Update(Obj app, IValueTemplate valueTemplate) {
             return new Change(Change.REPLACE, app, (Template)valueTemplate, -1);
         }
     }

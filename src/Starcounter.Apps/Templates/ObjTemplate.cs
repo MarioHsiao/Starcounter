@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using Starcounter.Templates.DataBinding;
 using Starcounter.Templates.Interfaces;
+using Starcounter.Advanced;
 
 #if CLIENT
 namespace Starcounter.Client.Template {
@@ -18,12 +19,12 @@ namespace Starcounter.Templates {
     /// <summary>
     /// Defines the properties of an App instance.
     /// </summary>
-    public class AppTemplate : ParentTemplate
+    public abstract class ObjTemplate : ParentTemplate
 #if IAPP
 , IAppTemplate
 #endif
  {
-        private DataBinding<Entity> dataBinding;
+        private DataBinding<IBindable> dataBinding;
 
         /// <summary>
         /// Registers a template with the specified name.
@@ -102,7 +103,7 @@ namespace Starcounter.Templates {
         /// <summary>
         /// Initializes a new instance of the <see cref="AppTemplate" /> class.
         /// </summary>
-        public AppTemplate() {
+        public ObjTemplate() {
             _PropertyTemplates = new PropertyList(this);
         }
 
@@ -168,15 +169,6 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// Creates a new App-instance based on this template.
-        /// </summary>
-        /// <param name="parent">The parent for the new app</param>
-        /// <returns></returns>
-        public override object CreateInstance(AppNode parent) {
-            return new App() { Template = this, Parent = parent };
-        }
-
-        /// <summary>
         /// Creates a new Template with the specified name.
         /// </summary>
         /// <typeparam name="T">The type of template to create</typeparam>
@@ -221,8 +213,8 @@ namespace Starcounter.Templates {
         /// 
         /// </summary>
         /// <param name="dataGetter"></param>
-        public void AddDataBinding(Func<App, Entity> dataGetter) {
-            dataBinding = new DataBinding<Entity>(dataGetter);
+        public void AddDataBinding(Func<Obj, IBindable> dataGetter) {
+            dataBinding = new DataBinding<IBindable>(dataGetter);
             Bound = true;
         }
 
@@ -231,8 +223,8 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="dataGetter"></param>
         /// <param name="dataSetter"></param>
-        public void AddDataBinding(Func<App, Entity> dataGetter, Action<App, Entity> dataSetter) {
-            dataBinding = new DataBinding<Entity>(dataGetter, dataSetter);
+        public void AddDataBinding(Func<Obj, IBindable> dataGetter, Action<Obj, IBindable> dataSetter) {
+            dataBinding = new DataBinding<IBindable>(dataGetter, dataSetter);
             Bound = true;
         }
 
@@ -241,7 +233,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="app"></param>
         /// <returns></returns>
-        public Entity GetBoundValue(App app) {
+        public IBindable GetBoundValue(Obj app) {
             return dataBinding.GetValue(app);
         }
 
@@ -250,7 +242,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="entity"></param>
-        public void SetBoundValue(App app, Entity entity) {
+        public void SetBoundValue(Obj app, IBindable entity) {
             dataBinding.SetValue(app, entity);
         }
     }

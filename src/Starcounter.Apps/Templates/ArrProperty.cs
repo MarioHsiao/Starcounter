@@ -32,7 +32,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>System.Object.</returns>
-        public override object CreateInstance(AppNode parent) {
+        public override object CreateInstance(Container parent) {
             return new Listing<AppType>((App)parent, this);
         }
 
@@ -78,7 +78,7 @@ namespace Starcounter.Templates {
         /// 
         /// </summary>
         /// <param name="dataGetter"></param>
-        public void AddDataBinding(Func<App, SqlResult> dataGetter) {
+        public void AddDataBinding(Func<Obj, SqlResult> dataGetter) {
             dataBinding = new DataBinding<SqlResult>(dataGetter);
             Bound = true;
         }
@@ -88,7 +88,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="app"></param>
         /// <returns></returns>
-        public SqlResult GetBoundValue(App app) {
+        public SqlResult GetBoundValue(Obj app) {
             return dataBinding.GetValue(app);
         }
         
@@ -141,7 +141,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>System.Object.</returns>
-        public override object CreateInstance( AppNode parent ) {
+        public override object CreateInstance( Container parent ) {
             return new Listing( (App)parent, this );
         }
 

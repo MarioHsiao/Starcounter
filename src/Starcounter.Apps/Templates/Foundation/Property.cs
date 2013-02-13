@@ -42,7 +42,7 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <param name="dataGetter"></param>
-        public void AddDataBinding(Func<App, TValue> dataGetter) {
+        public void AddDataBinding(Func<Obj, TValue> dataGetter) {
             dataBinding = new DataBinding<TValue>(dataGetter);
             Bound = true;
         }
@@ -52,7 +52,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="dataGetter"></param>
         /// <param name="dataSetter"></param>
-        public void AddDataBinding(Func<App, TValue> dataGetter, Action<App, TValue> dataSetter) {
+        public void AddDataBinding(Func<Obj, TValue> dataGetter, Action<Obj, TValue> dataSetter) {
             dataBinding = new DataBinding<TValue>(dataGetter, dataSetter);
             Bound = true;
         }
@@ -62,7 +62,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="value"></param>
-        public void SetBoundValue(App app, TValue value) {
+        public void SetBoundValue(Obj app, TValue value) {
             dataBinding.SetValue(app, value);
         }
 
@@ -71,7 +71,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="app"></param>
         /// <returns></returns>
-        public TValue GetBoundValue(App app) {
+        public TValue GetBoundValue(Obj app) {
             return dataBinding.GetValue(app);
         }
 

@@ -243,7 +243,7 @@ namespace Starcounter.Internal.JsonPatch.Test
             VerifyIndexPath(new Int32[] { 0 }, indexPath);
 
             AppTemplate anotherAppt = (AppTemplate)appt.Properties[3];
-            App nearestApp = aat.App.GetValue(anotherAppt);
+            Obj nearestApp = aat.App.GetValue(anotherAppt);
 
             StringProperty desc = (StringProperty)anotherAppt.Properties[1];
             indexPath = nearestApp.IndexPathFor(desc);

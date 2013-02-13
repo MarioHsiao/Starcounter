@@ -9,6 +9,7 @@ using Starcounter.Templates.Interfaces;
 using System;
 using System.ComponentModel;
 using Starcounter.Apps;
+using Starcounter.Advanced;
 
 #if CLIENT
 namespace Starcounter.Client {
@@ -19,7 +20,7 @@ namespace Starcounter {
     /// <summary>
     /// Class App
     /// </summary>
-    public partial class App
+    public partial class Obj
     {
         /// <summary>
         /// Reads the value for a given property in this App. This method returns all values boxed
@@ -160,7 +161,7 @@ namespace Starcounter {
         /// <returns>The value of the property</returns>
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public Entity GetValue(IObjectTemplate property) {
+        public IBindable GetValue(IObjectTemplate property) {
 #if QUICKTUPLE
             return _Values[property.Index];
 #else
@@ -175,7 +176,7 @@ namespace Starcounter {
         /// <param name="value">The new value to assign to the property</param>
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(IObjectTemplate property, Entity value) {
+        public void SetValue(IObjectTemplate property, IBindable value) {
 #if QUICKTUPLE
             _Values[property.Index] = value;
 #else
@@ -588,7 +589,7 @@ namespace Starcounter {
         /// <returns>Listing{``0}.</returns>
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public Listing<T> GetValue<T>(ListingProperty property) where T : App, new() {
+        public Listing<T> GetValue<T>(ListingProperty property) where T : Obj, new() {
 #if QUICKTUPLE
             return (Listing<T>)(_Values[property.Index]);
 #else
@@ -604,7 +605,7 @@ namespace Starcounter {
         /// <param name="data">The data.</param>
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue<T>(ListingProperty templ, SqlResult data) where T : App, new() {
+        public void SetValue<T>(ListingProperty templ, SqlResult data) where T : Obj, new() {
             Listing<T> newList;
             Listing<T> current = _Values[templ.Index];
             if (current != null)
@@ -703,7 +704,7 @@ namespace Starcounter {
         /// <param name="value">The value.</param>
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(AppTemplate property, Entity value) {
+        public void SetValue(AppTemplate property, IBindable value) {
 #if QUICKTUPLE
             App app = (App)property.CreateInstance(this);
             app.Data = value;

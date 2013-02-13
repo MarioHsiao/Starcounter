@@ -46,7 +46,7 @@ namespace Starcounter {
     /// If your JSON object adds an event (like a command when a button is clicked),
     /// your C# code will be called. If you make a property editable, changes by the user will change App object (and an event will be triggered
     /// in case you which to validate the change).</remarks>
-    public partial class App : AppNode
+    public abstract partial class Obj : Container
 #if IAPP
 , IApp
 #endif
@@ -64,7 +64,7 @@ namespace Starcounter {
         /// <summary>
         /// Initializes a new instance of the <see cref="App" /> class.
         /// </summary>
-        public App() : base() {
+        public Obj() : base() {
             _cacheIndexInList = -1;
             ViewModelId = -1;
         }
@@ -123,9 +123,9 @@ namespace Starcounter {
         /// Gets or sets the underlying entity object.
         /// </summary>
         /// <value>The data.</value>
-        public Entity Data {
+        public IBindable Data {
             get {
-                return (Entity)_Data;
+                return (IBindable)_Data;
             }
             set {
                 if (Transaction == null) {
@@ -141,7 +141,7 @@ namespace Starcounter {
         /// public Data-property does.
         /// </summary>
         /// <param name="data"></param>
-        internal void InternalSetData(Entity data) {
+        internal void InternalSetData(IBindable data) {
             _Data = data;
 
             if (Template.Bound) {
@@ -217,7 +217,7 @@ namespace Starcounter {
         /// </summary>
         /// <returns></returns>
         private App GetNearestAppParent() {
-            AppNode parent = Parent;
+            Container parent = Parent;
             while ((parent != null) && (!(parent is App))) {
                 parent = parent.Parent;
             }
@@ -254,7 +254,7 @@ namespace Starcounter {
                 AppTemplate at = (AppTemplate)model;
 
                 // TODO:
-                Entity v = at.GetBoundValue(this);
+                IBindable v = at.GetBoundValue(this);
                 if (v != null)
                     this.SetValue(at, v);
             } else {
@@ -262,15 +262,6 @@ namespace Starcounter {
                 if (p != null)
                     ChangeLog.UpdateValue(this, p);
             }
-        }
-
-        /// <summary>
-        /// Performs an implicit conversion from <see cref="System.String" /> to <see cref="App" />.
-        /// </summary>
-        /// <param name="str">The STR.</param>
-        /// <returns>The result of the conversion.</returns>
-        public static implicit operator App(string str) {
-            return new App() { Media = str };
         }
 
         /// <summary>
@@ -339,16 +330,16 @@ namespace Starcounter {
             return Db.SQL(str, pars);
         }
 
-        /// <summary>
-        /// SQLs the specified STR.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="str">The STR.</param>
-        /// <param name="pars">The pars.</param>
-        /// <returns>SqlResult2{``0}.</returns>
-        public static SqlResult2<T> SQL<T>(string str, params object[] pars) where T : Entity {
-            return null;
-        }
+//        /// <summary>
+//        /// SQLs the specified STR.
+//        /// </summary>
+//        /// <typeparam name="T"></typeparam>
+//        /// <param name="str">The STR.</param>
+//        /// <param name="pars">The pars.</param>
+//        /// <returns>SqlResult2{``0}.</returns>
+//        public static SqlResult2<T> SQL<T>(string str, params object[] pars) where T : Entity {
+//            return null;
+//        }
 
         ///// <summary>
         ///// Transactions the specified action.

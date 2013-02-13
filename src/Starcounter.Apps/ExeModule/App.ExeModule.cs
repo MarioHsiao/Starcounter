@@ -13,7 +13,7 @@ namespace Starcounter {
     /// <summary>
     /// Class App
     /// </summary>
-    public partial class App {
+    public partial class Obj {
 
 #if !CLIENT
 
@@ -196,12 +196,6 @@ namespace Starcounter {
         /// The already checked process
         /// </summary>
         private static bool AlreadyCheckedProcess = false;
-        /// <summary>
-        /// Initializes static members of the <see cref="App" /> class.
-        /// </summary>
-        static App() {
-            CheckProcess();
-        }
 
         /// <summary>
         /// Checks the process.

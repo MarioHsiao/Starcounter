@@ -14,7 +14,7 @@ namespace Starcounter {
     /// <summary>
     /// Class App
     /// </summary>
-    public partial class App {
+    public partial class Obj {
 //        private char[] Session;
         /// <summary>
         /// To the json UTF8.
