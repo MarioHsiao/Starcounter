@@ -168,36 +168,6 @@ namespace Starcounter.Templates {
             get { return (IEnumerable<Template>)Properties; }
         }
 
-        /// <summary>
-        /// Creates a new Template with the specified name.
-        /// </summary>
-        /// <typeparam name="T">The type of template to create</typeparam>
-        /// <param name="name">The name of the template.</param>
-        /// <returns></returns>
-        /// <exception cref="System.NotImplementedException"></exception>
-//        T IAppTemplate.Add<T>(string name) {
-//            throw new NotImplementedException();
-//        }
-
-        /// <summary>
-        /// Creates a new Template with the specified name.
-        /// </summary>
-        /// <typeparam name="T">The type of template to create.</typeparam>
-        /// <param name="name">The name of the template.</param>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        /// <exception cref="System.NotImplementedException"></exception>
-//        T IAppTemplate.Add<T>(string name, IAppTemplate type) {
-//            throw new NotImplementedException();
-//        }
-
-        /// <summary>
-        /// Gets all templates for this app.
-        /// </summary>
-        /// <value>The properties.</value>
-//        IPropertyTemplates IAppTemplate.Properties {
-//            get { return Properties; }
-//        }
 
         /// <summary>
         /// Callback from internal functions responsible for handle external inputs.

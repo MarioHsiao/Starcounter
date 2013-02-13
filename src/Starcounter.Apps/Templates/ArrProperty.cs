@@ -120,19 +120,6 @@ namespace Starcounter.Templates {
         }
         
         /// <summary>
-        /// Gets or sets the type.
-        /// </summary>
-        /// <value>The type.</value>
-//        IAppTemplate IAppListTemplate.Type {
-//            get {
-//                return App;
-//            }
-//            set {
-//                App = (AppTemplate)value;
-//            }
-//        }
-
-        /// <summary>
         /// Gets or sets the type (the template) that should be the template for all elements
         /// in this array.
         /// </summary>

@@ -62,7 +62,7 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this <see cref="IStatefullTemplate" /> is editable.
+        /// Gets or sets a value indicating whether this <see cref="Property" /> is editable.
         /// </summary>
         /// <value><c>true</c> if editable; otherwise, <c>false</c>.</value>
         public bool Editable { get; set; }
@@ -276,17 +276,6 @@ namespace Starcounter.Templates {
         public virtual object CreateInstance(Container parent) {
             return DefaultValueAsObject;
         }
-
-        /// <summary>
-        /// As this template is represented by a runtime statefull object or value, we need to know how to create
-        /// a that object or value.
-        /// </summary>
-        /// <param name="parent">The host of the new object. Either a App or a AppList</param>
-        /// <returns>The value or object. For instance, if this is a StringTemplate, the default string
-        /// for the property to be in the new App object is returned.</returns>
-//        object IStatefullTemplate.CreateInstance(IContainer parent) {
-//            return CreateInstance( (Container)parent );
-//        }
 
         /// <summary>
         /// Copies to.

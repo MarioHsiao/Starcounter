@@ -103,19 +103,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Gets or sets the parent.
-        /// </summary>
-        /// <value>The parent.</value>
-//        IContainer IContainer.Parent {
-//            get {
-//                return Parent;
-//            }
-//            set {
-//                Parent = (Container)value;
-//            }
-//        }
-
-        /// <summary>
         /// Contains the depth of this Container. Used when creating the indexpath.
         /// </summary>
         private Int32 _cachePathDepth = -1;

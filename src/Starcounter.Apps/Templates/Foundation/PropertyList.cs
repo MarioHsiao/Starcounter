@@ -52,7 +52,7 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// Gets the <see cref="ITemplate" /> with the specified id.
+        /// Gets the <see cref="Template" /> with the specified id.
         /// </summary>
         /// <param name="index">The index.</param>
         /// <returns>Template.</returns>
@@ -67,7 +67,7 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// Gets the <see cref="ITemplate" /> with the specified id.
+        /// Gets the <see cref="Template" /> with the specified id.
         /// </summary>
         /// <param name="id">The id.</param>
         /// <returns>Template.</returns>
@@ -168,7 +168,7 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// Gets the <see cref="ITemplate" /> with the specified id.
+        /// Gets the <see cref="Template" /> with the specified id.
         /// </summary>
         /// <param name="index">The index.</param>
         /// <returns>ITemplate.</returns>
