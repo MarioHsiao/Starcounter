@@ -16323,6 +16323,7 @@ ExpectedResult:
  | 9 | 
  | 9 | 
 
+<NEXT>
 Description: Fetch on sort result over non-indexed property
 QueryString: select d from Department d order by name fetch ?
 VariableValues: Int32:2;
@@ -16355,8 +16356,3 @@ ExpectedResult:
  ! Object ! 
  | 7 | 
  | 8 | 
-
-ExpectedResult: 
- ! Object ! 
- | 9 | 
- | 10 | 
