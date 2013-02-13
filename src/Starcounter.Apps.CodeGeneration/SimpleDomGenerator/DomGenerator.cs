@@ -130,9 +130,9 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="metadata">The metadata.</param>
         private void ConnectCodeBehindClasses(NRoot root, CodeBehindMetadata metadata)
         {
-            AppTemplate appTemplate;
-            AppTemplate rootTemplate;
-            AppTemplate[] classesInOrder;
+            ObjTemplate appTemplate;
+            ObjTemplate rootTemplate;
+            ObjTemplate[] classesInOrder;
             JsonMapInfo mapInfo;
             NAppClass nAppClass;
             NTemplateClass nTemplateclass;
@@ -208,7 +208,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="classesInOrder">The classes in order.</param>
         /// <param name="mapInfos">The map infos.</param>
         /// <param name="root">The root.</param>
-        private void ReorderCodebehindClasses(AppTemplate[] classesInOrder,
+        private void ReorderCodebehindClasses(ObjTemplate[] classesInOrder,
                                               List<JsonMapInfo> mapInfos,
                                               NRoot root)
         {
@@ -277,9 +277,9 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="rootTemplate">The root template.</param>
         /// <returns>AppTemplate.</returns>
         /// <exception cref="System.Exception">Invalid property to bind codebehind.</exception>
-        private AppTemplate FindAppTemplateFor(String jsonMapName, AppTemplate rootTemplate)
+        private ObjTemplate FindAppTemplateFor(String jsonMapName, ObjTemplate rootTemplate)
         {
-            AppTemplate appTemplate;
+            ObjTemplate appTemplate;
             String[] mapParts;
             Template template;
 

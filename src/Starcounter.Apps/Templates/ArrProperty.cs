@@ -21,11 +21,11 @@ namespace Starcounter.Templates {
     /// <summary>
     /// Class ListingProperty
     /// </summary>
-    /// <typeparam name="AppType">The type of the app type.</typeparam>
-    /// <typeparam name="AppTemplateType">The type of the app template type.</typeparam>
-    public class ListingProperty<AppType,AppTemplateType> : ArrProperty
-        where AppType : App, new()
-        where AppTemplateType : AppTemplate
+    /// <typeparam name="OT">The type of the app type.</typeparam>
+    /// <typeparam name="OTT">The type of the app template type.</typeparam>
+    public class ListingProperty<OT,OTT> : ArrProperty
+        where OT : App, new()
+        where OTT : AppTemplate
     {
         /// <summary>
         /// Creates the instance.
@@ -33,7 +33,7 @@ namespace Starcounter.Templates {
         /// <param name="parent">The parent.</param>
         /// <returns>System.Object.</returns>
         public override object CreateInstance(AppNode parent) {
-            return new Listing<AppType>((App)parent, this);
+            return new Listing<OT>((App)parent, this);
         }
 
         /// <summary>
@@ -41,21 +41,52 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <value>The type of the instance.</value>
         public override System.Type InstanceType {
-            get { return typeof(Listing<AppType>); }
+            get { return typeof(Listing<OT>); }
         }
+
+        /// <summary>
+        /// Processes the input.
+        /// </summary>
+        /// <param name="app">The app.</param>
+        /// <param name="rawValue">The raw value.</param>
+        /// <exception cref="System.NotImplementedException"></exception>
+        public override void ProcessInput(App app, byte[] rawValue) {
+            throw new System.NotImplementedException();
+        }
+
 
         /// <summary>
         /// Gets or sets the app.
         /// </summary>
         /// <value>The app.</value>
-        public new AppTemplateType App {
+        public override ObjTemplate App {
             get {
-                return (AppTemplateType)(base.App);
+                if (_Single.Length == 0)
+                    return null;
+                return (ObjTemplate)_Single[0];
             }
             set {
-                base.App = value;
+                _Single = new OTT[1];
+                _Single[0] = (OTT)value;
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal OTT[] _Single = new OTT[0];
+
+
+        /// <summary>
+        /// Gets the children.
+        /// </summary>
+        /// <value>The children.</value>
+        public override IEnumerable<Template> Children {
+            get {
+                return (IEnumerable<Template>)_Single;
+            }
+        }
+
 
     }
 
@@ -67,10 +98,6 @@ namespace Starcounter.Templates {
         , IAppListTemplate
 #endif
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        internal AppTemplate[] _Single = new AppTemplate[0];
 
         private DataBinding<SqlResult> dataBinding;
 
@@ -109,17 +136,7 @@ namespace Starcounter.Templates {
         /// Gets or sets the app.
         /// </summary>
         /// <value>The app.</value>
-        public AppTemplate App {
-            get {
-                if (_Single.Length == 0)
-                    return null;
-                return (AppTemplate)_Single[0];
-            }
-            set {
-                _Single = new AppTemplate[1];
-                 _Single[0] = (AppTemplate)value;
-            }
-        }
+        public abstract ObjTemplate App { get; set; }
 
         /// <summary>
         /// Contains the default value for the property represented by this
@@ -136,43 +153,6 @@ namespace Starcounter.Templates {
             }
         }
 
-        /// <summary>
-        /// Creates the instance.
-        /// </summary>
-        /// <param name="parent">The parent.</param>
-        /// <returns>System.Object.</returns>
-        public override object CreateInstance( AppNode parent ) {
-            return new Listing( (App)parent, this );
-        }
-
-        /// <summary>
-        /// The .NET type of the instance represented by this template.
-        /// </summary>
-        /// <value>The type of the instance.</value>
-        public override System.Type InstanceType {
-            get { return typeof(Listing); }
-        }
-
-        /// <summary>
-        /// Gets the children.
-        /// </summary>
-        /// <value>The children.</value>
-        public override IEnumerable<Template> Children {
-            get {
-                return (IEnumerable<Template>)_Single;
-            }
-        }
-
-        /// <summary>
-        /// Processes the input.
-        /// </summary>
-        /// <param name="app">The app.</param>
-        /// <param name="rawValue">The raw value.</param>
-        /// <exception cref="System.NotImplementedException"></exception>
-        public override void ProcessInput(App app, byte[] rawValue)
-        {
-            throw new System.NotImplementedException();
-        }
     }
 
 }
