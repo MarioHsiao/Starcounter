@@ -124,7 +124,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="array">The array.</param>
         /// <param name="arrayIndex">Index of the array.</param>
-        public void CopyTo(ITemplate[] array, int arrayIndex) {
+        public void CopyTo(Template[] array, int arrayIndex) {
             _List.CopyTo((Template[])array, arrayIndex);
         }
 

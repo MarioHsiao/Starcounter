@@ -411,7 +411,7 @@ namespace Starcounter {
         /// <returns>App.</returns>
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public App GetValue(IAppTemplate property) {
+        public Obj GetValue(ObjTemplate property) {
 #if QUICKTUPLE
             return _Values[property.Index];
 #else
@@ -426,7 +426,7 @@ namespace Starcounter {
         /// <param name="value">The value.</param>
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(AppTemplate property, App value) {
+        public void SetValue(ObjTemplate property, Obj value) {
 #if QUICKTUPLE
             _Values[property.Index] = value;
 #else
@@ -462,7 +462,7 @@ namespace Starcounter {
         /// <param name="value">The value.</param>
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(IAppTemplate property, App value) {
+        public void SetValue(ObjTemplate property, App value) {
 #if QUICKTUPLE
             _Values[property.Index] = value;
 #else

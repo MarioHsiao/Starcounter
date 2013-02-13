@@ -8,6 +8,6 @@ namespace Starcounter.Templates.Interfaces {
     /// <summary>
     /// Interface IActionTemplate
     /// </summary>
-    public interface IActionTemplate : ITemplate {
+    public interface OldIActionTemplate : OldITemplate {
     }
 }
