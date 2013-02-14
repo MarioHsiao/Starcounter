@@ -15,23 +15,23 @@ namespace SQLTest.InheritedDb {
         internal static int TotoalPersons { get { return TotalEmployees + nrStudents; } }
 
         internal static void CreateIndexes() {
-            Db.SlowSQL("CREATE unique INDEX personName ON Person (Name)");
-            Db.SlowSQL("CREATE INDEX teacherName ON IndexQueryTest.InheritedIndex.Teacher (Name)");
-            Db.SlowSQL("CREATE INDEX personBirthdayGender ON Person (Birthday, Gender)");
-            Db.SlowSQL("CREATE INDEX companyIndx ON Employee (Company)");
+            Db.SlowSQL("CREATE unique INDEX personName ON SQLTest.InheritedDb.Person (Name)");
+            Db.SlowSQL("CREATE INDEX teacherName ON SQLTest.InheritedDb.Teacher (Name)");
+            Db.SlowSQL("CREATE INDEX personBirthdayGender ON SQLTest.InheritedDb.Person (Birthday, Gender)");
+            Db.SlowSQL("CREATE INDEX companyIndx ON SQLTest.InheritedDb.Employee (Company)");
             Db.SlowSQL("CREATE INDEX companyIndx On Professor (Company)");
-            Db.SlowSQL("CREATE INDEX employeeBoss ON Employee (Boss)");
+            Db.SlowSQL("CREATE INDEX employeeBoss ON SQLTest.InheritedDb.Employee (Boss)");
             Db.SlowSQL("create index professorBoss ON Professor (Boss)");
         }
 
         internal static void DropIndexes() {
-            CallDropIndex("DROP INDEX personName ON Person");
-            CallDropIndex("DROP INDEX teacherName ON IndexQueryTest.InheritedIndex.Teacher");
-            CallDropIndex("DROP INDEX personBirthdayGender ON Person");
-            CallDropIndex("DROP INDEX companyIndx ON Employee");
+            CallDropIndex("DROP INDEX personName ON SQLTest.InheritedDb.Person");
+            CallDropIndex("DROP INDEX teacherName ON Teacher");
+            CallDropIndex("DROP INDEX personBirthdayGender ON SQLTest.InheritedDb.Person");
+            CallDropIndex("DROP INDEX companyIndx ON SQLTest.InheritedDb.Employee");
             CallDropIndex("DROP INDEX companyIndx On Professor");
-            CallDropIndex("DROP INDEX employeeBoss ON Employee");
-            CallDropIndex("DROP index professorBoss ON Professor");
+            CallDropIndex("DROP INDEX employeeBoss ON SQLTest.InheritedDb.Employee");
+            CallDropIndex("DROP index professorBoss ON SQLTest.InheritedDb.Professor");
         }
 
         internal static void CallDropIndex(String statement) {
@@ -47,10 +47,10 @@ namespace SQLTest.InheritedDb {
             Db.SlowSQL("DELETE From Student");
             Db.SlowSQL("DELETE From Teacher");
             Db.SlowSQL("DELETE From Professor");
-            Db.SlowSQL("DELETE From Employee");
+            Db.SlowSQL("DELETE From SQLTest.InheritedDb.Employee");
             Db.SlowSQL("DELETE From Manager");
             Db.SlowSQL("DELETE From Employer");
-            Db.SlowSQL("DELETE From Person");
+            Db.SlowSQL("DELETE From SQLTest.InheritedDb.Person");
         }
 
         internal static void Populate() {
