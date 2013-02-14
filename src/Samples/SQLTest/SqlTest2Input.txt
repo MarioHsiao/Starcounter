@@ -21016,3 +21016,33 @@ ExpectedResult:
  ! Object ! 
  | 20 | 
  | 21 | 
+
+ <NEXT>
+Description: Offset with where clause.
+QueryString: select e from salaryemployee e where salaryint32 > ? offset ?
+VariableValues: Int32:10; Int32:1;
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.SalaryEmployee
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	SalaryEmployee_SalaryInt32
+	0
+	SalaryInt32
+	IntegerDynamicRange(
+		NumericalRangePoint(
+			GreaterThan
+			NumericalVariable(10)
+		)
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 22 | 
