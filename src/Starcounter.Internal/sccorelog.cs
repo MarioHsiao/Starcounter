@@ -64,12 +64,12 @@ namespace Starcounter.Internal
         /// <summary>
         /// SCs the connect to logs.
         /// </summary>
-        /// <param name="server_name">Name of the server.</param>
+        /// <param name="host_name">Host name.</param>
         /// <param name="ignore">The ignore.</param>
         /// <param name="phlogs">The phlogs.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern unsafe uint sccorelog_connect_to_logs(string server_name, void* ignore, ulong* phlogs);
+        public static extern unsafe uint sccorelog_connect_to_logs(string host_name, void* ignore, ulong* phlogs);
 
         /// <summary>
         /// SCs the bind logs to dir.
