@@ -25,10 +25,10 @@ Does not use any indexes.
 
 
 // Problem: Path expression in null condition should be replaced by some special type of join ("null join").
-// Compare with: select e.firstname, m.firstname, d.name from employee e left join employee m on e.Manager = m left join department d on m.Department = d where d.location is null
+// Compare with: select e.firstname, m.firstname, d.name from SQLTest.EmployeeDb.employee e left join SQLTest.EmployeeDb.employee m on e.Manager = m left join department d on m.Department = d where d.location is null
 <NEXT>
 Description: Implicit joins using path expression and null
-QueryString: select e.firstname, e.manager.firstname, e.manager.department.name from employee e where e.manager.department.location is null
+QueryString: select e.firstname, e.manager.firstname, e.manager.department.name from SQLTest.EmployeeDb.employee e where e.manager.department.location is null
 
 
 // Problem: This query gives strange runtime error, but still works.
@@ -640,7 +640,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Unqualified field name
-QueryString: select FirstName from Employee
+QueryString: select FirstName from SQLTest.EmployeeDb.Employee
 SingleObjectProjection: True
 ExpectedExecutionPlan: 
 Tables(
@@ -724,7 +724,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Unqualified asterisk
-QueryString: select * from Employee
+QueryString: select * from SQLTest.EmployeeDb.Employee
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
@@ -15144,7 +15144,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Implicit joins using path expression with cast
-QueryString: select p.FirstName, p.Father.FirstName, cast(p.Father as Employee).Department.Name from SQLTest.EmployeeDb.Person p where cast(p.Father as Employee).Department.Name = 'Server'
+QueryString: select p.FirstName, p.Father.FirstName, cast(p.Father as SQLTest.EmployeeDb.Employee).Department.Name from SQLTest.EmployeeDb.Person p where cast(p.Father as SQLTest.EmployeeDb.Employee).Department.Name = 'Server'
 SingleObjectProjection: False
 IncludesLiteral: True
 ExpectedExecutionPlan: 
@@ -15214,7 +15214,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Implicit joins using path expression with cast (single object projection)
-QueryString: select cast(p.Father as Employee).Department from SQLTest.EmployeeDb.Person p where cast(p.Father as Employee).Department.Name = 'Server'
+QueryString: select cast(p.Father as SQLTest.EmployeeDb.Employee).Department from SQLTest.EmployeeDb.Person p where cast(p.Father as SQLTest.EmployeeDb.Employee).Department.Name = 'Server'
 CompositeResultObjects: False
 SingleObjectPathProjection: True
 IncludesLiteral: True
