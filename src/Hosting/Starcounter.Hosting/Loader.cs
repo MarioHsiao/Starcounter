@@ -29,7 +29,7 @@ namespace StarcounterInternal.Hosting
         /// <summary>
         /// The assembly file infos by name_
         /// </summary>
-        private Dictionary<string, FileInfo> assemblyFileInfosByName_ = new Dictionary<string, FileInfo>();
+        private Dictionary<string, FileInfo> assemblyFileInfosByName_ = new Dictionary<string, FileInfo>(StringComparer.InvariantCultureIgnoreCase);
 
         /// <summary>
         /// Adds from directory.
