@@ -12,7 +12,7 @@ namespace QueryProcessingTest {
                 for (int i = 0; i < nrUsers; i++) {
                     User newUser = new User { UserId = FakeUserId(i)};
                     for (int j = 0; j < nrAccountPerUser; j++)
-                        new Account { AccountId = i * nrAccountPerUser + j, Amount = 100.0m, Client = newUser, Updated = DateTime.Now };
+                        new Account { AccountId = i * nrAccountPerUser + j, Amount = 100.0m * j, Client = newUser, Updated = DateTime.Now };
                 }
             });
         }
@@ -23,7 +23,7 @@ namespace QueryProcessingTest {
                 Db.Transaction(delegate {
                     User newUser = new User { UserId = FakeUserId(i) };
                     for (int j = 0; j < nrAccountPerUser; j++)
-                        new Account { AccountId = i * nrAccountPerUser + j, Amount = 100.0m, Client = newUser, Updated = DateTime.Now };
+                        new Account { AccountId = i * nrAccountPerUser + j, Amount = 100.0m * j, Client = newUser, Updated = DateTime.Now };
                 });
         }
 

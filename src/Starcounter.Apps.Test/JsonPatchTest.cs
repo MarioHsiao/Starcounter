@@ -10,25 +10,12 @@ using System.Text;
 using NUnit.Framework;
 using Starcounter.Apps;
 using Starcounter.Internal;
-using Starcounter.Internal.Application;
-using Starcounter.Internal.Application.JsonReader;
+using Starcounter.Internal.JsonTemplate;
 using Starcounter.Internal.ExeModule;
 using Starcounter.Templates;
 
 namespace Starcounter.Internal.JsonPatch.Test
 {
-    //internal struct AppAndTemplate
-    //{
-    //    internal readonly dynamic App;
-    //    internal readonly dynamic Template;
-
-    //    internal AppAndTemplate(dynamic app, dynamic template)
-    //    {
-    //        App = app;
-    //        Template = template;
-    //    }
-    //}
-
     /// <summary>
     /// Class JsonPatchTest
     /// </summary>
@@ -236,20 +223,20 @@ namespace Starcounter.Internal.JsonPatch.Test
             AppExeModule.IsRunningTests = true;
 
             AppAndTemplate aat = CreateSampleApp();
-            AppTemplate appt = (AppTemplate)aat.Template;
+            ObjTemplate appt = (AppTemplate)aat.Template;
 
             StringProperty firstName = (StringProperty)appt.Properties[0];
             Int32[] indexPath = aat.App.IndexPathFor(firstName);
             VerifyIndexPath(new Int32[] { 0 }, indexPath);
 
-            AppTemplate anotherAppt = (AppTemplate)appt.Properties[3];
-            App nearestApp = aat.App.GetValue(anotherAppt);
+            ObjTemplate anotherAppt = (AppTemplate)appt.Properties[3];
+            Obj nearestApp = aat.App.GetValue(anotherAppt);
 
             StringProperty desc = (StringProperty)anotherAppt.Properties[1];
             indexPath = nearestApp.IndexPathFor(desc);
             VerifyIndexPath(new Int32[] { 3, 1 }, indexPath);
 
-            ListingProperty itemProperty = (ListingProperty)appt.Properties[2];
+            ObjArrProperty itemProperty = (ObjArrProperty)appt.Properties[2];
             Listing items = aat.App.GetValue(itemProperty);
 
             nearestApp = items[1];
@@ -295,7 +282,7 @@ namespace Starcounter.Internal.JsonPatch.Test
                 appt = (AppTemplate)aat.Template;
 
                 StringProperty lastName = (StringProperty)appt.Properties[1];
-                ListingProperty items = (ListingProperty)appt.Properties[2];
+                ObjArrProperty items = (ObjArrProperty)appt.Properties[2];
 
                 dynamic app = aat.App;
                 app.LastName = "Ewing";

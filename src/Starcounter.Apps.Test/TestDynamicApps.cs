@@ -39,7 +39,7 @@ namespace Starcounter.Client.Tests.Application {
             var age = personTmpl.Add<IntProperty>("Age");
 
             var phoneNumber = new AppTemplate();
-            var phoneNumbers = personTmpl.Add<ListingProperty>("Phonenumbers", phoneNumber);
+            var phoneNumbers = personTmpl.Add<ArrProperty<App,AppTemplate>>("Phonenumbers", phoneNumber);
             var number = phoneNumber.Add<StringProperty>("Number");
 
             Assert.AreEqual("FirstName$", firstName.Name);

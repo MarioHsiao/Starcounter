@@ -54,6 +54,7 @@
     <PostSharpRedistributables>$(OutputPath)</PostSharpRedistributables>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Advanced\DbEnvironment.cs" />
     <Compile Include="Apps\App.cs" />
     <Compile Include="Apps\GatewayHandlers.cs" />
     <Compile Include="Apps\Bootstrap\AppProcess.cs" />
@@ -120,6 +121,7 @@
     <Compile Include="Internal\Kernel32.cs" />
     <Compile Include="Internal\Scheduler.cs" />
     <Compile Include="Internal\ThreadData.cs" />
+    <Compile Include="Metadata\SysColumn.cs" />
     <Compile Include="Metadata\SysIndex.cs" />
     <Compile Include="Metadata\SysTable.cs" />
     <Compile Include="Mock\Db.cs" />

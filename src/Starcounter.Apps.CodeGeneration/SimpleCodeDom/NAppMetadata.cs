@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="NAppMetadata.cs" company="Starcounter AB">
+// <copyright file="NObjMetadata.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -9,9 +9,9 @@ using System.Collections.Generic;
 namespace Starcounter.Internal.Application.CodeGeneration {
 
     /// <summary>
-    /// Each App can have a metadata class. See AppMetadata.
+    /// Each App can have a metadata class. See ObjMetadata.
     /// </summary>
-    public class NAppMetadata : NMetadataClass {
+    public class NObjMetadata : NMetadataClass {
         /// <summary>
         /// The template
         /// </summary>

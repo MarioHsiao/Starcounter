@@ -6,6 +6,7 @@ namespace QueryProcessingTest {
             BindingTestDirect.DirectBindingTest();
             RunQueryProcessingTest();
             SqlBugsTest.QueryTests();
+            FetchTest.RunFetchTest();
         }
 
         static void RunQueryProcessingTest() {

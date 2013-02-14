@@ -1,5 +1,6 @@
 ﻿
 using HttpStructs;
+using Starcounter.Advanced;
 using Starcounter.Internal.JsonPatch;
 using Starcounter.Internal.Web;
 using System;
@@ -66,7 +67,7 @@ namespace Starcounter.Internal {
             // TODO: 
             // The registration to the gateway should only be called once per port, not 
             // once for each registered handler.
-            App.UriMatcherBuilder.RegistrationListeners.Add((string verbAndUri) => {
+            StarcounterBase._REST.RegistrationListeners.Add((string verbAndUri) => {
                 UInt16 handlerId;
                 GatewayHandlers.RegisterUriHandler((ushort)port, "/", OnHttpMessageRoot, out handlerId);
             });

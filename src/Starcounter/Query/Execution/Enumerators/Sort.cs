@@ -24,7 +24,7 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
         IQueryComparer comp,
         VariableArray varArr,
         String query,
-        INumericalExpression fetchNumExpr, IBinaryExpression fetchOffsetKeyExpr)
+        INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr)
         : base(rowTypeBind, varArr)
     {
         if (rowTypeBind == null)
@@ -41,6 +41,7 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
         //rowTypeBinding = subEnumerator.RowTypeBinding;
         enumerator = null;
         this.fetchNumberExpr = fetchNumExpr;
+        this.fetchOffsetExpr = fetchOffsetExpr;
         this.fetchOffsetKeyExpr = fetchOffsetKeyExpr;
 
         this.query = query;
@@ -196,6 +197,16 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
         {
             CreateEnumerator();
         }
+        if (counter == 0 && fetchOffsetExpr != null)
+            if (fetchOffsetExpr.EvaluateToInteger(null) != null) {
+                for (int i = 0; i < fetchOffsetExpr.EvaluateToInteger(null).Value; i++)
+                    if (!enumerator.MoveNext()) {
+                        enumerator.Dispose();
+                        enumerator = null;
+                        return false;
+                    }
+                counter = 0;
+            }
         if (counter == 0 && fetchNumberExpr != null) {
             if (fetchNumberExpr.EvaluateToInteger(null) != null)
                 fetchNumber = fetchNumberExpr.EvaluateToInteger(null).Value;
@@ -249,8 +260,13 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
         IBinaryExpression fetchOffsetKeyExprClone = null;
         if (fetchOffsetKeyExpr != null)
             fetchOffsetKeyExprClone = fetchOffsetKeyExpr.CloneToBinary(varArrClone);
+
+        INumericalExpression fetchOffsetExprClone = null;
+        if (fetchOffsetExpr != null)
+            fetchOffsetExprClone = fetchOffsetExpr.CloneToNumerical(varArrClone);
+
         return new Sort(rowTypeBindClone, subEnumerator.Clone(rowTypeBindClone, varArrClone), comparer.Clone(varArrClone), varArrClone, query, 
-            fetchNumberExprClone, fetchOffsetKeyExprClone);
+            fetchNumberExprClone, fetchOffsetExprClone, fetchOffsetKeyExprClone);
     }
 
     public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs)
