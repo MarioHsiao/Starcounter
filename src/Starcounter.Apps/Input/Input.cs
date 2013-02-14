@@ -6,6 +6,7 @@
 
 using System;
 using Starcounter.Templates;
+
 namespace Starcounter {
 
     /// <summary>
@@ -34,10 +35,11 @@ namespace Starcounter {
     }
 
     /// <summary>
-    /// Class Input
+    /// An event that encapsulates a single incomming action trigger for a specific value in
+    /// a Puppet. Used as base class for incomming trigger events in Puppets.
     /// </summary>
-    /// <typeparam name="TApp">The type of the T app.</typeparam>
-    /// <typeparam name="TTemplate">The type of the T template.</typeparam>
+    /// <typeparam name="TApp">The type of the Puppet.</typeparam>
+    /// <typeparam name="TTemplate">The type of the ....TODO</typeparam>
     public class Input<TApp, TTemplate> : Input
         where TApp : App
         where TTemplate : Template {
@@ -63,11 +65,12 @@ namespace Starcounter {
     }
 
     /// <summary>
-    /// Class Input
+    /// An event that encapsulates a single incomming update for a specific value in
+    /// a Puppet. Used as base class for incomming event data in Puppets.
     /// </summary>
-    /// <typeparam name="TApp">The type of the T app.</typeparam>
-    /// <typeparam name="TTemplate">The type of the T template.</typeparam>
-    /// <typeparam name="TValue">The type of the T value.</typeparam>
+    /// <typeparam name="TApp">The type of the Puppet.</typeparam>
+    /// <typeparam name="TTemplate">The type of the ....TODO</typeparam>
+    /// <typeparam name="TValue">The type of the value that is being updated</typeparam>
     public class Input<TApp, TTemplate, TValue> : Input<TValue> where TApp : App where TTemplate : Template {
 
         /// <summary>
@@ -99,9 +102,6 @@ namespace Starcounter {
             }
         }
 
-
-
-
         /// <summary>
         /// Finds the parent.
         /// </summary>
@@ -123,12 +123,12 @@ namespace Starcounter {
     }
 
     /// <summary>
-    /// Class Input
+    /// Base class for Input events. Input events are events triggered by the client
+    /// and catched on the server when Puppets receive input from the end user.
     /// </summary>
     public class Input {
 
         /// <summary>
-        /// The _cancelled
         /// </summary>
         private bool _cancelled = false;
 
@@ -163,7 +163,6 @@ namespace Starcounter {
     }
 
     /// <summary>
-    /// Class SchemaAttribute
     /// </summary>
     public class SchemaAttribute : System.Attribute {
     }
