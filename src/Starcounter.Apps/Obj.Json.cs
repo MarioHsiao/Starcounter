@@ -14,7 +14,7 @@ namespace Starcounter {
     /// <summary>
     /// Class App
     /// </summary>
-    public partial class App {
+    public partial class Obj {
 //        private char[] Session;
         /// <summary>
         /// To the json UTF8.
@@ -88,7 +88,7 @@ namespace Starcounter {
                     sb.Append(prop.Name);
                     sb.Append('"');
                     sb.Append(':');
-                    if (prop is ListTemplate) {
+                    if (prop is ObjArrProperty) {
                         sb.Append('[');
                         int i = 0;
                         foreach (var x in val as Listing) {

@@ -6,13 +6,14 @@
 
 using System;
 using Starcounter.Templates;
+using Starcounter.Advanced;
 
 namespace Starcounter {
     /// <summary>
     /// Class App
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class App<T> : App where T : Entity {
+    public class Obj<T> : Obj where T : IBindable {
         /// <summary>
         /// Gets or sets the data.
         /// </summary>

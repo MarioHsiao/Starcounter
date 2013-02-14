@@ -17,9 +17,6 @@ namespace Starcounter.Templates {
     /// Class ActionProperty
     /// </summary>
     public class ActionProperty : Property
-#if IAPP
-        , IActionTemplate
-#endif
     {
         /// <summary>
         /// The custom input event creator
@@ -58,7 +55,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>System.Object.</returns>
-        public override object CreateInstance(AppNode parent) {
+        public override object CreateInstance(Container parent) {
             return false;
         }
 
@@ -68,8 +65,8 @@ namespace Starcounter.Templates {
         /// <param name="createInputEvent">The create input event.</param>
         /// <param name="handler">The handler.</param>
         public void AddHandler(
-            Func<App, Property, Input> createInputEvent = null,
-            Action<App, Input> handler = null) {
+            Func<Obj, Property, Input> createInputEvent = null,
+            Action<Obj, Input> handler = null) {
             this.CustomInputEventCreator = createInputEvent;
             this.CustomInputHandlers.Add(handler);
         }
