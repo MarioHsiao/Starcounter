@@ -76,7 +76,7 @@
   <ItemGroup>
     <Compile Include="Puppet\App.cs" />
     <Compile Include="Arr.cs" />
-    <Compile Include="ChangeLog.cs" />
+    <Compile Include="Puppet\ChangeLog.cs" />
     <Compile Include="Container.cs" />
     <Compile Include="DataBinding.cs" />
     <Compile Include="Input\Input.cs" />

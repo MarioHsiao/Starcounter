@@ -173,7 +173,9 @@ namespace Starcounter {
 //            sb.Append(JsonConvert.SerializeObject(templ.ClassName));
 
             sb.Append('}');
-            IsSerialized = true;
+            if (this is App) {
+                ((App)this).IsSerialized = true; // TODO! Set when sending to client.
+            }
             return sb.ToString();
 #else
             throw new NotImplementedException();
