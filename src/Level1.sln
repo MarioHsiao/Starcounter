@@ -96,6 +96,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.MsBuild", "Starcounter.MsBuild\Starcounter.MsBuild.csproj", "{B1EC8976-B515-4308-89C3-319543A0C7A9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Web.Tests", "Starcounter.Web.Tests\Starcounter.Web.Tests.csproj", "{8670B44F-5240-4E27-AEAC-E7C58F626777}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5A65D606-6613-4139-8853-B5F26313E4DF} = {5A65D606-6613-4139-8853-B5F26313E4DF}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "scweaver", "scweaver\scweaver.csproj", "{76C95AD5-A9B4-4672-856A-18A1CE45D2B1}"
 EndProject
