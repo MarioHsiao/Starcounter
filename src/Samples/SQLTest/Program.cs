@@ -19,7 +19,8 @@ namespace SQLTest
             nrFailedQueries += Test4(outputPath);
             Console.WriteLine("Finished SQLTest.");
             //System.IO.File.Create(@"s\Starcounter\failedTest");
-            Environment.Exit(nrFailedQueries);
+            //Environment.Exit(nrFailedQueries);
+            Starcounter.Internal.Kernel32.ExitProcess((uint)nrFailedQueries);
             return nrFailedQueries;
         }
 
