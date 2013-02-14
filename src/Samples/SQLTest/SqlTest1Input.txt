@@ -16445,3 +16445,57 @@ ExpectedResult:
  ! Object ! 
  | 21 | 
  | 22 | 
+
+<NEXT>
+Description: Simple query with fetch
+QueryString: select d from department d fetch ?
+VariableValues: Int32:2;
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	auto
+	0
+	Description
+	StringDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 7 | 
+ | 8 | 
+
+<NEXT>
+Description: Simple query with fetch and offset
+QueryString: select d from department d fetch ? offset ?
+VariableValues: Int32:2; Int32:1;
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	auto
+	0
+	Description
+	StringDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 8 | 
+ | 9 | 
