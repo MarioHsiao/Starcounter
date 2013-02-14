@@ -26,11 +26,20 @@ namespace Starcounter.Client {
 namespace Starcounter {
 #endif
     /// <summary>
-    /// 
+    /// Base class for simple data objects that are mapped to schemas (called Templates). These
+    /// objects can contain named properties with simple datatypes found in common programming languages,
+    /// including string, integer, boolean, decimal, floating point, null and array. The objects mimics
+    /// the kind of objects inducable from Json trees, albeit with a richer set of numeric representations.
     /// </summary>
+    /// <remarks>
+    /// Obj is the base class for popular Starcounter concepts such as Puppets and Messages.
+    /// </remarks>
     public abstract partial class Obj : Container {
         /// <summary>
-        /// 
+        /// An Obj can be bound to a data object. This makes the Obj reflect the data in the
+        /// underlying bound object. This is common in database applications where Json messages
+        /// or view models (Puppets) are often associated with database objects. I.e. a person form might
+        /// reflect a person database object (Entity).
         /// </summary>
         private IBindable _Data;
 
@@ -41,11 +50,6 @@ namespace Starcounter {
             _cacheIndexInList = -1;
             ViewModelId = -1;
         }
-
-        /// <summary>
-        /// Rest-server responsible for delivering static resources.
-        /// </summary>
-        public static HttpRestServer StaticResources;
 
         /// <summary>
         /// Triggers the type initialization.
