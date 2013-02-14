@@ -18,12 +18,12 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Inject database function provider here
         /// </summary>
-        internal static IDb _DB;
+        public static IDb _DB;
 
         /// <summary>
         /// Inject REST handler function provider here
         /// </summary>
-        internal static IREST _REST;
+        public static IREST _REST;
 
         /// <summary>
         /// Runs code as an ACID database transaction in the embedding database.
