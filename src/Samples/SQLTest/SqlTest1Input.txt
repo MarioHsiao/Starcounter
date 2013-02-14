@@ -16530,6 +16530,7 @@ ExpectedResult:
 Description: Offset with simple path expression query
 QueryString: select location from department order by location offset ?
 VariableValues: Int32:2;
+ShouldBeReordered: False
 ExpectedExecutionPlan: 
 Tables(
 	0 = SQLTest.EmployeeDb.Department
@@ -16558,3 +16559,58 @@ ExpectedResult:
  ! Object ! 
  | 2 | 
  | 5 | 
+
+<NEXT>
+Description: Offset with join
+QueryString: select e1 from employee e1, employee e2 where e1.hiredate > e2.hiredate and e1.manager = e2.manager order by e1 fetch ? offset ?
+VariableValues: Int32:2; Int32:2;
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Employee
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+Sort(
+	Join(
+		Inner
+		IndexScan(
+			auto
+			0
+			FirstName
+			StringDynamicRange(
+			)
+			LogicalValue(TRUE)
+			Ascending
+		)
+		FullTableScan(
+			1
+			LogicalOperation(
+				AND
+				ComparisonDateTime(
+					GreaterThan
+					DateTimeProperty(0, HireDate)
+					DateTimeProperty(1, HireDate)
+				)
+				ComparisonObject(
+					Equal
+					ObjectProperty(0, Manager)
+					ObjectProperty(1, Manager)
+				)
+			)
+			Ascending
+		)
+	)
+	ObjectComparer(
+		ObjectThis(0)
+		Ascending
+	)
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 21 | 
+ | 22 | 
