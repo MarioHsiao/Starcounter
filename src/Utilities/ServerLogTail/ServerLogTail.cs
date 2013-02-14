@@ -10,6 +10,9 @@ namespace ServerLogTail
 
 public static class Program
 {
+    public static void Main(String[] args) { }
+
+#if false
 	private static ConsoleColor _originalColor;
 
     public static void Main(String[] args)
@@ -173,5 +176,6 @@ public static class Program
 		}
 		Console.ForegroundColor = color;
 	}
+#endif
 }
 }
