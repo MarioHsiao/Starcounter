@@ -2,6 +2,7 @@
 using Starcounter.Advanced;
 using Starcounter.Templates;
 using System;
+using System.Text;
 namespace Starcounter {
 
     /// <summary>
@@ -53,6 +54,18 @@ namespace Starcounter {
     public class App<T> : Obj<T> where T : IBindable {
 
         /// <summary>
+        /// 
+        /// </summary>
+        public App() : base() {
+                   ViewModelId = -1;
+        }
+
+        /// <summary>
+        /// Returns the id of this app or -1 if not used.
+        /// </summary>
+        internal int ViewModelId { get; set; }
+
+        /// <summary>
         /// Performs an implicit conversion from <see cref="System.String" /> to <see cref="App" />.
         /// </summary>
         /// <param name="str">The STR.</param>
@@ -68,6 +81,25 @@ namespace Starcounter {
         protected override void HasChanged(Property property) {
             ChangeLog.UpdateValue(this, property);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sb"></param>
+        /// <param name="addComma"></param>
+        /// <returns></returns>
+        internal override int InsertAdditionalJsonProperties(StringBuilder sb, bool addComma) {
+
+            if (ViewModelId != -1) {
+                if (addComma)
+                    sb.Append(',');
+                sb.Append("\"View-Model\":");
+                sb.Append(ViewModelId);
+                return 1;
+            }
+            return 0;
+        }
+
 
         /// <summary>
         /// When elements are added to an array, this should be logged such that

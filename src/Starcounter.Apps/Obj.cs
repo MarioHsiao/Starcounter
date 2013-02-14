@@ -17,14 +17,7 @@ using Starcounter.Internal.REST;
 using Starcounter.Internal;
 using Starcounter.Advanced;
 
-#if CLIENT
-using Starcounter.Client.Template;
-
-namespace Starcounter.Client {
-#else
-
 namespace Starcounter {
-#endif
     /// <summary>
     /// Base class for simple data objects that are mapped to schemas (called Templates). These
     /// objects can contain named properties with simple datatypes found in common programming languages,
@@ -48,23 +41,9 @@ namespace Starcounter {
         /// </summary>
         public Obj() : base() {
             _cacheIndexInList = -1;
-            ViewModelId = -1;
         }
 
-        /// <summary>
-        /// Triggers the type initialization.
-        /// </summary>
-        static internal void TriggerTypeInitialization() {
-            // Calling a static method will trigger type initialization.
-            // This is important to detect if the EXE module is running out of process.
-            // (so that it can be stopped and restarted inside the database process).
-            // Called when the When class is initialized.
-        }
 
-        /// <summary>
-        /// Returns the id of this app or -1 if not used.
-        /// </summary>
-        internal int ViewModelId { get; set; }
 
         /// <summary>
         /// Cache field of index if the parent of this Obj is a list.
