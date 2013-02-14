@@ -10,7 +10,7 @@ using System.Text;
 using HtmlAgilityPack;
 using Starcounter.Templates;
 
-namespace Starcounter.Internal.Application.JsonReader {
+namespace Starcounter.Internal.JsonTemplate {
     /// <summary>
     /// Class TemplateFromHtml
     /// </summary>

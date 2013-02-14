@@ -445,6 +445,49 @@ namespace Starcounter.Internal.Test {
         }
 
         /// <summary>
+        /// </summary>
+        [Test]
+        public void TestSimpleUriConflict() {
+
+            Reset();
+
+            GET("/ab", () => {
+                Console.WriteLine("Handler /ab was called" );
+                return 2;
+            });
+
+            GET("/{?}", (string rest) => {
+                Console.WriteLine("Handler / was called");
+                return 1;
+            });
+
+            var umb = RequestHandler.UriMatcherBuilder;
+
+            var pt = umb.CreateParseTree();
+            var ast = umb.CreateAstTree(false);
+            ast.Namespace = "__urimatcher__";
+            
+            var compiler = umb.CreateCompiler();
+            var str = compiler.GenerateRequestProcessorCSharpSourceCode(ast);
+
+            Console.WriteLine(pt.ToString(false));
+//            Console.WriteLine(pt.ToString(true));
+            Console.WriteLine(ast.ToString());
+            Console.WriteLine(str);
+
+            byte[] h1 = Encoding.UTF8.GetBytes("GET /\r\n\r\n");
+            byte[] h2 = Encoding.UTF8.GetBytes("GET /ab\r\n\r\n");
+
+            var um = RequestHandler.RequestProcessor;
+            object resource;
+            Assert.True(um.Invoke(new HttpRequest(h1), out resource));
+            Assert.AreEqual(1, (int)resource);
+            Assert.True(um.Invoke(new HttpRequest(h2), out resource));
+            Assert.AreEqual(2, (int)resource);
+        }
+
+
+        /// <summary>
         /// Tests the simple rest handler.
         /// </summary>
         [Test]
@@ -458,7 +501,7 @@ namespace Starcounter.Internal.Test {
             });
 
             GET("/products/{?}", (string prodid) => {
-                Console.WriteLine("Handler 2 was called with " + prodid );
+                Console.WriteLine("Handler 2 was called with " + prodid);
                 return null;
             });
 
@@ -470,7 +513,7 @@ namespace Starcounter.Internal.Test {
             var str = compiler.GenerateRequestProcessorCSharpSourceCode(ast);
 
             Console.WriteLine(pt.ToString(false));
-//            Console.WriteLine(pt.ToString(true));
+            //            Console.WriteLine(pt.ToString(true));
             Console.WriteLine(ast.ToString());
             Console.WriteLine(str);
 
@@ -482,6 +525,7 @@ namespace Starcounter.Internal.Test {
             Assert.True(um.Invoke(new HttpRequest(h1), out resource));
             Assert.True(um.Invoke(new HttpRequest(h2), out resource));
         }
+
 
         /// <summary>
         /// Tests the rest handler.

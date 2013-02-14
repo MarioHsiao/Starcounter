@@ -15,9 +15,6 @@ namespace Starcounter.Templates {
     /// Defines a boolean property in an App object.
     /// </summary>
     public class BoolProperty : Property<bool>
-#if IAPP
-        , IBoolTemplate
-#endif
     {
         /// <summary>
         /// The _ default value

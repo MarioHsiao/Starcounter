@@ -16,9 +16,6 @@ namespace Starcounter.Templates {
     /// Class DoubleProperty
     /// </summary>
     public class DoubleProperty : Property<double>
-#if IAPP
-        , IDoubleTemplate
-#endif
     {
         /// <summary>
         /// The _ default value

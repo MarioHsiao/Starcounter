@@ -29,6 +29,7 @@ internal abstract class ExecutionEnumerator
 
     protected INumericalExpression fetchNumberExpr = null; // Represents fetch literal or variable.
     protected Int64 fetchNumber = Int64.MaxValue; // Maximum fetch number.
+    protected INumericalExpression fetchOffsetExpr = null; // Represents offset literal or variable.
     protected IBinaryExpression fetchOffsetKeyExpr = null; // Represents offset key literal or variable.
     protected Boolean innermostExtent = false; // True, if this execution-enumerator represents the innermost extent, otherwise false.
 
@@ -431,7 +432,7 @@ internal abstract class ExecutionEnumerator
             {
                 slotsBuf[0] = dbObject.ThisRef.ETI;
                 slotsBuf[1] = dbObject.ThisRef.ObjectID;
-                slotsBuf[2] = dbObject.TableId;
+                slotsBuf[2] = dbObject.TypeBinding.TableId;
             }
             else
             {

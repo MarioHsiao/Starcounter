@@ -18,9 +18,6 @@ namespace Starcounter.Templates {
     /// Class StringProperty
     /// </summary>
     public class StringProperty : Property<string>
-#if IAPP
-        , IStringTemplate
-#endif
     {
         /// <summary>
         /// Processes the input.

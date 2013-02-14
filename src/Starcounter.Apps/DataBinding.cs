@@ -2,14 +2,14 @@
 
 namespace Starcounter.Templates.DataBinding {
     internal class DataBinding<TValue> {
-        private Func<App, TValue> dataGetter;
-        private Action<App, TValue> dataSetter;
+        private Func<Obj, TValue> dataGetter;
+        private Action<Obj, TValue> dataSetter;
 
-        internal DataBinding(Func<App, TValue> dataGetter)
+        internal DataBinding(Func<Obj, TValue> dataGetter)
             : this(dataGetter, null) {
         }
 
-        internal DataBinding(Func<App, TValue> dataGetter, Action<App, TValue> dataSetter) {
+        internal DataBinding(Func<Obj, TValue> dataGetter, Action<Obj, TValue> dataSetter) {
             this.dataGetter = dataGetter;
             this.dataSetter = dataSetter;
         }
@@ -19,7 +19,7 @@ namespace Starcounter.Templates.DataBinding {
         /// </summary>
         /// <param name="app"></param>
         /// <returns></returns>
-        internal TValue GetValue(App app) {
+        internal TValue GetValue(Obj app) {
             if (dataGetter != null) {
                 return dataGetter(app);
             }
@@ -31,7 +31,7 @@ namespace Starcounter.Templates.DataBinding {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="value"></param>
-        internal void SetValue(App app, TValue value) {
+        internal void SetValue(Obj app, TValue value) {
             if (dataSetter != null) {
                 dataSetter(app, value);
             }

@@ -138,6 +138,10 @@
       <Project>{c6b4ba42-680c-446d-9b89-1c82d443dc75}</Project>
       <Name>BitsAndBytes</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
+      <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
+      <Name>Starcounter.Internal</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="RequestHandler\AstTree\Nodes\AstSwitch.cs" />

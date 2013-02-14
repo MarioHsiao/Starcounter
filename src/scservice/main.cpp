@@ -13,7 +13,7 @@
 static void *hcontrol_event;
 
 // Global handle to server log.
-uint64_t g_sc_log_handle_;
+uint64_t g_sc_log_handle_ = 0;
 
 static void __shutdown_event_handler()
 {
@@ -43,6 +43,8 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
         // Reading the server name if specified.
         srv_name = argv[1];
     }
+
+    wprintf(L"Starting Starcounter %s engine...\n", srv_name);
 
     // Getting executable directory.
     wchar_t exe_dir[1024];
@@ -138,6 +140,8 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 
     swprintf(server_cfg_path, str_num_chars, str_template, server_dir, srv_name_upr);
 
+    wprintf(L"Reading server configuration from: %s\n", server_cfg_path);
+
     // Reading server logs directory.
     wchar_t *server_logs_dir;
     wchar_t *server_temp_dir;
@@ -152,9 +156,10 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
         &system_http_port,
         &default_user_http_port);
 
-    // Registering the logger.
-    OpenStarcounterLog(server_logs_dir);
+    if (r) goto end;
 
+    // Registering the logger.
+    r = OpenStarcounterLog(server_logs_dir);
     if (r) goto end;
 
 	// Creating path to the database configuration file.
@@ -361,8 +366,10 @@ end:
         FormatStarcounterErrorMessage(r, error_msg_buf, 4096);
 
         // Logging this error.
-        LogWriteError(error_msg_buf);
         wprintf(L"Exited with error code: %s\n", error_msg_buf);
+
+        if (g_sc_log_handle_)
+            LogWriteError(error_msg_buf);
 	}
 	
     if (handles[4]) _kill_and_cleanup(handles[4]);	// SCDODE

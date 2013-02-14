@@ -22,9 +22,6 @@ namespace Starcounter.Templates {
     /// templates defines the schema of an App.
     /// </summary>
     public abstract class Template 
-#if IAPP
-        : ITemplate, IStatefullTemplate 
-#endif
     {
         /// <summary>
         /// Gets the type of the json.
@@ -62,7 +59,7 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this <see cref="IStatefullTemplate" /> is editable.
+        /// Gets or sets a value indicating whether this <see cref="Property" /> is editable.
         /// </summary>
         /// <value><c>true</c> if editable; otherwise, <c>false</c>.</value>
         public bool Editable { get; set; }
@@ -87,7 +84,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="app"></param>
         /// <returns></returns>
-        public virtual object GetBoundValueAsObject(IApp app) {
+        public virtual object GetBoundValueAsObject(Obj app) {
             return null;
         }
 
@@ -96,7 +93,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="value"></param>
-        public virtual void SetBoundValueAsObject(IApp app, object value) {
+        public virtual void SetBoundValueAsObject(Obj app, object value) {
 
         }
 
@@ -132,7 +129,7 @@ namespace Starcounter.Templates {
         /// in an array (a list), the parent is the AppListTemplate.
         /// </summary>
         /// <value>The parent.</value>
-        public IParentTemplate Parent {
+        public ParentTemplate Parent {
             get {
                 return _Parent;
             }
@@ -264,7 +261,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>System.Object.</returns>
-        public object GetInstance(AppNode parent) {
+        public object GetInstance(Container parent) {
             return this.CreateInstance(parent);
         }
 
@@ -273,19 +270,8 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>System.Object.</returns>
-        public virtual object CreateInstance(AppNode parent) {
+        public virtual object CreateInstance(Container parent) {
             return DefaultValueAsObject;
-        }
-
-        /// <summary>
-        /// As this template is represented by a runtime statefull object or value, we need to know how to create
-        /// a that object or value.
-        /// </summary>
-        /// <param name="parent">The host of the new object. Either a App or a AppList</param>
-        /// <returns>The value or object. For instance, if this is a StringTemplate, the default string
-        /// for the property to be in the new App object is returned.</returns>
-        object IStatefullTemplate.CreateInstance(IAppNode parent) {
-            return CreateInstance( (AppNode)parent );
         }
 
         /// <summary>

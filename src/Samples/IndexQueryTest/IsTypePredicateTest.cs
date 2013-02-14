@@ -69,6 +69,11 @@ namespace IndexQueryTest {
             foreach (Employee e in Db.SQL("select p from Employee p, Manager e  where p is ? and e is  ? and p.Boss = e", typeof(Teacher), typeof(Manager)))
                 nrObjects++;
             Trace.Assert(nrObjects == 0);
+            nrObjects = 0;
+            InheritedIndexTest.PrintQueryPlan("select p from Employee p, Manager e  where p is ? and e is  ? and p.Boss = e and p.Birthday > e.Birthday");
+            foreach (Employee e in Db.SQL("select p from Employee p, Manager e  where p is ? and e is  ? and p.Boss = e and p.Birthday > e.Birthday", typeof(Teacher), typeof(Manager)))
+                nrObjects++;
+            Trace.Assert(nrObjects == 0);
             // Literal test
 #if false
             nrObjects = 0;
