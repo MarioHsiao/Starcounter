@@ -369,7 +369,12 @@ end:
         wprintf(L"Exited with error code: %s\n", error_msg_buf);
 
         if (g_sc_log_handle_)
+        {
+            wprintf(L"Please review server log in: %s\n", server_logs_dir);
+            
+            // Logging to log file.
             LogWriteError(error_msg_buf);
+        }
 	}
 	
     if (handles[4]) _kill_and_cleanup(handles[4]);	// SCDODE
