@@ -40,6 +40,24 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 
     if (argc > 1)
     {
+        // Checking if help is needed.
+        if (argv[1][0] == L'?')
+        {
+            wprintf(L"scservice.exe [ServerName]\n");
+            wprintf(L"Example: scservice.exe personal\n");
+            wprintf(L"When no ServerName argument is supplied 'personal' is used.\n\n");
+            wprintf(L"How it works:\n");
+            wprintf(L"scservice will load XML-file called [ServerName].xml\n");
+            wprintf(L"from the same directory as scservice.exe and\n");
+            wprintf(L"will fetch corresponding server directory from it.\n");
+            wprintf(L"From obtained directory it will load [ServerName].config.xml\n");
+            wprintf(L"to read server-related settings.\n");
+            wprintf(L"scservice will then start and monitor all required\n");
+            wprintf(L"Starcounter components, like scnetworkgateway, scipcmonitor, etc.\n");
+
+            return 0;
+        }
+
         // Reading the server name if specified.
         srv_name = argv[1];
     }
