@@ -220,7 +220,7 @@ namespace Starcounter {
          throw new JockeNotImplementedException();
 #endif
             template = (ObjArrProperty)this.Template;
-            ChangeLog.AddItemInList((Obj)this.Parent, template, index);
+            ChangeLog.AddItemInList((App)this.Parent, template, index);
 
             for (Int32 i = index + 1; i < QuickAndDirtyArray.Count; i++) {
                 otherItem = QuickAndDirtyArray[i];
@@ -330,9 +330,10 @@ namespace Starcounter {
 #else
          throw new JockeNotImplementedException();
 #endif
-
-            ChangeLog.AddItemInList((App)this.Parent, (ObjArrProperty)this.Template, QuickAndDirtyArray.Count - 1);
+            Parent.HasAddedItem(this.Template, QuickAndDirtyArray.Count - 1);
         }
+
+
 
         /// <summary>
         /// 

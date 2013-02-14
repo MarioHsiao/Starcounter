@@ -62,12 +62,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Returns true if this Obj have been serialed and sent to the client.
-        /// </summary>
-        /// <value>The is serialized.</value>
-        public Boolean IsSerialized { get; internal set; }
-
-        /// <summary>
         /// Returns the id of this app or -1 if not used.
         /// </summary>
         internal int ViewModelId { get; set; }

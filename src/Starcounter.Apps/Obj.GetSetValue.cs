@@ -94,7 +94,8 @@ namespace Starcounter {
         public void SetValue(BoolProperty property, bool value) {
             if (property.Bound) {
                 property.SetBoundValue(this, value);
-                ChangeLog.UpdateValue(this, property);
+                HasChanged(property);
+//                ChangeLog.UpdateValue(this, property);
                 return;
             }
 
@@ -103,8 +104,8 @@ namespace Starcounter {
 #else
             throw new JockeNotImplementedException();
 #endif
-
-            ChangeLog.UpdateValue(this, property);
+            HasChanged(property);
+           // ChangeLog.UpdateValue(this, property);
         }
 
         /// <summary>
@@ -135,7 +136,8 @@ namespace Starcounter {
         public void SetValue(DecimalProperty property, decimal value) {
             if (property.Bound) {
                 property.SetBoundValue(this, value);
-                ChangeLog.UpdateValue(this, property);
+                HasChanged(property);
+//                ChangeLog.UpdateValue(this, property);
                 return;
             }
 

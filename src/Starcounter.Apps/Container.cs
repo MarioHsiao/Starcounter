@@ -81,6 +81,9 @@ namespace Starcounter {
             child._parent = this;
         }
 
+        internal virtual void HasAddedItem(Property template, int count) {
+        }
+
         /// <summary>
         /// The _parent
         /// </summary>

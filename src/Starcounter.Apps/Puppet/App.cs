@@ -1,5 +1,6 @@
 ﻿
 using Starcounter.Advanced;
+using Starcounter.Templates;
 using System;
 namespace Starcounter {
 
@@ -67,6 +68,23 @@ namespace Starcounter {
         protected override void HasChanged(Property property) {
             ChangeLog.UpdateValue(this, property);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="template"></param>
+        /// <param name="count"></param>
+        internal override void HasAddedItem(Property template, int count) {
+            ChangeLog.AddItemInList((App)this.Parent, (ObjArrProperty)template, count);
+        }
+
+
+
+        /// <summary>
+        /// Returns true if this Obj have been serialized and sent to the client.
+        /// </summary>
+        /// <value>The is serialized.</value>
+        public Boolean IsSerialized { get; internal set; }
 
         /// <summary>
         /// Commits this instance.
