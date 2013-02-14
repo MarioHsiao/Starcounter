@@ -81,8 +81,12 @@ namespace Starcounter {
             child._parent = this;
         }
 
-        internal virtual void HasAddedItem(Property template, int count) {
+        internal virtual void HasAddedElement(ObjArrProperty property, int elementIndex) {
         }
+
+        internal virtual void HasRemovedElement(ObjArrProperty property, int elementIndex) {
+        }
+
 
         /// <summary>
         /// The _parent

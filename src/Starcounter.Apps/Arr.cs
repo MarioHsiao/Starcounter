@@ -330,7 +330,7 @@ namespace Starcounter {
 #else
          throw new JockeNotImplementedException();
 #endif
-            Parent.HasAddedItem(this.Template, QuickAndDirtyArray.Count - 1);
+            Parent.HasAddedElement((ObjArrProperty)this.Template, QuickAndDirtyArray.Count - 1);
         }
 
 
@@ -340,14 +340,14 @@ namespace Starcounter {
         /// </summary>
         public void Clear() {
             int indexesToRemove;
-            App app = (App)this.Parent;
+            var app = this.Parent;
             ObjArrProperty property = (ObjArrProperty)this.Template;
 
 #if QUICKTUPLE
 
             indexesToRemove = QuickAndDirtyArray.Count;
             for (int i = (indexesToRemove - 1); i >= 0; i--) {
-                ChangeLog.RemoveItemInList(app, property, i);
+                app.HasAddedElement(property, i );
             }
             QuickAndDirtyArray.Clear();
 #else
