@@ -70,14 +70,18 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// 
+        /// When elements are added to an array, this should be logged such that
+        /// the client is updated.
         /// </summary>
-        /// <param name="template"></param>
-        /// <param name="count"></param>
-        internal override void HasAddedItem(Property template, int count) {
-            ChangeLog.AddItemInList((App)this.Parent, (ObjArrProperty)template, count);
+        /// <param name="property">The array property of this Puppet</param>
+        /// <param name="elementIndex">The added element index</param>
+        internal override void HasAddedElement(ObjArrProperty property, int elementIndex) {
+            ChangeLog.AddItemInList(this, (ObjArrProperty)property, elementIndex);
         }
 
+        internal override void HasRemovedElement(ObjArrProperty property, int elementIndex) {
+            ChangeLog.RemoveItemInList(this, property, elementIndex );
+        }
 
 
         /// <summary>
