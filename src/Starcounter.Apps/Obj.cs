@@ -40,28 +40,28 @@ namespace Starcounter {
         /// Initializes a new instance of the <see cref="Obj" /> class.
         /// </summary>
         public Obj() : base() {
-            _cacheIndexInList = -1;
+            _cacheIndexInArr = -1;
         }
 
-
-
         /// <summary>
-        /// Cache field of index if the parent of this Obj is a list.
+        /// Cache element index if the parent of this Obj is an array (Arr).
         /// </summary>
-        internal Int32 _cacheIndexInList;
+        internal Int32 _cacheIndexInArr;
 
         /// <summary>
-        /// Fills the index path.
+        /// In order to support Json pointers (TODO REF), this method is called
+        /// recursivly to fill in a list of relative pointers from the root to
+        /// a given node in the Json like tree (the Obj/Arr tree).
         /// </summary>
         /// <param name="path">The patharray to fill</param>
         /// <param name="pos">The position to fill</param>
         internal override void FillIndexPath(int[] path, int pos) {
             if (Parent != null) {
                 if (Parent is Listing) {
-                    if (_cacheIndexInList == -1) {
-                        _cacheIndexInList = ((Listing)Parent).IndexOf(this);
+                    if (_cacheIndexInArr == -1) {
+                        _cacheIndexInArr = ((Listing)Parent).IndexOf(this);
                     }
-                    path[pos] = _cacheIndexInList;
+                    path[pos] = _cacheIndexInArr;
                 } else {
                     path[pos] = Template.Index;
                 }
@@ -70,9 +70,11 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Gets or sets the underlying entity object.
+        /// Gets or sets the bound (underlying) data object (often a database Entity object). This enables
+        /// the Obj to reflect the values of the bound object. The values are matched by property names by default.
+        /// When you declare an Obj using generics, be sure to specify the type of the bound object in the class declaration.
         /// </summary>
-        /// <value>The data.</value>
+        /// <value>The bound data object (often a database Entity)</value>
         public IBindable Data {
             get {
                 return (IBindable)_Data;
