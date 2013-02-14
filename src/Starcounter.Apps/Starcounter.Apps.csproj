@@ -74,7 +74,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Obj.REST.cs" />
     <Compile Include="Puppet\App.cs" />
     <Compile Include="Arr.cs" />
     <Compile Include="ChangeLog.cs" />
