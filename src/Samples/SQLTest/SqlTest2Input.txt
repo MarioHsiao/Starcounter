@@ -24,7 +24,7 @@ Uses the data from SqlTest1.
 
 ====== TODOS ======
 
-Remove queries duplicated from EmployeeDb and which do not use indexes.
+Remove queries duplicated from SQLTest.EmployeeDb.EmployeeDb and which do not use indexes.
 
 
 ====== PROBLEMS ======
@@ -1151,7 +1151,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Unqualified field name
-QueryString: select FirstName from Employee
+QueryString: select FirstName from SQLTest.EmployeeDb.Employee
 VariableValues: 
 DataManipulation: False
 SingleObjectProjection: True
@@ -1249,7 +1249,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Unqualified asterisk
-QueryString: select * from Employee
+QueryString: select * from SQLTest.EmployeeDb.Employee
 VariableValues: 
 DataManipulation: False
 SingleObjectProjection: False
@@ -20767,7 +20767,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Implicit joins using path expression with cast
-QueryString: select p.FirstName, p.Father.FirstName, cast(p.Father as Employee).Department.Name from SQLTest.EmployeeDb.Person p where cast(p.Father as Employee).Department.Name = 'Server'
+QueryString: select p.FirstName, p.Father.FirstName, cast(p.Father as SQLTest.EmployeeDb.Employee).Department.Name from SQLTest.EmployeeDb.Person p where cast(p.Father as SQLTest.EmployeeDb.Employee).Department.Name = 'Server'
 SingleObjectProjection: False
 IncludesLiteral: True
 ExpectedExecutionPlan: 
@@ -20837,7 +20837,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Implicit joins using path expression with cast (single object projection)
-QueryString: select cast(p.Father as Employee).Department from SQLTest.EmployeeDb.Person p where cast(p.Father as Employee).Department.Name = 'Server'
+QueryString: select cast(p.Father as SQLTest.EmployeeDb.Employee).Department from SQLTest.EmployeeDb.Person p where cast(p.Father as SQLTest.EmployeeDb.Employee).Department.Name = 'Server'
 CompositeResultObjects: False
 SingleObjectPathProjection: True
 IncludesLiteral: True
