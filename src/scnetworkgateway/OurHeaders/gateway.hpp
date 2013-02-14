@@ -49,6 +49,7 @@ typedef uint32_t session_index_type;
 typedef uint64_t session_timestamp_type;
 typedef int64_t echo_id_type;
 typedef uint64_t log_handle_type;
+typedef uint64_t handler_info_type;
 
 // Statistics macros.
 #define GW_GLOBAL_STATISTICS
@@ -86,6 +87,7 @@ typedef uint64_t log_handle_type;
 //#define GW_LOOPED_TEST_MODE
 //#define GW_PROFILER_ON
 //#define GW_LIMITED_ECHO_TEST
+//#define GW_URI_MATCHING_CODEGEN
 
 // Checking that macro definitions are correct.
 #ifdef GW_LOOPED_TEST_MODE
@@ -1298,6 +1300,8 @@ public:
 #endif
 };
 
+class CodegenUriMatcher;
+struct RegisteredUriManaged;
 class GatewayWorker;
 class Gateway
 {
@@ -1312,8 +1316,10 @@ class Gateway
     std::string setting_sc_server_type_;
 
     // Gateway log file name.
-    std::wstring setting_output_dir_;
+    std::wstring setting_server_output_dir_;
+    std::wstring setting_gateway_output_dir_;
     std::wstring setting_log_file_path_;
+    std::wstring setting_sc_bin_dir_;
 
     // Gateway config file name.
     std::wstring setting_config_file_path_;
@@ -1531,7 +1537,19 @@ class Gateway
     // Critical section for statistics.
     CRITICAL_SECTION cs_statistics_;
 
+    // Codegen URI matcher.
+    CodegenUriMatcher* codegen_uri_matcher_;
+
 public:
+
+    // Generate the code using managed generator.
+    uint32_t GenerateUriMatcher(uint16_t port);
+
+    // Codegen URI matcher.
+    CodegenUriMatcher* get_codegen_uri_matcher()
+    {
+        return codegen_uri_matcher_;
+    }
 
 #ifdef GW_SOCKET_ID_CHECK
     // Checking if unique socket number is correct.
@@ -1897,9 +1915,21 @@ public:
     }
 
     // Getting settings log file directory.
-    std::wstring& get_setting_output_dir()
+    std::wstring& get_setting_server_output_dir()
     {
-        return setting_output_dir_;
+        return setting_server_output_dir_;
+    }
+
+    // Getting gateway output directory.
+    std::wstring& get_setting_gateway_output_dir()
+    {
+        return setting_gateway_output_dir_;
+    }
+
+    // Getting Starcounter bin directory.
+    std::wstring& get_setting_sc_bin_dir()
+    {
+        return setting_sc_bin_dir_;
     }
 
     // Getting maximum number of connections.
@@ -2168,6 +2198,9 @@ public:
 
     // Write critical into log.
     void LogWriteCritical(const wchar_t* msg);
+
+    // Write error into log.
+    void LogWriteError(const wchar_t* msg);
 
     // Deletes existing session.
     uint32_t KillSession(session_index_type session_index, bool* was_killed)
