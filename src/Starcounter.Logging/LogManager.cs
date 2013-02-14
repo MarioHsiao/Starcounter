@@ -21,42 +21,42 @@ namespace Starcounter.Logging
             sccorelog.sccorelog_flush_to_logs(_hlogs);
         }
 
-        internal static void Debug(String source, String message, String category, Exception exception)
+        internal static void Debug(String source, String message, Exception exception)
         {
-            WriteToLogs(sccorelog.SC_ENTRY_DEBUG, source, message, category, exception);
+            WriteToLogs(sccorelog.SC_ENTRY_DEBUG, source, message, exception);
         }
 
-        internal static void SuccessAudit(String source, String message, String category)
+        internal static void SuccessAudit(String source, String message)
         {
-            WriteToLogs(sccorelog.SC_ENTRY_SUCCESS_AUDIT, source, message, category, null);
+            WriteToLogs(sccorelog.SC_ENTRY_SUCCESS_AUDIT, source, message, null);
         }
 
-        internal static void FailureAudit(String source, String message, String category)
+        internal static void FailureAudit(String source, String message)
         {
-            WriteToLogs(sccorelog.SC_ENTRY_FAILURE_AUDIT, source, message, category, null);
+            WriteToLogs(sccorelog.SC_ENTRY_FAILURE_AUDIT, source, message, null);
         }
 
-        internal static void Notice(String source, String message, String category, Exception exception)
+        internal static void Notice(String source, String message, Exception exception)
         {
-            WriteToLogs(sccorelog.SC_ENTRY_NOTICE, source, message, category, exception);
+            WriteToLogs(sccorelog.SC_ENTRY_NOTICE, source, message, exception);
         }
 
-        internal static void Warning(String source, String message, String category, Exception exception)
+        internal static void Warning(String source, String message, Exception exception)
         {
-            WriteToLogs(sccorelog.SC_ENTRY_WARNING, source, message, category, exception);
+            WriteToLogs(sccorelog.SC_ENTRY_WARNING, source, message, exception);
         }
 
-        internal static void Error(String source, String message, String category, Exception exception)
+        internal static void Error(String source, String message, Exception exception)
         {
-            WriteToLogs(sccorelog.SC_ENTRY_ERROR, source, message, category, exception);
+            WriteToLogs(sccorelog.SC_ENTRY_ERROR, source, message, exception);
         }
 
-        internal static void Critical(String source, String message, String category, Exception exception)
+        internal static void Critical(String source, String message, Exception exception)
         {
-            WriteToLogs(sccorelog.SC_ENTRY_CRITICAL, source, message, category, exception);
+            WriteToLogs(sccorelog.SC_ENTRY_CRITICAL, source, message, exception);
         }
         
-        private static void WriteToLogs(uint type, string source, string message, string category, Exception exception)
+        private static void WriteToLogs(uint type, string source, string message, Exception exception)
         {
             string message2;
             if (exception != null)
@@ -71,7 +71,7 @@ namespace Starcounter.Logging
                     message = string.Concat(message, " ", message2);
                 }
             }
-            sccorelog.sccorelog_write_to_logs(_hlogs, type, source, category, message);
+            sccorelog.sccorelog_write_to_logs(_hlogs, type, source, message);
         }
     }
 }
