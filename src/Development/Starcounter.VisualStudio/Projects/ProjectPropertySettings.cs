@@ -35,7 +35,6 @@ namespace Starcounter.VisualStudio.Projects {
         /// </summary>
         /// <param name="storageType"></param>
         /// <param name="configurationDependent"></param>
-        /// <param name="defaultValue"></param>
         internal ProjectPropertySettings(_PersistStorageType storageType, bool configurationDependent) : 
             this(storageType, configurationDependent, string.Empty) {
         }
