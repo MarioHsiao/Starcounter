@@ -159,13 +159,7 @@ namespace Starcounter {
 
             }
 
-            if (ViewModelId != -1)
-            {
-                if (t > 0)
-                    sb.Append(',');
-                sb.Append("\"View-Model\":");
-                sb.Append(ViewModelId);
-            }
+            t += InsertAdditionalJsonProperties(sb, t > 0);
 
 //            if (t > 0)
 //                sb.Append(',');
@@ -181,5 +175,16 @@ namespace Starcounter {
             throw new NotImplementedException();
 #endif
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sb"></param>
+        /// <param name="addComma"></param>
+        /// <returns></returns>
+        internal virtual int InsertAdditionalJsonProperties(StringBuilder sb, bool addComma) {
+            return 0;
+        }
+
     }
 }
