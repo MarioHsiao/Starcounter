@@ -21046,3 +21046,36 @@ IndexScan(
 ExpectedResult: 
  ! Object ! 
  | 22 | 
+
+<NEXT>
+Description: Offset with simple path expression query
+QueryString: select location from department order by location offset ?
+VariableValues: Int32:2;
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		ObjectProperty(0, Location)
+)
+Sort(
+	IndexScan(
+		auto
+		0
+		Description
+		StringDynamicRange(
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	ObjectComparer(
+		ObjectProperty(0, Location)
+		Ascending
+	)
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 2 | 
+ | 5 | 
