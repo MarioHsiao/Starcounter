@@ -13,7 +13,7 @@ public partial class PlayerApp {
     public PlayerApp() { Template = DefaultTemplate; }
     public PlayerApp(PlayerAppTemplate template) { Template = template; }
     public new PlayerAppTemplate Template { get { return (PlayerAppTemplate)base.Template; } set { base.Template = value; } }
-    public new PlayerAppMetadata Metadata { get { return (PlayerAppMetadata)base.Metadata; } }
+    public new PlayerObjMetadata Metadata { get { return (PlayerObjMetadata)base.Metadata; } }
     public PlayerApp.KidApp Kid { get { return GetValue<PlayerApp.KidApp>(Template.Kid); } set { SetValue(Template.Kid, value); } }
     public App Page { get { return GetValue<App>(Template.Page); } set { SetValue(Template.Page, value); } }
     public int PlayerId { get { return GetValue(Template.PlayerId); } set { SetValue(Template.PlayerId, value); } }
@@ -24,7 +24,7 @@ public partial class PlayerApp {
         public KidApp() { Template = DefaultTemplate; }
         public KidApp(KidAppTemplate template) { Template = template; }
         public new KidAppTemplate Template { get { return (KidAppTemplate)base.Template; } set { base.Template = value; } }
-        public new KidAppMetadata Metadata { get { return (KidAppMetadata)base.Metadata; } }
+        public new KidObjMetadata Metadata { get { return (KidObjMetadata)base.Metadata; } }
         public new PlayerApp Parent { get { return (PlayerApp)base.Parent; } set { base.Parent = value; } }
         public String Grandkid { get { return GetValue(Template.Grandkid); } set { SetValue(Template.Grandkid, value); } }
         public class KidAppTemplate : AppTemplate {
@@ -34,11 +34,11 @@ public partial class PlayerApp {
                 ClassName = "KidApp";
                 Grandkid = Register<StringProperty>("Grandkid", "Grandkid");
             }
-            public override object CreateInstance(AppNode parent) { return new KidApp(this) { Parent = (PlayerApp)parent }; }
+            public override object CreateInstance(Container parent) { return new KidApp(this) { Parent = (PlayerApp)parent }; }
             public StringProperty Grandkid;
         }
-        public class KidAppMetadata : AppMetadata {
-            public KidAppMetadata(App app, AppTemplate template) : base(app, template) { }
+        public class KidObjMetadata : ObjMetadata {
+            public KidObjMetadata(App app, AppTemplate template) : base(app, template) { }
             public new PlayerApp.KidApp App { get { return (PlayerApp.KidApp)base.App; } }
             public new PlayerApp.KidApp.KidAppTemplate Template { get { return (PlayerApp.KidApp.KidAppTemplate)base.Template; } }
             public StringMetadata Grandkid { get { return __p_Grandkid ?? (__p_Grandkid = new StringMetadata(App, App.Template.Grandkid)); } }
@@ -50,7 +50,7 @@ public partial class PlayerApp {
         public AccountsApp() { Template = DefaultTemplate; }
         public AccountsApp(AccountsAppTemplate template) { Template = template; }
         public new AccountsAppTemplate Template { get { return (AccountsAppTemplate)base.Template; } set { base.Template = value; } }
-        public new AccountsAppMetadata Metadata { get { return (AccountsAppMetadata)base.Metadata; } }
+        public new AccountsObjMetadata Metadata { get { return (AccountsObjMetadata)base.Metadata; } }
         public new Listing<PlayerApp.AccountsApp> Parent { get { return (Listing<PlayerApp.AccountsApp>)base.Parent; } set { base.Parent = value; } }
         public int AccountId { get { return GetValue(Template.AccountId); } set { SetValue(Template.AccountId, value); } }
         public int AccountType { get { return GetValue(Template.AccountType); } set { SetValue(Template.AccountType, value); } }
@@ -64,13 +64,13 @@ public partial class PlayerApp {
                 AccountType = Register<IntProperty>("AccountType$", "AccountType", Editable = true);
                 Balance = Register<DecimalProperty>("Balance", "Balance");
             }
-            public override object CreateInstance(AppNode parent) { return new AccountsApp(this) { Parent = (Listing<PlayerApp.AccountsApp>)parent }; }
+            public override object CreateInstance(Container parent) { return new AccountsApp(this) { Parent = (Listing<PlayerApp.AccountsApp>)parent }; }
             public IntProperty AccountId;
             public IntProperty AccountType;
             public DecimalProperty Balance;
         }
-        public class AccountsAppMetadata : AppMetadata {
-            public AccountsAppMetadata(App app, AppTemplate template) : base(app, template) { }
+        public class AccountsObjMetadata : ObjMetadata {
+            public AccountsObjMetadata(App app, AppTemplate template) : base(app, template) { }
             public new PlayerApp.AccountsApp App { get { return (PlayerApp.AccountsApp)base.App; } }
             public new PlayerApp.AccountsApp.AccountsAppTemplate Template { get { return (PlayerApp.AccountsApp.AccountsAppTemplate)base.Template; } }
             public IntMetadata AccountId { get { return __p_AccountId ?? (__p_AccountId = new IntMetadata(App, App.Template.AccountId)); } }
@@ -90,30 +90,30 @@ public partial class PlayerApp {
             Page = Register<AppTemplate>("Page", "Page");
             PlayerId = Register<IntProperty>("PlayerId", "PlayerId");
             FullName = Register<StringProperty>("FullName$", "FullName", Editable = true);
-            Accounts = Register<ListingProperty<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate>>("Accounts", "Accounts");
+            Accounts = Register<ArrProperty<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate>>("Accounts", "Accounts");
             Accounts.App = PlayerApp.AccountsApp.DefaultTemplate;
         }
-        public override object CreateInstance(AppNode parent) { return new PlayerApp(this) { Parent = parent }; }
+        public override object CreateInstance(Container parent) { return new PlayerApp(this) { Parent = parent }; }
         public PlayerApp.KidApp.KidAppTemplate Kid;
         public AppTemplate Page;
         public IntProperty PlayerId;
         public StringProperty FullName;
-        public ListingProperty<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate> Accounts;
+        public ArrProperty<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate> Accounts;
     }
-    public class PlayerAppMetadata : AppMetadata {
-        public PlayerAppMetadata(App app, AppTemplate template) : base(app, template) { }
+    public class PlayerObjMetadata : ObjMetadata {
+        public PlayerObjMetadata(App app, AppTemplate template) : base(app, template) { }
         public new PlayerApp App { get { return (PlayerApp)base.App; } }
         public new PlayerApp.PlayerAppTemplate Template { get { return (PlayerApp.PlayerAppTemplate)base.Template; } }
-        public PlayerApp.KidApp.KidAppMetadata Kid { get { return __p_Kid ?? (__p_Kid = new PlayerApp.KidApp.KidAppMetadata(App, App.Template.Kid)); } }
-        private PlayerApp.KidApp.KidAppMetadata __p_Kid;
-        public AppMetadata Page { get { return __p_Page ?? (__p_Page = new AppMetadata(App, App.Template.Page)); } }
-        private AppMetadata __p_Page;
+        public PlayerApp.KidApp.KidObjMetadata Kid { get { return __p_Kid ?? (__p_Kid = new PlayerApp.KidApp.KidObjMetadata(App, App.Template.Kid)); } }
+        private PlayerApp.KidApp.KidObjMetadata __p_Kid;
+        public ObjMetadata Page { get { return __p_Page ?? (__p_Page = new ObjMetadata(App, App.Template.Page)); } }
+        private ObjMetadata __p_Page;
         public IntMetadata PlayerId { get { return __p_PlayerId ?? (__p_PlayerId = new IntMetadata(App, App.Template.PlayerId)); } }
         private IntMetadata __p_PlayerId;
         public StringMetadata FullName { get { return __p_FullName ?? (__p_FullName = new StringMetadata(App, App.Template.FullName)); } }
         private StringMetadata __p_FullName;
-        public ListingMetadata<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate> Accounts { get { return __p_Accounts ?? (__p_Accounts = new ListingMetadata<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate>(App, App.Template.Accounts)); } }
-        private ListingMetadata<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate> __p_Accounts;
+        public ArrMetadata<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate> Accounts { get { return __p_Accounts ?? (__p_Accounts = new ArrMetadata<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate>(App, App.Template.Accounts)); } }
+        private ArrMetadata<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate> __p_Accounts;
     }
     public static class Json {
         public class Kid : TemplateAttribute {

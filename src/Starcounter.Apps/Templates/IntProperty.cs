@@ -17,9 +17,6 @@ namespace Starcounter.Templates {
     /// Class IntProperty
     /// </summary>
     public class IntProperty : Property<long>
-#if IAPP
-        , IIntTemplate
-#endif
     {
 
         /// <summary>

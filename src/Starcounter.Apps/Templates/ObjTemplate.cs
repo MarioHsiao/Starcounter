@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using Starcounter.Templates.DataBinding;
 using Starcounter.Templates.Interfaces;
+using Starcounter.Advanced;
 
 #if CLIENT
 namespace Starcounter.Client.Template {
@@ -18,12 +19,12 @@ namespace Starcounter.Templates {
     /// <summary>
     /// Defines the properties of an App instance.
     /// </summary>
-    public class AppTemplate : ParentTemplate
+    public abstract class ObjTemplate : ParentTemplate
 #if IAPP
-, IAppTemplate
+//, IAppTemplate
 #endif
  {
-        private DataBinding<Entity> dataBinding;
+        private DataBinding<IBindable> dataBinding;
 
         /// <summary>
         /// Registers a template with the specified name.
@@ -102,7 +103,7 @@ namespace Starcounter.Templates {
         /// <summary>
         /// Initializes a new instance of the <see cref="AppTemplate" /> class.
         /// </summary>
-        public AppTemplate() {
+        public ObjTemplate() {
             _PropertyTemplates = new PropertyList(this);
         }
 
@@ -133,7 +134,7 @@ namespace Starcounter.Templates {
         /// <typeparam name="T"></typeparam>
         /// <param name="name">The name of the new template</param>
         /// <returns>A new instance of the specified template</returns>
-        public T Add<T>(string name) where T : ITemplate, new() {
+        public T Add<T>(string name) where T : Template, new() {
             T t = new T() { Name = name };
             Properties.Add(t);
             return t;
@@ -147,8 +148,8 @@ namespace Starcounter.Templates {
         /// <param name="name">The name of the new template</param>
         /// <param name="type"></param>
         /// <returns>A new instance of the specified template</returns>
-        public T Add<T>(string name, IAppTemplate type) where T : IAppListTemplate, new() {
-            T t = new T() { Name = name, Type = type };
+        public T Add<T>(string name, ObjTemplate type) where T : ObjArrProperty, new() {
+            T t = new T() { Name = name, App = type };
             Properties.Add(t);
             return t;
         }
@@ -167,45 +168,6 @@ namespace Starcounter.Templates {
             get { return (IEnumerable<Template>)Properties; }
         }
 
-        /// <summary>
-        /// Creates a new App-instance based on this template.
-        /// </summary>
-        /// <param name="parent">The parent for the new app</param>
-        /// <returns></returns>
-        public override object CreateInstance(AppNode parent) {
-            return new App() { Template = this, Parent = parent };
-        }
-
-        /// <summary>
-        /// Creates a new Template with the specified name.
-        /// </summary>
-        /// <typeparam name="T">The type of template to create</typeparam>
-        /// <param name="name">The name of the template.</param>
-        /// <returns></returns>
-        /// <exception cref="System.NotImplementedException"></exception>
-        T IAppTemplate.Add<T>(string name) {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Creates a new Template with the specified name.
-        /// </summary>
-        /// <typeparam name="T">The type of template to create.</typeparam>
-        /// <param name="name">The name of the template.</param>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        /// <exception cref="System.NotImplementedException"></exception>
-        T IAppTemplate.Add<T>(string name, IAppTemplate type) {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Gets all templates for this app.
-        /// </summary>
-        /// <value>The properties.</value>
-        IPropertyTemplates IAppTemplate.Properties {
-            get { return Properties; }
-        }
 
         /// <summary>
         /// Callback from internal functions responsible for handle external inputs.
@@ -221,8 +183,8 @@ namespace Starcounter.Templates {
         /// 
         /// </summary>
         /// <param name="dataGetter"></param>
-        public void AddDataBinding(Func<App, Entity> dataGetter) {
-            dataBinding = new DataBinding<Entity>(dataGetter);
+        public void AddDataBinding(Func<Obj, IBindable> dataGetter) {
+            dataBinding = new DataBinding<IBindable>(dataGetter);
             Bound = true;
         }
 
@@ -231,8 +193,8 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="dataGetter"></param>
         /// <param name="dataSetter"></param>
-        public void AddDataBinding(Func<App, Entity> dataGetter, Action<App, Entity> dataSetter) {
-            dataBinding = new DataBinding<Entity>(dataGetter, dataSetter);
+        public void AddDataBinding(Func<Obj, IBindable> dataGetter, Action<Obj, IBindable> dataSetter) {
+            dataBinding = new DataBinding<IBindable>(dataGetter, dataSetter);
             Bound = true;
         }
 
@@ -241,7 +203,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="app"></param>
         /// <returns></returns>
-        public Entity GetBoundValue(App app) {
+        public IBindable GetBoundValue(Obj app) {
             return dataBinding.GetValue(app);
         }
 
@@ -250,7 +212,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="entity"></param>
-        public void SetBoundValue(App app, Entity entity) {
+        public void SetBoundValue(Obj app, IBindable entity) {
             dataBinding.SetValue(app, entity);
         }
     }

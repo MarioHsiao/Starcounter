@@ -18,7 +18,7 @@ namespace Starcounter.Templates
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="prop">The prop.</param>
-		public DecimalMetadata(App app, Template prop) : base(app, prop) { }
+		public DecimalMetadata(Obj app, Template prop) : base(app, prop) { }
 
 	}
 }

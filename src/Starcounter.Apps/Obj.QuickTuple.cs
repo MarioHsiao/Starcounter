@@ -11,7 +11,7 @@ namespace Starcounter {
     /// <summary>
     /// Class App
     /// </summary>
-    public partial class App {
+    public partial class Obj {
 
 #if QUICKTUPLE
         /// <summary>
@@ -25,7 +25,7 @@ namespace Starcounter {
                 var vc = prop.Count;
                 _Values = new object[vc];
                 for (int t = 0; t < vc; t++) {
-                    _Values[t] = ((IStatefullTemplate)prop[t]).CreateInstance(this);
+                    _Values[t] = ((Template)prop[t]).CreateInstance(this);
                 }
         }
 

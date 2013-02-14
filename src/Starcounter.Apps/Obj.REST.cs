@@ -4,7 +4,7 @@ using System;
 using System.IO;
 using System.Text;
 namespace Starcounter {
-    public partial class App {
+    public partial class Obj {
 
         static string requestProcessorsTempDirPlusSlash_ = null;
 

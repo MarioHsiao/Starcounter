@@ -4,6 +4,7 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.Advanced;
 using Starcounter.Binding;
 using Starcounter.Internal;
 using System;
@@ -15,6 +16,10 @@ namespace Starcounter
 
     public static partial class Db
     {
+
+        /// <summary>
+        /// </summary>
+        public static DbEnvironment Environment { get; private set; }
 
         /// <summary>
         /// Lookups the table.
@@ -185,6 +190,13 @@ namespace Starcounter
 
                 throw ErrorCode.ToException(r);
             }
+        }
+
+        /// <summary>
+        /// </summary>
+        public static void SetEnvironment(DbEnvironment e) // TODO: Internal
+        {
+            Environment = e;
         }
 
         private static void HandleFatalErrorInTransactionScope()

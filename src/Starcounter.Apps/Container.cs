@@ -19,9 +19,9 @@ namespace Starcounter {
     /// <summary>
     /// Base class for App and AppList instances.
     /// </summary>
-    public abstract class AppNode // : RequestHandler
+    public abstract class Container // : RequestHandler
 #if IAPP
-        : IAppNode
+ //       : IContainer
 #endif
     {
 
@@ -36,7 +36,7 @@ namespace Starcounter {
         /// </summary>
         /// <value>The template.</value>
         /// <exception cref="System.Exception">Template is already set for App. Cannot change template once it is set</exception>
-        public IParentTemplate Template {
+        public ParentTemplate Template {
             set {
                 if (_Template != null) {
                     throw new Exception("Template is already set for App. Cannot change template once it is set");
@@ -76,21 +76,21 @@ namespace Starcounter {
         /// Called when [set parent].
         /// </summary>
         /// <param name="child">The child.</param>
-        internal virtual void OnSetParent(AppNode child) {
+        internal virtual void OnSetParent(Container child) {
             child._parent = this;
         }
 
         /// <summary>
         /// The _parent
         /// </summary>
-        internal AppNode _parent;
+        internal Container _parent;
 
         /// <summary>
         /// Gets or sets the parent.
         /// </summary>
         /// <value>The parent.</value>
         /// <exception cref="System.Exception">Cannot change parent in Apps</exception>
-        public AppNode Parent {
+        public Container Parent {
             get {
                 return _parent;
             }
@@ -103,25 +103,12 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Gets or sets the parent.
-        /// </summary>
-        /// <value>The parent.</value>
-        IAppNode IAppNode.Parent {
-            get {
-                return Parent;
-            }
-            set {
-                Parent = (AppNode)value;
-            }
-        }
-
-        /// <summary>
-        /// Contains the depth of this AppNode. Used when creating the indexpath.
+        /// Contains the depth of this Container. Used when creating the indexpath.
         /// </summary>
         private Int32 _cachePathDepth = -1;
 
         /// <summary>
-        /// Returns the depth of this AppNode.
+        /// Returns the depth of this Container.
         /// </summary>
         /// <value>The index path depth.</value>
         internal int IndexPathDepth
@@ -137,7 +124,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Returns the depth of any child for this AppNode. Since all children
+        /// Returns the depth of any child for this Container. Since all children
         /// will have the same depth, a specific childinstance is not needed.
         /// </summary>
         /// <value>The child path depth.</value>

@@ -21,8 +21,8 @@ namespace Starcounter {
     /// </summary>
     /// <typeparam name="TValue">The primitive system type of this property.</typeparam>
     public abstract class Property<TValue> : Property {
-        internal Func<App, Property<TValue>, TValue, Input<TValue>> CustomInputEventCreator = null;
-        internal List<Action<App,Input<TValue>>> CustomInputHandlers = new List<Action<App,Input<TValue>>>();
+        internal Func<Obj, Property<TValue>, TValue, Input<TValue>> CustomInputEventCreator = null;
+        internal List<Action<Obj,Input<TValue>>> CustomInputHandlers = new List<Action<Obj,Input<TValue>>>();
 
         private DataBinding<TValue> dataBinding;
         
@@ -32,8 +32,8 @@ namespace Starcounter {
         /// <param name="createInputEvent"></param>
         /// <param name="handler"></param>
         public void AddHandler(
-            Func<App, Property<TValue>, TValue, Input<TValue>> createInputEvent = null,
-            Action<App, Input<TValue>> handler = null) {
+            Func<Obj, Property<TValue>, TValue, Input<TValue>> createInputEvent = null,
+            Action<Obj, Input<TValue>> handler = null) {
             this.CustomInputEventCreator = createInputEvent;
             this.CustomInputHandlers.Add(handler);
         }
@@ -42,7 +42,7 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <param name="dataGetter"></param>
-        public void AddDataBinding(Func<App, TValue> dataGetter) {
+        public void AddDataBinding(Func<Obj, TValue> dataGetter) {
             dataBinding = new DataBinding<TValue>(dataGetter);
             Bound = true;
         }
@@ -52,7 +52,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="dataGetter"></param>
         /// <param name="dataSetter"></param>
-        public void AddDataBinding(Func<App, TValue> dataGetter, Action<App, TValue> dataSetter) {
+        public void AddDataBinding(Func<Obj, TValue> dataGetter, Action<Obj, TValue> dataSetter) {
             dataBinding = new DataBinding<TValue>(dataGetter, dataSetter);
             Bound = true;
         }
@@ -62,7 +62,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="value"></param>
-        public void SetBoundValue(App app, TValue value) {
+        public void SetBoundValue(Obj app, TValue value) {
             dataBinding.SetValue(app, value);
         }
 
@@ -71,7 +71,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="app"></param>
         /// <returns></returns>
-        public TValue GetBoundValue(App app) {
+        public TValue GetBoundValue(Obj app) {
             return dataBinding.GetValue(app);
         }
 
@@ -80,7 +80,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="app"></param>
         /// <returns></returns>
-        public override object GetBoundValueAsObject(IApp app) {
+        public override object GetBoundValueAsObject(Obj app) {
             return dataBinding.GetValue((App)app);
         }
 
@@ -89,7 +89,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="value"></param>
-        public override void SetBoundValueAsObject(IApp app, object value) {
+        public override void SetBoundValueAsObject(Obj app, object value) {
             dataBinding.SetValue((App)app, (TValue)value);
         }
 
@@ -134,9 +134,6 @@ namespace Starcounter {
     /// Class Property
     /// </summary>
     public abstract class Property : Template
-#if IAPP
-        , IValueTemplate
-#endif
     {
         /// <summary>
         /// Gets a value indicating whether this instance has instance value on client.

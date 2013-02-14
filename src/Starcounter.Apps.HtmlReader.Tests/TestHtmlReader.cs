@@ -7,7 +7,8 @@
 using System;
 using NUnit.Framework;
 using Starcounter.Templates;
-namespace Starcounter.Internal.Application.JsonReader.Tests {
+
+namespace Starcounter.Internal.JsonTemplate.Tests {
     /// <summary>
     /// Class JsToTemplateTests
     /// </summary>
@@ -22,7 +23,7 @@ namespace Starcounter.Internal.Application.JsonReader.Tests {
             AppTemplate template = TemplateFromHtml.CreateFromHtmlFile("testtemplate.html");
             Assert.NotNull(template);
             Assert.IsInstanceOf<StringProperty>(template.Properties[0]);
-            Assert.IsInstanceOf<ListingProperty>(template.Properties[1]);
+            Assert.IsInstanceOf<ObjArrProperty>(template.Properties[1]);
         }
 
 

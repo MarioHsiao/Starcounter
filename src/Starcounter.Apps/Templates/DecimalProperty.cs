@@ -17,9 +17,6 @@ namespace Starcounter.Templates {
     /// Class DecimalProperty
     /// </summary>
     public class DecimalProperty : Property<decimal>
-#if IAPP
-        , IDecimalTemplate
-#endif
     {
         /// <summary>
         /// The _ default value

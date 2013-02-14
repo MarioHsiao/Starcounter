@@ -16,9 +16,6 @@ namespace Starcounter.Templates {
     /// Class OidProperty
     /// </summary>
     public class OidProperty : Property<UInt64>
-#if IAPP
-        , IOidTemplate
-#endif
     {
 
         /// <summary>

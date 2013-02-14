@@ -136,8 +136,8 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         private void ProcessNode(NBase node) {
             var sb = new StringBuilder();
             if (node is NClass) {
-                if (node is NAppMetadata) {
-                    var n = node as NAppMetadata;
+                if (node is NObjMetadata) {
+                    var n = node as NObjMetadata;
                     sb.Append("public class ");
                     sb.Append(n.ClassName);
                     if (n.Inherits != null) {
@@ -146,8 +146,8 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     }
                     sb.Append(" {");
                     node.Prefix.Add(sb.ToString());
-                    if (node is NAppMetadata) {
-                        WriteAppMetadataClassPrefix(node as NAppMetadata);
+                    if (node is NObjMetadata) {
+                        WriteObjMetadataClassPrefix(node as NObjMetadata);
                     }
                 }
                 else {
@@ -182,8 +182,8 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     WriteAppMemberPrefix(node as NProperty);
                 else if (node.Parent is NAppTemplateClass)
                     WriteAppTemplateMemberPrefix(node as NProperty);
-                else if (node.Parent is NAppMetadata)
-                    WriteAppMetadataMemberPrefix(node as NProperty);
+                else if (node.Parent is NObjMetadata)
+                    WriteObjMetadataMemberPrefix(node as NProperty);
             } else if (node is NAppSerializerClass) {
                 WriteSerializerPrefix(node as NAppSerializerClass);
             }
@@ -223,16 +223,18 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             sb.Append(m.Type.FullClassName);
             sb.Append(' ');
             sb.Append(m.MemberName);
-            sb.Append(" { get { return GetValue");
 //            if (m.Type is NListing) {
 //                sb.Append('<');
 //                sb.Append(((NListing)m.Type).NApp.FullClassName);
 //                sb.Append('>');
 //            }
             if (m.FunctionGeneric != null) {
-                sb.Append('<');
-                sb.Append( m.FunctionGeneric.FullClassName );
+                sb.Append(" { get { return GetTypedValue<");
+                sb.Append(m.FunctionGeneric.FullClassName);
                 sb.Append('>');
+            }
+            else {
+                sb.Append(" { get { return GetValue");
             }
             sb.Append("(Template.");
             sb.Append(m.MemberName);
@@ -270,7 +272,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             bindTo = (String.IsNullOrEmpty(m.Template.Bind)) ? m.MemberName : m.Template.Bind;
 
             dataType = null;
-            if (m.Template is ListingProperty) {
+            if (m.Template is ObjArrProperty) {
                 dataType = "SqlResult";
             } else if (m.Template is AppTemplate) {
                 dataType = "Entity";
@@ -404,7 +406,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 sb.Append("private ");
 
                 string dataType = null;
-                if (m.Template is ListingProperty) {
+                if (m.Template is ObjArrProperty) {
                     dataType = "SqlResult";
                 } else if (m.Template is AppTemplate) {
                     dataType = "Entity";//((NAppClass)((NAppTemplateClass)m.Type).NValueClass).GenericTypeArgument;
@@ -446,7 +448,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         /// Writes the app metadata member prefix.
         /// </summary>
         /// <param name="m">The m.</param>
-        private void WriteAppMetadataMemberPrefix(NProperty m) {
+        private void WriteObjMetadataMemberPrefix(NProperty m) {
             var sb = new StringBuilder();
             sb.Append("public ");
             sb.Append(m.Type.FullClassName);
@@ -478,7 +480,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         /// <param name="node"></param>
         private void WriteAppTemplateCreateInstance(NAppTemplateClass node) {
             StringBuilder sb = new StringBuilder();
-            sb.Append("    public override object CreateInstance(AppNode parent) { return new ");
+            sb.Append("    public override object CreateInstance(Container parent) { return new ");
             sb.Append(node.NValueClass.ClassName);
             if (node.Template.Parent != null) {
                 string parentClass = GetParentPropertyType(node.Template).FullClassName;
@@ -544,7 +546,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     }
                     a.Prefix.Add(sb.ToString());
 
-                    if ((mn.Template is ListingProperty) && (!mn.FunctionGeneric.FullClassName.Equals("App"))) {
+                    if ((mn.Template is ObjArrProperty) && (!mn.FunctionGeneric.FullClassName.Equals("App"))) {
                         sb.Clear();
                         sb.Append("        ");
                         sb.Append(mn.MemberName);
@@ -589,7 +591,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             StringBuilder sb = new StringBuilder();
             sb.Append("        ");
             sb.Append(ib.BindsToProperty.Template.PropertyName);       // {0}
-            sb.Append(".AddHandler((App app, Property");
+            sb.Append(".AddHandler((Obj app, Property");
 
             if (hasValue) {
                 sb.Append('<');
@@ -616,7 +618,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 sb.Append(", Value = value");
             }
 
-            sb.Append(" }); }, (App app, Starcounter.Input");
+            sb.Append(" }); }, (Obj app, Starcounter.Input");
 
             if (hasValue) {
                 sb.Append('<');
@@ -644,7 +646,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         /// Writes the class declaration and constructor for an AppTemplate class
         /// </summary>
         /// <param name="a">The class declaration syntax node</param>
-        private void WriteAppMetadataClassPrefix(NMetadataClass a) {
+        private void WriteObjMetadataClassPrefix(NMetadataClass a) {
             var sb = new StringBuilder();
             sb.Append("    public ");
             sb.Append(a.ClassName);
@@ -666,12 +668,12 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             a.Prefix.Add(sb.ToString());
             /*            sb = new StringBuilder();
                         sb.Append("        InstanceType = typeof(");
-                        sb.Append(a.AppNode.FullClassName);
+                        sb.Append(a.Container.FullClassName);
                         sb.Append(");");
                         a.Prefix.Add(sb.ToString());
                         sb = new StringBuilder();
                         sb.Append("        ClassName = \"");
-                        sb.Append(a.AppNode.ClassName);
+                        sb.Append(a.Container.ClassName);
                         sb.Append("\";");
                         a.Prefix.Add(sb.ToString());
                         foreach (var kid in a.Children) {
