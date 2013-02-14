@@ -13,13 +13,14 @@ namespace Starcounter.Client {
 using Starcounter.Template;
 #else
 using Starcounter.Templates;
+using Starcounter.Advanced;
 namespace Starcounter {
 #endif
 
     /// <summary>
     /// Base class for App and AppList instances.
     /// </summary>
-    public abstract class Container // : RequestHandler
+    public abstract class Container : StarcounterBase // : RequestHandler
 #if IAPP
  //       : IContainer
 #endif

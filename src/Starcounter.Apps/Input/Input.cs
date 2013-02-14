@@ -9,9 +9,10 @@ using Starcounter.Templates;
 namespace Starcounter {
 
     /// <summary>
-    /// Class Input
+    /// An event that encapsulates a single incomming update for a specific value in
+    /// a Puppet. Used as base class for incomming event data in Puppets.
     /// </summary>
-    /// <typeparam name="TValue">The type of the T value.</typeparam>
+    /// <typeparam name="TValue">The type of the value that is being updated</typeparam>
     public class Input<TValue> : Input {
         /// <summary>
         /// Gets or sets the value.
@@ -20,7 +21,7 @@ namespace Starcounter {
         public TValue Value { get; set; }
 
         /// <summary>
-        /// Gets the old value.
+        /// Gets the old value (before the suggested change).
         /// </summary>
         /// <value>The old value.</value>
         /// <exception cref="System.NotImplementedException"></exception>

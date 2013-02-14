@@ -104,7 +104,7 @@ namespace Starcounter {
         /// Gets the closest transaction for this app looking up in the tree.
         /// Sets this transaction.
         /// </summary>
-        public Transaction Transaction {
+        public new Transaction Transaction {
             get {
                 if (_transaction != null)
                     return _transaction;

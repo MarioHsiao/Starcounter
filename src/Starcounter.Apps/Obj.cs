@@ -248,48 +248,6 @@ namespace Starcounter {
         /// <value>The view.</value>
         public string View { get; set; }
 
-#if !CLIENT
-        /// <summary>
-        /// For convenience, the static SQL function can be called from either the Obj class,
-        /// the Entity class or the Db class. The implementations are identical.
-        /// </summary>
-        /// <param name="str">The STR.</param>
-        /// <param name="pars">The pars.</param>
-        /// <returns>SqlResult.</returns>
-        public static SqlResult SQL(string str, params object[] pars) {
-            return Db.SQL(str, pars);
-        }
-
-//        /// <summary>
-//        /// SQLs the specified STR.
-//        /// </summary>
-//        /// <typeparam name="T"></typeparam>
-//        /// <param name="str">The STR.</param>
-//        /// <param name="pars">The pars.</param>
-//        /// <returns>SqlResult2{``0}.</returns>
-//        public static SqlResult2<T> SQL<T>(string str, params object[] pars) where T : Entity {
-//            return null;
-//        }
-
-        ///// <summary>
-        ///// Transactions the specified action.
-        ///// </summary>
-        ///// <param name="action">The action.</param>
-        //public static void Transaction(Action action) {
-        //    Db.Transaction(action);
-        //}
-
-        /// <summary>
-        /// Slows the SQL.
-        /// </summary>
-        /// <param name="str">The STR.</param>
-        /// <param name="pars">The pars.</param>
-        /// <returns>SqlResult.</returns>
-        public static SqlResult SlowSQL(string str, params object[] pars) {
-            return Db.SlowSQL(str, pars);
-        }
-
-#endif
 
         /// <summary>
         /// Deletes this instance.
