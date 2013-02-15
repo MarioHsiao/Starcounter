@@ -61,6 +61,19 @@ namespace Starcounter {
                    ViewModelId = -1;
         }
 
+        /// <summary>
+        /// Deletes this instance.
+        /// </summary>
+        public void Delete() {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Removes this Obj from its parent.
+        /// </summary>
+        public void Close() {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// If the view lives in this .NET application domain, this property can be used to reference it.

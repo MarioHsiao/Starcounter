@@ -192,21 +192,5 @@ namespace Starcounter {
             }
         }
 
-
-        /// <summary>
-        /// Deletes this instance.
-        /// </summary>
-        public void Delete() { }
-
-        /// <summary>
-        /// Removes this Obj from its parent.
-        /// </summary>
-        public void Close() { }
-
-        /// <summary>
-        /// Shows this instance.
-        /// </summary>
-        public void Show() {
-        }
     }
 }
