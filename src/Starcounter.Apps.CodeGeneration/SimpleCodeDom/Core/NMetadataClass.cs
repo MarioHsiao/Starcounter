@@ -58,9 +58,9 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         public override string ClassName {
             get {
                 var type = NTemplateClass.NValueClass.ClassName;
-                if (type.Equals("long"))
-                    type = "Int";
-                else
+                //if (type.Equals("long"))
+                //    type = "Int";
+                //else
                     type = UpperFirst(type);
                 return type + "Metadata";
             }
