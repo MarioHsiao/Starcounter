@@ -11,6 +11,8 @@ Uses inherited data model.
 
 === Inherited indexes ===
 
+=== IS type predicate ===
+
 
 ====== TODOS ======
 
@@ -302,3 +304,160 @@ ExpectedResult:
  | 57 | 
  | 58 | 
  | 59 | 
+
+=== IS type predicate ===
+
+<NEXT>
+Description: Object expression and type identifier to true
+QueryString: select p from professor p  where p IS SQLTest.InheritedDb.Professor and company = ?
+VariableValues: Object:51;
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Professor
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	companyIndx
+	0
+	Company
+	ObjectDynamicRange(
+		ObjectRangePoint(
+			GreaterThanOrEqual
+			ObjectVariable(51)
+		)
+		ObjectRangePoint(
+			LessThanOrEqual
+			ObjectVariable(51)
+		)
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 54 | 
+ | 55 | 
+
+<NEXT>
+Description: Object expression and type identifier to false
+QueryString: select p from professor p  where p IS Student
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Professor
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	auto
+	0
+	Name
+	StringDynamicRange(
+	)
+	IsTypePredicate(
+		IS
+		ObjectThis(0)
+		TypeLiteral(SQLTest.InheritedDb.Student)
+	)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+
+<NEXT>
+Description: Object expression is subtype to type identifier
+QueryString: select p from Teacher p  where p IS SQLTest.InheritedDb.Employee
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Teacher
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	auto
+	0
+	Name
+	StringDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 54 | 
+ | 55 | 
+ | 56 | 
+ | 57 | 
+ | 58 | 
+ | 59 | 
+
+<NEXT>
+Description: Object expression is equal to type identifier
+QueryString: select p from SQLTest.InheritedDb.Employee p  where p IS SQLTest.InheritedDb.Employee
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Employee
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	auto
+	0
+	Name
+	StringDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 52 | 
+ | 53 | 
+ | 54 | 
+ | 55 | 
+ | 56 | 
+ | 57 | 
+ | 58 | 
+ | 59 | 
+
+<NEXT>
+Description: Object expression is supertype to type identifier
+QueryString: select p from SQLTest.InheritedDb.Employee p  where p IS Manager
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Employee
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	auto
+	0
+	Name
+	StringDynamicRange(
+	)
+	IsTypePredicate(
+		IS
+		ObjectThis(0)
+		TypeLiteral(SQLTest.InheritedDb.Manager)
+	)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 52 | 
+ | 53 | 
