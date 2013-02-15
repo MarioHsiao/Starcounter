@@ -38,10 +38,10 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         public DomGenerator Generator;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CSharpGenerator" /> class.
+        /// 
         /// </summary>
-        /// <param name="defaultObjTempalte">The defaultObjTempalte.</param>
-        /// <param name="root">The root.</param>
+        /// <param name="generator"></param>
+        /// <param name="root"></param>
         public CSharpGenerator(DomGenerator generator, NRoot root ) {
             Generator = generator;
             Root = root;

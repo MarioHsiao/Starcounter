@@ -15,6 +15,10 @@ namespace Starcounter.Internal.Application.CodeGeneration
     public class NPrimitiveType : NValueClass
     {
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gen"></param>
         public NPrimitiveType(DomGenerator gen)
             : base(gen) {
         }

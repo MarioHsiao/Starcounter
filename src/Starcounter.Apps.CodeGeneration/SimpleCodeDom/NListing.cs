@@ -19,11 +19,12 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     public class NListingXXXClass : NValueClass {
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="NListingXXXClass" /> class.
+        /// 
         /// </summary>
-        /// <param name="typename">The typename.</param>
-        /// <param name="appType">Type of the app.</param>
-        /// <param name="templateType">Type of the template.</param>
+        /// <param name="gen"></param>
+        /// <param name="typename"></param>
+        /// <param name="appType"></param>
+        /// <param name="templateType"></param>
         /// <param name="template"></param>
         public NListingXXXClass(DomGenerator gen, string typename, NClass appType, NClass templateType, Template template ) 
         :base( gen)

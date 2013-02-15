@@ -14,6 +14,10 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// </summary>
     public class NMetadataClass : NClass {
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gen"></param>
         public NMetadataClass(DomGenerator gen)
             : base(gen) {
         }

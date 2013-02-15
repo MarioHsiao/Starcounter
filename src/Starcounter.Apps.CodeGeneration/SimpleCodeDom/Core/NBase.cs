@@ -21,8 +21,15 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// </summary>
     public class NBase {
 
+        /// <summary>
+        /// 
+        /// </summary>
         public DomGenerator Generator;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gen"></param>
         public NBase(DomGenerator gen) {
             if (gen == null)
                 throw new Exception("The generator must be given");

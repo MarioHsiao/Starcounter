@@ -12,6 +12,10 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// </summary>
     public class NOtherClass : NClass {
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gen"></param>
         public NOtherClass(DomGenerator gen)
             : base(gen) {
         }
