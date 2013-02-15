@@ -336,7 +336,7 @@ namespace Starcounter.Internal.JsonPatch {
                     nextTokenShouldBeIndex = false;
                     index = ptr.CurrentAsInt;
 
-                    Listing list = mainApp.GetValue((ObjArrTemplate)current);
+                    Listing list = mainApp.GetValue((ObjArrProperty)current);
                     current = list[index];
                 } else {
                     if (currentIsAppTemplate) {
@@ -362,7 +362,7 @@ namespace Starcounter.Internal.JsonPatch {
                     mainApp = current as App;
                 } else if (current is AppTemplate) {
                     currentIsAppTemplate = true;
-                } else if (current is ObjArrTemplate) {
+                } else if (current is ObjArrProperty) {
                     nextTokenShouldBeIndex = true;
                 } else {
                     // Current token points to a value or an action.
@@ -432,7 +432,7 @@ namespace Starcounter.Internal.JsonPatch {
             Boolean nextIndexIsPositionInList;
             Int32[] path;
             Listing list;
-            ObjArrTemplate listProp;
+            ObjArrProperty listProp;
             Template template;
 
             // Find the root app.
@@ -456,9 +456,9 @@ namespace Starcounter.Internal.JsonPatch {
                     sb.Append('/');
                     sb.Append(template.Name);
 
-                    if (template is ObjArrTemplate) {
+                    if (template is ObjArrProperty) {
                         // next index in the path is the index in the list.
-                        listProp = (ObjArrTemplate)template;
+                        listProp = (ObjArrProperty)template;
                         nextIndexIsPositionInList = true;
                     } else if (template is AppTemplate) {
                         app = app.GetValue((AppTemplate)template);

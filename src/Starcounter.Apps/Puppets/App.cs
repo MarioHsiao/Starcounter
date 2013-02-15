@@ -188,11 +188,11 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The array property of this Puppet</param>
         /// <param name="elementIndex">The added element index</param>
-        internal override void HasAddedElement(ObjArrTemplate property, int elementIndex) {
-            ChangeLog.AddItemInList(this, (ObjArrTemplate)property, elementIndex);
+        internal override void HasAddedElement(ObjArrProperty property, int elementIndex) {
+            ChangeLog.AddItemInList(this, (ObjArrProperty)property, elementIndex);
         }
 
-        internal override void HasRemovedElement(ObjArrTemplate property, int elementIndex) {
+        internal override void HasRemovedElement(ObjArrProperty property, int elementIndex) {
             ChangeLog.RemoveItemInList(this, property, elementIndex );
         }
 

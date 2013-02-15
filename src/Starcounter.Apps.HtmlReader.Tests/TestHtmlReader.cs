@@ -23,7 +23,7 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
             AppTemplate template = TemplateFromHtml.CreateFromHtmlFile("testtemplate.html");
             Assert.NotNull(template);
             Assert.IsInstanceOf<StringProperty>(template.Properties[0]);
-            Assert.IsInstanceOf<ObjArrTemplate>(template.Properties[1]);
+            Assert.IsInstanceOf<ObjArrProperty>(template.Properties[1]);
         }
 
 

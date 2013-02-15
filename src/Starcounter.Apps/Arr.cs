@@ -45,7 +45,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="templ"></param>
-        public Listing(App parent, ObjArrTemplate templ)
+        public Listing(App parent, ObjArrProperty templ)
             : base(parent, templ) {
         }
 
@@ -66,7 +66,7 @@ namespace Starcounter {
         //    var app = new T();
         //    Add(app);
         //    return app;
-            ObjArrTemplate template = (ObjArrTemplate)Template;
+            ObjArrProperty template = (ObjArrProperty)Template;
             var app = (T)template.App.CreateInstance(this);
 
           //  app.Data = data;
@@ -80,7 +80,7 @@ namespace Starcounter {
         /// <param name="data"></param>
         /// <returns></returns>
         public T Add(IBindable data) {
-            ObjArrTemplate template = (ObjArrTemplate)Template;
+            ObjArrProperty template = (ObjArrProperty)Template;
             var app = (T)template.App.CreateInstance(this);
             
             app.Data = data;
@@ -164,7 +164,7 @@ namespace Starcounter {
         /// <remarks>
         /// This method can be called several times, the initialization only occurs once.
         /// </remarks>
-        internal void InitializeAfterImplicitConversion(Obj parent, ObjArrTemplate template) {
+        internal void InitializeAfterImplicitConversion(Obj parent, ObjArrProperty template) {
             Obj newApp;
 
             if (Template == null) {
@@ -187,7 +187,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="templ"></param>
-        public Listing(Obj parent, ObjArrTemplate templ) {
+        public Listing(Obj parent, ObjArrProperty templ) {
             this.Template = templ;
             Parent = parent;
         }
@@ -212,14 +212,14 @@ namespace Starcounter {
         /// <param name="item"></param>
         public void Insert(int index, Obj item) {
             Obj otherItem;
-            ObjArrTemplate template;
+            ObjArrProperty template;
 
 #if QUICKTUPLE
             QuickAndDirtyArray.Insert(index, item);
 #else
          throw new JockeNotImplementedException();
 #endif
-            template = (ObjArrTemplate)this.Template;
+            template = (ObjArrProperty)this.Template;
             ChangeLog.AddItemInList((App)this.Parent, template, index);
 
             for (Int32 i = index + 1; i < QuickAndDirtyArray.Count; i++) {
@@ -235,11 +235,11 @@ namespace Starcounter {
         /// <param name="index"></param>
         public void RemoveAt(int index) {
             Obj otherItem;
-            ObjArrTemplate template;
+            ObjArrProperty template;
 
 #if QUICKTUPLE
 
-            template = (ObjArrTemplate)this.Template;
+            template = (ObjArrProperty)this.Template;
             QuickAndDirtyArray.RemoveAt(index);
             ChangeLog.RemoveItemInList((App)this.Parent, template, index);
 
@@ -296,9 +296,9 @@ namespace Starcounter {
         /// <returns></returns>
         public Obj Add() {
 #if QUICKTUPLE
-            Obj x = (Obj)((ObjArrTemplate)this.Template).App.CreateInstance(this);
+            Obj x = (Obj)((ObjArrProperty)this.Template).App.CreateInstance(this);
 
-            //            var x = new App() { Template = ((ArrTemplate)this.Template).App };
+            //            var x = new App() { Template = ((ArrProperty)this.Template).App };
             Add(x);
             return x;
 #else
@@ -330,7 +330,7 @@ namespace Starcounter {
 #else
          throw new JockeNotImplementedException();
 #endif
-            Parent.HasAddedElement((ObjArrTemplate)this.Template, QuickAndDirtyArray.Count - 1);
+            Parent.HasAddedElement((ObjArrProperty)this.Template, QuickAndDirtyArray.Count - 1);
         }
 
 
@@ -341,7 +341,7 @@ namespace Starcounter {
         public void Clear() {
             int indexesToRemove;
             var app = this.Parent;
-            ObjArrTemplate property = (ObjArrTemplate)this.Template;
+            ObjArrProperty property = (ObjArrProperty)this.Template;
 
 #if QUICKTUPLE
 

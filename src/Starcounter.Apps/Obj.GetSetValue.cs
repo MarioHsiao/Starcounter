@@ -274,7 +274,7 @@ namespace Starcounter {
         /// <returns>Listing.</returns>
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public Listing GetValue(ObjArrTemplate property) {
+        public Listing GetValue(ObjArrProperty property) {
 #if QUICKTUPLE
             return _Values[property.Index];
 #else
@@ -289,7 +289,7 @@ namespace Starcounter {
         /// <param name="data">The data.</param>
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(ObjArrTemplate property, SqlResult data) {
+        public void SetValue(ObjArrProperty property, SqlResult data) {
             Listing current = _Values[property.Index];
             if (current != null) {
                 current.Clear();
@@ -305,7 +305,7 @@ namespace Starcounter {
         /// <param name="data">The data.</param>
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(ObjArrTemplate templ, Listing data) {
+        public void SetValue(ObjArrProperty templ, Listing data) {
             Listing current = _Values[templ.Index];
             if (current != null)
                 current.Clear();
@@ -322,7 +322,7 @@ namespace Starcounter {
         /// <returns>Listing{``0}.</returns>
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public Listing<T> GetTypedValue<T>(ObjArrTemplate property) where T : Obj, new() {
+        public Listing<T> GetTypedValue<T>(ObjArrProperty property) where T : Obj, new() {
 #if QUICKTUPLE
             return (Listing<T>)(_Values[property.Index]);
 #else
@@ -338,7 +338,7 @@ namespace Starcounter {
         /// <param name="data">The data.</param>
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue<T>(ObjArrTemplate templ, SqlResult data) where T : Obj, new() {
+        public void SetValue<T>(ObjArrProperty templ, SqlResult data) where T : Obj, new() {
             Listing<T> newList;
             Listing<T> current = _Values[templ.Index];
             if (current != null)
@@ -357,7 +357,7 @@ namespace Starcounter {
         /// <param name="templ">The templ.</param>
         /// <param name="data">The data.</param>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue<T>(ObjArrTemplate templ, Listing<T> data) where T : Obj, new() {
+        public void SetValue<T>(ObjArrProperty templ, Listing<T> data) where T : Obj, new() {
             Listing<T> current = _Values[templ.Index];
             if (current != null)
                 current.Clear();

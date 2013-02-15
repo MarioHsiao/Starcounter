@@ -90,7 +90,7 @@ public partial class PlayerApp {
             Page = Register<AppTemplate>("Page", "Page");
             PlayerId = Register<IntProperty>("PlayerId", "PlayerId");
             FullName = Register<StringProperty>("FullName$", "FullName", Editable = true);
-            Accounts = Register<ArrTemplate<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate>>("Accounts", "Accounts");
+            Accounts = Register<ArrProperty<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate>>("Accounts", "Accounts");
             Accounts.App = PlayerApp.AccountsApp.DefaultTemplate;
         }
         public override object CreateInstance(Container parent) { return new PlayerApp(this) { Parent = parent }; }
@@ -98,7 +98,7 @@ public partial class PlayerApp {
         public AppTemplate Page;
         public IntProperty PlayerId;
         public StringProperty FullName;
-        public ArrTemplate<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate> Accounts;
+        public ArrProperty<PlayerApp.AccountsApp, PlayerApp.AccountsApp.AccountsAppTemplate> Accounts;
     }
     public class PlayerObjMetadata : ObjMetadata {
         public PlayerObjMetadata(App app, AppTemplate template) : base(app, template) { }

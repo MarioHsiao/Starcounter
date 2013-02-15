@@ -47,7 +47,7 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// Represents the contained properties (ObjTemplate) or the single contained type for typed arrays (ArrTemplate).
+        /// Represents the contained properties (ObjTemplate) or the single contained type for typed arrays (ArrProperty).
         /// </summary>
         /// <value>The child property or child element type template</value>
         public abstract IEnumerable<Template> Children { get; }

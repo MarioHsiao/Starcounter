@@ -600,7 +600,7 @@ namespace Starcounter.Internal.JsonTemplate
             OTT appTemplate;
             Template newTemplate;
 
-            newTemplate = new ArrTemplate<App,AppTemplate>() { Name = name };
+            newTemplate = new ArrProperty<App,AppTemplate>() { Name = name };
             appTemplate = (OTT)parent;
             newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
             SetCompilerOrigin(newTemplate, debugInfo);
@@ -658,7 +658,7 @@ namespace Starcounter.Internal.JsonTemplate
             var newTemplate = new AppTemplate(); // The type of the type array (an AppTemplate)
             newTemplate.Parent = (ContainerTemplate)array;
             //			newTemplate.Name = "__ArrayType__"; // All children needs an id
-            var arr = ((ObjArrTemplate)array);
+            var arr = ((ObjArrProperty)array);
             arr.App = newTemplate;
             newTemplate.Parent = arr;
             SetCompilerOrigin(newTemplate, debugInfo);
