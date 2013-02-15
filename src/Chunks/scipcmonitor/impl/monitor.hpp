@@ -26,7 +26,8 @@ active_databases_file_updater_thread_(),
 #if defined (IPC_MONITOR_SHOW_ACTIVITY)
 resources_watching_thread_(),
 #endif // defined (IPC_MONITOR_SHOW_ACTIVITY)
-owner_id_counter_(1) {
+owner_id_counter_(1),
+owner_id_(ipc_monitor_owner_id) {
 	/// TODO: Use Boost.Program_options.
 	/// ScErrCreateMonitorInterface is reserved in errorcodes.xml for later use.
 	
@@ -1148,11 +1149,11 @@ void monitor::cleanup() {
 #if defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 									bool release_client_number_res =
 									shared.common_client_interface().release_client_number
-									(n, client_interface_ptr -n, /*get_owner_id()*/ owner_id::none); /// "22"
+									(n, &shared.client_interface(0), get_owner_id()); /// "22"
 #else // !defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 									bool release_client_number_res =
 									shared.common_client_interface().release_client_number
-									(n, client_interface_ptr -n); /// "22"
+									(n, &shared.client_interface(0)); /// "22"
 #endif // defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 									////std::cout << "release_client_number_res = " << release_client_number_res << std::endl;
 								}
@@ -1197,6 +1198,10 @@ void __stdcall monitor::apc_function(boost::detail::win32::ulong_ptr arg) {
 	// return and continue in the switch case WAIT_IO_COMPLETION of the caller.
 }
 
+const owner_id& monitor::get_owner_id() const {
+	return owner_id_;
+}
+
 #if defined (IPC_OWNER_ID_IS_32_BIT)
 inline owner_id monitor::get_new_owner_id() {
 	// The register_mutex_ is already locked by the caller.
@@ -1216,7 +1221,8 @@ inline owner_id monitor::get_new_owner_id() {
 		owner_id_counter_ &= owner_id::id_field;
 
 		if (owner_id_counter_ != owner_id::none
-		&& owner_id_counter_ != owner_id::anonymous) {
+		&& owner_id_counter_ != owner_id::anonymous
+		&& owner_id_counter_ != ipc_monitor_owner_id) {
 			if (process_register_.find(owner_id_counter_) == process_register_.end()) {
 				// This owner_id is not used by any monitored process.
 				return owner_id_counter_;

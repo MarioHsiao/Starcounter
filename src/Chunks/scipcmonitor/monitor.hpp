@@ -308,6 +308,14 @@ private:
 	
 	static void __stdcall apc_function(boost::detail::win32::ulong_ptr arg);
 	
+	enum {
+		// The IPC monitor also have an owner_id and it is 2 because 1 is anonymous.
+		ipc_monitor_owner_id = 2
+	};
+
+	/// Return a const reference to the IPC monitor's owner_id.
+	const owner_id& get_owner_id() const;
+
 	/// Get a new owner_id.
 	owner_id get_new_owner_id();
 	
@@ -344,6 +352,9 @@ private:
 	// The owner_id counter is incremented by 1 each time an owner_id is taken.
 	owner_id owner_id_counter_;
 	
+	// The IPC monitor's owner_id
+	owner_id owner_id_;
+
 	// The exited processes list.
 	//exited_processes_list_type exited_processes_list_;
 	//boost::mutex exited_processes_list_mutex_;
