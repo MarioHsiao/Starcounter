@@ -1,12 +1,13 @@
 ﻿
-/// <summary>
-/// Class JsonToCsMsBuildTask
-/// </summary>
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Starcounter.Templates;
 
 namespace Starcounter.Internal.MsBuild {
+    
+    /// <summary>
+    /// Task that creates a C# message class from JSON file(s).
+    /// </summary>
     public class JsonToMessageCsMsBuildTask : Task {
         /// <summary>
         /// Gets or sets the input files.
