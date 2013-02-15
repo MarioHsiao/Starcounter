@@ -656,7 +656,7 @@ namespace Starcounter.Internal.JsonTemplate
         object ITemplateFactory.AddAppElement(object array, DebugInfo debugInfo)
         {
             var newTemplate = new AppTemplate(); // The type of the type array (an AppTemplate)
-            newTemplate.Parent = (ParentTemplate)array;
+            newTemplate.Parent = (ContainerTemplate)array;
             //			newTemplate.Name = "__ArrayType__"; // All children needs an id
             var arr = ((ObjArrProperty)array);
             arr.App = newTemplate;

@@ -375,12 +375,12 @@ namespace Starcounter.Internal.Application.CodeGeneration
                                   NClass metaParent,
                                   Template template)
         {
-            if (template is ParentTemplate)
+            if (template is ContainerTemplate)
             {
-                var pt = (ParentTemplate)template;
+                var pt = (ContainerTemplate)template;
                 foreach (var kid in pt.Children)
                 {
-                    if (kid is ParentTemplate)
+                    if (kid is ContainerTemplate)
                     {
                         if (kid is AppTemplate)
                         {
@@ -813,7 +813,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         private static void FindHandleDeclaringClass(NInputBinding binding, InputBindingInfo info)
         {
             Int32 parentCount = 0;
-            ParentTemplate candidate = binding.PropertyAppClass.Template;
+            ContainerTemplate candidate = binding.PropertyAppClass.Template;
             AppTemplate appTemplate;
             NAppClass declaringAppClass = null;
 

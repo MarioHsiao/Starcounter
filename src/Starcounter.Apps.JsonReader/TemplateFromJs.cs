@@ -61,14 +61,14 @@ namespace Starcounter.Internal.JsonTemplate
         /// <summary>
         /// Verifies the templates.
         /// </summary>
-        /// <param name="parentTemplate">The parent template.</param>
-        private static void VerifyTemplates(ParentTemplate parentTemplate)
+        /// <param name="containerTemplate">The parent template.</param>
+        private static void VerifyTemplates(ContainerTemplate containerTemplate)
         {
             CompilerOrigin co;
 
-            if (parentTemplate == null) return;
+            if (containerTemplate == null) return;
 
-            foreach (Template t in (IEnumerable<Template>)parentTemplate.Children)
+            foreach (Template t in (IEnumerable<Template>)containerTemplate.Children)
             {
                 if (t is ReplaceableTemplate)
                 {
@@ -79,8 +79,8 @@ namespace Starcounter.Internal.JsonTemplate
                                 co.FileName);
                 }
 
-                if (t is ParentTemplate)
-                    VerifyTemplates((ParentTemplate)t);
+                if (t is ContainerTemplate)
+                    VerifyTemplates((ContainerTemplate)t);
             }
         }
 
