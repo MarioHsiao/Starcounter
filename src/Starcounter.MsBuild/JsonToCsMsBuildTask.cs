@@ -66,7 +66,7 @@ namespace Starcounter.Internal.MsBuild
         /// <returns>System.String.</returns>
         private static string ProcessJsTemplateFile(string jsonFilename, string codeBehindFilename)
         {
-            AppTemplate t;
+            TApp t;
             CodeBehindMetadata metadata;
             ITemplateCodeGenerator codegen;
             ITemplateCodeGeneratorModule codegenmodule;

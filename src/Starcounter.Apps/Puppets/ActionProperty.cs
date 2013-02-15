@@ -18,11 +18,11 @@ namespace Starcounter.Templates {
     /// When you create a Json-by-example file with a null property (i.e. "myfield":null),
     /// the schema template for that property becomes an ActionProperty.
     /// </remarks>
-    public class ActionProperty : Property
+    public class ActionProperty : TValue
     {
         /// <summary>
         /// </summary>
-        private Func<App, Property, Input> CustomInputEventCreator = null;
+        private Func<App, TValue, Input> CustomInputEventCreator = null;
      
         /// <summary>
         /// </summary>
@@ -62,7 +62,7 @@ namespace Starcounter.Templates {
         /// <param name="createInputEvent"></param>
         /// <param name="handler"></param>
         public void AddHandler(
-            Func<Obj, Property, Input> createInputEvent = null,
+            Func<Obj, TValue, Input> createInputEvent = null,
             Action<Obj, Input> handler = null) {
             this.CustomInputEventCreator = createInputEvent;
             this.CustomInputHandlers.Add(handler);

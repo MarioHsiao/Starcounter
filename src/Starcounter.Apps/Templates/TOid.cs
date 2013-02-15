@@ -1,11 +1,10 @@
 ﻿// ***********************************************************************
-// <copyright file="IntProperty.cs" company="Starcounter AB">
+// <copyright file="TOid.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
 
 using System;
-using Starcounter.Internal;
 using Starcounter.Templates.Interfaces;
 #if CLIENT
 namespace Starcounter.Client.Template {
@@ -14,34 +13,27 @@ namespace Starcounter.Templates {
 #endif
 
     /// <summary>
-    /// Class IntProperty
+    /// Class TOid
     /// </summary>
-    public class IntProperty : Property<long>
+    public class TOid : TValue<UInt64>
     {
 
         /// <summary>
-        /// The _ default value
+        /// Gets or sets the default value.
         /// </summary>
-        private long _DefaultValue = 0;
+        /// <value>The default value.</value>
+        public UInt64 DefaultValue { get; set; }
 
         /// <summary>
         /// Processes the input.
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="rawValue">The raw value.</param>
+        /// <exception cref="System.NotImplementedException"></exception>
         public override void ProcessInput(App app, byte[] rawValue)
         {
-            long v = (long)Utf8Helper.IntFastParseFromAscii(rawValue, 0, (uint)rawValue.Length);
-            ProcessInput(app, v);
-        }
-
-        /// <summary>
-        /// Gets or sets the default value.
-        /// </summary>
-        /// <value>The default value.</value>
-        public long DefaultValue {
-            get { return _DefaultValue; }
-            set { _DefaultValue = value; }
+            throw new NotImplementedException();
+            // ProcessInput(app, value);
         }
 
         /// <summary>
@@ -50,19 +42,15 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <value>The default value as object.</value>
         public override object DefaultValueAsObject {
-            get {
-                return DefaultValue;
-            }
-            set {
-                DefaultValue = (long)value;
-            }
+            get { return DefaultValue; }
+            set { DefaultValue = (UInt64)value; }
         }
         /// <summary>
         /// The .NET type of the instance represented by this template.
         /// </summary>
         /// <value>The type of the instance.</value>
         public override Type InstanceType {
-            get { return typeof(long); }
+            get { return typeof(UInt64); }
         }
     }
 }

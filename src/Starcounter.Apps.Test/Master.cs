@@ -39,7 +39,7 @@ partial class Master : App {
 
 
         var m = new Master();
-        StringProperty x = m.Template.Test;
+        TString x = m.Template.Test;
 
 
         x.ProcessInput(m,"Hej hopp");

@@ -139,18 +139,18 @@ namespace Starcounter {
         /// </summary>
         /// <param name="model">The model.</param>
         public void Refresh(Template model) {
-            if (model is ObjArrProperty) {
-                ObjArrProperty apa = (ObjArrProperty)model;
+            if (model is TObjArr) {
+                TObjArr apa = (TObjArr)model;
                 this.SetValue(apa, apa.GetBoundValue(this));
-            } else if (model is ObjTemplate) {
-                var at = (ObjTemplate)model;
+            } else if (model is TObj) {
+                var at = (TObj)model;
 
                 // TODO:
                 IBindable v = at.GetBoundValue(this);
                 if (v != null)
                     this.SetValue(at, v);
             } else {
-                Property p = model as Property;
+                TValue p = model as TValue;
                 if (p != null) {
                     HasChanged(p);
                 }
@@ -161,15 +161,15 @@ namespace Starcounter {
         /// Is overridden by Puppet to log changes.
         /// </summary>
         /// <param name="property">The property that has changed in this Obj</param>
-        protected virtual void HasChanged( Property property ) {
+        protected virtual void HasChanged( TValue property ) {
         }
 
         /// <summary>
         /// The template defining the properties of this Obj.
         /// </summary>
         /// <value>The template.</value>
-        public new ObjTemplate Template {
-            get { return (ObjTemplate)base.Template; }
+        public new TObj Template {
+            get { return (TObj)base.Template; }
             set { base.Template = value; }
         }
 

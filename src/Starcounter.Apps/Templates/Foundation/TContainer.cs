@@ -15,9 +15,9 @@ namespace Starcounter.Templates {
 
 
     /// <summary>
-    /// Class ParentTemplate
+    /// Base class for Obj and Arr templates.
     /// </summary>
-    public abstract class ParentTemplate : Property
+    public abstract class TContainer : TValue
     {
         /// <summary>
         /// The _ sealed
@@ -25,26 +25,31 @@ namespace Starcounter.Templates {
         private bool _Sealed;
 
         /// <summary>
-        /// If this property returns true, you are not allowed to alter the properties of this template.
+        /// Once a TContainer (Obj or Arr schema) is in use (have instances), this property will return
+        /// true and you cannot modify the template.
         /// </summary>
+        /// <remarks>
+        /// Exception should be change to an SCERR???? error.
+        /// </remarks>
         /// <value><c>true</c> if sealed; otherwise, <c>false</c>.</value>
-        /// <exception cref="System.Exception">Once a ObjTemplate is sealed, you cannot unseal it</exception>
+        /// <exception cref="System.Exception">Once a TObj is sealed, you cannot unseal it</exception>
         public override bool Sealed {
             get {
                 return _Sealed;
             }
             internal set {
                 if (!value && _Sealed) {
-                    throw new Exception("Once a ObjTemplate is sealed, you cannot unseal it");
+                    // TODO! SCERR!
+                    throw new Exception("Once a TContainer (Obj or Arr schema) is in use (have instances), you cannot modify it");
                 }
                 _Sealed = value;
             }
         }
 
         /// <summary>
-        /// Gets the children.
+        /// Represents the contained properties (TObj) or the single contained type for typed arrays (TArr).
         /// </summary>
-        /// <value>The children.</value>
+        /// <value>The child property or child element type template</value>
         public abstract IEnumerable<Template> Children { get; }
 
      }

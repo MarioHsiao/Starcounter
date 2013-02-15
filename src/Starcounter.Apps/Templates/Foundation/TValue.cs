@@ -19,12 +19,12 @@ namespace Starcounter {
     /// <summary>
     /// 
     /// </summary>
-    /// <typeparam name="TValue">The primitive system type of this property.</typeparam>
-    public abstract class Property<TValue> : Property {
-        internal Func<Obj, Property<TValue>, TValue, Input<TValue>> CustomInputEventCreator = null;
-        internal List<Action<Obj,Input<TValue>>> CustomInputHandlers = new List<Action<Obj,Input<TValue>>>();
+    /// <typeparam name="T">The primitive system type of this property.</typeparam>
+    public abstract class TValue<T> : TValue {
+        internal Func<Obj, TValue<T>, T, Input<T>> CustomInputEventCreator = null;
+        internal List<Action<Obj,Input<T>>> CustomInputHandlers = new List<Action<Obj,Input<T>>>();
 
-        private DataBinding<TValue> dataBinding;
+        private DataBinding<T> dataBinding;
         
         /// <summary>
         /// Adds an inputhandler to this property.
@@ -32,8 +32,8 @@ namespace Starcounter {
         /// <param name="createInputEvent"></param>
         /// <param name="handler"></param>
         public void AddHandler(
-            Func<Obj, Property<TValue>, TValue, Input<TValue>> createInputEvent = null,
-            Action<Obj, Input<TValue>> handler = null) {
+            Func<Obj, TValue<T>, T, Input<T>> createInputEvent = null,
+            Action<Obj, Input<T>> handler = null) {
             this.CustomInputEventCreator = createInputEvent;
             this.CustomInputHandlers.Add(handler);
         }
@@ -42,8 +42,8 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <param name="dataGetter"></param>
-        public void AddDataBinding(Func<Obj, TValue> dataGetter) {
-            dataBinding = new DataBinding<TValue>(dataGetter);
+        public void AddDataBinding(Func<Obj, T> dataGetter) {
+            dataBinding = new DataBinding<T>(dataGetter);
             Bound = true;
         }
 
@@ -52,8 +52,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="dataGetter"></param>
         /// <param name="dataSetter"></param>
-        public void AddDataBinding(Func<Obj, TValue> dataGetter, Action<Obj, TValue> dataSetter) {
-            dataBinding = new DataBinding<TValue>(dataGetter, dataSetter);
+        public void AddDataBinding(Func<Obj, T> dataGetter, Action<Obj, T> dataSetter) {
+            dataBinding = new DataBinding<T>(dataGetter, dataSetter);
             Bound = true;
         }
 
@@ -62,7 +62,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="value"></param>
-        public void SetBoundValue(Obj app, TValue value) {
+        public void SetBoundValue(Obj app, T value) {
             dataBinding.SetValue(app, value);
         }
 
@@ -71,7 +71,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="app"></param>
         /// <returns></returns>
-        public TValue GetBoundValue(Obj app) {
+        public T GetBoundValue(Obj app) {
             return dataBinding.GetValue(app);
         }
 
@@ -90,7 +90,7 @@ namespace Starcounter {
         /// <param name="app"></param>
         /// <param name="value"></param>
         public override void SetBoundValueAsObject(Obj app, object value) {
-            dataBinding.SetValue((App)app, (TValue)value);
+            dataBinding.SetValue((App)app, (T)value);
         }
 
         /// <summary>
@@ -98,9 +98,9 @@ namespace Starcounter {
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="value">The value.</param>
-        public void ProcessInput(App app, TValue value)
+        public void ProcessInput(App app, T value)
         {
-            Input<TValue> input = null;
+            Input<T> input = null;
 
             if (CustomInputEventCreator != null)
                 input = CustomInputEventCreator.Invoke(app, this, value);
@@ -114,7 +114,7 @@ namespace Starcounter {
                 if (!input.Cancelled)
                 {
                     Debug.WriteLine("Setting value after custom handler: " + input.Value);
-                    app.SetValue((Property<TValue>)this, input.Value);
+                    app.SetValue((TValue<T>)this, input.Value);
                 }
                 else
                 {
@@ -124,7 +124,7 @@ namespace Starcounter {
             else
             {
                 Debug.WriteLine("Setting value after no handler: " + value);
-                app.SetValue((Property<TValue>)this, value);
+                app.SetValue((TValue<T>)this, value);
             }
         }
     }
@@ -133,7 +133,7 @@ namespace Starcounter {
     /// <summary>
     /// Class Property
     /// </summary>
-    public abstract class Property : Template
+    public abstract class TValue : Template
     {
         /// <summary>
         /// Gets a value indicating whether this instance has instance value on client.

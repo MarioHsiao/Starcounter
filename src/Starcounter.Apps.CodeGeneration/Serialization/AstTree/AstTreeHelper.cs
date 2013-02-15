@@ -8,15 +8,15 @@ using Starcounter.Templates.Interfaces;
 
 namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
     internal static class AstTreeHelper {
-        internal static string GetAppClassName(AppTemplate template) {
-            ObjArrProperty listing;
+        internal static string GetAppClassName(TApp template) {
+            TObjArr listing;
             string name;
 
             name = template.ClassName;
             if (name == null) {
                 name = template.Name;
                 if (name == null) {
-                    listing = template.Parent as ObjArrProperty;
+                    listing = template.Parent as TObjArr;
                     if (listing != null)
                         name = listing.Name;
                     else
@@ -28,26 +28,26 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
             return name;
         }
 
-        internal static string GetFullAppClassName(AppTemplate template) {
-            AppTemplate parentAppTemplate;
-            ParentTemplate parent;
-            ObjArrProperty lp;
+        internal static string GetFullAppClassName(TApp template) {
+            TApp parentTApp;
+            TContainer parent;
+            TObjArr lp;
             
             // If this app is an inner innerclass (relative the rootclass) we need to add all parent app names.
             string fullName = null;
             parent = template.Parent;
             if (parent != null) {
-                lp = parent as ObjArrProperty;
+                lp = parent as TObjArr;
                 if (lp != null)
                     parent = parent.Parent;
-                parentAppTemplate = parent as AppTemplate;
+                parentTApp = parent as TApp;
                 parent = parent.Parent;
-                lp = parent as ObjArrProperty;
+                lp = parent as TObjArr;
                 if (lp != null)
                     parent = parent.Parent;
 
                 if (parent != null) {
-                    fullName = GetFullAppClassName(parentAppTemplate);
+                    fullName = GetFullAppClassName(parentTApp);
                 }
             }
 

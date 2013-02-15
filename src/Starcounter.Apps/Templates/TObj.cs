@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="AppTemplate.cs" company="Starcounter AB">
+// <copyright file="TApp.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -19,9 +19,9 @@ namespace Starcounter.Templates {
     /// <summary>
     /// Defines the properties of an App instance.
     /// </summary>
-    public abstract class ObjTemplate : ParentTemplate
+    public abstract class TObj : TContainer
 #if IAPP
-//, IAppTemplate
+//, ITApp
 #endif
  {
         private DataBinding<IBindable> dataBinding;
@@ -57,7 +57,7 @@ namespace Starcounter.Templates {
             string name,
             string dotNetName,
             bool editable = false)
-            where TTemplate : Property<TValue>, new() {
+            where TTemplate : TValue<TValue>, new() {
             return new TTemplate() {
                 Parent = this,
                 Name = name,
@@ -101,9 +101,9 @@ namespace Starcounter.Templates {
         private PropertyList _PropertyTemplates;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AppTemplate" /> class.
+        /// Initializes a new instance of the <see cref="TApp" /> class.
         /// </summary>
-        public ObjTemplate() {
+        public TObj() {
             _PropertyTemplates = new PropertyList(this);
         }
 
@@ -148,7 +148,7 @@ namespace Starcounter.Templates {
         /// <param name="name">The name of the new template</param>
         /// <param name="type"></param>
         /// <returns>A new instance of the specified template</returns>
-        public T Add<T>(string name, ObjTemplate type) where T : ObjArrProperty, new() {
+        public T Add<T>(string name, TObj type) where T : TObjArr, new() {
             T t = new T() { Name = name, App = type };
             Properties.Add(t);
             return t;
