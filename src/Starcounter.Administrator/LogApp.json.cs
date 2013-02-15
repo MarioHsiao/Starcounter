@@ -42,7 +42,7 @@ namespace StarcounterApps3 {
 
             var lr = new LogReader();
             var i = 0;
-            lr.Open(directoryPath, (64 * 1024));
+            lr.Open(directoryPath, ReadDirection.Reverse, (64 * 1024));
             for (; ; ) {
                 var le = lr.Next();
                 if (le == null) break;
