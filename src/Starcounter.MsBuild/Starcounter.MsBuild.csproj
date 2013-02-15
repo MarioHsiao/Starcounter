@@ -68,6 +68,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="JsonToCsMsBuildTask.cs" />
+    <Compile Include="JsonToMessageBuildTask.cs" />
+    <Compile Include="JsonToPuppetTask.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

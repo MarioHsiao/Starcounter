@@ -34,7 +34,7 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
                        }";
 
 
-            TPuppet actual = TemplateFromJs.CreateFromJs(script2,false);
+            TPuppet actual = (TPuppet)TemplateFromJs.CreateFromJs(typeof(TPuppet),script2,false);
             Assert.IsInstanceOf(typeof(TPuppet), actual);
             Assert.IsInstanceOf<TString>(actual.Properties[0]);
             Assert.IsInstanceOf<TString>(actual.Properties[1]);
@@ -55,7 +55,7 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
                                       FirstName:'Joachim'               .Editable(), 
                        }.Class('TestApp')";
 
-         TPuppet actual = TemplateFromJs.CreateFromJs(script2, false);
+         TPuppet actual = (TPuppet)TemplateFromJs.CreateFromJs(typeof(TPuppet),script2, false);
          Assert.IsInstanceOf(typeof(TPuppet), actual);
          Assert.IsInstanceOf<TString>(actual.Properties[0]);
          Assert.AreEqual(true, ((TString)actual.Properties[0]).Editable);
@@ -85,7 +85,7 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
                        }.Class('TestApp').Namespace('Test')";
 
 
-         TPuppet actual = TemplateFromJs.CreateFromJs(script2, false);
+         TPuppet actual = (TPuppet)TemplateFromJs.CreateFromJs(typeof(TPuppet),script2, false);
          Assert.IsInstanceOf(typeof(TPuppet), actual);
          Assert.AreEqual("TestApp", actual.ClassName);
          Assert.AreEqual("Test", actual.Namespace);
@@ -161,7 +161,7 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
     }.Bind('this'),
     HistoryApp: {}.Include('HistoryApp')
 }.Class('CrmApp')";
-         TPuppet actual = TemplateFromJs.CreateFromJs(script, false);
+         TPuppet actual = (TPuppet)TemplateFromJs.CreateFromJs(typeof(TPuppet),script, false);
          Assert.IsInstanceOf(typeof(TPuppet), actual);
       }
    }

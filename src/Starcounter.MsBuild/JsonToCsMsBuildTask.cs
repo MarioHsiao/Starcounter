@@ -19,7 +19,7 @@ namespace Starcounter.Internal.MsBuild
     /// <summary>
     /// Class that holds code to MsBuild tasks.
     /// </summary>
-    public class MsBuildTasksCode
+    public class BuildCustomObjClass<TObjType>
     {
         /// <summary>
         /// When overridden in a derived class, executes the task.
@@ -41,7 +41,7 @@ namespace Starcounter.Internal.MsBuild
                 {
                     msbuildLog.LogMessage("Creating " + OutputFiles[i].ItemSpec);
 
-                    generatedCodeStr = ProcessJsTemplateFile(jsonFilename, codeBehindFilename);
+                    generatedCodeStr = ProcessJsTemplateFile(typeof(TObjType),jsonFilename, codeBehindFilename);
                     File.WriteAllText(OutputFiles[i].ItemSpec, generatedCodeStr);
                 }
                 catch (Starcounter.Internal.JsonTemplate.Error.CompileError ce)
@@ -64,9 +64,9 @@ namespace Starcounter.Internal.MsBuild
         /// <param name="jsonFilename">The json filename.</param>
         /// <param name="codeBehindFilename">The code behind filename.</param>
         /// <returns>System.String.</returns>
-        private static string ProcessJsTemplateFile(string jsonFilename, string codeBehindFilename)
+        private static string ProcessJsTemplateFile(Type objTemplateType, string jsonFilename, string codeBehindFilename)
         {
-            TPuppet t;
+            TObj t;
             CodeBehindMetadata metadata;
             ITemplateCodeGenerator codegen;
             ITemplateCodeGeneratorModule codegenmodule;
@@ -74,7 +74,7 @@ namespace Starcounter.Internal.MsBuild
 
             var className = Paths.StripFileNameWithoutExtention(jsonFilename);
             metadata = CodeBehindAnalyzer.Analyze(className, codeBehindFilename);
-            t = TemplateFromJs.CreateFromJs(jsonContent, false);
+            t = TemplateFromJs.CreateFromJs(objTemplateType,jsonContent, false);
             if (t.ClassName == null)
             {
                 t.ClassName = className;
@@ -90,61 +90,4 @@ namespace Starcounter.Internal.MsBuild
         }
     }
 
-    /// <summary>
-    /// Class JsonToCsMsBuildTask
-    /// </summary>
-    public class JsonToCsMsBuildTask : Task
-	{
-        /// <summary>
-        /// Gets or sets the input files.
-        /// </summary>
-        /// <value>The input files.</value>
-		[Required]
-		public ITaskItem[] InputFiles { get; set; }
-
-        /// <summary>
-        /// Gets or sets the output files.
-        /// </summary>
-        /// <value>The output files.</value>
-		[Output]
-		public ITaskItem[] OutputFiles { get; set; }
-
-        /// <summary>
-        /// When overridden in a derived class, executes the task.
-        /// </summary>
-        /// <returns>true if the task successfully executed; otherwise, false.</returns>
-		public override bool Execute()
-		{
-            return MsBuildTasksCode.ExecuteTask(InputFiles, OutputFiles, Log);
-		}
-	}
-
-    /// <summary>
-    /// Class JsonToCsMsBuildTask without loading into domain (slower).
-    /// </summary>
-    public class JsonToCsMsBuildTaskNoLocking : AppDomainIsolatedTask
-    {
-        /// <summary>
-        /// Gets or sets the input files.
-        /// </summary>
-        /// <value>The input files.</value>
-        [Required]
-        public ITaskItem[] InputFiles { get; set; }
-
-        /// <summary>
-        /// Gets or sets the output files.
-        /// </summary>
-        /// <value>The output files.</value>
-        [Output]
-        public ITaskItem[] OutputFiles { get; set; }
-
-        /// <summary>
-        /// When overridden in a derived class, executes the task.
-        /// </summary>
-        /// <returns>true if the task successfully executed; otherwise, false.</returns>
-        public override bool Execute()
-        {
-            return MsBuildTasksCode.ExecuteTask(InputFiles, OutputFiles, Log);
-        }
-    }
 }
