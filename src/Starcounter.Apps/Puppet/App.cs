@@ -144,6 +144,7 @@ namespace Starcounter {
                 //                   sb.Append(JsonConvert.SerializeObject(Media.Content.FilePath.ToString()));
                 //                }
                 t++;
+                addComma = true;
             }
             else {
                 //                var view = View ?? templ.PropertyName;
@@ -152,6 +153,8 @@ namespace Starcounter {
                     if (addComma)
                         sb.Append(',');
                     t++;
+                    addComma = true;
+
                     if (true) { // includeViewContent == IncludeView.Always ) {
                         sb.Append("__vc:");
                         var res = App.Get(View);
