@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="TString.cs" company="Starcounter AB">
+// <copyright file="StringProperty.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -14,7 +14,7 @@ namespace Starcounter.Query.Execution
 /// <summary>
 /// Class that holds information about a property of type String.
 /// </summary>
-internal class TString : Property, IStringPathItem
+internal class StringProperty : Property, IStringPathItem
 {
     /// <summary>
     /// Constructor.
@@ -24,7 +24,7 @@ internal class TString : Property, IStringPathItem
     /// then the number should be -1.</param>
     /// <param name="typeBind">The type binding of the object to which this property belongs.</param>
     /// <param name="propBind">The property binding of this property.</param>
-    internal TString(Int32 extNum, ITypeBinding typeBind, IPropertyBinding propBind)
+    internal StringProperty(Int32 extNum, ITypeBinding typeBind, IPropertyBinding propBind)
     {
         if (typeBind == null)
         {
@@ -160,7 +160,7 @@ internal class TString : Property, IStringPathItem
         {
             return new StringLiteral(EvaluateToString(obj));
         }
-        return new TString(extentNumber, typeBinding, propBinding);
+        return new StringProperty(extentNumber, typeBinding, propBinding);
     }
 
     public override IValueExpression Clone(VariableArray varArray)
@@ -170,7 +170,7 @@ internal class TString : Property, IStringPathItem
         
     public IStringExpression CloneToString(VariableArray varArray)
     {
-        return new TString(extentNumber, typeBinding, propBinding);
+        return new StringProperty(extentNumber, typeBinding, propBinding);
     }
 
     /// <summary>
@@ -180,7 +180,7 @@ internal class TString : Property, IStringPathItem
     /// <param name="tabs">Number of tab indentations for the presentation.</param>
     public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs)
     {
-        stringBuilder.Append(tabs, "TString(");
+        stringBuilder.Append(tabs, "StringProperty(");
         stringBuilder.Append(extentNumber.ToString());
         stringBuilder.Append(", ");
         stringBuilder.Append(propBinding.Name);
@@ -192,7 +192,7 @@ internal class TString : Property, IStringPathItem
     /// </summary>
     public override void GenerateCompilableCode(CodeGenStringGenerator stringGen)
     {
-        stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "GetTString();");
+        stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "GetStringProperty();");
     }
 }
 }

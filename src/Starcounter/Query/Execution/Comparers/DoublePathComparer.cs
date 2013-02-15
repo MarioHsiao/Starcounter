@@ -13,7 +13,7 @@ namespace Starcounter.Query.Execution
 {
 internal class DoublePathComparer : DoubleComparer, IPathComparer
 {
-    internal DoublePathComparer(TDouble property, SortOrder ordering)
+    internal DoublePathComparer(DoubleProperty property, SortOrder ordering)
     : base(property, ordering)
     { }
 

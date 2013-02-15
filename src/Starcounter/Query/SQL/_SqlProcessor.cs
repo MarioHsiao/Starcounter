@@ -687,10 +687,10 @@ internal static class SqlProcessor
     //        case DbTypeCode.DateTime:
     //            return new DateTimePath(extentNum, path, prop as DateTimeProperty);
     //        case DbTypeCode.Decimal:
-    //            return new DecimalPath(extentNum, path, prop as TDecimal);
+    //            return new DecimalPath(extentNum, path, prop as DecimalProperty);
     //        case DbTypeCode.Double:
     //        case DbTypeCode.Single:
-    //            return new DoublePath(extentNum, path, prop as TDouble);
+    //            return new DoublePath(extentNum, path, prop as DoubleProperty);
     //        case DbTypeCode.Int64:
     //        case DbTypeCode.Int32:
     //        case DbTypeCode.Int16:
@@ -699,7 +699,7 @@ internal static class SqlProcessor
     //        case DbTypeCode.Object:
     //            return new ObjectPath(extentNum, path, prop as ObjectProperty);
     //        case DbTypeCode.String:
-    //            return new StringPath(extentNum, path, prop as TString);
+    //            return new StringPath(extentNum, path, prop as StringProperty);
     //        case DbTypeCode.UInt64:
     //        case DbTypeCode.UInt32:
     //        case DbTypeCode.UInt16:
@@ -733,10 +733,10 @@ internal static class SqlProcessor
     //        case DbTypeCode.DateTime:
     //            return new DateTimeProperty(extentNum, typeBind, propBind);
     //        case DbTypeCode.Decimal:
-    //            return new TDecimal(extentNum, typeBind, propBind);
+    //            return new DecimalProperty(extentNum, typeBind, propBind);
     //        case DbTypeCode.Double:
     //        case DbTypeCode.Single:
-    //            return new TDouble(extentNum, typeBind, propBind);
+    //            return new DoubleProperty(extentNum, typeBind, propBind);
     //        case DbTypeCode.Int64:
     //        case DbTypeCode.Int32:
     //        case DbTypeCode.Int16:
@@ -745,7 +745,7 @@ internal static class SqlProcessor
     //        case DbTypeCode.Object:
     //            return new ObjectProperty(extentNum, typeBind, propBind);
     //        case DbTypeCode.String:
-    //            return new TString(extentNum, typeBind, propBind);
+    //            return new StringProperty(extentNum, typeBind, propBind);
     //        case DbTypeCode.UInt64:
     //        case DbTypeCode.UInt32:
     //        case DbTypeCode.UInt16:

@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="TDoubleBinding.cs" company="Starcounter AB">
+// <copyright file="DoublePropertyBinding.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -10,9 +10,9 @@ namespace Starcounter.Binding
 {
 
     /// <summary>
-    /// Class TDoubleBinding
+    /// Class DoublePropertyBinding
     /// </summary>
-    public abstract class TDoubleBinding : RealPropertyBinding
+    public abstract class DoublePropertyBinding : RealPropertyBinding
     {
 
         /// <summary>

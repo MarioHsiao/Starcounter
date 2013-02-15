@@ -12,7 +12,7 @@ namespace Starcounter.Binding
     /// <summary>
     /// Class BytePropertyBinding
     /// </summary>
-    public abstract class BytePropertyBinding : UTLongBinding
+    public abstract class BytePropertyBinding : UIntPropertyBinding
     {
 
         /// <summary>

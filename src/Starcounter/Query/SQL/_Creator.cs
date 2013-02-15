@@ -1911,9 +1911,9 @@ namespace Starcounter.Query.Sql
         {
             SortOrder sortOrd = CreateSortOrdering(sortOrdTerm);
             IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
-            if (expr is TDecimal)
+            if (expr is DecimalProperty)
             {
-                return new DecimalPathComparer(expr as TDecimal, sortOrd);
+                return new DecimalPathComparer(expr as DecimalProperty, sortOrd);
             }
             if (expr is DecimalPath)
             {
@@ -1930,9 +1930,9 @@ namespace Starcounter.Query.Sql
         {
             SortOrder sortOrd = CreateSortOrdering(sortOrdTerm);
             IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
-            if (expr is TDouble)
+            if (expr is DoubleProperty)
             {
-                return new DoublePathComparer(expr as TDouble, sortOrd);
+                return new DoublePathComparer(expr as DoubleProperty, sortOrd);
             }
             if (expr is DoublePath)
             {
@@ -1988,9 +1988,9 @@ namespace Starcounter.Query.Sql
         {
             SortOrder sortOrd = CreateSortOrdering(sortOrdTerm);
             IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
-            if (expr is TString)
+            if (expr is StringProperty)
             {
-                return new StringPathComparer(expr as TString, sortOrd);
+                return new StringPathComparer(expr as StringProperty, sortOrd);
             }
             if (expr is StringPath)
             {
@@ -2814,12 +2814,12 @@ namespace Starcounter.Query.Sql
             // else
             if (typeTerm.Name == "decimal")
             {
-                return CreateTDecimal(extNum, typeBind, nameTerm);
+                return CreateDecimalProperty(extNum, typeBind, nameTerm);
             }
             // else
             if (typeTerm.Name == "double")
             {
-                return CreateTDouble(extNum, typeBind, nameTerm);
+                return CreateDoubleProperty(extNum, typeBind, nameTerm);
             }
             // else
             if (typeTerm.Name == "integer")
@@ -2834,7 +2834,7 @@ namespace Starcounter.Query.Sql
             // else
             if (typeTerm.Name == "string")
             {
-                return CreateTString(extNum, typeBind, nameTerm);
+                return CreateStringProperty(extNum, typeBind, nameTerm);
             }
             // else
             if (typeTerm.Name == "uinteger")
@@ -2893,7 +2893,7 @@ namespace Starcounter.Query.Sql
             return new DateTimeProperty(extNum, typeBind, propBind);
         }
 
-        private static TDecimal CreateTDecimal(Int32 extNum, ITypeBinding typeBind, Term nameTerm)
+        private static DecimalProperty CreateDecimalProperty(Int32 extNum, ITypeBinding typeBind, Term nameTerm)
         {
             String propName = nameTerm.Name;
             //PI110503 IPropertyBinding propBind = typeBind.GetPropertyBindingByUpperCaseName(propName.ToUpper());
@@ -2906,10 +2906,10 @@ namespace Starcounter.Query.Sql
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect type: " + propBind.TypeCode);
             }
-            return new TDecimal(extNum, typeBind, propBind);
+            return new DecimalProperty(extNum, typeBind, propBind);
         }
 
-        private static TDouble CreateTDouble(Int32 extNum, ITypeBinding typeBind, Term nameTerm)
+        private static DoubleProperty CreateDoubleProperty(Int32 extNum, ITypeBinding typeBind, Term nameTerm)
         {
             String propName = nameTerm.Name;
             //PI110503 IPropertyBinding propBind = typeBind.GetPropertyBindingByUpperCaseName(propName.ToUpper());
@@ -2922,7 +2922,7 @@ namespace Starcounter.Query.Sql
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect type: " + propBind.TypeCode);
             }
-            return new TDouble(extNum, typeBind, propBind);
+            return new DoubleProperty(extNum, typeBind, propBind);
         }
 
         private static IntegerProperty CreateIntegerProperty(Int32 extNum, ITypeBinding typeBind, Term nameTerm)
@@ -2958,7 +2958,7 @@ namespace Starcounter.Query.Sql
             return new ObjectProperty(extNum, typeBind, propBind);
         }
 
-        private static TString CreateTString(Int32 extNum, ITypeBinding typeBind, Term nameTerm)
+        private static StringProperty CreateStringProperty(Int32 extNum, ITypeBinding typeBind, Term nameTerm)
         {
             String propName = nameTerm.Name;
             //PI110503 IPropertyBinding propBind = typeBind.GetPropertyBindingByUpperCaseName(propName.ToUpper());
@@ -2971,7 +2971,7 @@ namespace Starcounter.Query.Sql
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect type: " + propBind.TypeCode);
             }
-            return new TString(extNum, typeBind, propBind);
+            return new StringProperty(extNum, typeBind, propBind);
         }
 
         private static UIntegerProperty CreateUIntegerProperty(Int32 extNum, ITypeBinding typeBind, Term nameTerm)
