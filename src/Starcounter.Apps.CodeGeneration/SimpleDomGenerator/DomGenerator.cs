@@ -733,7 +733,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             var vlist = new NListingXXXClass(this, "Listing", ValueClasses[alt.App], null,alt);
             amn.Type = vlist;
 
-            tmn.Type = new NListingXXXClass(this, this.DefaultObjTemplate.GetType().Name, 
+            tmn.Type = new NListingXXXClass(this, "TArr", 
                                             ValueClasses[alt.App], 
                                             TemplateClasses[alt.App], alt);
             cstmn.Type = new NListingXXXClass(this, "TArr",

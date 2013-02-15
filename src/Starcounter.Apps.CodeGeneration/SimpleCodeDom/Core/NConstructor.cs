@@ -21,5 +21,13 @@ namespace Starcounter.Internal.Application.CodeGeneration
         public NConstructor(DomGenerator gen)
             : base(gen) {
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString() {
+            return "NCONSTRUCTOR";
+        }
     }
 }

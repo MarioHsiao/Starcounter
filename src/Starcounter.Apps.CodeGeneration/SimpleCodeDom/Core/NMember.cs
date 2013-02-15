@@ -75,10 +75,10 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <returns>A <see cref="System.String" /> that represents this instance.</returns>
         public override string ToString() {
             string str = MemberName;
-            if (FunctionGeneric != null) {
-                str += "<" + FunctionGeneric.FullClassName + ">";
-            }
-            return Type.FullClassName + " " + str;
+//            if (FunctionGeneric != null) {
+//                str += "<" + FunctionGeneric.FullClassName + ">";
+//            }
+            return "NMEMBER " + Type.FullClassName + " " + str;
         }
     }
 }

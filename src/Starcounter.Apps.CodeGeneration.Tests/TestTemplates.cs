@@ -44,22 +44,37 @@ namespace Test {
         }
 
         /// <summary>
-        /// Generates the cs from simple js.
         /// </summary>
         [Test]
         public static void GenerateCsFromSimpleJs() {
-           TPuppet actual = TemplateFromJs.ReadPuppetTemplateFromFile("simple.json");
-           actual.ClassName = "PlayerApp";
+            TPuppet actual = TemplateFromJs.ReadPuppetTemplateFromFile("simple.json");
+            actual.ClassName = "PlayerApp";
 
-           var file = new System.IO.StreamReader("simple.facit.cs");
-           var facit = file.ReadToEnd();
-           file.Close();
-           Assert.IsInstanceOf(typeof(TPuppet), actual);
-           var codegenmodule = new CodeGenerationModule();
-           ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TPuppet),"C#",actual, CodeBehindMetadata.Empty);
-           var code = codegen.GenerateCode();
-           Console.WriteLine(code);
-           // Assert.AreEqual(facit, code);
+            var file = new System.IO.StreamReader("simple.facit.cs");
+            var facit = file.ReadToEnd();
+            file.Close();
+            Assert.IsInstanceOf(typeof(TPuppet), actual);
+            var codegenmodule = new CodeGenerationModule();
+            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TPuppet), "C#", actual, CodeBehindMetadata.Empty);
+            Console.WriteLine(codegen.DumpAstTree());
+            var code = codegen.GenerateCode();
+            Console.WriteLine(code);
+            // Assert.AreEqual(facit, code);
+        }
+
+        /// <summary>
+        /// </summary>
+        [Test]
+        public static void GenerateCsFromSuperSimpleJs() {
+            TPuppet actual = TemplateFromJs.ReadPuppetTemplateFromFile("supersimple.json");
+            actual.ClassName = "PlayerApp";
+
+            Assert.IsInstanceOf(typeof(TPuppet), actual);
+            var codegenmodule = new CodeGenerationModule();
+            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TPuppet), "C#", actual, CodeBehindMetadata.Empty);
+            Console.WriteLine(codegen.DumpAstTree());
+            var code = codegen.GenerateCode();
+            Console.WriteLine(code);
         }
 
         [Test]

@@ -52,7 +52,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         /// Returns a multiline string representation of the code dom tree
         /// </summary>
         /// <returns>A multiline string</returns>
-        public string DumpTree() {
+        public string DumpAstTree() {
             var sb = new StringBuilder();
             DumpTree(sb, Root, 0);
             return sb.ToString();
