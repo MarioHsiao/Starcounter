@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="ArrProperty.cs" company="Starcounter AB">
+// <copyright file="ArrTemplate.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -19,11 +19,11 @@ namespace Starcounter.Templates {
 //    }
 
     /// <summary>
-    /// Class ArrProperty
+    /// Class ArrTemplate
     /// </summary>
     /// <typeparam name="OT">The type of the app type.</typeparam>
     /// <typeparam name="OTT">The type of the app template type.</typeparam>
-    public class ArrProperty<OT,OTT> : ObjArrProperty
+    public class ArrTemplate<OT,OTT> : ObjArrTemplate
         where OT : App, new()
         where OTT : AppTemplate
     {
@@ -91,9 +91,9 @@ namespace Starcounter.Templates {
     }
 
     /// <summary>
-    /// Class ArrProperty
+    /// Class ArrTemplate
     /// </summary>
-    public abstract class ObjArrProperty : ContainerTemplate
+    public abstract class ObjArrTemplate : ContainerTemplate
 #if IAPP
 //        , IAppListTemplate
 #endif

@@ -85,7 +85,7 @@ namespace Starcounter {
                     sb.Append(prop.Name);
                     sb.Append('"');
                     sb.Append(':');
-                    if (prop is ObjArrProperty) {
+                    if (prop is ObjArrTemplate) {
                         sb.Append('[');
                         int i = 0;
                         foreach (var x in val as Listing) {

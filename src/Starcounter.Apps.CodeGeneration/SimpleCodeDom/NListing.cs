@@ -11,7 +11,7 @@ using System.Text;
 namespace Starcounter.Internal.Application.CodeGeneration {
 
     /// <summary>
-    /// The source code representation of each Listing&lt;T1&gt;, ArrProperty&lt;T1,T2&gt; 
+    /// The source code representation of each Listing&lt;T1&gt;, ArrTemplate&lt;T1,T2&gt; 
     /// or ArrMetadata&lt;T1,T2&gt; class where 
     /// T1 is the link to the App class and T2 is the link to the AppTemplate class being used in the list.
     /// This means that there is one instance of this class for each T1,T2 combination used.

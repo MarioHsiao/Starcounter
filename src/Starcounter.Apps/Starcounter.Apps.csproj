@@ -92,7 +92,7 @@
     <Compile Include="Puppets\Temp.cs" />
     <Compile Include="TemplateAttribute.cs" />
     <Compile Include="Puppets\AppTemplate.cs" />
-    <Compile Include="Templates\ArrProperty.cs" />
+    <Compile Include="Templates\ArrTemplate.cs" />
     <Compile Include="Templates\Foundation\Property.cs" />
     <Compile Include="Templates\ObjTemplate.cs" />
     <Compile Include="ValueMetadata\DecimalMetadata.cs" />
@@ -116,7 +116,7 @@
     <Compile Include="Templates\BoolProperty.cs" />
     <Compile Include="Templates\DecimalProperty.cs" />
     <Compile Include="Templates\DoubleProperty.cs" />
-    <Compile Include="Templates\Foundation\ParentTemplate.cs" />
+    <Compile Include="Templates\Foundation\ContainerTemplate.cs" />
     <Compile Include="Templates\OidProperty.cs" />
     <Compile Include="Templates\Foundation\PropertyList.cs" />
     <Compile Include="Templates\StringProperty.cs" />

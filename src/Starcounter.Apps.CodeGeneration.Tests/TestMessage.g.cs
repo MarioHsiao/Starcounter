@@ -103,12 +103,12 @@ public partial class TestMessage {
                     InstanceType = typeof(TestMessage.ChildApp.ASubApp2App);
                     ClassName = "ASubApp2App";
                     IsInnerApp = Register<BoolProperty>("IsInnerApp", "IsInnerApp");
-                    ASubList = Register<ArrProperty<TestMessage.ChildApp.ASubApp2App.ASubListApp, TestMessage.ChildApp.ASubApp2App.ASubListApp.ASubListAppTemplate>>("ASubList", "ASubList");
+                    ASubList = Register<ArrTemplate<TestMessage.ChildApp.ASubApp2App.ASubListApp, TestMessage.ChildApp.ASubApp2App.ASubListApp.ASubListAppTemplate>>("ASubList", "ASubList");
                     ASubList.App = TestMessage.ChildApp.ASubApp2App.ASubListApp.DefaultTemplate;
                 }
                 public override object CreateInstance(Container parent) { return new ASubApp2App(this) { Parent = (TestMessage.ChildApp)parent }; }
                 public BoolProperty IsInnerApp;
-                public ArrProperty<TestMessage.ChildApp.ASubApp2App.ASubListApp, TestMessage.ChildApp.ASubApp2App.ASubListApp.ASubListAppTemplate> ASubList;
+                public ArrTemplate<TestMessage.ChildApp.ASubApp2App.ASubListApp, TestMessage.ChildApp.ASubApp2App.ASubListApp.ASubListAppTemplate> ASubList;
             }
             public class ASubApp2ObjMetadata : ObjMetadata {
                 public ASubApp2ObjMetadata(App app, AppTemplate template) : base(app, template) { }
@@ -190,7 +190,7 @@ public partial class TestMessage {
             Username = Register<StringProperty>("Username", "Username");
             Password = Register<StringProperty>("Password", "Password");
             Child = Register<TestMessage.ChildApp.ChildAppTemplate>("Child", "Child");
-            AList = Register<ArrProperty<TestMessage.AListApp, TestMessage.AListApp.AListAppTemplate>>("AList", "AList");
+            AList = Register<ArrTemplate<TestMessage.AListApp, TestMessage.AListApp.AListAppTemplate>>("AList", "AList");
             AList.App = TestMessage.AListApp.DefaultTemplate;
             ADecimal = Register<DecimalProperty>("ADecimal", "ADecimal");
             ADouble = Register<DoubleProperty>("ADouble", "ADouble");
@@ -202,7 +202,7 @@ public partial class TestMessage {
         public StringProperty Username;
         public StringProperty Password;
         public TestMessage.ChildApp.ChildAppTemplate Child;
-        public ArrProperty<TestMessage.AListApp, TestMessage.AListApp.AListAppTemplate> AList;
+        public ArrTemplate<TestMessage.AListApp, TestMessage.AListApp.AListAppTemplate> AList;
         public DecimalProperty ADecimal;
         public DoubleProperty ADouble;
         public StringProperty UserLink;

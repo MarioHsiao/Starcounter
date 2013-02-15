@@ -36,8 +36,8 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
             string valueName = " val" + ParseNode.HandlerIndex;;
             Template template = Template;
 
-            if (template is ObjArrProperty) {
-                template = ((ObjArrProperty)template).App;
+            if (template is ObjArrTemplate) {
+                template = ((ObjArrTemplate)template).App;
             }
             
             if (template is AppTemplate) {
@@ -70,7 +70,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                 parseFunction = "ParseDouble";
             } else if (template is BoolProperty) {
                 parseFunction = "ParseBoolean";
-            } else if (template is AppTemplate || template is ObjArrProperty) {
+            } else if (template is AppTemplate || template is ObjArrTemplate) {
                 parseFunction = "DeserializeApp(" + ((AppTemplate)template).ClassName + ")";
             } else {
                 throw new NotSupportedException("TODO! Add more types here");

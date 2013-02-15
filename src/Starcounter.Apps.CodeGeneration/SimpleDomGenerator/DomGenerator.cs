@@ -295,9 +295,9 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 {
                     appTemplate = (AppTemplate)template;
                 }
-                else if (template is ObjArrProperty)
+                else if (template is ObjArrTemplate)
                 {
-                    appTemplate = ((ObjArrProperty)template).App;
+                    appTemplate = ((ObjArrTemplate)template).App;
                 }
                 else
                 {
@@ -390,12 +390,12 @@ namespace Starcounter.Internal.Application.CodeGeneration
                                            metaParent,
                                            template);
                         }
-                        else if (kid is ObjArrProperty)
+                        else if (kid is ObjArrTemplate)
                         {
 //                            var type = new NListingXXXClass(NValueClass.Classes[kid.InstanceType] ) { Template = kid }; // Orphaned by design as primitive types dont get custom template classes
 //                            NTemplateClass.Classes[kid] = type;
 
-                            GenerateForListing(kid as ObjArrProperty,
+                            GenerateForListing(kid as ObjArrTemplate,
                                                appClassParent,
                                                templParent,
                                                metaParent,
@@ -568,7 +568,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="templParent">The templ parent.</param>
         /// <param name="metaParent">The meta parent.</param>
         /// <param name="template">The template.</param>
-        private void GenerateForListing(ObjArrProperty alt, 
+        private void GenerateForListing(ObjArrTemplate alt, 
                                         NAppClass appClassParent, 
                                         NAppTemplateClass templParent, 
                                         NClass metaParent, 
@@ -606,10 +606,10 @@ namespace Starcounter.Internal.Application.CodeGeneration
             var vlist = new NListingXXXClass("Listing", NValueClass.Classes[alt.App], null,alt);
             amn.Type = vlist;
 
-            tmn.Type = new NListingXXXClass("ArrProperty", 
+            tmn.Type = new NListingXXXClass("ArrTemplate", 
                                             NValueClass.Classes[alt.App], 
                                             NTemplateClass.Classes[alt.App], alt);
-            cstmn.Type = new NListingXXXClass("ArrProperty",
+            cstmn.Type = new NListingXXXClass("ArrTemplate",
                                             NValueClass.Classes[alt.App],
                                             NTemplateClass.Classes[alt.App], alt);
 
@@ -738,9 +738,9 @@ namespace Starcounter.Internal.Application.CodeGeneration
                                     });
 
                     template = np.Template;
-                    if (template is ObjArrProperty)
+                    if (template is ObjArrTemplate)
                     {
-                        template = ((ObjArrProperty)template).App;
+                        template = ((ObjArrTemplate)template).App;
                     }
                     propertyAppClass = (NAppTemplateClass)NAppTemplateClass.Find(template);
                 }
