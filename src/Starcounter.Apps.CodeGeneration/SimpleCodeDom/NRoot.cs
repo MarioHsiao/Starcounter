@@ -4,6 +4,7 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.Templates;
 namespace Starcounter.Internal.Application.CodeGeneration {
 
     // The source code root keeps track of the namespace and the single root
@@ -12,9 +13,16 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// Class NRoot
     /// </summary>
     public class NRoot : NBase {
+
+        public NRoot(DomGenerator gen)
+            : base(gen) {
+        }
+
         /// <summary>
         /// The app class class node
         /// </summary>
         public NAppClass AppClassClassNode;
+
+      //  public TObj DefaultObjTemplate;
     }
 }

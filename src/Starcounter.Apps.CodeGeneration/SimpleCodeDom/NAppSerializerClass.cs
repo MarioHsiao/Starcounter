@@ -10,6 +10,11 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// 
     /// </summary>
     public class NAppSerializerClass : NBase {
+
+        public NAppSerializerClass(DomGenerator gen)
+            : base(gen) {
+        }
+
         /// <summary>
         /// 
         /// </summary>

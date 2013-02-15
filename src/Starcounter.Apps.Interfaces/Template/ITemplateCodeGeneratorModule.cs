@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using Starcounter.Templates.Interfaces;
+using System;
 namespace Starcounter.Internal {
     /// <summary>
     /// Interface ITemplateCodeGeneratorModule
@@ -17,6 +18,6 @@ namespace Starcounter.Internal {
         /// <param name="template">The template.</param>
         /// <param name="metadata">The metadata.</param>
         /// <returns>ITemplateCodeGenerator.</returns>
-        ITemplateCodeGenerator CreateGenerator( string lang, object template, object metadata );
+        ITemplateCodeGenerator CreateGenerator( Type defaultNewObjTemplateType, string lang, object template, object metadata );
     }
 }

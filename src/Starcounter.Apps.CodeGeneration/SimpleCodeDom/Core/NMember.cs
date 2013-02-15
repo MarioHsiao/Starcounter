@@ -17,6 +17,12 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// Represents a property, a field or a function
     /// </summary>
     public class NProperty : NBase {
+
+
+        public NProperty(DomGenerator gen)
+            : base(gen) {
+        }
+
         /// <summary>
         /// Gets or sets the type.
         /// </summary>

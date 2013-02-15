@@ -12,39 +12,16 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// </summary>
     public abstract class NValueClass : NClass {
 
+        public NValueClass(DomGenerator gen)
+            : base(gen) {
+        }
+
         /// <summary>
         /// Gets or sets the N template class.
         /// </summary>
         /// <value>The N template class.</value>
         public NTemplateClass NTemplateClass { get; set; }
 
-        /// <summary>
-        /// The classes
-        /// </summary>
-        public static Dictionary<Template, NValueClass> Classes = new Dictionary<Template, NValueClass>();
-
-        /// <summary>
-        /// Finds the specified template.
-        /// </summary>
-        /// <param name="template">The template.</param>
-        /// <returns>NValueClass.</returns>
-        public static NValueClass Find(Template template) {
-            template = NTemplateClass.GetPrototype(template);
-            return NValueClass.Classes[template];
-        }
-
-        /// <summary>
-        /// Initializes static members of the <see cref="NValueClass" /> class.
-        /// </summary>
-        static NValueClass() {
-            Classes[NTemplateClass.TString] = new NPrimitiveType { NTemplateClass = NTemplateClass.Classes[NTemplateClass.TString] };
-            Classes[NTemplateClass.TLong] = new NPrimitiveType { NTemplateClass = NTemplateClass.Classes[NTemplateClass.TLong] };
-            Classes[NTemplateClass.TDecimal] = new NPrimitiveType { NTemplateClass = NTemplateClass.Classes[NTemplateClass.TDecimal] };
-            Classes[NTemplateClass.TDouble] = new NPrimitiveType { NTemplateClass = NTemplateClass.Classes[NTemplateClass.TDouble] };
-            Classes[NTemplateClass.TBool] = new NPrimitiveType { NTemplateClass = NTemplateClass.Classes[NTemplateClass.TBool] };
-            Classes[NTemplateClass.ActionProperty] = new NPrimitiveType { NTemplateClass = NTemplateClass.Classes[NTemplateClass.ActionProperty] };
-            Classes[NTemplateClass.TApp] = new NAppClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.TApp] };
-        }
 
 
     }

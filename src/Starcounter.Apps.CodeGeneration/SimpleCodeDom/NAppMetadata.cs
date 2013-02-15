@@ -12,6 +12,11 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// Each App can have a metadata class. See ObjMetadata.
     /// </summary>
     public class NObjMetadata : NMetadataClass {
+
+        public NObjMetadata(DomGenerator gen)
+            : base(gen) {
+        }
+
         /// <summary>
         /// The template
         /// </summary>

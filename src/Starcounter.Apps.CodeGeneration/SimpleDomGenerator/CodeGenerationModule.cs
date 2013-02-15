@@ -6,6 +6,7 @@
 
 using Starcounter.Templates;
 using Starcounter.Templates.Interfaces;
+using System;
 
 namespace Starcounter.Internal.Application.CodeGeneration {
     /// <summary>
@@ -20,10 +21,10 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="defaultObjTemplate">The template.</param>
         /// <param name="metadata">The metadata.</param>
         /// <returns>ITemplateCodeGenerator.</returns>
-        public ITemplateCodeGenerator CreateGenerator(string dotNetLanguage, object defaultObjTemplate, object metadata) {
-            var templ = (TObj)defaultObjTemplate;
-            var gen = new DomGenerator(this, templ );
-            return new CSharpGenerator( templ, gen.GenerateDomTree( templ, (CodeBehindMetadata)metadata));
+        public ITemplateCodeGenerator CreateGenerator(Type defaultChildObjTemplateType, string dotNetLanguage, object objTemplate, object metadata) {
+            var templ = (TObj)objTemplate;
+            var gen = new DomGenerator(this, templ, defaultChildObjTemplateType );
+            return new CSharpGenerator( gen, gen.GenerateDomTree( templ, (CodeBehindMetadata)metadata));
         }
 
     }

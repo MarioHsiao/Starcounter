@@ -10,6 +10,9 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// See TemplateAttribute
     /// </summary>
     public class NJsonAttributeClass : NOtherClass {
+        public NJsonAttributeClass(DomGenerator gen)
+            : base(gen) {
+        }
 
     }
 }

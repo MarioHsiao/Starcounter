@@ -12,6 +12,11 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// The source code representation of the TApp class.
     /// </summary>
     public class NPropertyClass : NTemplateClass {
+
+        public NPropertyClass(DomGenerator gen)
+            : base(gen) {
+        }
+
         /// <summary>
         /// Gets the inherits.
         /// </summary>

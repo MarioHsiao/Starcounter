@@ -14,32 +14,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// </summary>
     public class NMetadataClass : NClass {
 
-        /// <summary>
-        /// The classes
-        /// </summary>
-        public static Dictionary<Template, NMetadataClass> Classes = new Dictionary<Template, NMetadataClass>();
-
-        /// <summary>
-        /// Finds the specified template.
-        /// </summary>
-        /// <param name="template">The template.</param>
-        /// <returns>NMetadataClass.</returns>
-        public static NMetadataClass Find( Template template ) {
-            template = NTemplateClass.GetPrototype(template);
-            return NMetadataClass.Classes[template];
-        }
-
-        /// <summary>
-        /// Initializes static members of the <see cref="NMetadataClass" /> class.
-        /// </summary>
-        static NMetadataClass() {
-            Classes[NTemplateClass.TString] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.TString] };
-            Classes[NTemplateClass.TLong] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.TLong] };
-            Classes[NTemplateClass.TDecimal] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.TDecimal] };
-            Classes[NTemplateClass.TDouble] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.TDouble] };
-            Classes[NTemplateClass.TBool] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.TBool] };
-            Classes[NTemplateClass.ActionProperty] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.ActionProperty] };
-            Classes[NTemplateClass.TApp] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.TApp] };
+        public NMetadataClass(DomGenerator gen)
+            : base(gen) {
         }
 
         /// <summary>
