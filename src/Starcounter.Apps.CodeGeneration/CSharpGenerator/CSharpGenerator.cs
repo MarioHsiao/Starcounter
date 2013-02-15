@@ -39,6 +39,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         /// <summary>
         /// Initializes a new instance of the <see cref="CSharpGenerator" /> class.
         /// </summary>
+        /// <param name="defaultObjTempalte">The defaultObjTempalte.</param>
         /// <param name="root">The root.</param>
         public CSharpGenerator(TObj defaultObjTempalte, NRoot root ) {
             DefaultObjTemplate = defaultObjTempalte;
