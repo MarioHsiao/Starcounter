@@ -591,7 +591,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             StringBuilder sb = new StringBuilder();
             sb.Append("        ");
             sb.Append(ib.BindsToProperty.Template.PropertyName);       // {0}
-            sb.Append(".AddHandler((Obj app, Property");
+            sb.Append(".AddHandler((Obj app, TValue");
 
             if (hasValue) {
                 sb.Append('<');
