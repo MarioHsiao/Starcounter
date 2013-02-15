@@ -1148,18 +1148,17 @@ void monitor::cleanup() {
 #if defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 									bool release_client_number_res =
 									shared.common_client_interface().release_client_number
-									(n, client_interface_ptr, /*get_owner_id()*/ owner_id::none); /// "22"
+									(n, client_interface_ptr -n, /*get_owner_id()*/ owner_id::none); /// "22"
 #else // !defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 									bool release_client_number_res =
 									shared.common_client_interface().release_client_number
-									(n, client_interface_ptr); /// "22"
+									(n, client_interface_ptr -n); /// "22"
 #endif // defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 									////std::cout << "release_client_number_res = " << release_client_number_res << std::endl;
 								}
 								else {
 									////std::cout << "Not ready to release chunks and client_interface." << std::endl;
 								}
-
 							} // Found a client_interface that needs cleanup.
 						} // For each client_interface
 						///-----------------------------------------------------
