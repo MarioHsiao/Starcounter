@@ -103,11 +103,11 @@ IndexScan(
 	ObjectDynamicRange(
 		ObjectRangePoint(
 			GreaterThanOrEqual
-			ObjectVariable(1)
+			ObjectVariable(51)
 		)
 		ObjectRangePoint(
 			LessThanOrEqual
-			ObjectVariable(1)
+			ObjectVariable(51)
 		)
 	)
 	LogicalValue(TRUE)
@@ -144,11 +144,11 @@ IndexScan(
 	ObjectDynamicRange(
 		ObjectRangePoint(
 			GreaterThanOrEqual
-			ObjectVariable(1)
+			ObjectVariable(51)
 		)
 		ObjectRangePoint(
 			LessThanOrEqual
-			ObjectVariable(1)
+			ObjectVariable(51)
 		)
 	)
 	IsTypePredicate(
@@ -187,11 +187,11 @@ IndexScan(
 	ObjectDynamicRange(
 		ObjectRangePoint(
 			GreaterThanOrEqual
-			ObjectVariable(1)
+			ObjectVariable(51)
 		)
 		ObjectRangePoint(
 			LessThanOrEqual
-			ObjectVariable(1)
+			ObjectVariable(51)
 		)
 	)
 	LogicalValue(TRUE)
