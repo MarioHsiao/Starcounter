@@ -20,7 +20,7 @@ namespace Starcounter.Internal.JsonPatch {
         /// <summary>
         /// The app
         /// </summary>
-        public readonly App App;
+        public readonly Puppet App;
         /// <summary>
         /// The template
         /// </summary>
@@ -31,7 +31,7 @@ namespace Starcounter.Internal.JsonPatch {
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="template">The template.</param>
-        public AppAndTemplate(App app, Template template) {
+        public AppAndTemplate(Puppet app, Template template) {
             App = app;
             Template = template;
         }
@@ -108,7 +108,7 @@ namespace Starcounter.Internal.JsonPatch {
         /// </summary>
         /// <param name="rootApp">the root app for this request.</param>
         /// <param name="body">The body of the request.</param>
-        public static void EvaluatePatches(App rootApp, byte[] body) {
+        public static void EvaluatePatches(Puppet rootApp, byte[] body) {
             Byte[] contentArr;
             Byte current;
             Int32 bracketCount;
@@ -152,9 +152,9 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="pointer">A jsonpointer that points to the value to be patched</param>
         /// <param name="value">The value.</param>
         /// <exception cref="System.Exception">TODO:</exception>
-        private static void HandleParsedPatch(App rootApp, Int32 patchType, JsonPointer pointer, Byte[] value) {
+        private static void HandleParsedPatch(Puppet rootApp, Int32 patchType, JsonPointer pointer, Byte[] value) {
             AppAndTemplate aat = JsonPatch.Evaluate(rootApp, pointer);
-            ((Property)aat.Template).ProcessInput(aat.App, value);
+            ((TValue)aat.Template).ProcessInput(aat.App, value);
         }
 
         /// <summary>
@@ -310,7 +310,7 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="mainApp">The main app.</param>
         /// <param name="jsonPtr">The json PTR.</param>
         /// <returns>AppAndTemplate.</returns>
-        internal static AppAndTemplate Evaluate(App mainApp, String jsonPtr) {
+        internal static AppAndTemplate Evaluate(Puppet mainApp, String jsonPtr) {
             return Evaluate(mainApp, new JsonPointer(jsonPtr));
         }
 
@@ -321,14 +321,14 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="ptr">The PTR.</param>
         /// <returns>AppAndTemplate.</returns>
         /// <exception cref="System.Exception"></exception>
-        internal static AppAndTemplate Evaluate(App mainApp, JsonPointer ptr) {
-            Boolean currentIsAppTemplate;
+        internal static AppAndTemplate Evaluate(Puppet mainApp, JsonPointer ptr) {
+            Boolean currentIsTApp;
             Boolean nextTokenShouldBeIndex;
             Int32 index;
             Object current = null;
 
             nextTokenShouldBeIndex = false;
-            currentIsAppTemplate = false;
+            currentIsTApp = false;
             while (ptr.MoveNext()) {
                 if (nextTokenShouldBeIndex) {
                     // Previous object was a Set. This token should be an index
@@ -336,12 +336,12 @@ namespace Starcounter.Internal.JsonPatch {
                     nextTokenShouldBeIndex = false;
                     index = ptr.CurrentAsInt;
 
-                    Listing list = mainApp.GetValue((ObjArrProperty)current);
+                    Listing list = mainApp.GetValue((TObjArr)current);
                     current = list[index];
                 } else {
-                    if (currentIsAppTemplate) {
-                        mainApp = mainApp.GetValue((AppTemplate)current);
-                        currentIsAppTemplate = false;
+                    if (currentIsTApp) {
+                        mainApp = mainApp.GetValue((TPuppet)current);
+                        currentIsTApp = false;
                     }
 
                     Template t = mainApp.Template.Properties.GetTemplateByName(ptr.Current);
@@ -358,11 +358,11 @@ namespace Starcounter.Internal.JsonPatch {
                     current = t;
                 }
 
-                if (current is App) {
-                    mainApp = current as App;
-                } else if (current is AppTemplate) {
-                    currentIsAppTemplate = true;
-                } else if (current is ObjArrProperty) {
+                if (current is Puppet) {
+                    mainApp = current as Puppet;
+                } else if (current is TPuppet) {
+                    currentIsTApp = true;
+                } else if (current is TObjArr) {
                     nextTokenShouldBeIndex = true;
                 } else {
                     // Current token points to a value or an action.
@@ -411,8 +411,8 @@ namespace Starcounter.Internal.JsonPatch {
             sb.Append('"');
             if (patchType != REMOVE) {
                 sb.Append(", \"value\":");
-                if (value is App) {
-                    sb.Append(((App)value).ToJson());
+                if (value is Puppet) {
+                    sb.Append(((Puppet)value).ToJson());
                 } else {
                     sb.Append(JsonConvert.SerializeObject(value));
                 }
@@ -432,7 +432,7 @@ namespace Starcounter.Internal.JsonPatch {
             Boolean nextIndexIsPositionInList;
             Int32[] path;
             Listing list;
-            ObjArrProperty listProp;
+            TObjArr listProp;
             Template template;
 
             // Find the root app.
@@ -456,12 +456,12 @@ namespace Starcounter.Internal.JsonPatch {
                     sb.Append('/');
                     sb.Append(template.Name);
 
-                    if (template is ObjArrProperty) {
+                    if (template is TObjArr) {
                         // next index in the path is the index in the list.
-                        listProp = (ObjArrProperty)template;
+                        listProp = (TObjArr)template;
                         nextIndexIsPositionInList = true;
-                    } else if (template is AppTemplate) {
-                        app = app.GetValue((AppTemplate)template);
+                    } else if (template is TPuppet) {
+                        app = app.GetValue((TPuppet)template);
                     }
                 }
             }

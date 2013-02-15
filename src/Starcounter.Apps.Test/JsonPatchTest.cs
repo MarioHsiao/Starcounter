@@ -16,18 +16,6 @@ using Starcounter.Templates;
 
 namespace Starcounter.Internal.JsonPatch.Test
 {
-    //internal struct AppAndTemplate
-    //{
-    //    internal readonly dynamic App;
-    //    internal readonly dynamic Template;
-
-    //    internal AppAndTemplate(dynamic app, dynamic template)
-    //    {
-    //        App = app;
-    //        Template = template;
-    //    }
-    //}
-
     /// <summary>
     /// Class JsonPatchTest
     /// </summary>
@@ -128,7 +116,7 @@ namespace Starcounter.Internal.JsonPatch.Test
             Session session = new Session();
             session.Execute(null, () =>
             {
-                App rootApp = CreateSampleApp().App;
+                Puppet rootApp = CreateSampleApp().App;
                 Session.Current.AttachRootApp(rootApp);
                 JsonPatch.EvaluatePatches(rootApp, System.Text.Encoding.UTF8.GetBytes(patchBlob));
             });
@@ -150,19 +138,19 @@ namespace Starcounter.Internal.JsonPatch.Test
                 dynamic app = aat.App;
 
                 AppAndTemplate obj = JsonPatch.Evaluate(app, "/FirstName");
-                String value = obj.App.GetValue((StringProperty)obj.Template);
+                String value = obj.App.GetValue((TString)obj.Template);
                 Assert.AreEqual(value, "Cliff");
 
                 obj = JsonPatch.Evaluate(app, "/LastName");
-                value = obj.App.GetValue((StringProperty)obj.Template);
+                value = obj.App.GetValue((TString)obj.Template);
                 Assert.AreEqual(value, "Barnes");
 
                 obj = JsonPatch.Evaluate(app, "/Items/0/Description");
-                value = obj.App.GetValue((StringProperty)obj.Template);
+                value = obj.App.GetValue((TString)obj.Template);
                 Assert.AreEqual(value, "Take a nap!");
 
                 obj = JsonPatch.Evaluate(app, "/Items/1/IsDone");
-                bool b = obj.App.GetValue((BoolProperty)obj.Template);
+                bool b = obj.App.GetValue((TBool)obj.Template);
                 Assert.AreEqual(b, true);
 
                 obj = JsonPatch.Evaluate(app, "/Items/1");
@@ -196,7 +184,7 @@ namespace Starcounter.Internal.JsonPatch.Test
             Template from;
             String str;
 
-            AppTemplate appt = (AppTemplate)aat.Template;
+            TPuppet appt = (TPuppet)aat.Template;
             from = appt.Properties[0];
             str = JsonPatch.BuildJsonPatch(JsonPatch.REPLACE, app, from, "Hmmz", -1);
             Console.WriteLine(str);
@@ -235,26 +223,26 @@ namespace Starcounter.Internal.JsonPatch.Test
             AppExeModule.IsRunningTests = true;
 
             AppAndTemplate aat = CreateSampleApp();
-            AppTemplate appt = (AppTemplate)aat.Template;
+            TObj appt = (TPuppet)aat.Template;
 
-            StringProperty firstName = (StringProperty)appt.Properties[0];
+            TString firstName = (TString)appt.Properties[0];
             Int32[] indexPath = aat.App.IndexPathFor(firstName);
             VerifyIndexPath(new Int32[] { 0 }, indexPath);
 
-            AppTemplate anotherAppt = (AppTemplate)appt.Properties[3];
+            TObj anotherAppt = (TPuppet)appt.Properties[3];
             Obj nearestApp = aat.App.GetValue(anotherAppt);
 
-            StringProperty desc = (StringProperty)anotherAppt.Properties[1];
+            TString desc = (TString)anotherAppt.Properties[1];
             indexPath = nearestApp.IndexPathFor(desc);
             VerifyIndexPath(new Int32[] { 3, 1 }, indexPath);
 
-            ObjArrProperty itemProperty = (ObjArrProperty)appt.Properties[2];
+            TObjArr itemProperty = (TObjArr)appt.Properties[2];
             Listing items = aat.App.GetValue(itemProperty);
 
             nearestApp = items[1];
             anotherAppt = nearestApp.Template;
 
-            BoolProperty delete = (BoolProperty)anotherAppt.Properties[2];
+            TBool delete = (TBool)anotherAppt.Properties[2];
             indexPath = nearestApp.IndexPathFor(delete);
             VerifyIndexPath(new Int32[] { 2, 1, 2 }, indexPath);
         }
@@ -279,7 +267,7 @@ namespace Starcounter.Internal.JsonPatch.Test
         [Test]
         public static void TestCreateHttpResponseWithPatches()
         {
-            AppTemplate appt;
+            TPuppet appt;
             Byte[] response = null;
             DateTime start = DateTime.MinValue;
             DateTime stop = DateTime.MinValue;
@@ -291,10 +279,10 @@ namespace Starcounter.Internal.JsonPatch.Test
             session.Execute(null, () => {
                 AppAndTemplate aat = CreateSampleApp();
 
-                appt = (AppTemplate)aat.Template;
+                appt = (TPuppet)aat.Template;
 
-                StringProperty lastName = (StringProperty)appt.Properties[1];
-                ObjArrProperty items = (ObjArrProperty)appt.Properties[2];
+                TString lastName = (TString)appt.Properties[1];
+                TObjArr items = (TObjArr)appt.Properties[2];
 
                 dynamic app = aat.App;
                 app.LastName = "Ewing";
@@ -346,8 +334,8 @@ namespace Starcounter.Internal.JsonPatch.Test
         /// <returns>AppAndTemplate.</returns>
         private static AppAndTemplate CreateSampleApp()
         {
-            dynamic template = TemplateFromJs.ReadFile("SampleApp.json");
-            dynamic app = new App() { Template = template };
+            dynamic template = TemplateFromJs.ReadPuppetTemplateFromFile("SampleApp.json");
+            dynamic app = new Puppet() { Template = template };
             
             app.FirstName = "Cliff";
             app.LastName = "Barnes";

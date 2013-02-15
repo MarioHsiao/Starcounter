@@ -27,9 +27,9 @@ namespace Starcounter.Internal.Test {
         /// </summary>
         [Test]
         public static void TestSetGet() {
-            var at = new AppTemplate();
-            var st = new StringProperty() { Name = "FirstName", Parent = at };
-            var app = new App() { Template = at };
+            var at = new TPuppet();
+            var st = new TString() { Name = "FirstName", Parent = at };
+            var app = new Puppet() { Template = at };
             app.SetValue(st, "Joachim");
             Assert.AreEqual("Joachim", app.GetValue(st));
             Console.WriteLine(app.ToJson());
@@ -40,14 +40,14 @@ namespace Starcounter.Internal.Test {
         /// </summary>
         [Test]
         public static void TestNestedApp() {
-            var main = new AppTemplate();
-            var userId = new StringProperty() { Name = "UserId", Parent = main };
-            var search = new AppTemplate() { Name = "Search", Parent = main };
-            var app = new App() { Template = main };
-            var app2 = new App() { Template = search };
+            var main = new TPuppet();
+            var userId = new TString() { Name = "UserId", Parent = main };
+            var search = new TPuppet() { Name = "Search", Parent = main };
+            var app = new Puppet() { Template = main };
+            var app2 = new Puppet() { Template = search };
             app.SetValue(userId, "Jocke");
             app.SetValue(search, app2);
-            Console.WriteLine(app.ToJson(false)); //, IncludeView.Never));
+            Console.WriteLine(app.ToJson()); //, IncludeView.Never));
         }
 
         /// <summary>
@@ -55,21 +55,21 @@ namespace Starcounter.Internal.Test {
         /// </summary>
         [Test]
         public static void TestArray() {
-            var appTemplate = new AppTemplate();
-            var persons = new ArrProperty<App,AppTemplate>() { Name = "Persons", Parent = appTemplate };
-            var person = new AppTemplate() { Parent = persons };
-            var firstName = new StringProperty() { Name = "FirstName", Parent = person };
-            var lastName = new StringProperty() { Name = "LastName", Parent = person };
-            var address = new StringProperty() { Name = "Address", Parent = person };
-            var userId = new StringProperty() { Name = "UserId", Parent = appTemplate };
+            var appTemplate = new TPuppet();
+            var persons = new TArr<Puppet,TPuppet>() { Name = "Persons", Parent = appTemplate };
+            var person = new TPuppet() { Parent = persons };
+            var firstName = new TString() { Name = "FirstName", Parent = person };
+            var lastName = new TString() { Name = "LastName", Parent = person };
+            var address = new TString() { Name = "Address", Parent = person };
+            var userId = new TString() { Name = "UserId", Parent = appTemplate };
 
-            var app = new App() { Template = appTemplate };
-            var jocke = new App() { Template = person };
+            var app = new Puppet() { Template = appTemplate };
+            var jocke = new Puppet() { Template = person };
             jocke.SetValue(firstName, "Joachim");
             jocke.SetValue(lastName, "Wester");
             app.GetValue(persons).Add(jocke);
 
-            var addie = new App() { Template = person };
+            var addie = new Puppet() { Template = person };
             addie.SetValue(firstName, "Adrienne");
             addie.SetValue(lastName, "Wester");
             app.GetValue(persons).Add(addie);

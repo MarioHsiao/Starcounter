@@ -19,7 +19,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="prop"></param>
-        public ArrMetadata(App app, Template prop) : base(app, prop) { }
+        public ArrMetadata(Obj app, Template prop) : base(app, prop) { }
 
     }
 }

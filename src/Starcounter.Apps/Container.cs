@@ -13,15 +13,16 @@ namespace Starcounter.Client {
 using Starcounter.Template;
 #else
 using Starcounter.Templates;
+using Starcounter.Advanced;
 namespace Starcounter {
 #endif
 
     /// <summary>
     /// Base class for App and AppList instances.
     /// </summary>
-    public abstract class Container // : RequestHandler
+    public abstract class Container : StarcounterBase // : RequestHandler
 #if IAPP
-        : IContainer
+ //       : IContainer
 #endif
     {
 
@@ -29,19 +30,19 @@ namespace Starcounter {
         /// <summary>
         /// The _ template
         /// </summary>
-        internal ParentTemplate _Template;
+        internal TContainer _Template;
 
         /// <summary>
         /// The schema element of this app instance
         /// </summary>
         /// <value>The template.</value>
         /// <exception cref="System.Exception">Template is already set for App. Cannot change template once it is set</exception>
-        public IParentTemplate Template {
+        public TContainer Template {
             set {
                 if (_Template != null) {
                     throw new Exception("Template is already set for App. Cannot change template once it is set");
                 }
-                _Template = (ParentTemplate)value;
+                _Template = (TContainer)value;
                 _Template.Sealed = true;
 #if QUICKTUPLE
                 _InitializeValues();
@@ -80,6 +81,13 @@ namespace Starcounter {
             child._parent = this;
         }
 
+        internal virtual void HasAddedElement(TObjArr property, int elementIndex) {
+        }
+
+        internal virtual void HasRemovedElement(TObjArr property, int elementIndex) {
+        }
+
+
         /// <summary>
         /// The _parent
         /// </summary>
@@ -99,19 +107,6 @@ namespace Starcounter {
                     throw new Exception("Cannot change parent in Apps");
                 }
                 value.OnSetParent(this);
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the parent.
-        /// </summary>
-        /// <value>The parent.</value>
-        IContainer IContainer.Parent {
-            get {
-                return Parent;
-            }
-            set {
-                Parent = (Container)value;
             }
         }
 

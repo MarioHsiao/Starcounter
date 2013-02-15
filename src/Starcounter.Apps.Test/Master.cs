@@ -13,7 +13,7 @@ using System;
 /// <summary>
 /// Class Master
 /// </summary>
-partial class Master : App {
+partial class Master : Puppet {
 
     /// <summary>
     /// Initializes static members of the <see cref="Master" /> class.
@@ -39,7 +39,7 @@ partial class Master : App {
 
 
         var m = new Master();
-        StringProperty x = m.Template.Test;
+        TString x = m.Template.Test;
 
 
         x.ProcessInput(m,"Hej hopp");

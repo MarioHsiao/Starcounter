@@ -22,8 +22,8 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         }
 
         internal override void GenerateCsCodeForNode() {
-            if (Template is AppTemplate) {
-                string appClassName = AstTreeHelper.GetAppClassName((AppTemplate)Template);
+            if (Template is TPuppet) {
+                string appClassName = AstTreeHelper.GetAppClassName((TPuppet)Template);
                 string varName = (VariableName == null) ? "app." + Template.PropertyName : VariableName;
                 Prefix.Add("valSize = " + appClassName + "JsonSerializer.Serialize((IntPtr)pfrag, nextSize, " + varName + ");");
             } else {
@@ -38,15 +38,15 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         private string GetWriteFunction(Template template) {
             string parseFunction = null;
 
-            if (template is StringProperty) {
+            if (template is TString) {
                 parseFunction = "JsonHelper.WriteString((IntPtr)pfrag, nextSize, app." + Template.PropertyName + ", tmpArr);";
-            } else if (template is IntProperty) {
+            } else if (template is TLong) {
                 parseFunction = "JsonHelper.WriteInt((IntPtr)pfrag, nextSize, app." + Template.PropertyName + ");";
-            } else if (template is DecimalProperty) {
+            } else if (template is TDecimal) {
                 parseFunction = "JsonHelper.WriteDecimal((IntPtr)pfrag, nextSize, app." + Template.PropertyName + ", tmpArr);";
-            } else if (template is DoubleProperty) {
+            } else if (template is TDouble) {
                 parseFunction = "JsonHelper.WriteDouble((IntPtr)pfrag, nextSize, app." + Template.PropertyName + ", tmpArr);";
-            } else if (template is BoolProperty) {
+            } else if (template is TBool) {
                 parseFunction = "JsonHelper.WriteBool((IntPtr)pfrag, nextSize, app." + Template.PropertyName + ");";
             } else if (template is ActionProperty) {
                 parseFunction = "JsonHelper.WriteNull((IntPtr)pfrag, nextSize);";

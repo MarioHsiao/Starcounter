@@ -20,10 +20,10 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
         /// </summary>
         [Test]
         public static void CreateFromHtmlFile() {
-            AppTemplate template = TemplateFromHtml.CreateFromHtmlFile("testtemplate.html");
+            TPuppet template = TemplateFromHtml.CreatePuppetTemplateFromHtmlFile("testtemplate.html");
             Assert.NotNull(template);
-            Assert.IsInstanceOf<StringProperty>(template.Properties[0]);
-            Assert.IsInstanceOf<ObjArrProperty>(template.Properties[1]);
+            Assert.IsInstanceOf<TString>(template.Properties[0]);
+            Assert.IsInstanceOf<TObjArr>(template.Properties[1]);
         }
 
 
@@ -33,7 +33,7 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
         [Test]
         public static void CreateFromHtmlFile_Misplaced() {
             try {
-                AppTemplate template = TemplateFromHtml.CreateFromHtmlFile("template\\misplaced.html");
+                TPuppet template = TemplateFromHtml.CreatePuppetTemplateFromHtmlFile("template\\misplaced.html");
             }
             catch (Exception e) {
                 Console.WriteLine(e.Message);

@@ -1,0 +1,304 @@
+﻿
+/********************************************************************************
+
+
+====== TEST3 ======
+
+Uses inherited data model.
+
+
+====== SECTIONS ======
+
+=== Inherited indexes ===
+
+
+====== TODOS ======
+
+
+====== PROBLEMS ======
+
+
+====== ARCHIVE ======
+
+
+********************************************************************************/
+
+=== Inherited indexes ===
+
+<NEXT>
+Description: Get most supertype object using its unique index
+QueryString: select p from SQLTest.InheritedDb.Person p where name = ?
+VariableValues: String:Student1;
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Person
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	auto
+	0
+	Name
+	StringDynamicRange(
+		StringRangePoint(
+			GreaterThanOrEqual
+			StringVariable(Student1)
+		)
+		StringRangePoint(
+			LessThanOrEqual
+			StringVariable(Student1)
+		)
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 61 | 
+
+<NEXT>
+Description: Get all companies
+QueryString: select e from SQLTest.InheritedDb.employer e
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Employer
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	auto
+	0
+	Director
+	ObjectDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 51 | 
+
+<NEXT>
+Description: Get object by object using its index
+QueryString: select e from SQLTest.InheritedDb.Employee e where company = ?
+VariableValues: Object:51;
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Employee
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	companyIndx
+	0
+	Company
+	ObjectDynamicRange(
+		ObjectRangePoint(
+			GreaterThanOrEqual
+			ObjectVariable(51)
+		)
+		ObjectRangePoint(
+			LessThanOrEqual
+			ObjectVariable(51)
+		)
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 52 | 
+ | 53 | 
+ | 54 | 
+ | 55 | 
+ | 56 | 
+ | 57 | 
+ | 58 | 
+ | 59 | 
+
+<NEXT>
+Description: Get object by object using an inherited index
+QueryString: select e from teacher e where company = ?
+VariableValues: Object:51;
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Teacher
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	companyIndx
+	0
+	Company
+	ObjectDynamicRange(
+		ObjectRangePoint(
+			GreaterThanOrEqual
+			ObjectVariable(51)
+		)
+		ObjectRangePoint(
+			LessThanOrEqual
+			ObjectVariable(51)
+		)
+	)
+	IsTypePredicate(
+		IS
+		ObjectThis(0)
+		SQLTest.InheritedDb.Teacher
+	)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 54 | 
+ | 55 | 
+ | 56 | 
+ | 57 | 
+ | 58 | 
+ | 59 | 
+
+<NEXT>
+Description: Get a most specific object by object using its index
+QueryString: select e from professor e where company = ?
+VariableValues: Object:51;
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Professor
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	companyIndx
+	0
+	Company
+	ObjectDynamicRange(
+		ObjectRangePoint(
+			GreaterThanOrEqual
+			ObjectVariable(51)
+		)
+		ObjectRangePoint(
+			LessThanOrEqual
+			ObjectVariable(51)
+		)
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 54 | 
+ | 55 | 
+
+<NEXT>
+Description: Use inherited index for sorting
+QueryString: select e from teacher e ORDER BY company
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Teacher
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	companyIndx
+	0
+	Company
+	ObjectDynamicRange(
+	)
+	IsTypePredicate(
+		IS
+		ObjectThis(0)
+		SQLTest.InheritedDb.Teacher
+	)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 54 | 
+ | 55 | 
+ | 56 | 
+ | 57 | 
+ | 58 | 
+ | 59 | 
+
+<NEXT>
+Description: Hint inherited index for scan
+QueryString: select e from teacher e OPTION INDEX (e companyIndx)
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Teacher
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	companyIndx
+	0
+	Company
+	ObjectDynamicRange(
+	)
+	IsTypePredicate(
+		IS
+		ObjectThis(0)
+		SQLTest.InheritedDb.Teacher
+	)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 54 | 
+ | 55 | 
+ | 56 | 
+ | 57 | 
+ | 58 | 
+ | 59 | 
+
+<NEXT>
+Description: Hint its index for scan
+QueryString: select e from SQLTest.InheritedDb.employee e OPTION INDEX (e companyIndx)
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Employee
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	companyIndx
+	0
+	Company
+	ObjectDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 52 | 
+ | 53 | 
+ | 54 | 
+ | 55 | 
+ | 56 | 
+ | 57 | 
+ | 58 | 
+ | 59 | 

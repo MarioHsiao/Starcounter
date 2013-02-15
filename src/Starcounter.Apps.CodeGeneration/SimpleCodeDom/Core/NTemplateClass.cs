@@ -18,27 +18,27 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <summary>
         /// The string property
         /// </summary>
-        public static StringProperty StringProperty = new StringProperty();
+        public static TString TString = new TString();
         /// <summary>
         /// The int property
         /// </summary>
-        public static IntProperty IntProperty = new IntProperty();
+        public static TLong TLong = new TLong();
         /// <summary>
         /// The decimal property
         /// </summary>
-        public static DecimalProperty DecimalProperty = new DecimalProperty();
+        public static TDecimal TDecimal = new TDecimal();
         /// <summary>
         /// The app template
         /// </summary>
-        public static AppTemplate AppTemplate = new AppTemplate();
+        public static TPuppet TApp = new TPuppet();
         /// <summary>
         /// The double property
         /// </summary>
-        public static DoubleProperty DoubleProperty = new DoubleProperty();
+        public static TDouble TDouble = new TDouble();
         /// <summary>
         /// The bool property
         /// </summary>
-        public static BoolProperty BoolProperty = new BoolProperty();
+        public static TBool TBool = new TBool();
         /// <summary>
         /// The action property
         /// </summary>
@@ -87,13 +87,13 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// Initializes static members of the <see cref="NTemplateClass" /> class.
         /// </summary>
         static NTemplateClass() {
-            Classes[StringProperty] = new NPropertyClass {Template = StringProperty};
-            Classes[IntProperty] = new NPropertyClass {Template = IntProperty};
-            Classes[DecimalProperty] = new NPropertyClass {Template = DecimalProperty};
-            Classes[DoubleProperty] = new NPropertyClass {Template = DoubleProperty};
-            Classes[BoolProperty] = new NPropertyClass {Template = BoolProperty};
+            Classes[TString] = new NPropertyClass {Template = TString};
+            Classes[TLong] = new NPropertyClass {Template = TLong};
+            Classes[TDecimal] = new NPropertyClass {Template = TDecimal};
+            Classes[TDouble] = new NPropertyClass {Template = TDouble};
+            Classes[TBool] = new NPropertyClass {Template = TBool};
             Classes[ActionProperty] = new NPropertyClass {Template = ActionProperty};
-            Classes[AppTemplate] = new NAppTemplateClass {Template = AppTemplate};
+            Classes[TApp] = new NTAppClass {Template = TApp};
         }
 
 
@@ -113,20 +113,20 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="template">The template.</param>
         /// <returns>Template.</returns>
         internal static Template GetPrototype(Template template) {
-            if (template is StringProperty) {
-                return StringProperty;
+            if (template is TString) {
+                return TString;
             }
-            else if (template is IntProperty) {
-                return IntProperty;
+            else if (template is TLong) {
+                return TLong;
             }
-            else if (template is DoubleProperty) {
-                return DoubleProperty;
+            else if (template is TDouble) {
+                return TDouble;
             }
-            else if (template is DecimalProperty) {
-                return DecimalProperty;
+            else if (template is TDecimal) {
+                return TDecimal;
             }
-            else if (template is BoolProperty) {
-                return BoolProperty;
+            else if (template is TBool) {
+                return TBool;
             }
             else if (template is ActionProperty) {
                 return ActionProperty;

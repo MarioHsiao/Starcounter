@@ -7,7 +7,7 @@ using Sc.Tools.Logging;
 using Starcounter;
 
 namespace StarcounterApps3 {
-    partial class LogApp : App {
+    partial class LogApp : Puppet {
 
         static string directoryPath;
 
