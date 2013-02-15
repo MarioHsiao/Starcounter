@@ -74,9 +74,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <App Include="Master.json">
+    <Puppet Include="Master.json">
       <Generator>MSBuild:Compile</Generator>
-    </App>
+    </Puppet>
   </ItemGroup>
   <ItemGroup>
     <Content Include="app.html">
@@ -200,43 +200,43 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <App Include="ServerApp.json">
+    <Puppet Include="ServerApp.json">
       <Generator>MSBuild:Compile</Generator>
-    </App>
+    </Puppet>
   </ItemGroup>
   <ItemGroup>
-    <App Include="DatabaseApp.json">
+    <Puppet Include="DatabaseApp.json">
       <Generator>MSBuild:Compile</Generator>
-    </App>
+    </Puppet>
   </ItemGroup>
   <ItemGroup>
-    <App Include="DatabasesApp.json">
+    <Puppet Include="DatabasesApp.json">
       <Generator>MSBuild:Compile</Generator>
-    </App>
+    </Puppet>
   </ItemGroup>
   <ItemGroup>
-    <App Include="DatabaseAppsApp.json">
+    <Puppet Include="DatabaseAppsApp.json">
       <Generator>MSBuild:Compile</Generator>
-    </App>
+    </Puppet>
   </ItemGroup>
   <ItemGroup>
-    <App Include="AppApp.json">
+    <Puppet Include="AppApp.json">
       <Generator>MSBuild:Compile</Generator>
-    </App>
+    </Puppet>
   </ItemGroup>
   <ItemGroup>
-    <App Include="LogApp.json">
+    <Puppet Include="LogApp.json">
       <Generator>MSBuild:Compile</Generator>
-    </App>
-    <App Include="LogEntryApp.json">
+    </Puppet>
+    <Puppet Include="LogEntryApp.json">
       <Generator>MSBuild:Compile</Generator>
-    </App>
+    </Puppet>
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\Starcounter.MsBuild\Starcounter.MsBuild.Develop.targets" />
+  <Import Project="$(StarcounterBin)\Starcounter.MsBuild.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
