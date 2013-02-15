@@ -89,7 +89,7 @@ namespace Starcounter {
         /// This function does not check for a valid transaction as the 
         /// public Data-property does.
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data">The bound data object (usually an Entity)</param>
         internal virtual void InternalSetData(IBindable data) {
 
             _Data = data;
@@ -103,7 +103,8 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Refreshes all databound values for this Obj.
+        /// Refreshes all bound values of this Obj. Retrieves data from the Data
+        /// property.
         /// </summary>
         private void RefreshAllBoundValues() {
             Template child;
@@ -116,20 +117,10 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Called after the data object is set.
+        /// Called after the Data property is set.
         /// </summary>
         protected virtual void OnData() {
         }
-
-//        /// <summary>
-//        /// Calls the init.
-//        /// </summary>
-//        internal void CallInit() {
-//            Init();
-//        }
-
-//        public void Input( Input input ) {
-//        }
 
         /// <summary>
         /// 
@@ -200,32 +191,6 @@ namespace Starcounter {
                 return _Metadata;
             }
         }
-
-//        /// <summary>
-//        /// Use this method to override the default communication from the client.
-//        /// </summary>
-//        /// <remarks>
-//        /// Requests can use the WebSockets or HTTP protocol
-//        /// </remarks>
-//        /// <param name="request">Can be used to retrieve the data of the request</param>
-//        /// <returns>The raw response</returns>
-//        public virtual byte[] HandleRawRequest(HttpRequest request) {
-//            return null;
-//        }
-
-        /// <summary>
-        /// If the view lives in this .NET application domain, this property can be used to reference it.
-        /// For Starcounter serverside App objects, this property is often a string that is used to identifify
-        /// a specific view. For web applications, the string is often a reference to the .html file.
-        /// </summary>
-        /// <value>The media.</value>
-        public Media Media { get; set; }
-
-        /// <summary>
-        /// Gets or sets the view.
-        /// </summary>
-        /// <value>The view.</value>
-        public string View { get; set; }
 
 
         /// <summary>
