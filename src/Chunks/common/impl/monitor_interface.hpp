@@ -494,7 +494,8 @@ inline owner_id monitor_interface::get_owner_id() const {
 
 inline monitor_interface::cleanup_task::cleanup_task()
 : segment_name_mask_(0),
-cleanup_mask_(0) {
+cleanup_mask_(0),
+spinlock_() {
 	// Initialize segment_name_[s] to 0. 
 	for (std::size_t s = 0; s < max_number_of_databases; ++s) {
 		*segment_name_[s] = 0;
@@ -551,6 +552,7 @@ inline int32_t monitor_interface::cleanup_task::insert_segment_name
 }
 
 inline const char* monitor_interface::cleanup_task::get_a_segment_name() {
+	smp::spinlock::scoped_lock lock(spinlock());
 	int32_t i;
 	mask_type old_mask = cleanup_mask_;
 	mask_type current_mask = old_mask;
@@ -591,6 +593,7 @@ inline const char* monitor_interface::cleanup_task::get_a_segment_name() {
 }
 
 inline void monitor_interface::cleanup_task::set_cleanup_flag(int32_t index) {
+	smp::spinlock::scoped_lock lock(spinlock());
 	mask_type old_mask = cleanup_mask_;
 	mask_type current_mask = old_mask;
 	mask_type new_mask;
@@ -615,6 +618,7 @@ inline void monitor_interface::cleanup_task::set_cleanup_flag(int32_t index) {
 }
 
 inline uint64_t monitor_interface::cleanup_task::get_cleanup_flag() {
+	// No sync here.
 	return cleanup_mask_;
 }
 

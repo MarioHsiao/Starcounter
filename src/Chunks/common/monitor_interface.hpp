@@ -149,6 +149,11 @@ public:
 		return cleanup_task_.get_cleanup_flag();
 	}
 
+	/// Get reference to the spinlock.
+	smp::spinlock& spinlock() {
+		return cleanup_task_.spinlock();
+	}
+
 private:
 	// Synchronization to check if the monitor_interface is ready or not.
 	boost::interprocess::interprocess_mutex ready_mutex_;
@@ -241,6 +246,11 @@ private:
 		void set_cleanup_flag(int32_t index);
 		uint64_t get_cleanup_flag();
 
+		/// Get reference to the spinlock.
+		smp::spinlock& spinlock() {
+			return spinlock_;
+		}
+
 		// The segment_name_ table holds names of segments related to active cleanup tasks.
 		segment_name_type segment_name_[max_number_of_databases];
 
@@ -251,6 +261,9 @@ private:
 		// opened by the monitor::cleanup() thread and doing the rest of the
 		// cleanup task.
 		volatile mask_type cleanup_mask_;
+
+		// spinlock_ synchronizes updates to cleanup_mask_ and set/reset of the event.
+		smp::spinlock spinlock_;
 	} cleanup_task_;
 };
 

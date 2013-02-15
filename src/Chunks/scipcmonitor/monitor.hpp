@@ -330,7 +330,7 @@ private:
 	// The state of the monitor.
 	state state_; /// TODO: implement shutdown.
 	
-	// Event to notify the monitor to do clean up.
+	// Event to notify the monitor to do cleanup.
 	HANDLE ipc_monitor_cleanup_event_;
 
 	/// TODO Maybe put this in a nested struct. Saved time not doing it.
