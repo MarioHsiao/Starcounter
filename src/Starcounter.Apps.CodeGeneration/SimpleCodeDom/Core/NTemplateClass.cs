@@ -11,10 +11,14 @@ using System.Collections.Generic;
 namespace Starcounter.Internal.Application.CodeGeneration {
 
     /// <summary>
-    /// Class NTemplateClass
+    /// 
     /// </summary>
     public abstract class NTemplateClass : NClass {
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gen"></param>
         public NTemplateClass(DomGenerator gen)
             : base(gen) {
         }

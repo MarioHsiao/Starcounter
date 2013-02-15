@@ -18,7 +18,10 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// </summary>
     public class NProperty : NBase {
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gen"></param>
         public NProperty(DomGenerator gen)
             : base(gen) {
         }

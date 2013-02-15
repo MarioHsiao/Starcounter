@@ -13,6 +13,10 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// </summary>
     public class NObjMetadata : NMetadataClass {
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gen"></param>
         public NObjMetadata(DomGenerator gen)
             : base(gen) {
         }

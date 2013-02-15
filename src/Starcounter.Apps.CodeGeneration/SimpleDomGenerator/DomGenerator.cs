@@ -31,11 +31,6 @@ namespace Starcounter.Internal.Application.CodeGeneration
     public class DomGenerator
     {
 
-        /// <summary>
-        /// Creates a dom generator for a template
-        /// </summary>
-        /// <param name="mod">The mod.</param>
-        /// <param name="template">The represented template</param>
         internal DomGenerator(CodeGenerationModule mod, TObj template, Type defaultNewObjTemplateType )
         { //, string typename, string templateClass, string metadataClass ) {
             DefaultObjTemplate = (TObj)defaultNewObjTemplateType.GetConstructor(new Type[0]).Invoke(null);
@@ -43,9 +38,18 @@ namespace Starcounter.Internal.Application.CodeGeneration
             InitMetadataClasses();
             InitValueClasses();
         }
-
+        
+        /// <summary>
+        /// 
+        /// </summary>
         public Dictionary<Template, NValueClass> ValueClasses = new Dictionary<Template, NValueClass>();
+        /// <summary>
+        /// 
+        /// </summary>
         public Dictionary<Template, NTemplateClass> TemplateClasses = new Dictionary<Template, NTemplateClass>();
+        /// <summary>
+        /// 
+        /// </summary>
         public Dictionary<Template, NMetadataClass> MetaClasses = new Dictionary<Template, NMetadataClass>();
 
         /// <summary>
@@ -155,13 +159,13 @@ namespace Starcounter.Internal.Application.CodeGeneration
             return TemplateClasses[template];
         }
 
-        public TString TPString = new TString();
-        public TLong TPLong = new TLong();
-        public TDecimal TPDecimal = new TDecimal();
-        public TObj DefaultObjTemplate  = null;
-        public TDouble TPDouble = new TDouble();
-        public TBool TPBool = new TBool();
-        public ActionProperty TPAction = new ActionProperty();
+        internal TString TPString = new TString();
+        internal TLong TPLong = new TLong();
+        internal TDecimal TPDecimal = new TDecimal();
+        internal TObj DefaultObjTemplate = null;
+        internal TDouble TPDouble = new TDouble();
+        internal TBool TPBool = new TBool();
+        internal ActionProperty TPAction = new ActionProperty();
 
 
         /// <summary>

@@ -14,6 +14,10 @@ namespace Starcounter.Internal.Application.CodeGeneration
     /// </summary>
     public class NConstructor : NBase
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gen"></param>
         public NConstructor(DomGenerator gen)
             : base(gen) {
         }

@@ -7,11 +7,16 @@
 using Starcounter.Templates;
 using System.Collections.Generic;
 namespace Starcounter.Internal.Application.CodeGeneration {
+
     /// <summary>
-    /// Class NValueClass
+    /// 
     /// </summary>
     public abstract class NValueClass : NClass {
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gen"></param>
         public NValueClass(DomGenerator gen)
             : base(gen) {
         }

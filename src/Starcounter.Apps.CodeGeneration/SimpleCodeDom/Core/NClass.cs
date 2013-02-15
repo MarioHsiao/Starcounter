@@ -12,11 +12,16 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Starcounter.Internal.Application.CodeGeneration {
+
     /// <summary>
-    /// Class NClass
+    /// 
     /// </summary>
     public abstract class NClass : NBase {
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gen"></param>
         public NClass(DomGenerator gen)
             : base(gen) {
         }
