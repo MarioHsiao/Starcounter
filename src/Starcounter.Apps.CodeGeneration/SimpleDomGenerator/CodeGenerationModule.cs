@@ -17,7 +17,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// Creates the generator.
         /// </summary>
         /// <param name="dotNetLanguage">The dot net language.</param>
-        /// <param name="template">The template.</param>
+        /// <param name="defaultObjTemplate">The template.</param>
         /// <param name="metadata">The metadata.</param>
         /// <returns>ITemplateCodeGenerator.</returns>
         public ITemplateCodeGenerator CreateGenerator(string dotNetLanguage, object defaultObjTemplate, object metadata) {
