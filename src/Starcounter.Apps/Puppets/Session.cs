@@ -21,7 +21,7 @@ namespace Starcounter.Apps {
         [ThreadStatic]
         private static Session current;
 
-        private App[] rootApps;
+        private Puppet[] rootApps;
         private VMID nextVMId;
         private bool isInUse;
         private HttpRequest request; // TODO: Remove when it can be sent in to the handler.
@@ -38,7 +38,7 @@ namespace Starcounter.Apps {
         /// </summary>
         internal Session() {
             changeLog = new ChangeLog();
-            rootApps = new App[16]; // TODO: Configurable.
+            rootApps = new Puppet[16]; // TODO: Configurable.
 
             nextVMId.Index = 0;
             nextVMId.Count = 1;
@@ -48,8 +48,8 @@ namespace Starcounter.Apps {
         /// Attaches a root application to this session
         /// </summary>
         /// <param name="rootApp">The root app.</param>
-        internal void AttachRootApp(App rootApp) {
-            App existingApp;
+        internal void AttachRootApp(Puppet rootApp) {
+            Puppet existingApp;
 
             existingApp = rootApps[nextVMId.Index];
             if (existingApp != null)
@@ -63,8 +63,8 @@ namespace Starcounter.Apps {
         /// Gets an attached root application.
         /// </summary>
         /// <value></value>
-        internal App GetRootApp(int id) {
-            App rootApp;
+        internal Puppet GetRootApp(int id) {
+            Puppet rootApp;
             VMID existingId;
             VMID vmId = id;
 
@@ -164,7 +164,7 @@ namespace Starcounter.Apps {
         /// 
         /// </summary>
         /// <param name="app"></param>
-        private void DisposeAppRecursively(App app) {
+        private void DisposeAppRecursively(Puppet app) {
             if (app == null)
                 return;
 
@@ -176,11 +176,11 @@ namespace Starcounter.Apps {
                 return;
 
             foreach (Template child in app.Template.Children) {
-                if (child is TApp) {
-                    DisposeAppRecursively(app.GetValue((TApp)child));
+                if (child is TPuppet) {
+                    DisposeAppRecursively(app.GetValue((TPuppet)child));
                 } else if (child is TObjArr) {
                     Listing listing = app.GetValue((TObjArr)child);
-                    foreach (App listApp in listing) {
+                    foreach (Puppet listApp in listing) {
                         DisposeAppRecursively(listApp);
                     }
                 }

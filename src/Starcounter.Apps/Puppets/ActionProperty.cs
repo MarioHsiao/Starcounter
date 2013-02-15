@@ -22,11 +22,11 @@ namespace Starcounter.Templates {
     {
         /// <summary>
         /// </summary>
-        private Func<App, TValue, Input> CustomInputEventCreator = null;
+        private Func<Puppet, TValue, Input> CustomInputEventCreator = null;
      
         /// <summary>
         /// </summary>
-        public List<Action<App, Input>> CustomInputHandlers = new List<Action<App, Input>>();
+        public List<Action<Puppet, Input>> CustomInputHandlers = new List<Action<Puppet, Input>>();
 
         /// <summary>
         /// Gets a value indicating whether this instance has instance value on client.
@@ -72,7 +72,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="rawValue"></param>
-        public override void ProcessInput(App app, byte[] rawValue) {
+        public override void ProcessInput(Puppet app, byte[] rawValue) {
             Input input = null;
 
             if (CustomInputEventCreator != null)

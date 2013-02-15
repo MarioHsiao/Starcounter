@@ -12,7 +12,7 @@ using Starcounter.Server.PublicModel;
 
 namespace StarcounterApps3 {
 
-    partial class Master : App {
+    partial class Master : Puppet {
 
         public static IServerRuntime ServerInterface;
         public static ServerEngine ServerEngine;

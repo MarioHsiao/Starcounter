@@ -24,7 +24,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="rawValue">The raw value.</param>
-        public override void ProcessInput(App app, byte[] rawValue)
+        public override void ProcessInput(Puppet app, byte[] rawValue)
         {
             ProcessInput(app, System.Text.Encoding.UTF8.GetString(rawValue));
         }

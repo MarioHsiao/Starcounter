@@ -274,7 +274,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             dataType = null;
             if (m.Template is TObjArr) {
                 dataType = "SqlResult";
-            } else if (m.Template is TApp) {
+            } else if (m.Template is TPuppet) {
                 dataType = "Entity";
                 castTo = ((NAppClass)m.Type).GenericTypeArgument;
             } 
@@ -408,7 +408,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 string dataType = null;
                 if (m.Template is TObjArr) {
                     dataType = "SqlResult";
-                } else if (m.Template is TApp) {
+                } else if (m.Template is TPuppet) {
                     dataType = "Entity";//((NAppClass)((NTAppClass)m.Type).NValueClass).GenericTypeArgument;
                 }
 

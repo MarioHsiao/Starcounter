@@ -20,8 +20,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// Gets the template.
         /// </summary>
         /// <value>The template.</value>
-        public TApp Template {
-            get { return (TApp)(NTemplateClass.Template); }
+        public TPuppet Template {
+            get { return (TPuppet)(NTemplateClass.Template); }
         }
 
        // public new NAppClass Parent {

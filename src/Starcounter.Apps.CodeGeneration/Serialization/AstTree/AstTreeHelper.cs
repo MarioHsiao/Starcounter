@@ -8,7 +8,7 @@ using Starcounter.Templates.Interfaces;
 
 namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
     internal static class AstTreeHelper {
-        internal static string GetAppClassName(TApp template) {
+        internal static string GetAppClassName(TPuppet template) {
             TObjArr listing;
             string name;
 
@@ -28,8 +28,8 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
             return name;
         }
 
-        internal static string GetFullAppClassName(TApp template) {
-            TApp parentTApp;
+        internal static string GetFullAppClassName(TPuppet template) {
+            TPuppet parentTApp;
             TContainer parent;
             TObjArr lp;
             
@@ -40,7 +40,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                 lp = parent as TObjArr;
                 if (lp != null)
                     parent = parent.Parent;
-                parentTApp = parent as TApp;
+                parentTApp = parent as TPuppet;
                 parent = parent.Parent;
                 lp = parent as TObjArr;
                 if (lp != null)

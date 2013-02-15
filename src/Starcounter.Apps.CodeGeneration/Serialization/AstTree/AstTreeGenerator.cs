@@ -21,7 +21,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         /// </summary>
         /// <param name="appTemplate"></param>
         /// <returns></returns>
-        internal static AstJsonSerializerClass BuildAstTree(TApp appTemplate) {
+        internal static AstJsonSerializerClass BuildAstTree(TPuppet appTemplate) {
             ParseNode parseTree = ParseTreeGenerator.BuildParseTree(RegisterTemplatesForApp(appTemplate));
             return CreateJsonSerializer(parseTree);
         }
@@ -30,7 +30,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         /// 
         /// </summary>
         /// <param name="appTemplate"></param>
-        private static List<RequestProcessorMetaData> RegisterTemplatesForApp(TApp appTemplate) {
+        private static List<RequestProcessorMetaData> RegisterTemplatesForApp(TPuppet appTemplate) {
             List<RequestProcessorMetaData> handlers = new List<RequestProcessorMetaData>();
             foreach (Template child in appTemplate.Children) {
                 RequestProcessorMetaData rp = new RequestProcessorMetaData();
