@@ -9,14 +9,14 @@ using Starcounter.Templates.Interfaces;
 namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
     internal static class AstTreeHelper {
         internal static string GetAppClassName(AppTemplate template) {
-            ObjArrProperty listing;
+            ObjArrTemplate listing;
             string name;
 
             name = template.ClassName;
             if (name == null) {
                 name = template.Name;
                 if (name == null) {
-                    listing = template.Parent as ObjArrProperty;
+                    listing = template.Parent as ObjArrTemplate;
                     if (listing != null)
                         name = listing.Name;
                     else
@@ -31,18 +31,18 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         internal static string GetFullAppClassName(AppTemplate template) {
             AppTemplate parentAppTemplate;
             ContainerTemplate parent;
-            ObjArrProperty lp;
+            ObjArrTemplate lp;
             
             // If this app is an inner innerclass (relative the rootclass) we need to add all parent app names.
             string fullName = null;
             parent = template.Parent;
             if (parent != null) {
-                lp = parent as ObjArrProperty;
+                lp = parent as ObjArrTemplate;
                 if (lp != null)
                     parent = parent.Parent;
                 parentAppTemplate = parent as AppTemplate;
                 parent = parent.Parent;
-                lp = parent as ObjArrProperty;
+                lp = parent as ObjArrTemplate;
                 if (lp != null)
                     parent = parent.Parent;
 

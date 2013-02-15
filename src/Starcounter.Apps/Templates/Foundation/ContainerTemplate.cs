@@ -25,8 +25,12 @@ namespace Starcounter.Templates {
         private bool _Sealed;
 
         /// <summary>
-        /// If this property returns true, you are not allowed to alter the properties of this template.
+        /// Once a ContainerTemplate (Obj or Arr schema) is in use (have instances), this property will return
+        /// true and you cannot modify the template.
         /// </summary>
+        /// <remarks>
+        /// Exception should be change to an SCERR???? error.
+        /// </remarks>
         /// <value><c>true</c> if sealed; otherwise, <c>false</c>.</value>
         /// <exception cref="System.Exception">Once a ObjTemplate is sealed, you cannot unseal it</exception>
         public override bool Sealed {
@@ -35,16 +39,17 @@ namespace Starcounter.Templates {
             }
             internal set {
                 if (!value && _Sealed) {
-                    throw new Exception("Once a ObjTemplate is sealed, you cannot unseal it");
+                    // TODO! SCERR!
+                    throw new Exception("Once a ContainerTemplate (Obj or Arr schema) is in use (have instances), you cannot modify it");
                 }
                 _Sealed = value;
             }
         }
 
         /// <summary>
-        /// Gets the children.
+        /// Represents the contained properties (ObjTemplate) or the single contained type for typed arrays (ArrTemplate).
         /// </summary>
-        /// <value>The children.</value>
+        /// <value>The child property or child element type template</value>
         public abstract IEnumerable<Template> Children { get; }
 
      }

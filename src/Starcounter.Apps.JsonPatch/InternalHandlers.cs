@@ -67,8 +67,8 @@ namespace Starcounter.Internal.JsonPatch
                 if (!template.Bound)
                     continue;
 
-                if (template is ObjArrProperty) {
-                    Listing l = app.GetValue((ObjArrProperty)template);
+                if (template is ObjArrTemplate) {
+                    Listing l = app.GetValue((ObjArrTemplate)template);
                     foreach (App childApp in l) {
                         RefreshAllValues(childApp, log);
                     }

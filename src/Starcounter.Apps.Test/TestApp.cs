@@ -56,7 +56,7 @@ namespace Starcounter.Internal.Test {
         [Test]
         public static void TestArray() {
             var appTemplate = new AppTemplate();
-            var persons = new ArrProperty<App,AppTemplate>() { Name = "Persons", Parent = appTemplate };
+            var persons = new ArrTemplate<App,AppTemplate>() { Name = "Persons", Parent = appTemplate };
             var person = new AppTemplate() { Parent = persons };
             var firstName = new StringProperty() { Name = "FirstName", Parent = person };
             var lastName = new StringProperty() { Name = "LastName", Parent = person };
