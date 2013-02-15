@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="TStringBinding.cs" company="Starcounter AB">
+// <copyright file="StringPropertyBinding.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -10,15 +10,15 @@ namespace Starcounter.Binding
 {
 
     /// <summary>
-    /// Class TStringBinding
+    /// Class StringPropertyBinding
     /// </summary>
-    public abstract class TStringBinding : PrimitivePropertyBinding
+    public abstract class StringPropertyBinding : PrimitivePropertyBinding
     {
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TStringBinding" /> class.
+        /// Initializes a new instance of the <see cref="StringPropertyBinding" /> class.
         /// </summary>
-        public TStringBinding() : base() { }
+        public StringPropertyBinding() : base() { }
 
         /// <summary>
         /// Property value type code.

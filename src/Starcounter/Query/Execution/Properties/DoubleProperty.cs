@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="TDouble.cs" company="Starcounter AB">
+// <copyright file="DoubleProperty.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -14,7 +14,7 @@ namespace Starcounter.Query.Execution
 /// <summary>
 /// Class that holds information about a property of type Double.
 /// </summary>
-internal class TDouble : Property, IDoublePathItem
+internal class DoubleProperty : Property, IDoublePathItem
 {
     /// <summary>
     /// Constructor.
@@ -24,7 +24,7 @@ internal class TDouble : Property, IDoublePathItem
     /// then the number should be -1.</param>
     /// <param name="typeBind">The type binding of the object to which this property belongs.</param>
     /// <param name="propBind">The property binding of this property.</param>
-    internal TDouble(Int32 extNum, ITypeBinding typeBind, IPropertyBinding propBind)
+    internal DoubleProperty(Int32 extNum, ITypeBinding typeBind, IPropertyBinding propBind)
     {
         if (typeBind == null)
         {
@@ -332,7 +332,7 @@ internal class TDouble : Property, IDoublePathItem
         {
             return new DoubleLiteral(EvaluateToDouble(obj));
         }
-        return new TDouble(extentNumber, typeBinding, propBinding);
+        return new DoubleProperty(extentNumber, typeBinding, propBinding);
     }
 
     public override IValueExpression Clone(VariableArray varArray)
@@ -342,12 +342,12 @@ internal class TDouble : Property, IDoublePathItem
     
     public IDoubleExpression CloneToDouble(VariableArray varArray)
     {
-        return new TDouble(extentNumber, typeBinding, propBinding);
+        return new DoubleProperty(extentNumber, typeBinding, propBinding);
     }
     
     public INumericalExpression CloneToNumerical(VariableArray varArray)
     {
-        return new TDouble(extentNumber, typeBinding, propBinding);
+        return new DoubleProperty(extentNumber, typeBinding, propBinding);
     }
 
     /// <summary>
@@ -357,7 +357,7 @@ internal class TDouble : Property, IDoublePathItem
     /// <param name="tabs">Number of tab indentations for the presentation.</param>
     public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs)
     {
-        stringBuilder.Append(tabs, "TDouble(");
+        stringBuilder.Append(tabs, "DoubleProperty(");
         stringBuilder.Append(extentNumber.ToString());
         stringBuilder.Append(", ");
         stringBuilder.Append(propBinding.Name);
@@ -369,7 +369,7 @@ internal class TDouble : Property, IDoublePathItem
     /// </summary>
     public override void GenerateCompilableCode(CodeGenStringGenerator stringGen)
     {
-        stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "GetTDouble();");
+        stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "GetDoubleProperty();");
     }
 }
 }

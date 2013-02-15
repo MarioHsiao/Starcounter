@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="UTLongBinding.cs" company="Starcounter AB">
+// <copyright file="UIntPropertyBinding.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -11,15 +11,15 @@ namespace Starcounter.Binding
 {
 
     /// <summary>
-    /// Class UTLongBinding
+    /// Class UIntPropertyBinding
     /// </summary>
-    public abstract class UTLongBinding : PrimitivePropertyBinding
+    public abstract class UIntPropertyBinding : PrimitivePropertyBinding
     {
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="UTLongBinding" /> class.
+        /// Initializes a new instance of the <see cref="UIntPropertyBinding" /> class.
         /// </summary>
-        public UTLongBinding() : base() { }
+        public UIntPropertyBinding() : base() { }
 
         /// <summary>
         /// Gets the value of a binary attribute

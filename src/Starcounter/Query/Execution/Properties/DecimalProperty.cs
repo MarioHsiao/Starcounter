@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="TDecimal.cs" company="Starcounter AB">
+// <copyright file="DecimalProperty.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -14,7 +14,7 @@ namespace Starcounter.Query.Execution
 /// <summary>
 /// Class that holds information about a property of type Decimal.
 /// </summary>
-internal class TDecimal : Property, IDecimalPathItem
+internal class DecimalProperty : Property, IDecimalPathItem
 {
     /// <summary>
     /// Constructor.
@@ -24,7 +24,7 @@ internal class TDecimal : Property, IDecimalPathItem
     /// then the number should be -1.</param>
     /// <param name="typeBind">The type binding of the object to which this property belongs.</param>
     /// <param name="propBind">The property binding of this property.</param>
-    internal TDecimal(Int32 extNum, ITypeBinding typeBind, IPropertyBinding propBind)
+    internal DecimalProperty(Int32 extNum, ITypeBinding typeBind, IPropertyBinding propBind)
     {
         if (typeBind == null)
         {
@@ -310,7 +310,7 @@ internal class TDecimal : Property, IDecimalPathItem
         {
             return new DecimalLiteral(EvaluateToDecimal(obj));
         }
-        return new TDecimal(extentNumber, typeBinding, propBinding);
+        return new DecimalProperty(extentNumber, typeBinding, propBinding);
     }
 
     public override IValueExpression Clone(VariableArray varArray)
@@ -320,12 +320,12 @@ internal class TDecimal : Property, IDecimalPathItem
 
     public IDecimalExpression CloneToDecimal(VariableArray varArray)
     {
-        return new TDecimal(extentNumber, typeBinding, propBinding);
+        return new DecimalProperty(extentNumber, typeBinding, propBinding);
     }
 
     public INumericalExpression CloneToNumerical(VariableArray varArray)
     {
-        return new TDecimal(extentNumber, typeBinding, propBinding);
+        return new DecimalProperty(extentNumber, typeBinding, propBinding);
     }
 
     /// <summary>
@@ -335,7 +335,7 @@ internal class TDecimal : Property, IDecimalPathItem
     /// <param name="tabs">Number of tab indentations for the presentation.</param>
     public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs)
     {
-        stringBuilder.Append(tabs, "TDecimal(");
+        stringBuilder.Append(tabs, "DecimalProperty(");
         stringBuilder.Append(extentNumber.ToString());
         stringBuilder.Append(", ");
         stringBuilder.Append(propBinding.Name);
@@ -347,7 +347,7 @@ internal class TDecimal : Property, IDecimalPathItem
     /// </summary>
     public override void GenerateCompilableCode(CodeGenStringGenerator stringGen)
     {
-        stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "GetTDecimal();");
+        stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "GetDecimalProperty();");
     }
 }
 }
