@@ -779,6 +779,14 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 if (err_code)
                     return err_code;
 
+#ifdef GW_URI_MATCHING_CODEGEN
+                // Generating URI matcher.
+                err_code = g_gateway.GenerateUriMatcher(port);
+
+                if (err_code)
+                    return err_code;
+#endif
+
                 break;
             }
 

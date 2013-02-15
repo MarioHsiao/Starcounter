@@ -193,21 +193,21 @@ namespace Starcounter.Internal.JsonPatch
             // TODO:
             // Need a faster way than checking type and casting to get the value.
                 
-            if (template is StringProperty) {
-                ret = change.App.GetValue((StringProperty)template);
-            } else if (template is ObjArrProperty) {
-                Listing appList = (Listing)change.App.GetValue((ObjArrProperty)template);
+            if (template is TString) {
+                ret = change.App.GetValue((TString)template);
+            } else if (template is TObjArr) {
+                Listing appList = (Listing)change.App.GetValue((TObjArr)template);
                 ret = appList[change.Index];
-            } else if (template is IntProperty) {
-                ret = change.App.GetValue((IntProperty)template);
-            } else if (template is BoolProperty) {
-                ret = change.App.GetValue((BoolProperty)template);
-            } else if (template is DoubleProperty) {
-                ret = change.App.GetValue((DoubleProperty)template);
-            } else if (template is DecimalProperty) {
-                ret = change.App.GetValue((DecimalProperty)template);
-            } else if (template is AppTemplate) {
-                ret = change.App.GetValue((AppTemplate)template);
+            } else if (template is TLong) {
+                ret = change.App.GetValue((TLong)template);
+            } else if (template is TBool) {
+                ret = change.App.GetValue((TBool)template);
+            } else if (template is TDouble) {
+                ret = change.App.GetValue((TDouble)template);
+            } else if (template is TDecimal) {
+                ret = change.App.GetValue((TDecimal)template);
+            } else if (template is TPuppet) {
+                ret = change.App.GetValue((TPuppet)template);
             }
             return ret;
         }

@@ -20,33 +20,40 @@ namespace Starcounter.Client.Tests.Application {
     public class AppTests {
 
         /// <summary>
-        /// Manuals the creation.
+        /// Creates a template (schema) and Puppets using that schema in code.
         /// </summary>
+        /// <remarks>
+        /// Template schemas can be created on the fly in Starcounter using the API. It is not necessary
+        /// to have compile time or run time .json files to create template schemas.
+        /// </remarks>
         [Test]
-        public static void ManualCreation() {
+        public static void CreateTemplatesAndAppsByCode() {
             AppExeModule.IsRunningTests = true;
-            CreateSome();
+            _CreateTemplatesAndAppsByCode();
         }
 
         /// <summary>
         /// Creates some.
         /// </summary>
         /// <returns>List{App}.</returns>
-        private static List<App> CreateSome() {
-            var personTmpl = new AppTemplate();
-            var firstName = personTmpl.Add<StringProperty>("FirstName$");
-            var lastName = personTmpl.Add<StringProperty>("LastName");
-            var age = personTmpl.Add<IntProperty>("Age");
+        private static List<Puppet> _CreateTemplatesAndAppsByCode() {
 
-            var phoneNumber = new AppTemplate();
-            var phoneNumbers = personTmpl.Add<ArrProperty<App,AppTemplate>>("Phonenumbers", phoneNumber);
-            var number = phoneNumber.Add<StringProperty>("Number");
+            // First, let's create the schema (template)
+            var personSchema = new TPuppet();
+            var firstName = personSchema.Add<TString>("FirstName$");
+            var lastName = personSchema.Add<TString>("LastName");
+            var age = personSchema.Add<TLong>("Age");
+
+            var phoneNumber = new TPuppet();
+            var phoneNumbers = personSchema.Add<TArr<Puppet,TPuppet>>("Phonenumbers", phoneNumber);
+            var number = phoneNumber.Add<TString>("Number");
 
             Assert.AreEqual("FirstName$", firstName.Name);
             Assert.AreEqual("FirstName", firstName.PropertyName);
 
-            App jocke = new App() { Template = personTmpl };
-            App tim = new App() { Template = personTmpl };
+            // Now let's create instances using that schema
+            Puppet jocke = new Puppet() { Template = personSchema };
+            Puppet tim = new Puppet() { Template = personSchema };
 
             jocke.SetValue(firstName, "Joachim");
             jocke.SetValue(lastName, "Wester");
@@ -67,7 +74,7 @@ namespace Starcounter.Client.Tests.Application {
             Assert.AreEqual("Timothy", tim.GetValue(firstName));
             Assert.AreEqual("Wester", tim.GetValue(lastName));
 
-            var ret = new List<App>();
+            var ret = new List<Puppet>();
             ret.Add(jocke);
             ret.Add(tim);
             return ret;

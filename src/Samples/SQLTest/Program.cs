@@ -16,9 +16,11 @@ namespace SQLTest
             Console.WriteLine("Started SQLTest.");
             nrFailedQueries += Test1and2(outputPath);
             nrFailedQueries += Test3(outputPath);
+            nrFailedQueries += Test4(outputPath);
             Console.WriteLine("Finished SQLTest.");
             //System.IO.File.Create(@"s\Starcounter\failedTest");
             Environment.Exit(nrFailedQueries);
+            //Starcounter.Internal.Kernel32.ExitProcess((uint)nrFailedQueries);
             return nrFailedQueries;
         }
 
@@ -45,6 +47,18 @@ namespace SQLTest
             nrFailedQueries += TestRunner.RunTest();
             SQLTest.PointDb.PointData.DeleteData();
             SQLTest.PointDb.PointData.DropIndexes();
+            return nrFailedQueries;
+        }
+
+        static int Test4(String outputPath)
+        {
+            int nrFailedQueries = 0;
+            TestRunner.Initialize("SqlTest4", outputPath, false, true, false);
+            SQLTest.InheritedDb.InheritedData.CreateIndexes();
+            SQLTest.InheritedDb.InheritedData.Populate();
+            nrFailedQueries += TestRunner.RunTest();
+            SQLTest.InheritedDb.InheritedData.DropData();
+            SQLTest.InheritedDb.InheritedData.DropIndexes();
             return nrFailedQueries;
         }
     }

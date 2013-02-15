@@ -78,7 +78,7 @@ namespace Starcounter.Internal {
       /// </summary>
       /// <typeparam name="T"></typeparam>
       /// <param name="appList">The app list.</param>
-      public void Write<T>(Listing appList) where T : App {
+      public void Write<T>(Listing appList) where T : Puppet {
       }
 
       /// <summary>

@@ -14,7 +14,7 @@ namespace Starcounter.Internal.JsonPatch
     /// <summary>
     /// Class InternalHandlers
     /// </summary>
-    public class InternalHandlers : App
+    public class InternalHandlers : Puppet
     {
         /// <summary>
         /// Registers this instance.
@@ -23,12 +23,12 @@ namespace Starcounter.Internal.JsonPatch
         {
             GET<int>("/__vm/{?}", (int viewModelId) =>
             {
-                App rootApp;
+                Puppet rootApp;
                 Byte[] json;
                 HttpResponse response = null;
 
                 rootApp = Session.Current.GetRootApp(viewModelId);
-                json = rootApp.ToJsonUtf8(false);
+                json = rootApp.ToJsonUtf8();
                 response = new HttpResponse() { Uncompressed = HttpResponseBuilder.CreateMinimalOk200WithContent(json, 0, (uint)json.Length) };
 
                 return response;
@@ -36,7 +36,7 @@ namespace Starcounter.Internal.JsonPatch
 
             PATCH<int>("/__vm/{?}", (int viewModelId) =>
             {
-                App rootApp;
+                Puppet rootApp;
                 Session session;
                 HttpResponse response = null;
 
@@ -62,28 +62,28 @@ namespace Starcounter.Internal.JsonPatch
             });
         }
 
-        private static void RefreshAllValues(App app, ChangeLog log) {
+        private static void RefreshAllValues(Puppet app, ChangeLog log) {
             foreach (Template template in app.Template.Children) {
                 if (!template.Bound)
                     continue;
 
-                if (template is ObjArrProperty) {
-                    Listing l = app.GetValue((ObjArrProperty)template);
-                    foreach (App childApp in l) {
+                if (template is TObjArr) {
+                    Listing l = app.GetValue((TObjArr)template);
+                    foreach (Puppet childApp in l) {
                         RefreshAllValues(childApp, log);
                     }
                     continue;
                 }
                 
-                if (template is AppTemplate) {
-                    RefreshAllValues(app.GetValue((AppTemplate)template), log);
+                if (template is TPuppet) {
+                    RefreshAllValues(app.GetValue((TPuppet)template), log);
                     continue;
                 }
                 
                 if (template is ActionProperty)
                     continue;
 
-                ChangeLog.UpdateValue(app, (Property)template);
+                ChangeLog.UpdateValue(app, (TValue)template);
             }
         }
     }

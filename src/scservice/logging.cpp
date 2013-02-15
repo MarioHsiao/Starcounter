@@ -17,11 +17,17 @@ uint32_t OpenStarcounterLog(wchar_t* server_log_dir)
 
     err_code = sccorelog_connect_to_logs(L"scservice", NULL, &g_sc_log_handle_);
     if (err_code)
+    {
+        g_sc_log_handle_ = 0;
         return err_code;
+    }
 
     err_code = sccorelog_bind_logs_to_dir(g_sc_log_handle_, server_log_dir);
     if (err_code)
+    {
+        g_sc_log_handle_ = 0;
         return err_code;
+    }
 
     return 0;
 }

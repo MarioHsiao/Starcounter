@@ -45,7 +45,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="templ"></param>
-        public Listing(App parent, ObjArrProperty templ)
+        public Listing(Puppet parent, TObjArr templ)
             : base(parent, templ) {
         }
 
@@ -63,7 +63,13 @@ namespace Starcounter {
         /// </summary>
         /// <returns></returns>
         public new T Add() {
-            var app = new T();
+        //    var app = new T();
+        //    Add(app);
+        //    return app;
+            TObjArr template = (TObjArr)Template;
+            var app = (T)template.App.CreateInstance(this);
+
+          //  app.Data = data;
             Add(app);
             return app;
         }
@@ -74,7 +80,7 @@ namespace Starcounter {
         /// <param name="data"></param>
         /// <returns></returns>
         public T Add(IBindable data) {
-            ObjArrProperty template = (ObjArrProperty)Template;
+            TObjArr template = (TObjArr)Template;
             var app = (T)template.App.CreateInstance(this);
             
             app.Data = data;
@@ -107,7 +113,7 @@ namespace Starcounter {
     /// </summary>
     public class Listing : Container, IList<Obj>
 #if IAPP
-, IAppArray
+//, IAppArray
 #endif
  {
         /// <summary>
@@ -130,7 +136,7 @@ namespace Starcounter {
         /// </summary>
         internal List<Obj> QuickAndDirtyArray = new List<Obj>();
 #endif
-        // private AppListTemplate _property;
+        // private TObjArr _property;
 
         /// <summary>
         /// 
@@ -158,7 +164,7 @@ namespace Starcounter {
         /// <remarks>
         /// This method can be called several times, the initialization only occurs once.
         /// </remarks>
-        internal void InitializeAfterImplicitConversion(Obj parent, ObjArrProperty template) {
+        internal void InitializeAfterImplicitConversion(Obj parent, TObjArr template) {
             Obj newApp;
 
             if (Template == null) {
@@ -181,7 +187,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="templ"></param>
-        public Listing(Obj parent, ObjArrProperty templ) {
+        public Listing(Obj parent, TObjArr templ) {
             this.Template = templ;
             Parent = parent;
         }
@@ -206,19 +212,19 @@ namespace Starcounter {
         /// <param name="item"></param>
         public void Insert(int index, Obj item) {
             Obj otherItem;
-            ObjArrProperty template;
+            TObjArr template;
 
 #if QUICKTUPLE
             QuickAndDirtyArray.Insert(index, item);
 #else
          throw new JockeNotImplementedException();
 #endif
-            template = (ObjArrProperty)this.Template;
-            ChangeLog.AddItemInList((Obj)this.Parent, template, index);
+            template = (TObjArr)this.Template;
+            ChangeLog.AddItemInList((Puppet)this.Parent, template, index);
 
             for (Int32 i = index + 1; i < QuickAndDirtyArray.Count; i++) {
                 otherItem = QuickAndDirtyArray[i];
-                otherItem._cacheIndexInList = i;
+                otherItem._cacheIndexInArr = i;
             }
 
         }
@@ -229,17 +235,17 @@ namespace Starcounter {
         /// <param name="index"></param>
         public void RemoveAt(int index) {
             Obj otherItem;
-            ObjArrProperty template;
+            TObjArr template;
 
 #if QUICKTUPLE
 
-            template = (ObjArrProperty)this.Template;
+            template = (TObjArr)this.Template;
             QuickAndDirtyArray.RemoveAt(index);
-            ChangeLog.RemoveItemInList((App)this.Parent, template, index);
+            ChangeLog.RemoveItemInList((Puppet)this.Parent, template, index);
 
             for (Int32 i = index; i < QuickAndDirtyArray.Count; i++) {
                 otherItem = QuickAndDirtyArray[i];
-                otherItem._cacheIndexInList = i;
+                otherItem._cacheIndexInArr = i;
             }
 #else
          throw new JockeNotImplementedException();
@@ -290,9 +296,9 @@ namespace Starcounter {
         /// <returns></returns>
         public Obj Add() {
 #if QUICKTUPLE
-            Obj x = (Obj)((ObjArrProperty)this.Template).App.CreateInstance(this);
+            Obj x = (Obj)((TObjArr)this.Template).App.CreateInstance(this);
 
-            //            var x = new App() { Template = ((ArrProperty)this.Template).App };
+            //            var x = new App() { Template = ((TArr)this.Template).App };
             Add(x);
             return x;
 #else
@@ -319,28 +325,29 @@ namespace Starcounter {
 #if QUICKTUPLE
             index = QuickAndDirtyArray.Count;
             QuickAndDirtyArray.Add(item);
-            item._cacheIndexInList = index;
+            item._cacheIndexInArr = index;
             item.Parent = this;
 #else
          throw new JockeNotImplementedException();
 #endif
-
-            ChangeLog.AddItemInList((App)this.Parent, (ObjArrProperty)this.Template, QuickAndDirtyArray.Count - 1);
+            Parent.HasAddedElement((TObjArr)this.Template, QuickAndDirtyArray.Count - 1);
         }
+
+
 
         /// <summary>
         /// 
         /// </summary>
         public void Clear() {
             int indexesToRemove;
-            App app = (App)this.Parent;
-            ObjArrProperty property = (ObjArrProperty)this.Template;
+            var app = this.Parent;
+            TObjArr property = (TObjArr)this.Template;
 
 #if QUICKTUPLE
 
             indexesToRemove = QuickAndDirtyArray.Count;
             for (int i = (indexesToRemove - 1); i >= 0; i--) {
-                ChangeLog.RemoveItemInList(app, property, i);
+                app.HasAddedElement(property, i );
             }
             QuickAndDirtyArray.Clear();
 #else

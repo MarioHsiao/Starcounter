@@ -69,6 +69,9 @@
     <ClInclude Include="..\HTTP\HttpParser\ThirdPartyHeaders\http_parser.h">
       <Filter>ThirdPartyHeaders</Filter>
     </ClInclude>
+    <ClInclude Include="OurHeaders\urimatch_codegen.hpp">
+      <Filter>OurHeaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="OurSources\gateway.cpp">
@@ -117,6 +120,9 @@
       <Filter>ThirdPartySources</Filter>
     </ClCompile>
     <ClCompile Include="OurSources\echo_processors.cpp">
+      <Filter>OurSources</Filter>
+    </ClCompile>
+    <ClCompile Include="OurSources\urimatch_codegen.cpp">
       <Filter>OurSources</Filter>
     </ClCompile>
   </ItemGroup>
