@@ -15,9 +15,9 @@ namespace Starcounter.Templates {
 
 
     /// <summary>
-    /// Class ParentTemplate
+    /// Base class for Obj and Arr templates.
     /// </summary>
-    public abstract class ParentTemplate : Property
+    public abstract class ContainerTemplate : Property
     {
         /// <summary>
         /// The _ sealed

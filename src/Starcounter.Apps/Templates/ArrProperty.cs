@@ -93,7 +93,7 @@ namespace Starcounter.Templates {
     /// <summary>
     /// Class ArrProperty
     /// </summary>
-    public abstract class ObjArrProperty : ParentTemplate
+    public abstract class ObjArrProperty : ContainerTemplate
 #if IAPP
 //        , IAppListTemplate
 #endif

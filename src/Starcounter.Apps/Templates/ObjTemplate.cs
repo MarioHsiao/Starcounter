@@ -19,7 +19,7 @@ namespace Starcounter.Templates {
     /// <summary>
     /// Defines the properties of an App instance.
     /// </summary>
-    public abstract class ObjTemplate : ParentTemplate
+    public abstract class ObjTemplate : ContainerTemplate
 #if IAPP
 //, IAppTemplate
 #endif

@@ -30,7 +30,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
 
         internal static string GetFullAppClassName(AppTemplate template) {
             AppTemplate parentAppTemplate;
-            ParentTemplate parent;
+            ContainerTemplate parent;
             ObjArrProperty lp;
             
             // If this app is an inner innerclass (relative the rootclass) we need to add all parent app names.

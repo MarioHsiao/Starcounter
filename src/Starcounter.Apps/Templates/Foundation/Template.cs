@@ -121,7 +121,7 @@ namespace Starcounter.Templates {
         /// <summary>
         /// The _ parent
         /// </summary>
-        internal ParentTemplate _Parent;
+        internal ContainerTemplate _Parent;
 
         /// <summary>
         /// All templates other than the Root template has a parent template. For
@@ -129,7 +129,7 @@ namespace Starcounter.Templates {
         /// in an array (a list), the parent is the AppListTemplate.
         /// </summary>
         /// <value>The parent.</value>
-        public ParentTemplate Parent {
+        public ContainerTemplate Parent {
             get {
                 return _Parent;
             }
@@ -138,7 +138,7 @@ namespace Starcounter.Templates {
                     var at = (AppTemplate)value;
                     at.Properties.Add(this);
                 }
-                _Parent = (ParentTemplate)value;
+                _Parent = (ContainerTemplate)value;
             }
         }
 
