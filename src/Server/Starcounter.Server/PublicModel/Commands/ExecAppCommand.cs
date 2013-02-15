@@ -7,6 +7,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using Starcounter.Internal;
 using Starcounter.Apps.Bootstrap;
 
 namespace Starcounter.Server.PublicModel.Commands {
@@ -130,7 +131,7 @@ namespace Starcounter.Server.PublicModel.Commands {
                     databaseArg = databaseArg.Substring(databaseArg.IndexOf("=") + 1);
                     this.DatabaseName = databaseArg;
                 } else {
-                    this.DatabaseName = Path.GetFileNameWithoutExtension(this.AssemblyPath);
+                    this.DatabaseName = StarcounterConstants.DefaultDatabaseName;
                 }
             }
 

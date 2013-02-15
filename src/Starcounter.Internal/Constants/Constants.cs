@@ -10,6 +10,13 @@ namespace Starcounter.Internal
     public static class StarcounterConstants
     {
         /// <summary>
+        /// Defines the default name to use when no information about a
+        /// named database is given in a certain context, for example when
+        /// starting an executable.
+        /// </summary>
+        public const string DefaultDatabaseName = "Default";
+
+        /// <summary>
         /// Defines the program names.
         /// </summary>
         public static class ProgramNames
