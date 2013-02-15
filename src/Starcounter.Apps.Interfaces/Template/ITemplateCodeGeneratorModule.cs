@@ -11,13 +11,15 @@ namespace Starcounter.Internal {
     /// Interface ITemplateCodeGeneratorModule
     /// </summary>
     public interface ITemplateCodeGeneratorModule {
+
         /// <summary>
-        /// Creates the generator.
+        /// 
         /// </summary>
-        /// <param name="lang">The lang.</param>
-        /// <param name="template">The template.</param>
-        /// <param name="metadata">The metadata.</param>
-        /// <returns>ITemplateCodeGenerator.</returns>
+        /// <param name="defaultNewObjTemplateType"></param>
+        /// <param name="lang"></param>
+        /// <param name="template"></param>
+        /// <param name="metadata"></param>
+        /// <returns></returns>
         ITemplateCodeGenerator CreateGenerator( Type defaultNewObjTemplateType, string lang, object template, object metadata );
     }
 }
