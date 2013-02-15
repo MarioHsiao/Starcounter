@@ -57,7 +57,7 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 11 | 
+ | 61 | 
 
 <NEXT>
 Description: Get all companies
@@ -82,12 +82,12 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 1 | 
+ | 51 | 
 
 <NEXT>
 Description: Get object by object using its index
 QueryString: select e from SQLTest.InheritedDb.Employee e where company = ?
-VariableValues: Object:1;
+VariableValues: Object:51;
 ExpectedExecutionPlan: 
 Tables(
 	0 = SQLTest.InheritedDb.Employee
@@ -116,19 +116,19 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 2 | 
- | 3 | 
- | 4 | 
- | 5 | 
- | 6 | 
- | 7 | 
- | 8 | 
- | 9 | 
+ | 52 | 
+ | 53 | 
+ | 54 | 
+ | 55 | 
+ | 56 | 
+ | 57 | 
+ | 58 | 
+ | 59 | 
 
 <NEXT>
 Description: Get object by object using an inherited index
 QueryString: select e from teacher e where company = ?
-VariableValues: Object:1;
+VariableValues: Object:51;
 ExpectedExecutionPlan: 
 Tables(
 	0 = SQLTest.InheritedDb.Teacher
@@ -161,17 +161,17 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 4 | 
- | 5 | 
- | 6 | 
- | 7 | 
- | 8 | 
- | 9 | 
+ | 54 | 
+ | 55 | 
+ | 56 | 
+ | 57 | 
+ | 58 | 
+ | 59 | 
 
 <NEXT>
 Description: Get a most specific object by object using its index
 QueryString: select e from professor e where company = ?
-VariableValues: Object:1;
+VariableValues: Object:51;
 ExpectedExecutionPlan: 
 Tables(
 	0 = SQLTest.InheritedDb.Professor
@@ -200,8 +200,8 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 4 | 
- | 5 | 
+ | 54 | 
+ | 55 | 
 
 <NEXT>
 Description: Use inherited index for sorting
@@ -232,12 +232,12 @@ Sort(
 
 ExpectedResult: 
  ! Object ! 
- | 4 | 
- | 5 | 
- | 6 | 
- | 7 | 
- | 8 | 
- | 9 | 
+ | 54 | 
+ | 55 | 
+ | 56 | 
+ | 57 | 
+ | 58 | 
+ | 59 | 
 
 <NEXT>
 Description: Hint inherited index for scan
@@ -266,12 +266,12 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 4 | 
- | 5 | 
- | 6 | 
- | 7 | 
- | 8 | 
- | 9 | 
+ | 54 | 
+ | 55 | 
+ | 56 | 
+ | 57 | 
+ | 58 | 
+ | 59 | 
 
 <NEXT>
 Description: Hint its index for scan
@@ -296,11 +296,11 @@ IndexScan(
 
 ExpectedResult: 
  ! Object ! 
- | 2 | 
- | 3 | 
- | 4 | 
- | 5 | 
- | 6 | 
- | 7 | 
- | 8 | 
- | 9 | 
+ | 52 | 
+ | 53 | 
+ | 54 | 
+ | 55 | 
+ | 56 | 
+ | 57 | 
+ | 58 | 
+ | 59 | 
