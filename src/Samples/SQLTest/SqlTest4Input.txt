@@ -214,20 +214,18 @@ Projection(
 	0 = 
 		ObjectThis(0)
 )
-Sort(
-	IndexScan(
-		auto
-		0
-		Name
-		StringDynamicRange(
-		)
-		LogicalValue(TRUE)
-		Ascending
+IndexScan(
+	companyIndx
+	0
+	Company
+	ObjectDynamicRange(
 	)
-	ObjectComparer(
-		ObjectProperty(0, Company)
-		Ascending
+	IsTypePredicate(
+		IS
+		ObjectThis(0)
+		SQLTest.InheritedDb.Teacher
 	)
+	Ascending
 )
 
 ExpectedResult: 
