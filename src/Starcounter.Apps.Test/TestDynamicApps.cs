@@ -20,33 +20,40 @@ namespace Starcounter.Client.Tests.Application {
     public class AppTests {
 
         /// <summary>
-        /// Manuals the creation.
+        /// Creates a template (schema) and Puppets using that schema in code.
         /// </summary>
+        /// <remarks>
+        /// Template schemas can be created on the fly in Starcounter using the API. It is not necessary
+        /// to have compile time or run time .json files to create template schemas.
+        /// </remarks>
         [Test]
-        public static void ManualCreation() {
+        public static void CreateTemplatesAndAppsByCode() {
             AppExeModule.IsRunningTests = true;
-            CreateSome();
+            _CreateTemplatesAndAppsByCode();
         }
 
         /// <summary>
         /// Creates some.
         /// </summary>
         /// <returns>List{App}.</returns>
-        private static List<App> CreateSome() {
-            var personTmpl = new TApp();
-            var firstName = personTmpl.Add<TString>("FirstName$");
-            var lastName = personTmpl.Add<TString>("LastName");
-            var age = personTmpl.Add<TLong>("Age");
+        private static List<App> _CreateTemplatesAndAppsByCode() {
+
+            // First, let's create the schema (template)
+            var personSchema = new TApp();
+            var firstName = personSchema.Add<TString>("FirstName$");
+            var lastName = personSchema.Add<TString>("LastName");
+            var age = personSchema.Add<TLong>("Age");
 
             var phoneNumber = new TApp();
-            var phoneNumbers = personTmpl.Add<TArr<App,TApp>>("Phonenumbers", phoneNumber);
+            var phoneNumbers = personSchema.Add<TArr<App,TApp>>("Phonenumbers", phoneNumber);
             var number = phoneNumber.Add<TString>("Number");
 
             Assert.AreEqual("FirstName$", firstName.Name);
             Assert.AreEqual("FirstName", firstName.PropertyName);
 
-            App jocke = new App() { Template = personTmpl };
-            App tim = new App() { Template = personTmpl };
+            // Now let's create instances using that schema
+            App jocke = new App() { Template = personSchema };
+            App tim = new App() { Template = personSchema };
 
             jocke.SetValue(firstName, "Joachim");
             jocke.SetValue(lastName, "Wester");
