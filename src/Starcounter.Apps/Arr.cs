@@ -220,11 +220,11 @@ namespace Starcounter {
          throw new JockeNotImplementedException();
 #endif
             template = (ObjArrProperty)this.Template;
-            ChangeLog.AddItemInList((Obj)this.Parent, template, index);
+            ChangeLog.AddItemInList((App)this.Parent, template, index);
 
             for (Int32 i = index + 1; i < QuickAndDirtyArray.Count; i++) {
                 otherItem = QuickAndDirtyArray[i];
-                otherItem._cacheIndexInList = i;
+                otherItem._cacheIndexInArr = i;
             }
 
         }
@@ -245,7 +245,7 @@ namespace Starcounter {
 
             for (Int32 i = index; i < QuickAndDirtyArray.Count; i++) {
                 otherItem = QuickAndDirtyArray[i];
-                otherItem._cacheIndexInList = i;
+                otherItem._cacheIndexInArr = i;
             }
 #else
          throw new JockeNotImplementedException();
@@ -325,28 +325,29 @@ namespace Starcounter {
 #if QUICKTUPLE
             index = QuickAndDirtyArray.Count;
             QuickAndDirtyArray.Add(item);
-            item._cacheIndexInList = index;
+            item._cacheIndexInArr = index;
             item.Parent = this;
 #else
          throw new JockeNotImplementedException();
 #endif
-
-            ChangeLog.AddItemInList((App)this.Parent, (ObjArrProperty)this.Template, QuickAndDirtyArray.Count - 1);
+            Parent.HasAddedElement((ObjArrProperty)this.Template, QuickAndDirtyArray.Count - 1);
         }
+
+
 
         /// <summary>
         /// 
         /// </summary>
         public void Clear() {
             int indexesToRemove;
-            App app = (App)this.Parent;
+            var app = this.Parent;
             ObjArrProperty property = (ObjArrProperty)this.Template;
 
 #if QUICKTUPLE
 
             indexesToRemove = QuickAndDirtyArray.Count;
             for (int i = (indexesToRemove - 1); i >= 0; i--) {
-                ChangeLog.RemoveItemInList(app, property, i);
+                app.HasAddedElement(property, i );
             }
             QuickAndDirtyArray.Clear();
 #else

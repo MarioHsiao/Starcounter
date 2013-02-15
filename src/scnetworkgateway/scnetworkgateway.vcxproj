@@ -22,6 +22,7 @@
     <ClInclude Include="OurHeaders\handlers.hpp" />
     <ClInclude Include="OurHeaders\socket_data.hpp" />
     <ClInclude Include="OurHeaders\tls_proto.hpp" />
+    <ClInclude Include="OurHeaders\urimatch_codegen.hpp" />
     <ClInclude Include="OurHeaders\utilities.hpp" />
     <ClInclude Include="OurHeaders\worker.hpp" />
     <ClInclude Include="OurHeaders\worker_db_interface.hpp" />
@@ -41,6 +42,7 @@
     <ClCompile Include="OurSources\handlers.cpp" />
     <ClCompile Include="OurSources\socket_data.cpp" />
     <ClCompile Include="OurSources\tls_proto.cpp" />
+    <ClCompile Include="OurSources\urimatch_codegen.cpp" />
     <ClCompile Include="OurSources\utilities.cpp" />
     <ClCompile Include="OurSources\worker.cpp" />
     <ClCompile Include="OurSources\worker_db_interface.cpp" />

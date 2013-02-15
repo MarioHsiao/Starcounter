@@ -1,60 +1,88 @@
 ﻿
-using Starcounter.Internal.Uri;
 using System;
-using System.IO;
-using System.Text;
-namespace Starcounter {
-    public partial class Obj {
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
-        static string requestProcessorsTempDirPlusSlash_ = null;
+[assembly: InternalsVisibleTo("Starcounter.Bootstrap")]
+
+
+namespace Starcounter.Advanced {
+
+    /// <summary>
+    /// This class does not define any instance properties or behaviour. It just makes
+    /// available the global static functions SQL, Transaction and communication handler functions
+    /// GET,POST, etc. in various Starcounter classes for convenience.
+    /// </summary>
+    public class StarcounterBase {
 
         /// <summary>
-        /// Initializes Starcounter REST settings.
+        /// Inject database function provider here
         /// </summary>
-        /// <param name="databaseTempDir">Path to database temp directory.</param>
-        public static void InitREST(String databaseTempDir)
-        {
-            requestProcessorsTempDirPlusSlash_ = databaseTempDir + "\\rps\\";
+        public static IDb _DB;
 
-            if (!Directory.Exists(requestProcessorsTempDirPlusSlash_))
-                Directory.CreateDirectory(requestProcessorsTempDirPlusSlash_);
+        /// <summary>
+        /// Inject REST handler function provider here
+        /// </summary>
+        public static IREST _REST;
+
+        /// <summary>
+        /// Runs code as an ACID database transaction in the embedding database.
+        /// </summary>
+        /// <param name="action"></param>
+        public static void Transaction(Action action) {
+            _DB.Transaction(action);
         }
 
         /// <summary>
-        /// Gets path to database temp directory.
+        /// Executes a query on the embedding database.
         /// </summary>
-        public static string RequestProcessorsTempDirPlusSlash
-        {
-            get { return requestProcessorsTempDirPlusSlash_; }
+        /// <param name="query">The SQL query string excluding parameters. Parameters are supplied as ? marks.</param>
+        /// <param name="args">The parameters corresponding to the ? marks in the query string.</param>
+        /// <returns></returns>
+        public static ISqlResult SQL(string query, params object[] args) {
+            return _DB.SQL(query, args);
         }
 
         /// <summary>
-        /// TODO! Make internal with friends
+        /// Executes a query on the embedding database.
         /// </summary>
-        public static void Reset() {
-            _RequestProcessor = null;
-            UriMatcherBuilder = new RequestProcessorBuilder();
-        }
-
-        private static TopLevelRequestProcessor _RequestProcessor;
-
-        /// <summary>
-        /// Gets the request processor.
-        /// </summary>
-        /// <value>The request processor.</value>
-        public static TopLevelRequestProcessor RequestProcessor {
-            get {
-                if (_RequestProcessor == null) {
-                    _RequestProcessor = UriMatcherBuilder.InstantiateRequestProcessor();
-                }
-                return _RequestProcessor;
-            }
+        /// <typeparam name="T">The class of each entity in the result."/></typeparam>
+        /// <param name="query">The SQL query string excluding parameters. Parameters are supplied as ? marks.</param>
+        /// <param name="args">The parameters corresponding to the ? marks in the query string.</param>
+        /// <returns></returns>
+        public static ISqlResult<T> SQL<T>(string query, params object[] args) {
+            return _DB.SQL<T>(query, args);
         }
 
         /// <summary>
-        /// The URI matcher builder
+        /// 
         /// </summary>
-        public static RequestProcessorBuilder UriMatcherBuilder = new RequestProcessorBuilder();
+        /// <param name="str"></param>
+        /// <param name="pars"></param>
+        /// <returns></returns>
+        public static ISqlResult SlowSQL(string str, params object[] pars) {
+            return _DB.SlowSQL(str, pars);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="str"></param>
+        /// <param name="pars"></param>
+        /// <returns></returns>
+        public static ISqlResult<T> SlowSQL<T>(string str, params object[] pars) {
+            return _DB.SlowSQL<T>(str, pars);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <returns></returns>
+        public static object Get(string uri) {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Register the specified uri with a GET verb.
@@ -62,7 +90,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void GET(string uri, Func<object> handler) {
-            UriMatcherBuilder.RegisterHandler("GET " + uri, handler);
+            _REST.RegisterHandler("GET " + uri, handler);
         }
 
         /// <summary>
@@ -72,7 +100,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void GET<T>(string uri, Func<T, object> handler) {
-            UriMatcherBuilder.RegisterHandler<T>("GET " + uri, handler);
+            _REST.RegisterHandler<T>("GET " + uri, handler);
         }
 
         /// <summary>
@@ -83,7 +111,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void GET<T1, T2>(string uri, Func<T1, T2, object> handler) {
-            UriMatcherBuilder.RegisterHandler<T1, T2>("GET " + uri, handler);
+            _REST.RegisterHandler<T1, T2>("GET " + uri, handler);
         }
 
         /// <summary>
@@ -94,8 +122,8 @@ namespace Starcounter {
         /// <typeparam name="T3">The type of the third parameter.</typeparam>
         /// <param name="uri">The uri to register</param>
         /// <param name="handler">The handler.</param>
-        public static void GET<T1, T2, T3>(string uri, Func<T1, T2, T3, object> handler){
-            UriMatcherBuilder.RegisterHandler<T1, T2, T3>("GET " + uri, handler);
+        public static void GET<T1, T2, T3>(string uri, Func<T1, T2, T3, object> handler) {
+            _REST.RegisterHandler<T1, T2, T3>("GET " + uri, handler);
         }
 
         /// <summary>
@@ -108,7 +136,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void GET<T1, T2, T3, T4>(string uri, Func<T1, T2, T3, T4, object> handler) {
-            UriMatcherBuilder.RegisterHandler<T1, T2, T3, T4>("GET " + uri, handler);
+            _REST.RegisterHandler<T1, T2, T3, T4>("GET " + uri, handler);
         }
 
         /// <summary>
@@ -122,7 +150,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void GET<T1, T2, T3, T4, T5>(string uri, Func<T1, T2, T3, T4, T5, object> handler) {
-            UriMatcherBuilder.RegisterHandler<T1, T2, T3, T4, T5>("GET " + uri, handler);
+            _REST.RegisterHandler<T1, T2, T3, T4, T5>("GET " + uri, handler);
         }
 
         /// <summary>
@@ -131,7 +159,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void PUT(string uri, Func<object> handler) {
-            UriMatcherBuilder.RegisterHandler("PUT " + uri, handler);
+            _REST.RegisterHandler("PUT " + uri, handler);
         }
 
         /// <summary>
@@ -141,7 +169,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void PUT<T>(string uri, Func<T, object> handler) {
-            UriMatcherBuilder.RegisterHandler<T>("PUT " + uri, handler);
+            _REST.RegisterHandler<T>("PUT " + uri, handler);
         }
 
         /// <summary>
@@ -152,7 +180,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void PUT<T1, T2>(string uri, Func<T1, T2, object> handler) {
-            UriMatcherBuilder.RegisterHandler<T1, T2>("PUT " + uri, handler);
+            _REST.RegisterHandler<T1, T2>("PUT " + uri, handler);
         }
 
         /// <summary>
@@ -164,7 +192,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register</param>
         /// <param name="handler">The handler.</param>
         public static void PUT<T1, T2, T3>(string uri, Func<T1, T2, T3, object> handler) {
-            UriMatcherBuilder.RegisterHandler<T1, T2, T3>("PUT " + uri, handler);
+            _REST.RegisterHandler<T1, T2, T3>("PUT " + uri, handler);
         }
 
         /// <summary>
@@ -177,7 +205,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void PUT<T1, T2, T3, T4>(string uri, Func<T1, T2, T3, T4, object> handler) {
-            UriMatcherBuilder.RegisterHandler<T1, T2, T3, T4>("PUT " + uri, handler);
+            _REST.RegisterHandler<T1, T2, T3, T4>("PUT " + uri, handler);
         }
 
         /// <summary>
@@ -191,7 +219,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void PUT<T1, T2, T3, T4, T5>(string uri, Func<T1, T2, T3, T4, T5, object> handler) {
-            UriMatcherBuilder.RegisterHandler<T1, T2, T3, T4, T5>("PUT " + uri, handler);
+            _REST.RegisterHandler<T1, T2, T3, T4, T5>("PUT " + uri, handler);
         }
 
         /// <summary>
@@ -200,7 +228,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void POST(string uri, Func<object> handler) {
-            UriMatcherBuilder.RegisterHandler("POST " + uri, handler);
+            _REST.RegisterHandler("POST " + uri, handler);
         }
 
         /// <summary>
@@ -210,7 +238,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void POST<T>(string uri, Func<T, object> handler) {
-            UriMatcherBuilder.RegisterHandler<T>("POST " + uri, handler);
+            _REST.RegisterHandler<T>("POST " + uri, handler);
         }
 
         /// <summary>
@@ -221,7 +249,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void POST<T1, T2>(string uri, Func<T1, T2, object> handler) {
-            UriMatcherBuilder.RegisterHandler<T1, T2>("POST " + uri, handler);
+            _REST.RegisterHandler<T1, T2>("POST " + uri, handler);
         }
 
         /// <summary>
@@ -233,7 +261,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register</param>
         /// <param name="handler">The handler.</param>
         public static void POST<T1, T2, T3>(string uri, Func<T1, T2, T3, object> handler) {
-            UriMatcherBuilder.RegisterHandler<T1, T2, T3>("POST " + uri, handler);
+            _REST.RegisterHandler<T1, T2, T3>("POST " + uri, handler);
         }
 
         /// <summary>
@@ -246,7 +274,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void POST<T1, T2, T3, T4>(string uri, Func<T1, T2, T3, T4, object> handler) {
-            UriMatcherBuilder.RegisterHandler<T1, T2, T3, T4>("POST " + uri, handler);
+            _REST.RegisterHandler<T1, T2, T3, T4>("POST " + uri, handler);
         }
 
         /// <summary>
@@ -260,7 +288,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void POST<T1, T2, T3, T4, T5>(string uri, Func<T1, T2, T3, T4, T5, object> handler) {
-            UriMatcherBuilder.RegisterHandler<T1, T2, T3, T4, T5>("POST " + uri, handler);
+            _REST.RegisterHandler<T1, T2, T3, T4, T5>("POST " + uri, handler);
         }
 
         /// <summary>
@@ -269,7 +297,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void DELETE(string uri, Func<object> handler) {
-            UriMatcherBuilder.RegisterHandler("DELETE " + uri, handler);
+            _REST.RegisterHandler("DELETE " + uri, handler);
         }
 
         /// <summary>
@@ -279,7 +307,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void DELETE<T>(string uri, Func<T, object> handler) {
-            UriMatcherBuilder.RegisterHandler<T>("DELETE " + uri, handler);
+            _REST.RegisterHandler<T>("DELETE " + uri, handler);
         }
 
         /// <summary>
@@ -290,7 +318,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void DELETE<T1, T2>(string uri, Func<T1, T2, object> handler) {
-            UriMatcherBuilder.RegisterHandler<T1, T2>("DELETE " + uri, handler);
+            _REST.RegisterHandler<T1, T2>("DELETE " + uri, handler);
         }
 
         /// <summary>
@@ -302,7 +330,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register</param>
         /// <param name="handler">The handler.</param>
         public static void DELETE<T1, T2, T3>(string uri, Func<T1, T2, T3, object> handler) {
-            UriMatcherBuilder.RegisterHandler<T1, T2, T3>("DELETE " + uri, handler);
+            _REST.RegisterHandler<T1, T2, T3>("DELETE " + uri, handler);
         }
 
         /// <summary>
@@ -315,7 +343,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void DELETE<T1, T2, T3, T4>(string uri, Func<T1, T2, T3, T4, object> handler) {
-            UriMatcherBuilder.RegisterHandler<T1, T2, T3, T4>("DELETE " + uri, handler);
+            _REST.RegisterHandler<T1, T2, T3, T4>("DELETE " + uri, handler);
         }
 
         /// <summary>
@@ -329,7 +357,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void DELETE<T1, T2, T3, T4, T5>(string uri, Func<T1, T2, T3, T4, T5, object> handler) {
-            UriMatcherBuilder.RegisterHandler<T1, T2, T3, T4, T5>("DELETE " + uri, handler);
+            _REST.RegisterHandler<T1, T2, T3, T4, T5>("DELETE " + uri, handler);
         }
 
         /// <summary>
@@ -338,7 +366,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void PATCH(string uri, Func<object> handler) {
-            UriMatcherBuilder.RegisterHandler("PATCH " + uri, handler);
+            _REST.RegisterHandler("PATCH " + uri, handler);
         }
 
         /// <summary>
@@ -348,7 +376,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void PATCH<T>(string uri, Func<T, object> handler) {
-            UriMatcherBuilder.RegisterHandler<T>("PATCH " + uri, handler);
+            _REST.RegisterHandler<T>("PATCH " + uri, handler);
         }
 
         /// <summary>
@@ -359,7 +387,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void PATCH<T1, T2>(string uri, Func<T1, T2, object> handler) {
-            UriMatcherBuilder.RegisterHandler<T1, T2>("PATCH " + uri, handler);
+            _REST.RegisterHandler<T1, T2>("PATCH " + uri, handler);
         }
 
         /// <summary>
@@ -371,7 +399,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register</param>
         /// <param name="handler">The handler.</param>
         public static void PATCH<T1, T2, T3>(string uri, Func<T1, T2, T3, object> handler) {
-            UriMatcherBuilder.RegisterHandler<T1, T2, T3>("PATCH " + uri, handler);
+            _REST.RegisterHandler<T1, T2, T3>("PATCH " + uri, handler);
         }
 
         /// <summary>
@@ -384,7 +412,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void PATCH<T1, T2, T3, T4>(string uri, Func<T1, T2, T3, T4, object> handler) {
-            UriMatcherBuilder.RegisterHandler<T1, T2, T3, T4>("PATCH " + uri, handler);
+            _REST.RegisterHandler<T1, T2, T3, T4>("PATCH " + uri, handler);
         }
 
         /// <summary>
@@ -398,7 +426,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void PATCH<T1, T2, T3, T4, T5>(string uri, Func<T1, T2, T3, T4, T5, object> handler) {
-            UriMatcherBuilder.RegisterHandler<T1, T2, T3, T4, T5>("PATCH " + uri, handler);
+            _REST.RegisterHandler<T1, T2, T3, T4, T5>("PATCH " + uri, handler);
         }
 
         /// <summary>
@@ -418,34 +446,9 @@ namespace Starcounter {
         /// <param name="pars">The pars.</param>
         /// <returns>System.Object.</returns>
         /// <exception cref="System.NotImplementedException"></exception>
-        public static object Get( string uri, params object[] pars ) {
+        public static object Get(string uri, params object[] pars) {
             throw new NotImplementedException();
         }
 
-        /// <summary>
-        /// Gets the specified URI.
-        /// </summary>
-        /// <param name="uri">The URI.</param>
-        /// <returns>System.Object.</returns>
-        public static object Get(string uri) {
-            var length = uri.Length + 3 + 1 + 1;// GET + space + URI + space
-            byte[] vu = new byte[length]; 
-            vu[0] = (byte)'G';
-            vu[1] = (byte)'E';
-            vu[2] = (byte)'T';
-            vu[3] = (byte)' ';
-            vu[length-1] = (byte)' ';
-            Encoding.ASCII.GetBytes(uri, 0, uri.Length, vu, 4);
-            object ret;
-            SingleRequestProcessorBase handler;
-            unsafe {
-                fixed (byte* pvu = vu) {
-                    RequestHandler.RequestProcessor.Process((IntPtr)pvu, vu.Length, true, null, out handler, out ret);
-                }
-            }
-            return ret;
-        }   
-
     }
 }
-

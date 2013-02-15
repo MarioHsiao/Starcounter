@@ -17,19 +17,14 @@ namespace Starcounter.Client {
 namespace Starcounter {
 #endif
 
-    /// <summary>
-    /// Class App
-    /// </summary>
-    public partial class Obj
-    {
+    public partial class Obj {
         /// <summary>
-        /// Reads the value for a given property in this App. This method returns all values boxed
+        /// Reads the value for a given property in this Obj. This method returns all values boxed
         /// as a CLR object. Whenever possible, use the GetValue function specific to a type instead
         /// (i.e. non abstract value templates such as for example GetValue( BoolTemplate property ).
         /// </summary>
-        /// <param name="property">The template representing the App property</param>
+        /// <param name="property">The template representing the property to read</param>
         /// <returns>The value of the property</returns>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public object GetValue(Property property) {
             if (property.Bound)
@@ -43,13 +38,12 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Sets the value for a given property in this App. This method takes the new value
+        /// Sets the value for a given property in this Obj. This method takes the new value
         /// as a boxed CLR object. Whenever possible, use the SetValue function specific to a type instead
         /// (i.e. non abstract value templates such as for example SetValue( BoolTemplate property, bool value ).
         /// </summary>
-        /// <param name="property">The template representing the App property</param>
+        /// <param name="property">The template representing the property to set</param>
         /// <param name="value">The new value to assign to the property</param>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(Property property, object value) {
             if (property.Bound) {
@@ -94,7 +88,8 @@ namespace Starcounter {
         public void SetValue(BoolProperty property, bool value) {
             if (property.Bound) {
                 property.SetBoundValue(this, value);
-                ChangeLog.UpdateValue(this, property);
+                HasChanged(property);
+                //                ChangeLog.UpdateValue(this, property);
                 return;
             }
 
@@ -103,8 +98,8 @@ namespace Starcounter {
 #else
             throw new JockeNotImplementedException();
 #endif
-
-            ChangeLog.UpdateValue(this, property);
+            HasChanged(property);
+            // ChangeLog.UpdateValue(this, property);
         }
 
         /// <summary>
@@ -135,7 +130,8 @@ namespace Starcounter {
         public void SetValue(DecimalProperty property, decimal value) {
             if (property.Bound) {
                 property.SetBoundValue(this, value);
-                ChangeLog.UpdateValue(this, property);
+                HasChanged(property);
+                //                ChangeLog.UpdateValue(this, property);
                 return;
             }
 
@@ -360,9 +356,8 @@ namespace Starcounter {
         /// <typeparam name="T"></typeparam>
         /// <param name="templ">The templ.</param>
         /// <param name="data">The data.</param>
-        /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue<T>(ObjArrProperty templ, Listing<T> data) where T : App, new() {
+        public void SetValue<T>(ObjArrProperty templ, Listing<T> data) where T : Obj, new() {
             Listing<T> current = _Values[templ.Index];
             if (current != null)
                 current.Clear();
@@ -376,7 +371,6 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>App.</returns>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public App GetValue(AppTemplate property) {
 #if QUICKTUPLE
@@ -394,7 +388,7 @@ namespace Starcounter {
         /// <returns>``0.</returns>
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public T GetTypedValue<T>(AppTemplate property) where T : App, new() {
+        public T GetTypedValue<T>(ObjTemplate property) where T : Obj, new() {
 #if QUICKTUPLE
             return (T)(_Values[property.Index]);
 #else
@@ -440,7 +434,7 @@ namespace Starcounter {
         /// <param name="value">The value.</param>
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(AppTemplate property, IBindable value) {
+        public void SetValue(ObjTemplate property, IBindable value) {
 #if QUICKTUPLE
             Obj app = (Obj)property.CreateInstance(this);
             app.Data = value;
@@ -449,21 +443,6 @@ namespace Starcounter {
             throw new JockeNotImplementedException();
 #endif
             this.HasChanged(property);
-        }
-
-        /// <summary>
-        /// Sets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <param name="value">The value.</param>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(ObjTemplate property, App value) {
-#if QUICKTUPLE
-            _Values[property.Index] = value;
-#else
-            throw new JockeNotImplementedException();
-#endif
         }
     }
 }

@@ -17,20 +17,22 @@ using Starcounter.Internal.REST;
 using Starcounter.Internal;
 using Starcounter.Advanced;
 
-#if CLIENT
-using Starcounter.Client.Template;
-
-namespace Starcounter.Client {
-#else
-
 namespace Starcounter {
-#endif
     /// <summary>
-    /// 
+    /// Base class for simple data objects that are mapped to schemas (called Templates). These
+    /// objects can contain named properties with simple datatypes found in common programming languages,
+    /// including string, integer, boolean, decimal, floating point, null and array. The objects mimics
+    /// the kind of objects inducable from Json trees, albeit with a richer set of numeric representations.
     /// </summary>
+    /// <remarks>
+    /// Obj is the base class for popular Starcounter concepts such as Puppets and Messages.
+    /// </remarks>
     public abstract partial class Obj : Container {
         /// <summary>
-        /// 
+        /// An Obj can be bound to a data object. This makes the Obj reflect the data in the
+        /// underlying bound object. This is common in database applications where Json messages
+        /// or view models (Puppets) are often associated with database objects. I.e. a person form might
+        /// reflect a person database object (Entity).
         /// </summary>
         private IBindable _Data;
 
@@ -38,53 +40,28 @@ namespace Starcounter {
         /// Initializes a new instance of the <see cref="Obj" /> class.
         /// </summary>
         public Obj() : base() {
-            _cacheIndexInList = -1;
-            ViewModelId = -1;
+            _cacheIndexInArr = -1;
         }
 
         /// <summary>
-        /// Rest-server responsible for delivering static resources.
+        /// Cache element index if the parent of this Obj is an array (Arr).
         /// </summary>
-        public static HttpRestServer StaticResources;
+        internal Int32 _cacheIndexInArr;
 
         /// <summary>
-        /// Triggers the type initialization.
-        /// </summary>
-        static internal void TriggerTypeInitialization() {
-            // Calling a static method will trigger type initialization.
-            // This is important to detect if the EXE module is running out of process.
-            // (so that it can be stopped and restarted inside the database process).
-            // Called when the When class is initialized.
-        }
-
-        /// <summary>
-        /// Returns true if this Obj have been serialed and sent to the client.
-        /// </summary>
-        /// <value>The is serialized.</value>
-        public Boolean IsSerialized { get; internal set; }
-
-        /// <summary>
-        /// Returns the id of this app or -1 if not used.
-        /// </summary>
-        internal int ViewModelId { get; set; }
-
-        /// <summary>
-        /// Cache field of index if the parent of this Obj is a list.
-        /// </summary>
-        internal Int32 _cacheIndexInList;
-
-        /// <summary>
-        /// Fills the index path.
+        /// In order to support Json pointers (TODO REF), this method is called
+        /// recursivly to fill in a list of relative pointers from the root to
+        /// a given node in the Json like tree (the Obj/Arr tree).
         /// </summary>
         /// <param name="path">The patharray to fill</param>
         /// <param name="pos">The position to fill</param>
         internal override void FillIndexPath(int[] path, int pos) {
             if (Parent != null) {
                 if (Parent is Listing) {
-                    if (_cacheIndexInList == -1) {
-                        _cacheIndexInList = ((Listing)Parent).IndexOf(this);
+                    if (_cacheIndexInArr == -1) {
+                        _cacheIndexInArr = ((Listing)Parent).IndexOf(this);
                     }
-                    path[pos] = _cacheIndexInList;
+                    path[pos] = _cacheIndexInArr;
                 } else {
                     path[pos] = Template.Index;
                 }
@@ -93,9 +70,11 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Gets or sets the underlying entity object.
+        /// Gets or sets the bound (underlying) data object (often a database Entity object). This enables
+        /// the Obj to reflect the values of the bound object. The values are matched by property names by default.
+        /// When you declare an Obj using generics, be sure to specify the type of the bound object in the class declaration.
         /// </summary>
-        /// <value>The data.</value>
+        /// <value>The bound data object (often a database Entity)</value>
         public IBindable Data {
             get {
                 return (IBindable)_Data;
@@ -110,7 +89,7 @@ namespace Starcounter {
         /// This function does not check for a valid transaction as the 
         /// public Data-property does.
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data">The bound data object (usually an Entity)</param>
         internal virtual void InternalSetData(IBindable data) {
 
             _Data = data;
@@ -124,7 +103,8 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Refreshes all databound values for this Obj.
+        /// Refreshes all bound values of this Obj. Retrieves data from the Data
+        /// property.
         /// </summary>
         private void RefreshAllBoundValues() {
             Template child;
@@ -137,20 +117,10 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Called after the data object is set.
+        /// Called after the Data property is set.
         /// </summary>
         protected virtual void OnData() {
         }
-
-//        /// <summary>
-//        /// Calls the init.
-//        /// </summary>
-//        internal void CallInit() {
-//            Init();
-//        }
-
-//        public void Input( Input input ) {
-//        }
 
         /// <summary>
         /// 
@@ -222,89 +192,5 @@ namespace Starcounter {
             }
         }
 
-//        /// <summary>
-//        /// Use this method to override the default communication from the client.
-//        /// </summary>
-//        /// <remarks>
-//        /// Requests can use the WebSockets or HTTP protocol
-//        /// </remarks>
-//        /// <param name="request">Can be used to retrieve the data of the request</param>
-//        /// <returns>The raw response</returns>
-//        public virtual byte[] HandleRawRequest(HttpRequest request) {
-//            return null;
-//        }
-
-        /// <summary>
-        /// If the view lives in this .NET application domain, this property can be used to reference it.
-        /// For Starcounter serverside App objects, this property is often a string that is used to identifify
-        /// a specific view. For web applications, the string is often a reference to the .html file.
-        /// </summary>
-        /// <value>The media.</value>
-        public Media Media { get; set; }
-
-        /// <summary>
-        /// Gets or sets the view.
-        /// </summary>
-        /// <value>The view.</value>
-        public string View { get; set; }
-
-#if !CLIENT
-        /// <summary>
-        /// For convenience, the static SQL function can be called from either the Obj class,
-        /// the Entity class or the Db class. The implementations are identical.
-        /// </summary>
-        /// <param name="str">The STR.</param>
-        /// <param name="pars">The pars.</param>
-        /// <returns>SqlResult.</returns>
-        public static SqlResult SQL(string str, params object[] pars) {
-            return Db.SQL(str, pars);
-        }
-
-//        /// <summary>
-//        /// SQLs the specified STR.
-//        /// </summary>
-//        /// <typeparam name="T"></typeparam>
-//        /// <param name="str">The STR.</param>
-//        /// <param name="pars">The pars.</param>
-//        /// <returns>SqlResult2{``0}.</returns>
-//        public static SqlResult2<T> SQL<T>(string str, params object[] pars) where T : Entity {
-//            return null;
-//        }
-
-        ///// <summary>
-        ///// Transactions the specified action.
-        ///// </summary>
-        ///// <param name="action">The action.</param>
-        //public static void Transaction(Action action) {
-        //    Db.Transaction(action);
-        //}
-
-        /// <summary>
-        /// Slows the SQL.
-        /// </summary>
-        /// <param name="str">The STR.</param>
-        /// <param name="pars">The pars.</param>
-        /// <returns>SqlResult.</returns>
-        public static SqlResult SlowSQL(string str, params object[] pars) {
-            return Db.SlowSQL(str, pars);
-        }
-
-#endif
-
-        /// <summary>
-        /// Deletes this instance.
-        /// </summary>
-        public void Delete() { }
-
-        /// <summary>
-        /// Removes this Obj from its parent.
-        /// </summary>
-        public void Close() { }
-
-        /// <summary>
-        /// Shows this instance.
-        /// </summary>
-        public void Show() {
-        }
     }
 }

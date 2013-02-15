@@ -16,7 +16,7 @@ namespace Starcounter
     /// <summary>
     /// 
     /// </summary>
-    public class SqlResult : IEnumerable {
+    public class SqlResult : ISqlResult, IEnumerable {
         /// <summary>
         /// 
         /// </summary>

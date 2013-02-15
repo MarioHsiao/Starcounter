@@ -7,6 +7,7 @@
 #include "tls_proto.hpp"
 #include "worker_db_interface.hpp"
 #include "worker.hpp"
+#include "urimatch_codegen.hpp"
 
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "winmm.lib")
@@ -277,6 +278,8 @@ Gateway::Gateway()
     global_statistics_stream_ << "Empty string!";
     memcpy(global_statistics_string_, kHttpStatsHeader, kHttpStatsHeaderLength);
 
+    codegen_uri_matcher_ = NULL;
+
 #ifdef GW_TESTING_MODE
 
     // Master IP address.
@@ -326,7 +329,7 @@ uint32_t Gateway::ProcessArgumentsAndInitLog(int argc, wchar_t* argv[])
     }
 
     // Reading the Starcounter log directory.
-    setting_output_dir_ = argv[3];
+    setting_server_output_dir_ = argv[3];
 
     char temp[128];
 
@@ -368,20 +371,40 @@ uint32_t Gateway::ProcessArgumentsAndInitLog(int argc, wchar_t* argv[])
 
     setting_config_file_path_ = argv[2];
 
-    std::wstring setting_log_file_dir_ = setting_output_dir_ + L"\\" + GW_PROGRAM_NAME;
+    // Getting executable directory.
+    wchar_t exe_dir[1024];
+    DWORD r = GetModuleFileName(NULL, exe_dir, 1024);
+    GW_ASSERT((r > 0) && (r < 1024));
+
+    // Getting directory name from executable path.
+    int32_t c = r;
+    while (c > 0)
+    {
+        c--;
+
+        if (exe_dir[c] == L'\\')
+            break;
+    }
+    exe_dir[c] = L'\0';
+
+    // Creating Starcounter bin directory property.
+    setting_sc_bin_dir_ = std::wstring(exe_dir);
+
+    // Specifying gateway output directory as subfolder for server output.
+    setting_gateway_output_dir_ = setting_server_output_dir_ + L"\\" + GW_PROGRAM_NAME;
 
     // Trying to create network gateway log directory.
-    if ((!CreateDirectory(setting_log_file_dir_.c_str(), NULL)) &&
+    if ((!CreateDirectory(setting_gateway_output_dir_.c_str(), NULL)) &&
         (ERROR_ALREADY_EXISTS != GetLastError()))
     {
-        std::wcout << L"Can't create network gateway log directory: " << setting_log_file_dir_ << std::endl;
+        std::wcout << L"Can't create network gateway log directory: " << setting_gateway_output_dir_ << std::endl;
 
         return SCERRGWCANTCREATELOGDIR;
     }
 
     // Obtaining full path to log directory.
     wchar_t log_file_dir_full[1024];
-    DWORD num_copied_chars = GetFullPathName(setting_log_file_dir_.c_str(), 1024, log_file_dir_full, NULL);
+    DWORD num_copied_chars = GetFullPathName(setting_gateway_output_dir_.c_str(), 1024, log_file_dir_full, NULL);
     GW_ASSERT(num_copied_chars != 0);
 
     // Full path to gateway log file.
@@ -1431,6 +1454,12 @@ uint32_t Gateway::Init()
 
 #endif
 
+#ifdef GW_URI_MATCHING_CODEGEN
+    // Loading URI codegen matcher.
+    codegen_uri_matcher_ = new CodegenUriMatcher();
+    codegen_uri_matcher_->Init();
+#endif
+
     // Indicating that network gateway is ready
     // (should be first line of the output).
     GW_COUT << "Gateway is ready!" << GW_ENDL;
@@ -1741,7 +1770,7 @@ uint32_t __stdcall MonitorDatabases(LPVOID params)
     uint32_t err_code = 0;
 
     // Creating path to IPC monitor directory active databases.
-    std::wstring active_databases_dir = g_gateway.get_setting_output_dir() + L"\\"+ W_DEFAULT_MONITOR_DIR_NAME + L"\\" + W_DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME + L"\\";
+    std::wstring active_databases_dir = g_gateway.get_setting_server_output_dir() + L"\\"+ W_DEFAULT_MONITOR_DIR_NAME + L"\\" + W_DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME + L"\\";
 
     // Obtaining full path to IPC monitor directory.
     wchar_t active_databases_dir_full[1024];
@@ -2593,6 +2622,40 @@ uint32_t Gateway::ShutdownTest(GatewayWorker* gw, bool success)
 
 #endif
 
+// Generate the code using managed generator.
+uint32_t Gateway::GenerateUriMatcher(uint16_t port)
+{
+    // Getting the port structure.
+    ServerPort* server_port = FindServerPort(port);
+    GW_ASSERT(NULL != server_port);
+
+    // Registering URI on port.
+    RegisteredUris* all_port_uris = server_port->get_registered_uris();
+
+    // Getting registered URIs.
+    std::vector<RegisteredUriManaged> uris_managed = all_port_uris->GetRegisteredUriManaged();
+
+    // Calling managed function.
+    uint32_t err_code = codegen_uri_matcher_->GenerateUriMatcher(&uris_managed.front(), uris_managed.size());
+    if (err_code)
+        return err_code;
+
+    MatchUriType match_uri_func;
+
+    // Building URI matcher from generated code and loading the library.
+    err_code = codegen_uri_matcher_->CompileIfNeededAndLoadDll(
+        UriMatchCodegenCompilerType::COMPILER_GCC,
+        L"codegen_uri_matcher",
+        match_uri_func);
+
+    if (err_code)
+        return err_code;
+
+    all_port_uris->set_latest_match_uri_func(match_uri_func);
+
+    return 0;
+}
+
 // Adds some URI handler: either Apps or Gateway.
 uint32_t Gateway::AddUriHandler(
     GatewayWorker* gw,
@@ -2713,7 +2776,7 @@ uint32_t Gateway::OpenStarcounterLog()
     if (err_code)
         return err_code;
 
-    err_code = sccorelog_bind_logs_to_dir(sc_log_handle_, setting_output_dir_.c_str());
+    err_code = sccorelog_bind_logs_to_dir(sc_log_handle_, setting_server_output_dir_.c_str());
     if (err_code)
         return err_code;
 
@@ -2732,6 +2795,18 @@ void Gateway::CloseStarcounterLog()
 void Gateway::LogWriteCritical(const wchar_t* msg)
 {
     uint32_t err_code = sccorelog_kernel_write_to_logs(sc_log_handle_, SC_ENTRY_CRITICAL, msg);
+
+    GW_ASSERT(0 == err_code);
+
+    err_code = sccorelog_flush_to_logs(sc_log_handle_);
+
+    GW_ASSERT(0 == err_code);
+}
+
+// Write error into log.
+void Gateway::LogWriteError(const wchar_t* msg)
+{
+    uint32_t err_code = sccorelog_kernel_write_to_logs(sc_log_handle_, SC_ENTRY_ERROR, msg);
 
     GW_ASSERT(0 == err_code);
 

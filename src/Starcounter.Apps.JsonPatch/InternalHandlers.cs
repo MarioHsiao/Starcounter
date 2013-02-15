@@ -28,7 +28,7 @@ namespace Starcounter.Internal.JsonPatch
                 HttpResponse response = null;
 
                 rootApp = Session.Current.GetRootApp(viewModelId);
-                json = rootApp.ToJsonUtf8(false);
+                json = rootApp.ToJsonUtf8();
                 response = new HttpResponse() { Uncompressed = HttpResponseBuilder.CreateMinimalOk200WithContent(json, 0, (uint)json.Length) };
 
                 return response;
