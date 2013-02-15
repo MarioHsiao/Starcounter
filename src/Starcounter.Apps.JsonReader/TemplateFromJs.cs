@@ -20,6 +20,7 @@ namespace Starcounter.Internal.JsonTemplate
         /// <summary>
         /// Creates from js.
         /// </summary>
+        /// <param name="objTemplateType">The objTemplateType.</param>
         /// <param name="script2">The script2.</param>
         /// <param name="restrictToDesigntimeVariable">if set to <c>true</c> [restrict to designtime variable].</param>
         /// <returns>TApp.</returns>
@@ -31,6 +32,7 @@ namespace Starcounter.Internal.JsonTemplate
         /// <summary>
         /// _s the create from js.
         /// </summary>
+        /// <param name="objTemplateType">The objTemplateType.</param>
         /// <param name="source">The source.</param>
         /// <param name="sourceReference">The source reference.</param>
         /// <param name="ignoreNonDesignTimeAssigments">if set to <c>true</c> [ignore non design time assigments].</param>
