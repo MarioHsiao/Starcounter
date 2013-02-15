@@ -256,7 +256,7 @@ namespace Sc.Tools.Logging {
 
         ILogReader inner;
 
-        public void Open(string directoryPath, int bufferSize) {
+        public void Open(string directoryPath, ReadDirection direction, int bufferSize) {
             inner = new LogReaderReverse();
             inner.Open(directoryPath, bufferSize);
         }
