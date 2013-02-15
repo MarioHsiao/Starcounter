@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="AppTemplateFactory.cs" company="Starcounter AB">
+// <copyright file="TAppFactory.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -19,7 +19,7 @@ namespace Starcounter.Internal.JsonTemplate
     /// </summary>
     internal class MetaTemplate<OT,OTT> : MetaTemplate
         where OT : Obj, new()
-        where OTT : ObjTemplate, new() 
+        where OTT : TObj, new() 
     {
         /// <summary>
         /// The _boolean properties
@@ -76,7 +76,7 @@ namespace Starcounter.Internal.JsonTemplate
         /// <param name="v">if set to <c>true</c> [v].</param>
         public void Set(string name, bool v)
         {
-            Property property;
+            TValue property;
             String upperName;
             ReplaceableTemplate rt;
 
@@ -93,14 +93,14 @@ namespace Starcounter.Internal.JsonTemplate
             upperName = name.ToUpper();
             if (upperName == "EDITABLE")
             {
-                property = _template as Property;
+                property = _template as TValue;
                 if (property == null) ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
 
                 property.Editable = v;
             }
             else if (upperName == "BOUND")
             {
-                property = _template as Property;
+                property = _template as TValue;
                 if (property == null) ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
 
                 property.Bound = v;
@@ -123,7 +123,7 @@ namespace Starcounter.Internal.JsonTemplate
         {
             ActionProperty actionTemplate;
             OTT appTemplate;
-            Property valueTemplate;
+            TValue valueTemplate;
             String upperName;
             ReplaceableTemplate rt;
 
@@ -141,7 +141,7 @@ namespace Starcounter.Internal.JsonTemplate
 
             if (upperName == "UPDATE")
             {
-                valueTemplate = _template as Property;
+                valueTemplate = _template as TValue;
                 if (valueTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
 
                 valueTemplate.OnUpdate = v;
@@ -150,7 +150,7 @@ namespace Starcounter.Internal.JsonTemplate
             {
                 appTemplate = _template as OTT;
                 if (appTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
-                ((AppTemplate)_template).ClassName = v;
+                ((TApp)_template).ClassName = v;
             }
             else if (upperName == "RUN")
             {
@@ -160,21 +160,21 @@ namespace Starcounter.Internal.JsonTemplate
             }
             else if (upperName == "BIND")
             {
-                valueTemplate = _template as Property;
+                valueTemplate = _template as TValue;
                 if (valueTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
                 valueTemplate.Bind = v;
                 valueTemplate.Bound = true;
             }
             else if (upperName == "TYPE")
             {
-                Property oldProperty = _template as Property;
-                if (oldProperty == null || (oldProperty is AppTemplate)) 
+                TValue oldProperty = _template as TValue;
+                if (oldProperty == null || (oldProperty is TApp)) 
                     ErrorHelper.RaiseInvalidTypeConversionError(_debugInfo);
 
-                Property newProperty = GetPropertyFromTypeName(v);
+                TValue newProperty = GetPropertyFromTypeName(v);
                 oldProperty.CopyTo(newProperty);
 
-                AppTemplate parent = (AppTemplate)oldProperty.Parent;
+                TApp parent = (TApp)oldProperty.Parent;
                 parent.Properties.Replace(newProperty);
             }
             else if (upperName == "REUSE")
@@ -202,26 +202,26 @@ namespace Starcounter.Internal.JsonTemplate
         /// </summary>
         /// <param name="v">The v.</param>
         /// <returns>Property.</returns>
-        private Property GetPropertyFromTypeName(string v)
+        private TValue GetPropertyFromTypeName(string v)
         {
-            Property p = null;
+            TValue p = null;
             String nameToUpper = v.ToUpper();
             switch (nameToUpper)
             {
                 case "DOUBLE":
                 case "FLOAT":
-                    p = new DoubleProperty();
+                    p = new TDouble();
                     break;
                 case "DECIMAL":
-                    p = new DecimalProperty();
+                    p = new TDecimal();
                     break;
                 case "INT":
                 case "INTEGER":
                 case "INT32":
-                    p = new IntProperty();
+                    p = new TLong();
                     break;
                 case "STRING":
-                    p = new StringProperty();
+                    p = new TString();
                     break;
                 default:
                     ErrorHelper.RaiseUnknownPropertyTypeError(v, _debugInfo);
@@ -252,9 +252,9 @@ namespace Starcounter.Internal.JsonTemplate
     /// interface used to built Starcounter controller templates.
     /// It is used as a singleton.
     /// </summary>
-    public class AppTemplateFactory<OT,OTT> : ITemplateFactory
+    public class TAppFactory<OT,OTT> : ITemplateFactory
         where OT : Obj, new()
-        where OTT : ObjTemplate, new() 
+        where OTT : TObj, new() 
     {
         /// <summary>
         /// Checks if the specified name already exists. If the name exists
@@ -286,7 +286,7 @@ namespace Starcounter.Internal.JsonTemplate
                 {
                     if (rt.ConvertTo != null)
                     {
-                        if (!(newTemplate is Property)) 
+                        if (!(newTemplate is TValue)) 
                             ErrorHelper.RaiseInvalidTypeConversionError(rt.ConvertTo.CompilerOrigin);
 
                         newTemplate.CopyTo(rt.ConvertTo);
@@ -388,7 +388,7 @@ namespace Starcounter.Internal.JsonTemplate
         /// <param name="debugInfo">The debug info.</param>
         /// <returns>System.Object.</returns>
         ///
-        object ITemplateFactory.AddStringProperty(object parent,
+        object ITemplateFactory.AddTString(object parent,
                                                   string name,
                                                   string dotNetName,
                                                   string value,
@@ -404,7 +404,7 @@ namespace Starcounter.Internal.JsonTemplate
             }
             else
             {
-                newTemplate = new StringProperty() { Name = name };
+                newTemplate = new TString() { Name = name };
                 appTemplate = (OTT)parent;
 
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
@@ -433,7 +433,7 @@ namespace Starcounter.Internal.JsonTemplate
 
             if (!(parent is MetaTemplate<OT,OTT>))
             {
-                newTemplate = new IntProperty() { Name = name };
+                newTemplate = new TLong() { Name = name };
                 appTemplate = (OTT)parent;
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
                 SetCompilerOrigin(newTemplate, debugInfo);
@@ -451,7 +451,7 @@ namespace Starcounter.Internal.JsonTemplate
         /// <param name="value">The value.</param>
         /// <param name="debugInfo">The debug info.</param>
         /// <returns>System.Object.</returns>
-        object ITemplateFactory.AddDecimalProperty(object parent,
+        object ITemplateFactory.AddTDecimal(object parent,
                                                    string name,
                                                    string dotNetName,
                                                    decimal value,
@@ -462,7 +462,7 @@ namespace Starcounter.Internal.JsonTemplate
 
             if (!(parent is MetaTemplate<OT,OTT>))
             {
-                newTemplate = new DecimalProperty() { Name = name };
+                newTemplate = new TDecimal() { Name = name };
                 appTemplate = (OTT)parent;
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
                 SetCompilerOrigin(newTemplate, debugInfo);
@@ -480,7 +480,7 @@ namespace Starcounter.Internal.JsonTemplate
         /// <param name="value">The value.</param>
         /// <param name="debugInfo">The debug info.</param>
         /// <returns>System.Object.</returns>
-        object ITemplateFactory.AddDoubleProperty(object parent,
+        object ITemplateFactory.AddTDouble(object parent,
                                                   string name,
                                                   string dotNetName,
                                                   double value,
@@ -491,7 +491,7 @@ namespace Starcounter.Internal.JsonTemplate
 
             if (!(parent is MetaTemplate<OT,OTT>))
             {
-                newTemplate = new DoubleProperty() { Name = name };
+                newTemplate = new TDouble() { Name = name };
                 appTemplate = (OTT)parent;
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
                 SetCompilerOrigin(newTemplate, debugInfo);
@@ -525,7 +525,7 @@ namespace Starcounter.Internal.JsonTemplate
             }
             else
             {
-                newTemplate = new BoolProperty() { Name = name };
+                newTemplate = new TBool() { Name = name };
                 appTemplate = (OTT)parent;
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
                 SetCompilerOrigin(newTemplate, debugInfo);
@@ -600,7 +600,7 @@ namespace Starcounter.Internal.JsonTemplate
             OTT appTemplate;
             Template newTemplate;
 
-            newTemplate = new ArrProperty<App,AppTemplate>() { Name = name };
+            newTemplate = new TArr<App,TApp>() { Name = name };
             appTemplate = (OTT)parent;
             newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
             SetCompilerOrigin(newTemplate, debugInfo);
@@ -611,11 +611,11 @@ namespace Starcounter.Internal.JsonTemplate
 //                                                  string name,
 //                                                  DebugInfo debugInfo)
 //        {
-//            AppTemplate appTemplate;
+//            TApp appTemplate;
 //            Template newTemplate;
 //
 //            newTemplate = new ObjectProperty();
-//            appTemplate = parent as AppTemplate;
+//            appTemplate = parent as TApp;
 //            if (parent != null)
 //            {
 //                newTemplate.Name = name;
@@ -655,10 +655,10 @@ namespace Starcounter.Internal.JsonTemplate
         /// <returns>System.Object.</returns>
         object ITemplateFactory.AddAppElement(object array, DebugInfo debugInfo)
         {
-            var newTemplate = new AppTemplate(); // The type of the type array (an AppTemplate)
-            newTemplate.Parent = (ContainerTemplate)array;
+            var newTemplate = new TApp(); // The type of the type array (an TApp)
+            newTemplate.Parent = (TContainer)array;
             //			newTemplate.Name = "__ArrayType__"; // All children needs an id
-            var arr = ((ObjArrProperty)array);
+            var arr = ((TObjArr)array);
             arr.App = newTemplate;
             newTemplate.Parent = arr;
             SetCompilerOrigin(newTemplate, debugInfo);
@@ -721,7 +721,7 @@ namespace Starcounter.Internal.JsonTemplate
                                                string className,
                                                DebugInfo debugInfo)
         {
-            ((AppTemplate)template).ClassName = className;
+            ((TApp)template).ClassName = className;
         }
 
         /// <summary>
@@ -734,7 +734,7 @@ namespace Starcounter.Internal.JsonTemplate
                                                  string className,
                                                  DebugInfo debugInfo)
         {
-            ((AppTemplate)template).Include = className;
+            ((TApp)template).Include = className;
         }
 
         /// <summary>
@@ -747,7 +747,7 @@ namespace Starcounter.Internal.JsonTemplate
                                                    string namespaceName,
                                                    DebugInfo debugInfo)
         {
-            ((AppTemplate)template).Namespace = namespaceName;
+            ((TApp)template).Namespace = namespaceName;
         }
 
         /// <summary>

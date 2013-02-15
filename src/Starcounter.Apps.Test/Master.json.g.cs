@@ -16,22 +16,22 @@ public partial class Master {
     public new MasterMetadata Metadata { get { return (MasterMetadata)base.Metadata; } }
     public App Page { get { return GetTypedValue<App>(Template.Page); } set { SetValue(Template.Page, value); } }
     public String Test { get { return GetValue(Template.Test); } set { SetValue(Template.Test, value); } }
-    public class MasterTemplate : AppTemplate {
+    public class MasterTemplate : TApp {
         public MasterTemplate()
             : base() {
             InstanceType = typeof(Master);
             ClassName = "Master";
-            Page = Register<AppTemplate>("Page", "Page");
-            Test = Register<StringProperty, string>("Test", "Test", true);
+            Page = Register<TApp>("Page", "Page");
+            Test = Register<TString, string>("Test", "Test", true);
             Test.AddHandler( 
-                (Obj app, Property<string> prop, string value) => { return (new Input.Test() { App = (Master)app, Template = (StringProperty)prop, Value = value } ) ; },
+                (Obj app, TValue<string> prop, string value) => { return (new Input.Test() { App = (Master)app, Template = (TString)prop, Value = value } ) ; },
                 (Obj app, Input<string> Input) => ((Master)app).Handle((Input.Test)Input) );
         }
-        public AppTemplate Page;
-        public StringProperty Test;
+        public TApp Page;
+        public TString Test;
     }
     public class MasterMetadata : ObjMetadata {
-        public MasterMetadata(App app, AppTemplate template) : base(app, template) { }
+        public MasterMetadata(App app, TApp template) : base(app, template) { }
         public new Master App { get { return (Master)base.App; } }
         public new Master.MasterTemplate Template { get { return (Master.MasterTemplate)base.Template; } }
         public ObjMetadata Page { get { return __p_Page ?? (__p_Page = new ObjMetadata(App, App.Template.Page)); } } private ObjMetadata __p_Page;
@@ -40,7 +40,7 @@ public partial class Master {
     public static class Json {
     }
     public static class Input {
-        public class Test : Input<Master, StringProperty, String> {
+        public class Test : Input<Master, TString, String> {
         }
     }
 }

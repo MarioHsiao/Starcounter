@@ -85,7 +85,7 @@ namespace Starcounter {
                     sb.Append(prop.Name);
                     sb.Append('"');
                     sb.Append(':');
-                    if (prop is ObjArrProperty) {
+                    if (prop is TObjArr) {
                         sb.Append('[');
                         int i = 0;
                         foreach (var x in val as Listing) {
@@ -96,7 +96,7 @@ namespace Starcounter {
                         }
                         sb.Append(']');
                     }
-                    else if (prop is AppTemplate) {
+                    else if (prop is TApp) {
 //                       var x = includeViewContent;
 //                       if (x == IncludeView.Default)
 //                          x = IncludeView.Always;

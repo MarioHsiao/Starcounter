@@ -26,7 +26,7 @@ namespace Test {
         /// </summary>
         [Test]
         public static void CreateCsFromJsFile() {
-            AppTemplate templ = TemplateFromJs.ReadFile("MySampleApp.json");
+            TApp templ = TemplateFromJs.ReadFile("MySampleApp.json");
             Assert.NotNull(templ);
         }
 
@@ -36,8 +36,8 @@ namespace Test {
         /// </summary>
         [Test]
         public static void GenerateCs() {
-            AppTemplate actual = TemplateFromJs.ReadFile("MySampleApp.json");
-            Assert.IsInstanceOf(typeof(AppTemplate), actual);
+            TApp actual = TemplateFromJs.ReadFile("MySampleApp.json");
+            Assert.IsInstanceOf(typeof(TApp), actual);
             CodeGenerationModule codegenmodule = new CodeGenerationModule();
             var codegen = codegenmodule.CreateGenerator("C#", actual, CodeBehindMetadata.Empty);
             Console.WriteLine(codegen.GenerateCode());
@@ -48,13 +48,13 @@ namespace Test {
         /// </summary>
         [Test]
         public static void GenerateCsFromSimpleJs() {
-           AppTemplate actual = TemplateFromJs.ReadFile("simple.json");
+           TApp actual = TemplateFromJs.ReadFile("simple.json");
            actual.ClassName = "PlayerApp";
 
            var file = new System.IO.StreamReader("simple.facit.cs");
            var facit = file.ReadToEnd();
            file.Close();
-           Assert.IsInstanceOf(typeof(AppTemplate), actual);
+           Assert.IsInstanceOf(typeof(TApp), actual);
            var codegenmodule = new CodeGenerationModule();
            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator("C#",actual, CodeBehindMetadata.Empty);
            var code = codegen.GenerateCode();
@@ -67,8 +67,8 @@ namespace Test {
             String className = "TestMessage";
             CodeBehindMetadata metadata = CodeBehindAnalyzer.Analyze(className, className + ".json.cs");
 
-            AppTemplate actual = TemplateFromJs.ReadFile(className + ".json");
-            Assert.IsInstanceOf(typeof(AppTemplate), actual);
+            TApp actual = TemplateFromJs.ReadFile(className + ".json");
+            Assert.IsInstanceOf(typeof(TApp), actual);
 
             actual.Namespace = metadata.RootNamespace;
             Assert.IsNotNullOrEmpty(actual.Namespace);
@@ -84,8 +84,8 @@ namespace Test {
             String className = "MySampleApp";
             CodeBehindMetadata metadata = CodeBehindAnalyzer.Analyze(className, className + ".json.cs");
             
-            AppTemplate actual = TemplateFromJs.ReadFile(className + ".json");
-            Assert.IsInstanceOf(typeof(AppTemplate), actual);
+            TApp actual = TemplateFromJs.ReadFile(className + ".json");
+            Assert.IsInstanceOf(typeof(TApp), actual);
 
             actual.Namespace = metadata.RootNamespace;
             Assert.IsNotNullOrEmpty(actual.Namespace);

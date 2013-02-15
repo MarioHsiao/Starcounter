@@ -15,12 +15,12 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <summary>
         /// The template
         /// </summary>
-        public AppTemplate Template;
+        public TApp Template;
 
         /// <summary>
         /// The instances
         /// </summary>
-        public static Dictionary<AppTemplate, NClass> Instances = new Dictionary<AppTemplate, NClass>();
+        public static Dictionary<TApp, NClass> Instances = new Dictionary<TApp, NClass>();
 
         /// <summary>
         /// Gets the name of the class.

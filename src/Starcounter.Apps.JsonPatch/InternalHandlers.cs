@@ -67,23 +67,23 @@ namespace Starcounter.Internal.JsonPatch
                 if (!template.Bound)
                     continue;
 
-                if (template is ObjArrProperty) {
-                    Listing l = app.GetValue((ObjArrProperty)template);
+                if (template is TObjArr) {
+                    Listing l = app.GetValue((TObjArr)template);
                     foreach (App childApp in l) {
                         RefreshAllValues(childApp, log);
                     }
                     continue;
                 }
                 
-                if (template is AppTemplate) {
-                    RefreshAllValues(app.GetValue((AppTemplate)template), log);
+                if (template is TApp) {
+                    RefreshAllValues(app.GetValue((TApp)template), log);
                     continue;
                 }
                 
                 if (template is ActionProperty)
                     continue;
 
-                ChangeLog.UpdateValue(app, (Property)template);
+                ChangeLog.UpdateValue(app, (TValue)template);
             }
         }
     }

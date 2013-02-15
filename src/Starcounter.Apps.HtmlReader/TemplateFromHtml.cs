@@ -35,11 +35,11 @@ namespace Starcounter.Internal.JsonTemplate {
         /// Creates from HTML file.
         /// </summary>
         /// <param name="fileSpec">The file spec.</param>
-        /// <returns>AppTemplate.</returns>
+        /// <returns>TApp.</returns>
         /// <exception cref="System.Exception"></exception>
-        public static AppTemplate CreateFromHtmlFile(string fileSpec) {
+        public static TApp CreateFromHtmlFile(string fileSpec) {
             string str = ReadUtf8File(fileSpec);
-            AppTemplate template = null;
+            TApp template = null;
             var html = new HtmlDocument();
             bool shouldFindTemplate = (str.ToUpper().IndexOf("$$DESIGNTIME$$") >= 0);
             html.Load(new StringReader(str));

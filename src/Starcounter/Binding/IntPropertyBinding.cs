@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="IntPropertyBinding.cs" company="Starcounter AB">
+// <copyright file="TLongBinding.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -10,15 +10,15 @@ namespace Starcounter.Binding
 {
 
     /// <summary>
-    /// Class IntPropertyBinding
+    /// Class TLongBinding
     /// </summary>
-    public abstract class IntPropertyBinding : PrimitivePropertyBinding
+    public abstract class TLongBinding : PrimitivePropertyBinding
     {
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="IntPropertyBinding" /> class.
+        /// Initializes a new instance of the <see cref="TLongBinding" /> class.
         /// </summary>
-        public IntPropertyBinding() : base() { }
+        public TLongBinding() : base() { }
 
         /// <summary>
         /// Gets the value of a binary attribute

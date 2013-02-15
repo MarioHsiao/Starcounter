@@ -107,7 +107,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="parentProperty">The parent property.</param>
         /// <returns>App.</returns>
-        public App FindParent(ContainerTemplate parentProperty) {
+        public App FindParent(TContainer parentProperty) {
             return null;
         }
 

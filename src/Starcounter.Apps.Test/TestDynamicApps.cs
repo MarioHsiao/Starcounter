@@ -33,14 +33,14 @@ namespace Starcounter.Client.Tests.Application {
         /// </summary>
         /// <returns>List{App}.</returns>
         private static List<App> CreateSome() {
-            var personTmpl = new AppTemplate();
-            var firstName = personTmpl.Add<StringProperty>("FirstName$");
-            var lastName = personTmpl.Add<StringProperty>("LastName");
-            var age = personTmpl.Add<IntProperty>("Age");
+            var personTmpl = new TApp();
+            var firstName = personTmpl.Add<TString>("FirstName$");
+            var lastName = personTmpl.Add<TString>("LastName");
+            var age = personTmpl.Add<TLong>("Age");
 
-            var phoneNumber = new AppTemplate();
-            var phoneNumbers = personTmpl.Add<ArrProperty<App,AppTemplate>>("Phonenumbers", phoneNumber);
-            var number = phoneNumber.Add<StringProperty>("Number");
+            var phoneNumber = new TApp();
+            var phoneNumbers = personTmpl.Add<TArr<App,TApp>>("Phonenumbers", phoneNumber);
+            var number = phoneNumber.Add<TString>("Number");
 
             Assert.AreEqual("FirstName$", firstName.Name);
             Assert.AreEqual("FirstName", firstName.PropertyName);

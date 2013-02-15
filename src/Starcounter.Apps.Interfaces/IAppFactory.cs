@@ -20,8 +20,8 @@ namespace Starcounter.Templates.Interfaces {
         /// <summary>
         /// Creates the app template.
         /// </summary>
-        /// <returns>IAppTemplate.</returns>
-        object CreateAppTemplate();
+        /// <returns>ITApp.</returns>
+        object CreateTApp();
         /// <summary>
         /// Creates the string template.
         /// </summary>

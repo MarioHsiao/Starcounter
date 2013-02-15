@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="DoubleProperty.cs" company="Starcounter AB">
+// <copyright file="TDouble.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -13,9 +13,9 @@ namespace Starcounter.Templates {
 #endif
 
     /// <summary>
-    /// Class DoubleProperty
+    /// Class TDouble
     /// </summary>
-    public class DoubleProperty : Property<double>
+    public class TDouble : TValue<double>
     {
         /// <summary>
         /// The _ default value

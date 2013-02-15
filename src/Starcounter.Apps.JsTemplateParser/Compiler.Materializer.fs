@@ -21,10 +21,10 @@ type ITemplateFactory =
         abstract AddAppProperty : obj * string * string * DebugInfo -> obj               // Name
 //        abstract AddObjectProperty : obj * string * DebugInfo -> obj               // Name
         abstract AddAppElement : obj * DebugInfo-> obj                           // Name
-        abstract AddStringProperty : obj * string * string * string * DebugInfo -> obj        // Name, value
+        abstract AddTString : obj * string * string * string * DebugInfo -> obj        // Name, value
         abstract AddIntegerProperty : obj * string * string * int * DebugInfo -> obj        // Name, value
-        abstract AddDecimalProperty : obj * string * string * decimal * DebugInfo -> obj        // Name, value
-        abstract AddDoubleProperty : obj * string * string * double * DebugInfo -> obj        // Name, value
+        abstract AddTDecimal : obj * string * string * decimal * DebugInfo -> obj        // Name, value
+        abstract AddTDouble : obj * string * string * double * DebugInfo -> obj        // Name, value
         abstract AddBooleanProperty : obj * string * string * bool * DebugInfo -> obj        // Name, value
         abstract AddEventProperty : obj * string * string * string * DebugInfo -> obj        // Name, value
         abstract AddArrayProperty : obj * string * string * DebugInfo -> obj                // Name
@@ -147,7 +147,7 @@ module public Materializer =
                 let ( newObj, debugInfo, considerEditable ) =
                         match ast with
                         | Ast.String (str,debugInfo) ->
-                            ( factory.AddStringProperty(parent,name,legalName,str,debugInfo), debugInfo, true )
+                            ( factory.AddTString(parent,name,legalName,str,debugInfo), debugInfo, true )
                         | Ast.Boolean(b,debugInfo) ->
                             ( factory.AddBooleanProperty(parent,name,legalName,b,debugInfo), debugInfo, true )
                         | Ast.Identifier(identifier,debugInfo) ->
@@ -164,9 +164,9 @@ module public Materializer =
                         | Ast.Tree.Integer (i,debugInfo) ->
                             (factory.AddIntegerProperty(parent,name,legalName,i,debugInfo), debugInfo, true )
                         | Ast.Tree.Decimal (d, debugInfo) ->
-                            (factory.AddDecimalProperty(parent,name,legalName,d,debugInfo), debugInfo, true )
+                            (factory.AddTDecimal(parent,name,legalName,d,debugInfo), debugInfo, true )
                         | Ast.Tree.Double (d, debugInfo) ->
-                            (factory.AddDoubleProperty(parent,name,legalName,d,debugInfo), debugInfo, true )
+                            (factory.AddTDouble(parent,name,legalName,d,debugInfo), debugInfo, true )
                         | _ ->
                             failedExpectation1 "array, object, string, boolean, number, function or event" ast
                 if ( considerEditable && dollarSuffix ) then factory.SetEditableProperty( newObj, true, debugInfo );

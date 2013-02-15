@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="DecimalPropertyBinding.cs" company="Starcounter AB">
+// <copyright file="TDecimalBinding.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -10,9 +10,9 @@ namespace Starcounter.Binding
 {
 
     /// <summary>
-    /// Class DecimalPropertyBinding
+    /// Class TDecimalBinding
     /// </summary>
-    public abstract class DecimalPropertyBinding : PrimitivePropertyBinding
+    public abstract class TDecimalBinding : PrimitivePropertyBinding
     {
 
         /// <summary>

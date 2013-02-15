@@ -21,7 +21,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         /// </summary>
         /// <param name="appTemplate"></param>
         /// <returns></returns>
-        internal static AstJsonSerializerClass BuildAstTree(AppTemplate appTemplate) {
+        internal static AstJsonSerializerClass BuildAstTree(TApp appTemplate) {
             ParseNode parseTree = ParseTreeGenerator.BuildParseTree(RegisterTemplatesForApp(appTemplate));
             return CreateJsonSerializer(parseTree);
         }
@@ -30,7 +30,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         /// 
         /// </summary>
         /// <param name="appTemplate"></param>
-        private static List<RequestProcessorMetaData> RegisterTemplatesForApp(AppTemplate appTemplate) {
+        private static List<RequestProcessorMetaData> RegisterTemplatesForApp(TApp appTemplate) {
             List<RequestProcessorMetaData> handlers = new List<RequestProcessorMetaData>();
             foreach (Template child in appTemplate.Children) {
                 RequestProcessorMetaData rp = new RequestProcessorMetaData();
@@ -97,7 +97,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                     Parent = astObj
                 };
 
-                if (template is ObjArrProperty) {
+                if (template is TObjArr) {
                     var astArray = new AstWriteArray() {
                         Parent = astObj
                     };
@@ -108,7 +108,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                     };
 
                     new AstWritePropertyValue() {
-                        Template = ((ObjArrProperty)template).App,
+                        Template = ((TObjArr)template).App,
                         VariableName = "listApp",
                         Parent = astLoop
                     };
@@ -242,7 +242,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                     };
 
                     bool addGotoValue = false;
-                    if (pn.Handler.Code is ObjArrProperty) {
+                    if (pn.Handler.Code is TObjArr) {
                         // If the value to parse is a list we need to add some additional 
                         // code for looping and checking end of array.
                         nextParent = new AstParseJsonObjectArray() {

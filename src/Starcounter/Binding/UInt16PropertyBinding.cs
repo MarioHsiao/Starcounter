@@ -12,7 +12,7 @@ namespace Starcounter.Binding
     /// <summary>
     /// Class UInt16PropertyBinding
     /// </summary>
-    public abstract class UInt16PropertyBinding : UIntPropertyBinding
+    public abstract class UInt16PropertyBinding : UTLongBinding
     {
 
         /// <summary>

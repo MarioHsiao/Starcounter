@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="OidProperty.cs" company="Starcounter AB">
+// <copyright file="TOid.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -13,9 +13,9 @@ namespace Starcounter.Templates {
 #endif
 
     /// <summary>
-    /// Class OidProperty
+    /// Class TOid
     /// </summary>
-    public class OidProperty : Property<UInt64>
+    public class TOid : TValue<UInt64>
     {
 
         /// <summary>

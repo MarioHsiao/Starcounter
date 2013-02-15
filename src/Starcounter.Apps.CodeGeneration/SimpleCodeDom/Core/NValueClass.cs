@@ -37,13 +37,13 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// Initializes static members of the <see cref="NValueClass" /> class.
         /// </summary>
         static NValueClass() {
-            Classes[NTemplateClass.StringProperty] = new NPrimitiveType { NTemplateClass = NTemplateClass.Classes[NTemplateClass.StringProperty] };
-            Classes[NTemplateClass.IntProperty] = new NPrimitiveType { NTemplateClass = NTemplateClass.Classes[NTemplateClass.IntProperty] };
-            Classes[NTemplateClass.DecimalProperty] = new NPrimitiveType { NTemplateClass = NTemplateClass.Classes[NTemplateClass.DecimalProperty] };
-            Classes[NTemplateClass.DoubleProperty] = new NPrimitiveType { NTemplateClass = NTemplateClass.Classes[NTemplateClass.DoubleProperty] };
-            Classes[NTemplateClass.BoolProperty] = new NPrimitiveType { NTemplateClass = NTemplateClass.Classes[NTemplateClass.BoolProperty] };
+            Classes[NTemplateClass.TString] = new NPrimitiveType { NTemplateClass = NTemplateClass.Classes[NTemplateClass.TString] };
+            Classes[NTemplateClass.TLong] = new NPrimitiveType { NTemplateClass = NTemplateClass.Classes[NTemplateClass.TLong] };
+            Classes[NTemplateClass.TDecimal] = new NPrimitiveType { NTemplateClass = NTemplateClass.Classes[NTemplateClass.TDecimal] };
+            Classes[NTemplateClass.TDouble] = new NPrimitiveType { NTemplateClass = NTemplateClass.Classes[NTemplateClass.TDouble] };
+            Classes[NTemplateClass.TBool] = new NPrimitiveType { NTemplateClass = NTemplateClass.Classes[NTemplateClass.TBool] };
             Classes[NTemplateClass.ActionProperty] = new NPrimitiveType { NTemplateClass = NTemplateClass.Classes[NTemplateClass.ActionProperty] };
-            Classes[NTemplateClass.AppTemplate] = new NAppClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.AppTemplate] };
+            Classes[NTemplateClass.TApp] = new NAppClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.TApp] };
         }
 
 
