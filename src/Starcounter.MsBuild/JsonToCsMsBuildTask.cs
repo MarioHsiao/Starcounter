@@ -61,6 +61,7 @@ namespace Starcounter.Internal.MsBuild
         /// <summary>
         /// Processes the js template file.
         /// </summary>
+        /// <param name="objTemplateType">The object template type.</param>
         /// <param name="jsonFilename">The json filename.</param>
         /// <param name="codeBehindFilename">The code behind filename.</param>
         /// <returns>System.String.</returns>
