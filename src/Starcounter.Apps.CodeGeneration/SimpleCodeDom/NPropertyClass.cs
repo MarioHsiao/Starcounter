@@ -9,7 +9,7 @@ using System;
 namespace Starcounter.Internal.Application.CodeGeneration {
 
     /// <summary>
-    /// The source code representation of the AppTemplate class.
+    /// The source code representation of the TApp class.
     /// </summary>
     public class NPropertyClass : NTemplateClass {
         /// <summary>

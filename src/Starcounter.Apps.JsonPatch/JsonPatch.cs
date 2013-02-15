@@ -154,7 +154,7 @@ namespace Starcounter.Internal.JsonPatch {
         /// <exception cref="System.Exception">TODO:</exception>
         private static void HandleParsedPatch(App rootApp, Int32 patchType, JsonPointer pointer, Byte[] value) {
             AppAndTemplate aat = JsonPatch.Evaluate(rootApp, pointer);
-            ((Property)aat.Template).ProcessInput(aat.App, value);
+            ((TValue)aat.Template).ProcessInput(aat.App, value);
         }
 
         /// <summary>
@@ -322,13 +322,13 @@ namespace Starcounter.Internal.JsonPatch {
         /// <returns>AppAndTemplate.</returns>
         /// <exception cref="System.Exception"></exception>
         internal static AppAndTemplate Evaluate(App mainApp, JsonPointer ptr) {
-            Boolean currentIsAppTemplate;
+            Boolean currentIsTApp;
             Boolean nextTokenShouldBeIndex;
             Int32 index;
             Object current = null;
 
             nextTokenShouldBeIndex = false;
-            currentIsAppTemplate = false;
+            currentIsTApp = false;
             while (ptr.MoveNext()) {
                 if (nextTokenShouldBeIndex) {
                     // Previous object was a Set. This token should be an index
@@ -336,12 +336,12 @@ namespace Starcounter.Internal.JsonPatch {
                     nextTokenShouldBeIndex = false;
                     index = ptr.CurrentAsInt;
 
-                    Listing list = mainApp.GetValue((ListingProperty)current);
+                    Listing list = mainApp.GetValue((TObjArr)current);
                     current = list[index];
                 } else {
-                    if (currentIsAppTemplate) {
-                        mainApp = mainApp.GetValue((AppTemplate)current);
-                        currentIsAppTemplate = false;
+                    if (currentIsTApp) {
+                        mainApp = mainApp.GetValue((TApp)current);
+                        currentIsTApp = false;
                     }
 
                     Template t = mainApp.Template.Properties.GetTemplateByName(ptr.Current);
@@ -360,9 +360,9 @@ namespace Starcounter.Internal.JsonPatch {
 
                 if (current is App) {
                     mainApp = current as App;
-                } else if (current is AppTemplate) {
-                    currentIsAppTemplate = true;
-                } else if (current is ListingProperty) {
+                } else if (current is TApp) {
+                    currentIsTApp = true;
+                } else if (current is TObjArr) {
                     nextTokenShouldBeIndex = true;
                 } else {
                     // Current token points to a value or an action.
@@ -392,7 +392,7 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="value">The value.</param>
         /// <param name="index">The index.</param>
         /// <returns>String.</returns>
-        public static String BuildJsonPatch(Int32 patchType, App nearestApp, Template from, Object value, Int32 index) {
+        public static String BuildJsonPatch(Int32 patchType, Obj nearestApp, Template from, Object value, Int32 index) {
             List<String> pathList = new List<String>();
             StringBuilder sb = new StringBuilder(40);
 
@@ -426,20 +426,20 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="sb">The sb.</param>
         /// <param name="from">From.</param>
         /// <param name="nearestApp">The nearest app.</param>
-        private static void IndexPathToString(StringBuilder sb, Template from, App nearestApp) {
-            App app;
-            AppNode parent;
+        private static void IndexPathToString(StringBuilder sb, Template from, Obj nearestApp) {
+            Obj app;
+            Container parent;
             Boolean nextIndexIsPositionInList;
             Int32[] path;
             Listing list;
-            ListingProperty listProp;
+            TObjArr listProp;
             Template template;
 
             // Find the root app.
             parent = nearestApp;
             while (parent.Parent != null)
                 parent = parent.Parent;
-            app = (App)parent;
+            app = (Obj)parent;
 
             nextIndexIsPositionInList = false;
             listProp = null;
@@ -456,12 +456,12 @@ namespace Starcounter.Internal.JsonPatch {
                     sb.Append('/');
                     sb.Append(template.Name);
 
-                    if (template is ListingProperty) {
+                    if (template is TObjArr) {
                         // next index in the path is the index in the list.
-                        listProp = (ListingProperty)template;
+                        listProp = (TObjArr)template;
                         nextIndexIsPositionInList = true;
-                    } else if (template is AppTemplate) {
-                        app = app.GetValue((AppTemplate)template);
+                    } else if (template is TApp) {
+                        app = app.GetValue((TApp)template);
                     }
                 }
             }

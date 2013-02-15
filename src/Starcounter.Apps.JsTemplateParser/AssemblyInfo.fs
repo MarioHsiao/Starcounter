@@ -1,5 +1,5 @@
 ﻿
-namespace Starcounter.Internal
+namespace Starcounter.Internal.JsonTemplate
 
 
 open System.Reflection

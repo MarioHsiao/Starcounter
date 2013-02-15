@@ -107,11 +107,11 @@ internal class JoinNode : IOptimizationNode
         return leftNode.EstimateCost() * rightNode.EstimateCost();
     }
 
-    public IExecutionEnumerator CreateExecutionEnumerator(INumericalExpression fetchNumExpr, IBinaryExpression fetchOffsetKeyExpr)
+    public IExecutionEnumerator CreateExecutionEnumerator(INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr)
     {
-        IExecutionEnumerator leftEnumerator = leftNode.CreateExecutionEnumerator(null, fetchOffsetKeyExpr);
-        IExecutionEnumerator rightEnumerator = rightNode.CreateExecutionEnumerator(null, fetchOffsetKeyExpr);
-        return new Join(rowTypeBind, joinType, leftEnumerator, rightEnumerator, fetchNumExpr, varArray, query);
+        IExecutionEnumerator leftEnumerator = leftNode.CreateExecutionEnumerator(null, null, fetchOffsetKeyExpr);
+        IExecutionEnumerator rightEnumerator = rightNode.CreateExecutionEnumerator(null, null, fetchOffsetKeyExpr);
+        return new Join(rowTypeBind, joinType, leftEnumerator, rightEnumerator, fetchNumExpr, fetchOffsetExpr, varArray, query);
     }
 
 #if DEBUG

@@ -67,7 +67,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         /// </summary>
         internal string AppClassName {
             get {
-                AppTemplate at = (AppTemplate)((Template)ParseNode.AllHandlers[0].Code).Parent;
+                TApp at = (TApp)((Template)ParseNode.AllHandlers[0].Code).Parent;
                 return AstTreeHelper.GetAppClassName(at);
             }
         }
@@ -77,7 +77,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         /// </summary>
         internal string FullAppClassName {
             get {
-                AppTemplate at = (AppTemplate)((Template)ParseNode.AllHandlers[0].Code).Parent;
+                TApp at = (TApp)((Template)ParseNode.AllHandlers[0].Code).Parent;
                 return AstTreeHelper.GetFullAppClassName(at);
             }
         }
