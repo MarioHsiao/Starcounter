@@ -10,7 +10,7 @@ using System.IO;
 using System.Text;
 using Starcounter.Templates;
 
-namespace Starcounter.Internal.Application.JsonReader
+namespace Starcounter.Internal.JsonTemplate
 {
     /// <summary>
     /// Class TemplateFromJs
@@ -22,8 +22,8 @@ namespace Starcounter.Internal.Application.JsonReader
         /// </summary>
         /// <param name="script2">The script2.</param>
         /// <param name="restrictToDesigntimeVariable">if set to <c>true</c> [restrict to designtime variable].</param>
-        /// <returns>AppTemplate.</returns>
-        public static AppTemplate CreateFromJs(string script2, bool restrictToDesigntimeVariable)
+        /// <returns>TApp.</returns>
+        public static TApp CreateFromJs(string script2, bool restrictToDesigntimeVariable)
         {
             return _CreateFromJs(script2, "unknown", restrictToDesigntimeVariable); //ignoreNonDesignTimeAssignments);
         }
@@ -34,20 +34,20 @@ namespace Starcounter.Internal.Application.JsonReader
         /// <param name="source">The source.</param>
         /// <param name="sourceReference">The source reference.</param>
         /// <param name="ignoreNonDesignTimeAssigments">if set to <c>true</c> [ignore non design time assigments].</param>
-        /// <returns>AppTemplate.</returns>
-        private static AppTemplate _CreateFromJs(string source,
+        /// <returns>TApp.</returns>
+        private static TApp _CreateFromJs(string source,
                                                  string sourceReference,
                                                  bool ignoreNonDesignTimeAssigments)
         {
-            AppTemplate appTemplate;
-            ITemplateFactory factory = new Internal.AppTemplateFactory();
+            TApp appTemplate;
+            ITemplateFactory factory = new Internal.JsonTemplate.TAppFactory<App,TApp>();
             int skip = 0;
             if (!ignoreNonDesignTimeAssigments)
             {
                 source = "(" + source + ")";
                 skip++;
             }
-            appTemplate = (AppTemplate)Materializer.BuiltTemplate(source,
+            appTemplate = (TApp)Materializer.BuiltTemplate(source,
                                                                   sourceReference,
                                                                   skip,
                                                                   factory,
@@ -61,14 +61,14 @@ namespace Starcounter.Internal.Application.JsonReader
         /// <summary>
         /// Verifies the templates.
         /// </summary>
-        /// <param name="parentTemplate">The parent template.</param>
-        private static void VerifyTemplates(ParentTemplate parentTemplate)
+        /// <param name="containerTemplate">The parent template.</param>
+        private static void VerifyTemplates(TContainer containerTemplate)
         {
             CompilerOrigin co;
 
-            if (parentTemplate == null) return;
+            if (containerTemplate == null) return;
 
-            foreach (Template t in (IEnumerable<Template>)parentTemplate.Children)
+            foreach (Template t in (IEnumerable<Template>)containerTemplate.Children)
             {
                 if (t is ReplaceableTemplate)
                 {
@@ -79,8 +79,8 @@ namespace Starcounter.Internal.Application.JsonReader
                                 co.FileName);
                 }
 
-                if (t is ParentTemplate)
-                    VerifyTemplates((ParentTemplate)t);
+                if (t is TContainer)
+                    VerifyTemplates((TContainer)t);
             }
         }
 
@@ -89,8 +89,8 @@ namespace Starcounter.Internal.Application.JsonReader
         /// Reads the file.
         /// </summary>
         /// <param name="fileSpec">The file spec.</param>
-        /// <returns>AppTemplate.</returns>
-        public static AppTemplate ReadFile(string fileSpec)
+        /// <returns>TApp.</returns>
+        public static TApp ReadFile(string fileSpec)
         {
             string content = ReadUtf8File(fileSpec);
             var t = _CreateFromJs(content, fileSpec, false);
@@ -126,9 +126,9 @@ namespace Starcounter.Internal.Application.JsonReader
         }
 
         /*
-        public static AppTemplate CreateFromHtmlFile(string fileSpec) {
+        public static TApp CreateFromHtmlFile(string fileSpec) {
             string str = ReadUtf8File(fileSpec);
-            AppTemplate template = null;
+            TApp template = null;
             var html = new HtmlDocument();
             bool shouldFindTemplate = (str.ToUpper().IndexOf("$$DESIGNTIME$$") >= 0);
             html.Load(new StringReader(str));

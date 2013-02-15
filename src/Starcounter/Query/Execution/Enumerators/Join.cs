@@ -26,6 +26,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         IExecutionEnumerator leftEnum,
         IExecutionEnumerator rightEnum,
         INumericalExpression fetchNumExpr,
+        INumericalExpression fetchOffsetExpr,
         VariableArray varArr, String query)
         : base(rowTypeBind, varArr)
     {
@@ -51,6 +52,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
 
         fetchNumberExpr = fetchNumExpr;
         fetchNumber = Int64.MaxValue;
+        this.fetchOffsetExpr = fetchOffsetExpr;
 
         this.query = query;
     }
@@ -251,6 +253,12 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
                 currentObject = null;
                 return false;
             }
+            // Pass offset
+            long tmpCounter = counter;
+            if (fetchOffsetExpr != null)
+                for (int i = 0; i < fetchOffsetExpr.EvaluateToInteger(null).Value; i++)
+                    NextRightAndLeftEnumerators();
+            counter = tmpCounter;
         }
         else if (counter >= fetchNumber)
         {
@@ -258,41 +266,36 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
             return false;
         }
 
-        // Loop until a new combination of one object from enumerator1 and one object from enumerator2 is found.
-        if (joinType == JoinType.LeftOuter)
-        {
-            while (!rightEnumerator.MoveNextSpecial(false))
-            {
-                if (leftEnumerator.MoveNext())
-                {
-                    Row rightContext = MergeObjects(contextObject, leftEnumerator.CurrentRow);
-                    rightEnumerator.Reset(rightContext);
-                }
-                else
-                {
-                    currentObject = null;
-                    return false;
-                }
-            }
-        }
-        else
-        {
-            while (!rightEnumerator.MoveNext())
-            {
-                if (leftEnumerator.MoveNext())
-                {
-                    Row rightContext = MergeObjects(contextObject, leftEnumerator.CurrentRow);
-                    rightEnumerator.Reset(rightContext);
-                }
-                else
-                {
-                    currentObject = null;
-                    return false;
-                }
-            }
-        }
+        if (!NextRightAndLeftEnumerators())
+            return false;
         currentObject = MergeObjects(leftEnumerator.CurrentRow, rightEnumerator.CurrentRow);
         counter++;
+        return true;
+    }
+
+    private Boolean NextRightAndLeftEnumerators() {
+        // Loop until a new combination of one object from enumerator1 and one object from enumerator2 is found.
+        if (joinType == JoinType.LeftOuter) {
+            while (!rightEnumerator.MoveNextSpecial(false)) {
+                if (leftEnumerator.MoveNext()) {
+                    Row rightContext = MergeObjects(contextObject, leftEnumerator.CurrentRow);
+                    rightEnumerator.Reset(rightContext);
+                } else {
+                    currentObject = null;
+                    return false;
+                }
+            }
+        } else {
+            while (!rightEnumerator.MoveNext()) {
+                if (leftEnumerator.MoveNext()) {
+                    Row rightContext = MergeObjects(contextObject, leftEnumerator.CurrentRow);
+                    rightEnumerator.Reset(rightContext);
+                } else {
+                    currentObject = null;
+                    return false;
+                }
+            }
+        }
         return true;
     }
 
@@ -365,8 +368,12 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         if (fetchNumberExpr != null)
             fetchNumberExprClone = fetchNumberExpr.CloneToNumerical(varArrClone);
 
+        INumericalExpression fetchOffsetExprClone = null;
+        if (fetchOffsetExpr != null)
+            fetchOffsetExprClone = fetchOffsetExpr.CloneToNumerical(varArrClone);
+
         return new Join(rowTypeBindClone, joinType, leftEnumerator.Clone(rowTypeBindClone, varArrClone),
-            rightEnumerator.Clone(rowTypeBindClone, varArrClone), fetchNumberExprClone, varArrClone, query);
+            rightEnumerator.Clone(rowTypeBindClone, varArrClone), fetchNumberExprClone, fetchOffsetExprClone, varArrClone, query);
     }
 
     public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs)

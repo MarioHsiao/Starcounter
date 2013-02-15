@@ -12,6 +12,7 @@ using Starcounter.CommandLine;
 using Starcounter; // TODO:
 using Starcounter.ABCIPC;
 using Starcounter.ABCIPC.Internal;
+using Starcounter.Advanced;
 using Starcounter.Hosting;
 using Starcounter.Internal; // TODO:
 using Starcounter.Logging;
@@ -449,6 +450,7 @@ namespace StarcounterInternal.Bootstrap
             uint e = sccoreapp.sccoreapp_init((void*)hlogs);
             if (e != 0) throw ErrorCode.ToException(e);
 
+            Db.SetEnvironment(new DbEnvironment(configuration.Name));
             LogManager.Setup(hlogs);
 
             // Decide what interface to expose locally, to handle requests

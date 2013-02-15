@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="NAppTemplate.cs" company="Starcounter AB">
+// <copyright file="NTApp.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -10,17 +10,17 @@ using System.Collections.Generic;
 namespace Starcounter.Internal.Application.CodeGeneration {
 
     /// <summary>
-    /// The source code representation of the AppTemplate class.
+    /// The source code representation of the TApp class.
     /// </summary>
-    public class NAppTemplateClass : NTemplateClass {
+    public class NTAppClass : NTemplateClass {
        // public NAppClass AppClassNode;
 
-//        public static Dictionary<AppTemplate, NClass> Instances = new Dictionary<AppTemplate, NClass>();
+//        public static Dictionary<TApp, NClass> Instances = new Dictionary<TApp, NClass>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="NAppTemplateClass" /> class.
+        /// Initializes a new instance of the <see cref="NTAppClass" /> class.
         /// </summary>
-        public NAppTemplateClass() : base()
+        public NTAppClass() : base()
         {
             Constructor = new NConstructor() { Parent = this };
         }

@@ -18,7 +18,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="prop">The prop.</param>
-       public StringMetadata(App app, Template prop) : base(app, prop) { }
+       public StringMetadata(Obj app, Template prop) : base(app, prop) { }
 //         public event Action<string> Changed;
 
     }

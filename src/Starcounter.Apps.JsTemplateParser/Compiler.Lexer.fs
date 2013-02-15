@@ -4,7 +4,7 @@
 // Copyright (c) Starcounter AB
 // Copyright (c) Fredrik Holmström
 
-namespace Starcounter.Internal
+namespace Starcounter.Internal.JsonTemplate
 
 
 
@@ -14,7 +14,7 @@ module public Lexer =
 
 
   
-  open Starcounter.Internal.Aliases
+  open Starcounter.Internal.JsonTemplate.Aliases
 
   open System
   open System.Globalization

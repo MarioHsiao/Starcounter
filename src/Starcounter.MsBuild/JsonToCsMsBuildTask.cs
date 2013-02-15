@@ -10,7 +10,7 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Starcounter.Internal;
 using Starcounter.Internal.Application.CodeGeneration;
-using Starcounter.Internal.Application.JsonReader;
+using Starcounter.Internal.JsonTemplate;
 using Starcounter.Templates;
 using Starcounter.Templates.Interfaces;
 
@@ -44,7 +44,7 @@ namespace Starcounter.Internal.MsBuild
                     generatedCodeStr = ProcessJsTemplateFile(jsonFilename, codeBehindFilename);
                     File.WriteAllText(OutputFiles[i].ItemSpec, generatedCodeStr);
                 }
-                catch (Starcounter.Internal.Error.CompileError ce)
+                catch (Starcounter.Internal.JsonTemplate.Error.CompileError ce)
                 {
                     msbuildLog.LogError("json", null, null, jsonFilename, ce.Position.Item1, ce.Position.Item2, 0, 0, ce.Message);
                     success = false;
@@ -66,7 +66,7 @@ namespace Starcounter.Internal.MsBuild
         /// <returns>System.String.</returns>
         private static string ProcessJsTemplateFile(string jsonFilename, string codeBehindFilename)
         {
-            AppTemplate t;
+            TApp t;
             CodeBehindMetadata metadata;
             ITemplateCodeGenerator codegen;
             ITemplateCodeGeneratorModule codegenmodule;

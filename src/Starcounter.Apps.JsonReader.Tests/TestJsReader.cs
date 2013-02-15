@@ -7,7 +7,8 @@
 using System;
 using NUnit.Framework;
 using Starcounter.Templates;
-namespace Starcounter.Internal.Application.JsonReader.Tests {
+using Starcounter.Internal.JsonTemplate;
+namespace Starcounter.Internal.JsonTemplate.Tests {
     /// <summary>
     /// Class TestJsReader
     /// </summary>
@@ -33,12 +34,12 @@ namespace Starcounter.Internal.Application.JsonReader.Tests {
                        }";
 
 
-            AppTemplate actual = TemplateFromJs.CreateFromJs(script2,false);
-            Assert.IsInstanceOf(typeof(AppTemplate), actual);
-            Assert.IsInstanceOf<StringProperty>(actual.Properties[0]);
-            Assert.IsInstanceOf<StringProperty>(actual.Properties[1]);
-            Assert.IsInstanceOf<BoolProperty>(actual.Properties[2]);
-            Assert.IsInstanceOf<ListingProperty>(actual.Properties[3]);
+            TApp actual = TemplateFromJs.CreateFromJs(script2,false);
+            Assert.IsInstanceOf(typeof(TApp), actual);
+            Assert.IsInstanceOf<TString>(actual.Properties[0]);
+            Assert.IsInstanceOf<TString>(actual.Properties[1]);
+            Assert.IsInstanceOf<TBool>(actual.Properties[2]);
+            Assert.IsInstanceOf<TObjArr>(actual.Properties[3]);
             Console.WriteLine(actual);
         }
 
@@ -54,10 +55,10 @@ namespace Starcounter.Internal.Application.JsonReader.Tests {
                                       FirstName:'Joachim'               .Editable(), 
                        }.Class('TestApp')";
 
-         AppTemplate actual = TemplateFromJs.CreateFromJs(script2, false);
-         Assert.IsInstanceOf(typeof(AppTemplate), actual);
-         Assert.IsInstanceOf<StringProperty>(actual.Properties[0]);
-         Assert.AreEqual(true, ((StringProperty)actual.Properties[0]).Editable);
+         TApp actual = TemplateFromJs.CreateFromJs(script2, false);
+         Assert.IsInstanceOf(typeof(TApp), actual);
+         Assert.IsInstanceOf<TString>(actual.Properties[0]);
+         Assert.AreEqual(true, ((TString)actual.Properties[0]).Editable);
          Assert.AreEqual("TestApp", actual.ClassName);
          Console.WriteLine(actual);
       }
@@ -84,17 +85,17 @@ namespace Starcounter.Internal.Application.JsonReader.Tests {
                        }.Class('TestApp').Namespace('Test')";
 
 
-         AppTemplate actual = TemplateFromJs.CreateFromJs(script2, false);
-         Assert.IsInstanceOf(typeof(AppTemplate), actual);
+         TApp actual = TemplateFromJs.CreateFromJs(script2, false);
+         Assert.IsInstanceOf(typeof(TApp), actual);
          Assert.AreEqual("TestApp", actual.ClassName);
          Assert.AreEqual("Test", actual.Namespace);
-         Assert.IsInstanceOf<StringProperty>(actual.Properties[0]);
-         Assert.IsInstanceOf<StringProperty>(actual.Properties[1]);
-         Assert.IsInstanceOf<BoolProperty>(actual.Properties[2]);
-         Assert.IsInstanceOf<ListingProperty>(actual.Properties[3]);
-         Assert.AreEqual(true, ((StringProperty)actual.Properties[0]).Editable);
-         Assert.AreEqual(false, ((StringProperty)actual.Properties[1]).Editable);
-         Assert.AreEqual(true, ((BoolProperty)actual.Properties[2]).Editable);
+         Assert.IsInstanceOf<TString>(actual.Properties[0]);
+         Assert.IsInstanceOf<TString>(actual.Properties[1]);
+         Assert.IsInstanceOf<TBool>(actual.Properties[2]);
+         Assert.IsInstanceOf<TObjArr>(actual.Properties[3]);
+         Assert.AreEqual(true, ((TString)actual.Properties[0]).Editable);
+         Assert.AreEqual(false, ((TString)actual.Properties[1]).Editable);
+         Assert.AreEqual(true, ((TBool)actual.Properties[2]).Editable);
          Console.WriteLine(actual);
       }
 
@@ -160,8 +161,8 @@ namespace Starcounter.Internal.Application.JsonReader.Tests {
     }.Bind('this'),
     HistoryApp: {}.Include('HistoryApp')
 }.Class('CrmApp')";
-         AppTemplate actual = TemplateFromJs.CreateFromJs(script, false);
-         Assert.IsInstanceOf(typeof(AppTemplate), actual);
+         TApp actual = TemplateFromJs.CreateFromJs(script, false);
+         Assert.IsInstanceOf(typeof(TApp), actual);
       }
    }
 }
