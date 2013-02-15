@@ -14,13 +14,13 @@ namespace SQLTest
                 if (args.Length == 1)
                     outputPath = args[0];
             Console.WriteLine("Started SQLTest.");
-            nrFailedQueries += Test1and2(outputPath);
-            nrFailedQueries += Test3(outputPath);
+            //nrFailedQueries += Test1and2(outputPath);
+            //nrFailedQueries += Test3(outputPath);
             nrFailedQueries += Test4(outputPath);
             Console.WriteLine("Finished SQLTest.");
             //System.IO.File.Create(@"s\Starcounter\failedTest");
-            //Environment.Exit(nrFailedQueries);
-            Starcounter.Internal.Kernel32.ExitProcess((uint)nrFailedQueries);
+            Environment.Exit(nrFailedQueries);
+            //Starcounter.Internal.Kernel32.ExitProcess((uint)nrFailedQueries);
             return nrFailedQueries;
         }
 
