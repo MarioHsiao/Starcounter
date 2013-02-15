@@ -1,15 +1,15 @@
-
+﻿
 /********************************************************************************
 
 
-====== TEST4 ======
+====== TEST3 ======
 
-Uses inherited indexes.
+Uses inherited data model.
 
 
 ====== SECTIONS ======
 
-=== Section 1 ===
+=== Inherited indexes ===
 
 
 ====== TODOS ======
@@ -22,3 +22,20 @@ Uses inherited indexes.
 
 
 ********************************************************************************/
+
+=== Inherited indexes ===
+
+<NEXT>
+Description: Get most supertype object using its unique index
+QueryString: select p from SQLTest.InheritedDb.Person p where name = ?
+VariableValues: String:Student1;
+ExpectedExecutionPlan: 
+
+ExpectedResult: 
+
+<NEXT>
+Description: Get all companies
+QueryString: select e from employer e
+ExpectedExecutionPlan: 
+
+ExpectedResult: 
