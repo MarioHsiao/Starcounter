@@ -26,7 +26,7 @@ namespace Test {
         /// </summary>
         [Test]
         public static void CreateCsFromJsFile() {
-            TPuppet templ = TemplateFromJs.ReadFile("MySampleApp.json");
+            TPuppet templ = TemplateFromJs.ReadPuppetTemplateFromFile("MySampleApp.json");
             Assert.NotNull(templ);
         }
 
@@ -36,7 +36,7 @@ namespace Test {
         /// </summary>
         [Test]
         public static void GenerateCs() {
-            TPuppet actual = TemplateFromJs.ReadFile("MySampleApp.json");
+            TPuppet actual = TemplateFromJs.ReadPuppetTemplateFromFile("MySampleApp.json");
             Assert.IsInstanceOf(typeof(TPuppet), actual);
             CodeGenerationModule codegenmodule = new CodeGenerationModule();
             var codegen = codegenmodule.CreateGenerator("C#", actual, CodeBehindMetadata.Empty);
@@ -48,7 +48,7 @@ namespace Test {
         /// </summary>
         [Test]
         public static void GenerateCsFromSimpleJs() {
-           TPuppet actual = TemplateFromJs.ReadFile("simple.json");
+           TPuppet actual = TemplateFromJs.ReadPuppetTemplateFromFile("simple.json");
            actual.ClassName = "PlayerApp";
 
            var file = new System.IO.StreamReader("simple.facit.cs");
@@ -67,7 +67,7 @@ namespace Test {
             String className = "TestMessage";
             CodeBehindMetadata metadata = CodeBehindAnalyzer.Analyze(className, className + ".json.cs");
 
-            TPuppet actual = TemplateFromJs.ReadFile(className + ".json");
+            TPuppet actual = TemplateFromJs.ReadPuppetTemplateFromFile(className + ".json");
             Assert.IsInstanceOf(typeof(TPuppet), actual);
 
             actual.Namespace = metadata.RootNamespace;
@@ -84,7 +84,7 @@ namespace Test {
             String className = "MySampleApp";
             CodeBehindMetadata metadata = CodeBehindAnalyzer.Analyze(className, className + ".json.cs");
             
-            TPuppet actual = TemplateFromJs.ReadFile(className + ".json");
+            TPuppet actual = TemplateFromJs.ReadPuppetTemplateFromFile(className + ".json");
             Assert.IsInstanceOf(typeof(TPuppet), actual);
 
             actual.Namespace = metadata.RootNamespace;

@@ -72,7 +72,7 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
         }
 
         private static TPuppet CreateTApp() {
-            TPuppet template = TemplateFromJs.ReadFile("TestMessage.json");
+            TPuppet template = TemplateFromJs.ReadPuppetTemplateFromFile("TestMessage.json");
             template.ClassName = "TestMessage";
             return template;
         }

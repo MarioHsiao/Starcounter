@@ -32,7 +32,7 @@ namespace Starcounter.Client.Tests.Application
         public static void AppToJson()
         {
             AppExeModule.IsRunningTests = true;
-            dynamic app = new Puppet() { Template = TemplateFromJs.ReadFile("MySampleApp2.json") };
+            dynamic app = new Puppet() { Template = TemplateFromJs.ReadPuppetTemplateFromFile("MySampleApp2.json") };
             app.FirstName = "Joachim";
             app.LastName = "Wester";
 

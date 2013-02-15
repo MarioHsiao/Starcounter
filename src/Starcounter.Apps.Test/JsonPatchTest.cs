@@ -334,7 +334,7 @@ namespace Starcounter.Internal.JsonPatch.Test
         /// <returns>AppAndTemplate.</returns>
         private static AppAndTemplate CreateSampleApp()
         {
-            dynamic template = TemplateFromJs.ReadFile("SampleApp.json");
+            dynamic template = TemplateFromJs.ReadPuppetTemplateFromFile("SampleApp.json");
             dynamic app = new Puppet() { Template = template };
             
             app.FirstName = "Cliff";

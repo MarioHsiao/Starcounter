@@ -36,9 +36,9 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// </summary>
         /// <param name="mod">The mod.</param>
         /// <param name="template">The represented template</param>
-        internal DomGenerator(CodeGenerationModule mod, Template template)
+        internal DomGenerator(CodeGenerationModule mod, TObj template)
         { //, string typename, string templateClass, string metadataClass ) {
-            Template = template;
+            DefaultObjTemplate = template;
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="at">The App template (i.e. json tree prototype) to generate code for</param>
         /// <param name="metadata">The metadata.</param>
         /// <returns>An abstract code tree. Use CSharpGenerator to generate .CS code.</returns>
-        public NRoot GenerateDomTree(TPuppet at, CodeBehindMetadata metadata )
+        public NRoot GenerateDomTree( TObj at, CodeBehindMetadata metadata )
         {
             var root = new NRoot();
             var acn = new NAppClass()
@@ -63,7 +63,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 Parent = acn,
                 NValueClass = acn,
                 Template = at,
-                _Inherits = "TApp"
+                _Inherits = DefaultObjTemplate.GetType().Name // "TPuppet,TMessage"
             };
             var mcn = new NObjMetadata()
             {
@@ -453,14 +453,14 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 acn = racn = new NAppClass()
                 {
                     Parent = appClassParent,
-                    _Inherits = "App"
+                    _Inherits = DefaultObjTemplate.InstanceType.Name // "Puppet", "Message"
                 };
                 tcn = new NTAppClass()
                 {
                     Parent = racn,
                     Template = at,
                     NValueClass = racn,
-                    _Inherits = "TApp",
+                    _Inherits = DefaultObjTemplate.GetType().Name // "TPuppet", "TMessage"
                 };
                 mcn = new NObjMetadata()
                 {
@@ -845,7 +845,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <summary>
         /// The field behind the Template property.
         /// </summary>
-        internal Template Template;
+        internal TObj DefaultObjTemplate;
 
         /// <summary>
         /// Employed by the template code generator.
@@ -855,7 +855,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         {
             get
             {
-                Template current = Template;
+                Template current = DefaultObjTemplate;
                 while (current.Parent != null) current = (Template)current.Parent;
                 return ((TPuppet)current).Namespace;
             }

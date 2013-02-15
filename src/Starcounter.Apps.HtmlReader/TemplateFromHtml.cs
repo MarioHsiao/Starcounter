@@ -37,7 +37,7 @@ namespace Starcounter.Internal.JsonTemplate {
         /// <param name="fileSpec">The file spec.</param>
         /// <returns>TApp.</returns>
         /// <exception cref="System.Exception"></exception>
-        public static TPuppet CreateFromHtmlFile(string fileSpec) {
+        public static TPuppet CreatePuppetTemplateFromHtmlFile(string fileSpec) {
             string str = ReadUtf8File(fileSpec);
             TPuppet template = null;
             var html = new HtmlDocument();
@@ -45,7 +45,7 @@ namespace Starcounter.Internal.JsonTemplate {
             html.Load(new StringReader(str));
             foreach (HtmlNode link in html.DocumentNode.SelectNodes("//script")) {
                 string js = link.InnerText;
-                template = TemplateFromJs.CreateFromJs(js, true);
+                template = (TPuppet)TemplateFromJs.CreateFromJs(typeof(TPuppet),js, true);
                 if (template != null)
                     return template;
             }
