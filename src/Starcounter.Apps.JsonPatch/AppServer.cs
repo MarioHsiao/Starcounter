@@ -76,7 +76,7 @@ namespace Starcounter.Internal.Web {
                         request.Debug(" (new view model)");
                         session.AttachRootApp(app);
                         request.IsAppView = true;
-                        request.ViewModel = app.ToJsonUtf8(false);
+                        request.ViewModel = app.ToJsonUtf8();
                         request.NeedsScriptInjection = true;
 //                          request.CanUseStaticResponse = false; // We need to provide the view model, so we can use 
 //                                                          // cached (and gziped) content, but not a complete cached

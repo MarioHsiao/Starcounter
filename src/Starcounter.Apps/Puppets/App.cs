@@ -1,6 +1,9 @@
 ﻿
+using Newtonsoft.Json;
 using Starcounter.Advanced;
+using Starcounter.Templates;
 using System;
+using System.Text;
 namespace Starcounter {
 
     /// <summary>
@@ -52,6 +55,47 @@ namespace Starcounter {
     public class App<T> : Obj<T> where T : IBindable {
 
         /// <summary>
+        /// 
+        /// </summary>
+        public App() : base() {
+                   ViewModelId = -1;
+        }
+
+        /// <summary>
+        /// Deletes this instance.
+        /// </summary>
+        public void Delete() {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Removes this Obj from its parent.
+        /// </summary>
+        public void Close() {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// If the view lives in this .NET application domain, this property can be used to reference it.
+        /// For Starcounter serverside App objects, this property is often a string that is used to identifify
+        /// a specific view. For web applications, the string is often a reference to the .html file.
+        /// </summary>
+        /// <value>The media.</value>
+        public Media Media { get; set; }
+
+        /// <summary>
+        /// Gets or sets the view.
+        /// </summary>
+        /// <value>The view.</value>
+        public string View { get; set; }
+
+
+        /// <summary>
+        /// Returns the id of this app or -1 if not used.
+        /// </summary>
+        internal int ViewModelId { get; set; }
+
+        /// <summary>
         /// Performs an implicit conversion from <see cref="System.String" /> to <see cref="App" />.
         /// </summary>
         /// <param name="str">The STR.</param>
@@ -67,6 +111,97 @@ namespace Starcounter {
         protected override void HasChanged(Property property) {
             ChangeLog.UpdateValue(this, property);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sb"></param>
+        /// <param name="addComma"></param>
+        /// <returns></returns>
+        internal override int InsertAdditionalJsonProperties(StringBuilder sb, bool addComma) {
+
+            int t = 0;
+
+            if (ViewModelId != -1) {
+                if (addComma)
+                    sb.Append(',');
+                sb.Append("\"View-Model\":");
+                sb.Append(ViewModelId);
+                t++;
+                addComma = true;
+            }
+
+            if (Media.Content != null) {
+                if (addComma)
+                    sb.Append(',');
+                //                if (includeViewContent == IncludeView.Always ) {
+                sb.Append("__vc:");
+                //return StaticFileServer.GET(relativeUri, request);
+                sb.Append(JsonConvert.SerializeObject(Encoding.UTF8.GetString(Media.Content.Uncompressed)));
+                //                }
+                //                else {
+                //                   sb.Append("__vf:");
+                //                   sb.Append(JsonConvert.SerializeObject(Media.Content.FilePath.ToString()));
+                //                }
+                t++;
+                addComma = true;
+            }
+            else {
+                //                var view = View ?? templ.PropertyName;
+
+                if (View != null) {
+                    if (addComma)
+                        sb.Append(',');
+                    t++;
+                    addComma = true;
+
+                    if (true) { // includeViewContent == IncludeView.Always ) {
+                        sb.Append("__vc:");
+                        var res = App.Get(View);
+                        if (res == null) {
+                            // TODO
+                            //res = StaticResources.Handle( HttpRequest.GET( "/" + View ) ); 
+                        }
+                        if (res is HttpResponse) {
+                            var response = res as HttpResponse;
+                            sb.Append(JsonConvert.SerializeObject(Encoding.UTF8.GetString(response.Uncompressed)));
+                        }
+                        else {
+                            throw new NotImplementedException();
+                        }
+                    }
+                    //else {
+                    //    sb.Append("__vf:");
+                    //    sb.Append(JsonConvert.SerializeObject(Media.Content.FilePath.ToString()));
+                    //}
+                }
+
+            }
+
+            return t;
+        }
+
+
+        /// <summary>
+        /// When elements are added to an array, this should be logged such that
+        /// the client is updated.
+        /// </summary>
+        /// <param name="property">The array property of this Puppet</param>
+        /// <param name="elementIndex">The added element index</param>
+        internal override void HasAddedElement(ObjArrProperty property, int elementIndex) {
+            ChangeLog.AddItemInList(this, (ObjArrProperty)property, elementIndex);
+        }
+
+        internal override void HasRemovedElement(ObjArrProperty property, int elementIndex) {
+            ChangeLog.RemoveItemInList(this, property, elementIndex );
+        }
+
+
+        /// <summary>
+        /// Returns true if this Obj have been serialized and sent to the client.
+        /// </summary>
+        /// <value>The is serialized.</value>
+        public Boolean IsSerialized { get; internal set; }
 
         /// <summary>
         /// Commits this instance.
@@ -104,7 +239,7 @@ namespace Starcounter {
         /// Gets the closest transaction for this app looking up in the tree.
         /// Sets this transaction.
         /// </summary>
-        public Transaction Transaction {
+        public new Transaction Transaction {
             get {
                 if (_transaction != null)
                     return _transaction;

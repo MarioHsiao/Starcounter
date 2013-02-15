@@ -47,7 +47,7 @@ namespace Starcounter.Internal.Test {
             var app2 = new App() { Template = search };
             app.SetValue(userId, "Jocke");
             app.SetValue(search, app2);
-            Console.WriteLine(app.ToJson(false)); //, IncludeView.Never));
+            Console.WriteLine(app.ToJson()); //, IncludeView.Never));
         }
 
         /// <summary>

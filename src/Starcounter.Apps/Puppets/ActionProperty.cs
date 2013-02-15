@@ -7,24 +7,24 @@
 using System;
 using System.Collections.Generic;
 using Starcounter.Templates.Interfaces;
-#if CLIENT
-namespace Starcounter.Client.Template {
-#else
+
 namespace Starcounter.Templates {
-#endif
 
     /// <summary>
-    /// Class ActionProperty
+    /// Represents an action property in a Puppet. An Action property does not contain a value, 
+    /// but can be triggered by the client.
     /// </summary>
+    /// <remarks>
+    /// When you create a Json-by-example file with a null property (i.e. "myfield":null),
+    /// the schema template for that property becomes an ActionProperty.
+    /// </remarks>
     public class ActionProperty : Property
     {
         /// <summary>
-        /// The custom input event creator
         /// </summary>
-        public Func<App, Property, Input> CustomInputEventCreator = null;
+        private Func<App, Property, Input> CustomInputEventCreator = null;
      
         /// <summary>
-        /// The custom input handlers
         /// </summary>
         public List<Action<App, Input>> CustomInputHandlers = new List<Action<App, Input>>();
 
@@ -37,33 +37,30 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// Gets the type of the json.
         /// </summary>
-        /// <value>The type of the json.</value>
+        /// <value></value>
         public override string JsonType {
             get { return "function"; }
         }
 
         /// <summary>
-        /// Gets or sets the on run.
         /// </summary>
-        /// <value>The on run.</value>
+        /// <value></value>
         public string OnRun { get; set; }
 
         /// <summary>
-        /// Creates the instance.
+        /// Creates the default value of this property.
         /// </summary>
-        /// <param name="parent">The parent.</param>
-        /// <returns>System.Object.</returns>
+        /// <param name="parent">The object that will hold the created value (the host Obj or host Array)</param>
+        /// <returns>Always returns false or is it null????? TODO!??</returns>
         public override object CreateInstance(Container parent) {
             return false;
         }
 
         /// <summary>
-        /// Adds the handler.
         /// </summary>
-        /// <param name="createInputEvent">The create input event.</param>
-        /// <param name="handler">The handler.</param>
+        /// <param name="createInputEvent"></param>
+        /// <param name="handler"></param>
         public void AddHandler(
             Func<Obj, Property, Input> createInputEvent = null,
             Action<Obj, Input> handler = null) {
@@ -72,7 +69,6 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="app"></param>
         /// <param name="rawValue"></param>
