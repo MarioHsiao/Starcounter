@@ -22,7 +22,7 @@ namespace Starcounter {
         public TValue Value { get; set; }
 
         /// <summary>
-        /// Gets the old value (before the suggested change).
+        /// Gets the old value (the current value, i.e. before the input is accepted).
         /// </summary>
         /// <value>The old value.</value>
         /// <exception cref="System.NotImplementedException"></exception>
@@ -107,7 +107,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="parentProperty">The parent property.</param>
         /// <returns>App.</returns>
-        public App FindParent(ParentTemplate parentProperty) {
+        public App FindParent(TContainer parentProperty) {
             return null;
         }
 

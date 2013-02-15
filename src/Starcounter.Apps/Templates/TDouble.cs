@@ -1,13 +1,11 @@
 ﻿// ***********************************************************************
-// <copyright file="StringProperty.cs" company="Starcounter AB">
+// <copyright file="TDouble.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
 
 using System;
 using Starcounter.Templates.Interfaces;
-using System.Collections.Generic;
-
 #if CLIENT
 namespace Starcounter.Client.Template {
 #else
@@ -15,30 +13,31 @@ namespace Starcounter.Templates {
 #endif
 
     /// <summary>
-    /// Class StringProperty
+    /// Class TDouble
     /// </summary>
-    public class StringProperty : Property<string>
+    public class TDouble : TValue<double>
     {
-        /// <summary>
-        /// Processes the input.
-        /// </summary>
-        /// <param name="app">The app.</param>
-        /// <param name="rawValue">The raw value.</param>
-        public override void ProcessInput(App app, byte[] rawValue)
-        {
-            ProcessInput(app, System.Text.Encoding.UTF8.GetString(rawValue));
-        }
-
         /// <summary>
         /// The _ default value
         /// </summary>
-        private string _DefaultValue = "";
+       private double _DefaultValue = 0;
 
-        /// <summary>
-        /// Gets or sets the default value.
-        /// </summary>
-        /// <value>The default value.</value>
-        public string DefaultValue {
+       /// <summary>
+       /// Processes the input.
+       /// </summary>
+       /// <param name="app">The app.</param>
+       /// <param name="rawValue">The raw value.</param>
+       /// <exception cref="System.NotImplementedException"></exception>
+       public override void ProcessInput(App app, byte[] rawValue)
+       {
+           throw new NotImplementedException();
+       }
+
+       /// <summary>
+       /// Gets or sets the default value.
+       /// </summary>
+       /// <value>The default value.</value>
+        public double DefaultValue {
             get { return _DefaultValue; }
             set { _DefaultValue = value; }
         }
@@ -53,7 +52,7 @@ namespace Starcounter.Templates {
                 return DefaultValue;
             }
             set {
-                DefaultValue = (string)value;
+                DefaultValue = (double)value;
             }
         }
 
@@ -62,7 +61,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <value>The type of the instance.</value>
         public override Type InstanceType {
-            get { return typeof(string); }
+            get { return typeof(double); }
         }
     }
 }

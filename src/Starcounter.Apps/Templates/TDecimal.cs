@@ -1,10 +1,11 @@
 ﻿// ***********************************************************************
-// <copyright file="OidProperty.cs" company="Starcounter AB">
+// <copyright file="TDecimal.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
 
 using System;
+using System.Text;
 using Starcounter.Templates.Interfaces;
 #if CLIENT
 namespace Starcounter.Client.Template {
@@ -13,16 +14,14 @@ namespace Starcounter.Templates {
 #endif
 
     /// <summary>
-    /// Class OidProperty
+    /// Class TDecimal
     /// </summary>
-    public class OidProperty : Property<UInt64>
+    public class TDecimal : TValue<decimal>
     {
-
         /// <summary>
-        /// Gets or sets the default value.
+        /// The _ default value
         /// </summary>
-        /// <value>The default value.</value>
-        public UInt64 DefaultValue { get; set; }
+        decimal _DefaultValue = 0;
 
         /// <summary>
         /// Processes the input.
@@ -32,8 +31,20 @@ namespace Starcounter.Templates {
         /// <exception cref="System.NotImplementedException"></exception>
         public override void ProcessInput(App app, byte[] rawValue)
         {
-            throw new NotImplementedException();
-            // ProcessInput(app, value);
+            // TODO:
+            // Superslow way of parsing the decimal value. Needs to be rewritten.
+            decimal value;
+            decimal.TryParse(Encoding.UTF8.GetString(rawValue), out value);
+            ProcessInput(app, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the default value.
+        /// </summary>
+        /// <value>The default value.</value>
+        public decimal DefaultValue {
+            get { return _DefaultValue; }
+            set { _DefaultValue = value; }
         }
 
         /// <summary>
@@ -42,15 +53,19 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <value>The default value as object.</value>
         public override object DefaultValueAsObject {
-            get { return DefaultValue; }
-            set { DefaultValue = (UInt64)value; }
+            get {
+                return DefaultValue;
+            }
+            set {
+                DefaultValue = (decimal)value;
+            }
         }
         /// <summary>
         /// The .NET type of the instance represented by this template.
         /// </summary>
         /// <value>The type of the instance.</value>
         public override Type InstanceType {
-            get { return typeof(UInt64); }
+            get { return typeof(decimal); }
         }
     }
 }

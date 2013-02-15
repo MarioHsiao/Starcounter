@@ -59,7 +59,7 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this <see cref="Property" /> is editable.
+        /// Gets or sets a value indicating whether this <see cref="TValue" /> is editable.
         /// </summary>
         /// <value><c>true</c> if editable; otherwise, <c>false</c>.</value>
         public bool Editable { get; set; }
@@ -107,7 +107,7 @@ namespace Starcounter.Templates {
 
 //        public abstract object CreateInstance( IParent parent );
         /// <summary>
-        /// The .NET type of the instance represented by this template.
+        /// The .NET type of the instance represented by this template.TApp
         /// </summary>
         /// <value>The type of the instance.</value>
         /// <exception cref="System.Exception">You are not allowed to set the InstanceType of a </exception>
@@ -121,24 +121,24 @@ namespace Starcounter.Templates {
         /// <summary>
         /// The _ parent
         /// </summary>
-        internal ParentTemplate _Parent;
+        internal TContainer _Parent;
 
         /// <summary>
         /// All templates other than the Root template has a parent template. For
-        /// properties, the parent template is the AppTemplate. For App elements
-        /// in an array (a list), the parent is the AppListTemplate.
+        /// properties, the parent template is the TApp. For App elements
+        /// in an array (a list), the parent is the TObjArr.
         /// </summary>
         /// <value>The parent.</value>
-        public ParentTemplate Parent {
+        public TContainer Parent {
             get {
                 return _Parent;
             }
             set {
-                if (value is AppTemplate) {
-                    var at = (AppTemplate)value;
+                if (value is TApp) {
+                    var at = (TApp)value;
                     at.Properties.Add(this);
                 }
-                _Parent = (ParentTemplate)value;
+                _Parent = (TContainer)value;
             }
         }
 
@@ -210,7 +210,7 @@ namespace Starcounter.Templates {
                     string name = value.Replace("$", "");
                     PropertyName = name;
                     if (Parent != null) {
-                        var parent = (AppTemplate)Parent;
+                        var parent = (TApp)Parent;
                         var props = (PropertyList)(parent.Properties);
                         props.ChildNameIsSet(this);
                     }
@@ -234,7 +234,7 @@ namespace Starcounter.Templates {
                     throw new Exception("Once the PropertyName is set, it cannot be changed");
                 _PropertyName = value;
                 if (Parent != null ) {
-                    var parent = (AppTemplate)Parent;
+                    var parent = (TApp)Parent;
                     var props = (PropertyList)(parent.Properties);
                     props.ChildPropertyNameIsSet(this);
                 }

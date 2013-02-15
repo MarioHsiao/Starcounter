@@ -20,8 +20,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// Gets the template.
         /// </summary>
         /// <value>The template.</value>
-        public AppTemplate Template {
-            get { return (AppTemplate)(NTemplateClass.Template); }
+        public TApp Template {
+            get { return (TApp)(NTemplateClass.Template); }
         }
 
        // public new NAppClass Parent {
@@ -58,10 +58,10 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             get {
                 if (Template.ClassName != null)
                     return Template.ClassName;
-                else if (!IsCustomAppTemplate) {
+                else if (!IsCustomTApp) {
                     return "App";
-                } else if (Template.Parent is ObjArrProperty) {
-                    var alt = (ObjArrProperty)Template.Parent;
+                } else if (Template.Parent is TObjArr) {
+                    var alt = (TObjArr)Template.Parent;
                     return AppifyName(alt.PropertyName); // +"App";
                 } else
                     return AppifyName(Template.PropertyName); // +"App";
@@ -78,8 +78,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             get {
                 if (Template.ClassName != null)
                     return Template.ClassName;
-                else if (Template.Parent is ObjArrProperty) {
-                    var alt = (ObjArrProperty)Template.Parent;
+                else if (Template.Parent is TObjArr) {
+                    var alt = (TObjArr)Template.Parent;
                     return alt.PropertyName;
                 } else
                     return Template.PropertyName;
@@ -105,7 +105,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// node to make DOM generation easier (this cheating is intentional).
         /// </summary>
         /// <value><c>true</c> if this instance is custom app template; otherwise, <c>false</c>.</value>
-        public bool IsCustomAppTemplate {
+        public bool IsCustomTApp {
             get {
                 return (Template.Properties.Count > 0);
             }

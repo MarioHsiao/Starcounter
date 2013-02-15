@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="BoolProperty.cs" company="Starcounter AB">
+// <copyright file="TBool.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -14,7 +14,7 @@ namespace Starcounter.Templates {
     /// <summary>
     /// Defines a boolean property in an App object.
     /// </summary>
-    public class BoolProperty : Property<bool>
+    public class TBool : TValue<bool>
     {
         /// <summary>
         /// The _ default value

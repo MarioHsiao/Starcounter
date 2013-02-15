@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="ArrProperty.cs" company="Starcounter AB">
+// <copyright file="TArr.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -15,17 +15,17 @@ namespace Starcounter.Client.Template {
 namespace Starcounter.Templates {
 #endif
 
-//    public class SetProperty<AppType, SchemaType> : AppListTemplate<AppType> where AppType : App, new() where SchemaType : AppTemplate {
+//    public class SetProperty<AppType, SchemaType> : TObjArr<AppType> where AppType : App, new() where SchemaType : TApp {
 //    }
 
     /// <summary>
-    /// Class ArrProperty
+    /// Class TArr
     /// </summary>
     /// <typeparam name="OT">The type of the app type.</typeparam>
     /// <typeparam name="OTT">The type of the app template type.</typeparam>
-    public class ArrProperty<OT,OTT> : ObjArrProperty
+    public class TArr<OT,OTT> : TObjArr
         where OT : App, new()
-        where OTT : AppTemplate
+        where OTT : TApp
     {
         /// <summary>
         /// Creates the instance.
@@ -59,11 +59,11 @@ namespace Starcounter.Templates {
         /// Gets or sets the app.
         /// </summary>
         /// <value>The app.</value>
-        public override ObjTemplate App {
+        public override TObj App {
             get {
                 if (_Single.Length == 0)
                     return null;
-                return (ObjTemplate)_Single[0];
+                return (TObj)_Single[0];
             }
             set {
                 _Single = new OTT[1];
@@ -91,11 +91,11 @@ namespace Starcounter.Templates {
     }
 
     /// <summary>
-    /// Class ArrProperty
+    /// Class TArr
     /// </summary>
-    public abstract class ObjArrProperty : ParentTemplate
+    public abstract class TObjArr : TContainer
 #if IAPP
-//        , IAppListTemplate
+//        , ITObjArr
 #endif
     {
 
@@ -124,7 +124,7 @@ namespace Starcounter.Templates {
         /// in this array.
         /// </summary>
         /// <value>The obj template adhering to each element in this array</value>
-        public abstract ObjTemplate App { get; set; }
+        public abstract TObj App { get; set; }
 
         /// <summary>
         /// Contains the default value for the property represented by this

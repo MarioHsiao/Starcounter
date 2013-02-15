@@ -60,7 +60,7 @@ namespace Starcounter.Templates
         /// Gets or sets the convert to.
         /// </summary>
         /// <value>The convert to.</value>
-        public Property ConvertTo
+        public TValue ConvertTo
         {
             get;
             set;

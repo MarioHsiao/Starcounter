@@ -18,21 +18,25 @@ namespace Starcounter.Templates {
 #endif
 
     /// <summary>
-    /// Class PropertyList
+    /// The collection of properties (Templates) in an Obj template. I.e. for the template PersonTemplate, the
+    /// list might contain two elements such as TString "FirstName" and TString "LastName".
     /// </summary>
     public class PropertyList
        : IEnumerable<Template>, IList<Template>
     {
         /// <summary>
-        /// The _ parent
+        /// The Obj having the properties in this collection
         /// </summary>
-        private ObjTemplate _Parent;
+        private TObj _Parent;
+
         /// <summary>
-        /// The _ name lookup
+        /// The full name dictionary. These names can contain characters that are not valid for C# properties,
+        /// such as the $ character often found in Javascript identifiers.
         /// </summary>
         private readonly Dictionary<string, Template> _NameLookup = new Dictionary<string, Template>();
+
         /// <summary>
-        /// The _ property name lookup
+        /// The property name dictionary contains property names that are legal to use in C#.
         /// </summary>
         private readonly Dictionary<string, Template> _PropertyNameLookup = new Dictionary<string, Template>();
         /// <summary>
@@ -44,7 +48,7 @@ namespace Starcounter.Templates {
         /// Initializes a new instance of the <see cref="PropertyList" /> class.
         /// </summary>
         /// <param name="parent">The parent.</param>
-        internal PropertyList(ObjTemplate parent) {
+        internal PropertyList(TObj parent) {
             _Parent = parent;
         }
 

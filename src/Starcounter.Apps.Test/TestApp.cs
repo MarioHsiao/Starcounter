@@ -27,8 +27,8 @@ namespace Starcounter.Internal.Test {
         /// </summary>
         [Test]
         public static void TestSetGet() {
-            var at = new AppTemplate();
-            var st = new StringProperty() { Name = "FirstName", Parent = at };
+            var at = new TApp();
+            var st = new TString() { Name = "FirstName", Parent = at };
             var app = new App() { Template = at };
             app.SetValue(st, "Joachim");
             Assert.AreEqual("Joachim", app.GetValue(st));
@@ -40,9 +40,9 @@ namespace Starcounter.Internal.Test {
         /// </summary>
         [Test]
         public static void TestNestedApp() {
-            var main = new AppTemplate();
-            var userId = new StringProperty() { Name = "UserId", Parent = main };
-            var search = new AppTemplate() { Name = "Search", Parent = main };
+            var main = new TApp();
+            var userId = new TString() { Name = "UserId", Parent = main };
+            var search = new TApp() { Name = "Search", Parent = main };
             var app = new App() { Template = main };
             var app2 = new App() { Template = search };
             app.SetValue(userId, "Jocke");
@@ -55,13 +55,13 @@ namespace Starcounter.Internal.Test {
         /// </summary>
         [Test]
         public static void TestArray() {
-            var appTemplate = new AppTemplate();
-            var persons = new ArrProperty<App,AppTemplate>() { Name = "Persons", Parent = appTemplate };
-            var person = new AppTemplate() { Parent = persons };
-            var firstName = new StringProperty() { Name = "FirstName", Parent = person };
-            var lastName = new StringProperty() { Name = "LastName", Parent = person };
-            var address = new StringProperty() { Name = "Address", Parent = person };
-            var userId = new StringProperty() { Name = "UserId", Parent = appTemplate };
+            var appTemplate = new TApp();
+            var persons = new TArr<App,TApp>() { Name = "Persons", Parent = appTemplate };
+            var person = new TApp() { Parent = persons };
+            var firstName = new TString() { Name = "FirstName", Parent = person };
+            var lastName = new TString() { Name = "LastName", Parent = person };
+            var address = new TString() { Name = "Address", Parent = person };
+            var userId = new TString() { Name = "UserId", Parent = appTemplate };
 
             var app = new App() { Template = appTemplate };
             var jocke = new App() { Template = person };
