@@ -13,7 +13,7 @@ namespace Starcounter.Query.Execution
 {
 internal class StringPathComparer : StringComparer, IPathComparer
 {
-    internal StringPathComparer(StringProperty property, SortOrder ordering)
+    internal StringPathComparer(TString property, SortOrder ordering)
     : base(property, ordering)
     { }
 

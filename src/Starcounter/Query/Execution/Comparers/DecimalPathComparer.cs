@@ -13,7 +13,7 @@ namespace Starcounter.Query.Execution
 {
 internal class DecimalPathComparer : DecimalComparer, IPathComparer
 {
-    internal DecimalPathComparer(DecimalProperty property, SortOrder ordering)
+    internal DecimalPathComparer(TDecimal property, SortOrder ordering)
     : base(property, ordering)
     { }
 

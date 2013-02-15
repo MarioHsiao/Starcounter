@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="IntProperty.cs" company="Starcounter AB">
+// <copyright file="TLong.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -14,9 +14,9 @@ namespace Starcounter.Templates {
 #endif
 
     /// <summary>
-    /// Class IntProperty
+    /// Class TLong
     /// </summary>
-    public class IntProperty : Property<long>
+    public class TLong : TValue<long>
     {
 
         /// <summary>

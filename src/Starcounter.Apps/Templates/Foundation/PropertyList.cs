@@ -26,7 +26,7 @@ namespace Starcounter.Templates {
         /// <summary>
         /// The _ parent
         /// </summary>
-        private ObjTemplate _Parent;
+        private TObj _Parent;
         /// <summary>
         /// The _ name lookup
         /// </summary>
@@ -44,7 +44,7 @@ namespace Starcounter.Templates {
         /// Initializes a new instance of the <see cref="PropertyList" /> class.
         /// </summary>
         /// <param name="parent">The parent.</param>
-        internal PropertyList(ObjTemplate parent) {
+        internal PropertyList(TObj parent) {
             _Parent = parent;
         }
 

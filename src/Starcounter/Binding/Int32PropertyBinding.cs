@@ -12,7 +12,7 @@ namespace Starcounter.Binding
     /// <summary>
     /// Class Int32PropertyBinding
     /// </summary>
-    public abstract class Int32PropertyBinding : IntPropertyBinding
+    public abstract class Int32PropertyBinding : TLongBinding
     {
 
         /// <summary>

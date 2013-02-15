@@ -33,13 +33,13 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// Initializes static members of the <see cref="NMetadataClass" /> class.
         /// </summary>
         static NMetadataClass() {
-            Classes[NTemplateClass.StringProperty] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.StringProperty] };
-            Classes[NTemplateClass.IntProperty] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.IntProperty] };
-            Classes[NTemplateClass.DecimalProperty] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.DecimalProperty] };
-            Classes[NTemplateClass.DoubleProperty] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.DoubleProperty] };
-            Classes[NTemplateClass.BoolProperty] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.BoolProperty] };
+            Classes[NTemplateClass.TString] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.TString] };
+            Classes[NTemplateClass.TLong] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.TLong] };
+            Classes[NTemplateClass.TDecimal] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.TDecimal] };
+            Classes[NTemplateClass.TDouble] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.TDouble] };
+            Classes[NTemplateClass.TBool] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.TBool] };
             Classes[NTemplateClass.ActionProperty] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.ActionProperty] };
-            Classes[NTemplateClass.AppTemplate] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.AppTemplate] };
+            Classes[NTemplateClass.TApp] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.TApp] };
         }
 
         /// <summary>

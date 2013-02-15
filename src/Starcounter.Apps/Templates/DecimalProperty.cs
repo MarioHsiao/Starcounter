@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="DecimalProperty.cs" company="Starcounter AB">
+// <copyright file="TDecimal.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -14,9 +14,9 @@ namespace Starcounter.Templates {
 #endif
 
     /// <summary>
-    /// Class DecimalProperty
+    /// Class TDecimal
     /// </summary>
-    public class DecimalProperty : Property<decimal>
+    public class TDecimal : TValue<decimal>
     {
         /// <summary>
         /// The _ default value

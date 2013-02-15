@@ -46,7 +46,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="obj">The Obj.</param>
         /// <param name="property">The property.</param>
-        internal static void UpdateValue<T>(App<T> obj, Property property) where T : IBindable {
+        internal static void UpdateValue<T>(App<T> obj, TValue property) where T : IBindable {
             ChangeLog log = Log;
             if (log != null && obj.IsSerialized) {
                 if (!log._changes.Exists((match) => { return match.IsChangeOf(obj, property); })) {
@@ -75,7 +75,7 @@ namespace Starcounter {
         /// <param name="obj">The Obj.</param>
         /// <param name="list">The property of the list that the item was added to.</param>
         /// <param name="index">The index in the list where the item was added.</param>
-        internal static void AddItemInList<T>(App<T> obj, ObjArrProperty list, Int32 index) where T : IBindable {
+        internal static void AddItemInList<T>(App<T> obj, TObjArr list, Int32 index) where T : IBindable {
             ChangeLog log = Log;
             if (log != null)
                 log._changes.Add(Change.Add(obj, list, index));
@@ -87,7 +87,7 @@ namespace Starcounter {
         /// <param name="obj">The app.</param>
         /// <param name="list">The property of the list the item was removed from.</param>
         /// <param name="index">The index in the list of the removed item.</param>
-        internal static void RemoveItemInList<T>(App<T> obj, ObjArrProperty list, Int32 index) where T : IBindable  {
+        internal static void RemoveItemInList<T>(App<T> obj, TObjArr list, Int32 index) where T : IBindable  {
             ChangeLog log = Log;
             if (log != null && obj.IsSerialized)
                 log._changes.Add(Change.Remove(obj, list, index));
@@ -185,7 +185,7 @@ namespace Starcounter {
         /// <param name="list">The property of the list where an item was added.</param>
         /// <param name="index">The index in the list of the added item.</param>
         /// <returns></returns>
-        internal static Change Add(Obj app, ObjArrProperty list, Int32 index) {
+        internal static Change Add(Obj app, TObjArr list, Int32 index) {
             return new Change(Change.ADD, app, list, index);
         }
 
@@ -196,7 +196,7 @@ namespace Starcounter {
         /// <param name="list">The property of the list where an item was removed.</param>
         /// <param name="index">The index in the list of the removed item.</param>
         /// <returns></returns>
-        internal static Change Remove(Obj app, ObjArrProperty list, Int32 index) {
+        internal static Change Remove(Obj app, TObjArr list, Int32 index) {
             return new Change(Change.REMOVE, app, list, index);
         }
 
@@ -206,7 +206,7 @@ namespace Starcounter {
         /// <param name="app">The app.</param>
         /// <param name="property">The template of the property that was updated.</param>
         /// <returns></returns>
-        internal static Change Update(Obj app, Property property) {
+        internal static Change Update(Obj app, TValue property) {
             return new Change(Change.REPLACE, app, property, -1);
         }
 

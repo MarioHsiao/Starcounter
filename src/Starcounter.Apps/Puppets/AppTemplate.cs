@@ -5,7 +5,7 @@ namespace Starcounter.Templates {
     /// <summary>
     /// Defines the properties of an App instance.
     /// </summary>
-    public class AppTemplate : ObjTemplate {
+    public class TApp : TObj {
 
         /// <summary>
         /// Creates a new App-instance based on this template.

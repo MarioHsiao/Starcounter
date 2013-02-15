@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="StringProperty.cs" company="Starcounter AB">
+// <copyright file="TString.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -15,9 +15,9 @@ namespace Starcounter.Templates {
 #endif
 
     /// <summary>
-    /// Class StringProperty
+    /// Class TString
     /// </summary>
-    public class StringProperty : Property<string>
+    public class TString : TValue<string>
     {
         /// <summary>
         /// Processes the input.
