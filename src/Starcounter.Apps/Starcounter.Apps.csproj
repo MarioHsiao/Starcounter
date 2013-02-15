@@ -98,7 +98,7 @@
     <Compile Include="Templates\TObj.cs" />
     <Compile Include="ValueMetadata\DecimalMetadata.cs" />
     <Compile Include="ValueMetadata\DoubleMetadata.cs" />
-    <Compile Include="ValueMetadata\IntMetadata.cs" />
+    <Compile Include="ValueMetadata\LongMetadata.cs" />
     <Compile Include="ValueMetadata\ObjectMetadata.cs" />
     <Compile Include="Templates\Foundation\ReplaceableTemplate.cs" />
     <Compile Include="Puppets\ExeModule\App.ExeModule.cs" />
