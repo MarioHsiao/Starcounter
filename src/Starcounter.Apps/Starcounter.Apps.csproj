@@ -75,6 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Messages\Message.cs" />
+    <Compile Include="Messages\TMessage.cs" />
     <Compile Include="Puppets\App.cs" />
     <Compile Include="Arr.cs" />
     <Compile Include="Puppets\ChangeLog.cs" />
@@ -91,7 +92,7 @@
     <Compile Include="Puppets\Session.cs" />
     <Compile Include="Puppets\Temp.cs" />
     <Compile Include="TemplateAttribute.cs" />
-    <Compile Include="Puppets\AppTemplate.cs" />
+    <Compile Include="Puppets\TApp.cs" />
     <Compile Include="Templates\TArr.cs" />
     <Compile Include="Templates\Foundation\TValue.cs" />
     <Compile Include="Templates\TObj.cs" />

@@ -177,8 +177,8 @@ public partial class TestMessage {
             public new TestMessage.AListApp.AListTApp Template { get { return (TestMessage.AListApp.AListTApp)base.Template; } }
             public StringMetadata AValue { get { return __p_AValue ?? (__p_AValue = new StringMetadata(App, App.Template.AValue)); } }
             private StringMetadata __p_AValue;
-            public IntMetadata ANumber { get { return __p_ANumber ?? (__p_ANumber = new IntMetadata(App, App.Template.ANumber)); } }
-            private IntMetadata __p_ANumber;
+            public LongMetadata ANumber { get { return __p_ANumber ?? (__p_ANumber = new LongMetadata(App, App.Template.ANumber)); } }
+            private LongMetadata __p_ANumber;
         }
     }
     public class TestMessageTemplate : TApp {
@@ -212,8 +212,8 @@ public partial class TestMessage {
         public TestMessageMetadata(App app, TApp template) : base(app, template) { }
         public new TestMessage App { get { return (TestMessage)base.App; } }
         public new TestMessage.TestMessageTemplate Template { get { return (TestMessage.TestMessageTemplate)base.Template; } }
-        public IntMetadata UserId { get { return __p_UserId ?? (__p_UserId = new IntMetadata(App, App.Template.UserId)); } }
-        private IntMetadata __p_UserId;
+        public LongMetadata UserId { get { return __p_UserId ?? (__p_UserId = new LongMetadata(App, App.Template.UserId)); } }
+        private LongMetadata __p_UserId;
         public StringMetadata Username { get { return __p_Username ?? (__p_Username = new StringMetadata(App, App.Template.Username)); } }
         private StringMetadata __p_Username;
         public StringMetadata Password { get { return __p_Password ?? (__p_Password = new StringMetadata(App, App.Template.Password)); } }
