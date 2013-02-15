@@ -47,7 +47,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="at">The App template (i.e. json tree prototype) to generate code for</param>
         /// <param name="metadata">The metadata.</param>
         /// <returns>An abstract code tree. Use CSharpGenerator to generate .CS code.</returns>
-        public NRoot GenerateDomTree(TApp at, CodeBehindMetadata metadata )
+        public NRoot GenerateDomTree(TPuppet at, CodeBehindMetadata metadata )
         {
             var root = new NRoot();
             var acn = new NAppClass()
@@ -137,7 +137,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             NAppClass nAppClass;
             NTemplateClass nTemplateclass;
 
-            classesInOrder = new TApp[metadata.JsonPropertyMapList.Count];
+            classesInOrder = new TPuppet[metadata.JsonPropertyMapList.Count];
             rootTemplate = root.AppClassClassNode.Template;
 
             for (Int32 i = 0; i < classesInOrder.Length; i++)
@@ -291,9 +291,9 @@ namespace Starcounter.Internal.Application.CodeGeneration
             for (Int32 i = 1; i < mapParts.Length; i++)
             {
                 template = appTemplate.Properties.GetTemplateByPropertyName(mapParts[i]);
-                if (template is TApp)
+                if (template is TPuppet)
                 {
-                    appTemplate = (TApp)template;
+                    appTemplate = (TPuppet)template;
                 }
                 else if (template is TObjArr)
                 {
@@ -382,9 +382,9 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 {
                     if (kid is TContainer)
                     {
-                        if (kid is TApp)
+                        if (kid is TPuppet)
                         {
-                            GenerateForApp(kid as TApp,
+                            GenerateForApp(kid as TPuppet,
                                            appClassParent,
                                            templParent,
                                            metaParent,
@@ -427,7 +427,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="metaParent">The meta parent.</param>
         /// <param name="template">The template.</param>
         /// <exception cref="System.Exception"></exception>
-        private void GenerateForApp(TApp at,
+        private void GenerateForApp(TPuppet at,
                                     NAppClass appClassParent,
                                     NTAppClass templParent,
                                     NClass metaParent,
@@ -495,7 +495,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             NTemplateClass.Classes[at] = tcn;
             NMetadataClass.Classes[at] = mcn;
 
-            if (at.Parent is TApp)
+            if (at.Parent is TPuppet)
                 GenerateProperty(at, appClassParent, templParent, metaParent);
         }
 
@@ -814,12 +814,12 @@ namespace Starcounter.Internal.Application.CodeGeneration
         {
             Int32 parentCount = 0;
             TContainer candidate = binding.PropertyAppClass.Template;
-            TApp appTemplate;
+            TPuppet appTemplate;
             NAppClass declaringAppClass = null;
 
             while (candidate != null)
             {
-                appTemplate = candidate as TApp;
+                appTemplate = candidate as TPuppet;
                 if (appTemplate != null)
                 {
                     if (info.DeclaringClassName.Equals(appTemplate.ClassName))
@@ -857,7 +857,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             {
                 Template current = Template;
                 while (current.Parent != null) current = (Template)current.Parent;
-                return ((TApp)current).Namespace;
+                return ((TPuppet)current).Namespace;
             }
         }
     }

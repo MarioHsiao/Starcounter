@@ -206,8 +206,8 @@ namespace Starcounter.Internal.JsonPatch
                 ret = change.App.GetValue((TDouble)template);
             } else if (template is TDecimal) {
                 ret = change.App.GetValue((TDecimal)template);
-            } else if (template is TApp) {
-                ret = change.App.GetValue((TApp)template);
+            } else if (template is TPuppet) {
+                ret = change.App.GetValue((TPuppet)template);
             }
             return ret;
         }

@@ -34,8 +34,8 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
                        }";
 
 
-            TApp actual = TemplateFromJs.CreateFromJs(script2,false);
-            Assert.IsInstanceOf(typeof(TApp), actual);
+            TPuppet actual = TemplateFromJs.CreateFromJs(script2,false);
+            Assert.IsInstanceOf(typeof(TPuppet), actual);
             Assert.IsInstanceOf<TString>(actual.Properties[0]);
             Assert.IsInstanceOf<TString>(actual.Properties[1]);
             Assert.IsInstanceOf<TBool>(actual.Properties[2]);
@@ -55,8 +55,8 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
                                       FirstName:'Joachim'               .Editable(), 
                        }.Class('TestApp')";
 
-         TApp actual = TemplateFromJs.CreateFromJs(script2, false);
-         Assert.IsInstanceOf(typeof(TApp), actual);
+         TPuppet actual = TemplateFromJs.CreateFromJs(script2, false);
+         Assert.IsInstanceOf(typeof(TPuppet), actual);
          Assert.IsInstanceOf<TString>(actual.Properties[0]);
          Assert.AreEqual(true, ((TString)actual.Properties[0]).Editable);
          Assert.AreEqual("TestApp", actual.ClassName);
@@ -85,8 +85,8 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
                        }.Class('TestApp').Namespace('Test')";
 
 
-         TApp actual = TemplateFromJs.CreateFromJs(script2, false);
-         Assert.IsInstanceOf(typeof(TApp), actual);
+         TPuppet actual = TemplateFromJs.CreateFromJs(script2, false);
+         Assert.IsInstanceOf(typeof(TPuppet), actual);
          Assert.AreEqual("TestApp", actual.ClassName);
          Assert.AreEqual("Test", actual.Namespace);
          Assert.IsInstanceOf<TString>(actual.Properties[0]);
@@ -161,8 +161,8 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
     }.Bind('this'),
     HistoryApp: {}.Include('HistoryApp')
 }.Class('CrmApp')";
-         TApp actual = TemplateFromJs.CreateFromJs(script, false);
-         Assert.IsInstanceOf(typeof(TApp), actual);
+         TPuppet actual = TemplateFromJs.CreateFromJs(script, false);
+         Assert.IsInstanceOf(typeof(TPuppet), actual);
       }
    }
 }

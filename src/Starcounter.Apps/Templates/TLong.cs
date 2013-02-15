@@ -29,7 +29,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="rawValue">The raw value.</param>
-        public override void ProcessInput(App app, byte[] rawValue)
+        public override void ProcessInput(Puppet app, byte[] rawValue)
         {
             long v = (long)Utf8Helper.IntFastParseFromAscii(rawValue, 0, (uint)rawValue.Length);
             ProcessInput(app, v);

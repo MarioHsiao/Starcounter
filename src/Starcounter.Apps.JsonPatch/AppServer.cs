@@ -59,8 +59,8 @@ namespace Starcounter.Internal.Web {
                 object x;
                 RequestHandler.RequestProcessor.Invoke(request, out x);
                 if (x != null) {
-                    if (x is App) {
-                        var app = (App)x;
+                    if (x is Puppet) {
+                        var app = (Puppet)x;
                        
                         // TODO:
                         // How do we create new sessions and what is allowed here...

@@ -30,7 +30,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <summary>
         /// The app template
         /// </summary>
-        public static TApp TApp = new TApp();
+        public static TPuppet TApp = new TPuppet();
         /// <summary>
         /// The double property
         /// </summary>

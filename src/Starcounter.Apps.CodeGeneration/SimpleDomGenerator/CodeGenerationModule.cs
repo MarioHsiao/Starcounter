@@ -21,8 +21,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="metadata">The metadata.</param>
         /// <returns>ITemplateCodeGenerator.</returns>
         public ITemplateCodeGenerator CreateGenerator(string dotNetLanguage, object template, object metadata) {
-            var gen = new DomGenerator(this, (TApp)template);
-            return new CSharpGenerator(gen.GenerateDomTree((TApp)template, (CodeBehindMetadata)metadata));
+            var gen = new DomGenerator(this, (TPuppet)template);
+            return new CSharpGenerator(gen.GenerateDomTree((TPuppet)template, (CodeBehindMetadata)metadata));
         }
 
     }
