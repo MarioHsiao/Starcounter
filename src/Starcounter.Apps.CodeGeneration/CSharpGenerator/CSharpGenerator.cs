@@ -31,18 +31,19 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         public int Indentation { get; set; }
 
         /// <summary>
-        /// The code generator can be used to generate Messages and Puppets. This property
-        /// contains which of these templates to use as the default template for new objects.
+        /// The code generator can be used to generate Messages and Puppets. My storing the generarator
+        /// we can obtain the wanted default obj template, i.e.
+        /// which template to use as the default template for new objects.
         /// </summary>
-        public TObj DefaultObjTemplate;
+        public DomGenerator Generator;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CSharpGenerator" /> class.
         /// </summary>
         /// <param name="defaultObjTempalte">The defaultObjTempalte.</param>
         /// <param name="root">The root.</param>
-        public CSharpGenerator(TObj defaultObjTempalte, NRoot root ) {
-            DefaultObjTemplate = defaultObjTempalte;
+        public CSharpGenerator(DomGenerator generator, NRoot root ) {
+            Generator = generator;
             Root = root;
             Indentation = 4;
         }
@@ -393,7 +394,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         }
 
         private NClass GetParentPropertyType(Template a) {
-            var x = NValueClass.Find((Template)a.Parent);
+            var x = Generator.FindValueClass((Template)a.Parent);
             return x;
         }
 
@@ -410,7 +411,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             sb.Append(";");
             m.Prefix.Add(sb.ToString());
 
-            var objClassName = DefaultObjTemplate.InstanceType.Name; // "Puppet", "Message"
+            var objClassName = Generator.DefaultObjTemplate.InstanceType.Name; // "Puppet", "Message"
 
             if (m.Bound) {
                 sb.Clear();
@@ -567,7 +568,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     }
                     a.Prefix.Add(sb.ToString());
 
-                    string objClassName = DefaultObjTemplate.InstanceType.Name;
+                    string objClassName = Generator.DefaultObjTemplate.InstanceType.Name;
                     if ((mn.Template is TObjArr) && (!mn.FunctionGeneric.FullClassName.Equals( objClassName ))) { // TODO!
                         sb.Clear();
                         sb.Append("        ");
@@ -673,8 +674,8 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             sb.Append("    public ");
             sb.Append(a.ClassName);
 
-            string objClassName = DefaultObjTemplate.InstanceType.Name;
-            string tobjClassName = DefaultObjTemplate.GetType().Name;
+            string objClassName = Generator.DefaultObjTemplate.InstanceType.Name;
+            string tobjClassName = Generator.DefaultObjTemplate.GetType().Name;
 
             sb.Append('(');
             sb.Append( objClassName ); // "Puppet", "Message"

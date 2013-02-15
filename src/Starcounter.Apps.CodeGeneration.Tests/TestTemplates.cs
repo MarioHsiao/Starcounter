@@ -39,7 +39,7 @@ namespace Test {
             TPuppet actual = TemplateFromJs.ReadPuppetTemplateFromFile("MySampleApp.json");
             Assert.IsInstanceOf(typeof(TPuppet), actual);
             CodeGenerationModule codegenmodule = new CodeGenerationModule();
-            var codegen = codegenmodule.CreateGenerator("C#", actual, CodeBehindMetadata.Empty);
+            var codegen = codegenmodule.CreateGenerator(typeof(TPuppet),"C#", actual, CodeBehindMetadata.Empty);
             Console.WriteLine(codegen.GenerateCode());
         }
 
@@ -56,7 +56,7 @@ namespace Test {
            file.Close();
            Assert.IsInstanceOf(typeof(TPuppet), actual);
            var codegenmodule = new CodeGenerationModule();
-           ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator("C#",actual, CodeBehindMetadata.Empty);
+           ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TPuppet),"C#",actual, CodeBehindMetadata.Empty);
            var code = codegen.GenerateCode();
            Console.WriteLine(code);
            // Assert.AreEqual(facit, code);
@@ -74,7 +74,7 @@ namespace Test {
             Assert.IsNotNullOrEmpty(actual.Namespace);
 
             CodeGenerationModule codegenmodule = new CodeGenerationModule();
-            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator("C#", actual, metadata);
+            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TPuppet),"C#", actual, metadata);
             Console.WriteLine(codegen.GenerateCode());
         }
 
@@ -91,7 +91,7 @@ namespace Test {
             Assert.IsNotNullOrEmpty(actual.Namespace);
 
             CodeGenerationModule codegenmodule = new CodeGenerationModule();
-            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator("C#", actual, metadata);
+            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TPuppet),"C#", actual, metadata);
             Console.WriteLine(codegen.GenerateCode());
         }
     }

@@ -25,7 +25,9 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="appType">Type of the app.</param>
         /// <param name="templateType">Type of the template.</param>
         /// <param name="template"></param>
-        public NListingXXXClass(string typename, NClass appType, NClass templateType, Template template ) {
+        public NListingXXXClass(DomGenerator gen, string typename, NClass appType, NClass templateType, Template template ) 
+        :base( gen)
+        {
             //this.NTemplateClass.Template = template;            
             TypeName = typename;
             NApp = appType;

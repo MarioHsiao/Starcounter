@@ -17,6 +17,10 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// </summary>
     public abstract class NClass : NBase {
 
+        public NClass(DomGenerator gen)
+            : base(gen) {
+        }
+
         /// <summary>
         /// Gets the name of the class.
         /// </summary>
