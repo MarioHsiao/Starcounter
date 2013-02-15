@@ -148,7 +148,7 @@ namespace Starcounter.Templates {
         /// <param name="name">The name of the new template</param>
         /// <param name="type"></param>
         /// <returns>A new instance of the specified template</returns>
-        public T Add<T>(string name, ObjTemplate type) where T : ObjArrTemplate, new() {
+        public T Add<T>(string name, ObjTemplate type) where T : ObjArrProperty, new() {
             T t = new T() { Name = name, App = type };
             Properties.Add(t);
             return t;
