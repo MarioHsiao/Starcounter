@@ -389,10 +389,11 @@ private:
 	volatile uint32_t allocated_channels_;
 	
 	// The IPC monitor will set database_cleanup_index_ (range 0 to databases -1)
-	// when starting the cleanup. When the database is done with the cleanup
-	// related to this client_interface, it will use this index to access an entry
-	// in the monitor_interface where it will flag that it is done with the cleanup.
-	// Then it will notify the cleanup thread in the IPC monitor to check this container.
+	// before notifying the scheduler's to start their part of the cleanup.
+	// When the database is done with the cleanup related to this client_interface,
+	// it will use this index to access an entry in the monitor_interface where it
+	// will flag that it is done with the cleanup, and notify the cleanup thread in
+	// the IPC monitor to check this container.
 	// There it will find this, and use the data there to access the IPC shared memory
 	// segment and search through the client_interface[s] for
 	int32_t database_cleanup_index_;
@@ -400,6 +401,7 @@ private:
 	char cache_line_pad_3_[CACHE_LINE_SIZE
 	-sizeof(owner_id) // owner_id_
 	-sizeof(uint32_t) // allocated_channels_
+	-sizeof(int32_t) // database_cleanup_index_
 	];
 	
 	resource_map resource_map_;

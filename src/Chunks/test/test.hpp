@@ -103,7 +103,7 @@ class test : private boost::noncopyable {
 public:
 	enum {
 		// Number of workers to be instantiated in the test.
-		workers = 1
+		workers = 3
 	};
 	
 	/// Construction of the test application.

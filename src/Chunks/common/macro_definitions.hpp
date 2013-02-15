@@ -55,6 +55,7 @@
 /// to use a robust spinlock and windows events to synchronize access to
 /// scheduler_interface.
 
+/// NOT OPTIONAL TO DISABLE THIS ANYMORE - TODO.
 #define IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
 
 ///********************************************************************************************
