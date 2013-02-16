@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 
-extern "C" int32_t make_sc_process_uri(const wchar_t *server_name, const wchar_t *process_name, wchar_t *buffer, size_t *pbuffer_size);
+extern "C" int32_t make_sc_process_uri(const char *server_name, const char *process_name, wchar_t *buffer, size_t *pbuffer_size);
 
 #define MONITOR_INHERIT_CONSOLE 0
 #define GATEWAY_INHERIT_CONSOLE 0
@@ -39,7 +39,8 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 
     uint32_t r;
 
-    wchar_t *srv_name = L"PERSONAL";
+    const wchar_t *srv_name = L"PERSONAL";
+	const char *srv_name_ascii = "PERSONAL";
 
     if (argc > 1)
     {
@@ -89,6 +90,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
         goto end;
     
     const wchar_t *admin_dbname = L"administrator";	
+    const char *admin_dbname_ascii = "administrator";	
 	const wchar_t *mingw = L"MinGW\\bin\\x86_64-w64-mingw32-gcc.exe";
 
     void *handles[5];
@@ -136,10 +138,10 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     _wcsupr_s(admin_dbname_upr, str_num_chars);
 
 	str_num_chars = 0;
-	make_sc_process_uri(srv_name, admin_dbname, 0, &str_num_chars);
+	make_sc_process_uri(srv_name_ascii, admin_dbname_ascii, 0, &str_num_chars);
     admin_dburi = (wchar_t *)malloc(str_num_chars * sizeof(wchar_t));
     if (!admin_dburi) goto err_nomem;
-	make_sc_process_uri(srv_name, admin_dbname, admin_dburi, &str_num_chars);
+	make_sc_process_uri(srv_name_ascii, admin_dbname_ascii, admin_dburi, &str_num_chars);
 
     str_template = L"SCSERVICE_%s";
     str_num_chars = 
@@ -187,7 +189,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     if (r) goto end;
 
     // Registering the logger.
-    r = OpenStarcounterLog(server_logs_dir);
+    r = OpenStarcounterLog(srv_name_ascii, server_logs_dir);
     if (r) goto end;
 
 	// Creating path to the database configuration file.

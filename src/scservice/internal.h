@@ -43,7 +43,7 @@ extern uint32_t _read_database_config(
     wchar_t **pdatabase_scheduler_count);
 
 // Opens Starcounter log for writing.
-uint32_t OpenStarcounterLog(wchar_t* server_log_dir);
+uint32_t OpenStarcounterLog(const char *server_name, const wchar_t* server_log_dir);
 
 // Closes Starcounter log.
 void CloseStarcounterLog();
