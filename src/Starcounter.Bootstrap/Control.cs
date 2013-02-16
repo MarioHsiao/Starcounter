@@ -430,7 +430,11 @@ namespace StarcounterInternal.Bootstrap
             if (e != 0) throw ErrorCode.ToException(e);
 
             ulong hlogs;
-            e = sccorelog.sccorelog_connect_to_logs(c.Name, null, &hlogs);
+            e = sccorelog.sccorelog_connect_to_logs(
+                ScUri.MakeDatabaseUri(ScUri.GetMachineName(), c.ServerName, c.Name),
+                null,
+                &hlogs
+                );
             if (e != 0) throw ErrorCode.ToException(e);
 
             e = sccorelog.sccorelog_bind_logs_to_dir(hlogs, c.OutputDirectory);
