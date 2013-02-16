@@ -14,6 +14,13 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     public class NPredefinedType : NClass {
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gen"></param>
+        public NPredefinedType(DomGenerator gen) : base(gen) {
+        }
+
+        /// <summary>
         /// The _ fixed class name
         /// </summary>
         private string _FixedClassName;

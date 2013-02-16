@@ -1,12 +1,14 @@
 ﻿
-/// <summary>
-/// Class JsonToCsMsBuildTask
-/// </summary>
+
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Starcounter.Templates;
 
 namespace Starcounter.Internal.MsBuild {
+    
+    /// <summary>
+    /// Class JsonToCsMsBuildTask
+    /// </summary>
     public class JsonToPuppetCsMsBuildTask : Task {
         /// <summary>
         /// Gets or sets the input files.

@@ -17,6 +17,15 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// Represents a property, a field or a function
     /// </summary>
     public class NProperty : NBase {
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gen"></param>
+        public NProperty(DomGenerator gen)
+            : base(gen) {
+        }
+
         /// <summary>
         /// Gets or sets the type.
         /// </summary>
@@ -66,10 +75,10 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <returns>A <see cref="System.String" /> that represents this instance.</returns>
         public override string ToString() {
             string str = MemberName;
-            if (FunctionGeneric != null) {
-                str += "<" + FunctionGeneric.FullClassName + ">";
-            }
-            return Type.FullClassName + " " + str;
+//            if (FunctionGeneric != null) {
+//                str += "<" + FunctionGeneric.FullClassName + ">";
+//            }
+            return "NMEMBER " + Type.FullClassName + " " + str;
         }
     }
 }
