@@ -31,15 +31,142 @@ namespace Starcounter.Internal.Application.CodeGeneration
     public class DomGenerator
     {
 
-        /// <summary>
-        /// Creates a dom generator for a template
-        /// </summary>
-        /// <param name="mod">The mod.</param>
-        /// <param name="template">The represented template</param>
-        internal DomGenerator(CodeGenerationModule mod, TObj template)
+        internal DomGenerator(CodeGenerationModule mod, TObj template, Type defaultNewObjTemplateType )
         { //, string typename, string templateClass, string metadataClass ) {
-            DefaultObjTemplate = template;
+            DefaultObjTemplate = (TObj)defaultNewObjTemplateType.GetConstructor(new Type[0]).Invoke(null);
+            InitTemplateClasses();
+            InitMetadataClasses();
+            InitValueClasses();
         }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        public Dictionary<Template, NValueClass> ValueClasses = new Dictionary<Template, NValueClass>();
+        /// <summary>
+        /// 
+        /// </summary>
+        public Dictionary<Template, NTemplateClass> TemplateClasses = new Dictionary<Template, NTemplateClass>();
+        /// <summary>
+        /// 
+        /// </summary>
+        public Dictionary<Template, NMetadataClass> MetaClasses = new Dictionary<Template, NMetadataClass>();
+
+        /// <summary>
+        /// Initializes static members of the <see cref="NTemplateClass" /> class.
+        /// </summary>
+        void InitTemplateClasses() {
+            TemplateClasses[TPString] = new NPropertyClass(this) { Template = TPString };
+            TemplateClasses[TPLong] = new NPropertyClass(this) { Template = TPLong };
+            TemplateClasses[TPDecimal] = new NPropertyClass(this) { Template = TPDecimal };
+            TemplateClasses[TPDouble] = new NPropertyClass(this) { Template = TPDouble };
+            TemplateClasses[TPBool] = new NPropertyClass(this) { Template = TPBool };
+            TemplateClasses[TPAction] = new NPropertyClass(this) { Template = TPAction };
+            TemplateClasses[DefaultObjTemplate] = new NTAppClass(this) { Template = DefaultObjTemplate };
+        }
+
+        
+        /// <summary>
+        /// Initializes static members of the <see cref="NMetadataClass" /> class.
+        /// </summary>
+        void InitMetadataClasses() {
+            MetaClasses[TPString] = new NMetadataClass(this) { NTemplateClass = TemplateClasses[TPString] };
+            MetaClasses[TPLong] = new NMetadataClass(this) { NTemplateClass = TemplateClasses[TPLong] };
+            MetaClasses[TPDecimal] = new NMetadataClass(this) { NTemplateClass = TemplateClasses[TPDecimal] };
+            MetaClasses[TPDouble] = new NMetadataClass(this) { NTemplateClass = TemplateClasses[TPDouble] };
+            MetaClasses[TPBool] = new NMetadataClass(this) { NTemplateClass = TemplateClasses[TPBool] };
+            MetaClasses[TPAction] = new NMetadataClass(this) { NTemplateClass = TemplateClasses[TPAction] };
+            MetaClasses[DefaultObjTemplate] = new NMetadataClass(this) { NTemplateClass = TemplateClasses[DefaultObjTemplate] };
+        }
+
+        
+
+        /// <summary>
+        /// Initializes static members of the <see cref="NValueClass" /> class.
+        /// </summary>
+        void InitValueClasses() {
+            ValueClasses[TPString] = new NPrimitiveType(this) { NTemplateClass = TemplateClasses[TPString] };
+            ValueClasses[TPLong] = new NPrimitiveType(this) { NTemplateClass = TemplateClasses[TPLong] };
+            ValueClasses[TPDecimal] = new NPrimitiveType(this) { NTemplateClass = TemplateClasses[TPDecimal] };
+            ValueClasses[TPDouble] = new NPrimitiveType(this) { NTemplateClass = TemplateClasses[TPDouble] };
+            ValueClasses[TPBool] = new NPrimitiveType(this) { NTemplateClass = TemplateClasses[TPBool] };
+            ValueClasses[TPAction] = new NPrimitiveType(this) { NTemplateClass = TemplateClasses[TPAction] };
+            ValueClasses[DefaultObjTemplate] = new NAppClass(this) { NTemplateClass = TemplateClasses[DefaultObjTemplate] };
+        }
+
+
+        /// <summary>
+        /// Finds the specified template.
+        /// </summary>
+        /// <param name="template">The template.</param>
+        /// <returns>NValueClass.</returns>
+        public NValueClass FindValueClass(Template template) {
+            template = GetPrototype(template);
+            return ValueClasses[template];
+        }
+
+
+
+        /// <summary>
+        /// Finds the specified template.
+        /// </summary>
+        /// <param name="template">The template.</param>
+        /// <returns>NMetadataClass.</returns>
+        public NMetadataClass FindMetaClass(Template template) {
+            template = GetPrototype(template);
+            return MetaClasses[template];
+        }
+
+
+
+        /// <summary>
+        /// Gets the prototype.
+        /// </summary>
+        /// <param name="template">The template.</param>
+        /// <returns>Template.</returns>
+        public Template GetPrototype(Template template) {
+            if (template is TString) {
+                return TPString;
+            }
+            else if (template is TLong) {
+                return TPLong;
+            }
+            else if (template is TDouble) {
+                return TPDouble;
+            }
+            else if (template is TDecimal) {
+                return TPDecimal;
+            }
+            else if (template is TBool) {
+                return TPBool;
+            }
+            else if (template is ActionProperty) {
+                return TPAction;
+            }
+            return template;
+        }
+
+
+
+
+        /// <summary>
+        /// Finds the specified template.
+        /// </summary>
+        /// <param name="template">The template.</param>
+        /// <returns>NTemplateClass.</returns>
+        public NTemplateClass FindTemplateClass(Template template) {
+            // template = GetPrototype(template);
+            return TemplateClasses[template];
+        }
+
+        internal TString TPString = new TString();
+        internal TLong TPLong = new TLong();
+        internal TDecimal TPDecimal = new TDecimal();
+        internal TObj DefaultObjTemplate = null;
+        internal TDouble TPDouble = new TDouble();
+        internal TBool TPBool = new TBool();
+        internal ActionProperty TPAction = new ActionProperty();
+
 
         /// <summary>
         /// This is the main calling point to generate a dom tree for a application template.
@@ -49,8 +176,8 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <returns>An abstract code tree. Use CSharpGenerator to generate .CS code.</returns>
         public NRoot GenerateDomTree( TObj at, CodeBehindMetadata metadata )
         {
-            var root = new NRoot();
-            var acn = new NAppClass()
+            var root = new NRoot( this );
+            var acn = new NAppClass(this)
             {
                 Parent = root,
                 IsPartial = true,
@@ -58,21 +185,21 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 GenericTypeArgument = metadata.GenericArgument
             };
 
-            var tcn = new NTAppClass()
+            var tcn = new NTAppClass( this )
             {
                 Parent = acn,
                 NValueClass = acn,
                 Template = at,
                 _Inherits = DefaultObjTemplate.GetType().Name // "TPuppet,TMessage"
             };
-            var mcn = new NObjMetadata()
+            var mcn = new NObjMetadata( this )
             {
                 Parent = acn,
                 NTemplateClass = tcn,
                 _Inherits = "ObjMetadata"
             };
 
-            new NAppSerializerClass() {
+            new NAppSerializerClass( this ) {
                 Parent = acn,
                 NAppClass = acn
             };
@@ -80,9 +207,9 @@ namespace Starcounter.Internal.Application.CodeGeneration
 //            acn.NTemplateClass.Temp               NTemplateClass = NTemplateClass.Classes[at],
             tcn.NMetadataClass = mcn;
 
-            NValueClass.Classes[at] = acn;
-            NTemplateClass.Classes[at] = tcn;
-            NMetadataClass.Classes[at] = mcn;
+            this.ValueClasses[at] = acn;
+            this.TemplateClasses[at] = tcn;
+            this.MetaClasses[at] = mcn;
 
             root.AppClassClassNode = acn;
 //            acn.MetaDataClass = mcn;
@@ -100,7 +227,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             MoveNestedClassToBottom(root);
 
 //                Container = acn,
-            var json = new NJsonAttributeClass()
+            var json = new NJsonAttributeClass(this)
             {
                 Parent = acn,
                 IsStatic = true,
@@ -109,7 +236,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             };
             GenerateJsonAttributes(acn, json);
 
-            var input = new NOtherClass()
+            var input = new NOtherClass(this)
             {
                 Parent = acn,
                 _ClassName = "Input",
@@ -158,7 +285,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 if (!String.IsNullOrEmpty(mapInfo.Namespace))
                     appTemplate.Namespace = mapInfo.Namespace;
 
-                nAppClass = NValueClass.Classes[appTemplate] as NAppClass;
+                nAppClass = ValueClasses[appTemplate] as NAppClass;
                 nAppClass.IsPartial = true;
                 nAppClass._Inherits = null;
                 nAppClass.AutoBindPropertiesToEntity = mapInfo.AutoBindToEntity;
@@ -166,7 +293,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 if (mapInfo.AutoBindToEntity) {
                     nAppClass.GenericTypeArgument = mapInfo.GenericArgument;
                     BindAutoBoundProperties(nAppClass.Children);
-                    nTemplateclass = NTAppClass.Classes[appTemplate];
+                    nTemplateclass = TemplateClasses[appTemplate];
                     BindAutoBoundProperties(nTemplateclass.Children);
                 }
 
@@ -220,7 +347,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
 
             for (Int32 i = 0; i < classesInOrder.Length; i++)
             {
-                theClass = NValueClass.Classes[classesInOrder[i]];
+                theClass = ValueClasses[classesInOrder[i]];
                 parentClasses = mapInfos[i].ParentClasses;
                 if (parentClasses.Count > 0)
                 {
@@ -234,7 +361,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                         }
                         else
                         {
-                            notExistingClass = new NOtherClass();
+                            notExistingClass = new NOtherClass(this);
                             notExistingClass._ClassName = parentClasses[pi];
                             notExistingClass.IsPartial = true;
                             notExistingClass.Parent = parent;
@@ -408,8 +535,8 @@ namespace Starcounter.Internal.Application.CodeGeneration
                     }
                     else
                     {
-                        var type = new NPropertyClass() { Template = kid /*, Parent = appClassParent */ }; // Orphaned by design as primitive types dont get custom template classes
-                        NTemplateClass.Classes[kid] = type;
+                        var type = new NPropertyClass(this) { Template = kid /*, Parent = appClassParent */ }; // Orphaned by design as primitive types dont get custom template classes
+                        TemplateClasses[kid] = type;
 
                         GenerateProperty(kid, appClassParent, templParent, metaParent);
                     }
@@ -443,26 +570,26 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 // This means that they can be assigned to any App object. 
                 // A typical example is to have a Page:{} property in a master
                 // app (representing, for example, child web pages)
-                acn = NValueClass.Classes[NTemplateClass.TApp];
-                tcn = NTemplateClass.Classes[NTemplateClass.TApp];
-                mcn = NMetadataClass.Classes[NTemplateClass.TApp];
+                acn = ValueClasses[DefaultObjTemplate];
+                tcn = TemplateClasses[DefaultObjTemplate];
+                mcn = MetaClasses[DefaultObjTemplate];
             }
             else
             {
                 NAppClass racn;
-                acn = racn = new NAppClass()
+                acn = racn = new NAppClass(this)
                 {
                     Parent = appClassParent,
                     _Inherits = DefaultObjTemplate.InstanceType.Name // "Puppet", "Message"
                 };
-                tcn = new NTAppClass()
+                tcn = new NTAppClass(this)
                 {
                     Parent = racn,
                     Template = at,
                     NValueClass = racn,
                     _Inherits = DefaultObjTemplate.GetType().Name // "TPuppet", "TMessage"
                 };
-                mcn = new NObjMetadata()
+                mcn = new NObjMetadata(this)
                 {
                     Parent = racn,
                     NTemplateClass = tcn,
@@ -471,7 +598,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 tcn.NMetadataClass = mcn;
                 racn.NTemplateClass = tcn;
 
-                new NAppSerializerClass() {
+                new NAppSerializerClass( this ) {
                     Parent = FindRootNAppClass(appClassParent),
                     NAppClass = racn
                 };
@@ -491,9 +618,9 @@ namespace Starcounter.Internal.Application.CodeGeneration
                     throw new Exception(); // ...last member
                 acn.Children.Add(mcn); // ...last member
             }
-            NValueClass.Classes[at] = acn;
-            NTemplateClass.Classes[at] = tcn;
-            NMetadataClass.Classes[at] = mcn;
+            ValueClasses[at] = acn;
+            TemplateClasses[at] = tcn;
+            MetaClasses[at] = mcn;
 
             if (at.Parent is TPuppet)
                 GenerateProperty(at, appClassParent, templParent, metaParent);
@@ -526,36 +653,36 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 bound = (at.Bound || (appClassParent.AutoBindPropertiesToEntity));
             }
 
-            var valueClass = NValueClass.Find(at);
-            var type = NTemplateClass.Find(at);
+            var valueClass = FindValueClass(at);
+            var type = FindTemplateClass(at);
 
-            type.NValueProperty = new NProperty()
+            type.NValueProperty = new NProperty( this )
             {
                 Parent = appClassParent,
                 Template = at,
                 Type = valueClass,
                 Bound = bound
             };
-            new NProperty()
+            new NProperty( this )
             {
                 Parent = templParent,
                 Template = at,
                 Type = type,
                 Bound = bound
             };
-            new NProperty()
+            new NProperty( this )
             {
                 Parent = templParent.Constructor,
                 Template = at,
-                Type = NTemplateClass.Find(at),
+                Type = FindTemplateClass(at),
                 Bound = bound
 
             };
-            new NProperty()
+            new NProperty(this)
             {
                 Parent = metaParent,
                 Template = at,
-                Type = NMetadataClass.Find(at),
+                Type = FindMetaClass(at),
                 Bound = bound
             };
         }
@@ -578,48 +705,48 @@ namespace Starcounter.Internal.Application.CodeGeneration
             // How do we set notbound on an autobound property?
             bool bound = (alt.Bound || (appClassParent.AutoBindPropertiesToEntity));
             
-            var amn = new NProperty()
+            var amn = new NProperty( this )
             {
                 Parent = appClassParent,
                 Template = alt,
                 Bound = bound
             };
-            var tmn = new NProperty()
+            var tmn = new NProperty( this )
             {
                 Parent = appClassParent.NTemplateClass,
                 Template = alt,
                 Bound = bound
             };
-            var cstmn = new NProperty()
+            var cstmn = new NProperty( this )
             {
                 Parent = ((NTAppClass)appClassParent.NTemplateClass).Constructor,
                 Template = alt,
                 Bound = bound
             };
-            var mmn = new NProperty()
+            var mmn = new NProperty( this )
             {
                 Parent = appClassParent.NTemplateClass.NMetadataClass,
                 Template = alt,
                 Bound = bound
             };
             GenerateKids(appClassParent, templParent, metaParent, alt);
-            var vlist = new NListingXXXClass("Listing", NValueClass.Classes[alt.App], null,alt);
+            var vlist = new NListingXXXClass(this, "Listing", ValueClasses[alt.App], null,alt);
             amn.Type = vlist;
 
-            tmn.Type = new NListingXXXClass("TArr", 
-                                            NValueClass.Classes[alt.App], 
-                                            NTemplateClass.Classes[alt.App], alt);
-            cstmn.Type = new NListingXXXClass("TArr",
-                                            NValueClass.Classes[alt.App],
-                                            NTemplateClass.Classes[alt.App], alt);
+            tmn.Type = new NListingXXXClass(this, "TArr", 
+                                            ValueClasses[alt.App], 
+                                            TemplateClasses[alt.App], alt);
+            cstmn.Type = new NListingXXXClass(this, "TArr",
+                                            ValueClasses[alt.App],
+                                            TemplateClasses[alt.App], alt);
 
-            mmn.Type = new NListingXXXClass("ArrMetadata", 
-                                            NValueClass.Classes[alt.App], 
-                                            NTemplateClass.Classes[alt.App], alt);
+            mmn.Type = new NListingXXXClass(this,"ArrMetadata", 
+                                            ValueClasses[alt.App], 
+                                            TemplateClasses[alt.App], alt);
 
             //ntempl.Template = alt;
 //            NTemplateClass.Classes[alt] = tlist;
-            NValueClass.Classes[alt] = vlist;
+            ValueClasses[alt] = vlist;
         }
 
         /// <summary>
@@ -637,7 +764,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             {
                 if (kid is NAppClass)
                 {
-                    var x = new NJsonAttributeClass()
+                    var x = new NJsonAttributeClass(this)
                     {
                         _Inherits = "TemplateAttribute",
                         _ClassName = (kid as NAppClass).Stem,
@@ -671,7 +798,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                             type = (mn.Type as NListingXXXClass).NApp;
                         else
                             type = mn.Type as NAppClass;
-                        var x = new NOtherClass()
+                        var x = new NOtherClass(this)
                         {
                             Parent = parent,
                             IsStatic = true,
@@ -683,7 +810,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                     {
                         if (mn.Type is NPrimitiveType)
                         {
-                            new NEventClass()
+                            new NEventClass(this)
                             {
                                 NMember = mn,
                                 Parent = parent,
@@ -742,7 +869,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                     {
                         template = ((TObjArr)template).App;
                     }
-                    propertyAppClass = (NTAppClass)NTAppClass.Find(template);
+                    propertyAppClass = (NTAppClass)FindTemplateClass(template);
                 }
 
                 propertyName = parts[parts.Length-1];
@@ -775,9 +902,9 @@ namespace Starcounter.Internal.Application.CodeGeneration
                                         " exists.");
                 }
 
-                binding = new NInputBinding();
+                binding = new NInputBinding(this);
                 binding.BindsToProperty = (NProperty)cst.Children[index];
-                binding.PropertyAppClass = (NAppClass)NAppClass.Find(propertyAppClass.Template);
+                binding.PropertyAppClass = (NAppClass)FindValueClass(propertyAppClass.Template);
                 binding.InputTypeName = info.FullInputTypeName;
                 FindHandleDeclaringClass(binding, info);
 
@@ -810,7 +937,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="binding">The binding.</param>
         /// <param name="info">The info.</param>
         /// <exception cref="System.Exception">Could not find the app where Handle method is declared.</exception>
-        private static void FindHandleDeclaringClass(NInputBinding binding, InputBindingInfo info)
+        private void FindHandleDeclaringClass(NInputBinding binding, InputBindingInfo info)
         {
             Int32 parentCount = 0;
             TContainer candidate = binding.PropertyAppClass.Template;
@@ -824,7 +951,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 {
                     if (info.DeclaringClassName.Equals(appTemplate.ClassName))
                     {
-                        declaringAppClass = (NAppClass)NAppClass.Find(appTemplate);
+                        declaringAppClass = (NAppClass)FindValueClass(appTemplate);
                         break;
                     }
                 }
@@ -841,11 +968,6 @@ namespace Starcounter.Internal.Application.CodeGeneration
             binding.DeclaringAppClass = declaringAppClass;
             binding.AppParentCount = parentCount;
         }
-
-        /// <summary>
-        /// The field behind the Template property.
-        /// </summary>
-        internal TObj DefaultObjTemplate;
 
         /// <summary>
         /// Employed by the template code generator.

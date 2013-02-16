@@ -12,10 +12,19 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Starcounter.Internal.Application.CodeGeneration {
+
     /// <summary>
-    /// Class NClass
+    /// 
     /// </summary>
     public abstract class NClass : NBase {
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gen"></param>
+        public NClass(DomGenerator gen)
+            : base(gen) {
+        }
 
         /// <summary>
         /// Gets the name of the class.
@@ -70,7 +79,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <exception cref="System.Exception"></exception>
         public override string ToString() {
             if (ClassName != null) {
-                var str = "class " + ClassName;
+                var str = "NCLASS " + ClassName;
                 if (Inherits != null) {
                     str += ":" + Inherits;
                 }
