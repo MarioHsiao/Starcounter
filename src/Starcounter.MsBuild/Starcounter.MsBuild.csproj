@@ -107,6 +107,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Starcounter.MsBuild.Develop.targets" />
     <None Include="Starcounter.MsBuild.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
