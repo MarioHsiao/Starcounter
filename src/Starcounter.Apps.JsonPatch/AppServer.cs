@@ -106,8 +106,10 @@ namespace Starcounter.Internal.Web {
                     // TODO:
                     // We should try to inject all things in one go (scriptinjection, headerinjection) to avoid 
                     // unnecessary creation and copying of buffers.
-                    byte[] toInject = System.Text.Encoding.UTF8.GetBytes("Set-Cookie: " + request.SessionStruct.SessionCookieStubString + "; HttpOnly\r\n");
-                    response.Uncompressed = ScriptInjector.InjectInHeader(response.GetBytes(request), toInject, response.HeaderInjectionPoint);
+                    response.Uncompressed = ScriptInjector.InjectInHeader(
+                        response.GetBytes(request),
+                        request.SessionStruct.SessionHeaderPlusEndlineStubBytes,
+                        response.HeaderInjectionPoint);
                 }
 
                 return response;
