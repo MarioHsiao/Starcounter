@@ -5,31 +5,46 @@
 #include <stdio.h>
 #include <string.h>
 
+extern "C" int32_t make_sc_process_uri(const char *server_name, const char *process_name, wchar_t *buffer, size_t *pbuffer_size);
+extern "C" int32_t make_sc_server_uri(const char *server_name, wchar_t *buffer, size_t *pbuffer_size);
+
 // Global handle to server log.
 extern uint64_t g_sc_log_handle_;
 
 // Opens Starcounter log for writing.
-uint32_t OpenStarcounterLog(wchar_t* server_log_dir)
+uint32_t OpenStarcounterLog(const char *server_name, const wchar_t *server_log_dir)
 {
-    uint32_t err_code = sccorelog_init(0);
-    if (err_code)
-        return err_code;
+	size_t host_name_size;
+	wchar_t *host_name;
+	uint32_t err_code;
 
-    err_code = sccorelog_connect_to_logs(L"scservice", NULL, &g_sc_log_handle_);
-    if (err_code)
-    {
-        g_sc_log_handle_ = 0;
-        return err_code;
-    }
+	host_name_size = 0;
+//	make_sc_server_uri(server_name, 0, &host_name_size);
+	make_sc_process_uri(server_name, "service", 0, &host_name_size);
+	host_name = (wchar_t *)malloc(host_name_size * sizeof(wchar_t));
+	if (host_name)
+	{
+//		make_sc_server_uri(server_name, host_name, &host_name_size);
+		make_sc_process_uri(server_name, "service", host_name, &host_name_size);
 
-    err_code = sccorelog_bind_logs_to_dir(g_sc_log_handle_, server_log_dir);
-    if (err_code)
-    {
-        g_sc_log_handle_ = 0;
-        return err_code;
-    }
+		err_code = sccorelog_init(0);
+		if (err_code) goto err;
 
-    return 0;
+		err_code = sccorelog_connect_to_logs(host_name, NULL, &g_sc_log_handle_);
+		if (err_code) goto err;
+
+		err_code = sccorelog_bind_logs_to_dir(g_sc_log_handle_, server_log_dir);
+		if (err_code) goto err;
+
+		goto end;
+	}
+	
+	err_code = SCERROUTOFMEMORY;
+err:
+    g_sc_log_handle_ = 0;
+end:
+	if (host_name) free(host_name);
+	return err_code;
 }
 
 // Closes Starcounter log.

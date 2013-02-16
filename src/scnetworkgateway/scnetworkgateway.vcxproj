@@ -57,6 +57,9 @@
     <ProjectReference Include="..\Chunks\BMX\bmx.vcxproj">
       <Project>{6665517f-743d-4809-94d3-13325fc2af74}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\libs\urihelp\urihelp.vcxproj">
+      <Project>{d5f60a3b-457b-4462-8cb2-f9b12188b311}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="scripts\gw_test_pair_client.xml">
@@ -146,6 +149,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <WarningLevel>Level2</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(OutDir);c:\boost\x86_64\lib</AdditionalLibraryDirectories>

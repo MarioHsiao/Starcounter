@@ -2,8 +2,8 @@
 #include <stdint.h>
 
 
-extern "C" int32_t make_sc_process_uri(const wchar_t *server_name, const wchar_t *process_name, wchar_t *buffer, size_t *pbuffer_size);
-extern "C" int32_t make_sc_server_uri(const wchar_t *server_name, wchar_t *buffer, size_t *pbuffer_size);
+extern "C" int32_t make_sc_process_uri(const char *server_name, const char *process_name, wchar_t *buffer, size_t *pbuffer_size);
+extern "C" int32_t make_sc_server_uri(const char *server_name, wchar_t *buffer, size_t *pbuffer_size);
 
 
 #define WIN32_LEAN_AND_MEAN
@@ -11,13 +11,13 @@ extern "C" int32_t make_sc_server_uri(const wchar_t *server_name, wchar_t *buffe
 #include <wchar.h>
 
 
-int32_t make_sc_process_uri(const wchar_t *server_name, const wchar_t *process_name, wchar_t *buffer, size_t *pbuffer_size)
+int32_t make_sc_process_uri(const char *server_name, const char *process_name, wchar_t *buffer, size_t *pbuffer_size)
 {
 	uint32_t computer_name_size;
-	wchar_t computer_name[MAX_COMPUTERNAME_LENGTH + 1];
+	char computer_name[MAX_COMPUTERNAME_LENGTH + 1];
 	
 	computer_name_size = MAX_COMPUTERNAME_LENGTH;
-	GetComputerName(computer_name, (DWORD *)&computer_name_size);
+	GetComputerNameA(computer_name, (DWORD *)&computer_name_size);
 
 	size_t buffer_size_needed;
 	size_t buffer_size;
@@ -26,9 +26,9 @@ int32_t make_sc_process_uri(const wchar_t *server_name, const wchar_t *process_n
 		5 + // "sc://"
 		computer_name_size +
 		1 + // "/"
-		wcslen(server_name) +
+		strlen(server_name) +
 		1 + // "/"
-		wcslen(process_name) +
+		strlen(process_name) +
 		1
 		;
 	buffer_size = *pbuffer_size;
@@ -38,7 +38,7 @@ int32_t make_sc_process_uri(const wchar_t *server_name, const wchar_t *process_n
 	if (buffer_size_needed <= buffer_size)
 	{
 #pragma warning (disable:4996)
-		swprintf(buffer, L"sc://%s/%s/%s", computer_name, server_name, process_name);
+		swprintf(buffer, L"sc://%S/%S/%S", computer_name, server_name, process_name);
 		wcslwr(buffer);
 #pragma warning (default:4996)
 		return 1;
@@ -47,13 +47,13 @@ int32_t make_sc_process_uri(const wchar_t *server_name, const wchar_t *process_n
 	return 0;
 }
 
-int32_t make_sc_server_uri(const wchar_t *server_name, wchar_t *buffer, size_t *pbuffer_size)
+int32_t make_sc_server_uri(const char *server_name, wchar_t *buffer, size_t *pbuffer_size)
 {
 	uint32_t computer_name_size;
-	wchar_t computer_name[MAX_COMPUTERNAME_LENGTH + 1];
+	char computer_name[MAX_COMPUTERNAME_LENGTH + 1];
 	
 	computer_name_size = MAX_COMPUTERNAME_LENGTH;
-	GetComputerName(computer_name, (DWORD *)&computer_name_size);
+	GetComputerNameA(computer_name, (DWORD *)&computer_name_size);
 
 	size_t buffer_size_needed;
 	size_t buffer_size;
@@ -62,7 +62,7 @@ int32_t make_sc_server_uri(const wchar_t *server_name, wchar_t *buffer, size_t *
 		5 + // "sc://"
 		computer_name_size +
 		1 + // "/"
-		wcslen(server_name) +
+		strlen(server_name) +
 		1
 		;
 	buffer_size = *pbuffer_size;
@@ -72,7 +72,7 @@ int32_t make_sc_server_uri(const wchar_t *server_name, wchar_t *buffer, size_t *
 	if (buffer_size_needed <= buffer_size)
 	{
 #pragma warning (disable:4996)
-		swprintf(buffer, L"sc://%s/%s", computer_name, server_name);
+		swprintf(buffer, L"sc://%S/%S", computer_name, server_name);
 		wcslwr(buffer);
 #pragma warning (default:4996)
 		return 1;
