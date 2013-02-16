@@ -279,11 +279,20 @@ JUST_SEND_SOCKET_DATA:
 void WorkerDbInterface::PushLinkedChunksToDb(
     core::chunk_index chunk_index,
     int32_t stats_num_chunks,
-    int16_t sched_id,
+    int16_t scheduler_id,
     bool not_overflow_chunk = true)
 {
+    // Assuring that session goes to correct scheduler.
+    if (scheduler_id >= num_schedulers_)
+    {
+        // Returning linked multiple chunks.
+        ReturnLinkedChunksToPool(stats_num_chunks, chunk_index);
+
+        return;
+    }
+
     // Obtaining the channel.
-    core::channel_type& the_channel = shared_int_.channel(channels_[sched_id]);
+    core::channel_type& the_channel = shared_int_.channel(channels_[scheduler_id]);
 
     // Is overflow pool empty?
     bool overflow_is_empty = private_overflow_pool_.empty();
@@ -314,7 +323,7 @@ void WorkerDbInterface::PushLinkedChunksToDb(
 
         // Could not push the request to the channels in
         // queue - push it to the overflow_pool_ instead.
-        private_overflow_pool_.push_front(sched_id << 24 | chunk_index);
+        private_overflow_pool_.push_front(scheduler_id << 24 | chunk_index);
 
         return;
     }

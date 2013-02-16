@@ -10,6 +10,13 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// See TemplateAttribute
     /// </summary>
     public class NJsonAttributeClass : NOtherClass {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gen"></param>
+        public NJsonAttributeClass(DomGenerator gen)
+            : base(gen) {
+        }
 
     }
 }

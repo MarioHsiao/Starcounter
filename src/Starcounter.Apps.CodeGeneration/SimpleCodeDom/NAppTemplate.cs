@@ -20,9 +20,9 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <summary>
         /// Initializes a new instance of the <see cref="NTAppClass" /> class.
         /// </summary>
-        public NTAppClass() : base()
+        public NTAppClass( DomGenerator gen ) : base( gen )
         {
-            Constructor = new NConstructor() { Parent = this };
+            Constructor = new NConstructor( gen ) { Parent = this };
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             get {
                 if (NValueClass == null)
                     return "Unknown";
-                return NValueClass.ClassName + "Template";
+                return "T" + NValueClass.ClassName; // +"Template";
             }
         }
 
