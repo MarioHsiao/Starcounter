@@ -89,7 +89,7 @@ namespace Starcounter.Internal
         /// <param name="message">The message.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint sccorelog_write_to_logs(ulong h, uint type, string source, string message);
+        public static extern uint sccorelog_write_to_logs(ulong h, uint type, string source, uint error_code, string message);
 
         /// <summary>
         /// SCs the kernel write to logs.
@@ -99,7 +99,7 @@ namespace Starcounter.Internal
         /// <param name="message">The message.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint sccorelog_kernel_write_to_logs(ulong h, uint type, string message);
+        public static extern uint sccorelog_kernel_write_to_logs(ulong h, uint type, uint error_code, string message);
 
         /// <summary>
         /// SCs the flush to logs.
