@@ -599,6 +599,27 @@ namespace HttpStructs
         }
 
         /// <summary>
+        /// Gets the request as byte array.
+        /// </summary>
+        /// <returns>Request bytes.</returns>
+        public Byte[] GetRequestByteArray_Slow()
+        {
+            // TODO: Provide a more efficient interface with existing Byte[] and offset.
+
+            unsafe { return http_request_struct_->GetRequestByteArray_Slow(); }
+        }
+
+        /// <summary>
+        /// Byte array of the request.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <returns></returns>
+        public static implicit operator Byte[](HttpRequest r)
+        {
+            return r.GetRequestByteArray_Slow();
+        }
+
+        /// <summary>
         /// Gets the body as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
@@ -1085,6 +1106,24 @@ namespace HttpStructs
         }
 
         /// <summary>
+        /// Gets the request as byte array.
+        /// </summary>
+        /// <returns>Request bytes.</returns>
+        public Byte[] GetRequestByteArray_Slow()
+        {
+            // Checking if there is a request.
+            if (request_len_bytes_ <= 0)
+                return null;
+
+            // TODO: Provide a more efficient interface with existing Byte[] and offset.
+
+            Byte[] request_bytes = new Byte[(Int32)request_len_bytes_];
+            Marshal.Copy((IntPtr)(socket_data_ + request_offset_), request_bytes, 0, (Int32)request_len_bytes_);
+
+            return request_bytes;
+        }
+
+        /// <summary>
         /// Gets the body as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
@@ -1311,6 +1350,42 @@ namespace HttpStructs
             {
                 if (uri_len_bytes_ > 0)
                     return Marshal.PtrToStringAnsi((IntPtr)(socket_data_ + uri_offset_), (Int32)uri_len_bytes_);
+
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Gets the HTTP method.
+        /// </summary>
+        /// <value>The method.</value>
+        public String Method
+        {
+            get
+            {
+                // TODO: Pre-calculate the method length!
+                unsafe
+                {
+                    // Calculate number of characters in method.
+                    Int32 method_len = 0;
+                    Byte* begin = socket_data_ + request_offset_;
+                    while (*begin != ' ')
+                    {
+                        method_len++;
+                        begin++;
+
+                        // TODO: Security check.
+                        if (method_len > 16)
+                        {
+                            method_len = 0;
+                            break;
+                        }
+                    }
+
+                    if (method_len > 0)
+                        return Marshal.PtrToStringAnsi((IntPtr)(socket_data_ + request_offset_), (Int32)method_len);
+
+                }
 
                 return null;
             }
