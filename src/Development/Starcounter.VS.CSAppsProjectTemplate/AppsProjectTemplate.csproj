@@ -65,6 +65,10 @@
       <HintPath>$(StarcounterBin)\Starcounter.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Starcounter.Internal">
+      <HintPath>$(StarcounterBin)\Starcounter.Internal.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Starcounter.Apps">
       <HintPath>$(StarcounterBin)\Starcounter.Apps.dll</HintPath>
       <Private>False</Private>
