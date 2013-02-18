@@ -68,10 +68,6 @@ namespace Sc.Tools.Logging {
                 throw new ArgumentException();
             }
         }
-
-        protected internal string ParseMessage(string s) {
-            return s; // TODO:
-        }
     }
 
     internal class LogReaderReverse : LogReaderImpl, ILogReader {
@@ -203,7 +199,7 @@ namespace Sc.Tools.Logging {
                     fields[2],
                     fields[3],
                     ParseErrorCode(fields[4]),
-                    ParseMessage(message)
+                    message
                     );
             }
             catch (ArgumentException) {
