@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace sccli {
+namespace star {
     class Program {
         
         static Dictionary<string, Action<Client, string[]>> supportedCommands;
@@ -36,7 +36,7 @@ namespace sccli {
             string command;
             Action<Client, string[]> action;
 
-            pipeName = Environment.GetEnvironmentVariable("sccli_servername");
+            pipeName = Environment.GetEnvironmentVariable("star_servername");
             if (string.IsNullOrEmpty(pipeName)) {
                 pipeName = StarcounterEnvironment.ServerNames.PersonalServer.ToLower();
             }
