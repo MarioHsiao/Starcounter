@@ -6,6 +6,7 @@ using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Starcounter.Server.Setup;
 
 namespace star {
     class Program {
@@ -138,8 +139,22 @@ namespace star {
         }
 
         static void CreateServerRepository(Client client, string[] args) {
-            // First argument path, second (optional) name.
-            throw new NotImplementedException();
+            string repositoryPath = args[1];
+            string serverName;
+
+            // Three arguments assume [command] [repo path] [@@Synchronous]. If
+            // its more, we'll use the 3rd one as the name of the server.
+            if (args.Length > 3) {
+                serverName = args[2];
+            } else {
+                serverName = StarcounterEnvironment.ServerNames.PersonalServer;
+            }
+
+            var setup = RepositorySetup.NewDefault(repositoryPath, serverName);
+            setup.Execute();
+
+            ToConsoleWithColor(
+                string.Format("New repository \"{0}\" created at {1}", serverName, repositoryPath), ConsoleColor.Green);
         }
 
         static void WriteReplyToConsole(Reply reply) {
