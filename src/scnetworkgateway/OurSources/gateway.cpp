@@ -2833,7 +2833,7 @@ void Gateway::CloseStarcounterLog()
 // Write critical into log.
 void Gateway::LogWriteCritical(const wchar_t* msg)
 {
-    uint32_t err_code = sccorelog_kernel_write_to_logs(sc_log_handle_, SC_ENTRY_CRITICAL, msg);
+    uint32_t err_code = sccorelog_kernel_write_to_logs(sc_log_handle_, SC_ENTRY_CRITICAL, 0, msg);
 
     GW_ASSERT(0 == err_code);
 
@@ -2845,7 +2845,7 @@ void Gateway::LogWriteCritical(const wchar_t* msg)
 // Write error into log.
 void Gateway::LogWriteError(const wchar_t* msg)
 {
-    uint32_t err_code = sccorelog_kernel_write_to_logs(sc_log_handle_, SC_ENTRY_ERROR, msg);
+    uint32_t err_code = sccorelog_kernel_write_to_logs(sc_log_handle_, SC_ENTRY_ERROR, 0, msg);
 
     GW_ASSERT(0 == err_code);
 

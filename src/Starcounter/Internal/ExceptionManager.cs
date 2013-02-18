@@ -39,7 +39,7 @@ namespace Starcounter.Internal
                               code,
                               stackTrace
                           );
-                Starcounter.Logging.LogManager.InternalFatal(message);
+                Starcounter.Logging.LogManager.InternalFatal(code, message);
             }
             finally
             {
