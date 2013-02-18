@@ -29,6 +29,7 @@ namespace star {
             supportedCommands.Add("startdatabase", Program.StartDatabase);
             supportedCommands.Add("stopdatabase", Program.StopDatabase);
             supportedCommands.Add("exec", Program.ExecApp);
+            supportedCommands.Add("createrepo", Program.CreateServerRepository);
         }
 
         static void Main(string[] args) {
@@ -134,6 +135,11 @@ namespace star {
 
         static void GetDatabases(Client client, string[] args) {
             client.Send("GetDatabases", (Reply reply) => WriteReplyToConsole(reply));
+        }
+
+        static void CreateServerRepository(Client client, string[] args) {
+            // First argument path, second (optional) name.
+            throw new NotImplementedException();
         }
 
         static void WriteReplyToConsole(Reply reply) {
