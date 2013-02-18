@@ -6,8 +6,9 @@ using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Starcounter.Server.Setup;
 
-namespace sccli {
+namespace star {
     class Program {
         
         static Dictionary<string, Action<Client, string[]>> supportedCommands;
@@ -29,6 +30,7 @@ namespace sccli {
             supportedCommands.Add("startdatabase", Program.StartDatabase);
             supportedCommands.Add("stopdatabase", Program.StopDatabase);
             supportedCommands.Add("exec", Program.ExecApp);
+            supportedCommands.Add("createrepo", Program.CreateServerRepository);
         }
 
         static void Main(string[] args) {
@@ -36,7 +38,7 @@ namespace sccli {
             string command;
             Action<Client, string[]> action;
 
-            pipeName = Environment.GetEnvironmentVariable("sccli_servername");
+            pipeName = Environment.GetEnvironmentVariable("star_servername");
             if (string.IsNullOrEmpty(pipeName)) {
                 pipeName = StarcounterEnvironment.ServerNames.PersonalServer.ToLower();
             }
@@ -134,6 +136,25 @@ namespace sccli {
 
         static void GetDatabases(Client client, string[] args) {
             client.Send("GetDatabases", (Reply reply) => WriteReplyToConsole(reply));
+        }
+
+        static void CreateServerRepository(Client client, string[] args) {
+            string repositoryPath = args[1];
+            string serverName;
+
+            // Three arguments assume [command] [repo path] [@@Synchronous]. If
+            // its more, we'll use the 3rd one as the name of the server.
+            if (args.Length > 3) {
+                serverName = args[2];
+            } else {
+                serverName = StarcounterEnvironment.ServerNames.PersonalServer;
+            }
+
+            var setup = RepositorySetup.NewDefault(repositoryPath, serverName);
+            setup.Execute();
+
+            ToConsoleWithColor(
+                string.Format("New repository \"{0}\" created at {1}", serverName, repositoryPath), ConsoleColor.Green);
         }
 
         static void WriteReplyToConsole(Reply reply) {
