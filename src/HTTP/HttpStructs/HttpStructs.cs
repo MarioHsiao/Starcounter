@@ -144,7 +144,7 @@ namespace HttpStructs
         /// <summary>
         /// The session cookie prefix
         /// </summary>
-        const String SessionCookiePrefix = "ScSessionId=";
+        const String SessionCookiePrefix = "ScSessionId: ";
 
         // Converts uint64_t number to hexadecimal string.
         /// <summary>
@@ -302,16 +302,37 @@ namespace HttpStructs
             return SessionCookiePrefix + ConvertToStringFaster();
         }
         */
+
+        /// <summary>
+        /// SessionIdHeaderStubString_.
+        /// </summary>
+        static String SessionIdHeaderStubString_ = "ScSsnId: ########################";
+
+        /// <summary>
+        /// SessionIdHeaderPlusEndlineStubBytes_.
+        /// </summary>
+        static Byte[] SessionIdHeaderPlusEndlineStubBytes_ = System.Text.Encoding.UTF8.GetBytes(SessionIdHeaderStubString_ + "\r\n");
         
         /// <summary>
-        /// Returns constant session cookie stub.
+        /// Returns constant session header stub.
         /// </summary>
         /// <returns></returns>
-        public String SessionCookieStubString
+        public String SessionHeaderStubString
         {
             get
             {
-                return "ScSessionId=########################";
+                return SessionIdHeaderStubString_;
+            }
+        }
+
+        /// <summary>
+        /// SessionHeaderPlusEndlineStubBytes.
+        /// </summary>
+        public Byte[] SessionHeaderPlusEndlineStubBytes
+        {
+            get
+            {
+                return SessionIdHeaderPlusEndlineStubBytes_;
             }
         }
     }
