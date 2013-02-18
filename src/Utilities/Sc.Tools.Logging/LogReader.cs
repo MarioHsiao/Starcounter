@@ -61,7 +61,8 @@ namespace Sc.Tools.Logging {
 
         protected internal int ParseErrorCode(string s) {
             try {
-                return int.Parse(s);
+                if (s != "-") return int.Parse(s);
+                else return 0;
             }
             catch {
                 throw new ArgumentException();
