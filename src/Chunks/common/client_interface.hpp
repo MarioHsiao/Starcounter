@@ -34,6 +34,7 @@
 #include "../common/client_number.hpp"
 #include "../common/owner_id.hpp"
 #include "../common/resource_map.hpp"
+#include "../common/spinlock.hpp"
 #include "../common/macro_definitions.hpp"
 
 namespace starcounter {
@@ -367,6 +368,11 @@ public:
 		return database_cleanup_index_;
 	}
 
+	/// Get a reference to the spinlock.
+	smp::spinlock& spinlock() {
+		return spinlock_;
+	}
+
 private:
 	HANDLE work_;
 	char cache_line_pad_0_[CACHE_LINE_SIZE
@@ -404,6 +410,13 @@ private:
 	-sizeof(int32_t) // database_cleanup_index_
 	];
 	
+	// The spinlock_ is used to synchronize release of chunks_.
+	smp::spinlock spinlock_;
+
+	char cache_line_pad_4_[CACHE_LINE_SIZE
+	-sizeof(smp::spinlock) // spinlock_
+	];
+
 	resource_map resource_map_;
 
 	// In order to reduce the time taken to open the work_ event the name is

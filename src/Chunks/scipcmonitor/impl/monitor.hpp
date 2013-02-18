@@ -1394,6 +1394,9 @@ void monitor::watch_resources() {
 	std::string segment_name;
 	std::size_t retries;
 	
+	Sleep(1000);
+	system("cls");
+
 #if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 	boost::timer t;
 	
