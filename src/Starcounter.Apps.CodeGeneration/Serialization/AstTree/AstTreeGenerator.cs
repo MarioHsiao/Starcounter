@@ -19,20 +19,20 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="appTemplate"></param>
+        /// <param name="puppletTemplate"></param>
         /// <returns></returns>
-        internal static AstJsonSerializerClass BuildAstTree(TPuppet appTemplate) {
-            ParseNode parseTree = ParseTreeGenerator.BuildParseTree(RegisterTemplatesForApp(appTemplate));
+        internal static AstJsonSerializerClass BuildAstTree(TPuppet puppletTemplate) {
+            ParseNode parseTree = ParseTreeGenerator.BuildParseTree(RegisterTemplatesForApp(puppletTemplate));
             return CreateJsonSerializer(parseTree);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="appTemplate"></param>
-        private static List<RequestProcessorMetaData> RegisterTemplatesForApp(TPuppet appTemplate) {
+        /// <param name="puppetTemplate"></param>
+        private static List<RequestProcessorMetaData> RegisterTemplatesForApp(TPuppet puppetTemplate) {
             List<RequestProcessorMetaData> handlers = new List<RequestProcessorMetaData>();
-            foreach (Template child in appTemplate.Children) {
+            foreach (Template child in puppetTemplate.Children) {
                 RequestProcessorMetaData rp = new RequestProcessorMetaData();
                 rp.UnpreparedVerbAndUri = child.Name;
                 rp.Code = child;

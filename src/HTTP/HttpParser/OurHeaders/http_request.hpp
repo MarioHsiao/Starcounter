@@ -10,6 +10,17 @@ namespace network {
 // Maximum number of pre-parsed HTTP headers.
 const int32_t MAX_HTTP_HEADERS = 16;
 
+// Starcounter session string in HTTP.
+const char* const kScSessionIdStringWithExtraChars = "ScSsnId: ";
+const int32_t kScSessionIdStringWithExtraCharsLength = (int32_t)strlen(kScSessionIdStringWithExtraChars);
+const char* const kScFullSessionIdString = "ScSsnId: ########################";
+const int32_t kScFullSessionIdStringLength = (int32_t)strlen(kScFullSessionIdString);
+
+// Session string length in characters.
+const int32_t SC_SESSION_STRING_LEN_CHARS = 24;
+const int32_t SC_SESSION_STRING_INDEX_LEN_CHARS = 8;
+const int32_t SC_SESSION_STRING_SALT_LEN_CHARS = SC_SESSION_STRING_LEN_CHARS - SC_SESSION_STRING_INDEX_LEN_CHARS;
+
 struct HttpRequest
 {
     // Request.
@@ -60,6 +71,7 @@ enum HttpWsFields
     GET_FIELD,
     POST_FIELD,
     COOKIE_FIELD,
+    SCSESSIONID_FIELD,
     CONTENT_LENGTH_FIELD,
     ACCEPT_FIELD,
     ACCEPT_ENCODING_FIELD,
@@ -71,89 +83,66 @@ enum HttpWsFields
     UNKNOWN_FIELD
 };
 
+const int64_t ACCEPT_HEADER_VALUE_8BYTES = 2322296583949083457;
+const int64_t ACCEPT_ENCODING_HEADER_VALUE_8BYTES = 4984768388655178561;
+const int64_t COOKIE_HEADER_VALUE_8BYTES = 2322280061311348547;
+const int64_t CONTENT_LENGTH_HEADER_VALUE_8BYTES = 3275364211029339971;
+const int64_t UPGRADE_HEADER_VALUE_8BYTES = 4207879796541583445;
+const int64_t WEBSOCKET_HEADER_VALUE_8BYTES = 6008476277963711827;
+const int64_t SCSESSIONID_HEADER_VALUE_8BYTES = 4207568690600960851;
+
 // Fast way to determine field type.
 inline HttpWsFields DetermineField(const char *at, size_t length)
 {
-    switch(at[0])
+    int64_t header_8bytes = *(int64_t*)at;
+    switch(header_8bytes)
     {
-        case 'A':
+        case ACCEPT_HEADER_VALUE_8BYTES:
         {
-            switch(at[2])
-            {
-                case 'c':
-                {
-                    switch(length)
-                    {
-                        case 6: return ACCEPT_FIELD; // Accept
-                        case 15: return ACCEPT_ENCODING_FIELD; // Accept-Encoding
-                    }
-                    break;
-                }
-            }
+            return ACCEPT_FIELD; // Accept
+        }
+
+        case ACCEPT_ENCODING_HEADER_VALUE_8BYTES:
+        {
+            if (*(int64_t*)(at + 7) == *(int64_t*)"Encoding")
+                return ACCEPT_ENCODING_FIELD; // Accept-Encoding
 
             break;
         }
 
-        case 'C':
+        case COOKIE_HEADER_VALUE_8BYTES:
         {
-            switch(at[2])
-            {
-                case 'o':
-                {
-                    switch(length)
-                    {
-                        case 6: return COOKIE_FIELD; // Cookie
-                    }
-                    break;
-                }
+            return COOKIE_FIELD; // Cookie
+        }
 
-                case 'n':
-                {
-                    switch(length)
-                    {
-                        case 14: return CONTENT_LENGTH_FIELD; // Content-Length
-                    }
-                    break;
-                }
-            }
+        case CONTENT_LENGTH_HEADER_VALUE_8BYTES:
+        {
+            if (*(int64_t*)(at + 8) == *(int64_t*)"Length: ")
+                return CONTENT_LENGTH_FIELD; // Content-Length
 
             break;
         }
 
-        case 'U':
+        case UPGRADE_HEADER_VALUE_8BYTES:
         {
-            switch(at[2])
-            {
-                case 'g':
-                {
-                    switch(length)
-                    {
-                        case 7: return UPGRADE_FIELD; // Upgrade
-                    }
-                    break;
-                }
-            }
-
-            break;
+            return UPGRADE_FIELD; // Upgrade
         }
         
-        case 'S':
+        case WEBSOCKET_HEADER_VALUE_8BYTES:
         {
-            switch(at[2])
+            switch(length)
             {
-                case 'c':
-                {
-                    switch(length)
-                    {
-                        case 17: return WS_KEY_FIELD; // Sec-WebSocket-Key
-                        case 22: return WS_PROTOCOL_FIELD; // Sec-WebSocket-Protocol
-                        case 21: return WS_VERSION_FIELD; // Sec-WebSocket-Version
-                    }
-                    break;
-                }
+                case 17: return WS_KEY_FIELD; // Sec-WebSocket-Key
+                case 21: return WS_VERSION_FIELD; // Sec-WebSocket-Version
+                case 22: return WS_PROTOCOL_FIELD; // Sec-WebSocket-Protocol
             }
 
             break;
+        }
+
+        case SCSESSIONID_HEADER_VALUE_8BYTES:
+        {
+            return SCSESSIONID_FIELD;
         }
     }
 
@@ -179,20 +168,9 @@ inline uint32_t ParseDecimalStringToUint(const char *at, size_t length)
     return result;
 }
 
-// Starcounter session string in HTTP.
-const char* const kScSessionIdStringPlusEquals = "ScSessionId=";
-const int32_t kScSessionIdStringPlusEqualsLength = (int32_t)strlen(kScSessionIdStringPlusEquals);
-const char* const kScFullSessionIdString = "ScSessionId=########################";
-const int32_t kScFullSessionIdStringLength = (int32_t)strlen(kScFullSessionIdString);
-
-// Session string length in characters.
-const int32_t SC_SESSION_STRING_LEN_CHARS = 24;
-const int32_t SC_SESSION_STRING_INDEX_LEN_CHARS = 8;
-const int32_t SC_SESSION_STRING_SALT_LEN_CHARS = SC_SESSION_STRING_LEN_CHARS - SC_SESSION_STRING_INDEX_LEN_CHARS;
-
 // Searching for the Starcounter session cookie among other cookies.
 // Returns pointer to Starcounter session cookie value.
-inline const char* GetSessionIdValueString(const char *at, size_t length)
+/*inline const char* GetSessionIdValueString(const char *at, size_t length)
 {
     // Immediately excluding wrong cookie.
     if (length < kScFullSessionIdStringLength)
@@ -204,17 +182,17 @@ inline const char* GetSessionIdValueString(const char *at, size_t length)
     atnull[length] = '\0';
 
     // Searching using optimized strstr.
-    const char* session_string = strstr(atnull, kScSessionIdStringPlusEquals);
+    const char* session_string = strstr(atnull, kScSessionIdStringPlus);
 
     // Restoring back the old character.
     atnull[length] = c;
 
     // Checking if session was found.
     if (session_string)
-        return session_string + kScSessionIdStringPlusEqualsLength;
+        return session_string + kScSessionIdStringPlusLength;
 
     return NULL;
-}
+}*/
 
 } // namespace network
 } // namespace starcounter
