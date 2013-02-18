@@ -965,6 +965,8 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 	client_interface_type* client_interface_ptr = channel.client();
 	client_number the_client_number = channel.get_client_number();
 	
+	smp::spinlock::scoped_lock lock(client_interface_ptr->spinlock());
+
 	// Clean up job to be done: Empty the in and out queues of this
 	// channel and decrement the number of owned channels counter in
 	// this client_interface, and if the counter reaches 0, this
@@ -1197,124 +1199,133 @@ void server_port::release_channel_marked_for_release(channel_number the_channel_
 	client_interface_type* client_interface_ptr = channel.client();
 	client_number the_client_number = channel.get_client_number();
 	
-	// Clean up job to be done: Empty the in and out queues of this
-	// channel and decrement the number of owned channels counter in
-	// this client_interface, and if the counter reaches 0, this
-	// scheduler do the job of releasing the resources in this
-	// client_interface. This can be changed so that another thread
-	// do this job instead and this scheduler move on an do its normal
-	// tasks. Its a question of optimization.
-	
-	// Move all chunk indices from the channels in and out queues, and
-	// the overflow_pool, to the bit bucket. These are copies and the
-	// same indices are marked in the resource_map.
-	
-	///=========================================================================
-	/// Empty the channels in and out queues.
-	///=========================================================================
+	//==========================================================================
+	// Check if the client_interface's owner_id cleanup flag is set, in which
+	// case return instantly because the cleanup will release all resources then
+	// No:
 
-	// Empty the channels in queue.
-	for (std::size_t i = 0; i < channel_capacity; ++i) {
-		if (channel.in.try_pop_back(&the_chunk_index) == true) {
-			// the_chunk_index is not released here, it is done later when
-			// releasing chunks via the resource map.
-			continue;
-		}
-		else {
-			// Only reason it would not work is that it is empty.
-			break;
-		}
-	}
-	
-	// Empty the channels out queue.
-	for (std::size_t i = 0; i < channel_capacity; ++i) {
-		if (channel.out.try_pop_back(&the_chunk_index) == true) {
-			// the_chunk_index is not released here, it is done later when
-			// releasing chunks via the resource map.
-			continue;
-		}
-		else {
-			// Only reason it would not work is that it is empty.
-			break;
-		}
-	}
-	
-	///=========================================================================
-	/// Remove chunk indices from the overflow_pool targeted for this channel.
-	///=========================================================================
-#if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
-	// Remove chunk indices from the overflow queue in this channel.
-	while (!channel.overflow().empty()) {
-		// Removing the item from the overflow queue.
-		channel.overflow().pop();
-	}
+	if (!client_interface_ptr->get_owner_id().get_clean_up()) {
+		smp::spinlock::scoped_lock lock(client_interface_ptr->spinlock());
 
-#else // !defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
-	if (!this_scheduler_interface_->overflow_pool().empty()) {
-		// This type must be uint32_t.
-		uint32_t chunk_index_and_channel;
-		std::size_t current_overflow_size
-		= this_scheduler_interface_->overflow_pool().size();
-		
-		for (std::size_t i = 0; i < current_overflow_size; ++i) {
-			this_scheduler_interface_->overflow_pool().pop_back
-			(&chunk_index_and_channel);
-			
-			if ((chunk_index_and_channel >> 24) != the_channel_index) {
-				// This chunk_index was targeted for another channel.
-				// Push it back in the overflow_pool_.
-				this_scheduler_interface_->overflow_pool().push_front
-				(chunk_index_and_channel);
+		// Clean up job to be done: Empty the in and out queues of this
+		// channel and decrement the number of owned channels counter in
+		// this client_interface, and if the counter reaches 0, this
+		// scheduler do the job of releasing the resources in this
+		// client_interface. This can be changed so that another thread
+		// do this job instead and this scheduler move on an do its normal
+		// tasks. Its a question of optimization.
+	
+		// Move all chunk indices from the channels in and out queues, and
+		// the overflow_pool, to the bit bucket. These are copies and the
+		// same indices are marked in the resource_map.
+	
+		///=========================================================================
+		/// Empty the channels in and out queues.
+		///=========================================================================
+
+		// Empty the channels in queue.
+		for (std::size_t i = 0; i < channel_capacity; ++i) {
+			if (channel.in.try_pop_back(&the_chunk_index) == true) {
+				// the_chunk_index is not released here, it is done later when
+				// releasing chunks via the resource map.
+				continue;
 			}
 			else {
-				// This chunk is targeted for this channel and shall be freed if
-				// the chunk is not a pre-allocated chunk.
-
-				// Clear channel_number (31:24) to get only the chunk_index.
-				the_channel_index &= (1 << 24) -1;
-
-				// Free this chunk.
-				shared_chunk_pool_->push_front(the_channel_index,
-				1000000 /* spin count */, 10000 /* timeout ms */);
+				// Only reason it would not work is that it is empty.
+				break;
 			}
 		}
-	}
+	
+		// Empty the channels out queue.
+		for (std::size_t i = 0; i < channel_capacity; ++i) {
+			if (channel.out.try_pop_back(&the_chunk_index) == true) {
+				// the_chunk_index is not released here, it is done later when
+				// releasing chunks via the resource map.
+				continue;
+			}
+			else {
+				// Only reason it would not work is that it is empty.
+				break;
+			}
+		}
+	
+		///=========================================================================
+		/// Remove chunk indices from the overflow_pool targeted for this channel.
+		///=========================================================================
+#if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
+		// Remove chunk indices from the overflow queue in this channel.
+		while (!channel.overflow().empty()) {
+			// Removing the item from the overflow queue.
+			channel.overflow().pop();
+		}
+
+#else // !defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
+		if (!this_scheduler_interface_->overflow_pool().empty()) {
+			// This type must be uint32_t.
+			uint32_t chunk_index_and_channel;
+			std::size_t current_overflow_size
+			= this_scheduler_interface_->overflow_pool().size();
+		
+			for (std::size_t i = 0; i < current_overflow_size; ++i) {
+				this_scheduler_interface_->overflow_pool().pop_back
+				(&chunk_index_and_channel);
+			
+				if ((chunk_index_and_channel >> 24) != the_channel_index) {
+					// This chunk_index was targeted for another channel.
+					// Push it back in the overflow_pool_.
+					this_scheduler_interface_->overflow_pool().push_front
+					(chunk_index_and_channel);
+				}
+				else {
+					// This chunk is targeted for this channel and shall be freed if
+					// the chunk is not a pre-allocated chunk.
+
+					// Clear channel_number (31:24) to get only the chunk_index.
+					the_channel_index &= (1 << 24) -1;
+
+					// Free this chunk.
+					shared_chunk_pool_->push_front(the_channel_index,
+					1000000 /* spin count */, 10000 /* timeout ms */);
+				}
+			}
+		}
 #endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
 	
-	/// TODO: If the in queue was not empty at the moment this function was
-	/// called, this is a bug because the scheduler have popped a message since
-	/// then. This must be made impossible. Verify this.
+		/// TODO: If the in queue was not empty at the moment this function was
+		/// called, this is a bug because the scheduler have popped a message since
+		/// then. This must be made impossible. Verify this.
 
-	///=========================================================================
-	/// Releases the channel making it available for any client to allocate.
-	///=========================================================================
-	_mm_mfence();
-	_mm_sfence();
-	channel.clear_is_to_be_released(); // Do it higher up in here?
-	_mm_mfence();
-	_mm_sfence();
+		///=========================================================================
+		/// Releases the channel making it available for any client to allocate.
+		///=========================================================================
+		_mm_mfence();
+		_mm_sfence();
+		channel.clear_is_to_be_released(); // Do it higher up in here?
+		_mm_mfence();
+		_mm_sfence();
 
-	// Get the scheduler_number the channel is to be released via.
-	uint32_t the_scheduler_number = client_interface_ptr->get_resource_map()
-	.get_scheduler_number_for_owned_channel_number(the_channel_index);
+		// Get the scheduler_number the channel is to be released via.
+		uint32_t the_scheduler_number = client_interface_ptr->get_resource_map()
+		.get_scheduler_number_for_owned_channel_number(the_channel_index);
 	
-	// Mark the channel as not owned.
-	client_interface_ptr->clear_channel_flag(the_scheduler_number,
-	the_channel_index);
+		// Mark the channel as not owned.
+		client_interface_ptr->clear_channel_flag(the_scheduler_number,
+		the_channel_index);
 	
-	// It is of paramount importance that the above is done before the
-	// channel is released. The fence forces this.
-	_mm_mfence();
-	_mm_lfence(); // Synchronizes instruction stream.
+		// It is of paramount importance that the above is done before the
+		// channel is released. The fence forces this.
+		_mm_mfence();
+		_mm_lfence(); // Synchronizes instruction stream.
 	
-	// Release the channel.
-	release_channel_number(the_channel_index, the_scheduler_number);
-	_mm_mfence();
-	_mm_lfence(); // Synchronizes instruction stream.
+		// Release the channel.
+		release_channel_number(the_channel_index, the_scheduler_number);
+		_mm_mfence();
+		_mm_lfence(); // Synchronizes instruction stream.
 	
-	uint32_t channels_left
-	= client_interface_ptr->decrement_number_of_allocated_channels();
-	// The channel has been released and can now be allocated by any client.
+		uint32_t channels_left
+		= client_interface_ptr->decrement_number_of_allocated_channels();
+		// The channel has been released and can now be allocated by any client.
+	}
 }
 
 std::size_t server_port::number_of_active_schedulers() {
