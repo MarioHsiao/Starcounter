@@ -37,20 +37,6 @@ namespace Starcounter.Server {
                         } catch { }
                 }
 
-                if (arguments.Command.Equals("CreateRepo", StringComparison.InvariantCultureIgnoreCase)) {
-                    string repositoryPath = arguments.CommandParameters[0];
-                    string serverName;
-
-                    if (!arguments.TryGetProperty("name", out serverName)) {
-                        serverName = StarcounterEnvironment.ServerNames.PersonalServer;
-                    }
-
-                    var setup = RepositorySetup.NewDefault(repositoryPath, serverName);
-                    setup.Execute();
-                    return;
-                }
-
-
                 if (arguments.Command.Equals("CreateDb", StringComparison.InvariantCultureIgnoreCase)) {
 
                     string databasename = arguments.CommandParameters[0]; //  "administrator";
@@ -132,17 +118,6 @@ namespace Starcounter.Server {
             // using named pipes.
             commandDefinition.DefineFlag("UseConsole",
                 "Launches the reference server in console mode, i.e. allowing commands to be sent to the server from the console.");
-
-            // Define the "CreateRepo" command, used to create a server repository
-            // using built-in defaults. One parameter - the server repository path -
-            // is expected.
-
-            commandDefinition = syntaxDefinition.DefineCommand("CreateRepo", "Creates a server repository with default configuration.", 1);
-
-            // Optional property specifying the name of the server. If not given,
-            // the default ("Personal") is used.
-            commandDefinition.DefineProperty("name", "Specifies the name of the server.");
-
 
             commandDefinition = syntaxDefinition.DefineCommand("CreateDb", "Creates database",2);
             commandDefinition.DefineProperty("databasename", "Specifies the database name.");
