@@ -60,6 +60,11 @@ namespace StarcounterApps3 {
 
         static void RegisterGETS() {
 
+
+            GET("/test", () => {
+                return "hello";
+            });
+
             GET("/", () => {
                 return new Master() { View = "index.html" };
             });

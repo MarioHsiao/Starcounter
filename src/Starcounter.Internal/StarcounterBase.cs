@@ -26,6 +26,11 @@ namespace Starcounter.Advanced {
         public static IREST _REST;
 
         /// <summary>
+        /// 
+        /// </summary>
+        public static IHttpRestServer Fileserver;
+
+        /// <summary>
         /// Runs code as an ACID database transaction in the embedding database.
         /// </summary>
         /// <param name="action"></param>
@@ -81,7 +86,28 @@ namespace Starcounter.Advanced {
         /// <param name="uri"></param>
         /// <returns></returns>
         public static object Get(string uri) {
-            throw new NotImplementedException();
+            return _REST.Get(uri);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <returns></returns>
+        public static object Request(HttpRequest request) {
+            return _REST.Request(request);
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <returns></returns>
+        public static IREST REST {
+            get {
+                return _REST;
+            }
         }
 
         /// <summary>
@@ -438,6 +464,7 @@ namespace Starcounter.Advanced {
         public static T Get<T>(string uri) {
             return (T)Get(uri);
         }
+
 
         /// <summary>
         /// Gets the specified URI.

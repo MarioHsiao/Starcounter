@@ -1,9 +1,12 @@
 ﻿
+using HttpStructs;
 using Newtonsoft.Json;
 using Starcounter.Advanced;
+using Starcounter.Internal.Web;
 using Starcounter.Templates;
 using System;
 using System.Text;
+
 namespace Starcounter {
 
     /// <summary>
@@ -155,21 +158,25 @@ namespace Starcounter {
                     t++;
                     addComma = true;
 
-                    if (true) { // includeViewContent == IncludeView.Always ) {
+#if EMBEDHTML
+                    if (false) { // includeViewContent == IncludeView.Always ) { // TODO! JOCKE!!
                         sb.Append("__vc:");
-                        var res = Puppet.Get(View);
+                        var req = HttpRequest.RawGET("/" + View);
+                        var res = Puppet.REST.RawRequest( req );
                         if (res == null) {
-                            // TODO
-                            //res = StaticResources.Handle( HttpRequest.GET( "/" + View ) ); 
+                            res = StarcounterBase.Fileserver.Handle(new HttpRequest(req));
                         }
                         if (res is HttpResponse) {
                             var response = res as HttpResponse;
-                            sb.Append(JsonConvert.SerializeObject(Encoding.UTF8.GetString(response.Uncompressed)));
+                            byte[] body = response.Uncompressed;
+                            var html = Encoding.UTF8.GetString(body, response._UncompressedBodyOffset, response._UncompressedBodyLength);
+                            sb.Append(JsonConvert.SerializeObject(html));
                         }
                         else {
                             throw new NotImplementedException();
                         }
                     }
+#endif
                     //else {
                     //    sb.Append("__vf:");
                     //    sb.Append(JsonConvert.SerializeObject(Media.Content.FilePath.ToString()));

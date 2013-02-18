@@ -6,6 +6,7 @@
 
 using NUnit.Framework;
 using Starcounter;
+using Starcounter.Advanced;
 using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
@@ -28,7 +29,7 @@ namespace HttpStructs.Tests
         [SetUp]
         public void InitHttpStructsTests()
         {
-            HttpStructs.HttpRequest.sc_init_http_parser();
+            HttpRequest.sc_init_http_parser();
         }
     }
 
@@ -47,6 +48,8 @@ namespace HttpStructs.Tests
             String[] http_request_strings =
             {
                 "GET /players/123 HTTP/1.0\r\n\r\n",
+
+//                "GET /123\r\n", // Legal HTTP 0.9 request (from 1991 specification found here http://www.w3.org/Protocols/HTTP/AsImplemented.html)
 
                 "GET /123\r\n\r\n",
 
