@@ -86,6 +86,7 @@ namespace Starcounter.Internal
         /// <param name="h">The h.</param>
         /// <param name="type">The type.</param>
         /// <param name="source">The source.</param>
+        /// <param name="error_code"></param>
         /// <param name="message">The message.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
@@ -96,6 +97,7 @@ namespace Starcounter.Internal
         /// </summary>
         /// <param name="h">The h.</param>
         /// <param name="type">The type.</param>
+        /// <param name="error_code"></param>
         /// <param name="message">The message.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
