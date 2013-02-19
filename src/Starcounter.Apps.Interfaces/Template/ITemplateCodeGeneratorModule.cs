@@ -17,6 +17,6 @@ namespace Starcounter.Internal {
         /// <param name="template">The template.</param>
         /// <param name="metadata">The metadata.</param>
         /// <returns>ITemplateCodeGenerator.</returns>
-        ITemplateCodeGenerator CreateGenerator( string lang, IAppTemplate template, object metadata );
+        ITemplateCodeGenerator CreateGenerator( string lang, object template, object metadata );
     }
 }

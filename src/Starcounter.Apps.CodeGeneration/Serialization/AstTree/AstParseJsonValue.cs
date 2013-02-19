@@ -36,12 +36,12 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
             string valueName = " val" + ParseNode.HandlerIndex;;
             Template template = Template;
 
-            if (template is ListingProperty) {
-                template = ((ListingProperty)template).App;
+            if (template is TObjArr) {
+                template = ((TObjArr)template).App;
             }
             
-            if (template is AppTemplate) {
-                appClassName = AstTreeHelper.GetAppClassName((AppTemplate)template);
+            if (template is TApp) {
+                appClassName = AstTreeHelper.GetAppClassName((TApp)template);
                 Prefix.Add("var" + valueName + " = " + appClassName + "JsonSerializer.Deserialize((IntPtr)pfrag, nextSize, out valueSize);");
             } else if (template is ActionProperty) {
                 Prefix.Add("if (JsonHelper.IsNullValue((IntPtr)pfrag, nextSize, out valueSize)) {");
@@ -60,18 +60,18 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         private string GetParseFunctionName(Template template) {
             string parseFunction = null;
             
-            if (template is StringProperty){
+            if (template is TString){
                 parseFunction = "ParseString";
-            } else if (template is IntProperty){
+            } else if (template is TLong){
                 parseFunction = "ParseInt";
-            } else if (template is DecimalProperty) {
+            } else if (template is TDecimal) {
                 parseFunction = "ParseDecimal";
-            } else if (template is DoubleProperty) {
+            } else if (template is TDouble) {
                 parseFunction = "ParseDouble";
-            } else if (template is BoolProperty) {
+            } else if (template is TBool) {
                 parseFunction = "ParseBoolean";
-            } else if (template is AppTemplate || template is ListingProperty) {
-                parseFunction = "DeserializeApp(" + ((AppTemplate)template).ClassName + ")";
+            } else if (template is TApp || template is TObjArr) {
+                parseFunction = "DeserializeApp(" + ((TApp)template).ClassName + ")";
             } else {
                 throw new NotSupportedException("TODO! Add more types here");
             }

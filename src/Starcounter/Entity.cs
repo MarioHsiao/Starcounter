@@ -360,5 +360,9 @@ namespace Starcounter
             throw new NotImplementedException("Assert equals is not implemented for Entity.");
         }
 #endif
+
+        ulong IBindable.UniqueID {
+            get { return DbHelper.GetObjectID(this); }
+        }
     }
 }

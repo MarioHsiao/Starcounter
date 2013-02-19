@@ -36,3 +36,7 @@ src/Starcounter.SqlParser/Parser/scan.c
 *.output
 
 src/Samples/NetworkIoTest/image.png
+
+#nCover
+*.sln.DotSettings
+

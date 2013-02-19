@@ -16,27 +16,27 @@ namespace Starcounter.Templates.Interfaces {
         /// Creates the app.
         /// </summary>
         /// <returns>IApp.</returns>
-        IApp CreateApp();
+        object CreateApp();
         /// <summary>
         /// Creates the app template.
         /// </summary>
-        /// <returns>IAppTemplate.</returns>
-        IAppTemplate CreateAppTemplate();
+        /// <returns>ITApp.</returns>
+        object CreateTApp();
         /// <summary>
         /// Creates the string template.
         /// </summary>
         /// <returns>IStringTemplate.</returns>
-        IStringTemplate CreateStringTemplate();
+        object CreateStringTemplate();
         /// <summary>
         /// Creates the double template.
         /// </summary>
         /// <returns>IDoubleTemplate.</returns>
-        IDoubleTemplate CreateDoubleTemplate();
+        object CreateDoubleTemplate();
         /// <summary>
         /// Creates the bool template.
         /// </summary>
         /// <returns>IBoolTemplate.</returns>
-        IBoolTemplate CreateBoolTemplate();
+        object CreateBoolTemplate();
 
     }
 
