@@ -64,7 +64,7 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <DocumentationFile>..\..\bin\Release\Starcounter.REST.XML</DocumentationFile>
-    <NoWarn>1591</NoWarn>
+    <NoWarn>1591;1570;1571;1572;1573;1574</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="RGiesecke.DllExport.Metadata">
