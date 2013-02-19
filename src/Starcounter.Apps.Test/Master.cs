@@ -13,7 +13,7 @@ using System;
 /// <summary>
 /// Class Master
 /// </summary>
-partial class Master : App {
+partial class Master : Puppet {
 
     /// <summary>
     /// Initializes static members of the <see cref="Master" /> class.

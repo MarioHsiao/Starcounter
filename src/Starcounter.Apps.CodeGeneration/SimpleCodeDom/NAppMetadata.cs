@@ -12,15 +12,24 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// Each App can have a metadata class. See ObjMetadata.
     /// </summary>
     public class NObjMetadata : NMetadataClass {
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gen"></param>
+        public NObjMetadata(DomGenerator gen)
+            : base(gen) {
+        }
+
         /// <summary>
         /// The template
         /// </summary>
-        public TApp Template;
+        public TPuppet Template;
 
         /// <summary>
         /// The instances
         /// </summary>
-        public static Dictionary<TApp, NClass> Instances = new Dictionary<TApp, NClass>();
+        public static Dictionary<TPuppet, NClass> Instances = new Dictionary<TPuppet, NClass>();
 
         /// <summary>
         /// Gets the name of the class.

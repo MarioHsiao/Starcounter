@@ -1,32 +1,40 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <CoreCompileDependsOn>$(CoreCompileDependsOn);GenerateAppCode</CoreCompileDependsOn>
+    <CoreCompileDependsOn>$(CoreCompileDependsOn);GeneratePuppetCode;GenerateMessageCode</CoreCompileDependsOn>
   </PropertyGroup>
   <ItemGroup>
-    <AvailableItemName Include="App"/>
+    <AvailableItemName Include="Puppet"/>
+    <AvailableItemName Include="Message"/>
   </ItemGroup>
      
   <!-- TODO: Temporary path. Use installation directory for starcounter later when Apps is integrated into main Starcounter -->
- <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToCsMsBuildTaskNoLocking" AssemblyFile="..\..\bin\$(Configuration)\Starcounter.MsBuild.dll" />
+ <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToPuppetCsMsBuildTaskNoLocking" AssemblyFile="..\..\bin\$(Configuration)\Starcounter.MsBuild.dll" />
 
-  <Target Name="GenerateAppCode" Inputs="@(App)" Outputs="@(App->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
-    <JsonToCsMsBuildTaskNoLocking
-       InputFiles="@(App)"
-       OutputFiles="@(App->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
+
+  <Target Name="GeneratePuppetCode" Inputs="@(Puppet)" Outputs="@(Puppet->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
+    <JsonToPuppetCsMsBuildTaskNoLocking
+       InputFiles="@(Puppet)"
+       OutputFiles="@(Puppet->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
        <Output TaskParameter="OutputFiles" ItemName="gFiles" /> 
-    </JsonToCsMsBuildTaskNoLocking>
+    </JsonToPuppetCsMsBuildTaskNoLocking>
 	<ItemGroup>
       <Compile Include="@(gFiles)" />
     </ItemGroup>
   </Target>
 
-  <Target Name="AfterBuild">
-    <Exec Command="&quot;..\..\bin\$(Configuration)\scweaver.exe&quot; Weave --outdir=&quot;$(TargetPath)\..\weaved&quot; --cachedir=&quot;$(TargetPath)\..\cache&quot; &quot;$(TargetPath)&quot;"/>
-    <ItemGroup>
-      <AdminWeavedFiles Include="$(TargetPath)\..\weaved\$(AssemblyName).*" />
+ <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToMessageCsMsBuildTaskNoLocking" AssemblyFile="$(StarcounterBin)\Starcounter.MsBuild.dll" />
+
+  <Target Name="GenerateMessageCode" Inputs="@(Message)" Outputs="@(Message->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
+    <JsonToMessageCsMsBuildTaskNoLocking
+       InputFiles="@(Message)"
+       OutputFiles="@(Message->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
+       <Output TaskParameter="OutputFiles" ItemName="gFiles" /> 
+    </JsonToMessageCsMsBuildTaskNoLocking>
+	<ItemGroup>
+      <Compile Include="@(gFiles)" />
     </ItemGroup>
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(AdminWeavedFiles)" DestinationFolder="$(TargetPath)\.." />
   </Target>
+  
 </Project>
 
 

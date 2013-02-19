@@ -36,24 +36,24 @@ namespace Starcounter.Client.Tests.Application {
         /// Creates some.
         /// </summary>
         /// <returns>List{App}.</returns>
-        private static List<App> _CreateTemplatesAndAppsByCode() {
+        private static List<Puppet> _CreateTemplatesAndAppsByCode() {
 
             // First, let's create the schema (template)
-            var personSchema = new TApp();
+            var personSchema = new TPuppet();
             var firstName = personSchema.Add<TString>("FirstName$");
             var lastName = personSchema.Add<TString>("LastName");
             var age = personSchema.Add<TLong>("Age");
 
-            var phoneNumber = new TApp();
-            var phoneNumbers = personSchema.Add<TArr<App,TApp>>("Phonenumbers", phoneNumber);
+            var phoneNumber = new TPuppet();
+            var phoneNumbers = personSchema.Add<TArr<Puppet,TPuppet>>("Phonenumbers", phoneNumber);
             var number = phoneNumber.Add<TString>("Number");
 
             Assert.AreEqual("FirstName$", firstName.Name);
             Assert.AreEqual("FirstName", firstName.PropertyName);
 
             // Now let's create instances using that schema
-            App jocke = new App() { Template = personSchema };
-            App tim = new App() { Template = personSchema };
+            Puppet jocke = new Puppet() { Template = personSchema };
+            Puppet tim = new Puppet() { Template = personSchema };
 
             jocke.SetValue(firstName, "Joachim");
             jocke.SetValue(lastName, "Wester");
@@ -74,7 +74,7 @@ namespace Starcounter.Client.Tests.Application {
             Assert.AreEqual("Timothy", tim.GetValue(firstName));
             Assert.AreEqual("Wester", tim.GetValue(lastName));
 
-            var ret = new List<App>();
+            var ret = new List<Puppet>();
             ret.Add(jocke);
             ret.Add(tim);
             return ret;

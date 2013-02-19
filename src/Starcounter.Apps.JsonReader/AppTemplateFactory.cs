@@ -150,7 +150,7 @@ namespace Starcounter.Internal.JsonTemplate
             {
                 appTemplate = _template as OTT;
                 if (appTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
-                ((TApp)_template).ClassName = v;
+                ((TPuppet)_template).ClassName = v;
             }
             else if (upperName == "RUN")
             {
@@ -168,13 +168,13 @@ namespace Starcounter.Internal.JsonTemplate
             else if (upperName == "TYPE")
             {
                 TValue oldProperty = _template as TValue;
-                if (oldProperty == null || (oldProperty is TApp)) 
+                if (oldProperty == null || (oldProperty is TPuppet)) 
                     ErrorHelper.RaiseInvalidTypeConversionError(_debugInfo);
 
                 TValue newProperty = GetPropertyFromTypeName(v);
                 oldProperty.CopyTo(newProperty);
 
-                TApp parent = (TApp)oldProperty.Parent;
+                TPuppet parent = (TPuppet)oldProperty.Parent;
                 parent.Properties.Replace(newProperty);
             }
             else if (upperName == "REUSE")
@@ -600,7 +600,7 @@ namespace Starcounter.Internal.JsonTemplate
             OTT appTemplate;
             Template newTemplate;
 
-            newTemplate = new TArr<App,TApp>() { Name = name };
+            newTemplate = new TArr<Puppet,TPuppet>() { Name = name };
             appTemplate = (OTT)parent;
             newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
             SetCompilerOrigin(newTemplate, debugInfo);
@@ -655,7 +655,7 @@ namespace Starcounter.Internal.JsonTemplate
         /// <returns>System.Object.</returns>
         object ITemplateFactory.AddAppElement(object array, DebugInfo debugInfo)
         {
-            var newTemplate = new TApp(); // The type of the type array (an TApp)
+            var newTemplate = new TPuppet(); // The type of the type array (an TApp)
             newTemplate.Parent = (TContainer)array;
             //			newTemplate.Name = "__ArrayType__"; // All children needs an id
             var arr = ((TObjArr)array);
@@ -721,7 +721,7 @@ namespace Starcounter.Internal.JsonTemplate
                                                string className,
                                                DebugInfo debugInfo)
         {
-            ((TApp)template).ClassName = className;
+            ((TPuppet)template).ClassName = className;
         }
 
         /// <summary>
@@ -734,7 +734,7 @@ namespace Starcounter.Internal.JsonTemplate
                                                  string className,
                                                  DebugInfo debugInfo)
         {
-            ((TApp)template).Include = className;
+            ((TPuppet)template).Include = className;
         }
 
         /// <summary>
@@ -747,7 +747,7 @@ namespace Starcounter.Internal.JsonTemplate
                                                    string namespaceName,
                                                    DebugInfo debugInfo)
         {
-            ((TApp)template).Namespace = namespaceName;
+            ((TPuppet)template).Namespace = namespaceName;
         }
 
         /// <summary>

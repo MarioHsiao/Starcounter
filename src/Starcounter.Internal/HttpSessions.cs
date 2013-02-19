@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Diagnostics;
+using Starcounter.Advanced;
 
 namespace HttpStructs
 {

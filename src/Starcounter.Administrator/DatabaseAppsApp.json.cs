@@ -2,6 +2,6 @@
 using Starcounter;
 
 namespace StarcounterApps3 {
-    partial class DatabaseAppsApp : App {
+    partial class DatabaseAppsApp : Puppet {
     }
 }

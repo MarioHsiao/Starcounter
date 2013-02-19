@@ -1,20 +1,34 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <CoreCompileDependsOn>$(CoreCompileDependsOn);GenerateAppCode</CoreCompileDependsOn>
+    <CoreCompileDependsOn>$(CoreCompileDependsOn);GeneratePuppetCode;GenerateMessageCode</CoreCompileDependsOn>
   </PropertyGroup>
   <ItemGroup>
-    <AvailableItemName Include="App"/>
+    <AvailableItemName Include="Puppet"/>
+    <AvailableItemName Include="Message"/>
   </ItemGroup>
      
   <!-- TODO: Temporary path. Use installation directory for starcounter later when Apps is integrated into main Starcounter -->
- <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToCsMsBuildTask" AssemblyFile="$(StarcounterBin)\Starcounter.MsBuild.dll" />
+ <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToPuppetCsMsBuildTask" AssemblyFile="$(StarcounterBin)\Starcounter.MsBuild.dll" />
 
-  <Target Name="GenerateAppCode" Inputs="@(App)" Outputs="@(App->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
-    <JsonToCsMsBuildTask
-       InputFiles="@(App)"
-       OutputFiles="@(App->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
+  <Target Name="GeneratePuppetCode" Inputs="@(Puppet)" Outputs="@(Puppet->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
+    <JsonToPuppetCsMsBuildTask
+       InputFiles="@(Puppet)"
+       OutputFiles="@(Puppet->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
        <Output TaskParameter="OutputFiles" ItemName="gFiles" /> 
-    </JsonToCsMsBuildTask>
+    </JsonToPuppetCsMsBuildTask>
+	<ItemGroup>
+      <Compile Include="@(gFiles)" />
+    </ItemGroup>
+  </Target>
+
+ <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToMessageCsMsBuildTask" AssemblyFile="$(StarcounterBin)\Starcounter.MsBuild.dll" />
+
+  <Target Name="GenerateMessageCode" Inputs="@(Message)" Outputs="@(Message->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
+    <JsonToMessageCsMsBuildTask
+       InputFiles="@(Message)"
+       OutputFiles="@(Message->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
+       <Output TaskParameter="OutputFiles" ItemName="gFiles" /> 
+    </JsonToMessageCsMsBuildTask>
 	<ItemGroup>
       <Compile Include="@(gFiles)" />
     </ItemGroup>

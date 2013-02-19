@@ -45,7 +45,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="templ"></param>
-        public Listing(App parent, TObjArr templ)
+        public Listing(Puppet parent, TObjArr templ)
             : base(parent, templ) {
         }
 
@@ -220,7 +220,7 @@ namespace Starcounter {
          throw new JockeNotImplementedException();
 #endif
             template = (TObjArr)this.Template;
-            ChangeLog.AddItemInList((App)this.Parent, template, index);
+            ChangeLog.AddItemInList((Puppet)this.Parent, template, index);
 
             for (Int32 i = index + 1; i < QuickAndDirtyArray.Count; i++) {
                 otherItem = QuickAndDirtyArray[i];
@@ -241,7 +241,7 @@ namespace Starcounter {
 
             template = (TObjArr)this.Template;
             QuickAndDirtyArray.RemoveAt(index);
-            ChangeLog.RemoveItemInList((App)this.Parent, template, index);
+            ChangeLog.RemoveItemInList((Puppet)this.Parent, template, index);
 
             for (Int32 i = index; i < QuickAndDirtyArray.Count; i++) {
                 otherItem = QuickAndDirtyArray[i];

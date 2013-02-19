@@ -8,13 +8,14 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using Starcounter.Internal;
 using Starcounter.Internal.Web;
+using Starcounter.Advanced;
 
 namespace NetworkIoTestApp
 {
     /// <summary>
     /// Some Apps handlers.
     /// </summary>
-    public class AppsClass : App
+    public class AppsClass : Puppet
     {
         /// <summary>
         /// Initializes some Apps handlers.
@@ -689,8 +690,8 @@ namespace NetworkIoTestApp
                 // Displaying new session unique number.
                 Console.WriteLine("Generated new session with index: " + p.UniqueSessionIndex);
 
-                // Adding the session cookie stub.
-                responseHeader += "Set-Cookie: " + p.SessionStruct.SessionCookieStubString + "; HttpOnly\r\n";
+                // Adding the session header stub.
+                responseHeader += p.SessionStruct.SessionHeaderStubString + "\r\n";
             }
 
             // Converting string to byte array.
