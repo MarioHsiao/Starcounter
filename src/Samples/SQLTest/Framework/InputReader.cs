@@ -259,6 +259,10 @@ namespace SQLTest
                         valueList.Add(UInt64.Parse(strValue, NumberFormatInfo.InvariantInfo));
                         break;
 
+                    case "Type":
+                        valueList.Add(Type.GetType(strValue));
+                        break;
+
                     default:
                         throw new Exception("Incorrect type.");
                 }
