@@ -3,12 +3,15 @@ using Starcounter;
 using Starcounter.ABCIPC;
 using Starcounter.ABCIPC.Internal;
 using Starcounter.Internal;
+using Starcounter.CommandLine;
+using Starcounter.CommandLine.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Starcounter.Server.Setup;
 
 namespace star {
+
     class Program {
         
         static Dictionary<string, Action<Client, string[]>> supportedCommands;
@@ -37,6 +40,23 @@ namespace star {
             string pipeName;
             string command;
             Action<Client, string[]> action;
+
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("NEW_CLI"))) {
+                ApplicationArguments appArgs;
+                IApplicationSyntax syntax;
+
+                var result = TryGetProgramArguments(args, out appArgs, out syntax);
+                
+                // No matter the result, display the syntax tree.
+                // TODO:
+
+                if (result) {
+                    // Visualize the given arguments, how they are parsed.
+                    // TODO:
+                }
+
+                return;
+            }
 
             pipeName = Environment.GetEnvironmentVariable("star_servername");
             if (string.IsNullOrEmpty(pipeName)) {
@@ -81,6 +101,66 @@ namespace star {
                 ConsoleColor.Green
                 );
 #endif
+        }
+
+        static bool TryGetProgramArguments(string[] args, out ApplicationArguments arguments, out IApplicationSyntax syntax) {
+            ApplicationSyntaxDefinition syntaxDefinition;
+            CommandSyntaxDefinition commandDefinition;
+            Parser parser;
+
+            // Define the general program syntax
+
+            syntaxDefinition = new ApplicationSyntaxDefinition();
+            syntaxDefinition.ProgramDescription = "The Starcounter command-line interface.";
+            syntaxDefinition.DefaultCommand = "exec";
+
+            // Define the global property allowing the verbosity level
+            // of the program to be changed.
+
+            syntaxDefinition.DefineProperty(
+                "verbosity",
+                "Sets the verbosity of the program (quiet, minimal, verbose, diagnostic). Minimal is the default."
+                );
+
+            // Define the global flag allowing a debugger to be attached
+            // to the process when starting. Undocumented, internal flag.
+
+            syntaxDefinition.DefineFlag(
+                "attachdebugger",
+                "Attaches a debugger to the process during startup."
+                );
+
+            commandDefinition = syntaxDefinition.DefineCommand("exec", "Executes an application", 1, int.MaxValue);
+            commandDefinition.DefineProperty(
+                "db", 
+                "Specifies the database to run the application in.",
+                OptionAttributes.Default,
+                new string[] { "d" }
+                );
+
+            syntax = syntaxDefinition.CreateSyntax();
+
+            // If no arguments are given, use the syntax to create a Usage
+            // message, just as is expected when giving /help or /? to a program.
+            if (args.Length == 0) {
+                // TODO: Usage(syntax, null);
+                arguments = null;
+                return false;
+            }
+
+            // Parse and evaluate the given input
+            parser = new Parser(args);
+            try {
+                arguments = parser.Parse(syntax);
+            } catch (InvalidCommandLineException e) {
+                Console.Error.WriteLine(e);
+                //Usage(syntax, invalidCommandLine);
+                //ReportProgramError(invalidCommandLine.ErrorCode, invalidCommandLine.Message);
+                arguments = null;
+                return false;
+            }
+
+            return true;
         }
 
         static void Ping(Client client, string[] args) {
