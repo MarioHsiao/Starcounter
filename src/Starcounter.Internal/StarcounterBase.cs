@@ -92,18 +92,15 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="uri"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         public static object Request(HttpRequest request) {
             return _REST.Request(request);
         }
 
-
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="uri"></param>
-        /// <returns></returns>
         public static IREST REST {
             get {
                 return _REST;
