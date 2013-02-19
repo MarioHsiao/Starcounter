@@ -9,6 +9,7 @@ using Starcounter.Internal.Uri;
 using System;
 using System.Text;
 using HttpStructs;
+using Starcounter.Advanced;
 namespace Starcounter.Internal.Test {
 
     /// <summary>
@@ -23,7 +24,7 @@ namespace Starcounter.Internal.Test {
         [SetUp]
         public void InitHttpStructsTests()
         {
-            HttpStructs.HttpRequest.sc_init_http_parser();
+            HttpRequest.sc_init_http_parser();
         }
     }
 

@@ -6,8 +6,9 @@
 
 using System;
 using System.Diagnostics; // TODO: Remove when HttpRequest can be sent in to the handler. And remove reference from Apps
-using HttpStructs;
 using Starcounter.Templates;
+using Starcounter.Advanced;
+using HttpStructs;
 
 namespace Starcounter.Apps {
     // TODO:

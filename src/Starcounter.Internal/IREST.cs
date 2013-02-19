@@ -74,5 +74,21 @@ namespace Starcounter.Advanced {
         /// <param name="verbAndUri">The verb and uri template of the request.</param>
         /// <param name="handler">The code to call when receiving the request</param>
         void RegisterHandler<T1, T2, T3, T4, T5>(string verbAndUri, Func<T1, T2, T3, T4, T5, object> handler);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <returns></returns>
+        object Get(string uri);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        object Request(HttpRequest request);
+
+        object RawRequest(byte[] request);
     }
 }
