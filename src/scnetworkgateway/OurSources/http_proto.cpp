@@ -192,18 +192,24 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
     {
         case COOKIE_FIELD:
         {
-            // Check if its an old session from a different socket.
-            const char* session_id_value_string = GetSessionIdValueString(at, length);
+            // Setting needed HttpRequest fields.
+            http->http_request_.cookies_offset_ = at - (char*)http->sd_ref_;
+            http->http_request_.cookies_len_bytes_ = length;
 
+            break;
+        }
+
+        case SCSESSIONID_FIELD:
+        {
             // Checking if Starcounter session id is presented.
-            if (session_id_value_string)
+            if (SC_SESSION_STRING_LEN_CHARS == length)
             {
                 // Setting the session offset.
-                http->http_request_.session_string_offset_ = session_id_value_string - (char*)http->sd_ref_;
+                http->http_request_.session_string_offset_ = at - (char*)http->sd_ref_;
                 http->http_request_.session_string_len_bytes_ = SC_SESSION_STRING_LEN_CHARS;
 
                 // Reading received session index (skipping session header name and equality).
-                session_index_type cookie_session_index = hex_string_to_uint64(session_id_value_string, SC_SESSION_STRING_INDEX_LEN_CHARS);
+                session_index_type cookie_session_index = hex_string_to_uint64(at, SC_SESSION_STRING_INDEX_LEN_CHARS);
                 if (INVALID_CONVERTED_NUMBER == cookie_session_index)
                 {
                     GW_COUT << "Session index stored in the HTTP header has wrong format." << GW_ENDL;
@@ -211,7 +217,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
                 }
 
                 // Reading received session random salt.
-                uint64_t cookie_random_salt = hex_string_to_uint64(session_id_value_string + SC_SESSION_STRING_INDEX_LEN_CHARS, SC_SESSION_STRING_SALT_LEN_CHARS);
+                uint64_t cookie_random_salt = hex_string_to_uint64(at + SC_SESSION_STRING_INDEX_LEN_CHARS, SC_SESSION_STRING_SALT_LEN_CHARS);
                 if (INVALID_CONVERTED_NUMBER == cookie_random_salt)
                 {
                     GW_COUT << "Session random salt stored in the HTTP header has wrong format." << GW_ENDL;
@@ -239,10 +245,6 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
                     http->sd_ref_->AssignSession(global_session_copy);
                 }
             }
-
-            // Setting needed HttpRequest fields.
-            http->http_request_.cookies_offset_ = at - (char*)http->sd_ref_;
-            http->http_request_.cookies_len_bytes_ = length;
 
             break;
         }
@@ -768,7 +770,7 @@ ALL_DATA_ACCUMULATED:
             }
 
             // Skipping cookie header and equality symbol.
-            session_cookie += kScSessionIdStringPlusEqualsLength;
+            session_cookie += kScSessionIdStringWithExtraCharsLength;
 
             // Getting session global copy.
             ScSessionStruct global_session_copy = g_gateway.GetGlobalSessionDataCopy(sd->get_session_index());

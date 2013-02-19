@@ -20,34 +20,36 @@ namespace Starcounter.Internal.JsonTemplate
         /// <summary>
         /// Creates from js.
         /// </summary>
+        /// <param name="objTemplateType">The objTemplateType.</param>
         /// <param name="script2">The script2.</param>
         /// <param name="restrictToDesigntimeVariable">if set to <c>true</c> [restrict to designtime variable].</param>
         /// <returns>TApp.</returns>
-        public static TApp CreateFromJs(string script2, bool restrictToDesigntimeVariable)
+        public static TObj CreateFromJs( Type objTemplateType, string script2, bool restrictToDesigntimeVariable)
         {
-            return _CreateFromJs(script2, "unknown", restrictToDesigntimeVariable); //ignoreNonDesignTimeAssignments);
+            return _CreateFromJs( objTemplateType, script2, "unknown", restrictToDesigntimeVariable); //ignoreNonDesignTimeAssignments);
         }
 
         /// <summary>
         /// _s the create from js.
         /// </summary>
+        /// <param name="objTemplateType">The objTemplateType.</param>
         /// <param name="source">The source.</param>
         /// <param name="sourceReference">The source reference.</param>
         /// <param name="ignoreNonDesignTimeAssigments">if set to <c>true</c> [ignore non design time assigments].</param>
         /// <returns>TApp.</returns>
-        private static TApp _CreateFromJs(string source,
+        private static TObj _CreateFromJs(Type objTemplateType, string source,
                                                  string sourceReference,
                                                  bool ignoreNonDesignTimeAssigments)
         {
-            TApp appTemplate;
-            ITemplateFactory factory = new Internal.JsonTemplate.TAppFactory<App,TApp>();
+            TObj appTemplate;
+            ITemplateFactory factory = new Internal.JsonTemplate.TAppFactory<Puppet,TPuppet>();
             int skip = 0;
             if (!ignoreNonDesignTimeAssigments)
             {
                 source = "(" + source + ")";
                 skip++;
             }
-            appTemplate = (TApp)Materializer.BuiltTemplate(source,
+            appTemplate = (TObj)Materializer.BuiltTemplate(source,
                                                                   sourceReference,
                                                                   skip,
                                                                   factory,
@@ -90,15 +92,15 @@ namespace Starcounter.Internal.JsonTemplate
         /// </summary>
         /// <param name="fileSpec">The file spec.</param>
         /// <returns>TApp.</returns>
-        public static TApp ReadFile(string fileSpec)
+        public static TPuppet ReadPuppetTemplateFromFile(string fileSpec)
         {
             string content = ReadUtf8File(fileSpec);
-            var t = _CreateFromJs(content, fileSpec, false);
+            var t = _CreateFromJs(typeof(TPuppet),content, fileSpec, false);
             if (t.ClassName == null)
             {
                 t.ClassName = Paths.StripFileNameWithoutExtention(fileSpec);
             }
-            return t;
+            return (TPuppet)t;
         }
 
         /// <summary>

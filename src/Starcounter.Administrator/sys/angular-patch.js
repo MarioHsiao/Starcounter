@@ -54,7 +54,8 @@ function ngAppFactory() {
         function getRoot(scope) {
           $http({
             method: 'GET',
-            url: config.getRequestUrl(scope)
+            url: config.getRequestUrl(scope),
+            headers: {'ScSsnId': '<todo-ScSsnId>'}
           }).success(function (data, status, headers, config) {
             overwriteRoot(data);
             rootLoaded = true;
@@ -65,6 +66,7 @@ function ngAppFactory() {
           $http({
             method: 'PATCH',
             url: config.getRequestUrl(scope),
+            headers: { 'ScSsnId': '<todo-ScSsnId>' },
             data: update
           }).success(function (data, status, headers, config) {
             patchRoot(scope, data);

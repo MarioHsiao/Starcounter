@@ -4,7 +4,6 @@ TASKKILL /f /t /im scdata.exe
 TASKKILL /f /t /im scnetworkgateway.exe
 TASKKILL /f /t /im scnetworkgatewayloopedtest.exe
 TASKKILL /f /t /im scipcmonitor.exe
-TASKKILL /f /t /im screferenceserver.exe
 TASKKILL /f /t /im scweaver.exe
 TASKKILL /f /t /im scsqlparser.exe
 

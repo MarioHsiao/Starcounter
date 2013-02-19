@@ -41,7 +41,7 @@ namespace Starcounter {
     /// <typeparam name="TApp">The type of the Puppet.</typeparam>
     /// <typeparam name="TTemplate">The type of the ....TODO</typeparam>
     public class Input<TApp, TTemplate> : Input
-        where TApp : App
+        where TApp : Puppet
         where TTemplate : Template {
 
             /// <summary>
@@ -71,7 +71,7 @@ namespace Starcounter {
     /// <typeparam name="TApp">The type of the Puppet.</typeparam>
     /// <typeparam name="TTemplate">The type of the ....TODO</typeparam>
     /// <typeparam name="TValue">The type of the value that is being updated</typeparam>
-    public class Input<TApp, TTemplate, TValue> : Input<TValue> where TApp : App where TTemplate : Template {
+    public class Input<TApp, TTemplate, TValue> : Input<TValue> where TApp : Puppet where TTemplate : Template {
 
         /// <summary>
         /// The _app
@@ -107,7 +107,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="parentProperty">The parent property.</param>
         /// <returns>App.</returns>
-        public App FindParent(TContainer parentProperty) {
+        public Puppet FindParent(TContainer parentProperty) {
             return null;
         }
 
@@ -116,7 +116,7 @@ namespace Starcounter {
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns>``0.</returns>
-        public T FindParent<T>() where T:App {
+        public T FindParent<T>() where T:Puppet {
             return null;
         }
 

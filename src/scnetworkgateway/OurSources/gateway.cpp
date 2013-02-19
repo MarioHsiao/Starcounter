@@ -812,6 +812,25 @@ uint32_t Gateway::AssertCorrectState()
 
     GW_ASSERT(sizeof(ScSessionStructPlus) == 64);
 
+    // Checking HTTP related fields.
+    GW_ASSERT(kScFullSessionIdStringLength == (SC_SESSION_STRING_LEN_CHARS + kScSessionIdStringWithExtraCharsLength));
+
+    int64_t accept_8bytes = *(int64_t*)"Accept: ";
+    int64_t accept_enc_8bytes = *(int64_t*)"Accept-E";
+    int64_t cookie_8bytes = *(int64_t*)"Cookie: ";
+    int64_t content_len_8bytes = *(int64_t*)"Content-Length";
+    int64_t upgrade_8bytes = *(int64_t*)"Upgrade:";
+    int64_t websocket_8bytes = *(int64_t*)"Sec-WebSocket";
+    int64_t scsessionid_8bytes = *(int64_t*)kScSessionIdStringWithExtraChars;
+
+    GW_ASSERT(ACCEPT_HEADER_VALUE_8BYTES == accept_8bytes);
+    GW_ASSERT(ACCEPT_ENCODING_HEADER_VALUE_8BYTES == accept_enc_8bytes);
+    GW_ASSERT(COOKIE_HEADER_VALUE_8BYTES == cookie_8bytes);
+    GW_ASSERT(CONTENT_LENGTH_HEADER_VALUE_8BYTES == content_len_8bytes);
+    GW_ASSERT(UPGRADE_HEADER_VALUE_8BYTES == upgrade_8bytes);
+    GW_ASSERT(WEBSOCKET_HEADER_VALUE_8BYTES == websocket_8bytes);
+    GW_ASSERT(SCSESSIONID_HEADER_VALUE_8BYTES == scsessionid_8bytes);
+
     return 0;
 
 FAILED:

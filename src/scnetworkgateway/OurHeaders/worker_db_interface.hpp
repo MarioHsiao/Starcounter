@@ -214,7 +214,7 @@ public:
         if (private_overflow_pool_.empty())
             return 0;
 
-        uint32_t chunk_index_and_sched; // This type must be uint32_t.
+        uint32_t chunk_index_and_scheduler; // This type must be uint32_t.
         std::size_t current_overflow_size = private_overflow_pool_.size();
 
         // Try to empty the overflow buffer, but only those elements
@@ -223,15 +223,15 @@ public:
         // be pushed the next time around.
         for (std::size_t i = 0; i < current_overflow_size; ++i)
         {
-            private_overflow_pool_.pop_back(&chunk_index_and_sched);
-            core::chunk_index chunk_index = chunk_index_and_sched & 0xFFFFFFUL;
-            uint32_t sched_num = (chunk_index_and_sched >> 24) & 0xFFUL;
+            private_overflow_pool_.pop_back(&chunk_index_and_scheduler);
+            core::chunk_index chunk_index = chunk_index_and_scheduler & 0xFFFFFFUL;
+            uint32_t scheduler_id = (chunk_index_and_scheduler >> 24) & 0xFFUL;
 
             // Just getting number of chunks to push.
             SocketDataChunk* sd = (SocketDataChunk*)((uint8_t*)(&shared_int_.chunk(chunk_index)) + bmx::BMX_HEADER_MAX_SIZE_BYTES);
 
             // Pushing chunk using standard procedure.
-            PushLinkedChunksToDb(chunk_index, sd->get_num_chunks(), sched_num, false);
+            PushLinkedChunksToDb(chunk_index, sd->get_num_chunks(), scheduler_id, false);
         }
 
         return 0;
@@ -241,7 +241,7 @@ public:
     void PushLinkedChunksToDb(
         core::chunk_index chunk_index,
         int32_t num_chunks,
-        int16_t sched_id,
+        int16_t scheduler_id,
         bool not_overflow_chunk);
 
     uint32_t PushSocketDataToDb(GatewayWorker* gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id);
