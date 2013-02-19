@@ -103,7 +103,8 @@ namespace Starcounter.Server.Commands {
             // doesn't exist. Process further: weaving first.
             // (Make sure we respect the (temporary) NoDb switch if applied).
 
-            appRuntimeDirectory = GetAppRuntimeDirectory(
+            weaver = Engine.WeaverService;
+            appRuntimeDirectory = weaver.CreateFullRuntimePath(
                 Path.Combine(database.Configuration.Runtime.TempDirectory, StarcounterEnvironment.Directories.WeaverTempSubDirectory),
                 command.AssemblyPath);
 
@@ -115,7 +116,6 @@ namespace Starcounter.Server.Commands {
             }
             else
             {
-                weaver = Engine.WeaverService;
                 weavedExecutable = weaver.Weave(command.AssemblyPath, appRuntimeDirectory);
 
                 OnWeavingCompleted();
