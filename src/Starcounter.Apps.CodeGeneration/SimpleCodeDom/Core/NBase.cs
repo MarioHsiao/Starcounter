@@ -22,6 +22,21 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     public class NBase {
 
         /// <summary>
+        /// 
+        /// </summary>
+        public DomGenerator Generator;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gen"></param>
+        public NBase(DomGenerator gen) {
+            if (gen == null)
+                throw new Exception("The generator must be given");
+            Generator = gen;
+        }
+
+        /// <summary>
         /// </summary>
         private NBase _SourceParent;
 
@@ -67,6 +82,16 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 _Parent.Children.Add(this);
             }
         }
+
+//        public NRoot Root {
+//            get {
+//                NBase p = this;
+//                while (p.Parent != null) {
+//                    p = p._Parent;
+//                }
+//                return (NRoot)p;
+//            }
+        //        }
 
         /// <summary>
         /// The _ prefix

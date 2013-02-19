@@ -14,5 +14,11 @@ namespace Starcounter.Templates.Interfaces {
         /// </summary>
         /// <returns>System.String.</returns>
         string GenerateCode();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        string DumpAstTree();
     }
 }

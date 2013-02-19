@@ -5,7 +5,7 @@
 // ***********************************************************************
 
 using System;
-using HttpStructs;
+using Starcounter.Advanced;
 
 namespace Starcounter {
 

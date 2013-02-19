@@ -114,17 +114,6 @@ inline int OnHeaderValue(http_parser* p, const char *at, size_t length)
     {
         case COOKIE_FIELD:
         {
-            // Check if its an old session from a different socket.
-            const char* session_id_value_string = GetSessionIdValueString(at, length);
-
-            // Checking if Starcounter session id is presented.
-            if (session_id_value_string)
-            {
-                // Setting the session offset.
-                http->http_request_->session_string_offset_ = (uint32_t)(session_id_value_string - (char*)http->request_buf_);
-                http->http_request_->session_string_len_bytes_ = SC_SESSION_STRING_LEN_CHARS;
-            }
-
             // Setting needed HttpRequest fields.
             http->http_request_->cookies_offset_ = (uint32_t)(at - (char*)http->request_buf_);
             http->http_request_->cookies_len_bytes_ = (uint32_t)length;
@@ -164,6 +153,19 @@ inline int OnHeaderValue(http_parser* p, const char *at, size_t length)
         {
             http->http_request_->accept_value_offset_ = (uint32_t)(at - (char*)http->request_buf_);
             http->http_request_->accept_value_len_bytes_ = (uint32_t)length;
+
+            break;
+        }
+
+        case SCSESSIONID_FIELD:
+        {
+            // Checking if Starcounter session id is presented.
+            if (SC_SESSION_STRING_LEN_CHARS == length)
+            {
+                // Setting the session offset.
+                http->http_request_->session_string_offset_ = (uint32_t)(at - (char*)http->request_buf_);
+                http->http_request_->session_string_len_bytes_ = SC_SESSION_STRING_LEN_CHARS;
+            }
 
             break;
         }

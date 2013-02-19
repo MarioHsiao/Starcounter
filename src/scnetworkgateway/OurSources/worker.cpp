@@ -1426,7 +1426,7 @@ uint32_t GatewayWorker::WorkerRoutine()
 void __stdcall EmptyApcFunction(ULONG_PTR arg);
 uint32_t GatewayWorker::ScanChannels(bool* found_something)
 {
-    uint32_t errCode;
+    uint32_t err_code;
 
     for (int32_t i = 0; i < g_gateway.get_num_dbs_slots(); i++)
     {
@@ -1435,8 +1435,8 @@ uint32_t GatewayWorker::ScanChannels(bool* found_something)
         if (NULL != db)
         {
             // Scanning channels first.
-            errCode = db->ScanChannels(this, found_something);
-            GW_ERR_CHECK(errCode);
+            err_code = db->ScanChannels(this, found_something);
+            GW_ERR_CHECK(err_code);
 
             // Checking if database deletion is started.
             if (g_gateway.GetDatabase(i)->IsDeletionStarted())

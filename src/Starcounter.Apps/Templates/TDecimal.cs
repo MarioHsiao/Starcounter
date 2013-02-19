@@ -29,7 +29,7 @@ namespace Starcounter.Templates {
         /// <param name="app">The app.</param>
         /// <param name="rawValue">The raw value.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        public override void ProcessInput(App app, byte[] rawValue)
+        public override void ProcessInput(Puppet app, byte[] rawValue)
         {
             // TODO:
             // Superslow way of parsing the decimal value. Needs to be rewritten.

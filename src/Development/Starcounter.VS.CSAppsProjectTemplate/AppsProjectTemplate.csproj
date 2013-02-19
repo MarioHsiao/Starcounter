@@ -65,6 +65,10 @@
       <HintPath>$(StarcounterBin)\Starcounter.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Starcounter.Internal">
+      <HintPath>$(StarcounterBin)\Starcounter.Internal.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Starcounter.Apps">
       <HintPath>$(StarcounterBin)\Starcounter.Apps.dll</HintPath>
       <Private>False</Private>
@@ -106,9 +110,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <App Include="Master.json">
+    <Puppet Include="Master.json">
       <Generator>MSBuild:Compile</Generator>
-    </App>
+    </Puppet>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(StarcounterBin)\Starcounter.MsBuild.targets" />

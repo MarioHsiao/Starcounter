@@ -8,10 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using HttpStructs;
-using Starcounter.Internal.Web;
 
-namespace Starcounter.Internal.REST {
+namespace Starcounter.Advanced {
     /// <summary>
     /// To serve Web pages and App state, you can implement a REST handler. A REST handler can process a Method on a
     /// resource located using a URI.

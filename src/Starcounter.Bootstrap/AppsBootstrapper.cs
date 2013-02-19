@@ -15,7 +15,7 @@ namespace Starcounter.Internal {
     /// </remarks>
     public static class AppsBootstrapper {
         private static HttpAppServer appServer;
-        private static StaticWebServer fileServer;
+       // private static StaticWebServer fileServer;
         private static UInt16 defaultPort_ = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
 
         /// <summary>
@@ -31,8 +31,9 @@ namespace Starcounter.Internal {
         /// 
         /// </summary>
         static AppsBootstrapper() {
-            fileServer = new StaticWebServer();
+            var fileServer = new StaticWebServer();
             appServer = new HttpAppServer(fileServer);
+            StarcounterBase.Fileserver = fileServer;
 
             // Register the handlers required by the Apps system. These work as user code handlers, but
             // listens to the built in REST api serving view models to REST clients.
@@ -45,7 +46,7 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="path">The directory to include</param>
         public static void AddFileServingDirectory(string path) {
-            fileServer.UserAddedLocalFileDirectoryWithStaticContent(path);
+            StarcounterBase.Fileserver.UserAddedLocalFileDirectoryWithStaticContent(path);
         }
 
         /// <summary>
@@ -79,7 +80,7 @@ namespace Starcounter.Internal {
         /// <param name="request">The http request</param>
         /// <returns>Returns true if the request was handled</returns>
         private static Boolean OnHttpMessageRoot(HttpRequest request) {
-            HttpResponse result = appServer.Handle(request);
+            var result = (HttpResponse)appServer.Handle(request);
             request.SendResponse(result.Uncompressed, 0, result.Uncompressed.Length);
             return true;
         }
