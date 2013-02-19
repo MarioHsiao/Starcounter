@@ -49,11 +49,6 @@ namespace Starcounter.Internal
             /// <summary>
             /// ScWeaver
             /// </summary>
-            public const string ScReferenceServer = "screferenceserver";
-
-            /// <summary>
-            /// ScWeaver
-            /// </summary>
             public const string ScWeaver = "scweaver";
 
             /// <summary>
