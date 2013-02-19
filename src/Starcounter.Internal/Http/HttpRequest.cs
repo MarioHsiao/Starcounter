@@ -288,7 +288,7 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Byte array of the request.
         /// </summary>
-        /// <param name="a"></param>
+        /// <param name="r"></param>
         /// <returns></returns>
         public static implicit operator Byte[](HttpRequest r)
         {
