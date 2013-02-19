@@ -18,7 +18,7 @@ namespace Starcounter.VisualStudio {
         /// <summary>
         /// Gets a possible <see cref="ErrorMessage"/>. Tasks based
         /// on error messages can materialize themselves in the
-        /// <see cref="UserMessageWindow"/> control when navigated
+        /// <see cref="ShowInUserMessageWindow"/> control when navigated
         /// to.
         /// </summary>
         public ErrorMessage ErrorMessage { get; private set; }

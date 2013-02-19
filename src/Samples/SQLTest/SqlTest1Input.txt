@@ -18,16 +18,17 @@ Does not use any indexes.
 === Sorting ===
 === Joins ===
 === Ad hoc ===
+=== Fetch ====
 
 
 ====== PROBLEMS ======
 
 
 // Problem: Path expression in null condition should be replaced by some special type of join ("null join").
-// Compare with: select e.firstname, m.firstname, d.name from employee e left join employee m on e.Manager = m left join department d on m.Department = d where d.location is null
+// Compare with: select e.firstname, m.firstname, d.name from SQLTest.EmployeeDb.employee e left join SQLTest.EmployeeDb.employee m on e.Manager = m left join department d on m.Department = d where d.location is null
 <NEXT>
 Description: Implicit joins using path expression and null
-QueryString: select e.firstname, e.manager.firstname, e.manager.department.name from employee e where e.manager.department.location is null
+QueryString: select e.firstname, e.manager.firstname, e.manager.department.name from SQLTest.EmployeeDb.employee e where e.manager.department.location is null
 
 
 // Problem: This query gives strange runtime error, but still works.
@@ -605,7 +606,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Short class name
-QueryString: select e from Employee e
+QueryString: select e from SQLTest.EmployeeDb.Employee e
 ExpectedExecutionPlan: 
 Tables(
 	0 = SQLTest.EmployeeDb.Employee
@@ -639,7 +640,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Unqualified field name
-QueryString: select FirstName from Employee
+QueryString: select FirstName from SQLTest.EmployeeDb.Employee
 SingleObjectProjection: True
 ExpectedExecutionPlan: 
 Tables(
@@ -674,7 +675,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Qualified asterisk
-QueryString: select e.* from Employee e
+QueryString: select e.* from SQLTest.EmployeeDb.Employee e
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
@@ -723,7 +724,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Unqualified asterisk
-QueryString: select * from Employee
+QueryString: select * from SQLTest.EmployeeDb.Employee
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
@@ -772,7 +773,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Path expression with asterisk
-QueryString: select e.Manager.Department.* from Employee e
+QueryString: select e.Manager.Department.* from SQLTest.EmployeeDb.Employee e
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
@@ -841,9 +842,9 @@ ExpectedExceptionMessage: Failed to process query: select e from Example e: Unkn
 
 <NEXT>
 Description: Non-existing property (incorrect)
-QueryString: select e.Name from Employee e
+QueryString: select e.Name from SQLTest.EmployeeDb.Employee e
 SingleObjectProjection: False
-ExpectedExceptionMessage: Failed to process query: select e.Name from Employee e: Unknown property Name of class SQLTest.EmployeeDb.Employee. 
+ExpectedExceptionMessage: Failed to process query: select e.Name from SQLTest.EmployeeDb.Employee e: Unknown property Name of class SQLTest.EmployeeDb.Employee. 
 
 
 <NEXT>
@@ -14022,7 +14023,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Order by on several properties
-QueryString: select e.FirstName, e.LastName from Employee e order by e.LastName asc, e.FirstName desc
+QueryString: select e.FirstName, e.LastName from SQLTest.EmployeeDb.Employee e order by e.LastName asc, e.FirstName desc
 SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
@@ -14072,7 +14073,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Cross join
-QueryString: select e.FirstName, d.Name from Employee e cross join Department d
+QueryString: select e.FirstName, d.Name from SQLTest.EmployeeDb.Employee e cross join Department d
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
@@ -14149,7 +14150,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Cross join (single object projection)
-QueryString: select d from Employee e cross join Department d
+QueryString: select d from SQLTest.EmployeeDb.Employee e cross join Department d
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
@@ -14224,7 +14225,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Right join
-QueryString: select e.FirstName, d.Name from Employee e right join Department d on e.Department = d
+QueryString: select e.FirstName, d.Name from SQLTest.EmployeeDb.Employee e right join Department d on e.Department = d
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
@@ -14274,7 +14275,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Right join (single object projection)
-QueryString: select e from Employee e right join Department d on e.Department = d
+QueryString: select e from SQLTest.EmployeeDb.Employee e right join Department d on e.Department = d
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
@@ -14322,7 +14323,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Right outer join
-QueryString: select e.FirstName, d.Name from Employee e right outer join Department d on e.Department = d
+QueryString: select e.FirstName, d.Name from SQLTest.EmployeeDb.Employee e right outer join Department d on e.Department = d
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
@@ -14372,7 +14373,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Right outer join (single object projection)
-QueryString: select e from Employee e right outer join Department d on e.Department = d
+QueryString: select e from SQLTest.EmployeeDb.Employee e right outer join Department d on e.Department = d
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
@@ -14480,7 +14481,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Right join (single object projection) with condition
-QueryString: select e from Employee e right join Department d on e.LastName > d.Name
+QueryString: select e from SQLTest.EmployeeDb.Employee e right join Department d on e.LastName > d.Name
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
@@ -14536,7 +14537,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Right join (single object projection) with condition 2
-QueryString: select d from Department d right join Employee e on d.Name > e.LastName
+QueryString: select d from Department d right join SQLTest.EmployeeDb.Employee e on d.Name > e.LastName
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
@@ -14590,7 +14591,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Join (single object projection) with condition
-QueryString: select d from Department d join Employee e on d.Name > e.LastName
+QueryString: select d from Department d join SQLTest.EmployeeDb.Employee e on d.Name > e.LastName
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
@@ -14727,7 +14728,7 @@ ExpectedExceptionMessage: Failed to process query: select e from SalaryEmployee 
 
 <NEXT>
 Description: Order by on path expression
-QueryString: select e.FirstName, e.Manager.FirstName from Employee e order by e.Manager.FirstName
+QueryString: select e.FirstName, e.Manager.FirstName from SQLTest.EmployeeDb.Employee e order by e.Manager.FirstName
 SingleObjectProjection: False
 ShouldBeReordered: False
 ExpectedExecutionPlan: 
@@ -15143,7 +15144,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Implicit joins using path expression with cast
-QueryString: select p.FirstName, p.Father.FirstName, cast(p.Father as Employee).Department.Name from SQLTest.EmployeeDb.Person p where cast(p.Father as Employee).Department.Name = 'Server'
+QueryString: select p.FirstName, p.Father.FirstName, cast(p.Father as SQLTest.EmployeeDb.Employee).Department.Name from SQLTest.EmployeeDb.Person p where cast(p.Father as SQLTest.EmployeeDb.Employee).Department.Name = 'Server'
 SingleObjectProjection: False
 IncludesLiteral: True
 ExpectedExecutionPlan: 
@@ -15213,7 +15214,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Implicit joins using path expression with cast (single object projection)
-QueryString: select cast(p.Father as Employee).Department from SQLTest.EmployeeDb.Person p where cast(p.Father as Employee).Department.Name = 'Server'
+QueryString: select cast(p.Father as SQLTest.EmployeeDb.Employee).Department from SQLTest.EmployeeDb.Person p where cast(p.Father as SQLTest.EmployeeDb.Employee).Department.Name = 'Server'
 CompositeResultObjects: False
 SingleObjectPathProjection: True
 IncludesLiteral: True
@@ -15279,7 +15280,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Join using on
-QueryString: select e.FirstName, d.Name from Employee e join Department d on e.Department = d
+QueryString: select e.FirstName, d.Name from SQLTest.EmployeeDb.Employee e join Department d on e.Department = d
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
@@ -15324,7 +15325,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Join using on (single object projection)
-QueryString: select d from Employee e join Department d on e.Department = d
+QueryString: select d from SQLTest.EmployeeDb.Employee e join Department d on e.Department = d
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
@@ -15367,7 +15368,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Join using where
-QueryString: select e.FirstName, d.Name from Employee e join Department d where e.Department = d
+QueryString: select e.FirstName, d.Name from SQLTest.EmployeeDb.Employee e join Department d where e.Department = d
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
@@ -15412,7 +15413,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Join using where (single object projection)
-QueryString: select d from Employee e join Department d where e.Department = d
+QueryString: select d from SQLTest.EmployeeDb.Employee e join Department d where e.Department = d
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
@@ -15455,7 +15456,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Join of the same extent
-QueryString: select e1.FirstName, e2.FirstName from Employee e1 join Employee e2 on e1 = e2
+QueryString: select e1.FirstName, e2.FirstName from SQLTest.EmployeeDb.Employee e1 join SQLTest.EmployeeDb.Employee e2 on e1 = e2
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
@@ -15501,7 +15502,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Join of the same extent (single object projection)
-QueryString: select e2 from Employee e1 join Employee e2 on e1 = e2
+QueryString: select e2 from SQLTest.EmployeeDb.Employee e1 join SQLTest.EmployeeDb.Employee e2 on e1 = e2
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
@@ -15545,7 +15546,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Inner join
-QueryString: select e.FirstName, d.Name from Employee e inner join Department d on e.Department = d
+QueryString: select e.FirstName, d.Name from SQLTest.EmployeeDb.Employee e inner join Department d on e.Department = d
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
@@ -15590,7 +15591,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Inner join (single object projection)
-QueryString: select d from Employee e inner join Department d on e.Department = d
+QueryString: select d from SQLTest.EmployeeDb.Employee e inner join Department d on e.Department = d
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
@@ -15633,7 +15634,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Old form of join
-QueryString: select e.FirstName, d.Name from Employee e, Department d where e.Department = d
+QueryString: select e.FirstName, d.Name from SQLTest.EmployeeDb.Employee e, Department d where e.Department = d
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
@@ -15678,7 +15679,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Old form of join (single object projection)
-QueryString: select d from Employee e, Department d where e.Department = d
+QueryString: select d from SQLTest.EmployeeDb.Employee e, Department d where e.Department = d
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
@@ -15721,7 +15722,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Unqualified field names in join
-QueryString: select FirstName, Name from Employee e join Department d on e.Department = d
+QueryString: select FirstName, Name from SQLTest.EmployeeDb.Employee e join Department d on e.Department = d
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
@@ -15766,7 +15767,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Implicit joins using two path expressions
-QueryString: select e.FirstName, e.Department.Name, e.Department.Location.Name, e.Manager.FirstName, e.Manager.Department.Name, e.Manager.Department.Location.Name from Employee e where e.Department.Location = e.Manager.Department.Location
+QueryString: select e.FirstName, e.Department.Name, e.Department.Location.Name, e.Manager.FirstName, e.Manager.Department.Name, e.Manager.Department.Location.Name from SQLTest.EmployeeDb.Employee e where e.Department.Location = e.Manager.Department.Location
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
@@ -15856,7 +15857,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Implicit joins using two path expressions (single object projection)
-QueryString: select e.Manager.Department.Location from Employee e where e.Department.Location = e.Manager.Department.Location
+QueryString: select e.Manager.Department.Location from SQLTest.EmployeeDb.Employee e where e.Department.Location = e.Manager.Department.Location
 CompositeResultObjects: False
 SingleObjectPathProjection: True
 ExpectedExecutionPlan: 
@@ -15922,7 +15923,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Implicit joins using path expression and variable
-QueryString: select e.FirstName, e.Manager.FirstName, e.Manager.Department.Name, e.Manager.Department.Location.Name from Employee e where e.Manager.Department.Location = ?
+QueryString: select e.FirstName, e.Manager.FirstName, e.Manager.Department.Name, e.Manager.Department.Location.Name from SQLTest.EmployeeDb.Employee e where e.Manager.Department.Location = ?
 VariableValues: Object:2; 
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
@@ -15995,7 +15996,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Implicit joins using path expression and variable (single object projection)
-QueryString: select e.Manager.Department.Location from Employee e where e.Manager.Department.Location = ?
+QueryString: select e.Manager.Department.Location from SQLTest.EmployeeDb.Employee e where e.Manager.Department.Location = ?
 VariableValues: Object:2; 
 CompositeResultObjects: False
 SingleObjectPathProjection: True
@@ -16055,7 +16056,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Left join
-QueryString: select e.FirstName, d.Name from Employee e left join Department d on e.Department = d
+QueryString: select e.FirstName, d.Name from SQLTest.EmployeeDb.Employee e left join Department d on e.Department = d
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
@@ -16101,7 +16102,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Left join (single object projection)
-QueryString: select d from Employee e left join Department d on e.Department = d
+QueryString: select d from SQLTest.EmployeeDb.Employee e left join Department d on e.Department = d
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
@@ -16145,7 +16146,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Left outer join
-QueryString: select e.FirstName, d.Name from Employee e left outer join Department d on e.Department = d
+QueryString: select e.FirstName, d.Name from SQLTest.EmployeeDb.Employee e left outer join Department d on e.Department = d
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
@@ -16191,7 +16192,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Left outer join (single object projection)
-QueryString: select d from Employee e left outer join Department d on e.Department = d
+QueryString: select d from SQLTest.EmployeeDb.Employee e left outer join Department d on e.Department = d
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
@@ -16235,7 +16236,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Null and not NullObject should be returned
-QueryString: select e, d from Employee e left join Department d on e.Department = d
+QueryString: select e, d from SQLTest.EmployeeDb.Employee e left join Department d on e.Department = d
 SingleObjectProjection: False
 ExpectedExecutionPlan: 
 Tables(
@@ -16281,7 +16282,7 @@ ExpectedResult:
 
 <NEXT>
 Description: Null and not NullObject should be returned (single object projection)
-QueryString: select d from Employee e left join Department d on e.Department = d
+QueryString: select d from SQLTest.EmployeeDb.Employee e left join Department d on e.Department = d
 CompositeResultObjects: False
 ExpectedExecutionPlan: 
 Tables(
@@ -16321,3 +16322,372 @@ ExpectedResult:
  | 9 | 
  | 9 | 
  | 9 | 
+
+=== Fetch ====
+
+<NEXT>
+Description: Fetch on sort result over non-indexed property
+QueryString: select d from Department d order by name fetch ?
+VariableValues: Int32:2;
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+Sort(
+	IndexScan(
+		auto
+		0
+		Description
+		StringDynamicRange(
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	StringComparer(
+		StringProperty(0, Name)
+		Ascending
+	)
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 7 | 
+ | 8 | 
+
+ <NEXT>
+Description: Fetch with sort grouped query on non-index property
+QueryString: select location, count(name) from department group by location order by location fetch ?
+VariableValues: Int32:2 ;
+SingleObjectProjection: False
+IncludesLiteral: True
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Department
+	1 = 
+		TemporaryType(
+			0 : Object
+			1 : Decimal
+		)
+)
+Projection(
+	0 = 
+		ObjectProperty(1, 0)
+	1 = 
+		DecimalProperty(1, 1)
+)
+Sort(
+	Aggregation(
+		1
+		IndexScan(
+			auto
+			0
+			Description
+			StringDynamicRange(
+			)
+			LogicalValue(TRUE)
+			Ascending
+		)
+		MultiComparer(
+			ObjectComparer(
+				ObjectProperty(0, Location)
+				Ascending
+			)
+		)
+		SetFunctions(
+			DecimalSetFunction(
+			COUNT
+				StringProperty(0, Name)
+			)
+		)
+		LogicalValue(TRUE)
+	)
+	ObjectComparer(
+		ObjectProperty(1, 0)
+		Ascending
+	)
+)
+
+ExpectedResult: 
+ ! 0:Object ! 1:Decimal ! 
+ | <NULL> | 1 | 
+ | 2 | 2 | 
+
+<NEXT>
+Description: Offset in full scan
+QueryString: select e from salaryemployee e where salarydecimal >= ? offset ?
+VariableValues: Decimal:10; Int32:1;
+ExpectedExceptionMessage: 
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.SalaryEmployee
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+FullTableScan(
+	0
+	ComparisonNumerical(
+		GreaterThanOrEqual
+		DecimalProperty(0, SalaryDecimal)
+		NumericalVariable(10)
+	)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 21 | 
+ | 22 | 
+
+<NEXT>
+Description: Simple query with fetch
+QueryString: select d from department d fetch ?
+VariableValues: Int32:2;
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	auto
+	0
+	Description
+	StringDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 7 | 
+ | 8 | 
+
+<NEXT>
+Description: Simple query with fetch and offset
+QueryString: select d from department d fetch ? offset ?
+VariableValues: Int32:2; Int32:1;
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	auto
+	0
+	Description
+	StringDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 8 | 
+ | 9 | 
+
+ <NEXT>
+Description: Offset with where clause.
+QueryString: select e from salaryemployee e where salaryint32 > ? offset ?
+VariableValues: Int32:10; Int32:1;
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.SalaryEmployee
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+FullTableScan(
+	0
+	ComparisonNumerical(
+		GreaterThan
+		IntegerProperty(0, SalaryInt32)
+		NumericalVariable(10)
+	)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 21 | 
+
+<NEXT>
+Description: Offset with simple path expression query
+QueryString: select location from department offset ?
+VariableValues: Int32:2;
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		ObjectProperty(0, Location)
+)
+IndexScan(
+	auto
+	0
+	Description
+	StringDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 2 | 
+ | <NULL> | 
+
+<NEXT>
+Description: Offset with join
+QueryString: select e1 from SQLTest.EmployeeDb.employee e1, SQLTest.EmployeeDb.employee e2 where e1.hiredate > e2.hiredate and e1.manager = e2.manager fetch ? offset ?
+VariableValues: Int32:2; Int32:2;
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Employee
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+Join(
+	Inner
+	IndexScan(
+		auto
+		0
+		FirstName
+		StringDynamicRange(
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	FullTableScan(
+		1
+		LogicalOperation(
+			AND
+			ComparisonDateTime(
+				GreaterThan
+				DateTimeProperty(0, HireDate)
+				DateTimeProperty(1, HireDate)
+			)
+			ComparisonObject(
+				Equal
+				ObjectProperty(0, Manager)
+				ObjectProperty(1, Manager)
+			)
+		)
+		Ascending
+	)
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 15 | 
+ | 21 | 
+
+<NEXT>
+Description: Offset with simple path expression query and sorting
+QueryString: select location from department order by location offset ?
+VariableValues: Int32:2;
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		ObjectProperty(0, Location)
+)
+Sort(
+	IndexScan(
+		auto
+		0
+		Description
+		StringDynamicRange(
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	ObjectComparer(
+		ObjectProperty(0, Location)
+		Ascending
+	)
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 2 | 
+ | 5 | 
+
+<NEXT>
+Description: Offset with joinand sorting
+QueryString: select e1 from SQLTest.EmployeeDb.employee e1, SQLTest.EmployeeDb.employee e2 where e1.hiredate > e2.hiredate and e1.manager = e2.manager order by e1 fetch ? offset ?
+VariableValues: Int32:2; Int32:2;
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = SQLTest.EmployeeDb.Employee
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+Sort(
+	Join(
+		Inner
+		IndexScan(
+			auto
+			0
+			FirstName
+			StringDynamicRange(
+			)
+			LogicalValue(TRUE)
+			Ascending
+		)
+		FullTableScan(
+			1
+			LogicalOperation(
+				AND
+				ComparisonDateTime(
+					GreaterThan
+					DateTimeProperty(0, HireDate)
+					DateTimeProperty(1, HireDate)
+				)
+				ComparisonObject(
+					Equal
+					ObjectProperty(0, Manager)
+					ObjectProperty(1, Manager)
+				)
+			)
+			Ascending
+		)
+	)
+	ObjectComparer(
+		ObjectThis(0)
+		Ascending
+	)
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 21 | 
+ | 22 | 

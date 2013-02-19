@@ -4,9 +4,9 @@
 // Copyright (c) Starcounter AB
 // Copyright (c) Fredrik Holmström
 
-namespace Starcounter.Internal
+namespace Starcounter.Internal.JsonTemplate
 
-open Starcounter.Internal.Aliases
+open Starcounter.Internal.JsonTemplate.Aliases
 open System.Globalization
 
 type IDebugInfoSource = // JOCKE

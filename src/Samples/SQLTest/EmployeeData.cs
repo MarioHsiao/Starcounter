@@ -14,7 +14,7 @@ namespace SQLTest.EmployeeDb
             {
 
                 // Control that data is not already created.
-                if (Db.SQL("select e from Employee e").First != null)
+                if (Db.SQL("select e from SQLTest.EmployeeDb.Employee e").First != null)
                     return;
 
                 // Create instances of Location.
