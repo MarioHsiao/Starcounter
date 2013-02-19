@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DocumentationFile>..\..\bin\Release\Starcounter.Internal.XML</DocumentationFile>
-    <NoWarn>1591</NoWarn>
+    <NoWarn>1591;1570;1571;1572;1573;1574</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>..\Starcounter.snk</AssemblyOriginatorKeyFile>
