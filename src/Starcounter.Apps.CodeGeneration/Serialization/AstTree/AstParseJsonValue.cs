@@ -40,8 +40,8 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                 template = ((TObjArr)template).App;
             }
             
-            if (template is TApp) {
-                appClassName = AstTreeHelper.GetAppClassName((TApp)template);
+            if (template is TPuppet) {
+                appClassName = AstTreeHelper.GetAppClassName((TPuppet)template);
                 Prefix.Add("var" + valueName + " = " + appClassName + "JsonSerializer.Deserialize((IntPtr)pfrag, nextSize, out valueSize);");
             } else if (template is ActionProperty) {
                 Prefix.Add("if (JsonHelper.IsNullValue((IntPtr)pfrag, nextSize, out valueSize)) {");
@@ -70,8 +70,8 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                 parseFunction = "ParseDouble";
             } else if (template is TBool) {
                 parseFunction = "ParseBoolean";
-            } else if (template is TApp || template is TObjArr) {
-                parseFunction = "DeserializeApp(" + ((TApp)template).ClassName + ")";
+            } else if (template is TPuppet || template is TObjArr) {
+                parseFunction = "DeserializeApp(" + ((TPuppet)template).ClassName + ")";
             } else {
                 throw new NotSupportedException("TODO! Add more types here");
             }

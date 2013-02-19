@@ -10,6 +10,8 @@
 #define SCDATA_INHERIT_CONSOLE 0
 #define SCCODE_INHERIT_CONSOLE 1
 
+//#define WITH_DATABASE // if defined the scservice requiers a database with the name "administrator"
+
 static void *hcontrol_event;
 
 // Global handle to server log.
@@ -88,7 +90,11 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     const wchar_t *admin_dbname = L"administrator";	
 	const wchar_t *mingw = L"MinGW\\bin\\x86_64-w64-mingw32-gcc.exe";
 
+#ifdef WITH_DATABASE
     void *handles[5];
+#else
+    void *handles[4];
+#endif
 
     memset(handles, 0, sizeof(handles));
 
@@ -105,7 +111,9 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     wchar_t *event_name;
     wchar_t *monitor_cmd;
     wchar_t *gateway_cmd;
+#ifdef WITH_DATABASE
     wchar_t *scdata_cmd;
+#endif
     wchar_t *sccode_cmd;
     wchar_t *admin_exe_path;
     wchar_t *admin_working_dir;
@@ -194,6 +202,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 
     swprintf(database_cfg_path, str_num_chars, str_template, server_database_dir, admin_dbname, admin_dbname);
 
+#ifdef WITH_DATABASE
     wchar_t *database_logs_dir;
     wchar_t *database_temp_dir;
     wchar_t *database_image_dir;
@@ -202,6 +211,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	// Reading database configuration
     r = _read_database_config(database_cfg_path, &database_logs_dir, &database_temp_dir, &database_image_dir, &database_scheduler_count);
     if (r) goto end;
+#endif
 
     str_template = L"scipcmonitor.exe \"%s\" \"%s\"";
     str_num_chars =
@@ -255,6 +265,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     if (!admin_working_dir) goto err_nomem;
 	swprintf(admin_working_dir, str_num_chars, str_template);
 
+#ifdef WITH_DATABASE
 	// Creating scdata command
     str_template = L"scdata.exe %s %s \"%s\"";
     str_num_chars = 
@@ -269,14 +280,15 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     if (!scdata_cmd) goto err_nomem;
 
 	swprintf(scdata_cmd, str_num_chars, str_template, admin_dbname_upr, admin_dbname, server_logs_dir);
-
+#endif
 	// Creating sccode command
 	str_num_chars = 0;
 
     // Checking if number of schedulers is defined.
+#ifdef WITH_DATABASE
 	str_template = L"sccode.exe %s --ServerName=%s --DatabaseDir=\"%s\" --OutputDir=\"%s\" --TempDir=\"%s\" --CompilerPath=\"%s\" --AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\" %s\" --WorkingDir=\"%s\" --DefaultUserHttpPort=%s --SchedulerCount=%s";
 
-    // TODO: Remove the scheduler count at all?
+	// TODO: Remove the scheduler count at all?
     database_scheduler_count = L"1";
 
     str_num_chars +=
@@ -316,6 +328,43 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
         default_user_http_port,
         database_scheduler_count);
 
+#else
+	str_template = L"sccode.exe %s --ServerName=%s --OutputDir=\"%s\" --TempDir=\"%s\" --CompilerPath=\"%s\" --AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\" %s\" --WorkingDir=\"%s\" --DefaultUserHttpPort=%s --FLAG:NoDb";
+
+    str_num_chars +=
+        wcslen(str_template) + 
+		wcslen(admin_dbname_upr) +			// APP name
+        wcslen(srv_name_upr) +				// ServerName
+		wcslen(server_logs_dir) +			// OutputDir
+		wcslen(server_temp_dir) +			// TempDir
+		wcslen(mingw) +						// CompilerPath
+		wcslen(admin_exe_path) +			// AutoStartExePath
+		wcslen(server_cfg_path) +			// UserArguments
+        wcslen(system_http_port) +			// UserArguments
+		wcslen(admin_working_dir) +			// WorkingDir
+        wcslen(default_user_http_port) +	// DefaultUserHttpPort
+        1;
+
+    str_size_bytes = str_num_chars * sizeof(wchar_t);
+    sccode_cmd = (wchar_t *)malloc(str_size_bytes);
+    if (!sccode_cmd) goto err_nomem;
+
+	swprintf(
+        sccode_cmd,
+        str_num_chars,
+        str_template,
+        admin_dbname_upr,
+        srv_name_upr,
+        server_logs_dir,
+        server_logs_dir,
+        mingw,
+        admin_exe_path,
+        server_cfg_path,
+        system_http_port,
+        admin_working_dir,
+        default_user_http_port);
+#endif
+
     // Create shutdown event. Will fail if event already exists and so also
     // confirm that no server with the specific name already is running.
 
@@ -336,10 +385,11 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	// TODO: Remove the Sleep().
 	Sleep(2000);
 
-    r = _exec(scdata_cmd, SCDATA_INHERIT_CONSOLE, (handles + 3));
+#ifdef WITH_DATABASE
+    r = _exec(scdata_cmd, SCDATA_INHERIT_CONSOLE, (handles + 4));
     if (r) goto end;
-
-    r = _exec(sccode_cmd, SCCODE_INHERIT_CONSOLE, (handles + 4));
+#endif
+    r = _exec(sccode_cmd, SCCODE_INHERIT_CONSOLE, (handles + 3));
     if (r) goto end;
 
     // Wait for signal.
@@ -347,7 +397,14 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     for (;;)    
     {
         uint32_t signaled_index;
-		r = _wait(handles, 5, &signaled_index);
+
+#ifdef WITH_DATABASE
+		uint32_t num_handles = 5;
+#else
+		uint32_t num_handles = 4;
+#endif
+
+		r = _wait(handles, num_handles, &signaled_index);
         if (r) goto end;
         
         switch (signaled_index)
@@ -364,9 +421,11 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
         case 3:
             // sccode died. Kill the server. Kill the system.
             goto end;
+#ifdef WITH_DATABASE
         case 4:
             // scdata died. Kill the server. Kill the system.
             goto end;
+#endif
         default:
             __assume(0);
         }
@@ -395,8 +454,10 @@ end:
         }
 	}
 	
-    if (handles[4]) _kill_and_cleanup(handles[4]);	// SCDODE
-    if (handles[3]) _kill_and_cleanup(handles[3]);	// SCDATA
+#ifdef WITH_DATABASE
+    if (handles[4]) _kill_and_cleanup(handles[4]);	// SCDATA
+#endif
+    if (handles[3]) _kill_and_cleanup(handles[3]);	// SCDODE
     if (handles[2]) _kill_and_cleanup(handles[2]);	// Gateway
     if (handles[1]) _kill_and_cleanup(handles[1]);	// Monitor
     if (handles[0]) _destroy_event(handles[0]);

@@ -11,6 +11,7 @@ using System.Text;
 using BizArk.Core.Util;
 using HttpStructs;
 using Starcounter.Internal.REST;
+using Starcounter.Advanced;
 
 namespace Starcounter.Internal.Web {
 
@@ -208,11 +209,15 @@ namespace Starcounter.Internal.Web {
                 response = new byte[header.Length + compressed.Length];
                 compressed.CopyTo(response, header.Length);
                 fres.Compressed = response;
+                fres._CompressedBodyOffset = header.Length;
+                fres._CompressedBodyLength = compressed.Length;
             }
             else {
                 response = new byte[header.Length + len];
                 payload.CopyTo(response, header.Length);
                 fres.Uncompressed = response;
+                fres._UncompressedBodyOffset = header.Length;
+               // fres.
             }
             fres.HeaderLength = header.Length;
             header.CopyTo(response, 0);

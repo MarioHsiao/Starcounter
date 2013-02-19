@@ -13,7 +13,8 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
     /// <summary>
     /// Class CSharpGenerator
     /// </summary>
-    public class CSharpGenerator : ITemplateCodeGenerator {
+    public class CSharpGenerator : ITemplateCodeGenerator 
+    {
         /// <summary>
         /// The output
         /// </summary>
@@ -30,10 +31,19 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         public int Indentation { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CSharpGenerator" /> class.
+        /// The code generator can be used to generate Messages and Puppets. My storing the generarator
+        /// we can obtain the wanted default obj template, i.e.
+        /// which template to use as the default template for new objects.
         /// </summary>
-        /// <param name="root">The root.</param>
-        public CSharpGenerator(NRoot root ) {
+        public DomGenerator Generator;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="generator"></param>
+        /// <param name="root"></param>
+        public CSharpGenerator(DomGenerator generator, NRoot root ) {
+            Generator = generator;
             Root = root;
             Indentation = 4;
         }
@@ -42,7 +52,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         /// Returns a multiline string representation of the code dom tree
         /// </summary>
         /// <returns>A multiline string</returns>
-        public string DumpTree() {
+        public string DumpAstTree() {
             var sb = new StringBuilder();
             DumpTree(sb, Root, 0);
             return sb.ToString();
@@ -100,7 +110,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 napp = Root.Children[i] as NAppClass;
                 if (napp == null)
                 {
-                    throw new Exception("Unable to generate code. Invalid node found. Expected App but found: " + Root.Children[i]);
+                    throw new Exception("Unable to generate code. Invalid node found. Expected Puppet but found: " + Root.Children[i]);
                 }
 
                 currentNs = napp.Template.Namespace;
@@ -274,7 +284,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             dataType = null;
             if (m.Template is TObjArr) {
                 dataType = "SqlResult";
-            } else if (m.Template is TApp) {
+            } else if (m.Template is TPuppet) {
                 dataType = "Entity";
                 castTo = ((NAppClass)m.Type).GenericTypeArgument;
             } 
@@ -384,7 +394,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         }
 
         private NClass GetParentPropertyType(Template a) {
-            var x = NValueClass.Find((Template)a.Parent);
+            var x = Generator.FindValueClass((Template)a.Parent);
             return x;
         }
 
@@ -401,6 +411,8 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             sb.Append(";");
             m.Prefix.Add(sb.ToString());
 
+            var objClassName = Generator.DefaultObjTemplate.InstanceType.Name; // "Puppet", "Message"
+
             if (m.Bound) {
                 sb.Clear();
                 sb.Append("private ");
@@ -408,7 +420,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 string dataType = null;
                 if (m.Template is TObjArr) {
                     dataType = "SqlResult";
-                } else if (m.Template is TApp) {
+                } else if (m.Template is TPuppet) {
                     dataType = "Entity";//((NAppClass)((NTAppClass)m.Type).NValueClass).GenericTypeArgument;
                 }
 
@@ -419,9 +431,11 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
 
                 sb.Append(" __data_get_");
                 sb.Append(m.MemberName);
-                sb.Append("(App app) { return ((");
+                sb.Append('(');
+                sb.Append( objClassName ); // "Puppet", "Message"
+                sb.Append(" obj) { return ((");
                 sb.Append(((NTAppClass)m.Parent).NValueClass.FullClassName);
-                sb.Append(")app).__data_");
+                sb.Append(")obj).__data_");
                 sb.Append(m.MemberName);
                 sb.Append("; }");
                 m.Prefix.Add(sb.ToString());
@@ -431,12 +445,13 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     sb.Append("private void ");
                     sb.Append("__data_set_");
                     sb.Append(m.MemberName);
-                    sb.Append("(App app, ");
-
+                    sb.Append('(');
+                    sb.Append(objClassName); // "Puppet", "Message"
+                    sb.Append(" obj, ");
                     sb.Append(dataType);
                     sb.Append(" value) { ((");
                     sb.Append(((NTAppClass)m.Parent).NValueClass.FullClassName);
-                    sb.Append(")app).__data_");
+                    sb.Append(")obj).__data_");
                     sb.Append(m.MemberName);
                     sb.Append(" = value; }");
                     m.Prefix.Add(sb.ToString());
@@ -449,6 +464,9 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         /// </summary>
         /// <param name="m">The m.</param>
         private void WriteObjMetadataMemberPrefix(NProperty m) {
+
+            //var objClassName = DefaultObjTemplate.InstanceType.Name;
+
             var sb = new StringBuilder();
             sb.Append("public ");
             sb.Append(m.Type.FullClassName);
@@ -460,7 +478,11 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             sb.Append(m.MemberName);
             sb.Append(" = new ");
             sb.Append(m.Type.FullClassName);
-            sb.Append("(App, App.Template.");
+            sb.Append('(');
+            sb.Append("App"); // Property name .App TODO
+            sb.Append(", ");
+            sb.Append("App"); // Property name .App TODO
+            sb.Append(".Template.");
             sb.Append(m.MemberName);
             sb.Append(")); } }");
             m.Prefix.Add(sb.ToString());
@@ -546,7 +568,8 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     }
                     a.Prefix.Add(sb.ToString());
 
-                    if ((mn.Template is TObjArr) && (!mn.FunctionGeneric.FullClassName.Equals("App"))) {
+                    string objClassName = Generator.DefaultObjTemplate.InstanceType.Name;
+                    if ((mn.Template is TObjArr) && (!mn.FunctionGeneric.FullClassName.Equals( objClassName ))) { // TODO!
                         sb.Clear();
                         sb.Append("        ");
                         sb.Append(mn.MemberName);
@@ -591,7 +614,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             StringBuilder sb = new StringBuilder();
             sb.Append("        ");
             sb.Append(ib.BindsToProperty.Template.PropertyName);       // {0}
-            sb.Append(".AddHandler((Obj app, TValue");
+            sb.Append(".AddHandler((Obj pup, TValue");
 
             if (hasValue) {
                 sb.Append('<');
@@ -609,7 +632,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             sb.Append(ib.InputTypeName);                       // {2}
             sb.Append("() { App = (");
             sb.Append(ib.PropertyAppClass.ClassName);          // {3}
-            sb.Append(")app, Template = (");
+            sb.Append(")pup, Template = (");
             sb.Append(ib.BindsToProperty.Type.ClassName);      // {4}
             sb.Append(")prop");
             
@@ -618,7 +641,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 sb.Append(", Value = value");
             }
 
-            sb.Append(" }); }, (Obj app, Starcounter.Input");
+            sb.Append(" }); }, (Obj pup, Starcounter.Input");
 
             if (hasValue) {
                 sb.Append('<');
@@ -628,7 +651,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
 
             sb.Append(" input) => { ((");
             sb.Append(ib.DeclaringAppClass.ClassName);         // {5}
-            sb.Append(")app");
+            sb.Append(")pup");
 
             for (Int32 i = 0; i < ib.AppParentCount; i++)
             {
@@ -650,12 +673,22 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             var sb = new StringBuilder();
             sb.Append("    public ");
             sb.Append(a.ClassName);
-            sb.Append("(App app, TApp template) : base(app, template) { }");
+
+            string objClassName = Generator.DefaultObjTemplate.InstanceType.Name;
+            string tobjClassName = Generator.DefaultObjTemplate.GetType().Name;
+
+            sb.Append('(');
+            sb.Append( objClassName ); // "Puppet", "Message"
+            sb.Append(" obj, ");
+            sb.Append(tobjClassName); // "TPuppet", "TMessage"
+            sb.Append(" template) : base(obj, template) { }");
             a.Prefix.Add(sb.ToString());
             sb = new StringBuilder();
             sb.Append("    public new ");
             sb.Append(a.NTemplateClass.NValueClass.FullClassName);
-            sb.Append(" App { get { return (");
+            sb.Append(' ');
+            sb.Append( "App" ); // Property name .App TODO! => .Obj
+            sb.Append(" { get { return (");
             sb.Append(a.NTemplateClass.NValueClass.FullClassName);
             sb.Append(")base.App; } }");
             a.Prefix.Add(sb.ToString());
@@ -720,7 +753,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             h.Append("using System;\n");
             h.Append("using System.Collections;\n");
             h.Append("using System.Collections.Generic;\n");
-            h.Append("using HttpStructs;\n");
+            h.Append("using Starcounter.Advanced;\n");
             h.Append("using Starcounter;\n");
             h.Append("using Starcounter.Internal;\n");
             h.Append("using Starcounter.Internal.JsonPatch;\n");

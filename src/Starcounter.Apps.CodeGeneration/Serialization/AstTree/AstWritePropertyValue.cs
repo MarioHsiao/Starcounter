@@ -22,8 +22,8 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         }
 
         internal override void GenerateCsCodeForNode() {
-            if (Template is TApp) {
-                string appClassName = AstTreeHelper.GetAppClassName((TApp)Template);
+            if (Template is TPuppet) {
+                string appClassName = AstTreeHelper.GetAppClassName((TPuppet)Template);
                 string varName = (VariableName == null) ? "app." + Template.PropertyName : VariableName;
                 Prefix.Add("valSize = " + appClassName + "JsonSerializer.Serialize((IntPtr)pfrag, nextSize, " + varName + ");");
             } else {

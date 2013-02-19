@@ -24,8 +24,8 @@ namespace Starcounter.Templates {
     /// <typeparam name="OT">The type of the app type.</typeparam>
     /// <typeparam name="OTT">The type of the app template type.</typeparam>
     public class TArr<OT,OTT> : TObjArr
-        where OT : App, new()
-        where OTT : TApp
+        where OT : Puppet, new()
+        where OTT : TPuppet
     {
         /// <summary>
         /// Creates the instance.
@@ -33,7 +33,7 @@ namespace Starcounter.Templates {
         /// <param name="parent">The parent.</param>
         /// <returns>System.Object.</returns>
         public override object CreateInstance(Container parent) {
-            return new Listing<OT>((App)parent, this);
+            return new Listing<OT>((Puppet)parent, this);
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace Starcounter.Templates {
         /// <param name="app">The app.</param>
         /// <param name="rawValue">The raw value.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        public override void ProcessInput(App app, byte[] rawValue) {
+        public override void ProcessInput(Puppet app, byte[] rawValue) {
             throw new System.NotImplementedException();
         }
 

@@ -10,6 +10,7 @@ using System.Text;
 using HttpStructs;
 using Starcounter.Apps.Bootstrap;
 using Starcounter.Internal;
+using Starcounter.Advanced;
 
 namespace Starcounter
 {
