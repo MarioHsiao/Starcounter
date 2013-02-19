@@ -10,6 +10,7 @@ using System.Text;
 using HttpStructs;
 using Starcounter.Apps;
 using Starcounter.Internal.REST;
+using Starcounter.Advanced;
 
 namespace Starcounter.Internal.Web {
     /// <summary>

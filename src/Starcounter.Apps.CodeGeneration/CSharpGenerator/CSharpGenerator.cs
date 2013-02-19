@@ -753,7 +753,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             h.Append("using System;\n");
             h.Append("using System.Collections;\n");
             h.Append("using System.Collections.Generic;\n");
-            h.Append("using HttpStructs;\n");
+            h.Append("using Starcounter.Advanced;\n");
             h.Append("using Starcounter;\n");
             h.Append("using Starcounter.Internal;\n");
             h.Append("using Starcounter.Internal.JsonPatch;\n");
