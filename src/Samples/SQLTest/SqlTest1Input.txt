@@ -12881,6 +12881,41 @@ ExpectedResult:
 
 
 <NEXT>
+Description: Get objectes ordered by Boolean ascending
+QueryString: select d from Department d order by Location asc
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+Sort(
+	IndexScan(
+		auto
+		0
+		Description
+		StringDynamicRange(
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	ObjectComparer(
+		ObjectProperty(0, Location)
+		Ascending
+	)
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 10 | 
+ | 7 | 
+ | 9 | 
+ | 8 | 
+
+<NEXT>
 Description: Order by Boolean ascending
 QueryString: select e.FirstName, e.Commission from SalaryEmployee e order by e.Commission asc
 SingleObjectProjection: False
