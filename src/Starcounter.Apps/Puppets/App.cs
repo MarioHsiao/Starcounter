@@ -2,7 +2,6 @@
 using HttpStructs;
 using Newtonsoft.Json;
 using Starcounter.Advanced;
-using Starcounter.Internal.Web;
 using Starcounter.Templates;
 using System;
 using System.Text;
