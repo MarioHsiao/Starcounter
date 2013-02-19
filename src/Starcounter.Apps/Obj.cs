@@ -13,7 +13,6 @@ using System;
 using Starcounter.Templates.Interfaces;
 using System.ComponentModel;
 using Starcounter.Templates;
-using Starcounter.Internal.REST;
 using Starcounter.Internal;
 using Starcounter.Advanced;
 

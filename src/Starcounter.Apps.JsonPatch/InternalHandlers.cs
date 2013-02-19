@@ -8,6 +8,7 @@ using System;
 using Starcounter.Apps;
 using Starcounter.Internal.Web;
 using Starcounter.Templates;
+using Starcounter.Advanced;
 
 namespace Starcounter.Internal.JsonPatch
 {
@@ -21,7 +22,7 @@ namespace Starcounter.Internal.JsonPatch
         /// </summary>
         public static void Register()
         {
-            GET<int>("/__vm/{?}", (int viewModelId) =>
+            GET("/__vm/{?}", (int viewModelId) =>
             {
                 Puppet rootApp;
                 Byte[] json;
@@ -34,7 +35,11 @@ namespace Starcounter.Internal.JsonPatch
                 return response;
             });
 
-            PATCH<int>("/__vm/{?}", (int viewModelId) =>
+            GET("/__sql/{?}", (string query) => {
+                return "Running SQL " + query;
+            });
+
+            PATCH("/__vm/{?}", (int viewModelId) =>
             {
                 Puppet rootApp;
                 Session session;

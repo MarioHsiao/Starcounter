@@ -7,6 +7,7 @@ using System.Text;
 using System.Collections.Generic;
 using System;
 using HttpStructs;
+using Starcounter.Advanced;
 
 namespace __urimatcher__ {
 

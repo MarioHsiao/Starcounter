@@ -16,7 +16,7 @@ namespace Starcounter.Internal {
     /// </remarks>
     public static class AppsBootstrapper {
         private static HttpAppServer appServer;
-        private static StaticWebServer fileServer;
+       // private static StaticWebServer fileServer;
         private static UInt16 defaultPort_ = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
 
         /// <summary>
@@ -32,8 +32,9 @@ namespace Starcounter.Internal {
         /// 
         /// </summary>
         static AppsBootstrapper() {
-            fileServer = new StaticWebServer();
+            var fileServer = new StaticWebServer();
             appServer = new HttpAppServer(fileServer);
+            StarcounterBase.Fileserver = fileServer;
 
             // Checking if we are inside the database worker process.
             AppProcess.AssertInDatabaseOrSendStartRequest();
@@ -49,7 +50,7 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="path">The directory to include</param>
         public static void AddFileServingDirectory(string path) {
-            fileServer.UserAddedLocalFileDirectoryWithStaticContent(path);
+            StarcounterBase.Fileserver.UserAddedLocalFileDirectoryWithStaticContent(path);
         }
 
         /// <summary>
@@ -84,7 +85,7 @@ namespace Starcounter.Internal {
         /// <param name="request">The http request</param>
         /// <returns>Returns true if the request was handled</returns>
         private static Boolean OnHttpMessageRoot(HttpRequest request) {
-            HttpResponse result = appServer.Handle(request);
+            var result = (HttpResponse)appServer.Handle(request);
             request.SendResponse(result.Uncompressed, 0, result.Uncompressed.Length);
             return true;
         }

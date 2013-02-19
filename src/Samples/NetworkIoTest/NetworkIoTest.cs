@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using Starcounter.Internal;
 using Starcounter.Internal.Web;
+using Starcounter.Advanced;
 
 namespace NetworkIoTestApp
 {

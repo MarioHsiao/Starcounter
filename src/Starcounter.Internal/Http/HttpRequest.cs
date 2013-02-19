@@ -1,347 +1,43 @@
-﻿// ***********************************************************************
-// <copyright file="HttpStructs.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
-using Starcounter;
+﻿
+using HttpStructs;
 using Starcounter.Internal;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
-
-namespace HttpStructs
-{
-    /// <summary>
-    /// Enum HTTP_METHODS
-    /// </summary>
-    public enum HTTP_METHODS
-    {
-        /// <summary>
-        /// The GE t_ METHOD
-        /// </summary>
-        GET_METHOD,
-        /// <summary>
-        /// The POS t_ METHOD
-        /// </summary>
-        POST_METHOD,
-        /// <summary>
-        /// The PU t_ METHOD
-        /// </summary>
-        PUT_METHOD,
-        /// <summary>
-        /// The DELET e_ METHOD
-        /// </summary>
-        DELETE_METHOD,
-        /// <summary>
-        /// The HEA d_ METHOD
-        /// </summary>
-        HEAD_METHOD,
-        /// <summary>
-        /// The OPTION s_ METHOD
-        /// </summary>
-        OPTIONS_METHOD,
-        /// <summary>
-        /// The TRAC e_ METHOD
-        /// </summary>
-        TRACE_METHOD,
-        /// <summary>
-        /// The PATC h_ METHOD
-        /// </summary>
-        PATCH_METHOD,
-        /// <summary>
-        /// The OTHE r_ METHOD
-        /// </summary>
-        OTHER_METHOD
-    };
-
-    /// <summary>
-    /// Interface INetworkDataStream
-    /// </summary>
-    public interface INetworkDataStream
-    {
-        /// <summary>
-        /// Inits the specified unmanaged chunk.
-        /// </summary>
-        /// <param name="unmanagedChunk">The unmanaged chunk.</param>
-        /// <param name="isSingleChunk">The is single chunk.</param>
-        /// <param name="chunkIndex">Index of the chunk.</param>
-        unsafe void Init(Byte* unmanagedChunk, Boolean isSingleChunk, UInt32 chunkIndex);
-
-        /// <summary>
-        /// Reads the specified buffer.
-        /// </summary>
-        /// <param name="buffer">The buffer.</param>
-        /// <param name="offset">The offset.</param>
-        /// <param name="length">The length.</param>
-        void Read(Byte[] buffer, Int32 offset, Int32 length);
-
-        /// <summary>
-        /// Send the specified buffer as a response.
-        /// </summary>
-        /// <param name="buffer">The buffer.</param>
-        /// <param name="offset">The offset.</param>
-        /// <param name="length">The length.</param>
-        void SendResponse(Byte[] buffer, Int32 offset, Int32 length);
-
-        /// <summary>
-        /// Frees all data stream resources like chunks.
-        /// </summary>
-        void Destroy();
-    }
-
-    /// <summary>
-    /// Struct ScSessionStruct
-    /// </summary>
-    public struct ScSessionStruct
-    {
-        // Session random salt.
-        /// <summary>
-        /// The session random salt.
-        /// </summary>
-        public UInt64 gw_session_salt_;
-
-        // Unique session linear index.
-        // Points to the element in sessions linear array.
-        /// <summary>
-        /// The session_index_
-        /// </summary>
-        public UInt32 gw_session_index_;
-
-        // Scheduler ID.
-        /// <summary>
-        /// The scheduler_id_
-        /// </summary>
-        public UInt32 scheduler_id_;
-
-        /// <summary>
-        /// Unique number coming from Apps.
-        /// </summary>
-        public UInt64 apps_unique_session_index_;
-
-        /// <summary>
-        /// Apps session salt.
-        /// </summary>
-        public UInt64 apps_session_salt_;
-
-        // Session string length in characters.
-        /// <summary>
-        /// The S c_ SESSIO n_ STRIN g_ LE n_ CHARS
-        /// </summary>
-        const Int32 SC_SESSION_STRING_LEN_CHARS = 24;
-
-        /*
-        // Hex table used for conversion.
-        /// <summary>
-        /// The hex_table_
-        /// </summary>
-        static Byte[] hex_table_ = new Byte[] { (Byte)'0', (Byte)'1', (Byte)'2', (Byte)'3', (Byte)'4', (Byte)'5', (Byte)'6', (Byte)'7', (Byte)'8', (Byte)'9', (Byte)'A', (Byte)'B', (Byte)'C', (Byte)'D', (Byte)'E', (Byte)'F' };
-
-        // Session cookie prefix.
-        /// <summary>
-        /// The session cookie prefix
-        /// </summary>
-        const String SessionCookiePrefix = "ScSessionId: ";
-
-        // Converts uint64_t number to hexadecimal string.
-        /// <summary>
-        /// Uint64_to_hex_strings the specified number.
-        /// </summary>
-        /// <param name="number">The number.</param>
-        /// <param name="bytes_out">The bytes_out.</param>
-        /// <param name="offset">The offset.</param>
-        /// <param name="num_4bits">The num_4bits.</param>
-        /// <returns>Int32.</returns>
-        Int32 uint64_to_hex_string(UInt64 number, Byte[] bytes_out, Int32 offset, Int32 num_4bits)
-        {
-            Int32 n = 0;
-            while (number > 0)
-            {
-                bytes_out[n + offset] = hex_table_[number & 0xF];
-                n++;
-                number >>= 4;
-            }
-
-            // Filling with zero values if necessary.
-            while (n < num_4bits)
-            {
-                bytes_out[n + offset] = (Byte)'0';
-                n++;
-            }
-
-            // Returning length.
-            return n;
-        }
-
-        // Converts session to string.
-        /// <summary>
-        /// Converts to string.
-        /// </summary>
-        /// <param name="str_out">The str_out.</param>
-        /// <returns>Int32.</returns>
-        public Int32 ConvertToString(Byte[] str_out)
-        {
-            // Translating session index.
-            Int32 sessionStringLen = uint64_to_hex_string(session_index_, str_out, 0, 8);
-
-            // Translating session random salt.
-            sessionStringLen += uint64_to_hex_string(session_salt_, str_out, sessionStringLen, 16);
-
-            return sessionStringLen;
-        }
-
-        // Converts session to string.
-        /// <summary>
-        /// Converts to string.
-        /// </summary>
-        /// <returns>String.</returns>
-        public String ConvertToString()
-        {
-            // Allocating string bytes.
-            Byte[] str_bytes = new Byte[SC_SESSION_STRING_LEN_CHARS];
-
-            Int32 sessionStringLen = uint64_to_hex_string(session_index_, str_bytes, 0, 8);
-
-            // Translating session random salt.
-            sessionStringLen += uint64_to_hex_string(session_salt_, str_bytes, sessionStringLen, 16);
-
-            // Converting byte array to string.
-            return UTF8Encoding.ASCII.GetString(str_bytes);
-        }
-
-        // Converts session to a cookie string.
-        /// <summary>
-        /// Converts to session cookie.
-        /// </summary>
-        /// <returns>String.</returns>
-        public String ConvertToSessionCookie()
-        {
-            return SessionCookiePrefix + ConvertToString();
-        }
-
-        // Converts uint64_t number to hexadecimal string.
-        /// <summary>
-        /// Uint64_to_hex_strings the specified number.
-        /// </summary>
-        /// <param name="number">The number.</param>
-        /// <param name="bytes_out">The bytes_out.</param>
-        /// <param name="offset">The offset.</param>
-        /// <param name="num_4bits">The num_4bits.</param>
-        /// <returns>Int32.</returns>
-        unsafe Int32 uint64_to_hex_string(UInt64 number, Byte* bytes_out, Int32 offset, Int32 num_4bits)
-        {
-            Int32 n = 0;
-            while (number > 0)
-            {
-                bytes_out[n + offset] = hex_table_[number & 0xF];
-                n++;
-                number >>= 4;
-            }
-
-            // Filling with zero values if necessary.
-            while (n < num_4bits)
-            {
-                bytes_out[n + offset] = (Byte)'0';
-                n++;
-            }
-
-            // Returning length.
-            return n;
-        }
-
-        // Converts session to string.
-        /// <summary>
-        /// Converts to string unsafe.
-        /// </summary>
-        /// <param name="str_out">The str_out.</param>
-        /// <returns>Int32.</returns>
-        public unsafe Int32 ConvertToStringUnsafe(Byte* str_out)
-        {
-            // Translating session index.
-            Int32 sessionStringLen = uint64_to_hex_string(session_index_, str_out, 0, 8);
-
-            // Translating session random salt.
-            sessionStringLen += uint64_to_hex_string(session_salt_, str_out, sessionStringLen, 16);
-
-            return sessionStringLen;
-        }
-
-        // Converts session to string.
-        /// <summary>
-        /// Converts to string faster.
-        /// </summary>
-        /// <returns>String.</returns>
-        public String ConvertToStringFaster()
-        {
-            unsafe
-            {
-                // Allocating string bytes on stack.
-                Byte* str_bytes = stackalloc Byte[SC_SESSION_STRING_LEN_CHARS];
-
-                // Translating session index.
-                Int32 sessionStringLen = uint64_to_hex_string(session_index_, str_bytes, 0, 8);
-
-                // Translating session random salt.
-                sessionStringLen += uint64_to_hex_string(session_salt_, str_bytes, sessionStringLen, 16);
-
-                // Converting byte array to string.
-                return Marshal.PtrToStringAnsi((IntPtr)str_bytes, SC_SESSION_STRING_LEN_CHARS);
-            }
-        }
-
-        // Converts session to a cookie string.
-        /// <summary>
-        /// Converts to session cookie faster.
-        /// </summary>
-        /// <returns>String.</returns>
-        public String ConvertToSessionCookieFaster()
-        {
-            return SessionCookiePrefix + ConvertToStringFaster();
-        }
-        */
-
-        /// <summary>
-        /// SessionIdHeaderStubString_.
-        /// </summary>
-        static String SessionIdHeaderStubString_ = "ScSsnId: ########################";
-
-        /// <summary>
-        /// SessionIdHeaderPlusEndlineStubBytes_.
-        /// </summary>
-        static Byte[] SessionIdHeaderPlusEndlineStubBytes_ = System.Text.Encoding.UTF8.GetBytes(SessionIdHeaderStubString_ + "\r\n");
-        
-        /// <summary>
-        /// Returns constant session header stub.
-        /// </summary>
-        /// <returns></returns>
-        public String SessionHeaderStubString
-        {
-            get
-            {
-                return SessionIdHeaderStubString_;
-            }
-        }
-
-        /// <summary>
-        /// SessionHeaderPlusEndlineStubBytes.
-        /// </summary>
-        public Byte[] SessionHeaderPlusEndlineStubBytes
-        {
-            get
-            {
-                return SessionIdHeaderPlusEndlineStubBytes_;
-            }
-        }
-    }
-
+namespace Starcounter.Advanced {
     /// <summary>
     /// Class HttpRequest
     /// </summary>
-    public class HttpRequest
-    {
+    public class HttpRequest {
+
+
+        /// <summary>
+        /// Creates a minimalistic Http 1.0 GET request with the given uri without any headers or even protocol version specifier.
+        /// </summary>
+        /// <remarks>
+        /// Calling RawGET("/test") will return the Http request "GET /test" in Ascii/UTF8 encoding.
+        /// </remarks>
+        /// <param name="uri">The URI.</param>
+        /// <returns>System.Object.</returns>
+        public static byte[] RawGET(string uri) {
+            var length = uri.Length + 3 + 1 + 4;// GET + space + URI + CRLFCRLF
+            byte[] vu = new byte[length];
+            vu[0] = (byte)'G';
+            vu[1] = (byte)'E';
+            vu[2] = (byte)'T';
+            vu[3] = (byte)' ';
+            vu[length - 4] = (byte)'\r';
+            vu[length - 3] = (byte)'\n';
+            vu[length - 2] = (byte)'\r';
+            vu[length - 1] = (byte)'\n';
+            Encoding.ASCII.GetBytes(uri, 0, uri.Length, vu, 4);
+            return vu;
+        }
+
+        public static HttpRequest GET(string uri) {
+            return new HttpRequest(RawGET(uri));
+        }
+
         /// <summary>
         /// Offset in bytes for the session.
         /// </summary>
@@ -387,14 +83,11 @@ namespace HttpStructs
         /// </summary>
         /// <param name="buf">The buf.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        public HttpRequest(Byte[] buf)
-        {
-            unsafe
-            {
+        public HttpRequest(Byte[] buf) {
+            unsafe {
                 // Allocating space for HttpRequest contents and structure.
                 Byte* request_native_buf = (Byte*)BitsAndBytes.Alloc(buf.Length + sizeof(HttpRequestInternal));
-                fixed (Byte* fixed_buf = buf)
-                {
+                fixed (Byte* fixed_buf = buf) {
                     // Copying HTTP request data.
                     BitsAndBytes.MemCpy(request_native_buf, fixed_buf, (UInt32)buf.Length);
                 }
@@ -418,8 +111,7 @@ namespace HttpStructs
                 UInt32 err_code = sc_parse_http_request(request_native_buf, (UInt32)buf.Length, (Byte*)http_request_struct_);
 
                 // Checking if any error occurred.
-                if (err_code != 0)
-                {
+                if (err_code != 0) {
                     // Freeing memory etc.
                     Destroy();
 
@@ -431,23 +123,19 @@ namespace HttpStructs
         /// <summary>
         /// Destroys the instance of HttpRequest.
         /// </summary>
-        public void Destroy()
-        {
-            unsafe
-            {
+        public void Destroy() {
+            unsafe {
                 // Checking if already destroyed.
                 if (http_request_struct_ == null)
                     return;
 
                 // Checking if we have constructed this HttpRequest
                 // internally in Apps or externally in Gateway.
-                if (isInternalRequest)
-                {
+                if (isInternalRequest) {
                     // Releasing internal resources here.
                     BitsAndBytes.Free((IntPtr)http_request_struct_->socket_data_);
                 }
-                else
-                {
+                else {
                     // Releasing data stream resources like chunks, etc.
                     data_stream_.Destroy();
                 }
@@ -461,10 +149,8 @@ namespace HttpStructs
         /// Checks if HttpStructs is destroyed already.
         /// </summary>
         /// <returns>True if destroyed.</returns>
-        public bool IsDestroyed()
-        {
-            unsafe
-            {
+        public bool IsDestroyed() {
+            unsafe {
                 return (http_request_struct_ == null) && (session_ == null);
             }
         }
@@ -472,8 +158,7 @@ namespace HttpStructs
         /// <summary>
         /// Called when GC destroys this object.
         /// </summary>
-        ~HttpRequest()
-        {
+        ~HttpRequest() {
             // TODO: Consult what is better for Apps auto-destructor or manual call to Destroy.
             Destroy();
         }
@@ -494,8 +179,7 @@ namespace HttpStructs
             UInt32 chunk_index,
             Byte* http_request_begin,
             Byte* socket_data,
-            INetworkDataStream data_stream)
-        {
+            INetworkDataStream data_stream) {
             http_request_struct_ = (HttpRequestInternal*)http_request_begin;
             session_ = (ScSessionStruct*)(socket_data + SESSION_OFFSET_BYTES);
             http_request_struct_->socket_data_ = socket_data;
@@ -509,8 +193,7 @@ namespace HttpStructs
         /// </summary>
         /// <param name="message">The message.</param>
         /// <param name="ex">The ex.</param>
-        public void Debug(string message, Exception ex = null)
-        {
+        public void Debug(string message, Exception ex = null) {
             Console.WriteLine(message);
         }
 
@@ -523,8 +206,7 @@ namespace HttpStructs
         /// Gets or sets a value indicating whether [needs script injection].
         /// </summary>
         /// <value><c>true</c> if [needs script injection]; otherwise, <c>false</c>.</value>
-        public bool NeedsScriptInjection
-        {
+        public bool NeedsScriptInjection {
             get { return needsScriptInjection_; }
             set { needsScriptInjection_ = value; }
         }
@@ -538,8 +220,7 @@ namespace HttpStructs
         /// Gets or sets a value indicating whether this instance is app view.
         /// </summary>
         /// <value><c>true</c> if this instance is app view; otherwise, <c>false</c>.</value>
-        public bool IsAppView
-        {
+        public bool IsAppView {
             get { return isAppView_; }
             set { isAppView_ = value; }
         }
@@ -553,8 +234,7 @@ namespace HttpStructs
         /// Gets or sets the gzip advisable.
         /// </summary>
         /// <value>The gzip advisable.</value>
-        public Boolean GzipAdvisable
-        {
+        public Boolean GzipAdvisable {
             get { return gzipAdvisable_; }
             set { gzipAdvisable_ = value; }
         }
@@ -569,10 +249,8 @@ namespace HttpStructs
         /// Gets a value indicating whether this instance can use static response.
         /// </summary>
         /// <value><c>true</c> if this instance can use static response; otherwise, <c>false</c>.</value>
-        public bool CanUseStaticResponse
-        {
-            get
-            {
+        public bool CanUseStaticResponse {
+            get {
                 return ViewModel == null;
             }
         }
@@ -582,8 +260,7 @@ namespace HttpStructs
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetBodyRaw(out IntPtr ptr, out UInt32 sizeBytes)
-        {
+        public void GetBodyRaw(out IntPtr ptr, out UInt32 sizeBytes) {
             unsafe { http_request_struct_->GetBodyRaw(out ptr, out sizeBytes); }
         }
 
@@ -591,8 +268,7 @@ namespace HttpStructs
         /// Gets the body as byte array.
         /// </summary>
         /// <returns>Body bytes.</returns>
-        public Byte[] GetBodyByteArray_Slow()
-        {
+        public Byte[] GetBodyByteArray_Slow() {
             // TODO: Provide a more efficient interface with existing Byte[] and offset.
 
             unsafe { return http_request_struct_->GetBodyByteArray_Slow(); }
@@ -612,7 +288,7 @@ namespace HttpStructs
         /// <summary>
         /// Byte array of the request.
         /// </summary>
-        /// <param name="a"></param>
+        /// <param name="r"></param>
         /// <returns></returns>
         public static implicit operator Byte[](HttpRequest r)
         {
@@ -623,8 +299,7 @@ namespace HttpStructs
         /// Gets the body as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        public String GetBodyStringUtf8_Slow()
-        {
+        public String GetBodyStringUtf8_Slow() {
             unsafe { return http_request_struct_->GetBodyStringUtf8_Slow(); }
         }
 
@@ -632,10 +307,8 @@ namespace HttpStructs
         /// Gets the length of the body in bytes.
         /// </summary>
         /// <value>The length of the body.</value>
-        public UInt32 BodyLength
-        {
-            get
-            {
+        public UInt32 BodyLength {
+            get {
                 unsafe { return http_request_struct_->body_len_bytes_; }
             }
         }
@@ -646,8 +319,7 @@ namespace HttpStructs
         /// <param name="buffer">The buffer.</param>
         /// <param name="offset">The offset.</param>
         /// <param name="length">The length.</param>
-        public void SendResponse(Byte[] buffer, Int32 offset, Int32 length)
-        {
+        public void SendResponse(Byte[] buffer, Int32 offset, Int32 length) {
             unsafe { data_stream_.SendResponse(buffer, offset, length); }
         }
 
@@ -656,8 +328,7 @@ namespace HttpStructs
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRequestRaw(out IntPtr ptr, out UInt32 sizeBytes)
-        {
+        public void GetRequestRaw(out IntPtr ptr, out UInt32 sizeBytes) {
             unsafe { http_request_struct_->GetRequestRaw(out ptr, out sizeBytes); }
         }
 
@@ -666,8 +337,7 @@ namespace HttpStructs
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawMethodAndUri(out IntPtr ptr, out UInt32 sizeBytes)
-        {
+        public void GetRawMethodAndUri(out IntPtr ptr, out UInt32 sizeBytes) {
             unsafe { http_request_struct_->GetRawMethodAndUri(out ptr, out sizeBytes); }
         }
 
@@ -676,8 +346,7 @@ namespace HttpStructs
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawMethodAndUriPlusAnExtraCharacter(out IntPtr ptr, out UInt32 sizeBytes)
-        {
+        public void GetRawMethodAndUriPlusAnExtraCharacter(out IntPtr ptr, out UInt32 sizeBytes) {
             unsafe { http_request_struct_->GetRawMethodAndUri(out ptr, out sizeBytes); }
             sizeBytes += 1;
         }
@@ -687,8 +356,7 @@ namespace HttpStructs
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawHeaders(out IntPtr ptr, out UInt32 sizeBytes)
-        {
+        public void GetRawHeaders(out IntPtr ptr, out UInt32 sizeBytes) {
             unsafe { http_request_struct_->GetRawHeaders(out ptr, out sizeBytes); }
         }
 
@@ -697,8 +365,7 @@ namespace HttpStructs
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawCookies(out IntPtr ptr, out UInt32 sizeBytes)
-        {
+        public void GetRawCookies(out IntPtr ptr, out UInt32 sizeBytes) {
             unsafe { http_request_struct_->GetRawCookies(out ptr, out sizeBytes); }
         }
 
@@ -707,8 +374,7 @@ namespace HttpStructs
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawAccept(out IntPtr ptr, out UInt32 sizeBytes)
-        {
+        public void GetRawAccept(out IntPtr ptr, out UInt32 sizeBytes) {
             unsafe { http_request_struct_->GetRawAccept(out ptr, out sizeBytes); }
         }
 
@@ -717,8 +383,7 @@ namespace HttpStructs
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawSessionString(out IntPtr ptr, out UInt32 sizeBytes)
-        {
+        public void GetRawSessionString(out IntPtr ptr, out UInt32 sizeBytes) {
             unsafe { http_request_struct_->GetRawSessionString(out ptr, out sizeBytes); }
         }
 
@@ -728,8 +393,7 @@ namespace HttpStructs
         /// <param name="key">The key.</param>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawHeader(byte[] key, out IntPtr ptr, out UInt32 sizeBytes)
-        {
+        public void GetRawHeader(byte[] key, out IntPtr ptr, out UInt32 sizeBytes) {
             unsafe { http_request_struct_->GetHeaderValue(key, out ptr, out sizeBytes); }
         }
 
@@ -738,10 +402,8 @@ namespace HttpStructs
         /// </summary>
         /// <param name="name">The name.</param>
         /// <returns>String.</returns>
-        public String this[String name]
-        {
-            get
-            {
+        public String this[String name] {
+            get {
                 unsafe { return http_request_struct_->GetHeaderValue(name); }
             }
         }
@@ -764,12 +426,9 @@ namespace HttpStructs
         /// <summary>
         /// Checks if HTTP request already has session.
         /// </summary>
-        public Boolean HasSession
-        {
-            get
-            {
-                unsafe
-                {
+        public Boolean HasSession {
+            get {
+                unsafe {
                     return INVALID_APPS_UNIQUE_SESSION_NUMBER != (session_->apps_unique_session_index_);
                 }
             }
@@ -778,12 +437,9 @@ namespace HttpStructs
         /// <summary>
         /// Gets certain Apps session.
         /// </summary>
-        public IAppsSession AppsSessionInterface
-        {
-            get
-            {
-                unsafe
-                {
+        public IAppsSession AppsSessionInterface {
+            get {
+                unsafe {
                     return GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(
                         session_->scheduler_id_,
                         session_->apps_unique_session_index_);
@@ -797,10 +453,8 @@ namespace HttpStructs
         /// <summary>
         /// Indicates if new session was created.
         /// </summary>
-        public Boolean HasNewSession
-        {
-            get
-            {
+        public Boolean HasNewSession {
+            get {
                 return newSession_;
             }
         }
@@ -808,10 +462,8 @@ namespace HttpStructs
         /// <summary>
         /// Generates session number and writes it to response.
         /// </summary>
-        public UInt32 GenerateNewSession(IAppsSession apps_session)
-        {
-            unsafe
-            {
+        public UInt32 GenerateNewSession(IAppsSession apps_session) {
+            unsafe {
                 // Indicating that new session was created.
                 newSession_ = true;
 
@@ -830,12 +482,10 @@ namespace HttpStructs
         /// <summary>
         /// Kills existing session.
         /// </summary>
-        public UInt32 DestroySession()
-        {
+        public UInt32 DestroySession() {
             UInt32 err_code;
 
-            unsafe
-            {
+            unsafe {
                 // Indicating that session was destroyed.
                 newSession_ = false;
 
@@ -856,12 +506,9 @@ namespace HttpStructs
         /// <summary>
         /// Returns unique session number.
         /// </summary>
-        public UInt64 UniqueSessionIndex
-        {
-            get
-            {
-                unsafe
-                {
+        public UInt64 UniqueSessionIndex {
+            get {
+                unsafe {
                     return session_->apps_unique_session_index_;
                 }
             }
@@ -870,12 +517,9 @@ namespace HttpStructs
         /// <summary>
         /// Returns session salt.
         /// </summary>
-        public UInt64 SessionSalt
-        {
-            get
-            {
-                unsafe
-                {
+        public UInt64 SessionSalt {
+            get {
+                unsafe {
                     return session_->apps_session_salt_;
                 }
             }
@@ -885,10 +529,8 @@ namespace HttpStructs
         /// Gets the session struct.
         /// </summary>
         /// <value>The session struct.</value>
-        public ScSessionStruct SessionStruct
-        {
-            get
-            {
+        public ScSessionStruct SessionStruct {
+            get {
                 unsafe { return *session_; }
             }
         }
@@ -897,10 +539,8 @@ namespace HttpStructs
         /// Gets the HTTP method.
         /// </summary>
         /// <value>The HTTP method.</value>
-        public HTTP_METHODS HttpMethod
-        {
-            get
-            {
+        public HTTP_METHODS HttpMethod {
+            get {
                 unsafe { return http_request_struct_->http_method_; }
             }
         }
@@ -909,10 +549,8 @@ namespace HttpStructs
         /// Gets the is gzip accepted.
         /// </summary>
         /// <value>The is gzip accepted.</value>
-        public Boolean IsGzipAccepted
-        {
-            get
-            {
+        public Boolean IsGzipAccepted {
+            get {
                 unsafe { return http_request_struct_->is_gzip_accepted_; }
             }
         }
@@ -921,10 +559,8 @@ namespace HttpStructs
         /// Gets the URI.
         /// </summary>
         /// <value>The URI.</value>
-        public String Uri
-        {
-            get
-            {
+        public String Uri {
+            get {
                 unsafe { return http_request_struct_->Uri; }
             }
         }
@@ -933,8 +569,7 @@ namespace HttpStructs
         /// Returns a string that represents the current object.
         /// </summary>
         /// <returns>A string that represents the current object.</returns>
-        public override String ToString()
-        {
+        public override String ToString() {
             unsafe { return http_request_struct_->ToString(); }
         }
     }
@@ -943,8 +578,7 @@ namespace HttpStructs
     /// <summary>
     /// Struct HttpRequestInternal
     /// </summary>
-    public unsafe struct HttpRequestInternal
-    {
+    public unsafe struct HttpRequestInternal {
         /// <summary>
         /// The MA x_ HTT p_ HEADERS
         /// </summary>
@@ -1065,8 +699,7 @@ namespace HttpStructs
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRequestRaw(out IntPtr ptr, out UInt32 sizeBytes)
-        {
+        public void GetRequestRaw(out IntPtr ptr, out UInt32 sizeBytes) {
             ptr = new IntPtr(socket_data_ + request_offset_);
 
             sizeBytes = request_len_bytes_;
@@ -1077,8 +710,7 @@ namespace HttpStructs
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetBodyRaw(out IntPtr ptr, out UInt32 sizeBytes)
-        {
+        public void GetBodyRaw(out IntPtr ptr, out UInt32 sizeBytes) {
             if (body_len_bytes_ <= 0)
                 ptr = IntPtr.Zero;
             else
@@ -1091,8 +723,7 @@ namespace HttpStructs
         /// Gets the body as byte array.
         /// </summary>
         /// <returns>Body bytes.</returns>
-        public Byte[] GetBodyByteArray_Slow()
-        {
+        public Byte[] GetBodyByteArray_Slow() {
             // Checking if there is a body.
             if (body_len_bytes_ <= 0)
                 return null;
@@ -1127,8 +758,7 @@ namespace HttpStructs
         /// Gets the body as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        public String GetBodyStringUtf8_Slow()
-        {
+        public String GetBodyStringUtf8_Slow() {
             // Checking if there is a body.
             if (body_len_bytes_ <= 0)
                 return null;
@@ -1141,8 +771,7 @@ namespace HttpStructs
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawMethodAndUri(out IntPtr ptr, out UInt32 sizeBytes)
-        {
+        public void GetRawMethodAndUri(out IntPtr ptr, out UInt32 sizeBytes) {
             // NOTE: Method and URI must always exist.
 
             ptr = new IntPtr(socket_data_ + request_offset_);
@@ -1154,13 +783,12 @@ namespace HttpStructs
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawHeaders(out IntPtr ptr, out UInt32 sizeBytes)
-        {
+        public void GetRawHeaders(out IntPtr ptr, out UInt32 sizeBytes) {
             if (headers_len_bytes_ <= 0)
                 ptr = IntPtr.Zero;
             else
                 ptr = new IntPtr(socket_data_ + headers_offset_);
-            
+
             sizeBytes = headers_len_bytes_;
         }
 
@@ -1169,13 +797,12 @@ namespace HttpStructs
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawCookies(out IntPtr ptr, out UInt32 sizeBytes)
-        {
+        public void GetRawCookies(out IntPtr ptr, out UInt32 sizeBytes) {
             if (cookies_len_bytes_ <= 0)
                 ptr = IntPtr.Zero;
             else
                 ptr = new IntPtr(socket_data_ + cookies_offset_);
-            
+
             sizeBytes = cookies_len_bytes_;
         }
 
@@ -1184,13 +811,12 @@ namespace HttpStructs
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawAccept(out IntPtr ptr, out UInt32 sizeBytes)
-        {
+        public void GetRawAccept(out IntPtr ptr, out UInt32 sizeBytes) {
             if (accept_value_len_bytes_ <= 0)
                 ptr = IntPtr.Zero;
             else
                 ptr = new IntPtr(socket_data_ + accept_value_offset_);
-            
+
             sizeBytes = accept_value_len_bytes_;
         }
 
@@ -1199,13 +825,12 @@ namespace HttpStructs
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawSessionString(out IntPtr ptr, out UInt32 sizeBytes)
-        {
+        public void GetRawSessionString(out IntPtr ptr, out UInt32 sizeBytes) {
             if (session_string_len_bytes_ <= 0)
                 ptr = IntPtr.Zero;
             else
                 ptr = new IntPtr(socket_data_ + session_string_offset_);
-            
+
             sizeBytes = session_string_len_bytes_;
         }
 
@@ -1213,8 +838,7 @@ namespace HttpStructs
         /// Gets the session string.
         /// </summary>
         /// <returns>String.</returns>
-        public String GetSessionString()
-        {
+        public String GetSessionString() {
             // Checking if there is any session.
             if (session_string_len_bytes_ <= 0)
                 return null;
@@ -1232,36 +856,28 @@ namespace HttpStructs
         /// <param name="headerName">Name of the header.</param>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetHeaderValue(byte[] headerName, out IntPtr ptr, out UInt32 sizeBytes)
-        {
-            unsafe
-            {
+        public void GetHeaderValue(byte[] headerName, out IntPtr ptr, out UInt32 sizeBytes) {
+            unsafe {
                 fixed (UInt32* header_offsets = header_offsets_,
                     header_len_bytes = header_len_bytes_,
                     header_value_offsets = header_value_offsets_,
-                    header_value_len_bytes = header_value_len_bytes_)
-                {
+                    header_value_len_bytes = header_value_len_bytes_) {
                     // Going through all headers.
-                    for (Int32 i = 0; i < num_headers_; i++)
-                    {
+                    for (Int32 i = 0; i < num_headers_; i++) {
                         Boolean found = true;
 
                         // Checking that length is correct.
-                        if (headerName.Length == header_len_bytes[i])
-                        {
+                        if (headerName.Length == header_len_bytes[i]) {
                             // Going through all characters in current header.
-                            for (Int32 k = 0; k < headerName.Length; k++)
-                            {
+                            for (Int32 k = 0; k < headerName.Length; k++) {
                                 // Comparing each character.
-                                if (((Byte)headerName[k]) != *(socket_data_ + header_offsets[i] + k))
-                                {
+                                if (((Byte)headerName[k]) != *(socket_data_ + header_offsets[i] + k)) {
                                     found = false;
                                     break;
                                 }
                             }
 
-                            if (found)
-                            {
+                            if (found) {
                                 ptr = (IntPtr)(socket_data_ + header_value_offsets[i]);
                                 sizeBytes = header_value_len_bytes[i];
 
@@ -1282,36 +898,28 @@ namespace HttpStructs
         /// </summary>
         /// <param name="headerName">Name of the header.</param>
         /// <returns>String.</returns>
-        public String GetHeaderValue(String headerName)
-        {
-            unsafe
-            {
+        public String GetHeaderValue(String headerName) {
+            unsafe {
                 fixed (UInt32* header_offsets = header_offsets_,
                     header_len_bytes = header_len_bytes_,
                     header_value_offsets = header_value_offsets_,
-                    header_value_len_bytes = header_value_len_bytes_)
-                {
+                    header_value_len_bytes = header_value_len_bytes_) {
                     // Going through all headers.
-                    for (Int32 i = 0; i < num_headers_; i++)
-                    {
+                    for (Int32 i = 0; i < num_headers_; i++) {
                         Boolean found = true;
 
                         // Checking that length is correct.
-                        if (headerName.Length == header_len_bytes[i])
-                        {
+                        if (headerName.Length == header_len_bytes[i]) {
                             // Going through all characters in current header.
-                            for (Int32 k = 0; k < headerName.Length; k++)
-                            {
+                            for (Int32 k = 0; k < headerName.Length; k++) {
                                 // Comparing each character.
-                                if (((Byte)headerName[k]) != *(socket_data_ + header_offsets[i] + k))
-                                {
+                                if (((Byte)headerName[k]) != *(socket_data_ + header_offsets[i] + k)) {
                                     found = false;
                                     break;
                                 }
                             }
 
-                            if (found)
-                            {
+                            if (found) {
                                 // Skipping two bytes for colon and one space.
                                 return Marshal.PtrToStringAnsi((IntPtr)(socket_data_ + header_value_offsets[i]), (Int32)header_value_len_bytes[i]);
                             }
@@ -1344,10 +952,8 @@ namespace HttpStructs
         /// Gets the URI.
         /// </summary>
         /// <value>The URI.</value>
-        public String Uri
-        {
-            get
-            {
+        public String Uri {
+            get {
                 if (uri_len_bytes_ > 0)
                     return Marshal.PtrToStringAnsi((IntPtr)(socket_data_ + uri_offset_), (Int32)uri_len_bytes_);
 
@@ -1395,8 +1001,7 @@ namespace HttpStructs
         /// Returns the fully qualified type name of this instance.
         /// </summary>
         /// <returns>A <see cref="T:System.String" /> containing a fully qualified type name.</returns>
-        public override String ToString()
-        {
+        public override String ToString() {
             return "<h1>HttpMethod: " + http_method_ + "</h1>\r\n" +
                    "<h1>URI: " + Uri + "</h1>\r\n" +
                    "<h1>GZip accepted: " + is_gzip_accepted_ + "</h1>\r\n" +
@@ -1406,5 +1011,5 @@ namespace HttpStructs
                    "<h1>Body: " + GetBodyStringUtf8_Slow() + "</h1>\r\n"
                    ;
         }
-    };
+    }
 }

@@ -59,14 +59,16 @@ namespace SQLTest.InheritedDb {
                 for (int i = 0; i < nrPersons; i++)
                     new Person { Name = "Person" + i, Birthday = new DateTime(1950 + i * 5, i % 12 + 1, i + 1), Gender = i % 2 };
                 Employer employer = new Employer { Address = "Here" };
+                Manager manager = null;
                 for (int i = 0; i < nrManagers; i++)
-                    new Manager { Name = "Manager" + i, Birthday = new DateTime(1970 + i * 3, i + 1, i + 1), Gender = i % 2, Bonus = i, Company = employer };
+                    manager = new Manager { Name = "Manager" + i, Birthday = new DateTime(1970 + i * 3, i + 1, i + 1), Gender = i % 2, Bonus = i, Company = employer };
                 for (int i = 0; i < nrEmployees; i++)
-                    new Employee { Name = "Employee" + i, Birthday = new DateTime(1970 + i * 4, i + 1, i + 1), Gender = i % 2, Company = employer };
+                    new Employee { Name = "Employee" + i, Birthday = new DateTime(1970 + i * 4, i + 1, i + 1), Gender = i % 2, Company = employer,
+                    Boss = manager };
                 for (int i = 0; i < nrProfessors; i++)
-                    new Professor { Name = "Professor" + i, Birthday = new DateTime(1950 + i * 1, i + 1, i + 1), Gender = i % 2, Company = employer };
+                    new Professor { Name = "Professor" + i, Birthday = new DateTime(1950 + i * 1, i + 1, i + 1), Gender = i % 2, Company = employer, Boss = manager };
                 for (int i = 0; i < nrTeachers; i++)
-                    new Teacher { Name = "Teacher" + i, Birthday = new DateTime(1975 + i * 2, i + 1, i + 1), Gender = i % 2, Company = employer };
+                    new Teacher { Name = "Teacher" + i, Birthday = new DateTime(1975 + i * 2, i + 1, i + 1), Gender = i % 2, Company = employer, Boss = manager };
                 for (int i = 0; i < nrStudents; i++)
                     new Student { Name = "Student" + i, Birthday = new DateTime(1980 + i, i + 1, i + 1), Gender = i % 2 };
             });
