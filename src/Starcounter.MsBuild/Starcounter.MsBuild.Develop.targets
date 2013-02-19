@@ -34,16 +34,7 @@
       <Compile Include="@(gFiles)" />
     </ItemGroup>
   </Target>
-
-  <!--
-  <Target Name="AfterBuild">
-    <Exec Command="&quot;..\..\bin\$(Configuration)\scweaver.exe&quot; Weave --outdir=&quot;$(TargetPath)\..\weaved&quot; --cachedir=&quot;$(TargetPath)\..\cache&quot; &quot;$(TargetPath)&quot;"/>
-    <ItemGroup>
-      <AdminWeavedFiles Include="$(TargetPath)\..\weaved\$(AssemblyName).*" />
-    </ItemGroup>
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(AdminWeavedFiles)" DestinationFolder="$(TargetPath)\.." />
-  </Target>
-  -->
+  
 </Project>
 
 
