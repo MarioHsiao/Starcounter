@@ -1,6 +1,7 @@
 ﻿
 using HttpStructs;
 using Starcounter.Advanced;
+using Starcounter.Apps.Bootstrap;
 using Starcounter.Internal.JsonPatch;
 using Starcounter.Internal.Web;
 using System;
@@ -35,6 +36,9 @@ namespace Starcounter.Internal {
             appServer = new HttpAppServer(fileServer);
             StarcounterBase.Fileserver = fileServer;
 
+            // Checking if we are inside the database worker process.
+            AppProcess.AssertInDatabaseOrSendStartRequest();
+
             // Register the handlers required by the Apps system. These work as user code handlers, but
             // listens to the built in REST api serving view models to REST clients.
             InternalHandlers.Register();
@@ -56,6 +60,7 @@ namespace Starcounter.Internal {
         /// <param name="port">Listens for http traffic on the given port. </param>
         /// <param name="resourceResolvePath">Adds a directory path to the list of paths used when resolving a request for a static REST (web) resource</param>
         public static void Bootstrap(int port = -1, string resourceResolvePath = null) {
+
             if (resourceResolvePath != null)
                 AddFileServingDirectory(resourceResolvePath);
 
