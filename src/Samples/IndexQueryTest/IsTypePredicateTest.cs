@@ -54,7 +54,7 @@ namespace IndexQueryTest {
             Trace.Assert(nrObjects == InheritedIndexTest.nrProfessors);
             // Several IS type expressions
             nrObjects = 0;
-            InheritedIndexTest.PrintQueryPlan("select p from Employee p  where p is ?");
+            InheritedIndexTest.PrintQueryPlan("select p from Employee p  where p is ? and p is  ?");
             foreach (Employee e in Db.SQL("select p from Employee p  where p is ? and p is  ?", typeof(Professor), typeof(Teacher)))
                 nrObjects++;
             Trace.Assert(nrObjects == InheritedIndexTest.nrProfessors);
@@ -71,7 +71,8 @@ namespace IndexQueryTest {
             Trace.Assert(nrObjects == 0);
             nrObjects = 0;
             InheritedIndexTest.PrintQueryPlan("select p from Employee p, Manager e  where p is ? and e is  ? and p.Boss = e and p.Birthday > e.Birthday");
-            foreach (Employee e in Db.SQL("select p from Employee p, Manager e  where p is ? and e is  ? and p.Boss = e and p.Birthday > e.Birthday", typeof(Teacher), typeof(Manager)))
+            foreach (Employee e in Db.SQL("select p from Employee p, Manager e  where p is ? and e is  ? and p.Boss = e and p.Birthday > e.Birthday", 
+                typeof(Teacher), typeof(Manager)))
                 nrObjects++;
             Trace.Assert(nrObjects == 0);
             // Literal test
