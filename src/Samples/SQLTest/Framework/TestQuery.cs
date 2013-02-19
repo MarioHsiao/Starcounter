@@ -138,8 +138,10 @@ namespace SQLTest
                     {
                         type = "Binary";
                         value = Utilities.BinaryToHex((Binary)VariableValuesArr[i]);
-                    }
-                    else if (VariableValuesArr[i] != null)
+                    } else if (VariableValuesArr[i] is Type) {
+                        type = "Type";
+                        value = VariableValuesArr[i].ToString();
+                    } else if (VariableValuesArr[i] != null)
                     {
                         type = VariableValuesArr[i].GetType().Name;
                         value = VariableValuesArr[i].ToString();

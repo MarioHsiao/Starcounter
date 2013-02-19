@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using HttpStructs;
 using Starcounter.Internal;
+using Starcounter.Advanced;
 
 namespace Starcounter
 {
