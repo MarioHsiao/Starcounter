@@ -76,6 +76,11 @@ namespace star {
                 // using the new syntax.
                 // TODO:
 
+                if (appArgs.ContainsFlag("help", CommandLineSection.GlobalOptions)) {
+                    Usage(syntax);
+                    return;
+                }
+
                 return;
             }
 
