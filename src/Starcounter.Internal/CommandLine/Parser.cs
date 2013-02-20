@@ -109,7 +109,7 @@ namespace Starcounter.CommandLine
                     // place depending on what section we are parsing.
 
                     if ((optionAttributes & OptionAttributes.Flag) != 0)
-                        parsedArguments.AddFlag(optionValue);
+                        parsedArguments.AddFlag(optionName);
                     else
                         parsedArguments.AddProperty(optionName, optionValue);
                 }
