@@ -90,11 +90,10 @@ namespace Starcounter.CommandLine
             string token;
             string optionName;
             string optionValue;
-            string pendingOptionName;
-            
+            OptionAttributes optionAttributes;
+
             parsedArguments = new ApplicationArguments();
             args = this.Arguments;
-            pendingOptionName = null;
             
             for (int i = 0; args != null && i < args.Length; i++)
             {
@@ -102,73 +101,23 @@ namespace Starcounter.CommandLine
 
                 if (StartsWithOptionPrefix(token))
                 {
-                    if (pendingOptionName != null)
-                    {
-                        // Here's a limitation with the implementation, but
-                        // one there is a workaround to: if you have a property
-                        // value starting with an option prefix and you are
-                        // using space as a delimiter, like:
-                        //
-                        // -myDelimiter -
-                        //
-                        // (in this case specifying a property "myDelimiter"
-                        // that has a value of "-", i.e a symbol we use as a
-                        // prefix), the parser will fail.
-                        //
-                        // To get around this, use the colon option suffix
-                        // instead, like:
-                        //
-                        // -myDelimiter:-
-
-                        RaiseOptionWithNoValueException(pendingOptionName, i);
-                    }
-
                     // Parse the token and assure the name.
 
-                    ParseOptionString(
-                        token,
-                        out optionName,
-                        out optionValue
-                        );
-                    if (optionName.Equals(string.Empty)) RaiseSyntaxErrorException(
-                        Error.SCERRBADCOMMANDLINEFORMAT, i, 
-                        "Prefix with no name");
-
-                    // Check if no value was given. If not, we have a pending
-                    // option and we'll interprete the next upcoming token as
-                    // the value of this option.
-
-                    if (string.IsNullOrEmpty(optionValue))
-                    {
-                        pendingOptionName = optionName;
-                        continue;
-                    }
+                    ParseOptionString(token, i, out optionName, out optionValue, out optionAttributes);
 
                     // Both name and value was given. Put the option in it's right
                     // place depending on what section we are parsing.
 
-                    if (IsOptionFlag(optionName))
+                    if ((optionAttributes & OptionAttributes.Flag) != 0)
                         parsedArguments.AddFlag(optionValue);
                     else
                         parsedArguments.AddProperty(optionName, optionValue);
                 }
-                else if (pendingOptionName != null)
-                {
-                    // We have a pending option name, the token represents an
-                    // option value. Interpret is as such.
-
-                    if (IsOptionFlag(pendingOptionName))
-                        parsedArguments.AddFlag(token);
-                    else
-                        parsedArguments.AddProperty(pendingOptionName, token);
-
-                    pendingOptionName = null;
-                }
                 else
                 {
-                    // There was no pending option and the token didn't start with
-                    // known option prefix. This is either the command, or it is a
-                    // parameter to the command.
+                    // The token didn't start with any known option prefix.
+                    // This is either the command, or it is a parameter to the
+                    // command.
 
                     if (parsedArguments.HasCommmand)
                     {
@@ -177,13 +126,13 @@ namespace Starcounter.CommandLine
                     else
                     {
                         // Either this is a command or it is the first parameter to
-                        // the "default", implicit command. We must query the syntax
-                        // for witch.
+                        // the "default", implicit command. We must consult the syntax
+                        // to figure out which.
 
                         if (string.IsNullOrEmpty(syntax.DefaultCommand))
                         {
-                            // Equally, if no default command exist, we treat the token as a
-                            // command too.
+                            // If no default command exist, we treat the token as
+                            // the command.
                             
                             parsedArguments.Command = token;
                         }
@@ -217,11 +166,6 @@ namespace Starcounter.CommandLine
                         }
                     }
                 }
-            }
-
-            if (pendingOptionName != null)
-            {
-                RaiseOptionWithNoValueException(pendingOptionName, args.Length - 1);
             }
 
             // If we still have not found a command and we have a default command
@@ -268,49 +212,89 @@ namespace Starcounter.CommandLine
         /// Parses the option string.
         /// </summary>
         /// <param name="value">The value.</param>
+        /// <param name="argumentIndex">The index in the args[] array we are currently parsing.</param>
         /// <param name="optionName">Name of the option.</param>
         /// <param name="optionValue">The option value.</param>
-        void ParseOptionString(string value, out string optionName, out string optionValue)
-        {
-            // The given value starts with any of the prefixes. We should
-            // expect at least the name of the option, and possibly even a value.
-            // Consider how to use the FLAG word.
-
+        /// <param name="attributes">Attributes that applies to the given option,
+        /// if such could be derived from looking at the specification itself.
+        /// </param>
+        void ParseOptionString(
+            string value,
+            int argumentIndex,
+            out string optionName,
+            out string optionValue,
+            out OptionAttributes attributes) {
             int delimiterIndex;
+            
+            attributes = OptionAttributes.Default;
+
+            // The given value starts with any of the prefixes. We 
+            // expect everything to be part of the token, since we
+            // have deprecated the usage of space as a delimiter.
 
             // Remove any found prefix characters.
 
-            foreach (var prefix in OptionPrefixes)
-            {
-                while (value.StartsWith(prefix))
-                {
+            foreach (var prefix in OptionPrefixes) {
+                while (value.StartsWith(prefix)) {
                     value = value.Substring(prefix.Length);
                 }
             }
 
             value = value.Trim();
+            if (value.Length == 0) {
+                // No delimiter, and no value, meaning we found
+                // only prefixes. Not allowed.
+                RaiseSyntaxErrorException(Error.SCERRBADCOMMANDLINEFORMAT, argumentIndex, "Option prefix with no named option.");
+            }
 
             delimiterIndex = value.IndexOfAny(OptionSuffixes);
-            if (delimiterIndex == -1)
-            {
-                // No delimiter, the value itself is the name.
+            if (delimiterIndex == -1) {
+                // No delimiter, indicating the syntax --option.
+                // We consider this a flag option and the value
+                // does represent the actual name of the flag
+                // being set.
 
                 optionName = value;
-                optionValue = null;
-            }
-            else if (delimiterIndex == value.Length)
-            {
-                // The delimiter was the last character. Remove it from
-                // the value and give back no option value.
-                
+                optionValue = bool.TrueString;
+                attributes |= OptionAttributes.Flag;
+
+            } else if (delimiterIndex == value.Length) {
+                // The delimiter was the last character, like:
+                // --foo=
+                // We allow such syntax to be used to set properties
+                // to an empty string, i.e. string.Empty.
+
                 optionName = value.Substring(0, value.Length - 1);
-                optionValue = null;
-            }
-            else
-            {
+                optionValue = string.Empty;
+
+            } else {
+                // It's a key/value pair, i.e. "key=value". We just
+                // split it, handing out the name/key and the value
+                // in the output.
                 optionName = value.Substring(0, delimiterIndex);
                 optionValue = value.Substring(delimiterIndex + 1);
             }
+
+            // The final thing we do is that we check if the given
+            // option is a flag, using the older --FLAG:x syntax.
+
+            if (optionName.Equals(FlagKeyword)) {
+                // The value contains the name of the flag.
+
+                if (optionValue.Equals(string.Empty)) {
+                    // The syntax --FLAG: with no named flag has been
+                    // used. This we don't allow.
+                    RaiseSyntaxErrorException(Error.SCERRBADCOMMANDLINEFORMAT, argumentIndex, "The {0} keyword was use, but the name of the flag was not given.", FlagKeyword);
+                }
+
+                optionName = optionValue;
+                attributes |= OptionAttributes.Flag;
+            }
+
+            // Before returning, assure that we really got the name,
+            // or else raise an exception.
+            if (optionName.Equals(string.Empty))
+                RaiseSyntaxErrorException(Error.SCERRBADCOMMANDLINEFORMAT, argumentIndex, "Option prefix with no named option.");
         }
 
         /// <summary>
