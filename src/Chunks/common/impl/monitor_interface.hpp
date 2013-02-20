@@ -502,123 +502,69 @@ spinlock_() {
 	}
 }
 
-//------------------------------------------------------------------------------
 inline int32_t monitor_interface::cleanup_task::insert_segment_name
 (const char* segment_name) {
-	int32_t i;
-	mask_type old_mask = segment_name_mask_;
-	mask_type current_mask = old_mask;
-	mask_type new_mask;
+	smp::spinlock::scoped_lock lock(spinlock());
+	std::cout << "insert_segment_name(): segment_name_mask = " << segment_name_mask_ << std::endl;
 
-	while (true) {
-		// Calculate the new_mask.
-		i = 0;
+	// bit_scan_forward() returns a valid index if at least one bit is set.
+	if (~segment_name_mask_) {
+		// Search for the first 0 bit.
+		int32_t i = bit_scan_forward(~segment_name_mask_);
+		segment_name_mask_ |= 1ULL << i;
 
-		// bit_scan_forward() returns a valid index if at least one bit is set.
-		if (~segment_name_mask_) {
-			// Search for the first 0 bit.
-			i = bit_scan_forward(~segment_name_mask_);
-		}
-		else {
-			// Trying to insert more segment name's than can fit. A bug.
-			return -1;
-		}
+		// Successfully acquired an index. Inserting the segment name.
+		std::strcpy(segment_name_[i], segment_name);
+		std::cout << "inserted segment name: segment_name_mask = " << segment_name_mask_ << std::endl;
+		return i;
+	}
+	else {
+		// Trying to insert more segment name's than can fit. A bug.
+		std::cout << "insert_segment_name(): Trying to insert more segment name's than can fit. <A>" << std::endl;
+		return -1;
+	}
+}
 
-		new_mask = segment_name_mask_ | 1ULL << i;
+inline void monitor_interface::cleanup_task::erase_segment_name
+(const char* segment_name) {
+	smp::spinlock::scoped_lock lock(spinlock());
+	std::cout << "erase_segment_name(): segment_name_mask = " << segment_name_mask_ << std::endl;
 
-		// set the new value if the current value is still the expected one
-		current_mask = InterlockedCompareExchange(&segment_name_mask_, new_mask,
-		old_mask);
-		
-		if (current_mask == old_mask) {
-			// The exchange happened.
-			break;
-		}
-
-		// The exchange did not happen, someone else have changed the segment_name_mask_.
-		if (current_mask != -1LL) {
-			old_mask = current_mask;
-		}
-		else {
-			// Trying to insert more segment name's than can fit. A bug.
-			return -1;
+	for (cleanup_task::mask_type segment_name_mask = segment_name_mask_;
+	segment_name_mask; segment_name_mask &= segment_name_mask -1) {
+		int32_t i = bit_scan_forward(segment_name_mask);
+		if (!std::strcmp(segment_name_[i], segment_name)) {
+			std::cout << "erasing segment name[" << i << "]: " << segment_name_[i] << std::endl;
+			segment_name_[i][0] = '\0';
+			segment_name_mask_ &= ~(1ULL << i);
 		}
 	}
-
-	// Successfully acquired an index. Inserting the segment name.
-	std::strcpy(segment_name_[i], segment_name);
-	_mm_mfence();
-	return i;
 }
 
 inline const char* monitor_interface::cleanup_task::get_a_segment_name() {
 	smp::spinlock::scoped_lock lock(spinlock());
-	int32_t i;
-	mask_type old_mask = cleanup_mask_;
-	mask_type current_mask = old_mask;
-	mask_type new_mask;
 
-	while (true) {
-		// Calculate the new_mask.
-		i = 0;
+	// bit_scan_forward() returns a valid index if at least one bit is set.
+	if (cleanup_mask_) {
+		int32_t i = bit_scan_forward(cleanup_mask_);
+		cleanup_mask_ &= ~(1ULL << i);
 
-		// bit_scan_forward() returns a valid index if at least one bit is set.
-		if (cleanup_mask_) {
-			i = bit_scan_forward(cleanup_mask_);
-		}
-
-		new_mask = cleanup_mask_ & ~(1ULL << i);
-
-		// set the new value if the current value is still the expected one
-		current_mask = InterlockedCompareExchange(&cleanup_mask_, new_mask,
-		old_mask);
-		
-		if (current_mask == old_mask) {
-			// The exchange happened.
-			break;
-		}
-
-		// The exchange did not happen, someone else have changed the cleanup_mask_.
-		if (current_mask != 0) {
-			old_mask = current_mask;
-		}
-		else {
-			// There are no segment names in the table. Possibly a bug.
-			return 0;
-		}
+		// Found a segment_name.
+		return segment_name_[i];
 	}
-
-	// Found a segment_name.
-	return segment_name_[i];
+	else {
+		// There are no segment names in the table. Possibly a bug.
+		return 0;
+	}
 }
 
 inline void monitor_interface::cleanup_task::set_cleanup_flag(int32_t index) {
 	smp::spinlock::scoped_lock lock(spinlock());
-	mask_type old_mask = cleanup_mask_;
-	mask_type current_mask = old_mask;
-	mask_type new_mask;
-
-	while (true) {
-		// Calculate the new_mask.
-		new_mask = cleanup_mask_ | 1ULL << index;
-
-		// set the new value if the current value is still the expected one
-		current_mask = InterlockedCompareExchange(&cleanup_mask_, new_mask,
-		old_mask);
-		
-		if (current_mask == old_mask) {
-			// The exchange happened.
-			break;
-		}
-
-		// The exchange did not happen, someone else have changed the cleanup_mask_.
-		old_mask = current_mask;
-	}
-	_mm_mfence();
+	cleanup_mask_ |= 1ULL << index;
 }
 
 inline uint64_t monitor_interface::cleanup_task::get_cleanup_flag() {
-	// No sync here.
+	smp::spinlock::scoped_lock lock(spinlock());
 	return cleanup_mask_;
 }
 

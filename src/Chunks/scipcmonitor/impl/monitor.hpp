@@ -382,6 +382,11 @@ void monitor::wait_for_database_process_event(std::size_t group) {
 								// Found the owner_id. Open the database
 								// shared memory segment that this database
 								// process had created.
+
+								// Erase the segment name from the cleanup_task table.
+								the_monitor_interface_->erase_segment_name
+								(process_register_it_2->second.get_segment_name().c_str());
+
 								try {
 									// Try open the segment.
 									shared_interface shared

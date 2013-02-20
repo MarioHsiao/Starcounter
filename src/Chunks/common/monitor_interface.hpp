@@ -122,6 +122,15 @@ public:
 		return cleanup_task_.insert_segment_name(segment_name);
 	}
 
+	/// erase_segment_name() is used by the monitor::wait_for_database_process_event()
+	/// to erase segment names of terminated database processes.
+	/**
+	 * @param segment_name The name of the IPC shared memory segment.
+	 */
+	void erase_segment_name(const char* segment_name) {
+		cleanup_task_.erase_segment_name(segment_name);
+	}
+
 	/// get_a_segment_name() is used by the monitor::cleanup() thread trying to get
 	/// a segment name, which it will use to open it and do the rest of the cleanup.
 	/**
@@ -232,6 +241,13 @@ private:
 		 */
 		int32_t insert_segment_name(const char* segment_name);
 		
+		/// erase_segment_name() is used by the monitor::wait_for_database_process_event()
+		/// to erase segment names of terminated database processes.
+		/**
+		 * @param segment_name The name of the IPC shared memory segment.
+		 */
+		void erase_segment_name(const char* segment_name);
+
 		/// get_a_segment_name() is used by the monitor::cleanup() thread trying to get
 		/// a segment name, which it will use to open it and do the rest of the cleanup.
 		/**
