@@ -83,7 +83,11 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
         }
 
-        enumerator = null;
+        if (this.comparer.ComparerCount == 0) {
+            this.enumerator = this.subEnumerator;
+        } else {
+            this.enumerator = new Sort(subEnumerator.RowTypeBinding, subEnumerator, comparer, variableArray, query, fetchNumberExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
+        }
         cursorObject = null;
         currentObject = null;
         contextObject = null;
@@ -211,19 +215,8 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
-    private void CreateEnumerator()
-    {
-        if (enumerator != null)
-            enumerator.Reset();
-
-        if (comparer.ComparerCount == 0)
-        {
-            enumerator = subEnumerator;
-        }
-        else
-        {
-            enumerator = new Sort(subEnumerator.RowTypeBinding, subEnumerator, comparer, variableArray, query, fetchNumberExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
-        }
+    private void CreateEnumerator() {
+        enumerator.Reset();
     }
 
     /// <summary>
@@ -232,18 +225,18 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
     /// <param name="obj">Context object from another enumerator.</param>
     public override void Reset(Row obj)
     {
-        if (enumerator != null)
-        {
-            enumerator.Reset();
-            enumerator = null;
-        }
+        //if (enumerator != null)
+        //{
+        //    enumerator.Reset();
+        //    enumerator = null;
+        //}
 
         currentObject = null;
         cursorObject = null;
         counter = 0;
 
         contextObject = obj;
-        subEnumerator.Reset(contextObject);
+        enumerator.Reset(contextObject);
         firstCallOfMoveNext = true;
     }
 
@@ -276,8 +269,34 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
             currentObject = null;
             return false;
         }
-        // Create new object.
+        // Create new object
         Row compObject = new Row(rowTypeBinding);
+        // Do Offset
+        if (counter == 0 && fetchOffsetExpr != null)
+            if (fetchOffsetExpr.EvaluateToInteger(null) != null) {
+                for (int i = 0; i < fetchOffsetExpr.EvaluateToInteger(null).Value; i++)
+                    if (!CreateNewObject(compObject, produceOneResult)) {
+                        currentObject = null;
+                        firstCallOfMoveNext = false;
+                        return false;
+                    } else {
+                        firstCallOfMoveNext = false;
+                        produceOneResult = firstCallOfMoveNext && comparer.ComparerCount == 0;
+                    }
+                counter = 0;
+            }
+        if (counter == 0 && fetchNumberExpr != null) {
+            if (fetchNumberExpr.EvaluateToInteger(null) != null)
+                fetchNumber = fetchNumberExpr.EvaluateToInteger(null).Value;
+            else
+                fetchNumber = 0;
+        }
+        // Check fetch
+        if (counter >= fetchNumber) {
+            currentObject = null;
+            firstCallOfMoveNext = false;
+            return false;
+        }
         if (CreateNewObject(compObject, produceOneResult))
         {
             currentObject = compObject;
@@ -355,7 +374,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
     /// </summary>
     public unsafe Int32 SaveEnumerator(Byte* keysData, Int32 globalOffset, Boolean saveDynamicDataOnly)
     {
-        return subEnumerator.SaveEnumerator(keysData, globalOffset, saveDynamicDataOnly);
+        return enumerator.SaveEnumerator(keysData, globalOffset, saveDynamicDataOnly);
     }
 
     /// <summary>
@@ -363,7 +382,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
     /// </summary>
     public unsafe override void PopulateQueryFlags(UInt32* flags)
     {
-        subEnumerator.PopulateQueryFlags(flags);
+        enumerator.PopulateQueryFlags(flags);
     }
 
     /// <summary>
@@ -402,7 +421,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
     {
         stringBuilder.AppendLine(tabs, "Aggregation(");
         stringBuilder.AppendLine(tabs + 1, extentNumber.ToString());
-        subEnumerator.BuildString(stringBuilder, tabs + 1);
+        enumerator.BuildString(stringBuilder, tabs + 1);
         comparer.BuildString(stringBuilder, tabs + 1);
         stringBuilder.AppendLine(tabs + 1, "SetFunctions(");
         for (Int32 i = 0; i < setFunctionList.Count; i++)

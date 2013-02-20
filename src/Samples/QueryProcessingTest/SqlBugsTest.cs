@@ -34,7 +34,7 @@ namespace QueryProcessingTest {
             Trace.Assert(nrs == 20);
             TestOffsetkeyWithSorting();
             // See simple aggregate plan. Try to get aggregate node on top
-            PrintSlowQueryPlan("select sum(amount) from account");
+            HelpMethods.PrintSlowQueryPlan("select sum(amount) from account");
         }
 
         public static void TestOffsetkeyWithSorting() {
@@ -42,7 +42,7 @@ namespace QueryProcessingTest {
             Byte[] offsetKey = null;
 
             // Starting some SQL query.
-            FetchTest.PrintQueryPlan("SELECT a FROM Account a ORDER BY a.accountid FETCH ?");
+            HelpMethods.PrintQueryPlan("SELECT a FROM Account a ORDER BY a.accountid FETCH ?");
             using (var sqlEnum = Db.SQL("SELECT a FROM Account a ORDER BY a.accountid FETCH ?", 5).GetEnumerator()) {
                 for (Int32 i = 0; i < 5; i++) {
                     sqlEnum.MoveNext();
@@ -90,8 +90,5 @@ namespace QueryProcessingTest {
 #endif
         }
 
-        internal static void PrintSlowQueryPlan(String query) {
-            Console.WriteLine(((IEnumerator)Db.SlowSQL(query, null).GetEnumerator()).ToString());
-        }
     }
 }
