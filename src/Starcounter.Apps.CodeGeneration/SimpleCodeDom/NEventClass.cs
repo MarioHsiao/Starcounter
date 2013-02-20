@@ -15,6 +15,14 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     public class NEventClass : NClass {
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gen"></param>
+        public NEventClass(DomGenerator gen)
+            : base(gen) {
+        }
+
+        /// <summary>
         /// Gets or sets the N member.
         /// </summary>
         /// <value>The N member.</value>

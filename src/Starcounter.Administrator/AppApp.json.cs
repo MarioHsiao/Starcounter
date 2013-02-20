@@ -2,7 +2,7 @@
 using Starcounter;
 
 namespace StarcounterApps3 {
-    partial class AppApp : App {
+    partial class AppApp : Puppet {
     }
 }
 

@@ -1,9 +1,11 @@
 ﻿
+using HttpStructs;
 using Newtonsoft.Json;
 using Starcounter.Advanced;
 using Starcounter.Templates;
 using System;
 using System.Text;
+
 namespace Starcounter {
 
     /// <summary>
@@ -19,16 +21,16 @@ namespace Starcounter {
     /// <summary>
     /// See App with generics 
     /// </summary>
-    public class App : App<NullData> {
+    public class Puppet : Puppet<NullData> {
 
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="System.String" /> to <see cref="App" />.
+        /// Performs an implicit conversion from <see cref="System.String" /> to <see cref="Puppet" />.
         /// </summary>
         /// <param name="str">The STR.</param>
         /// <returns>The result of the conversion.</returns>
-        public static implicit operator App(string str) {
-            return new App() { Media = str };
+        public static implicit operator Puppet(string str) {
+            return new Puppet() { Media = str };
         }
     }
 
@@ -52,12 +54,12 @@ namespace Starcounter {
     /// your C# code will be called. If you make a property editable, changes by the user will change App object (and an event will be triggered
     /// in case you which to validate the change).
     /// </remarks>
-    public class App<T> : Obj<T> where T : IBindable {
+    public class Puppet<T> : Obj<T> where T : IBindable {
 
         /// <summary>
         /// 
         /// </summary>
-        public App() : base() {
+        public Puppet() : base() {
                    ViewModelId = -1;
         }
 
@@ -96,12 +98,12 @@ namespace Starcounter {
         internal int ViewModelId { get; set; }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="System.String" /> to <see cref="App" />.
+        /// Performs an implicit conversion from <see cref="System.String" /> to <see cref="Puppet" />.
         /// </summary>
         /// <param name="str">The STR.</param>
         /// <returns>The result of the conversion.</returns>
-        public static implicit operator App<T>(string str) {
-            return new App<T>() { Media = str };
+        public static implicit operator Puppet<T>(string str) {
+            return new Puppet<T>() { Media = str };
         }
 
         /// <summary>
@@ -155,21 +157,25 @@ namespace Starcounter {
                     t++;
                     addComma = true;
 
-                    if (true) { // includeViewContent == IncludeView.Always ) {
+#if EMBEDHTML
+                    if (false) { // includeViewContent == IncludeView.Always ) { // TODO! JOCKE!!
                         sb.Append("__vc:");
-                        var res = App.Get(View);
+                        var req = HttpRequest.RawGET("/" + View);
+                        var res = Puppet.REST.RawRequest( req );
                         if (res == null) {
-                            // TODO
-                            //res = StaticResources.Handle( HttpRequest.GET( "/" + View ) ); 
+                            res = StarcounterBase.Fileserver.Handle(new HttpRequest(req));
                         }
                         if (res is HttpResponse) {
                             var response = res as HttpResponse;
-                            sb.Append(JsonConvert.SerializeObject(Encoding.UTF8.GetString(response.Uncompressed)));
+                            byte[] body = response.Uncompressed;
+                            var html = Encoding.UTF8.GetString(body, response._UncompressedBodyOffset, response._UncompressedBodyLength);
+                            sb.Append(JsonConvert.SerializeObject(html));
                         }
                         else {
                             throw new NotImplementedException();
                         }
                     }
+#endif
                     //else {
                     //    sb.Append("__vf:");
                     //    sb.Append(JsonConvert.SerializeObject(Media.Content.FilePath.ToString()));
@@ -246,7 +252,7 @@ namespace Starcounter {
 
                 Obj parent = GetNearestObjParent();
                 if (parent != null)
-                    return ((App)parent).Transaction;
+                    return ((Puppet)parent).Transaction;
 
                 return null;
             }

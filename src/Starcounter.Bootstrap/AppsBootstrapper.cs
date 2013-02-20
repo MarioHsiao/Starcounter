@@ -1,6 +1,7 @@
 ﻿
 using HttpStructs;
 using Starcounter.Advanced;
+using Starcounter.Apps.Bootstrap;
 using Starcounter.Internal.JsonPatch;
 using Starcounter.Internal.Web;
 using System;
@@ -15,7 +16,7 @@ namespace Starcounter.Internal {
     /// </remarks>
     public static class AppsBootstrapper {
         private static HttpAppServer appServer;
-        private static StaticWebServer fileServer;
+       // private static StaticWebServer fileServer;
         private static UInt16 defaultPort_ = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
 
         /// <summary>
@@ -31,8 +32,12 @@ namespace Starcounter.Internal {
         /// 
         /// </summary>
         static AppsBootstrapper() {
-            fileServer = new StaticWebServer();
+            var fileServer = new StaticWebServer();
             appServer = new HttpAppServer(fileServer);
+            StarcounterBase.Fileserver = fileServer;
+
+            // Checking if we are inside the database worker process.
+            AppProcess.AssertInDatabaseOrSendStartRequest();
 
             // Register the handlers required by the Apps system. These work as user code handlers, but
             // listens to the built in REST api serving view models to REST clients.
@@ -45,7 +50,7 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="path">The directory to include</param>
         public static void AddFileServingDirectory(string path) {
-            fileServer.UserAddedLocalFileDirectoryWithStaticContent(path);
+            StarcounterBase.Fileserver.UserAddedLocalFileDirectoryWithStaticContent(path);
         }
 
         /// <summary>
@@ -55,6 +60,7 @@ namespace Starcounter.Internal {
         /// <param name="port">Listens for http traffic on the given port. </param>
         /// <param name="resourceResolvePath">Adds a directory path to the list of paths used when resolving a request for a static REST (web) resource</param>
         public static void Bootstrap(int port = -1, string resourceResolvePath = null) {
+
             if (resourceResolvePath != null)
                 AddFileServingDirectory(resourceResolvePath);
 
@@ -79,7 +85,7 @@ namespace Starcounter.Internal {
         /// <param name="request">The http request</param>
         /// <returns>Returns true if the request was handled</returns>
         private static Boolean OnHttpMessageRoot(HttpRequest request) {
-            HttpResponse result = appServer.Handle(request);
+            var result = (HttpResponse)appServer.Handle(request);
             request.SendResponse(result.Uncompressed, 0, result.Uncompressed.Length);
             return true;
         }

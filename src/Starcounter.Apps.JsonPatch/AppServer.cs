@@ -10,6 +10,7 @@ using System.Text;
 using HttpStructs;
 using Starcounter.Apps;
 using Starcounter.Internal.REST;
+using Starcounter.Advanced;
 
 namespace Starcounter.Internal.Web {
     /// <summary>
@@ -59,8 +60,8 @@ namespace Starcounter.Internal.Web {
                 object x;
                 RequestHandler.RequestProcessor.Invoke(request, out x);
                 if (x != null) {
-                    if (x is App) {
-                        var app = (App)x;
+                    if (x is Puppet) {
+                        var app = (Puppet)x;
                        
                         // TODO:
                         // How do we create new sessions and what is allowed here...
@@ -106,8 +107,10 @@ namespace Starcounter.Internal.Web {
                     // TODO:
                     // We should try to inject all things in one go (scriptinjection, headerinjection) to avoid 
                     // unnecessary creation and copying of buffers.
-                    byte[] toInject = System.Text.Encoding.UTF8.GetBytes("Set-Cookie: " + request.SessionStruct.SessionCookieStubString + "; HttpOnly\r\n");
-                    response.Uncompressed = ScriptInjector.InjectInHeader(response.GetBytes(request), toInject, response.HeaderInjectionPoint);
+                    response.Uncompressed = ScriptInjector.InjectInHeader(
+                        response.GetBytes(request),
+                        request.SessionStruct.SessionHeaderPlusEndlineStubBytes,
+                        response.HeaderInjectionPoint);
                 }
 
                 return response;

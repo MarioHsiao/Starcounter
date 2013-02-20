@@ -372,7 +372,7 @@ namespace Starcounter {
         /// <param name="property">The property.</param>
         /// <returns>App.</returns>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public App GetValue(TApp property) {
+        public Puppet GetValue(TPuppet property) {
 #if QUICKTUPLE
             return _Values[property.Index];
 #else

@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using Starcounter.CommandLine.Syntax;
+using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;

@@ -81,7 +81,7 @@ namespace Starcounter {
         /// <param name="app"></param>
         /// <returns></returns>
         public override object GetBoundValueAsObject(Obj app) {
-            return dataBinding.GetValue((App)app);
+            return dataBinding.GetValue((Puppet)app);
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace Starcounter {
         /// <param name="app"></param>
         /// <param name="value"></param>
         public override void SetBoundValueAsObject(Obj app, object value) {
-            dataBinding.SetValue((App)app, (T)value);
+            dataBinding.SetValue((Puppet)app, (T)value);
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="value">The value.</param>
-        public void ProcessInput(App app, T value)
+        public void ProcessInput(Puppet app, T value)
         {
             Input<T> input = null;
 
@@ -148,6 +148,6 @@ namespace Starcounter {
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="rawValue">The raw value.</param>
-        public abstract void ProcessInput(App app, Byte[] rawValue);
+        public abstract void ProcessInput(Puppet app, Byte[] rawValue);
     }
 }
