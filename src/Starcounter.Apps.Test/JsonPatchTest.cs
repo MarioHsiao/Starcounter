@@ -116,7 +116,7 @@ namespace Starcounter.Internal.JsonPatch.Test
             Session session = new Session();
             session.Execute(null, () =>
             {
-                App rootApp = CreateSampleApp().App;
+                Puppet rootApp = CreateSampleApp().App;
                 Session.Current.AttachRootApp(rootApp);
                 JsonPatch.EvaluatePatches(rootApp, System.Text.Encoding.UTF8.GetBytes(patchBlob));
             });
@@ -184,7 +184,7 @@ namespace Starcounter.Internal.JsonPatch.Test
             Template from;
             String str;
 
-            TApp appt = (TApp)aat.Template;
+            TPuppet appt = (TPuppet)aat.Template;
             from = appt.Properties[0];
             str = JsonPatch.BuildJsonPatch(JsonPatch.REPLACE, app, from, "Hmmz", -1);
             Console.WriteLine(str);
@@ -223,13 +223,13 @@ namespace Starcounter.Internal.JsonPatch.Test
             AppExeModule.IsRunningTests = true;
 
             AppAndTemplate aat = CreateSampleApp();
-            TObj appt = (TApp)aat.Template;
+            TObj appt = (TPuppet)aat.Template;
 
             TString firstName = (TString)appt.Properties[0];
             Int32[] indexPath = aat.App.IndexPathFor(firstName);
             VerifyIndexPath(new Int32[] { 0 }, indexPath);
 
-            TObj anotherAppt = (TApp)appt.Properties[3];
+            TObj anotherAppt = (TPuppet)appt.Properties[3];
             Obj nearestApp = aat.App.GetValue(anotherAppt);
 
             TString desc = (TString)anotherAppt.Properties[1];
@@ -267,7 +267,7 @@ namespace Starcounter.Internal.JsonPatch.Test
         [Test]
         public static void TestCreateHttpResponseWithPatches()
         {
-            TApp appt;
+            TPuppet appt;
             Byte[] response = null;
             DateTime start = DateTime.MinValue;
             DateTime stop = DateTime.MinValue;
@@ -279,7 +279,7 @@ namespace Starcounter.Internal.JsonPatch.Test
             session.Execute(null, () => {
                 AppAndTemplate aat = CreateSampleApp();
 
-                appt = (TApp)aat.Template;
+                appt = (TPuppet)aat.Template;
 
                 TString lastName = (TString)appt.Properties[1];
                 TObjArr items = (TObjArr)appt.Properties[2];
@@ -334,8 +334,8 @@ namespace Starcounter.Internal.JsonPatch.Test
         /// <returns>AppAndTemplate.</returns>
         private static AppAndTemplate CreateSampleApp()
         {
-            dynamic template = TemplateFromJs.ReadFile("SampleApp.json");
-            dynamic app = new App() { Template = template };
+            dynamic template = TemplateFromJs.ReadPuppetTemplateFromFile("SampleApp.json");
+            dynamic app = new Puppet() { Template = template };
             
             app.FirstName = "Cliff";
             app.LastName = "Barnes";

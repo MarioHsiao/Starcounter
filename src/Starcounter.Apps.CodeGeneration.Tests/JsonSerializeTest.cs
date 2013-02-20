@@ -71,13 +71,13 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
             Console.WriteLine(astTree.GenerateCsSourceCode());
         }
 
-        private static TApp CreateTApp() {
-            TApp template = TemplateFromJs.ReadFile("TestMessage.json");
+        private static TPuppet CreateTApp() {
+            TPuppet template = TemplateFromJs.ReadPuppetTemplateFromFile("TestMessage.json");
             template.ClassName = "TestMessage";
             return template;
         }
 
-        private static List<RequestProcessorMetaData> RegisterTemplatesForApp(TApp appTemplate) {
+        private static List<RequestProcessorMetaData> RegisterTemplatesForApp(TPuppet appTemplate) {
             List<RequestProcessorMetaData> handlers = new List<RequestProcessorMetaData>();
             foreach (Template child in appTemplate.Children) {
                 RequestProcessorMetaData rp = new RequestProcessorMetaData();
@@ -118,7 +118,7 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
         /// <summary>
         /// The app
         /// </summary>
-        public readonly App App;
+        public readonly Puppet App;
         /// <summary>
         /// The template
         /// </summary>
@@ -129,7 +129,7 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="template">The template.</param>
-        public AppAndTemplate(App app, Template template) {
+        public AppAndTemplate(Puppet app, Template template) {
             App = app;
             Template = template;
         }

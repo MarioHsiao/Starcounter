@@ -132,8 +132,8 @@ internal class SortSpecification
 
         Int32 extentNumber = pathComparerList[0].Path.ExtentNumber;
         TypeBinding typeBind = (rowTypeBind.GetTypeBinding(extentNumber) as TypeBinding);
-        IndexUseInfo found = null;
-        while (typeBind.TypeDef.BaseName != null && typeBind.TypeDef.BaseName != "Entity" && found == null) {
+        IndexUseInfo found = GetIndexUseInfo(typeBind, pathComparerList);
+        while (typeBind.TypeDef.BaseName != null && found == null) {
             found = GetIndexUseInfo(typeBind, pathComparerList);
             typeBind = Bindings.GetTypeBinding(typeBind.TypeDef.BaseName);
         }

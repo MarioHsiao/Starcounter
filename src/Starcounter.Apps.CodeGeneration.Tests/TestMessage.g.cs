@@ -25,7 +25,7 @@ public partial class TestMessage {
     public Double ADouble { get { return GetValue(Template.ADouble); } set { SetValue(Template.ADouble, value); } }
     public String UserLink { get { return GetValue(Template.UserLink); } set { SetValue(Template.UserLink, value); } }
     public Action User { get { return GetValue(Template.User); } set { SetValue(Template.User, value); } }
-    public class ChildApp : App {
+    public class ChildApp : Puppet {
         public static ChildTApp DefaultTemplate = new ChildTApp();
         public ChildApp() { Template = DefaultTemplate; }
         public ChildApp(ChildTApp template) { Template = template; }
@@ -36,7 +36,7 @@ public partial class TestMessage {
         public Action Button { get { return GetValue(Template.Button); } set { SetValue(Template.Button, value); } }
         public TestMessage.ChildApp.ASubAppApp ASubApp { get { return GetTypedValue<TestMessage.ChildApp.ASubAppApp>(Template.ASubApp); } set { SetValue(Template.ASubApp, value); } }
         public TestMessage.ChildApp.ASubApp2App ASubApp2 { get { return GetTypedValue<TestMessage.ChildApp.ASubApp2App>(Template.ASubApp2); } set { SetValue(Template.ASubApp2, value); } }
-        public class ASubAppApp : App {
+        public class ASubAppApp : Puppet {
             public static ASubAppTApp DefaultTemplate = new ASubAppTApp();
             public ASubAppApp() { Template = DefaultTemplate; }
             public ASubAppApp(ASubAppTApp template) { Template = template; }
@@ -44,7 +44,7 @@ public partial class TestMessage {
             public new ASubAppObjMetadata Metadata { get { return (ASubAppObjMetadata)base.Metadata; } }
             public new ChildApp Parent { get { return (ChildApp)base.Parent; } set { base.Parent = value; } }
             public bool IsInnerApp { get { return GetValue(Template.IsInnerApp); } set { SetValue(Template.IsInnerApp, value); } }
-            public class ASubAppTApp : TApp {
+            public class ASubAppTApp : TPuppet {
                 public ASubAppTApp()
                     : base() {
                     InstanceType = typeof(TestMessage.ChildApp.ASubAppApp);
@@ -55,14 +55,14 @@ public partial class TestMessage {
                 public TBool IsInnerApp;
             }
             public class ASubAppObjMetadata : ObjMetadata {
-                public ASubAppObjMetadata(App app, TApp template) : base(app, template) { }
+                public ASubAppObjMetadata(Puppet app, TPuppet template) : base(app, template) { }
                 public new TestMessage.ChildApp.ASubAppApp App { get { return (TestMessage.ChildApp.ASubAppApp)base.App; } }
                 public new TestMessage.ChildApp.ASubAppApp.ASubAppTApp Template { get { return (TestMessage.ChildApp.ASubAppApp.ASubAppTApp)base.Template; } }
                 public BoolMetadata IsInnerApp { get { return __p_IsInnerApp ?? (__p_IsInnerApp = new BoolMetadata(App, App.Template.IsInnerApp)); } }
                 private BoolMetadata __p_IsInnerApp;
             }
         }
-        public class ASubApp2App : App {
+        public class ASubApp2App : Puppet {
             public static ASubApp2TApp DefaultTemplate = new ASubApp2TApp();
             public ASubApp2App() { Template = DefaultTemplate; }
             public ASubApp2App(ASubApp2TApp template) { Template = template; }
@@ -71,7 +71,7 @@ public partial class TestMessage {
             public new ChildApp Parent { get { return (ChildApp)base.Parent; } set { base.Parent = value; } }
             public bool IsInnerApp { get { return GetValue(Template.IsInnerApp); } set { SetValue(Template.IsInnerApp, value); } }
             public Listing<TestMessage.ChildApp.ASubApp2App.ASubListApp> ASubList { get { return GetTypedValue<TestMessage.ChildApp.ASubApp2App.ASubListApp>(Template.ASubList); } set { SetValue<TestMessage.ChildApp.ASubApp2App.ASubListApp>(Template.ASubList, value); } }
-            public class ASubListApp : App {
+            public class ASubListApp : Puppet {
                 public static ASubListTApp DefaultTemplate = new ASubListTApp();
                 public ASubListApp() { Template = DefaultTemplate; }
                 public ASubListApp(ASubListTApp template) { Template = template; }
@@ -79,7 +79,7 @@ public partial class TestMessage {
                 public new ASubListObjMetadata Metadata { get { return (ASubListObjMetadata)base.Metadata; } }
                 public new Listing<TestMessage.ChildApp.ASubApp2App.ASubListApp> Parent { get { return (Listing<TestMessage.ChildApp.ASubApp2App.ASubListApp>)base.Parent; } set { base.Parent = value; } }
                 public String Huh { get { return GetValue(Template.Huh); } set { SetValue(Template.Huh, value); } }
-                public class ASubListTApp : TApp {
+                public class ASubListTApp : TPuppet {
                     public ASubListTApp()
                         : base() {
                         InstanceType = typeof(TestMessage.ChildApp.ASubApp2App.ASubListApp);
@@ -90,14 +90,14 @@ public partial class TestMessage {
                     public TString Huh;
                 }
                 public class ASubListObjMetadata : ObjMetadata {
-                    public ASubListObjMetadata(App app, TApp template) : base(app, template) { }
+                    public ASubListObjMetadata(Puppet app, TPuppet template) : base(app, template) { }
                     public new TestMessage.ChildApp.ASubApp2App.ASubListApp App { get { return (TestMessage.ChildApp.ASubApp2App.ASubListApp)base.App; } }
                     public new TestMessage.ChildApp.ASubApp2App.ASubListApp.ASubListTApp Template { get { return (TestMessage.ChildApp.ASubApp2App.ASubListApp.ASubListTApp)base.Template; } }
                     public StringMetadata Huh { get { return __p_Huh ?? (__p_Huh = new StringMetadata(App, App.Template.Huh)); } }
                     private StringMetadata __p_Huh;
                 }
             }
-            public class ASubApp2TApp : TApp {
+            public class ASubApp2TApp : TPuppet {
                 public ASubApp2TApp()
                     : base() {
                     InstanceType = typeof(TestMessage.ChildApp.ASubApp2App);
@@ -111,7 +111,7 @@ public partial class TestMessage {
                 public TArr<TestMessage.ChildApp.ASubApp2App.ASubListApp, TestMessage.ChildApp.ASubApp2App.ASubListApp.ASubListTApp> ASubList;
             }
             public class ASubApp2ObjMetadata : ObjMetadata {
-                public ASubApp2ObjMetadata(App app, TApp template) : base(app, template) { }
+                public ASubApp2ObjMetadata(Puppet app, TPuppet template) : base(app, template) { }
                 public new TestMessage.ChildApp.ASubApp2App App { get { return (TestMessage.ChildApp.ASubApp2App)base.App; } }
                 public new TestMessage.ChildApp.ASubApp2App.ASubApp2TApp Template { get { return (TestMessage.ChildApp.ASubApp2App.ASubApp2TApp)base.Template; } }
                 public BoolMetadata IsInnerApp { get { return __p_IsInnerApp ?? (__p_IsInnerApp = new BoolMetadata(App, App.Template.IsInnerApp)); } }
@@ -120,7 +120,7 @@ public partial class TestMessage {
                 private ArrMetadata<TestMessage.ChildApp.ASubApp2App.ASubListApp, TestMessage.ChildApp.ASubApp2App.ASubListApp.ASubListTApp> __p_ASubList;
             }
         }
-        public class ChildTApp : TApp {
+        public class ChildTApp : TPuppet {
             public ChildTApp()
                 : base() {
                 InstanceType = typeof(TestMessage.ChildApp);
@@ -137,7 +137,7 @@ public partial class TestMessage {
             public TestMessage.ChildApp.ASubApp2App.ASubApp2TApp ASubApp2;
         }
         public class ChildObjMetadata : ObjMetadata {
-            public ChildObjMetadata(App app, TApp template) : base(app, template) { }
+            public ChildObjMetadata(Puppet app, TPuppet template) : base(app, template) { }
             public new TestMessage.ChildApp App { get { return (TestMessage.ChildApp)base.App; } }
             public new TestMessage.ChildApp.ChildTApp Template { get { return (TestMessage.ChildApp.ChildTApp)base.Template; } }
             public StringMetadata ChildName { get { return __p_ChildName ?? (__p_ChildName = new StringMetadata(App, App.Template.ChildName)); } }
@@ -150,7 +150,7 @@ public partial class TestMessage {
             private TestMessage.ChildApp.ASubApp2App.ASubApp2ObjMetadata __p_ASubApp2;
         }
     }
-    public class AListApp : App {
+    public class AListApp : Puppet {
         public static AListTApp DefaultTemplate = new AListTApp();
         public AListApp() { Template = DefaultTemplate; }
         public AListApp(AListTApp template) { Template = template; }
@@ -159,7 +159,7 @@ public partial class TestMessage {
         public new Listing<TestMessage.AListApp> Parent { get { return (Listing<TestMessage.AListApp>)base.Parent; } set { base.Parent = value; } }
         public String AValue { get { return GetValue(Template.AValue); } set { SetValue(Template.AValue, value); } }
         public long ANumber { get { return GetValue(Template.ANumber); } set { SetValue(Template.ANumber, value); } }
-        public class AListTApp : TApp {
+        public class AListTApp : TPuppet {
             public AListTApp()
                 : base() {
                 InstanceType = typeof(TestMessage.AListApp);
@@ -172,7 +172,7 @@ public partial class TestMessage {
             public TLong ANumber;
         }
         public class AListObjMetadata : ObjMetadata {
-            public AListObjMetadata(App app, TApp template) : base(app, template) { }
+            public AListObjMetadata(Puppet app, TPuppet template) : base(app, template) { }
             public new TestMessage.AListApp App { get { return (TestMessage.AListApp)base.App; } }
             public new TestMessage.AListApp.AListTApp Template { get { return (TestMessage.AListApp.AListTApp)base.Template; } }
             public StringMetadata AValue { get { return __p_AValue ?? (__p_AValue = new StringMetadata(App, App.Template.AValue)); } }
@@ -181,7 +181,7 @@ public partial class TestMessage {
             private LongMetadata __p_ANumber;
         }
     }
-    public class TestMessageTemplate : TApp {
+    public class TestMessageTemplate : TPuppet {
         public TestMessageTemplate()
             : base() {
             InstanceType = typeof(TestMessage);
@@ -209,7 +209,7 @@ public partial class TestMessage {
         public ActionProperty User;
     }
     public class TestMessageMetadata : ObjMetadata {
-        public TestMessageMetadata(App app, TApp template) : base(app, template) { }
+        public TestMessageMetadata(Puppet app, TPuppet template) : base(app, template) { }
         public new TestMessage App { get { return (TestMessage)base.App; } }
         public new TestMessage.TestMessageTemplate Template { get { return (TestMessage.TestMessageTemplate)base.Template; } }
         public LongMetadata UserId { get { return __p_UserId ?? (__p_UserId = new LongMetadata(App, App.Template.UserId)); } }

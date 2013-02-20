@@ -101,7 +101,7 @@ namespace Starcounter.Templates {
         private PropertyList _PropertyTemplates;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TApp" /> class.
+        /// Initializes a new instance of the <see cref="TPuppet" /> class.
         /// </summary>
         public TObj() {
             _PropertyTemplates = new PropertyList(this);
@@ -119,7 +119,7 @@ namespace Starcounter.Templates {
         public override Type InstanceType {
             get {
                 if (_AppType == null) {
-                    return typeof(App);
+                    return typeof(Puppet);
                 }
                 return _AppType;
             }
@@ -175,7 +175,7 @@ namespace Starcounter.Templates {
         /// <param name="app">The parent app.</param>
         /// <param name="value">The input value.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        public override void ProcessInput(App app, byte[] value) {
+        public override void ProcessInput(Puppet app, byte[] value) {
             throw new NotImplementedException();
         }
 
