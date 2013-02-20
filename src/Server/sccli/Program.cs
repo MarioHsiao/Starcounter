@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Starcounter.Server.Setup;
+using System.IO;
 
 namespace star {
 
@@ -43,22 +44,42 @@ namespace star {
 
             if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("NEW_CLI"))) {
                 ApplicationArguments appArgs;
-                IApplicationSyntax syntax;
 
-                var result = TryGetProgramArguments(args, out appArgs, out syntax);
-                
-                // No matter the result, display the syntax tree.
-                // TODO:
-
-                if (result) {
-                    // Visualize the given arguments, how they are parsed.
-                    // TODO:
+                if (args.Length == 0) {
+                    Usage(null);
+                    return;
                 }
+
+                var syntaxTests = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("STAR_CLI_TEST"));
+                var syntax = DefineCommandLineSyntax();
+
+                if (syntaxTests) {
+                    ConsoleUtil.ToConsoleWithColor(() => { SyntaxTreeToConsole(syntax); }, ConsoleColor.DarkGray);
+                }
+
+                // Parse and evaluate the given input
+                
+                var parser = new Parser(args);
+                try {
+                    appArgs = parser.Parse(syntax);
+                } catch (InvalidCommandLineException e) {
+                    ConsoleUtil.ToConsoleWithColor(e.ToString(), ConsoleColor.Red);
+                    Environment.ExitCode = (int)e.ErrorCode;
+                    return;
+                }
+
+                if (syntaxTests) {
+                    ConsoleUtil.ToConsoleWithColor(() => { ParsedArgumentsToConsole(appArgs, syntax); }, ConsoleColor.Green);
+                }
+
+                // Currently, nothing more than syntax tests are supported when
+                // using the new syntax.
+                // TODO:
 
                 return;
             }
 
-            pipeName = Environment.GetEnvironmentVariable("star_servername");
+            pipeName = Environment.GetEnvironmentVariable("STAR_SERVER");
             if (string.IsNullOrEmpty(pipeName)) {
                 pipeName = StarcounterEnvironment.ServerNames.PersonalServer.ToLower();
             }
@@ -103,64 +124,157 @@ namespace star {
 #endif
         }
 
-        static bool TryGetProgramArguments(string[] args, out ApplicationArguments arguments, out IApplicationSyntax syntax) {
-            ApplicationSyntaxDefinition syntaxDefinition;
-            CommandSyntaxDefinition commandDefinition;
-            Parser parser;
+        static void Usage(IApplicationSyntax syntax) {
+            string formatting;
+            Console.WriteLine("Usage: star [options] [command] [[options] parameters]");
+            Console.WriteLine();
+            Console.WriteLine("\"exec\" is the default command.");
+            // Console.WriteLine("To get help about a command, use star [command] -h");
+            Console.WriteLine();
+            Console.WriteLine("Options:");
+            formatting = "  {0,-22}{1,25}";
+            Console.WriteLine(formatting, "-h, --help", "Shows help about star.exe.");
+            Console.WriteLine(formatting, "-v, --version", "Prints the version of Starcounter.");
+            Console.WriteLine(formatting, "-i, --info", "Prints information about the Starcounter installation.");
+            Console.WriteLine(formatting, "-d, --db name|uri", "The database to use for commands that support it.");
+            // Console.WriteLine(formatting, "--verbosity level", "Sets the verbosity level of star.exe (quiet, minimal, verbose, diagnostic). Minimal is the default.");
+            Console.WriteLine();
+            Console.WriteLine("Commands:");
+            Console.WriteLine("  exec file [arguments to main]");
+            Console.WriteLine("  create name|uri");
+            Console.WriteLine("  show name|uri");
+            Console.WriteLine();
+            Console.WriteLine("Environment variables:");
+            Console.WriteLine("STAR_SERVER\t{0,8}", "Sets the server to use by default.");
+            Console.WriteLine("STAR_CLI_TEST\t{0,8}", "Used for tests. If set, validates the command-line and return.");
+            Console.WriteLine();
+            Console.WriteLine("For complete help, see http://www.starcounter.com/wiki/star.exe");
+        }
 
-            // Define the general program syntax
+        static IApplicationSyntax DefineCommandLineSyntax() {
+            ApplicationSyntaxDefinition appSyntax;
+            CommandSyntaxDefinition commandSyntax;
 
-            syntaxDefinition = new ApplicationSyntaxDefinition();
-            syntaxDefinition.ProgramDescription = "The Starcounter command-line interface.";
-            syntaxDefinition.DefaultCommand = "exec";
-
-            // Define the global property allowing the verbosity level
-            // of the program to be changed.
-
-            syntaxDefinition.DefineProperty(
+            appSyntax = new ApplicationSyntaxDefinition();
+            appSyntax.ProgramDescription = "star.exe";
+            appSyntax.DefaultCommand = "exec";
+            appSyntax.DefineFlag(
+                "help",
+                "Prints the star.exe help message.",
+                OptionAttributes.Default,
+                new string[] { "h" }
+                );
+            appSyntax.DefineFlag(
+                "version",
+                "Prints the version of Starcounter.",
+                OptionAttributes.Default,
+                new string[] { "v" }
+                );
+            appSyntax.DefineFlag(
+                "info",
+                "Prints information about the Starcounter and star.exe",
+                OptionAttributes.Default,
+                new string[] { "i" }
+                );
+            appSyntax.DefineProperty(
+                "db",
+                "The database to use for commands that support it.",
+                OptionAttributes.Default,
+                new string[] { "d" }
+                );
+            appSyntax.DefineProperty(
                 "verbosity",
                 "Sets the verbosity of the program (quiet, minimal, verbose, diagnostic). Minimal is the default."
                 );
 
-            // Define the global flag allowing a debugger to be attached
-            // to the process when starting. Undocumented, internal flag.
+            // NOTE:
+            // Although we will refuse to execute any EXEC command without at least one parameter,
+            // we specify a minimum of 0. The reason is that the exec command is the default, and it
+            // will be applied whenever a command is not explicitly given. This in turn means that
+            // if we invoke star.exe with a single global option, like --help, the parser will fail
+            // since it will apply exec as the default command and force it to have parameters.
+            commandSyntax = appSyntax.DefineCommand("exec", "Executes an application", 0, int.MaxValue);
 
-            syntaxDefinition.DefineFlag(
-                "attachdebugger",
-                "Attaches a debugger to the process during startup."
-                );
+            commandSyntax = appSyntax.DefineCommand("create", "Creates a database", 1);
+            commandSyntax = appSyntax.DefineCommand("show", "Prints info about an object, e.g. a database.", 1);
 
-            commandDefinition = syntaxDefinition.DefineCommand("exec", "Executes an application", 1, int.MaxValue);
-            commandDefinition.DefineProperty(
-                "db", 
-                "Specifies the database to run the application in.",
-                OptionAttributes.Default,
-                new string[] { "d" }
-                );
+            return appSyntax.CreateSyntax();
+        }
 
-            syntax = syntaxDefinition.CreateSyntax();
+        static void SyntaxTreeToConsole(IApplicationSyntax syntax) {
+            Console.WriteLine(syntax.ProgramDescription);
+            Console.WriteLine("Default command: {0}, required: {1}", syntax.DefaultCommand, syntax.RequiresCommand ? bool.TrueString : bool.FalseString);
 
-            // If no arguments are given, use the syntax to create a Usage
-            // message, just as is expected when giving /help or /? to a program.
-            if (args.Length == 0) {
-                // TODO: Usage(syntax, null);
-                arguments = null;
-                return false;
+            foreach (var prop in syntax.Properties) {
+                Console.WriteLine("  {0}  = value", string.Join(",", prop.AllNames));
             }
 
-            // Parse and evaluate the given input
-            parser = new Parser(args);
-            try {
-                arguments = parser.Parse(syntax);
-            } catch (InvalidCommandLineException e) {
-                Console.Error.WriteLine(e);
-                //Usage(syntax, invalidCommandLine);
-                //ReportProgramError(invalidCommandLine.ErrorCode, invalidCommandLine.Message);
-                arguments = null;
-                return false;
+            foreach (var flag in syntax.Flags) {
+                Console.WriteLine("  {0}", string.Join(",", flag.AllNames));
             }
 
-            return true;
+            foreach (var command in syntax.Commands) {
+                var supportOptions = command.Properties.Length > 0 || command.Flags.Length > 0;
+                string parameterString = "[parameters]";    // TODO:
+                Console.WriteLine("    {0}", command.Name);
+                foreach (var prop in command.Properties) { 
+                    Console.WriteLine("      {0}  = value", string.Join(",", prop.AllNames));
+                }
+                foreach (var flag in command.Flags) {
+                    Console.WriteLine("      {0}", string.Join(",", flag.AllNames));
+                }
+                Console.WriteLine("      {0}", parameterString);
+            }
+        }
+
+        // a = \"value\"
+        // b = \"value\"
+        // x = TRUE
+        // exec
+        //   d = value
+        //   y = TRUE
+        //   parameter1, parameter2, parameter3
+        static void ParsedArgumentsToConsole(ApplicationArguments args, IApplicationSyntax syntax) {
+            var section = CommandLineSection.GlobalOptions;
+            string value;
+
+            foreach (var prop in syntax.Properties) {
+                if (args.TryGetProperty(prop.Name, section, out value)) {
+                    Console.WriteLine("{0}=\"{1}\"", prop.Name, value);
+                }
+            }
+
+            foreach (var flag in syntax.Flags) {
+                if (args.ContainsFlag(flag.Name, section)) {
+                    Console.WriteLine("{0}=TRUE", flag.Name);
+                }
+            }
+
+            if (!args.HasCommmand)
+                return;
+            
+            Console.WriteLine(args.Command);
+            section = CommandLineSection.CommandParametersAndOptions;
+            var commandSyntax = syntax.Commands.First<ICommandSyntax>((candidate) => {
+                return candidate.Name.Equals(args.Command, StringComparison.InvariantCultureIgnoreCase);
+            });
+
+            foreach (var prop in commandSyntax.Properties) {
+                if (args.TryGetProperty(prop.Name, out value)) {
+                    Console.WriteLine("  {0}=\"{1}\"", prop.Name, value);
+                }
+            }
+
+            foreach (var flag in commandSyntax.Flags) {
+                if (args.ContainsFlag(flag.Name)) {
+                    Console.WriteLine("  {0}=TRUE", flag.Name);
+                }
+            }
+
+            Console.Write("  ");
+            foreach (var param in args.CommandParameters) {
+                Console.Write(param + " ");
+            }
         }
 
         static void Ping(Client client, string[] args) {
@@ -244,12 +358,7 @@ namespace star {
         }
 
         static void ToConsoleWithColor(string text, ConsoleColor color) {
-            try {
-                Console.ForegroundColor = color;
-                Console.WriteLine(text);
-            } finally {
-                Console.ResetColor();
-            }
+            ConsoleUtil.ToConsoleWithColor(text, color);
         }
     }
 }
