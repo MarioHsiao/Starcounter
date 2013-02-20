@@ -1,6 +1,8 @@
 ﻿
 using Starcounter.Internal;
 using System;
+using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace Starcounter.Internal {
 
@@ -27,15 +29,107 @@ namespace Starcounter.Internal {
     public static class TaskScheduler { // Internal
 
         static ITaskScheduler impl_;
+        static IntPtr sched_;
 
         /// <summary>
         /// </summary>
-        public static void SetImplementation(ITaskScheduler impl) { // Internal
+        public static unsafe void SetImplementation(ITaskScheduler impl, void* hsched) { // Internal
             impl_ = impl;
+            sched_ = (IntPtr)hsched;
         }
 
         internal static void Run(ITask task) {
             impl_.Run(task);
+        }
+
+        private sealed class JobState
+        {
+            internal readonly WaitCallback Callback;
+            internal readonly Object State;
+
+            internal JobState(WaitCallback callback, Object state)
+                : base()
+            {
+                Callback = callback;
+                State = state;
+            }
+        }
+
+        internal static void ScheduleJob(WaitCallback callback, Object state, Byte cpun, UInt16 prio)
+        {
+            JobState jobState;
+            GCHandle gch;
+            UInt32 ec;
+
+            jobState = new JobState(callback, state);
+            try
+            {
+                gch = GCHandle.Alloc(jobState);
+                try
+                {
+                    unsafe
+                    {
+                        ec = sccorelib.cm2_schedule(
+                            (void *)sched_,
+                            cpun,
+                            sccorelib_ext.SC_JOBT_EXECUTE_UJOB,
+                            prio,
+                            0,
+                            (UInt64)GCHandle.ToIntPtr(gch),
+                            0);
+                    }
+
+                    if (ec == 0)
+                    {
+                        return;
+                    }
+                    throw ErrorCode.ToException(ec);
+                }
+                catch
+                {
+                    gch.Free();
+                    throw;
+                }
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        internal static void ProcessJob(UInt64 handle)
+        {
+            GCHandle gch;
+            JobState jobState;
+
+            gch = GCHandle.FromIntPtr((IntPtr)handle);
+            jobState = (JobState)gch.Target;
+            gch.Free();
+            jobState.Callback(jobState.State);
+        }
+
+        public static Boolean QueueUserWorkItem(WaitCallback callBack)
+        {
+            TaskScheduler.ScheduleJob(callBack, null, 0xFF, 0);
+            return true;
+        }
+
+        public static Boolean QueueUserWorkItem(WaitCallback callBack, Byte cpun)
+        {
+            TaskScheduler.ScheduleJob(callBack, null, cpun, 0);
+            return true;
+        }
+
+        public static Boolean QueueUserWorkItem(WaitCallback callBack, Object state)
+        {
+            TaskScheduler.ScheduleJob(callBack, state, 0xFF, 0);
+            return true;
+        }
+
+        public static Boolean QueueUserWorkItem(WaitCallback callBack, Object state, Byte cpun)
+        {
+            TaskScheduler.ScheduleJob(callBack, state, cpun, 0);
+            return true;
         }
     }
 }
