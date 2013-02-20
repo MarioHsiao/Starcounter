@@ -258,7 +258,7 @@ namespace Starcounter.CommandLine
                 optionValue = bool.TrueString;
                 attributes |= OptionAttributes.Flag;
 
-            } else if (delimiterIndex == value.Length) {
+            } else if (delimiterIndex == (value.Length - 1)) {
                 // The delimiter was the last character, like:
                 // --foo=
                 // We allow such syntax to be used to set properties
