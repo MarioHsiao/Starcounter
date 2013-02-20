@@ -999,23 +999,23 @@ namespace Starcounter.Query.Sql
         //    return new Sort(rowTypeBind, inEnum, comparer, varArray, query);
         //}
 
-        private static Aggregation CreateAggregation(RowTypeBinding rowTypeBind, Term extNumTerm, Term enumTerm, Term compListTerm,
-            Term setFuncListTerm, Term condTerm, VariableArray varArray, String query)
-        {
-            if (!extNumTerm.Integer)
-            {
-                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect extent number: " + extNumTerm);
-            }
-            Int32 extNum = extNumTerm.intValue();
-            IExecutionEnumerator inEnum = CreateEnumerator(rowTypeBind, enumTerm, varArray, query);
-            // compListTerm represents group-by columns.
-            MultiComparer comparer = CreateMultiComparer(rowTypeBind, compListTerm, varArray);
-            // setFuncListTerm represents set-function currentLogExprList.
-            List<ISetFunction> setFuncList = CreateSetFunctionList(rowTypeBind, setFuncListTerm, varArray);
-            // condTerm represents having condition.
-            ILogicalExpression cond = CreateLogicalExpression(rowTypeBind, condTerm, varArray);
-            return new Aggregation(rowTypeBind, extNum, inEnum, comparer, setFuncList, cond, varArray, query);
-        }
+        //private static Aggregation CreateAggregation(RowTypeBinding rowTypeBind, Term extNumTerm, Term enumTerm, Term compListTerm,
+        //    Term setFuncListTerm, Term condTerm, VariableArray varArray, String query)
+        //{
+        //    if (!extNumTerm.Integer)
+        //    {
+        //        throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect extent number: " + extNumTerm);
+        //    }
+        //    Int32 extNum = extNumTerm.intValue();
+        //    IExecutionEnumerator inEnum = CreateEnumerator(rowTypeBind, enumTerm, varArray, query);
+        //    // compListTerm represents group-by columns.
+        //    MultiComparer comparer = CreateMultiComparer(rowTypeBind, compListTerm, varArray);
+        //    // setFuncListTerm represents set-function currentLogExprList.
+        //    List<ISetFunction> setFuncList = CreateSetFunctionList(rowTypeBind, setFuncListTerm, varArray);
+        //    // condTerm represents having condition.
+        //    ILogicalExpression cond = CreateLogicalExpression(rowTypeBind, condTerm, varArray);
+        //    return new Aggregation(rowTypeBind, extNum, inEnum, comparer, setFuncList, cond, varArray, query);
+        //}
 
         private static ILogicalExpression CreateLogicalExpression(RowTypeBinding rowTypeBind, Term term, VariableArray varArray)
         {

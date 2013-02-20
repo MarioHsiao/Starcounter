@@ -8,6 +8,7 @@ using System;
 using System.Text;
 using HttpStructs;
 using Starcounter.Internal.Web;
+using Starcounter.Advanced;
 namespace Starcounter.Internal.REST {
     /// <summary>
     /// Class HttpRestServer

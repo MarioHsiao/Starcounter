@@ -11,6 +11,8 @@ Uses inherited data model.
 
 === Inherited indexes ===
 
+=== IS type predicate ===
+
 
 ====== TODOS ======
 
@@ -298,6 +300,469 @@ ExpectedResult:
  | 53 | 
  | 54 | 
  | 55 | 
+ | 56 | 
+ | 57 | 
+ | 58 | 
+ | 59 | 
+
+=== IS type predicate ===
+
+<NEXT>
+Description: Object expression and type identifier to true
+QueryString: select p from professor p  where p IS SQLTest.InheritedDb.Professor and company = ?
+VariableValues: Object:51;
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Professor
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	companyIndx
+	0
+	Company
+	ObjectDynamicRange(
+		ObjectRangePoint(
+			GreaterThanOrEqual
+			ObjectVariable(51)
+		)
+		ObjectRangePoint(
+			LessThanOrEqual
+			ObjectVariable(51)
+		)
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 54 | 
+ | 55 | 
+
+<NEXT>
+Description: Object expression and type identifier to false
+QueryString: select p from professor p  where p IS Student
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Professor
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	auto
+	0
+	Name
+	StringDynamicRange(
+	)
+	IsTypePredicate(
+		IS
+		ObjectThis(0)
+		TypeLiteral(SQLTest.InheritedDb.Student)
+	)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+
+<NEXT>
+Description: Object expression is subtype to type identifier
+QueryString: select p from Teacher p  where p IS SQLTest.InheritedDb.Employee
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Teacher
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	auto
+	0
+	Name
+	StringDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 54 | 
+ | 55 | 
+ | 56 | 
+ | 57 | 
+ | 58 | 
+ | 59 | 
+
+<NEXT>
+Description: Object expression is equal to type identifier
+QueryString: select p from SQLTest.InheritedDb.Employee p  where p IS SQLTest.InheritedDb.Employee
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Employee
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	auto
+	0
+	Name
+	StringDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 52 | 
+ | 53 | 
+ | 54 | 
+ | 55 | 
+ | 56 | 
+ | 57 | 
+ | 58 | 
+ | 59 | 
+
+<NEXT>
+Description: Object expression is supertype to type identifier
+QueryString: select p from SQLTest.InheritedDb.Employee p  where p IS Manager
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Employee
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	auto
+	0
+	Name
+	StringDynamicRange(
+	)
+	IsTypePredicate(
+		IS
+		ObjectThis(0)
+		TypeLiteral(SQLTest.InheritedDb.Manager)
+	)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 52 | 
+ | 53 | 
+
+<NEXT>
+Description: Object expression and type variable for subtype
+QueryString: select p from SQLTest.InheritedDb.Employee p  where p is ?
+VariableValues: Type:SQLTest.InheritedDb.Manager;
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Employee
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	auto
+	0
+	Name
+	StringDynamicRange(
+	)
+	IsTypePredicate(
+		IS
+		ObjectThis(0)
+		TypeVariable(SQLTest.InheritedDb.Manager)
+	)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 52 | 
+ | 53 | 
+
+<NEXT>
+Description: Object expression and type variable of the same type
+QueryString: select p from Manager p  where p is ?
+VariableValues: Type:SQLTest.InheritedDb.Manager;
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Manager
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	auto
+	0
+	Name
+	StringDynamicRange(
+	)
+	IsTypePredicate(
+		IS
+		ObjectThis(0)
+		TypeVariable(SQLTest.InheritedDb.Manager)
+	)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 52 | 
+ | 53 | 
+
+<NEXT>
+Description: Object expression and type variable for supertype
+QueryString: select p from Professor p  where p is ?
+VariableValues: Type:SQLTest.InheritedDb.Manager;
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Professor
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	auto
+	0
+	Name
+	StringDynamicRange(
+	)
+	IsTypePredicate(
+		IS
+		ObjectThis(0)
+		TypeVariable(SQLTest.InheritedDb.Manager)
+	)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+
+<NEXT>
+Description: Two IS type expressions and true
+QueryString: select p from SQLTest.InheritedDb.Employee p  where p is ? and p is  ?
+VariableValues: Type:SQLTest.InheritedDb.Teacher; Type:SQLTest.InheritedDb.Professor;
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Employee
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	auto
+	0
+	Name
+	StringDynamicRange(
+	)
+	LogicalOperation(
+		AND
+		IsTypePredicate(
+			IS
+			ObjectThis(0)
+			TypeVariable(SQLTest.InheritedDb.Teacher)
+		)
+		IsTypePredicate(
+			IS
+			ObjectThis(0)
+			TypeVariable(SQLTest.InheritedDb.Professor)
+		)
+	)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 54 | 
+ | 55 | 
+
+<NEXT>
+Description: Two IS type expressions with common supertype
+QueryString: select p from SQLTest.InheritedDb.Employee p  where p is ? and p is  ?
+VariableValues: Type:SQLTest.InheritedDb.Teacher; Type:SQLTest.InheritedDb.Manager;
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Employee
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	auto
+	0
+	Name
+	StringDynamicRange(
+	)
+	LogicalOperation(
+		AND
+		IsTypePredicate(
+			IS
+			ObjectThis(0)
+			TypeVariable(SQLTest.InheritedDb.Teacher)
+		)
+		IsTypePredicate(
+			IS
+			ObjectThis(0)
+			TypeVariable(SQLTest.InheritedDb.Manager)
+		)
+	)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+
+<NEXT>
+Description: Two IS type expressions and false
+QueryString: select p from SQLTest.InheritedDb.Employee p  where p is ? and p is  ?
+VariableValues: Type:SQLTest.InheritedDb.Teacher; Type:SQLTest.InheritedDb.Student;
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Employee
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	auto
+	0
+	Name
+	StringDynamicRange(
+	)
+	LogicalOperation(
+		AND
+		IsTypePredicate(
+			IS
+			ObjectThis(0)
+			TypeVariable(SQLTest.InheritedDb.Teacher)
+		)
+		IsTypePredicate(
+			IS
+			ObjectThis(0)
+			TypeVariable(SQLTest.InheritedDb.Student)
+		)
+	)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+
+<NEXT>
+Description: Two IS type expressions and equi-join
+QueryString: select p from SQLTest.InheritedDb.Employee p, Manager e  where p is ? and e is  ? and p.Boss = e
+VariableValues: Type:SQLTest.InheritedDb.Teacher; Type:SQLTest.InheritedDb.Manager;
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Employee
+	1 = SQLTest.InheritedDb.Manager
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+Join(
+	Inner
+	IndexScan(
+		auto
+		0
+		Name
+		StringDynamicRange(
+		)
+		IsTypePredicate(
+			IS
+			ObjectThis(0)
+			TypeVariable(SQLTest.InheritedDb.Teacher)
+		)
+		Ascending
+	)
+	ReferenceLookup(
+		1
+		ObjectProperty(0, Boss)
+		IsTypePredicate(
+			IS
+			ObjectThis(1)
+			TypeVariable(SQLTest.InheritedDb.Manager)
+		)
+	)
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 54 | 
+ | 55 | 
+ | 56 | 
+ | 57 | 
+ | 58 | 
+ | 59 | 
+
+<NEXT>
+Description: Two IS type expressions and equi-join with a condition
+QueryString: select p from SQLTest.InheritedDb.Employee p, Manager e  where p is ? and e is  ? and p.Boss = e and p.Birthday > e.Birthday
+VariableValues: Type:SQLTest.InheritedDb.Teacher; Type:SQLTest.InheritedDb.Manager;
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.InheritedDb.Employee
+	1 = SQLTest.InheritedDb.Manager
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+Join(
+	Inner
+	IndexScan(
+		auto
+		0
+		Name
+		StringDynamicRange(
+		)
+		IsTypePredicate(
+			IS
+			ObjectThis(0)
+			TypeVariable(SQLTest.InheritedDb.Teacher)
+		)
+		Ascending
+	)
+	ReferenceLookup(
+		1
+		ObjectProperty(0, Boss)
+		LogicalOperation(
+			AND
+			IsTypePredicate(
+				IS
+				ObjectThis(1)
+				TypeVariable(SQLTest.InheritedDb.Manager)
+			)
+			ComparisonDateTime(
+				GreaterThan
+				DateTimeProperty(0, Birthday)
+				DateTimeProperty(1, Birthday)
+			)
+		)
+	)
+)
+
+ExpectedResult: 
+ ! Object ! 
  | 56 | 
  | 57 | 
  | 58 | 

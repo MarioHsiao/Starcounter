@@ -6,8 +6,8 @@
 
 using System;
 using System.Collections.Generic;
-using HttpStructs;
-namespace Starcounter {
+
+namespace Starcounter.Advanced {
 
     /// <summary>
     /// The Starcounter Web Server caches resources as complete http responses.
@@ -22,13 +22,20 @@ namespace Starcounter {
        /// <summary>
        /// The _ uncompressed
        /// </summary>
-      private byte[] _Uncompressed = null;
+      private byte[] _UncompressedResponse = null;
       /// <summary>
       /// The _ compressed
       /// </summary>
-      private byte[] _Compressed = null;
+      private byte[] _CompressedResponse = null;
 
-      /// <summary>
+      public int _UncompressedBodyOffset = -1;
+      public int _CompressedBodyOffset = -1;
+
+       public int _UncompressedBodyLength = -1;
+      public int _CompressedBodyLength = -1;
+
+
+       /// <summary>
       /// The uris
       /// </summary>
       public List<string> Uris = new List<string>();
@@ -131,7 +138,14 @@ namespace Starcounter {
       /// The number of bytes of the content (i.e. the resource) of the uncompressed http response.
       /// </summary>
       /// <value>The length of the content.</value>
-      public int ContentLength { get; set; }
+      public int ContentLength {
+          get {
+              return _UncompressedBodyLength;
+          }
+          set {
+              _UncompressedBodyLength = value;
+          }
+      }
 
       /// <summary>
       /// The uncompressed cached response
@@ -139,10 +153,10 @@ namespace Starcounter {
       /// <value>The uncompressed.</value>
       public byte[] Uncompressed {
          get {
-            return _Uncompressed;
+            return _UncompressedResponse;
          }
          set {
-            _Uncompressed = value;
+            _UncompressedResponse = value;
          }
       }
 
@@ -164,12 +178,12 @@ namespace Starcounter {
       public byte[] Compressed {
          get {
             if (!WorthWhileCompressing)
-               return _Uncompressed;
+               return _UncompressedResponse;
             else
-               return _Compressed;
+               return _CompressedResponse;
          }
          set {
-            _Compressed = value;
+            _CompressedResponse = value;
          }
       }
 
