@@ -8,7 +8,6 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 using HttpStructs;
-using Starcounter.Apps.Bootstrap;
 using Starcounter.Internal;
 using Starcounter.Advanced;
 
@@ -142,8 +141,6 @@ namespace Starcounter
         /// </summary>
         static GatewayHandlers()
 		{
-            AppProcess.AssertInDatabaseOrSendStartRequest();
-
             port_handlers_ = new PortCallback[MAX_HANDLERS];
             subport_handlers_ = new SubportCallback[MAX_HANDLERS];
             uri_handlers_ = new UriCallback[MAX_HANDLERS];
