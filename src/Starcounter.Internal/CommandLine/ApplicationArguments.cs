@@ -588,7 +588,7 @@ namespace Starcounter.CommandLine
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentNullException("name");
 
-            if (string.IsNullOrEmpty(value))
+            if (value == null)
                 throw new ArgumentNullException("value");
 
             AddOptionToDictionary(name, value);
