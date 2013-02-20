@@ -21047,6 +21047,73 @@ ExpectedResult:
  | 21 | 
 
  <NEXT>
+Description: Fetch with sort grouped query on indexed object property
+QueryString: select manager, count(firstname) from SQLTest.EmployeeDb.employee group by manager order by manager fetch ?
+VariableValues: Int32:2;
+SingleObjectProjection: False
+IncludesLiteral: True
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = 
+		TemporaryType(
+			0 : Object
+			1 : Decimal
+		)
+)
+Projection(
+	0 = 
+		ObjectProperty(1, 0)
+	1 = 
+		DecimalProperty(1, 1)
+)
+Sort(
+	Aggregation(
+		1
+		Sort(
+			IndexScan(
+				auto
+				0
+				FirstName
+				StringDynamicRange(
+				)
+				LogicalValue(TRUE)
+				Ascending
+			)
+			MultiComparer(
+				ObjectComparer(
+					ObjectProperty(0, Manager)
+					Ascending
+				)
+			)
+		)
+		MultiComparer(
+			ObjectComparer(
+				ObjectProperty(0, Manager)
+				Ascending
+			)
+		)
+		SetFunctions(
+			DecimalSetFunction(
+			COUNT
+				StringProperty(0, FirstName)
+			)
+		)
+		LogicalValue(TRUE)
+	)
+	ObjectComparer(
+		ObjectProperty(1, 0)
+		Ascending
+	)
+)
+
+ExpectedResult: 
+ ! 0:Object ! 1:Decimal ! 
+ | <NULL> | 2 | 
+ | 13 | 1 | 
+
+<NEXT>
 Description: Offset with where clause.
 QueryString: select e from salaryemployee e where salaryint32 > ? offset ?
 VariableValues: Int32:10; Int32:1;
