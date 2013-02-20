@@ -72,14 +72,26 @@ namespace star {
                     ConsoleUtil.ToConsoleWithColor(() => { ParsedArgumentsToConsole(appArgs, syntax); }, ConsoleColor.Green);
                 }
 
-                // Currently, nothing more than syntax tests are supported when
-                // using the new syntax.
-                // TODO:
+                // Process global options that has precedence
 
                 if (appArgs.ContainsFlag("help", CommandLineSection.GlobalOptions)) {
                     Usage(syntax);
                     return;
                 }
+
+                if (appArgs.ContainsFlag("info", CommandLineSection.GlobalOptions)) {
+                    ShowInfoAboutStarcounter();
+                    return;
+                }
+
+                if (appArgs.ContainsFlag("version", CommandLineSection.GlobalOptions)) {
+                    ShowVersionInfo();
+                    return;
+                }
+
+                // Currently, nothing more than syntax tests and global switches are
+                // supported when using the new syntax.
+                // TODO:
 
                 return;
             }
@@ -127,6 +139,16 @@ namespace star {
                 ConsoleColor.Green
                 );
 #endif
+        }
+
+        static void ShowVersionInfo() {
+            Console.WriteLine("Version={0}.{1}", StarcounterEnvironment.GetVersionInfo().Version.Major, StarcounterEnvironment.GetVersionInfo().Version.Minor);
+        }
+
+        static void ShowInfoAboutStarcounter() {
+            Console.WriteLine("Installation directory={0}", Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory));
+            Console.WriteLine("Default server={0}", StarcounterEnvironment.ServerNames.PersonalServer.ToLower());
+            Console.WriteLine("Version={0}.{1}", StarcounterEnvironment.GetVersionInfo().Version.Major, StarcounterEnvironment.GetVersionInfo().Version.Minor);
         }
 
         static void Usage(IApplicationSyntax syntax) {
