@@ -46,7 +46,10 @@ function ngAppFactory() {
           for (var i = 0, ilen = meta.length; i < ilen; i++) {
             if (angular.element(meta[i]).attr('name') == 'View-Model') {
               scope['View-Model'] = angular.element(meta[i]).attr('content');
-              break;
+              //break;
+            }
+            if (angular.element(meta[i]).attr('name') == 'ScSsnId') {
+                scope['ScSsnId'] = angular.element(meta[i]).attr('content');
             }
           }
         }
@@ -54,7 +57,8 @@ function ngAppFactory() {
         function getRoot(scope) {
           $http({
             method: 'GET',
-            url: config.getRequestUrl(scope)
+            url: config.getRequestUrl(scope),
+            headers: { 'ScSsnId': ' ' + scope.ScSsnId }
           }).success(function (data, status, headers, config) {
             overwriteRoot(data);
             rootLoaded = true;
@@ -65,6 +69,7 @@ function ngAppFactory() {
           $http({
             method: 'PATCH',
             url: config.getRequestUrl(scope),
+            headers: { 'ScSsnId': ' ' + scope.ScSsnId },
             data: update
           }).success(function (data, status, headers, config) {
             patchRoot(scope, data);

@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
 using Starcounter.Internal;
+using System.Security.Cryptography;
 
 namespace Starcounter.Server {
 
@@ -42,6 +43,46 @@ namespace Starcounter.Server {
             // utilize when we don't find a particular one in the runtime
             // directory given when weaving.
             // TODO:
+        }
+
+        /// <summary>
+        /// Generates the full directory path where the server should run the
+        /// application represented by the assembly <paramref name="assemblyPath"/>
+        /// from.
+        /// </summary>
+        /// <param name="baseDirectory">Full path of the directory the server use
+        /// as the base directory when weaving code.</param>
+        /// <param name="assemblyPath">Full path to an assembly that are to be
+        /// prepared for the host, i.e. about to be weaved.</param>
+        /// <returns>A unique subpath of <paramref name="baseDirectory"/> that
+        /// should be used by the server to prepare and run the application
+        /// represented by the assembly <paramref name="assemblyPath"/>.</returns>
+        /// <example>
+        /// var dir = weaver.CreateFullRuntimePath(
+        ///     @"C:\Server\Code",
+        ///     @"C:\My Projects\My First Application\MyApp.exe"
+        /// );
+        /// 
+        /// // The below line will output
+        /// //   "C:\Server\Code\myapp.exe-6D189D915AE238F5FA029AE0FBFD0F744113FC2E"
+        /// // where the hexadecimal number uniquely identifies the full path specified
+        /// // as the second parameter.
+        /// Console.WriteLine(dir);
+        /// </example>
+        internal string CreateFullRuntimePath(string baseDirectory, string assemblyPath) {
+            string hash;
+            string key;
+
+            assemblyPath = assemblyPath.ToLowerInvariant();
+            var keyBytes = Encoding.UTF8.GetBytes(assemblyPath);
+
+            using (var sha1 = SHA1.Create()) {
+                var hashBytes = sha1.ComputeHash(keyBytes);
+                hash = BitConverter.ToString(hashBytes).Replace("-", "");
+            }
+
+            key = string.Format("{0}-{1}", Path.GetFileName(assemblyPath), hash);
+            return Path.Combine(baseDirectory, key);
         }
 
         /// <summary>
