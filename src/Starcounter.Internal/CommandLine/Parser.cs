@@ -180,13 +180,7 @@ namespace Starcounter.CommandLine
                         // the "default", implicit command. We must query the syntax
                         // for witch.
 
-                        if (syntax == null)
-                        {
-                            // If no syntax exist, we always treat the token as a command.
-                            
-                            parsedArguments.Command = token;
-                        }
-                        else if (string.IsNullOrEmpty(syntax.DefaultCommand))
+                        if (string.IsNullOrEmpty(syntax.DefaultCommand))
                         {
                             // Equally, if no default command exist, we treat the token as a
                             // command too.
@@ -230,15 +224,15 @@ namespace Starcounter.CommandLine
                 RaiseOptionWithNoValueException(pendingOptionName, args.Length - 1);
             }
 
-            if (syntax != null)
-            {
-                if (!parsedArguments.HasCommmand && !string.IsNullOrEmpty(syntax.DefaultCommand))
-                {
-                    parsedArguments.Command = syntax.DefaultCommand;
-                }
+            // If we still have not found a command and we have a default command
+            // specified in the syntax, apply that before enforcing the syntax.
 
-                parsedArguments.EnforceSyntax(syntax);
+            if (!parsedArguments.HasCommmand && !string.IsNullOrEmpty(syntax.DefaultCommand))
+            {
+                parsedArguments.Command = syntax.DefaultCommand;
             }
+
+            parsedArguments.EnforceSyntax(syntax);
 
             return parsedArguments;
         }
