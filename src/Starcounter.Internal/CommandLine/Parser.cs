@@ -65,15 +65,6 @@ namespace Starcounter.CommandLine
         }
 
         /// <summary>
-        /// Parses this instance.
-        /// </summary>
-        /// <returns>IApplicationInput.</returns>
-        public IApplicationInput Parse()
-        {
-            return InternalParse(null);
-        }
-
-        /// <summary>
         /// Parses the specified syntax.
         /// </summary>
         /// <param name="syntax">The syntax.</param>
