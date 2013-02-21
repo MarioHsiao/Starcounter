@@ -1,26 +1,13 @@
 ﻿{
 	"LogEntries": [
 					{
-						"ActivityID" : 0,
-						"Category" : "Category",
-						"_DateTime" : "DateTime",
 						"DateTimeStr" : "DateTime",
-						"MachineName" : "MachineName",
-						"Message" : "Message",
-						"SeqNumber" : 0,
-						"ServerName" : "ServerName",
-						"Source" : "Source",
-						"_Type" : "Type",
 						"TypeStr" : "Type",
-						"UserName" : "UserName"
+						"HostName" : "HostName",
+						"Source" : "Source",
+						"Message" : "Message"
 					}
 	],
-	"Summary": {
-		"Notice" : 0,
-		"Warning" : 0,
-		"Errors" : 0,
-		"Debug" : 0
-	},
 	"FilterNotice$" : true,
 	"FilterWarning$" : true,
 	"FilterError$" : true,
