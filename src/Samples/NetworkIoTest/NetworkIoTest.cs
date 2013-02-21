@@ -82,7 +82,7 @@ namespace NetworkIoTestApp
 
         // Performance related counters.
         static volatile UInt32 perf_counter = 0;
-        static void PrintPerformanceThread()
+        static void PrintPerformanceThread(Object p)
         {
             while (true)
             {
@@ -136,6 +136,8 @@ namespace NetworkIoTestApp
             // Starting performance statistics thread.
             Thread perf_thread = new Thread(PrintPerformanceThread);
             perf_thread.Start();
+
+            //TaskScheduler.QueueUserWorkItem(PrintPerformanceThread, 0);
         }
 
         // Handlers registration.

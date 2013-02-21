@@ -64,12 +64,12 @@ namespace Starcounter.Internal
         /// <summary>
         /// SCs the connect to logs.
         /// </summary>
-        /// <param name="server_name">Name of the server.</param>
+        /// <param name="host_name">Host name.</param>
         /// <param name="ignore">The ignore.</param>
         /// <param name="phlogs">The phlogs.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern unsafe uint sccorelog_connect_to_logs(string server_name, void* ignore, ulong* phlogs);
+        public static extern unsafe uint sccorelog_connect_to_logs(string host_name, void* ignore, ulong* phlogs);
 
         /// <summary>
         /// SCs the bind logs to dir.
@@ -81,33 +81,27 @@ namespace Starcounter.Internal
         public static extern uint sccorelog_bind_logs_to_dir(ulong hlogs, string directory);
 
         /// <summary>
-        /// SCs the new activity.
-        /// </summary>
-        /// <returns>System.UInt32.</returns>
-        [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint sccorelog_new_activity();
-
-        /// <summary>
         /// SCs the write to logs.
         /// </summary>
         /// <param name="h">The h.</param>
         /// <param name="type">The type.</param>
         /// <param name="source">The source.</param>
-        /// <param name="category">The category.</param>
+        /// <param name="error_code"></param>
         /// <param name="message">The message.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint sccorelog_write_to_logs(ulong h, uint type, string source, string category, string message);
+        public static extern uint sccorelog_write_to_logs(ulong h, uint type, string source, uint error_code, string message);
 
         /// <summary>
         /// SCs the kernel write to logs.
         /// </summary>
         /// <param name="h">The h.</param>
         /// <param name="type">The type.</param>
+        /// <param name="error_code"></param>
         /// <param name="message">The message.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint sccorelog_kernel_write_to_logs(ulong h, uint type, string message);
+        public static extern uint sccorelog_kernel_write_to_logs(ulong h, uint type, uint error_code, string message);
 
         /// <summary>
         /// SCs the flush to logs.

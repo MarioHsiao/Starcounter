@@ -17778,6 +17778,35 @@ ExpectedResult:
 
 
 <NEXT>
+Description: Get objectes ordered by Boolean ascending
+QueryString: select d from Department d order by Description asc
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+IndexScan(
+	auto
+	0
+	Description
+	StringDynamicRange(
+	)
+	LogicalValue(TRUE)
+	Ascending
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 7 | 
+ | 8 | 
+ | 9 | 
+ | 10 | 
+
+<NEXT>
 Description: Order by Boolean ascending
 QueryString: select e.FirstName, e.Commission from SalaryEmployee e order by e.Commission asc
 VariableValues: 
@@ -21018,6 +21047,73 @@ ExpectedResult:
  | 21 | 
 
  <NEXT>
+Description: Fetch with sort grouped query on indexed object property
+QueryString: select manager, count(firstname) from SQLTest.EmployeeDb.employee group by manager order by manager fetch ?
+VariableValues: Int32:2;
+SingleObjectProjection: False
+IncludesLiteral: True
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Employee
+	1 = 
+		TemporaryType(
+			0 : Object
+			1 : Decimal
+		)
+)
+Projection(
+	0 = 
+		ObjectProperty(1, 0)
+	1 = 
+		DecimalProperty(1, 1)
+)
+Sort(
+	Aggregation(
+		1
+		Sort(
+			IndexScan(
+				auto
+				0
+				FirstName
+				StringDynamicRange(
+				)
+				LogicalValue(TRUE)
+				Ascending
+			)
+			MultiComparer(
+				ObjectComparer(
+					ObjectProperty(0, Manager)
+					Ascending
+				)
+			)
+		)
+		MultiComparer(
+			ObjectComparer(
+				ObjectProperty(0, Manager)
+				Ascending
+			)
+		)
+		SetFunctions(
+			DecimalSetFunction(
+			COUNT
+				StringProperty(0, FirstName)
+			)
+		)
+		LogicalValue(TRUE)
+	)
+	ObjectComparer(
+		ObjectProperty(1, 0)
+		Ascending
+	)
+)
+
+ExpectedResult: 
+ ! 0:Object ! 1:Decimal ! 
+ | <NULL> | 2 | 
+ | 13 | 1 | 
+
+<NEXT>
 Description: Offset with where clause.
 QueryString: select e from salaryemployee e where salaryint32 > ? offset ?
 VariableValues: Int32:10; Int32:1;
@@ -21210,3 +21306,595 @@ ExpectedResult:
  ! Object ! 
  | 21 | 
  | 22 | 
+
+<NEXT>
+Description: Aggregate without grouping
+QueryString: select count(Description) from Location where Type > ?
+VariableValues: Int16:1;
+IncludesLiteral: True
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : Decimal
+		)
+)
+Projection(
+	0 = 
+		DecimalProperty(1, 0)
+)
+Aggregation(
+	1
+	IndexScan(
+		Location_Type
+		0
+		Type
+		IntegerDynamicRange(
+			NumericalRangePoint(
+				GreaterThan
+				NumericalVariable(1)
+			)
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	MultiComparer(
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			StringProperty(0, Description)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! Decimal ! 
+ | 5 | 
+
+<NEXT>
+Description: Aggregate without grouping with fetch, true
+QueryString: select count(Type) from Location where Type > ? fetch ?
+VariableValues: Int16:1; Int32:2;
+IncludesLiteral: True
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : Decimal
+		)
+)
+Projection(
+	0 = 
+		DecimalProperty(1, 0)
+)
+Aggregation(
+	1
+	IndexScan(
+		Location_Type
+		0
+		Type
+		IntegerDynamicRange(
+			NumericalRangePoint(
+				GreaterThan
+				NumericalVariable(1)
+			)
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	MultiComparer(
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			IntegerProperty(0, Type)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! Decimal ! 
+ | 5 | 
+
+<NEXT>
+Description: Aggregate without grouping with fetch, false
+QueryString: select count(Type) from Location where Type > ? fetch ?
+VariableValues: Int16:1; Int32:0;
+IncludesLiteral: True
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : Decimal
+		)
+)
+Projection(
+	0 = 
+		DecimalProperty(1, 0)
+)
+Aggregation(
+	1
+	IndexScan(
+		Location_Type
+		0
+		Type
+		IntegerDynamicRange(
+			NumericalRangePoint(
+				GreaterThan
+				NumericalVariable(1)
+			)
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	MultiComparer(
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			IntegerProperty(0, Type)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! Decimal ! 
+
+<NEXT>
+Description: Aggregate without grouping with offset, true
+QueryString: select count(Name) from Location where Type > ? offset ?
+VariableValues: Int16:1; Int32:0;
+IncludesLiteral: True
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : Decimal
+		)
+)
+Projection(
+	0 = 
+		DecimalProperty(1, 0)
+)
+Aggregation(
+	1
+	IndexScan(
+		Location_Type
+		0
+		Type
+		IntegerDynamicRange(
+			NumericalRangePoint(
+				GreaterThan
+				NumericalVariable(1)
+			)
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	MultiComparer(
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			StringProperty(0, Name)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! Decimal ! 
+ | 5 | 
+
+<NEXT>
+Description: Aggregate without grouping with offset, false
+QueryString: select count(Name) from Location where Type > ? offset ?
+VariableValues: Int16:1; Int32:2;
+IncludesLiteral: True
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : Decimal
+		)
+)
+Projection(
+	0 = 
+		DecimalProperty(1, 0)
+)
+Aggregation(
+	1
+	IndexScan(
+		Location_Type
+		0
+		Type
+		IntegerDynamicRange(
+			NumericalRangePoint(
+				GreaterThan
+				NumericalVariable(1)
+			)
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	MultiComparer(
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			StringProperty(0, Name)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! Decimal ! 
+
+<NEXT>
+Description: Aggregate without grouping with fetch and offset, true
+QueryString: select count(Description) from Location where Type > ? fetch ? offset ?
+VariableValues: Int16:1; Int64:1; Int32:0;
+IncludesLiteral: True
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : Decimal
+		)
+)
+Projection(
+	0 = 
+		DecimalProperty(1, 0)
+)
+Aggregation(
+	1
+	IndexScan(
+		Location_Type
+		0
+		Type
+		IntegerDynamicRange(
+			NumericalRangePoint(
+				GreaterThan
+				NumericalVariable(1)
+			)
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	MultiComparer(
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			StringProperty(0, Description)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! Decimal ! 
+ | 5 | 
+
+<NEXT>
+Description: Aggregate without grouping with fetch and offset, false
+QueryString: select count(Description) from Location where Type > ? fetch ? offset ?
+VariableValues: Int16:1; Int64:2; Int32:2;
+IncludesLiteral: True
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : Decimal
+		)
+)
+Projection(
+	0 = 
+		DecimalProperty(1, 0)
+)
+Aggregation(
+	1
+	IndexScan(
+		Location_Type
+		0
+		Type
+		IntegerDynamicRange(
+			NumericalRangePoint(
+				GreaterThan
+				NumericalVariable(1)
+			)
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	MultiComparer(
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			StringProperty(0, Description)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! Decimal ! 
+
+<NEXT>
+Description: Aggregate with grouping
+QueryString: select Name, count(Type) from Location where Type > ? group by Name
+VariableValues: Int16:1;
+SingleObjectProjection: False
+IncludesLiteral: True
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : String
+			1 : Decimal
+		)
+)
+Projection(
+	0 = 
+		StringProperty(1, 0)
+	1 = 
+		DecimalProperty(1, 1)
+)
+Aggregation(
+	1
+	Sort(
+		IndexScan(
+			Location_Type
+			0
+			Type
+			IntegerDynamicRange(
+				NumericalRangePoint(
+					GreaterThan
+					NumericalVariable(1)
+				)
+			)
+			LogicalValue(TRUE)
+			Ascending
+		)
+		MultiComparer(
+			StringComparer(
+				StringProperty(0, Name)
+				Ascending
+			)
+		)
+	)
+	MultiComparer(
+		StringComparer(
+			StringProperty(0, Name)
+			Ascending
+		)
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			IntegerProperty(0, Type)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! 0:String ! 1:Decimal ! 
+ | Danderyd | 1 | 
+ | Falköping | 1 | 
+ | Saint Petersburg | 1 | 
+ | Solna | 1 | 
+ | Stockholm | 1 | 
+
+<NEXT>
+Description: Aggregate with grouping with fetch
+QueryString: select Name, count(Type) from Location where Type > ? group by Name fetch ?
+VariableValues: Int16:1; Int32:2;
+SingleObjectProjection: False
+IncludesLiteral: True
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : String
+			1 : Decimal
+		)
+)
+Projection(
+	0 = 
+		StringProperty(1, 0)
+	1 = 
+		DecimalProperty(1, 1)
+)
+Aggregation(
+	1
+	Sort(
+		IndexScan(
+			Location_Type
+			0
+			Type
+			IntegerDynamicRange(
+				NumericalRangePoint(
+					GreaterThan
+					NumericalVariable(1)
+				)
+			)
+			LogicalValue(TRUE)
+			Ascending
+		)
+		MultiComparer(
+			StringComparer(
+				StringProperty(0, Name)
+				Ascending
+			)
+		)
+	)
+	MultiComparer(
+		StringComparer(
+			StringProperty(0, Name)
+			Ascending
+		)
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			IntegerProperty(0, Type)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! 0:String ! 1:Decimal ! 
+ | Danderyd | 1 | 
+ | Falköping | 1 | 
+
+<NEXT>
+Description: Aggregate with grouping with offset
+QueryString: select Name, count(Type) from Location where Type > ? group by Name offset ?
+VariableValues: Int16:1; Int32:2;
+SingleObjectProjection: False
+IncludesLiteral: True
+ShouldBeReordered: False
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : String
+			1 : Decimal
+		)
+)
+Projection(
+	0 = 
+		StringProperty(1, 0)
+	1 = 
+		DecimalProperty(1, 1)
+)
+Aggregation(
+	1
+	Sort(
+		IndexScan(
+			Location_Type
+			0
+			Type
+			IntegerDynamicRange(
+				NumericalRangePoint(
+					GreaterThan
+					NumericalVariable(1)
+				)
+			)
+			LogicalValue(TRUE)
+			Ascending
+		)
+		MultiComparer(
+			StringComparer(
+				StringProperty(0, Name)
+				Ascending
+			)
+		)
+	)
+	MultiComparer(
+		StringComparer(
+			StringProperty(0, Name)
+			Ascending
+		)
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			IntegerProperty(0, Type)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! 0:String ! 1:Decimal ! 
+ | Saint Petersburg | 1 | 
+ | Solna | 1 | 
+ | Stockholm | 1 | 
+
+
+<NEXT>
+Description: Aggregate with grouping with fetch and offset
+QueryString: select Name, count(Type) from Location where Type > ? group by Name fetch ? offset ?
+VariableValues: Int16:1; Int32:2; Int64:2;
+SingleObjectProjection: False
+IncludesLiteral: True
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : String
+			1 : Decimal
+		)
+)
+Projection(
+	0 = 
+		StringProperty(1, 0)
+	1 = 
+		DecimalProperty(1, 1)
+)
+Aggregation(
+	1
+	Sort(
+		IndexScan(
+			Location_Type
+			0
+			Type
+			IntegerDynamicRange(
+				NumericalRangePoint(
+					GreaterThan
+					NumericalVariable(1)
+				)
+			)
+			LogicalValue(TRUE)
+			Ascending
+		)
+		MultiComparer(
+			StringComparer(
+				StringProperty(0, Name)
+				Ascending
+			)
+		)
+	)
+	MultiComparer(
+		StringComparer(
+			StringProperty(0, Name)
+			Ascending
+		)
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			IntegerProperty(0, Type)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! 0:String ! 1:Decimal ! 
+ | Saint Petersburg | 1 | 
+ | Solna | 1 | 
