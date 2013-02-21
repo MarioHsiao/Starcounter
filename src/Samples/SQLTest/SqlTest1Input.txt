@@ -17032,3 +17032,251 @@ Aggregation(
 
 ExpectedResult: 
  ! Decimal ! 
+
+<NEXT>
+Description: Aggregate with grouping
+QueryString: select count(Type), Description from Location where Type > ? group by Description
+VariableValues: Int16:1;
+SingleObjectProjection: False
+IncludesLiteral: True
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : String
+			1 : Decimal
+		)
+)
+Projection(
+	0 = 
+		DecimalProperty(1, 1)
+	1 = 
+		StringProperty(1, 0)
+)
+Aggregation(
+	1
+	Sort(
+		FullTableScan(
+			0
+			ComparisonNumerical(
+				GreaterThan
+				IntegerProperty(0, Type)
+				NumericalVariable(1)
+			)
+			Ascending
+		)
+		MultiComparer(
+			StringComparer(
+				StringProperty(0, Description)
+				Ascending
+			)
+		)
+	)
+	MultiComparer(
+		StringComparer(
+			StringProperty(0, Description)
+			Ascending
+		)
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			IntegerProperty(0, Type)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! 0:Decimal ! 1:String ! 
+ | 1 | Big city in Russia | 
+ | 1 | Capital of Sweden | 
+ | 1 | Rich suburb of Stockholm | 
+ | 1 | Small village in Sweden | 
+ | 1 | Town just north of Stockholm | 
+
+<NEXT>
+Description: Aggregate with grouping with fetch
+QueryString: select count(Type), Description from Location where Type > ? group by Description fetch ?
+VariableValues: Int16:1; Int32:2;
+SingleObjectProjection: False
+IncludesLiteral: True
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : String
+			1 : Decimal
+		)
+)
+Projection(
+	0 = 
+		DecimalProperty(1, 1)
+	1 = 
+		StringProperty(1, 0)
+)
+Aggregation(
+	1
+	Sort(
+		FullTableScan(
+			0
+			ComparisonNumerical(
+				GreaterThan
+				IntegerProperty(0, Type)
+				NumericalVariable(1)
+			)
+			Ascending
+		)
+		MultiComparer(
+			StringComparer(
+				StringProperty(0, Description)
+				Ascending
+			)
+		)
+	)
+	MultiComparer(
+		StringComparer(
+			StringProperty(0, Description)
+			Ascending
+		)
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			IntegerProperty(0, Type)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! 0:Decimal ! 1:String ! 
+ | 1 | Big city in Russia | 
+ | 1 | Capital of Sweden | 
+
+<NEXT>
+Description: Aggregate with grouping with offset
+QueryString: select count(Type), Description from Location where Type > ? group by Description offset ?
+VariableValues: Int16:1; Int32:2;
+SingleObjectProjection: False
+IncludesLiteral: True
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : String
+			1 : Decimal
+		)
+)
+Projection(
+	0 = 
+		DecimalProperty(1, 1)
+	1 = 
+		StringProperty(1, 0)
+)
+Aggregation(
+	1
+	Sort(
+		FullTableScan(
+			0
+			ComparisonNumerical(
+				GreaterThan
+				IntegerProperty(0, Type)
+				NumericalVariable(1)
+			)
+			Ascending
+		)
+		MultiComparer(
+			StringComparer(
+				StringProperty(0, Description)
+				Ascending
+			)
+		)
+	)
+	MultiComparer(
+		StringComparer(
+			StringProperty(0, Description)
+			Ascending
+		)
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			IntegerProperty(0, Type)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! 0:Decimal ! 1:String ! 
+ | 1 | Rich suburb of Stockholm | 
+ | 1 | Small village in Sweden | 
+ | 1 | Town just north of Stockholm | 
+
+<NEXT>
+Description: Aggregate with grouping with fetch and offset
+QueryString: select count(Type), Description from Location where Type > ? group by Description fetch ? offset ?
+VariableValues: Int16:1; Int32:2; Int64:2;
+SingleObjectProjection: False
+IncludesLiteral: True
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : String
+			1 : Decimal
+		)
+)
+Projection(
+	0 = 
+		DecimalProperty(1, 1)
+	1 = 
+		StringProperty(1, 0)
+)
+Aggregation(
+	1
+	Sort(
+		FullTableScan(
+			0
+			ComparisonNumerical(
+				GreaterThan
+				IntegerProperty(0, Type)
+				NumericalVariable(1)
+			)
+			Ascending
+		)
+		MultiComparer(
+			StringComparer(
+				StringProperty(0, Description)
+				Ascending
+			)
+		)
+	)
+	MultiComparer(
+		StringComparer(
+			StringProperty(0, Description)
+			Ascending
+		)
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			IntegerProperty(0, Type)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! 0:Decimal ! 1:String ! 
+ | 1 | Rich suburb of Stockholm | 
+ | 1 | Small village in Sweden | 
