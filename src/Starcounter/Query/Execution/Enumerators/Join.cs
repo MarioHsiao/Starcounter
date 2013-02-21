@@ -382,6 +382,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         stringBuilder.AppendLine(tabs + 1, joinType.ToString());
         leftEnumerator.BuildString(stringBuilder, tabs + 1);
         rightEnumerator.BuildString(stringBuilder, tabs + 1);
+        base.BuildFetchString(stringBuilder, tabs + 1);
         stringBuilder.AppendLine(tabs, ")");
     }
 

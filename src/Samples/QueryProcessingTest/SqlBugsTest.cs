@@ -56,6 +56,7 @@ namespace QueryProcessingTest {
             }
 
             // Now recreating the enumerator state using the offset key.
+            HelpMethods.PrintQueryPlan("SELECT a FROM Account a ORDER BY a.accountid FETCH ? OFFSETKEY ?");
             using (var sqlEnum = Db.SQL("SELECT a FROM Account a ORDER BY a.accountid FETCH ? OFFSETKEY ?", 10, offsetKey).GetEnumerator()) {
                 for (Int32 i = 0; i < 10; i++) {
                     sqlEnum.MoveNext();

@@ -86,7 +86,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         if (this.comparer.ComparerCount == 0) {
             this.enumerator = this.subEnumerator;
         } else {
-            this.enumerator = new Sort(subEnumerator.RowTypeBinding, subEnumerator, comparer, variableArray, query, fetchNumberExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
+            this.enumerator = new Sort(subEnumerator.RowTypeBinding, subEnumerator, comparer, variableArray, query, null, null, null);
         }
         cursorObject = null;
         currentObject = null;
@@ -246,13 +246,10 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         // for example "SELECT COUNT(*) FROM PERSON" should give one result even when there are no objects of type PERSON.
         Boolean produceOneResult = firstCallOfMoveNext && comparer.ComparerCount == 0;
 
-        if (enumerator == null)
-        {
-            CreateEnumerator();
-        }
         // If first call to MoveNext then initiate cursorObj to the first element in enumerator.
         if (currentObject == null)
         {
+            enumerator.Reset();
             if (enumerator.MoveNext())
             {
                 cursorObject = enumerator.CurrentRow;
@@ -269,10 +266,17 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
             currentObject = null;
             return false;
         }
+
+        if (currentObject == null && fetchNumberExpr != null) {
+            if (fetchNumberExpr.EvaluateToInteger(null) != null)
+                fetchNumber = fetchNumberExpr.EvaluateToInteger(null).Value;
+            else
+                fetchNumber = 0;
+        }
         // Create new object
         Row compObject = new Row(rowTypeBinding);
         // Do Offset
-        if (counter == 0 && fetchOffsetExpr != null)
+        if (currentObject == null && fetchOffsetExpr != null)
             if (fetchOffsetExpr.EvaluateToInteger(null) != null) {
                 for (int i = 0; i < fetchOffsetExpr.EvaluateToInteger(null).Value; i++)
                     if (!CreateNewObject(compObject, produceOneResult)) {
@@ -280,17 +284,14 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
                         firstCallOfMoveNext = false;
                         return false;
                     } else {
+                        //currentObject = compObject;
+                        //counter++;
                         firstCallOfMoveNext = false;
                         produceOneResult = firstCallOfMoveNext && comparer.ComparerCount == 0;
+                        compObject = new Row(rowTypeBinding);
                     }
                 counter = 0;
             }
-        if (counter == 0 && fetchNumberExpr != null) {
-            if (fetchNumberExpr.EvaluateToInteger(null) != null)
-                fetchNumber = fetchNumberExpr.EvaluateToInteger(null).Value;
-            else
-                fetchNumber = 0;
-        }
         // Check fetch
         if (counter >= fetchNumber) {
             currentObject = null;
@@ -430,6 +431,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         }
         stringBuilder.AppendLine(tabs + 1, ")");
         condition.BuildString(stringBuilder, tabs + 1);
+        base.BuildFetchString(stringBuilder, tabs + 1);
         stringBuilder.AppendLine(tabs, ")");
     }
 
