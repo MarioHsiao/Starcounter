@@ -799,6 +799,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         condition.BuildString(stringBuilder, tabs + 1);
         if (descending) stringBuilder.AppendLine(tabs + 1, "Descending");
         else stringBuilder.AppendLine(tabs + 1, "Ascending");
+        base.BuildFetchString(stringBuilder, tabs + 1);
         stringBuilder.AppendLine(tabs, ")");
     }
 

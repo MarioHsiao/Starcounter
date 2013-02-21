@@ -274,6 +274,7 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
         stringBuilder.AppendLine(tabs, "Sort(");
         subEnumerator.BuildString(stringBuilder, tabs + 1);
         comparer.BuildString(stringBuilder, tabs + 1);
+        base.BuildFetchString(stringBuilder, tabs + 1);
         stringBuilder.AppendLine(tabs, ")");
     }
 
