@@ -12881,6 +12881,41 @@ ExpectedResult:
 
 
 <NEXT>
+Description: Get objectes ordered by Boolean ascending
+QueryString: select d from Department d order by Location asc
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Department
+)
+Projection(
+	0 = 
+		ObjectThis(0)
+)
+Sort(
+	IndexScan(
+		auto
+		0
+		Description
+		StringDynamicRange(
+		)
+		LogicalValue(TRUE)
+		Ascending
+	)
+	ObjectComparer(
+		ObjectProperty(0, Location)
+		Ascending
+	)
+)
+
+ExpectedResult: 
+ ! Object ! 
+ | 10 | 
+ | 7 | 
+ | 9 | 
+ | 8 | 
+
+<NEXT>
 Description: Order by Boolean ascending
 QueryString: select e.FirstName, e.Commission from SalaryEmployee e order by e.Commission asc
 SingleObjectProjection: False
@@ -16359,7 +16394,7 @@ ExpectedResult:
  | 7 | 
  | 8 | 
 
- <NEXT>
+<NEXT>
 Description: Fetch with sort grouped query on non-index property
 QueryString: select location, count(name) from department group by location order by location fetch ?
 VariableValues: Int32:2 ;
@@ -16384,14 +16419,22 @@ Projection(
 Sort(
 	Aggregation(
 		1
-		IndexScan(
-			auto
-			0
-			Description
-			StringDynamicRange(
+		Sort(
+			IndexScan(
+				auto
+				0
+				Description
+				StringDynamicRange(
+				)
+				LogicalValue(TRUE)
+				Ascending
 			)
-			LogicalValue(TRUE)
-			Ascending
+			MultiComparer(
+				ObjectComparer(
+					ObjectProperty(0, Location)
+					Ascending
+				)
+			)
 		)
 		MultiComparer(
 			ObjectComparer(
@@ -16691,3 +16734,549 @@ ExpectedResult:
  ! Object ! 
  | 21 | 
  | 22 | 
+
+<NEXT>
+Description: Aggregate without grouping
+QueryString: select count(Description) from Location where Type > ?
+VariableValues: Int16:1;
+IncludesLiteral: True
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : Decimal
+		)
+)
+Projection(
+	0 = 
+		DecimalProperty(1, 0)
+)
+Aggregation(
+	1
+	FullTableScan(
+		0
+		ComparisonNumerical(
+			GreaterThan
+			IntegerProperty(0, Type)
+			NumericalVariable(1)
+		)
+		Ascending
+	)
+	MultiComparer(
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			StringProperty(0, Description)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! Decimal ! 
+ | 5 | 
+
+<NEXT>
+Description: Aggregate without grouping with fetch, true
+QueryString: select count(Type) from Location where Type > ? fetch ?
+VariableValues: Int16:1; Int32:2;
+IncludesLiteral: True
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : Decimal
+		)
+)
+Projection(
+	0 = 
+		DecimalProperty(1, 0)
+)
+Aggregation(
+	1
+	FullTableScan(
+		0
+		ComparisonNumerical(
+			GreaterThan
+			IntegerProperty(0, Type)
+			NumericalVariable(1)
+		)
+		Ascending
+	)
+	MultiComparer(
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			IntegerProperty(0, Type)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! Decimal ! 
+ | 5 | 
+
+<NEXT>
+Description: Aggregate without grouping with fetch, false
+QueryString: select count(Type) from Location where Type > ? fetch ?
+VariableValues: Int16:1; Int32:0;
+IncludesLiteral: True
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : Decimal
+		)
+)
+Projection(
+	0 = 
+		DecimalProperty(1, 0)
+)
+Aggregation(
+	1
+	FullTableScan(
+		0
+		ComparisonNumerical(
+			GreaterThan
+			IntegerProperty(0, Type)
+			NumericalVariable(1)
+		)
+		Ascending
+	)
+	MultiComparer(
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			IntegerProperty(0, Type)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! Decimal ! 
+
+<NEXT>
+Description: Aggregate without grouping with offset, true
+QueryString: select count(Name) from Location where Type > ? offset ?
+VariableValues: Int16:1; Int32:0;
+IncludesLiteral: True
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : Decimal
+		)
+)
+Projection(
+	0 = 
+		DecimalProperty(1, 0)
+)
+Aggregation(
+	1
+	FullTableScan(
+		0
+		ComparisonNumerical(
+			GreaterThan
+			IntegerProperty(0, Type)
+			NumericalVariable(1)
+		)
+		Ascending
+	)
+	MultiComparer(
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			StringProperty(0, Name)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! Decimal ! 
+ | 5 | 
+
+<NEXT>
+Description: Aggregate without grouping with offset, false
+QueryString: select count(Name) from Location where Type > ? offset ?
+VariableValues: Int16:1; Int32:2;
+IncludesLiteral: True
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : Decimal
+		)
+)
+Projection(
+	0 = 
+		DecimalProperty(1, 0)
+)
+Aggregation(
+	1
+	FullTableScan(
+		0
+		ComparisonNumerical(
+			GreaterThan
+			IntegerProperty(0, Type)
+			NumericalVariable(1)
+		)
+		Ascending
+	)
+	MultiComparer(
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			StringProperty(0, Name)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! Decimal ! 
+
+<NEXT>
+Description: Aggregate without grouping with fetch and offset, true
+QueryString: select count(Description) from Location where Type > ? fetch ? offset ?
+VariableValues: Int16:1; Int64:1; Int32:0;
+IncludesLiteral: True
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : Decimal
+		)
+)
+Projection(
+	0 = 
+		DecimalProperty(1, 0)
+)
+Aggregation(
+	1
+	FullTableScan(
+		0
+		ComparisonNumerical(
+			GreaterThan
+			IntegerProperty(0, Type)
+			NumericalVariable(1)
+		)
+		Ascending
+	)
+	MultiComparer(
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			StringProperty(0, Description)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! Decimal ! 
+ | 5 | 
+
+<NEXT>
+Description: Aggregate without grouping with fetch and offset, false
+QueryString: select count(Description) from Location where Type > ? fetch ? offset ?
+VariableValues: Int16:1; Int64:2; Int32:2;
+IncludesLiteral: True
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : Decimal
+		)
+)
+Projection(
+	0 = 
+		DecimalProperty(1, 0)
+)
+Aggregation(
+	1
+	FullTableScan(
+		0
+		ComparisonNumerical(
+			GreaterThan
+			IntegerProperty(0, Type)
+			NumericalVariable(1)
+		)
+		Ascending
+	)
+	MultiComparer(
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			StringProperty(0, Description)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! Decimal ! 
+
+<NEXT>
+Description: Aggregate with grouping
+QueryString: select count(Type), Description from Location where Type > ? group by Description
+VariableValues: Int16:1;
+SingleObjectProjection: False
+IncludesLiteral: True
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : String
+			1 : Decimal
+		)
+)
+Projection(
+	0 = 
+		DecimalProperty(1, 1)
+	1 = 
+		StringProperty(1, 0)
+)
+Aggregation(
+	1
+	Sort(
+		FullTableScan(
+			0
+			ComparisonNumerical(
+				GreaterThan
+				IntegerProperty(0, Type)
+				NumericalVariable(1)
+			)
+			Ascending
+		)
+		MultiComparer(
+			StringComparer(
+				StringProperty(0, Description)
+				Ascending
+			)
+		)
+	)
+	MultiComparer(
+		StringComparer(
+			StringProperty(0, Description)
+			Ascending
+		)
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			IntegerProperty(0, Type)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! 0:Decimal ! 1:String ! 
+ | 1 | Big city in Russia | 
+ | 1 | Capital of Sweden | 
+ | 1 | Rich suburb of Stockholm | 
+ | 1 | Small village in Sweden | 
+ | 1 | Town just north of Stockholm | 
+
+<NEXT>
+Description: Aggregate with grouping with fetch
+QueryString: select count(Type), Description from Location where Type > ? group by Description fetch ?
+VariableValues: Int16:1; Int32:2;
+SingleObjectProjection: False
+IncludesLiteral: True
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : String
+			1 : Decimal
+		)
+)
+Projection(
+	0 = 
+		DecimalProperty(1, 1)
+	1 = 
+		StringProperty(1, 0)
+)
+Aggregation(
+	1
+	Sort(
+		FullTableScan(
+			0
+			ComparisonNumerical(
+				GreaterThan
+				IntegerProperty(0, Type)
+				NumericalVariable(1)
+			)
+			Ascending
+		)
+		MultiComparer(
+			StringComparer(
+				StringProperty(0, Description)
+				Ascending
+			)
+		)
+	)
+	MultiComparer(
+		StringComparer(
+			StringProperty(0, Description)
+			Ascending
+		)
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			IntegerProperty(0, Type)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! 0:Decimal ! 1:String ! 
+ | 1 | Big city in Russia | 
+ | 1 | Capital of Sweden | 
+
+<NEXT>
+Description: Aggregate with grouping with offset
+QueryString: select count(Type), Description from Location where Type > ? group by Description offset ?
+VariableValues: Int16:1; Int32:2;
+SingleObjectProjection: False
+IncludesLiteral: True
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : String
+			1 : Decimal
+		)
+)
+Projection(
+	0 = 
+		DecimalProperty(1, 1)
+	1 = 
+		StringProperty(1, 0)
+)
+Aggregation(
+	1
+	Sort(
+		FullTableScan(
+			0
+			ComparisonNumerical(
+				GreaterThan
+				IntegerProperty(0, Type)
+				NumericalVariable(1)
+			)
+			Ascending
+		)
+		MultiComparer(
+			StringComparer(
+				StringProperty(0, Description)
+				Ascending
+			)
+		)
+	)
+	MultiComparer(
+		StringComparer(
+			StringProperty(0, Description)
+			Ascending
+		)
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			IntegerProperty(0, Type)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! 0:Decimal ! 1:String ! 
+ | 1 | Rich suburb of Stockholm | 
+ | 1 | Small village in Sweden | 
+ | 1 | Town just north of Stockholm | 
+
+<NEXT>
+Description: Aggregate with grouping with fetch and offset
+QueryString: select count(Type), Description from Location where Type > ? group by Description fetch ? offset ?
+VariableValues: Int16:1; Int32:2; Int64:2;
+SingleObjectProjection: False
+IncludesLiteral: True
+ShouldBeReordered: False
+ExpectedExecutionPlan: 
+Tables(
+	0 = SQLTest.EmployeeDb.Location
+	1 = 
+		TemporaryType(
+			0 : String
+			1 : Decimal
+		)
+)
+Projection(
+	0 = 
+		DecimalProperty(1, 1)
+	1 = 
+		StringProperty(1, 0)
+)
+Aggregation(
+	1
+	Sort(
+		FullTableScan(
+			0
+			ComparisonNumerical(
+				GreaterThan
+				IntegerProperty(0, Type)
+				NumericalVariable(1)
+			)
+			Ascending
+		)
+		MultiComparer(
+			StringComparer(
+				StringProperty(0, Description)
+				Ascending
+			)
+		)
+	)
+	MultiComparer(
+		StringComparer(
+			StringProperty(0, Description)
+			Ascending
+		)
+	)
+	SetFunctions(
+		DecimalSetFunction(
+		COUNT
+			IntegerProperty(0, Type)
+		)
+	)
+	LogicalValue(TRUE)
+)
+
+ExpectedResult: 
+ ! 0:Decimal ! 1:String ! 
+ | 1 | Rich suburb of Stockholm | 
+ | 1 | Small village in Sweden | 

@@ -83,7 +83,7 @@ internal class AggregationNode : IOptimizationNode
         IExecutionEnumerator subEnumerator = subNode.CreateExecutionEnumerator(null, null, null);
         IQueryComparer comparer = sortSpec.CreateComparer();
         return new Aggregation(rowTypeBind, extentNumber, subEnumerator, comparer, setFunctionList, havingCondition, 
-            variableArr, query);
+            variableArr, query, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
     }
 
 #if DEBUG

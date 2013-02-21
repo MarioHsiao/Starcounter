@@ -70,6 +70,7 @@
     <Compile Include="PregeneratedRequestProcessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <None Include="Temp.cs" />
+    <Compile Include="TestNewRequestHandlers.cs" />
     <Compile Include="TestHttpRequestWriter.cs" />
     <Compile Include="TestHttpHandlers.cs" />
     <Compile Include="WebResourcesTest.cs" />

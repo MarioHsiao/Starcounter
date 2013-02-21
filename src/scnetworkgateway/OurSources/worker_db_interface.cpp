@@ -532,6 +532,8 @@ WorkerDbInterface::WorkerDbInterface(
     const core::shared_interface& shared_int,
     const int32_t worker_id)
 {
+	channels_ = 0;
+
     Reset();
 
     // Allocating channels.
