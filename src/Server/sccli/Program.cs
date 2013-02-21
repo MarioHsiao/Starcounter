@@ -93,6 +93,9 @@ namespace star {
                 // supported when using the new syntax.
                 // TODO:
 
+                ConsoleUtil.ToConsoleWithColor(
+                    string.Format("Support for command \"{0}\" is not yet implemented using the new syntax.", appArgs.Command), ConsoleColor.Red);
+
                 return;
             }
 
@@ -302,6 +305,8 @@ namespace star {
             foreach (var param in args.CommandParameters) {
                 Console.Write(param + " ");
             }
+
+            Console.WriteLine();
         }
 
         static void Ping(Client client, string[] args) {
