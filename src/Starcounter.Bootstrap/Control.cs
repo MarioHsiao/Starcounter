@@ -556,10 +556,6 @@ namespace StarcounterInternal.Bootstrap
             e = sccoredb.sccoredb_set_system_variable("OUTDIR", c.OutputDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            // TODO: What is this configuration for?
-            e = sccoredb.sccoredb_set_system_variable("ELOGDIR", c.OutputDirectory);
-            if (e != 0) throw ErrorCode.ToException(e);
-
             var callbacks = new sccoredb.sccoredb_callbacks();
             orange.orange_configure_database_callbacks(ref callbacks);
             e = sccoredb.sccoredb_set_system_callbacks(&callbacks);
