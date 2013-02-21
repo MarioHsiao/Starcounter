@@ -651,7 +651,6 @@ namespace Starcounter.CommandLine
             GivenOption givenValue;
             Dictionary<string, GivenOption> resolvedOptions;
             CommandLineSection currentSection;
-            string[] names;
             string value;
 
             resolvedOptions = new Dictionary<string, GivenOption>();
@@ -692,12 +691,9 @@ namespace Starcounter.CommandLine
                     givenValue.SpecifiedName = key;
                     givenValue.Value = value;
                     givenValue.Section = currentSection;
+                    givenValue.IsFlag = (matchingInfo.Attributes & OptionAttributes.Flag) != 0;
 
-                    names = new string[1 + matchingInfo.AlternativeNames.Length];
-                    names[0] = matchingInfo.Name;
-                    matchingInfo.AlternativeNames.CopyTo(names, 1);
-
-                    foreach (string validName in names)
+                    foreach (string validName in matchingInfo.AllNames)
                     {
                         resolvedOptions[validName] = givenValue;
                     }
