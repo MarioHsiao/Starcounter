@@ -299,6 +299,7 @@ namespace Starcounter.Server {
 
             arguments.Append('\"');
             arguments.Append(database.Uri);
+            //arguments.Append(database.Name);
             arguments.Append('\"');
             arguments.Append(' ');
 

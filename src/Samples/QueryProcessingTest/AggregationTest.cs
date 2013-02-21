@@ -84,6 +84,38 @@ namespace QueryProcessingTest {
                 nrs++;
             }
             Trace.Assert(nrs == 2);
+            // Aggregate with grouping with offset and projection
+            nrs = 0;
+            HelpMethods.PrintSlowQueryPlan("select sum(Amount), client from account where accountid < ? group by client offset ?");
+            foreach (IObjectView r in Db.SlowSQL("select sum(Amount), client from account where accountid < ? group by client offset ?", 12, 2)) {
+                Trace.Assert(r.GetDecimal(0) == 300m);
+                nrs++;
+            }
+            Trace.Assert(nrs == 2);
+            nrs = 0;
+            HelpMethods.PrintSlowQueryPlan("select count(Amount), client from account where accountid < ? group by client offset ?");
+            foreach (IObjectView r in Db.SlowSQL("select count(Amount), client from account where accountid < ? group by client offset ?", 12, 2)) {
+                Trace.Assert(r.GetDecimal(0) == 3);
+                nrs++;
+            }
+            Trace.Assert(nrs == 2);
+            nrs = 0;
+            HelpMethods.PrintSlowQueryPlan("select accountid, count(Amount) from account where accountid < ? group by accountid");
+            foreach (IObjectView r in Db.SlowSQL("select accountid, count(Amount) from account where accountid < ? group by accountid", 4)) {
+                Trace.Assert(r.GetDecimal(1) == 1);
+                Trace.Assert(r.GetInt64(0) == nrs);
+                nrs++;
+            }
+            Trace.Assert(nrs == 4);
+            nrs = 0;
+            HelpMethods.PrintSlowQueryPlan("select accountid, count(Amount) from account where accountid < ? group by accountid offset ?");
+            foreach (IObjectView r in Db.SlowSQL("select accountid, count(Amount) from account where accountid < ? group by accountid offset ?", 4, 2)) {
+                Trace.Assert(r.GetDecimal(1) == 1);
+                Trace.Assert(r.GetInt64(0) == nrs+2);
+                nrs++;
+            }
+            Trace.Assert(nrs == 2);
+            HelpMethods.PrintSlowQueryPlan("select accountid, count(Amount) from account where accountid < ? group by accountid fetch ? offsetkey ?");
         }
     }
 }
