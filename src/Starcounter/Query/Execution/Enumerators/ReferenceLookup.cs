@@ -289,6 +289,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         stringBuilder.AppendLine(tabs + 1, extentNumber.ToString());
         expression.BuildString(stringBuilder, tabs + 1);
         condition.BuildString(stringBuilder, tabs + 1);
+        base.BuildFetchString(stringBuilder, tabs + 1);
         stringBuilder.AppendLine(tabs, ")");
     }
 

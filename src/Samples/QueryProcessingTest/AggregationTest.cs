@@ -115,6 +115,7 @@ namespace QueryProcessingTest {
                 nrs++;
             }
             Trace.Assert(nrs == 2);
+            HelpMethods.PrintSlowQueryPlan("select accountid, count(Amount) from account where accountid < ? group by accountid fetch ? offsetkey ?");
         }
     }
 }

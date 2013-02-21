@@ -431,6 +431,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         }
         stringBuilder.AppendLine(tabs + 1, ")");
         condition.BuildString(stringBuilder, tabs + 1);
+        base.BuildFetchString(stringBuilder, tabs + 1);
         stringBuilder.AppendLine(tabs, ")");
     }
 

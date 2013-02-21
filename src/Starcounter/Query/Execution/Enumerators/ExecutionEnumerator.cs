@@ -467,6 +467,25 @@ internal abstract class ExecutionEnumerator
     // Concrete build string method should be defined in every execution enumerator.
     public abstract void BuildString(MyStringBuilder stringBuilder, Int32 tabs);
 
+    public void BuildFetchString(MyStringBuilder stringBuilder, Int32 tabs) {
+        if (fetchNumberExpr != null) {
+            stringBuilder.AppendLine(tabs, "Fetch Number(");
+            fetchNumberExpr.BuildString(stringBuilder, tabs + 1);
+            stringBuilder.AppendLine(tabs, ")");
+        }
+        if (fetchOffsetExpr != null)
+        {
+            stringBuilder.AppendLine(tabs, "Fetch Offset(");
+            fetchOffsetExpr.BuildString(stringBuilder, tabs+1);
+            stringBuilder.AppendLine(tabs, ")");
+        }
+        if (fetchOffsetKeyExpr != null) {
+            stringBuilder.AppendLine(tabs, "Fetch Offset Key(");
+            fetchOffsetKeyExpr.BuildString(stringBuilder, tabs+1);
+            stringBuilder.AppendLine(tabs, ")");
+        }
+    }
+
     /// <summary>
     /// Returns a string presentation of the execution enumerator including
     /// a specification of the type of the returned objects and the execution plan.
