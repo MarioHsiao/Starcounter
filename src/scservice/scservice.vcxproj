@@ -100,6 +100,9 @@
     <ClInclude Include="rapidxml.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\libs\urihelp\urihelp.vcxproj">
+      <Project>{d5f60a3b-457b-4462-8cb2-f9b12188b311}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Starcounter.ErrorCodes\scerrres\scerrres.vcxproj">
       <Project>{5a65d606-6613-4139-8853-b5f26313e4df}</Project>
     </ProjectReference>
