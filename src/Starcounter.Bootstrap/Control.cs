@@ -125,6 +125,9 @@ namespace StarcounterInternal.Bootstrap
             mem += 512;
             OnKernelMemoryConfigured();
 
+            ulong hlogs = ConfigureLogging(configuration, hmenv);
+            OnLoggingConfigured();
+
             // Initializing Apps internal HTTP request parser.
             HttpRequest.sc_init_http_parser();
 
@@ -140,9 +143,6 @@ namespace StarcounterInternal.Bootstrap
 
             // Initializing AppsBootstrapper.
             AppsBootstrapper.InitAppsBootstrapper(configuration.DefaultUserHttpPort);
-
-            ulong hlogs = ConfigureLogging(configuration, hmenv);
-            OnLoggingConfigured();
 
             ConfigureHost(configuration, hlogs);
             OnHostConfigured();
