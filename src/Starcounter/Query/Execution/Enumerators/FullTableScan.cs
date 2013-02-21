@@ -795,6 +795,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     {
         stringBuilder.AppendLine(tabs, "FullTableScan(");
         //stringBuilder.AppendLine(tabs + 1, indexHandle.ToString());
+        stringBuilder.AppendLine(tabs + 1, indexInfo.Name + " ON " + indexInfo.TableName);
         stringBuilder.AppendLine(tabs + 1, extentNumber.ToString());
         condition.BuildString(stringBuilder, tabs + 1);
         if (descending) stringBuilder.AppendLine(tabs + 1, "Descending");
