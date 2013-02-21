@@ -81,17 +81,17 @@ namespace Starcounter.Internal.Test
             const Int32 numTests = 11;
             UserHandlerParams[] paramsInfo = new UserHandlerParams[numTests]
             {
-                new UserHandlerParams(0, 0, (Byte)ArgumentTypes.ARG_INT32, 0),
-                new UserHandlerParams(0, 0, (Byte)ArgumentTypes.ARG_INT64, 0),
-                new UserHandlerParams(0, 0, (Byte)ArgumentTypes.ARG_STRING, 0),
-                new UserHandlerParams(0, 0, (Byte)ArgumentTypes.ARG_DECIMAL, 0),
-                new UserHandlerParams(0, 0, (Byte)ArgumentTypes.ARG_DOUBLE, 0),
-                new UserHandlerParams(0, 0, (Byte)ArgumentTypes.ARG_BOOLEAN, 0),
-                new UserHandlerParams(0, 0, (Byte)ArgumentTypes.ARG_DATETIME, 0),
-                new UserHandlerParams(0, 0, (Byte)ArgumentTypes.ARG_INT64, 0),
-                new UserHandlerParams(0, 0, (Byte)ArgumentTypes.ARG_DECIMAL, 0),
-                new UserHandlerParams(0, 0, (Byte)ArgumentTypes.ARG_INT32, 0),
-                new UserHandlerParams(0, 0, (Byte)ArgumentTypes.ARG_INT32, 0)
+                new UserHandlerParams(0, 0),
+                new UserHandlerParams(0, 0),
+                new UserHandlerParams(0, 0),
+                new UserHandlerParams(0, 0),
+                new UserHandlerParams(0, 0),
+                new UserHandlerParams(0, 0),
+                new UserHandlerParams(0, 0),
+                new UserHandlerParams(0, 0),
+                new UserHandlerParams(0, 0),
+                new UserHandlerParams(0, 0),
+                new UserHandlerParams(0, 0)
             };
 
             String stringParams = "123#21#hehe!#3.141#9.8#true#10-1-2009 19:34#-3853984#-03535#0001234#-000078#";
