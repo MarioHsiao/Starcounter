@@ -210,7 +210,7 @@ namespace Sc.Tools.Logging {
         private int PeekByte() {
             if (bufferPos >= 0) return buffer[bufferPos];
 
-            if (filePos == 0) {
+            while (filePos == 0) {
                 if (nextFile == files.Length) return -1;
 
                 f = new FileStream(
