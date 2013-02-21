@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <string.h>
 
+extern "C" int32_t make_sc_process_uri(const char *server_name, const char *process_name, wchar_t *buffer, size_t *pbuffer_size);
+
 #define MONITOR_INHERIT_CONSOLE 0
 #define GATEWAY_INHERIT_CONSOLE 0
 #define SCDATA_INHERIT_CONSOLE 0
@@ -28,6 +30,7 @@ VOID SCAPI LogGatewayCrash(VOID *pc, LPCWSTR str)
     LogWriteCritical(str);
 }
 
+
 int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 {
     // Catching all unhandled exceptions in this thread.
@@ -38,7 +41,8 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 
     uint32_t r;
 
-    wchar_t *srv_name = L"PERSONAL";
+    const wchar_t *srv_name = L"PERSONAL";
+	const char *srv_name_ascii = "PERSONAL";
 
     if (argc > 1)
     {
@@ -88,6 +92,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
         goto end;
     
     const wchar_t *admin_dbname = L"administrator";	
+    const char *admin_dbname_ascii = "administrator";	
 	const wchar_t *mingw = L"MinGW\\bin\\x86_64-w64-mingw32-gcc.exe";
 
 #ifdef WITH_DATABASE
@@ -105,6 +110,9 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 
     wchar_t *srv_name_upr;
     wchar_t *admin_dbname_upr;
+#ifdef WITH_DATABASE
+    wchar_t *admin_dburi;
+#endif
     const wchar_t *str_template;
     size_t str_num_chars, str_size_bytes;
 
@@ -138,6 +146,14 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 
     wcscpy_s(admin_dbname_upr, str_num_chars, admin_dbname);
     _wcsupr_s(admin_dbname_upr, str_num_chars);
+
+#ifdef WITH_DATABASE
+	str_num_chars = 0;
+	make_sc_process_uri(srv_name_ascii, admin_dbname_ascii, 0, &str_num_chars);
+    admin_dburi = (wchar_t *)malloc(str_num_chars * sizeof(wchar_t));
+    if (!admin_dburi) goto err_nomem;
+	make_sc_process_uri(srv_name_ascii, admin_dbname_ascii, admin_dburi, &str_num_chars);
+#endif
 
     str_template = L"SCSERVICE_%s";
     str_num_chars = 
@@ -185,7 +201,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     if (r) goto end;
 
     // Registering the logger.
-    r = OpenStarcounterLog(server_logs_dir);
+    r = OpenStarcounterLog(srv_name_ascii, server_logs_dir);
     if (r) goto end;
 
 	// Creating path to the database configuration file.
@@ -271,7 +287,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     str_num_chars = 
 		wcslen(str_template) + 
 		wcslen(admin_dbname_upr) +	// database name uppercase
-		wcslen(admin_dbname) +		// database uri
+		wcslen(admin_dburi) +		// database uri
 		wcslen(server_logs_dir) + 
 		1;
 
@@ -279,7 +295,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     scdata_cmd = (wchar_t *)malloc(str_size_bytes);
     if (!scdata_cmd) goto err_nomem;
 
-	swprintf(scdata_cmd, str_num_chars, str_template, admin_dbname_upr, admin_dbname, server_logs_dir);
+	swprintf(scdata_cmd, str_num_chars, str_template, admin_dbname_upr, admin_dburi, server_logs_dir);
 #endif
 	// Creating sccode command
 	str_num_chars = 0;

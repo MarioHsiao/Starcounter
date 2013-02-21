@@ -38,11 +38,7 @@ extern "C" void __stdcall sccoredbh_thread_leave(void* hsched, uint8_t cpun, voi
 extern "C" void __stdcall sccoredbh_thread_reset(void* hsched, uint8_t cpun, void* p)
 {
     uint32_t r = SCResetThread();
-    if (r == 0)
-    {
-        sccorelog_new_activity();
-        return;
-    }
+    if (r == 0) return;
     _fatal_error(r);
 }
 

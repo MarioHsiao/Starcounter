@@ -42,10 +42,10 @@
         </div>
 
         <div class="btn-group" bs-buttons-checkbox>
-            <button type="button" class="btn" ng-model="FilterDebug$">Debug ({{Summary.Debug}})</button>
-            <button type="button" class="btn" ng-model="FilterNotice$">Notice ({{Summary.Notice}})</button>
-            <button type="button" class="btn btn-warning" ng-model="FilterWarning$">Warning ({{Summary.Warning}})</button>
-            <button type="button" class="btn btn-danger" ng-model="FilterError$">Error ({{Summary.Errors}})</button>
+            <button type="button" class="btn" ng-model="FilterDebug$">Debug</button>
+            <button type="button" class="btn" ng-model="FilterNotice$">Notice</button>
+            <button type="button" class="btn btn-warning" ng-model="FilterWarning$">Warning</button>
+            <button type="button" class="btn btn-danger" ng-model="FilterError$">Error</button>
         </div>
 
     </div>
@@ -57,12 +57,9 @@
             <tr>
                 <th>Date</th>
                 <th>Type</th>
-                <th>Message</th>
-                <!--<th>Category</th>-->
-                <th>Machine</th>
-                <th>Server</th>
+                <th>HostName</th>
                 <th>Source</th>
-                <th>UserName</th>
+                <th>Message</th>
             </tr>
 
         </thead>
@@ -71,12 +68,9 @@
             <tr ng-class="entry.TypeStr" ng-repeat="entry in LogEntries">
                 <td class="log_datetime">{{entry.DateTimeStr}}</td>
                 <td>{{entry.TypeStr}}</td>
-                <td>{{entry.Message}}</td>
-                <!--<td>{{entry.Category}}</td>-->
-                <td>{{entry.MachineName}}</td>
-                <td>{{entry.ServerName}}</td>
+                <td>{{entry.HostName}}</td>
                 <td>{{entry.Source}}</td>
-                <td>{{entry.UserName}}</td>
+                <td>{{entry.Message}}</td>
             </tr>
         </tbody>
 
