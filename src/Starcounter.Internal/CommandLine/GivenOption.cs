@@ -31,9 +31,6 @@ namespace Starcounter.CommandLine
         /// a flag.
         /// </summary>
         /// <value><c>true</c> if this instance is flag; otherwise, <c>false</c>.</value>
-        internal bool IsFlag
-        {
-            get { return string.IsNullOrEmpty(this.Value); }
-        }
+        internal bool IsFlag;
     }
 }
