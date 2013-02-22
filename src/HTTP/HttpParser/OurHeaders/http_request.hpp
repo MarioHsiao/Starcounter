@@ -13,8 +13,14 @@ const int32_t MAX_HTTP_HEADERS = 16;
 // Starcounter session string in HTTP.
 const char* const kScSessionIdStringWithExtraChars = "ScSsnId: ";
 const int32_t kScSessionIdStringWithExtraCharsLength = (int32_t)strlen(kScSessionIdStringWithExtraChars);
-const char* const kScFullSessionIdString = "ScSsnId: ########################";
-const int32_t kScFullSessionIdStringLength = (int32_t)strlen(kScFullSessionIdString);
+
+const char* const kFullSessionIdString = "ScSsnId: ########################";
+const char* const kFullSessionIdSetCookieString = "Set-Cookie: ScSsnId=########################\r\n";
+const int32_t kFullSessionIdSetCookieStringLength = (int32_t)strlen(kFullSessionIdSetCookieString);
+
+const int32_t kSetCookieStringPrefixLength = (int32_t)strlen("Set-Cookie: ScSsnId=");
+
+const int32_t kFullSessionIdStringLength = (int32_t)strlen(kFullSessionIdString);
 
 // Session string length in characters.
 const int32_t SC_SESSION_STRING_LEN_CHARS = 24;
