@@ -1049,7 +1049,7 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 	// Get the scheduler_number the channel is to be released via.
 	uint32_t the_scheduler_number = client_interface_ptr->get_resource_map()
 	.get_scheduler_number_for_owned_channel_number(the_channel_index);
-	
+
 	// Mark the channel as not owned.
 	client_interface_ptr->clear_channel_flag(the_scheduler_number,
 	the_channel_index);
@@ -1081,11 +1081,9 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 			/// Notify the IPC monitor to release all chunks in this
 			/// client_interface, making them available for anyone to allocate.
 			///=================================================================
-			std::cout << "TODO: Notify the IPC monitor to release all chunks in this client_interface." << std::endl;
+
 			int32_t database_cleanup_index = client_interface_ptr
 			->database_cleanup_index();
-
-			std::cout << "database_cleanup_index: " << database_cleanup_index << std::endl;
 
 			if (database_cleanup_index != -1) {
 				try {
@@ -1093,24 +1091,8 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 					monitor_interface_ptr the_monitor_interface
 					(common_scheduler_interface_->monitor_interface_name());
 
-					the_monitor_interface->set_cleanup_flag(database_cleanup_index);
-					
-					// A fence to make sure the cleanup flag is set before setting the event.
-					// May not be neccessary.
-					_mm_mfence();
-
-					// Notify the IPC monitor to do the rest of the cleanup
-					// (releasing chunks and the client_interface.)
-					if (::SetEvent(ipc_monitor_cleanup_event())) {
-						// Successfully notified the ipc monitor to do cleanup.
-						std::cout << "server_port::do_release_channel(): "
-						"Successfully notified the ipc monitor to do cleanup." << std::endl;
-					}
-					else {
-						// Error. Failed to notify the ipc monitor to do cleanup.
-						std::cout << "server_port::do_release_channel(): "
-						"Failed to notify the ipc monitor to do cleanup." << std::endl;
-					}
+					the_monitor_interface->set_cleanup_flag(database_cleanup_index,
+					ipc_monitor_cleanup_event());
 				}
 				catch (...) {
 					// OK, what to do? Failed to open the monitor_interface, chunks will not be
@@ -1122,27 +1104,6 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 				std::cout << "error: no database_cleanup_index set." << std::endl;
 			}
 			
-#if 0 /// ==== THE REST BELOW THIS LINE SHALL BE DONE BY THE IPC MONITOR INSTEAD ====
-			bool release_chunk_result = release_clients_chunks
-			(client_interface_ptr, 10000 /* milliseconds */);
-			
-			/// BUG!? Why not clear the resource map here?
-
-			// Release the client_interface[the_client_number].
-			client_interface_ptr->set_owner_id(owner_id::none);
-			
-#if defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-			bool release_client_number_res =
-			common_client_interface_->release_client_number(the_client_number,
-			client_interface_ptr, get_owner_id());
-#else // !defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-			bool release_client_number_res =
-			common_client_interface_->release_client_number(the_client_number,
-			client_interface_ptr);
-#endif // defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-			
-			common_client_interface_->decrement_client_interfaces_to_clean_up();
-#endif /// ==== THE REST BELOW THIS LINE SHALL BE DONE BY THE IPC MONITOR INSTEAD ====
 #else // !defined (IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP)
 			///=================================================================
 			/// Release all chunks in this client_interface, making them
@@ -1307,7 +1268,7 @@ void server_port::release_channel_marked_for_release(channel_number the_channel_
 		// Get the scheduler_number the channel is to be released via.
 		uint32_t the_scheduler_number = client_interface_ptr->get_resource_map()
 		.get_scheduler_number_for_owned_channel_number(the_channel_index);
-	
+		
 		// Mark the channel as not owned.
 		client_interface_ptr->clear_channel_flag(the_scheduler_number,
 		the_channel_index);

@@ -60,6 +60,13 @@ unsigned long initialize(const char* segment_name, const char* server_name, std:
 is_system, uint32_t chunks_total_number) try {
 	using namespace starcounter::core;
 
+	if (chunks_total_number > chunks_total_number_max) {
+		std::cout << "Warning: Setting number of chunks from the requested "
+		<< chunks_total_number << " to " << chunks_total_number_max << "." << std::endl;
+		
+		chunks_total_number = chunks_total_number_max;
+	}
+
 	//--------------------------------------------------------------------------
 	// if (strlen(segment_name) > 31) return;
 	
