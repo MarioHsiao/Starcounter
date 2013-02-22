@@ -26,6 +26,11 @@ namespace Starcounter.Query.Execution
                 throw new NotImplementedException("DbTypeCode is not implemented for CodeGenFilterNode");
             }
         }
+
+        /// <summary>
+        /// Gets if code gen can be applied to the node. For example, code properties and conditions involving them cannot be code gen.
+        /// </summary>
+        public abstract Boolean CanCodeGen { get; }
         
         /// <summary>
         /// Examines if the value of the expression is null when evaluated on an input object.

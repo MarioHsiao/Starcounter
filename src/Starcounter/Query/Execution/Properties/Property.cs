@@ -39,6 +39,14 @@ internal abstract class Property : CodeGenFilterNode, IProperty
         }
     }
 
+    public override bool CanCodeGen {
+        get {
+            if (propBinding is PropertyBinding)
+                return (propBinding as PropertyBinding).GetDataIndex() > -1;
+            else return false;
+        }
+    }
+
     public Boolean InvolvesCodeExecution()
     {
         return (propBinding.Index == -1);
