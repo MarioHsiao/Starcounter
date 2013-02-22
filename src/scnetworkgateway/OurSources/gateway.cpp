@@ -813,7 +813,9 @@ uint32_t Gateway::AssertCorrectState()
     GW_ASSERT(sizeof(ScSessionStructPlus) == 64);
 
     // Checking HTTP related fields.
-    GW_ASSERT(kScFullSessionIdStringLength == (SC_SESSION_STRING_LEN_CHARS + kScSessionIdStringWithExtraCharsLength));
+    GW_ASSERT(kFullSessionIdStringLength == (SC_SESSION_STRING_LEN_CHARS + kScSessionIdStringWithExtraCharsLength));
+    GW_ASSERT(kSetCookieStringPrefixLength == 20);
+    GW_ASSERT(kFullSessionIdSetCookieStringLength == 46);
 
     int64_t accept_8bytes = *(int64_t*)"Accept: ";
     int64_t accept_enc_8bytes = *(int64_t*)"Accept-E";
@@ -2784,22 +2786,42 @@ uint32_t Gateway::AddSubPortHandler(
         db_index);
 }
 
+extern "C" int32_t make_sc_process_uri(const char *server_name, const char *process_name, wchar_t *buffer, size_t *pbuffer_size);
+extern "C" int32_t make_sc_server_uri(const char *server_name, wchar_t *buffer, size_t *pbuffer_size);
+
 // Opens Starcounter log for writing.
 uint32_t Gateway::OpenStarcounterLog()
 {
-    uint32_t err_code = sccorelog_init(0);
-    if (err_code)
-        return err_code;
+	size_t host_name_size;
+	wchar_t *host_name;
+	uint32_t err_code;
 
-    err_code = sccorelog_connect_to_logs(GW_PROGRAM_NAME, NULL, &sc_log_handle_);
-    if (err_code)
-        return err_code;
+	host_name_size = 0;
+//	make_sc_server_uri(setting_sc_server_type_.c_str(), 0, &host_name_size);
+	make_sc_process_uri(setting_sc_server_type_.c_str(), GW_PROCESS_NAME, 0, &host_name_size);
+	host_name = (wchar_t *)malloc(host_name_size * sizeof(wchar_t));
+	if (host_name)
+	{
+//		make_sc_server_uri(setting_sc_server_type_.c_str(), host_name, &host_name_size);
+		make_sc_process_uri(setting_sc_server_type_.c_str(), GW_PROCESS_NAME, host_name, &host_name_size);
 
-    err_code = sccorelog_bind_logs_to_dir(sc_log_handle_, setting_server_output_dir_.c_str());
-    if (err_code)
-        return err_code;
+		err_code = sccorelog_init(0);
+		if (err_code) goto err;
 
-    return 0;
+		err_code = sccorelog_connect_to_logs(host_name, NULL, &sc_log_handle_);
+		if (err_code) goto err;
+
+		err_code = sccorelog_bind_logs_to_dir(sc_log_handle_, setting_server_output_dir_.c_str());
+		if (err_code) goto err;
+
+		goto end;
+	}
+	
+	err_code = SCERROUTOFMEMORY;
+err:
+end:
+	if (host_name) free(host_name);
+	return err_code;
 }
 
 // Closes Starcounter log.
@@ -2813,7 +2835,7 @@ void Gateway::CloseStarcounterLog()
 // Write critical into log.
 void Gateway::LogWriteCritical(const wchar_t* msg)
 {
-    uint32_t err_code = sccorelog_kernel_write_to_logs(sc_log_handle_, SC_ENTRY_CRITICAL, msg);
+    uint32_t err_code = sccorelog_kernel_write_to_logs(sc_log_handle_, SC_ENTRY_CRITICAL, 0, msg);
 
     GW_ASSERT(0 == err_code);
 
@@ -2825,7 +2847,7 @@ void Gateway::LogWriteCritical(const wchar_t* msg)
 // Write error into log.
 void Gateway::LogWriteError(const wchar_t* msg)
 {
-    uint32_t err_code = sccorelog_kernel_write_to_logs(sc_log_handle_, SC_ENTRY_ERROR, msg);
+    uint32_t err_code = sccorelog_kernel_write_to_logs(sc_log_handle_, SC_ENTRY_ERROR, 0, msg);
 
     GW_ASSERT(0 == err_code);
 

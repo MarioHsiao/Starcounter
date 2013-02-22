@@ -105,6 +105,15 @@ internal class ObjectThis : CodeGenFilterNode, IObjectExpression, IProperty
         }
     }
 
+    /// <summary>
+    /// Always true
+    /// </summary>
+    public override bool CanCodeGen {
+        get {
+                return true;
+        }
+    }
+
     public Boolean InvolvesCodeExecution()
     {
         return false;

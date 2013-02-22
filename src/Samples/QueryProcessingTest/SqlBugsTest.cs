@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Diagnostics;
 using Starcounter;
 
@@ -32,6 +33,8 @@ namespace QueryProcessingTest {
                 nrs++;
             Trace.Assert(nrs == 20);
             TestOffsetkeyWithSorting();
+            // See simple aggregate plan. Try to get aggregate node on top
+            HelpMethods.PrintSlowQueryPlan("select sum(amount) from account");
         }
 
         public static void TestOffsetkeyWithSorting() {
@@ -39,6 +42,7 @@ namespace QueryProcessingTest {
             Byte[] offsetKey = null;
 
             // Starting some SQL query.
+            HelpMethods.PrintQueryPlan("SELECT a FROM Account a ORDER BY a.accountid FETCH ?");
             using (var sqlEnum = Db.SQL("SELECT a FROM Account a ORDER BY a.accountid FETCH ?", 5).GetEnumerator()) {
                 for (Int32 i = 0; i < 5; i++) {
                     sqlEnum.MoveNext();
@@ -47,12 +51,12 @@ namespace QueryProcessingTest {
 
                 // Fetching the offset key.
                 offsetKey = sqlEnum.GetOffsetKey();
-                if (offsetKey == null)
-                    throw new Exception("GetOffsetKey failed...");
+                Trace.Assert(offsetKey != null);
                 Trace.Assert(!sqlEnum.MoveNext());
             }
 
             // Now recreating the enumerator state using the offset key.
+            HelpMethods.PrintQueryPlan("SELECT a FROM Account a ORDER BY a.accountid FETCH ? OFFSETKEY ?");
             using (var sqlEnum = Db.SQL("SELECT a FROM Account a ORDER BY a.accountid FETCH ? OFFSETKEY ?", 10, offsetKey).GetEnumerator()) {
                 for (Int32 i = 0; i < 10; i++) {
                     sqlEnum.MoveNext();
@@ -86,5 +90,6 @@ namespace QueryProcessingTest {
             }
 #endif
         }
+
     }
 }

@@ -304,38 +304,33 @@ namespace HttpStructs
         */
 
         /// <summary>
+        /// SessionIdStub
+        /// </summary>
+        public const String SessionIdStub = "########################";
+
+        /// <summary>
+        /// SessionIdName
+        /// </summary>
+        public const String SessionIdName = "ScSsnId";
+
+        /// <summary>
         /// SessionIdHeaderStubString_.
         /// </summary>
-        static String SessionIdHeaderStubString_ = "ScSsnId: ########################";
+        public const String SessionIdHeaderPlusEndLineStubString = SessionIdName + ": " + SessionIdStub + "\r\n";
+
+        /// <summary>
+        /// SessionIdCookieStubString_
+        /// </summary>
+        public const String SessionIdCookiePlusEndlineStubString = "Set-Cookie: " + SessionIdName + "=" + SessionIdStub + "\r\n";
 
         /// <summary>
         /// SessionIdHeaderPlusEndlineStubBytes_.
         /// </summary>
-        static Byte[] SessionIdHeaderPlusEndlineStubBytes_ = System.Text.Encoding.UTF8.GetBytes(SessionIdHeaderStubString_ + "\r\n");
-        
-        /// <summary>
-        /// Returns constant session header stub.
-        /// </summary>
-        /// <returns></returns>
-        public String SessionHeaderStubString
-        {
-            get
-            {
-                return SessionIdHeaderStubString_;
-            }
-        }
+        public static readonly Byte[] SessionIdHeaderPlusEndlineStubBytes = System.Text.Encoding.UTF8.GetBytes(SessionIdHeaderPlusEndLineStubString);
 
         /// <summary>
-        /// SessionHeaderPlusEndlineStubBytes.
+        /// SessionIdHeaderPlusEndlineStubBytes_.
         /// </summary>
-        public Byte[] SessionHeaderPlusEndlineStubBytes
-        {
-            get
-            {
-                return SessionIdHeaderPlusEndlineStubBytes_;
-            }
-        }
+        public static readonly Byte[] SessionIdCookiePlusEndlineStubBytes = System.Text.Encoding.UTF8.GetBytes(SessionIdCookiePlusEndlineStubString);
     }
-
-    
 }
