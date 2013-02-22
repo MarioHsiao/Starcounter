@@ -58,6 +58,18 @@ internal class ComparisonDateTime : CodeGenFilterNode, IComparison
             return compOperator;
         }
     }
+    /// <summary>
+    /// Gets if both expressions can code gen.
+    /// </summary>
+    public override bool CanCodeGen {
+        get {
+            if ((expr1 is CodeGenFilterNode) && (expr2 is CodeGenFilterNode))
+                return (expr1 as CodeGenFilterNode).CanCodeGen && (expr2 as CodeGenFilterNode).CanCodeGen;
+            else
+                return false;
+        }
+    }
+
 
     public Boolean InvolvesCodeExecution()
     {

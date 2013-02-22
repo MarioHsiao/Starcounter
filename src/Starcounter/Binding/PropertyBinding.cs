@@ -19,7 +19,7 @@ namespace Starcounter.Binding
     {
 
         /// <summary>
-        /// The _data index
+        /// Index of column if representing a database column. -1 otherwise.
         /// </summary>
         internal Int32 _dataIndex;
         /// <summary>
@@ -348,9 +348,9 @@ namespace Starcounter.Binding
         }
 
         /// <summary>
-        /// Gets the index of the data.
+        /// Gets the Index of column if representing a database column. -1 otherwise.
         /// </summary>
-        /// <returns>Int32.</returns>
+        /// <returns>the index of column if so</returns>
         internal Int32 GetDataIndex()
         {
             return _dataIndex;

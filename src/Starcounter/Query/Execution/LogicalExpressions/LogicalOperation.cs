@@ -81,6 +81,18 @@ internal class LogicalOperation : CodeGenFilterNode, ILogicalExpression
         }
     }
 
+    /// <summary>
+    /// Gets if both conditions can code gen.
+    /// </summary>
+    public override bool CanCodeGen {
+        get {
+            if ((condition1 is CodeGenFilterNode) && (condition2 is CodeGenFilterNode))
+                return (condition1 as CodeGenFilterNode).CanCodeGen && (condition2 as CodeGenFilterNode).CanCodeGen;
+            else
+                return false;
+        }
+    }
+
     // Needed for Creator.TransformLogicalExpressionIntoList(ILogicalExpression, List<ILogicalExpression>).
     internal ILogicalExpression Expression1
     {
