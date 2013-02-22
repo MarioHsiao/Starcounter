@@ -41,6 +41,17 @@ function ngAppFactory() {
           }
         }
 
+        function readSpecificCookie(name) {
+            name += '=';
+            var parts = document.cookie.split(/;\s*/);
+            for (var i = 0; i < parts.length; i++) {
+                var part = parts[i];
+                if (part.indexOf(name) == 0)
+                    return part.substring(name.length)
+            }
+            return null;
+        }
+
         function parseViewModelId(scope) {
           var meta = document.getElementsByTagName('meta');
           for (var i = 0, ilen = meta.length; i < ilen; i++) {
@@ -48,10 +59,8 @@ function ngAppFactory() {
               scope['View-Model'] = angular.element(meta[i]).attr('content');
               //break;
             }
-            if (angular.element(meta[i]).attr('name') == 'ScSsnId') {
-                scope['ScSsnId'] = angular.element(meta[i]).attr('content');
-            }
           }
+          //scope['ScSsnId'] = readSpecificCookie('ScSsnId');
         }
 
         function getRoot(scope) {

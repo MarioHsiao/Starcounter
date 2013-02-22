@@ -762,7 +762,7 @@ ALL_DATA_ACCUMULATED:
         if (sd->get_new_session_flag())
         {
             // New session cookie was created so searching for it.
-            char* session_cookie = strstr((char*)sd->get_data_blob(), kScFullSessionIdString);
+            char* session_cookie = strstr((char*)sd->get_data_blob(), kFullSessionIdSetCookieString);
             if (NULL == session_cookie)
             {
                 // Destroying the socket data since session cookie is not embedded.
@@ -770,7 +770,7 @@ ALL_DATA_ACCUMULATED:
             }
 
             // Skipping cookie header and equality symbol.
-            session_cookie += kScSessionIdStringWithExtraCharsLength;
+            session_cookie += kSetCookieStringPrefixLength;
 
             // Getting session global copy.
             ScSessionStruct global_session_copy = g_gateway.GetGlobalSessionDataCopy(sd->get_session_index());
@@ -785,10 +785,6 @@ ALL_DATA_ACCUMULATED:
             // Session has been created.
             sd->set_new_session_flag(false);
         }
-
-        // NOTE: Just checking for correct behavior for sessions.
-        char* session_cookie = strstr((char*)sd->get_data_blob(), kScFullSessionIdString);
-        GW_ASSERT(NULL == session_cookie);
 
         // Prepare buffer to send outside.
         sd->get_accum_buf()->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_written_bytes());

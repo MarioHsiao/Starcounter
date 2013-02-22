@@ -7,6 +7,8 @@ namespace QueryProcessingTest {
             RunQueryProcessingTest();
             SqlBugsTest.QueryTests();
             FetchTest.RunFetchTest();
+            AggregationTest.RunAggregationTest();
+            CodePropertiesTesting.TestCodeProperties();
         }
 
         static void RunQueryProcessingTest() {
