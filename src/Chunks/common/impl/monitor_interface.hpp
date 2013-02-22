@@ -505,7 +505,6 @@ spinlock_() {
 inline int32_t monitor_interface::cleanup_task::insert_segment_name
 (const char* segment_name) {
 	smp::spinlock::scoped_lock lock(spinlock());
-	std::cout << "insert_segment_name(): segment_name_mask = " << segment_name_mask_ << std::endl;
 
 	// bit_scan_forward() returns a valid index if at least one bit is set.
 	if (~segment_name_mask_) {
@@ -515,39 +514,42 @@ inline int32_t monitor_interface::cleanup_task::insert_segment_name
 
 		// Successfully acquired an index. Inserting the segment name.
 		std::strcpy(segment_name_[i], segment_name);
-		std::cout << "inserted segment name: segment_name_mask = " << segment_name_mask_ << std::endl;
 		return i;
 	}
 	else {
 		// Trying to insert more segment name's than can fit. A bug.
-		std::cout << "insert_segment_name(): Trying to insert more segment name's than can fit. <A>" << std::endl;
 		return -1;
 	}
 }
 
 inline void monitor_interface::cleanup_task::erase_segment_name
-(const char* segment_name) {
+(const char* segment_name, HANDLE ipc_monitor_cleanup_event) {
 	smp::spinlock::scoped_lock lock(spinlock());
-	std::cout << "erase_segment_name(): segment_name_mask = " << segment_name_mask_ << std::endl;
 
 	for (cleanup_task::mask_type segment_name_mask = segment_name_mask_;
 	segment_name_mask; segment_name_mask &= segment_name_mask -1) {
 		int32_t i = bit_scan_forward(segment_name_mask);
 		if (!std::strcmp(segment_name_[i], segment_name)) {
-			std::cout << "erasing segment name[" << i << "]: " << segment_name_[i] << std::endl;
-			segment_name_[i][0] = '\0';
+			*segment_name_[i] = 0;
 			segment_name_mask_ &= ~(1ULL << i);
+			
+			if ((cleanup_mask_ &= ~(1ULL << i)) == 0) {
+				::ResetEvent(ipc_monitor_cleanup_event);
+			}
 		}
 	}
 }
 
-inline const char* monitor_interface::cleanup_task::get_a_segment_name() {
+inline const char* monitor_interface::cleanup_task::get_a_segment_name(HANDLE ipc_monitor_cleanup_event) {
 	smp::spinlock::scoped_lock lock(spinlock());
 
 	// bit_scan_forward() returns a valid index if at least one bit is set.
 	if (cleanup_mask_) {
 		int32_t i = bit_scan_forward(cleanup_mask_);
-		cleanup_mask_ &= ~(1ULL << i);
+
+		if ((cleanup_mask_ &= ~(1ULL << i)) == 0) {
+			::ResetEvent(ipc_monitor_cleanup_event);
+		}
 
 		// Found a segment_name.
 		return segment_name_[i];
@@ -558,9 +560,18 @@ inline const char* monitor_interface::cleanup_task::get_a_segment_name() {
 	}
 }
 
-inline void monitor_interface::cleanup_task::set_cleanup_flag(int32_t index) {
+inline void monitor_interface::cleanup_task::set_cleanup_flag(int32_t index, HANDLE ipc_monitor_cleanup_event) {
 	smp::spinlock::scoped_lock lock(spinlock());
 	cleanup_mask_ |= 1ULL << index;
+
+	// Notify the IPC monitor to do the rest of the cleanup
+	// (releasing chunks and the client_interface.)
+	if (::SetEvent(ipc_monitor_cleanup_event)) {
+		// Successfully notified the IPC monitor to do cleanup.
+	}
+	else {
+		// Error. Failed to notify the IPC monitor to do cleanup.
+	}
 }
 
 inline uint64_t monitor_interface::cleanup_task::get_cleanup_flag() {

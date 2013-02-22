@@ -385,7 +385,8 @@ void monitor::wait_for_database_process_event(std::size_t group) {
 
 								// Erase the segment name from the cleanup_task table.
 								the_monitor_interface_->erase_segment_name
-								(process_register_it_2->second.get_segment_name().c_str());
+								(process_register_it_2->second.get_segment_name().c_str(),
+								ipc_monitor_cleanup_event_);
 
 								try {
 									// Try open the segment.
@@ -710,9 +711,10 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 								int32_t cleanup_task_index = the_monitor_interface_
 								->insert_segment_name(process_register_it_2->second.get_segment_name().c_str());
 
-								if (cleanup_task_index == -1) {
-									std::cout << "Could not insert segment name. Bug!" << std::endl;
-								}
+								// TODO: Error handling.
+								//if (cleanup_task_index == -1) {
+								//	std::cout << "Could not insert segment name. Bug!" << std::endl;
+								//}
 
 								shared_interface shared(process_register_it_2
 								->second.get_segment_name(), std::string(),
@@ -1092,8 +1094,7 @@ void monitor::registrar() {
 void monitor::cleanup() {
 	/// TODO: Shutdown mechanism.
 	while (true) {
-		////std::cout << "monitor::cleanup(): Nothing to cleanup. Waiting. . ." << std::endl;
-		
+		////std::cout << "monitor::cleanup(): WaitForSingleObject..." << std::endl;
 		switch (::WaitForSingleObject(ipc_monitor_cleanup_event_, INFINITE)) {
 		case WAIT_OBJECT_0:
 			// A database is done with recovering the channels and have notified
@@ -1104,7 +1105,9 @@ void monitor::cleanup() {
 				////<< the_monitor_interface_->get_cleanup_flag() << std::endl;
 
 				const char* segment_name_to_be_opened;
-				segment_name_to_be_opened = the_monitor_interface_->get_a_segment_name();
+				segment_name_to_be_opened = the_monitor_interface_
+				->get_a_segment_name(ipc_monitor_cleanup_event_);
+
 				if (segment_name_to_be_opened) {
 					try {
 						shared_interface shared(segment_name_to_be_opened,
@@ -1122,52 +1125,60 @@ void monitor::cleanup() {
 						///=====================================================
 						
 						// Now, when the IPC monitor cleanup thread have opened
-						// an ipc shared memory segment that need cleanup, it
+						// an IPC shared memory segment that need cleanup, it
 						// may find one or several client interfaces marked for
-						// cleanup.
+						// cleanup, including those that scheduler's are not
+						// finnished with doing cleanup.
 
-						std::size_t channels_to_recover = 0;
-						
 						// For each client_interface, find the ones that
 						// have the owner_id_of_terminated_process.
 						for (std::size_t n = 0; n < max_number_of_clients; ++n) {
 							if (shared.client_interface(n).get_owner_id().get_clean_up()) {
-								////std::cout << "client_interface(" << n << ") is marked for cleanup. But is it ready?" << std::endl;
-								 
 								client_interface_type* client_interface_ptr
 								= &shared.client_interface(n);
 								
 								_mm_mfence();
 
-								if (client_interface_ptr->allocated_channels() == 0) {
+								// Spin until number of allocated channels is 0. TODO: This is uggly.
+								// I think it can be removed and instead test if channels is 0 and if not
+								// just take the next cleanup task, etc.
+								while (client_interface_ptr->allocated_channels() != 0) {
+									_mm_pause();
+								}
+								
+								//if (client_interface_ptr->allocated_channels() == 0) {
 									// Ready to release chunks.
 									////std::cout << "Releasing chunks in client_interface " << n << "." << std::endl;
 
 									bool release_chunk_result = shared.shared_chunk_pool()
 									.release_clients_chunks(client_interface_ptr, 10000 /* milliseconds */);
-									
-									////std::cout << "release_chunk_result = " << release_chunk_result << std::endl;
-									////std::cout << "Releasing client_interface " << n << "." << std::endl;
-									
-									// Release the client_interface[n].
-									client_interface_ptr->set_owner_id(owner_id::none); /// "21"
-#if defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+								
+									/// Release client_interface[n].
+
+									client_interface_ptr->set_owner_id(owner_id::none);
+
+	#if defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 									bool release_client_number_res =
 									shared.common_client_interface().release_client_number
-									(n, &shared.client_interface(0), get_owner_id()); /// "22"
-#else // !defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+									(n, &shared.client_interface(0), get_owner_id());
+	#else // !defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 									bool release_client_number_res =
 									shared.common_client_interface().release_client_number
-									(n, &shared.client_interface(0)); /// "22"
-#endif // defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+									(n, &shared.client_interface(0));
+	#endif // defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+								
 									////std::cout << "release_client_number_res = " << release_client_number_res << std::endl;
-								}
-								else {
-									////std::cout << "Not ready to release chunks and client_interface." << std::endl;
-								}
-							} // Found a client_interface that needs cleanup.
-						} // For each client_interface
-						///-----------------------------------------------------
+
+									shared.common_client_interface().decrement_client_interfaces_to_clean_up();
+
+									//std::cout << "client_interfaces_to_clean_up: "
+									//<< shared.common_client_interface().client_interfaces_to_clean_up()
+									//<< ", allocated_channels: "
+									//<< client_interface_ptr->allocated_channels()
+									//<< std::endl;
+								//}
+							}
+						}
 					}
 					catch (shared_interface_exception&) {
 						////std::cout << "monitor::cleanup(): shared_interface_exception - failed to open the database shared memory segment "
@@ -1178,12 +1189,7 @@ void monitor::cleanup() {
 					////std::cout << "No segment_name_to_be_opened." << std::endl;
 				}
 				// If queue is empty, ::ResetEvent(ipc_monitor_clean_up_event);
-
-				////std::cout << "monitor::cleanup(): TODO: Recover chunks." << std::endl;
-				////std::cout << "monitor::cleanup(): TODO: Recover client_interface." << std::endl;
 			}
-			/// TODO: Think about how to safely reset the event. This probably won't work.
-			::ResetEvent(ipc_monitor_cleanup_event_);
 			break;
 		case WAIT_TIMEOUT:
 			// The IPC monitor was not notified. A timeout occurred.

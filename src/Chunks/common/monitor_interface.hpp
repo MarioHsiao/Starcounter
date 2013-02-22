@@ -126,18 +126,20 @@ public:
 	/// to erase segment names of terminated database processes.
 	/**
 	 * @param segment_name The name of the IPC shared memory segment.
+	 * @param ipc_monitor_cleanup_event Event to be reset if no more cleanup tasks.
 	 */
-	void erase_segment_name(const char* segment_name) {
-		cleanup_task_.erase_segment_name(segment_name);
+	void erase_segment_name(const char* segment_name, HANDLE ipc_monitor_cleanup_event) {
+		cleanup_task_.erase_segment_name(segment_name, ipc_monitor_cleanup_event);
 	}
 
 	/// get_a_segment_name() is used by the monitor::cleanup() thread trying to get
 	/// a segment name, which it will use to open it and do the rest of the cleanup.
 	/**
+	 * @param ipc_monitor_cleanup_event Event to be reset if no more cleanup tasks.
 	 * @return The segment_name, otherwise 0 if there are no segment names stored.
 	 */
-	const char* get_a_segment_name() {
-		return cleanup_task_.get_a_segment_name();
+	const char* get_a_segment_name(HANDLE ipc_monitor_cleanup_event) {
+		return cleanup_task_.get_a_segment_name(ipc_monitor_cleanup_event);
 	}
 
 	void print_segment_name_list() {
@@ -150,8 +152,17 @@ public:
 		}
 	}
 
-	void set_cleanup_flag(int32_t index) {
-		return cleanup_task_.set_cleanup_flag(index);
+	/// set_cleanup_flag() is used by the last scheduler thread doing a cleanup task,
+	/// to signal to the IPC monitor that it should start the cleanup of chunk(s) and
+	/// client_interface(s). The schedulers have done their cleanup tasks related to
+	/// this client process.
+	/**
+	 * @param index The index in the cleanup task table containing the segment name.
+	 * @param ipc_monitor_cleanup_event Event to be reset if no more cleanup tasks.
+	 * @return The segment_name, otherwise 0 if there are no segment names stored.
+	 */
+	void set_cleanup_flag(int32_t index, HANDLE ipc_monitor_cleanup_event) {
+		cleanup_task_.set_cleanup_flag(index, ipc_monitor_cleanup_event);
 	}
 
 	uint64_t get_cleanup_flag() {
@@ -245,21 +256,33 @@ private:
 		/// to erase segment names of terminated database processes.
 		/**
 		 * @param segment_name The name of the IPC shared memory segment.
+		 * @param ipc_monitor_cleanup_event Event to be reset if no more cleanup tasks.
 		 */
-		void erase_segment_name(const char* segment_name);
+		void erase_segment_name(const char* segment_name, HANDLE ipc_monitor_cleanup_event);
 
 		/// get_a_segment_name() is used by the monitor::cleanup() thread trying to get
 		/// a segment name, which it will use to open it and do the rest of the cleanup.
 		/**
+		 * @param ipc_monitor_cleanup_event Event to be reset if no more cleanup tasks.
 		 * @return The segment_name, otherwise 0 if there are no segment names stored.
 		 */
-		const char* get_a_segment_name();
+		const char* get_a_segment_name(HANDLE ipc_monitor_cleanup_event);
 
 		mask_type segment_name_mask() {
 			return segment_name_mask_;
 		}
 
-		void set_cleanup_flag(int32_t index);
+		/// set_cleanup_flag() is used by the last scheduler thread doing a cleanup task,
+		/// to signal to the IPC monitor that it should start the cleanup of chunk(s) and
+		/// client_interface(s). The schedulers have done their cleanup tasks related to
+		/// this client process.
+		/**
+		 * @param index The index in the cleanup task table containing the segment name.
+		 * @param ipc_monitor_cleanup_event Event to be reset if no more cleanup tasks.
+		 * @return The segment_name, otherwise 0 if there are no segment names stored.
+		 */
+		void set_cleanup_flag(int32_t index, HANDLE ipc_monitor_cleanup_event);
+
 		uint64_t get_cleanup_flag();
 
 		/// Get reference to the spinlock.
