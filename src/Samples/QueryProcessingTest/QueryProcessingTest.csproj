@@ -46,6 +46,7 @@
     <Compile Include="AggregationTest.cs" />
     <Compile Include="BindingTestDataModel.cs" />
     <Compile Include="BindingTestDirect.cs" />
+    <Compile Include="CodePropertiesTesting.cs" />
     <Compile Include="DataPopulation.cs" />
     <Compile Include="FetchTest.cs" />
     <Compile Include="HelpMethods.cs" />
