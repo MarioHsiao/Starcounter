@@ -16,7 +16,7 @@ namespace QueryProcessingTest {
                 foreach (int age in Db.SQL<int>("select age from user u where userid = ? and age < ?", DataPopulation.FakeUserId(2),100))
                     Console.WriteLine(age);
             });
-#if false   // Do not work due to code gen
+#if true   // Do not work due to code gen
             Db.Transaction(delegate {
                 foreach (int age in Db.SQL<int>("select age from user u where useridnr < ? and age < ?", 5, 100))
                     Console.WriteLine(age);
