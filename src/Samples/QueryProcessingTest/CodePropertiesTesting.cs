@@ -38,13 +38,13 @@ namespace QueryProcessingTest {
             });
             // Test grouping
             Db.Transaction(delegate {
-                foreach (int ages in Db.SlowSQL<int>("select age, count(name) from user u where age < ? group by age", 30))
-                    Console.WriteLine(ages);
+                foreach (IObjectView o in Db.SlowSQL("select age, count(name) from user u where age < ? group by age", 30))
+                    Console.WriteLine(o.GetInt64(0)+" "+o.GetDecimal(1));
             });
             // Test with fetch
             Db.Transaction(delegate {
-                foreach (int ages in Db.SlowSQL<int>("select age, count(name) from user u where age < ? group by age fetch ? offset ?", 35, 3, 2))
-                    Console.WriteLine(ages);
+                foreach (IObjectView o in Db.SlowSQL("select age, count(name) from user u where age < ? group by age fetch ? offset ?", 35, 3, 2))
+                    Console.WriteLine(o.GetInt64(0) + " " + o.GetDecimal(1));
             });
         }
     }
