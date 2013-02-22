@@ -5,11 +5,9 @@ namespace QueryProcessingTest {
         static void Main(string[] args) {
             BindingTestDirect.DirectBindingTest();
             RunQueryProcessingTest();
-#if false // Switched of while developing
             SqlBugsTest.QueryTests();
             FetchTest.RunFetchTest();
             AggregationTest.RunAggregationTest();
-#endif
             CodePropertiesTesting.TestCodeProperties();
         }
 

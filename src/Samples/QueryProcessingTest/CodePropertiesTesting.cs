@@ -13,19 +13,19 @@ namespace QueryProcessingTest {
                     Console.WriteLine(age);
             });
             Db.Transaction(delegate {
-                foreach (int age in Db.SQL<int>("select age from user u where userid = ? and age < ?", DataPopulation.FakeUserId(2),100))
+                foreach (int age in Db.SQL<int>("select age from user u where userid = ? and age < ?", DataPopulation.FakeUserId(2), 100))
                     Console.WriteLine(age);
             });
-#if true   // Do not work due to code gen
             Db.Transaction(delegate {
                 foreach (int age in Db.SQL<int>("select age from user u where useridnr < ? and age < ?", 5, 100))
                     Console.WriteLine(age);
             });
+            int counter = 0;
             Db.Transaction(delegate {
-                foreach (int age in Db.SQL<int>("select age from user u where age < ?", 20))
-                    Console.WriteLine(age);
+                foreach (int age in Db.SQL<int>("select age from user u where age < ?", 30))
+                    counter++;
             });
-#endif
+            Console.WriteLine(counter);
         }
     }
 }
