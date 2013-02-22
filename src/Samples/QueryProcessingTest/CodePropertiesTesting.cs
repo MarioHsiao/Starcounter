@@ -26,6 +26,26 @@ namespace QueryProcessingTest {
                     counter++;
             });
             Console.WriteLine(counter);
+            // Test sorting
+            Db.Transaction(delegate {
+                foreach (String name in Db.SQL<String>("select name from user where useridnr < ? order by name", 5))
+                    Console.WriteLine(name);
+            });
+            // Test aggregate
+            Db.Transaction(delegate {
+                foreach (decimal ages in Db.SlowSQL<decimal>("select sum(age) from user u where age < ?", 30))
+                    Console.WriteLine(ages);
+            });
+            // Test grouping
+            Db.Transaction(delegate {
+                foreach (int ages in Db.SlowSQL<int>("select age, count(name) from user u where age < ? group by age", 30))
+                    Console.WriteLine(ages);
+            });
+            // Test with fetch
+            Db.Transaction(delegate {
+                foreach (int ages in Db.SlowSQL<int>("select age, count(name) from user u where age < ? group by age fetch ? offset ?", 35, 3, 2))
+                    Console.WriteLine(ages);
+            });
         }
     }
 }
