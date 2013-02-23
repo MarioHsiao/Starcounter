@@ -109,7 +109,7 @@ namespace Starcounter.Internal.Web {
                     // unnecessary creation and copying of buffers.
                     response.Uncompressed = ScriptInjector.InjectInHeader(
                         response.GetBytes(request),
-                        request.SessionStruct.SessionHeaderPlusEndlineStubBytes,
+                        ScSessionStruct.SessionIdCookiePlusEndlineStubBytes,
                         response.HeaderInjectionPoint);
                 }
 

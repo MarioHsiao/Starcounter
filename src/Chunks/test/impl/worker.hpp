@@ -488,24 +488,16 @@ inline void worker::release_all_resources() {
 			the_channel.set_to_be_released();
 			
 			if (scheduler_interface_ptr) {
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events
 				// The scheduler may be waiting so notify it.
-				if ((scheduler_interface_ptr->try_to_notify_scheduler_to_do_clean_up
+				if ((scheduler_interface_ptr->notify_scheduler_to_do_clean_up
 				(shared().scheduler_work_event(the_channel.get_scheduler_number())))
 				== true) {
 					// Succeessfully notified the scheduler on this channel.
 				}
 				else { /// REMOVE THIS DEBUG TEST
-					//std::cout << " try_to_notify_scheduler_to_do_clean_up() "
+					//std::cout << " notify_scheduler_to_do_clean_up() "
 					//"failed in worker::release_all_resources().\n"; /// DEBUG
 				}
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess
-				// The scheduler may be waiting so try to notify it. Wait up to 64 ms.
-				if ((scheduler_interface_ptr->try_to_notify_scheduler_to_do_clean_up
-				(64 /* ms to wait */)) == true) {
-					// Succeessfully notified the scheduler on this channel.
-				}
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 			}
 		}
 	}
