@@ -28,94 +28,85 @@ inline bool IsWhiteSpace(char c)
     return (c == ' ') || (c == '\n') || (c == '\t');
 }
 
-inline int32_t SkipSignedInteger(char* start, int32_t max_len)
+inline int32_t MeasureSignedInt(char* puri, int offset, int32_t max_len)
 {
-    if (max_len < 1)
-        return 0;
-
     int32_t n = 0;
-    switch (start[0])
+    switch (puri[offset])
     {
-        case '-':
-        case '+':
+    case '-':
+    case '+':
         {
             if (max_len < 2)
                 return 0;
 
-            if (IsDigit(start[1]))
+            if (IsDigit(puri[offset + 1]))
                 n += 2;
             else
-                return 0;
+                return -1;
 
             break;
         }
-        
-        default:
+
+    default:
         {
-            if (IsDigit(start[0]))
+            if (IsDigit(puri[offset]))
                 n++;
             else
-                return 0;
+                return -1;
 
             break;
         }
     }
 
     // Counting digits.
-    while((n < max_len) && IsDigit(start[n]))
+    while((n < max_len) && IsDigit(puri[offset + n]))
         n++;
 
     return n;
 }
 
-inline int32_t SkipSignedDecimal(char* start, int32_t max_len)
+inline int32_t MeasureSignedDecimal(char* puri, int offset, int32_t max_len)
 {
-    if (max_len < 1)
-        return 0;
-
     int32_t n = 0;
-    switch (start[0])
+    switch (puri[offset])
     {
-        case '-':
-        case '+':
-        case '.':
+    case '-':
+    case '+':
+    case '.':
         {
             if (max_len < 2)
                 return 0;
 
-            if (IsDigit(start[1]))
+            if (IsDigit(puri[offset + 1]))
                 n += 2;
             else
-                return 0;
+                return -1;
 
             break;
         }
 
-        default:
+    default:
         {
-            if (IsDigit(start[0]))
+            if (IsDigit(puri[offset]))
                 n++;
             else
-                return 0;
+                return -1;
 
             break;
         }
     }
 
     // Counting digits.
-    while((n < max_len) && (IsDigit(start[n]) || (start[n] == '.')))
+    while((n < max_len) && (IsDigit(puri[offset + n]) || (puri[offset + n] == '.')))
         n++;
 
     return n;
 }
 
-inline int32_t SkipBoolean(char* start, int32_t max_len)
+inline int32_t MeasureBoolean(char* puri, int offset, int32_t max_len)
 {
-    if (max_len < 4)
-        return 0;
-
     // Skipping True.
-    if (start[0] == 't' || start[0] == 'T')
+    if (puri[offset] == 't' || puri[offset] == 'T')
     {
         // TODO: Check for remaining part.
 
@@ -134,31 +125,25 @@ inline int32_t SkipBoolean(char* start, int32_t max_len)
     return 0;
 }
 
-inline int32_t SkipDateTime(char* start)
+inline int32_t MeasureDateTime(char* puri, int offset, int32_t max_len)
 {
     // TODO
     return 0;
 }
 
-inline int32_t SkipStringUntilWhiteSpace(char* start, int32_t max_len)
+inline int32_t MeasureStringUntilWhitespace(char* puri, int offset, int32_t max_len)
 {
-    if (max_len < 1)
-        return 0;
-
     int32_t n = 0;
-    while((n < max_len) && (!IsWhiteSpace(start[n])))
+    while((n < max_len) && (!IsWhiteSpace(puri[offset + n])))
         n++;
 
     return n;
 }
 
-inline int32_t SkipStringUntilSymbol(char* start, char c, int32_t max_len)
+inline int32_t MeasureStringUntilSymbol(char* puri, int offset, int32_t max_len, char c)
 {
-    if (max_len < 1)
-        return 0;
-
     int32_t n = 0;
-    while((n < max_len) && (start[n] != c))
+    while((n < max_len) && (puri[offset + n] != c))
         n++;
 
     return n;

@@ -813,7 +813,9 @@ uint32_t Gateway::AssertCorrectState()
     GW_ASSERT(sizeof(ScSessionStructPlus) == 64);
 
     // Checking HTTP related fields.
-    GW_ASSERT(kScFullSessionIdStringLength == (SC_SESSION_STRING_LEN_CHARS + kScSessionIdStringWithExtraCharsLength));
+    GW_ASSERT(kFullSessionIdStringLength == (SC_SESSION_STRING_LEN_CHARS + kScSessionIdStringWithExtraCharsLength));
+    GW_ASSERT(kSetCookieStringPrefixLength == 20);
+    GW_ASSERT(kFullSessionIdSetCookieStringLength == 46);
 
     int64_t accept_8bytes = *(int64_t*)"Accept: ";
     int64_t accept_enc_8bytes = *(int64_t*)"Accept-E";

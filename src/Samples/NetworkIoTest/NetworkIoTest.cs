@@ -692,8 +692,8 @@ namespace NetworkIoTestApp
                 // Displaying new session unique number.
                 Console.WriteLine("Generated new session with index: " + p.UniqueSessionIndex);
 
-                // Adding the session header stub.
-                responseHeader += p.SessionStruct.SessionHeaderStubString + "\r\n";
+                // Adding the session cookie stub.
+                responseHeader += ScSessionStruct.SessionIdCookiePlusEndlineStubString;
             }
 
             // Converting string to byte array.

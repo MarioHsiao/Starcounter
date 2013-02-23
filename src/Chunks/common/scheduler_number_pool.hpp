@@ -37,7 +37,7 @@ namespace core {
 /// class scheduler_number_pool
 /**
  * @param T The type of the elements stored in the scheduler_number_pool.
- * @param N The number of elements will be 2^N. If N is 6, the capacity is 64, etc.
+ * @param N The buffer capacity will be 2^N. If N is 6, the capacity is 64, etc.
  */
 template<class T, std::size_t N>
 class scheduler_number_pool {
@@ -85,7 +85,7 @@ public:
 
 	// Construction/Destruction.
 	
-	/// Create an empty scheduler_number_pool with the specified capacity.
+	/// Create an empty scheduler_number_pool.
 	/**
 	 * @param segment_name The name of the database IPC shared memory segment.
 	 * @param scheduler_num The scheduler number.
