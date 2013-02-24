@@ -96,17 +96,16 @@ namespace StarcounterAppsLogTester {
                 System.Text.UTF8Encoding encoding = new System.Text.UTF8Encoding();
                 byte[] buffer = encoding.GetBytes(query);
 
-                UriBuilder uribuilder = new UriBuilder();
+                //UriBuilder uribuilder = new UriBuilder();
+                //NameValueCollection queryString = HttpUtility.ParseQueryString(string.Empty);
+                //queryString["offset"] = "value1";
+                //queryString["rows"] = "value2";
 
-                NameValueCollection queryString = HttpUtility.ParseQueryString(string.Empty);
-                queryString["offset"] = "value1";
-                queryString["rows"] = "value2";
-
-
-                string URI = string.Format("http://localhost:{0}/{1}/__sql", this.Port, this.DatabaseName);
-                if (queryString.HasKeys()) {
-                    URI = URI + "?" + queryString.ToString(); // URL-encoded
-                }
+                //string URI = string.Format("http://localhost:{0}/{1}/__sql", this.Port, this.DatabaseName);
+                //if (queryString.HasKeys()) {
+                //    URI = URI + "?" + queryString.ToString(); // URL-encoded
+                //}
+                string URI = string.Format("http://localhost:{0}/__sql/{1}", this.Port, this.DatabaseName.ToUpper());
 
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URI);
                 request.Method = "POST";

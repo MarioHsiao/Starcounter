@@ -11,6 +11,7 @@ using Starcounter.Templates;
 using Starcounter.Advanced;
 using Newtonsoft.Json;
 using System.Collections.Specialized;
+using System.Diagnostics;
 
 namespace Starcounter.Internal.JsonPatch {
     /// <summary>
@@ -33,27 +34,23 @@ namespace Starcounter.Internal.JsonPatch {
                 return response;
             });
 
-            string dbName;
-            if (Db.Environment != null && !string.IsNullOrEmpty(Db.Environment.DatabaseName)) {
-                 dbName = Db.Environment.DatabaseName;
-            }
-            else {
-                 dbName = "default";    // TODO: This should be the actual databasename where the applet is hosted in.
-            }
 
-            Console.WriteLine("Database {0} is listening for SQL commands." + dbName);
+            Debug.Assert(Db.Environment != null, "Db.Environment is not initlized");
+            Debug.Assert(string.IsNullOrEmpty(Db.Environment.DatabaseName) == false, "Db.Environment.DatabaseName is empty or null");
+
+            Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseName);
 
             // SQL command
-            POST("/" + dbName + "/__sql", (HttpRequest r) => {
+            POST("/__sql/" + Db.Environment.DatabaseName, (HttpRequest r) => {
 
                 try {
-//                    System.Uri myUri = new System.Uri("http://www.example.com" + r.Uri);
-//                    NameValueCollection parameters = System.Web.HttpUtility.ParseQueryString(myUri.Query);
-//                    string offset = parameters.Get("offset");
-//                    string rows = parameters.Get("rows");
+                    //                    System.Uri myUri = new System.Uri("http://www.example.com" + r.Uri);
+                    //                    NameValueCollection parameters = System.Web.HttpUtility.ParseQueryString(myUri.Query);
+                    //                    string offset = parameters.Get("offset");
+                    //                    string rows = parameters.Get("rows");
                     string bodyData = r.GetBodyStringUtf8_Slow();   // Retrice the sql command in the body
                     SqlResult sqlresult = Db.SQL(bodyData);
-                    
+
                     string result = JsonConvert.SerializeObject(sqlresult);
                     return result;
                 }
@@ -66,6 +63,16 @@ namespace Starcounter.Internal.JsonPatch {
 
             });
 
+
+            GET("/errorcode/{?}", (int code) => {
+
+                HttpResponse response = new HttpResponse();
+
+                response.Uncompressed = HttpPatchBuilder.Create400Response("my message");
+                return response;
+
+//                return code.ToString();
+            });
 
             PATCH("/__vm/{?}", (int viewModelId) => {
                 Puppet rootApp;
