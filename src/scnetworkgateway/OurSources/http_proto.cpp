@@ -11,6 +11,37 @@
 namespace starcounter {
 namespace network {
 
+// Running all registered handlers.
+uint32_t RegisteredUri::RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled)
+{
+    uint32_t err_code;
+
+    // Going through all handler list.
+    for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++)
+    {
+        // Checking if chunk belongs to the destination database.
+        if (sd->get_db_index() != handler_lists_[i].get_db_index())
+        {
+            // Getting new chunk and copy contents from old one.
+            SocketDataChunk* new_sd = NULL;
+            err_code = gw->CloneChunkForNewDatabase(sd, handler_lists_[i].get_db_index(), &new_sd);
+            if (err_code)
+                return err_code;
+
+            // Setting new chunk reference.
+            sd = new_sd;
+        }
+
+        // Running handlers.
+        err_code = handler_lists_[i].get_handlers_list()->RunHandlers(gw, sd, is_handled);
+
+        // Checking if information was handled and no errors occurred.
+        if (*is_handled || err_code)
+            return err_code;
+    }
+
+    return 0;
+}
 // Fetches method and URI from HTTP request data.
 inline uint32_t GetMethodAndUri(
     char* http_data,

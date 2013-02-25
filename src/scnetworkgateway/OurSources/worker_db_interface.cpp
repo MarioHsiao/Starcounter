@@ -83,7 +83,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
             shared_memory_chunk* smc = (shared_memory_chunk*) &(shared_int_.chunk(cur_chunk_index));
 
             // Check if its a BMX handlers management message.
-            if (bmx::BMX_MANAGEMENT_HANDLER == smc->get_bmx_protocol())
+            if (bmx::BMX_MANAGEMENT_HANDLER_INFO == smc->get_bmx_handler_info())
             {
                 // Changing number of database chunks.
                 ChangeNumUsedChunks(1);
@@ -389,7 +389,10 @@ void WorkerDbInterface::ReturnAllPrivateChunksToSharedPool()
 }
 
 // Push given chunk to database queue.
-uint32_t WorkerDbInterface::PushSocketDataToDb(GatewayWorker* gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id)
+uint32_t WorkerDbInterface::PushSocketDataToDb(
+    GatewayWorker* gw,
+    SocketDataChunkRef sd,
+    BMX_HANDLER_TYPE user_handler_id)
 {
 #ifdef GW_CHUNKS_DIAG
     GW_PRINT_WORKER << "Pushing chunk: socket " << sd->sock() << ":" << sd->get_chunk_index() << " handler_id " << user_handler_id << GW_ENDL;
@@ -420,7 +423,7 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(GatewayWorker* gw, SocketDataChun
 
     // Modifying chunk data to use correct handler.
     shared_memory_chunk *smc = (shared_memory_chunk*) &(shared_int_.chunk(sd->get_chunk_index()));
-    smc->set_bmx_protocol(user_handler_id); // User code handler id.
+    smc->set_bmx_handler_info(user_handler_id); // User code handler id.
     smc->set_request_size(4);
 
     // Obtaining the current scheduler id.
@@ -451,7 +454,7 @@ uint32_t WorkerDbInterface::RegisterPushChannel(int32_t sched_num)
     GW_ERR_CHECK(err_code);
 
     // Predefined BMX management handler.
-    smc->set_bmx_protocol(bmx::BMX_MANAGEMENT_HANDLER);
+    smc->set_bmx_handler_info(bmx::BMX_MANAGEMENT_HANDLER_INFO);
 
     request_chunk_part* request = smc->get_request_chunk();
     request->reset_offset();
@@ -480,7 +483,7 @@ uint32_t WorkerDbInterface::PushDeadSession(
     GW_ERR_CHECK(err_code);
 
     // Predefined BMX management handler.
-    smc->set_bmx_protocol(bmx::BMX_MANAGEMENT_HANDLER);
+    smc->set_bmx_handler_info(bmx::BMX_MANAGEMENT_HANDLER_INFO);
 
     request_chunk_part* request = smc->get_request_chunk();
     request->reset_offset();
@@ -512,7 +515,7 @@ uint32_t WorkerDbInterface::RequestRegisteredHandlers(int32_t sched_num)
     GW_ERR_CHECK(err_code);
 
     // Filling the chunk as BMX management handler.
-    smc->set_bmx_protocol(bmx::BMX_MANAGEMENT_HANDLER);
+    smc->set_bmx_handler_info(bmx::BMX_MANAGEMENT_HANDLER_INFO);
 
     request_chunk_part* request = smc->get_request_chunk();
     request->reset_offset();
@@ -680,8 +683,8 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
 
             case bmx::BMX_REGISTER_PORT:
             {
-                // Reading handler id.
-                BMX_HANDLER_TYPE handler_id = resp_chunk->read_handler_id();
+                // Reading handler info.
+                BMX_HANDLER_TYPE handler_info = resp_chunk->read_handler_info();
 
                 // Reading port number.
                 uint16_t port = resp_chunk->read_uint16();
@@ -694,7 +697,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 }
 #endif
 
-                GW_PRINT_WORKER << "New port " << port << " user handler registration with handler id: " << handler_id << GW_ENDL;
+                GW_PRINT_WORKER << "New port " << port << " user handler registration with handler id: " << handler_info << GW_ENDL;
 
                 // Registering handler on active database.
                 HandlersTable* handlers_table = g_gateway.GetDatabase(db_index_)->get_user_handlers();
@@ -704,7 +707,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                     gw,
                     handlers_table,
                     port,
-                    handler_id,
+                    handler_info,
                     db_index_,
                     AppsPortProcessData);
 
@@ -716,8 +719,8 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
             
             case bmx::BMX_REGISTER_PORT_SUBPORT:
             {
-                // Reading handler id.
-                BMX_HANDLER_TYPE handler_id = resp_chunk->read_handler_id();
+                // Reading handler info.
+                BMX_HANDLER_TYPE handler_info = resp_chunk->read_handler_info();
 
                 // Reading port number.
                 uint16_t port = resp_chunk->read_uint16();
@@ -725,7 +728,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 // Reading subport.
                 bmx::BMX_SUBPORT_TYPE subport = resp_chunk->read_uint32();
 
-                GW_PRINT_WORKER << "New subport " << subport << " port " << port << " user handler registration with handler id: " << handler_id << GW_ENDL;
+                GW_PRINT_WORKER << "New subport " << subport << " port " << port << " user handler registration with handler id: " << handler_info << GW_ENDL;
                 
                 // Registering handler on active database.
                 HandlersTable* handlers_table = g_gateway.GetDatabase(db_index_)->get_user_handlers();
@@ -736,7 +739,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                     handlers_table,
                     port,
                     subport,
-                    handler_id,
+                    handler_info,
                     db_index_,
                     AppsSubportProcessData);
 
@@ -748,8 +751,8 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
 
             case bmx::BMX_REGISTER_URI:
             {
-                // Reading handler id.
-                BMX_HANDLER_TYPE handler_id = resp_chunk->read_handler_id();
+                // Reading handler info.
+                BMX_HANDLER_TYPE handler_info = resp_chunk->read_handler_info();
 
                 // Reading port number.
                 uint16_t port = resp_chunk->read_uint16();
@@ -770,7 +773,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 }
 #endif
 
-                GW_PRINT_WORKER << "New URI handler \"" << uri << "\" on port " << port << " registration with handler id: " << handler_id << GW_ENDL;
+                GW_PRINT_WORKER << "New URI handler \"" << uri << "\" on port " << port << " registration with handler id: " << handler_info << GW_ENDL;
 
                 // Registering handler on active database.
                 HandlersTable* handlers_table = g_gateway.GetDatabase(db_index_)->get_user_handlers();
@@ -783,7 +786,74 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                     uri,
                     uri_len_chars,
                     http_method,
-                    handler_id,
+                    NULL,
+                    0,
+                    handler_info,
+                    db_index_,
+                    AppsUriProcessData);
+
+                if (err_code)
+                    return err_code;
+
+#ifdef GW_URI_MATCHING_CODEGEN
+                // Generating URI matcher.
+                err_code = g_gateway.GenerateUriMatcher(port);
+
+                if (err_code)
+                    return err_code;
+#endif
+
+                break;
+            }
+
+            case bmx::BMX_REGISTER_URI_NEW:
+            {
+                // Reading handler info.
+                BMX_HANDLER_TYPE handler_info = resp_chunk->read_handler_info();
+
+                // Reading port number.
+                uint16_t port = resp_chunk->read_uint16();
+
+                // Reading URI.
+                char uri[bmx::MAX_URI_STRING_LEN];
+                uint32_t uri_len_chars = resp_chunk->read_uint32();
+                resp_chunk->read_string(uri, uri_len_chars, bmx::MAX_URI_STRING_LEN);
+
+                // Reading HTTP method.
+                bmx::HTTP_METHODS http_method = (bmx::HTTP_METHODS)resp_chunk->read_uint8();
+
+                // Reading number of parameters.
+                uint8_t num_params = resp_chunk->read_uint8();
+
+                // Reading parameter types.
+                uint8_t param_types[bmx::MAX_URI_CALLBACK_PARAMS];
+                resp_chunk->copy_data_to_buffer(param_types, bmx::MAX_URI_CALLBACK_PARAMS);
+
+
+#ifdef GW_TESTING_MODE
+                if ((g_gateway.setting_mode() != GatewayTestingMode::MODE_GATEWAY_SMC_HTTP) &&
+                    (g_gateway.setting_mode() != GatewayTestingMode::MODE_GATEWAY_SMC_APPS_HTTP))
+                {
+                    GW_ASSERT(false);
+                }
+#endif
+
+                GW_PRINT_WORKER << "New URI handler \"" << uri << "\" on port " << port << " registration with handler id: " << handler_info << GW_ENDL;
+
+                // Registering handler on active database.
+                HandlersTable* handlers_table = g_gateway.GetDatabase(db_index_)->get_user_handlers();
+
+                // Registering determined URI Apps handler.
+                err_code = g_gateway.AddUriHandler(
+                    gw,
+                    handlers_table,
+                    port,
+                    uri,
+                    uri_len_chars,
+                    http_method,
+                    param_types,
+                    num_params,
+                    handler_info,
                     db_index_,
                     AppsUriProcessData);
 
@@ -804,17 +874,17 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
             case bmx::BMX_UNREGISTER:
             {
                 // Reading handler id.
-                BMX_HANDLER_TYPE handler_id = resp_chunk->read_handler_id();
+                BMX_HANDLER_TYPE handler_info = resp_chunk->read_handler_info();
 
-                GW_PRINT_WORKER << "User handler unregistration for handler id: " << handler_id << GW_ENDL;
+                GW_PRINT_WORKER << "User handler unregistration for handler id: " << handler_info << GW_ENDL;
 
                 // Getting handlers list.
                 HandlersTable* handlers_table = g_gateway.GetDatabase(db_index_)->get_user_handlers();
-                HandlersList* handlers_list = handlers_table->FindHandler(handler_id);
+                HandlersList* handlers_list = handlers_table->FindHandler(handler_info);
                 GW_ASSERT(handlers_list != NULL);
 
                 // Removing handler with certain id.
-                err_code = handlers_table->UnregisterHandler(handler_id);
+                err_code = handlers_table->UnregisterHandler(handler_info);
 
                 // Removing from global data structures.
                 ServerPort* server_port = g_gateway.FindServerPort(handlers_list->get_port());

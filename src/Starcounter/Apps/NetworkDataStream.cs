@@ -35,12 +35,17 @@ namespace Starcounter
         /// <summary>
         /// BMX header max size.
         /// </summary>
-        public const Int32 BMX_HEADER_MAX_SIZE_BYTES = 24;
-        
+        public const Int32 BMX_HEADER_MAX_SIZE_BYTES = 32;
+
+        /// <summary>
+        /// OVERLAPPED_SIZE
+        /// </summary>
+        const Int32 OVERLAPPED_SIZE = 32;
+
         /// <summary>
         /// Offset of gateway data in chunk.
         /// </summary>
-        public const Int32 GATEWAY_DATA_BEGIN_OFFSET = BMX_HEADER_MAX_SIZE_BYTES + 32;
+        public const Int32 GATEWAY_DATA_BEGIN_OFFSET = BMX_HEADER_MAX_SIZE_BYTES + OVERLAPPED_SIZE;
         
         /// <summary>
         /// Gateway session salt offset.

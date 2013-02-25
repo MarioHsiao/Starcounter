@@ -26,6 +26,8 @@
 #undef WIN32_LEAN_AND_MEAN
 #include "../common/scheduler_mask.hpp"
 #include "../common/bit_operations.hpp"
+#include "../common/config_param.hpp"
+#include <scerrres.h>
 
 namespace starcounter {
 namespace core {
@@ -73,9 +75,55 @@ public:
 	 * @par Complexity
 	 *		Constant.
 	 */
-	explicit common_scheduler_interface(const allocator_type& alloc
-	= allocator_type())
-	: active_schedulers_mask_(), state_(normal) {}
+	explicit common_scheduler_interface(const char* server_name,
+	const allocator_type& alloc = allocator_type())
+	: active_schedulers_mask_(), state_(normal) {
+		if (server_name != 0) {
+			// Number of characters in the string after being converted.
+			std::size_t length;
+			
+			//======================================================================
+			// Construct the monitor_interface_name.
+			
+			// Concatenate the server_name with MONITOR_INTERFACE_SUFFIX.
+			if ((length = _snprintf_s(monitor_interface_name_,
+			_countof(monitor_interface_name_), sizeof(monitor_interface_name_) -1
+			/* null */, "%s_%s", server_name, MONITOR_INTERFACE_SUFFIX)) < 0) {
+				// Buffer overflow.
+				return; // SCERRCONSTRMONITORINTERFACENAME;
+			}
+			
+			// Null termination, just in case.
+			monitor_interface_name_[length] = '\0';
+			
+			//======================================================================
+			// Construct the ipc_monitor_cleanup_event_name.
+			
+			char ipc_monitor_cleanup_event_name[ipc_monitor_cleanup_event_name_size];
+
+			// Format: "Local\<server_name>_ipc_monitor_cleanup_event".
+			if ((length = _snprintf_s(ipc_monitor_cleanup_event_name, _countof
+			(ipc_monitor_cleanup_event_name), ipc_monitor_cleanup_event_name_size
+			-1 /* null */, "Local\\%s_ipc_monitor_cleanup_event", server_name))
+			< 0) {
+				//throw bad_monitor("failed to format the ipc_monitor_cleanup_event_name");
+				return;
+			}
+			ipc_monitor_cleanup_event_name[length] = '\0';
+
+			/// TODO: Fix insecure
+			if ((length = mbstowcs(w_ipc_monitor_cleanup_event_name_,
+			ipc_monitor_cleanup_event_name, segment_name_size)) < 0) {
+				// Failed to convert ipc_monitor_cleanup_event_name to multi-byte string.
+				//throw bad_monitor("failed to create the ipc_monitor_cleanup_event");
+				return; // Throw exception error_code.
+			}
+			w_ipc_monitor_cleanup_event_name_[length] = L'\0';
+		}
+		else {
+			// Error: No server name. Throw exception error_code.
+		}
+	}
 	
 	/// TODO: Think about multiple clients.
 	void clients_state(state s) {
@@ -115,6 +163,22 @@ public:
 		return count;
 	}
 	
+	const char* server_name() const {
+		return server_name_;
+	}
+
+	const char* monitor_interface_name() const {
+		return monitor_interface_name_;
+	}
+
+	const HANDLE& ipc_monitor_clean_up_event() const {
+		return ipc_monitor_clean_up_event_;
+	}
+
+	const wchar_t* ipc_monitor_cleanup_event_name() const {
+		return w_ipc_monitor_cleanup_event_name_;
+	}
+
 private:
 	scheduler_mask_type active_schedulers_mask_;
 	char cache_line_pad_0_[CACHE_LINE_SIZE
@@ -122,9 +186,24 @@ private:
 	];
 	
 	volatile state state_;
-	char cache_line_pad_1_[CACHE_LINE_SIZE
-	-sizeof(state) // state_
-	];
+
+	char server_name_[server_name_size];
+	char monitor_interface_name_[server_name_size +sizeof
+	(MONITOR_INTERFACE_SUFFIX) +2 /* one delimiter and null */];
+
+	// In order to reduce the time taken to open the work_ event the name is
+	// cached. Otherwise the name have to be formated before opening it.
+	wchar_t work_notify_name_[segment_and_notify_name_size];
+
+	// In order to reduce the time taken to open the ipc_monitor_cleanup_event_
+	// the name is cached. Otherwise the name have to be formated before opening it.
+	wchar_t w_ipc_monitor_cleanup_event_name_[ipc_monitor_cleanup_event_name_size];
+
+	char cache_line_pad_1_[CACHE_LINE_SIZE -((
+	+sizeof(state) // state_
+	+server_name_size * sizeof(char) // server_name_
+	+ipc_monitor_cleanup_event_name_size * sizeof(wchar_t) // ipc_monitor_cleanup_event_name_
+	) % CACHE_LINE_SIZE)];
 };
 
 typedef starcounter::core::simple_shared_memory_allocator<std::size_t>
