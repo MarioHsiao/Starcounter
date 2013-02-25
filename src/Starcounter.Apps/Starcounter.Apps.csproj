@@ -76,7 +76,7 @@
   <ItemGroup>
     <Compile Include="Messages\Message.cs" />
     <Compile Include="Messages\TMessage.cs" />
-    <Compile Include="Puppets\App.cs" />
+    <Compile Include="Puppets\Puppet.cs" />
     <Compile Include="Arr.cs" />
     <Compile Include="Puppets\ChangeLog.cs" />
     <Compile Include="Container.cs" />
