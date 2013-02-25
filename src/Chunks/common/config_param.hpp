@@ -14,6 +14,7 @@
 
 #include <cstdlib>
 #include "macro_definitions.hpp"
+#include "../../Starcounter.Internal/Constants/MixedCodeConstants.cs"
 
 namespace starcounter {
 namespace core {
@@ -25,7 +26,7 @@ namespace core {
 // Starcounter DB.
 
 // The size of each chunk.
-const std::size_t chunk_size = 1 << 12; // 4K chunks.
+const std::size_t chunk_size = MixedCodeConstants::SHM_CHUNK_SIZE; // 4K chunks.
 
 // One chunk per channel is the minimum because a default chunk is allocated for
 // each channel. Currently channel_bits + chunks_total_number_max must not
@@ -48,7 +49,7 @@ const std::size_t client_interfaces = 1 << client_interface_bits;
 const std::size_t channel_capacity_bits = 8;
 const std::size_t channel_capacity = 1 << channel_capacity_bits;
 
-// The max number of databses that can exist (per IPC monitor).
+// The max number of databases that can exist (per IPC monitor).
 const std::size_t max_number_of_databases = 64;
 
 // The max number of schedulers that can exist (per NUMA node).

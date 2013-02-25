@@ -119,11 +119,11 @@ public:
 
         GW_ASSERT(((uint8_t*)&flags_ - sd) == (bmx::CHUNK_OFFSET_SOCKET_FLAGS - bmx::BMX_HEADER_MAX_SIZE_BYTES));
 
-        GW_ASSERT(((uint8_t*)http_ws_proto_.get_http_request() - sd) == bmx::SOCKET_DATA_OFFSET_HTTP_REQUEST);
+        GW_ASSERT(((uint8_t*)http_ws_proto_.get_http_request() - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_HTTP_REQUEST);
 
         GW_ASSERT(((uint8_t*)(&accum_buf_) - sd) == bmx::SOCKET_DATA_NUM_CLONE_BYTES);
 
-        GW_ASSERT(((uint8_t*)&num_chunks_ - sd) == bmx::SOCKET_DATA_OFFSET_NUM_CHUNKS);
+        GW_ASSERT(((uint8_t*)&num_chunks_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_NUM_CHUNKS);
 
         GW_ASSERT(((uint8_t*)&max_user_data_bytes_ - sd) == (bmx::CHUNK_OFFSET_MAX_USER_DATA_BYTES - bmx::BMX_HEADER_MAX_SIZE_BYTES));
 
