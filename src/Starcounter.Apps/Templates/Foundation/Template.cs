@@ -134,8 +134,8 @@ namespace Starcounter.Templates {
                 return _Parent;
             }
             set {
-                if (value is TPuppet) {
-                    var at = (TPuppet)value;
+                if (value is TObj) {
+                    var at = (TObj)value;
                     at.Properties.Add(this);
                 }
                 _Parent = (TContainer)value;
@@ -210,7 +210,7 @@ namespace Starcounter.Templates {
                     string name = value.Replace("$", "");
                     PropertyName = name;
                     if (Parent != null) {
-                        var parent = (TPuppet)Parent;
+                        var parent = (TObj)Parent;
                         var props = (PropertyList)(parent.Properties);
                         props.ChildNameIsSet(this);
                     }
@@ -234,7 +234,7 @@ namespace Starcounter.Templates {
                     throw new Exception("Once the PropertyName is set, it cannot be changed");
                 _PropertyName = value;
                 if (Parent != null ) {
-                    var parent = (TPuppet)Parent;
+                    var parent = (TObj)Parent;
                     var props = (PropertyList)(parent.Properties);
                     props.ChildPropertyNameIsSet(this);
                 }
