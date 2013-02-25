@@ -4,17 +4,10 @@
 // </copyright>
 // ***********************************************************************
 
-// TODO!
-// - Get rid of references to Transaction, SQL and Entity
-
-
-
-using System;
-using Starcounter.Templates.Interfaces;
-using System.ComponentModel;
-using Starcounter.Templates;
-using Starcounter.Internal;
 using Starcounter.Advanced;
+using Starcounter.Templates;
+using System;
+
 
 namespace Starcounter {
     /// <summary>
@@ -24,7 +17,8 @@ namespace Starcounter {
     /// the kind of objects inducable from Json trees, albeit with a richer set of numeric representations.
     /// </summary>
     /// <remarks>
-    /// Obj is the base class for popular Starcounter concepts such as Puppets and Messages.
+    /// Obj is the base class for popular Starcounter concepts such as Puppets (live mirrored view models) and
+    /// Messages (json data objects used in REST style code).
     /// </remarks>
     public abstract partial class Obj : Container {
         /// <summary>
@@ -38,14 +32,15 @@ namespace Starcounter {
         /// <summary>
         /// Initializes a new instance of the <see cref="Obj" /> class.
         /// </summary>
-        public Obj() : base() {
+        public Obj()
+            : base() {
             _cacheIndexInArr = -1;
         }
 
         /// <summary>
         /// Cache element index if the parent of this Obj is an array (Arr).
         /// </summary>
-        internal Int32 _cacheIndexInArr;
+        internal int _cacheIndexInArr;
 
         /// <summary>
         /// In order to support Json pointers (TODO REF), this method is called
@@ -61,7 +56,8 @@ namespace Starcounter {
                         _cacheIndexInArr = ((Listing)Parent).IndexOf(this);
                     }
                     path[pos] = _cacheIndexInArr;
-                } else {
+                }
+                else {
                     path[pos] = Template.Index;
                 }
                 Parent.FillIndexPath(path, pos - 1);
@@ -122,9 +118,9 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// 
+        /// Returns the nearest parent that is not an Arr (list).
         /// </summary>
-        /// <returns></returns>
+        /// <returns>An Obj or null if this is the root Obj.</returns>
         internal Obj GetNearestObjParent() {
             Container parent = Parent;
             while ((parent != null) && (!(parent is Obj))) {
@@ -134,22 +130,24 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Refreshes the specified template.
+        /// Refreshes the specified property of this Obj.
         /// </summary>
-        /// <param name="model">The model.</param>
-        public void Refresh(Template model) {
-            if (model is TObjArr) {
-                TObjArr apa = (TObjArr)model;
+        /// <param name="property">The property</param>
+        public void Refresh(Template property) {
+            if (property is TObjArr) {
+                TObjArr apa = (TObjArr)property;
                 this.SetValue(apa, apa.GetBoundValue(this));
-            } else if (model is TObj) {
-                var at = (TObj)model;
+            }
+            else if (property is TObj) {
+                var at = (TObj)property;
 
                 // TODO:
                 IBindable v = at.GetBoundValue(this);
                 if (v != null)
                     this.SetValue(at, v);
-            } else {
-                TValue p = model as TValue;
+            }
+            else {
+                TValue p = property as TValue;
                 if (p != null) {
                     HasChanged(p);
                 }
@@ -159,21 +157,25 @@ namespace Starcounter {
         /// <summary>
         /// Is overridden by Puppet to log changes.
         /// </summary>
+        /// <remarks>
+        /// The puppet needs to log all changes as they will need to be sent to the client (the client keeps a mirrored view model).
+        /// See MVC/MVVM (TODO! REF!). See Puppets (TODO REF)
+        /// </remarks>
         /// <param name="property">The property that has changed in this Obj</param>
-        protected virtual void HasChanged( TValue property ) {
+        protected virtual void HasChanged(TValue property) {
         }
 
         /// <summary>
-        /// The template defining the properties of this Obj.
+        /// The template defining the schema (properties) of this Obj.
         /// </summary>
-        /// <value>The template.</value>
+        /// <value>The template</value>
         public new TObj Template {
             get { return (TObj)base.Template; }
             set { base.Template = value; }
         }
 
         /// <summary>
-        /// Implementation field used to cache the Properties property.
+        /// Implementation field used to cache the Metadata property.
         /// </summary>
         private ObjMetadata _Metadata = null;
 
