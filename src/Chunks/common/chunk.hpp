@@ -277,7 +277,9 @@ public:
 	 * @return A reference to this chunk.
 	 */
 	const chunk& set_request_size(message_size_type sz) {
-		InterlockedExchange((LONG*)(elems +request_size_begin), sz);
+        // TODO: Remove if not needed.
+		//InterlockedExchange((LONG*)(elems +request_size_begin), sz);
+        (*(message_size_type*)(elems +request_size_begin)) = sz;
 		return *this;
 	}
 	
