@@ -15,10 +15,57 @@ namespace Starcounter {
     /// objects can contain named properties with simple datatypes found in common programming languages,
     /// including string, integer, boolean, decimal, floating point, null and array. The objects mimics
     /// the kind of objects inducable from Json trees, albeit with a richer set of numeric representations.
+    /// 
+    /// An Obj object is a basic data object inspired by Json.  
+    /// Obj objects can form trees using arrays and basic
+    /// value types as well as nested objects.
+    /// 
+    /// While Json is a text based notation format, Obj is a materialized
+    /// tree of objects than can be serialized and deserialized from Json.
+    /// 
+    /// The difference from the Json induced object tree in Javascript is
+    /// foremost that Obj supports multiple numeric types, time and higher precision numerics.
+    ///
+    /// Obj is the base class for Starcounter Puppets and Starcounter Messages.
+    /// 
+    /// Each object points to a Template that describes its schema (properties). 
+    /// 
+    /// The datatypes are a merge of what is available in most common high abstraction application languages such as Javascript,
+    /// C#, Ruby and Java. This means that it is in part a superset and in part a subset.
+    /// 
+    ///
+    /// The types supported are:
+    ///
+    /// Object			    (can contain properties of any supported type)
+    /// List			    (typed array/list/vector of any supported type),
+    /// null            
+    /// Time 			    (datetime)
+    /// Boolean
+    /// String 			    (variable length Unicode string),
+    /// Integer 		    (variable length up to 64 bit, signed)
+    /// Unsigned Integer	(variable length up to 64 bit, unsigned)
+    /// Decimal			    (base-10 floating point up to 64 bit),
+    /// Float			    (base-2 floating point up to 64 bit)
+    /// 
+    /// 
+    /// The object trees are designed to be serializable and deserializable to and from JSON and XML although there
+    /// is presently no XML implementation.
+    /// 
+    /// When you write applications in Starcounter, you normally do not use Obj objects directly. Instead you would
+    /// use the specialisations Puppet for session-bound object trees or Message for REST style data transfer objects
+    /// that are sent as requests or responses to and from a Starcounter REST endpoint (handler).
     /// </summary>
     /// <remarks>
     /// Obj is the base class for popular Starcounter concepts such as Puppets (live mirrored view models) and
     /// Messages (json data objects used in REST style code).
+    ///
+    /// The current implementation has a few shortcommings. Currently Obj only supports arrays of objects.
+    /// Also, all objects in the array must use the same template. Support for arrays of value types (primitives) will
+    /// be supported in the future. Mixed type arrays are currently not planned.
+    /// 
+    /// In the release version of Starcounter, Obj objects trees will be optimized for storage in "blobs" rather than on
+    /// the garbage collected heap. This is such that stateful sessions can employ them without causing unnecessary system
+    /// stress.
     /// </remarks>
     public abstract partial class Obj : Container {
         /// <summary>
