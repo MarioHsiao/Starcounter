@@ -64,10 +64,6 @@
     <NoWarn>1591;1570;1571;1572;1573;1574</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Starcounter.Hypermedia, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\bin\Debug\Starcounter.Hypermedia.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.ServiceModel" />
@@ -138,6 +134,10 @@
     <ProjectReference Include="..\Starcounter.BitsAndBytes.Unsafe\BitsAndBytes.Unsafe.csproj">
       <Project>{885eb31b-cf41-4c6c-a7be-53b32a0c8b82}</Project>
       <Name>BitsAndBytes.Unsafe</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Hypermedia\Starcounter.Hypermedia.csproj">
+      <Project>{42137e4c-afe5-4c60-b970-3343c3b3ec30}</Project>
+      <Name>Starcounter.Hypermedia</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>

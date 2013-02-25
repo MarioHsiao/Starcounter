@@ -103,15 +103,17 @@
     <None Include="..\Starcounter.snk" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Starcounter.BitsAndBytes.Native, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\bin\Debug\Starcounter.BitsAndBytes.Native.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\Starcounter.ErrorCodes\errorcodes.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Starcounter.BitsAndBytes.Unsafe\BitsAndBytes.Unsafe.csproj">
+      <Project>{885eb31b-cf41-4c6c-a7be-53b32a0c8b82}</Project>
+      <Name>BitsAndBytes.Unsafe</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
