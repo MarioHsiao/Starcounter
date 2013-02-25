@@ -14,10 +14,10 @@
     <JsonToPuppetCsMsBuildTask
        InputFiles="@(Puppet)"
        OutputFiles="@(Puppet->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
-       <Output TaskParameter="OutputFiles" ItemName="gFiles" /> 
+       <Output TaskParameter="OutputFiles" ItemName="puppetFiles" /> 
     </JsonToPuppetCsMsBuildTask>
 	<ItemGroup>
-      <Compile Include="@(gFiles)" />
+      <Compile Include="@(puppetFiles)" />
     </ItemGroup>
   </Target>
 
@@ -27,10 +27,10 @@
     <JsonToMessageCsMsBuildTask
        InputFiles="@(Message)"
        OutputFiles="@(Message->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
-       <Output TaskParameter="OutputFiles" ItemName="gFiles" /> 
+       <Output TaskParameter="OutputFiles" ItemName="messageFiles" /> 
     </JsonToMessageCsMsBuildTask>
 	<ItemGroup>
-      <Compile Include="@(gFiles)" />
+      <Compile Include="@(messageFiles)" />
     </ItemGroup>
   </Target>
 
