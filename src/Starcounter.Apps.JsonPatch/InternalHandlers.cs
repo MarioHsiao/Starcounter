@@ -34,45 +34,36 @@ namespace Starcounter.Internal.JsonPatch {
                 return response;
             });
 
-
             Debug.Assert(Db.Environment != null, "Db.Environment is not initlized");
             Debug.Assert(string.IsNullOrEmpty(Db.Environment.DatabaseName) == false, "Db.Environment.DatabaseName is empty or null");
 
-            Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseName);
+            if (Db.Environment.HasDatabase) {
 
-            // SQL command
-            POST("/__sql/" + Db.Environment.DatabaseName, (HttpRequest r) => {
+                Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseName);
 
-                try {
-                    //                    System.Uri myUri = new System.Uri("http://www.example.com" + r.Uri);
-                    //                    NameValueCollection parameters = System.Web.HttpUtility.ParseQueryString(myUri.Query);
-                    //                    string offset = parameters.Get("offset");
-                    //                    string rows = parameters.Get("rows");
-                    string bodyData = r.GetBodyStringUtf8_Slow();   // Retrice the sql command in the body
-                    SqlResult sqlresult = Db.SQL(bodyData);
+                // SQL command
+                POST("/__sql/" + Db.Environment.DatabaseName, (HttpRequest r) => {
 
-                    string result = JsonConvert.SerializeObject(sqlresult);
-                    return result;
-                }
-                catch (Starcounter.SqlException sqle) {
-                    return sqle.Message;
-                }
-                catch (Exception e) {
-                    return e.ToString();
-                }
+                    try {
+                        //                    System.Uri myUri = new System.Uri("http://www.example.com" + r.Uri);
+                        //                    NameValueCollection parameters = System.Web.HttpUtility.ParseQueryString(myUri.Query);
+                        //                    string offset = parameters.Get("offset");
+                        //                    string rows = parameters.Get("rows");
+                        string bodyData = r.GetBodyStringUtf8_Slow();   // Retrice the sql command in the body
+                        SqlResult sqlresult = Db.SQL(bodyData);
 
-            });
+                        string result = JsonConvert.SerializeObject(sqlresult);
+                        return result;
+                    }
+                    catch (Starcounter.SqlException sqle) {
+                        return sqle.Message;
+                    }
+                    catch (Exception e) {
+                        return e.ToString();
+                    }
 
-
-            GET("/errorcode/{?}", (int code) => {
-
-                HttpResponse response = new HttpResponse();
-
-                response.Uncompressed = HttpPatchBuilder.Create400Response("my message");
-                return response;
-
-//                return code.ToString();
-            });
+                });
+            }
 
             PATCH("/__vm/{?}", (int viewModelId) => {
                 Puppet rootApp;
