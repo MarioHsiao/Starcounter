@@ -127,49 +127,76 @@ namespace Starcounter.Server.Commands {
 
             OnHostingInterfaceConnected();
 
-            if (command.PrepareOnly) {
-                bool success = client.Send("Ping");
-                if (!success) {
-                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
-                }
-            
-                OnPingRequestProcessed();
-            }
-            else {
-                
-                // The current database worker protocol is "Exec c:\myfile.exe". We use
-                // that until the full one is in place.
-                //   Grab the response message and utilize it if we fail.
-
-                var properties = new Dictionary<string, string>();
-                properties.Add("AssemblyPath", weavedExecutable);
-                properties.Add("WorkingDir", command.WorkingDirectory);
-                properties.Add("Args", KeyValueBinary.FromArray(command.ArgumentsToApplication).Value);
-
-                string responseMessage = string.Empty;
-                bool success = client.Send("Exec2", properties, delegate(Reply reply) {
-                    if (reply.IsResponse && !reply.IsSuccess) {
-                        reply.TryGetCarry(out responseMessage);
+            try {
+                if (command.PrepareOnly) {
+                    bool success = client.Send("Ping");
+                    if (!success) {
+                        throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
                     }
-                });
-                if (!success) {
-                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, responseMessage);
+
+                    OnPingRequestProcessed();
+                } else {
+
+                    // The current database worker protocol is "Exec c:\myfile.exe". We use
+                    // that until the full one is in place.
+                    //   Grab the response message and utilize it if we fail.
+
+                    var properties = new Dictionary<string, string>();
+                    properties.Add("AssemblyPath", weavedExecutable);
+                    properties.Add("WorkingDir", command.WorkingDirectory);
+                    properties.Add("Args", KeyValueBinary.FromArray(command.ArgumentsToApplication).Value);
+
+                    string responseMessage = string.Empty;
+                    bool success = client.Send("Exec2", properties, delegate(Reply reply) {
+                        if (reply.IsResponse && !reply.IsSuccess) {
+                            reply.TryGetCarry(out responseMessage);
+                        }
+                    });
+                    if (!success) {
+                        throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, responseMessage);
+                    }
+
+                    OnExec2RequestProcessed();
+
+                    // The app is successfully loaded in the worker process. We should
+                    // keep it referenced in the server and consider the execution of this
+                    // processor a success.
+                    app = new DatabaseApp() {
+                        OriginalExecutablePath = command.AssemblyPath,
+                        WorkingDirectory = command.WorkingDirectory,
+                        Arguments = command.Arguments,
+                        ExecutionPath = weavedExecutable
+                    };
+                    database.Apps.Add(app);
+
+                    OnDatabaseAppRegistered();
                 }
 
-                OnExec2RequestProcessed();
+            } catch (TimeoutException timeout) {
+                // When we experience a timeout, we can try to check if the
+                // process is still alive. If not, it might have crashed.
+                // Else, we should indicate that the timeout time can be adjusted
+                // by means of config?
 
-                // The app is successfully loaded in the worker process. We should
-                // keep it referenced in the server and consider the execution of this
-                // processor a success.
-                app = new DatabaseApp() {
-                    OriginalExecutablePath = command.AssemblyPath,
-                    WorkingDirectory = command.WorkingDirectory,
-                    Arguments = command.Arguments,
-                    ExecutionPath = weavedExecutable
-                };
-                database.Apps.Add(app);
+                workerProcess.Refresh();
+                if (workerProcess.HasExited) {
+                    // The code host has exited, most likely because something
+                    // in the bootstrap sequence or in the exec handler has gone
+                    // wrong. We count on the code host logging the exact reason,
+                    // but just in case it fails to do so, we log this from the
+                    // perspective of the server, including the exit code.
+                    //   We also don't try to amend this right now, since we don't
+                    // have any good strategy figured out. We start with just
+                    // logging it and nothing else.
 
-                OnDatabaseAppRegistered();
+                    Log.LogError(ErrorCode.ToMessage(Error.SCERRDATABASEENGINETERMINATED, string.Format("Process exit code: {0}", workerProcess.ExitCode)));
+                }
+
+                // We always rethrow the timeout exception, since we really can't
+                // handle it on this level - we let the server decide how to go
+                // further.
+
+                throw timeout;
             }
 
             Engine.CurrentPublicModel.UpdateDatabase(database);
