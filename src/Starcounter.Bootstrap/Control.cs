@@ -101,8 +101,7 @@ namespace StarcounterInternal.Bootstrap
             OnExceptionFactoryInstalled();
 
             ApplicationArguments arguments;
-            if (!ProgramCommandLine.TryGetProgramArguments(args, out arguments))
-                return false;
+            ProgramCommandLine.TryGetProgramArguments(args, out arguments);
             OnCommandLineParsed();
 
             configuration = Configuration.Load(arguments);
