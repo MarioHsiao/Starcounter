@@ -583,8 +583,8 @@ namespace Starcounter.Internal.Test {
             Assert.True(um.Invoke(new HttpRequest(h9), out resource));
             Assert.False(um.Invoke(new HttpRequest(h10), out resource));
             Assert.False(um.Invoke(new HttpRequest(h11), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h11), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h11), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h12), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h13), out resource));
 
         }
 
