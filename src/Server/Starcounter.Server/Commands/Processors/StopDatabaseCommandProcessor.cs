@@ -30,7 +30,7 @@ namespace Starcounter.Server.Commands.Processors {
                 throw ErrorCode.ToException(Error.SCERRDATABASENOTFOUND, string.Format("Database: '{0}'.", command.DatabaseUri));
             }
 
-            Engine.DatabaseEngine.StopWorkerProcess(database);
+            Engine.DatabaseEngine.StopCodeHostProcess(database);
             if (command.StopDatabaseProcess) {
                 Engine.DatabaseEngine.StopDatabaseProcess(database);
             }
