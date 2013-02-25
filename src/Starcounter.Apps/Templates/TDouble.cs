@@ -22,13 +22,7 @@ namespace Starcounter.Templates {
         /// </summary>
        private double _DefaultValue = 0;
 
-       /// <summary>
-       /// Processes the input.
-       /// </summary>
-       /// <param name="app">The app.</param>
-       /// <param name="rawValue">The raw value.</param>
-       /// <exception cref="System.NotImplementedException"></exception>
-       public override void ProcessInput(Puppet app, byte[] rawValue)
+       internal override void ProcessInput(Obj obj, byte[] rawValue)
        {
            throw new NotImplementedException();
        }

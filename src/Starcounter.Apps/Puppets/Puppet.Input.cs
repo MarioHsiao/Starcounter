@@ -6,16 +6,16 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Starcounter {
-    public partial class Puppet {
+    public partial class Puppet<T> {
 
         /// <summary>
         /// 
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="V"></typeparam>
         /// <param name="template"></param>
         /// <param name="value"></param>
-        public void ProcessInput<T>(TValue<T> template, T value) {
-            Input<T> input = null;
+        internal override void ProcessInput<V>(TValue<V> template, V value) {
+            Input<V> input = null;
 
             if (template.CustomInputEventCreator != null)
                 input = template.CustomInputEventCreator.Invoke(this, template, value);
@@ -26,7 +26,7 @@ namespace Starcounter {
                 }
                 if (!input.Cancelled) {
                     Debug.WriteLine("Setting value after custom handler: " + input.Value);
-                    SetValue((TValue<T>)template, input.Value);
+                    SetValue((TValue<V>)template, input.Value);
                 }
                 else {
                     Debug.WriteLine("Handler cancelled: " + value);
@@ -34,7 +34,7 @@ namespace Starcounter {
             }
             else {
                 Debug.WriteLine("Setting value after no handler: " + value);
-                SetValue((TValue<T>)template, value);
+                SetValue((TValue<V>)template, value);
             }
         }
     }

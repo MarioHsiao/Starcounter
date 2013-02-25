@@ -13,6 +13,10 @@ namespace Starcounter {
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public class Message<T> : Obj<T> where T : IBindable {
+
+        internal override void ProcessInput<V>(TValue<V> template, V value) {
+            throw new System.NotImplementedException();
+        }
     }
 
     /// <summary>

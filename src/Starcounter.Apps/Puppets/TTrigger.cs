@@ -70,17 +70,17 @@ namespace Starcounter.Templates {
 
         /// <summary>
         /// </summary>
-        /// <param name="app"></param>
+        /// <param name="obj"></param>
         /// <param name="rawValue"></param>
-        public override void ProcessInput(Puppet app, byte[] rawValue) {
+        internal override void ProcessInput(Obj obj, byte[] rawValue) {
             Input input = null;
 
             if (CustomInputEventCreator != null)
-                input = CustomInputEventCreator.Invoke(app, this);
+                input = CustomInputEventCreator.Invoke((Puppet)obj, this);
 
             if (input != null) {
                 foreach (var h in CustomInputHandlers) {
-                    h.Invoke(app, input);
+                    h.Invoke((Puppet)obj, input);
                 }
             } 
         }
