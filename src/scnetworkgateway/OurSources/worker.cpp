@@ -1551,12 +1551,15 @@ uint32_t GatewayWorker::CloneChunkForNewDatabase(SocketDataChunkRef old_sd, int3
     (*new_sd) = (SocketDataChunk*)((uint8_t*)new_smc + bmx::BMX_HEADER_MAX_SIZE_BYTES);
 
     // Copying chunk data.
-    memcpy(new_smc, old_sd->get_smc(), core::chunk_size);
+    memcpy(new_smc, old_sd->get_smc(),
+        bmx::BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_BLOB_OFFSET_BYTES + old_sd->get_accum_buf()->get_accum_len_bytes());
 
     // Attaching to new database.
     (*new_sd)->AttachToDatabase(new_db_index);
 
     // Returning old chunk to its pool.
+    // TODO: Or disconnect?
+    old_sd->set_socket_diag_active_conn_flag(false);
     worker_dbs_[old_sd->get_db_index()]->ReturnSocketDataChunksToPool(this, old_sd);
 
     return 0;
