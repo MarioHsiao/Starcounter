@@ -46,7 +46,7 @@ namespace Starcounter.Server {
         /// Gets or sets the worker process associated with the
         /// current <see cref="Database"/>.
         /// </summary>
-        internal Process WorkerProcess {
+        internal Process CodeHostProcess {
             get;
             set;
         }
@@ -107,7 +107,7 @@ namespace Starcounter.Server {
         /// <returns>A <see cref="DatabaseInfo"/> representing the current state
         /// of this database.</returns>
         internal DatabaseInfo ToPublicModel() {
-            var process = GetRunningWorkerProcess();
+            var process = GetRunningCodeHostProcess();
             var info = new DatabaseInfo() {
                 CollationFile = null,
                 Configuration = this.Configuration.Clone(this.Configuration.ConfigurationFilePath),
@@ -132,8 +132,8 @@ namespace Starcounter.Server {
         /// or NULL if not started or it has exited.
         /// </summary>
         /// <returns></returns>
-        internal Process GetRunningWorkerProcess() {
-            var p = WorkerProcess;
+        internal Process GetRunningCodeHostProcess() {
+            var p = CodeHostProcess;
             if (p != null) {
                 p.Refresh();
                 p = p.HasExited ? null : p;
