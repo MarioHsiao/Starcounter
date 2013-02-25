@@ -19,16 +19,16 @@ uint32_t RegisteredUri::RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bo
     // Going through all handler list.
     for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++)
     {
-        // Checking if chunk belongs to database.
+        // Checking if chunk belongs to the destination database.
         if (sd->get_db_index() != handler_lists_[i].get_db_index())
         {
             // Getting new chunk and copy contents from old one.
             SocketDataChunk* new_sd = NULL;
-            err_code = gw->ObtainAndCopyChunk(sd, handler_lists_[i].get_db_index(), &new_sd);
+            err_code = gw->CloneChunkForNewDatabase(sd, handler_lists_[i].get_db_index(), &new_sd);
             if (err_code)
                 return err_code;
 
-            // Attaching new chunk reference.
+            // Setting new chunk reference.
             sd = new_sd;
         }
 
