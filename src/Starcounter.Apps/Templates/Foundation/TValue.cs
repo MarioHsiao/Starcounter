@@ -78,19 +78,19 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="app"></param>
+        /// <param name="obj"></param>
         /// <returns></returns>
-        public override object GetBoundValueAsObject(Obj app) {
-            return dataBinding.GetValue((Puppet)app);
+        public override object GetBoundValueAsObject(Obj obj) {
+            return dataBinding.GetValue(obj);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="app"></param>
+        /// <param name="obj"></param>
         /// <param name="value"></param>
-        public override void SetBoundValueAsObject(Obj app, object value) {
-            dataBinding.SetValue((Puppet)app, (T)value);
+        public override void SetBoundValueAsObject(Obj obj, object value) {
+            dataBinding.SetValue(obj, (T)value);
         }
     }
 

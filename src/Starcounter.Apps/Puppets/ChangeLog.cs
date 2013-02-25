@@ -75,7 +75,7 @@ namespace Starcounter {
         /// <param name="obj">The Obj.</param>
         /// <param name="list">The property of the list that the item was added to.</param>
         /// <param name="index">The index in the list where the item was added.</param>
-        internal static void AddItemInList<T>(Puppet<T> obj, TObjArr list, Int32 index) where T : IBindable {
+        internal static void AddItemInList<T>(Obj<T> obj, TObjArr list, Int32 index) where T : IBindable {
             ChangeLog log = Log;
             if (log != null)
                 log._changes.Add(Change.Add(obj, list, index));
@@ -87,9 +87,9 @@ namespace Starcounter {
         /// <param name="obj">The app.</param>
         /// <param name="list">The property of the list the item was removed from.</param>
         /// <param name="index">The index in the list of the removed item.</param>
-        internal static void RemoveItemInList<T>(Puppet<T> obj, TObjArr list, Int32 index) where T : IBindable  {
+        internal static void RemoveItemInList<T>(Obj<T> obj, TObjArr list, Int32 index) where T : IBindable  {
             ChangeLog log = Log;
-            if (log != null && obj.IsSerialized)
+            if (log != null && ((Puppet<T>)obj).IsSerialized)
                 log._changes.Add(Change.Remove(obj, list, index));
         }
 

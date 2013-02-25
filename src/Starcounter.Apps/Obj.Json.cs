@@ -96,11 +96,11 @@ namespace Starcounter {
                         }
                         sb.Append(']');
                     }
-                    else if (prop is TPuppet) {
+                    else if (prop is TObj) {
 //                       var x = includeViewContent;
 //                       if (x == IncludeView.Default)
 //                          x = IncludeView.Always;
-                       sb.Append(((Puppet)val).ToJson());
+                       sb.Append(((Obj)val).ToJson());
                     }
                     else {
                         object papa = val;

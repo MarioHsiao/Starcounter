@@ -24,8 +24,8 @@ namespace Starcounter.Templates {
     /// <typeparam name="OT">The type of the app type.</typeparam>
     /// <typeparam name="OTT">The type of the app template type.</typeparam>
     public class TArr<OT,OTT> : TObjArr
-        where OT : Puppet, new()
-        where OTT : TPuppet
+        where OT : Obj, new()
+        where OTT : TObj
     {
         /// <summary>
         /// Creates the instance.
@@ -33,7 +33,7 @@ namespace Starcounter.Templates {
         /// <param name="parent">The parent.</param>
         /// <returns>System.Object.</returns>
         public override object CreateInstance(Container parent) {
-            return new Listing<OT>((Puppet)parent, this);
+            return new Listing<OT>((Obj)parent, this);
         }
 
         /// <summary>
