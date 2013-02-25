@@ -38,7 +38,7 @@ namespace Starcounter.Server.Commands {
             string weavedExecutable;
             Database database;
             DatabaseApp app;
-            Process workerProcess;
+            Process codeHostProcess;
             bool databaseExist;
             
             // First see if we can find the database and take a look what
@@ -68,7 +68,7 @@ namespace Starcounter.Server.Commands {
                         return;
                     }
 
-                    Engine.DatabaseEngine.StopWorkerProcess(database);
+                    Engine.DatabaseEngine.StopCodeHostProcess(database);
 
                     OnExistingWorkerProcessStopped();
                 }
@@ -95,7 +95,7 @@ namespace Starcounter.Server.Commands {
 
             OnDatabaseProcessStarted();
 
-            Engine.DatabaseEngine.StartWorkerProcess(database, command.NoDb, out workerProcess);
+            Engine.DatabaseEngine.StartCodeHostProcess(database, command.NoDb, out codeHostProcess);
 
             OnWorkerProcessStarted();
 
@@ -178,8 +178,8 @@ namespace Starcounter.Server.Commands {
                 // Else, we should indicate that the timeout time can be adjusted
                 // by means of config?
 
-                workerProcess.Refresh();
-                if (workerProcess.HasExited) {
+                codeHostProcess.Refresh();
+                if (codeHostProcess.HasExited) {
                     // The code host has exited, most likely because something
                     // in the bootstrap sequence or in the exec handler has gone
                     // wrong. We count on the code host logging the exact reason,
@@ -189,7 +189,7 @@ namespace Starcounter.Server.Commands {
                     // have any good strategy figured out. We start with just
                     // logging it and nothing else.
 
-                    Log.LogError(ErrorCode.ToMessage(Error.SCERRDATABASEENGINETERMINATED, string.Format("Process exit code: {0}", workerProcess.ExitCode)));
+                    Log.LogError(ErrorCode.ToMessage(Error.SCERRDATABASEENGINETERMINATED, string.Format("Process exit code: {0}", codeHostProcess.ExitCode)));
                 }
 
                 // We always rethrow the timeout exception, since we really can't
