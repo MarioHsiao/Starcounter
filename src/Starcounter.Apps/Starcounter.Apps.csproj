@@ -100,9 +100,6 @@
     <Compile Include="ValueMetadata\LongMetadata.cs" />
     <Compile Include="ValueMetadata\ObjectMetadata.cs" />
     <Compile Include="Templates\Foundation\ReplaceableTemplate.cs" />
-    <Compile Include="Puppets\ExeModule\App.ExeModule.cs" />
-    <Compile Include="Puppets\ExeModule\ExeModule.cs" />
-    <Compile Include="Puppets\ExeModule\TellServerToStartMe.cs" />
     <Compile Include="ValueMetadata\Foundation\AppMetadataBase.cs" />
     <Compile Include="ValueMetadata\ObjMetadata.cs" />
     <Compile Include="ValueMetadata\BoolMetadata.cs" />

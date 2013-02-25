@@ -11,7 +11,6 @@ using NUnit.Framework;
 using Starcounter.Apps;
 using Starcounter.Internal;
 using Starcounter.Internal.JsonTemplate;
-using Starcounter.Internal.ExeModule;
 using Starcounter.Templates;
 
 namespace Starcounter.Internal.JsonPatch.Test
@@ -104,7 +103,6 @@ namespace Starcounter.Internal.JsonPatch.Test
         [Test]
         public static void TestReadJsonPatchBlob()
         {
-            AppExeModule.IsRunningTests = true;
             String patchBlob;
             
             patchBlob = "[";
@@ -128,8 +126,6 @@ namespace Starcounter.Internal.JsonPatch.Test
         [Test]
         public static void TestReadJsonPatch()
         {
-            AppExeModule.IsRunningTests = true;
-
             Session session = new Session();
 
             session.Execute(null, () => {
@@ -176,8 +172,6 @@ namespace Starcounter.Internal.JsonPatch.Test
         [Test]
         public static void TestWriteJsonPatch()
         {
-            AppExeModule.IsRunningTests = true;
-
             AppAndTemplate aat = CreateSampleApp();
             dynamic app = aat.App;
             dynamic item = app.Items[1];
@@ -220,8 +214,6 @@ namespace Starcounter.Internal.JsonPatch.Test
         [Test]
         public static void TestAppIndexPath()
         {
-            AppExeModule.IsRunningTests = true;
-
             AppAndTemplate aat = CreateSampleApp();
             TObj appt = (TPuppet)aat.Template;
 
@@ -272,7 +264,6 @@ namespace Starcounter.Internal.JsonPatch.Test
             DateTime start = DateTime.MinValue;
             DateTime stop = DateTime.MinValue;
 
-            AppExeModule.IsRunningTests = true;
             Int32 repeat = 1;
 
             Session session = new Session();
