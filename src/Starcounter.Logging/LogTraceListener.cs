@@ -17,6 +17,16 @@ namespace Starcounter.Logging {
         public readonly LogSource Log;
 
         /// <summary>
+        /// Initialize a new <see cref="LogTraceListener"/> with a default
+        /// log source name, based on the name of the current process.
+        /// </summary>
+        public LogTraceListener() {
+            var name = Process.GetCurrentProcess().ProcessName;
+            name = string.Concat(name, ".", "TraceLogger");
+            this.Log = new LogSource(name);
+        }
+
+        /// <summary>
         /// Initialize a new <see cref="LogTraceListener"/>.
         /// </summary>
         /// <param name="source">The <see cref="LogSource"/> to be used
