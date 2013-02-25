@@ -21,6 +21,7 @@
 #include <stdint.h>
 #include <list>
 #include <vector>
+#include "../../Starcounter.Internal/Constants/MixedCodeConstants.cs"
 #include "coalmine.h"
 #include "chunk_helper.h"
 #include "..\common\chunk.hpp"
@@ -64,7 +65,7 @@ namespace bmx
     const uint32_t MAX_EXTRA_LINKED_WSABUFS = CHUNK_MAX_DATA_BYTES / sizeof(WSABUF) - 1;
     const uint32_t MAX_BYTES_EXTRA_LINKED_WSABUFS = MAX_EXTRA_LINKED_WSABUFS * CHUNK_MAX_DATA_BYTES;
 
-    const uint32_t BMX_HEADER_MAX_SIZE_BYTES = 32;
+    const uint32_t BMX_HEADER_MAX_SIZE_BYTES = MixedCodeConstants::BMX_HEADER_MAX_SIZE_BYTES;
 
     // Some socket data constants.
     const uint32_t  SOCKET_DATA_FLAGS_JUST_SEND = 64;
@@ -74,9 +75,7 @@ namespace bmx
     const uint32_t SESSION_STRUCT_SIZE = 32;
     const uint32_t OVERLAPPED_STRUCT_SIZE = 32;
 
-    const uint32_t SOCKET_DATA_OFFSET_NUM_CHUNKS = 84;
     const uint32_t SOCKET_DATA_NUM_CLONE_BYTES = 152;
-    const uint32_t SOCKET_DATA_OFFSET_HTTP_REQUEST = 232;
 
     // Offset of data blob in socket data.
     const int32_t SOCKET_DATA_OFFSET_BLOB = 712;
@@ -86,7 +85,7 @@ namespace bmx
     const uint32_t CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES = CHUNK_OFFSET_MAX_USER_DATA_BYTES + 4;
     const uint32_t CHUNK_OFFSET_SOCKET_FLAGS = BMX_HEADER_MAX_SIZE_BYTES + 112;
     const uint32_t BMX_NUM_CLONE_BYTES = BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_NUM_CLONE_BYTES;
-    const uint32_t CHUNK_OFFSET_BMX_HTTP_REQUEST = BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_OFFSET_HTTP_REQUEST;
+    const uint32_t CHUNK_OFFSET_BMX_HTTP_REQUEST = BMX_HEADER_MAX_SIZE_BYTES + MixedCodeConstants::SOCKET_DATA_OFFSET_HTTP_REQUEST;
     const uint32_t SOCKET_DATA_MAX_SIZE = starcounter::core::chunk_size - BMX_HEADER_MAX_SIZE_BYTES - shared_memory_chunk::link_size;
 
     const BMX_HANDLER_TYPE BMX_INVALID_HANDLER_INFO = ~(BMX_HANDLER_TYPE)0;
